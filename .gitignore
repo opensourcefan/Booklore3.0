@@ -37,4 +37,4 @@ out/
 .vscode/
 local/
 
-src/main/resources/application-local.yaml
+booklore-api/src/main/resources/application-local.yaml
