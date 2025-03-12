@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   booklore:
-    image: localhost:5000/booklore-app:latest
+    image: ghcr.io/adityachandelgit/booklore-app:${BOOKLORE_IMAGE_TAG}
     container_name: booklore
     env_file:
       - .env
