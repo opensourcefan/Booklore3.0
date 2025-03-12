@@ -3,7 +3,7 @@ name: Build and Push to GitHub Container Registry
 on:
   push:
     branches:
-      - main
+      - master
   release:
     types: [published]
 
