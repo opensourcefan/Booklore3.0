@@ -97,6 +97,17 @@ Once the containers are up, access BookLore in your browser at:
 http://localhost:6060
 ```
 
+### 6️⃣ First-Time Login
+
+After starting the containers, you can log into BookLore with the default admin credentials:
+
+```ini
+Username: admin
+Password: admin123
+```
+> ⚠️ **Important:**  
+> You’ll be prompted to change the default password upon your first login to ensure better security.
+
 ## Tech Stack
 
 - **Backend:** Spring Boot (Java)
