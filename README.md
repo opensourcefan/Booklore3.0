@@ -19,6 +19,14 @@ BookLore is a self-hosted web app for organizing and managing your personal book
 
 BookLore is perfect for self-hosters who want complete control over their digital library. Stay tuned for updates!
 
+## Video Guides & Tutorials
+
+For a step-by-step walkthrough, check out the official BookLore video guides on YouTube:
+
+📺 [BookLore Tutorials – YouTube](https://www.youtube.com/watch?v=UMrn_fIeFRo&list=PLi0fq0zaM7lqY7dX0R66jQtKW64z4_Tdz)
+
+These videos cover deployment, configuration, and feature highlights to help you get started quickly.
+
 ## Deploy with Docker
 
 You can quickly set up and run BookLore using Docker.
