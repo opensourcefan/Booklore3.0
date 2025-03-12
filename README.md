@@ -2,7 +2,7 @@
 
 BookLore is a self-hosted web app for organizing and managing your personal book collection. It provides an intuitive interface to browse, read, and track your progress across PDFs and eBooks. With robust metadata management, multi-user support, and a sleek, modern UI, BookLore makes it easy to build and explore your personal library.
 
-![BookLore Screenshot](https://i.imgur.com/YudmRrr.jpeg)
+![BookLore Screenshot](assets/booklore-screenshot.jpg)
 
 ## Key Features
 - **Modern, Responsive UI** – A sleek, highly reactive, and fluent interface for a seamless reading experience.

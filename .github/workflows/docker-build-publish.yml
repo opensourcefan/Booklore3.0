@@ -3,8 +3,7 @@ name: Build, Tag, and Push to GitHub Container Registry
 on:
   push:
     branches:
-      - develop
-      - master
+      - disable
 
 jobs:
   build-and-push:
