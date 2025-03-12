@@ -1,3 +1,16 @@
+CREATE TABLE IF NOT EXISTS users
+(
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username            VARCHAR(255) NOT NULL UNIQUE,
+    password_hash       VARCHAR(255) NOT NULL,
+    is_default_password BOOLEAN      NOT NULL DEFAULT TRUE,
+    name                VARCHAR(255) NOT NULL,
+    email               VARCHAR(255) UNIQUE,
+    book_preferences    TEXT         NOT NULL,
+    created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
 CREATE TABLE IF NOT EXISTS library
 (
     id    BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -115,11 +128,11 @@ CREATE TABLE IF NOT EXISTS category
 
 CREATE TABLE IF NOT EXISTS pdf_viewer_preference
 (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id         BIGINT      NOT NULL,
-    book_id         BIGINT      NOT NULL,
-    zoom            VARCHAR(16) NULL,
-    spread          VARCHAR(16) NULL,
+    id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT      NOT NULL,
+    book_id BIGINT      NOT NULL,
+    zoom    VARCHAR(16) NULL,
+    spread  VARCHAR(16) NULL,
     UNIQUE (user_id, book_id)
 );
 
@@ -156,19 +169,6 @@ CREATE TABLE IF NOT EXISTS book_metadata_author_mapping
 );
 CREATE INDEX IF NOT EXISTS idx_book_metadata_id ON book_metadata_author_mapping (book_id);
 CREATE INDEX IF NOT EXISTS idx_author_id ON book_metadata_author_mapping (author_id);
-
-
-CREATE TABLE IF NOT EXISTS users
-(
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username         VARCHAR(255) NOT NULL UNIQUE,
-    password_hash    VARCHAR(255) NOT NULL,
-    name             VARCHAR(255) NOT NULL,
-    email            VARCHAR(255) UNIQUE,
-    book_preferences TEXT         NOT NULL,
-    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
 
 
 CREATE TABLE IF NOT EXISTS user_permissions

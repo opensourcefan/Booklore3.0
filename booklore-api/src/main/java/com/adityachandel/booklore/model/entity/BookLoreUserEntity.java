@@ -29,6 +29,9 @@ public class BookLoreUserEntity {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "is_default_password", nullable = false)
+    private boolean isDefaultPassword;
+
     @Column(nullable = false)
     private String name;
 
@@ -37,9 +40,6 @@ public class BookLoreUserEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @Column(name = "book_preferences")
     @Convert(converter = BookPreferencesConverter.class)
@@ -61,13 +61,6 @@ public class BookLoreUserEntity {
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 }

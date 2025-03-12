@@ -31,6 +31,8 @@ public enum ApiError {
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "User not found: %s"),
     CANNOT_DELETE_ADMIN(HttpStatus.FORBIDDEN, "Admin user cannot be deleted"),
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "%s"),
+    PASSWORD_INCORRECT(HttpStatus.BAD_REQUEST, "Incorrect current password"),
+    PASSWORD_WEAK(HttpStatus.BAD_REQUEST, "New password is not strong enough. It must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character."),
     INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST, "Invalid credentials");
 
     private final HttpStatus status;

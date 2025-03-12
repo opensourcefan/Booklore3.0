@@ -39,6 +39,7 @@ public class UserCreatorService {
 
         BookLoreUserEntity user = new BookLoreUserEntity();
         user.setUsername(request.getUsername());
+        user.setDefaultPassword(true);
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -48,7 +49,6 @@ public class UserCreatorService {
         permissions.setPermissionUpload(request.isPermissionUpload());
         permissions.setPermissionDownload(request.isPermissionDownload());
         permissions.setPermissionEditMetadata(request.isPermissionEditMetadata());
-        permissions.setPermissionManipulateLibrary(request.isPermissionManipulateLibrary());
         user.setPermissions(permissions);
 
         user.setBookPreferences(buildDefaultBookPreferences());
@@ -71,6 +71,7 @@ public class UserCreatorService {
         BookLoreUserEntity user = new BookLoreUserEntity();
         user.setUsername("admin");
         user.setPasswordHash(passwordEncoder.encode("admin123"));
+        user.setDefaultPassword(true);
         user.setName("Administrator");
         user.setEmail("admin@email.com");
 

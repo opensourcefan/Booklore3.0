@@ -1,10 +1,11 @@
 import {inject, Injectable, Injector} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject, Observable, of} from 'rxjs';
+import {BehaviorSubject, Observable, of, throwError} from 'rxjs';
 import {API_CONFIG} from './config/api-config';
 import {jwtDecode} from 'jwt-decode';
 import {RxStompService} from './shared/websocket/rx-stomp.service';
 import {Library} from './book/model/library.model';
+import {catchError} from 'rxjs/operators';
 
 export interface User {
   id: number;
@@ -60,19 +61,7 @@ export class UserService {
   userData$ = this.userDataSubject.asObservable();
 
   constructor() {
-    this.loadUserFromToken();
-  }
-
-  private loadUserFromToken(): void {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      const decoded: JwtPayload = jwtDecode(token);
-      this.fetchUser(decoded.userId);
-    }
-  }
-
-  fetchUser(userId: number): void {
-    this.http.get<User>(`${this.userUrl}/${userId}`).subscribe(user => {
+    this.getMyself().subscribe(user => {
       this.userDataSubject.next(user);
       this.startWebSocket();
     });
@@ -100,6 +89,32 @@ export class UserService {
 
   deleteUser(userId: number): Observable<void> {
     return this.http.delete<void>(`${this.userUrl}/${userId}`);
+  }
+
+  changeUserPassword(userId: number, newPassword: string): Observable<void> {
+    const payload = {
+      userId: userId,
+      newPassword: newPassword
+    };
+    return this.http.put<void>(`${this.userUrl}/change-user-password`, payload).pipe(
+      catchError((error) => {
+        const errorMessage = error?.error?.message || 'An unexpected error occurred. Please try again.';
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    const payload = {
+      currentPassword: currentPassword,
+      newPassword: newPassword
+    };
+    return this.http.put<void>(`${this.userUrl}/change-password`, payload).pipe(
+      catchError((error) => {
+        const errorMessage = error?.error?.message || 'An unexpected error occurred. Please try again.';
+        return throwError(() => new Error(errorMessage));
+      })
+    );
   }
 
   updateBookPreferences(userId: number, prefs: UserBookPreferences): void {

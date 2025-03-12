@@ -11,10 +11,22 @@ import {Checkbox} from 'primeng/checkbox';
 import {MultiSelect} from 'primeng/multiselect';
 import {Library} from '../../../../book/model/library.model';
 import {LibraryService} from '../../../../book/service/library.service';
+import {Dialog} from 'primeng/dialog';
+import {Password} from 'primeng/password';
 
 @Component({
   selector: 'app-admin',
-  imports: [FormsModule, Button, TableModule, NgIf, Checkbox, NgStyle, MultiSelect],
+  imports: [
+    FormsModule,
+    Button,
+    TableModule,
+    NgIf,
+    Checkbox,
+    NgStyle,
+    MultiSelect,
+    Dialog,
+    Password,
+  ],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
 })
@@ -29,6 +41,12 @@ export class AdminComponent implements OnInit {
   editingLibraryIds: number[] = [];
   allLibraries: Library[] = [];
 
+  isPasswordDialogVisible = false;
+  selectedUser: User | null = null;
+  newPassword = '';
+  confirmNewPassword = '';
+  passwordError = '';
+
   ngOnInit() {
     this.loadUsers();
     this.libraryService.getAllLibrariesFromAPI().subscribe({
@@ -36,23 +54,32 @@ export class AdminComponent implements OnInit {
         this.allLibraries = libraries;
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to load libraries'});
-      }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load libraries',
+        });
+      },
     });
   }
 
   loadUsers() {
     this.userService.getUsers().subscribe({
       next: (data) => {
-        this.users = data.map(user => ({
+        this.users = data.map((user) => ({
           ...user,
           isEditing: false,
-          selectedLibraryIds: user.assignedLibraries?.map(lib => lib.id) || [],
-          libraryNames: user.assignedLibraries?.map(lib => lib.name).join(', ') || ''
+          selectedLibraryIds: user.assignedLibraries?.map((lib) => lib.id) || [],
+          libraryNames:
+            user.assignedLibraries?.map((lib) => lib.name).join(', ') || '',
         }));
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to fetch users'});
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to fetch users',
+        });
       },
     });
   }
@@ -76,44 +103,101 @@ export class AdminComponent implements OnInit {
     if (user.isEditing) {
       this.editingLibraryIds = [...user.selectedLibraryIds];
     } else {
-      user.libraryNames = user.assignedLibraries?.map((lib: Library) => lib.name).join(', ') || '';
+      user.libraryNames =
+        user.assignedLibraries
+          ?.map((lib: Library) => lib.name)
+          .join(', ') || '';
     }
   }
 
   saveUser(user: any) {
     user.selectedLibraryIds = [...this.editingLibraryIds];
-    this.userService.updateUser(user.id, {
-      name: user.name,
-      email: user.email,
-      permissions: user.permissions,
-      assignedLibraries: user.selectedLibraryIds
-    }).subscribe({
-      next: () => {
-        user.isEditing = false;
-        this.loadUsers();
-        this.messageService.add({severity: 'success', summary: 'Success', detail: 'User updated successfully'});
-      },
-      error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to update user'});
-      },
-    });
+    this.userService
+      .updateUser(user.id, {
+        name: user.name,
+        email: user.email,
+        permissions: user.permissions,
+        assignedLibraries: user.selectedLibraryIds,
+      })
+      .subscribe({
+        next: () => {
+          user.isEditing = false;
+          this.loadUsers();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'User updated successfully',
+          });
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to update user',
+          });
+        },
+      });
   }
 
   deleteUser(user: User) {
     if (confirm(`Are you sure you want to delete ${user.username}?`)) {
       this.userService.deleteUser(user.id).subscribe({
         next: () => {
-          this.messageService.add({severity: 'success', summary: 'Success', detail: `User ${user.username} deleted successfully`});
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `User ${user.username} deleted successfully`,
+          });
           this.loadUsers();
         },
         error: (err) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: err.error?.message || `Failed to delete user ${user.username}`,
+            detail:
+              err.error?.message ||
+              `Failed to delete user ${user.username}`,
           });
-        }
+        },
       });
+    }
+  }
+
+  openChangePasswordDialog(user: User) {
+    this.selectedUser = user;
+    this.newPassword = '';
+    this.confirmNewPassword = '';
+    this.passwordError = '';
+    this.isPasswordDialogVisible = true;
+  }
+
+  submitPasswordChange() {
+    if (!this.newPassword || !this.confirmNewPassword) {
+      this.passwordError = 'Both fields are required';
+      return;
+    }
+
+    if (this.newPassword !== this.confirmNewPassword) {
+      this.passwordError = 'Passwords do not match';
+      return;
+    }
+
+    if (this.selectedUser) {
+      this.userService
+        .changeUserPassword(this.selectedUser.id, this.newPassword)
+        .subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Password changed successfully',
+            });
+            this.isPasswordDialogVisible = false;
+          },
+          error: (err) => {
+            this.passwordError = err;
+          }
+        });
     }
   }
 }

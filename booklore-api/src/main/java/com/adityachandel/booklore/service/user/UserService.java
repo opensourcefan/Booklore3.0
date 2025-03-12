@@ -3,6 +3,8 @@ package com.adityachandel.booklore.service.user;
 import com.adityachandel.booklore.config.security.AuthenticationService;
 import com.adityachandel.booklore.exception.ApiError;
 import com.adityachandel.booklore.mapper.BookLoreUserMapper;
+import com.adityachandel.booklore.model.dto.request.ChangePasswordRequest;
+import com.adityachandel.booklore.model.dto.request.ChangeUserPasswordRequest;
 import com.adityachandel.booklore.model.dto.settings.BookPreferences;
 import com.adityachandel.booklore.model.dto.BookLoreUser;
 import com.adityachandel.booklore.model.dto.request.UserUpdateRequest;
@@ -13,6 +15,7 @@ import com.adityachandel.booklore.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +29,7 @@ public class UserService {
     private final BookLoreUserMapper bookLoreUserMapper;
     private final LibraryRepository libraryRepository;
     private final AuthenticationService authenticationService;
+    private final PasswordEncoder passwordEncoder;
 
     public List<BookLoreUser> getBookLoreUsers() {
         return userRepository.findAll()
@@ -83,7 +87,34 @@ public class UserService {
     }
 
     public BookLoreUser getMyself() {
-        BookLoreUser user = authenticationService.getAuthenticatedUser();
-        return user;
+        return authenticationService.getAuthenticatedUser();
+    }
+
+    public void changePassword(ChangePasswordRequest changePasswordRequest) {
+        BookLoreUser bookLoreUser = authenticationService.getAuthenticatedUser();
+        BookLoreUserEntity bookLoreUserEntity = userRepository.findById(bookLoreUser.getId()).orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(bookLoreUser.getId()));
+        if (!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), bookLoreUserEntity.getPasswordHash())) {
+            throw ApiError.PASSWORD_INCORRECT.createException();
+        }
+        if (!isPasswordStrong(changePasswordRequest.getNewPassword())) {
+            throw ApiError.PASSWORD_WEAK.createException();
+        }
+        bookLoreUserEntity.setDefaultPassword(false);
+        bookLoreUserEntity.setPasswordHash(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(bookLoreUserEntity);
+    }
+
+    public void changeUserPassword(ChangeUserPasswordRequest request) {
+        BookLoreUserEntity userEntity = userRepository.findById(request.getUserId()).orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(request.getUserId()));
+        if (!isPasswordStrong(request.getNewPassword())) {
+            throw ApiError.PASSWORD_WEAK.createException();
+        }
+        userEntity.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(userEntity);
+    }
+
+    private boolean isPasswordStrong(String password) {
+        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+        return password.matches(passwordPattern);
     }
 }

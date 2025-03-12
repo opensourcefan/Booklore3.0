@@ -1,5 +1,7 @@
 package com.adityachandel.booklore.controller;
 
+import com.adityachandel.booklore.model.dto.request.ChangePasswordRequest;
+import com.adityachandel.booklore.model.dto.request.ChangeUserPasswordRequest;
 import com.adityachandel.booklore.model.dto.settings.BookPreferences;
 import com.adityachandel.booklore.model.dto.BookLoreUser;
 import com.adityachandel.booklore.model.dto.request.UserUpdateRequest;
@@ -47,6 +49,19 @@ public class UserController {
     @PreAuthorize("@securityUtil.isAdmin()")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        userService.changePassword(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/change-user-password")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public ResponseEntity<?> changeUserPassword(@RequestBody ChangeUserPasswordRequest request) {
+        userService.changeUserPassword(request);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}/book-preferences")

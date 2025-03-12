@@ -37,7 +37,13 @@ public class AuthenticationService {
         String accessToken = jwtUtils.generateAccessToken(user);
         String refreshToken = jwtUtils.generateRefreshToken(user);
 
-        return ResponseEntity.ok(Map.of("accessToken", accessToken, "refreshToken", refreshToken));
+        boolean isDefaultPassword = user.isDefaultPassword();
+
+        return ResponseEntity.ok(Map.of(
+                "accessToken", accessToken,
+                "refreshToken", refreshToken,
+                "isDefaultPassword", String.valueOf(isDefaultPassword)
+        ));
     }
 
     public ResponseEntity<Map<String, String>> refreshToken(String refreshToken) {

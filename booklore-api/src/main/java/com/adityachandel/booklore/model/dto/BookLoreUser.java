@@ -9,6 +9,7 @@ import java.util.List;
 public class BookLoreUser {
     private Long id;
     private String username;
+    private boolean isDefaultPassword;
     private String name;
     private String email;
     private List<Library> assignedLibraries;

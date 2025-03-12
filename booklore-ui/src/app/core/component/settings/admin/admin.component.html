@@ -12,6 +12,7 @@
         <th style="width: 100px;">Can Download</th>
         <th style="width: 100px;">Can Edit Metadata</th>
         <th style="width: 100px;">Edit</th>
+        <th style="width: 100px;">Change Password</th>
         <th style="width: 100px;">Delete</th>
       </tr>
     </ng-template>
@@ -68,10 +69,27 @@
         </td>
         <td class="text-center">
           <ng-container *ngIf="user.username !== 'admin'">
+            <p-button icon="pi pi-key" outlined="true" severity="warn" (onClick)="openChangePasswordDialog(user)"></p-button>
+          </ng-container>
+        </td>
+        <td class="text-center">
+          <ng-container *ngIf="user.username !== 'admin'">
             <p-button icon="pi pi-trash" outlined="true" severity="danger" (onClick)="deleteUser(user)"></p-button>
           </ng-container>
         </td>
       </tr>
     </ng-template>
   </p-table>
+
+  <p-dialog header="Change Password" [(visible)]="isPasswordDialogVisible" [modal]="true" [closable]="false" [style]="{width: '20vw'}">
+    <div class="flex flex-col gap-8 items-center">
+        <p-password [(ngModel)]="newPassword" placeholder="New Password" [feedback]="false" class="w-full" fluid></p-password>
+        <p-password [(ngModel)]="confirmNewPassword" placeholder="Confirm Password" [feedback]="false" class="w-full" fluid></p-password>
+      <p *ngIf="passwordError" class="p-error text-red-500 w-full text-left">{{ passwordError }}</p>
+      <div class="flex gap-4 w-full justify-end">
+        <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="isPasswordDialogVisible = false"></p-button>
+        <p-button label="Change" icon="pi pi-check" severity="success" (onClick)="submitPasswordChange()"></p-button>
+      </div>
+    </div>
+  </p-dialog>
 </div>
