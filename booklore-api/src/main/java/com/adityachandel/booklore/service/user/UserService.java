@@ -92,13 +92,21 @@ public class UserService {
 
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
         BookLoreUser bookLoreUser = authenticationService.getAuthenticatedUser();
-        BookLoreUserEntity bookLoreUserEntity = userRepository.findById(bookLoreUser.getId()).orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(bookLoreUser.getId()));
+        BookLoreUserEntity bookLoreUserEntity = userRepository.findById(bookLoreUser.getId())
+                .orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(bookLoreUser.getId()));
+
         if (!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), bookLoreUserEntity.getPasswordHash())) {
             throw ApiError.PASSWORD_INCORRECT.createException();
         }
+
+        if (passwordEncoder.matches(changePasswordRequest.getNewPassword(), bookLoreUserEntity.getPasswordHash())) {
+            throw ApiError.PASSWORD_SAME_AS_CURRENT.createException();
+        }
+
         if (!isPasswordStrong(changePasswordRequest.getNewPassword())) {
             throw ApiError.PASSWORD_WEAK.createException();
         }
+
         bookLoreUserEntity.setDefaultPassword(false);
         bookLoreUserEntity.setPasswordHash(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(bookLoreUserEntity);

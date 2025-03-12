@@ -33,6 +33,7 @@ public enum ApiError {
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "%s"),
     PASSWORD_INCORRECT(HttpStatus.BAD_REQUEST, "Incorrect current password"),
     PASSWORD_WEAK(HttpStatus.BAD_REQUEST, "New password is not strong enough. It must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character."),
+    PASSWORD_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST, "New password cannot be the same as the current password"),
     INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST, "Invalid credentials");
 
     private final HttpStatus status;

@@ -1,10 +1,10 @@
 import {Component, inject} from '@angular/core';
-import { Button } from 'primeng/button';
-import { Card } from 'primeng/card';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Message } from 'primeng/message';
-import { NgIf } from '@angular/common';
-import { Password } from 'primeng/password';
+import {Button} from 'primeng/button';
+import {Card} from 'primeng/card';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {Message} from 'primeng/message';
+import {NgIf} from '@angular/common';
+import {Password} from 'primeng/password';
 import {MessageService, PrimeTemplate} from 'primeng/api';
 import {UserService} from '../../../user.service';
 import {AuthService} from '../../service/auth.service';
@@ -54,17 +54,14 @@ export class ChangePasswordComponent {
       return;
     }
 
+    if (this.currentPassword === this.newPassword) {
+      this.errorMessage = 'New password cannot be the same as the current password.';
+      return;
+    }
+
     this.userService.changePassword(this.currentPassword, this.newPassword).subscribe({
       next: () => {
         this.successMessage = 'Password changed successfully!';
-        this.currentPassword = '';
-        this.newPassword = '';
-        this.confirmNewPassword = '';
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Password Changed',
-          detail: 'Your password has been changed successfully. Please log in again.'
-        });
         this.logout();
       },
       error: (err) => {

@@ -56,7 +56,7 @@
         </td>
         <td class="text-center">
           <ng-container *ngIf="user.username !== 'admin'">
-            <p-button *ngIf="!user.isEditing" icon="pi pi-pencil" outlined="true" severity="primary" (onClick)="toggleEdit(user)"></p-button>
+            <p-button *ngIf="!user.isEditing" icon="pi pi-pencil" outlined="true" severity="info" (onClick)="toggleEdit(user)"></p-button>
             <p-button *ngIf="user.isEditing" icon="pi pi-check" outlined="true" severity="success" (onClick)="saveUser(user)"></p-button>
             <p-button *ngIf="user.isEditing" icon="pi pi-times" outlined="true" severity="danger" (onClick)="toggleEdit(user)"></p-button>
           </ng-container>
