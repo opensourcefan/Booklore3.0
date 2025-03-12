@@ -1,31 +1,74 @@
-name: Build and Push to GitHub Container Registry
+name: Build, Tag, and Push to GitHub Container Registry
 
 on:
   push:
     branches:
+      - develop
       - master
-  release:
-    types: [published]
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full history for tagging
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+      - name: Get Latest Tag
+        id: get_version
+        run: |
+          branch="${GITHUB_REF#refs/heads/}"
+          if [[ "$branch" == "master" ]]; then
+            latest_tag=$(git tag --list "v*" --sort=-v:refname | head -n 1)
+          else
+            latest_tag=$(git tag --list "develop-v*" --sort=-v:refname | head -n 1)
+          fi
+          latest_tag=${latest_tag:-"v0.0.0"}
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+          echo "Latest tag: $latest_tag"
+
+      - name: Auto-Increment Version
+        id: bump_version
+        run: |
+          old_version=${{ env.latest_tag }}
+          IFS='.' read -r -a parts <<< "${old_version//[!0-9.]/}"
+          new_version="${parts[0]}.${parts[1]}.$((parts[2] + 1))"
+          
+          branch="${GITHUB_REF#refs/heads/}"
+          if [[ "$branch" == "master" ]]; then
+            new_tag="v${new_version}"
+          else
+            new_tag="develop-v${new_version}"
+          fi
+          
+          echo "new_tag=$new_tag" >> $GITHUB_ENV
+          echo "New version: $new_tag"
+
+      - name: Create Git Tag
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git tag ${{ env.new_tag }}
+          git push origin ${{ env.new_tag }}
+
+      - name: Determine Docker Image Tag
+        id: docker_tag
+        run: |
+          echo "tag=${{ env.new_tag }}" >> $GITHUB_ENV
+
       - name: Build Docker Image
         run: |
-          docker build -t ghcr.io/${{ github.actor }}/booklore-app:latest .
+          docker build -t ghcr.io/${{ github.actor }}/booklore-app:${{ env.tag }} .
 
       - name: Push Docker Image to GHCR
         run: |
-          docker push ghcr.io/${{ github.actor }}/booklore-app:latest
+          docker push ghcr.io/${{ github.actor }}/booklore-app:${{ env.tag }}
