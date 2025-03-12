@@ -32,7 +32,6 @@ public class BookPreferences {
     public static class PdfReaderSetting {
         private String pageSpread;
         private String pageZoom;
-        private boolean showSidebar;
     }
 
     @Getter

@@ -108,7 +108,6 @@ public class UserCreatorService {
                         .pdf(BookPreferences.GlobalOrIndividual.Individual)
                         .build())
                 .pdfReaderSetting(BookPreferences.PdfReaderSetting.builder()
-                        .showSidebar(false)
                         .pageSpread("odd")
                         .pageZoom("page-fit")
                         .build())

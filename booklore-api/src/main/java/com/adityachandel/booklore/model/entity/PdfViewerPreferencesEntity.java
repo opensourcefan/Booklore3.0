@@ -27,9 +27,6 @@ public class PdfViewerPreferencesEntity {
     @Column(name = "zoom")
     private String zoom;
 
-    @Column(name = "sidebar_visible")
-    private Boolean sidebarVisible;
-
     @Column(name = "spread")
     private String spread;
 }

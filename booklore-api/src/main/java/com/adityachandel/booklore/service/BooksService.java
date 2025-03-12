@@ -63,7 +63,6 @@ public class BooksService {
                     .ifPresent(pdfPref -> settingsBuilder.pdfSettings(PdfViewerPreferences.builder()
                             .bookId(bookId)
                             .zoom(pdfPref.getZoom())
-                            .sidebarVisible(pdfPref.getSidebarVisible())
                             .spread(pdfPref.getSpread())
                             .build()));
         } else {
@@ -90,7 +89,6 @@ public class BooksService {
             PdfViewerPreferences pdfSettings = bookViewerSettings.getPdfSettings();
             pdfPrefs.setZoom(pdfSettings.getZoom());
             pdfPrefs.setSpread(pdfSettings.getSpread());
-            pdfPrefs.setSidebarVisible(pdfSettings.getSidebarVisible());
             pdfViewerPreferencesRepository.save(pdfPrefs);
 
         } else if (bookEntity.getBookType() == BookFileType.EPUB) {

@@ -119,7 +119,6 @@ CREATE TABLE IF NOT EXISTS pdf_viewer_preference
     user_id         BIGINT      NOT NULL,
     book_id         BIGINT      NOT NULL,
     zoom            VARCHAR(16) NULL,
-    sidebar_visible BOOLEAN     NULL,
     spread          VARCHAR(16) NULL,
     UNIQUE (user_id, book_id)
 );

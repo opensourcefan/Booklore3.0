@@ -44,7 +44,6 @@ public class AppSettingService {
             appSettingsBuilder.pdf(AppSettings.PdfSettings.builder()
                     .spread((String) pdfSettings.get("spread"))
                     .zoom((String) pdfSettings.get("zoom"))
-                    .sidebar(Boolean.parseBoolean((String) pdfSettings.get("sidebar")))
                     .build());
         }
 

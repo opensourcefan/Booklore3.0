@@ -8,6 +8,5 @@ import lombok.Data;
 public class PdfViewerPreferences {
     private Long bookId;
     private String zoom;
-    private Boolean sidebarVisible;
     private String spread;
 }

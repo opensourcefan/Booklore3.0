@@ -33,7 +33,6 @@ public class AppSettings {
     public static class PdfSettings {
         private String spread;
         private String zoom;
-        private Boolean sidebar;
     }
 
     @Data
