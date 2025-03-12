@@ -12,6 +12,7 @@ import {BookState} from '../../../book/model/state/book-state.model';
 import {Book} from '../../../book/model/book.model';
 import {Divider} from 'primeng/divider';
 import {UserService} from '../../../user.service';
+import {ProgressSpinner} from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-main-dashboard',
@@ -22,7 +23,8 @@ import {UserService} from '../../../user.service';
     NgIf,
     DashboardScrollerComponent,
     AsyncPipe,
-    Divider
+    Divider,
+    ProgressSpinner
   ],
   providers: [DialogService],
   standalone: true
@@ -33,6 +35,8 @@ export class MainDashboardComponent implements OnInit {
   private bookService = inject(BookService);
   private dialogService = inject(DialogService);
   protected userService = inject(UserService);
+
+  bookState$ = this.bookService.bookState$;
 
   lastReadBooks$: Observable<Book[]> | undefined;
   latestAddedBooks$: Observable<Book[]> | undefined;
