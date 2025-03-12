@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+local/
+
+src/main/resources/application-local.yaml

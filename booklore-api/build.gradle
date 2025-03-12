@@ -25,7 +25,7 @@ configurations {
 }
 
 dependencies {
-    // Spring Boot
+    // --- Spring Boot ---
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -35,34 +35,36 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-configuration-processor'
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
-    // Lombok
+    // --- Database & Migration ---
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.2'
+    implementation 'org.flywaydb:flyway-mysql:11.3.4'
+
+    // --- Security & Authentication ---
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+    // --- Lombok (For Clean Code) ---
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
-    // Database & Flyway
-    implementation 'com.h2database:h2:2.3.232'
-    implementation 'org.flywaydb:flyway-mysql:11.3.4'
-
-    // Book and Image Libraries
+    // --- Book & Image Processing ---
     implementation 'org.apache.pdfbox:pdfbox:3.0.4'
     implementation 'org.apache.pdfbox:jbig2-imageio:3.0.4'
     implementation 'com.github.jai-imageio:jai-imageio-core:1.4.0'
     implementation 'com.github.jai-imageio:jai-imageio-jpeg2000:1.4.0'
     implementation 'io.documentnode:epub4j-core:4.2.2'
 
-    // JSON & Web
+    // --- JSON & Web Scraping ---
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.3'
     implementation 'org.jsoup:jsoup:1.19.1'
 
-    // MapStruct
+    // --- Mapping (DTOs & Entities) ---
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
+    // --- API Documentation ---
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
-
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 }
 
 hibernate {

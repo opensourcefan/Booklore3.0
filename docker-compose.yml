@@ -1,10 +1,23 @@
 version: '3.8'
 services:
-  booklore-app:
+  booklore:
+    image: localhost:5000/booklore-app:latest
     container_name: booklore
-    image: localhost:5000/booklore-app:v8
+    env_file:
+      - .env
+    depends_on:
+      - mariadb
     ports:
-      - "5050:6060"
+      - "6060:6060"
     volumes:
-      - /Users/aditya.chandel/my-library-temp/config/docker:/app/config
-      - /Users/aditya.chandel/my-library-temp/books:/app/books
+      - ${BOOKLORE_DATA_PATH}:/app/data
+      - ${BOOKLORE_BOOKS_PATH}:/books
+
+  mariadb:
+    image: lscr.io/linuxserver/mariadb:11.4.5
+    container_name: mariadb
+    env_file:
+      - .env
+    volumes:
+      - ${MARIADB_CONFIG_PATH}:/config
+    restart: unless-stopped

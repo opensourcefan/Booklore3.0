@@ -2,12 +2,14 @@ import {inject, Injectable, Injector} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, tap} from 'rxjs';
 import {RxStompService} from '../../shared/websocket/rx-stomp.service';
+import {API_CONFIG} from '../../config/api-config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:7050/api/v1/auth';
+
+  private apiUrl = `${API_CONFIG.BASE_URL}/api/v1/auth`;
   private rxStompService?: RxStompService;
 
   private http = inject(HttpClient);
@@ -38,10 +40,6 @@ export class AuthService {
   saveTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
-  }
-
-  saveToken(token: string): void {
-    localStorage.setItem('accessToken', token);
   }
 
   getToken(): string | null {
