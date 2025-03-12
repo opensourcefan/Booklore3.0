@@ -1,17 +1,13 @@
 <p class="dashboard-scroller-title">{{ title }}</p>
 
-<div *ngIf="isLoading">
-  <p-progressSpinner></p-progressSpinner>
-</div>
-
-<div class="dashboard-scroller-no-books" *ngIf="!isLoading && (!books || books.length === 0)">
+<div class="dashboard-scroller-no-books" *ngIf="!books || books.length === 0">
   <p class="text-sm">
     {{ bookListType === 'lastRead' ? "You haven't read any books yet!" : "No books have been added to BookLore!" }}
   </p>
 </div>
 
 <div class="dashboard-scroller-infinite"
-     *ngIf="!isLoading && books"
+     *ngIf="books"
      infiniteScroll
      [infiniteScrollDistance]="2"
      [infiniteScrollThrottle]="50"
@@ -24,6 +20,6 @@
 
 </div>
 
-<div *ngIf="!isLoading && books === null">
+<div *ngIf=" books === null">
   <p class="text-sm">Failed to load books! :(</p>
 </div>

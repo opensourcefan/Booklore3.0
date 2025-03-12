@@ -18,7 +18,7 @@ import {Book} from '../../../book/model/book.model';
   ],
   standalone: true
 })
-export class DashboardScrollerComponent implements OnInit, OnChanges {
+export class DashboardScrollerComponent {
 
   @Input() bookListType: 'lastRead' | null = null;
   @Input() title: string = 'Last Read Books';
@@ -26,18 +26,4 @@ export class DashboardScrollerComponent implements OnInit, OnChanges {
 
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
 
-
-  isLoading = true;
-
-  ngOnInit(): void {
-    if (this.books !== undefined) {
-      this.isLoading = false;
-    }
-  }
-
-  ngOnChanges(): void {
-    if (this.books !== undefined) {
-      this.isLoading = false;
-    }
-  }
 }
