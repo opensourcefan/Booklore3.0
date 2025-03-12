@@ -9,5 +9,13 @@ export const AuthGuard: CanActivateFn = (route, state) => {
     router.navigate(['/login']);
     return false;
   }
+
+  const payload = JSON.parse(atob(token.split('.')[1]));
+
+  if (payload.isDefaultPassword) {
+    router.navigate(['/change-password']);
+    return false;
+  }
+  
   return true;
 };
