@@ -12,6 +12,41 @@
 
 .cover-container {
   position: relative;
+  width: 100%;
+  height: 190px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-container.shimmer {
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.book-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: opacity 0.3s ease-in;
+  opacity: 0;
+}
+
+.cover-container img.loaded {
+  opacity: 1;
 }
 
 .cover-container::after {
@@ -48,12 +83,7 @@
   padding-left: 6px;
 }
 
-.book-cover {
-  width: 100%;
-  height: auto;
-  border-radius: 8px 8px 0 0;
-  transition: filter 0.2s ease-in-out;
-}
+
 
 .info-btn,
 .read-btn {

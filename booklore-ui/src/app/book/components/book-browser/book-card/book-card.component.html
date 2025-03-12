@@ -2,22 +2,28 @@
      [class.selected]="isSelected"
      (mouseover)="isHovered = true"
      (mouseout)="isHovered = false">
-  <div class="cover-container">
+  <div class="cover-container" [ngClass]="{ 'shimmer': !isImageLoaded }">
     <img
       [src]="urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn)"
-      class="book-cover placeholder"
+      class="book-cover"
+      [class.loaded]="isImageLoaded"
       alt="Cover of {{ book.metadata?.title }}"
-      loading="lazy"/>
-    <p-checkbox
-      *ngIf="isCheckboxEnabled"
-      [(ngModel)]="isSelected"
-      binary="true"
-      id="select-checkbox-{{book.id}}"
-      class="select-checkbox"
-      (ngModelChange)="toggleSelection(isSelected || false)"></p-checkbox>
-    <p-button [rounded]="true" icon="pi pi-info" class="read-btn" (click)="openBookInfo(book)"></p-button>
-    <p-button [rounded]="true" icon="pi pi-book" class="info-btn" (click)="readBook(book)"></p-button>
+      loading="lazy"
+      (load)="onImageLoad()"
+    />
   </div>
+
+  <p-checkbox
+    *ngIf="isCheckboxEnabled"
+    [(ngModel)]="isSelected"
+    binary="true"
+    id="select-checkbox-{{book.id}}"
+    class="select-checkbox"
+    (ngModelChange)="toggleSelection(isSelected || false)">
+  </p-checkbox>
+
+  <p-button [rounded]="true" icon="pi pi-info" class="read-btn" (click)="openBookInfo(book)"></p-button>
+  <p-button [rounded]="true" icon="pi pi-book" class="info-btn" (click)="readBook(book)"></p-button>
 
   <div class="book-info">
     <div class="book-title-container">

@@ -13,7 +13,7 @@ import {MetadataFetchOptionsComponent} from '../../../../metadata/metadata-optio
 import {MetadataRefreshType} from '../../../../metadata/model/request/metadata-refresh-type.enum';
 import {MetadataRefreshRequest} from '../../../../metadata/model/request/metadata-refresh-request.model';
 import {UrlHelperService} from '../../../../utilities/service/url-helper.service';
-import {NgIf} from '@angular/common';
+import {NgClass, NgIf} from '@angular/common';
 import {UserService} from '../../../../user.service';
 import {filter} from 'rxjs';
 
@@ -21,7 +21,7 @@ import {filter} from 'rxjs';
   selector: 'app-book-card',
   templateUrl: './book-card.component.html',
   styleUrls: ['./book-card.component.scss'],
-  imports: [Button, MenuModule, CheckboxModule, FormsModule, NgIf],
+  imports: [Button, MenuModule, CheckboxModule, FormsModule, NgIf, NgClass],
   standalone: true
 })
 export class BookCardComponent implements OnInit {
@@ -32,6 +32,7 @@ export class BookCardComponent implements OnInit {
 
   items: MenuItem[] | undefined;
   isHovered: boolean = false;
+  isImageLoaded: boolean = false;
 
   private bookService = inject(BookService);
   private dialogService = inject(DialogService);
@@ -48,6 +49,10 @@ export class BookCardComponent implements OnInit {
         this.userPermissions = userData.permissions;
         this.initMenu();
       });
+  }
+
+  onImageLoad(): void {
+    this.isImageLoaded = true;
   }
 
   readBook(book: Book): void {
