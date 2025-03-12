@@ -83,15 +83,14 @@
   padding-left: 6px;
 }
 
-
-
 .info-btn,
 .read-btn {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  display: none;
-  transition: opacity 0.2s ease-in-out;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
   z-index: 2;
 }
 
@@ -105,21 +104,22 @@
 
 .cover-container:hover .info-btn,
 .cover-container:hover .read-btn {
-  display: block;
+  opacity: 1;
+  visibility: visible;
 }
 
 .select-checkbox {
   position: absolute;
   top: 8px;
   right: 8px;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
   z-index: 2;
 }
 
-.cover-container:hover .select-checkbox {
-  display: block;
-}
-
+.cover-container:hover .select-checkbox,
 .book-card.selected .select-checkbox {
-  display: block;
+  opacity: 1;
+  visibility: visible;
 }
