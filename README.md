@@ -40,8 +40,8 @@ Ensure you have [Docker](https://docs.docker.com/get-docker/) and [Docker Compos
 Create a `.env` file to store environment variables.
 
 ```ini
-# Docker image version
-BOOKLORE_IMAGE_TAG=latest
+# Docker image version (Replace with latest version found at https://github.com/adityachandelgit/BookLore/releases)
+BOOKLORE_IMAGE_TAG=v0.0.19
 
 # User and timezone settings
 PUID=1000
