@@ -1,6 +1,6 @@
 app:
   path-book: '/app/books'
-  path-config: '/app/config'
+  path-config: '/app/data'
 
 spring:
   servlet:
