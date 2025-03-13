@@ -88,8 +88,8 @@ services:
       - ${MARIADB_CONFIG_PATH}:/config
     restart: unless-stopped
 ```
-Note: You can find the latest BookLore image tag `BOOKLORE_IMAGE_TAG` (e.g. v.0.x.x) from the GitHub Container Registry:
-📦 [Latest Image Tag – GitHub Packages](https://github.com/adityachandelgit/BookLore/tags)
+Note: You can find the latest BookLore image tag `BOOKLORE_IMAGE_TAG` (e.g. v.0.x.x) from the Releases section:
+📦 [Latest Image Tag – GitHub Releases](https://github.com/adityachandelgit/BookLore/releases)
 
 
 ### 4️⃣ Start the Containers
