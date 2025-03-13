@@ -60,18 +60,19 @@ jobs:
           git tag ${{ env.new_tag }}
           git push origin ${{ env.new_tag }}
 
-      - name: Determine Docker Image Tag
-        id: docker_tag
-        run: |
-          echo "tag=${{ env.new_tag }}" >> $GITHUB_ENV
-
       - name: Build Docker Image
         run: |
-          docker build -t ghcr.io/${{ github.actor }}/booklore-app:${{ env.tag }} .
+          docker build -t ghcr.io/${{ github.actor }}/booklore-app:${{ env.new_tag }} .
 
       - name: Push Docker Image to GHCR
         run: |
-          docker push ghcr.io/${{ github.actor }}/booklore-app:${{ env.tag }}
+          docker push ghcr.io/${{ github.actor }}/booklore-app:${{ env.new_tag }}
+
+      - name: Push Latest Tag (only for master)
+        if: github.ref == 'refs/heads/master'
+        run: |
+          docker tag ghcr.io/${{ github.actor }}/booklore-app:${{ env.new_tag }} ghcr.io/${{ github.actor }}/booklore-app:latest
+          docker push ghcr.io/${{ github.actor }}/booklore-app:latest
 
       - name: Create GitHub Release
         env:
