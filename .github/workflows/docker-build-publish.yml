@@ -1,4 +1,4 @@
-name: Build, Tag, and Push to GitHub Container Registry
+name: Build, Tag, Push, and Release to GitHub Container Registry
 
 on:
   push:
@@ -72,3 +72,11 @@ jobs:
       - name: Push Docker Image to GHCR
         run: |
           docker push ghcr.io/${{ github.actor }}/booklore-app:${{ env.tag }}
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ env.new_tag }} \
+            --title "Release ${{ env.new_tag }}" \
+            --notes "Automated release for ${{ env.new_tag }}"
