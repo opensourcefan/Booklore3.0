@@ -62,9 +62,7 @@ MARIADB_CONFIG_PATH=/path/to/mariadb/config     # Example: /home/user/booklore/m
 
 Create a `docker-compose.yml` file in your project directory:
 
-```ini
-version: '3.8'
-
+```yaml
 services:
   booklore:
     image: ghcr.io/adityachandelgit/booklore-app:${BOOKLORE_IMAGE_TAG}
@@ -72,7 +70,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
     ports:
       - "6060:6060"
     volumes:
@@ -87,6 +86,11 @@ services:
     volumes:
       - ${MARIADB_CONFIG_PATH}:/config
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 ```
 Note: You can find the latest BookLore image tag `BOOKLORE_IMAGE_TAG` (e.g. v.0.x.x) from the Releases section:
 📦 [Latest Image Tag – GitHub Releases](https://github.com/adityachandelgit/BookLore/releases)
