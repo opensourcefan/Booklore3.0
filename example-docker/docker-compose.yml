@@ -1,7 +1,8 @@
+name: booklore
 services:
   booklore:
     image: ghcr.io/adityachandelgit/booklore-app:${BOOKLORE_IMAGE_TAG}
-    container_name: booklore
+    container_name: booklore_server
     env_file:
       - .env
     depends_on:
@@ -15,7 +16,7 @@ services:
 
   mariadb:
     image: lscr.io/linuxserver/mariadb:11.4.5
-    container_name: mariadb
+    container_name: booklore_mariadb
     env_file:
       - .env
     volumes:
