@@ -30,7 +30,7 @@ export class BookSenderComponent implements OnInit {
   private dynamicDialogRef = inject(DynamicDialogRef);
   private dynamicDialogConfig = inject(DynamicDialogConfig);
 
-  book: Book = this.dynamicDialogConfig.data.book;
+  bookId: number = this.dynamicDialogConfig.data.bookId;
 
   emailProviders: { label: string, value: EmailProvider }[] = [];
   emailRecipients: { label: string, value: EmailRecipient }[] = [];
@@ -58,8 +58,8 @@ export class BookSenderComponent implements OnInit {
   }
 
   sendBook() {
-    if (this.selectedProvider && this.selectedRecipient && this.book) {
-      const bookId = this.book.id;
+    if (this.selectedProvider && this.selectedRecipient && this.bookId) {
+      const bookId = this.bookId;
       const recipientId = this.selectedRecipient.value.id;
       const providerId = this.selectedProvider.value.id;
 
@@ -102,7 +102,7 @@ export class BookSenderComponent implements OnInit {
           detail: 'Please select a recipient to send the book.'
         });
       }
-      if (!this.book) {
+      if (!this.bookId) {
         this.messageService.add({
           severity: 'error',
           summary: 'Book Not Selected',

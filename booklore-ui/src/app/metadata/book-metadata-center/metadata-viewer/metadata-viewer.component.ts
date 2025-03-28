@@ -56,7 +56,7 @@ export class MetadataViewerComponent implements OnInit {
                   top: '15%',
                 },
                 data: {
-                  book: metadata.bookId,
+                  bookId: metadata.bookId,
                 }
               });
             }

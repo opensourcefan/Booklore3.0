@@ -181,7 +181,7 @@ export class BookCardComponent implements OnInit {
                     top: '15%',
                   },
                   data: {
-                    book: this.book,
+                    bookId: this.book.id,
                   }
                 });
               }
