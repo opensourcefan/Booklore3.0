@@ -18,7 +18,7 @@ BookLore is a self-hosted web app for organizing and managing your personal book
 - **Organized Book Management** – Categorize books using Libraries and Shelves for better organization.
 - **Smart Metadata Handling** – Automatically fetch book details from sources like Goodreads, Amazon, and Google Books, or edit them manually.
 - **Multi-User Support** – Admins can create user accounts, assign libraries, and manage permissions for metadata edits, uploads, and downloads.
-- **Powerful eBook & PDF Reader** – A feature-rich reader for PDFs and ePubs, with per-user progress tracking and customizable reading settings.
+- **Powerful eBook & PDF Reader** – A feature-rich reader for PDFs and ePubs, with customizable reading settings.
 - **And More to Come!** – Continuous improvements and exciting new features are in development.
 
 BookLore is perfect for self-hosters who want complete control over their digital library. Stay tuned for updates!
