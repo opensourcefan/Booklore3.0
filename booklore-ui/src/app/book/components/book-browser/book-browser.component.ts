@@ -548,7 +548,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
         this.selectedSort = {
           label: 'Added On',
           field: 'addedOn',
-          direction: SortDirection.ASCENDING
+          direction: SortDirection.DESCENDING
         };
       }
 
