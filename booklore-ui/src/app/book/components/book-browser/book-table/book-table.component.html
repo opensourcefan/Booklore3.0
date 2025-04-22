@@ -98,13 +98,15 @@
         {{ metadata.goodreadsReviewCount ?? '' }}
       </td>
       <td class="min-w-[10rem] max-w-[10rem] overflow-hidden truncate">
-        <p-rating
-          [(ngModel)]="metadata.rating"
-          readonly
-          stars="5"
-          [style.--p-rating-icon-active-color]="getStarColor(metadata.rating)">
-        </p-rating>
+        <span class="flex items-center gap-1">
+          <p-rating
+            [(ngModel)]="metadata.rating"
+            readonly
+            stars="5"
+            [style.--p-rating-icon-active-color]="getStarColor(metadata.rating)">
+          </p-rating>
         <span *ngIf="metadata.rating != null">({{ metadata.rating?.toFixed(1) }})</span>
+        </span>
       </td>
       <td class="min-w-[3rem] max-w-[3rem] overflow-hidden truncate">{{ metadata.reviewCount }}</td>
     </tr>
