@@ -1,6 +1,6 @@
-import {AfterViewInit, Component, inject, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {ConfirmationService, MenuItem, MessageService, PrimeTemplate} from 'primeng/api';
+import {AfterViewInit, ChangeDetectorRef, Component, inject, OnInit, ViewChild} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {MenuItem, MessageService, PrimeTemplate} from 'primeng/api';
 import {LibraryService} from '../../service/library.service';
 import {BookService} from '../../service/book.service';
 import {map, switchMap} from 'rxjs/operators';
@@ -38,6 +38,23 @@ export enum EntityType {
   SHELF = 'Shelf',
   ALL_BOOKS = 'All Books'
 }
+
+const QUERY_PARAMS = {
+  VIEW: 'view',
+  SORT: 'sort',
+  DIRECTION: 'direction',
+  FILTER: 'filter'
+};
+
+const VIEW_MODES = {
+  GRID: 'grid',
+  TABLE: 'table',
+};
+
+const SORT_DIRECTION = {
+  ASCENDING: 'asc',
+  DESCENDING: 'desc',
+};
 
 @Component({
   selector: 'app-book-browser',
@@ -77,12 +94,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   dynamicDialogRef: DynamicDialogRef | undefined;
   EntityType = EntityType;
 
-  gridOrTable: string = 'grid';
-
   @ViewChild(BookTableComponent) bookTableComponent!: BookTableComponent;
   @ViewChild(BookFilterComponent) bookFilterComponent!: BookFilterComponent;
 
   selectedFilter = new BehaviorSubject<{ type: string; value: any } | null>(null);
+  protected resetFilterSubject = new Subject<void>();
 
   protected userService = inject(UserService);
   private activatedRoute = inject(ActivatedRoute);
@@ -92,31 +108,34 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   private shelfService = inject(ShelfService);
   private dialogService = inject(DialogService);
   private sortService = inject(SortService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
   private libraryShelfMenuService = inject(LibraryShelfMenuService);
-  private confirmationService = inject(ConfirmationService);
-
-  protected resetFilterSubject = new Subject<void>();
-
 
   sortOptions: any[] = [
     {label: 'Title', icon: '', field: 'title', command: () => this.sortBooks('title')},
     {label: 'Author', icon: '', field: 'author', command: () => this.sortBooks('author')},
+    {label: 'Last Read', field: 'lastReadTime', command: () => this.sortBooks('lastReadTime')},
+    {label: 'Added On', field: 'addedOn', command: () => this.sortBooks('addedOn')},
+    {label: 'Locked', icon: '', field: 'locked', command: () => this.sortBooks('locked')},
     {label: 'Publisher', icon: '', field: 'publisher', command: () => this.sortBooks('publisher')},
-    {label: 'Published', icon: '', field: 'publishedDate', command: () => this.sortBooks('publishedDate')},
-    {label: 'Pages', icon: '', field: 'pageCount', command: () => this.sortBooks('pageCount')},
-    {label: 'Rating', icon: '', field: 'rating', command: () => this.sortBooks('rating')},
-    {label: 'Reviews', icon: '', field: 'reviewCount', command: () => this.sortBooks('reviewCount')},
+    {label: 'Published Date', icon: '', field: 'publishedDate', command: () => this.sortBooks('publishedDate')},
+    {label: 'Amazon Rating', icon: '', field: 'amazonRating', command: () => this.sortBooks('amazonRating')},
+    {label: 'Amazon #', icon: '', field: 'amazonReviewCount', command: () => this.sortBooks('amazonReviewCount')},
+    {label: 'Goodreads Rating', icon: '', field: 'goodreadsRating', command: () => this.sortBooks('goodreadsRating')},
+    {label: 'Goodreads #', icon: '', field: 'goodreadsReviewCount', command: () => this.sortBooks('goodreadsReviewCount')},
+    {label: 'Pages', icon: '', field: 'pageCount', command: () => this.sortBooks('pageCount')}
   ];
 
-  selectedSort: SortOption = {
-    label: 'Title',
-    field: 'title',
-    direction: SortDirection.DESCENDING,
-  };
+  selectedSort: SortOption | undefined = undefined;
+  currentViewMode: string | undefined = undefined;
+  lastAppliedSort: SortOption | null = null;
+  filterVisibility = true;
+
 
   ngOnInit(): void {
     this.bookService.loadBooks();
-    this.sortBooks(this.selectedSort.field);
+
     const isAllBooksRoute = this.activatedRoute.snapshot.routeConfig?.path === 'all-books';
 
     if (isAllBooksRoute) {
@@ -167,12 +186,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     return (entity as Library).paths !== undefined;
   }
 
-  toggleTableGrid() {
-    this.gridOrTable = this.gridOrTable === 'grid' ? 'table' : 'grid';
+  toggleTableGrid(): void {
+    this.currentViewMode = this.currentViewMode === VIEW_MODES.GRID ? VIEW_MODES.TABLE : VIEW_MODES.GRID;
+    this.router.navigate([], {
+      queryParams: {view: this.currentViewMode},
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   get viewIcon(): string {
-    return this.gridOrTable === 'grid' ? 'pi pi-objects-column' : 'pi pi-table';
+    return this.currentViewMode === VIEW_MODES.GRID ? 'pi pi-objects-column' : 'pi pi-table';
   }
 
   private getEntityInfoFromRoute(): Observable<{ entityId: number; entityType: EntityType }> {
@@ -296,7 +320,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
       map(bookState => {
         if (bookState.loaded && !bookState.error) {
           const filteredBooks = bookState.books?.filter(bookFilter) || [];
-          const sortedBooks = this.sortService.applySort(filteredBooks, this.selectedSort);
+          const sortedBooks = this.sortService.applySort(filteredBooks, this.selectedSort!);
           return {...bookState, books: sortedBooks};
         }
         return bookState;
@@ -308,7 +332,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
 
   private processBookState(bookState: BookState): BookState {
     if (bookState.loaded && !bookState.error) {
-      const sortedBooks = this.sortService.applySort(bookState.books || [], this.selectedSort);
+      const sortedBooks = this.sortService.applySort(bookState.books || [], this.selectedSort!);
       return {...bookState, books: sortedBooks};
     }
     return bookState;
@@ -386,19 +410,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private setSelectedSortFromEntity(entity: Library | Shelf | null): void {
-    if (entity?.sort) {
-      const {field, direction} = entity.sort;
-      this.selectedSort = this.sortOptions.find(option => option.field === field && option.direction === direction) || null;
-    } else {
-      this.selectedSort = {
-        label: 'Title',
-        field: 'title',
-        direction: SortDirection.ASCENDING,
-      };
-    }
-  }
-
   onBookTitleChange(newTitle: string): void {
     this.bookOrAuthor$.next(newTitle);
   }
@@ -448,6 +459,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
 
   toggleFilterSidebar() {
     this.bookFilterComponent.showFilters = !this.bookFilterComponent.showFilters;
+
+    this.router.navigate([], {
+      queryParams: {
+        [QUERY_PARAMS.FILTER]: this.bookFilterComponent.showFilters.toString()
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   get isFilterActive(): boolean {
@@ -461,22 +480,44 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     this.clearSearch();
   }
 
-  sortBooks(field: string) {
+  sortBooks(field: string): void {
+    const existingSort = this.sortOptions.find(opt => opt.field === field);
+
+    if (!existingSort) return;
+
     if (this.selectedSort?.field === field) {
-      this.selectedSort.direction = this.selectedSort.direction === SortDirection.ASCENDING ? SortDirection.DESCENDING : SortDirection.ASCENDING;
+      this.selectedSort = {
+        ...this.selectedSort,
+        direction: this.selectedSort.direction === SortDirection.ASCENDING
+          ? SortDirection.DESCENDING
+          : SortDirection.ASCENDING
+      };
     } else {
-      this.selectedSort.field = field;
-      this.selectedSort.direction = SortDirection.ASCENDING;
+      this.selectedSort = {
+        label: existingSort.label,
+        field: existingSort.field,
+        direction: SortDirection.ASCENDING
+      };
     }
+
     this.updateSortOptions();
-    this.applySortOption(this.selectedSort)
+    this.applySortOption(this.selectedSort);
+
+    this.router.navigate([], {
+      queryParams: {
+        sort: this.selectedSort.field,
+        direction: this.selectedSort.direction === SortDirection.ASCENDING ? SORT_DIRECTION.ASCENDING : SORT_DIRECTION.DESCENDING
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   updateSortOptions() {
-    const directionIcon = this.selectedSort.direction === SortDirection.ASCENDING ? 'pi pi-arrow-up' : 'pi pi-arrow-down';
+    const directionIcon = this.selectedSort!.direction === SortDirection.ASCENDING ? 'pi pi-arrow-up' : 'pi pi-arrow-down';
     this.sortOptions = this.sortOptions.map((option) => ({
       ...option,
-      icon: option.field === this.selectedSort.field ? directionIcon : '',
+      icon: option.field === this.selectedSort!.field ? directionIcon : '',
     }));
   }
 
@@ -484,6 +525,62 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     this.bookFilterComponent.filterSelected.subscribe((item) => {
       this.selectedFilter.next(item);
     });
+
+    this.activatedRoute.queryParamMap.subscribe(paramMap => {
+      const viewParam = paramMap.get(QUERY_PARAMS.VIEW);
+      const sortParam = paramMap.get(QUERY_PARAMS.SORT);
+      const directionParam = paramMap.get(QUERY_PARAMS.DIRECTION);
+      const filterParam = paramMap.get(QUERY_PARAMS.FILTER);
+
+      this.currentViewMode = viewParam === VIEW_MODES.TABLE || viewParam === VIEW_MODES.GRID ? viewParam : VIEW_MODES.GRID;
+
+      const matchingSort = this.sortOptions.find(opt => opt.field === sortParam);
+      const direction = directionParam === SORT_DIRECTION.DESCENDING ? SortDirection.DESCENDING : SortDirection.ASCENDING;
+      this.bookFilterComponent.showFilters = filterParam === 'true' || (filterParam === null && this.filterVisibility);
+
+      if (matchingSort) {
+        this.selectedSort = {
+          label: matchingSort.label,
+          field: matchingSort.field,
+          direction
+        };
+      } else {
+        this.selectedSort = {
+          label: 'Added On',
+          field: 'addedOn',
+          direction: SortDirection.DESCENDING
+        };
+      }
+
+      if (this.lastAppliedSort?.field !== this.selectedSort.field ||
+        this.lastAppliedSort?.direction !== this.selectedSort.direction) {
+        this.lastAppliedSort = {...this.selectedSort};
+        this.applySortOption(this.selectedSort);
+      }
+
+      const queryParams: any = {
+        [QUERY_PARAMS.VIEW]: this.currentViewMode,
+        [QUERY_PARAMS.SORT]: this.selectedSort.field,
+        [QUERY_PARAMS.DIRECTION]: this.selectedSort.direction === SortDirection.ASCENDING ? SORT_DIRECTION.ASCENDING : SORT_DIRECTION.DESCENDING,
+        [QUERY_PARAMS.FILTER]: this.bookFilterComponent.showFilters.toString()
+      };
+
+      const currentParams = this.activatedRoute.snapshot.queryParams;
+
+      if (
+        currentParams[QUERY_PARAMS.VIEW] !== queryParams[QUERY_PARAMS.VIEW] ||
+        currentParams[QUERY_PARAMS.SORT] !== queryParams[QUERY_PARAMS.SORT] ||
+        currentParams[QUERY_PARAMS.DIRECTION] !== queryParams[QUERY_PARAMS.DIRECTION] ||
+        currentParams[QUERY_PARAMS.FILTER] !== queryParams[QUERY_PARAMS.FILTER]
+      ) {
+        this.router.navigate([], {
+          queryParams,
+          replaceUrl: true
+        });
+      }
+    });
+
+    this.cdr.detectChanges();
   }
 
   lockUnlockMetadata() {
@@ -496,7 +593,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
       }
     });
     this.dynamicDialogRef.onClose.subscribe(() => {
-        this.deselectAllBooks();
+      this.deselectAllBooks();
     });
   }
 }
