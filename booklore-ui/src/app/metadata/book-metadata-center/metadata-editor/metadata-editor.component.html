@@ -186,16 +186,14 @@
             <label for="reviewCount">Rating Count (Legacy)</label>
             <div class="flex justify-between items-center gap-2">
               <input [disabled]="true" pInputText id="reviewCount" formControlName="reviewCount" class="w-full"/>
-              <p-button disabled *ngIf="!metadata['reviewCountLocked']" icon="pi pi-lock-open" [outlined]="true" (onClick)="toggleLock('reviewCount')" severity="success"></p-button>
-              <p-button disabled *ngIf="metadata['reviewCountLocked']" icon="pi pi-lock" [outlined]="true" (onClick)="toggleLock('reviewCount')" severity="warn"></p-button>
+              <p-button disabled icon="pi pi-lock" [outlined]="true" severity="warn"></p-button>
             </div>
           </div>
           <div class="flex flex-col gap-1 w-1/4">
             <label for="rating">Rating (Legacy)</label>
             <div class="flex justify-between items-center gap-2">
               <input [disabled]="true" pInputText id="rating" formControlName="rating" class="w-full"/>
-              <p-button disabled *ngIf="!metadata['ratingLocked']" icon="pi pi-lock-open" [outlined]="true" (onClick)="toggleLock('rating')" severity="success"></p-button>
-              <p-button disabled *ngIf="metadata['ratingLocked']" icon="pi pi-lock" [outlined]="true" (onClick)="toggleLock('rating')" severity="warn"></p-button>
+              <p-button disabled icon="pi pi-lock" [outlined]="true" severity="warn"></p-button>
             </div>
           </div>
         </div>
