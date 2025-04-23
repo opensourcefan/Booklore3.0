@@ -242,13 +242,13 @@
         <div class="flex justify-between items-center gap-2">
           <p-tabs value="editor" class="w-full">
             <p-tablist>
-              <p-tab value="editor">Editor</p-tab>
-              <p-tab value="html">HTML</p-tab>
+              <p-tab value="editor">WYSIWYG Editor</p-tab>
+              <p-tab value="html">HTML Editor</p-tab>
             </p-tablist>
             <p-tabpanels>
               <p-tabpanel value="editor">
                 <form [formGroup]="metadataForm">
-                  <p-editor #quillEditor formControlName="description" [readonly]="quillDisabled()" [style]="{ height: '230px' }">
+                  <p-editor #quillEditor formControlName="description" [readonly]="quillDisabled()" [style]="{ height: '215px' }">
                     <ng-template #header>
                       <span class="ql-formats">
                         <button class="ql-bold" aria-label="Bold"></button>
@@ -281,8 +281,8 @@
               </p-tabpanel>
               <p-tabpanel value="html" class="w-full">
                 <textarea
-                  class="w-full p-2"
-                  rows="11.5"
+                  class="w-full p-4"
+                  rows="10"
                   [disabled]="quillDisabled()"
                   [ngModel]="htmlTextarea"
                   (ngModelChange)="onHtmlTextareaChange($event)"
