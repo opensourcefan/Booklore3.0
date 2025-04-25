@@ -43,7 +43,7 @@
             <ng-template #legacyRating>
               <p-rating [(ngModel)]="metadata.rating" readonly stars="5"></p-rating>
               <p class="font-semibold">
-                {{ metadata?.reviewCount ? (metadata.reviewCount | number:'1.0-0') : 'No Ratings' }}
+                {{ metadata?.reviewCount ? '(' + (metadata?.reviewCount | number:'1.0-0') + ' Ratings)' : 'No Ratings' }}
               </p>
             </ng-template>
           </div>
