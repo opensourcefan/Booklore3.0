@@ -8,13 +8,13 @@ import {SettingsComponent} from './settings/settings.component';
 import {PdfViewerComponent} from './book/components/pdf-viewer/pdf-viewer.component';
 import {EpubViewerComponent} from './book/components/epub-viewer/component/epub-viewer.component';
 import {ChangePasswordComponent} from './core/component/change-password/change-password.component';
-import {BookMetadataCenterComponent} from './metadata/book-metadata-center/book-metadata-center.component';
-import {SetupComponent} from './setup/setup.component';
-import {SetupGuard} from './setup/setup.guard';
-import {SetupRedirectGuard} from './setup/setup-redirect.guard';
-import {EmptyComponent} from './empty/empty.component';
-import {LoginGuard} from './setup/ login.guard';
-import {OidcCallbackComponent} from './oidc-callback/oidc-callback.component';
+import {BookMetadataCenterComponent} from './book/metadata/book-metadata-center/book-metadata-center.component';
+import {SetupComponent} from './core/setup/setup.component';
+import {SetupGuard} from './core/setup/setup.guard';
+import {SetupRedirectGuard} from './core/setup/setup-redirect.guard';
+import {EmptyComponent} from './core/empty/empty.component';
+import {LoginGuard} from './core/setup/ login.guard';
+import {OidcCallbackComponent} from './core/security/oidc-callback/oidc-callback.component';
 
 export const routes: Routes = [
   {
@@ -38,6 +38,7 @@ export const routes: Routes = [
       {path: 'settings', component: SettingsComponent, canActivate: [AuthGuard]},
       {path: 'library/:libraryId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},
       {path: 'shelf/:shelfId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},
+      {path: 'unshelved-books', component: BookBrowserComponent, canActivate: [AuthGuard]},
       {path: 'book/:bookId', component: BookMetadataCenterComponent, canActivate: [AuthGuard]}
     ]
   },
