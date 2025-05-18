@@ -13,11 +13,13 @@ import {Select} from 'primeng/select';
 import {UserService} from '../../../../settings/user-management/user.service';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {MessageService} from 'primeng/api';
+import {Tooltip} from 'primeng/tooltip';
 
 const FALLBACK_EPUB_SETTINGS = {
   fontSize: 150,
   fontType: 'serif',
   theme: 'white',
+  flow: 'paginated',
   maxFontSize: 300,
   minFontSize: 50,
 };
@@ -26,10 +28,21 @@ function flatten(chapters: any) {
   return [].concat.apply([], chapters.map((chapter: any) => [].concat.apply([chapter], flatten(chapter.subitems))));
 }
 
-export function getCfiFromHref(book: any, href: string): string {
+export function getCfiFromHref(book: any, href: string): string | null {
   const [_, id] = href.split('#');
   const section = book.spine.get(href);
-  const el = (id ? section.document.getElementById(id) : section.document.body) as Element;
+
+  if (!section || !section.document) {
+    console.warn('Section or section.document is undefined for href:', href);
+    return null;
+  }
+
+  const el = id ? section.document.getElementById(id) : section.document.body;
+  if (!el) {
+    console.warn('Element not found in section.document for href:', href);
+    return null;
+  }
+
   return section.cfiFromElement(el);
 }
 
@@ -40,7 +53,11 @@ export function getChapter(book: any, location: any) {
       return book.canonical(chapter.href).includes(book.canonical(locationHref));
     })
     .reduce((result: any | null, chapter: any) => {
-      const locationAfterChapter = EpubCFI.prototype.compare(location.start.cfi, getCfiFromHref(book, chapter.href)) > 0;
+      const chapterCfi = getCfiFromHref(book, chapter.href);
+      if (!chapterCfi) {
+        return result;
+      }
+      const locationAfterChapter = EpubCFI.prototype.compare(location.start.cfi, chapterCfi) > 0;
       return locationAfterChapter ? chapter : result;
     }, null);
 }
@@ -49,7 +66,7 @@ export function getChapter(book: any, location: any) {
   selector: 'app-epub-viewer',
   templateUrl: './epub-viewer.component.html',
   styleUrls: ['./epub-viewer.component.scss'],
-  imports: [Drawer, Button, NgForOf, FormsModule, Divider, Select, ProgressSpinner, NgIf],
+  imports: [Drawer, Button, NgForOf, FormsModule, Divider, Select, ProgressSpinner, NgIf, Tooltip],
   standalone: true
 })
 export class EpubViewerComponent implements OnInit, OnDestroy {
@@ -60,16 +77,19 @@ export class EpubViewerComponent implements OnInit, OnDestroy {
   currentChapter = '';
   isDrawerVisible = false;
   isSettingsDrawerVisible = false;
-  isMobile = false; 
+
+  public locationsReady = false;
+  public approxProgress = 0;
+  public exactProgress = 0;
+
   private book: any;
   private rendition: any;
   private keyListener: (e: KeyboardEvent) => void = () => {
   };
 
   fontSize = FALLBACK_EPUB_SETTINGS.fontSize;
-  selectedFontType = FALLBACK_EPUB_SETTINGS.fontType;
-  selectedTheme = FALLBACK_EPUB_SETTINGS.theme;
 
+  selectedFontType = FALLBACK_EPUB_SETTINGS.fontType;
   fontTypes: any[] = [
     {label: 'Serif', value: 'serif'},
     {label: 'Sans Serif', value: 'sans-serif'},
@@ -78,11 +98,18 @@ export class EpubViewerComponent implements OnInit, OnDestroy {
     {label: 'Monospace', value: 'monospace'},
   ];
 
+  selectedTheme = FALLBACK_EPUB_SETTINGS.theme;
   themes: any[] = [
     {label: 'White', value: 'white'},
     {label: 'Black', value: 'black'},
     {label: 'Grey', value: 'grey'},
     {label: 'Sepia', value: 'sepia'},
+  ];
+
+  selectedFlow = FALLBACK_EPUB_SETTINGS.flow;
+  flows: any[] = [
+    {label: 'Scrolled', value: 'scrolled'},
+    {label: 'Paginated', value: 'paginated'}
   ];
 
   private route = inject(ActivatedRoute);
@@ -115,8 +142,6 @@ export class EpubViewerComponent implements OnInit, OnDestroy {
           fileReader.onload = () => {
             this.book = ePub(fileReader.result as ArrayBuffer);
 
-            this.isMobile = window.innerWidth <= 768;
-
             this.book.loaded.navigation.then((nav: any) => {
               this.chapters = nav.toc.map((chapter: any) => ({
                 label: chapter.label,
@@ -124,42 +149,49 @@ export class EpubViewerComponent implements OnInit, OnDestroy {
               }));
             });
 
+            let globalOrIndividual = myself.userSettings.perBookSetting.epub;
+
+            const flow = globalOrIndividual === 'Global'
+              ? myself.userSettings.epubReaderSetting.flow || 'paginated'
+              : individualSetting?.flow || myself.userSettings.epubReaderSetting.flow || 'paginated';
+
             this.rendition = this.book.renderTo(this.epubContainer.nativeElement, {
-              flow: this.isMobile ? 'scrolled' : 'paginated',
-              manager: this.isMobile ? 'continuous' : 'default',
+              flow,
+              manager: flow === 'scrolled' ? 'continuous' : 'default',
               width: '100%',
               height: '100%',
               allowScriptedContent: true,
             });
 
-            if (this.epub?.epubProgress) {
-              this.rendition.display(this.epub.epubProgress);
-            } else {
-              this.rendition.display();
-            }
+            const displayPromise = this.epub?.epubProgress?.cfi
+              ? this.rendition.display(this.epub.epubProgress.cfi)
+              : this.rendition.display();
 
             this.themesMap.forEach((theme, name) => {
               this.rendition.themes.register(name, theme);
             });
 
-            let globalOrIndividual = myself.userSettings.perBookSetting.epub;
             if (globalOrIndividual === 'Global') {
               this.selectedTheme = myself.userSettings.epubReaderSetting.theme || FALLBACK_EPUB_SETTINGS.theme;
               this.selectedFontType = myself.userSettings.epubReaderSetting.font || FALLBACK_EPUB_SETTINGS.fontType;
               this.fontSize = myself.userSettings.epubReaderSetting.fontSize || FALLBACK_EPUB_SETTINGS.fontSize;
+              this.selectedFlow = myself.userSettings.epubReaderSetting.flow || FALLBACK_EPUB_SETTINGS.flow;
             } else {
               this.selectedTheme = individualSetting?.theme || myself.userSettings.epubReaderSetting.theme || FALLBACK_EPUB_SETTINGS.theme;
               this.selectedFontType = individualSetting?.font || myself.userSettings.epubReaderSetting.font || FALLBACK_EPUB_SETTINGS.fontType;
               this.fontSize = individualSetting?.fontSize || myself.userSettings.epubReaderSetting.fontSize || FALLBACK_EPUB_SETTINGS.fontSize;
+              this.selectedFlow = individualSetting?.flow || myself.userSettings.epubReaderSetting.flow || FALLBACK_EPUB_SETTINGS.flow;
             }
 
             this.rendition.themes.select(this.selectedTheme);
             this.rendition.themes.fontSize(`${this.fontSize}%`);
             this.rendition.themes.font(this.selectedFontType);
 
-            this.setupKeyListener();
-            this.trackProgress();
-            this.isLoading = false;
+            displayPromise.then(() => {
+              this.setupKeyListener();
+              this.trackProgress();
+              this.isLoading = false;
+            });
           };
 
           fileReader.readAsArrayBuffer(epubData);
@@ -170,6 +202,30 @@ export class EpubViewerComponent implements OnInit, OnDestroy {
         }
       });
     });
+  }
+
+  changeScrollMode(): void {
+    if (!this.rendition || !this.book) return;
+
+    const cfi = this.rendition.currentLocation()?.start?.cfi;
+    this.rendition.destroy();
+
+    this.rendition = this.book.renderTo(this.epubContainer.nativeElement, {
+      flow: this.selectedFlow,
+      manager: this.selectedFlow === 'scrolled' ? 'continuous' : 'default',
+      width: '100%',
+      height: '100%',
+      allowScriptedContent: true,
+    });
+
+    this.themesMap.forEach((theme, name) => this.rendition.themes.register(name, theme));
+    this.rendition.themes.select(this.selectedTheme);
+    this.rendition.themes.font(this.selectedFontType);
+    this.rendition.themes.fontSize(`${this.fontSize}%`);
+
+    this.setupKeyListener();
+    this.rendition.display(cfi || undefined);
+    this.updateViewerSetting();
   }
 
   changeThemes(): void {
@@ -211,6 +267,7 @@ export class EpubViewerComponent implements OnInit, OnDestroy {
         theme: this.selectedTheme,
         font: this.selectedFontType,
         fontSize: this.fontSize,
+        flow: this.selectedFlow
       }
     }
     this.bookService.updateViewerSetting(bookSetting, this.epub.id).subscribe();
@@ -262,22 +319,36 @@ export class EpubViewerComponent implements OnInit, OnDestroy {
   }
 
   private trackProgress(): void {
-    if (this.rendition) {
-      this.rendition.on('relocated', (location: any) => {
-        const currentChapter = getChapter(this.book, location);
-        this.currentChapter = currentChapter?.label;
-        this.bookService.saveEpubProgress(this.epub.id, location.start.cfi).subscribe();
-      });
-    }
+    if (!this.book || !this.rendition) return;
+    this.rendition.on('relocated', (location: any) => {
+      const cfi = location.start.cfi;
+      const currentIndex = location.start.index;
+      const totalSpineItems = this.book.spine.items.length;
+      let percentage: number;
+      if (this.locationsReady) {
+        percentage = this.book.locations.percentageFromCfi(cfi);
+        this.exactProgress = Math.round(percentage * 1000) / 10;
+      } else {
+        if (totalSpineItems > 0) {
+          percentage = currentIndex / totalSpineItems;
+        } else {
+          percentage = 0;
+        }
+        this.approxProgress = Math.round(percentage * 1000) / 10;
+      }
+      this.currentChapter = getChapter(this.book, location)?.label;
+      this.bookService.saveEpubProgress(this.epub.id, cfi, Math.round(percentage * 1000) / 10).subscribe();
+    });
+    this.book.ready.then(() => this.book.locations.generate(10000)).then(() => {
+      this.locationsReady = true;
+    });
   }
-
 
   ngOnDestroy(): void {
     if (this.rendition) {
       this.rendition.off('keyup', this.keyListener);
     }
     document.removeEventListener('keyup', this.keyListener);
-    this.trackProgress();
   }
 
   themesMap = new Map<string, any>([
@@ -333,5 +404,4 @@ export class EpubViewerComponent implements OnInit, OnDestroy {
     }
     ]
   ]);
-
 }
