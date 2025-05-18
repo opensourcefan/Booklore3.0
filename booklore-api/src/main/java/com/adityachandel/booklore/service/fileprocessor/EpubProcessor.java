@@ -76,14 +76,36 @@ public class EpubProcessor implements FileProcessor {
 
     public boolean generateCover(BookEntity bookEntity) {
         try {
-            io.documentnode.epub4j.domain.Book epub = new EpubReader().readEpub(new FileInputStream(FileUtils.getBookFullPath(bookEntity)));
+            File epubFile = new File(FileUtils.getBookFullPath(bookEntity));
+            io.documentnode.epub4j.domain.Book epub = new EpubReader().readEpub(new FileInputStream(epubFile));
+
+            // Try the default method
             Resource coverImage = epub.getCoverImage();
+
+            // Fallback: look for a manifest resource with common "cover" keywords
+            if (coverImage == null) {
+                for (Resource res : epub.getResources().getAll()) {
+                    String id = res.getId();
+                    String href = res.getHref();
+
+                    if ((id != null && id.toLowerCase().contains("cover")) ||
+                        (href != null && href.toLowerCase().contains("cover"))) {
+
+                        if (res.getMediaType() != null && res.getMediaType().getName().startsWith("image")) {
+                            coverImage = res;
+                            break;
+                        }
+                    }
+                }
+            }
+
             boolean saved = saveCoverImage(coverImage, bookEntity.getId());
             bookEntity.getMetadata().setCoverUpdatedOn(Instant.now());
             bookMetadataRepository.save(bookEntity.getMetadata());
             return saved;
+
         } catch (Exception e) {
-            log.error("Error generating cover for epub file {}, error: {}", bookEntity.getFileName(), e.getMessage());
+            log.error("Error generating cover for epub file {}, error: {}", bookEntity.getFileName(), e.getMessage(), e);
         }
         return false;
     }
