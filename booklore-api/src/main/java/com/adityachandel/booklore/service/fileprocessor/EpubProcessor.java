@@ -1,31 +1,11 @@
 package com.adityachandel.booklore.service.fileprocessor;
 
-import com.adityachandel.booklore.mapper.BookMapper;
-import com.adityachandel.booklore.model.dto.settings.LibraryFile;
-import com.adityachandel.booklore.model.dto.Book;
-import com.adityachandel.booklore.model.entity.BookEntity;
-import com.adityachandel.booklore.model.entity.BookMetadataEntity;
-import com.adityachandel.booklore.model.enums.BookFileType;
-import com.adityachandel.booklore.repository.BookMetadataRepository;
-import com.adityachandel.booklore.repository.BookRepository;
-import com.adityachandel.booklore.service.BookCreatorService;
-import com.adityachandel.booklore.util.FileUtils;
-import io.documentnode.epub4j.domain.Identifier;
-import io.documentnode.epub4j.domain.Metadata;
-import io.documentnode.epub4j.domain.Resource;
-import io.documentnode.epub4j.epub.EpubReader;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -34,6 +14,39 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import com.adityachandel.booklore.mapper.BookMapper;
+import com.adityachandel.booklore.model.dto.Book;
+import com.adityachandel.booklore.model.dto.settings.LibraryFile;
+import com.adityachandel.booklore.model.entity.BookEntity;
+import com.adityachandel.booklore.model.entity.BookMetadataEntity;
+import com.adityachandel.booklore.model.enums.BookFileType;
+import com.adityachandel.booklore.repository.BookMetadataRepository;
+import com.adityachandel.booklore.repository.BookRepository;
+import com.adityachandel.booklore.service.BookCreatorService;
+import com.adityachandel.booklore.util.FileUtils;
+
+import io.documentnode.epub4j.domain.Identifier;
+import io.documentnode.epub4j.domain.Metadata;
+import io.documentnode.epub4j.domain.Resource;
+import io.documentnode.epub4j.epub.EpubReader;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
 
 @Slf4j
 @Service
@@ -117,10 +130,16 @@ public class EpubProcessor implements FileProcessor {
     }
 
     private void setBookMetadata(BookEntity bookEntity) {
-        try {
-            io.documentnode.epub4j.domain.Book book = new EpubReader().readEpub(new FileInputStream(FileUtils.getBookFullPath(bookEntity)));
+        log.debug("***Setting metadata for book {}", bookEntity.getFileName());
+        try (FileInputStream fis =
+                new FileInputStream(FileUtils.getBookFullPath(bookEntity))) {
+
+            io.documentnode.epub4j.domain.Book book =
+                new EpubReader().readEpub(fis);
+
             BookMetadataEntity bookMetadata = bookEntity.getMetadata();
-            Metadata epubMetadata = book.getMetadata();
+            Metadata            epubMetadata = book.getMetadata();
+
             if (epubMetadata != null) {
                 bookMetadata.setTitle(truncate(epubMetadata.getFirstTitle(), 1000));
 
@@ -162,7 +181,8 @@ public class EpubProcessor implements FileProcessor {
                                 }
                             });
                 }
-
+                
+                // Calibre (EPUB2) series tags
                 String seriesName = epubMetadata.getMetaAttribute("calibre:series");
                 if (seriesName != null && !seriesName.isEmpty()) {
                     bookMetadata.setSeriesName(truncate(seriesName, 1000));
@@ -177,6 +197,9 @@ public class EpubProcessor implements FileProcessor {
                         log.warn("Unable to parse series number: {}", seriesIndex);
                     }
                 }
+
+                //  fall-back to OPF for anything still missing
+                extractFromOpf(FileUtils.getBookFullPath(bookEntity), bookMetadata);
 
                 bookCreatorService.addAuthorsToBook(getAuthors(book), bookEntity);
                 bookCreatorService.addCategoriesToBook(epubMetadata.getSubjects(), bookEntity);
@@ -212,5 +235,80 @@ public class EpubProcessor implements FileProcessor {
     private String truncate(String input, int maxLength) {
         if (input == null) return null;
         return input.length() <= maxLength ? input : input.substring(0, maxLength);
+    }
+
+    private void extractFromOpf(String epubPath, BookMetadataEntity meta) {
+        try (ZipFile zip = new ZipFile(epubPath)) {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            DocumentBuilder builder = dbf.newDocumentBuilder();
+
+            FileHeader containerHdr = zip.getFileHeader("META-INF/container.xml");
+            if (containerHdr == null) return;
+            try (InputStream cis = zip.getInputStream(containerHdr)) {
+                Document containerDoc;
+                try {
+                    containerDoc = builder.parse(cis);
+                } catch (Exception e) {
+                    return;
+                }
+                if (containerDoc == null) return;
+                NodeList roots = containerDoc.getElementsByTagName("rootfile");
+                if (roots.getLength() == 0) return;
+                String opfPath = ((Element) roots.item(0)).getAttribute("full-path");
+                if (StringUtils.isBlank(opfPath)) return;
+                FileHeader opfHdr = zip.getFileHeader(opfPath);
+                if (opfHdr == null) return;
+                try (InputStream in = zip.getInputStream(opfHdr)) {
+                    Document doc;
+                    try {
+                        doc = builder.parse(in);
+                    } catch (Exception e) {
+                        return;
+                    }
+                    if (doc == null) return;
+                    if (StringUtils.isBlank(meta.getIsbn13()) || StringUtils.isBlank(meta.getIsbn10())) {
+                        NodeList idNodes = doc.getElementsByTagNameNS("*", "identifier");
+                        for (int i = 0; i < idNodes.getLength(); i++) {
+                            String idRaw = idNodes.item(i).getTextContent().trim();
+                            String isbn = idRaw.toLowerCase().startsWith("isbn:") ? idRaw.substring(5) : idRaw;
+                            if (isbn.length() == 13 && StringUtils.isBlank(meta.getIsbn13())) {
+                                meta.setIsbn13(truncate(isbn, 64));
+                            }
+                            if (isbn.length() == 10 && StringUtils.isBlank(meta.getIsbn10())) {
+                                meta.setIsbn10(truncate(isbn, 64));
+                            }
+                        }
+                    }
+                    NodeList metaNodes = doc.getElementsByTagNameNS("*", "meta");
+                    for (int i = 0; i < metaNodes.getLength(); i++) {
+                        Element m = (Element) metaNodes.item(i);
+                        String nameAttr = m.getAttribute("name");
+                        String propAttr = m.getAttribute("property");
+                        String content = m.hasAttribute("content") ? m.getAttribute("content").trim() : m.getTextContent().trim();
+
+                        if (StringUtils.isBlank(meta.getSeriesName()) && (nameAttr.equalsIgnoreCase("calibre:series") || propAttr.equalsIgnoreCase("belongs-to-collection"))) {
+                            meta.setSeriesName(truncate(content, 1000));
+                        }
+                        if (meta.getSeriesNumber() == null && (nameAttr.equalsIgnoreCase("calibre:series_index") || propAttr.equalsIgnoreCase("group-position"))) {
+                            try {
+                                int number = (int) Double.parseDouble(content);
+                                meta.setSeriesNumber((float) number);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                        if (meta.getPageCount() == null && (nameAttr.equalsIgnoreCase("calibre:pages") || nameAttr.equalsIgnoreCase("pageCount") || propAttr.equalsIgnoreCase("schema:pageCount") || propAttr.equalsIgnoreCase("media:pageCount"))) {
+                            try {
+                                int pages = Integer.parseInt(content);
+                                meta.setPageCount(pages);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
     }
 }
