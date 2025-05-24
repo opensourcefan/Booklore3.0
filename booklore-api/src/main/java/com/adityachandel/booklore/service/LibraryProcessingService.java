@@ -159,8 +159,14 @@ public class LibraryProcessingService {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
         notificationService.sendMessage(Topic.LOG, createLogNotification("Started refreshing library: " + libraryEntity.getName()));
         detectMovedBooksAndUpdatePaths(libraryEntity);
+        entityManager.flush();
+        entityManager.clear();
         deleteRemovedBooks(detectDeletedBookIds(libraryEntity));
+        entityManager.flush();
+        entityManager.clear();
         processLibraryFiles(detectNewBookPaths(libraryEntity));
+        entityManager.flush();
+        entityManager.clear();
         notificationService.sendMessage(Topic.LOG, createLogNotification("Finished refreshing library: " + libraryEntity.getName()));
     }
 
@@ -207,7 +213,9 @@ public class LibraryProcessingService {
     protected void deleteRemovedBooks(List<Long> bookIds) {
         bookRepository.deleteByIdIn(bookIds);
         notificationService.sendMessage(Topic.BOOKS_REMOVE, bookIds);
-        log.info("Books removed: {}", bookIds);
+        if (bookIds.size() > 1) {
+            log.info("Books removed: {}", bookIds);
+        }
     }
 
     @Transactional
