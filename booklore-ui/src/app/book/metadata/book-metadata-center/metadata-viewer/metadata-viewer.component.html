@@ -86,6 +86,7 @@
             <p class="whitespace-nowrap"><span class="font-bold">Language:</span> {{ metadata.language || '-' }}</p>
             <p class="whitespace-nowrap"><span class="font-bold">ISBN 10:</span> {{ metadata.isbn10 || '-' }}</p>
             <p class="whitespace-nowrap"><span class="font-bold">ISBN 13:</span> {{ metadata.isbn13 || '-' }}</p>
+            <p class="whitespace-nowrap"><span class="font-bold">ASIN:</span> {{ metadata.asin || '-' }}</p>
             <p class="whitespace-nowrap"><span class="font-bold">Page Count:</span> {{ metadata.pageCount || '-' }}</p>
             <p class="whitespace-nowrap"><span class="font-bold">File Size:</span> {{ getFileSizeInMB() }}</p>
             <p class="whitespace-nowrap"><span class="font-bold">Progress:</span> {{ getProgressPercent() !== null ? getProgressPercent() + '%' : '-' }}</p>
@@ -129,6 +130,27 @@
 
     <p-divider></p-divider>
 
+    <ng-container *ngIf="bookInSeries.length > 0">
+      <div>
+        <h3 class="text-xl font-semibold pt-2">More in the Series</h3>
+        <div class="dashboard-scroller-infinite"
+             infiniteScroll
+             [infiniteScrollDistance]="2"
+             [infiniteScrollThrottle]="50"
+             [horizontal]="true">
+          <div class="dashboard-scroller-card" *ngFor="let book of bookInSeries">
+            <app-book-card
+              [book]="book"
+              [isCheckboxEnabled]="false"
+              [readButtonHidden]="true"
+              [bottomBarHidden]="true">
+            </app-book-card>
+          </div>
+        </div>
+      </div>
+      <p-divider></p-divider>
+    </ng-container>
+
     <ng-container *ngIf="recommendedBooks.length > 0">
       <div>
         <h3 class="text-xl font-semibold">Similar Books</h3>
@@ -140,27 +162,6 @@
           <div class="dashboard-scroller-card" *ngFor="let book of recommendedBooks">
             <app-book-card
               [book]="book.book"
-              [isCheckboxEnabled]="false"
-              [readButtonHidden]="true"
-              [bottomBarHidden]="true">
-            </app-book-card>
-          </div>
-        </div>
-      </div>
-    </ng-container>
-
-    <ng-container *ngIf="bookInSeries.length > 0">
-      <p-divider></p-divider>
-      <div>
-        <h3 class="text-xl font-semibold pt-2">More in the Series</h3>
-        <div class="dashboard-scroller-infinite"
-             infiniteScroll
-             [infiniteScrollDistance]="2"
-             [infiniteScrollThrottle]="50"
-             [horizontal]="true">
-          <div class="dashboard-scroller-card" *ngFor="let book of bookInSeries">
-            <app-book-card
-              [book]="book"
               [isCheckboxEnabled]="false"
               [readButtonHidden]="true"
               [bottomBarHidden]="true">

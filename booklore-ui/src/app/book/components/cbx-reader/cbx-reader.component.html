@@ -1,0 +1,47 @@
+<div class="comic-reader-container">
+  <div class="navigation">
+    <div class="goto-page-controls" style="display: flex; align-items: center; margin-right: auto;">
+      <input type="number" [(ngModel)]="goToPageInput" [min]="1" [max]="pages.length" placeholder="Page">
+      <button
+        (click)="goToPageInput !== null && goToPage(goToPageInput)"
+        [disabled]="goToPageInput === null || goToPageInput < 1 || goToPageInput > pages.length">
+        Go
+      </button>
+    </div>
+
+    <div class="page-controls" style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
+      <button class="mr-2" (click)="goToPage(1)" [disabled]="currentPage === 0">&lt;&lt;</button>
+      <button (click)="previousPage()" [disabled]="currentPage === 0">&lt;</button>
+      <span>
+        Page {{ currentPage + 1 }}{{ isTwoPageView && imageUrls.length > 1 ? '-' + (currentPage + 2) : '' }} of {{ pages.length }}
+      </span>
+      <button (click)="nextPage()" [disabled]="currentPage >= pages.length - 1">&gt;</button>
+      <button class="ml-2" (click)="goToPage(pages.length)" [disabled]="currentPage >= pages.length - 1">&gt;&gt;</button>
+    </div>
+
+    <div class="spread-controls" style="display: flex; align-items: center; margin-left: auto;">
+      <button *ngIf="isTwoPageView" (click)="toggleSpreadDirection()" title="Toggle Spread Direction">
+        {{ pageSpread === 'ODD' ? '⬅️' : '➡️' }}
+      </button>
+      <button (click)="toggleView()" title="Toggle View">
+        {{ isTwoPageView ? '1️⃣' : '2️⃣' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="image-container" [class.two-page-view]="isTwoPageView">
+    <ng-container *ngIf="!isLoading; else loading">
+      <ng-container *ngIf="pages.length > 0; else noPages">
+        <img *ngFor="let url of imageUrls" [src]="url" alt="Comic Page"/>
+      </ng-container>
+    </ng-container>
+    <ng-template #noPages>
+      <p>No pages available.</p>
+    </ng-template>
+    <ng-template #loading>
+      <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+        <p-progressSpinner></p-progressSpinner>
+      </div>
+    </ng-template>
+  </div>
+</div>
