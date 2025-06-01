@@ -127,6 +127,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     {label: 'Amazon #', icon: '', field: 'amazonReviewCount', command: () => this.sortBooks('amazonReviewCount')},
     {label: 'Goodreads Rating', icon: '', field: 'goodreadsRating', command: () => this.sortBooks('goodreadsRating')},
     {label: 'Goodreads #', icon: '', field: 'goodreadsReviewCount', command: () => this.sortBooks('goodreadsReviewCount')},
+    {label: 'Hardcover Rating', icon: '', field: 'hardcoverRating', command: () => this.sortBooks('hardcoverRating')},
+    {label: 'Hardcover #', icon: '', field: 'hardcoverReviewCount', command: () => this.sortBooks('hardcoverReviewCount')},
     {label: 'Pages', icon: '', field: 'pageCount', command: () => this.sortBooks('pageCount')}
   ];
 
@@ -614,16 +616,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   }
 
   lockUnlockMetadata() {
+    const count = this.selectedBooks.size;
     this.dynamicDialogRef = this.dialogService.open(LockUnlockMetadataDialogComponent, {
-      header: 'Toggle Metadata Lock',
+      header: `Lock or Unlock Metadata for ${count} Selected Book${count > 1 ? 's' : ''}`,
       modal: true,
       closable: true,
       data: {
         bookIds: Array.from(this.selectedBooks)
       }
-    });
-    this.dynamicDialogRef.onClose.subscribe(() => {
-      this.deselectAllBooks();
     });
   }
 }
