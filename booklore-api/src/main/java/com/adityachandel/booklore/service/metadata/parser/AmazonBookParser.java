@@ -4,7 +4,7 @@ import com.adityachandel.booklore.model.dto.Book;
 import com.adityachandel.booklore.model.dto.BookMetadata;
 import com.adityachandel.booklore.model.dto.request.FetchMetadataRequest;
 import com.adityachandel.booklore.model.enums.MetadataProvider;
-import com.adityachandel.booklore.service.AppSettingService;
+import com.adityachandel.booklore.service.appsettings.AppSettingService;
 import com.adityachandel.booklore.util.BookUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -407,7 +407,10 @@ public class AmazonBookParser implements BookParser {
         try {
             Element reviewDiv = doc.selectFirst("div#averageCustomerReviews_feature_div");
             if (reviewDiv != null) {
-                Element ratingSpan = reviewDiv.selectFirst("span#acrPopover span.a-size-small.a-color-base");
+                Element ratingSpan = reviewDiv.selectFirst("span#acrPopover span.a-size-base.a-color-base");
+                if (ratingSpan == null) {
+                    ratingSpan = reviewDiv.selectFirst("span#acrPopover span.a-size-small.a-color-base");
+                }
                 if (ratingSpan != null) {
                     String text = ratingSpan.text().trim();
                     if (!text.isEmpty()) {

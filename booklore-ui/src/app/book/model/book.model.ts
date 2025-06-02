@@ -1,4 +1,5 @@
 import {Shelf} from './shelf.model';
+import {NewPdfReaderSetting} from '../../settings/user-management/user.service';
 
 export type BookType = "PDF" | "EPUB" | "CBX";
 
@@ -58,7 +59,6 @@ export interface BookMetadata {
   coverUpdatedOn?: string;
   authors: string[];
   categories: string[];
-  awards?: Award[];
   provider?: string;
   providerBookId?: string;
   thumbnailUrl?: string | null;
@@ -87,17 +87,9 @@ export interface BookMetadata {
   coverUpdatedOnLocked?: boolean;
   authorsLocked?: boolean;
   categoriesLocked?: boolean;
-  awardsLocked?: boolean;
   coverLocked?: boolean;
 
   [key: string]: any;
-}
-
-export interface Award {
-  name: string;
-  category: string;
-  designation: string;
-  awardedAt: string;
 }
 
 export interface PdfViewerSetting {
@@ -121,6 +113,7 @@ export interface BookSetting {
   pdfSettings?: PdfViewerSetting;
   epubSettings?: EpubViewerSetting;
   cbxSettings?: CbxViewerSetting;
+  newPdfSettings?: NewPdfReaderSetting;
 
   [key: string]: any;
 }
@@ -136,6 +129,16 @@ export const enum CbxPageViewMode {
 }
 
 export const enum CbxPageSpread {
+  EVEN = 'EVEN',
+  ODD = 'ODD',
+}
+
+export const enum PdfPageViewMode {
+  SINGLE_PAGE = 'SINGLE_PAGE',
+  TWO_PAGE = 'TWO_PAGE',
+}
+
+export const enum PdfPageSpread {
   EVEN = 'EVEN',
   ODD = 'ODD',
 }

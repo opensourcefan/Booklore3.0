@@ -116,28 +116,33 @@ export class BookService {
     this.bookStateSubject.next({...currentState, books: updatedBooks});
   }
 
-  readBook(bookId: number): void {
-    const currentBooks = this.bookStateSubject.value.books;
-    const book = currentBooks?.find(book => book.id === bookId);
-    if (book) {
-      if (book.bookType === "PDF") {
-        const url = `/pdf-viewer/book/${book.id}`;
-        window.open(url, '_blank');
-        this.updateLastReadTime(book.id);
-      } else if (book.bookType === "EPUB") {
-        const url = `/epub-viewer/book/${book.id}`;
-        window.open(url, '_blank');
-        this.updateLastReadTime(book.id);
-      } else if (book.bookType === "CBX") {
-        const url = `/cbx-viewer/book/${book.id}`;
-        window.open(url, '_blank');
-        this.updateLastReadTime(book.id);
-      } else {
-        console.error('Unsupported book type:', book.bookType);
-      }
-    } else {
+  readBook(bookId: number, reader?: "ngx" | "streaming"): void {
+    const book = this.bookStateSubject.value.books?.find(b => b.id === bookId);
+    if (!book) {
       console.error('Book not found');
+      return;
     }
+
+    let url: string | null = null;
+    switch (book.bookType) {
+      case "PDF":
+        url = !reader || reader === "ngx"
+          ? `/pdf-viewer/book/${book.id}`
+          : `/cbx-viewer/book/${book.id}`;
+        break;
+      case "EPUB":
+        url = `/epub-viewer/book/${book.id}`;
+        break;
+      case "CBX":
+        url = `/cbx-viewer/book/${book.id}`;
+        break;
+      default:
+        console.error('Unsupported book type:', book.bookType);
+        return;
+    }
+
+    window.open(url, '_blank');
+    this.updateLastReadTime(book.id);
   }
 
   searchBooks(query: string): Book[] {
@@ -377,9 +382,9 @@ export class BookService {
         const currentState = this.bookStateSubject.value;
         const updatedBooks = (currentState.books || []).map(book => {
           const updatedMetadata = updatedMetadataList.find(meta => meta.bookId === book.id);
-          return updatedMetadata ? { ...book, metadata: updatedMetadata } : book;
+          return updatedMetadata ? {...book, metadata: updatedMetadata} : book;
         });
-        this.bookStateSubject.next({ ...currentState, books: updatedBooks });
+        this.bookStateSubject.next({...currentState, books: updatedBooks});
       }),
       map(() => void 0),
       catchError((error) => {
