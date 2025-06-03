@@ -1,20 +1,21 @@
 package com.adityachandel.booklore.service.recommender;
 
+import com.adityachandel.booklore.config.security.AuthenticationService;
 import com.adityachandel.booklore.exception.ApiError;
 import com.adityachandel.booklore.mapper.BookMapper;
-import com.adityachandel.booklore.model.dto.Book;
-import com.adityachandel.booklore.model.dto.BookRecommendation;
-import com.adityachandel.booklore.model.dto.BookRecommendationLite;
+import com.adityachandel.booklore.model.dto.*;
 import com.adityachandel.booklore.model.entity.AuthorEntity;
 import com.adityachandel.booklore.model.entity.BookEntity;
 import com.adityachandel.booklore.model.entity.BookMetadataEntity;
 import com.adityachandel.booklore.repository.BookRepository;
+import com.adityachandel.booklore.service.user.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,11 +26,14 @@ public class BookRecommendationService {
     private final BookSimilarityService similarityService;
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
+    private final AuthenticationService authenticationService;
 
     private static final int MAX_BOOKS_PER_AUTHOR = 3;
 
     public List<BookRecommendation> getRecommendations(Long bookId, int limit) {
-        BookEntity book = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+        BookEntity book = bookRepository.findById(bookId)
+                .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+
         List<BookRecommendationLite> recommendations = book.getSimilarBooksJson();
         if (recommendations == null || recommendations.isEmpty()) {
             log.info("Recommendations for book ID {} are missing or empty. Computing similarity...", bookId);
@@ -37,19 +41,28 @@ public class BookRecommendationService {
             book.setSimilarBooksJson(recommendations);
             bookRepository.save(book);
         }
+
         List<Long> recommendedBookIds = recommendations.stream()
                 .map(BookRecommendationLite::getB)
                 .collect(Collectors.toList());
 
+        BookLoreUser user = authenticationService.getAuthenticatedUser();
+        Set<Long> accessibleLibraryIds = user.getAssignedLibraries().stream()
+                .map(Library::getId)
+                .collect(Collectors.toSet());
+
         Map<Long, BookEntity> recommendedBooksMap = bookRepository.findAllById(recommendedBookIds).stream()
-                .collect(Collectors.toMap(BookEntity::getId, bookEntity -> bookEntity));
+                .filter(b -> b.getLibrary() != null && accessibleLibraryIds.contains(b.getLibrary().getId()))
+                .collect(Collectors.toMap(BookEntity::getId, Function.identity()));
 
         return recommendations.stream()
-                .limit(limit)
-                .map(id -> {
-                    BookEntity recommendedBook = recommendedBooksMap.get(id.getB());
-                    return new BookRecommendation(bookMapper.toBookWithDescription(recommendedBook, false), id.getS());
+                .map(rec -> {
+                    BookEntity bookEntity = recommendedBooksMap.get(rec.getB());
+                    if (bookEntity == null) return null;
+                    return new BookRecommendation(bookMapper.toBookWithDescription(bookEntity, false), rec.getS());
                 })
+                .filter(Objects::nonNull)
+                .limit(limit)
                 .collect(Collectors.toList());
     }
 
