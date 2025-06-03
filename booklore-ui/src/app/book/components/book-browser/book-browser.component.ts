@@ -3,9 +3,8 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {MenuItem, MessageService, PrimeTemplate} from 'primeng/api';
 import {LibraryService} from '../../service/library.service';
 import {BookService} from '../../service/book.service';
-import {map, switchMap} from 'rxjs/operators';
-import {filter, take} from 'rxjs/operators';
-import {BehaviorSubject, Observable, of, Subject} from 'rxjs';
+import {debounceTime, filter, map, switchMap, take} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, Observable, of, Subject} from 'rxjs';
 import {ShelfService} from '../../service/shelf.service';
 import {ShelfAssignerComponent} from '../shelf-assigner/shelf-assigner.component';
 import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
@@ -21,18 +20,21 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
 import {MetadataFetchOptionsComponent} from '../../metadata/metadata-options-dialog/metadata-fetch-options/metadata-fetch-options.component';
 import {MetadataRefreshType} from '../../metadata/model/request/metadata-refresh-type.enum';
 import {Button} from 'primeng/button';
-import {AsyncPipe, NgClass, NgForOf, NgIf} from '@angular/common';
+import {AsyncPipe, NgClass, NgForOf, NgIf, NgStyle} from '@angular/common';
 import {VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
 import {BookCardComponent} from './book-card/book-card.component';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Menu} from 'primeng/menu';
 import {InputText} from 'primeng/inputtext';
 import {FormsModule} from '@angular/forms';
-import {BookFilterComponent} from './book-filter/book-filter.component';
+import {BookFilterComponent, isFileSizeInRange, isPageCountInRange, isRatingInRange} from './book-filter/book-filter.component';
 import {Tooltip} from 'primeng/tooltip';
 import {Fluid} from 'primeng/fluid';
-import {UserService} from '../../../settings/user-management/user.service';
+import {EntityViewPreferences, UserService} from '../../../settings/user-management/user.service';
 import {LockUnlockMetadataDialogComponent} from './lock-unlock-metadata-dialog/lock-unlock-metadata-dialog.component';
+import {OverlayPanelModule} from 'primeng/overlaypanel';
+import {Slider} from 'primeng/slider';
+import {Popover} from 'primeng/popover';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -63,7 +65,7 @@ const SORT_DIRECTION = {
   standalone: true,
   templateUrl: './book-browser.component.html',
   styleUrls: ['./book-browser.component.scss'],
-  imports: [Button, NgIf, VirtualScrollerModule, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, NgForOf, InputText, FormsModule, BookTableComponent, BookFilterComponent, Tooltip, NgClass, Fluid, PrimeTemplate],
+  imports: [Button, NgIf, VirtualScrollerModule, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, NgForOf, InputText, FormsModule, BookTableComponent, BookFilterComponent, Tooltip, NgClass, Fluid, PrimeTemplate, NgStyle, OverlayPanelModule, Slider, Popover],
   animations: [
     trigger('slideInOut', [
       state('void', style({
@@ -100,6 +102,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   @ViewChild(BookFilterComponent) bookFilterComponent!: BookFilterComponent;
 
   selectedFilter = new BehaviorSubject<Record<string, any> | null>(null);
+  selectedFilterMode = new BehaviorSubject<'and' | 'or'>('and');
   protected resetFilterSubject = new Subject<void>();
 
   protected userService = inject(UserService);
@@ -138,8 +141,44 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   lastAppliedSort: SortOption | null = null;
   filterVisibility = true;
 
+  prefs!: EntityViewPreferences;
+
+  baseWidth = 135;
+  baseHeight = 220;
+  scaleFactor = 1.0;
+
+  get currentCardSize() {
+    return {
+      width: Math.round(this.baseWidth * this.scaleFactor),
+      height: Math.round(this.baseHeight * this.scaleFactor)
+    };
+  }
+
+  get gridColumnMinWidth(): string {
+    return `${this.currentCardSize.width}px`;
+  }
+
+  updateScale(): void {
+    this.scaleChange$.next(this.scaleFactor);
+  }
+
+  private scaleChange$ = new Subject<number>();
 
   ngOnInit(): void {
+
+    this.scaleChange$.pipe(debounceTime(1000)).subscribe(scale => {
+      const user = this.userService.getCurrentUser();
+      if (!user || !this.prefs) return;
+      this.prefs.global = this.prefs.global ?? {};
+      this.prefs.global.coverSize = scale;
+      this.userService.updateUserSetting(user.id, 'entityViewPreferences', this.prefs);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Cover Size Saved',
+        detail: `Cover size set to ${scale.toFixed(2)}x.`
+      });
+    });
+
     this.bookService.loadBooks();
 
     const currentPath = this.activatedRoute.snapshot.routeConfig?.path;
@@ -278,31 +317,54 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   }
 
   private sideBarFilter(bookState: BookState): Observable<BookState> {
-    return this.selectedFilter.pipe(
-      map((activeFilters: Record<string, any[]> | null) => {
-        if (!activeFilters) {
-          return bookState;
-        }
-
+    return combineLatest([this.selectedFilter, this.selectedFilterMode]).pipe(
+      map(([activeFilters, mode]) => {
+        if (!activeFilters) return bookState;
         const filteredBooks = (bookState.books || []).filter(book => {
-          return Object.entries(activeFilters).every(([filterType, filterValues]) => {
-            if (!Array.isArray(filterValues) || filterValues.length === 0) return true;
-
+          const matches = Object.entries(activeFilters).map(([filterType, filterValues]) => {
+            if (!Array.isArray(filterValues) || filterValues.length === 0) {
+              return mode === 'or';
+            }
             switch (filterType) {
               case 'author':
-                return filterValues.every(val => book.metadata?.authors?.includes(val));
+                return mode === 'and'
+                  ? filterValues.every(val => book.metadata?.authors?.includes(val))
+                  : filterValues.some(val => book.metadata?.authors?.includes(val));
               case 'category':
-                return filterValues.every(val => book.metadata?.categories?.includes(val));
+                return mode === 'and'
+                  ? filterValues.every(val => book.metadata?.categories?.includes(val))
+                  : filterValues.some(val => book.metadata?.categories?.includes(val));
               case 'publisher':
-                return filterValues.every(val => book.metadata?.publisher === val);
+                return mode === 'and'
+                  ? filterValues.every(val => book.metadata?.publisher === val)
+                  : filterValues.some(val => book.metadata?.publisher === val);
               case 'series':
-                return filterValues.every(val => book.metadata?.seriesName === val);
+                return mode === 'and'
+                  ? filterValues.every(val => book.metadata?.seriesName === val)
+                  : filterValues.some(val => book.metadata?.seriesName === val);
+              case 'amazonRating':
+                return filterValues.some(range => isRatingInRange(book.metadata?.amazonRating, range));
+              case 'goodreadsRating':
+                return filterValues.some(range => isRatingInRange(book.metadata?.goodreadsRating, range));
+              case 'hardcoverRating':
+                return filterValues.some(range => isRatingInRange(book.metadata?.hardcoverRating, range));
+              case 'publishedDate':
+                return filterValues.includes(new Date(book.metadata?.publishedDate || '').getFullYear());
+              case 'fileSize':
+                return filterValues.some(range => isFileSizeInRange(book.fileSizeKb, range));
+              case 'shelfStatus':
+                const shelved = book.shelves && book.shelves.length > 0 ? 'shelved' : 'unshelved';
+                return filterValues.includes(shelved);
+              case 'pageCount':
+                return filterValues.some(range => isPageCountInRange(book.metadata?.pageCount!, range));
+              case 'language':
+                return filterValues.includes(book.metadata?.language);
               default:
-                return true;
+                return false;
             }
           });
+          return mode === 'and' ? matches.every(m => m) : matches.some(m => m);
         });
-
         return {...bookState, books: filteredBooks};
       })
     );
@@ -538,6 +600,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
       this.selectedFilter.next(filters);
     });
 
+    this.bookFilterComponent.filterModeChanged.subscribe((mode: 'and' | 'or') => {
+      this.selectedFilterMode.next(mode);
+    });
+
     this.activatedRoute.queryParamMap.subscribe(paramMap => {
       const viewParam = paramMap.get(QUERY_PARAMS.VIEW);
       const sortParam = paramMap.get(QUERY_PARAMS.SORT);
@@ -550,11 +616,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
           take(1)
         )
         .subscribe(user => {
-          const prefs = user.userSettings?.entityViewPreferences;
-          const globalPrefs = prefs?.global;
+          this.prefs = user.userSettings?.entityViewPreferences;
+          const globalPrefs = this.prefs?.global;
           const currentEntityTypeStr = this.entityType ? this.entityType.toString().toUpperCase() : undefined;
+          this.scaleFactor = user.userSettings.entityViewPreferences?.global?.coverSize ?? 1.0;
 
-          const override = prefs?.overrides?.find(o =>
+          const override = this.prefs?.overrides?.find(o =>
             o.entityType?.toUpperCase() === currentEntityTypeStr &&
             o.entityId === this.entity?.id
           );
