@@ -20,7 +20,7 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
 import {MetadataFetchOptionsComponent} from '../../metadata/metadata-options-dialog/metadata-fetch-options/metadata-fetch-options.component';
 import {MetadataRefreshType} from '../../metadata/model/request/metadata-refresh-type.enum';
 import {Button} from 'primeng/button';
-import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
+import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
 import {VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
 import {BookCardComponent} from './book-card/book-card.component';
 import {ProgressSpinner} from 'primeng/progressspinner';
@@ -47,7 +47,8 @@ const QUERY_PARAMS = {
   VIEW: 'view',
   SORT: 'sort',
   DIRECTION: 'direction',
-  FILTER: 'filter'
+  FILTER: 'filter',
+  SIDEBAR: 'sidebar'
 };
 
 const VIEW_MODES = {
@@ -97,6 +98,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   isDrawerVisible: boolean = false;
   dynamicDialogRef: DynamicDialogRef | undefined;
   EntityType = EntityType;
+  currentFilterLabel: string | null = null;
+  rawFilterParamFromUrl: string | null = null;
+  hasSearchTerm: boolean = false;
 
   @ViewChild(BookTableComponent) bookTableComponent!: BookTableComponent;
   @ViewChild(BookFilterComponent) bookFilterComponent!: BookFilterComponent;
@@ -535,7 +539,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
 
     this.router.navigate([], {
       queryParams: {
-        [QUERY_PARAMS.FILTER]: this.bookFilterComponent.showFilters.toString()
+        [QUERY_PARAMS.SIDEBAR]: this.bookFilterComponent.showFilters.toString()
       },
       queryParamsHandling: 'merge',
       replaceUrl: true
@@ -575,7 +579,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     this.updateSortOptions();
     this.applySortOption(this.selectedSort);
 
-    this.router.navigate([], {
+    /*this.router.navigate([], {
       queryParams: {
         sort: this.selectedSort.field,
         direction: this.selectedSort.direction === SortDirection.ASCENDING
@@ -584,7 +588,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
       },
       queryParamsHandling: 'merge',
       replaceUrl: true
-    });
+    });*/
   }
 
   updateSortOptions() {
@@ -595,20 +599,65 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     }));
   }
 
+  private settingFiltersFromUrl = false;
+
   ngAfterViewInit() {
     this.bookFilterComponent.filterSelected.subscribe((filters: Record<string, any> | null) => {
+      if (this.settingFiltersFromUrl) return;
+
       this.selectedFilter.next(filters);
+      this.rawFilterParamFromUrl = null;
+
+      const hasSidebarFilters = !!filters && Object.keys(filters).length > 0;
+      this.currentFilterLabel = hasSidebarFilters ? 'All Books (Filtered)' : 'All Books';
     });
 
     this.bookFilterComponent.filterModeChanged.subscribe((mode: 'and' | 'or') => {
       this.selectedFilterMode.next(mode);
     });
 
+    this.searchTerm$.subscribe(term => {
+      this.hasSearchTerm = !!term && term.trim().length > 0;
+    });
+
     this.activatedRoute.queryParamMap.subscribe(paramMap => {
       const viewParam = paramMap.get(QUERY_PARAMS.VIEW);
       const sortParam = paramMap.get(QUERY_PARAMS.SORT);
       const directionParam = paramMap.get(QUERY_PARAMS.DIRECTION);
-      const filterParam = paramMap.get(QUERY_PARAMS.FILTER);
+      const sidebarParam = paramMap.get(QUERY_PARAMS.SIDEBAR);
+      const rawFilterParam = paramMap.get(QUERY_PARAMS.FILTER);
+
+      const parsedFilters: Record<string, string[]> = {};
+
+      if (rawFilterParam) {
+        this.settingFiltersFromUrl = true;
+
+        rawFilterParam.split(',').forEach(pair => {
+          const [key, ...valueParts] = pair.split(':');
+          const value = valueParts.join(':');
+          if (key && value) {
+            parsedFilters[key] = value.split('|').map(v => v.trim()).filter(Boolean);
+          }
+        });
+
+        this.selectedFilter.next(parsedFilters);
+        this.bookFilterComponent.setFilters?.(parsedFilters);
+
+        const firstFilter = rawFilterParam.split(',')[0];
+        const [key, ...values] = firstFilter.split(':');
+        const firstValue = values.join(':').split('|')[0];
+        if (key && firstValue) {
+          this.currentFilterLabel = this.capitalize(key) + ': ' + firstValue;
+        } else {
+          this.currentFilterLabel = 'All Books';
+        }
+
+        this.rawFilterParamFromUrl = rawFilterParam;
+        this.settingFiltersFromUrl = false;
+      } else {
+        this.rawFilterParamFromUrl = null;
+        this.currentFilterLabel = 'All Books';
+      }
 
       this.userService.userState$
         .pipe(
@@ -633,44 +682,58 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
           };
 
           const userSortKey = effectivePrefs.sortKey;
-          const userSortDir = effectivePrefs.sortDir?.toUpperCase() === 'DESC' ? SortDirection.DESCENDING : SortDirection.ASCENDING;
+          const userSortDir = effectivePrefs.sortDir?.toUpperCase() === 'DESC'
+            ? SortDirection.DESCENDING
+            : SortDirection.ASCENDING;
 
-          const matchedSort = this.sortOptions.find(opt => opt.field === sortParam) || this.sortOptions.find(opt => opt.field === userSortKey);
+          const matchedSort = this.sortOptions.find(opt => opt.field === sortParam)
+            || this.sortOptions.find(opt => opt.field === userSortKey);
 
           this.selectedSort = matchedSort ? {
             label: matchedSort.label,
             field: matchedSort.field,
-            direction: directionParam ? (directionParam === SORT_DIRECTION.DESCENDING ? SortDirection.DESCENDING : SortDirection.ASCENDING) : userSortDir
+            direction: directionParam?.toUpperCase() === SORT_DIRECTION.DESCENDING
+              ? SortDirection.DESCENDING
+              : SortDirection.ASCENDING
           } : {
             label: 'Added On',
             field: 'addedOn',
             direction: SortDirection.DESCENDING
           };
 
-          this.currentViewMode = (viewParam === VIEW_MODES.TABLE || viewParam === VIEW_MODES.GRID) ? viewParam : effectivePrefs.view?.toLowerCase() ?? VIEW_MODES.GRID;
-          this.bookFilterComponent.showFilters = filterParam === 'true' || (filterParam === null && this.filterVisibility);
+          this.currentViewMode = (viewParam === VIEW_MODES.TABLE || viewParam === VIEW_MODES.GRID)
+            ? viewParam
+            : effectivePrefs.view?.toLowerCase() ?? VIEW_MODES.GRID;
+
+          this.bookFilterComponent.showFilters = sidebarParam === 'true'
+            || (sidebarParam === null && this.filterVisibility);
+
           this.updateSortOptions();
 
-          if (this.lastAppliedSort?.field !== this.selectedSort.field || this.lastAppliedSort?.direction !== this.selectedSort.direction) {
-            this.lastAppliedSort = {...this.selectedSort};
+          if (
+            this.lastAppliedSort?.field !== this.selectedSort.field ||
+            this.lastAppliedSort?.direction !== this.selectedSort.direction
+          ) {
+            this.lastAppliedSort = { ...this.selectedSort };
             this.applySortOption(this.selectedSort);
           }
 
           const queryParams: any = {
             [QUERY_PARAMS.VIEW]: this.currentViewMode,
             [QUERY_PARAMS.SORT]: this.selectedSort.field,
-            [QUERY_PARAMS.DIRECTION]: this.selectedSort.direction === SortDirection.ASCENDING ? SORT_DIRECTION.ASCENDING : SORT_DIRECTION.DESCENDING,
-            [QUERY_PARAMS.FILTER]: this.bookFilterComponent.showFilters.toString()
+            [QUERY_PARAMS.DIRECTION]: this.selectedSort.direction === SortDirection.ASCENDING
+              ? SORT_DIRECTION.ASCENDING
+              : SORT_DIRECTION.DESCENDING,
+            [QUERY_PARAMS.SIDEBAR]: this.bookFilterComponent.showFilters.toString(),
+            [QUERY_PARAMS.FILTER]: Object.entries(parsedFilters)
+              .map(([k, v]) => `${k}:${v.join('|')}`)
+              .join(',')
           };
 
           const currentParams = this.activatedRoute.snapshot.queryParams;
+          const changed = Object.keys(queryParams).some(k => currentParams[k] !== queryParams[k]);
 
-          if (
-            currentParams[QUERY_PARAMS.VIEW] !== queryParams[QUERY_PARAMS.VIEW] ||
-            currentParams[QUERY_PARAMS.SORT] !== queryParams[QUERY_PARAMS.SORT] ||
-            currentParams[QUERY_PARAMS.DIRECTION] !== queryParams[QUERY_PARAMS.DIRECTION] ||
-            currentParams[QUERY_PARAMS.FILTER] !== queryParams[QUERY_PARAMS.FILTER]
-          ) {
+          if (changed) {
             this.router.navigate([], {
               queryParams,
               replaceUrl: true
@@ -680,6 +743,15 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
           this.cdr.detectChanges();
         });
     });
+  }
+
+  capitalize(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+
+  get hasSidebarFilters(): boolean {
+    return this.selectedFilter && Object.keys(this.selectedFilter.getValue() || {}).length > 0;
   }
 
   lockUnlockMetadata() {
