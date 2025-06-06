@@ -4,7 +4,7 @@ import {MenuItem, MessageService, PrimeTemplate} from 'primeng/api';
 import {LibraryService} from '../../service/library.service';
 import {BookService} from '../../service/book.service';
 import {debounceTime, filter, map, switchMap, take} from 'rxjs/operators';
-import {BehaviorSubject, combineLatest, Observable, of, Subject} from 'rxjs';
+import {BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject} from 'rxjs';
 import {ShelfService} from '../../service/shelf.service';
 import {ShelfAssignerComponent} from '../shelf-assigner/shelf-assigner.component';
 import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
@@ -48,7 +48,8 @@ const QUERY_PARAMS = {
   SORT: 'sort',
   DIRECTION: 'direction',
   FILTER: 'filter',
-  SIDEBAR: 'sidebar'
+  SIDEBAR: 'sidebar',
+  FROM: 'from',
 };
 
 const VIEW_MODES = {
@@ -145,7 +146,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   lastAppliedSort: SortOption | null = null;
   filterVisibility = true;
 
-  prefs!: EntityViewPreferences;
+  entityViewPreferences!: EntityViewPreferences;
 
   baseWidth = 135;
   baseHeight = 220;
@@ -172,10 +173,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
 
     this.scaleChange$.pipe(debounceTime(1000)).subscribe(scale => {
       const user = this.userService.getCurrentUser();
-      if (!user || !this.prefs) return;
-      this.prefs.global = this.prefs.global ?? {};
-      this.prefs.global.coverSize = scale;
-      this.userService.updateUserSetting(user.id, 'entityViewPreferences', this.prefs);
+      if (!user || !this.entityViewPreferences) return;
+      this.entityViewPreferences.global = this.entityViewPreferences.global ?? {};
+      this.entityViewPreferences.global.coverSize = scale;
+      this.userService.updateUserSetting(user.id, 'entityViewPreferences', this.entityViewPreferences);
       this.messageService.add({
         severity: 'success',
         summary: 'Cover Size Saved',
@@ -238,7 +239,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   toggleTableGrid(): void {
     this.currentViewMode = this.currentViewMode === VIEW_MODES.GRID ? VIEW_MODES.TABLE : VIEW_MODES.GRID;
     this.router.navigate([], {
-      queryParams: {view: this.currentViewMode},
+      queryParams: {
+        view: this.currentViewMode,
+        [QUERY_PARAMS.FROM]: 'toggle'
+      },
       queryParamsHandling: 'merge',
       replaceUrl: true
     });
@@ -602,6 +606,121 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   private settingFiltersFromUrl = false;
 
   ngAfterViewInit() {
+    combineLatest({
+      paramMap: this.activatedRoute.queryParamMap,
+      user: this.userService.userState$.pipe(
+        filter((user): user is NonNullable<typeof user> => !!user),
+        take(1)
+      )
+    }).subscribe(({paramMap, user}) => {
+
+      const viewParam = paramMap.get(QUERY_PARAMS.VIEW);
+      const sortParam = paramMap.get(QUERY_PARAMS.SORT);
+      const directionParam = paramMap.get(QUERY_PARAMS.DIRECTION);
+      const sidebarParam = paramMap.get(QUERY_PARAMS.SIDEBAR);
+      const filterParams = paramMap.get(QUERY_PARAMS.FILTER);
+
+      const parsedFilters: Record<string, string[]> = {};
+
+      if (filterParams) {
+        this.settingFiltersFromUrl = true;
+
+        filterParams.split(',').forEach(pair => {
+          const [key, ...valueParts] = pair.split(':');
+          const value = valueParts.join(':');
+          if (key && value) {
+            parsedFilters[key] = value.split('|').map(v => v.trim()).filter(Boolean);
+          }
+        });
+
+        this.selectedFilter.next(parsedFilters);
+        this.bookFilterComponent.setFilters?.(parsedFilters);
+
+        const firstFilter = filterParams.split(',')[0];
+        const [key, ...values] = firstFilter.split(':');
+        const firstValue = values.join(':').split('|')[0];
+        if (key && firstValue) {
+          this.currentFilterLabel = this.capitalize(key) + ': ' + firstValue;
+        } else {
+          this.currentFilterLabel = 'All Books';
+        }
+
+        this.rawFilterParamFromUrl = filterParams;
+        this.settingFiltersFromUrl = false;
+      } else {
+        this.rawFilterParamFromUrl = null;
+        this.currentFilterLabel = 'All Books';
+      }
+
+
+      this.entityViewPreferences = user.userSettings?.entityViewPreferences;
+      const globalPrefs = this.entityViewPreferences?.global;
+      const currentEntityTypeStr = this.entityType ? this.entityType.toString().toUpperCase() : undefined;
+      this.scaleFactor = user.userSettings.entityViewPreferences?.global?.coverSize ?? 1.0;
+
+      const override = this.entityViewPreferences?.overrides?.find(o =>
+        o.entityType?.toUpperCase() === currentEntityTypeStr &&
+        o.entityId === this.entity?.id
+      );
+
+      const effectivePrefs = override?.preferences ?? globalPrefs ?? {
+        sortKey: 'addedOn',
+        sortDir: 'ASC',
+        view: 'GRID'
+      };
+
+      const userSortKey = effectivePrefs.sortKey;
+      const matchedSort = this.sortOptions.find(opt => opt.field === userSortKey) || this.sortOptions.find(opt => opt.field === sortParam);
+
+      this.selectedSort = matchedSort ? {
+        label: matchedSort.label,
+        field: matchedSort.field,
+        direction: directionParam?.toUpperCase() === SORT_DIRECTION.DESCENDING
+          ? SortDirection.DESCENDING
+          : SortDirection.ASCENDING
+      } : {
+        label: 'Added On',
+        field: 'addedOn',
+        direction: SortDirection.DESCENDING
+      };
+
+      const fromParam = paramMap.get(QUERY_PARAMS.FROM);
+      this.currentViewMode = fromParam === 'toggle'
+        ? (viewParam === VIEW_MODES.TABLE || viewParam === VIEW_MODES.GRID
+          ? viewParam
+          : VIEW_MODES.GRID)
+        : (effectivePrefs.view?.toLowerCase() ?? VIEW_MODES.GRID);
+
+      this.bookFilterComponent.showFilters = sidebarParam === 'true' || (sidebarParam === null && this.filterVisibility);
+
+      this.updateSortOptions();
+
+      if (this.lastAppliedSort?.field !== this.selectedSort.field || this.lastAppliedSort?.direction !== this.selectedSort.direction) {
+        this.lastAppliedSort = {...this.selectedSort};
+        this.applySortOption(this.selectedSort);
+      }
+
+      const queryParams: any = {
+        [QUERY_PARAMS.VIEW]: this.currentViewMode,
+        [QUERY_PARAMS.SORT]: this.selectedSort.field,
+        [QUERY_PARAMS.DIRECTION]: this.selectedSort.direction === SortDirection.ASCENDING ? SORT_DIRECTION.ASCENDING : SORT_DIRECTION.DESCENDING,
+        [QUERY_PARAMS.SIDEBAR]: this.bookFilterComponent.showFilters.toString(),
+        [QUERY_PARAMS.FILTER]: Object.entries(parsedFilters).map(([k, v]) => `${k}:${v.join('|')}`).join(',')
+      };
+
+      const currentParams = this.activatedRoute.snapshot.queryParams;
+      const changed = Object.keys(queryParams).some(k => currentParams[k] !== queryParams[k]);
+
+      if (changed) {
+        this.router.navigate([], {
+          queryParams,
+          replaceUrl: true
+        });
+      }
+
+      this.cdr.detectChanges();
+    });
+
     this.bookFilterComponent.filterSelected.subscribe((filters: Record<string, any> | null) => {
       if (this.settingFiltersFromUrl) return;
 
@@ -618,130 +737,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
 
     this.searchTerm$.subscribe(term => {
       this.hasSearchTerm = !!term && term.trim().length > 0;
-    });
-
-    this.activatedRoute.queryParamMap.subscribe(paramMap => {
-      const viewParam = paramMap.get(QUERY_PARAMS.VIEW);
-      const sortParam = paramMap.get(QUERY_PARAMS.SORT);
-      const directionParam = paramMap.get(QUERY_PARAMS.DIRECTION);
-      const sidebarParam = paramMap.get(QUERY_PARAMS.SIDEBAR);
-      const rawFilterParam = paramMap.get(QUERY_PARAMS.FILTER);
-
-      const parsedFilters: Record<string, string[]> = {};
-
-      if (rawFilterParam) {
-        this.settingFiltersFromUrl = true;
-
-        rawFilterParam.split(',').forEach(pair => {
-          const [key, ...valueParts] = pair.split(':');
-          const value = valueParts.join(':');
-          if (key && value) {
-            parsedFilters[key] = value.split('|').map(v => v.trim()).filter(Boolean);
-          }
-        });
-
-        this.selectedFilter.next(parsedFilters);
-        this.bookFilterComponent.setFilters?.(parsedFilters);
-
-        const firstFilter = rawFilterParam.split(',')[0];
-        const [key, ...values] = firstFilter.split(':');
-        const firstValue = values.join(':').split('|')[0];
-        if (key && firstValue) {
-          this.currentFilterLabel = this.capitalize(key) + ': ' + firstValue;
-        } else {
-          this.currentFilterLabel = 'All Books';
-        }
-
-        this.rawFilterParamFromUrl = rawFilterParam;
-        this.settingFiltersFromUrl = false;
-      } else {
-        this.rawFilterParamFromUrl = null;
-        this.currentFilterLabel = 'All Books';
-      }
-
-      this.userService.userState$
-        .pipe(
-          filter((user): user is NonNullable<typeof user> => !!user),
-          take(1)
-        )
-        .subscribe(user => {
-          this.prefs = user.userSettings?.entityViewPreferences;
-          const globalPrefs = this.prefs?.global;
-          const currentEntityTypeStr = this.entityType ? this.entityType.toString().toUpperCase() : undefined;
-          this.scaleFactor = user.userSettings.entityViewPreferences?.global?.coverSize ?? 1.0;
-
-          const override = this.prefs?.overrides?.find(o =>
-            o.entityType?.toUpperCase() === currentEntityTypeStr &&
-            o.entityId === this.entity?.id
-          );
-
-          const effectivePrefs = override?.preferences ?? globalPrefs ?? {
-            sortKey: 'addedOn',
-            sortDir: 'ASC',
-            view: 'GRID'
-          };
-
-          const userSortKey = effectivePrefs.sortKey;
-          const userSortDir = effectivePrefs.sortDir?.toUpperCase() === 'DESC'
-            ? SortDirection.DESCENDING
-            : SortDirection.ASCENDING;
-
-          const matchedSort = this.sortOptions.find(opt => opt.field === sortParam)
-            || this.sortOptions.find(opt => opt.field === userSortKey);
-
-          this.selectedSort = matchedSort ? {
-            label: matchedSort.label,
-            field: matchedSort.field,
-            direction: directionParam?.toUpperCase() === SORT_DIRECTION.DESCENDING
-              ? SortDirection.DESCENDING
-              : SortDirection.ASCENDING
-          } : {
-            label: 'Added On',
-            field: 'addedOn',
-            direction: SortDirection.DESCENDING
-          };
-
-          this.currentViewMode = (viewParam === VIEW_MODES.TABLE || viewParam === VIEW_MODES.GRID)
-            ? viewParam
-            : effectivePrefs.view?.toLowerCase() ?? VIEW_MODES.GRID;
-
-          this.bookFilterComponent.showFilters = sidebarParam === 'true'
-            || (sidebarParam === null && this.filterVisibility);
-
-          this.updateSortOptions();
-
-          if (
-            this.lastAppliedSort?.field !== this.selectedSort.field ||
-            this.lastAppliedSort?.direction !== this.selectedSort.direction
-          ) {
-            this.lastAppliedSort = { ...this.selectedSort };
-            this.applySortOption(this.selectedSort);
-          }
-
-          const queryParams: any = {
-            [QUERY_PARAMS.VIEW]: this.currentViewMode,
-            [QUERY_PARAMS.SORT]: this.selectedSort.field,
-            [QUERY_PARAMS.DIRECTION]: this.selectedSort.direction === SortDirection.ASCENDING
-              ? SORT_DIRECTION.ASCENDING
-              : SORT_DIRECTION.DESCENDING,
-            [QUERY_PARAMS.SIDEBAR]: this.bookFilterComponent.showFilters.toString(),
-            [QUERY_PARAMS.FILTER]: Object.entries(parsedFilters)
-              .map(([k, v]) => `${k}:${v.join('|')}`)
-              .join(',')
-          };
-
-          const currentParams = this.activatedRoute.snapshot.queryParams;
-          const changed = Object.keys(queryParams).some(k => currentParams[k] !== queryParams[k]);
-
-          if (changed) {
-            this.router.navigate([], {
-              queryParams,
-              replaceUrl: true
-            });
-          }
-
-          this.cdr.detectChanges();
-        });
     });
   }
 
