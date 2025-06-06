@@ -670,14 +670,20 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
       };
 
       const userSortKey = effectivePrefs.sortKey;
+      const userSortDir = effectivePrefs.sortDir?.toUpperCase() === 'DESC'
+        ? SortDirection.DESCENDING
+        : SortDirection.ASCENDING;
+
       const matchedSort = this.sortOptions.find(opt => opt.field === userSortKey) || this.sortOptions.find(opt => opt.field === sortParam);
 
       this.selectedSort = matchedSort ? {
         label: matchedSort.label,
         field: matchedSort.field,
-        direction: directionParam?.toUpperCase() === SORT_DIRECTION.DESCENDING
-          ? SortDirection.DESCENDING
-          : SortDirection.ASCENDING
+        direction: userSortDir ?? (
+          directionParam?.toUpperCase() === SORT_DIRECTION.DESCENDING
+            ? SortDirection.DESCENDING
+            : SortDirection.ASCENDING
+        )
       } : {
         label: 'Added On',
         field: 'addedOn',
