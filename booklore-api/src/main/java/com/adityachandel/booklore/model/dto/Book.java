@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Set;
 
 @Builder
 @Data
@@ -25,5 +25,5 @@ public class Book {
     private PdfProgress pdfProgress;
     private EpubProgress epubProgress;
     private CbxProgress cbxProgress;
-    private List<Shelf> shelves;
+    private Set<Shelf> shelves;
 }

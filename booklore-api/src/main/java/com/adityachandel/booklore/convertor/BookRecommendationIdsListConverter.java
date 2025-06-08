@@ -9,9 +9,10 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 import java.util.List;
+import java.util.Set;
 
 @Converter
-public class BookRecommendationIdsListConverter implements AttributeConverter<List<BookRecommendationLite>, String> {
+public class BookRecommendationIdsListConverter implements AttributeConverter<Set<BookRecommendationLite>, String> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -20,7 +21,7 @@ public class BookRecommendationIdsListConverter implements AttributeConverter<Li
     }
 
     @Override
-    public String convertToDatabaseColumn(List<BookRecommendationLite> recommendations) {
+    public String convertToDatabaseColumn(Set<BookRecommendationLite> recommendations) {
         try {
             return objectMapper.writeValueAsString(recommendations);
         } catch (JsonProcessingException e) {
@@ -29,12 +30,12 @@ public class BookRecommendationIdsListConverter implements AttributeConverter<Li
     }
 
     @Override
-    public List<BookRecommendationLite> convertToEntityAttribute(String json) {
+    public Set<BookRecommendationLite> convertToEntityAttribute(String json) {
         if (json == null || json.trim().isEmpty()) {
-            return List.of();
+            return Set.of();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<List<BookRecommendationLite>>() {
+            return objectMapper.readValue(json, new TypeReference<Set<BookRecommendationLite>>() {
             });
         } catch (Exception e) {
             throw new RuntimeException("Error converting JSON to BookRecommendation list", e);

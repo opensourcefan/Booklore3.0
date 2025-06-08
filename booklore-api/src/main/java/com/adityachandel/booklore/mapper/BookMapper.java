@@ -8,7 +8,7 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {BookMetadataMapper.class, ShelfMapper.class})
@@ -29,21 +29,21 @@ public interface BookMapper {
     @Mapping(target = "shelves", ignore = true)
     Book toBookWithoutMetadataAndShelves(BookEntity bookEntity);
 
-    default List<String> mapAuthors(List<AuthorEntity> authors) {
+    default Set<String> mapAuthors(Set<AuthorEntity> authors) {
         if (authors == null) {
             return null;
         }
         return authors.stream()
                 .map(AuthorEntity::getName)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
-    default List<String> mapCategories(List<CategoryEntity> categories) {
+    default Set<String> mapCategories(Set<CategoryEntity> categories) {
         if (categories == null) {
             return null;
         }
         return categories.stream()
                 .map(CategoryEntity::getName)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

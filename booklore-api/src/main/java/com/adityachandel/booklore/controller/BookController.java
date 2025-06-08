@@ -6,7 +6,7 @@ import com.adityachandel.booklore.model.dto.BookViewerSettings;
 import com.adityachandel.booklore.model.dto.request.ReadProgressRequest;
 import com.adityachandel.booklore.model.dto.request.ShelvesAssignmentRequest;
 import com.adityachandel.booklore.service.recommender.BookRecommendationService;
-import com.adityachandel.booklore.service.BooksService;
+import com.adityachandel.booklore.service.BookService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -24,53 +24,53 @@ import java.util.List;
 @AllArgsConstructor
 public class BookController {
 
-    private final BooksService booksService;
+    private final BookService bookService;
     private final BookRecommendationService bookRecommendationService;
 
     @GetMapping
     public ResponseEntity<List<Book>> getBooks(@RequestParam(required = false, defaultValue = "false") boolean withDescription) {
-        return ResponseEntity.ok(booksService.getBooks(withDescription));
+        return ResponseEntity.ok(bookService.getBookDTOs(withDescription));
     }
 
     @GetMapping("/{bookId}")
     public ResponseEntity<Book> getBook(@PathVariable long bookId, @RequestParam(required = false, defaultValue = "false") boolean withDescription) {
-        return ResponseEntity.ok(booksService.getBook(bookId, withDescription));
+        return ResponseEntity.ok(bookService.getBook(bookId, withDescription));
     }
 
     @GetMapping("/{bookId}/cover")
     public ResponseEntity<Resource> getBookCover(@PathVariable long bookId) {
-        return ResponseEntity.ok(booksService.getBookCover(bookId));
+        return ResponseEntity.ok(bookService.getBookCover(bookId));
     }
 
     @GetMapping("/{bookId}/content")
     public ResponseEntity<ByteArrayResource> getBookContent(@PathVariable long bookId) throws IOException {
-        return booksService.getBookContent(bookId);
+        return bookService.getBookContent(bookId);
     }
 
     @GetMapping("/{bookId}/download")
     public ResponseEntity<Resource> downloadBook(@PathVariable("bookId") Long bookId) {
-        return booksService.downloadBook(bookId);
+        return bookService.downloadBook(bookId);
     }
 
     @GetMapping("/{bookId}/viewer-setting")
     public ResponseEntity<BookViewerSettings> getBookViewerSettings(@PathVariable long bookId) {
-        return ResponseEntity.ok(booksService.getBookViewerSetting(bookId));
+        return ResponseEntity.ok(bookService.getBookViewerSetting(bookId));
     }
 
     @PutMapping("/{bookId}/viewer-setting")
     public ResponseEntity<Void> updateBookViewerSettings(@RequestBody BookViewerSettings bookViewerSettings, @PathVariable long bookId) {
-        booksService.updateBookViewerSetting(bookId, bookViewerSettings);
+        bookService.updateBookViewerSetting(bookId, bookViewerSettings);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/shelves")
     public ResponseEntity<List<Book>> addBookToShelf(@RequestBody @Valid ShelvesAssignmentRequest request) {
-        return ResponseEntity.ok(booksService.assignShelvesToBooks(request.getBookIds(), request.getShelvesToAssign(), request.getShelvesToUnassign()));
+        return ResponseEntity.ok(bookService.assignShelvesToBooks(request.getBookIds(), request.getShelvesToAssign(), request.getShelvesToUnassign()));
     }
 
     @PostMapping("/progress")
     public ResponseEntity<Void> addBookToProgress(@RequestBody @Valid ReadProgressRequest request) {
-        booksService.updateReadProgress(request);
+        bookService.updateReadProgress(request);
         return ResponseEntity.noContent().build();
     }
 

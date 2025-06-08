@@ -25,6 +25,7 @@ import com.adityachandel.booklore.service.fileprocessor.CbxProcessor;
 import com.adityachandel.booklore.service.fileprocessor.EpubProcessor;
 import com.adityachandel.booklore.service.fileprocessor.PdfProcessor;
 import com.adityachandel.booklore.service.metadata.parser.BookParser;
+import com.adityachandel.booklore.service.BookQueryService;
 import com.adityachandel.booklore.util.FileService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +33,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static com.adityachandel.booklore.model.websocket.LogNotification.createLogNotification;
@@ -61,6 +60,7 @@ public class BookMetadataService {
     private final PdfProcessor pdfProcessor;
     private final EpubProcessor epubProcessor;
     private final CbxProcessor cbxProcessor;
+    private final BookQueryService bookQueryService;
     private final Map<MetadataProvider, BookParser> parserMap;
 
     public List<BookMetadata> getProspectiveMetadataListForBookId(long bookId, FetchMetadataRequest request) {
@@ -264,58 +264,58 @@ public class BookMetadataService {
         return value;
     }
 
-    List<String> getAllCategories(Map<MetadataProvider, BookMetadata> metadataMap, MetadataRefreshOptions.FieldProvider fieldProvider, FieldValueExtractorList fieldValueExtractor) {
+    Set<String> getAllCategories(Map<MetadataProvider, BookMetadata> metadataMap, MetadataRefreshOptions.FieldProvider fieldProvider, FieldValueExtractorList fieldValueExtractor) {
         Set<String> uniqueCategories = new HashSet<>();
         if (fieldProvider.getP4() != null && metadataMap.containsKey(fieldProvider.getP4())) {
-            List<String> extracted = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP4()));
+            Set<String> extracted = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP4()));
             if (extracted != null) {
                 uniqueCategories.addAll(extracted);
             }
         }
         if (fieldProvider.getP3() != null && metadataMap.containsKey(fieldProvider.getP3())) {
-            List<String> extracted = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP3()));
+            Set<String> extracted = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP3()));
             if (extracted != null) {
                 uniqueCategories.addAll(extracted);
             }
         }
         if (fieldProvider.getP2() != null && metadataMap.containsKey(fieldProvider.getP2())) {
-            List<String> extracted = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP2()));
+            Set<String> extracted = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP2()));
             if (extracted != null) {
                 uniqueCategories.addAll(extracted);
             }
         }
         if (fieldProvider.getP1() != null && metadataMap.containsKey(fieldProvider.getP1())) {
-            List<String> extracted = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP1()));
+            Set<String> extracted = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP1()));
             if (extracted != null) {
                 uniqueCategories.addAll(extracted);
             }
         }
-        return new ArrayList<>(uniqueCategories);
+        return new HashSet<>(uniqueCategories);
     }
 
     @Transactional
-    protected List<String> resolveFieldAsList(Map<MetadataProvider, BookMetadata> metadataMap, MetadataRefreshOptions.FieldProvider fieldProvider, FieldValueExtractorList fieldValueExtractor) {
-        List<String> values = new ArrayList<>();
+    protected Set<String> resolveFieldAsList(Map<MetadataProvider, BookMetadata> metadataMap, MetadataRefreshOptions.FieldProvider fieldProvider, FieldValueExtractorList fieldValueExtractor) {
+        Set<String> values = new HashSet<>();
         if (fieldProvider.getP4() != null && metadataMap.containsKey(fieldProvider.getP4())) {
-            List<String> newValues = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP4()));
+            Set<String> newValues = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP4()));
             if (newValues != null && !newValues.isEmpty()) {
                 values = newValues;
             }
         }
         if (fieldProvider.getP3() != null && metadataMap.containsKey(fieldProvider.getP3())) {
-            List<String> newValues = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP3()));
+            Set<String> newValues = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP3()));
             if (newValues != null && !newValues.isEmpty()) {
                 values = newValues;
             }
         }
         if (values.isEmpty() && fieldProvider.getP2() != null && metadataMap.containsKey(fieldProvider.getP2())) {
-            List<String> newValues = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP2()));
+            Set<String> newValues = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP2()));
             if (newValues != null && !newValues.isEmpty()) {
                 values = newValues;
             }
         }
         if (values.isEmpty() && fieldProvider.getP1() != null && metadataMap.containsKey(fieldProvider.getP1())) {
-            List<String> newValues = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP1()));
+            Set<String> newValues = fieldValueExtractor.extract(metadataMap.get(fieldProvider.getP1()));
             if (newValues != null && !newValues.isEmpty()) {
                 values = newValues;
             }
@@ -334,7 +334,7 @@ public class BookMetadataService {
                 LibraryEntity libraryEntity = libraryRepository.findById(request.getLibraryId()).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(request.getLibraryId()));
                 yield libraryEntity.getBookEntities();
             }
-            case BOOKS -> bookRepository.findAllByIdIn(request.getBookIds());
+            case BOOKS -> bookQueryService.findAllWithMetadataByIds(request.getBookIds());
         };
         books.sort(Comparator.comparing(BookEntity::getFileName, Comparator.nullsLast(String::compareTo)));
         return books;
@@ -417,7 +417,7 @@ public class BookMetadataService {
     @Transactional
     public List<BookMetadata> toggleAllLock(ToggleAllLockRequest request) {
         boolean lock = request.getLock() == Lock.LOCK;
-        List<BookEntity> books = bookRepository.findAllByIdIn(request.getBookIds())
+        List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(request.getBookIds())
                 .stream()
                 .peek(book -> book.getMetadata().applyLockToAllFields(lock))
                 .toList();
@@ -444,7 +444,7 @@ public class BookMetadataService {
 
     public void regenerateCovers() {
         Thread.startVirtualThread(() -> {
-            List<BookEntity> books = bookRepository.findAll().stream()
+            List<BookEntity> books = bookQueryService.getAllFullBookEntities().stream()
                     .filter(book -> book.getMetadata().getCoverLocked() == null || !book.getMetadata().getCoverLocked())
                     .toList();
             int total = books.size();

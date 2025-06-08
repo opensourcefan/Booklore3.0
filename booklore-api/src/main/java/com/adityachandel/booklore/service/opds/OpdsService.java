@@ -1,7 +1,7 @@
 package com.adityachandel.booklore.service.opds;
 
 import com.adityachandel.booklore.model.entity.BookEntity;
-import com.adityachandel.booklore.repository.BookRepository;
+import com.adityachandel.booklore.service.BookQueryService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +15,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OpdsService {
 
-    private final BookRepository bookRepository;
+    private final BookQueryService bookQueryService;
 
     public String generateCatalogFeed(HttpServletRequest request) {
-        var books = bookRepository.findAll();
+        var books = bookQueryService.getAllFullBookEntities();
         var feedVersion = extractVersionFromAcceptHeader(request);
 
         return switch (feedVersion) {

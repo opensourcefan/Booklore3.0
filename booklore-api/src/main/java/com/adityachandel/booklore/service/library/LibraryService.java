@@ -228,7 +228,7 @@ public class LibraryService {
 
     public List<Book> getBooks(long libraryId) {
         libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
-        List<BookEntity> bookEntities = bookRepository.findBooksByLibraryId(libraryId);
+        List<BookEntity> bookEntities = bookRepository.findAllWithMetadataByLibraryId(libraryId);
         return bookEntities.stream().map(bookMapper::toBook).toList();
     }
 }

@@ -8,7 +8,6 @@ import com.adityachandel.booklore.model.dto.Book;
 import com.adityachandel.booklore.model.dto.BookLoreUser;
 import com.adityachandel.booklore.model.dto.Shelf;
 import com.adityachandel.booklore.model.dto.request.ShelfCreateRequest;
-import com.adityachandel.booklore.model.entity.BookEntity;
 import com.adityachandel.booklore.model.entity.BookLoreUserEntity;
 import com.adityachandel.booklore.model.entity.ShelfEntity;
 import com.adityachandel.booklore.repository.BookRepository;
@@ -69,7 +68,7 @@ public class ShelfService {
 
     public List<Book> getShelfBooks(Long shelfId) {
         findShelfByIdOrThrow(shelfId);
-        return bookRepository.findByShelfId(shelfId).stream()
+        return bookRepository.findAllWithMetadataByShelfId(shelfId).stream()
                 .map(bookMapper::toBook)
                 .toList();
     }

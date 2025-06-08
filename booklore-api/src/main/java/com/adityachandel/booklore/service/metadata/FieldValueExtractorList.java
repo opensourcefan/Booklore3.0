@@ -3,8 +3,9 @@ package com.adityachandel.booklore.service.metadata;
 import com.adityachandel.booklore.model.dto.BookMetadata;
 
 import java.util.List;
+import java.util.Set;
 
 @FunctionalInterface
 interface FieldValueExtractorList {
-    List<String> extract(BookMetadata metadata);
+    Set<String> extract(BookMetadata metadata);
 }

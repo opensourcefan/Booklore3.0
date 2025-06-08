@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -56,11 +57,11 @@ public class BookEntity {
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "shelf_id")
     )
-    private List<ShelfEntity> shelves;
+    private Set<ShelfEntity> shelves;
 
     @Convert(converter = BookRecommendationIdsListConverter.class)
     @Column(name = "similar_books_json", columnDefinition = "TEXT")
-    private List<BookRecommendationLite> similarBooksJson;
+    private Set<BookRecommendationLite> similarBooksJson;
 
     public Path getFullFilePath() {
         if (libraryPath == null || libraryPath.getPath() == null || fileSubPath == null || fileName == null) {

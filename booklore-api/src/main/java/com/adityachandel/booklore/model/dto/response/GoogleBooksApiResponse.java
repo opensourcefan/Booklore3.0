@@ -3,6 +3,7 @@ package com.adityachandel.booklore.model.dto.response;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -18,7 +19,7 @@ public class GoogleBooksApiResponse {
         public static class VolumeInfo {
             private String title;
             private String subtitle;
-            private List<String> authors;
+            private Set<String> authors;
             private String publisher;
             private String publishedDate;
             private String description;
@@ -26,7 +27,7 @@ public class GoogleBooksApiResponse {
             private Integer pageCount;
             private ImageLinks imageLinks;
             private String language;
-            private List<String> categories;
+            private Set<String> categories;
         }
 
         @Data

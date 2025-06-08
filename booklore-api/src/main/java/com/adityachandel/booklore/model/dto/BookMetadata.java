@@ -7,6 +7,7 @@ import lombok.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -45,8 +46,8 @@ public class BookMetadata {
     private String googleId;
 
     private Instant coverUpdatedOn;
-    private List<String> authors;
-    private List<String> categories;
+    private Set<String> authors;
+    private Set<String> categories;
 
     private MetadataProvider provider;
     private String thumbnailUrl;

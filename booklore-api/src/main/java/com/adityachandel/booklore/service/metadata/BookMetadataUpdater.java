@@ -85,7 +85,7 @@ public class BookMetadataUpdater {
                 .filter(a -> a != null && !a.isBlank())
                 .map(authorName -> authorRepository.findByName(authorName)
                     .orElseGet(() -> authorRepository.save(AuthorEntity.builder().name(authorName).build())))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
         }
     }
 
@@ -100,13 +100,13 @@ public class BookMetadataUpdater {
                             .orElseGet(() -> categoryRepository.save(CategoryEntity.builder().name(categoryName).build()));
                         existingCategories.add(categoryEntity);
                     });
-                metadata.setCategories(new ArrayList<>(existingCategories));
+                metadata.setCategories(new HashSet<>(existingCategories));
             } else if (!newMetadata.getCategories().isEmpty()) {
                 metadata.setCategories(newMetadata.getCategories().stream()
                     .filter(c -> c != null && !c.isBlank())
                     .map(categoryName -> categoryRepository.findByName(categoryName)
                         .orElseGet(() -> categoryRepository.save(CategoryEntity.builder().name(categoryName).build())))
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toSet()));
             }
         }
     }

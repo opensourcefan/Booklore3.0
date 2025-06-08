@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -94,8 +95,8 @@ public class GoogleParser implements BookParser {
                 .publisher(volumeInfo.getPublisher())
                 .publishedDate(parseDate(volumeInfo.getPublishedDate()))
                 .description(volumeInfo.getDescription())
-                .authors(Optional.ofNullable(volumeInfo.getAuthors()).orElse(List.of()))
-                .categories(Optional.ofNullable(volumeInfo.getCategories()).orElse(List.of()))
+                .authors(Optional.ofNullable(volumeInfo.getAuthors()).orElse(Set.of()))
+                .categories(Optional.ofNullable(volumeInfo.getCategories()).orElse(Set.of()))
                 .isbn13(isbns.get("ISBN_13"))
                 .isbn10(isbns.get("ISBN_10"))
                 .pageCount(volumeInfo.getPageCount())

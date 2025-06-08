@@ -12,10 +12,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -45,7 +42,7 @@ public class BookCreatorService {
 
     public void addCategoriesToBook(List<String> categories, BookEntity bookEntity) {
         if (bookEntity.getMetadata().getCategories() == null) {
-            bookEntity.getMetadata().setCategories(new ArrayList<>());
+            bookEntity.getMetadata().setCategories(new HashSet<>());
         }
         categories.stream()
                 .map(cat -> truncate(cat, 255))
@@ -56,7 +53,7 @@ public class BookCreatorService {
 
     public void addAuthorsToBook(Set<String> authors, BookEntity bookEntity) {
         if (bookEntity.getMetadata().getAuthors() == null) {
-            bookEntity.getMetadata().setAuthors(new ArrayList<>());
+            bookEntity.getMetadata().setAuthors(new HashSet<>());
         }
         authors.stream()
                 .map(authorName -> authorRepository.findByName(authorName)

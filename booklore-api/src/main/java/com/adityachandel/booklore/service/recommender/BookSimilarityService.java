@@ -58,9 +58,9 @@ public class BookSimilarityService {
         return round(score, 5);
     }
 
-    private List<String> extractNames(List<?> entities) {
-        if (entities == null) return Collections.emptyList();
-        List<String> names = new ArrayList<>();
+    private Set<String> extractNames(Set<?> entities) {
+        if (entities == null) return Collections.emptySet();
+        Set<String> names = new HashSet<>();
         for (Object obj : entities) {
             if (obj instanceof AuthorEntity author && author.getName() != null) {
                 names.add(author.getName().toLowerCase());
@@ -75,7 +75,7 @@ public class BookSimilarityService {
         return s1 != null && s2 != null && s1.equalsIgnoreCase(s2);
     }
 
-    private double jaccardSimilarity(List<String> a, List<String> b) {
+    private double jaccardSimilarity(Set<String> a, Set<String> b) {
         if (a.isEmpty() || b.isEmpty()) return 0.0;
         Set<String> setA = new HashSet<>(a);
         Set<String> setB = new HashSet<>(b);

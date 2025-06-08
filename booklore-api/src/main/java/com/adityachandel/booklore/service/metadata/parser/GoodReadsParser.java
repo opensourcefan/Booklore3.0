@@ -99,7 +99,7 @@ public class GoodReadsParser implements BookParser {
         if (contributorKey != null) {
             String contributorName = getContributorName(apolloStateJson, contributorKey);
             if (contributorName != null) {
-                builder.authors(List.of(contributorName));
+                builder.authors(Set.of(contributorName));
             }
         }
     }
@@ -255,9 +255,9 @@ public class GoodReadsParser implements BookParser {
         return null;
     }
 
-    private List<String> extractGenres(JSONObject bookJson) {
+    private Set<String> extractGenres(JSONObject bookJson) {
         try {
-            List<String> genres = new ArrayList<>();
+            Set<String> genres = new HashSet<>();
             JSONArray bookGenresJsonArray = bookJson.getJSONArray("bookGenres");
             for (int i = 0; i < bookGenresJsonArray.length(); i++) {
                 JSONObject genreJson = bookGenresJsonArray.getJSONObject(i).getJSONObject("genre");
@@ -314,7 +314,7 @@ public class GoodReadsParser implements BookParser {
                 FuzzyScore fuzzyScore = new FuzzyScore(Locale.ENGLISH);
                 String queryAuthor = request.getAuthor();
                 for (Element previewBook : previewBooks) {
-                    List<String> authors = extractAuthorsPreview(previewBook);
+                    Set<String> authors = extractAuthorsPreview(previewBook);
                     if (queryAuthor != null && !queryAuthor.isBlank()) {
                         List<String> queryAuthorTokens = List.of(queryAuthor.toLowerCase().split("\\s+"));
                         boolean matches = authors.stream().flatMap(a -> Arrays.stream(a.toLowerCase().split("\\s+"))).anyMatch(actual -> {
@@ -371,8 +371,8 @@ public class GoodReadsParser implements BookParser {
         return null;
     }
 
-    private List<String> extractAuthorsPreview(Element book) {
-        List<String> authors = new ArrayList<>();
+    private Set<String> extractAuthorsPreview(Element book) {
+        Set<String> authors = new HashSet<>();
         try {
             Elements authorsElement = book.select("a.authorName");
             for (Element authorElement : authorsElement) {
