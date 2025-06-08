@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Service
@@ -50,6 +50,7 @@ public class EmailProviderService {
         emailProviderRepository.save(emailProvider);
     }
 
+    @Transactional
     public void deleteEmailProvider(Long id) {
         EmailProviderEntity emailProviderToDelete = emailProviderRepository.findById(id).orElseThrow(() -> ApiError.EMAIL_PROVIDER_NOT_FOUND.createException(id));
         boolean isDefaultProvider = emailProviderToDelete.isDefaultProvider();
@@ -57,8 +58,7 @@ public class EmailProviderService {
             List<EmailProviderEntity> allProviders = emailProviderRepository.findAll();
             if (allProviders.size() > 1) {
                 allProviders.remove(emailProviderToDelete);
-                int randomIndex = (int) (Math.random() * allProviders.size());
-                EmailProviderEntity newDefaultProvider = allProviders.get(randomIndex);
+                EmailProviderEntity newDefaultProvider = allProviders.get(ThreadLocalRandom.current().nextInt(allProviders.size()));
                 newDefaultProvider.setDefaultProvider(true);
                 emailProviderRepository.save(newDefaultProvider);
             }
@@ -67,6 +67,6 @@ public class EmailProviderService {
     }
 
     public List<EmailProvider> getEmailProviders() {
-        return emailProviderRepository.findAll().stream().map(emailProviderMapper::toDTO).collect(Collectors.toList());
+        return emailProviderRepository.findAll().stream().map(emailProviderMapper::toDTO).toList();
     }
 }
