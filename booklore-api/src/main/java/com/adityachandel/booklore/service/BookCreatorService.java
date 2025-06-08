@@ -29,6 +29,7 @@ public class BookCreatorService {
 
     public BookEntity createShellBook(LibraryFile libraryFile, BookFileType bookFileType) {
         long fileSizeKb = FileUtils.getFileSizeInKb(libraryFile.getFullPath());
+        BookMetadataEntity metadata = BookMetadataEntity.builder().build();
         BookEntity bookEntity = BookEntity.builder()
                 .library(libraryFile.getLibraryEntity())
                 .libraryPath(libraryFile.getLibraryPathEntity())
@@ -37,58 +38,32 @@ public class BookCreatorService {
                 .bookType(bookFileType)
                 .fileSizeKb(fileSizeKb)
                 .addedOn(Instant.now())
+                .metadata(metadata)
                 .build();
-        BookMetadataEntity bookMetadataEntity = BookMetadataEntity.builder().build();
-        bookEntity.setMetadata(bookMetadataEntity);
         return bookRepository.saveAndFlush(bookEntity);
     }
 
     public void addCategoriesToBook(List<String> categories, BookEntity bookEntity) {
-        for (String category : categories) {
-            // Truncate category name to fit in VARCHAR(255)
-            String truncatedCategory = truncate(category, 255);
-            Optional<CategoryEntity> catOpt = categoryRepository.findByName(truncatedCategory);
-            CategoryEntity categoryEntity;
-            if (catOpt.isPresent()) {
-                categoryEntity = catOpt.get();
-            } else {
-                categoryEntity = CategoryEntity.builder()
-                        .name(truncatedCategory)
-                        .build();
-                categoryEntity = categoryRepository.save(categoryEntity);
-            }
-            if (bookEntity.getMetadata().getCategories() == null) {
-                bookEntity.getMetadata().setCategories(new ArrayList<>());
-            }
-            bookEntity.getMetadata().getCategories().add(categoryEntity);
+        if (bookEntity.getMetadata().getCategories() == null) {
+            bookEntity.getMetadata().setCategories(new ArrayList<>());
         }
+        categories.stream()
+                .map(cat -> truncate(cat, 255))
+                .map(truncated -> categoryRepository.findByName(truncated)
+                        .orElseGet(() -> categoryRepository.save(CategoryEntity.builder().name(truncated).build())))
+                .forEach(catEntity -> bookEntity.getMetadata().getCategories().add(catEntity));
     }
 
     public void addAuthorsToBook(Set<String> authors, BookEntity bookEntity) {
-        for (String authorStr : authors) {
-            Optional<AuthorEntity> authorOptional = authorRepository.findByName(authorStr);
-            AuthorEntity authorEntity;
-            if (authorOptional.isPresent()) {
-                authorEntity = authorOptional.get();
-            } else {
-                authorEntity = AuthorEntity.builder()
-                        .name(authorStr)
-                        .build();
-                authorEntity = authorRepository.save(authorEntity);
-            }
-            if (bookEntity.getMetadata().getAuthors() == null) {
-                bookEntity.getMetadata().setAuthors(new ArrayList<>());
-            }
-            bookEntity.getMetadata().getAuthors().add(authorEntity);
+        if (bookEntity.getMetadata().getAuthors() == null) {
+            bookEntity.getMetadata().setAuthors(new ArrayList<>());
         }
+        authors.stream()
+                .map(authorName -> authorRepository.findByName(authorName)
+                        .orElseGet(() -> authorRepository.save(AuthorEntity.builder().name(authorName).build())))
+                .forEach(authorEntity -> bookEntity.getMetadata().getAuthors().add(authorEntity));
     }
-    
-    /**
-     * Truncates a string to the specified maximum length
-     * @param input The input string
-     * @param maxLength The maximum length
-     * @return The truncated string, or null if input is null
-     */
+
     private String truncate(String input, int maxLength) {
         if (input == null) return null;
         return input.length() <= maxLength ? input : input.substring(0, maxLength);
