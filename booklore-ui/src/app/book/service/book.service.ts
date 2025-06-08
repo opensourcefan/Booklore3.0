@@ -372,22 +372,37 @@ export class BookService {
     this.bookStateSubject.next({...currentState, books: updatedBooks})
   }
 
-  toggleFieldLocks(bookIds: Set<number>, fieldActions: Record<string, 'LOCK' | 'UNLOCK'>): Observable<void> {
+  toggleFieldLocks(bookIds: number[] | Set<number>, fieldActions: Record<string, 'LOCK' | 'UNLOCK'>): Observable<void> {
+    const bookIdSet = bookIds instanceof Set ? bookIds : new Set(bookIds);
+
     const requestBody = {
-      bookIds: Array.from(bookIds),
-      fieldActions: fieldActions
+      bookIds: Array.from(bookIdSet),
+      fieldActions
     };
-    return this.http.put<BookMetadata[]>(`${this.url}/metadata/toggle-field-locks`, requestBody).pipe(
-      tap((updatedMetadataList) => {
+
+    return this.http.put<void>(`${this.url}/metadata/toggle-field-locks`, requestBody).pipe(
+      tap(() => {
         const currentState = this.bookStateSubject.value;
         const updatedBooks = (currentState.books || []).map(book => {
-          const updatedMetadata = updatedMetadataList.find(meta => meta.bookId === book.id);
-          return updatedMetadata ? {...book, metadata: updatedMetadata} : book;
+          if (!bookIdSet.has(book.id)) return book;
+          const updatedMetadata = {...book.metadata};
+          for (const [field, action] of Object.entries(fieldActions)) {
+            const lockField = field.endsWith('Locked') ? field : `${field}Locked`;
+            if (lockField in updatedMetadata) {
+              (updatedMetadata as any)[lockField] = action === 'LOCK';
+            }
+          }
+          return {
+            ...book,
+            metadata: updatedMetadata
+          };
         });
-        this.bookStateSubject.next({...currentState, books: updatedBooks});
+        this.bookStateSubject.next({
+          ...currentState,
+          books: updatedBooks as Book[]
+        });
       }),
-      map(() => void 0),
-      catchError((error) => {
+      catchError(error => {
         this.messageService.add({
           severity: 'error',
           summary: 'Field Lock Update Failed',
@@ -397,4 +412,5 @@ export class BookService {
       })
     );
   }
+
 }

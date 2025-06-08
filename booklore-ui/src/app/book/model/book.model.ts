@@ -82,8 +82,6 @@ export interface BookMetadata {
   googleIdLocked?: boolean;
   pageCountLocked?: boolean;
   languageLocked?: boolean;
-  ratingLocked?: boolean;
-  reviewCountLocked?: boolean;
   amazonRatingLocked?: boolean;
   amazonReviewCountLocked?: boolean;
   goodreadsRatingLocked?: boolean;

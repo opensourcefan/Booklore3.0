@@ -32,11 +32,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static com.adityachandel.booklore.model.websocket.LogNotification.createLogNotification;
@@ -390,97 +392,37 @@ public class BookMetadataService {
         return parser;
     }
 
-    public BookMetadata updateFieldLockState(long bookId, String field, boolean isLocked) {
-        BookMetadataEntity existingMetadata = bookMetadataRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book metadata not found"));
-        switch (field) {
-            case "title":
-                existingMetadata.setTitleLocked(isLocked);
-                break;
-            case "subtitle":
-                existingMetadata.setSubtitleLocked(isLocked);
-                break;
-            case "authors":
-                existingMetadata.setAuthorsLocked(isLocked);
-                break;
-            case "categories":
-                existingMetadata.setCategoriesLocked(isLocked);
-                break;
-            case "publisher":
-                existingMetadata.setPublisherLocked(isLocked);
-                break;
-            case "publishedDate":
-                existingMetadata.setPublishedDateLocked(isLocked);
-                break;
-            case "isbn10":
-                existingMetadata.setIsbn10Locked(isLocked);
-                break;
-            case "isbn13":
-                existingMetadata.setIsbn13Locked(isLocked);
-                break;
-            case "description":
-                existingMetadata.setDescriptionLocked(isLocked);
-                break;
-            case "pageCount":
-                existingMetadata.setPageCountLocked(isLocked);
-                break;
-            case "language":
-                existingMetadata.setLanguageLocked(isLocked);
-                break;
-            case "asin":
-                existingMetadata.setAsinLocked(isLocked);
-                break;
-            case "amazonRating":
-                existingMetadata.setAmazonRatingLocked(isLocked);
-                break;
-            case "amazonReviewCount":
-                existingMetadata.setAmazonReviewCountLocked(isLocked);
-                break;
-            case "goodreadsId":
-                existingMetadata.setGoodreadsIdLocked(isLocked);
-                break;
-            case "goodreadsRating":
-                existingMetadata.setGoodreadsRatingLocked(isLocked);
-                break;
-            case "goodreadsReviewCount":
-                existingMetadata.setGoodreadsReviewCountLocked(isLocked);
-                break;
-            case "hardcoverId":
-                existingMetadata.setHardcoverIdLocked(isLocked);
-                break;
-            case "hardcoverRating":
-                existingMetadata.setHardcoverRatingLocked(isLocked);
-                break;
-            case "hardcoverReviewCount":
-                existingMetadata.setHardcoverReviewCountLocked(isLocked);
-                break;
-            case "googleId":
-                existingMetadata.setGoogleIdLocked(isLocked);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid field name: " + field);
-        }
-        return bookMetadataMapper.toBookMetadata(bookMetadataRepository.save(existingMetadata), true);
-    }
+    public void toggleFieldLocks(List<Long> bookIds, Map<String, String> fieldActions) {
+        List<BookMetadataEntity> metadataEntities = bookMetadataRepository
+                .getMetadataForBookIds(bookIds)
+                .stream()
+                .distinct()
+                .toList();
 
-    public List<BookMetadata> toggleFieldLocks(List<Long> bookIds, Map<String, String> fieldActions) {
-        List<BookMetadataEntity> entitiesToUpdate = new ArrayList<>();
-        for (Long bookId : bookIds) {
-            BookMetadataEntity metadataEntity = bookMetadataRepository.findById(bookId).orElseThrow(() -> new IllegalArgumentException("Book metadata not found for bookId: " + bookId));
+        for (BookMetadataEntity metadataEntity : metadataEntities) {
             fieldActions.forEach((field, action) -> {
                 try {
                     String setterName = "set" + Character.toUpperCase(field.charAt(0)) + field.substring(1);
                     Method setter = BookMetadataEntity.class.getMethod(setterName, Boolean.class);
                     setter.invoke(metadataEntity, "LOCK".equalsIgnoreCase(action));
                 } catch (Exception e) {
-                    throw new RuntimeException("Failed to invoke setter for field: " + field + " on bookId: " + bookId, e);
+                    throw new RuntimeException("Failed to invoke setter for field: " + field + " on bookId: " + metadataEntity.getBookId(), e);
                 }
             });
-            entitiesToUpdate.add(metadataEntity);
         }
-        List<BookMetadataEntity> savedEntities = bookMetadataRepository.saveAll(entitiesToUpdate);
-        return savedEntities.stream()
-                .map(entity -> bookMetadataMapper.toBookMetadata(entity, true))
+
+        bookMetadataRepository.saveAll(metadataEntities);
+    }
+
+    @Transactional
+    public List<BookMetadata> toggleAllLock(ToggleAllLockRequest request) {
+        boolean lock = request.getLock() == Lock.LOCK;
+        List<BookEntity> books = bookRepository.findAllByIdIn(request.getBookIds())
+                .stream()
+                .peek(book -> book.getMetadata().applyLockToAllFields(lock))
                 .toList();
+        bookRepository.saveAll(books);
+        return books.stream().map(b -> bookMetadataMapper.toBookMetadata(b.getMetadata(), false)).collect(Collectors.toList());
     }
 
     public BookMetadata handleCoverUpload(Long bookId, MultipartFile file) {
@@ -532,16 +474,5 @@ public class BookMetadataService {
             default -> throw ApiError.UNSUPPORTED_BOOK_TYPE.createException(book.getBookType());
         }
         log.info("{}Successfully regenerated cover for book ID {} ({})", progress, book.getId(), title);
-    }
-
-    @Transactional
-    public List<BookMetadata> toggleAllLock(ToggleAllLockRequest request) {
-        boolean lock = request.getLock() == Lock.LOCK;
-        List<BookEntity> books = bookRepository.findAllByIdIn(request.getBookIds())
-                .stream()
-                .peek(book -> book.getMetadata().applyLockToAllFields(lock))
-                .toList();
-        bookRepository.saveAll(books);
-        return books.stream().map(b -> bookMetadataMapper.toBookMetadata(b.getMetadata(), false)).collect(Collectors.toList());
     }
 }

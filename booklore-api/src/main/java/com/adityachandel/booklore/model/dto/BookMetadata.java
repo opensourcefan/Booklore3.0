@@ -68,8 +68,6 @@ public class BookMetadata {
     private Boolean googleIdLocked;
     private Boolean pageCountLocked;
     private Boolean languageLocked;
-    private Boolean ratingLocked;
-    private Boolean reviewCountLocked;
     private Boolean amazonRatingLocked;
     private Boolean amazonReviewCountLocked;
     private Boolean goodreadsRatingLocked;

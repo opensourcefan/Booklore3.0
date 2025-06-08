@@ -12,4 +12,7 @@ public interface BookMetadataRepository extends JpaRepository<BookMetadataEntity
 
     @Query("SELECT m FROM BookMetadataEntity m WHERE m.bookId IN :bookIds")
     List<BookMetadataEntity> getMetadataForBookIds(@Param("bookIds") Set<Long> bookIds);
+
+    @Query("SELECT m FROM BookMetadataEntity m WHERE m.bookId IN :bookIds")
+    List<BookMetadataEntity> getMetadataForBookIds(@Param("bookIds") List<Long> bookIds);
 }

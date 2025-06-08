@@ -55,15 +55,6 @@ public class MetadataController {
         return ResponseEntity.ok(updatedMetadata);
     }
 
-    @PutMapping("/{bookId}/metadata/toggle-field-lock")
-    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
-    public ResponseEntity<BookMetadata> updateFieldLockState(@RequestBody FieldLockRequest request) {
-        long bookId = request.getBookId();
-        String field = request.getField();
-        boolean isLocked = request.getIsLocked();
-        return ResponseEntity.ok(bookMetadataService.updateFieldLockState(bookId, field, isLocked));
-    }
-
     @PutMapping("/metadata/toggle-all-lock")
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
     public ResponseEntity<List<BookMetadata>> toggleAllMetadata(@RequestBody ToggleAllLockRequest request) {
@@ -73,8 +64,8 @@ public class MetadataController {
     @PutMapping("/metadata/toggle-field-locks")
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
     public ResponseEntity<List<BookMetadata>> toggleFieldLocks(@RequestBody ToggleFieldLocksRequest request) {
-        List<BookMetadata> updated = bookMetadataService.toggleFieldLocks(request.getBookIds(), request.getFieldActions());
-        return ResponseEntity.ok(updated);
+        bookMetadataService.toggleFieldLocks(request.getBookIds(), request.getFieldActions());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/regenerate-covers")

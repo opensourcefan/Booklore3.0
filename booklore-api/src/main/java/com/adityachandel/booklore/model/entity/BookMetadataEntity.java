@@ -134,12 +134,6 @@ public class BookMetadataEntity {
     @Column(name = "language_locked")
     private Boolean languageLocked = Boolean.FALSE;
 
-    @Column(name = "rating_locked")
-    private Boolean ratingLocked = Boolean.FALSE;
-
-    @Column(name = "review_count_locked")
-    private Boolean reviewCountLocked = Boolean.FALSE;
-
     @Column(name = "amazon_rating_locked")
     private Boolean amazonRatingLocked = Boolean.FALSE;
 
@@ -218,8 +212,6 @@ public class BookMetadataEntity {
         this.pageCountLocked = lock;
         this.thumbnailLocked = lock;
         this.languageLocked = lock;
-        this.ratingLocked = lock;
-        this.reviewCountLocked = lock;
         this.coverLocked = lock;
         this.seriesNameLocked = lock;
         this.seriesNumberLocked = lock;
