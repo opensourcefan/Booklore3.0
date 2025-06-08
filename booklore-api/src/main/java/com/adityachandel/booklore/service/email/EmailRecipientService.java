@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Service
@@ -27,6 +27,7 @@ public class EmailRecipientService {
         return emailRecipientMapper.toDTO(emailRecipient);
     }
 
+    @Transactional
     public EmailRecipient createEmailRecipient(CreateEmailRecipientRequest request) {
         boolean isFirstRecipient = emailRecipientRepository.count() == 0;
         if (request.isDefaultRecipient() || isFirstRecipient) {
@@ -38,6 +39,7 @@ public class EmailRecipientService {
         return emailRecipientMapper.toDTO(savedEntity);
     }
 
+    @Transactional
     public EmailRecipient updateEmailRecipient(Long id, CreateEmailRecipientRequest request) {
         EmailRecipientEntity existingRecipient = emailRecipientRepository.findById(id).orElseThrow(() -> ApiError.EMAIL_RECIPIENT_NOT_FOUND.createException(id));
         if (request.isDefaultRecipient()) {
@@ -56,6 +58,7 @@ public class EmailRecipientService {
         emailRecipientRepository.save(emailRecipient);
     }
 
+    @Transactional
     public void deleteEmailRecipient(Long id) {
         EmailRecipientEntity emailRecipientToDelete = emailRecipientRepository.findById(id).orElseThrow(() -> ApiError.EMAIL_RECIPIENT_NOT_FOUND.createException(id));
         boolean isDefaultRecipient = emailRecipientToDelete.isDefaultRecipient();
@@ -63,7 +66,7 @@ public class EmailRecipientService {
             List<EmailRecipientEntity> allRecipients = emailRecipientRepository.findAll();
             if (allRecipients.size() > 1) {
                 allRecipients.remove(emailRecipientToDelete);
-                int randomIndex = (int) (Math.random() * allRecipients.size());
+                int randomIndex = ThreadLocalRandom.current().nextInt(allRecipients.size());
                 EmailRecipientEntity newDefaultRecipient = allRecipients.get(randomIndex);
                 newDefaultRecipient.setDefaultRecipient(true);
                 emailRecipientRepository.save(newDefaultRecipient);
@@ -75,6 +78,6 @@ public class EmailRecipientService {
     public List<EmailRecipient> getEmailRecipients() {
         return emailRecipientRepository.findAll().stream()
                 .map(emailRecipientMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

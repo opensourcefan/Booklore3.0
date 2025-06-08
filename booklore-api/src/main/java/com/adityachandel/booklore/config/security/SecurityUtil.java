@@ -12,65 +12,52 @@ public class SecurityUtil {
 
     private final ShelfRepository shelfRepository;
 
-    public boolean isAdmin() {
+    private BookLoreUser getCurrentUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof BookLoreUser user) {
-            return user.getPermissions().isAdmin();
+            return user;
         }
-        return false;
+        return null;
+    }
+
+    public boolean isAdmin() {
+        var user = getCurrentUser();
+        return user != null && user.getPermissions().isAdmin();
     }
 
     public boolean isSelf(Long userId) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof BookLoreUser user) {
-            return user.getId().equals(userId);
-        }
-        return false;
+        var user = getCurrentUser();
+        return user != null && user.getId().equals(userId);
     }
 
     public boolean canUpload() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof BookLoreUser user) {
-            return user.getPermissions().isCanUpload();
-        }
-        return false;
+        var user = getCurrentUser();
+        return user != null && user.getPermissions().isCanUpload();
     }
 
     public boolean canManipulateLibrary() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof BookLoreUser user) {
-            return user.getPermissions().isCanManipulateLibrary();
-        }
-        return false;
+        var user = getCurrentUser();
+        return user != null && user.getPermissions().isCanManipulateLibrary();
     }
 
     public boolean canEditMetadata() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof BookLoreUser user) {
-            return user.getPermissions().isCanEditMetadata();
-        }
-        return false;
+        var user = getCurrentUser();
+        return user != null && user.getPermissions().isCanEditMetadata();
     }
 
     public boolean canEmailBook() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof BookLoreUser user) {
-            return user.getPermissions().isCanEmailBook();
-        }
-        return false;
+        var user = getCurrentUser();
+        return user != null && user.getPermissions().isCanEmailBook();
     }
 
     public boolean canViewUserProfile(Long userId) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof BookLoreUser user) {
-            return user.getPermissions().isAdmin() || user.getId().equals(userId);
-        }
-        return false;
+        var user = getCurrentUser();
+        return user != null && (user.getPermissions().isAdmin() || user.getId().equals(userId));
     }
 
     public boolean isShelfOwner(Long shelfId) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof BookLoreUser user) {
+        var user = getCurrentUser();
+        if (user != null) {
             return shelfRepository.findById(shelfId)
                     .map(shelf -> shelf.getUser().getId().equals(user.getId()))
                     .orElse(false);
