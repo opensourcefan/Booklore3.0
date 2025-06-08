@@ -32,49 +32,60 @@ public class ShelfService {
     private final UserRepository userRepository;
 
     public Shelf createShelf(ShelfCreateRequest request) {
-        BookLoreUser user = authenticationService.getAuthenticatedUser();
-        BookLoreUserEntity userEntity = userRepository.findById(user.getId()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        boolean exists = shelfRepository.existsByUserIdAndName(user.getId(), request.getName());
-        if (exists) {
+        Long userId = getAuthenticatedUserId();
+        if (shelfRepository.existsByUserIdAndName(userId, request.getName())) {
             throw ApiError.SHELF_ALREADY_EXISTS.createException(request.getName());
         }
         ShelfEntity shelfEntity = ShelfEntity.builder()
                 .icon(request.getIcon())
                 .name(request.getName())
-                .user(userEntity)
+                .user(fetchUserEntityById(userId))
                 .build();
         return shelfMapper.toShelf(shelfRepository.save(shelfEntity));
     }
 
     public Shelf updateShelf(Long id, ShelfCreateRequest request) {
-        ShelfEntity shelfEntity = shelfRepository.findById(id).orElseThrow(() -> ApiError.SHELF_NOT_FOUND.createException(id));
+        ShelfEntity shelfEntity = findShelfByIdOrThrow(id);
         shelfEntity.setName(request.getName());
         shelfEntity.setIcon(request.getIcon());
         return shelfMapper.toShelf(shelfRepository.save(shelfEntity));
     }
 
     public List<Shelf> getShelves() {
-        BookLoreUser user = authenticationService.getAuthenticatedUser();
-        return shelfRepository.findByUserId(user.getId()).stream()
+        Long userId = getAuthenticatedUserId();
+        return shelfRepository.findByUserId(userId).stream()
                 .map(shelfMapper::toShelf)
                 .toList();
     }
 
     public Shelf getShelf(Long shelfId) {
-        ShelfEntity shelfEntity = shelfRepository.findById(shelfId).orElseThrow(() -> ApiError.SHELF_NOT_FOUND.createException(shelfId));
-        return shelfMapper.toShelf(shelfEntity);
+        return shelfMapper.toShelf(findShelfByIdOrThrow(shelfId));
     }
 
     public void deleteShelf(Long shelfId) {
-        shelfRepository.findById(shelfId).orElseThrow(() -> ApiError.SHELF_NOT_FOUND.createException(shelfId));
+        findShelfByIdOrThrow(shelfId);
         shelfRepository.deleteById(shelfId);
     }
 
     public List<Book> getShelfBooks(Long shelfId) {
-        shelfRepository.findById(shelfId).orElseThrow(() -> ApiError.SHELF_NOT_FOUND.createException(shelfId));
-        List<BookEntity> bookEntities = bookRepository.findByShelfId(shelfId);
-        return bookEntities.stream()
+        findShelfByIdOrThrow(shelfId);
+        return bookRepository.findByShelfId(shelfId).stream()
                 .map(bookMapper::toBook)
                 .toList();
+    }
+
+    private Long getAuthenticatedUserId() {
+        BookLoreUser user = authenticationService.getAuthenticatedUser();
+        return user.getId();
+    }
+
+    private BookLoreUserEntity fetchUserEntityById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID " + userId));
+    }
+
+    private ShelfEntity findShelfByIdOrThrow(Long shelfId) {
+        return shelfRepository.findById(shelfId)
+                .orElseThrow(() -> ApiError.SHELF_NOT_FOUND.createException(shelfId));
     }
 }
