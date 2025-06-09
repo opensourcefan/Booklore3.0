@@ -65,9 +65,17 @@ public class SecurityConfig {
     public SecurityFilterChain opdsBasicAuthSecurityChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/v1/opds/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                .httpBasic(basic -> basic.realmName("Booklore OPDS"))
-                .csrf(AbstractHttpConfigurer::disable);
+                .httpBasic(basic -> basic
+                        .realmName("Booklore OPDS")
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setHeader("WWW-Authenticate", "Basic realm=\"Booklore OPDS\"");
+                            response.getWriter().write("HTTP Status 401 - " + authException.getMessage());
+                        })
+                );
         return http.build();
     }
 
