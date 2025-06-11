@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -43,7 +44,7 @@ public class GraphQLResponse {
         private String title;
 
         @JsonProperty("author_names")
-        private List<String> authorNames;
+        private Set<String> authorNames;
 
         private String description;
         private List<String> isbns;
@@ -57,7 +58,7 @@ public class GraphQLResponse {
         @JsonProperty("release_date")
         private String releaseDate;
 
-        private List<String> genres;
+        private Set<String> genres;
 
         @JsonProperty("featured_series")
         private FeaturedSeries featuredSeries;

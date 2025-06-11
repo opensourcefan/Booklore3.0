@@ -51,9 +51,16 @@ public class AmazonBookParser implements BookParser {
         }
         List<BookMetadata> fetchedBookMetadata = new ArrayList<>();
         for (String amazonBookId : amazonBookIds) {
+            if (amazonBookId == null || amazonBookId.isBlank()) {
+                log.debug("Skipping null or blank Amazon book ID.");
+                continue;
+            }
             BookMetadata metadata = getBookMetadata(amazonBookId);
-            if (metadata.getTitle() == null || metadata.getTitle().isBlank() ||
-                metadata.getAuthors() == null || metadata.getAuthors().isEmpty()) {
+            if (metadata == null) {
+                log.debug("Skipping null metadata for ID: {}", amazonBookId);
+                continue;
+            }
+            if (metadata.getTitle() == null || metadata.getTitle().isBlank() || metadata.getAuthors() == null || metadata.getAuthors().isEmpty()) {
                 log.debug("Skipping metadata with missing title or author for ID: {}", amazonBookId);
                 continue;
             }
@@ -145,8 +152,8 @@ public class AmazonBookParser implements BookParser {
                 .provider(MetadataProvider.Amazon)
                 .title(getTitle(doc))
                 .subtitle(getSubtitle(doc))
-                .authors(getAuthors(doc).stream().toList())
-                .categories(getBestSellerCategories(doc).stream().toList())
+                .authors(new HashSet<>(getAuthors(doc)))
+                .categories(new HashSet<>(getBestSellerCategories(doc)))
                 .description(cleanDescriptionHtml(getDescription(doc)))
                 .seriesName(getSeriesName(doc))
                 .seriesNumber(getSeriesNumber(doc))

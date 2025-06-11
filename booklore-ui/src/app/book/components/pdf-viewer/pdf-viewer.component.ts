@@ -113,7 +113,6 @@ export class PdfViewerComponent implements OnInit, OnDestroy {
 
   onPdfPagesLoaded(event: any): void {
     this.totalPages = event.pagesCount;
-    console.log('Total pages loaded:', this.totalPages);
   }
 
   ngOnDestroy(): void {

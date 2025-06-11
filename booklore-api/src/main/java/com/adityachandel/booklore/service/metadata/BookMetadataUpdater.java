@@ -7,16 +7,19 @@ import com.adityachandel.booklore.repository.*;
 import com.adityachandel.booklore.util.FileService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Objects;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -42,107 +45,74 @@ public class BookMetadataUpdater {
             return metadata;
         }
 
-        if ((metadata.getGoodreadsIdLocked() == null || !metadata.getGoodreadsIdLocked()) && newMetadata.getGoodreadsId() != null) {
-            metadata.setGoodreadsId(newMetadata.getGoodreadsId().isBlank() ? null : newMetadata.getGoodreadsId());
-        }
-        if ((metadata.getHardcoverIdLocked() == null || !metadata.getHardcoverIdLocked()) && newMetadata.getHardcoverId() != null) {
-            metadata.setHardcoverId(newMetadata.getHardcoverId().isBlank() ? null : newMetadata.getHardcoverId());
-        }
-        if ((metadata.getGoogleIdLocked() == null || !metadata.getGoogleIdLocked()) && newMetadata.getGoogleId() != null) {
-            metadata.setGoogleId(newMetadata.getGoogleId().isBlank() ? null : newMetadata.getGoogleId());
-        }
-        if ((metadata.getTitleLocked() == null || !metadata.getTitleLocked()) && newMetadata.getTitle() != null) {
-            metadata.setTitle(newMetadata.getTitle().isEmpty() ? null : newMetadata.getTitle());
-        }
-        if ((metadata.getSubtitleLocked() == null || !metadata.getSubtitleLocked()) && newMetadata.getSubtitle() != null) {
-            metadata.setSubtitle(newMetadata.getSubtitle().isBlank() ? null : newMetadata.getSubtitle());
-        }
-        if ((metadata.getPublisherLocked() == null || !metadata.getPublisherLocked()) && newMetadata.getPublisher() != null) {
-            metadata.setPublisher(newMetadata.getPublisher().isBlank() ? null : newMetadata.getPublisher());
-        }
-        if ((metadata.getPublishedDateLocked() == null || !metadata.getPublishedDateLocked()) && newMetadata.getPublishedDate() != null) {
-            metadata.setPublishedDate(newMetadata.getPublishedDate());
-        }
-        if ((metadata.getLanguageLocked() == null || !metadata.getLanguageLocked()) && newMetadata.getLanguage() != null) {
-            metadata.setLanguage(newMetadata.getLanguage().isBlank() ? null : newMetadata.getLanguage());
-        }
-        if ((metadata.getIsbn10Locked() == null || !metadata.getIsbn10Locked()) && newMetadata.getIsbn10() != null) {
-            metadata.setIsbn10(newMetadata.getIsbn10().isBlank() ? null : newMetadata.getIsbn10());
-        }
-        if ((metadata.getIsbn13Locked() == null || !metadata.getIsbn13Locked()) && newMetadata.getIsbn13() != null) {
-            metadata.setIsbn13(newMetadata.getIsbn13().isBlank() ? null : newMetadata.getIsbn13());
-        }
-        if ((metadata.getAsinLocked() == null || !metadata.getAsinLocked()) && newMetadata.getAsin() != null) {
-            metadata.setAsin(newMetadata.getAsin().isBlank() ? null : newMetadata.getAsin());
-        }
-        if ((metadata.getDescriptionLocked() == null || !metadata.getDescriptionLocked()) && newMetadata.getDescription() != null) {
-            metadata.setDescription(newMetadata.getDescription().isBlank() ? null : newMetadata.getDescription());
-        }
-        if ((metadata.getPageCountLocked() == null || !metadata.getPageCountLocked()) && newMetadata.getPageCount() != null) {
-            metadata.setPageCount(newMetadata.getPageCount());
-        }
-        if ((metadata.getAmazonRatingLocked() == null || !metadata.getAmazonRatingLocked()) && newMetadata.getAmazonRating() != null) {
-            metadata.setAmazonRating(newMetadata.getAmazonRating());
-        }
-        if ((metadata.getAmazonReviewCountLocked() == null || !metadata.getAmazonReviewCountLocked()) && newMetadata.getAmazonReviewCount() != null) {
-            metadata.setAmazonReviewCount(newMetadata.getAmazonReviewCount());
-        }
-        if ((metadata.getGoodreadsRatingLocked() == null || !metadata.getGoodreadsRatingLocked()) && newMetadata.getGoodreadsRating() != null) {
-            metadata.setGoodreadsRating(newMetadata.getGoodreadsRating());
-        }
-        if ((metadata.getGoodreadsReviewCountLocked() == null || !metadata.getGoodreadsReviewCountLocked()) && newMetadata.getGoodreadsReviewCount() != null) {
-            metadata.setGoodreadsReviewCount(newMetadata.getGoodreadsReviewCount());
-        }
-        if ((metadata.getHardcoverRatingLocked() == null || !metadata.getHardcoverRatingLocked()) && newMetadata.getHardcoverRating() != null) {
-            metadata.setHardcoverRating(newMetadata.getHardcoverRating());
-        }
-        if ((metadata.getHardcoverReviewCountLocked() == null || !metadata.getHardcoverReviewCountLocked()) && newMetadata.getHardcoverReviewCount() != null) {
-            metadata.setHardcoverReviewCount(newMetadata.getHardcoverReviewCount());
-        }
-        if ((metadata.getSeriesNameLocked() == null || !metadata.getSeriesNameLocked()) && newMetadata.getSeriesName() != null) {
-            metadata.setSeriesName(newMetadata.getSeriesName());
-        }
-        if ((metadata.getSeriesNumberLocked() == null || !metadata.getSeriesNumberLocked()) && newMetadata.getSeriesNumber() != null) {
-            metadata.setSeriesNumber(newMetadata.getSeriesNumber());
-        }
-        if ((metadata.getSeriesTotalLocked() == null || !metadata.getSeriesTotalLocked()) && newMetadata.getSeriesTotal() != null) {
-            metadata.setSeriesTotal(newMetadata.getSeriesTotal());
-        }
+        updateBasicFields(newMetadata, metadata);
+        updateAuthorsIfNeeded(newMetadata, metadata);
+        updateCategoriesIfNeeded(newMetadata, metadata, mergeCategories);
+        updateThumbnailIfNeeded(bookId, newMetadata, metadata, setThumbnail);
 
-        if ((metadata.getAuthorsLocked() == null || !metadata.getAuthorsLocked()) && newMetadata.getAuthors() != null && !newMetadata.getAuthors().isEmpty()) {
-            metadata.setAuthors(newMetadata.getAuthors()
-                    .stream()
-                    .filter(a -> a != null && !a.isBlank())
-                    .map(authorName -> authorRepository.findByName(authorName)
-                            .orElseGet(() -> authorRepository.save(AuthorEntity.builder().name(authorName).build())))
-                    .collect(Collectors.toList()));
-        }
+        bookMetadataRepository.save(metadata);
+        return metadata;
+    }
 
-        if (mergeCategories) {
-            if ((metadata.getCategoriesLocked() == null || !metadata.getCategoriesLocked()) && newMetadata.getCategories() != null) {
+    private void updateBasicFields(BookMetadata newMetadata, BookMetadataEntity metadata) {
+        updateFieldIfUnlocked(metadata::getGoodreadsIdLocked, newMetadata.getGoodreadsId(), v -> metadata.setGoodreadsId(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getHardcoverIdLocked, newMetadata.getHardcoverId(), v -> metadata.setHardcoverId(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getGoogleIdLocked, newMetadata.getGoogleId(), v -> metadata.setGoogleId(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getTitleLocked, newMetadata.getTitle(), v -> metadata.setTitle(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getSubtitleLocked, newMetadata.getSubtitle(), v -> metadata.setSubtitle(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getPublisherLocked, newMetadata.getPublisher(), v -> metadata.setPublisher(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getPublishedDateLocked, newMetadata.getPublishedDate(), metadata::setPublishedDate);
+        updateFieldIfUnlocked(metadata::getLanguageLocked, newMetadata.getLanguage(), v -> metadata.setLanguage(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getIsbn10Locked, newMetadata.getIsbn10(), v -> metadata.setIsbn10(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getIsbn13Locked, newMetadata.getIsbn13(), v -> metadata.setIsbn13(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getAsinLocked, newMetadata.getAsin(), v -> metadata.setAsin(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getDescriptionLocked, newMetadata.getDescription(), v -> metadata.setDescription(nullIfBlank(v)));
+        updateFieldIfUnlocked(metadata::getPageCountLocked, newMetadata.getPageCount(), metadata::setPageCount);
+        updateFieldIfUnlocked(metadata::getAmazonRatingLocked, newMetadata.getAmazonRating(), metadata::setAmazonRating);
+        updateFieldIfUnlocked(metadata::getAmazonReviewCountLocked, newMetadata.getAmazonReviewCount(), metadata::setAmazonReviewCount);
+        updateFieldIfUnlocked(metadata::getGoodreadsRatingLocked, newMetadata.getGoodreadsRating(), metadata::setGoodreadsRating);
+        updateFieldIfUnlocked(metadata::getGoodreadsReviewCountLocked, newMetadata.getGoodreadsReviewCount(), metadata::setGoodreadsReviewCount);
+        updateFieldIfUnlocked(metadata::getHardcoverRatingLocked, newMetadata.getHardcoverRating(), metadata::setHardcoverRating);
+        updateFieldIfUnlocked(metadata::getHardcoverReviewCountLocked, newMetadata.getHardcoverReviewCount(), metadata::setHardcoverReviewCount);
+        updateFieldIfUnlocked(metadata::getSeriesNameLocked, newMetadata.getSeriesName(), metadata::setSeriesName);
+        updateFieldIfUnlocked(metadata::getSeriesNumberLocked, newMetadata.getSeriesNumber(), metadata::setSeriesNumber);
+        updateFieldIfUnlocked(metadata::getSeriesTotalLocked, newMetadata.getSeriesTotal(), metadata::setSeriesTotal);
+    }
+
+    private void updateAuthorsIfNeeded(BookMetadata newMetadata, BookMetadataEntity metadata) {
+        if (shouldUpdateField(metadata.getAuthorsLocked(), newMetadata.getAuthors()) && newMetadata.getAuthors() != null && !newMetadata.getAuthors().isEmpty()) {
+            metadata.setAuthors(newMetadata.getAuthors().stream()
+                .filter(a -> a != null && !a.isBlank())
+                .map(authorName -> authorRepository.findByName(authorName)
+                    .orElseGet(() -> authorRepository.save(AuthorEntity.builder().name(authorName).build())))
+                .collect(Collectors.toSet()));
+        }
+    }
+
+    private void updateCategoriesIfNeeded(BookMetadata newMetadata, BookMetadataEntity metadata, boolean mergeCategories) {
+        if (shouldUpdateField(metadata.getCategoriesLocked(), newMetadata.getCategories()) && newMetadata.getCategories() != null) {
+            if (mergeCategories) {
                 HashSet<CategoryEntity> existingCategories = new HashSet<>(metadata.getCategories());
-                newMetadata.getCategories()
-                        .stream()
-                        .filter(c -> c != null && !c.isBlank())
-                        .forEach(categoryName -> {
-                            CategoryEntity categoryEntity = categoryRepository.findByName(categoryName)
-                                    .orElseGet(() -> categoryRepository.save(CategoryEntity.builder().name(categoryName).build()));
-                            existingCategories.add(categoryEntity);
-                        });
-                metadata.setCategories(new ArrayList<>(existingCategories));
-            }
-        } else {
-            if ((metadata.getCategoriesLocked() == null || !metadata.getCategoriesLocked()) && newMetadata.getCategories() != null && !newMetadata.getCategories().isEmpty()) {
-                metadata.setCategories(newMetadata.getCategories()
-                        .stream()
-                        .filter(c -> c != null && !c.isBlank())
-                        .map(categoryName -> categoryRepository.findByName(categoryName)
-                                .orElseGet(() -> categoryRepository.save(CategoryEntity.builder().name(categoryName).build())))
-                        .collect(Collectors.toList()));
+                newMetadata.getCategories().stream()
+                    .filter(c -> c != null && !c.isBlank())
+                    .forEach(categoryName -> {
+                        CategoryEntity categoryEntity = categoryRepository.findByName(categoryName)
+                            .orElseGet(() -> categoryRepository.save(CategoryEntity.builder().name(categoryName).build()));
+                        existingCategories.add(categoryEntity);
+                    });
+                metadata.setCategories(new HashSet<>(existingCategories));
+            } else if (!newMetadata.getCategories().isEmpty()) {
+                metadata.setCategories(newMetadata.getCategories().stream()
+                    .filter(c -> c != null && !c.isBlank())
+                    .map(categoryName -> categoryRepository.findByName(categoryName)
+                        .orElseGet(() -> categoryRepository.save(CategoryEntity.builder().name(categoryName).build())))
+                    .collect(Collectors.toSet()));
             }
         }
+    }
 
-        if (setThumbnail && (metadata.getThumbnailLocked() == null || !metadata.getThumbnailLocked()) && newMetadata.getThumbnailUrl() != null && !newMetadata.getThumbnailUrl().isEmpty()) {
+    private void updateThumbnailIfNeeded(long bookId, BookMetadata newMetadata, BookMetadataEntity metadata, boolean setThumbnail) {
+        if (setThumbnail && shouldUpdateField(metadata.getThumbnailLocked(), newMetadata.getThumbnailUrl()) && !newMetadata.getThumbnailUrl().isEmpty()) {
             String thumbnailPath = null;
             try {
                 thumbnailPath = fileService.createThumbnail(bookId, newMetadata.getThumbnailUrl());
@@ -152,92 +122,56 @@ public class BookMetadataUpdater {
             }
             metadata.setThumbnail(thumbnailPath);
         }
+    }
 
-        if (!metadata.getAuthors().isEmpty()) {
-            authorRepository.saveAll(metadata.getAuthors());
+    private boolean shouldUpdateField(Boolean locked, Object newValue) {
+        return (locked == null || !locked) && newValue != null;
+    }
+
+    private String nullIfBlank(String value) {
+        return StringUtils.hasText(value) ? value : null;
+    }
+
+    private <T> void updateFieldIfUnlocked(Supplier<Boolean> lockSupplier, T newValue, Consumer<T> setter) {
+        if (shouldUpdateField(lockSupplier.get(), newValue)) {
+            setter.accept(newValue);
         }
-        if (!metadata.getCategories().isEmpty()) {
-            categoryRepository.saveAll(metadata.getCategories());
-        }
-        bookMetadataRepository.save(metadata);
-        return metadata;
     }
 
     private void updateLocks(BookMetadata newMetadata, BookMetadataEntity metadata) {
-        if (newMetadata.getTitleLocked() != null) {
-            metadata.setTitleLocked(newMetadata.getTitleLocked());
-        }
-        if (newMetadata.getSubtitleLocked() != null) {
-            metadata.setSubtitleLocked(newMetadata.getSubtitleLocked());
-        }
-        if (newMetadata.getPublisherLocked() != null) {
-            metadata.setPublisherLocked(newMetadata.getPublisherLocked());
-        }
-        if (newMetadata.getPublishedDateLocked() != null) {
-            metadata.setPublishedDateLocked(newMetadata.getPublishedDateLocked());
-        }
-        if (newMetadata.getDescriptionLocked() != null) {
-            metadata.setDescriptionLocked(newMetadata.getDescriptionLocked());
-        }
-        if (newMetadata.getIsbn13Locked() != null) {
-            metadata.setIsbn13Locked(newMetadata.getIsbn13Locked());
-        }
-        if (newMetadata.getIsbn10Locked() != null) {
-            metadata.setIsbn10Locked(newMetadata.getIsbn10Locked());
-        }
-        if (newMetadata.getAsinLocked() != null) {
-            metadata.setAsinLocked(newMetadata.getAsinLocked());
-        }
-        if (newMetadata.getGoodreadsIdLocked() != null) {
-            metadata.setGoodreadsIdLocked(newMetadata.getGoodreadsIdLocked());
-        }
-        if (newMetadata.getHardcoverIdLocked() != null) {
-            metadata.setHardcoverIdLocked(newMetadata.getHardcoverIdLocked());
-        }
-        if (newMetadata.getGoogleIdLocked() != null) {
-            metadata.setGoogleIdLocked(newMetadata.getGoogleIdLocked());
-        }
-        if (newMetadata.getPageCountLocked() != null) {
-            metadata.setPageCountLocked(newMetadata.getPageCountLocked());
-        }
-        if (newMetadata.getLanguageLocked() != null) {
-            metadata.setLanguageLocked(newMetadata.getLanguageLocked());
-        }
-        if (newMetadata.getAmazonRatingLocked() != null) {
-            metadata.setAmazonRatingLocked(newMetadata.getAmazonRatingLocked());
-        }
-        if (newMetadata.getAmazonReviewCountLocked() != null) {
-            metadata.setAmazonReviewCountLocked(newMetadata.getAmazonReviewCountLocked());
-        }
-        if (newMetadata.getGoodreadsRatingLocked() != null) {
-            metadata.setGoodreadsRatingLocked(newMetadata.getGoodreadsRatingLocked());
-        }
-        if (newMetadata.getGoodreadsReviewCountLocked() != null) {
-            metadata.setGoodreadsReviewCountLocked(newMetadata.getGoodreadsReviewCountLocked());
-        }
-        if (newMetadata.getHardcoverRatingLocked() != null) {
-            metadata.setHardcoverRatingLocked(newMetadata.getHardcoverRatingLocked());
-        }
-        if (newMetadata.getHardcoverReviewCountLocked() != null) {
-            metadata.setHardcoverReviewCountLocked(newMetadata.getHardcoverReviewCountLocked());
-        }
-        if (newMetadata.getSeriesNameLocked() != null) {
-            metadata.setSeriesNameLocked(newMetadata.getSeriesNameLocked());
-        }
-        if (newMetadata.getSeriesNumberLocked() != null) {
-            metadata.setSeriesNumberLocked(newMetadata.getSeriesNumberLocked());
-        }
-        if (newMetadata.getSeriesTotalLocked() != null) {
-            metadata.setSeriesTotalLocked(newMetadata.getSeriesTotalLocked());
-        }
-        if (newMetadata.getAuthorsLocked() != null) {
-            metadata.setAuthorsLocked(newMetadata.getAuthorsLocked());
-        }
-        if (newMetadata.getCategoriesLocked() != null) {
-            metadata.setCategoriesLocked(newMetadata.getCategoriesLocked());
-        }
-        if (newMetadata.getCoverLocked() != null) {
-            metadata.setCoverLocked(newMetadata.getCoverLocked());
+        List<Pair<Boolean, Consumer<Boolean>>> lockMappings = List.of(
+            Pair.of(newMetadata.getTitleLocked(), metadata::setTitleLocked),
+            Pair.of(newMetadata.getSubtitleLocked(), metadata::setSubtitleLocked),
+            Pair.of(newMetadata.getPublisherLocked(), metadata::setPublisherLocked),
+            Pair.of(newMetadata.getPublishedDateLocked(), metadata::setPublishedDateLocked),
+            Pair.of(newMetadata.getDescriptionLocked(), metadata::setDescriptionLocked),
+            Pair.of(newMetadata.getIsbn13Locked(), metadata::setIsbn13Locked),
+            Pair.of(newMetadata.getIsbn10Locked(), metadata::setIsbn10Locked),
+            Pair.of(newMetadata.getAsinLocked(), metadata::setAsinLocked),
+            Pair.of(newMetadata.getGoodreadsIdLocked(), metadata::setGoodreadsIdLocked),
+            Pair.of(newMetadata.getHardcoverIdLocked(), metadata::setHardcoverIdLocked),
+            Pair.of(newMetadata.getGoogleIdLocked(), metadata::setGoogleIdLocked),
+            Pair.of(newMetadata.getPageCountLocked(), metadata::setPageCountLocked),
+            Pair.of(newMetadata.getLanguageLocked(), metadata::setLanguageLocked),
+            Pair.of(newMetadata.getAmazonRatingLocked(), metadata::setAmazonRatingLocked),
+            Pair.of(newMetadata.getAmazonReviewCountLocked(), metadata::setAmazonReviewCountLocked),
+            Pair.of(newMetadata.getGoodreadsRatingLocked(), metadata::setGoodreadsRatingLocked),
+            Pair.of(newMetadata.getGoodreadsReviewCountLocked(), metadata::setGoodreadsReviewCountLocked),
+            Pair.of(newMetadata.getHardcoverRatingLocked(), metadata::setHardcoverRatingLocked),
+            Pair.of(newMetadata.getHardcoverReviewCountLocked(), metadata::setHardcoverReviewCountLocked),
+            Pair.of(newMetadata.getSeriesNameLocked(), metadata::setSeriesNameLocked),
+            Pair.of(newMetadata.getSeriesNumberLocked(), metadata::setSeriesNumberLocked),
+            Pair.of(newMetadata.getSeriesTotalLocked(), metadata::setSeriesTotalLocked),
+            Pair.of(newMetadata.getAuthorsLocked(), metadata::setAuthorsLocked),
+            Pair.of(newMetadata.getCategoriesLocked(), metadata::setCategoriesLocked),
+            Pair.of(newMetadata.getCoverLocked(), metadata::setCoverLocked)
+        );
+        lockMappings.forEach(pair -> applyLock(pair.getLeft(), pair.getRight()));
+    }
+
+    private void applyLock(Boolean newLockValue, Consumer<Boolean> setter) {
+        if (newLockValue != null) {
+            setter.accept(newLockValue);
         }
     }
 

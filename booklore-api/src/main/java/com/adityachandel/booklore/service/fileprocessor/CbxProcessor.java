@@ -26,7 +26,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Consumer;
 
 @Slf4j
 @Service

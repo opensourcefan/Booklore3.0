@@ -3,7 +3,6 @@ package com.adityachandel.booklore.controller;
 import com.adityachandel.booklore.model.dto.Book;
 import com.adityachandel.booklore.model.dto.Shelf;
 import com.adityachandel.booklore.model.dto.request.ShelfCreateRequest;
-import com.adityachandel.booklore.model.dto.Sort;
 import com.adityachandel.booklore.service.ShelfService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

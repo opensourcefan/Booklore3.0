@@ -23,7 +23,7 @@ import {filter, take} from 'rxjs/operators';
     Button,
     TableModule,
     ToastModule
-],
+  ],
   templateUrl: './view-preferences.component.html',
   styleUrl: './view-preferences.component.scss'
 })
@@ -154,24 +154,39 @@ export class ViewPreferencesComponent implements OnInit {
   saveSettings(): void {
     if (!this.user) return;
 
-    const payload = {
-      global: {
-        sortKey: this.selectedSort,
-        sortDir: this.selectedSortDir,
-        view: this.selectedView
-      },
-      overrides: this.overrides.map(o => ({
+    const prefs = structuredClone(this.user.userSettings.entityViewPreferences ?? {});
+
+    prefs.global = {
+      ...prefs.global,
+      sortKey: this.selectedSort,
+      sortDir: this.selectedSortDir,
+      view: this.selectedView
+    };
+
+    prefs.overrides = this.overrides.map(o => {
+      const existing = prefs.overrides?.find(p =>
+        p.entityId === o.library && p.entityType === o.entityType
+      )?.preferences;
+
+      return {
         entityType: o.entityType,
         entityId: o.library,
         preferences: {
           sortKey: o.sort,
           sortDir: o.sortDir,
-          view: o.view
+          view: o.view,
+          coverSize: existing?.coverSize ?? 1.0,
+          seriesCollapsed: existing?.seriesCollapsed ?? false
         }
-      }))
-    };
+      };
+    });
 
-    this.userService.updateUserSetting(this.user.id, 'entityViewPreferences', payload);
-    this.messageService.add({severity: 'success', summary: 'Preferences Saved', detail: 'Your sorting and view preferences were saved successfully.'});
+    this.userService.updateUserSetting(this.user.id, 'entityViewPreferences', prefs);
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Preferences Saved',
+      detail: 'Your sorting and view preferences were saved successfully.'
+    });
   }
 }

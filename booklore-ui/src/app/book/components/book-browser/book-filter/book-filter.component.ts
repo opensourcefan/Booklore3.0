@@ -7,7 +7,7 @@ import {Shelf} from '../../../model/shelf.model';
 import {EntityType} from '../book-browser.component';
 import {Book} from '../../../model/book.model';
 import {Accordion, AccordionContent, AccordionHeader, AccordionPanel} from 'primeng/accordion';
-import { AsyncPipe, NgClass, TitleCasePipe } from '@angular/common';
+import {AsyncPipe, NgClass, TitleCasePipe} from '@angular/common';
 import {Badge} from 'primeng/badge';
 import {FormsModule} from '@angular/forms';
 import {SelectButton} from 'primeng/selectbutton';
@@ -43,27 +43,6 @@ export const pageCountRanges = [
   {id: '600to1000', label: '600–1000 pages', min: 600, max: 1000},
   {id: '1000plus', label: '1000+ pages', min: 1000, max: Infinity}
 ];
-
-export function isRatingInRange(rating: number | undefined | null, rangeId: string): boolean {
-  if (rating == null) return false;
-  const range = ratingRanges.find(r => r.id === rangeId);
-  if (!range) return false;
-  return rating >= range.min && rating < range.max;
-}
-
-export function isFileSizeInRange(fileSizeKb: number | undefined, rangeId: string): boolean {
-  if (fileSizeKb == null) return false;
-  const range = fileSizeRanges.find(r => r.id === rangeId);
-  if (!range) return false;
-  return fileSizeKb >= range.min && fileSizeKb < range.max;
-}
-
-export function isPageCountInRange(pageCount: number | undefined, rangeId: string): boolean {
-  if (pageCount == null) return false;
-  const range = pageCountRanges.find(r => r.id === rangeId);
-  if (!range) return false;
-  return pageCount >= range.min && pageCount < range.max;
-}
 
 const getLanguageFilter = (book: Book) => {
   const lang = book.metadata?.language;
@@ -116,7 +95,7 @@ function getPageCountRangeFilters(pageCount?: number) {
     TitleCasePipe,
     FormsModule,
     SelectButton
-]
+  ]
 })
 export class BookFilterComponent implements OnInit {
   @Output() filterSelected = new EventEmitter<Record<string, any> | null>();
@@ -131,11 +110,11 @@ export class BookFilterComponent implements OnInit {
   filterStreams: Record<string, Observable<Filter<any>[]>> = {};
   filterTypes: string[] = [];
   filterModeOptions = [
-    { label: 'AND', value: 'and' },
-    { label: 'OR', value: 'or' }
+    {label: 'AND', value: 'and'},
+    {label: 'OR', value: 'or'}
   ];
   private _selectedFilterMode: 'and' | 'or' = 'and';
-
+  expandedPanels: number = 0;
   readonly filterLabels: Record<string, string> = {
     author: 'Author',
     category: 'Category',
@@ -175,6 +154,8 @@ export class BookFilterComponent implements OnInit {
     if (this.resetFilter$) {
       this.resetFilter$.subscribe(() => this.clearActiveFilter());
     }
+
+    this.setExpandedPanels();
   }
 
   private getFilterStream<T>(
@@ -241,7 +222,7 @@ export class BookFilterComponent implements OnInit {
     if (Object.keys(this.activeFilters).length === 0) {
       this.filterSelected.emit(null);
     } else {
-      this.filterSelected.emit({ ...this.activeFilters });
+      this.filterSelected.emit({...this.activeFilters});
     }
   }
 
@@ -255,12 +236,22 @@ export class BookFilterComponent implements OnInit {
         this.activeFilters[key] = [value];
       }
     }
-
-    this.filterSelected.emit({ ...this.activeFilters });
+    this.filterSelected.emit({...this.activeFilters});
   }
 
   clearActiveFilter() {
     this.activeFilters = {};
     this.filterSelected.emit(null);
+  }
+
+  setExpandedPanels(): void {
+    const firstActiveIndex = this.filterTypes.findIndex(
+      type => this.activeFilters[type]?.length
+    );
+    this.expandedPanels = firstActiveIndex !== -1 ? firstActiveIndex : 0;
+  }
+
+  onFiltersChanged(): void {
+    this.setExpandedPanels();
   }
 }

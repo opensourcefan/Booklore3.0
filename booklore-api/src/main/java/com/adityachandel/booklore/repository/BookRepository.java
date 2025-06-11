@@ -1,10 +1,7 @@
 package com.adityachandel.booklore.repository;
 
 import com.adityachandel.booklore.model.entity.BookEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -16,16 +13,6 @@ import java.util.Set;
 @Repository
 public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpecificationExecutor<BookEntity> {
 
-    @Query("SELECT b FROM BookEntity b")
-    List<BookEntity> getAllBooks();
-
-    @Query("SELECT b FROM BookEntity b WHERE b.library.id IN :libraryIds")
-    List<BookEntity> getAllByLibraryIds(@Param("libraryIds") Set<Long> libraryIds);
-
-    List<BookEntity> findAllByIdIn(Collection<Long> ids);
-
-    List<BookEntity> findBooksByLibraryId(Long libraryId);
-
     @Query("SELECT b.id FROM BookEntity b WHERE b.libraryPath.id IN :libraryPathIds")
     List<Long> findAllBookIdsByLibraryPathIdIn(@Param("libraryPathIds") Collection<Long> libraryPathIds);
 
@@ -33,13 +20,37 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
 
     Optional<BookEntity> findBookByFileNameAndLibraryId(String fileName, long libraryId);
 
-    @Query("SELECT b FROM BookEntity b JOIN b.shelves s WHERE s.id = :shelfId")
-    List<BookEntity> findByShelfId(@Param("shelfId") Long shelfId);
+    @EntityGraph(attributePaths = {"metadata", "shelves"})
+    @Query("SELECT DISTINCT b FROM BookEntity b JOIN b.shelves s WHERE s.id = :shelfId")
+    List<BookEntity> findAllWithMetadataByShelfId(@Param("shelfId") Long shelfId);
 
     @Modifying
     @Query("DELETE FROM BookEntity b WHERE b.id IN (:ids)")
     void deleteByIdIn(Collection<Long> ids);
 
-    List<BookEntity> findByFileSizeKbIsNull();
+    @EntityGraph(attributePaths = {"metadata", "shelves"})
+    @Query("SELECT b FROM BookEntity b WHERE b.fileSizeKb IS NULL")
+    List<BookEntity> findAllWithMetadataByFileSizeKbIsNull();
+
+    @EntityGraph(attributePaths = {"metadata", "shelves"})
+    @Query("SELECT b FROM BookEntity b")
+    List<BookEntity> findAllWithMetadata();
+
+    @EntityGraph(attributePaths = {"metadata", "shelves"})
+    @Query("SELECT b FROM BookEntity b WHERE b.id IN :bookIds")
+    List<BookEntity> findAllWithMetadataByIds(@Param("bookIds") Set<Long> bookIds);
+
+    @EntityGraph(attributePaths = {"metadata", "shelves"})
+    @Query("SELECT b FROM BookEntity b WHERE b.library.id = :libraryId")
+    List<BookEntity> findAllWithMetadataByLibraryId(@Param("libraryId") Long libraryId);
+
+    @Query("""
+    SELECT DISTINCT b FROM BookEntity b
+    LEFT JOIN FETCH b.metadata m
+    LEFT JOIN FETCH m.authors
+    LEFT JOIN FETCH m.categories
+    LEFT JOIN FETCH b.shelves
+    """)
+    List<BookEntity> findAllFullBooks();
 }
 

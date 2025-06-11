@@ -3,10 +3,13 @@ package com.adityachandel.booklore.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -134,12 +137,6 @@ public class BookMetadataEntity {
     @Column(name = "language_locked")
     private Boolean languageLocked = Boolean.FALSE;
 
-    @Column(name = "rating_locked")
-    private Boolean ratingLocked = Boolean.FALSE;
-
-    @Column(name = "review_count_locked")
-    private Boolean reviewCountLocked = Boolean.FALSE;
-
     @Column(name = "amazon_rating_locked")
     private Boolean amazonRatingLocked = Boolean.FALSE;
 
@@ -196,7 +193,8 @@ public class BookMetadataEntity {
             name = "book_metadata_author_mapping",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "author_id"))
-    private List<AuthorEntity> authors;
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<AuthorEntity> authors;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -204,7 +202,8 @@ public class BookMetadataEntity {
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
-    private List<CategoryEntity> categories;
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<CategoryEntity> categories;
 
     public void applyLockToAllFields(boolean lock) {
         this.titleLocked = lock;
@@ -218,8 +217,6 @@ public class BookMetadataEntity {
         this.pageCountLocked = lock;
         this.thumbnailLocked = lock;
         this.languageLocked = lock;
-        this.ratingLocked = lock;
-        this.reviewCountLocked = lock;
         this.coverLocked = lock;
         this.seriesNameLocked = lock;
         this.seriesNumberLocked = lock;

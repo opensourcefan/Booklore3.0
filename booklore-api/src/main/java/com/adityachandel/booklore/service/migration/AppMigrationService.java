@@ -35,7 +35,7 @@ public class AppMigrationService {
             return;
         }
 
-        List<BookEntity> books = bookRepository.findByFileSizeKbIsNull();
+        List<BookEntity> books = bookRepository.findAllWithMetadataByFileSizeKbIsNull();
         for (BookEntity book : books) {
             Long sizeInKb = FileUtils.getFileSizeInKb(book);
             if (sizeInKb != null) {

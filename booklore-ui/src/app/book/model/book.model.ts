@@ -16,6 +16,7 @@ export interface Book {
   cbxProgress?: CbxProgress;
   filePath?: string;
   fileSizeKb?: number;
+  seriesCount?: number | null;
 }
 
 export interface EpubProgress {
@@ -82,8 +83,6 @@ export interface BookMetadata {
   googleIdLocked?: boolean;
   pageCountLocked?: boolean;
   languageLocked?: boolean;
-  ratingLocked?: boolean;
-  reviewCountLocked?: boolean;
   amazonRatingLocked?: boolean;
   amazonReviewCountLocked?: boolean;
   goodreadsRatingLocked?: boolean;

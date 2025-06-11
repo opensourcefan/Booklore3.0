@@ -15,12 +15,10 @@ public class ImageCachingFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
         if (request.getRequestURI().startsWith("/api/v1/books") && request.getRequestURI().contains("/cover")) {
             response.setHeader(HttpHeaders.CACHE_CONTROL, "public, max-age=3600");
             response.setHeader(HttpHeaders.EXPIRES, String.valueOf(System.currentTimeMillis() + 3600000));
         }
-
         filterChain.doFilter(request, response);
     }
 }

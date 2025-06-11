@@ -1,4 +1,4 @@
-package com.adityachandel.booklore.service.upload;
+package com.adityachandel.booklore.service.metadata.extractor;
 
 import com.adityachandel.booklore.model.UploadedFileMetadata;
 import lombok.extern.slf4j.Slf4j;

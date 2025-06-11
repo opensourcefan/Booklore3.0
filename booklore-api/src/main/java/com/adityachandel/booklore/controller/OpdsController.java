@@ -1,6 +1,6 @@
 package com.adityachandel.booklore.controller;
 
-import com.adityachandel.booklore.service.BooksService;
+import com.adityachandel.booklore.service.BookService;
 import com.adityachandel.booklore.service.opds.OpdsService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OpdsController {
 
     private final OpdsService opdsService;
-    private final BooksService booksService;
+    private final BookService bookService;
 
     @GetMapping(value = "/catalog", produces = "application/atom+xml;profile=opds-catalog")
     public ResponseEntity<String> getCatalogFeed(HttpServletRequest request) {
@@ -31,12 +31,12 @@ public class OpdsController {
 
     @GetMapping("/{bookId}/download")
     public ResponseEntity<Resource> downloadBook(@PathVariable("bookId") Long bookId) {
-        return booksService.downloadBook(bookId);
+        return bookService.downloadBook(bookId);
     }
 
     @GetMapping("/{bookId}/cover.jpg")
     public ResponseEntity<Resource> getBookCover(@PathVariable long bookId) {
-        Resource coverImage = booksService.getBookCover(bookId);
+        Resource coverImage = bookService.getBookCover(bookId);
         String contentType = "image/jpeg";
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
