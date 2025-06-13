@@ -153,11 +153,11 @@ export class BookFilterComponent implements OnInit, OnDestroy {
 
   bookService = inject(BookService);
   userService = inject(UserService);
-  sidebarFilterSortingManager = inject(FilterSortPreferenceService);
+  filterSortPreferenceService = inject(FilterSortPreferenceService);
 
   ngOnInit(): void {
     combineLatest([
-      this.sidebarFilterSortingManager.sortMode$.pipe(distinctUntilChanged()),
+      this.filterSortPreferenceService.sortMode$.pipe(distinctUntilChanged()),
       this.entity$ ?? of(null),
       this.entityType$ ?? of(EntityType.ALL_BOOKS)
     ])

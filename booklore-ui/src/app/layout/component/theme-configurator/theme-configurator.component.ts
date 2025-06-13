@@ -1,4 +1,4 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {CommonModule, isPlatformBrowser} from '@angular/common';
 import {Component, computed, inject, OnInit, PLATFORM_ID} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {$t, updatePreset, updateSurfacePalette} from '@primeng/themes';
@@ -27,12 +27,11 @@ interface Palette {
   imports: [CommonModule, FormsModule, InputSwitchModule, ButtonModule, RadioButtonModule, ToggleSwitchModule]
 })
 export class ThemeConfiguratorComponent implements OnInit {
+  readonly config = inject(PrimeNG);
+  readonly configService = inject(AppConfigService);
+  readonly platformId = inject(PLATFORM_ID);
 
-  config: PrimeNG = inject(PrimeNG);
-  configService: AppConfigService = inject(AppConfigService);
-  platformId = inject(PLATFORM_ID);
-
-  surfaces = [
+  readonly surfaces: Palette[] = [
     {
       name: 'slate',
       palette: {
@@ -171,38 +170,35 @@ export class ThemeConfiguratorComponent implements OnInit {
     }
   ];
 
-  selectedPrimaryColor = computed(() => {
-    return this.configService.appState().primary;
-  });
+  readonly selectedPrimaryColor = computed(() => this.configService.appState().primary);
+  readonly selectedSurfaceColor = computed(() => this.configService.appState().surface);
 
-  selectedSurfaceColor = computed(() => this.configService.appState().surface);
-
-  primaryColors = computed<Palette[]>(() => {
-    const presetPalette = (Aura.primitive ?? {}) as Partial<Record<string, Palette>>;
+  readonly primaryColors = computed<Palette[]>(() => {
+    const presetPalette = (Aura.primitive ?? {}) as Record<string, ColorPalette>;
     const colors = ['emerald', 'green', 'lime', 'orange', 'amber', 'yellow', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'];
     return [{ name: 'noir', palette: {} }].concat(
-      colors.map((color) => ({
-        name: color,
-        palette: presetPalette[color] ?? {}
+      colors.map(name => ({
+        name,
+        palette: presetPalette[name] ?? {}
       }))
     );
   });
 
-
-  ngOnInit() {
+  ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.onPresetChange();
+      this.onPresetChange(); // Ensures both primary and surface colors apply
     }
   }
 
   getPresetExt(): object {
-    const color = this.primaryColors().find((c) => c.name === this.selectedPrimaryColor());
-    if (!color) return {}; // Safe fallback
+    const color = this.primaryColors().find(c => c.name === this.selectedPrimaryColor());
+    const surface = this.surfaces.find(s => s.name === this.selectedSurfaceColor());
 
+    if (!color) return {};
     if (color.name === 'noir') {
       return {
         semantic: {
-          primary: {...this.surfaces.find((s) => s.name === this.selectedSurfaceColor())?.palette},
+          primary: { ...(surface?.palette ?? {}) },
           colorScheme: {
             dark: {
               primary: {
@@ -255,16 +251,17 @@ export class ThemeConfiguratorComponent implements OnInit {
     event.stopPropagation();
   }
 
-  applyTheme(type: string, color: any) {
+  applyTheme(type: 'primary' | 'surface', color: { name: string; palette?: ColorPalette }) {
     if (type === 'primary') {
       updatePreset(this.getPresetExt());
     } else if (type === 'surface') {
-      updateSurfacePalette(color.palette);
+      updateSurfacePalette(color.palette ?? {});
     }
   }
 
-  onPresetChange() {
-    const surfacePalette = this.primaryColors().find(c => c.name === this.selectedSurfaceColor())?.palette;
-    $t().preset(Aura).preset(this.getPresetExt()).surfacePalette(surfacePalette).use({useDefaultOptions: true});
+  onPresetChange(): void {
+    const surface = this.surfaces.find(s => s.name === this.selectedSurfaceColor());
+    const surfacePalette = surface?.palette ?? {};
+    $t().preset(Aura).preset(this.getPresetExt()).surfacePalette(surfacePalette).use({ useDefaultOptions: true });
   }
 }
