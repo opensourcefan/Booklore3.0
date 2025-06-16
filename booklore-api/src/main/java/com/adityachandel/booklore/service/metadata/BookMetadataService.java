@@ -134,8 +134,9 @@ public class BookMetadataService {
     @Transactional
     protected BookMetadataEntity updateBookMetadata(BookEntity bookEntity, BookMetadata metadata, boolean replaceCover, boolean mergeCategories) {
         if (metadata != null) {
-            BookMetadataEntity bookMetadata = bookMetadataUpdater.setBookMetadata(bookEntity.getId(), metadata, replaceCover, mergeCategories);
+            BookMetadataEntity bookMetadata = bookMetadataUpdater.setBookMetadata(bookEntity, metadata, replaceCover, mergeCategories);
             bookEntity.setMetadata(bookMetadata);
+            bookRepository.save(bookEntity);
             Book book = bookMapper.toBook(bookEntity);
             notificationService.sendMessage(Topic.BOOK_METADATA_UPDATE, book);
             notificationService.sendMessage(Topic.LOG, createLogNotification("Book metadata updated: " + book.getMetadata().getTitle()));

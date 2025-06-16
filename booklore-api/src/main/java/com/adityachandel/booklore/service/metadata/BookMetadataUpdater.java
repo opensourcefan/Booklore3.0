@@ -35,21 +35,20 @@ public class BookMetadataUpdater {
     private final MetadataMatchService metadataMatchService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public BookMetadataEntity setBookMetadata(long bookId, BookMetadata newMetadata, boolean setThumbnail, boolean mergeCategories) {
-        BookEntity bookEntity = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+    public BookMetadataEntity setBookMetadata(BookEntity bookEntity, BookMetadata newMetadata, boolean setThumbnail, boolean mergeCategories) {
         BookMetadataEntity metadata = bookEntity.getMetadata();
 
         updateLocks(newMetadata, metadata);
 
         if (metadata.areAllFieldsLocked()) {
-            log.warn("Attempted to update metadata for book with ID {}, but all fields are locked. No update performed.", bookId);
+            log.warn("Attempted to update metadata for book with ID {}, but all fields are locked. No update performed.", bookEntity.getId());
             return metadata;
         }
 
         updateBasicFields(newMetadata, metadata);
         updateAuthorsIfNeeded(newMetadata, metadata);
         updateCategoriesIfNeeded(newMetadata, metadata, mergeCategories);
-        updateThumbnailIfNeeded(bookId, newMetadata, metadata, setThumbnail);
+        updateThumbnailIfNeeded(bookEntity.getId(), newMetadata, metadata, setThumbnail);
 
         bookMetadataRepository.save(metadata);
 
