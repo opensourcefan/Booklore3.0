@@ -7,6 +7,7 @@ import com.adityachandel.booklore.model.entity.AuthorEntity;
 import com.adityachandel.booklore.model.entity.BookEntity;
 import com.adityachandel.booklore.model.entity.BookMetadataEntity;
 import com.adityachandel.booklore.model.entity.CategoryEntity;
+import com.adityachandel.booklore.model.enums.BookFileType;
 import com.adityachandel.booklore.repository.AuthorRepository;
 import com.adityachandel.booklore.repository.BookMetadataRepository;
 import com.adityachandel.booklore.repository.BookRepository;
@@ -35,9 +36,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class BookMetadataUpdater {
 
-    private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
-    private final BookMetadataRepository bookMetadataRepository;
     private final CategoryRepository categoryRepository;
     private final FileService fileService;
     private final MetadataMatchService metadataMatchService;
@@ -46,22 +45,23 @@ public class BookMetadataUpdater {
     private final EpubMetadataWriter epubMetadataWriter;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public BookMetadataEntity setBookMetadata(BookEntity bookEntity, BookMetadata newMetadata, boolean setThumbnail, boolean mergeCategories) {
+    public void setBookMetadata(BookEntity bookEntity, BookMetadata newMetadata, boolean setThumbnail, boolean mergeCategories) {
         BookMetadataEntity metadata = bookEntity.getMetadata();
 
         updateLocks(newMetadata, metadata);
 
         if (metadata.areAllFieldsLocked()) {
             log.warn("Attempted to update metadata for book with ID {}, but all fields are locked. No update performed.", bookEntity.getId());
-            return metadata;
+            return;
         }
 
         MetadataPersistenceSettings settings = appSettingService.getAppSettings().getMetadataPersistenceSettings();
         boolean writeToFile = settings.isSaveToOriginalFile();
         boolean backupEnabled = settings.isBackupMetadata();
         boolean backupCover = settings.isBackupCover();
+        BookFileType bookType = bookEntity.getBookType();
 
-        if (writeToFile && backupEnabled) {
+        if (writeToFile && backupEnabled && bookType == BookFileType.EPUB) {
             try {
                 metadataBackupRestoreService.backupEmbeddedMetadataIfNotExists(bookEntity, backupCover);
             } catch (Exception e) {
@@ -74,17 +74,14 @@ public class BookMetadataUpdater {
         updateCategoriesIfNeeded(newMetadata, metadata, mergeCategories);
         updateThumbnailIfNeeded(bookEntity.getId(), newMetadata, metadata, setThumbnail);
 
-        bookMetadataRepository.save(metadata);
-
         try {
             Float score = metadataMatchService.calculateMatchScore(bookEntity);
             bookEntity.setMetadataMatchScore(score);
-            bookRepository.save(bookEntity);
         } catch (Exception e) {
             log.warn("Failed to calculate/save metadata match score for book ID {}: {}", bookEntity.getId(), e.getMessage());
         }
 
-        if (writeToFile) {
+        if (writeToFile && bookType == BookFileType.EPUB) {
             try {
                 File bookFile = new File(bookEntity.getFullFilePath().toUri());
                 epubMetadataWriter.writeMetadataToFile(bookFile, metadata);
@@ -93,8 +90,6 @@ public class BookMetadataUpdater {
                 log.warn("Failed to write metadata to EPUB for book ID {}: {}", bookEntity.getId(), e.getMessage());
             }
         }
-
-        return metadata;
     }
 
     private void updateBasicFields(BookMetadata newMetadata, BookMetadataEntity metadata) {
@@ -155,7 +150,7 @@ public class BookMetadataUpdater {
     }
 
     private void updateThumbnailIfNeeded(long bookId, BookMetadata newMetadata, BookMetadataEntity metadata, boolean setThumbnail) {
-        if (setThumbnail && shouldUpdateField(metadata.getThumbnailLocked(), newMetadata.getThumbnailUrl()) && !newMetadata.getThumbnailUrl().isEmpty()) {
+        if (setThumbnail && shouldUpdateField(metadata.getCoverLocked(), newMetadata.getThumbnailUrl()) && !newMetadata.getThumbnailUrl().isEmpty()) {
             String thumbnailPath = null;
             try {
                 thumbnailPath = fileService.createThumbnail(bookId, newMetadata.getThumbnailUrl());
