@@ -159,6 +159,11 @@ Thanks to all the amazing people who contribute to Booklore.
 
 If you find BookLore helpful, consider ⭐ starring the repo!
 
+Or support the project via [Venmo](https://venmo.com/AdityaChandel):
+
+[![Venmo](https://img.shields.io/badge/Venmo-Donate-blue?logo=venmo)](https://venmo.com/AdityaChandel)
+
+
 ## 🧰 Tech Stack
 
 <p align="left">
