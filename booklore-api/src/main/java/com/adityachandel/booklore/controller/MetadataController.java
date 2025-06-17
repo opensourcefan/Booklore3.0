@@ -3,6 +3,7 @@ package com.adityachandel.booklore.controller;
 import com.adityachandel.booklore.exception.ApiError;
 import com.adityachandel.booklore.mapper.BookMetadataMapper;
 import com.adityachandel.booklore.model.dto.BookMetadata;
+import com.adityachandel.booklore.model.dto.EpubMetadata;
 import com.adityachandel.booklore.model.dto.request.*;
 import com.adityachandel.booklore.model.dto.settings.MetadataMatchWeights;
 import com.adityachandel.booklore.model.entity.BookEntity;
@@ -18,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -92,5 +94,19 @@ public class MetadataController {
     public ResponseEntity<Void> recalculateMatchScores() {
         metadataMatchService.recalculateAllMatchScores();
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{bookId}/metadata/restore")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<EpubMetadata> getBackedUpMetadata(@PathVariable Long bookId) throws IOException {
+        EpubMetadata restoredMetadata = bookMetadataService.getBackedUpMetadata(bookId);
+        return ResponseEntity.ok(restoredMetadata);
+    }
+
+    @PostMapping("/{bookId}/metadata/restore")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<BookMetadata> restoreMetadata(@PathVariable Long bookId) throws IOException {
+        BookMetadata restoredMetadata = bookMetadataService.restoreMetadataFromBackup(bookId);
+        return ResponseEntity.ok(restoredMetadata);
     }
 }
