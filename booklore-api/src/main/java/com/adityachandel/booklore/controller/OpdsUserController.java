@@ -39,6 +39,7 @@ public class OpdsUserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("@securityUtil.isAdmin()")
     @PutMapping("/{userId}/reset-password")
     public ResponseEntity<Void> resetPassword(@PathVariable("userId") Long userId, @RequestBody PasswordResetRequest resetRequest) {
         opdsUserService.resetPassword(userId, resetRequest.getPassword());

@@ -35,6 +35,11 @@ public class SecurityUtil {
         return user != null && user.getPermissions().isCanUpload();
     }
 
+    public boolean canDownload() {
+        var user = getCurrentUser();
+        return user != null && user.getPermissions().isCanDownload();
+    }
+
     public boolean canManipulateLibrary() {
         var user = getCurrentUser();
         return user != null && user.getPermissions().isCanManipulateLibrary();

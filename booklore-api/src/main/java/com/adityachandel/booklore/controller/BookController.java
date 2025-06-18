@@ -1,5 +1,6 @@
 package com.adityachandel.booklore.controller;
 
+import com.adityachandel.booklore.config.security.annotation.CheckBookAccess;
 import com.adityachandel.booklore.model.dto.Book;
 import com.adityachandel.booklore.model.dto.BookRecommendation;
 import com.adityachandel.booklore.model.dto.BookViewerSettings;
@@ -15,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -35,6 +37,7 @@ public class BookController {
     }
 
     @GetMapping("/{bookId}")
+    @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<Book> getBook(@PathVariable long bookId, @RequestParam(required = false, defaultValue = "false") boolean withDescription) {
         return ResponseEntity.ok(bookService.getBook(bookId, withDescription));
     }
@@ -54,21 +57,26 @@ public class BookController {
     }
 
     @GetMapping("/{bookId}/content")
+    @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<ByteArrayResource> getBookContent(@PathVariable long bookId) throws IOException {
         return bookService.getBookContent(bookId);
     }
 
     @GetMapping("/{bookId}/download")
+    @PreAuthorize("@securityUtil.canDownload() or @securityUtil.isAdmin()")
+    @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<Resource> downloadBook(@PathVariable("bookId") Long bookId) {
         return bookService.downloadBook(bookId);
     }
 
     @GetMapping("/{bookId}/viewer-setting")
+    @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<BookViewerSettings> getBookViewerSettings(@PathVariable long bookId) {
         return ResponseEntity.ok(bookService.getBookViewerSetting(bookId));
     }
 
     @PutMapping("/{bookId}/viewer-setting")
+    @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<Void> updateBookViewerSettings(@RequestBody BookViewerSettings bookViewerSettings, @PathVariable long bookId) {
         bookService.updateBookViewerSetting(bookId, bookViewerSettings);
         return ResponseEntity.noContent().build();
@@ -86,6 +94,7 @@ public class BookController {
     }
 
     @GetMapping("/{id}/recommendations")
+    @CheckBookAccess(bookIdParam = "id")
     public ResponseEntity<List<BookRecommendation>> getRecommendations(@PathVariable Long id, @RequestParam(defaultValue = "25") @Max(25) @Min(1) int limit) {
         return ResponseEntity.ok(bookRecommendationService.getRecommendations(id, limit));
     }
