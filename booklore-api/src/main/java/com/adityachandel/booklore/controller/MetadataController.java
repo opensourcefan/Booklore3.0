@@ -1,5 +1,6 @@
 package com.adityachandel.booklore.controller;
 
+import com.adityachandel.booklore.config.security.annotation.CheckBookAccess;
 import com.adityachandel.booklore.exception.ApiError;
 import com.adityachandel.booklore.mapper.BookMetadataMapper;
 import com.adityachandel.booklore.model.dto.BookMetadata;
@@ -36,12 +37,14 @@ public class MetadataController {
 
     @PostMapping("/{bookId}/metadata/prospective")
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<List<BookMetadata>> getMetadataList(@RequestBody(required = false) FetchMetadataRequest fetchMetadataRequest, @PathVariable Long bookId) {
         return ResponseEntity.ok(bookMetadataService.getProspectiveMetadataListForBookId(bookId, fetchMetadataRequest));
     }
 
     @PutMapping("/{bookId}/metadata")
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<BookMetadata> updateMetadata(@RequestBody BookMetadata setMetadataRequest, @PathVariable long bookId, @RequestParam(defaultValue = "true") boolean mergeCategories) {
         BookEntity bookEntity = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
         bookMetadataUpdater.setBookMetadata(bookEntity, setMetadataRequest, true, mergeCategories);
@@ -59,6 +62,7 @@ public class MetadataController {
 
     @PostMapping("/{bookId}/metadata/cover")
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<BookMetadata> uploadCover(@PathVariable Long bookId, @RequestParam("file") MultipartFile file) {
         BookMetadata updatedMetadata = bookMetadataService.handleCoverUpload(bookId, file);
         return ResponseEntity.ok(updatedMetadata);
@@ -85,6 +89,7 @@ public class MetadataController {
 
     @PostMapping("/{bookId}/regenerate-cover")
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    @CheckBookAccess(bookIdParam = "bookId")
     public void regenerateCovers(@PathVariable Long bookId) {
         bookMetadataService.regenerateCover(bookId);
     }
@@ -98,13 +103,15 @@ public class MetadataController {
 
     @GetMapping("/{bookId}/metadata/restore")
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
-    public ResponseEntity<EpubMetadata> getBackedUpMetadata(@PathVariable Long bookId) throws IOException {
+    @CheckBookAccess(bookIdParam = "bookId")
+    public ResponseEntity<EpubMetadata> getBackedUpMetadata(@PathVariable Long bookId) {
         EpubMetadata restoredMetadata = bookMetadataService.getBackedUpMetadata(bookId);
         return ResponseEntity.ok(restoredMetadata);
     }
 
     @PostMapping("/{bookId}/metadata/restore")
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<BookMetadata> restoreMetadata(@PathVariable Long bookId) throws IOException {
         BookMetadata restoredMetadata = bookMetadataService.restoreMetadataFromBackup(bookId);
         return ResponseEntity.ok(restoredMetadata);

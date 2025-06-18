@@ -1,5 +1,6 @@
 package com.adityachandel.booklore.controller;
 
+import com.adityachandel.booklore.config.security.annotation.CheckBookAccess;
 import com.adityachandel.booklore.service.reader.CbxReaderService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +17,13 @@ public class CbxReaderController {
 
     private final CbxReaderService cbxReaderService;
 
+    @CheckBookAccess(bookIdParam = "bookId")
     @GetMapping("/{bookId}/pages")
     public List<Integer> listPages(@PathVariable Long bookId) {
         return cbxReaderService.getAvailablePages(bookId);
     }
 
+    @CheckBookAccess(bookIdParam = "bookId")
     @GetMapping("/{bookId}/pages/{pageNumber}")
     public void getPage(@PathVariable Long bookId, @PathVariable int pageNumber, HttpServletResponse response) throws IOException {
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);

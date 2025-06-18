@@ -20,7 +20,7 @@ public class FileUploadController {
 
     private final FileUploadService fileUploadService;
 
-    @PreAuthorize("@securityUtil.canUpload()")
+    @PreAuthorize("@securityUtil.isAdmin() or @securityUtil.canUpload()")
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     public ResponseEntity<Book> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("libraryId") long libraryId, @RequestParam("pathId") long pathId) throws IOException {
         if (file.isEmpty()) {

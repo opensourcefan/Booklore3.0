@@ -17,6 +17,8 @@ import {Tooltip} from 'primeng/tooltip';
 import {Editor} from 'primeng/editor';
 import {debounceTime} from 'rxjs/operators';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
+import {MetadataRestoreDialogComponent} from '../../../components/book-browser/metadata-restore-dialog-component/metadata-restore-dialog-component';
+import {DialogService} from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'app-metadata-editor',
@@ -50,6 +52,7 @@ export class MetadataEditorComponent implements OnInit {
   private messageService = inject(MessageService);
   private bookService = inject(BookService);
   protected urlHelper = inject(UrlHelperService);
+  private dialogService = inject(DialogService);
 
   bookMetadata$: Observable<BookMetadata | null> = this.metadataCenterService.currentMetadata$;
   metadataForm: FormGroup;
@@ -429,4 +432,16 @@ export class MetadataEditorComponent implements OnInit {
       }
     });
   }
+
+  restoreMetadata() {
+    this.dialogService.open(MetadataRestoreDialogComponent, {
+      header: 'Restore Metadata from Backup',
+      modal: true,
+      closable: true,
+      data: {
+        bookId: [this.currentBookId]
+      }
+    });
+  }
+
 }

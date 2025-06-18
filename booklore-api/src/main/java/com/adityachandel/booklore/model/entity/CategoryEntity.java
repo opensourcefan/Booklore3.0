@@ -24,5 +24,18 @@ public class CategoryEntity {
 
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
     private Set<BookMetadataEntity> bookMetadataEntityList = new HashSet<>();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CategoryEntity)) return false;
+        CategoryEntity that = (CategoryEntity) o;
+        return name != null && name.equalsIgnoreCase(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name != null ? name.toLowerCase().hashCode() : 0;
+    }
 }
 

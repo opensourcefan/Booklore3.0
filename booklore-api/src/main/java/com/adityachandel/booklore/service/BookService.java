@@ -55,9 +55,9 @@ public class BookService {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
         boolean isAdmin = user.getPermissions().isAdmin();
         List<Book> books;
-        if(isAdmin) {
+        if (isAdmin) {
             books = bookQueryService.getAllBooks(includeDescription);
-        } else{
+        } else {
             Set<Long> libraryIds = user.getAssignedLibraries().stream()
                     .map(Library::getId)
                     .collect(Collectors.toSet());
@@ -91,10 +91,10 @@ public class BookService {
         }
     }
 
-
     public BookViewerSettings getBookViewerSetting(long bookId) {
         BookEntity bookEntity = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
         BookLoreUser user = authenticationService.getAuthenticatedUser();
+
         BookViewerSettings.BookViewerSettingsBuilder settingsBuilder = BookViewerSettings.builder();
         if (bookEntity.getBookType() == BookFileType.EPUB) {
             epubViewerPreferencesRepository.findByBookIdAndUserId(bookId, user.getId())
@@ -301,6 +301,7 @@ public class BookService {
     public ResponseEntity<Resource> downloadBook(Long bookId) {
         try {
             BookEntity bookEntity = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+
             Path file = Paths.get(FileUtils.getBookFullPath(bookEntity)).toAbsolutePath().normalize();
             Resource resource = new UrlResource(file.toUri());
             return ResponseEntity.ok()
