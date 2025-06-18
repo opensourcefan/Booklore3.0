@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -135,16 +136,17 @@ public class BookMetadataUpdater {
                         .filter(c -> c != null && !c.isBlank())
                         .forEach(categoryName -> {
                             CategoryEntity categoryEntity = categoryRepository.findByName(categoryName)
-                                    .orElseGet(() -> categoryRepository.save(CategoryEntity.builder().name(categoryName).build()));
+                                    .orElseGet(() -> CategoryEntity.builder().name(categoryName).build());
                             existingCategories.add(categoryEntity);
                         });
-                metadata.setCategories(new HashSet<>(existingCategories));
+                metadata.setCategories(existingCategories);
             } else if (!newMetadata.getCategories().isEmpty()) {
-                metadata.setCategories(newMetadata.getCategories().stream()
+                Set<CategoryEntity> newCategoryEntities = newMetadata.getCategories().stream()
                         .filter(c -> c != null && !c.isBlank())
                         .map(categoryName -> categoryRepository.findByName(categoryName)
-                                .orElseGet(() -> categoryRepository.save(CategoryEntity.builder().name(categoryName).build())))
-                        .collect(Collectors.toSet()));
+                                .orElseGet(() -> CategoryEntity.builder().name(categoryName).build()))
+                        .collect(Collectors.toSet());
+                metadata.setCategories(newCategoryEntities);
             }
         }
     }

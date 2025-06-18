@@ -276,14 +276,6 @@
                   outlined
                   severity="info">
                 </p-splitbutton>
-                <p-button
-                  outlined
-                  label="More"
-                  severity="info"
-                  (click)="menu.toggle($event)"
-                  icon="pi pi-plus">
-                </p-button>
-                <p-tieredmenu #menu [model]="moreItems" [popup]="true" appendTo="body"></p-tieredmenu>
               }
             </div>
           }

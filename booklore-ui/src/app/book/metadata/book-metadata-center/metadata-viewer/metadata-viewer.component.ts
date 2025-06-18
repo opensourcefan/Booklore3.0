@@ -28,15 +28,13 @@ import {MetadataFetchOptionsComponent} from '../../metadata-options-dialog/metad
 import {MetadataRefreshType} from '../../model/request/metadata-refresh-type.enum';
 import {MetadataRefreshRequest} from '../../model/request/metadata-refresh-request.model';
 import {RouterLink} from '@angular/router';
-import {TieredMenu} from 'primeng/tieredmenu';
-import {MetadataRestoreDialogComponent} from '../../../components/book-browser/metadata-restore-dialog-component/metadata-restore-dialog-component';
 
 @Component({
   selector: 'app-metadata-viewer',
   standalone: true,
   templateUrl: './metadata-viewer.component.html',
   styleUrl: './metadata-viewer.component.scss',
-  imports: [Button, AsyncPipe, Rating, FormsModule, Tag, Divider, SplitButton, NgClass, Tooltip, DecimalPipe, InfiniteScrollDirective, BookCardComponent, ButtonDirective, Editor, ProgressBar, ToggleButton, RouterLink, TieredMenu]
+  imports: [Button, AsyncPipe, Rating, FormsModule, Tag, Divider, SplitButton, NgClass, Tooltip, DecimalPipe, InfiniteScrollDirective, BookCardComponent, ButtonDirective, Editor, ProgressBar, ToggleButton, RouterLink]
 })
 export class MetadataViewerComponent implements OnInit, OnChanges {
 
@@ -59,7 +57,6 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
   emailMenuItems: MenuItem[] | undefined;
   readMenuItems: MenuItem[] | undefined;
   refreshMenuItems: MenuItem[] | undefined;
-  moreItems: MenuItem[] | undefined;
   bookInSeries: Book[] = [];
   isExpanded = false;
   showFilePath = false;
@@ -115,22 +112,6 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
         },
       }
     ];
-
-    this.moreItems = [
-      {
-        label: 'Restore Metadata',
-        command: () => {
-          this.dialogService.open(MetadataRestoreDialogComponent, {
-            header: 'Restore Metadata from Backup',
-            modal: true,
-            closable: true,
-            data: {
-              bookId: [this.book!.id]
-            }
-          });
-        }
-      }
-    ]
 
     this.metadata$
       .pipe(takeUntilDestroyed(this.destroyRef))
