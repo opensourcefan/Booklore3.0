@@ -477,6 +477,10 @@ export class MetadataEditorComponent implements OnInit {
       bookIds: [bookId],
     };
     this.bookService.autoRefreshMetadata(request).subscribe();
+    setTimeout(() => {
+      this.isAutoFetching = false;
+      this.refreshingBookIds.delete(bookId);
+    }, 15000);
   }
 
   onNext() {

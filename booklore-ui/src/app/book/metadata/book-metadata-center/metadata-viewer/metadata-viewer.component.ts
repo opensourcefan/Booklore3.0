@@ -72,8 +72,8 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
               header: 'Send Book to Email',
               modal: true,
               closable: true,
-              style: { position: 'absolute', top: '15%' },
-              data: { bookId: metadata.bookId }
+              style: {position: 'absolute', top: '15%'},
+              data: {bookId: metadata.bookId}
             });
           }
         }
@@ -170,6 +170,9 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
       bookIds: [bookId],
     };
     this.bookService.autoRefreshMetadata(request).subscribe();
+    setTimeout(() => {
+      this.isAutoFetching = false;
+    }, 15000);
   }
 
   quickSend(bookId: number) {
@@ -192,10 +195,10 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
       header: `Update Book's Shelves`,
       modal: true,
       closable: true,
-      contentStyle: { overflow: 'auto' },
+      contentStyle: {overflow: 'auto'},
       baseZIndex: 10,
-      style: { position: 'absolute', top: '15%' },
-      data: { book: this.bookService.getBookByIdFromState(bookId) }
+      style: {position: 'absolute', top: '15%'},
+      data: {book: this.bookService.getBookByIdFromState(bookId)}
     });
   }
 

@@ -198,17 +198,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     this.metadataMenuItems = [
       {
         label: 'Refresh Metadata',
-        icon: 'pi pi-refresh',
+        icon: 'pi pi-sync',
         command: () => this.updateMetadata()
       },
       {
-        label: 'Edit Bulk Metadata',
-        icon: 'pi pi-pencil',
+        label: 'Bulk Metadata Editor',
+        icon: 'pi pi-table',
         command: () => this.bulkEditMetadata()
       },
       {
-        label: 'Edit Multi Book Metadata',
-        icon: 'pi pi-pencil',
+        label: 'Multi-Book Metadata Editor',
+        icon: 'pi pi-clone',
         command: () => this.multiBookEditMetadata()
       }
     ];
