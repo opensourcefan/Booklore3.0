@@ -17,13 +17,12 @@ public class CbxReaderController {
 
     private final CbxReaderService cbxReaderService;
 
-    @CheckBookAccess(bookIdParam = "bookId")
+
     @GetMapping("/{bookId}/pages")
     public List<Integer> listPages(@PathVariable Long bookId) {
         return cbxReaderService.getAvailablePages(bookId);
     }
 
-    @CheckBookAccess(bookIdParam = "bookId")
     @GetMapping("/{bookId}/pages/{pageNumber}")
     public void getPage(@PathVariable Long bookId, @PathVariable int pageNumber, HttpServletResponse response) throws IOException {
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
