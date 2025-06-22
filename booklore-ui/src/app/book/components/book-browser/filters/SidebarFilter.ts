@@ -11,6 +11,11 @@ export function isRatingInRange(rating: number | undefined | null, rangeId: stri
   return rating >= range.min && rating < range.max;
 }
 
+export function isRatingInRange10(rating: number | undefined | null, rangeId: string): boolean {
+  if (rating == null) return false;
+  return `${Math.round(rating)}` === rangeId;
+}
+
 export function isFileSizeInRange(fileSizeKb: number | undefined, rangeId: string): boolean {
   if (fileSizeKb == null) return false;
   const range = fileSizeRanges.find(r => r.id === rangeId);
@@ -63,12 +68,16 @@ export class SideBarFilter implements BookFilter {
                 return mode === 'and'
                   ? filterValues.every(val => book.metadata?.seriesName === val)
                   : filterValues.some(val => book.metadata?.seriesName === val);
+              case 'readStatus':
+                return filterValues.some(val => book.readStatus === val);
               case 'amazonRating':
                 return filterValues.some(range => isRatingInRange(book.metadata?.amazonRating, range));
               case 'goodreadsRating':
                 return filterValues.some(range => isRatingInRange(book.metadata?.goodreadsRating, range));
               case 'hardcoverRating':
                 return filterValues.some(range => isRatingInRange(book.metadata?.hardcoverRating, range));
+              case 'personalRating':
+                return filterValues.some(range => isRatingInRange10(book.metadata?.personalRating, range));
               case 'publishedDate':
                 return filterValues.includes(new Date(book.metadata?.publishedDate || '').getFullYear());
               case 'fileSize':

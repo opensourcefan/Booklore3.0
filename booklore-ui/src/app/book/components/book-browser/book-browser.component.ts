@@ -1,6 +1,6 @@
 import {AfterViewInit, ChangeDetectorRef, Component, inject, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {MenuItem, MessageService, PrimeTemplate} from 'primeng/api';
+import {ConfirmationService, MenuItem, MessageService, PrimeTemplate} from 'primeng/api';
 import {LibraryService} from '../../service/library.service';
 import {BookService} from '../../service/book.service';
 import {debounceTime, filter, map, switchMap, take} from 'rxjs/operators';
@@ -41,7 +41,7 @@ import {Popover} from 'primeng/popover';
 import {Slider} from 'primeng/slider';
 import {Select} from 'primeng/select';
 import {FilterSortPreferenceService} from './filters/filter-sorting-preferences.service';
-import {TieredMenu} from 'primeng/tieredmenu';
+import {Divider} from 'primeng/divider';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -74,7 +74,7 @@ const SORT_DIRECTION = {
   standalone: true,
   templateUrl: './book-browser.component.html',
   styleUrls: ['./book-browser.component.scss'],
-  imports: [Button, VirtualScrollerModule, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule, BookTableComponent, BookFilterComponent, Tooltip, NgClass, Fluid, PrimeTemplate, NgStyle, OverlayPanelModule, DropdownModule, Checkbox, Popover, Slider, Select, TieredMenu],
+  imports: [Button, VirtualScrollerModule, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule, BookTableComponent, BookFilterComponent, Tooltip, NgClass, Fluid, PrimeTemplate, NgStyle, OverlayPanelModule, DropdownModule, Checkbox, Popover, Slider, Select, Divider],
   providers: [SeriesCollapseFilter],
   animations: [
     trigger('slideInOut', [
@@ -135,6 +135,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   private changeDetectorRef = inject(ChangeDetectorRef);
   private libraryShelfMenuService = inject(LibraryShelfMenuService);
   protected seriesCollapseFilter = inject(SeriesCollapseFilter);
+  protected confirmationService = inject(ConfirmationService);
 
   private sideBarFilter = new SideBarFilter(this.selectedFilter, this.selectedFilterMode);
   private headerFilter = new HeaderFilter(this.searchTerm$);
@@ -145,6 +146,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   filterVisibility = true;
   private settingFiltersFromUrl = false;
   protected metadataMenuItems: MenuItem[] | undefined;
+  currentBooks: Book[] = [];
+  lastSelectedIndex: number | null = null;
 
   get currentCardSize() {
     return this.coverScalePreferenceService.currentCardSize;
@@ -478,6 +481,32 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     );
   }
 
+  onCheckboxClicked(event: { index: number; bookId: number; selected: boolean; shiftKey: boolean }) {
+    const {index, bookId, selected, shiftKey} = event;
+    if (!shiftKey || this.lastSelectedIndex === null) {
+      if (selected) {
+        this.selectedBooks.add(bookId);
+      } else {
+        this.selectedBooks.delete(bookId);
+      }
+      this.lastSelectedIndex = index;
+    } else {
+      const start = Math.min(this.lastSelectedIndex, index);
+      const end = Math.max(this.lastSelectedIndex, index);
+      const isUnselectingRange = !selected;
+      for (let i = start; i <= end; i++) {
+        const book = this.currentBooks[i];
+        if (!book) continue;
+
+        if (isUnselectingRange) {
+          this.selectedBooks.delete(book.id);
+        } else {
+          this.selectedBooks.add(book.id);
+        }
+      }
+    }
+  }
+
   handleBookSelect(bookId: number, selected: boolean): void {
     if (selected) {
       this.selectedBooks.add(bookId);
@@ -492,12 +521,37 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
     this.isDrawerVisible = this.selectedBooks.size > 0;
   }
 
+  selectAllBooks(): void {
+    if (!this.currentBooks) return;
+    for (const book of this.currentBooks) {
+      this.selectedBooks.add(book.id);
+    }
+    if (this.bookTableComponent) {
+      this.bookTableComponent.selectAllBooks();
+    }
+  }
+
   deselectAllBooks(): void {
     this.selectedBooks.clear();
     this.isDrawerVisible = false;
     if (this.bookTableComponent) {
       this.bookTableComponent.clearSelectedBooks();
     }
+  }
+
+  confirmDeleteBooks(): void {
+    this.confirmationService.confirm({
+      message: `Are you sure you want to delete ${this.selectedBooks.size} book(s)?`,
+      header: 'Confirm Deletion',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.bookService.deleteBooks(this.selectedBooks).subscribe(() => {
+          this.selectedBooks.clear();
+        });
+      },
+      reject: () => {
+      }
+    });
   }
 
   onSeriesCollapseCheckboxChange(value: boolean): void {
@@ -515,6 +569,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
         switchMap(({entityId, entityType}) => this.fetchBooksByEntity(entityId, entityType))
       );
     }
+    this.bookState$
+      .pipe(
+        filter(state => state.loaded && !state.error),
+        map(state => state.books || [])
+      )
+      .subscribe(books => {
+        this.currentBooks = books;
+      });
   }
 
   onSearchTermChange(term: string): void {

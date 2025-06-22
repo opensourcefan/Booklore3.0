@@ -3,15 +3,15 @@ import {Button, ButtonDirective} from 'primeng/button';
 import {AsyncPipe, DecimalPipe, NgClass} from '@angular/common';
 import {Observable} from 'rxjs';
 import {BookService} from '../../../service/book.service';
-import {Rating} from 'primeng/rating';
+import {Rating, RatingRateEvent} from 'primeng/rating';
 import {FormsModule} from '@angular/forms';
 import {Tag} from 'primeng/tag';
-import {Book, BookMetadata, BookRecommendation} from '../../../model/book.model';
+import {Book, BookMetadata, BookRecommendation, ReadStatus} from '../../../model/book.model';
 import {Divider} from 'primeng/divider';
 import {UrlHelperService} from '../../../../utilities/service/url-helper.service';
 import {UserService} from '../../../../settings/user-management/user.service';
 import {SplitButton} from 'primeng/splitbutton';
-import {MenuItem, MessageService} from 'primeng/api';
+import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {BookSenderComponent} from '../../../components/book-sender/book-sender.component';
 import {DialogService} from 'primeng/dynamicdialog';
 import {EmailService} from '../../../../settings/email/email.service';
@@ -26,15 +26,16 @@ import {ToggleButton} from 'primeng/togglebutton';
 import {MetadataFetchOptionsComponent} from '../../metadata-options-dialog/metadata-fetch-options/metadata-fetch-options.component';
 import {MetadataRefreshType} from '../../model/request/metadata-refresh-type.enum';
 import {MetadataRefreshRequest} from '../../model/request/metadata-refresh-request.model';
-import {RouterLink} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {filter, map, take} from 'rxjs/operators';
+import {Menu} from 'primeng/menu';
 
 @Component({
   selector: 'app-metadata-viewer',
   standalone: true,
   templateUrl: './metadata-viewer.component.html',
   styleUrl: './metadata-viewer.component.scss',
-  imports: [Button, AsyncPipe, Rating, FormsModule, Tag, Divider, SplitButton, NgClass, Tooltip, DecimalPipe, InfiniteScrollDirective, BookCardComponent, ButtonDirective, Editor, ProgressBar, ToggleButton, RouterLink]
+  imports: [Button, AsyncPipe, Rating, FormsModule, Tag, Divider, SplitButton, NgClass, Tooltip, DecimalPipe, InfiniteScrollDirective, BookCardComponent, ButtonDirective, Editor, ProgressBar, ToggleButton, RouterLink, Menu]
 })
 export class MetadataViewerComponent implements OnInit, OnChanges {
 
@@ -50,15 +51,31 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
   protected urlHelper = inject(UrlHelperService);
   protected userService = inject(UserService);
   private destroyRef = inject(DestroyRef);
+  private confirmationService = inject(ConfirmationService);
+  private router = inject(Router);
 
   emailMenuItems$!: Observable<MenuItem[]>;
   readMenuItems$!: Observable<MenuItem[]>;
   refreshMenuItems$!: Observable<MenuItem[]>;
+  otherItems$!: Observable<MenuItem[]>;
   bookInSeries: Book[] = [];
 
   isExpanded = false;
   showFilePath = false;
   isAutoFetching = false;
+
+  readStatusOptions = [
+    {label: 'Unread', value: ReadStatus.UNREAD},
+    {label: 'Reading', value: ReadStatus.READING},
+    {label: 'Re-reading', value: ReadStatus.RE_READING},
+    {label: 'Partially Read', value: ReadStatus.PARTIALLY_READ},
+    {label: 'Paused', value: ReadStatus.PAUSED},
+    {label: 'Read', value: ReadStatus.READ},
+    {label: 'Won’t Read', value: ReadStatus.WONT_READ},
+    {label: 'Abandoned', value: ReadStatus.ABANDONED}
+  ];
+
+  selectedReadStatus: ReadStatus = ReadStatus.UNREAD;
 
   ngOnInit(): void {
     this.emailMenuItems$ = this.book$.pipe(
@@ -111,18 +128,48 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
       ])
     );
 
+    this.otherItems$ = this.book$.pipe(
+      filter((book): book is Book => book !== null),
+      map((book): MenuItem[] => [
+        {
+          label: 'Delete Book',
+          icon: 'pi pi-trash',
+          command: () => {
+            this.confirmationService.confirm({
+              message: `Are you sure you want to delete "${book.metadata?.title}"?`,
+              header: 'Confirm Deletion',
+              icon: 'pi pi-exclamation-triangle',
+              acceptIcon: 'pi pi-trash',
+              rejectIcon: 'pi pi-times',
+              acceptButtonStyleClass: 'p-button-danger',
+              accept: () => {
+                this.bookService.deleteBooks(new Set([book.id])).subscribe({
+                  next: () => {
+                    this.router.navigate(['/dashboard']);
+                  },
+                  error: () => {
+                  }
+                });
+              }
+            });
+          },
+        }
+      ])
+    );
+
     this.book$
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        map(book => book?.metadata),
-        filter((metadata): metadata is BookMetadata => metadata != null)
+        filter((book): book is Book => book != null && book.metadata != null)
       )
-      .subscribe(metadata => {
+      .subscribe(book => {
+        const metadata = book.metadata;
         this.isAutoFetching = false;
-        this.loadBooksInSeriesAndFilterRecommended(metadata.bookId);
+        this.loadBooksInSeriesAndFilterRecommended(metadata!.bookId);
         if (this.quillEditor?.quill) {
-          this.quillEditor.quill.root.innerHTML = metadata.description;
+          this.quillEditor.quill.root.innerHTML = metadata!.description;
         }
+        this.selectedReadStatus = book.readStatus ?? ReadStatus.UNREAD;
       });
   }
 
@@ -244,16 +291,18 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
     }
   }
 
-  getStarColor(rating?: number | null): string {
+  getStarColorScaled(rating?: number | null, maxScale: number = 5): string {
     if (rating == null) {
       return 'rgb(203, 213, 225)';
-    } else if (rating >= 4.5) {
+    }
+    const normalized = rating / maxScale;
+    if (normalized >= 0.9) {
       return 'rgb(34, 197, 94)';
-    } else if (rating >= 4) {
+    } else if (normalized >= 0.75) {
       return 'rgb(52, 211, 153)';
-    } else if (rating >= 3.5) {
+    } else if (normalized >= 0.6) {
       return 'rgb(234, 179, 8)';
-    } else if (rating >= 2.5) {
+    } else if (normalized >= 0.4) {
       return 'rgb(249, 115, 22)';
     } else {
       return 'rgb(239, 68, 68)';
@@ -275,5 +324,72 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
   getProgressColorClass(progress: number | null | undefined): string {
     if (progress == null) return 'bg-gray-600';
     return 'bg-blue-500';
+  }
+
+  onPersonalRatingChange(book: Book, event: RatingRateEvent): void {
+    const rating = event.value;
+    if (!book || !book.metadata) return;
+    const updatedMetadata = {
+      ...book.metadata,
+      personalRating: rating
+    };
+    this.bookService.updateBookMetadata(book.id, updatedMetadata, false).subscribe({
+      next: () => {
+      },
+      error: (err) => {
+      }
+    });
+  }
+
+  getStatusSeverity(status: string): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | undefined {
+    const normalized = status?.toUpperCase();
+    if (['UNREAD', 'PAUSED'].includes(normalized)) return 'secondary';
+    if (['READING', 'RE_READING'].includes(normalized)) return 'info';
+    if (['READ'].includes(normalized)) return 'success';
+    if (['PARTIALLY_READ'].includes(normalized)) return 'warn';
+    if (['WONT_READ', 'ABANDONED'].includes(normalized)) return 'danger';
+    return undefined;
+  }
+
+  readStatusMenuItems = this.readStatusOptions.map(option => ({
+    label: option.label,
+    command: () => this.updateReadStatus(option.value)
+  }));
+
+  getStatusLabel(value: string): string {
+    return this.readStatusOptions.find(o => o.value === value)?.label ?? 'Unknown';
+  }
+
+  updateReadStatus(status: ReadStatus): void {
+    if (!status) {
+      return;
+    }
+
+    this.book$.pipe(take(1)).subscribe(book => {
+      if (!book || !book.id) {
+        return;
+      }
+
+      this.bookService.updateBookReadStatus(book.id, status).subscribe({
+        next: () => {
+          this.selectedReadStatus = status;
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Read Status Updated',
+            detail: `Marked as "${this.getStatusLabel(status)}"`,
+            life: 2000
+          });
+        },
+        error: (err) => {
+          console.error('Failed to update read status:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Update Failed',
+            detail: 'Could not update read status.',
+            life: 3000
+          });
+        }
+      });
+    });
   }
 }
