@@ -2,7 +2,7 @@ import {Observable, combineLatest, of} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {BookFilter} from './BookFilter';
 import {BookState} from '../../../model/state/book-state.model';
-import {fileSizeRanges, matchScoreRanges, pageCountRanges, ratingRanges, ratingRanges10} from '../book-filter/book-filter.component';
+import {fileSizeRanges, matchScoreRanges, pageCountRanges, ratingRanges} from '../book-filter/book-filter.component';
 
 export function isRatingInRange(rating: number | undefined | null, rangeId: string): boolean {
   if (rating == null) return false;
@@ -13,9 +13,7 @@ export function isRatingInRange(rating: number | undefined | null, rangeId: stri
 
 export function isRatingInRange10(rating: number | undefined | null, rangeId: string): boolean {
   if (rating == null) return false;
-  const range = ratingRanges10.find(r => r.id === rangeId);
-  if (!range) return false;
-  return rating >= range.min && rating < range.max;
+  return `${Math.round(rating)}` === rangeId;
 }
 
 export function isFileSizeInRange(fileSizeKb: number | undefined, rangeId: string): boolean {

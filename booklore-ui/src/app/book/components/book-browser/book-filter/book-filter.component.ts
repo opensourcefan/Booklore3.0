@@ -25,18 +25,12 @@ export const ratingRanges = [
   {id: '4.5plus', label: '4.5+', min: 4.5, max: Infinity, sortIndex: 5}
 ];
 
-export const ratingRanges10 = [
-  {id: '0to1', label: '0 to 1', min: 0, max: 1, sortIndex: 0},
-  {id: '1to2', label: '1 to 2', min: 1, max: 2, sortIndex: 1},
-  {id: '2to3', label: '2 to 3', min: 2, max: 3, sortIndex: 2},
-  {id: '3to4', label: '3 to 4', min: 3, max: 4, sortIndex: 3},
-  {id: '4to5', label: '4 to 5', min: 4, max: 5, sortIndex: 4},
-  {id: '5to6', label: '5 to 6', min: 5, max: 6, sortIndex: 5},
-  {id: '6to7', label: '6 to 7', min: 6, max: 7, sortIndex: 6},
-  {id: '7to8', label: '7 to 8', min: 7, max: 8, sortIndex: 7},
-  {id: '8to9', label: '8 to 9', min: 8, max: 9, sortIndex: 8},
-  {id: '9to10', label: '9 to 10', min: 9, max: 10, sortIndex: 9}
-];
+export const ratingOptions10 = Array.from({ length: 10 }, (_, i) => ({
+  id: `${i + 1}`,
+  label: `${i + 1}`,
+  value: i + 1,
+  sortIndex: i
+}));
 
 export const fileSizeRanges = [
   {id: '<1mb', label: '< 1 MB', min: 0, max: 1024, sortIndex: 0},
@@ -87,9 +81,9 @@ function getRatingRangeFilters(rating?: number): { id: string; name: string; sor
 }
 
 function getRatingRangeFilters10(rating?: number): { id: string; name: string; sortIndex?: number }[] {
-  if (rating == null) return [];
-  const match = ratingRanges10.find(r => rating >= r.min && rating < r.max);
-  return match ? [{id: match.id, name: match.label, sortIndex: match.sortIndex}] : [];
+  if (!rating || rating < 1 || rating > 10) return [];
+  const idx = ratingOptions10.find(r => r.value === rating || +r.id === rating);
+  return idx ? [{ id: idx.id, name: idx.label, sortIndex: idx.sortIndex }] : [];
 }
 
 function extractPublishedYearFilter(book: Book): { id: number; name: string }[] {
