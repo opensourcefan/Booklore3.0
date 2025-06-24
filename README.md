@@ -3,6 +3,7 @@
 ![License](https://img.shields.io/github/license/adityachandelgit/BookLore)
 ![Issues](https://img.shields.io/github/issues/adityachandelgit/BookLore)
 ![Stars](https://img.shields.io/github/stars/adityachandelgit/BookLore?style=social)
+[![Join us on Discord](https://img.shields.io/badge/Chat-Discord-blue?logo=discord&style=flat)](https://discord.gg/yXdkBNCK)
 
 BookLore is a self-hosted web app for organizing and managing your personal book collection. It provides an intuitive interface to browse, read, and track your progress across PDFs and eBooks. With robust metadata management, multi-user support, and a sleek, modern UI, BookLore makes it easy to build and explore your personal library.
 
@@ -144,6 +145,7 @@ Example implementations:
 - 🐞 Found a bug? [Open an issue](https://github.com/adityachandelgit/BookLore/issues)
 - ✨ Want to contribute? [Check out CONTRIBUTING.md](https://github.com/adityachandelgit/BookLore/blob/master/CONTRIBUTING.md)
 - 💬 Ask questions or share feedback: [Discussions](https://github.com/adityachandelgit/BookLore/discussions)
+- 💬 **Join our Discord**: [Click here to chat with the community](https://discord.gg/yXdkBNCK)
 
 ## 👨‍💻 Contributors & Developers
 

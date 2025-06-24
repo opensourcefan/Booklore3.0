@@ -56,5 +56,20 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     LEFT JOIN FETCH b.shelves
     """)
     List<BookEntity> findAllFullBooks();
+
+@Query("""
+    SELECT DISTINCT b FROM BookEntity b
+    LEFT JOIN FETCH b.metadata m
+    LEFT JOIN FETCH m.authors a
+    LEFT JOIN FETCH m.categories
+    WHERE LOWER(m.title) LIKE LOWER(CONCAT('%', :text, '%'))
+       OR LOWER(m.subtitle) LIKE LOWER(CONCAT('%', :text, '%'))
+       OR LOWER(m.description) LIKE LOWER(CONCAT('%', :text, '%'))
+       OR LOWER(m.seriesName) LIKE LOWER(CONCAT('%', :text, '%'))
+       OR LOWER(a.name) LIKE LOWER(CONCAT('%', :text, '%'))
+    ORDER BY m.title ASC
+""")
+List<BookEntity> findBooksContainingMetadata(@Param("text") String text);
+
 }
 
