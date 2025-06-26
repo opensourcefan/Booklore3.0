@@ -4,12 +4,12 @@
 .layout-sidebar {
   position: fixed;
   width: 225px;
-  height: calc(100vh - 6.5rem);
+  height: calc(100vh - 6rem);
   z-index: 999;
   overflow-y: auto;
   user-select: none;
-  top: 5.2rem;
-  left: 1.2rem;
+  top: 4.9rem;
+  left: 1.1rem;
   transition: transform variables.$transitionDuration, left variables.$transitionDuration;
   background-color: var(--card-background);
   border-radius: variables.$borderRadius;
