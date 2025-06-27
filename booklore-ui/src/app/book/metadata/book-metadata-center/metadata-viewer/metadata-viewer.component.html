@@ -45,17 +45,9 @@
                 </div>
                 <p class="text-lg">
                   @for (author of book?.metadata!.authors; track author; let isLast = $last) {
-                    <a
-                      class="underline hover:opacity-80"
-                      [routerLink]="['/all-books']"
-                      [queryParams]="{
-                        view: 'grid',
-                        sort: 'title',
-                        direction: 'asc',
-                        sidebar: true,
-                        filter: 'author:' + author
-                      }"
-                    >{{ author }}</a>
+                    <a class="underline hover:opacity-80 cursor-pointer" (click)="goToAuthorBooks(author)">
+                      {{ author }}
+                    </a>
                     @if (!isLast) {
                       <span>, </span>
                     }
@@ -152,17 +144,7 @@
             </div>
             <div class="flex gap-2 pt-4 overflow-x-auto scrollbar-hide">
               @for (category of book?.metadata!.categories; track category) {
-                <a
-                  [routerLink]="['/all-books']"
-                  [queryParams]="{
-                    view: 'grid',
-                    sort: 'title',
-                    direction: 'asc',
-                    sidebar: true,
-                    filter: 'category:' + category
-                  }"
-                  class="shrink-0 no-underline"
-                >
+                <a (click)="goToCategory(category)" class="shrink-0 no-underline cursor-pointer">
                   <p-tag [value]="category"></p-tag>
                 </a>
               }
@@ -349,12 +331,9 @@
                [horizontal]="true">
             @for (book of bookInSeries; track book) {
               <div class="dashboard-scroller-card">
-                <app-book-card
+                <app-book-card-lite-component
                   [book]="book"
-                  [isCheckboxEnabled]="false"
-                  [readButtonHidden]="true"
-                  [bottomBarHidden]="true">
-                </app-book-card>
+                ></app-book-card-lite-component>
               </div>
             }
           </div>
@@ -371,12 +350,9 @@
                [horizontal]="true">
             @for (book of recommendedBooks; track book) {
               <div class="dashboard-scroller-card">
-                <app-book-card
+                <app-book-card-lite-component
                   [book]="book.book"
-                  [isCheckboxEnabled]="false"
-                  [readButtonHidden]="true"
-                  [bottomBarHidden]="true">
-                </app-book-card>
+                ></app-book-card-lite-component>
               </div>
             }
           </div>
