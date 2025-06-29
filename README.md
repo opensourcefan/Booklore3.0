@@ -104,16 +104,17 @@ Once the containers are up, access BookLore in your browser at:
 http://localhost:6060
 ```
 
-## 🔑 OIDC/OAuth2 Authentication
+## 🔑 OIDC/OAuth2 Authentication (Authentik, Pocket ID, etc.)
 
-> **Note:** This is an experimental feature and may not be fully stable
 
 BookLore supports optional OIDC/OAuth2 authentication for secure access. This feature allows you to integrate external authentication providers for a seamless login experience.
 
-While the integration has been tested with **Authentik**, it should work with other OIDC providers like **Authelia** as well. The setup allows you to use either JWT-based local authentication or external providers, giving users the flexibility to choose their preferred method.
+While the integration has been tested with **Authentik** and **Pocket ID**, it should work with other OIDC providers like **Authelia** as well. The setup allows you to use either JWT-based local authentication or external providers, giving users the flexibility to choose their preferred method.
 
-For detailed instructions on setting up OIDC authentication with **Authentik**, refer to the [YouTube guide on configuring OIDC in BookLore](https://www.youtube.com/watch?v=r6Ufh9ldF9M), which provides step-by-step walkthroughs.
+For detailed instructions on setting up OIDC authentication:
 
+- 📺 [YouTube video on configuring Authentik with BookLore](https://www.youtube.com/watch?v=r6Ufh9ldF9M)
+- 📘 [Step-by-step setup guide for Pocket ID](docs/OIDC-Setup-With-PocketID.md)
 
 ## 🔐 Remote Authentication (Trusted Header SSO, Forward Auth)
 
