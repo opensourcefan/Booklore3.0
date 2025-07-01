@@ -46,10 +46,9 @@ services:
   booklore:
     image: ghcr.io/adityachandelgit/booklore-app:latest
     container_name: booklore
-    user: "${PUID}:${PGID}"
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
+      - PUID=1000
+      - PGID=1000
       - TZ=Etc/UTC
       - DATABASE_URL=jdbc:mariadb://mariadb:3306/booklore # Only modify this if you're familiar with JDBC and your database setup
       - DATABASE_USERNAME=booklore # Must match MYSQL_USER defined in the mariadb container
