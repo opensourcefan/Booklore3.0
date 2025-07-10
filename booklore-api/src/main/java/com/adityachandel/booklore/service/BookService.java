@@ -10,10 +10,8 @@ import com.adityachandel.booklore.model.entity.*;
 import com.adityachandel.booklore.model.enums.BookFileType;
 import com.adityachandel.booklore.model.enums.ReadStatus;
 import com.adityachandel.booklore.repository.*;
-import com.adityachandel.booklore.service.appsettings.AppSettingService;
 import com.adityachandel.booklore.util.FileService;
 import com.adityachandel.booklore.util.FileUtils;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
@@ -270,12 +268,31 @@ public class BookService {
                     .build());
         }
         book.setFilePath(FileUtils.getBookFullPath(bookEntity));
+        book.setReadStatus(String.valueOf(userProgress.getReadStatus()));
 
         if (!withDescription) {
             book.getMetadata().setDescription(null);
         }
 
         return book;
+    }
+
+    public Book resetProgress(long bookId) {
+        BookLoreUser user = authenticationService.getAuthenticatedUser();
+        BookEntity bookEntity = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+
+        UserBookProgressEntity progress = userBookProgressRepository.findByUserIdAndBookId(user.getId(), bookId).orElse(new UserBookProgressEntity());
+        progress.setBook(bookEntity);
+        progress.setReadStatus(null);
+        progress.setLastReadTime(null);
+        progress.setPdfProgress(null);
+        progress.setPdfProgressPercent(null);
+        progress.setEpubProgress(null);
+        progress.setEpubProgressPercent(null);
+        progress.setCbxProgress(null);
+        progress.setCbxProgressPercent(null);
+        userBookProgressRepository.save(progress);
+        return bookMapper.toBook(bookEntity);
     }
 
 
@@ -333,6 +350,18 @@ public class BookService {
             userBookProgress.setCbxProgress(request.getCbxProgress().getPage());
             userBookProgress.setCbxProgressPercent(request.getCbxProgress().getPercentage());
         }
+        userBookProgressRepository.save(userBookProgress);
+    }
+
+    @Transactional
+    public void updateReadStatus(Long bookId, String status) {
+        BookEntity book = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+        BookLoreUser user = authenticationService.getAuthenticatedUser();
+        UserBookProgressEntity userBookProgress = userBookProgressRepository.findByUserIdAndBookId(user.getId(), book.getId()).orElse(new UserBookProgressEntity());
+        userBookProgress.setUser(userRepository.findById(user.getId()).orElseThrow(() -> new UsernameNotFoundException("User not found")));
+        userBookProgress.setBook(book);
+        ReadStatus readStatus = EnumUtils.getEnumIgnoreCase(ReadStatus.class, status);
+        userBookProgress.setReadStatus(readStatus);
         userBookProgressRepository.save(userBookProgress);
     }
 
@@ -454,12 +483,5 @@ public class BookService {
                 break;
             }
         }
-    }
-
-    public void updateReadStatus(long bookId, @NotBlank String status) {
-        BookEntity bookEntity = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
-        ReadStatus readStatus = EnumUtils.getEnumIgnoreCase(ReadStatus.class, status);
-        bookEntity.setReadStatus(readStatus);
-        bookRepository.save(bookEntity);
     }
 }
