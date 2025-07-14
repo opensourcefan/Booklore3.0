@@ -1,5 +1,5 @@
 import {Component, ElementRef, EventEmitter, inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {Book} from '../../../model/book.model';
+import {Book, ReadStatus} from '../../../model/book.model';
 import {Button} from 'primeng/button';
 import {MenuModule} from 'primeng/menu';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
@@ -22,6 +22,7 @@ import {Router} from '@angular/router';
 import {ProgressBar} from 'primeng/progressbar';
 import {BookMetadataCenterComponent} from '../../../../metadata/book-metadata-center-component/book-metadata-center.component';
 import {takeUntil} from 'rxjs/operators';
+import {readStatusLabels} from '../book-filter/book-filter.component';
 
 @Component({
   selector: 'app-book-card',
@@ -267,6 +268,33 @@ export class BookCardComponent implements OnInit, OnDestroy {
         label: 'More Actions',
         icon: 'pi pi-ellipsis-v',
         items: [
+          {
+            label: 'Read Status',
+            icon: 'pi pi-book',
+            items: Object.entries(readStatusLabels).map(([status, label]) => ({
+              label,
+              command: () => {
+                this.bookService.updateBookReadStatus(this.book.id, status as ReadStatus).subscribe({
+                  next: () => {
+                    this.messageService.add({
+                      severity: 'success',
+                      summary: 'Read Status Updated',
+                      detail: `Marked as "${label}"`,
+                      life: 2000
+                    });
+                  },
+                  error: () => {
+                    this.messageService.add({
+                      severity: 'error',
+                      summary: 'Update Failed',
+                      detail: 'Could not update read status.',
+                      life: 3000
+                    });
+                  }
+                });
+              }
+            }))
+          },
           {
             label: 'Reset Progress',
             icon: 'pi pi-undo',
