@@ -1,5 +1,5 @@
 import {Component, ElementRef, EventEmitter, inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {Book} from '../../../model/book.model';
+import {Book, ReadStatus} from '../../../model/book.model';
 import {Button} from 'primeng/button';
 import {MenuModule} from 'primeng/menu';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
@@ -8,9 +8,9 @@ import {ShelfAssignerComponent} from '../../shelf-assigner/shelf-assigner.compon
 import {BookService} from '../../../service/book.service';
 import {CheckboxChangeEvent, CheckboxModule} from 'primeng/checkbox';
 import {FormsModule} from '@angular/forms';
-import {MetadataFetchOptionsComponent} from '../../../metadata/metadata-options-dialog/metadata-fetch-options/metadata-fetch-options.component';
-import {MetadataRefreshType} from '../../../metadata/model/request/metadata-refresh-type.enum';
-import {MetadataRefreshRequest} from '../../../metadata/model/request/metadata-refresh-request.model';
+import {MetadataFetchOptionsComponent} from '../../../../metadata/metadata-options-dialog/metadata-fetch-options/metadata-fetch-options.component';
+import {MetadataRefreshType} from '../../../../metadata/model/request/metadata-refresh-type.enum';
+import {MetadataRefreshRequest} from '../../../../metadata/model/request/metadata-refresh-request.model';
 import {UrlHelperService} from '../../../../utilities/service/url-helper.service';
 import {NgClass} from '@angular/common';
 import {UserService} from '../../../../settings/user-management/user.service';
@@ -20,8 +20,9 @@ import {TieredMenu} from 'primeng/tieredmenu';
 import {BookSenderComponent} from '../../book-sender/book-sender.component';
 import {Router} from '@angular/router';
 import {ProgressBar} from 'primeng/progressbar';
-import {BookMetadataCenterComponent} from '../../../metadata/book-metadata-center/book-metadata-center.component';
+import {BookMetadataCenterComponent} from '../../../../metadata/book-metadata-center-component/book-metadata-center.component';
 import {takeUntil} from 'rxjs/operators';
+import {readStatusLabels} from '../book-filter/book-filter.component';
 
 @Component({
   selector: 'app-book-card',
@@ -122,6 +123,7 @@ export class BookCardComponent implements OnInit, OnDestroy {
         },
       },
       ...this.getPermissionBasedMenuItems(),
+      ...this.moreMenuItems(),
     ];
   }
 
@@ -248,6 +250,72 @@ export class BookCardComponent implements OnInit, OnDestroy {
                   bookIds: [this.book!.id],
                   metadataRefreshType: MetadataRefreshType.BOOKS,
                 },
+              });
+            },
+          }
+        ]
+      });
+    }
+
+    return items;
+  }
+
+  private moreMenuItems(): MenuItem[] {
+    const items: MenuItem[] = [];
+
+    if (this.hasEditMetadataPermission()) {
+      items.push({
+        label: 'More Actions',
+        icon: 'pi pi-ellipsis-v',
+        items: [
+          {
+            label: 'Read Status',
+            icon: 'pi pi-book',
+            items: Object.entries(readStatusLabels).map(([status, label]) => ({
+              label,
+              command: () => {
+                this.bookService.updateBookReadStatus(this.book.id, status as ReadStatus).subscribe({
+                  next: () => {
+                    this.messageService.add({
+                      severity: 'success',
+                      summary: 'Read Status Updated',
+                      detail: `Marked as "${label}"`,
+                      life: 2000
+                    });
+                  },
+                  error: () => {
+                    this.messageService.add({
+                      severity: 'error',
+                      summary: 'Update Failed',
+                      detail: 'Could not update read status.',
+                      life: 3000
+                    });
+                  }
+                });
+              }
+            }))
+          },
+          {
+            label: 'Reset Progress',
+            icon: 'pi pi-undo',
+            command: () => {
+              this.bookService.resetProgress(this.book.id).subscribe({
+                next: () => {
+                  this.messageService.add({
+                    severity: 'success',
+                    summary: 'Progress Reset',
+                    detail: 'Reading progress has been reset.',
+                    life: 1500
+                  });
+                },
+                error: () => {
+                  this.messageService.add({
+                    severity: 'error',
+                    summary: 'Failed',
+                    detail: 'Could not reset progress.',
+                    life: 1500
+                  });
+                }
               });
             },
           }

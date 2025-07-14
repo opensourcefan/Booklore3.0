@@ -43,6 +43,8 @@ import {FilterSortPreferenceService} from './filters/filter-sorting-preferences.
 import {Divider} from 'primeng/divider';
 import {MultiSelect} from 'primeng/multiselect';
 import {TableColumnPreferenceService} from './table-column-preference-service';
+import {TieredMenu} from 'primeng/tieredmenu';
+import {BookMenuService} from '../../service/book-menu.service';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -75,7 +77,7 @@ const SORT_DIRECTION = {
   standalone: true,
   templateUrl: './book-browser.component.html',
   styleUrls: ['./book-browser.component.scss'],
-  imports: [Button, VirtualScrollerModule, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule, BookTableComponent, BookFilterComponent, Tooltip, NgClass, PrimeTemplate, NgStyle, OverlayPanelModule, DropdownModule, Checkbox, Popover, Slider, Select, Divider, MultiSelect],
+  imports: [Button, VirtualScrollerModule, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule, BookTableComponent, BookFilterComponent, Tooltip, NgClass, PrimeTemplate, NgStyle, OverlayPanelModule, DropdownModule, Checkbox, Popover, Slider, Select, Divider, MultiSelect, TieredMenu],
   providers: [SeriesCollapseFilter],
   animations: [
     trigger('slideInOut', [
@@ -134,6 +136,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   private bookService = inject(BookService);
   private shelfService = inject(ShelfService);
   private dialogHelperService = inject(BookDialogHelperService);
+  private bookMenuService = inject(BookMenuService);
   private sortService = inject(SortService);
   private router = inject(Router);
   private changeDetectorRef = inject(ChangeDetectorRef);
@@ -149,9 +152,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   lastAppliedSort: SortOption | null = null;
   private settingFiltersFromUrl = false;
   protected metadataMenuItems: MenuItem[] | undefined;
+  protected tieredMenuItems: MenuItem[] | undefined;
   currentBooks: Book[] = [];
   lastSelectedIndex: number | null = null;
   showFilter: boolean = false;
+
 
   get currentCardSize() {
     return this.coverScalePreferenceService.currentCardSize;
@@ -173,6 +178,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+
     this.coverScalePreferenceService.scaleChange$.pipe(debounceTime(1000)).subscribe();
 
     this.bookService.loadBooks();
@@ -209,23 +215,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
       this.clearFilter();
     });
 
-    this.metadataMenuItems = [
-      {
-        label: 'Refresh Metadata',
-        icon: 'pi pi-sync',
-        command: () => this.updateMetadata()
-      },
-      {
-        label: 'Bulk Metadata Editor',
-        icon: 'pi pi-table',
-        command: () => this.bulkEditMetadata()
-      },
-      {
-        label: 'Multi-Book Metadata Editor',
-        icon: 'pi pi-clone',
-        command: () => this.multiBookEditMetadata()
-      }
-    ];
+    this.metadataMenuItems = this.bookMenuService.getMetadataMenuItems(
+      () => this.updateMetadata(),
+      () => this.bulkEditMetadata(),
+      () => this.multiBookEditMetadata()
+    );
+
+    this.tieredMenuItems = this.bookMenuService.getTieredMenuItems(this.selectedBooks);
   }
 
   ngAfterViewInit() {
