@@ -20,13 +20,16 @@ BookLore is a self-hosted web app for organizing and managing your personal book
 - 📤 **Multi-Book Uploads** - Upload multiple books at once with metadata auto-detection and file organization.
 - 📧 **Send Books via Email** - Share books directly with others by sending them via email – quick and easy.
 - 🚀 **Continuous Improvements** - Frequent updates with new features, performance enhancements, and UI improvements. BookLore is perfect for self-hosters who want complete control over their digital library. Stay tuned for updates!
-## 🎥 Video Guides & Tutorials
 
-For a step-by-step walkthrough, check out the official BookLore video guides on YouTube:
+## 🚀 Getting Started with BookLore
 
-📺 [BookLore Tutorials – YouTube](https://www.youtube.com/watch?v=UMrn_fIeFRo&list=PLi0fq0zaM7lqY7dX0R66jQtKW64z4_Tdz)
+Kick off your BookLore journey with our official documentation and helpful video guides.
 
-These videos cover deployment, configuration, and feature highlights to help you get started quickly.
+📘 [BookLore Documentation: Getting Started](https://adityachandelgit.github.io/booklore-docs/docs/getting-started)  
+Our up-to-date docs walk you through installation, setup, configuration, and key features, everything you need to get up and running smoothly.
+
+🎥 [BookLore Tutorials: YouTube](https://www.youtube.com/watch?v=UMrn_fIeFRo&list=PLi0fq0zaM7lqY7dX0R66jQtKW64z4_Tdz)  
+These older videos provide useful walkthroughs and visual guidance, but note that some content may be outdated compared to the current docs.
 
 ## 🐳 Deploy with Docker
 
