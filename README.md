@@ -144,31 +144,6 @@ For detailed instructions on setting up OIDC authentication:
 - 📺 [YouTube video on configuring Authentik with BookLore](https://www.youtube.com/watch?v=r6Ufh9ldF9M)
 - 📘 [Step-by-step setup guide for Pocket ID](docs/OIDC-Setup-With-PocketID.md)
 
-## 🔐 Remote Authentication (Trusted Header SSO, Forward Auth)
-
-If you run BookLore behind a reverse proxy with remote authentication (middleware),
-you can enable automatic login by setting `REMOTE_AUTH_ENABLED` to `true`.
-
-This allows you to use your existing authentication system (e.g., OAuth, SAML) to log in to BookLore.
-
-The following remote auth environment variables can be configured:
-
-| Variable Name                | Description                             | Default Value                                                       |
-|------------------------------|-----------------------------------------|---------------------------------------------------------------------|
-| REMOTE_AUTH_ENABLED          | Enable remote authentication            | `false`                                                             |
-| REMOTE_AUTH_CREATE_NEW_USERS | Auto-create users from remote auth      | `true`                                                              |
-| REMOTE_AUTH_HEADER_NAME      | HTTP header containing user's name      | `Remote-Name`                                                       |
-| REMOTE_AUTH_HEADER_USER      | HTTP header containing username         | `Remote-User`                                                       |
-| REMOTE_AUTH_HEADER_EMAIL     | HTTP header containing user's email     | `Remote-Email`                                                      |
-| REMOTE_AUTH_HEADER_GROUPS    | HTTP header containing user's groups    | `Remote-Groups`                                                     |
-| REMOTE_AUTH_ADMIN_GROUP      | Group name that grants admin privileges | -                                                                   |
-
-Example implementations:
-- https://www.authelia.com/integration/trusted-header-sso/introduction/
-- https://caddyserver.com/docs/caddyfile/directives/forward_auth
-- https://doc.traefik.io/traefik/middlewares/http/forwardauth/
-- https://github.com/sevensolutions/traefik-oidc-auth (Traefik OIDC Auth)
-
 ## 🤝 Community & Support
 
 - 🐞 Found a bug? [Open an issue](https://github.com/adityachandelgit/BookLore/issues)
