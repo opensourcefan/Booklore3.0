@@ -5,6 +5,6 @@ import com.adityachandel.booklore.model.dto.settings.LibraryFile;
 import com.adityachandel.booklore.model.entity.BookEntity;
 
 public interface BookFileProcessor {
-    Book processNewFile(LibraryFile libraryFile);
+    Book processFile(LibraryFile libraryFile);
     boolean generateCover(BookEntity bookEntity);
 }
