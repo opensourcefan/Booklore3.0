@@ -31,7 +31,8 @@ If you find **BookLore** helpful, please consider supporting its development:
 
 - ⭐ Star this repository to show your appreciation and help others discover it.
 - 💸 Contribute via [Open Collective](https://opencollective.com/booklore) to help fund development, hosting, and testing costs.
-  > 📌 **First goal**: Funding a **Kobo device** to implement and test native Kobo sync support.
+  > 📌 Currently raising funds for a **Kobo device** to implement and test native Kobo sync support.  
+  > 💡 [Support the Kobo Sync Bounty →](https://opencollective.com/booklore/projects/kobo-device-for-testing)
 - ⚡ Prefer one-time support? You can also donate via [Venmo](https://venmo.com/AdityaChandel).
 
 ## 🌐 Live Demo
