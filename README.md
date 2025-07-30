@@ -35,14 +35,15 @@ If you find **BookLore** helpful, please consider supporting its development:
   > 💡 [Support the Kobo Sync Bounty →](https://opencollective.com/booklore/projects/kobo-device-for-testing)
 - ⚡ Prefer one-time support? You can also donate via [Venmo](https://venmo.com/AdityaChandel).
 
-## 🌐 Live Demo
+## 🌐 Live Demo: Experience BookLore in Action
 
-Try it for yourself with the [public live demo](https://demo-booklore.elfhosted.com), sponsored by [ElfHosted](https://elfhosted.com) :heart:, using the following details:
+Explore the full capabilities of BookLore firsthand at [booklore-demo.adityachandel.top](https://booklore-demo.adityachandel.top).
 
-* User: `bookgeek`
-* Pass: `elfhosted`
+**Access Credentials:**
+- **Username:** `booklore`
+- **Password:** `9HC20PGGfitvWaZ1`
 
-(*the demo resets every hour, on the hour, no copyrighted content uploads please*)
+Log in, explore the features, and discover how BookLore can transform personal library management.
 
 ## 🚀 Getting Started with BookLore
 
