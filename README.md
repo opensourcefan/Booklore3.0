@@ -50,7 +50,7 @@ Log in, explore the features, and discover how BookLore can transform personal l
 
 Kick off your BookLore journey with our official documentation and helpful video guides.
 
-📘 [BookLore Documentation: Getting Started](https://adityachandelgit.github.io/booklore-docs/docs/getting-started)  
+📘 [BookLore Documentation: Getting Started](https://booklore-app.github.io/booklore-docs/docs/getting-started/)  
 Our up-to-date docs walk you through installation, setup, configuration, and key features, everything you need to get up and running smoothly.
 
 🎥 [BookLore Tutorials: YouTube](https://www.youtube.com/watch?v=UMrn_fIeFRo&list=PLi0fq0zaM7lqY7dX0R66jQtKW64z4_Tdz)  
