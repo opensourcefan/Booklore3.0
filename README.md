@@ -182,10 +182,6 @@ Thanks to all the amazing people who contribute to Booklore.
 
 [![Contributors List](https://contrib.rocks/image?repo=adityachandelgit/BookLore)](https://github.com/adityachandelgit/BookLore/graphs/contributors)
 
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=adityachandelgit/BookLore&type=Date&theme=dark)](https://star-history.com/#adityachandelgit/BookLore&Date&theme=dark)
-
 ## 🧰 Tech Stack
 
 <p align="left">
