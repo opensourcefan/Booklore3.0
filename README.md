@@ -7,6 +7,14 @@
 [![Open Collective backers and sponsors](https://img.shields.io/opencollective/all/booklore?label=Open%20Collective&logo=opencollective&color=blue)](https://opencollective.com/booklore)
 [![Venmo](https://img.shields.io/badge/Venmo-Donate-blue?logo=venmo)](https://venmo.com/AdityaChandel)
 
+> 🚨 **Important Announcement:**  
+> Docker images have moved to new repositories:
+> - Docker Hub: `https://hub.docker.com/r/booklore/booklore`
+> - GitHub Container Registry: `https://ghcr.io/booklore-app/booklore`
+>
+> The legacy repo (`https://ghcr.io/adityachandelgit/booklore-app`) will remain available for existing images but will not receive further updates.
+
+
 BookLore is a self-hosted web app for organizing and managing your personal book collection. It provides an intuitive interface to browse, read, and track your progress across PDFs and eBooks. With robust metadata management, multi-user support, and a sleek, modern UI, BookLore makes it easy to build and explore your personal library.
 
 ![BookLore Demo](assets/demo.gif)
