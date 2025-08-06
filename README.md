@@ -68,6 +68,12 @@ You can quickly set up and run BookLore using Docker.
 
 Ensure you have [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
 
+**Image Repositories:**
+- Docker Hub: `https://hub.docker.com/r/booklore/booklore`
+- GitHub Container Registry: `https://ghcr.io/booklore-app/booklore`
+
+> **Note:** Legacy images under `https://ghcr.io/adityachandelgit/booklore-app` will remain available but will not receive new updates.
+
 ### 2️⃣ Create docker-compose.yml
 
 Create a `docker-compose.yml` file with content:
@@ -75,7 +81,10 @@ Create a `docker-compose.yml` file with content:
 ```yaml
 services:
   booklore:
-    image: ghcr.io/adityachandelgit/booklore-app:latest
+    # Official Docker Hub image:
+    image: booklore/booklore:latest
+    # Or the GHCR image:
+    # image: ghcr.io/booklore-app/booklore:latest
     container_name: booklore
     environment:
       - PUID=1000
