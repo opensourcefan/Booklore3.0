@@ -129,8 +129,8 @@ jobs:
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --build-arg APP_VERSION=${{ env.image_tag }} \
-            --tag booklore/booklore-app:${{ env.image_tag }} \
-            --tag ghcr.io/${{ github.repository }}/booklore-app:${{ env.image_tag }} \
+            --tag booklore/booklore:${{ env.image_tag }} \
+            --tag ghcr.io/booklore-app/booklore:${{ env.image_tag }} \
             --push .
 
       - name: Push Latest Tag (Only for Master)
@@ -139,8 +139,8 @@ jobs:
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --build-arg APP_VERSION=${{ env.new_tag }} \
-            --tag booklore/booklore-app:latest \
-            --tag ghcr.io/${{ github.repository }}/booklore-app:latest \
+            --tag booklore/booklore:latest \
+            --tag ghcr.io/booklore-app/booklore:latest \
             --push .
 
       - name: Update Release Draft (Only for Master)
@@ -169,9 +169,8 @@ jobs:
           release_name=$(echo "$release_json" | jq -r '.name')
           release_body=$(echo "$release_json" | jq -r '.body')
           release_url=$(echo "$release_json" | jq -r '.url')
-          dockerhub_image="https://hub.docker.com/r/booklore/booklore-app/tags"
-          ghcr_image="https://github.com/${{ github.repository }}/packages"
-          content=":tada: **New Release:** [$release_name]($release_url)\n\n$release_body\n\n**Docker Images:**\n- Docker Hub: \`booklore/booklore-app:${{ env.new_tag }}\` ([View]($dockerhub_image))\n- GHCR: \`ghcr.io/${{ github.repository }}/booklore-app:${{ env.new_tag }}\` ([View]($ghcr_image))"
+          dockerhub_image="https://hub.docker.com/r/booklore/booklore/tags"
+          ghcr_image="https://github.com/booklore-app/booklore/pkgs/container/booklore"
+          content=":tada: **New Release:** [$release_name]($release_url)\n\n$release_body\n\n**Docker Images:**\n- Docker Hub: \`booklore/booklore:${{ env.new_tag }}\` ([View]($dockerhub_image))\n- GHCR: \`ghcr.io/booklore-app/booklore:${{ env.new_tag }}\` ([View]($ghcr_image))"
           payload="{\"content\": \"$content\"}"
           curl -H "Content-Type: application/json" -X POST -d "$payload" $DISCORD_WEBHOOK_URL
-
