@@ -160,17 +160,64 @@ jobs:
           gh release edit ${{ env.new_tag }} --draft=false
 
       - name: Notify Discord of New Release
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && secrets.DISCORD_WEBHOOK_URL != ''
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          NEW_TAG:            ${{ env.new_tag }}
         run: |
-          release_json=$(gh release view ${{ env.new_tag }} --json name,body,url)
-          release_name=$(echo "$release_json" | jq -r '.name')
-          release_body=$(echo "$release_json" | jq -r '.body')
-          release_url=$(echo "$release_json" | jq -r '.url')
-          dockerhub_image="https://hub.docker.com/r/booklore/booklore/tags"
-          ghcr_image="https://github.com/booklore-app/booklore/pkgs/container/booklore"
-          content=":tada: **New Release:** [$release_name]($release_url)\n\n$release_body\n\n**Docker Images:**\n- Docker Hub: \`booklore/booklore:${{ env.new_tag }}\` ([View]($dockerhub_image))\n- GHCR: \`ghcr.io/booklore-app/booklore:${{ env.new_tag }}\` ([View]($ghcr_image))"
-          payload="{\"content\": \"$content\"}"
-          curl -H "Content-Type: application/json" -X POST -d "$payload" $DISCORD_WEBHOOK_URL
+          set -euo pipefail
+          echo "Preparing Discord notification for release $NEW_TAG"
+
+          # fetch release info
+          release_json=$(gh release view "$NEW_TAG" --json name,body,url)
+          release_name=$(jq -r '.name' <<< "$release_json")
+          release_body=$(jq -r '.body' <<< "$release_json")
+          release_url=$(jq -r '.url'  <<< "$release_json")
+
+          # compose image links
+          dockerhub_image="https://hub.docker.com/r/booklore/booklore/tags/$NEW_TAG"
+          ghcr_image="https://github.com/booklore-app/booklore/pkgs/container/booklore/$NEW_TAG"
+
+          # trim body if too long and append concise notice
+          clean_body=$(echo "$release_body" | tr -d '\r')
+          max_length=1800
+          if [ ${#clean_body} -gt $max_length ]; then
+            # reserve room for ellipsis and note
+            clean_body="${clean_body:0:$((max_length-12))}… [truncated]"
+          fi
+
+          # prepare embed fields
+          embed_title="New Release: $release_name"
+          dockerhub_md="[View image]($dockerhub_image)"
+          ghcr_md="[View image]($ghcr_image)"
+
+          # build JSON payload
+          payload=$(jq -n \
+            --arg title "$embed_title" \
+            --arg url   "$release_url" \
+            --arg desc  "$clean_body" \
+            --arg hub   "$dockerhub_md" \
+            --arg gh    "$ghcr_md" \
+            '{
+              content: null,
+              embeds: [{
+                title: $title,
+                url: $url,
+                description: $desc,
+                color: 3066993,
+                fields: [
+                  { name: "Docker Hub", value: $hub, inline: true },
+                  { name: "GHCR",       value: $gh,  inline: true }
+                ]
+              }]
+            }')
+
+          # debug output
+          echo "=== Discord payload ==="
+          echo "$payload"
+          echo "======================="
+
+          # send to Discord
+          curl -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL"
