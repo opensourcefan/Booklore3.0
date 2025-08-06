@@ -83,8 +83,9 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy {
           distinctUntilChanged(([prevBook], [currBook]) => prevBook?.id === currBook?.id)
         )
         .subscribe(([book, settings]) => {
-          this.providers = Object.entries(settings!.metadataProviderSettings)
-            .filter(([_, value]) => value.enabled)
+          const providerSettings = settings?.metadataProviderSettings ?? {};
+          this.providers = Object.entries(providerSettings)
+            .filter(([_, value]) => !!value && typeof value === 'object' && 'enabled' in value && (value as any).enabled)
             .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
 
           this.resetFormFromBook(book!);

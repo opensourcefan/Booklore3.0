@@ -145,10 +145,10 @@ public class UserProvisioningService {
         user.setPasswordHash("RemoteUser_" + RandomStringUtils.secure().nextAlphanumeric(32));
 
         OidcAutoProvisionDetails oidcAutoProvisionDetails = appSettingService.getAppSettings().getOidcAutoProvisionDetails();
-        
+
         UserPermissionsEntity permissions = new UserPermissionsEntity();
         permissions.setUser(user);
-        
+
         if (oidcAutoProvisionDetails != null && oidcAutoProvisionDetails.getDefaultPermissions() != null) {
             List<String> defaultPermissions = oidcAutoProvisionDetails.getDefaultPermissions();
             permissions.setPermissionUpload(defaultPermissions.contains("permissionUpload"));
@@ -165,7 +165,7 @@ public class UserProvisioningService {
             permissions.setPermissionEmailBook(true);
             permissions.setPermissionDeleteBook(true);
         }
-        
+
         permissions.setPermissionAdmin(isAdmin);
         user.setPermissions(permissions);
 
@@ -186,3 +186,4 @@ public class UserProvisioningService {
         userDefaultsService.addDefaultSettings(user);
         return user;
     }
+}
