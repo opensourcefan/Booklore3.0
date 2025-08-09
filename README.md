@@ -7,6 +7,14 @@
 [![Open Collective backers and sponsors](https://img.shields.io/opencollective/all/booklore?label=Open%20Collective&logo=opencollective&color=blue)](https://opencollective.com/booklore)
 [![Venmo](https://img.shields.io/badge/Venmo-Donate-blue?logo=venmo)](https://venmo.com/AdityaChandel)
 
+> 🚨 **Important Announcement:**  
+> Docker images have moved to new repositories:
+> - Docker Hub: `https://hub.docker.com/r/booklore/booklore`
+> - GitHub Container Registry: `https://ghcr.io/booklore-app/booklore`
+>
+> The legacy repo (`https://ghcr.io/adityachandelgit/booklore-app`) will remain available for existing images but will not receive further updates.
+
+
 BookLore is a self-hosted web app for organizing and managing your personal book collection. It provides an intuitive interface to browse, read, and track your progress across PDFs and eBooks. With robust metadata management, multi-user support, and a sleek, modern UI, BookLore makes it easy to build and explore your personal library.
 
 ![BookLore Demo](assets/demo.gif)
@@ -68,6 +76,12 @@ You can quickly set up and run BookLore using Docker.
 
 Ensure you have [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
 
+**Image Repositories:**
+- Docker Hub: `https://hub.docker.com/r/booklore/booklore`
+- GitHub Container Registry: `https://ghcr.io/booklore-app/booklore`
+
+> **Note:** Legacy images under `https://ghcr.io/adityachandelgit/booklore-app` will remain available but will not receive new updates.
+
 ### 2️⃣ Create docker-compose.yml
 
 Create a `docker-compose.yml` file with content:
@@ -75,7 +89,10 @@ Create a `docker-compose.yml` file with content:
 ```yaml
 services:
   booklore:
-    image: ghcr.io/adityachandelgit/booklore-app:latest
+    # Official Docker Hub image:
+    image: booklore/booklore:latest
+    # Or the GHCR image:
+    # image: ghcr.io/booklore-app/booklore:latest
     container_name: booklore
     environment:
       - PUID=1000
