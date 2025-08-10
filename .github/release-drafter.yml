@@ -40,18 +40,14 @@ change-template: '- $TITLE (#$NUMBER) by @$AUTHOR'
 
 template: |
   ## 🌟 What's New in v$NEXT_PATCH_VERSION
-  
+
   Welcome to another exciting release of Booklore! 📚✨
-  
+
   $CHANGES
-  
-  ---
-  
+
   ### 🐳 Docker Images
-  
-  **Docker Hub:** `booklore/booklore:v$NEXT_PATCH_VERSION`  
-  **GitHub Container Registry:** `ghcr.io/booklore-app/booklore:v$NEXT_PATCH_VERSION`
-  
-  ---
-  
+
+  - **Docker Hub:** `booklore/booklore:v$NEXT_PATCH_VERSION`
+  - **GitHub Container Registry:** `ghcr.io/booklore-app/booklore:v$NEXT_PATCH_VERSION`
+
   **Full Changelog**: https://github.com/booklore-app/booklore/compare/$PREVIOUS_TAG...v$NEXT_PATCH_VERSION
