@@ -42,8 +42,8 @@ export class DialogLauncherService {
   openGithubSupportDialog(): void {
     this.open({
       component: GithubSupportDialog,
-      header: 'Support BookLore on GitHub',
-      top: '25%'
+      header: 'Support Booklore',
+      top: '15%'
     });
   }
 

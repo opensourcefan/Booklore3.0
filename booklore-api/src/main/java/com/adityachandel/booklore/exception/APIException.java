@@ -14,5 +14,3 @@ public class APIException extends RuntimeException {
         this.message = formattedMessage;
     }
 }
-
-

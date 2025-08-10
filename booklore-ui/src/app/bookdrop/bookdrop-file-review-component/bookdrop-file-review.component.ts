@@ -11,7 +11,6 @@ import {DropdownModule} from 'primeng/dropdown';
 import {FormControl, FormGroup, FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {Select} from 'primeng/select';
-import {InputText} from 'primeng/inputtext';
 import {Tooltip} from 'primeng/tooltip';
 import {Divider} from 'primeng/divider';
 import {ConfirmationService, MessageService} from 'primeng/api';
@@ -55,7 +54,6 @@ export interface BookdropFileUI {
     BookdropFileMetadataPickerComponent,
     Tooltip,
     Divider,
-    InputText,
     Checkbox,
     NgStyle,
     NgClass,
@@ -231,31 +229,31 @@ export class BookdropFileReviewComponent implements OnInit {
     Object.values(this.fileUiCache).forEach(fileUi => {
       const original = fileUi.file.originalMetadata;
       fileUi.metadataForm.patchValue({
-        title: original.title || null,
-        subtitle: original.subtitle || null,
-        authors: [...(original.authors ?? [])].sort(),
-        categories: [...(original.categories ?? [])].sort(),
-        publisher: original.publisher || null,
-        publishedDate: original.publishedDate || null,
-        isbn10: original.isbn10 ?? null,
-        isbn13: original.isbn13 ?? null,
-        description: original.description ?? null,
-        pageCount: original.pageCount ?? null,
-        language: original.language ?? null,
-        asin: original.asin ?? null,
-        amazonRating: original.amazonRating ?? null,
-        amazonReviewCount: original.amazonReviewCount ?? null,
-        goodreadsId: original.goodreadsId ?? null,
-        goodreadsRating: original.goodreadsRating ?? null,
-        goodreadsReviewCount: original.goodreadsReviewCount ?? null,
-        hardcoverId: original.hardcoverId ?? null,
-        hardcoverRating: original.hardcoverRating ?? null,
-        hardcoverReviewCount: original.hardcoverReviewCount ?? null,
-        googleId: original.googleId ?? null,
-        comicvineId: original.comicvineId ?? null,
-        seriesName: original.seriesName ?? null,
-        seriesNumber: original.seriesNumber ?? null,
-        seriesTotal: original.seriesTotal ?? null,
+        title: original?.title || null,
+        subtitle: original?.subtitle || null,
+        authors: [...(original?.authors ?? [])].sort(),
+        categories: [...(original?.categories ?? [])].sort(),
+        publisher: original?.publisher || null,
+        publishedDate: original?.publishedDate || null,
+        isbn10: original?.isbn10 ?? null,
+        isbn13: original?.isbn13 ?? null,
+        description: original?.description ?? null,
+        pageCount: original?.pageCount ?? null,
+        language: original?.language ?? null,
+        asin: original?.asin ?? null,
+        amazonRating: original?.amazonRating ?? null,
+        amazonReviewCount: original?.amazonReviewCount ?? null,
+        goodreadsId: original?.goodreadsId ?? null,
+        goodreadsRating: original?.goodreadsRating ?? null,
+        goodreadsReviewCount: original?.goodreadsReviewCount ?? null,
+        hardcoverId: original?.hardcoverId ?? null,
+        hardcoverRating: original?.hardcoverRating ?? null,
+        hardcoverReviewCount: original?.hardcoverReviewCount ?? null,
+        googleId: original?.googleId ?? null,
+        comicvineId: original?.comicvineId ?? null,
+        seriesName: original?.seriesName ?? null,
+        seriesNumber: original?.seriesNumber ?? null,
+        seriesTotal: original?.seriesTotal ?? null,
         thumbnailUrl: this.urlHelper.getBookdropCoverUrl(fileUi.file.id),
       });
       fileUi.copiedFields = {};
@@ -425,7 +423,6 @@ export class BookdropFileReviewComponent implements OnInit {
     });
 
     const payload: BookdropFinalizePayload = {
-      uploadPattern: this.uploadPattern,
       selectAll: this.selectAllAcrossPages,
       excludedIds: this.selectAllAcrossPages ? Array.from(this.excludedFiles) : undefined,
       defaultLibraryId: this.defaultLibraryId ? Number(this.defaultLibraryId) : undefined,
@@ -473,33 +470,33 @@ export class BookdropFileReviewComponent implements OnInit {
     });
   }
 
-  private createMetadataForm(original: BookMetadata, bookdropFileId: number): FormGroup {
+  private createMetadataForm(original: BookMetadata | undefined, bookdropFileId: number): FormGroup {
     return new FormGroup({
-      title: new FormControl(original.title ?? ''),
-      subtitle: new FormControl(original.subtitle ?? ''),
-      authors: new FormControl([...(original.authors ?? [])].sort()),
-      categories: new FormControl([...(original.categories ?? [])].sort()),
-      publisher: new FormControl(original.publisher ?? ''),
-      publishedDate: new FormControl(original.publishedDate ?? ''),
-      isbn10: new FormControl(original.isbn10 ?? ''),
-      isbn13: new FormControl(original.isbn13 ?? ''),
-      description: new FormControl(original.description ?? ''),
-      pageCount: new FormControl(original.pageCount ?? ''),
-      language: new FormControl(original.language ?? ''),
-      asin: new FormControl(original.asin ?? ''),
-      amazonRating: new FormControl(original.amazonRating ?? ''),
-      amazonReviewCount: new FormControl(original.amazonReviewCount ?? ''),
-      goodreadsId: new FormControl(original.goodreadsId ?? ''),
-      goodreadsRating: new FormControl(original.goodreadsRating ?? ''),
-      goodreadsReviewCount: new FormControl(original.goodreadsReviewCount ?? ''),
-      hardcoverId: new FormControl(original.hardcoverId ?? ''),
-      hardcoverRating: new FormControl(original.hardcoverRating ?? ''),
-      hardcoverReviewCount: new FormControl(original.hardcoverReviewCount ?? ''),
-      googleId: new FormControl(original.googleId ?? ''),
-      comicvineId: new FormControl(original.comicvineId ?? ''),
-      seriesName: new FormControl(original.seriesName ?? ''),
-      seriesNumber: new FormControl(original.seriesNumber ?? ''),
-      seriesTotal: new FormControl(original.seriesTotal ?? ''),
+      title: new FormControl(original?.title ?? ''),
+      subtitle: new FormControl(original?.subtitle ?? ''),
+      authors: new FormControl([...(original?.authors ?? [])].sort()),
+      categories: new FormControl([...(original?.categories ?? [])].sort()),
+      publisher: new FormControl(original?.publisher ?? ''),
+      publishedDate: new FormControl(original?.publishedDate ?? ''),
+      isbn10: new FormControl(original?.isbn10 ?? ''),
+      isbn13: new FormControl(original?.isbn13 ?? ''),
+      description: new FormControl(original?.description ?? ''),
+      pageCount: new FormControl(original?.pageCount ?? ''),
+      language: new FormControl(original?.language ?? ''),
+      asin: new FormControl(original?.asin ?? ''),
+      amazonRating: new FormControl(original?.amazonRating ?? ''),
+      amazonReviewCount: new FormControl(original?.amazonReviewCount ?? ''),
+      goodreadsId: new FormControl(original?.goodreadsId ?? ''),
+      goodreadsRating: new FormControl(original?.goodreadsRating ?? ''),
+      goodreadsReviewCount: new FormControl(original?.goodreadsReviewCount ?? ''),
+      hardcoverId: new FormControl(original?.hardcoverId ?? ''),
+      hardcoverRating: new FormControl(original?.hardcoverRating ?? ''),
+      hardcoverReviewCount: new FormControl(original?.hardcoverReviewCount ?? ''),
+      googleId: new FormControl(original?.googleId ?? ''),
+      comicvineId: new FormControl(original?.comicvineId ?? ''),
+      seriesName: new FormControl(original?.seriesName ?? ''),
+      seriesNumber: new FormControl(original?.seriesNumber ?? ''),
+      seriesTotal: new FormControl(original?.seriesTotal ?? ''),
       thumbnailUrl: new FormControl(this.urlHelper.getBookdropCoverUrl(bookdropFileId)),
     });
   }
