@@ -47,18 +47,6 @@ export class BookUploaderComponent implements OnInit {
   _selectedLibrary: Library | null = null;
   selectedPath: LibraryPath | null = null;
 
-  get selectedLibrary(): Library | null {
-    return this._selectedLibrary;
-  }
-
-  set selectedLibrary(library: Library | null) {
-    this._selectedLibrary = library;
-
-    if(library?.paths?.length === 1) {
-      this.selectedPath = library.paths[0];
-    }
-  }
-
   private readonly libraryService = inject(LibraryService);
   private readonly messageService = inject(MessageService);
   private readonly appSettingsService = inject(AppSettingsService);
@@ -90,7 +78,18 @@ export class BookUploaderComponent implements OnInit {
 
       this.selectedLibrary = state.libraries[0];
     });
+  }
 
+  get selectedLibrary(): Library | null {
+    return this._selectedLibrary;
+  }
+
+  set selectedLibrary(library: Library | null) {
+    this._selectedLibrary = library;
+
+    if(library?.paths?.length === 1) {
+      this.selectedPath = library.paths[0];
+    }
   }
 
   hasPendingFiles(): boolean {
