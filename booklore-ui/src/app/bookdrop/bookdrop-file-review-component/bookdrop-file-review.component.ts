@@ -203,7 +203,7 @@ export class BookdropFileReviewComponent implements OnInit {
   onLibraryChange(file: BookdropFileUI): void {
     const lib = this.libraries.find(l => String(l.id) === file.selectedLibraryId);
     file.availablePaths = lib?.paths.map(p => ({id: String(p.id ?? ''), name: p.path})) ?? [];
-    file.selectedPathId = null;
+    file.selectedPathId = file.availablePaths.length === 1 ? file.availablePaths[0].id : null;
   }
 
   onMetadataCopied(fileId: number, copied: boolean): void {
