@@ -21,7 +21,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MetadataRefreshRequest} from '../../model/request/metadata-refresh-request.model';
 import {MetadataRefreshType} from '../../model/request/metadata-refresh-type.enum';
-import {Chips} from 'primeng/chips';
+import {AutoComplete} from 'primeng/autocomplete';
 
 @Component({
   selector: 'app-metadata-editor',
@@ -45,7 +45,7 @@ import {Chips} from 'primeng/chips';
     Tab,
     TabPanels,
     TabPanel,
-    Chips
+    AutoComplete
   ]
 })
 export class MetadataEditorComponent implements OnInit {
@@ -78,6 +78,24 @@ export class MetadataEditorComponent implements OnInit {
   isAutoFetching = false;
 
   originalMetadata!: BookMetadata;
+
+  // Handle blur event for AutoComplete to add custom values
+  onAutoCompleteBlur(fieldName: string, event: any) {
+    const inputValue = event.target.value?.trim();
+    if (inputValue) {
+      const currentValue = this.metadataForm.get(fieldName)?.value || [];
+      const values = Array.isArray(currentValue) ? currentValue :
+                     typeof currentValue === 'string' && currentValue ? currentValue.split(',').map((v: string) => v.trim()) : [];
+
+      // Add the new value if it's not already in the array
+      if (!values.includes(inputValue)) {
+        values.push(inputValue);
+        this.metadataForm.get(fieldName)?.setValue(values);
+      }
+      // Clear the input
+      event.target.value = '';
+    }
+  }
 
   constructor() {
     this.metadataForm = new FormGroup({
