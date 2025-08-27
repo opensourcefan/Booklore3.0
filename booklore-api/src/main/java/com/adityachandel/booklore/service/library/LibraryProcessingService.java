@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -49,8 +50,8 @@ public class LibraryProcessingService {
     public void processLibrary(long libraryId) throws IOException {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
         notificationService.sendMessage(Topic.LOG, createLogNotification("Started processing library: " + libraryEntity.getName()));
-        List<LibraryFile> libraryFiles = getLibraryFiles(libraryEntity);
         LibraryFileProcessor processor = fileProcessorRegistry.getProcessor(libraryEntity);
+        List<LibraryFile> libraryFiles = getLibraryFiles(libraryEntity, processor);
         processor.processLibraryFiles(libraryFiles, libraryEntity);
         notificationService.sendMessage(Topic.LOG, createLogNotification("Finished processing library: " + libraryEntity.getName()));
     }
@@ -59,7 +60,8 @@ public class LibraryProcessingService {
     public void rescanLibrary(long libraryId) throws IOException {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
         notificationService.sendMessage(Topic.LOG, createLogNotification("Started refreshing library: " + libraryEntity.getName()));
-        List<LibraryFile> libraryFiles = getLibraryFiles(libraryEntity);
+        LibraryFileProcessor processor = fileProcessorRegistry.getProcessor(libraryEntity);
+        List<LibraryFile> libraryFiles = getLibraryFiles(libraryEntity, processor);
         List<Long> additionalFileIds = detectDeletedAdditionalFiles(libraryFiles, libraryEntity);
         if (!additionalFileIds.isEmpty()) {
             log.info("Detected {} removed additional files in library: {}", additionalFileIds.size(), libraryEntity.getName());
@@ -71,7 +73,6 @@ public class LibraryProcessingService {
             processDeletedLibraryFiles(bookIds, libraryFiles);
         }
         restoreDeletedBooks(libraryFiles);
-        LibraryFileProcessor processor = fileProcessorRegistry.getProcessor(libraryEntity);
         processor.processLibraryFiles(detectNewBookPaths(libraryFiles, libraryEntity), libraryEntity);
         notificationService.sendMessage(Topic.LOG, createLogNotification("Finished refreshing library: " + libraryEntity.getName()));
     }
@@ -111,7 +112,7 @@ public class LibraryProcessingService {
         processor.processLibraryFiles(libraryFiles, libraryEntity);
     }
 
-    public static List<Long> detectDeletedBookIds(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
+    protected static List<Long> detectDeletedBookIds(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
         Set<Path> currentFullPaths = libraryFiles.stream()
                 .map(LibraryFile::getFullPath)
                 .collect(Collectors.toSet());
@@ -123,16 +124,25 @@ public class LibraryProcessingService {
                 .collect(Collectors.toList());
     }
 
-    public static List<LibraryFile> detectNewBookPaths(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
+    protected List<LibraryFile> detectNewBookPaths(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
         Set<Path> existingFullPaths = libraryEntity.getBookEntities().stream()
                 .map(BookEntity::getFullFilePath)
                 .collect(Collectors.toSet());
+
+        // Also collect paths from additional files using repository method
+        Set<Path> additionalFilePaths = bookAdditionalFileRepository.findByLibraryId(libraryEntity.getId()).stream()
+                .map(BookAdditionalFileEntity::getFullFilePath)
+                .collect(Collectors.toSet());
+
+        // Combine both sets of existing paths
+        existingFullPaths.addAll(additionalFilePaths);
+
         return libraryFiles.stream()
                 .filter(file -> !existingFullPaths.contains(file.getFullPath()))
                 .collect(Collectors.toList());
     }
 
-    public List<Long> detectDeletedAdditionalFiles(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
+    protected List<Long> detectDeletedAdditionalFiles(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
         // Create a set of current file names for quick lookup
         Set<String> currentFileNames = libraryFiles.stream()
                 .map(LibraryFile::getFileName)
@@ -264,29 +274,36 @@ public class LibraryProcessingService {
     }
 
 
-    private List<LibraryFile> getLibraryFiles(LibraryEntity libraryEntity) throws IOException {
+    private List<LibraryFile> getLibraryFiles(LibraryEntity libraryEntity, LibraryFileProcessor processor) throws IOException {
         List<LibraryFile> allFiles = new ArrayList<>();
         for (LibraryPathEntity pathEntity : libraryEntity.getLibraryPaths()) {
-            allFiles.addAll(findLibraryFiles(pathEntity, libraryEntity));
+            allFiles.addAll(findLibraryFiles(pathEntity, libraryEntity, processor));
         }
         return allFiles;
     }
 
-    private List<LibraryFile> findLibraryFiles(LibraryPathEntity pathEntity, LibraryEntity libraryEntity) throws IOException {
+    private List<LibraryFile> findLibraryFiles(LibraryPathEntity pathEntity, LibraryEntity libraryEntity, LibraryFileProcessor processor) throws IOException {
         Path libraryPath = Path.of(pathEntity.getPath());
-        try (Stream<Path> stream = Files.walk(libraryPath)) {
+        boolean supportsSupplementaryFiles = processor.supportsSupplementaryFiles();
+
+        try (Stream<Path> stream = Files.walk(libraryPath, FileVisitOption.FOLLOW_LINKS)) {
             return stream.filter(Files::isRegularFile)
                     .map(fullPath -> {
                         String fileName = fullPath.getFileName().toString();
-                        return BookFileExtension.fromFileName(fileName)
-                                .map(ext -> LibraryFile.builder()
-                                        .libraryEntity(libraryEntity)
-                                        .libraryPathEntity(pathEntity)
-                                        .fileSubPath(FileUtils.getRelativeSubPath(pathEntity.getPath(), fullPath))
-                                        .fileName(fileName)
-                                        .bookFileType(ext.getType())
-                                        .build())
-                                .orElse(null);
+                        Optional<BookFileExtension> bookExtension = BookFileExtension.fromFileName(fileName);
+
+                        if (bookExtension.isEmpty() && !supportsSupplementaryFiles) {
+                            // Skip files that are not recognized book files and supplementary files are not supported
+                            return null;
+                        }
+
+                        return LibraryFile.builder()
+                                .libraryEntity(libraryEntity)
+                                .libraryPathEntity(pathEntity)
+                                .fileSubPath(FileUtils.getRelativeSubPath(pathEntity.getPath(), fullPath))
+                                .fileName(fileName)
+                                .bookFileType(bookExtension.map(BookFileExtension::getType).orElse(null))
+                                .build();
                     })
                     .filter(Objects::nonNull)
                     .filter(file -> !file.getFileName().startsWith("."))
