@@ -330,7 +330,7 @@ public class DoubanBookParser implements BookParser {
 
         String encodedSearchTerm = searchTerm.toString().replace(" ", "+");
         String url = "https://search.douban.com/book/subject_search?search_text=" + encodedSearchTerm;
-        log.info("Query URL: {}", url);
+        log.info("Douban Query URL: {}", url);
         return url;
     }
 

@@ -23,8 +23,7 @@ public class KoreaderController {
     @GetMapping("/users/auth")
     public ResponseEntity<Map<String, String>> authorizeUser() {
         return koreaderService
-            .authorizeUser()
-            .contentType(MediaType.APPLICATION_JSON);
+            .authorizeUser();
     }
 
     @PostMapping("/users/create")

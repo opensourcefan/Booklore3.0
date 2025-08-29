@@ -23,8 +23,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -171,26 +169,9 @@ public class FileService {
         return input == null ? null : (input.length() <= maxLength ? input : input.substring(0, maxLength));
     }
 
-    private void resizeAndSaveImage(String imageSource, File outputFolder, String outputFileName) throws IOException {
-        BufferedImage originalImage;
-        File file = new File(imageSource);
-        if (file.exists()) {
-            try (InputStream inputStream = new FileInputStream(file)) {
-                originalImage = ImageIO.read(inputStream);
-            }
-        } else {
-            try {
-                URL url = new URL(imageSource);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-                try (InputStream inputStream = connection.getInputStream()) {
-                    originalImage = ImageIO.read(inputStream);
-                }
-            } catch (IOException e) {
-                throw new IOException("Failed to download image from URL: " + imageSource + " - " + e.getMessage(), e);
-            }
+    private void validateCoverFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("Uploaded file is empty");
         }
         String contentType = file.getContentType();
         if (!(JPEG_MIME_TYPE.equalsIgnoreCase(contentType) || PNG_MIME_TYPE.equalsIgnoreCase(contentType))) {
