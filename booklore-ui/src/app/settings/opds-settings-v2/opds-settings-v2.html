@@ -188,13 +188,18 @@
 
     <p-confirmDialog></p-confirmDialog>
   } @else {
-    <div class="px-4 py-4 rounded-lg bg-red-700/30 border border-red-600 text-red-200 flex items-center gap-2 max-w-lg">
-      <i class="pi pi-lock text-red-400 text-xl"></i>
-      <span>
-      Access to OPDS is restricted.
-      <br>
-      Please contact your administrator to request permission.
-    </span>
+    <div class="settings-content">
+      <div class="access-denied-card">
+        <i class="pi pi-lock"></i>
+        <div class="access-denied-content">
+          <h3>Access Restricted</h3>
+          <p>
+            Access to OPDS is restricted.
+            <br>
+            Please contact your administrator to request permission.
+          </p>
+        </div>
+      </div>
     </div>
   }
 </div>
