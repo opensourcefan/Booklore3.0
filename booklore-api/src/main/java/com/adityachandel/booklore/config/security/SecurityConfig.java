@@ -56,7 +56,8 @@ public class SecurityConfig {
     };
 
     private static final String[] COMMON_UNAUTHENTICATED_ENDPOINTS = {
-            "/api/v1/opds/search.opds"
+            "/api/v1/opds/search.opds",
+            "/api/v2/opds/search.opds"
     };
 
     @Bean
@@ -69,7 +70,7 @@ public class SecurityConfig {
     public SecurityFilterChain opdsBasicAuthSecurityChain(HttpSecurity http) throws Exception {
         List<String> unauthenticatedEndpoints = new ArrayList<>(Arrays.asList(COMMON_UNAUTHENTICATED_ENDPOINTS));
         http
-                .securityMatcher("/api/v1/opds/**")
+                .securityMatcher("/api/v1/opds/**", "/api/v2/opds/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -84,6 +85,7 @@ public class SecurityConfig {
                             response.getWriter().write("HTTP Status 401 - " + authException.getMessage());
                         })
                 );
+
         return http.build();
     }
 

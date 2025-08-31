@@ -28,32 +28,32 @@ import {Password} from 'primeng/password';
     TableModule,
     Password
   ],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService],
   templateUrl: './opds-settings-v2.html',
   styleUrl: './opds-settings-v2.scss'
 })
 export class OpdsSettingsV2 implements OnInit, OnDestroy {
-  
-  opdsEndpoint = `${API_CONFIG.BASE_URL}/api/v1/opds/catalog`;
-  
+
+  opdsEndpoint = `${API_CONFIG.BASE_URL}/api/v2/opds/catalog`;
+
   private opdsService = inject(OpdsV2Service);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private userService = inject(UserService);
-  
+
   users: OpdsUserV2[] = [];
   loading = false;
   showCreateUserDialog = false;
   newUser: OpdsUserV2CreateRequest = {username: '', password: ''};
   passwordVisibility: boolean[] = [];
   hasPermission = false;
-  
+
   private readonly destroy$ = new Subject<void>();
   dummyPassword: string = "***********************";
-  
+
   ngOnInit(): void {
     this.loading = true;
-    
+
     this.userService.userState$.pipe(
       filter(state => !!state?.user && state.loaded),
       takeUntil(this.destroy$),
@@ -64,7 +64,7 @@ export class OpdsSettingsV2 implements OnInit, OnDestroy {
       tap(() => this.loadUsers())
     ).subscribe();
   }
-  
+
   private loadUsers(): void {
     this.opdsService.getUser().pipe(
       takeUntil(this.destroy$),
@@ -79,25 +79,26 @@ export class OpdsSettingsV2 implements OnInit, OnDestroy {
       this.loading = false;
     });
   }
-  
+
   createUser(): void {
     if (!this.newUser.username || !this.newUser.password) return;
-    
+
     this.opdsService.createUser(this.newUser).pipe(
-      takeUntil(this.destroy$),
-      catchError(err => {
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: user => {
+        this.users.push(user);
+        this.resetCreateUserDialog();
+        this.showMessage('success', 'Success', 'User created successfully');
+      },
+      error: err => {
         console.error('Error creating user:', err);
-        this.showMessage('error', 'Error', 'Failed to create user');
-        return of(null);
-      })
-    ).subscribe(user => {
-      if (!user) return;
-      this.users.push(user);
-      this.resetCreateUserDialog();
-      this.showMessage('success', 'Success', 'User created successfully');
+        const message = err?.error?.message || 'Failed to create user';
+        this.showMessage('error', 'Error', message);
+      }
     });
   }
-  
+
   confirmDelete(user: OpdsUserV2): void {
     this.confirmationService.confirm({
       message: `Are you sure you want to delete user "${user.username}"?`,
@@ -107,10 +108,10 @@ export class OpdsSettingsV2 implements OnInit, OnDestroy {
       accept: () => this.deleteUser(user)
     });
   }
-  
+
   deleteUser(user: OpdsUserV2): void {
     if (!user.id) return;
-    
+
     this.opdsService.deleteCredential(user.id).pipe(
       takeUntil(this.destroy$),
       catchError(err => {
@@ -123,26 +124,26 @@ export class OpdsSettingsV2 implements OnInit, OnDestroy {
       this.showMessage('success', 'Success', 'User deleted successfully');
     });
   }
-  
+
   cancelCreateUser(): void {
     this.resetCreateUserDialog();
   }
-  
+
   copyEndpoint(): void {
     navigator.clipboard.writeText(this.opdsEndpoint).then(() => {
       this.showMessage('success', 'Copied', 'OPDS endpoint copied to clipboard');
     });
   }
-  
+
   private resetCreateUserDialog(): void {
     this.showCreateUserDialog = false;
     this.newUser = {username: '', password: ''};
   }
-  
+
   private showMessage(severity: string, summary: string, detail: string): void {
     this.messageService.add({severity, summary, detail});
   }
-  
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

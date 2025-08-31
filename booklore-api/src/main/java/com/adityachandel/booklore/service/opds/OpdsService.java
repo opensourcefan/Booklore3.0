@@ -33,7 +33,7 @@ public class OpdsService {
         String feedVersion = extractVersionFromAcceptHeader(request);
         return switch (feedVersion) {
             case "2.0" -> generateOpdsV2Feed(books);
-            default -> generateOpdsV1Feed(books);
+            default -> generateOpdsV1Feed(books, request);
         };
     }
 
@@ -42,7 +42,7 @@ public class OpdsService {
         String feedVersion = extractVersionFromAcceptHeader(request);
         return switch (feedVersion) {
             case "2.0" -> generateOpdsV2Feed(books);
-            default -> generateOpdsV1Feed(books);
+            default -> generateOpdsV1Feed(books, request);
         };
     }
 
@@ -109,29 +109,31 @@ public class OpdsService {
                 """;
     }
 
-    private String generateOpdsV1Feed(List<Book> books) {
+    private String generateOpdsV1Feed(List<Book> books, HttpServletRequest request) {
+        String version = extractVersionFromRequest(request); // v1 or v2
         var feed = new StringBuilder("""
                 <?xml version="1.0" encoding="UTF-8"?>
                 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/terms/">
                   <title>Booklore Catalog</title>
                   <id>urn:booklore:catalog</id>
                   <updated>%s</updated>
-                  <link rel="search" type="application/opensearchdescription+xml" title="Booklore Search" href="/api/v1/opds/search.opds"/>
-                """.formatted(now()));
+                  <link rel="search" type="application/opensearchdescription+xml" title="Booklore Search" href="/api/%s/opds/search.opds"/>
+                """.formatted(now(), version));
 
-        books.forEach(book -> appendBookEntryV1(feed, book));
+        books.forEach(book -> appendBookEntryV1(feed, book, version));
 
         feed.append("</feed>");
         return feed.toString();
     }
 
-    private void appendBookEntryV1(StringBuilder feed, Book book) {
+    private void appendBookEntryV1(StringBuilder feed, Book book, String version) {
         feed.append("""
                 <entry>
                   <title>%s</title>
                   <id>urn:booklore:book:%d</id>
                   <updated>%s</updated>
-                """.formatted(escapeXml(book.getMetadata().getTitle()), book.getId(), book.getAddedOn() != null ? book.getAddedOn() : now()));
+                """.formatted(escapeXml(book.getMetadata().getTitle()), book.getId(),
+                book.getAddedOn() != null ? book.getAddedOn() : now()));
 
         book.getMetadata().getAuthors().forEach(author -> feed.append("""
                 <author>
@@ -139,11 +141,13 @@ public class OpdsService {
                 </author>
                 """.formatted(escapeXml(author))));
 
-        appendOptionalTags(feed, book);
+        appendOptionalTags(feed, book, version);
         feed.append("  </entry>");
     }
 
-    private void appendOptionalTags(StringBuilder feed, Book book) {
+    private void appendOptionalTags(StringBuilder feed, Book book, String version) {
+        String basePath = "/api/" + version + "/opds/";
+
         if (book.getMetadata().getPublisher() != null) {
             feed.append("<dc:publisher>").append(escapeXml(book.getMetadata().getPublisher())).append("</dc:publisher>");
         }
@@ -166,12 +170,14 @@ public class OpdsService {
             feed.append("<published>").append(book.getMetadata().getPublishedDate()).append("</published>");
         }
 
+        // download link
         feed.append("""
-                <link href="/api/v1/opds/%d/download" rel="http://opds-spec.org/acquisition" type="application/%s"/>
-                """.formatted(book.getId(), fileMimeType(book)));
+                <link href="%s%d/download" rel="http://opds-spec.org/acquisition" type="application/%s"/>
+                """.formatted(basePath, book.getId(), fileMimeType(book)));
 
+        // cover link
         if (book.getMetadata().getCoverUpdatedOn() != null) {
-            String coverPath = "/api/v1/opds/" + book.getId() + "/cover?" + book.getMetadata().getCoverUpdatedOn();
+            String coverPath = basePath + book.getId() + "/cover?" + book.getMetadata().getCoverUpdatedOn();
             feed.append("""
                     <link rel="http://opds-spec.org/image" href="%s" type="image/jpeg"/>
                     <link rel="http://opds-spec.org/image/thumbnail" href="%s" type="image/jpeg"/>
@@ -216,5 +222,9 @@ public class OpdsService {
                         .replace(">", "&gt;")
                         .replace("\"", "&quot;")
                         .replace("'", "&apos;");
+    }
+
+    private String extractVersionFromRequest(HttpServletRequest request) {
+        return (request.getRequestURI() != null && request.getRequestURI().startsWith("/api/v2/opds")) ? "v2" : "v1";
     }
 }

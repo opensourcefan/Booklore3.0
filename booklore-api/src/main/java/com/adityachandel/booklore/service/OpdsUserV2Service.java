@@ -10,6 +10,7 @@ import com.adityachandel.booklore.model.entity.OpdsUserV2Entity;
 import com.adityachandel.booklore.repository.OpdsUserV2Repository;
 import com.adityachandel.booklore.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,14 +36,24 @@ public class OpdsUserV2Service {
     }
 
     public OpdsUserV2 createOpdsUser(OpdsUserV2CreateRequest request) {
-        BookLoreUser bookLoreUser = authenticationService.getAuthenticatedUser();
-        BookLoreUserEntity userEntity = userRepository.findById(bookLoreUser.getId()).orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + bookLoreUser.getId()));
-        OpdsUserV2Entity opdsUserV2 = OpdsUserV2Entity.builder()
-                .user(userEntity)
-                .username(request.getUsername())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .build();
-        return mapper.toDto(opdsUserV2Repository.save(opdsUserV2));
+        try {
+            BookLoreUser bookLoreUser = authenticationService.getAuthenticatedUser();
+            BookLoreUserEntity userEntity = userRepository.findById(bookLoreUser.getId())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + bookLoreUser.getId()));
+
+            OpdsUserV2Entity opdsUserV2 = OpdsUserV2Entity.builder()
+                    .user(userEntity)
+                    .username(request.getUsername())
+                    .passwordHash(passwordEncoder.encode(request.getPassword()))
+                    .build();
+
+            return mapper.toDto(opdsUserV2Repository.save(opdsUserV2));
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMostSpecificCause().getMessage().contains("uq_username")) {
+                throw new DataIntegrityViolationException("Username '" + request.getUsername() + "' is already taken");
+            }
+            throw e;
+        }
     }
 
     public void deleteOpdsUser(Long userId) {

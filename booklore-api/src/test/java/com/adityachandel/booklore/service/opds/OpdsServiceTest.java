@@ -47,6 +47,7 @@ class OpdsServiceTest {
         when(details.getOpdsUser()).thenReturn(mock(OpdsUser.class));
 
         when(request.getHeader("Accept")).thenReturn(null);
+        when(request.getRequestURI()).thenReturn("/opds/catalog");
         when(bookQueryService.getAllBooks(true)).thenReturn(List.of()); // minimal stub
 
         String feed = service.generateCatalogFeed(request);
@@ -74,6 +75,7 @@ class OpdsServiceTest {
 
         when(bookQueryService.searchBooksByMetadata("query")).thenReturn(List.of(book));
         when(request.getHeader("Accept")).thenReturn(null);
+        when(request.getRequestURI()).thenReturn("/opds/search");
 
         String feed = service.generateSearchResults(request, "query");
 
@@ -104,14 +106,51 @@ class OpdsServiceTest {
         when(userDto.getPermissions()).thenReturn(dtoPerms);
         when(bookLoreUserTransformer.toDTO(entity)).thenReturn(userDto);
 
+        // Accept header drives v2 selection; do not stub request.getRequestURI() (unused here)
         when(request.getHeader("Accept")).thenReturn("application/opds+json;version=2.0");
+        // stub the backend call exercised by getAllowedBooks for admin + no query
         when(bookQueryService.getAllBooks(true)).thenReturn(List.of());
 
         String feed = service.generateCatalogFeed(request);
 
         assertEquals("OPDS v2.0 Feed is under construction", feed);
-        verify(bookQueryService).getAllBooks(true);
         verify(userRepository).findById(9L);
+        verify(bookQueryService).getAllBooks(true);
+    }
+
+
+    @Test
+    void generateSearchResults_opdsV2_callsSearch_and_returnsV2Placeholder() {
+        // Setup v2 user (admin) so getAllowedBooks will call searchBooksByMetadata(query)
+        OpdsUserDetails details = mock(OpdsUserDetails.class);
+        when(authenticationService.getOpdsUser()).thenReturn(details);
+        when(details.getOpdsUser()).thenReturn(null);
+
+        OpdsUserV2 opdsUserV2 = mock(OpdsUserV2.class);
+        when(details.getOpdsUserV2()).thenReturn(opdsUserV2);
+        when(opdsUserV2.getUserId()).thenReturn(9L);
+
+        BookLoreUserEntity entity = mock(BookLoreUserEntity.class, RETURNS_DEEP_STUBS);
+        when(entity.getPermissions().isPermissionAccessOpds()).thenReturn(true);
+        when(userRepository.findById(9L)).thenReturn(Optional.of(entity));
+
+        BookLoreUser userDto = mock(BookLoreUser.class);
+        BookLoreUser.UserPermissions dtoPerms = mock(BookLoreUser.UserPermissions.class);
+        when(dtoPerms.isAdmin()).thenReturn(true);
+        when(userDto.getPermissions()).thenReturn(dtoPerms);
+        when(bookLoreUserTransformer.toDTO(entity)).thenReturn(userDto);
+
+        // Accept header drives v2 selection; do not stub request.getRequestURI()
+        when(request.getHeader("Accept")).thenReturn("application/opds+json;version=2.0");
+
+        // getAllowedBooks will invoke searchBooksByMetadata for admin + query
+        when(bookQueryService.searchBooksByMetadata("query")).thenReturn(List.of(mock(Book.class)));
+
+        String feed = service.generateSearchResults(request, "query");
+
+        assertEquals("OPDS v2.0 Feed is under construction", feed);
+        verify(userRepository).findById(9L);
+        verify(bookQueryService).searchBooksByMetadata("query");
     }
 
     @Test
@@ -141,6 +180,7 @@ class OpdsServiceTest {
         when(bookLoreUserTransformer.toDTO(entity)).thenReturn(userDto);
 
         when(request.getHeader("Accept")).thenReturn(null); // v1 default; feed version not relevant for allowed-books logic
+        when(request.getRequestURI()).thenReturn("/opds/catalog");
         when(bookQueryService.getAllBooksByLibraryIds(Set.of(7L), true)).thenReturn(List.of());
 
         String feed = service.generateCatalogFeed(request);
@@ -165,5 +205,12 @@ class OpdsServiceTest {
         AccessDeniedException ex = assertThrows(AccessDeniedException.class, () -> service.generateCatalogFeed(request));
         assertTrue(ex.getMessage().contains("User not found"));
         verify(userRepository).findById(42L);
+    }
+
+    @Test
+    void generateSearchDescription_opdsV2_returnsV2Placeholder() {
+        when(request.getHeader("Accept")).thenReturn("application/opds+json;version=2.0");
+        String desc = service.generateSearchDescription(request);
+        assertEquals("OPDS v2.0 Feed is under construction", desc);
     }
 }
