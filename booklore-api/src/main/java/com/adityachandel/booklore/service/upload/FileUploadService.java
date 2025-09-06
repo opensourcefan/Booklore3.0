@@ -64,10 +64,10 @@ public class FileUploadService {
     private final AdditionalFileMapper additionalFileMapper;
     private final MonitoringService monitoringService;
 
-    @Value("${PUID:0}")
+    @Value("${PUID:${USER_ID:0}}")
     private String userId;
 
-    @Value("${GUID:0}")
+    @Value("${PGID:${GROUP_ID:0}}")
     private String groupId;
 
     public Book uploadFile(MultipartFile file, long libraryId, long pathId) throws IOException {
