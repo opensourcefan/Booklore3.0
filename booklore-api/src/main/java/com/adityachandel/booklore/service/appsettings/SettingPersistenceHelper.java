@@ -183,8 +183,10 @@ public class SettingPersistenceHelper {
     public MetadataPersistenceSettings getDefaultMetadataPersistenceSettings() {
         return MetadataPersistenceSettings.builder()
                 .saveToOriginalFile(false)
+                .convertCbrCb7ToCbz(false)
                 .backupMetadata(false)
                 .backupCover(false)
+                .moveFilesToLibraryPattern(false)
                 .build();
     }
 
