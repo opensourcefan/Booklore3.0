@@ -142,6 +142,7 @@ public class BookService {
         UserBookProgressEntity userProgress = userBookProgressRepository.findByUserIdAndBookId(user.getId(), bookId).orElse(new UserBookProgressEntity());
 
         Book book = bookMapper.toBook(bookEntity);
+        book.setShelves(filterShelvesByUserId(book.getShelves(), user.getId()));
         book.setLastReadTime(userProgress.getLastReadTime());
 
         if (bookEntity.getBookType() == BookFileType.PDF) {
@@ -482,6 +483,7 @@ public class BookService {
 
         return bookEntities.stream().map(bookEntity -> {
             Book book = bookMapper.toBook(bookEntity);
+            book.setShelves(filterShelvesByUserId(book.getShelves(), user.getId()));
             book.setFilePath(FileUtils.getBookFullPath(bookEntity));
             enrichBookWithProgress(book, progressMap.get(bookEntity.getId()));
             return book;
@@ -635,6 +637,13 @@ public class BookService {
                 break;
             }
         }
+    }
+
+    private Set<Shelf> filterShelvesByUserId(Set<Shelf> shelves, Long userId) {
+        if (shelves == null) return Collections.emptySet();
+        return shelves.stream()
+                .filter(shelf -> userId.equals(shelf.getUserId()))
+                .collect(Collectors.toSet());
     }
 
 }
