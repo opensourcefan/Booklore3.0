@@ -58,12 +58,10 @@ export class ThemeConfiguratorComponent {
       'emerald', 'green', 'lime', 'orange', 'amber', 'yellow',
       'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet',
       'purple', 'fuchsia', 'pink', 'rose', 'red',
-      'coral', 'blush', 'coralFizz', 'melonFrost',
-      'apricotBreeze', 'bronze', 'butter', 'cream',
-      'citrusMint', 'sage', 'sagePearl', 'mintCandy',
-      'skyCandy', 'powder', 'periwinkleCream',
-      'lavenderDream', 'cottonCandy',
-      'dusty'
+      'coralSunset', 'roseBlush', 'melonBlush', 'cottonCandy',
+      'apricotSunrise', 'antiqueBronze', 'butteryYellow', 'vanillaCream',
+      'citrusMint', 'freshMint', 'sagePearl', 'skyBlue','periwinkleCream',
+      'pastelRoyalBlue', 'lavenderDream', 'dustyNeutral'
     ];
     return [{name: 'noir', palette: {}}].concat(
       colors.map(name => ({

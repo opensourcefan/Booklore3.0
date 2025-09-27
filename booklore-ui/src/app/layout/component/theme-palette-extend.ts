@@ -3,7 +3,7 @@ import Aura from '@primeng/themes/aura';
 type ColorPalette = Record<string, string>;
 
 const customPalettes: Record<string, ColorPalette> = {
-  coral: {
+  coralSunset: {
     50: '#fef7f0',
     100: '#feede1',
     200: '#fcd9c2',
@@ -16,7 +16,7 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#78322a',
     950: '#401814'
   },
-  blush: {
+  roseBlush: {
     50: '#fef7f7',
     100: '#feebeb',
     200: '#fddcdc',
@@ -29,20 +29,7 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#7f2d2d',
     950: '#451313'
   },
-  coralFizz: {
-    50: '#fff8f7',
-    100: '#fff0ee',
-    200: '#ffdede',
-    300: '#ffc7c1',
-    400: '#ffac9f',
-    500: '#ff8f7f',
-    600: '#ff6f66',
-    700: '#e64f52',
-    800: '#b3343b',
-    900: '#7f2026',
-    950: '#3f0f12'
-  },
-  melonFrost: {
+  melonBlush: {
     50: '#fffafb',
     100: '#fff2f4',
     200: '#ffdfe7',
@@ -55,7 +42,20 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#7f2231',
     950: '#3f1118'
   },
-  apricotBreeze: {
+  cottonCandy: {
+    50: '#fff9fb',
+    100: '#fff0f6',
+    200: '#ffdfee',
+    300: '#ffc0e0',
+    400: '#ffa3cf',
+    500: '#ff86bf',
+    600: '#ff69ad',
+    700: '#e14f93',
+    800: '#b93a72',
+    900: '#86284f',
+    950: '#42142a'
+  },
+  apricotSunrise: {
     50: '#fffaf7',
     100: '#fff1e8',
     200: '#ffe2c9',
@@ -68,7 +68,7 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#7f351b',
     950: '#3f190f'
   },
-  bronze: {
+  antiqueBronze: {
     50: '#faf7f2',
     100: '#f4ede0',
     200: '#e8d9c0',
@@ -81,7 +81,7 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#5c442c',
     950: '#302316'
   },
-  butter: {
+  butteryYellow: {
     50: '#fffef7',
     100: '#fffceb',
     200: '#fff7d1',
@@ -94,7 +94,7 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#a35f0c',
     950: '#633204'
   },
-  cream: {
+  vanillaCream: {
     50: '#fefdfb',
     100: '#fefbf6',
     200: '#fdf5ea',
@@ -120,18 +120,18 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#1a4f20',
     950: '#0a2410'
   },
-  sage: {
-    50: '#f7f8f7',
-    100: '#eef0ed',
-    200: '#dde1da',
-    300: '#c4ccbe',
-    400: '#a6b29d',
-    500: '#8a9580',
-    600: '#6f7a67',
-    700: '#5a6354',
-    800: '#4a5146',
-    900: '#3e433b',
-    950: '#22251f'
+  freshMint: {
+    50: '#f8fff9',
+    100: '#f0fff3',
+    200: '#dcffea',
+    300: '#bfffd6',
+    400: '#99ffc2',
+    500: '#7fffae',
+    600: '#5fe592',
+    700: '#3fbf75',
+    800: '#2d8f55',
+    900: '#1e5f39',
+    950: '#0f2f1d'
   },
   sagePearl: {
     50: '#fbfdfb',
@@ -146,20 +146,7 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#25442e',
     950: '#0f2118'
   },
-  mintCandy: {
-    50: '#f8fff9',
-    100: '#f0fff3',
-    200: '#dcffea',
-    300: '#bfffd6',
-    400: '#99ffc2',
-    500: '#7fffae',
-    600: '#5fe592',
-    700: '#3fbf75',
-    800: '#2d8f55',
-    900: '#1e5f39',
-    950: '#0f2f1d'
-  },
-  skyCandy: {
+  skyBlue: {
     50: '#f7fbff',
     100: '#eef6ff',
     200: '#dceefd',
@@ -171,19 +158,6 @@ const customPalettes: Record<string, ColorPalette> = {
     800: '#2360b3',
     900: '#153d80',
     950: '#071d40'
-  },
-  powder: {
-    50: '#f8fafc',
-    100: '#f0f4f8',
-    200: '#e2e9f0',
-    300: '#cbd7e3',
-    400: '#a8bed1',
-    500: '#89a4bb',
-    600: '#6e8ba3',
-    700: '#5a738a',
-    800: '#4c5f71',
-    900: '#41505e',
-    950: '#2a343d'
   },
   periwinkleCream: {
     50: '#fbfbff',
@@ -198,6 +172,19 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#2b387f',
     950: '#151c40'
   },
+  pastelRoyalBlue: {
+    50: '#f6fbff',
+    100: '#eef6ff',
+    200: '#dbeeff',
+    300: '#b9ddff',
+    400: '#92c7ff',
+    500: '#63aaff',
+    600: '#3b88ff',
+    700: '#2e66cc',
+    800: '#235099',
+    900: '#183366',
+    950: '#0d1a33'
+  },
   lavenderDream: {
     50: '#fbf7ff',
     100: '#f6eeff',
@@ -211,20 +198,7 @@ const customPalettes: Record<string, ColorPalette> = {
     900: '#2d1b4f',
     950: '#15082a'
   },
-  cottonCandy: {
-    50: '#fff9fb',
-    100: '#fff0f6',
-    200: '#ffdfee',
-    300: '#ffc0e0',
-    400: '#ffa3cf',
-    500: '#ff86bf',
-    600: '#ff69ad',
-    700: '#e14f93',
-    800: '#b93a72',
-    900: '#86284f',
-    950: '#42142a'
-  },
-  dusty: {
+  dustyNeutral: {
     50: '#faf9f7',
     100: '#f3f1ed',
     200: '#e8e3db',
