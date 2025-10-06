@@ -157,10 +157,16 @@ public class BookService {
                     .percentage(userProgress.getEpubProgressPercent())
                     .build());
             if (userProgress.getKoreaderProgressPercent() != null) {
-                if (book.getKoreaderProgress() == null) {
-                    book.setKoreaderProgress(KoProgress.builder().build());
+                var userReadProgress = userProgress.getKoreaderProgressPercent() * 100;
+                book.getKoreaderProgress().setPercentage(userReadProgress);
+                if (userReadProgress >= 99.5f) {
+                    book.setReadStatus(String.valueOf(ReadStatus.READ));
+                } else if (userReadProgress > 0.01f) {
+                    book.setReadStatus(String.valueOf(ReadStatus.READING));
+                } else {
+                    book.setReadStatus(String.valueOf(ReadStatus.UNREAD));
                 }
-                book.getKoreaderProgress().setPercentage(userProgress.getKoreaderProgressPercent() * 100);
+
             }
         }
         if (bookEntity.getBookType() == BookFileType.CBX) {
@@ -193,6 +199,7 @@ public class BookService {
                             .fontSize(epubPref.getFontSize())
                             .theme(epubPref.getTheme())
                             .flow(epubPref.getFlow())
+                            .spread(epubPref.getSpread())
                             .letterSpacing(epubPref.getLetterSpacing())
                             .lineHeight(epubPref.getLineHeight())
                             .build()));
@@ -272,6 +279,7 @@ public class BookService {
             epubPrefs.setFontSize(epubSettings.getFontSize());
             epubPrefs.setTheme(epubSettings.getTheme());
             epubPrefs.setFlow(epubSettings.getFlow());
+            epubPrefs.setSpread(epubSettings.getSpread());
             epubPrefs.setLetterSpacing(epubSettings.getLetterSpacing());
             epubPrefs.setLineHeight(epubSettings.getLineHeight());
             epubViewerPreferencesRepository.save(epubPrefs);

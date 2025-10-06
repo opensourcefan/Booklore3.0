@@ -82,38 +82,103 @@ class MetadataRefreshServiceTest {
         setupTestEntities();
     }
 
+    private MetadataRefreshOptions.EnabledFields allEnabledFields() {
+        return MetadataRefreshOptions.EnabledFields.builder()
+                .title(true)
+                .subtitle(true)
+                .description(true)
+                .authors(true)
+                .publisher(true)
+                .publishedDate(true)
+                .seriesName(true)
+                .seriesNumber(true)
+                .seriesTotal(true)
+                .isbn13(true)
+                .isbn10(true)
+                .language(true)
+                .categories(true)
+                .cover(true)
+                .pageCount(true)
+                .asin(true)
+                .goodreadsId(true)
+                .comicvineId(true)
+                .hardcoverId(true)
+                .googleId(true)
+                .amazonRating(true)
+                .amazonReviewCount(true)
+                .goodreadsRating(true)
+                .goodreadsReviewCount(true)
+                .hardcoverRating(true)
+                .hardcoverReviewCount(true)
+                .moods(true)
+                .tags(true)
+                .build();
+    }
+
     private void setupDefaultOptions() {
-        MetadataRefreshOptions.FieldProvider titleProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, MetadataProvider.Google, MetadataProvider.GoodReads);
-        MetadataRefreshOptions.FieldProvider descriptionProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.Google);
-        MetadataRefreshOptions.FieldProvider authorsProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.GoodReads);
-        MetadataRefreshOptions.FieldProvider categoriesProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.Google);
-        MetadataRefreshOptions.FieldProvider coverProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.GoodReads);
+        MetadataRefreshOptions.FieldProvider titleProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p3(MetadataProvider.Google)
+                .p1(MetadataProvider.GoodReads)
+                .build();
+        MetadataRefreshOptions.FieldProvider descriptionProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
+        MetadataRefreshOptions.FieldProvider authorsProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.GoodReads)
+                .build();
+        MetadataRefreshOptions.FieldProvider categoriesProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
+        MetadataRefreshOptions.FieldProvider moodProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
+        MetadataRefreshOptions.FieldProvider tagProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
+        MetadataRefreshOptions.FieldProvider coverProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.GoodReads)
+                .build();
 
-        MetadataRefreshOptions.FieldOptions fieldOptions = new MetadataRefreshOptions.FieldOptions(
-                titleProvider, null, descriptionProvider, authorsProvider, null, null,
-                null, null, null, null, null, null, categoriesProvider, coverProvider);
+        MetadataRefreshOptions.FieldOptions fieldOptions = MetadataRefreshOptions.FieldOptions.builder()
+                .title(titleProvider)
+                .description(descriptionProvider)
+                .authors(authorsProvider)
+                .categories(categoriesProvider)
+                .moods(moodProvider)
+                .tags(tagProvider)
+                .cover(coverProvider)
+                .build();
 
-        defaultOptions = new MetadataRefreshOptions(
-                null, MetadataProvider.GoodReads, MetadataProvider.Google, null, null,
-                true, false, false, fieldOptions);
+        MetadataRefreshOptions.EnabledFields skipFields = allEnabledFields();
+
+        defaultOptions = MetadataRefreshOptions.builder()
+                .refreshCovers(true)
+                .mergeCategories(false)
+                .reviewBeforeApply(false)
+                .fieldOptions(fieldOptions)
+                .enabledFields(skipFields)
+                .build();
     }
 
     private void setupLibraryOptions() {
-        MetadataRefreshOptions.FieldProvider titleProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.Google);
+        MetadataRefreshOptions.FieldProvider titleProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
 
-        MetadataRefreshOptions.FieldOptions fieldOptions = new MetadataRefreshOptions.FieldOptions(
-                titleProvider, null, null, null, null, null,
-                null, null, null, null, null, null, null, null);
+        MetadataRefreshOptions.FieldOptions fieldOptions = MetadataRefreshOptions.FieldOptions.builder()
+                .title(titleProvider)
+                .build();
 
-        libraryOptions = new MetadataRefreshOptions(
-                1L, MetadataProvider.Google, null, null, null,
-                false, true, true, fieldOptions);
+        MetadataRefreshOptions.EnabledFields skipFields = allEnabledFields();
+
+        libraryOptions = MetadataRefreshOptions.builder()
+                .libraryId(1L)
+                .refreshCovers(false)
+                .mergeCategories(true)
+                .reviewBeforeApply(true)
+                .fieldOptions(fieldOptions)
+                .enabledFields(skipFields)
+                .build();
     }
 
     private void setupAppSettings() {
@@ -128,7 +193,6 @@ class MetadataRefreshServiceTest {
         testLibrary.setId(1L);
         testLibrary.setName("Test Library");
 
-        // Create AuthorEntity for proper type compatibility
         AuthorEntity authorEntity = new AuthorEntity();
         authorEntity.setName("Test Author");
 
@@ -220,16 +284,21 @@ class MetadataRefreshServiceTest {
 
     @Test
     void testRefreshMetadata_WithRequestOptions_ShouldUseRequestOptions() {
-        // Given
-        MetadataRefreshOptions.FieldProvider titleProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.Hardcover);
-        MetadataRefreshOptions.FieldOptions fieldOptions = new MetadataRefreshOptions.FieldOptions(
-                titleProvider, null, null, null, null, null,
-                null, null, null, null, null, null, null, null);
+        MetadataRefreshOptions.FieldProvider titleProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Hardcover)
+                .build();
+        MetadataRefreshOptions.FieldOptions fieldOptions = MetadataRefreshOptions.FieldOptions.builder()
+                .title(titleProvider)
+                .build();
+        MetadataRefreshOptions.EnabledFields skipFields = allEnabledFields();
 
-        MetadataRefreshOptions requestOptions = new MetadataRefreshOptions(
-                null, MetadataProvider.Hardcover, null, null, null,
-                true, false, false, fieldOptions);
+        MetadataRefreshOptions requestOptions = MetadataRefreshOptions.builder()
+                .refreshCovers(true)
+                .mergeCategories(false)
+                .reviewBeforeApply(false)
+                .fieldOptions(fieldOptions)
+                .enabledFields(skipFields)
+                .build();
 
         MetadataRefreshRequest request = MetadataRefreshRequest.builder()
                 .refreshType(MetadataRefreshRequest.RefreshType.BOOKS)
@@ -284,9 +353,15 @@ class MetadataRefreshServiceTest {
 
     @Test
     void testRefreshMetadata_WithReviewMode_ShouldCreateTaskAndProposals() throws JsonProcessingException {
-        MetadataRefreshOptions reviewOptions = new MetadataRefreshOptions(
-                null, MetadataProvider.GoodReads, MetadataProvider.Google, null, null,
-                true, false, true, defaultOptions.getFieldOptions());
+        MetadataRefreshOptions.EnabledFields skipFields = allEnabledFields();
+
+        MetadataRefreshOptions reviewOptions = MetadataRefreshOptions.builder()
+                .refreshCovers(true)
+                .mergeCategories(false)
+                .reviewBeforeApply(true)
+                .fieldOptions(defaultOptions.getFieldOptions())
+                .enabledFields(skipFields)
+                .build();
 
         MetadataRefreshRequest request = MetadataRefreshRequest.builder()
                 .refreshType(MetadataRefreshRequest.RefreshType.BOOKS)
@@ -340,7 +415,7 @@ class MetadataRefreshServiceTest {
         when(bookRepository.findAllWithMetadataByIds(Set.of(999L))).thenReturn(Collections.emptyList());
 
         assertThrows(RuntimeException.class, () ->
-            metadataRefreshService.refreshMetadata(request, 1L, "job-1"));
+                metadataRefreshService.refreshMetadata(request, 1L, "job-1"));
     }
 
     @Test
@@ -354,7 +429,7 @@ class MetadataRefreshServiceTest {
         when(libraryRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () ->
-            metadataRefreshService.refreshMetadata(request, 1L, "job-1"));
+                metadataRefreshService.refreshMetadata(request, 1L, "job-1"));
     }
 
     @Test
@@ -445,24 +520,48 @@ class MetadataRefreshServiceTest {
 
     @Test
     void testBuildFetchMetadata_WithMergeCategories_ShouldMergeAllCategories() {
-        MetadataRefreshOptions.FieldProvider titleProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.Google);
-        MetadataRefreshOptions.FieldProvider descriptionProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.Google);
-        MetadataRefreshOptions.FieldProvider authorsProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.Google);
-        MetadataRefreshOptions.FieldProvider categoriesProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, MetadataProvider.Google, MetadataProvider.GoodReads);
-        MetadataRefreshOptions.FieldProvider coverProvider = new MetadataRefreshOptions.FieldProvider(
-                null, null, null, MetadataProvider.Google);
+        MetadataRefreshOptions.FieldProvider titleProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
+        MetadataRefreshOptions.FieldProvider descriptionProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
+        MetadataRefreshOptions.FieldProvider authorsProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
+        MetadataRefreshOptions.FieldProvider moodProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
+        MetadataRefreshOptions.FieldProvider tagProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
+        MetadataRefreshOptions.FieldProvider categoriesProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p3(MetadataProvider.Google)
+                .p1(MetadataProvider.GoodReads)
+                .build();
+        MetadataRefreshOptions.FieldProvider coverProvider = MetadataRefreshOptions.FieldProvider.builder()
+                .p1(MetadataProvider.Google)
+                .build();
 
-        MetadataRefreshOptions.FieldOptions fieldOptions = new MetadataRefreshOptions.FieldOptions(
-                titleProvider, null, descriptionProvider, authorsProvider, null, null,
-                null, null, null, null, null, null, categoriesProvider, coverProvider);
+        MetadataRefreshOptions.FieldOptions fieldOptions = MetadataRefreshOptions.FieldOptions.builder()
+                .title(titleProvider)
+                .description(descriptionProvider)
+                .authors(authorsProvider)
+                .categories(categoriesProvider)
+                .moods(moodProvider)
+                .tags(tagProvider)
+                .cover(coverProvider)
+                .build();
 
-        MetadataRefreshOptions mergeOptions = new MetadataRefreshOptions(
-                null, MetadataProvider.GoodReads, MetadataProvider.Google, null, null,
-                true, true, false, fieldOptions);
+        MetadataRefreshOptions.EnabledFields skipFields = allEnabledFields();
+
+        MetadataRefreshOptions mergeOptions = MetadataRefreshOptions.builder()
+                .refreshCovers(true)
+                .mergeCategories(true)
+                .reviewBeforeApply(false)
+                .fieldOptions(fieldOptions)
+                .enabledFields(skipFields)
+                .build();
 
         Map<MetadataProvider, BookMetadata> metadataMap = new HashMap<>();
         metadataMap.put(MetadataProvider.GoodReads, BookMetadata.builder()
