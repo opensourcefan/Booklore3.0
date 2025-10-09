@@ -49,7 +49,7 @@ export class MetadataPickerComponent implements OnInit {
 
   metadataChips = [
     {label: 'Authors', controlName: 'authors', lockedKey: 'authorsLocked', fetchedKey: 'authors'},
-    {label: 'Categories', controlName: 'categories', lockedKey: 'categoriesLocked', fetchedKey: 'categories'},
+    {label: 'Genres', controlName: 'categories', lockedKey: 'categoriesLocked', fetchedKey: 'categories'},
     {label: 'Moods', controlName: 'moods', lockedKey: 'moodsLocked', fetchedKey: 'moods'},
     {label: 'Tags', controlName: 'tags', lockedKey: 'tagsLocked', fetchedKey: 'tags'},
   ];
