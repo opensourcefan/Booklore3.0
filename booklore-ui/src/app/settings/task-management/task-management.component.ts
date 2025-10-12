@@ -8,6 +8,7 @@ import {Select} from 'primeng/select';
 import {FormsModule} from '@angular/forms';
 import {MetadataReplaceMode, Task, TASK_TYPE_CONFIG, TaskCreateRequest, TaskProgressPayload, TaskService, TaskStatus, TaskType} from './task.service';
 import {finalize, Subscription} from 'rxjs';
+import {ExternalDocLinkComponent} from '../../shared/components/external-doc-link/external-doc-link.component';
 
 @Component({
   selector: 'app-task-management',
@@ -18,7 +19,8 @@ import {finalize, Subscription} from 'rxjs';
     Badge,
     ProgressBar,
     Select,
-    FormsModule
+    FormsModule,
+    ExternalDocLinkComponent
   ],
   templateUrl: './task-management.component.html',
   styleUrl: './task-management.component.scss'

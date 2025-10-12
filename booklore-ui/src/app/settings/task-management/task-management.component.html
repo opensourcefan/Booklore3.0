@@ -2,7 +2,8 @@
   <div class="settings-header">
     <h2 class="settings-title">
       <i class="pi pi-list-check"></i>
-      Task Management
+      System Task Manager
+      <app-external-doc-link docType="taskManagement"></app-external-doc-link>
     </h2>
     <p class="settings-description">
       Monitor and manage system tasks including cache operations, library scanning, and other background processes.
@@ -15,7 +16,7 @@
         <div class="section-header-content">
           <h3 class="section-title">
             <i class="pi pi-cog"></i>
-            Active Tasks
+            One-Time Tasks
           </h3>
           <p-button
             label="Refresh"
@@ -43,7 +44,10 @@
                 <div class="setting-label-row">
                   <div class="task-title-section">
                     <div class="title-with-status">
-                      <label class="setting-label">{{ getTaskDisplayName(task.type) }}</label>
+                      <label class="setting-label">
+                        <i class="pi pi-trash"></i>
+                        {{ getTaskDisplayName(task.type) }}
+                      </label>
                       @if (!isTaskRunning(task) && task.id) {
                         <span class="last-run-badge">[{{ getLastRunMessage(task) }}<span class="sep">|</span><span class="status-dot" [ngClass]="getLastRunInfoClass(task.status)"></span><span
                           class="status-text">{{ getLastRunInfoClass(task.status) === 'success' ? 'Success' : getLastRunInfoClass(task.status) === 'error' ? 'Error' : getLastRunInfoClass(task.status) === 'warning' ? 'Warning' : 'Info' }}]</span></span>
@@ -154,7 +158,10 @@
                 <div class="setting-label-row">
                   <div class="task-title-section">
                     <div class="title-with-status">
-                      <label class="setting-label">{{ getTaskDisplayName(task.type) }}</label>
+                      <label class="setting-label">
+                        <i class="pi pi-sync"></i>
+                        {{ getTaskDisplayName(task.type) }}
+                      </label>
                       @if (!isTaskRunning(task) && task.id) {
                         <span class="last-run-badge">[{{ getLastRunMessage(task) }}<span class="sep">|</span><span class="status-dot" [ngClass]="getLastRunInfoClass(task.status)"></span><span
                           class="status-text">{{ getLastRunInfoClass(task.status) === 'success' ? 'Success' : getLastRunInfoClass(task.status) === 'error' ? 'Error' : getLastRunInfoClass(task.status) === 'warning' ? 'Warning' : 'Info' }}]</span></span>
@@ -195,7 +202,7 @@
                     }
                     @if (canExecuteTask(task) || isTaskStale(task)) {
                       <p-button
-                        label="Start Rescan"
+                        label="Start Refresh"
                         icon="pi pi-sync"
                         size="small"
                         severity="success"

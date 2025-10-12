@@ -124,6 +124,11 @@
     color: var(--p-text-color);
     font-size: 1rem;
     margin-bottom: 0.5rem;
+
+    .pi {
+      color: var(--p-primary-color);
+      margin-right: 0.5rem;
+    }
   }
 
   .title-with-status {
@@ -135,6 +140,8 @@
     .setting-label {
       margin-bottom: 0;
       line-height: 1.2;
+      display: flex;
+      align-items: center;
     }
   }
 
@@ -194,7 +201,6 @@
   margin-bottom: 1rem;
   margin-top: 1rem;
   padding: 1rem;
-  background: var(--p-surface-800);
   border-radius: 6px;
   border: 1px solid var(--p-surface-500);
 
@@ -331,7 +337,6 @@
 .last-run-info {
   margin-top: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: var(--p-surface-800);
   border-radius: 4px;
   border-left: 3px solid var(--p-green-500);
 
@@ -384,8 +389,8 @@
         margin-top: 0.5rem;
 
         .pi {
-          color: var(--p-primary-color);
-          font-size: 1rem;
+          padding-left: 1.5rem;
+          font-size: 0.85rem;
         }
 
         .cache-size-value {
@@ -431,7 +436,8 @@
   margin-top: 1rem;
   margin-bottom: 0;
   padding: 1rem;
-  background: var(--p-surface-800);
+  width: 100%;
+  max-width: 45rem;
   border-radius: 6px;
   border: 1px solid var(--p-content-border-color);
 }
