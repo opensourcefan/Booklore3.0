@@ -5,6 +5,7 @@ import com.adityachandel.booklore.mapper.BookMapper;
 import com.adityachandel.booklore.mapper.BookMetadataMapper;
 import com.adityachandel.booklore.mapper.MetadataClearFlagsMapper;
 import com.adityachandel.booklore.model.MetadataClearFlags;
+import com.adityachandel.booklore.model.MetadataUpdateContext;
 import com.adityachandel.booklore.model.MetadataUpdateWrapper;
 import com.adityachandel.booklore.model.dto.Book;
 import com.adityachandel.booklore.model.dto.BookMetadata;
@@ -22,25 +23,23 @@ import com.adityachandel.booklore.repository.BookMetadataRepository;
 import com.adityachandel.booklore.repository.BookRepository;
 import com.adityachandel.booklore.service.BookQueryService;
 import com.adityachandel.booklore.service.NotificationService;
-import com.adityachandel.booklore.service.metadata.writer.MetadataWriter;
-import com.adityachandel.booklore.util.SecurityContextVirtualThread;
 import com.adityachandel.booklore.service.appsettings.AppSettingService;
 import com.adityachandel.booklore.service.fileprocessor.BookFileProcessor;
 import com.adityachandel.booklore.service.fileprocessor.BookFileProcessorRegistry;
 import com.adityachandel.booklore.service.metadata.extractor.CbxMetadataExtractor;
 import com.adityachandel.booklore.service.metadata.parser.BookParser;
+import com.adityachandel.booklore.service.metadata.writer.MetadataWriter;
 import com.adityachandel.booklore.service.metadata.writer.MetadataWriterFactory;
 import com.adityachandel.booklore.util.FileService;
 import com.adityachandel.booklore.util.FileUtils;
+import com.adityachandel.booklore.util.SecurityContextVirtualThread;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -254,12 +253,17 @@ public class BookMetadataService {
                     .tags(request.getTags())
                     .build();
 
-            MetadataUpdateWrapper metadataUpdateWrapper = MetadataUpdateWrapper.builder()
-                    .metadata(bookMetadata)
-                    .clearFlags(clearFlags)
+            MetadataUpdateContext context = MetadataUpdateContext.builder()
+                    .bookEntity(book)
+                    .metadataUpdateWrapper(MetadataUpdateWrapper.builder()
+                            .metadata(bookMetadata)
+                            .clearFlags(clearFlags)
+                            .build())
+                    .updateThumbnail(false)
+                    .mergeCategories(mergeCategories)
                     .build();
 
-            bookMetadataUpdater.setBookMetadata(book, metadataUpdateWrapper, false, mergeCategories);
+            bookMetadataUpdater.setBookMetadata(context);
         }
 
         return books.stream()
@@ -268,4 +272,3 @@ public class BookMetadataService {
                 .toList();
     }
 }
-
