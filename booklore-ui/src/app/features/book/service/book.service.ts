@@ -199,14 +199,14 @@ export class BookService {
     switch (book.bookType) {
       case "PDF":
         url = !reader || reader === "ngx"
-          ? `/pdf-viewer/book/${book.id}`
-          : `/cbx-viewer/book/${book.id}`;
+          ? `/pdf-reader/book/${book.id}`
+          : `/cbx-reader/book/${book.id}`;
         break;
       case "EPUB":
-        url = `/epub-viewer/book/${book.id}`;
+        url = `/epub-reader/book/${book.id}`;
         break;
       case "CBX":
-        url = `/cbx-viewer/book/${book.id}`;
+        url = `/cbx-reader/book/${book.id}`;
         break;
       default:
         console.error('Unsupported book type:', book.bookType);
