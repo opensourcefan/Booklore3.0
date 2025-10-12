@@ -10,6 +10,8 @@
   width: 100%;
   padding: 0 1rem;
   background-color: var(--card-background);
+  border: none;
+  border-bottom: 1px solid var(--p-content-border-color);
   transition: left variables.$transitionDuration;
   display: flex;
   align-items: center;

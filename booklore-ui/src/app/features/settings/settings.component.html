@@ -1,6 +1,6 @@
 @if (userService.userState$ | async; as userState) {
   @if (userState.user) {
-    <div class="rounded-xl overflow-hidden">
+    <div class="rounded-xl overflow-hidden border-[1px] border-solid border-[var(--p-content-border-color)]">
       <p-tabs [(value)]="activeTab" scrollable>
         <p-tablist>
           <p-tab [value]="SettingsTab.ReaderSettings">
