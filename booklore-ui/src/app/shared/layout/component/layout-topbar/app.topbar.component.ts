@@ -21,7 +21,7 @@ import {takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
 import {MetadataBatchProgressNotification} from '../../../model/metadata-batch-progress.model';
 import {BookdropFileService} from '../../../../features/bookdrop/service/bookdrop-file.service';
-import {DialogLauncherService} from '../../../../core/service/dialog-launcher.service';
+import {DialogLauncherService} from '../../../services/dialog-launcher.service';
 import {DuplicateFileService} from '../../../websocket/duplicate-file.service';
 import {UnifiedNotificationBoxComponent} from '../../../components/unified-notification-popover/unified-notification-popover-component';
 

@@ -1,8 +1,8 @@
 import {inject} from '@angular/core';
 import {OAuthService} from 'angular-oauth2-oidc';
-import {AuthService, websocketInitializer} from '../shared/service/auth.service';
-import {AppSettingsService} from '../shared/service/app-settings.service';
-import {AuthInitializationService} from './service/auth-initialization-service';
+import {AuthService, websocketInitializer} from '../../shared/service/auth.service';
+import {AppSettingsService} from '../../shared/service/app-settings.service';
+import {AuthInitializationService} from './auth-initialization-service';
 
 const OIDC_BYPASS_KEY = 'booklore-oidc-bypass';
 const OIDC_ERROR_COUNT_KEY = 'booklore-oidc-error-count';

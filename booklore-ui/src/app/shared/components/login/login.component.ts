@@ -9,7 +9,7 @@ import {InputText} from 'primeng/inputtext';
 import {OAuthService} from 'angular-oauth2-oidc';
 import {Observable, Subject} from 'rxjs';
 import {filter, take} from 'rxjs/operators';
-import {getOidcErrorCount, isOidcBypassed, resetOidcBypass} from '../../../core/auth-initializer';
+import {getOidcErrorCount, isOidcBypassed, resetOidcBypass} from '../../../core/security/auth-initializer';
 import {AppSettingsService, PublicAppSettings} from '../../service/app-settings.service';
 
 @Component({

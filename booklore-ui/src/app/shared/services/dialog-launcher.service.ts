@@ -1,8 +1,8 @@
 import {inject, Injectable} from '@angular/core';
 import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {GithubSupportDialog} from '../../shared/components/github-support-dialog/github-support-dialog';
+import {GithubSupportDialog} from '../components/github-support-dialog/github-support-dialog';
 import {LibraryCreatorComponent} from '../../features/library-creator/library-creator.component';
-import {BookUploaderComponent} from '../../shared/components/book-uploader/book-uploader.component';
+import {BookUploaderComponent} from '../components/book-uploader/book-uploader.component';
 import {UserProfileDialogComponent} from '../../features/settings/user-profile-dialog/user-profile-dialog.component';
 import {MagicShelfComponent} from '../../features/magic-shelf/component/magic-shelf-component';
 

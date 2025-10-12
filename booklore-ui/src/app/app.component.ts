@@ -6,7 +6,7 @@ import {parseLogNotification} from './shared/websocket/model/log-notification.mo
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {Toast} from 'primeng/toast';
 import {RouterOutlet} from '@angular/router';
-import {AuthInitializationService} from './core/service/auth-initialization-service';
+import {AuthInitializationService} from './core/security/auth-initialization-service';
 import {AppConfigService} from './shared/service/app-config.service';
 import {MetadataBatchProgressNotification} from './shared/model/metadata-batch-progress.model';
 import {MetadataProgressService} from './shared/service/metadata-progress-service';

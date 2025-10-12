@@ -9,7 +9,7 @@ import {Ripple} from 'primeng/ripple';
 import {Button} from 'primeng/button';
 import {Menu} from 'primeng/menu';
 import {UserService} from '../../../../features/settings/user-management/user.service';
-import {DialogLauncherService} from '../../../../core/service/dialog-launcher.service';
+import {DialogLauncherService} from '../../../services/dialog-launcher.service';
 
 @Component({
   selector: '[app-menuitem]',
