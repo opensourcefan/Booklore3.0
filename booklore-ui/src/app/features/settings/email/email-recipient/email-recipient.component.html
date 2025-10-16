@@ -73,7 +73,8 @@
                   name="defaultRecipient"
                   [value]="recipient.id"
                   [(ngModel)]="defaultRecipientId"
-                  (onClick)="setDefaultRecipient(recipient)">
+                  (onClick)="setDefaultRecipient(recipient)"
+                  [disabled]="true">
                 </p-radioButton>
               </td>
 
@@ -104,7 +105,8 @@
                     [outlined]="true"
                     [rounded]="true"
                     (onClick)="toggleEditRecipient(recipient)"
-                    pTooltip="Edit recipient">
+                    pTooltip="Edit recipient"
+                    [disabled]="true">
                   </p-button>
                 }
                 @if (recipient.isEditing) {
@@ -116,7 +118,8 @@
                       [outlined]="true"
                       [rounded]="true"
                       (onClick)="saveRecipient(recipient)"
-                      pTooltip="Save changes">
+                      pTooltip="Save changes"
+                      [disabled]="true">
                     </p-button>
                     <p-button
                       icon="pi pi-times"
@@ -125,7 +128,8 @@
                       [outlined]="true"
                       [rounded]="true"
                       (onClick)="toggleEditRecipient(recipient)"
-                      pTooltip="Cancel">
+                      pTooltip="Cancel"
+                      [disabled]="true">
                     </p-button>
                   </div>
                 }
@@ -139,7 +143,8 @@
                   [outlined]="true"
                   [rounded]="true"
                   (onClick)="deleteRecipient(recipient)"
-                  pTooltip="Delete recipient">
+                  pTooltip="Delete recipient"
+                  [disabled]="true">
                 </p-button>
               </td>
             </tr>
