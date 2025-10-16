@@ -26,5 +26,7 @@ public interface EmailProviderV2Repository extends JpaRepository<EmailProviderV2
 
     @Query("SELECT e FROM EmailProviderV2Entity e WHERE e.shared = true AND e.userId IN (SELECT u.id FROM BookLoreUserEntity u WHERE u.permissions.permissionAdmin = true)")
     List<EmailProviderV2Entity> findAllBySharedTrueAndAdmin();
-}
 
+    @Query("SELECT e FROM EmailProviderV2Entity e WHERE e.id = :id AND e.shared = true AND e.userId IN (SELECT u.id FROM BookLoreUserEntity u WHERE u.permissions.permissionAdmin = true)")
+    Optional<EmailProviderV2Entity> findSharedProviderById(@Param("id") Long id);
+}

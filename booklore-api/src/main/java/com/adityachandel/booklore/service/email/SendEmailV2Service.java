@@ -49,7 +49,11 @@ public class SendEmailV2Service {
 
     public void emailBook(SendBookByEmailRequest request) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
-        EmailProviderV2Entity emailProvider = emailProviderRepository.findByIdAndUserId(request.getProviderId(), user.getId()).orElseThrow(() -> ApiError.EMAIL_PROVIDER_NOT_FOUND.createException(request.getProviderId()));
+        EmailProviderV2Entity emailProvider = emailProviderRepository.findByIdAndUserId(request.getProviderId(), user.getId())
+                .orElseGet(() ->
+                        emailProviderRepository.findSharedProviderById(request.getProviderId())
+                                .orElseThrow(() -> ApiError.EMAIL_PROVIDER_NOT_FOUND.createException(request.getProviderId()))
+                );
         BookEntity book = bookRepository.findById(request.getBookId()).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(request.getBookId()));
         EmailRecipientV2Entity emailRecipient = emailRecipientRepository.findByIdAndUserId(request.getRecipientId(), user.getId()).orElseThrow(() -> ApiError.EMAIL_RECIPIENT_NOT_FOUND.createException(request.getRecipientId()));
         sendEmailInVirtualThread(emailProvider, emailRecipient.getEmail(), book);

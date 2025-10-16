@@ -8,15 +8,15 @@ import {Observable} from 'rxjs';
 })
 export class EmailService {
 
-  private readonly apiUrl = `${API_CONFIG.BASE_URL}/api/v1/emails`;
+  private readonly apiUrl = `${API_CONFIG.BASE_URL}/api/v2/email`;
 
   private http = inject(HttpClient);
 
   emailBook(request: { bookId: number, providerId: number, recipientId: number }): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/send-book`, request);
+    return this.http.post<void>(`${this.apiUrl}/book`, request);
   }
 
   emailBookQuick(bookId: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/send-book/${bookId}`, {});
+    return this.http.post<void>(`${this.apiUrl}/book/${bookId}`, {});
   }
 }
