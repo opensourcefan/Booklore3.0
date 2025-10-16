@@ -19,7 +19,6 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {Editor} from 'primeng/editor';
 import {ProgressBar} from 'primeng/progressbar';
 import {MetadataRefreshType} from '../../../model/request/metadata-refresh-type.enum';
-import {MetadataRefreshRequest} from '../../../model/request/metadata-refresh-request.model';
 import {Router} from '@angular/router';
 import {filter, map, switchMap, take, tap} from 'rxjs/operators';
 import {Menu} from 'primeng/menu';
@@ -38,7 +37,6 @@ import {BookDialogHelperService} from '../../../../book/components/book-browser/
 import {TagColor, TagComponent} from '../../../../../shared/components/tag/tag.component';
 import {MetadataFetchOptionsComponent} from '../../metadata-options-dialog/metadata-fetch-options/metadata-fetch-options.component';
 import {BookNotesComponent} from '../../../../book/components/book-notes/book-notes-component';
-import {TaskCreateRequest, TaskService, TaskType} from '../../../../settings/task-management/task.service';
 import {TaskHelperService} from '../../../../settings/task-management/task-helper.service';
 
 @Component({

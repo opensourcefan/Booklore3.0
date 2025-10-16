@@ -5,6 +5,8 @@ import com.adityachandel.booklore.model.dto.request.SendBookByEmailRequest;
 import com.adityachandel.booklore.model.entity.BookEntity;
 import com.adityachandel.booklore.model.entity.EmailProviderEntity;
 import com.adityachandel.booklore.model.entity.EmailRecipientEntity;
+import com.adityachandel.booklore.model.websocket.LogNotification;
+import com.adityachandel.booklore.model.websocket.Severity;
 import com.adityachandel.booklore.model.websocket.Topic;
 import com.adityachandel.booklore.repository.BookRepository;
 import com.adityachandel.booklore.repository.EmailProviderRepository;
@@ -54,17 +56,17 @@ public class EmailService {
     private void sendEmailInVirtualThread(EmailProviderEntity emailProvider, String recipientEmail, BookEntity book) {
         String bookTitle = book.getMetadata().getTitle();
         String logMessage = "Email dispatch initiated for book: " + bookTitle + " to " + recipientEmail;
-        notificationService.sendMessage(Topic.LOG, createLogNotification(logMessage));
+        notificationService.sendMessage(Topic.LOG, LogNotification.info(logMessage));
         log.info(logMessage);
         SecurityContextVirtualThread.runWithSecurityContext(() -> {
             try {
                 sendEmail(emailProvider, recipientEmail, book);
                 String successMessage = "The book: " + bookTitle + " has been successfully sent to " + recipientEmail;
-                notificationService.sendMessage(Topic.LOG, createLogNotification(successMessage));
+                notificationService.sendMessage(Topic.LOG, LogNotification.info(successMessage));
                 log.info(successMessage);
             } catch (Exception e) {
                 String errorMessage = "An error occurred while sending the book: " + bookTitle + " to " + recipientEmail + ". Error: " + e.getMessage();
-                notificationService.sendMessage(Topic.LOG, createLogNotification(errorMessage));
+                notificationService.sendMessage(Topic.LOG, LogNotification.error(errorMessage));
                 log.error(errorMessage, e);
             }
         });
