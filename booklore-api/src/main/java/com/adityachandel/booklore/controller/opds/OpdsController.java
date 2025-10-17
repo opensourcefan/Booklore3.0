@@ -89,7 +89,12 @@ public class OpdsController {
                 .body(feed);
     }
 
-    @GetMapping(value = "/search.opds", produces = "application/opensearchdescription+xml")
+    @GetMapping(value = "/search.opds", produces = {
+            "application/opensearchdescription+xml",
+            "application/atom+xml",
+            "application/xml",
+            "text/xml"
+    })
     public ResponseEntity<String> getSearchDescription() {
         String searchDoc = opdsFeedService.getOpenSearchDescription();
         return ResponseEntity.ok()
