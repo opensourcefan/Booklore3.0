@@ -27,7 +27,7 @@ import {ProgressSpinner} from 'primeng/progressspinner';
   standalone: true
 })
 export class MainDashboardComponent implements OnInit {
-  ref: DynamicDialogRef | undefined;
+  ref: DynamicDialogRef | undefined | null;
 
   private bookService = inject(BookService);
   private dialogService = inject(DialogService);
@@ -84,11 +84,7 @@ export class MainDashboardComponent implements OnInit {
     this.ref = this.dialogService.open(LibraryCreatorComponent, {
       header: 'Create New Library',
       modal: true,
-      closable: true,
-      style: {
-        position: 'absolute',
-        top: '15%',
-      }
+      closable: true
     });
   }
 }

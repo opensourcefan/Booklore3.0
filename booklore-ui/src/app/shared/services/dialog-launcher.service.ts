@@ -13,7 +13,7 @@ export class DialogLauncherService {
 
   dialogService = inject(DialogService);
 
-  open(options: { component: any; header: string; top?: string; width?: string }): DynamicDialogRef {
+  open(options: { component: any; header: string; top?: string; width?: string }): DynamicDialogRef | null {
     const isMobile = window.innerWidth <= 768;
     const {component, header, top, width} = options;
     return this.dialogService.open(component, {
@@ -50,8 +50,7 @@ export class DialogLauncherService {
   openLibraryCreatorDialog(): void {
     this.open({
       component: LibraryCreatorComponent,
-      header: 'Create New Library',
-      top: '15%'
+      header: 'Create New Library'
     });
   }
 
