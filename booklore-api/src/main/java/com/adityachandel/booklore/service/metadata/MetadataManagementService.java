@@ -1,20 +1,14 @@
 package com.adityachandel.booklore.service.metadata;
 
+import com.adityachandel.booklore.model.dto.FileMoveResult;
 import com.adityachandel.booklore.model.dto.settings.MetadataPersistenceSettings;
-import com.adityachandel.booklore.model.entity.AuthorEntity;
-import com.adityachandel.booklore.model.entity.BookMetadataEntity;
-import com.adityachandel.booklore.model.entity.CategoryEntity;
-import com.adityachandel.booklore.model.entity.MoodEntity;
-import com.adityachandel.booklore.model.entity.TagEntity;
+import com.adityachandel.booklore.model.entity.*;
 import com.adityachandel.booklore.model.enums.BookFileType;
 import com.adityachandel.booklore.model.enums.MergeMetadataType;
-import com.adityachandel.booklore.repository.AuthorRepository;
-import com.adityachandel.booklore.repository.BookMetadataRepository;
-import com.adityachandel.booklore.repository.CategoryRepository;
-import com.adityachandel.booklore.repository.MoodRepository;
-import com.adityachandel.booklore.repository.TagRepository;
+import com.adityachandel.booklore.repository.*;
 import com.adityachandel.booklore.service.appsettings.AppSettingService;
-import com.adityachandel.booklore.service.file.UnifiedFileMoveService;
+import com.adityachandel.booklore.service.file.FileFingerprint;
+import com.adityachandel.booklore.service.file.FileMoveService;
 import com.adityachandel.booklore.service.metadata.writer.MetadataWriter;
 import com.adityachandel.booklore.service.metadata.writer.MetadataWriterFactory;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +32,8 @@ public class MetadataManagementService {
     private final BookMetadataRepository bookMetadataRepository;
     private final AppSettingService appSettingService;
     private final MetadataWriterFactory metadataWriterFactory;
-    private final UnifiedFileMoveService unifiedFileMoveService;
+    private final FileMoveService fileMoveService;
+    private final BookRepository bookRepository;
 
 
     @Transactional
@@ -62,15 +57,30 @@ public class MetadataManagementService {
     private void writeMetadataToFile(List<BookMetadataEntity> metadataList, boolean moveFile) {
         for (BookMetadataEntity metadata : metadataList) {
             if (metadata.getBook() != null) {
-                BookFileType bookType = metadata.getBook().getBookType();
+                BookEntity book = metadata.getBook();
+                boolean bookModified = false;
+
+                BookFileType bookType = book.getBookType();
                 Optional<MetadataWriter> writerOpt = metadataWriterFactory.getWriter(bookType);
-                writerOpt.ifPresent(writer -> {
-                    File file = metadata.getBook().getFullFilePath().toFile();
-                    writer.writeMetadataToFile(file, metadata, null, null);
-                });
+                if (writerOpt.isPresent()) {
+                    File file = book.getFullFilePath().toFile();
+                    writerOpt.get().writeMetadataToFile(file, metadata, null, null);
+                    String newHash = FileFingerprint.generateHash(book.getFullFilePath());
+                    book.setCurrentHash(newHash);
+                    bookModified = true;
+                }
 
                 if (moveFile) {
-                    unifiedFileMoveService.moveSingleBookFile(metadata.getBook());
+                    FileMoveResult result = fileMoveService.moveSingleFile(book);
+                    if (result.isMoved()) {
+                        book.setFileName(result.getNewFileName());
+                        book.setFileSubPath(result.getNewFileSubPath());
+                        bookModified = true;
+                    }
+                }
+
+                if (bookModified) {
+                    bookRepository.saveAndFlush(book);
                 }
             }
         }
