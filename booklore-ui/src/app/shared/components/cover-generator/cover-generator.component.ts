@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import {Component, Input} from '@angular/core';
 
 @Component({
   standalone: true,
@@ -115,6 +115,11 @@ export class CoverGeneratorComponent {
         ${authorElements}
       </svg>
     `;
-    return `data:image/svg+xml;base64,${btoa(svg)}`;
+    
+    const base64 = btoa(encodeURIComponent(svg).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+      return String.fromCharCode(parseInt(p1, 16));
+    }));
+
+    return `data:image/svg+xml;base64,${base64}`;
   }
 }
