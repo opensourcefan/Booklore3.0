@@ -63,6 +63,10 @@ export class MainDashboardComponent implements OnInit {
     this.dashboardConfig$.subscribe(() => {
       this.scrollerBooksCache.clear();
     });
+
+    this.magicShelfService.shelvesState$.subscribe(() => {
+      this.scrollerBooksCache.clear();
+    });
   }
 
   private getLastReadBooks(maxItems: number, sortBy?: string): Observable<Book[]> {
