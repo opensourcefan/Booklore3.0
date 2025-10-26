@@ -1,4 +1,3 @@
-
 import { Component, Input } from '@angular/core';
 
 @Component({
@@ -36,15 +35,55 @@ export class CoverGeneratorComponent {
     return lines;
   }
 
-  generateCover(): string {
-    const maxLineLength = 10;
-    const titleLines = this.wrapText(this.title, maxLineLength);
-    const authorLines = this.wrapText(this.author, maxLineLength);
+  private truncateText(text: string, maxLength: number): string {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + '...';
+  }
 
-    const titleBoxHeight = titleLines.length * 40 + 20;
+  private calculateTitleFontSize(lineCount: number): number {
+    if (lineCount <= 2) return 36;
+    if (lineCount === 3) return 30;
+    return 24;
+  }
+
+  private calculateAuthorFontSize(lineCount: number): number {
+    if (lineCount <= 2) return 28;
+    return 22;
+  }
+
+  generateCover(): string {
+    const maxTitleLength = 60;
+    const maxAuthorLength = 40;
+    const truncatedTitle = this.truncateText(this.title, maxTitleLength);
+    const truncatedAuthor = this.truncateText(this.author, maxAuthorLength);
+
+    const maxLineLength = 12;
+    const maxTitleLines = 4;
+    const maxAuthorLines = 3;
+
+    let titleLines = this.wrapText(truncatedTitle, maxLineLength);
+    let authorLines = this.wrapText(truncatedAuthor, maxLineLength);
+
+    if (titleLines.length > maxTitleLines) {
+      titleLines = titleLines.slice(0, maxTitleLines);
+      titleLines[maxTitleLines - 1] = this.truncateText(titleLines[maxTitleLines - 1], maxLineLength);
+    }
+
+    if (authorLines.length > maxAuthorLines) {
+      authorLines = authorLines.slice(0, maxAuthorLines);
+      authorLines[maxAuthorLines - 1] = this.truncateText(authorLines[maxAuthorLines - 1], maxLineLength);
+    }
+
+    const titleFontSize = this.calculateTitleFontSize(titleLines.length);
+    const authorFontSize = this.calculateAuthorFontSize(authorLines.length);
+
+    const titleLineHeight = titleFontSize * 1.2;
+    const titlePadding = 15;
+    const titleBoxHeight = titleLines.length * titleLineHeight + (titlePadding * 2);
+
     const titleElements = titleLines.map((line, index) => {
-      const y = 80 + index * 40;
-      return `<text x="20" y="${y}" font-family="serif" font-size="36" fill="#000000">${line}</text>`;
+      const y = 40 + titlePadding + titleFontSize + (index * titleLineHeight);
+      return `<text x="20" y="${y}" font-family="serif" font-size="${titleFontSize}" fill="#000000">${line}</text>`;
     }).join('\n');
 
     const titleWithBackground = `
@@ -52,12 +91,15 @@ export class CoverGeneratorComponent {
       ${titleElements}
     `;
 
+    const authorLineHeight = authorFontSize * 1.2;
+    const authorStartY = 330 - (authorLines.length - 1) * authorLineHeight;
+
     const authorElements = authorLines.map((line, index) => {
-      const y = 364 - (authorLines.length - index - 1) * 36;
-      return `<text x="236" y="${y}" text-anchor="end" font-family="sans-serif" font-size="28" fill="#000000">${line}</text>`;
+      const y = authorStartY + index * authorLineHeight;
+      return `<text x="230" y="${y}" text-anchor="end" font-family="sans-serif" font-size="${authorFontSize}" fill="#000000">${line}</text>`;
     }).join('\n');
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="384" viewBox="0 0 256 384">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="250" height="350" viewBox="0 0 250 350">
         <defs>
         <linearGradient id="titleGradient" >
           <stop style="stop-color:#dddddd;stop-opacity:1;" offset="0" id="stop1" />
