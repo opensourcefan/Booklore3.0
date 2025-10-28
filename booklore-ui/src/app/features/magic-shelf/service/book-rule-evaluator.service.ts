@@ -90,21 +90,37 @@ export class BookRuleEvaluatorService {
         return value !== ruleVal;
 
       case 'contains':
+        if (Array.isArray(value)) {
+          if (typeof ruleVal !== 'string') return false;
+          return value.some(v => String(v).includes(ruleVal));
+        }
         if (typeof value !== 'string') return false;
         if (typeof ruleVal !== 'string') return false;
         return value.includes(ruleVal);
 
       case 'does_not_contain':
+        if (Array.isArray(value)) {
+          if (typeof ruleVal !== 'string') return true;
+          return value.every(v => !String(v).includes(ruleVal));
+        }
         if (typeof value !== 'string') return true;
         if (typeof ruleVal !== 'string') return true;
         return !value.includes(ruleVal);
 
       case 'starts_with':
+        if (Array.isArray(value)) {
+          if (typeof ruleVal !== 'string') return false;
+          return value.some(v => String(v).startsWith(ruleVal));
+        }
         if (typeof value !== 'string') return false;
         if (typeof ruleVal !== 'string') return false;
         return value.startsWith(ruleVal);
 
       case 'ends_with':
+        if (Array.isArray(value)) {
+          if (typeof ruleVal !== 'string') return false;
+          return value.some(v => String(v).endsWith(ruleVal));
+        }
         if (typeof value !== 'string') return false;
         if (typeof ruleVal !== 'string') return false;
         return value.endsWith(ruleVal);
@@ -204,6 +220,8 @@ export class BookRuleEvaluatorService {
         return book.metadata?.publishedDate ? new Date(book.metadata.publishedDate) : null;
       case 'dateFinished':
         return book.dateFinished ? new Date(book.dateFinished) : null;
+      case 'lastReadTime':
+        return book.lastReadTime ? new Date(book.lastReadTime) : null;
       case 'seriesName':
         return book.metadata?.seriesName?.toLowerCase() ?? null;
       case 'seriesNumber':
