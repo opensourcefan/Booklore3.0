@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -147,6 +149,21 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
 
                                 if ("calibre:pages".equals(name) || "pagecount".equals(name) || "schema:pagecount".equals(prop) || "media:pagecount".equals(prop) || "booklore:page_count".equals(prop)) {
                                     safeParseInt(content, builderMeta::pageCount);
+                                } else if (name.equals("calibre:user_metadata:#pagecount")) {
+                                    try {
+                                        JSONObject jsonroot = new JSONObject(content);
+                                        Object value = jsonroot.opt("#value#");
+                                        safeParseInt(String.valueOf(value), builderMeta::pageCount);
+                                    } catch (JSONException ignored) {
+                                    }
+                                } else if (prop.equals("calibre:user_metadata")) {
+                                    try {
+                                        JSONObject jsonroot = new JSONObject(content);
+                                        JSONObject pages = jsonroot.getJSONObject("#pagecount");
+                                        Object value = pages.opt("#value#");
+                                        safeParseInt(String.valueOf(value), builderMeta::pageCount);
+                                    } catch (JSONException ignored) {
+                                    }
                                 }
 
                                 if ("calibre:rating".equals(name) || "booklore:personal_rating".equals(prop)) {
