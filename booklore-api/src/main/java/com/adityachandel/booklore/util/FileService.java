@@ -31,6 +31,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -197,7 +200,10 @@ public class FileService {
     public void createThumbnailFromFile(long bookId, MultipartFile file) {
         try {
             validateCoverFile(file);
-            BufferedImage originalImage = ImageIO.read(file.getInputStream());
+            BufferedImage originalImage;
+            try (InputStream inputStream = file.getInputStream()) {
+                originalImage = ImageIO.read(inputStream);
+            }
             if (originalImage == null) {
                 throw ApiError.IMAGE_NOT_FOUND.createException();
             }
