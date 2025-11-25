@@ -9,7 +9,7 @@ assignees: ''
 
 # 🐛 Bug Report for Booklore
 
-Thank you for helping us improve Booklore! Please fill out the sections below so we can understand and fix the issue.
+Thank you for helping us improve Booklore! Please fill out the sections below.
 
 ---
 
@@ -17,50 +17,30 @@ Thank you for helping us improve Booklore! Please fill out the sections below so
 <!-- Describe the bug in a few sentences -->
 
 
-
----
-
-## 🔄 How can we reproduce it?
-<!-- Walk us through the exact steps to see the bug happen -->
-
+## 🔄 Steps to Reproduce
+<!-- Walk us through the exact steps to see the bug -->
 1. Go to '...'
 2. Click on '...'
 3. Scroll down to '...'
 4. See error
 
----
-
-## ✅ What did you expect to happen?
-<!-- Tell us what should have happened instead -->
+## ✅ Expected Behavior
+<!-- What should have happened instead? -->
 
 
-
----
-
-## 📸 Screenshots or Error Messages
-<!-- If applicable, add screenshots or paste error messages here. This really helps! -->
-<!-- You can drag and drop images directly into this box -->
+## 📸 Screenshots / Error Messages
+<!-- Add screenshots or paste error messages (drag & drop images here) -->
 
 
-
----
-
-## 💻 Your Setup
-<!-- Help us understand your environment -->
-
-- **Booklore Version:** (e.g., v1.1.0 - found in Settings or About)
-- **Operating System:** (e.g., Windows 11, macOS Sonoma, Ubuntu 22.04)
+## 💻 Environment
+- **Version:** (e.g., v1.1.0)
+- **OS:** (e.g., Windows 11, macOS Sonoma, Ubuntu 22.04)
 - **Browser:** (e.g., Chrome 120, Firefox 121, Safari 17)
-- **Installation Method:** (e.g., Docker, Unraid Template, Manual)
-
----
+- **Installation:** (e.g., Docker, Unraid, Manual)
 
 ## 📌 Additional Context
-<!-- Anything else that might help us? Recent changes? Specific books? -->
+<!-- Recent changes? Specific books? Anything else that might help? -->
 
 
-
----
-
-## ✨ Possible Solution (Optional)
-<!-- If you have ideas on how to fix this, we'd love to hear them! -->
+## ✨ Possible Solution _(Optional)_
+<!-- Have ideas on how to fix this? Share them here! -->
