@@ -2,14 +2,12 @@ package com.adityachandel.booklore.service.kobo;
 
 import com.adityachandel.booklore.config.security.service.AuthenticationService;
 import com.adityachandel.booklore.mapper.KoboReadingStateMapper;
-import com.adityachandel.booklore.model.dto.BookLoreUser;
 import com.adityachandel.booklore.model.dto.kobo.*;
 import com.adityachandel.booklore.model.dto.settings.KoboSettings;
 import com.adityachandel.booklore.model.entity.AuthorEntity;
 import com.adityachandel.booklore.model.entity.BookEntity;
 import com.adityachandel.booklore.model.entity.BookMetadataEntity;
 import com.adityachandel.booklore.model.entity.CategoryEntity;
-import com.adityachandel.booklore.model.entity.UserBookProgressEntity;
 import com.adityachandel.booklore.model.enums.BookFileType;
 import com.adityachandel.booklore.model.enums.KoboBookFormat;
 import com.adityachandel.booklore.model.enums.KoboReadStatus;
@@ -40,6 +38,7 @@ public class KoboEntitlementService {
     private final KoboUrlBuilder koboUrlBuilder;
     private final BookQueryService bookQueryService;
     private final AppSettingService appSettingService;
+    private final KoboCompatibilityService koboCompatibilityService;
     private final UserBookProgressRepository progressRepository;
     private final KoboReadingStateRepository readingStateRepository;
     private final KoboReadingStateMapper readingStateMapper;
@@ -50,7 +49,7 @@ public class KoboEntitlementService {
         List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(bookIds);
 
         return books.stream()
-                .filter(bookEntity -> bookEntity.getBookType() == BookFileType.EPUB)
+                .filter(koboCompatibilityService::isBookSupportedForKobo)
                 .map(book -> NewEntitlement.builder()
                         .newEntitlement(BookEntitlementContainer.builder()
                                 .bookEntitlement(buildBookEntitlement(book, removed))
@@ -64,7 +63,7 @@ public class KoboEntitlementService {
     public List<ChangedEntitlement> generateChangedEntitlements(Set<Long> bookIds, String token, boolean removed) {
         List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(bookIds);
         return books.stream()
-                .filter(bookEntity -> bookEntity.getBookType() == BookFileType.EPUB)
+                .filter(koboCompatibilityService::isBookSupportedForKobo)
                 .map(book -> {
                     KoboBookMetadata metadata;
                     if (removed) {
@@ -180,7 +179,7 @@ public class KoboEntitlementService {
     public KoboBookMetadata getMetadataForBook(long bookId, String token) {
         List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(Set.of(bookId))
                 .stream()
-                .filter(bookEntity -> bookEntity.getBookType() == BookFileType.EPUB)
+                .filter(koboCompatibilityService::isBookSupportedForKobo)
                 .toList();
         return mapToKoboMetadata(books.getFirst(), token);
     }
@@ -215,8 +214,16 @@ public class KoboEntitlementService {
 
         KoboBookFormat bookFormat = KoboBookFormat.EPUB3;
         KoboSettings koboSettings = appSettingService.getAppSettings().getKoboSettings();
-        if (koboSettings != null && koboSettings.isConvertToKepub()) {
-            bookFormat = KoboBookFormat.KEPUB;
+        
+        boolean isEpubFile = book.getBookType() == BookFileType.EPUB;
+        boolean isCbxFile = book.getBookType() == BookFileType.CBX;
+        
+        if (koboSettings != null) {
+            if (isEpubFile && koboSettings.isConvertToKepub()) {
+                bookFormat = KoboBookFormat.KEPUB;
+            } else if (isCbxFile && koboSettings.isConvertCbxToEpub()) {
+                bookFormat = KoboBookFormat.EPUB3;
+            }
         }
 
         return KoboBookMetadata.builder()
