@@ -85,7 +85,7 @@ public class KoboReadingStateBuilder {
         return switch (readStatus) {
             case READ -> KoboReadStatus.FINISHED;
             case PARTIALLY_READ, READING, RE_READING, PAUSED -> KoboReadStatus.READING;
-            case UNREAD, WONT_READ, ABANDONED -> KoboReadStatus.READY_TO_READ;
+            case UNREAD, WONT_READ, ABANDONED, UNSET -> KoboReadStatus.READY_TO_READ;
         };
     }
 
