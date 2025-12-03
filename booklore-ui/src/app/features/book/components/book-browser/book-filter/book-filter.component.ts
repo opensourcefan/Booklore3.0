@@ -15,7 +15,6 @@ import {UserService} from '../../../../settings/user-management/user.service';
 import {MagicShelf} from '../../../../magic-shelf/service/magic-shelf.service';
 import {BookRuleEvaluatorService} from '../../../../magic-shelf/service/book-rule-evaluator.service';
 import {GroupRule} from '../../../../magic-shelf/component/magic-shelf-component';
-import {Tooltip} from 'primeng/tooltip';
 
 type Filter<T> = { value: T; bookCount: number };
 
@@ -152,8 +151,7 @@ function getReadStatusName(status?: ReadStatus | null): string {
     AsyncPipe,
     TitleCasePipe,
     FormsModule,
-    SelectButton,
-    Tooltip,
+    SelectButton
   ]
 })
 export class BookFilterComponent implements OnInit, OnDestroy {
