@@ -1,3 +1,11 @@
+---
+name: Pull Request
+about: Submit a pull request for this project
+title: ''
+labels: ''
+assignees: ''
+---
+
 # 🚀 Pull Request
 
 ## 📝 Description
