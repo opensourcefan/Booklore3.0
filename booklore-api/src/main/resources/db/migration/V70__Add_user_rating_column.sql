@@ -7,5 +7,5 @@ SET ubp.personal_rating = bm.personal_rating
 WHERE bm.personal_rating IS NOT NULL;
 
 -- Drops obsolete columns
-ALTER TABLE book_metadata DROP COLUMN personal_rating;
-ALTER TABLE book_metadata DROP COLUMN personal_rating_locked;
+ALTER TABLE book_metadata DROP COLUMN IF EXISTS personal_rating;
+ALTER TABLE book_metadata DROP COLUMN IF EXISTS personal_rating_locked;
