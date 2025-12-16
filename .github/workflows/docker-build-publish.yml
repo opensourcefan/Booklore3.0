@@ -193,11 +193,11 @@ jobs:
           labels=$(gh pr view "$pr_number" --json labels --jq '.labels[].name' || echo "")
           echo "PR labels: $labels"
 
-          if echo "$labels" | grep -q 'major'; then
+          if echo "$labels" | grep -q 'bump:major'; then
             bump="major"
-          elif echo "$labels" | grep -q 'minor'; then
+          elif echo "$labels" | grep -q 'bump:minor'; then
             bump="minor"
-          elif echo "$labels" | grep -q 'patch'; then
+          elif echo "$labels" | grep -q 'bump:patch'; then
             bump="patch"
           else
             last_commit_msg=$(git log -1 --pretty=%B)
