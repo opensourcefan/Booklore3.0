@@ -3,6 +3,8 @@ import ePub from 'epubjs';
 import {Drawer} from 'primeng/drawer';
 import {forkJoin, Subscription} from 'rxjs';
 import {Button} from 'primeng/button';
+import {InputText} from 'primeng/inputtext';
+import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ActivatedRoute} from '@angular/router';
 import {Book, BookSetting} from '../../../book/model/book.model';
@@ -11,19 +13,43 @@ import {Select} from 'primeng/select';
 import {UserService} from '../../../settings/user-management/user.service';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {MessageService, PrimeTemplate} from 'primeng/api';
-import {BookMark, BookMarkService} from '../../../../shared/service/book-mark.service';
+import {BookMark, BookMarkService, UpdateBookMarkRequest} from '../../../../shared/service/book-mark.service';
 import {Tooltip} from 'primeng/tooltip';
 import {Slider} from 'primeng/slider';
 import {FALLBACK_EPUB_SETTINGS, getChapter} from '../epub-reader-helper';
 import {EpubThemeUtil, EpubTheme} from '../epub-theme-util';
 import {PageTitleService} from "../../../../shared/service/page-title.service";
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
+import {IconField} from 'primeng/iconfield';
+import {InputIcon} from 'primeng/inputicon';
+import {BookmarkEditDialogComponent} from './bookmark-edit-dialog.component';
+import {BookmarkViewDialogComponent} from './bookmark-view-dialog.component';
 
 @Component({
   selector: 'app-epub-reader',
   templateUrl: './epub-reader.component.html',
   styleUrls: ['./epub-reader.component.scss'],
-  imports: [Drawer, Button, FormsModule, Select, ProgressSpinner, Tooltip, Slider, PrimeTemplate, Tabs, TabList, Tab, TabPanels, TabPanel],
+  imports: [
+    CommonModule,
+    FormsModule,
+    Drawer,
+    Button,
+    Select,
+    ProgressSpinner,
+    Tooltip,
+    Slider,
+    PrimeTemplate,
+    Tabs,
+    TabList,
+    Tab,
+    TabPanels,
+    TabPanel,
+    IconField,
+    InputIcon,
+    BookmarkEditDialogComponent,
+    BookmarkViewDialogComponent,
+    InputText
+  ],
   standalone: true
 })
 export class EpubReaderComponent implements OnInit, OnDestroy {
@@ -40,7 +66,14 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
   isBookmarked = false;
   isAddingBookmark = false;
   isDeletingBookmark = false;
+  isEditingBookmark = false;
+  isUpdatingPosition = false;
   private routeSubscription?: Subscription;
+
+  // Bookmark Filter & View
+  filterText = '';
+  viewDialogVisible = false;
+  selectedBookmark: BookMark | null = null;
 
   public locationsReady = false;
   public approxProgress = 0;
@@ -53,6 +86,10 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
   private hideHeaderTimeout?: number;
   private isMouseInTopRegion = false;
   private headerShownByMobileTouch = false;
+
+  // Properties for bookmark editing
+  editingBookmark: BookMark | null = null;
+  showEditBookmarkDialog = false;
 
   private book: any;
   private rendition: any;
@@ -207,6 +244,39 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
         },
       });
     });
+  }
+
+  get filteredBookmarks(): BookMark[] {
+    let filtered = this.bookmarks;
+
+    // Filter
+    if (this.filterText && this.filterText.trim()) {
+      const lowerFilter = this.filterText.toLowerCase().trim();
+      filtered = filtered.filter(b =>
+        (b.title && b.title.toLowerCase().includes(lowerFilter)) ||
+        (b.notes && b.notes.toLowerCase().includes(lowerFilter))
+      );
+    }
+
+    // Sort: Priority ASC (1 is high), then CreatedAt DESC
+    return [...filtered].sort((a, b) => {
+      const priorityA = a.priority ?? 3; // Default to 3 (Normal) if undefined
+      const priorityB = b.priority ?? 3;
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
+      return dateB - dateA;
+    });
+  }
+
+  openViewDialog(bookmark: BookMark): void {
+    this.selectedBookmark = bookmark;
+    this.viewDialogVisible = true;
   }
 
   updateThemeStyle(): void {
@@ -620,6 +690,8 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
     this.bookMarkService.createBookmark(request).subscribe({
       next: (bookmark) => {
         this.bookmarks.push(bookmark);
+        // Force array update for change detection if needed, but simple push works with getter usually if ref is stable
+        this.bookmarks = [...this.bookmarks];
         this.updateBookmarkStatus();
         this.messageService.add({
           severity: 'success',
@@ -643,6 +715,11 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
     if (this.isDeletingBookmark) {
       return;
     }
+    // Simple confirmation using window.confirm for now, as consistent with UserManagementComponent behavior seen in linting
+    if (!confirm('Are you sure you want to delete this bookmark?')) {
+        return;
+    }
+
     this.isDeletingBookmark = true;
     this.bookMarkService.deleteBookmark(bookmarkId).subscribe({
       next: () => {
@@ -681,5 +758,86 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
     this.isBookmarked = this.currentCfi
       ? this.bookmarks.some(b => b.cfi === this.currentCfi)
       : false;
+  }
+
+  openEditBookmarkDialog(bookmark: BookMark): void {
+    this.editingBookmark = { ...bookmark };
+    this.showEditBookmarkDialog = true;
+  }
+
+  onBookmarkSave(updateRequest: UpdateBookMarkRequest): void {
+    if (!this.editingBookmark || this.isEditingBookmark) {
+      return;
+    }
+
+    this.isEditingBookmark = true;
+
+    this.bookMarkService.updateBookmark(this.editingBookmark.id, updateRequest).subscribe({
+      next: (updatedBookmark) => {
+        const index = this.bookmarks.findIndex(b => b.id === this.editingBookmark!.id);
+        if (index !== -1) {
+          this.bookmarks[index] = updatedBookmark;
+          this.bookmarks = [...this.bookmarks]; // Trigger change detection for getter
+        }
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Bookmark updated successfully',
+        });
+        this.showEditBookmarkDialog = false;
+        this.editingBookmark = null; // Reset the editing bookmark after successful save
+        this.isEditingBookmark = false;
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update bookmark',
+        });
+        this.showEditBookmarkDialog = false;
+        this.editingBookmark = null; // Reset the editing bookmark even on error
+        this.isEditingBookmark = false;
+      }
+    });
+  }
+
+  onBookmarkCancel(): void {
+    this.showEditBookmarkDialog = false;
+    this.editingBookmark = null; // Reset the editing bookmark when dialog is cancelled
+  }
+
+  updateBookmarkPosition(bookmarkId: number): void {
+    if (!this.currentCfi || this.isUpdatingPosition) {
+      return;
+    }
+
+    this.isUpdatingPosition = true;
+    const updateRequest = {
+      cfi: this.currentCfi
+    };
+
+    this.bookMarkService.updateBookmark(bookmarkId, updateRequest).subscribe({
+      next: (updatedBookmark) => {
+        const index = this.bookmarks.findIndex(b => b.id === bookmarkId);
+        if (index !== -1) {
+          this.bookmarks[index] = updatedBookmark;
+          this.bookmarks = [...this.bookmarks];
+        }
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Bookmark position updated successfully',
+        });
+        this.isUpdatingPosition = false;
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update bookmark position',
+        });
+        this.isUpdatingPosition = false;
+      }
+    });
   }
 }
