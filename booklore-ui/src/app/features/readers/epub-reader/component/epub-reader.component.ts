@@ -4,7 +4,7 @@ import {Drawer} from 'primeng/drawer';
 import {forkJoin, Subscription} from 'rxjs';
 import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
-import {CommonModule} from '@angular/common';
+import {CommonModule, Location} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ActivatedRoute} from '@angular/router';
 import {Book, BookSetting} from '../../../book/model/book.model';
@@ -17,7 +17,8 @@ import {BookMark, BookMarkService, UpdateBookMarkRequest} from '../../../../shar
 import {Tooltip} from 'primeng/tooltip';
 import {Slider} from 'primeng/slider';
 import {FALLBACK_EPUB_SETTINGS, getChapter} from '../epub-reader-helper';
-import {EpubThemeUtil, EpubTheme} from '../epub-theme-util';
+import {ReadingSessionService} from '../../../../shared/service/reading-session.service';
+import {EpubTheme, EpubThemeUtil} from '../epub-theme-util';
 import {PageTitleService} from "../../../../shared/service/page-title.service";
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {IconField} from 'primeng/iconfield';
@@ -29,27 +30,7 @@ import {BookmarkViewDialogComponent} from './bookmark-view-dialog.component';
   selector: 'app-epub-reader',
   templateUrl: './epub-reader.component.html',
   styleUrls: ['./epub-reader.component.scss'],
-  imports: [
-    CommonModule,
-    FormsModule,
-    Drawer,
-    Button,
-    Select,
-    ProgressSpinner,
-    Tooltip,
-    Slider,
-    PrimeTemplate,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanels,
-    TabPanel,
-    IconField,
-    InputIcon,
-    BookmarkEditDialogComponent,
-    BookmarkViewDialogComponent,
-    InputText
-  ],
+  imports: [CommonModule, FormsModule, Drawer, Button, Select, ProgressSpinner, Tooltip, Slider, PrimeTemplate, Tabs, TabList, Tab, TabPanels, TabPanel, IconField, InputIcon, BookmarkEditDialogComponent, BookmarkViewDialogComponent, InputText],
   standalone: true
 })
 export class EpubReaderComponent implements OnInit, OnDestroy {
@@ -67,10 +48,8 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
   isAddingBookmark = false;
   isDeletingBookmark = false;
   isEditingBookmark = false;
-  isUpdatingPosition = false;
   private routeSubscription?: Subscription;
 
-  // Bookmark Filter & View
   filterText = '';
   viewDialogVisible = false;
   selectedBookmark: BookMark | null = null;
@@ -87,7 +66,6 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
   private isMouseInTopRegion = false;
   private headerShownByMobileTouch = false;
 
-  // Properties for bookmark editing
   editingBookmark: BookMark | null = null;
   showEditBookmarkDialog = false;
 
@@ -132,12 +110,14 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
   ];
 
   private route = inject(ActivatedRoute);
+  private location = inject(Location);
   private userService = inject(UserService);
   private bookService = inject(BookService);
   private messageService = inject(MessageService);
   private ngZone = inject(NgZone);
   private pageTitle = inject(PageTitleService);
   private bookMarkService = inject(BookMarkService);
+  private readingSessionService = inject(ReadingSessionService);
 
   epub!: Book;
 
@@ -249,7 +229,6 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
   get filteredBookmarks(): BookMark[] {
     let filtered = this.bookmarks;
 
-    // Filter
     if (this.filterText && this.filterText.trim()) {
       const lowerFilter = this.filterText.toLowerCase().trim();
       filtered = filtered.filter(b =>
@@ -258,9 +237,8 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
       );
     }
 
-    // Sort: Priority ASC (1 is high), then CreatedAt DESC
     return [...filtered].sort((a, b) => {
-      const priorityA = a.priority ?? 3; // Default to 3 (Normal) if undefined
+      const priorityA = a.priority ?? 3;
       const priorityB = b.priority ?? 3;
 
       if (priorityA !== priorityB) {
@@ -430,19 +408,37 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
 
   prevPage(): void {
     if (this.rendition) {
-      this.rendition.prev();
+      this.rendition.prev().then(() => {
+        const location = this.rendition.currentLocation();
+        this.readingSessionService.updateProgress(
+          location?.start?.cfi,
+          this.progressPercentage
+        );
+      });
     }
   }
 
   nextPage(): void {
     if (this.rendition) {
-      this.rendition.next();
+      this.rendition.next().then(() => {
+        const location = this.rendition.currentLocation();
+        this.readingSessionService.updateProgress(
+          location?.start?.cfi,
+          this.progressPercentage
+        );
+      });
     }
   }
 
   navigateToChapter(chapter: { label: string; href: string; level: number }): void {
     if (this.book && chapter.href) {
-      this.book.rendition.display(chapter.href);
+      this.book.rendition.display(chapter.href).then(() => {
+        const location = this.rendition.currentLocation();
+        this.readingSessionService.updateProgress(
+          location?.start?.cfi,
+          this.progressPercentage
+        );
+      });
     }
   }
 
@@ -498,6 +494,11 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
       }
 
       this.bookService.saveEpubProgress(this.epub.id, cfi, Math.round(percentage * 1000) / 10).subscribe();
+
+      this.readingSessionService.updateProgress(
+        location.start.cfi,
+        this.progressPercentage
+      );
     });
 
     this.book.ready.then(() => {
@@ -509,13 +510,26 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
         const cfi = location.end.cfi;
         const percentage = this.book.locations.percentageFromCfi(cfi);
         this.progressPercentage = Math.round(percentage * 1000) / 10;
+
+        this.readingSessionService.startSession(this.epub.id, "EPUB", location.start.cfi, this.progressPercentage);
       }
     }).catch(() => {
       this.locationsReady = false;
+      const location = this.rendition.currentLocation();
+      if (location) {
+        this.readingSessionService.startSession(this.epub.id, "EPUB", location.start.cfi, this.progressPercentage);
+      }
     });
   }
 
   ngOnDestroy(): void {
+    if (this.readingSessionService.isSessionActive()) {
+      this.readingSessionService.endSession(
+        this.currentCfi || undefined,
+        this.progressPercentage
+      );
+    }
+
     this.routeSubscription?.unsubscribe();
 
     if (this.rendition) {
@@ -555,18 +569,15 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
       const isBottomClick = clickY > screenHeight * 0.2;
 
       if (isTopClick && !this.showHeader) {
-        // Touch top 20% - show header and mark as shown by mobile touch
         this.showHeader = true;
         this.headerShownByMobileTouch = true;
         this.clearHeaderTimeout();
       } else if (isBottomClick && this.showHeader && this.headerShownByMobileTouch) {
-        // Touch lower 80% - hide header
         this.showHeader = false;
         this.headerShownByMobileTouch = false;
         this.clearHeaderTimeout();
       }
     } else {
-      // Desktop behavior
       const isTopClick = clickY < screenHeight * 0.1;
       if (isTopClick) {
         this.showHeader = true;
@@ -615,7 +626,6 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Don't auto-hide on mobile if header was shown by touch
     if (this.isMobileDevice() && this.headerShownByMobileTouch) {
       return;
     }
@@ -690,7 +700,6 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
     this.bookMarkService.createBookmark(request).subscribe({
       next: (bookmark) => {
         this.bookmarks.push(bookmark);
-        // Force array update for change detection if needed, but simple push works with getter usually if ref is stable
         this.bookmarks = [...this.bookmarks];
         this.updateBookmarkStatus();
         this.messageService.add({
@@ -715,9 +724,8 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
     if (this.isDeletingBookmark) {
       return;
     }
-    // Simple confirmation using window.confirm for now, as consistent with UserManagementComponent behavior seen in linting
     if (!confirm('Are you sure you want to delete this bookmark?')) {
-        return;
+      return;
     }
 
     this.isDeletingBookmark = true;
@@ -745,7 +753,13 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
 
   navigateToBookmark(bookmark: BookMark): void {
     if (this.rendition && bookmark.cfi) {
-      this.rendition.display(bookmark.cfi);
+      this.rendition.display(bookmark.cfi).then(() => {
+        const location = this.rendition.currentLocation();
+        this.readingSessionService.updateProgress(
+          location?.start?.cfi,
+          this.progressPercentage
+        );
+      });
     }
   }
 
@@ -761,7 +775,7 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
   }
 
   openEditBookmarkDialog(bookmark: BookMark): void {
-    this.editingBookmark = { ...bookmark };
+    this.editingBookmark = {...bookmark};
     this.showEditBookmarkDialog = true;
   }
 
@@ -777,7 +791,7 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
         const index = this.bookmarks.findIndex(b => b.id === this.editingBookmark!.id);
         if (index !== -1) {
           this.bookmarks[index] = updatedBookmark;
-          this.bookmarks = [...this.bookmarks]; // Trigger change detection for getter
+          this.bookmarks = [...this.bookmarks];
         }
         this.messageService.add({
           severity: 'success',
@@ -785,7 +799,7 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
           detail: 'Bookmark updated successfully',
         });
         this.showEditBookmarkDialog = false;
-        this.editingBookmark = null; // Reset the editing bookmark after successful save
+        this.editingBookmark = null;
         this.isEditingBookmark = false;
       },
       error: () => {
@@ -795,7 +809,7 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
           detail: 'Failed to update bookmark',
         });
         this.showEditBookmarkDialog = false;
-        this.editingBookmark = null; // Reset the editing bookmark even on error
+        this.editingBookmark = null;
         this.isEditingBookmark = false;
       }
     });
@@ -803,41 +817,16 @@ export class EpubReaderComponent implements OnInit, OnDestroy {
 
   onBookmarkCancel(): void {
     this.showEditBookmarkDialog = false;
-    this.editingBookmark = null; // Reset the editing bookmark when dialog is cancelled
+    this.editingBookmark = null;
   }
 
-  updateBookmarkPosition(bookmarkId: number): void {
-    if (!this.currentCfi || this.isUpdatingPosition) {
-      return;
+  closeReader(): void {
+    if (this.readingSessionService.isSessionActive()) {
+      this.readingSessionService.endSession(
+        this.currentCfi || undefined,
+        this.progressPercentage
+      );
     }
-
-    this.isUpdatingPosition = true;
-    const updateRequest = {
-      cfi: this.currentCfi
-    };
-
-    this.bookMarkService.updateBookmark(bookmarkId, updateRequest).subscribe({
-      next: (updatedBookmark) => {
-        const index = this.bookmarks.findIndex(b => b.id === bookmarkId);
-        if (index !== -1) {
-          this.bookmarks[index] = updatedBookmark;
-          this.bookmarks = [...this.bookmarks];
-        }
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Bookmark position updated successfully',
-        });
-        this.isUpdatingPosition = false;
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to update bookmark position',
-        });
-        this.isUpdatingPosition = false;
-      }
-    });
+    this.location.back();
   }
 }
