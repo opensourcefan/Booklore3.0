@@ -87,44 +87,20 @@ jobs:
       - name: Confirm Flyway Dry Run Success
         run: echo "✅ Flyway migration preview successful. Migrations can be applied cleanly."
 
-  build-and-push:
+  test-pr:
+    name: Run Tests on Pull Request
     needs: [check-for-migrations, flyway-migration-preview]
-    if: always() && (needs.flyway-migration-preview.result == 'success' || needs.flyway-migration-preview.result == 'skipped')
+    if: always() && github.event_name == 'pull_request' && (needs.flyway-migration-preview.result == 'success' || needs.flyway-migration-preview.result == 'skipped')
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
-      packages: write
-      issues: read
+      contents: read
       checks: write
       pull-requests: write
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Authenticate to Docker Hub
-        if: github.event_name == 'push'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Authenticate to GitHub Container Registry
-        if: github.event_name == 'push'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
-      - name: Set Up QEMU for Multi-Architecture Builds
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set Up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Set Up JDK 21
         uses: actions/setup-java@v5
@@ -137,7 +113,7 @@ jobs:
         id: backend_tests
         working-directory: ./booklore-api
         run: |
-          echo "Running backend tests with testcontainers..."
+          echo "Running backend tests..."
           ./gradlew test --no-daemon --parallel --build-cache
         continue-on-error: true
 
@@ -155,7 +131,7 @@ jobs:
         uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: test-reports
+          name: test-reports-pr-${{ github.event.pull_request.number }}
           path: |
             booklore-api/build/reports/tests/
             booklore-api/build/test-results/
@@ -166,6 +142,58 @@ jobs:
         run: |
           echo "❌ Backend tests failed! Check the test results above."
           exit 1
+
+      - name: PR Validation Complete
+        run: |
+          echo "✅ All PR validation checks passed!"
+          echo "Images will be built and pushed when this PR is merged."
+
+  build-and-push:
+    name: Build and Push Docker Images
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set Up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Execute Backend Tests
+        working-directory: ./booklore-api
+        run: |
+          echo "Running backend tests before building image..."
+          ./gradlew test --no-daemon --parallel --build-cache
+
+      - name: Authenticate to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Authenticate to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Set Up QEMU for Multi-Architecture Builds
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set Up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Retrieve Latest Master Version Tag
         id: get_version
@@ -248,7 +276,6 @@ jobs:
           echo "Image tag: $image_tag"
 
       - name: Build and push Docker image
-        if: github.event_name == 'push'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -268,7 +295,7 @@ jobs:
             type=registry,ref=ghcr.io/booklore-app/booklore:buildcache,mode=max
 
       - name: Push Latest Tag (Master Only)
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/master'
         uses: docker/build-push-action@v6
         with:
           context: .
