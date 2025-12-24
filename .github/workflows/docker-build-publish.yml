@@ -198,7 +198,6 @@ jobs:
         if: steps.filter.outputs.image_build == 'false'
         run: |
           echo "✅ No backend/frontend/Docker changes detected. Skipping image build and publish."
-          exit 0
 
       - name: Set Up JDK 21
         if: steps.filter.outputs.backend == 'true'
@@ -216,12 +215,14 @@ jobs:
           ./gradlew test --no-daemon --parallel --build-cache
 
       - name: Authenticate to Docker Registries
+        if: steps.filter.outputs.image_build == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Authenticate to GitHub Container Registry
+        if: steps.filter.outputs.image_build == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -229,12 +230,15 @@ jobs:
           password: ${{ github.token }}
 
       - name: Set Up QEMU for Multi-Architecture Builds
+        if: steps.filter.outputs.image_build == 'true'
         uses: docker/setup-qemu-action@v3
 
       - name: Set Up Docker Buildx
+        if: steps.filter.outputs.image_build == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Retrieve Latest Master Version Tag
+        if: steps.filter.outputs.image_build == 'true'
         id: get_version
         run: |
           latest_tag=$(git tag --list "v*" --sort=-v:refname | head -n 1)
@@ -243,7 +247,7 @@ jobs:
           echo "Latest master tag: $latest_tag"
 
       - name: Determine Version Bump (Master Only)
-        if: github.ref == 'refs/heads/master'
+        if: steps.filter.outputs.image_build == 'true' && github.ref == 'refs/heads/master'
         id: determine_bump
         env:
           GH_TOKEN: ${{ github.token }}
@@ -299,6 +303,7 @@ jobs:
           echo "new_tag=$next_version" >> $GITHUB_ENV
 
       - name: Generate Image Tag
+        if: steps.filter.outputs.image_build == 'true'
         id: set_image_tag
         run: |
           branch="${GITHUB_REF#refs/heads/}"
@@ -315,6 +320,7 @@ jobs:
           echo "Image tag: $image_tag"
 
       - name: Build and Push Docker Images
+        if: steps.filter.outputs.image_build == 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -334,7 +340,7 @@ jobs:
             type=registry,ref=ghcr.io/booklore-app/booklore:buildcache,mode=max
 
       - name: Push Latest Tag (Master Only)
-        if: github.ref == 'refs/heads/master'
+        if: steps.filter.outputs.image_build == 'true' && github.ref == 'refs/heads/master'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -351,7 +357,7 @@ jobs:
           cache-from: type=gha
 
       - name: Update GitHub Release Draft (Master Only)
-        if: github.ref == 'refs/heads/master'
+        if: steps.filter.outputs.image_build == 'true' && github.ref == 'refs/heads/master'
         uses: release-drafter/release-drafter@v6
         with:
           tag: ${{ env.new_tag }}
@@ -360,7 +366,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Publish GitHub Draft Release (Master Only)
-        if: github.ref == 'refs/heads/master'
+        if: steps.filter.outputs.image_build == 'true' && github.ref == 'refs/heads/master'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
