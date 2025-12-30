@@ -8,9 +8,9 @@
   <img src="assets/demo.gif" alt="BookLore Demo" width="800px" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
 </p>
 
-[![Release](https://img.shields.io/github/v/release/adityachandelgit/BookLore?color=4c6ef5&style=for-the-badge&logo=github)](https://github.com/adityachandelgit/BookLore/releases)
+[![Release](https://img.shields.io/github/v/release/adityachandelgit/BookLore?color=4c6ef5&style=for-the-badge&logo=github)](https://github.com/booklore-app/booklore/releases)
 [![License](https://img.shields.io/github/license/adityachandelgit/BookLore?color=fab005&style=for-the-badge)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/adityachandelgit/BookLore?style=for-the-badge&color=ffd43b)](https://github.com/adityachandelgit/BookLore/stargazers)
+[![Stars](https://img.shields.io/github/stars/adityachandelgit/BookLore?style=for-the-badge&color=ffd43b)](https://github.com/booklore-app/booklore/stargazers)
 [![Docker Pulls](https://img.shields.io/docker/pulls/booklore/booklore?color=2496ED&style=for-the-badge&logo=docker&logoColor=white)](https://hub.docker.com/r/booklore/booklore)
 
 [![Discord](https://img.shields.io/badge/Join_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Ee5hd458Uz)
@@ -99,7 +99,7 @@ Your support helps BookLore grow and improve! 🌱
 
 Give us a star to show your support and help others discover BookLore!
 
-[![Star this repo](https://img.shields.io/github/stars/adityachandelgit/BookLore?style=social)](https://github.com/adityachandelgit/BookLore)
+[![Star this repo](https://img.shields.io/github/stars/adityachandelgit/BookLore?style=social)](https://github.com/booklore-app/booklore)
 
 </td>
 <td align="center" width="33%">
@@ -412,7 +412,7 @@ Join community!
 
 ### Thanks to all our amazing contributors! 🙏
 
-[![Contributors](https://contrib.rocks/image?repo=adityachandelgit/BookLore)](https://github.com/adityachandelgit/BookLore/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=adityachandelgit/BookLore)](https://github.com/booklore-app/booklore/graphs/contributors)
 
 **Want to see your face here?** [Start contributing today!](CONTRIBUTING.md)
 
