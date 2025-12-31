@@ -1,9 +1,6 @@
 <div align="center">
 
-<h1 style="display: inline-block; vertical-align: middle;">
-  <img src="assets/favicons/favicon-96x96.png" alt="BookLore Logo" width="72" style="vertical-align: middle; margin: -1rem; padding: -1rem;"/>
-  <b style="vertical-align: middle; margin: 0; padding: 0;">BookLore</b>
-</h1>
+# 📚 BookLore
 
 ### *Your Personal Library, Beautifully Organized*
 
