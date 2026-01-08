@@ -146,7 +146,7 @@ public class CbxProcessor extends AbstractFileProcessor implements BookFileProce
                 .min(Comparator.comparing(ZipArchiveEntry::getName))
                 .map(entry -> {
                     try (InputStream is = zipFile.getInputStream(entry)) {
-                        return ImageIO.read(is);
+                        return FileService.readImage(is);
                     } catch (Exception e) {
                         log.warn("Failed to read image from ZIP entry {}: {}", entry.getName(), e.getMessage());
                         return null;
@@ -177,7 +177,7 @@ public class CbxProcessor extends AbstractFileProcessor implements BookFileProce
                                 if (bytesRead < 0) break;
                                 offset += bytesRead;
                             }
-                            return Optional.ofNullable(ImageIO.read(new ByteArrayInputStream(content)));
+                            return Optional.ofNullable(FileService.readImage(new ByteArrayInputStream(content)));
                         }
                     }
                 }
@@ -198,7 +198,7 @@ public class CbxProcessor extends AbstractFileProcessor implements BookFileProce
             for (FileHeader header : imageHeaders) {
                 try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                     archive.extractFile(header, baos);
-                    return Optional.ofNullable(ImageIO.read(new ByteArrayInputStream(baos.toByteArray())));
+                    return Optional.ofNullable(FileService.readImage(new ByteArrayInputStream(baos.toByteArray())));
                 } catch (Exception e) {
                     log.warn("Error reading RAR entry {}: {}", header.getFileName(), e.getMessage());
                 }
