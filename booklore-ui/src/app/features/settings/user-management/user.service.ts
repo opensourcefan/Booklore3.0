@@ -105,6 +105,7 @@ export interface EpubReaderSetting {
   lineHeight: number;
   margin: number;
   letterSpacing: number;
+  customFontId?: number | null;
 }
 
 export interface CbxReaderSetting {
@@ -170,6 +171,7 @@ export interface User {
     canManageEmailConfig: boolean;
     canManageGlobalPreferences: boolean;
     canManageIcons: boolean;
+    canManageFonts: boolean;
     demoUser: boolean;
     canBulkAutoFetchMetadata: boolean;
     canBulkCustomFetchMetadata: boolean;

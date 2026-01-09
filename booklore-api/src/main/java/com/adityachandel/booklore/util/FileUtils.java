@@ -63,13 +63,25 @@ public class FileUtils {
         }
     }
 
-    private List<String> systemDirs = Arrays.asList(
+    public String getExtension(String fileName) {
+        if (fileName == null) {
+            return "";
+        }
+        int i = fileName.lastIndexOf('.');
+        if (i >= 0 && i < fileName.length() - 1) {
+            return fileName.substring(i + 1);
+        }
+        return "";
+    }
+
+    final private List<String> systemDirs = Arrays.asList(
       // synology
       "#recycle",
       "@eaDir",
       // calibre
       ".caltrash"
     );
+
     public boolean shouldIgnore(Path path) {
         if (!path.getFileName().toString().isEmpty() && path.getFileName().toString().charAt(0) == '.') {
             return true;
