@@ -38,7 +38,6 @@ describe('AppSettingsService', () => {
       defaultPermissions: [],
       defaultLibraryIds: []
     },
-    cbxCacheSizeInMb: 0,
     maxFileUploadSizeInMb: 0,
     metadataProviderSettings: {
       amazon: {enabled: false, cookie: '', domain: ''},
@@ -391,7 +390,6 @@ describe('AppSettingsService - API Contract Tests', () => {
           defaultPermissions: [],
           defaultLibraryIds: []
         },
-        cbxCacheSizeInMb: 0,
         maxFileUploadSizeInMb: 0,
         metadataProviderSettings: {
           amazon: {enabled: false, cookie: '', domain: ''},
