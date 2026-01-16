@@ -1,31 +1,55 @@
 package com.adityachandel.booklore.service.book;
 
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.EnumUtils;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
 import com.adityachandel.booklore.config.security.service.AuthenticationService;
 import com.adityachandel.booklore.exception.ApiError;
 import com.adityachandel.booklore.mapper.BookMapper;
-import com.adityachandel.booklore.model.dto.*;
+import com.adityachandel.booklore.model.dto.Book;
+import com.adityachandel.booklore.model.dto.BookLoreUser;
+import com.adityachandel.booklore.model.dto.BookViewerSettings;
+import com.adityachandel.booklore.model.dto.CbxViewerPreferences;
+import com.adityachandel.booklore.model.dto.EpubViewerPreferences;
+import com.adityachandel.booklore.model.dto.NewPdfViewerPreferences;
+import com.adityachandel.booklore.model.dto.PdfViewerPreferences;
+import com.adityachandel.booklore.model.dto.Shelf;
 import com.adityachandel.booklore.model.dto.request.ReadProgressRequest;
 import com.adityachandel.booklore.model.dto.response.BookStatusUpdateResponse;
 import com.adityachandel.booklore.model.dto.response.PersonalRatingUpdateResponse;
-import com.adityachandel.booklore.model.entity.*;
+import com.adityachandel.booklore.model.entity.BookEntity;
+import com.adityachandel.booklore.model.entity.BookFileEntity;
+import com.adityachandel.booklore.model.entity.BookLoreUserEntity;
+import com.adityachandel.booklore.model.entity.CbxViewerPreferencesEntity;
+import com.adityachandel.booklore.model.entity.EpubViewerPreferencesEntity;
+import com.adityachandel.booklore.model.entity.NewPdfViewerPreferencesEntity;
+import com.adityachandel.booklore.model.entity.PdfViewerPreferencesEntity;
+import com.adityachandel.booklore.model.entity.ShelfEntity;
+import com.adityachandel.booklore.model.entity.UserBookProgressEntity;
 import com.adityachandel.booklore.model.enums.BookFileType;
 import com.adityachandel.booklore.model.enums.ReadStatus;
 import com.adityachandel.booklore.model.enums.ResetProgressType;
 import com.adityachandel.booklore.model.enums.UserPermission;
-import com.adityachandel.booklore.repository.*;
+import com.adityachandel.booklore.repository.BookRepository;
+import com.adityachandel.booklore.repository.CbxViewerPreferencesRepository;
+import com.adityachandel.booklore.repository.EpubViewerPreferencesRepository;
+import com.adityachandel.booklore.repository.NewPdfViewerPreferencesRepository;
+import com.adityachandel.booklore.repository.PdfViewerPreferencesRepository;
+import com.adityachandel.booklore.repository.ShelfRepository;
+import com.adityachandel.booklore.repository.UserBookProgressRepository;
+import com.adityachandel.booklore.repository.UserRepository;
 import com.adityachandel.booklore.service.kobo.KoboReadingStateService;
 import com.adityachandel.booklore.service.user.UserProgressService;
 import com.adityachandel.booklore.util.FileUtils;
+
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.EnumUtils;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @AllArgsConstructor
@@ -47,10 +71,11 @@ public class BookUpdateService {
     private final KoboReadingStateService koboReadingStateService;
 
     public void updateBookViewerSetting(long bookId, BookViewerSettings bookViewerSettings) {
-        BookEntity bookEntity = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+        BookEntity bookEntity = bookRepository.findByIdWithBookFiles(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+        BookFileEntity bookFileEntity = bookEntity.getPrimaryBookFile();
         BookLoreUser user = authenticationService.getAuthenticatedUser();
 
-        if (bookEntity.getBookType() == BookFileType.PDF) {
+        if (bookFileEntity.getBookType() == BookFileType.PDF) {
             if (bookViewerSettings.getPdfSettings() != null) {
                 PdfViewerPreferencesEntity pdfPrefs = pdfViewerPreferencesRepository
                         .findByBookIdAndUserId(bookId, user.getId())
@@ -80,7 +105,7 @@ public class BookUpdateService {
                 pdfPrefs.setPageViewMode(pdfSettings.getPageViewMode());
                 newPdfViewerPreferencesRepository.save(pdfPrefs);
             }
-        } else if (bookEntity.getBookType() == BookFileType.EPUB) {
+        } else if (bookFileEntity.getBookType() == BookFileType.EPUB) {
             EpubViewerPreferencesEntity epubPrefs = epubViewerPreferencesRepository
                     .findByBookIdAndUserId(bookId, user.getId())
                     .orElseGet(() -> {
@@ -101,7 +126,7 @@ public class BookUpdateService {
             epubPrefs.setLineHeight(epubSettings.getLineHeight());
             epubViewerPreferencesRepository.save(epubPrefs);
 
-        } else if (bookEntity.getBookType() == BookFileType.CBX) {
+        } else if (bookFileEntity.getBookType() == BookFileType.CBX) {
             CbxViewerPreferencesEntity cbxPrefs = cbxViewerPreferencesRepository
                     .findByBookIdAndUserId(bookId, user.getId())
                     .orElseGet(() -> {
@@ -127,7 +152,7 @@ public class BookUpdateService {
 
     @Transactional
     public void updateReadProgress(ReadProgressRequest request) {
-        BookEntity book = bookRepository.findById(request.getBookId()).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(request.getBookId()));
+        BookEntity book = bookRepository.findByIdWithBookFiles(request.getBookId()).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(request.getBookId()));
 
         BookLoreUser user = authenticationService.getAuthenticatedUser();
 
@@ -143,7 +168,8 @@ public class BookUpdateService {
         progress.setLastReadTime(Instant.now());
 
         Float percentage = null;
-        switch (book.getBookType()) {
+        BookFileEntity bookFileEntity = book.getPrimaryBookFile();
+        switch (bookFileEntity.getBookType()) {
             case EPUB -> {
                 if (request.getEpubProgress() != null) {
                     progress.setEpubProgress(request.getEpubProgress().getCfi());
@@ -166,7 +192,7 @@ public class BookUpdateService {
 
         if (percentage != null) {
             progress.setReadStatus(getStatus(percentage));
-            setProgressPercent(progress, book.getBookType(), percentage);
+            setProgressPercent(progress, bookFileEntity.getBookType(), percentage);
         }
 
         if (request.getDateFinished() != null) {
