@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -38,7 +39,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
+@ExtendWith(MockitoExtension.class)
 class BookServiceTest {
 
     @Mock
@@ -46,7 +47,7 @@ class BookServiceTest {
     @Mock
     private PdfViewerPreferencesRepository pdfViewerPreferencesRepository;
     @Mock
-    private EpubViewerPreferencesRepository epubViewerPreferencesRepository;
+    private EbookViewerPreferenceRepository ebookViewerPreferenceRepository;
     @Mock
     private CbxViewerPreferencesRepository cbxViewerPreferencesRepository;
     @Mock
@@ -170,15 +171,35 @@ class BookServiceTest {
         primaryFile.setBookType(BookFileType.EPUB);
         entity.setBookFiles(List.of(primaryFile));
         when(bookRepository.findByIdWithBookFiles(4L)).thenReturn(Optional.of(entity));
-        EpubViewerPreferencesEntity epubPref = new EpubViewerPreferencesEntity();
-        epubPref.setFont("Arial");
-        when(epubViewerPreferencesRepository.findByBookIdAndUserId(4L, testUser.getId())).thenReturn(Optional.of(epubPref));
+        EbookViewerPreferenceEntity epubPref = new EbookViewerPreferenceEntity();
+        epubPref.setFontFamily("Arial");
+        epubPref.setFontSize(16);
+        epubPref.setGap(0.2f);
+        epubPref.setHyphenate(true);
+        epubPref.setIsDark(false);
+        epubPref.setJustify(true);
+        epubPref.setLineHeight(1.5f);
+        epubPref.setMaxBlockSize(800);
+        epubPref.setMaxColumnCount(2);
+        epubPref.setMaxInlineSize(1200);
+        epubPref.setTheme("light");
+        when(ebookViewerPreferenceRepository.findByBookIdAndUserId(4L, testUser.getId())).thenReturn(Optional.of(epubPref));
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
 
         BookViewerSettings settings = bookService.getBookViewerSetting(4L);
 
-        assertNotNull(settings.getEpubSettings());
-        assertEquals("Arial", settings.getEpubSettings().getFont());
+        assertNotNull(settings.getEbookSettings());
+        assertEquals("Arial", settings.getEbookSettings().getFontFamily());
+        assertEquals(16, settings.getEbookSettings().getFontSize());
+        assertEquals(0.2f, settings.getEbookSettings().getGap());
+        assertTrue(settings.getEbookSettings().getHyphenate());
+        assertFalse(settings.getEbookSettings().getIsDark());
+        assertTrue(settings.getEbookSettings().getJustify());
+        assertEquals(1.5f, settings.getEbookSettings().getLineHeight());
+        assertEquals(800, settings.getEbookSettings().getMaxBlockSize());
+        assertEquals(2, settings.getEbookSettings().getMaxColumnCount());
+        assertEquals(1200, settings.getEbookSettings().getMaxInlineSize());
+        assertEquals("light", settings.getEbookSettings().getTheme());
     }
 
     @Test

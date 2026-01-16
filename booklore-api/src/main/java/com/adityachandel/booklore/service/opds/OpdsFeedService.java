@@ -8,18 +8,17 @@ import com.adityachandel.booklore.model.enums.OpdsSortOrder;
 import com.adityachandel.booklore.service.MagicShelfService;
 import com.adityachandel.booklore.util.ArchiveUtils;
 import com.adityachandel.booklore.util.FileUtils;
-
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -381,7 +380,7 @@ public class OpdsFeedService {
         int size = Math.min(parseLongParam(request, "size", (long) DEFAULT_PAGE_SIZE).intValue(), MAX_PAGE_SIZE);
 
         Page<Book> booksPage = opdsBookService.getRecentBooksPage(userId, page - 1, size);
-        
+
         // Apply user's preferred sort order
         booksPage = opdsBookService.applySortOrder(booksPage, sortOrder);
 
@@ -621,6 +620,8 @@ public class OpdsFeedService {
                 }
                 yield "application/x-fictionbook+xml";
             }
+            case MOBI -> "application/x-mobipocket-ebook";
+            case AZW3 -> "application/vnd.amazon.ebook";
             case CBX -> {
                 if (book.getArchiveType() != null) {
                     yield switch (book.getArchiveType()) {
@@ -674,9 +675,9 @@ public class OpdsFeedService {
     private Set<Long> parseShelfIds(HttpServletRequest request) {
         String shelfIdParam = request.getParameter("shelfId");
         String shelfIdsParam = request.getParameter("shelfIds");
-        
+
         Set<Long> shelfIds = new HashSet<>();
-        
+
         // Support both single shelfId and comma-separated shelfIds
         if (shelfIdParam != null && !shelfIdParam.isBlank()) {
             try {
@@ -685,7 +686,7 @@ public class OpdsFeedService {
                 log.warn("Invalid shelfId parameter: {}", shelfIdParam);
             }
         }
-        
+
         if (shelfIdsParam != null && !shelfIdsParam.isBlank()) {
             for (String id : shelfIdsParam.split(",")) {
                 try {
@@ -695,7 +696,7 @@ public class OpdsFeedService {
                 }
             }
         }
-        
+
         return shelfIds.isEmpty() ? null : shelfIds;
     }
 
