@@ -6,22 +6,24 @@
       <div class="section-header">
         <h3 class="section-title">
           <i class="pi pi-download"></i>
-          Auto-Download Metadata
+          Automatic Metadata Download
         </h3>
         <p class="section-description">
           <i class="pi pi-exclamation-triangle"></i>
-          Automatically downloads metadata from your configured sources when files are added to the Bookdrop folder. Use with caution if adding many files at once as metadata fetching can take time.
+          When enabled, metadata will be automatically retrieved from your configured sources whenever new files are added to the Bookdrop folder. Please note that processing a large number of files simultaneously may increase the time required for metadata fetching.
         </p>
       </div>
 
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label-row">
-            <label class="setting-label">Auto-Download for BookDrop Files</label>
-            <p-toggleswitch
-              [(ngModel)]="metadataDownloadOnBookdrop"
-              (onChange)="onMetadataDownloadOnBookdropToggle($event.checked)">
-            </p-toggleswitch>
+      <div class="section-body">
+        <div class="setting-item">
+          <div class="setting-item setting-item-indented">
+            <div class="setting-label-row">
+              <label class="setting-label">Enable automatic metadata download for Bookdrop imports</label>
+              <p-toggleswitch
+                [(ngModel)]="metadataDownloadOnBookdrop"
+                (onChange)="onMetadataDownloadOnBookdropToggle($event.checked)">
+              </p-toggleswitch>
+            </div>
           </div>
         </div>
       </div>
