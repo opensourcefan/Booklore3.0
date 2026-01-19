@@ -54,6 +54,7 @@ public class DefaultUserSettingsProvider {
                 .epub(BookLoreUser.UserSettings.PerBookSetting.GlobalOrIndividual.Individual)
                 .pdf(BookLoreUser.UserSettings.PerBookSetting.GlobalOrIndividual.Individual)
                 .cbx(BookLoreUser.UserSettings.PerBookSetting.GlobalOrIndividual.Individual)
+                .newPdf(BookLoreUser.UserSettings.PerBookSetting.GlobalOrIndividual.Individual)
                 .build();
     }
 

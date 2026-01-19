@@ -208,6 +208,7 @@ public class BookLoreUser {
             private GlobalOrIndividual pdf;
             private GlobalOrIndividual epub;
             private GlobalOrIndividual cbx;
+            private GlobalOrIndividual newPdf;
 
             public enum GlobalOrIndividual {
                 Global, Individual

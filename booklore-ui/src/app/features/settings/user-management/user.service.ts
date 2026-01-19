@@ -46,6 +46,7 @@ export interface PerBookSetting {
   pdf: string;
   epub: string;
   cbx: string;
+  newPdf?: string;
 }
 
 export type PageSpread = 'off' | 'even' | 'odd';
