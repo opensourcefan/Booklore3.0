@@ -10,7 +10,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/master' }}
 
 jobs:
   migration-check:
@@ -210,3 +210,4 @@ jobs:
           cache-to: |
             type=gha,mode=max
             type=registry,ref=ghcr.io/booklore-app/booklore:buildcache,mode=max
+
