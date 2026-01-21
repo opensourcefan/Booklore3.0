@@ -536,12 +536,26 @@ export class SeriesProgressChartComponent implements OnInit, OnDestroy {
       s.name.length > 25 ? s.name.substring(0, 22) + '...' : s.name
     );
 
-    const readPercentages = this.chartSeries.map(s => s.completionPercentage);
+    const readPercentages = this.chartSeries.map(s =>
+      s.booksOwned > 0 ? Math.round((s.booksRead / s.booksOwned) * 100) : 0
+    );
     const readingPercentages = this.chartSeries.map(s =>
       s.booksOwned > 0 ? Math.round((s.booksReading / s.booksOwned) * 100) : 0
     );
+    const partiallyReadPercentages = this.chartSeries.map(s =>
+      s.booksOwned > 0 ? Math.round((s.booksPartiallyRead / s.booksOwned) * 100) : 0
+    );
+    const pausedPercentages = this.chartSeries.map(s =>
+      s.booksOwned > 0 ? Math.round((s.booksPaused / s.booksOwned) * 100) : 0
+    );
+    const abandonedPercentages = this.chartSeries.map(s =>
+      s.booksOwned > 0 ? Math.round((s.booksAbandoned / s.booksOwned) * 100) : 0
+    );
+    const wontReadPercentages = this.chartSeries.map(s =>
+      s.booksOwned > 0 ? Math.round((s.booksWontRead / s.booksOwned) * 100) : 0
+    );
     const unreadPercentages = this.chartSeries.map(s =>
-      100 - s.completionPercentage - (s.booksOwned > 0 ? Math.round((s.booksReading / s.booksOwned) * 100) : 0)
+      s.booksOwned > 0 ? Math.round((s.booksUnread / s.booksOwned) * 100) : 0
     );
 
     this.chartDataSubject.next({
@@ -564,9 +578,41 @@ export class SeriesProgressChartComponent implements OnInit, OnDestroy {
           borderRadius: 2
         },
         {
+          label: 'Partially Read',
+          data: partiallyReadPercentages,
+          backgroundColor: 'rgba(255, 152, 0, 0.85)',
+          borderColor: '#ff9800',
+          borderWidth: 1,
+          borderRadius: 2
+        },
+        {
+          label: 'Paused',
+          data: pausedPercentages,
+          backgroundColor: 'rgba(33, 150, 243, 0.85)',
+          borderColor: '#2196f3',
+          borderWidth: 1,
+          borderRadius: 2
+        },
+        {
+          label: 'Abandoned',
+          data: abandonedPercentages,
+          backgroundColor: 'rgba(239, 83, 80, 0.85)',
+          borderColor: '#ef5350',
+          borderWidth: 1,
+          borderRadius: 2
+        },
+        {
+          label: 'Won\'t Read',
+          data: wontReadPercentages,
+          backgroundColor: 'rgba(158, 158, 158, 0.6)',
+          borderColor: '#9e9e9e',
+          borderWidth: 1,
+          borderRadius: 2
+        },
+        {
           label: 'Unread',
           data: unreadPercentages,
-          backgroundColor: 'rgba(158, 158, 158, 0.4)',
+          backgroundColor: 'rgba(158, 158, 158, 0.3)',
           borderColor: '#9e9e9e',
           borderWidth: 1,
           borderRadius: 2
