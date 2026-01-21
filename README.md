@@ -452,12 +452,11 @@ Join community!
 
 ## ⚖️ **License**
 
-**GNU General Public License v3.0**
+**GNU Affero General Public License v3.0 (AGPL-3.0)**
 
 Copyright © 2024-2026 BookLore
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](http://www.gnu.org/licenses/gpl.html)
-
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/agpl-3.0.html)
 ---
 
 <sub>Made with ❤️ by the BookLore community</sub>
