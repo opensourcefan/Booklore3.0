@@ -246,8 +246,8 @@ jobs:
             rc_number=$(git rev-list --count HEAD 2>/dev/null || echo "1")
           fi
 
-          # Ensure RC number is at least 1
-          rc_number=$((rc_number > 0 ? rc_number : 1))
+          # Convert commit count to RC number (0 commits = rc.1, 1 commit = rc.2, etc.)
+          rc_number=$((rc_number + 1))
 
           rc_tag="v${full_version}-rc.${rc_number}"
           short_sha=$(git rev-parse --short HEAD)

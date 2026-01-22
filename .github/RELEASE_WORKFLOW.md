@@ -179,6 +179,26 @@ gh pr merge --squash
 - Each merge to `release/1.18` publishes a new RC (`v1.18.0-rc.2`, `rc.3`, etc.)
 - Testers can pull specific RC versions to validate fixes
 
+**Recommended: Keep `develop` in sync**
+
+To avoid `develop` having stale/buggy code until the release completes, create PRs targeting both branches:
+
+```bash
+git checkout release/1.18
+git checkout -b fix/critical-bug
+# ... make fixes ...
+git commit -m "Fix critical bug in authentication"
+git push -u origin fix/critical-bug
+
+# Create PR for release branch
+gh pr create --base release/1.18 --title "Fix critical bug"
+
+# Create PR for develop (same branch, different target)
+gh pr create --base develop --title "Fix critical bug"
+```
+
+Both PRs can be reviewed and merged independently. When `master` is merged back to `develop` in Phase 5, Git will recognize the identical changes and resolve cleanly.
+
 ---
 
 ### Phase 3: Merge to Master
