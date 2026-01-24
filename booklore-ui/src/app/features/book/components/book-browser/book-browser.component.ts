@@ -86,7 +86,7 @@ export enum EntityType {
   ]
 })
 export class BookBrowserComponent implements OnInit, AfterViewInit {
-  // Public injected services (used in template)
+
   protected userService = inject(UserService);
   protected coverScalePreferenceService = inject(CoverScalePreferenceService);
   protected columnPreferenceService = inject(TableColumnPreferenceService);
@@ -97,7 +97,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   protected bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
   protected bookSelectionService = inject(BookSelectionService);
 
-  // Private injected services
   private activatedRoute = inject(ActivatedRoute);
   private messageService = inject(MessageService);
   private bookService = inject(BookService);
@@ -112,7 +111,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   private filterOrchestrationService = inject(BookFilterOrchestrationService);
   private localStorageService = inject(LocalStorageService);
 
-  // Observables
   bookState$: Observable<BookState> | undefined;
   entity$: Observable<Library | Shelf | MagicShelf | null> | undefined;
   entityType$: Observable<EntityType> | undefined;
@@ -121,7 +119,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   selectedFilterMode = new BehaviorSubject<BookFilterMode>('and');
   protected resetFilterSubject = new Subject<void>();
 
-  // State
   parsedFilters: Record<string, string[]> = {};
   entity: Library | Shelf | MagicShelf | null = null;
   entityType: EntityType | undefined;
@@ -142,9 +139,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   mobileColumnCount = 3;
 
   private readonly MOBILE_BREAKPOINT = 768;
-  private readonly CARD_ASPECT_RATIO = 7 / 5; // height / width (from aspect-ratio: 5/7)
-  private readonly MOBILE_GAP = 16; // 1rem in px
-  private readonly MOBILE_PADDING = 16; // 0.5rem * 2 sides
+  private readonly CARD_ASPECT_RATIO = 7 / 5;
+  private readonly MOBILE_GAP = 8;
+  private readonly MOBILE_PADDING = 48;
+  private readonly MOBILE_TITLE_BAR_HEIGHT = 32;
   private readonly MOBILE_COLUMNS_STORAGE_KEY = 'mobileColumnsPreference';
 
   private settingFiltersFromUrl = false;
@@ -174,11 +172,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
   get mobileCardSize(): { width: number; height: number } {
     const columns = this.mobileColumnCount;
     const totalGaps = (columns - 1) * this.MOBILE_GAP;
-    const totalPadding = this.MOBILE_PADDING * 2;
-    const availableWidth = this.screenWidth - totalGaps - totalPadding;
+    const availableWidth = this.screenWidth - totalGaps - this.MOBILE_PADDING;
     const cardWidth = Math.floor(availableWidth / columns);
-    const cardHeight = Math.floor(cardWidth * this.CARD_ASPECT_RATIO);
-    return { width: cardWidth, height: cardHeight };
+    const coverHeight = Math.floor(cardWidth * this.CARD_ASPECT_RATIO);
+    const cardHeight = coverHeight + this.MOBILE_TITLE_BAR_HEIGHT;
+    return {width: cardWidth, height: cardHeight};
   }
 
   get selectedBooks(): Set<number> {
@@ -348,7 +346,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
         user.user?.userSettings?.filterMode ?? 'and'
       );
 
-      // Apply filter mode
+
       if (parseResult.filterMode !== this.selectedFilterMode.getValue()) {
         this.selectedFilterMode.next(parseResult.filterMode);
         if (this.bookFilterComponent) {
@@ -360,7 +358,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
         this.showFilter = value;
       });
 
-      // Apply filters
+
       this.currentFilterLabel = 'All Books';
       const filterParams = queryParamMap.get('filter');
 
@@ -386,13 +384,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
 
       this.parsedFilters = parseResult.filters;
 
-      // Apply preferences
+
       this.entityViewPreferences = user.user?.userSettings?.entityViewPreferences;
       this.coverScalePreferenceService.initScaleValue(this.coverScalePreferenceService.scaleFactor);
       this.columnPreferenceService.initPreferences(user.user?.userSettings?.tableColumnPreference);
       this.visibleColumns = this.columnPreferenceService.visibleColumns;
 
-      // Apply sort
+
       this.bookSorter.selectedSort = parseResult.sortOption;
       this.currentViewMode = parseResult.viewMode;
       this.bookSorter.updateSortOptions();
@@ -403,7 +401,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit {
         this.applySortOption(this.bookSorter.selectedSort);
       }
 
-      // Sync query params
+
       this.queryParamsService.syncQueryParams(
         this.currentViewMode!,
         this.bookSorter.selectedSort,

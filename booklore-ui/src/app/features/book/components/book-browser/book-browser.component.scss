@@ -333,7 +333,7 @@
 
   // Mobile: fixed 2 or 3 columns based on phone width
   @media (max-width: 767px) {
-    gap: 1rem;
+    gap: 0.5rem;
     padding: 0 0.5rem;
   }
 }
