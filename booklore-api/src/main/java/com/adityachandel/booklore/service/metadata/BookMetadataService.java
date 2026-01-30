@@ -38,6 +38,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -148,9 +149,9 @@ public class BookMetadataService {
                 .seriesName(request.getSeriesName())
                 .seriesTotal(request.getSeriesTotal())
                 .publishedDate(request.getPublishedDate())
-                .categories(request.getGenres())
-                .moods(request.getMoods())
-                .tags(request.getTags())
+                .categories(request.getGenres() != null ? request.getGenres() : Collections.emptySet())
+                .moods(request.getMoods() != null ? request.getMoods() : Collections.emptySet())
+                .tags(request.getTags() != null ? request.getTags() : Collections.emptySet())
                 .build();
 
         for (Long bookId : request.getBookIds()) {

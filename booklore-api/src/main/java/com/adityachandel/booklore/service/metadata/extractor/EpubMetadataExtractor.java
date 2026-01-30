@@ -52,7 +52,7 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
     }
 
     private static final List<IdentifierMapping> IDENTIFIER_PREFIX_MAPPINGS = List.of(
-        new IdentifierMapping("urn:isbn:", "isbn", null), // Special handling for ISBN URNs
+        new IdentifierMapping("urn:isbn:", "isbn", null),
         new IdentifierMapping("urn:amazon:", "asin", BookMetadata.BookMetadataBuilder::asin),
         new IdentifierMapping("urn:goodreads:", "goodreadsId", BookMetadata.BookMetadataBuilder::goodreadsId),
         new IdentifierMapping("urn:google:", "googleId", BookMetadata.BookMetadataBuilder::googleId),
@@ -106,6 +106,17 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
                 if (coverHref != null) {
                     byte[] data = extractFileFromZip(epubFile, coverHref);
                     if (data != null) return data;
+                }
+            }
+
+            if (coverImage == null) {
+                String metaCoverId = findMetaCoverIdInOpf(epubFile);
+                if (metaCoverId != null) {
+                    String href = findHrefForManifestId(epubFile, metaCoverId);
+                    if (href != null) {
+                        byte[] data = extractFileFromZip(epubFile, href);
+                        if (data != null) return data;
+                    }
                 }
             }
 
@@ -348,7 +359,6 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
             if (value.startsWith(mapping.prefix)) {
                 String extractedValue = value.substring(mapping.prefix.length());
                 
-                // Special handling for ISBN URNs - pass to ISBN processor
                 if ("isbn".equals(mapping.fieldName)) {
                     processIsbnIdentifier(extractedValue, builder, processedFields);
                     return true;
@@ -472,7 +482,6 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
 
         value = value.trim();
 
-        // Check for year-only format first (e.g., "2024") - common in EPUB metadata
         if (YEAR_ONLY_PATTERN.matcher(value).matches()) {
             int year = Integer.parseInt(value);
             if (year >= 1 && year <= 9999) {
@@ -490,7 +499,6 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
         } catch (Exception ignored) {
         }
 
-        // Try parsing first 10 characters for ISO date format with extra content
         if (value.length() >= 10) {
             try {
                 return LocalDate.parse(value.substring(0, 10));
@@ -544,10 +552,91 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
         return null;
     }
 
+    private String findMetaCoverIdInOpf(File epubFile) {
+        try (ZipFile zip = new ZipFile(epubFile)) {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            DocumentBuilder builder = dbf.newDocumentBuilder();
+
+            FileHeader containerHdr = zip.getFileHeader("META-INF/container.xml");
+            if (containerHdr == null) return null;
+
+            try (InputStream cis = zip.getInputStream(containerHdr)) {
+                Document containerDoc = builder.parse(cis);
+                NodeList roots = containerDoc.getElementsByTagName("rootfile");
+                if (roots.getLength() == 0) return null;
+
+                String opfPath = ((Element) roots.item(0)).getAttribute("full-path");
+                if (StringUtils.isBlank(opfPath)) return null;
+
+                FileHeader opfHdr = zip.getFileHeader(opfPath);
+                if (opfHdr == null) return null;
+
+                try (InputStream in = zip.getInputStream(opfHdr)) {
+                    Document doc = builder.parse(in);
+                    NodeList metaElements = doc.getElementsByTagName("meta");
+
+                    for (int i = 0; i < metaElements.getLength(); i++) {
+                        Element meta = (Element) metaElements.item(i);
+                        String name = meta.getAttribute("name");
+                        if ("cover".equals(name)) {
+                            return meta.getAttribute("content");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Failed to find meta cover ID in OPF: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private String findHrefForManifestId(File epubFile, String manifestId) {
+        try (ZipFile zip = new ZipFile(epubFile)) {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            DocumentBuilder builder = dbf.newDocumentBuilder();
+
+            FileHeader containerHdr = zip.getFileHeader("META-INF/container.xml");
+            if (containerHdr == null) return null;
+
+            try (InputStream cis = zip.getInputStream(containerHdr)) {
+                Document containerDoc = builder.parse(cis);
+                NodeList roots = containerDoc.getElementsByTagName("rootfile");
+                if (roots.getLength() == 0) return null;
+
+                String opfPath = ((Element) roots.item(0)).getAttribute("full-path");
+                if (StringUtils.isBlank(opfPath)) return null;
+
+                FileHeader opfHdr = zip.getFileHeader(opfPath);
+                if (opfHdr == null) return null;
+
+                try (InputStream in = zip.getInputStream(opfHdr)) {
+                    Document doc = builder.parse(in);
+                    NodeList manifestItems = doc.getElementsByTagName("item");
+
+                    for (int i = 0; i < manifestItems.getLength(); i++) {
+                        Element item = (Element) manifestItems.item(i);
+                        String id = item.getAttribute("id");
+                        if (manifestId.equals(id)) {
+                            String href = item.getAttribute("href");
+                            String decodedHref = URLDecoder.decode(href, StandardCharsets.UTF_8);
+                            return resolvePath(opfPath, decodedHref);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Failed to find href for manifest ID {}: {}", manifestId, e.getMessage());
+        }
+        return null;
+    }
+
     private String resolvePath(String opfPath, String href) {
         if (href == null || href.isEmpty()) return null;
 
-        // If href is absolute within the zip (starts with /), return it without leading /
         if (href.startsWith("/")) return href.substring(1);
 
         int lastSlash = opfPath.lastIndexOf('/');
@@ -555,7 +644,6 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
 
         String combined = basePath + href;
 
-        // Normalize path components to handle ".." and "."
         java.util.LinkedList<String> parts = new java.util.LinkedList<>();
         for (String part : combined.split("/")) {
             if ("..".equals(part)) {
@@ -636,3 +724,4 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
         }
     }
 }
+

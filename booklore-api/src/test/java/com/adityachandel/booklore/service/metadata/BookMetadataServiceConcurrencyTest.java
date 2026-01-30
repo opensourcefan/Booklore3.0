@@ -91,7 +91,11 @@ class BookMetadataServiceConcurrencyTest {
     private java.util.Optional<BookEntity> getUserBook(Long id) {
         BookEntity book = new BookEntity();
         book.setId(id);
-        book.setMetadata(new BookMetadataEntity());
+
+        BookMetadataEntity metadata = new BookMetadataEntity();
+        metadata.setCategories(java.util.Collections.emptySet());
+        book.setMetadata(metadata);
+
         return java.util.Optional.of(book);
     }
 }
