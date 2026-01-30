@@ -7,6 +7,7 @@ import com.adityachandel.booklore.mobile.dto.MobileLibrarySummary;
 import com.adityachandel.booklore.mobile.dto.MobileMagicShelfSummary;
 import com.adityachandel.booklore.mobile.dto.MobileShelfSummary;
 import com.adityachandel.booklore.model.entity.*;
+import com.adityachandel.booklore.model.enums.BookFileType;
 import org.mapstruct.*;
 
 import java.util.Collections;
@@ -60,7 +61,8 @@ public interface MobileBookMapper {
     @Mapping(target = "epubProgress", source = "progress", qualifiedByName = "mapEpubProgress")
     @Mapping(target = "pdfProgress", source = "progress", qualifiedByName = "mapPdfProgress")
     @Mapping(target = "cbxProgress", source = "progress", qualifiedByName = "mapCbxProgress")
-    MobileBookDetail toDetail(BookEntity book, UserBookProgressEntity progress);
+    @Mapping(target = "audiobookProgress", source = "fileProgress", qualifiedByName = "mapAudiobookProgress")
+    MobileBookDetail toDetail(BookEntity book, UserBookProgressEntity progress, UserBookFileProgressEntity fileProgress);
 
     @Named("mapAuthors")
     default List<String> mapAuthors(Set<AuthorEntity> authors) {
@@ -118,7 +120,6 @@ public interface MobileBookMapper {
         if (progress == null) {
             return null;
         }
-        // Try KoReader progress first, then Kobo progress
         if (progress.getKoreaderProgressPercent() != null) {
             return progress.getKoreaderProgressPercent();
         }
@@ -163,6 +164,40 @@ public interface MobileBookMapper {
                 .percentage(progress.getCbxProgressPercent())
                 .updatedAt(progress.getLastReadTime())
                 .build();
+    }
+
+    @Named("mapAudiobookProgress")
+    default MobileBookDetail.AudiobookProgress mapAudiobookProgress(UserBookFileProgressEntity fileProgress) {
+        if (fileProgress == null) return null;
+        if (fileProgress.getBookFile() == null ||
+            fileProgress.getBookFile().getBookType() != BookFileType.AUDIOBOOK) {
+            return null;
+        }
+
+        return MobileBookDetail.AudiobookProgress.builder()
+                .positionMs(parseLongOrNull(fileProgress.getPositionData()))
+                .trackIndex(parseIntOrNull(fileProgress.getPositionHref()))
+                .percentage(fileProgress.getProgressPercent())
+                .updatedAt(fileProgress.getLastReadTime())
+                .build();
+    }
+
+    default Long parseLongOrNull(String value) {
+        if (value == null) return null;
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    default Integer parseIntOrNull(String value) {
+        if (value == null) return null;
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @Named("mapPrimaryFileType")

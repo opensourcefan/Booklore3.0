@@ -9,15 +9,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Full DTO for book detail view on mobile.
- * Contains all fields needed for the book detail screen.
- */
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MobileBookDetail {
-    // Basic fields (same as MobileBookSummary)
     private Long id;
     private String title;
     private List<String> authors;
@@ -30,7 +25,6 @@ public class MobileBookDetail {
     private Instant addedOn;
     private Instant lastReadTime;
 
-    // Additional detail fields
     private String subtitle;
     private String description;
     private Set<String> categories;
@@ -48,10 +42,10 @@ public class MobileBookDetail {
     private List<String> fileTypes;
     private List<MobileBookFile> files;
 
-    // Reading position progress for resume
     private EpubProgress epubProgress;
     private PdfProgress pdfProgress;
     private CbxProgress cbxProgress;
+    private AudiobookProgress audiobookProgress;
 
     @Data
     @Builder
@@ -74,6 +68,15 @@ public class MobileBookDetail {
     @Builder
     public static class CbxProgress {
         private Integer page;
+        private Float percentage;
+        private Instant updatedAt;
+    }
+
+    @Data
+    @Builder
+    public static class AudiobookProgress {
+        private Long positionMs;
+        private Integer trackIndex;
         private Float percentage;
         private Instant updatedAt;
     }
