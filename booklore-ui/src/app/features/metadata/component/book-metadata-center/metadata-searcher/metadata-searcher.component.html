@@ -14,7 +14,7 @@
         <div class="search-field search-field-provider">
           <label>
             <i class="pi pi-globe"></i>
-            {{ t('providers') }}
+            {{ t('providersLabel') }}
           </label>
           <p-multiselect
             [filter]="false"
@@ -29,7 +29,7 @@
         <div class="search-field">
           <label>
             <i class="pi pi-barcode"></i>
-            {{ t('isbn') }}
+            {{ t('isbnLabel') }}
             <i
               class="pi pi-info-circle"
               [pTooltip]="t('isbnTooltip')"
@@ -47,7 +47,7 @@
         <div class="search-field">
           <label>
             <i class="pi pi-book"></i>
-            {{ t('title') }}
+            {{ t('titleLabel') }}
           </label>
           <input
             pInputText
@@ -59,7 +59,7 @@
         <div class="search-field">
           <label>
             <i class="pi pi-user"></i>
-            {{ t('author') }}
+            {{ t('authorLabel') }}
           </label>
           <input
             pInputText
@@ -70,7 +70,7 @@
 
         <div class="search-field search-button-field">
           <p-button
-            [label]="t('search')"
+            [label]="t('searchBtn')"
             type="submit"
             [disabled]="!isSearchEnabled || loading"
             icon="pi pi-search"
@@ -128,7 +128,7 @@
           <i class="pi pi-search"></i>
         </div>
         <h3>{{ t('readyToSearch') }}</h3>
-        <p>{{ t('readyToSearchDescription') }}</p>
+        <p>{{ t('readyToSearchHint') }}</p>
       </div>
     }
 
@@ -138,7 +138,7 @@
           <i class="pi pi-inbox"></i>
         </div>
         <h3>{{ t('noResultsFound') }}</h3>
-        <p>{{ t('noResultsDescription') }}</p>
+        <p>{{ t('noResultsHint') }}</p>
       </div>
     }
 
@@ -154,7 +154,7 @@
                   loading="lazy"/>
                 <div class="card-overlay">
                   <i class="pi pi-eye"></i>
-                  <span>{{ t('select') }}</span>
+                  <span>{{ t('selectOverlay') }}</span>
                 </div>
               </div>
 

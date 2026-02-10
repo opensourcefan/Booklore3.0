@@ -215,7 +215,8 @@
     "playTooltip": "Play",
     "downloadTooltip": "Download",
     "deleteTooltip": "Delete",
-    "downloadAllTooltip": "Download all files as a ZIP archive"
+    "downloadAllTooltip": "Download all files as a ZIP archive",
+    "physicalBookHint": "You can upload a digital copy or add metadata manually."
   },
   "viewer": {
     "metadataLocked": "This book metadata is locked.",
@@ -288,6 +289,10 @@
     "continueBtn": "Continue",
     "fetchMetadataBtn": "Fetch Metadata",
     "fetchingBtn": "Fetching...",
+    "fetchMetadataTooltip": "Quickly refresh metadata using your default fetch settings",
+    "goToPreviousBook": "Go to Previous Book",
+    "goToNextBook": "Go to Next Book",
+    "personalRating": "Personal Rating",
     "loadingBookDetails": "Loading book details...",
     "readStatusUnread": "Unread",
     "readStatusPaused": "Paused",

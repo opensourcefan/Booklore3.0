@@ -24,7 +24,7 @@
   } @else {
     <div class="sidecar-actions">
       <p-button
-        [label]="t('exportToSidecar')"
+        [label]="t('exportBtn')"
         icon="pi pi-upload"
         [loading]="exporting"
         (onClick)="exportToSidecar()"
@@ -34,7 +34,7 @@
         tooltipPosition="top"
       />
       <p-button
-        [label]="t('importFromSidecar')"
+        [label]="t('importBtn')"
         icon="pi pi-download"
         [loading]="importing"
         [disabled]="syncStatus === 'MISSING'"
@@ -49,7 +49,7 @@
     @if (syncStatus === 'MISSING') {
       <div class="empty-state">
         <i class="pi pi-file"></i>
-        <h4>{{ t('noSidecarFile') }}</h4>
+        <h4>{{ t('noSidecarTitle') }}</h4>
         <p>
           {{ t('noSidecarDescription') }}
         </p>
@@ -60,15 +60,15 @@
           <div class="content-meta">
             <span class="meta-item">
               <i class="pi pi-clock"></i>
-              {{ t('generated') }} {{ sidecarContent.generatedAt | date:'medium' }}
+              {{ t('generatedLabel') }} {{ sidecarContent.generatedAt | date:'medium' }}
             </span>
             <span class="meta-item">
               <i class="pi pi-tag"></i>
-              {{ t('version') }} {{ sidecarContent.version }}
+              {{ t('versionLabel') }} {{ sidecarContent.version }}
             </span>
             <span class="meta-item">
               <i class="pi pi-cog"></i>
-              {{ t('generatedBy') }} {{ sidecarContent.generatedBy }}
+              {{ t('byLabel') }} {{ sidecarContent.generatedBy }}
             </span>
           </div>
         </div>
@@ -80,7 +80,7 @@
         @if (sidecarContent.cover) {
           <div class="cover-info">
             <i class="pi pi-image"></i>
-            <span>{{ t('coverFile') }} {{ sidecarContent.cover.path }}</span>
+            <span>{{ t('coverFileLabel') }} {{ sidecarContent.cover.path }}</span>
           </div>
         }
       </div>

@@ -161,17 +161,17 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
   getSyncStatusLabel(): string {
     switch (this.syncStatus) {
       case 'IN_SYNC':
-        return this.t.translate('metadata.sidecar.syncStatus.inSync');
+        return this.t.translate('metadata.sidecar.syncStatusInSync');
       case 'OUTDATED':
-        return this.t.translate('metadata.sidecar.syncStatus.outdated');
+        return this.t.translate('metadata.sidecar.syncStatusOutdated');
       case 'CONFLICT':
-        return this.t.translate('metadata.sidecar.syncStatus.conflict');
+        return this.t.translate('metadata.sidecar.syncStatusConflict');
       case 'MISSING':
-        return this.t.translate('metadata.sidecar.syncStatus.missing');
+        return this.t.translate('metadata.sidecar.syncStatusMissing');
       case 'NOT_APPLICABLE':
-        return this.t.translate('metadata.sidecar.syncStatus.notApplicable');
+        return this.t.translate('metadata.sidecar.syncStatusNA');
       default:
-        return this.t.translate('metadata.sidecar.syncStatus.unknown');
+        return this.t.translate('metadata.sidecar.syncStatusUnknown');
     }
   }
 

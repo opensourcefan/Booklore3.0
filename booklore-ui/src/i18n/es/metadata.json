@@ -215,7 +215,8 @@
     "playTooltip": "Reproducir",
     "downloadTooltip": "Descargar",
     "deleteTooltip": "Eliminar",
-    "downloadAllTooltip": "Descargar todos los archivos como archivo ZIP"
+    "downloadAllTooltip": "Descargar todos los archivos como archivo ZIP",
+    "physicalBookHint": "Puede subir una copia digital o agregar metadatos manualmente."
   },
   "viewer": {
     "metadataLocked": "Los metadatos de este libro están bloqueados.",
@@ -288,6 +289,10 @@
     "continueBtn": "Continuar",
     "fetchMetadataBtn": "Obtener metadatos",
     "fetchingBtn": "Obteniendo...",
+    "fetchMetadataTooltip": "Actualizar rápidamente los metadatos usando la configuración predeterminada",
+    "goToPreviousBook": "Ir al libro anterior",
+    "goToNextBook": "Ir al siguiente libro",
+    "personalRating": "Calificación personal",
     "loadingBookDetails": "Cargando detalles del libro...",
     "readStatusUnread": "No leído",
     "readStatusPaused": "Pausado",

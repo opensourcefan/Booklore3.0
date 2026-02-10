@@ -78,16 +78,16 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
   isEditingDateFinished = false;
   editDateFinished: Date | null = null;
 
-  readStatusOptions: { value: ReadStatus, label: string }[] = [
-    {value: ReadStatus.UNREAD, label: 'Unread'},
-    {value: ReadStatus.PAUSED, label: 'Paused'},
-    {value: ReadStatus.READING, label: 'Reading'},
-    {value: ReadStatus.RE_READING, label: 'Re-reading'},
-    {value: ReadStatus.READ, label: 'Read'},
-    {value: ReadStatus.PARTIALLY_READ, label: 'Partially Read'},
-    {value: ReadStatus.ABANDONED, label: 'Abandoned'},
-    {value: ReadStatus.WONT_READ, label: 'Won\'t Read'},
-    {value: ReadStatus.UNSET, label: 'Unset'},
+  readStatusOptions: { value: ReadStatus, labelKey: string }[] = [
+    {value: ReadStatus.UNREAD, labelKey: 'metadata.viewer.readStatusUnread'},
+    {value: ReadStatus.PAUSED, labelKey: 'metadata.viewer.readStatusPaused'},
+    {value: ReadStatus.READING, labelKey: 'metadata.viewer.readStatusReading'},
+    {value: ReadStatus.RE_READING, labelKey: 'metadata.viewer.readStatusReReading'},
+    {value: ReadStatus.READ, labelKey: 'metadata.viewer.readStatusRead'},
+    {value: ReadStatus.PARTIALLY_READ, labelKey: 'metadata.viewer.readStatusPartiallyRead'},
+    {value: ReadStatus.ABANDONED, labelKey: 'metadata.viewer.readStatusAbandoned'},
+    {value: ReadStatus.WONT_READ, labelKey: 'metadata.viewer.readStatusWontRead'},
+    {value: ReadStatus.UNSET, labelKey: 'metadata.viewer.readStatusUnset'},
   ];
 
   private bookNavigationService = inject(BookNavigationService);
@@ -105,13 +105,13 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
         const primaryType = book.primaryFile?.bookType;
         if (primaryType === 'PDF') {
           items.push({
-            label: this.t.translate('metadata.viewer.streamingReader'),
+            label: this.t.translate('metadata.viewer.menuStreamingReader'),
             icon: 'pi pi-play',
             command: () => this.read(book.id, 'pdf-streaming')
           });
         } else if (primaryType === 'EPUB') {
           items.push({
-            label: this.t.translate('metadata.viewer.streamingReader'),
+            label: this.t.translate('metadata.viewer.menuStreamingReader'),
             icon: 'pi pi-play',
             command: () => this.read(book.id, 'epub-streaming')
           });
@@ -138,12 +138,12 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
                 icon: this.getFileIcon(formatType),
                 items: [
                   {
-                    label: this.t.translate('metadata.viewer.standardReader'),
+                    label: this.t.translate('metadata.viewer.menuStandardReader'),
                     icon: 'pi pi-book',
                     command: () => this.read(book.id, undefined, formatType)
                   },
                   {
-                    label: this.t.translate('metadata.viewer.streamingReader'),
+                    label: this.t.translate('metadata.viewer.menuStreamingReader'),
                     icon: 'pi pi-play',
                     command: () => this.read(book.id, formatType === 'PDF' ? 'pdf-streaming' : 'epub-streaming', formatType)
                   }
@@ -216,7 +216,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
             const items: MenuItem[] = [];
 
             items.push({
-              label: this.t.translate('metadata.viewer.shelf'),
+              label: this.t.translate('metadata.viewer.menuShelf'),
               icon: 'pi pi-folder',
               command: () => this.assignShelf(book.id)
             });
@@ -225,7 +225,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
 
             if (userState?.user?.permissions.canUpload || userState?.user?.permissions.admin) {
               items.push({
-                label: this.t.translate('metadata.viewer.uploadFile'),
+                label: this.t.translate('metadata.viewer.menuUploadFile'),
                 icon: 'pi pi-upload',
                 command: () => {
                   this.bookDialogHelperService.openAdditionalFileUploaderDialog(book);
@@ -237,7 +237,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
 
             if (hasFiles && (userState?.user?.permissions.canManageLibrary || userState?.user?.permissions.admin) && appSettings?.diskType === 'LOCAL') {
               items.push({
-                label: this.t.translate('metadata.viewer.organizeFiles'),
+                label: this.t.translate('metadata.viewer.menuOrganizeFiles'),
                 icon: 'pi pi-arrows-h',
                 command: () => {
                   this.openFileMoverDialog(book.id);
@@ -247,16 +247,16 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
 
             if (hasFiles && (userState?.user?.permissions.canEmailBook || userState?.user?.permissions.admin)) {
               items.push({
-                label: this.t.translate('metadata.viewer.sendBook'),
+                label: this.t.translate('metadata.viewer.menuSendBook'),
                 icon: 'pi pi-send',
                 items: [
                   {
-                    label: this.t.translate('metadata.viewer.quickSend'),
+                    label: this.t.translate('metadata.viewer.menuQuickSend'),
                     icon: 'pi pi-bolt',
                     command: () => this.quickSend(book.id)
                   },
                   {
-                    label: this.t.translate('metadata.viewer.customSend'),
+                    label: this.t.translate('metadata.viewer.menuCustomSend'),
                     icon: 'pi pi-cog',
                     command: () => {
                       this.bookDialogHelperService.openCustomSendDialog(book);
@@ -270,7 +270,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
             const isSingleFileBook = hasFiles && !book.alternativeFormats?.length;
             if (isSingleFileBook && (userState?.user?.permissions.canManageLibrary || userState?.user?.permissions.admin)) {
               items.push({
-                label: this.t.translate('metadata.viewer.attachToAnotherBook'),
+                label: this.t.translate('metadata.viewer.menuAttachToAnotherBook'),
                 icon: 'pi pi-link',
                 command: () => {
                   this.bookDialogHelperService.openBookFileAttacherDialog(book);
@@ -312,7 +312,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
 
               if (deleteFormatItems.length > 0) {
                 items.push({
-                  label: this.t.translate('metadata.viewer.deleteFileFormats'),
+                  label: this.t.translate('metadata.viewer.menuDeleteFileFormats'),
                   icon: 'pi pi-file',
                   items: deleteFormatItems
                 });
@@ -333,7 +333,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
                 });
 
                 items.push({
-                  label: this.t.translate('metadata.viewer.deleteSupplementaryFiles'),
+                  label: this.t.translate('metadata.viewer.menuDeleteSupplementaryFiles'),
                   icon: 'pi pi-paperclip',
                   items: deleteSupplementaryItems
                 });
@@ -356,11 +356,11 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
                 ? `\n\nThe following files will be permanently deleted:\n• ${allFormats.join('\n• ')}`
                 : '';
 
-              const deleteLabel = isPhysical ? this.t.translate('metadata.viewer.deleteBook') : this.t.translate('metadata.viewer.deleteBookAndAllFiles');
+              const deleteLabel = isPhysical ? this.t.translate('metadata.viewer.menuDeleteBook') : this.t.translate('metadata.viewer.menuDeleteBookAllFiles');
               const deleteMessage = isPhysical
                 ? this.t.translate('metadata.viewer.confirm.deleteBookMessage', { title: book.metadata?.title })
-                : this.t.translate('metadata.viewer.confirm.deleteBookAndFilesMessage', { title: book.metadata?.title, fileList: fileListMessage });
-              const deleteAcceptLabel = isPhysical ? this.t.translate('common.delete') : this.t.translate('metadata.viewer.deleteEverything');
+                : this.t.translate('metadata.viewer.confirm.deleteBookAllFilesMessage', { title: book.metadata?.title, fileList: fileListMessage });
+              const deleteAcceptLabel = isPhysical ? this.t.translate('common.delete') : this.t.translate('metadata.viewer.confirm.deleteEverythingBtn');
 
               items.push({
                 label: deleteLabel,
@@ -480,9 +480,9 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
   getReadButtonLabel(book: Book): string {
     const isAudiobook = book.primaryFile?.bookType === 'AUDIOBOOK';
     if (this.isInProgressStatus()) {
-      return isAudiobook ? this.t.translate('metadata.viewer.continue') : this.t.translate('metadata.viewer.continueReading');
+      return isAudiobook ? this.t.translate('metadata.viewer.continueBtn') : this.t.translate('metadata.viewer.continueReadingBtn');
     }
-    return isAudiobook ? this.t.translate('metadata.viewer.playAction') : this.t.translate('metadata.viewer.readAction');
+    return isAudiobook ? this.t.translate('metadata.viewer.playBtn') : this.t.translate('metadata.viewer.readBtn');
   }
 
   getReadButtonIcon(book: Book): string {
@@ -564,8 +564,8 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
       message = this.t.translate('metadata.viewer.confirm.deletePrimaryFormatMessage', { fileName });
       header = this.t.translate('metadata.viewer.confirm.deletePrimaryFormatHeader');
     } else {
-      message = this.t.translate('metadata.viewer.confirm.deleteAlternativeFormatMessage', { fileName });
-      header = this.t.translate('metadata.viewer.confirm.deleteAlternativeFormatHeader');
+      message = this.t.translate('metadata.viewer.confirm.deleteAltFormatMessage', { fileName });
+      header = this.t.translate('metadata.viewer.confirm.deleteAltFormatHeader');
     }
 
     this.confirmationService.confirm({
@@ -574,7 +574,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
       icon: 'pi pi-exclamation-triangle',
       acceptIcon: 'pi pi-trash',
       rejectIcon: 'pi pi-times',
-      acceptLabel: this.t.translate('metadata.viewer.confirm.deleteFile'),
+      acceptLabel: this.t.translate('metadata.viewer.confirm.deleteFileBtn'),
       rejectLabel: this.t.translate('common.cancel'),
       rejectButtonStyleClass: 'p-button-secondary',
       acceptButtonStyleClass: 'p-button-danger',
@@ -622,7 +622,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
       error: (err) => this.messageService.add({
         severity: 'error',
         summary: this.t.translate('metadata.viewer.toast.quickSendErrorSummary'),
-        detail: err?.error?.message || this.t.translate('metadata.viewer.toast.quickSendErrorDetailFallback'),
+        detail: err?.error?.message || this.t.translate('metadata.viewer.toast.quickSendErrorDetail'),
       })
     });
   }
@@ -1122,12 +1122,13 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
   }
 
   readStatusMenuItems = this.readStatusOptions.map(option => ({
-    label: option.label,
+    label: this.t.translate(option.labelKey),
     command: () => this.updateReadStatus(option.value)
   }));
 
   getStatusLabel(value: string): string {
-    return this.readStatusOptions.find(o => o.value === value)?.label.toUpperCase() ?? 'UNSET';
+    const option = this.readStatusOptions.find(o => o.value === value);
+    return option ? this.t.translate(option.labelKey).toUpperCase() : 'UNSET';
   }
 
 
@@ -1170,8 +1171,8 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
       error: () => {
         this.messageService.add({
           severity: 'error',
-          summary: this.t.translate('metadata.viewer.toast.dateFailedSummary'),
-          detail: this.t.translate('metadata.viewer.toast.dateFailedDetail'),
+          summary: this.t.translate('metadata.viewer.toast.dateUpdateFailedSummary'),
+          detail: this.t.translate('metadata.viewer.toast.dateUpdateFailedDetail'),
           life: 3000
         });
       }
@@ -1225,7 +1226,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
 
   getNavigationPosition(): string {
     const position = this.bookNavigationService.getCurrentPosition();
-    return position ? this.t.translate('metadata.viewer.navigationOf', { current: position.current, total: position.total }) : '';
+    return position ? this.t.translate('metadata.viewer.navigationPosition', { current: position.current, total: position.total }) : '';
   }
 
   hasDigitalFile(book: Book): boolean {
@@ -1353,11 +1354,11 @@ export class MetadataViewerComponent implements OnInit, OnChanges {
   getChannelLabel(channels: number): string {
     switch (channels) {
       case 1:
-        return 'Mono';
+        return this.t.translate('metadata.viewer.channelMono');
       case 2:
-        return 'Stereo';
+        return this.t.translate('metadata.viewer.channelStereo');
       default:
-        return `${channels} channels`;
+        return this.t.translate('metadata.viewer.channelMultiple', { count: channels });
     }
   }
 
