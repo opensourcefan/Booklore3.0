@@ -2,8 +2,6 @@ app:
   path-config: '/app/data'
   bookdrop-folder: '/bookdrop'
   version: 'development'
-  swagger:
-    enabled: ${SWAGGER_ENABLED:false}
   remote-auth:
     enabled: ${REMOTE_AUTH_ENABLED:false}
     create-new-users: ${REMOTE_AUTH_CREATE_NEW_USERS:true}
@@ -70,11 +68,10 @@ spring:
     locations: classpath:db/migration
 
 springdoc:
-  swagger-ui:
-    path: /api/v1/swagger-ui.html
-    persist-authorization: true
   api-docs:
-    path: /api/v1/api-docs
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 logging:
   level:
