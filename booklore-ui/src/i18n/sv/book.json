@@ -500,31 +500,31 @@
       "unset": "Ej angiven"
     },
     "matchScore": {
-      "outstanding": "Enastående (95\u2013100%)",
-      "excellent": "Utmärkt (90\u201394%)",
-      "great": "Jättebra (80\u201389%)",
-      "good": "Bra (70\u201379%)",
-      "fair": "Hyfsat (50\u201369%)",
-      "weak": "Svag (30\u201349%)",
-      "poor": "Dålig (0\u201329%)"
+      "outstanding": "Enastående (95–100%)",
+      "excellent": "Utmärkt (90–94%)",
+      "great": "Jättebra (80–89%)",
+      "good": "Bra (70–79%)",
+      "fair": "Hyfsat (50–69%)",
+      "weak": "Svag (30–49%)",
+      "poor": "Dålig (0–29%)"
     },
     "fileSize": {
       "lt1mb": "< 1 MB",
-      "1to10mb": "1\u201310 MB",
-      "10to50mb": "10\u201350 MB",
-      "50to100mb": "50\u2013100 MB",
-      "250to500mb": "250\u2013500 MB",
-      "05to1gb": "0,5\u20131 GB",
-      "1to2gb": "1\u20132 GB",
+      "1to10mb": "1–10 MB",
+      "10to50mb": "10–50 MB",
+      "50to100mb": "50–100 MB",
+      "250to500mb": "250–500 MB",
+      "05to1gb": "0,5–1 GB",
+      "1to2gb": "1–2 GB",
       "5plusGb": "5+ GB"
     },
     "pageCount": {
       "lt50": "< 50 sidor",
-      "50to100": "50\u2013100 sidor",
-      "100to200": "100\u2013200 sidor",
-      "200to400": "200\u2013400 sidor",
-      "400to600": "400\u2013600 sidor",
-      "600to1000": "600\u20131000 sidor",
+      "50to100": "50–100 sidor",
+      "100to200": "100–200 sidor",
+      "200to400": "200–400 sidor",
+      "400to600": "400–600 sidor",
+      "600to1000": "600–1000 sidor",
       "1000plus": "1000+ sidor"
     },
     "ageRating": {
@@ -691,19 +691,18 @@
     "unknownTitle": "Okänd titel",
     "selectTargetBook": "Välj målbok",
     "searchPlaceholder": "Sök efter en bok i samma bibliotek...",
-    "deleteSource": "Radera källboken efter bifogning",
-    "deleteSourceBulk": "Radera källböckerna efter bifogning",
-    "warningMove": "Detta flyttar filen från källboken till målboken som alternativt format.",
-    "warningMoveBulk": "Detta flyttar filerna från de valda böckerna till målboken som alternativa format.",
-    "warningDelete": "Källboksregistret raderas (filen bevaras i målboken).",
-    "warningDeleteBulk": "Källboksregistren raderas (filerna bevaras i målboken).",
-    "warningKeep": "Källboksregistret behålls men har inga läsbara filer.",
-    "warningKeepBulk": "Källboksregistren behålls men har inga läsbara filer.",
+    "warningMove": "Källfilen kommer att flyttas till målbokens katalog och döpas om.",
+    "warningMoveBulk": "Källfilerna kommer att flyttas till målbokens katalog och döpas om.",
+    "warningDelete": "Källbokens post kommer att tas bort (filerna bevaras i målboken).",
+    "warningDeleteBulk": "Källböckernas poster kommer att tas bort (filerna bevaras i målboken).",
     "attachFile": "Bifoga fil",
     "attachFilesBulk": "Bifoga filer",
     "unknownFile": "Okänd fil",
     "unknownFormat": "Okänt",
-    "unknownFilename": "Okänt filnamn"
+    "unknownFilename": "Okänt filnamn",
+    "moveFilesLabel": "Flytta filer till målbokens katalog",
+    "warningNoMove": "Källfilen kommer att finnas kvar på sin ursprungliga plats på disken.",
+    "warningNoMoveBulk": "Källfilerna kommer att finnas kvar på sina ursprungliga platser på disken."
   },
   "searcher": {
     "placeholder": "Titel, författare, serie, genre eller ISBN...",
@@ -791,12 +790,11 @@
     "scanPrompt": "Välj ett detekteringsläge och klicka Skanna för att hitta dubbletter.",
     "noDuplicates": "Inga dubbletter hittades.",
     "allMerged": "Alla dubblettgrupper har bearbetats.",
-    "deleteSource": "Radera källböcker",
     "mergeAll": "Sammanfoga alla ({{ count }})",
     "merge": "Sammanfoga",
     "dismiss": "Stäng",
     "target": "Mål",
-    "helpText": "Varje grupp innehåller böcker som verkar vara dubbletter. Välj målboken (den som ska behållas), klicka sedan Sammanfoga. De andra böckernas filer bifogas till målet som alternativa format.",
+    "helpText": "Varje grupp innehåller böcker som verkar vara dubbletter. Välj målboken (den du vill behålla) och klicka sedan på Slå samman för att kombinera filerna. För att ta bort specifika dubbletter, markera de du vill ta bort och klicka på Ta bort.",
     "groupLabel": "Grupp {{ index }}",
     "fileCount": "{{ count }} filer",
     "reason": {
@@ -814,6 +812,12 @@
       "mergeFailedSummary": "Sammanfogning misslyckades",
       "mergeFailedDetail": "Kunde inte sammanfoga denna grupp.",
       "mergePartialDetail": "{{ success }} sammanfogade, {{ failed }} misslyckades."
+    },
+    "deleteSelected": "Ta bort ({{ count }})",
+    "sameFormatWarning": "Samma format",
+    "confirm": {
+      "deleteHeader": "Bekräfta borttagning",
+      "deleteMessage": "Detta tar permanent bort {{ count }} bok/böcker och deras filer från disken. Detta kan inte ångras."
     }
   }
 }

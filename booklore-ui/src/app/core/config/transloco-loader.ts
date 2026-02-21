@@ -17,6 +17,8 @@ const LAZY_LANG_LOADERS: Record<string, () => Promise<{default: Translation}>> =
   ru: () => import('../../../i18n/ru'),
   hr: () => import('../../../i18n/hr'),
   sv: () => import('../../../i18n/sv'),
+  zh: () => import('../../../i18n/zh'),
+  ja: () => import('../../../i18n/ja'),
 };
 
 export const AVAILABLE_LANGS = ['en', ...Object.keys(LAZY_LANG_LOADERS)];
@@ -33,6 +35,8 @@ export const LANG_LABELS: Record<string, string> = {
   ru: 'Русский',
   hr: 'Hrvatski',
   sv: 'Svenska',
+  zh: '中文',
+  ja: '日本語',
 };
 
 function deepMerge(base: Record<string, any>, override: Record<string, any>): Record<string, any> {
