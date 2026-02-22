@@ -6,18 +6,7 @@ import org.booklore.model.dto.BookLoreUser;
 import org.booklore.model.dto.CompletionRaceSessionDto;
 import org.booklore.model.dto.request.ReadingSessionRequest;
 import org.booklore.model.dto.PageTurnerSessionDto;
-import org.booklore.model.dto.response.BookCompletionHeatmapResponse;
-import org.booklore.model.dto.response.CompletionRaceResponse;
-import org.booklore.model.dto.response.CompletionTimelineResponse;
-import org.booklore.model.dto.response.FavoriteReadingDaysResponse;
-import org.booklore.model.dto.response.GenreStatisticsResponse;
-import org.booklore.model.dto.response.PageTurnerScoreResponse;
-import org.booklore.model.dto.response.PeakReadingHoursResponse;
-
-import org.booklore.model.dto.response.ReadingSessionHeatmapResponse;
-import org.booklore.model.dto.response.ReadingSessionResponse;
-import org.booklore.model.dto.response.ReadingSessionTimelineResponse;
-import org.booklore.model.dto.response.ReadingSpeedResponse;
+import org.booklore.model.dto.response.*;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookLoreUserEntity;
 import org.booklore.model.entity.CategoryEntity;
@@ -425,6 +414,21 @@ public class ReadingSessionService {
                 .map(dto -> ReadingSessionHeatmapResponse.builder()
                         .date(dto.getDate())
                         .count(dto.getCount())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SessionScatterResponse> getSessionScatter(int year) {
+        BookLoreUser authenticatedUser = authenticationService.getAuthenticatedUser();
+        Long userId = authenticatedUser.getId();
+
+        return readingSessionRepository.findSessionScatterByUserAndYear(userId, year, getTimezoneOffset())
+                .stream()
+                .map(dto -> SessionScatterResponse.builder()
+                        .hourOfDay(dto.getHourOfDay())
+                        .durationMinutes(dto.getDurationMinutes())
+                        .dayOfWeek(dto.getDayOfWeek())
                         .build())
                 .collect(Collectors.toList());
     }
