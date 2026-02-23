@@ -1,7 +1,7 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {Button} from 'primeng/button';
 import {Checkbox} from 'primeng/checkbox';
-import {MessageService, PrimeTemplate} from 'primeng/api';
+import {MessageService} from 'primeng/api';
 import {RadioButton} from 'primeng/radiobutton';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {TableModule} from 'primeng/table';
@@ -11,18 +11,20 @@ import {EmailV2ProviderService} from './email-v2-provider.service';
 import {EmailProvider} from '../email-provider.model';
 import {UserService} from '../../user-management/user.service';
 import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
+import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 
 @Component({
   selector: 'app-email-v2-provider',
   imports: [
     Button,
     Checkbox,
-    PrimeTemplate,
     RadioButton,
     ReactiveFormsModule,
     TableModule,
     Tooltip,
-    FormsModule
+    FormsModule,
+    TranslocoDirective,
+    TranslocoPipe
   ],
   templateUrl: './email-v2-provider.component.html',
   styleUrl: './email-v2-provider.component.scss'
@@ -35,6 +37,7 @@ export class EmailV2ProviderComponent implements OnInit {
   private emailProvidersService = inject(EmailV2ProviderService);
   private messageService = inject(MessageService);
   private userService = inject(UserService);
+  private t = inject(TranslocoService);
   defaultProviderId: unknown;
   currentUserId: number | null = null;
   isAdmin: boolean = false;
@@ -63,8 +66,8 @@ export class EmailV2ProviderComponent implements OnInit {
       error: () => {
         this.messageService.add({
           severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to load Email Providers',
+          summary: this.t.translate('common.error'),
+          detail: this.t.translate('settingsEmail.provider.loadError'),
         });
       },
     });
@@ -85,37 +88,37 @@ export class EmailV2ProviderComponent implements OnInit {
         provider.isEditing = false;
         this.messageService.add({
           severity: 'success',
-          summary: 'Success',
-          detail: 'Provider updated successfully',
+          summary: this.t.translate('common.success'),
+          detail: this.t.translate('settingsEmail.provider.updateSuccess'),
         });
         this.loadEmailProviders();
       },
       error: () => {
         this.messageService.add({
           severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to update provider',
+          summary: this.t.translate('common.error'),
+          detail: this.t.translate('settingsEmail.provider.updateError'),
         });
       },
     });
   }
 
   deleteProvider(provider: EmailProvider): void {
-    if (confirm(`Are you sure you want to delete provider "${provider.name}"?`)) {
+    if (confirm(this.t.translate('settingsEmail.provider.deleteConfirm', {name: provider.name}))) {
       this.emailProvidersService.deleteProvider(provider.id).subscribe({
         next: () => {
           this.messageService.add({
             severity: 'success',
-            summary: 'Success',
-            detail: `Provider "${provider.name}" deleted successfully`,
+            summary: this.t.translate('common.success'),
+            detail: this.t.translate('settingsEmail.provider.deleteSuccess', {name: provider.name}),
           });
           this.loadEmailProviders();
         },
         error: () => {
           this.messageService.add({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to delete provider',
+            summary: this.t.translate('common.error'),
+            detail: this.t.translate('settingsEmail.provider.deleteError'),
           });
         },
       });
@@ -137,16 +140,16 @@ export class EmailV2ProviderComponent implements OnInit {
         this.defaultProviderId = provider.id;
         this.messageService.add({
           severity: 'success',
-          summary: 'Default Provider Set',
-          detail: `${provider.name} is now the default email provider.`
+          summary: this.t.translate('settingsEmail.provider.defaultSetSummary'),
+          detail: this.t.translate('settingsEmail.provider.defaultSetDetail', {name: provider.name}),
         });
       },
       error: (err) => {
         console.error('Failed to set default provider', err);
         this.messageService.add({
           severity: 'error',
-          summary: 'Error',
-          detail: `Failed to set ${provider.name} as the default provider. Please try again.`
+          summary: this.t.translate('common.error'),
+          detail: this.t.translate('settingsEmail.provider.defaultSetError', {name: provider.name}),
         });
       }
     });
@@ -159,18 +162,19 @@ export class EmailV2ProviderComponent implements OnInit {
   toggleShared(provider: EmailProvider): void {
     this.emailProvidersService.updateProvider(provider).subscribe({
       next: () => {
+        const status = this.t.translate(provider.shared ? 'settingsEmail.provider.sharedStatusOn' : 'settingsEmail.provider.sharedStatusOff');
         this.messageService.add({
           severity: 'success',
-          summary: 'Success',
-          detail: `Provider "${provider.name}" is now ${provider.shared ? 'shared' : 'not shared'}`,
+          summary: this.t.translate('common.success'),
+          detail: this.t.translate('settingsEmail.provider.sharedSuccess', {name: provider.name, status}),
         });
       },
       error: () => {
         provider.shared = !provider.shared;
         this.messageService.add({
           severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to update shared status',
+          summary: this.t.translate('common.error'),
+          detail: this.t.translate('settingsEmail.provider.sharedError'),
         });
       },
     });

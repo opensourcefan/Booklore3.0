@@ -54,6 +54,7 @@ export interface MetadataProviderSettings {
   comicvine: Comicvine;
   douban: Douban;
   lubimyczytac: Lubimyczytac;
+  audible: Audible;
 }
 
 export interface Amazon {
@@ -65,6 +66,7 @@ export interface Amazon {
 export interface Google {
   enabled: boolean;
   language: string;
+  apiKey: string;
 }
 
 export interface Goodreads {
@@ -93,6 +95,11 @@ export interface Lubimyczytac {
   enabled: boolean;
 }
 
+export interface Audible {
+  enabled: boolean;
+  domain: string;
+}
+
 export interface FormatWriteSettings {
   enabled: boolean;
   maxFileSizeInMb: number;
@@ -102,12 +109,21 @@ export interface SaveToOriginalFileSettings {
   epub: FormatWriteSettings;
   pdf: FormatWriteSettings;
   cbx: FormatWriteSettings;
+  audiobook: FormatWriteSettings;
+}
+
+export interface SidecarSettings {
+  enabled: boolean;
+  writeOnUpdate: boolean;
+  writeOnScan: boolean;
+  includeCoverFile: boolean;
 }
 
 export interface MetadataPersistenceSettings {
   moveFilesToLibraryPattern: boolean;
   saveToOriginalFile: SaveToOriginalFileSettings;
   convertCbrCb7ToCbz: boolean;
+  sidecarSettings?: SidecarSettings;
 }
 
 export interface ReviewProviderConfig {
@@ -161,6 +177,7 @@ export interface AppSettings {
   metadataDownloadOnBookdrop: boolean;
   telemetryEnabled: boolean;
   metadataProviderSpecificFields: MetadataProviderSpecificFields;
+  diskType: string;
 }
 
 export interface MetadataProviderSpecificFields {
@@ -180,6 +197,9 @@ export interface MetadataProviderSpecificFields {
   lubimyczytacRating: boolean;
   ranobedbId: boolean;
   ranobedbRating: boolean;
+  audibleId: boolean;
+  audibleRating: boolean;
+  audibleReviewCount: boolean;
 }
 
 export enum AppSettingKey {

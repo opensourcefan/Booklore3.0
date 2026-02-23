@@ -4,11 +4,12 @@ import {FormsModule} from '@angular/forms';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 import {AppSettingKey, MetadataProviderSpecificFields} from '../../../../shared/model/app-settings.model';
 import {filter, take} from 'rxjs/operators';
+import {TranslocoDirective} from '@jsverse/transloco';
 
 @Component({
   selector: 'app-metadata-provider-field-selector',
   standalone: true,
-  imports: [ToggleSwitchModule, FormsModule],
+  imports: [ToggleSwitchModule, FormsModule, TranslocoDirective],
   templateUrl: './metadata-provider-field-selector.component.html',
   styleUrl: './metadata-provider-field-selector.component.scss'
 })
@@ -45,6 +46,10 @@ export class MetadataProviderFieldSelectorComponent implements OnInit {
     {
       label: 'Ranobedb',
       fields: ['ranobedbId', 'ranobedbRating']
+    },
+    {
+      label: 'Audible',
+      fields: ['audibleId', 'audibleRating', 'audibleReviewCount']
     }
   ];
 
@@ -65,6 +70,9 @@ export class MetadataProviderFieldSelectorComponent implements OnInit {
     'lubimyczytacRating': 'Lubimyczytac Rating',
     'ranobedbId': 'Ranobedb ID',
     'ranobedbRating': 'Ranobedb Rating',
+    'audibleId': 'Audible ID',
+    'audibleRating': 'Audible Rating',
+    'audibleReviewCount': 'Audible Review Count',
   };
 
   private readonly allFieldNames: (keyof MetadataProviderSpecificFields)[] = [
@@ -74,7 +82,8 @@ export class MetadataProviderFieldSelectorComponent implements OnInit {
     'hardcoverId', 'hardcoverBookId', 'hardcoverRating', 'hardcoverReviewCount',
     'comicvineId',
     'lubimyczytacId', 'lubimyczytacRating',
-    'ranobedbId', 'ranobedbRating'
+    'ranobedbId', 'ranobedbRating',
+    'audibleId', 'audibleRating', 'audibleReviewCount'
   ];
 
   ngOnInit(): void {

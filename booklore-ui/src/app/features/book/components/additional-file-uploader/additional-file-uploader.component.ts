@@ -1,18 +1,19 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {ChangeDetectorRef, Component, inject, OnDestroy, OnInit} from '@angular/core';
 
-import { FormsModule } from '@angular/forms';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
-import { Select } from 'primeng/select';
-import { Button } from 'primeng/button';
-import { FileSelectEvent, FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
-import { Badge } from 'primeng/badge';
-import { Tooltip } from 'primeng/tooltip';
-import { Subject, takeUntil } from 'rxjs';
-import { BookService } from '../../service/book.service';
-import { AppSettingsService } from '../../../../shared/service/app-settings.service';
-import { Book, AdditionalFileType } from '../../model/book.model';
-import { MessageService } from 'primeng/api';
-import { filter, take } from 'rxjs/operators';
+import {FormsModule} from '@angular/forms';
+import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {Select} from 'primeng/select';
+import {Button} from 'primeng/button';
+import {FileSelectEvent, FileUpload, FileUploadHandlerEvent} from 'primeng/fileupload';
+import {Badge} from 'primeng/badge';
+import {Tooltip} from 'primeng/tooltip';
+import {Subject} from 'rxjs';
+import {BookFileService} from '../../service/book-file.service';
+import {AppSettingsService} from '../../../../shared/service/app-settings.service';
+import {AdditionalFileType, Book} from '../../model/book.model';
+import {MessageService} from 'primeng/api';
+import {filter, take} from 'rxjs/operators';
+import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
 interface FileTypeOption {
   label: string;
@@ -34,30 +35,30 @@ interface UploadingFile {
     Button,
     FileUpload,
     Badge,
-    Tooltip
-],
+    Tooltip,
+    TranslocoDirective
+  ],
   templateUrl: './additional-file-uploader.component.html',
   styleUrls: ['./additional-file-uploader.component.scss']
 })
 export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
+  private readonly t = inject(TranslocoService);
+
   book!: Book;
   files: UploadingFile[] = [];
   fileType: AdditionalFileType = AdditionalFileType.ALTERNATIVE_FORMAT;
-  description: string = '';
   isUploading = false;
   maxFileSizeBytes?: number;
+  maxFileSizeDisplay: string = '100 MB';
 
-  fileTypeOptions: FileTypeOption[] = [
-    { label: 'Alternative Format', value: AdditionalFileType.ALTERNATIVE_FORMAT },
-    { label: 'Supplementary File', value: AdditionalFileType.SUPPLEMENTARY }
-  ];
+  fileTypeOptions: FileTypeOption[] = [];
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private dialogRef: DynamicDialogRef,
     private config: DynamicDialogConfig,
-    private bookService: BookService,
+    private bookFileService: BookFileService,
     private appSettingsService: AppSettingsService,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
@@ -65,6 +66,10 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.book = this.config.data.book;
+    this.fileTypeOptions = [
+      { label: this.t.translate('book.fileUploader.typeAlternativeFormat'), value: AdditionalFileType.ALTERNATIVE_FORMAT },
+      { label: this.t.translate('book.fileUploader.typeSupplementary'), value: AdditionalFileType.SUPPLEMENTARY }
+    ];
     this.appSettingsService.appSettings$
       .pipe(
         filter(settings => settings != null),
@@ -72,7 +77,9 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
       )
       .subscribe(settings => {
         if (settings) {
-          this.maxFileSizeBytes = (settings.maxFileUploadSizeInMb || 100) * 1024 * 1024;
+          const maxSizeMb = settings.maxFileUploadSizeInMb || 100;
+          this.maxFileSizeBytes = maxSizeMb * 1024 * 1024;
+          this.maxFileSizeDisplay = `${maxSizeMb} MB`;
         }
       });
   }
@@ -104,10 +111,27 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
     // Only take the first file for single file upload
     if (newFiles.length > 0) {
       const file = newFiles[0];
-      this.files = [{
-        file,
-        status: 'Pending'
-      }];
+
+      if (this.maxFileSizeBytes && file.size > this.maxFileSizeBytes) {
+        const maxSize = this.formatSize(this.maxFileSizeBytes);
+        const errorMsg = this.t.translate('book.fileUploader.toast.fileTooLargeError', { maxSize });
+        this.files = [{
+          file,
+          status: 'Failed',
+          errorMessage: errorMsg
+        }];
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('book.fileUploader.toast.fileTooLargeSummary'),
+          detail: this.t.translate('book.fileUploader.toast.fileTooLargeDetail', { fileName: file.name, maxSize }),
+          life: 5000
+        });
+      } else {
+        this.files = [{
+          file,
+          status: 'Pending'
+        }];
+      }
     }
   }
 
@@ -130,11 +154,10 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
     for (const uploadFile of filesToUpload) {
       uploadFile.status = 'Uploading';
 
-      this.bookService.uploadAdditionalFile(
+      this.bookFileService.uploadAdditionalFile(
         this.book.id,
         uploadFile.file,
-        this.fileType,
-        this.description || undefined
+        this.fileType
       ).subscribe({
         next: () => {
           uploadFile.status = 'Uploaded';
@@ -145,7 +168,7 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           uploadFile.status = 'Failed';
-          uploadFile.errorMessage = err?.error?.message || 'Upload failed due to unknown error.';
+          uploadFile.errorMessage = err?.error?.message || this.t.translate('book.fileUploader.toast.uploadFailedUnknown');
           console.error('Upload failed for', uploadFile.file.name, err);
           if (--pending === 0) {
             this.isUploading = false;
@@ -183,6 +206,24 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
         return 'danger';
       default:
         return 'info';
+    }
+  }
+
+  getFileStatusLabel(uploadFile: UploadingFile): string {
+    if (uploadFile.status === 'Failed' && uploadFile.errorMessage?.includes('maximum size')) {
+      return this.t.translate('book.fileUploader.statusTooLarge');
+    }
+    switch (uploadFile.status) {
+      case 'Pending':
+        return this.t.translate('book.fileUploader.statusReady');
+      case 'Uploading':
+        return this.t.translate('book.fileUploader.statusUploading');
+      case 'Uploaded':
+        return this.t.translate('book.fileUploader.statusUploaded');
+      case 'Failed':
+        return this.t.translate('book.fileUploader.statusFailed');
+      default:
+        return uploadFile.status;
     }
   }
 

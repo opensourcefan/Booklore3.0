@@ -1,5 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {Subject} from 'rxjs';
+import {TranslocoService} from '@jsverse/transloco';
 import {BookPatchService} from '../../../book/service/book-patch.service';
 import {ReadingSessionService} from '../../../../shared/service/reading-session.service';
 import {PageInfo, ThemeInfo} from '../core/view-manager.service';
@@ -23,6 +24,7 @@ export interface ProgressState {
 export class ReaderProgressService {
   private bookPatchService = inject(BookPatchService);
   private readingSessionService = inject(ReadingSessionService);
+  private readonly t = inject(TranslocoService);
   private viewManager = inject(ReaderViewManagerService);
   private stateService = inject(ReaderStateService);
   private annotationService = inject(ReaderAnnotationHttpService);
@@ -30,6 +32,7 @@ export class ReaderProgressService {
 
   private bookId!: number;
   private bookType!: BookType;
+  private bookFileId?: number;
   private hasStartedSession = false;
 
   private _currentCfi: string | null = null;
@@ -61,9 +64,10 @@ export class ReaderProgressService {
     return this._currentPageInfo;
   }
 
-  initialize(bookId: number, bookType: BookType): void {
+  initialize(bookId: number, bookType: BookType, bookFileId?: number): void {
     this.bookId = bookId;
     this.bookType = bookType;
+    this.bookFileId = bookFileId;
     this.hasStartedSession = false;
   }
 
@@ -80,7 +84,7 @@ export class ReaderProgressService {
     }
 
     if (cfi && percentage !== null) {
-      this.bookPatchService.saveEpubProgress(this.bookId, cfi, href, percentage);
+      this.bookPatchService.saveEpubProgress(this.bookId, cfi, href, percentage, this.bookFileId);
       this.readingSessionService.updateProgress(cfi, percentage);
     }
 
@@ -142,10 +146,15 @@ export class ReaderProgressService {
       bg: this.stateService.currentState.theme.bg || this.stateService.currentState.theme.light.bg
     };
 
+    const timeLabel = this.t.translate('readerEbook.headerFooterUtil.timeRemainingInSection', {
+      time: this._currentPageInfo?.sectionTimeText ?? '0s'
+    });
+
     this.viewManager.updateHeadersAndFooters(
       this._currentChapterName || '',
       this._currentPageInfo,
-      theme
+      theme,
+      timeLabel
     );
   }
 

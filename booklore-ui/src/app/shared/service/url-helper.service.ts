@@ -42,7 +42,7 @@ export class UrlHelperService {
     return this.appendToken(url);
   }
 
-  getThumbnailUrl1(bookId: number, coverUpdatedOn?: string): string {
+  getDirectThumbnailUrl(bookId: number, coverUpdatedOn?: string): string {
     let url = `${this.mediaBaseUrl}/book/${bookId}/thumbnail`;
     if (coverUpdatedOn) {
       url += `?${coverUpdatedOn}`;
@@ -69,6 +69,42 @@ export class UrlHelperService {
 
   getBackupCoverUrl(bookId: number): string {
     const url = `${this.mediaBaseUrl}/book/${bookId}/backup-cover`;
+    return this.appendToken(url);
+  }
+
+  getAudiobookCoverUrl(bookId: number, audiobookCoverUpdatedOn?: string): string {
+    if (!audiobookCoverUpdatedOn) {
+      const book = this.bookService.getBookByIdFromState(bookId);
+      if (book && book.metadata) {
+        const coverGenerator = new CoverGeneratorComponent();
+        coverGenerator.title = book.metadata.title || '';
+        coverGenerator.author = (book.metadata.authors || []).join(', ');
+        coverGenerator.isSquare = true;
+        return coverGenerator.generateCover();
+      }
+    }
+    let url = `${this.mediaBaseUrl}/book/${bookId}/audiobook-cover`;
+    if (audiobookCoverUpdatedOn) {
+      url += `?${audiobookCoverUpdatedOn}`;
+    }
+    return this.appendToken(url);
+  }
+
+  getAudiobookThumbnailUrl(bookId: number, audiobookCoverUpdatedOn?: string): string {
+    if (!audiobookCoverUpdatedOn) {
+      const book = this.bookService.getBookByIdFromState(bookId);
+      if (book && book.metadata) {
+        const coverGenerator = new CoverGeneratorComponent();
+        coverGenerator.title = book.metadata.title || '';
+        coverGenerator.author = (book.metadata.authors || []).join(', ');
+        coverGenerator.isSquare = true;
+        return coverGenerator.generateCover();
+      }
+    }
+    let url = `${this.mediaBaseUrl}/book/${bookId}/audiobook-thumbnail`;
+    if (audiobookCoverUpdatedOn) {
+      url += `?${audiobookCoverUpdatedOn}`;
+    }
     return this.appendToken(url);
   }
 

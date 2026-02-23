@@ -100,6 +100,7 @@ export class LibraryService {
         const curr = this.libraryStateSubject.value;
         const list = curr.libraries?.map(l => (l.id === updated.id ? updated : l)) || [updated];
         this.libraryStateSubject.next({...curr, libraries: list});
+        this.bookService.refreshBooks();
         return updated;
       })
     );
@@ -164,5 +165,9 @@ export class LibraryService {
 
   setLargeLibraryLoading(isLoading: boolean, expectedCount: number): void {
     this.largeLibraryLoadingSubject.next({ isLoading, expectedCount });
+  }
+
+  getBookCountsByFormat(libraryId: number): Observable<Record<string, number>> {
+    return this.http.get<Record<string, number>>(`${this.url}/${libraryId}/format-counts`);
   }
 }

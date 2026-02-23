@@ -2,11 +2,11 @@ import {inject, Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable, Subject} from 'rxjs';
 import {distinctUntilChanged, exhaustMap, share, tap} from 'rxjs/operators';
-import {Book, ReadStatus} from '../model/book.model';
+import {Book, BookFileProgress, ReadStatus} from '../model/book.model';
 import {BookStateService} from './book-state.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {ResetProgressType, ResetProgressTypes} from '../../../shared/constants/reset-progress-type';
-import {BookStatusUpdateResponse, PersonalRatingUpdateResponse} from './book.service';
+import {BookStatusUpdateResponse, PersonalRatingUpdateResponse} from '../model/book.model';
 
 @Injectable({
   providedIn: 'root',
@@ -17,17 +17,18 @@ export class BookPatchService {
   private http = inject(HttpClient);
   private bookStateService = inject(BookStateService);
 
-  private epubProgressSubject = new Subject<{ bookId: number; cfi: string; href: string; percentage: number }>();
+  private epubProgressSubject = new Subject<{ bookId: number; cfi: string; href: string; percentage: number; bookFileId?: number }>();
 
   private epubProgress$ = this.epubProgressSubject.pipe(
     distinctUntilChanged((prev, curr) =>
       prev.bookId === curr.bookId &&
       prev.cfi === curr.cfi &&
       prev.href === curr.href &&
-      prev.percentage === curr.percentage
+      prev.percentage === curr.percentage &&
+      prev.bookFileId === curr.bookFileId
     ),
     exhaustMap(payload => {
-      const body = {
+      const body: any = {
         bookId: payload.bookId,
         epubProgress: {
           cfi: payload.cfi,
@@ -35,6 +36,15 @@ export class BookPatchService {
           percentage: payload.percentage
         }
       };
+      // Add file-level progress if bookFileId is provided
+      if (payload.bookFileId) {
+        body.fileProgress = {
+          bookFileId: payload.bookFileId,
+          positionData: payload.cfi,
+          positionHref: payload.href,
+          progressPercent: payload.percentage
+        };
+      }
       return this.http.post<void>(`${this.url}/progress`, body);
     }),
     share()
@@ -65,28 +75,56 @@ export class BookPatchService {
     );
   }
 
-  savePdfProgress(bookId: number, page: number, percentage: number): Observable<void> {
-    const body = {
+  savePdfProgress(bookId: number, page: number, percentage: number, bookFileId?: number): Observable<void> {
+    const body: any = {
       bookId: bookId,
       pdfProgress: {
         page: page,
         percentage: percentage
       }
     };
+    // Add file-level progress if bookFileId is provided
+    if (bookFileId) {
+      body.fileProgress = {
+        bookFileId: bookFileId,
+        positionData: String(page),
+        progressPercent: percentage
+      };
+    }
     return this.http.post<void>(`${this.url}/progress`, body);
   }
 
-  saveEpubProgress(bookId: number, cfi: string, href: string, percentage: number): void {
-    this.epubProgressSubject.next({bookId, cfi, href, percentage});
+  saveEpubProgress(bookId: number, cfi: string, href: string, percentage: number, bookFileId?: number): void {
+    this.epubProgressSubject.next({bookId, cfi, href, percentage, bookFileId});
   }
 
-  saveCbxProgress(bookId: number, page: number, percentage: number): Observable<void> {
-    const body = {
+  saveCbxProgress(bookId: number, page: number, percentage: number, bookFileId?: number): Observable<void> {
+    const body: any = {
       bookId: bookId,
       cbxProgress: {
         page: page,
         percentage: percentage
       }
+    };
+    // Add file-level progress if bookFileId is provided
+    if (bookFileId) {
+      body.fileProgress = {
+        bookFileId: bookFileId,
+        positionData: String(page),
+        progressPercent: percentage
+      };
+    }
+    return this.http.post<void>(`${this.url}/progress`, body);
+  }
+
+  /**
+   * Save file-level progress directly using the new API.
+   * This is the preferred method for per-file progress tracking.
+   */
+  saveFileProgress(bookId: number, fileProgress: BookFileProgress): Observable<void> {
+    const body = {
+      bookId: bookId,
+      fileProgress: fileProgress
     };
     return this.http.post<void>(`${this.url}/progress`, body);
   }
@@ -125,8 +163,13 @@ export class BookPatchService {
         const updatedBooks = (currentState.books || []).map(book => {
           const response = responses.find(r => r.bookId === book.id);
           if (response) {
+            const progressReset: Partial<Book> =
+              type === 'KOREADER' ? {koreaderProgress: undefined} :
+              type === 'KOBO' ? {koboProgress: undefined} :
+              {epubProgress: undefined, pdfProgress: undefined, cbxProgress: undefined, audiobookProgress: undefined};
             return {
               ...book,
+              ...progressReset,
               readStatus: response.readStatus,
               readStatusModifiedTime: response.readStatusModifiedTime,
               dateFinished: response.dateFinished

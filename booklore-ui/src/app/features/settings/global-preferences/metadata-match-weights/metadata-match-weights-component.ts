@@ -8,14 +8,15 @@ import {Observable} from 'rxjs';
 import {AppSettingKey, AppSettings} from '../../../../shared/model/app-settings.model';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 import {InputNumber} from 'primeng/inputnumber';
-
+import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
 @Component({
   selector: 'app-metadata-match-weights-component',
   imports: [
     ReactiveFormsModule,
     Button,
-    InputNumber
+    InputNumber,
+    TranslocoDirective
   ],
   templateUrl: './metadata-match-weights-component.html',
   styleUrl: './metadata-match-weights-component.scss'
@@ -44,6 +45,8 @@ export class MetadataMatchWeightsComponent implements OnInit {
     hardcoverRating: 'Hardcover Rating',
     hardcoverReviewCount: 'Hardcover Rating #',
     ranobedbRating: 'Ranobedb Rating',
+    audibleRating: 'Audible Rating',
+    audibleReviewCount: 'Audible Rating #',
   };
 
   form!: FormGroup;
@@ -54,6 +57,7 @@ export class MetadataMatchWeightsComponent implements OnInit {
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
   private fb = inject(FormBuilder);
+  private t = inject(TranslocoService);
 
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
 
@@ -79,6 +83,8 @@ export class MetadataMatchWeightsComponent implements OnInit {
       hardcoverRating: [0, [Validators.required, Validators.min(0)]],
       hardcoverReviewCount: [0, [Validators.required, Validators.min(0)]],
       ranobedbRating: [0, [Validators.required, Validators.min(0)]],
+      audibleRating: [0, [Validators.required, Validators.min(0)]],
+      audibleReviewCount: [0, [Validators.required, Validators.min(0)]],
       coverImage: [0, [Validators.required, Validators.min(0)]],
     });
     this.appSettings$
@@ -110,16 +116,16 @@ export class MetadataMatchWeightsComponent implements OnInit {
       next: () => {
         this.messageService.add({
           severity: 'success',
-          summary: 'Saved',
-          detail: 'Weights saved successfully'
+          summary: this.t.translate('common.success'),
+          detail: this.t.translate('settingsMeta.matchWeights.saveSuccess')
         });
         this.isSaving = false;
       },
       error: () => {
         this.messageService.add({
           severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to save weights'
+          summary: this.t.translate('common.error'),
+          detail: this.t.translate('settingsMeta.matchWeights.saveError')
         });
         this.isSaving = false;
       }
@@ -132,16 +138,16 @@ export class MetadataMatchWeightsComponent implements OnInit {
       next: () => {
         this.messageService.add({
           severity: 'success',
-          summary: 'Recalculated',
-          detail: 'All book match scores were recalculated successfully.'
+          summary: this.t.translate('common.success'),
+          detail: this.t.translate('settingsMeta.matchWeights.recalcSuccess')
         });
         this.isRecalculating = false;
       },
       error: () => {
         this.messageService.add({
           severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to recalculate match scores.'
+          summary: this.t.translate('common.error'),
+          detail: this.t.translate('settingsMeta.matchWeights.recalcError')
         });
         this.isRecalculating = false;
       }
