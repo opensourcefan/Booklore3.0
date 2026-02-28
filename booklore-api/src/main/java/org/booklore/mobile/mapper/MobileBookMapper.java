@@ -31,6 +31,8 @@ public interface MobileBookMapper {
     @Mapping(target = "lastReadTime", source = "progress.lastReadTime")
     @Mapping(target = "readProgress", source = "progress", qualifiedByName = "mapReadProgress")
     @Mapping(target = "primaryFileType", source = "book", qualifiedByName = "mapPrimaryFileType")
+    @Mapping(target = "hasCover", source = "book", qualifiedByName = "mapHasCover")
+    @Mapping(target = "hasAudiobookCover", source = "book", qualifiedByName = "mapHasAudiobookCover")
     MobileBookSummary toSummary(BookEntity book, UserBookProgressEntity progress);
 
     @Mapping(target = "id", source = "book.id")
@@ -58,6 +60,8 @@ public interface MobileBookMapper {
     @Mapping(target = "shelves", source = "book.shelves", qualifiedByName = "mapShelves")
     @Mapping(target = "readProgress", source = "progress", qualifiedByName = "mapReadProgress")
     @Mapping(target = "primaryFileType", source = "book", qualifiedByName = "mapPrimaryFileType")
+    @Mapping(target = "hasCover", source = "book", qualifiedByName = "mapHasCover")
+    @Mapping(target = "hasAudiobookCover", source = "book", qualifiedByName = "mapHasAudiobookCover")
     @Mapping(target = "fileTypes", source = "book", qualifiedByName = "mapFileTypes")
     @Mapping(target = "files", source = "book", qualifiedByName = "mapFiles")
     @Mapping(target = "epubProgress", source = "progress", qualifiedByName = "mapEpubProgress")
@@ -92,6 +96,18 @@ public interface MobileBookMapper {
             return null;
         }
         return "/api/books/" + book.getId() + "/cover";
+    }
+
+    @Named("mapHasCover")
+    default Boolean mapHasCover(BookEntity book) {
+        if (book == null) return false;
+        return book.getBookCoverHash() != null && !book.getBookCoverHash().isBlank();
+    }
+
+    @Named("mapHasAudiobookCover")
+    default Boolean mapHasAudiobookCover(BookEntity book) {
+        if (book == null) return false;
+        return book.getAudiobookCoverHash() != null && !book.getAudiobookCoverHash().isBlank();
     }
 
     @Named("mapShelves")

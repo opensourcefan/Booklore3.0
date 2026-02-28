@@ -45,6 +45,8 @@ public class MobileBookDetail {
     private String primaryFileType;
     private List<String> fileTypes;
     private List<MobileBookFile> files;
+    private Boolean hasCover;
+    private Boolean hasAudiobookCover;
 
     private EpubProgress epubProgress;
     private PdfProgress pdfProgress;
