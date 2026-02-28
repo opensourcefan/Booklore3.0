@@ -28,6 +28,6 @@ public class MobileBookSummary {
     private Instant lastReadTime;
     private Float readProgress;
     private String primaryFileType;
-    private Boolean hasCover;
-    private Boolean hasAudiobookCover;
+    private String coverHash;
+    private String audiobookCoverHash;
 }
