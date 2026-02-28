@@ -283,6 +283,7 @@ public interface MobileBookMapper {
                 .name(library.getName())
                 .icon(library.getIcon())
                 .bookCount(bookCount)
+                .allowedFormats(library.getAllowedFormats())
                 .build();
     }
 
