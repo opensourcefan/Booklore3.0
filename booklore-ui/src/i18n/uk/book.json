@@ -119,47 +119,48 @@
             "progressResetBookloreDetail": "Прогрес читання у Booklore скинуто.",
             "progressResetKOReaderDetail": "Прогрес читання у KOReader скинуто.",
             "progressResetFailedSummary": "Не вдалося",
-            "progressResetBookloreFailedDetail": "",
-            "progressResetKOReaderFailedDetail": "",
-            "coverRegenSuccessSummary": "",
-            "coverRegenSuccessDetail": "",
-            "coverRegenFailedDetail": "",
-            "customCoverSuccessSummary": "",
-            "customCoverSuccessDetail": "",
-            "customCoverFailedDetail": ""
+            "progressResetBookloreFailedDetail": "Не вдалося скинути прогрес у Booklore.",
+            "progressResetKOReaderFailedDetail": "Не вдалося скинути прогрес у KOReader.",
+            "coverRegenSuccessSummary": "Успішно",
+            "coverRegenSuccessDetail": "Розпочато регенерацію обкладинки",
+            "coverRegenFailedDetail": "Не вдалося регенерувати обкладинку",
+            "customCoverSuccessSummary": "Успішно",
+            "customCoverSuccessDetail": "Обкладинку успішно згенеровано",
+            "customCoverFailedDetail": "Не вдалося згенерувати обкладинку"
         },
         "alt": {
-            "cover": "",
-            "titleTooltip": "",
-            "seriesCollapsed": "",
-            "viewSeriesInfo": "",
-            "viewDetails": "",
-            "readBook": "",
-            "playAudiobook": "",
-            "bookMenu": "",
-            "continueReading": ""
+            "cover": "Обкладинка {{ title }}",
+            "titleTooltip": "Назва: {{ title }}",
+            "seriesCollapsed": "Серію згорнуто: {{ count }} книг",
+            "viewSeriesInfo": "Переглянути інформацію про серію",
+            "viewDetails": "Переглянути деталі книги",
+            "readBook": "Читати книгу",
+            "playAudiobook": "Слухати аудіокнигу",
+            "bookMenu": "Меню дій із книгою",
+            "continueReading": "Продовжити читання",
+            "readStatusMenu": "Змінити статус читання"
         }
     },
     "notes": {
         "confirm": {
-            "deleteMessage": "",
-            "deleteHeader": ""
+            "deleteMessage": "Ви впевнені, що хочете видалити нотатку \"{{ title }}\"?",
+            "deleteHeader": "Підтвердження видалення"
         },
         "toast": {
-            "loadFailedDetail": "",
-            "validationSummary": "",
-            "validationDetail": "",
-            "createSuccessDetail": "",
-            "createFailedDetail": "",
-            "updateSuccessDetail": "",
-            "updateFailedDetail": "",
-            "deleteSuccessDetail": "",
-            "deleteFailedDetail": ""
+            "loadFailedDetail": "Не вдалося завантажити нотатки для цієї книги.",
+            "validationSummary": "Помилка валідації",
+            "validationDetail": "Назва та зміст є обов'язковими.",
+            "createSuccessDetail": "Нотатку успішно створено.",
+            "createFailedDetail": "Не вдалося створити нотатку.",
+            "updateSuccessDetail": "Нотатку успішно оновлено.",
+            "updateFailedDetail": "Не вдалося оновити нотатку.",
+            "deleteSuccessDetail": "Нотатку успішно видалено.",
+            "deleteFailedDetail": "Не вдалося видалити нотатку."
         }
     },
     "bookService": {
         "toast": {
-            "someFilesNotDeletedSummary": "",
+            "someFilesNotDeletedSummary": "Деякі файли не вдалося видалити",
             "someFilesNotDeletedDetail": "",
             "booksDeletedSummary": "",
             "booksDeletedDetail": "",
