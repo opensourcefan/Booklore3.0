@@ -1,0 +1,376 @@
+260315 18:15:09 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 18:15:10 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid M6N9Ssj2VvrXsV8W5b5ku36hqxo= as process 546
+2026-03-15 18:15:10 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 18:15:10 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 18:15:10 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 18:15:10 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 18:15:10 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 18:15:10 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 18:15:10 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 18:15:10 0 [Note] InnoDB: End of log at LSN=47613
+2026-03-15 18:15:10 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 18:15:10 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 18:15:10 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 18:15:10 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 18:15:10 0 [Note] InnoDB: log sequence number 47613; transaction id 14
+2026-03-15 18:15:10 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 18:15:10 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 18:15:10 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 18:15:10 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 18:15:10
+2026-03-15 18:15:12 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 18:15:12 0 [Note] Server socket created on IP: '::'.
+2026-03-15 18:15:12 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 18:15:12 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 18:15:12 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 18:15:12 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 18:27:32 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 18:27:32 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 18:27:32 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 18:27:32 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 18:27:32 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 18:27:32
+2026-03-15 18:27:33 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 18:27:33 0 [Note] InnoDB: Shutdown completed; log sequence number 2683053; transaction id 2501
+2026-03-15 18:27:33 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 18:27:33 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 18:31:55 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 18:31:56 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid Oqkhqxe6Uwevnt/wWhreNNnCNuU= as process 424
+2026-03-15 18:31:56 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 18:31:56 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 18:31:56 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 18:31:56 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 18:31:56 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 18:31:56 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 18:31:56 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 18:31:56 0 [Note] InnoDB: End of log at LSN=2683053
+2026-03-15 18:31:56 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 18:31:56 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 18:31:56 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 18:31:56 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 18:31:56 0 [Note] InnoDB: log sequence number 2683053; transaction id 2502
+2026-03-15 18:31:56 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 18:31:56 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 18:31:56 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 18:31:56 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 18:31:56
+2026-03-15 18:31:58 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 18:31:58 0 [Note] Server socket created on IP: '::'.
+2026-03-15 18:31:58 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 18:31:58 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 18:31:59 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 18:31:59 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 18:42:31 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 18:42:31 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 18:42:31 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 18:42:31 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 18:42:31 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 18:42:31
+2026-03-15 18:42:31 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 18:42:31 0 [Note] InnoDB: Shutdown completed; log sequence number 2686564; transaction id 2537
+2026-03-15 18:42:31 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 18:42:32 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 18:46:40 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 18:46:41 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid buqh6Nz0LmaP9K8QxuKKklleS2c= as process 424
+2026-03-15 18:46:41 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 18:46:41 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 18:46:41 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 18:46:41 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 18:46:41 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 18:46:41 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 18:46:41 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 18:46:41 0 [Note] InnoDB: End of log at LSN=2686564
+2026-03-15 18:46:41 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 18:46:41 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 18:46:41 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 18:46:41 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 18:46:41 0 [Note] InnoDB: log sequence number 2686564; transaction id 2538
+2026-03-15 18:46:41 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 18:46:41 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 18:46:41 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 18:46:42 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 18:46:42
+2026-03-15 18:46:44 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 18:46:44 0 [Note] Server socket created on IP: '::'.
+2026-03-15 18:46:44 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 18:46:44 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 18:46:44 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 18:46:44 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 18:56:33 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 18:56:33 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 18:56:33 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 18:56:33 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 18:56:33 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 18:56:33
+2026-03-15 18:56:34 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 18:56:34 0 [Note] InnoDB: Shutdown completed; log sequence number 2687422; transaction id 2579
+2026-03-15 18:56:34 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 18:56:34 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 19:17:26 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 19:17:27 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid /VDiTNDMAF3hXSmMearbw0XX7GY= as process 424
+2026-03-15 19:17:27 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 19:17:27 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 19:17:27 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 19:17:27 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 19:17:27 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 19:17:27 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 19:17:27 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 19:17:27 0 [Note] InnoDB: End of log at LSN=2687422
+2026-03-15 19:17:27 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 19:17:27 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 19:17:27 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 19:17:27 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 19:17:27 0 [Note] InnoDB: log sequence number 2687422; transaction id 2580
+2026-03-15 19:17:27 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 19:17:27 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 19:17:27 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 19:17:27 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 19:17:27
+2026-03-15 19:17:28 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 19:17:28 0 [Note] Server socket created on IP: '::'.
+2026-03-15 19:17:28 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 19:17:28 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 19:17:29 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 19:17:29 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 21:08:04 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 21:08:04 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 21:08:04 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 21:08:04 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 21:08:04 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 21:08:04
+2026-03-15 21:08:04 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 21:08:04 0 [Note] InnoDB: Shutdown completed; log sequence number 2687422; transaction id 2616
+2026-03-15 21:08:04 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 21:08:04 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 21:12:15 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 21:12:16 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid eYH0Q/tG+iq5cpdecFwFF7kRDIw= as process 424
+2026-03-15 21:12:16 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 21:12:16 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 21:12:16 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 21:12:16 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 21:12:16 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 21:12:16 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 21:12:16 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 21:12:16 0 [Note] InnoDB: End of log at LSN=2687422
+2026-03-15 21:12:16 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 21:12:16 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 21:12:16 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 21:12:16 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 21:12:16 0 [Note] InnoDB: log sequence number 2687422; transaction id 2580
+2026-03-15 21:12:16 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 21:12:16 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 21:12:16 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 21:12:16 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 21:12:16
+2026-03-15 21:12:19 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 21:12:19 0 [Note] Server socket created on IP: '::'.
+2026-03-15 21:12:19 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 21:12:19 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 21:12:19 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 21:12:19 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 21:22:17 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 21:22:17 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 21:22:17 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 21:22:17 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 21:22:17 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 21:22:17
+2026-03-15 21:22:18 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 21:22:18 0 [Note] InnoDB: Shutdown completed; log sequence number 2688444; transaction id 2617
+2026-03-15 21:22:18 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 21:22:18 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 21:27:36 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 21:27:36 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid xCw0U8hvAcVrF4WWNUXRIrbSJxg= as process 424
+2026-03-15 21:27:37 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 21:27:37 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 21:27:37 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 21:27:37 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 21:27:37 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 21:27:37 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 21:27:37 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 21:27:37 0 [Note] InnoDB: End of log at LSN=2688444
+2026-03-15 21:27:37 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 21:27:37 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 21:27:37 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 21:27:37 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 21:27:37 0 [Note] InnoDB: log sequence number 2688444; transaction id 2618
+2026-03-15 21:27:37 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 21:27:37 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 21:27:37 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 21:27:37 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 21:27:37
+2026-03-15 21:27:39 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 21:27:39 0 [Note] Server socket created on IP: '::'.
+2026-03-15 21:27:39 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 21:27:39 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 21:27:40 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 21:27:41 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 21:28:59 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 21:28:59 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 21:28:59 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 21:28:59 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 21:28:59 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 21:28:59
+2026-03-15 21:28:59 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 21:28:59 0 [Note] InnoDB: Shutdown completed; log sequence number 2688444; transaction id 2627
+2026-03-15 21:28:59 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 21:28:59 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 21:34:36 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 21:34:36 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid +VHJkec8BtDn6Fh5Adekq34LXwk= as process 424
+2026-03-15 21:34:37 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 21:34:37 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 21:34:37 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 21:34:37 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 21:34:37 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 21:34:37 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 21:34:37 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 21:34:37 0 [Note] InnoDB: End of log at LSN=2688444
+2026-03-15 21:34:37 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 21:34:37 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 21:34:37 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 21:34:37 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 21:34:37 0 [Note] InnoDB: log sequence number 2688444; transaction id 2618
+2026-03-15 21:34:37 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 21:34:37 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 21:34:37 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 21:34:37 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 21:34:37
+2026-03-15 21:34:39 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 21:34:39 0 [Note] Server socket created on IP: '::'.
+2026-03-15 21:34:39 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 21:34:39 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 21:34:40 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 21:34:41 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 21:44:25 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 21:44:25 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 21:44:25 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 21:44:25 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 21:44:25 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 21:44:25
+2026-03-15 21:44:26 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 21:44:26 0 [Note] InnoDB: Shutdown completed; log sequence number 2688444; transaction id 2653
+2026-03-15 21:44:26 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 21:44:26 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 21:51:17 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 21:51:18 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid WTj5BPrVm6pZ82R6TbnIfc3osaA= as process 424
+2026-03-15 21:51:18 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 21:51:18 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 21:51:18 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 21:51:18 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 21:51:18 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 21:51:18 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 21:51:18 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 21:51:18 0 [Note] InnoDB: End of log at LSN=2688444
+2026-03-15 21:51:19 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 21:51:19 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 21:51:19 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 21:51:19 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 21:51:19 0 [Note] InnoDB: log sequence number 2688444; transaction id 2618
+2026-03-15 21:51:19 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 21:51:19 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 21:51:19 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 21:51:19 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 21:51:19
+2026-03-15 21:51:20 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 21:51:20 0 [Note] Server socket created on IP: '::'.
+2026-03-15 21:51:20 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 21:51:20 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 21:51:20 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 21:51:20 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 22:01:38 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 22:01:38 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 22:01:38 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 22:01:38 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 22:01:38 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 22:01:38
+2026-03-15 22:01:38 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 22:01:38 0 [Note] InnoDB: Shutdown completed; log sequence number 2695742; transaction id 2662
+2026-03-15 22:01:38 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 22:01:38 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 22:07:08 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 22:07:08 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid E19kE/ongKcwLV3aRTMXno7aHeI= as process 425
+2026-03-15 22:07:08 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 22:07:08 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 22:07:08 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 22:07:08 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 22:07:08 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 22:07:08 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 22:07:09 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 22:07:09 0 [Note] InnoDB: End of log at LSN=2695742
+2026-03-15 22:07:09 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 22:07:09 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 22:07:09 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 22:07:09 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 22:07:09 0 [Note] InnoDB: log sequence number 2695742; transaction id 2663
+2026-03-15 22:07:09 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 22:07:09 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 22:07:09 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 22:07:09 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 22:07:09
+2026-03-15 22:07:10 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 22:07:10 0 [Note] Server socket created on IP: '::'.
+2026-03-15 22:07:10 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 22:07:10 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 22:07:10 5 [Warning] Aborted connection 5 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 22:07:11 7 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 22:26:53 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 22:26:53 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 22:26:53 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 22:26:53 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 22:26:53 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 22:26:53
+2026-03-15 22:26:54 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 22:26:54 0 [Note] InnoDB: Shutdown completed; log sequence number 2839960; transaction id 2795
+2026-03-15 22:26:54 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 22:26:54 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 22:32:15 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 22:32:15 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid 0XKg5tL6r0cEh8qcctXQweluu+k= as process 424
+2026-03-15 22:32:16 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 22:32:16 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 22:32:16 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 22:32:16 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 22:32:16 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 22:32:16 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 22:32:16 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 22:32:16 0 [Note] InnoDB: End of log at LSN=2839960
+2026-03-15 22:32:16 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 22:32:16 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 22:32:16 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 22:32:16 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 22:32:16 0 [Note] InnoDB: log sequence number 2839960; transaction id 2796
+2026-03-15 22:32:16 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 22:32:16 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 22:32:16 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 22:32:16 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 22:32:16
+2026-03-15 22:32:20 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 22:32:20 0 [Note] Server socket created on IP: '::'.
+2026-03-15 22:32:20 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 22:32:20 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 22:32:20 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 22:32:21 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)
+2026-03-15 22:41:49 0 [Note] /usr/bin/mariadbd (initiated by: unknown): Normal shutdown
+2026-03-15 22:41:49 0 [Note] InnoDB: FTS optimize thread exiting.
+2026-03-15 22:41:49 0 [Note] InnoDB: Starting shutdown...
+2026-03-15 22:41:49 0 [Note] InnoDB: Dumping buffer pool(s) to /config/databases/ib_buffer_pool
+2026-03-15 22:41:49 0 [Note] InnoDB: Buffer pool(s) dump completed at 260315 22:41:49
+2026-03-15 22:41:50 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2026-03-15 22:41:50 0 [Note] InnoDB: Shutdown completed; log sequence number 2839960; transaction id 2841
+2026-03-15 22:41:50 0 [Note] /usr/bin/mariadbd: Shutdown complete
+260315 22:41:50 mysqld_safe mysqld from pid file /run/mysqld/mysqld.pid ended
+260315 22:47:19 mysqld_safe Starting mariadbd daemon with databases from /config/databases
+2026-03-15 22:47:19 0 [Note] Starting MariaDB 11.4.5-MariaDB-log source revision 0771110266ff5c04216af4bf1243c65f8c67ccf4 server_uid sk38JL+0UAJoU4YUZDYSmoR62I0= as process 424
+2026-03-15 22:47:20 0 [Note] InnoDB: Compressed tables use zlib 1.3.1
+2026-03-15 22:47:20 0 [Note] InnoDB: Number of transaction pools: 1
+2026-03-15 22:47:20 0 [Note] InnoDB: Using SSE4.2 crc32 instructions
+2026-03-15 22:47:20 0 [Note] InnoDB: Using Linux native AIO
+2026-03-15 22:47:20 0 [Note] InnoDB: Initializing buffer pool, total size = 256.000MiB, chunk size = 4.000MiB
+2026-03-15 22:47:20 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-03-15 22:47:20 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2026-03-15 22:47:20 0 [Note] InnoDB: End of log at LSN=2839960
+2026-03-15 22:47:20 0 [Note] InnoDB: Opened 3 undo tablespaces
+2026-03-15 22:47:20 0 [Note] InnoDB: 128 rollback segments in 3 undo tablespaces are active.
+2026-03-15 22:47:20 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2026-03-15 22:47:20 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2026-03-15 22:47:20 0 [Note] InnoDB: log sequence number 2839960; transaction id 2796
+2026-03-15 22:47:20 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-03-15 22:47:20 0 [Note] InnoDB: Loading buffer pool(s) from /config/databases/ib_buffer_pool
+2026-03-15 22:47:20 0 [Note] Plugin 'wsrep-provider' is disabled.
+2026-03-15 22:47:20 0 [Note] InnoDB: Buffer pool(s) load completed at 260315 22:47:20
+2026-03-15 22:47:24 0 [Note] Server socket created on IP: '0.0.0.0'.
+2026-03-15 22:47:24 0 [Note] Server socket created on IP: '::'.
+2026-03-15 22:47:24 0 [Note] mariadbd: Event Scheduler: Loaded 0 events
+2026-03-15 22:47:24 0 [Note] /usr/bin/mariadbd: ready for connections.
+Version: '11.4.5-MariaDB-log'  socket: '/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
+2026-03-15 22:47:24 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2026-03-15 22:47:25 6 [Warning] Access denied for user 'root'@'localhost' (using password: YES)

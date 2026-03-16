@@ -1,6 +1,7 @@
 <div class="book-card"
      [class.selected]="isSelected"
-     (click)="onCardClick($event)">
+     (click)="onCardClick($event)"
+     (mouseenter)="bookClicked.emit(book)">
 
   <div class="cover-container" [ngClass]="{ 'center-info-btn': _isSeriesViewActive || !hasDigitalFile(), 'loaded': isImageLoaded, 'audiobook-cover': _isAudiobook, 'square-library-cover': useSquareCovers }">
     <img

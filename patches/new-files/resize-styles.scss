@@ -1,0 +1,51 @@
+/* ================================================================
+   BookLore custom patch: resizable panel handles
+   ================================================================ */
+
+.bl-resize-handle {
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  z-index: 200;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.15s ease;
+
+  &--right {
+    right: -3px;
+  }
+
+  &--left {
+    left: -3px;
+  }
+
+  &:hover,
+  &:active {
+    background: var(--p-primary-color, #818cf8);
+    opacity: 0.45;
+    border-radius: 3px;
+  }
+}
+
+/* Prevent text selection and cursor flicker while dragging */
+body.bl-resizing {
+  user-select: none !important;
+  cursor: col-resize !important;
+
+  iframe,
+  video {
+    pointer-events: none;
+  }
+}
+
+/* Vertical resize cursor while dragging cover preview */
+body.bl-resizing-vertical {
+  user-select: none !important;
+  cursor: row-resize !important;
+
+  iframe,
+  video {
+    pointer-events: none;
+  }
+}
