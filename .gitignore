@@ -47,3 +47,7 @@ booklore-ui/test-results/
 booklore-api/src/main/resources/application-local.yaml
 booklore-api/docs
 /shared/
+mariadb/
+data/
+books/
+bookdrop/
