@@ -51,3 +51,9 @@ mariadb/
 data/
 books/
 bookdrop/
+booklore-v3/
+booklore-v3b/
+booklore-v3c/
+.env
+booklore_r730/
+patches/
