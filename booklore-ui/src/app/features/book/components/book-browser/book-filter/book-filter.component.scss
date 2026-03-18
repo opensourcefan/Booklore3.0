@@ -7,7 +7,7 @@
 }
 
 :host ::ng-deep .cdk-virtual-scroll-orientation-vertical .cdk-virtual-scroll-content-wrapper {
-  width: 100% !important;
+  width: calc(var(--sidebar-width, 225px) - 35px) !important;
   min-width: unset;
 }
 
@@ -86,9 +86,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  width: 100%;
-  box-sizing: border-box;
-  padding-right: 0.5rem;
+  max-width: 97%;
 
   &.active {
     color: var(--primary-color);
