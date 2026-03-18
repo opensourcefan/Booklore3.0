@@ -1,5 +1,5 @@
-curl -O https://raw.githubusercontent.com/opensourcefan/Booklore3.0/develop/docker-compose.yml
+1. curl -O https://raw.githubusercontent.com/opensourcefan/Booklore3.0/develop/docker-compose.yml
 
-create .env with your settings
+2. create .env with your settings
 
-docker compose up -d
+3. docker compose up -d
