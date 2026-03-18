@@ -88,6 +88,7 @@ export class AppTopBarComponent implements OnDestroy {
 
   constructor(
     public layoutService: LayoutService,
+    public toolbarConfig: ToolbarConfigService,
     private notificationService: NotificationEventService,
     private router: Router,
     private authService: AuthService,
