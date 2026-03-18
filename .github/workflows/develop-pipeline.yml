@@ -251,7 +251,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            booklore/booklore:${{ env.image_tag }}
             ghcr.io/opensourcefan/booklore3:${{ env.image_tag }}
           build-args: |
             APP_VERSION=${{ env.image_tag }}

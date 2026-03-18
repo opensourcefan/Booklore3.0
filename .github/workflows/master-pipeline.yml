@@ -300,8 +300,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            booklore/booklore:${{ env.new_tag }}
-            booklore/booklore:latest
             ghcr.io/opensourcefan/booklore3:${{ env.new_tag }}
             ghcr.io/opensourcefan/booklore3:latest
           build-args: |
