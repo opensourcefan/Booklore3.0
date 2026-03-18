@@ -29,11 +29,13 @@
       <div class="topbar-action-group">
         @if (userService.userState$ | async; as userState) {
           @if (userState.user?.permissions?.canAccessBookdrop || userState.user?.permissions?.admin) {
+            @if (toolbarConfig.isVisible('bookdrop')) {
             <li>
               <a class="topbar-item" (click)="navigateToBookdrop()" [pTooltip]="t('bookdrop')" tooltipPosition="bottom">
                 <i class="pi pi-inbox topbar-icon"></i>
               </a>
             </li>
+            }
           }
           @if (userState.user?.permissions?.canManageLibrary || userState.user?.permissions?.admin) {
             <li>
@@ -43,14 +45,16 @@
             </li>
           }
           @if (userState.user?.permissions?.canUpload || userState.user?.permissions?.admin) {
+            @if (toolbarConfig.isVisible('upload')) {
             <li>
               <a class="topbar-item" (click)="openFileUploadDialog()" [pTooltip]="t('uploadBook')" tooltipPosition="bottom">
                 <i class="pi pi-upload topbar-icon"></i>
               </a>
             </li>
+            }
           }
         }
-        @if (hasStatsAccess) {
+        @if (hasStatsAccess && toolbarConfig.isVisible('stats')) {
           <li>
             <button
               class="topbar-item"
@@ -72,16 +76,15 @@
         @if (userService.userState$ | async; as userState) {
           @if (userState.user?.permissions?.canManageLibrary || userState.user?.permissions?.admin) {
             <li>
+              @if (toolbarConfig.isVisible('metadata')) {
               <a class="topbar-item" (click)="navigateToMetadataManager()" [pTooltip]="t('metadataManager')" tooltipPosition="bottom">
                 <i class="pi pi-sparkles topbar-icon"></i>
               </a>
+              }
             </li>
           }
         }
         <li>
-          <a class="topbar-item" (click)="navigateToSettings()" [pTooltip]="t('settings')" tooltipPosition="bottom">
-            <i class="pi pi-cog topbar-icon"></i>
-          </a>
         </li>
       </div>
 
@@ -115,17 +118,7 @@
         </li>
 
 
-        <li class="topbar-item-relative">
-          <button
-            type="button"
-            class="topbar-item"
-            (click)="langMenu.toggle($event)"
-            [pTooltip]="t('language')"
-            tooltipPosition="bottom">
-            <i class="pi pi-language topbar-icon"></i>
-          </button>
-          <p-menu #langMenu [model]="langMenuItems" [popup]="true" appendTo="body"/>
-        </li>
+
         <li class="topbar-item-relative">
           <button type="button"
                   class="topbar-item config-item"
