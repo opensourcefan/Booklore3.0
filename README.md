@@ -6,7 +6,7 @@ I may or may not update this
 I may or may not read the Issues
 Please fork and go nuts with it
 I am not taking requests
-I will not delete this if I get upset, I'm always upset
+I will not delete this if I get upset, I am always upset
 ```
 
 ### Added Features from Original
