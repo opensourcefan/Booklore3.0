@@ -255,3 +255,41 @@
   pointer-events: none;
   user-select: none;
 }
+
+.logo-version {
+  font-size: 0.53em;
+  font-weight: 700;
+  color: var(--p-primary-color);
+  margin-left: 0;
+  vertical-align: top;
+  line-height: 1;
+  opacity: 0.95;
+}
+
+.sidebar-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 1px solid var(--p-content-border-color);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  &:hover {
+    border-color: var(--p-primary-color);
+    background: var(--p-surface-800);
+  }
+}
+
+.sidebar-toggle-icon {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--p-surface-100);
+  line-height: 1;
+  letter-spacing: -0.15em;
+  user-select: none;
+  margin-right: -2px;
+}

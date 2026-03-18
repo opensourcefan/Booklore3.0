@@ -120,6 +120,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   onExpandedPanelsChange(value: string | number | string[] | number[] | null | undefined): void {
     if (Array.isArray(value)) {
       this.expandedPanels = value.map(Number);
+      localStorage.setItem('bl-filter-expanded-panels', JSON.stringify(this.expandedPanels));
     }
   }
 
@@ -159,7 +160,16 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadExpandedPanels(): void {
+    try {
+      const saved = localStorage.getItem('bl-filter-expanded-panels');
+      if (saved) this.expandedPanels = JSON.parse(saved);
+    } catch { /* ignore */ }
+  }
+
   private initializeFilterStreams(): void {
+    const hasSavedPanels = !!localStorage.getItem('bl-filter-expanded-panels');
+    this.loadExpandedPanels();
     const entity$ = this.entity$ ?? of(null);
     const entityType$ = this.entityType$ ?? of(EntityType.ALL_BOOKS);
 
@@ -171,7 +181,9 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     );
     this.filterTypes = Object.keys(this.filterStreams) as FilterType[];
     this.updateVisibleFilterTypes();
-    this.updateExpandedPanels();
+    if (!hasSavedPanels) {
+      this.updateExpandedPanels();
+    }
   }
 
   private updateVisibleFilterTypes(): void {

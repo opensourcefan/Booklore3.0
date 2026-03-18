@@ -18,6 +18,11 @@ import {AuthorService} from '../../../../features/author-browser/service/author.
 import {MenuItem} from 'primeng/api';
 import {DialogLauncherService} from '../../../services/dialog-launcher.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {Menu} from 'primeng/menu';
+import {Router} from '@angular/router';
+import {TooltipModule} from 'primeng/tooltip';
+import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
+import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {Slider} from 'primeng/slider';
 import {FormsModule} from '@angular/forms';
 import {Popover} from 'primeng/popover';
@@ -26,7 +31,7 @@ import {LocalStorageService} from '../../../service/local-storage.service';
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Slider, FormsModule, Popover],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, Slider, FormsModule, Popover],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
@@ -53,6 +58,10 @@ export class AppMenuComponent implements OnInit {
   private t = inject(TranslocoService);
   private localStorageService = inject(LocalStorageService);
 
+  activeLang = '';
+  langMenuItems: any[] = [];
+  private router = inject(Router);
+
   librarySortField: 'name' | 'id' = 'name';
   librarySortOrder: 'asc' | 'desc' = 'desc';
   shelfSortField: 'name' | 'id' = 'name';
@@ -64,6 +73,10 @@ export class AppMenuComponent implements OnInit {
 
   ngOnInit(): void {
     this.sidebarWidth = this.localStorageService.get<number>('sidebarWidth') ?? 225;
+
+    this.activeLang = this.t.getActiveLang();
+    this.buildLangMenu();
+    this.t.langChanges$.subscribe((lang: string) => { this.activeLang = lang; this.buildLangMenu(); });
 
     this.versionService.getVersion().subscribe((data) => {
       this.versionInfo = data;
@@ -137,6 +150,28 @@ export class AppMenuComponent implements OnInit {
 
   saveSidebarWidth(): void {
     this.localStorageService.set('sidebarWidth', this.sidebarWidth);
+  }
+
+  navigateToSettings(): void {
+    this.router.navigate(['/settings']);
+  }
+
+  switchLanguage(lang: string): void {
+    if (lang === this.activeLang) return;
+    this.t.load(lang).subscribe(() => {
+      this.t.setActiveLang(lang);
+      localStorage.setItem(LANG_STORAGE_KEY, lang);
+      this.activeLang = lang;
+      this.buildLangMenu();
+    });
+  }
+
+  private buildLangMenu(): void {
+    this.langMenuItems = AVAILABLE_LANGS.map((lang: string) => ({
+      label: LANG_LABELS[lang] || lang,
+      icon: lang === this.activeLang ? 'pi pi-check' : undefined,
+      command: () => this.switchLanguage(lang),
+    }));
   }
 
   private initMenus(): void {

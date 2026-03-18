@@ -9,6 +9,8 @@ import {FilterPreferencesComponent} from './filter-preferences/filter-preference
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Slider} from 'primeng/slider';
 import {MessageService} from 'primeng/api';
+import {UiPreferencesService} from '../../../shared/service/ui-preferences.service';
+import {ToggleSwitch} from 'primeng/toggleswitch';
 import {LocalStorageService} from '../../../shared/service/local-storage.service';
 
 @Component({
@@ -23,12 +25,15 @@ import {LocalStorageService} from '../../../shared/service/local-storage.service
     MetaCenterViewModeComponent,
     FilterPreferencesComponent,
     TranslocoDirective,
-    Slider,
+    ToggleSwitch,
   ],
   templateUrl: './view-preferences-parent.component.html',
   styleUrl: './view-preferences-parent.component.scss'
 })
 export class ViewPreferencesParentComponent implements OnInit {
+  private uiPrefs = inject(UiPreferencesService);
+  private messageService = inject(MessageService);
+  showCoverPreview = false;
 
   sidebarWidth = 225;
 
@@ -37,11 +42,19 @@ export class ViewPreferencesParentComponent implements OnInit {
   private t = inject(TranslocoService);
 
   ngOnInit(): void {
+    this.showCoverPreview = this.uiPrefs.showCoverPreview;
     this.sidebarWidth = this.localStorageService.get<number>('sidebarWidth') ?? 225;
   }
 
   onSidebarWidthChange(): void {
     document.documentElement.style.setProperty('--sidebar-width', this.sidebarWidth + 'px');
+  }
+
+  onCoverPreviewToggle(checked: boolean): void {
+    this.showCoverPreview = checked;
+    this.uiPrefs.setShowCoverPreview(checked);
+    this.messageService.add({ severity: 'success', summary: 'Saved',
+      detail: checked ? 'Cover preview enabled' : 'Cover preview disabled' });
   }
 
   saveSidebarWidth(): void {

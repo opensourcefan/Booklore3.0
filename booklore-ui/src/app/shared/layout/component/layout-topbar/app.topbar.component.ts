@@ -71,7 +71,6 @@ export class AppTopBarComponent implements OnDestroy {
   showPulse = false;
   hasAnyTasks = false;
   hasPendingBookdropFiles = false;
-  supportAnimationEnabled = localStorage.getItem(SUPPORT_ANIMATION_KEY) !== 'false';
 
   private eventTimer: number | undefined;
   private destroy$ = new Subject<void>();
@@ -150,17 +149,13 @@ export class AppTopBarComponent implements OnDestroy {
 
   private onStorageChange(event: StorageEvent): void {
     if (event.key === SUPPORT_ANIMATION_KEY) {
-      this.supportAnimationEnabled = event.newValue !== 'false';
+      this.
     }
   }
 
   toggleMenu() {
     this.isMenuVisible = !this.isMenuVisible;
     this.layoutService.onMenuToggle();
-  }
-
-  openGithubSupportDialog(): void {
-    this.dialogLauncher.openGithubSupportDialog();
   }
 
   openLibraryCreatorDialog(): void {

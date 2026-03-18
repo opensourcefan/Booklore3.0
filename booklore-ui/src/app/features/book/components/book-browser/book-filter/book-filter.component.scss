@@ -7,7 +7,7 @@
 }
 
 :host ::ng-deep .cdk-virtual-scroll-orientation-vertical .cdk-virtual-scroll-content-wrapper {
-  width: calc(var(--sidebar-width, 225px) - 35px) !important;
+  width: 100% !important;
   min-width: unset;
 }
 
@@ -86,7 +86,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  max-width: 97%;
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 0.5rem;
 
   &.active {
     color: var(--primary-color);
@@ -118,12 +120,4 @@
   border-top: 1px solid #e5e7eb;
 }
 
-.footer-notice {
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-align: center;
-  padding-top: 1rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  margin-top: 0.5rem;
-}
+
