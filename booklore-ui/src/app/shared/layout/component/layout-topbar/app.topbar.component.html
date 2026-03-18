@@ -15,16 +15,13 @@
     </span>
   </a>
 
-  <p-button
-    class="layout-menu-button"
-    #menubutton
-    icon="pi pi-bars"
-    [rounded]="true"
-    [outlined]="true"
-    (click)="toggleMenu()"
-    [ngClass]="{ 'rotate-right': !isMenuVisible, 'rotate-left': isMenuVisible }"
-  >
-  </p-button>
+  <a class="topbar-item sidebar-toggle-btn"
+     #menubutton
+     (click)="toggleMenu()"
+     [pTooltip]="isMenuVisible ? 'Hide sidebar' : 'Show sidebar'"
+     tooltipPosition="bottom">
+    <i [ngClass]="isMenuVisible ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"></i>
+  </a>
 
   <a class="topbar-item sidebar-toggle-btn"
      #menubutton
