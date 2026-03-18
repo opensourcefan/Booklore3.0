@@ -23,14 +23,6 @@
     <i [ngClass]="isMenuVisible ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"></i>
   </a>
 
-  <a class="topbar-item sidebar-toggle-btn"
-     #menubutton
-     (click)="toggleMenu()"
-     [pTooltip]="isMenuVisible ? 'Hide sidebar' : 'Show sidebar'"
-     tooltipPosition="bottom">
-    <i [ngClass]="isMenuVisible ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"></i>
-  </a>
-
   <div class="topbar-content">
     <app-book-searcher class="topbar-search"></app-book-searcher>
     <ul class="topbar-items topbar-desktop-items">
