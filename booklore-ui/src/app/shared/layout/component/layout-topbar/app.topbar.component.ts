@@ -145,12 +145,15 @@ export class AppTopBarComponent implements OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  private onStorageChange(event: StorageEvent): void {
   }
 
   toggleMenu() {
     this.isMenuVisible = !this.isMenuVisible;
     this.layoutService.onMenuToggle();
   }
+
 
   openLibraryCreatorDialog(): void {
     this.dialogLauncher.openLibraryCreateDialog();
