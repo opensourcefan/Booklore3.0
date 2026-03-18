@@ -134,16 +134,6 @@
       </div>
       <p-divider layout="vertical"/>
       <div class="topbar-action-group">
-        <li>
-          <a class="topbar-item"
-             href="https://booklore.org/docs/getting-started"
-             target="_blank"
-             rel="noopener noreferrer"
-             [pTooltip]="t('documentation')"
-             tooltipPosition="bottom">
-            <i class="pi pi-info-circle topbar-icon"></i>
-          </a>
-        </li>
 
         <!-- Show Profile only to demo users -->
         @if (userService.userState$ | async; as userState) {
