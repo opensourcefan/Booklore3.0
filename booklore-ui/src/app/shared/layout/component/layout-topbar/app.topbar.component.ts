@@ -1,3 +1,5 @@
+import {ToolbarConfigService} from './toolbar-config.service';
+import {ToolbarEditorComponent} from './toolbar-editor.component';
 import {Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import {MenuItem} from 'primeng/api';
 import {LayoutService} from '../layout-main/service/app.layout.service';
@@ -35,6 +37,7 @@ import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
   styleUrls: ['./app.topbar.component.scss'],
   standalone: true,
   imports: [
+    ToolbarEditorComponent,
     RouterLink,
     TooltipModule,
     FormsModule,
