@@ -252,6 +252,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/opensourcefan/booklore3:${{ env.image_tag }}
+            ghcr.io/opensourcefan/booklore3:latest
           build-args: |
             APP_VERSION=${{ env.image_tag }}
             APP_REVISION=${{ github.sha }}
