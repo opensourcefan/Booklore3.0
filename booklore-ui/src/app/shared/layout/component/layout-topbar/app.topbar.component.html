@@ -307,7 +307,17 @@
           </li>
         </ul>
       </p-popover>
-    </div>
+
+    <!-- Toolbar editor -->
+    <a class="topbar-item"
+       (click)="toolbarEditorPop.toggle($event)"
+       pTooltip="Customize toolbar"
+       tooltipPosition="bottom">
+      <i class="pi pi-sliders-h"></i>
+    </a>
+    <p-popover #toolbarEditorPop appendTo="body">
+      <app-toolbar-editor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
+    </p-popover>
   </div>
 </div>
 </ng-container>
