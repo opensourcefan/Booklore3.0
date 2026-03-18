@@ -138,11 +138,13 @@
         <!-- Show Profile only to demo users -->
         @if (userService.userState$ | async; as userState) {
           @if (!userState.user?.permissions?.demoUser) {
+            @if (toolbarConfig.isVisible('user')) {
             <li>
               <button class="topbar-item" (click)="openUserProfileDialog()" [pTooltip]="t('profile')" tooltipPosition="bottom">
                 <i class="pi pi-user topbar-icon"></i>
               </button>
             </li>
+            }
           }
         }
 
