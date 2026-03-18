@@ -28,7 +28,6 @@ import {Menu} from 'primeng/menu';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
-import {SUPPORT_ANIMATION_KEY} from '../../../../features/settings/global-preferences/global-preferences.component';
 
 @Component({
   selector: 'app-topbar',
@@ -146,11 +145,6 @@ export class AppTopBarComponent implements OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-  private onStorageChange(event: StorageEvent): void {
-    if (event.key === SUPPORT_ANIMATION_KEY) {
-      this.
-    }
   }
 
   toggleMenu() {

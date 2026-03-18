@@ -32,7 +32,6 @@ import {LocalStorageService} from '../../../shared/service/local-storage.service
 })
 export class ViewPreferencesParentComponent implements OnInit {
   private uiPrefs = inject(UiPreferencesService);
-  private messageService = inject(MessageService);
   showCoverPreview = false;
 
   sidebarWidth = 225;
