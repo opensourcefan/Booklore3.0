@@ -1,9 +1,6 @@
 services:
   booklore:
-    build:
-      context: .
-      args:
-        APP_VERSION: custom
+    image: ghcr.io/opensourcefan/booklore3:latest
     container_name: booklore
     environment:
       - USER_ID=${APP_USER_ID}
