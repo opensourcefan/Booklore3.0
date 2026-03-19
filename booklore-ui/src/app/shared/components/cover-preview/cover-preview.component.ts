@@ -31,7 +31,7 @@ import { CommonModule } from '@angular/common';
     </div>
   `,
   styles: [
-    '.cover-preview-panel { display: flex; flex-direction: column; border-top: 1px solid var(--p-content-border-color); background: var(--card-background); height: 300px; min-height: 120px; max-height: 600px; position: relative; }',
+    '.cover-preview-panel { display: flex; flex-direction: column; border-top: 1px solid var(--p-content-border-color); background: var(--card-background); height: 300px; min-height: 120px; max-height: 900px; position: relative; }',
     '.cover-preview-resize-handle { position: absolute; top: -4px; left: 0; right: 0; height: 8px; cursor: row-resize; z-index: 10; background: transparent; transition: background 0.15s ease; }',
     '.cover-preview-resize-handle:hover, .cover-preview-resize-handle:active { background: var(--p-primary-color, #818cf8); opacity: 0.45; border-radius: 3px; }',
     ':host { display: block; flex-shrink: 0; }',
@@ -82,7 +82,7 @@ export class CoverPreviewComponent implements AfterViewInit, OnDestroy {
     const onMouseMove = (e: MouseEvent) => {
       if (!this.dragging) return;
       const delta = this.startY - e.clientY;
-      const newHeight = Math.min(600, Math.max(120, this.startHeight + delta));
+      const newHeight = Math.min(900, Math.max(120, this.startHeight + delta));
       this.renderer.setStyle(panel, 'height', newHeight + 'px');
       localStorage.setItem(this.STORAGE_KEY, String(newHeight));
     };

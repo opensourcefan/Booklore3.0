@@ -59,35 +59,6 @@
     </ul>
   </div>
 
-  @if (versionInfo) {
-    <div class="version-info" style="margin-top: auto;">
-      <div class="version-text">
-        @if (isSemanticVersion(versionInfo.current)) {
-          <a
-            [href]="getVersionUrl(versionInfo.current)"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="version-link"
-            >
-            {{ versionInfo.current }}
-          </a>
-        } @else {
-          <span class="version-label">{{ versionInfo.current }}</span>
-        }
-      </div>
-      @if (isSemanticVersion(versionInfo.current) && versionInfo.latest && versionInfo.latest !== versionInfo.current) {
-        <div>
-          <a
-            (click)="openChangelogDialog()"
-            class="update-link"
-            >
-            {{ t('update') }}
-          </a>
-        </div>
-      }
-    </div>
-  }
-
   <!-- Bottom actions bar -->
   <div class="sidebar-bottom">
     <div class="sidebar-bottom-actions">
@@ -125,5 +96,34 @@
 
     </div>
   </div>
+
+  @if (versionInfo) {
+    <div class="version-info" style="margin-top: auto;">
+      <div class="version-text">
+        @if (isSemanticVersion(versionInfo.current)) {
+          <a
+            [href]="getVersionUrl(versionInfo.current)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="version-link"
+            >
+            {{ versionInfo.current }}
+          </a>
+        } @else {
+          <span class="version-label">{{ versionInfo.current }}</span>
+        }
+      </div>
+      @if (isSemanticVersion(versionInfo.current) && versionInfo.latest && versionInfo.latest !== versionInfo.current) {
+        <div>
+          <a
+            (click)="openChangelogDialog()"
+            class="update-link"
+            >
+            {{ t('update') }}
+          </a>
+        </div>
+      }
+    </div>
+  }
 </div>
 </ng-container>
