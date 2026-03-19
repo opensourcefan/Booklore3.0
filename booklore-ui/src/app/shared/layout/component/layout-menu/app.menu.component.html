@@ -1,6 +1,6 @@
 <ng-container *transloco="let t; prefix: 'layout.menu'">
 <div class="menu-container">
-  <div>
+  <div class="menu-scrollable">
     <div class="home-menu-section">
       <ul class="layout-menu">
         @if (homeMenu$ | async; as homeMenu) {
@@ -59,8 +59,8 @@
     </ul>
   </div>
 
-  <!-- Bottom actions bar -->
-  <div class="sidebar-bottom">
+  <!-- Footer: icons, divider, version -->
+  <div class="sidebar-footer">
     <div class="sidebar-bottom-actions">
 
       <!-- Language -->
@@ -95,35 +95,36 @@
       </button>
 
     </div>
-  </div>
+    <div class="sidebar-footer-divider"></div>
 
-  @if (versionInfo) {
-    <div class="version-info" style="margin-top: auto;">
-      <div class="version-text">
-        @if (isSemanticVersion(versionInfo.current)) {
-          <a
-            [href]="getVersionUrl(versionInfo.current)"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="version-link"
-            >
-            {{ versionInfo.current }}
-          </a>
-        } @else {
-          <span class="version-label">{{ versionInfo.current }}</span>
+    @if (versionInfo) {
+      <div class="version-info">
+        <div class="version-text">
+          @if (isSemanticVersion(versionInfo.current)) {
+            <a
+              [href]="getVersionUrl(versionInfo.current)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="version-link"
+              >
+              {{ versionInfo.current }}
+            </a>
+          } @else {
+            <span class="version-label">{{ versionInfo.current }}</span>
+          }
+        </div>
+        @if (isSemanticVersion(versionInfo.current) && versionInfo.latest && versionInfo.latest !== versionInfo.current) {
+          <div>
+            <a
+              (click)="openChangelogDialog()"
+              class="update-link"
+              >
+              {{ t('update') }}
+            </a>
+          </div>
         }
       </div>
-      @if (isSemanticVersion(versionInfo.current) && versionInfo.latest && versionInfo.latest !== versionInfo.current) {
-        <div>
-          <a
-            (click)="openChangelogDialog()"
-            class="update-link"
-            >
-            {{ t('update') }}
-          </a>
-        </div>
-      }
-    </div>
-  }
+    }
+  </div>
 </div>
 </ng-container>

@@ -31,3 +31,9 @@ Removal of support icon
 Upper Toolbar Customization - add, remove, reorder, seperators ... Button on far right side
 References to Booklore3.0
 ```
+
+---
+<img src="assets/booklore3.0-screenshot1.jpg" width="600">
+---
+<img src="assets/booklore3.0-screenshot2.jpg" width="600">
+---

@@ -30,12 +30,19 @@ export class BookMetadataManageService {
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId!, updatedMetadata);
         return updatedMetadata;
+      }),
+      tap(() => {
+        // Keep sidebar/filter facets in sync across the app after edits.
+        this.bookService.refreshBooks();
       })
     );
   }
 
   updateBooksMetadata(request: BulkMetadataUpdateRequest): Observable<void> {
     return this.http.put(`${this.url}/bulk-edit-metadata`, request).pipe(
+      tap(() => {
+        this.bookService.refreshBooks();
+      }),
       map(() => void 0)
     );
   }

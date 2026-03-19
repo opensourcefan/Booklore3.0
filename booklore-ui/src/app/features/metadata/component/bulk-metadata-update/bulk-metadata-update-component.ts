@@ -268,7 +268,7 @@ export class BulkMetadataUpdateComponent implements OnInit {
               this.messageService.add({
                 severity: 'success',
                 summary: 'Metadata & Cover Updated',
-                detail: 'Books updated and cover upload started. Refresh the page when complete.'
+                detail: 'Books updated and cover upload started.'
               });
               this.ref.close(true);
             },

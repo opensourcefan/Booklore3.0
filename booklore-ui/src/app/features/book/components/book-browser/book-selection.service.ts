@@ -83,11 +83,7 @@ export class BookSelectionService {
   selectAll(): void {
     if (!this.currentBooks || this.currentBooks.length === 0) return;
 
-    const current = new Set(this.selectedBooksSubject.value);
-    for (const book of this.currentBooks) {
-      current.add(book.id);
-    }
-    this.selectedBooksSubject.next(current);
+    this.selectedBooksSubject.next(new Set(this.currentBooks.map(b => b.id)));
   }
 
   deselectAll(): void {

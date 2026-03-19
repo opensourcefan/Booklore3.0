@@ -329,6 +329,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.bookFilterComponent.onFiltersChanged?.();
       this.bookFilterComponent.selectedFilterMode = this.selectedFilterMode.getValue();
     }
+
+    const key = this.getScrollPositionKey();
+    const savedPosition = this.scrollService.getPosition(key);
+    if (savedPosition !== undefined) {
+      setTimeout(() => {
+        const scrollElement = document.querySelector('.virtual-scroller');
+        if (scrollElement) {
+          (scrollElement as HTMLElement).scrollTop = savedPosition;
+        }
+      }, 0);
+    }
   }
 
   ngOnDestroy(): void {

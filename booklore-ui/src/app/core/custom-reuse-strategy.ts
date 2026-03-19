@@ -12,8 +12,6 @@ export class CustomReuseStrategy implements RouteReuseStrategy {
   private bookSelectionService = inject(BookSelectionService);
 
   private readonly BOOK_BROWSER_PATHS = [
-    'all-books',
-    'unshelved-books',
     'library/:libraryId/books',
     'shelf/:shelfId/books',
     'magic-shelf/:magicShelfId/books',
