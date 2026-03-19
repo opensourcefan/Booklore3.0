@@ -32,8 +32,10 @@ Upper Toolbar Customization - add, remove, reorder, seperators ... Button on far
 References to Booklore3.0
 ```
 
----
+```ini
 <img src="assets/booklore3.0-screenshot1.png" width="800">
----
+```
+
+```ini
 <img src="assets/booklore3.0-screenshot2.png" width="800">
----
+```
