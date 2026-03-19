@@ -96,7 +96,7 @@ export function doesBookMatchFilter(
         ? filterValues.some(val => book.shelves?.some(s => s.id == val))
         : filterValues.every(val => book.shelves?.some(s => s.id == val));
     case 'shelfStatus':
-      const shelved = book.shelves && book.shelves.length > 0 ? 'shelved' : 'unshelved';
+      const shelved = book.shelves && book.shelves.length > 0 ? 'shelved' : 'not-shelfed';
       return filterValues.includes(shelved);
     case 'tag':
       return effectiveMode === 'or'

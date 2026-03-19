@@ -215,7 +215,7 @@ export const FILTER_EXTRACTORS: Readonly<Record<Exclude<FilterType, 'library'>, 
   shelf: (book) => book.shelves?.map(s => ({id: s.id, name: s.name})) ?? [],
   shelfStatus: (book) => {
     const isShelved = (book.shelves?.length ?? 0) > 0;
-    return [{id: isShelved ? 'shelved' : 'unshelved', name: isShelved ? 'Shelved' : 'Unshelved'}];
+    return [{id: isShelved ? 'shelved' : 'not-shelfed', name: isShelved ? 'Shelved' : 'Not Shelfed'}];
   },
   tag: (book) => extractStringsAsFilters(book.metadata?.tags),
   publishedDate: (book) => {
@@ -322,7 +322,8 @@ export const CONTENT_RATING_LABEL_KEYS: Readonly<Record<string, string>> = {
 
 export const SHELF_STATUS_LABEL_KEYS: Readonly<Record<string, string>> = {
   'shelved': 'book.filter.shelfStatus.shelved',
-  'unshelved': 'book.filter.shelfStatus.unshelved'
+  'unshelved': 'book.filter.shelfStatus.unshelved',
+  'not-shelfed': 'book.filter.shelfStatus.unshelved'
 };
 
 

@@ -32,8 +32,8 @@
     },
     "labels": {
       "allBooks": "All Books",
-      "unshelvedBooks": "Unshelved Books",
-      "unshelvedBooksFiltered": "Unshelved Books (Filtered)",
+      "unshelvedBooks": "Not Shelfed Books",
+      "unshelvedBooksFiltered": "Not Shelfed Books (Filtered)",
       "filteredSuffix": "(Filtered)",
       "seriesCollapsedInfo": "Showing {{ count }} {{ itemWord }} (series collapsed)",
       "item": "item",
@@ -591,7 +591,7 @@
     },
     "shelfStatus": {
       "shelved": "Shelved",
-      "unshelved": "Unshelved"
+      "unshelved": "Not Shelfed"
     },
     "comicRoles": {
       "penciller": "Penciller",
