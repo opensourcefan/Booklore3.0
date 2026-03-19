@@ -133,7 +133,6 @@ export class AuthService {
     if (this.postLoginInitialized) return;
     this.postLoginInitialized = true;
     this.postLoginInitializer.initialize().subscribe({
-      next: () => console.log('AuthService: Post-login initialization completed'),
       error: (err) => console.error('AuthService: Post-login initialization failed:', err)
     });
   }

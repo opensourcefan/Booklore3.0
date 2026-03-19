@@ -100,10 +100,6 @@ export class CoverSearchComponent implements OnInit {
           }
         });
     } else {
-      console.log('Form invalid', {
-        formErrors: this.searchForm.errors,
-        titleErrors: this.searchForm.get('title')?.errors
-      });
     }
   }
 

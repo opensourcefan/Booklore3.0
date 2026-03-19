@@ -119,7 +119,6 @@ export class EpubReaderPreferencesComponent implements OnInit, OnDestroy {
   }
 
   private resetToDefaultFont(): void {
-    console.log('Selected custom font was deleted, resetting to default font');
     this.selectedFont = null;
   }
 

@@ -67,7 +67,6 @@ export class FontUploadDialogComponent implements OnDestroy {
     this.currentPreviewToken = previewToken;
 
     if (this.isLoadingPreview) {
-      console.log('Cancelling previous preview load');
     }
 
     this.isLoadingPreview = true;
@@ -77,7 +76,6 @@ export class FontUploadDialogComponent implements OnDestroy {
       const arrayBuffer = await file.arrayBuffer();
 
       if (this.currentPreviewToken !== previewToken) {
-        console.log('Preview operation cancelled - newer preview started');
         return;
       }
 
@@ -85,7 +83,6 @@ export class FontUploadDialogComponent implements OnDestroy {
       await fontFace.load();
 
       if (this.currentPreviewToken !== previewToken) {
-        console.log('Preview operation cancelled after load - newer preview started');
         document.fonts.delete(fontFace);
         return;
       }
