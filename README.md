@@ -33,7 +33,7 @@ References to Booklore3.0
 ```
 
 ---
-<img src="assets/booklore3.0-screenshot1.png" width="600">
+<img src="assets/booklore3.0-screenshot1.png" width="800">
 ---
-<img src="assets/booklore3.0-screenshot2.png" width="600">
+<img src="assets/booklore3.0-screenshot2.png" width="800">
 ---
