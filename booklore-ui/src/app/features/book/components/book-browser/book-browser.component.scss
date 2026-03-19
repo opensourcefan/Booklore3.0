@@ -475,7 +475,7 @@
 // Filter overlay (mobile sidebar)
 .mobile-filter-mask {
   @media (max-width: 991px) {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     z-index: 998;
