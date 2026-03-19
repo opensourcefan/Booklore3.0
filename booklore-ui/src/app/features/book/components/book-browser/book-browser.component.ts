@@ -825,6 +825,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         next: () => {
           this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.browser.toast.unshelveSuccessDetail')});
+          this.bookService.refreshBooks();
           this.bookSelectionService.deselectAll();
         },
         error: () => {

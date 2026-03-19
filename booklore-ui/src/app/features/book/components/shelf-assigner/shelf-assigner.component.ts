@@ -105,6 +105,7 @@ export class ShelfAssignerComponent implements OnInit {
       .subscribe({
         next: () => {
           this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfAssigner.toast.updateSuccessDetail')});
+          this.bookService.refreshBooks();
           this.dynamicDialogRef.close({assigned: true});
         },
         error: () => {
