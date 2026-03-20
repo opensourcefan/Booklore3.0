@@ -21,8 +21,10 @@ public class VersionService {
     @Value("${app.version:unknown}")
     String appVersion;
 
-    private static final String GITHUB_REPO = "booklore-app/booklore";
-    private static final String BASE_URI = "https://api.github.com/repos/" + GITHUB_REPO;
+    @Value("${app.version.github-repo:opensourcefan/Booklore3.0}")
+    String githubRepo;
+
+    private static final String GITHUB_API_BASE = "https://api.github.com/repos/";
     private static final int MAX_RELEASES = 15;
     private static final RestClient REST_CLIENT = RestClient.builder()
             .defaultHeader("Accept", "application/vnd.github+json")
@@ -49,7 +51,7 @@ public class VersionService {
     public String fetchLatestGitHubReleaseVersion() {
         try {
             String response = REST_CLIENT.get()
-                    .uri(BASE_URI + "/releases/latest")
+                    .uri(getGithubApiBaseUri() + "/releases/latest")
                     .retrieve()
                     .body(String.class);
 
@@ -72,7 +74,7 @@ public class VersionService {
         List<ReleaseNote> updates = new ArrayList<>();
         try {
             String response = REST_CLIENT.get()
-                    .uri(BASE_URI + "/releases?per_page=" + MAX_RELEASES)
+                    .uri(getGithubApiBaseUri() + "/releases?per_page=" + MAX_RELEASES)
                     .retrieve()
                     .body(String.class);
 
@@ -87,7 +89,7 @@ public class VersionService {
                 if (tag == null || !isVersionGreater(tag, currentVersion)) {
                     continue;
                 }
-                String url = "https://github.com/booklore-app/booklore" + "/releases/tag/" + tag;
+                String url = "https://github.com/" + githubRepo + "/releases/tag/" + tag;
                 LocalDateTime published = LocalDateTime.parse(release.path("published_at").asText(), DateTimeFormatter.ISO_DATE_TIME);
                 updates.add(new ReleaseNote(tag, release.path("name").asText(tag), release.path("body").asText(""), url, published));
             }
@@ -115,5 +117,9 @@ public class VersionService {
             log.error("Version comparison failed: {}", e.getMessage());
         }
         return false;
+    }
+
+    private String getGithubApiBaseUri() {
+        return GITHUB_API_BASE + githubRepo;
     }
 }
