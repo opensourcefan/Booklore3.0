@@ -5,6 +5,17 @@ import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/opera
 import {API_CONFIG} from '../../core/config/api-config';
 import {AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
 
+export interface SettingsTransferEntry {
+  name: string;
+  value: unknown;
+}
+
+export interface AppSettingsTransferFile {
+  version: number;
+  exportedAt: string;
+  settings: SettingsTransferEntry[];
+}
+
 export interface PublicAppSettings {
   oidcEnabled: boolean;
   remoteAuthEnabled: boolean;
@@ -79,6 +90,39 @@ export class AppSettingsService {
 
   testOidcConnection(providerDetails: OidcProviderDetails): Observable<OidcTestResult> {
     return this.http.post<OidcTestResult>(`${this.apiUrl}/oidc/test`, providerDetails);
+  }
+
+  exportSettings(): Observable<void> {
+    return this.http.get<AppSettingsTransferFile>(`${this.apiUrl}/export`).pipe(
+      map(payload => {
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        const safeTime = new Date().toISOString().replace(/[:.]/g, '-');
+
+        anchor.href = url;
+        anchor.download = `booklore-settings-${safeTime}.json`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+      }),
+      catchError(err => {
+        console.error('Error exporting settings:', err);
+        return of(void 0);
+      })
+    );
+  }
+
+  importSettings(payload: AppSettingsTransferFile): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/import`, payload).pipe(
+      switchMap(() => this.fetchAppSettings()),
+      map(() => void 0),
+      catchError(err => {
+        console.error('Error importing settings:', err);
+        return of(void 0);
+      })
+    );
   }
 
   private syncPublicSettings(appSettings: AppSettings): void {

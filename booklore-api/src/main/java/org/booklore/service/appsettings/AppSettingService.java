@@ -20,7 +20,13 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -34,15 +40,70 @@ public class AppSettingService {
     private final SettingPersistenceHelper settingPersistenceHelper;
     private final AuthenticationService authenticationService;
     private final AuditService auditService;
+    private final ObjectMapper objectMapper;
 
     private volatile AppSettings appSettings;
     private final ReentrantLock lock = new ReentrantLock();
 
-    public AppSettingService(AppProperties appProperties, SettingPersistenceHelper settingPersistenceHelper, @Lazy AuthenticationService authenticationService, @Lazy AuditService auditService) {
+    public AppSettingService(AppProperties appProperties, SettingPersistenceHelper settingPersistenceHelper, @Lazy AuthenticationService authenticationService, @Lazy AuditService auditService, ObjectMapper objectMapper) {
         this.appProperties = appProperties;
         this.settingPersistenceHelper = settingPersistenceHelper;
         this.authenticationService = authenticationService;
         this.auditService = auditService;
+        this.objectMapper = objectMapper;
+    }
+
+    public AppSettingsTransferFile exportSettings() {
+        BookLoreUser user = authenticationService.getAuthenticatedUser();
+        Map<String, String> settingsMap = getSettingsMap();
+
+        List<SettingRequest> exportableSettings = Arrays.stream(AppSettingKey.values())
+                .filter(this::isApplicationWideSetting)
+                .filter(key -> hasPermissionForKey(key, user))
+                .map(key -> {
+                    SettingRequest request = new SettingRequest();
+                    request.setName(key.name());
+                    Object deserializedValue = deserializeSettingValue(key, settingsMap.get(key.toString()));
+                    request.setValue(redactSensitiveData(deserializedValue));
+                    return request;
+                })
+                .toList();
+
+        return AppSettingsTransferFile.builder()
+                .version(1)
+                .exportedAt(OffsetDateTime.now(ZoneOffset.UTC).toString())
+                .settings(exportableSettings)
+                .build();
+    }
+
+    @CacheEvict(value = "publicSettings", allEntries = true)
+    @Transactional
+    public void importSettings(AppSettingsTransferFile transferFile) throws JacksonException {
+        if (transferFile == null || transferFile.getVersion() == null || transferFile.getVersion() != 1) {
+            throw ApiError.GENERIC_BAD_REQUEST.createException("Invalid settings file version");
+        }
+        if (transferFile.getSettings() == null) {
+            throw ApiError.GENERIC_BAD_REQUEST.createException("Settings file does not contain any settings");
+        }
+
+        for (SettingRequest settingRequest : transferFile.getSettings()) {
+            if (settingRequest == null || settingRequest.getName() == null || settingRequest.getName().isBlank()) {
+                continue;
+            }
+
+            AppSettingKey key;
+            try {
+                key = AppSettingKey.valueOf(settingRequest.getName());
+            } catch (IllegalArgumentException ex) {
+                throw ApiError.GENERIC_BAD_REQUEST.createException("Unknown setting key in import file: " + settingRequest.getName());
+            }
+
+            if (!isApplicationWideSetting(key)) {
+                continue;
+            }
+
+            updateSetting(key, settingRequest.getValue());
+        }
     }
 
     public AppSettings getAppSettings() {
@@ -114,6 +175,77 @@ public class AppSettingService {
 
         if (!hasPermission) {
             throw new AccessDeniedException("User does not have permission to update " + key.getDbKey());
+        }
+    }
+
+    private boolean hasPermissionForKey(AppSettingKey key, BookLoreUser user) {
+        List<PermissionType> requiredPermissions = key.getRequiredPermissions();
+        if (requiredPermissions.isEmpty()) {
+            return true;
+        }
+
+        return requiredPermissions.stream().anyMatch(permission ->
+                UserPermissionUtils.hasPermission(user.getPermissions(), permission)
+        );
+    }
+
+    private boolean isApplicationWideSetting(AppSettingKey key) {
+        return !key.getRequiredPermissions().isEmpty();
+    }
+
+    private Object deserializeSettingValue(AppSettingKey key, String rawValue) {
+        if (rawValue == null) {
+            return null;
+        }
+        if (!key.isJson()) {
+            return rawValue;
+        }
+
+        try {
+            return objectMapper.readValue(rawValue, Object.class);
+        } catch (JacksonException ex) {
+            return rawValue;
+        }
+    }
+
+    private Object redactSensitiveData(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        try {
+            JsonNode node = objectMapper.valueToTree(value);
+            redactSensitiveNode(node);
+            return objectMapper.treeToValue(node, Object.class);
+        } catch (Exception ex) {
+            return value;
+        }
+    }
+
+    private void redactSensitiveNode(JsonNode node) {
+        if (node == null) {
+            return;
+        }
+
+        if (node.isObject()) {
+            ObjectNode objectNode = (ObjectNode) node;
+            if (objectNode.has("clientSecret")) {
+                objectNode.putNull("clientSecret");
+            }
+            if (objectNode.has("apiKey")) {
+                objectNode.putNull("apiKey");
+            }
+            if (objectNode.has("cookie")) {
+                objectNode.putNull("cookie");
+            }
+            objectNode.forEach(this::redactSensitiveNode);
+            return;
+        }
+
+        if (node.isArray()) {
+            for (JsonNode child : node) {
+                redactSensitiveNode(child);
+            }
         }
     }
 

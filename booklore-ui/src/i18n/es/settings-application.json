@@ -40,6 +40,21 @@
         "supportButtonAnimation": "Animación del botón de apoyo",
         "supportButtonAnimationDesc": "Muestra el efecto animado de corazón en el botón de apoyo en la barra superior. Desactivar esto mantiene el botón visible pero elimina la animación."
     },
+    "transfer": {
+        "sectionTitle": "Settings Transfer",
+        "title": "Export / Import Application Settings",
+        "description": "Export your application settings to a file and import them later on this or another instance.",
+        "exportBtn": "Export",
+        "importBtn": "Import",
+        "exportSuccess": "Settings Exported",
+        "exportSuccessDetail": "The settings file was downloaded successfully.",
+        "importSuccess": "Settings Imported",
+        "importSuccessDetail": "The settings were imported and applied successfully.",
+        "importInvalid": "Invalid Settings File",
+        "importInvalidDetail": "The selected file is not a valid settings export.",
+        "importConfirmHeader": "Confirm Import",
+        "importConfirmMessage": "Importing will overwrite matching application settings. Continue?"
+    },
     "telemetry": {
         "sectionTitle": "Telemetría",
         "enableTelemetry": "Habilitar telemetría",

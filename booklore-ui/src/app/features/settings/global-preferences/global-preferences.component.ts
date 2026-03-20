@@ -3,10 +3,10 @@ import {FormsModule} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {Button} from 'primeng/button';
 import {ToggleSwitch} from 'primeng/toggleswitch';
-import {MenuItem, MessageService} from 'primeng/api';
+import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {SplitButton} from 'primeng/splitbutton';
 
-import {AppSettingsService} from '../../../shared/service/app-settings.service';
+import {AppSettingsService, AppSettingsTransferFile} from '../../../shared/service/app-settings.service';
 import {BookMetadataManageService} from '../../book/service/book-metadata-manage.service';
 import {AppSettingKey, AppSettings, CoverCroppingSettings} from '../../../shared/model/app-settings.model';
 import {filter, take} from 'rxjs/operators';
@@ -14,8 +14,6 @@ import {InputText} from 'primeng/inputtext';
 import {Slider} from 'primeng/slider';
 import {ExternalDocLinkComponent} from '../../../shared/components/external-doc-link/external-doc-link.component';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
-
-export const SUPPORT_ANIMATION_KEY = 'booklore-support-animation';
 
 @Component({
   selector: 'app-global-preferences',
@@ -42,8 +40,6 @@ export class GlobalPreferencesComponent implements OnInit {
     enableTelemetry: true,
   };
 
-  supportButtonAnimation = localStorage.getItem(SUPPORT_ANIMATION_KEY) !== 'false';
-
   coverCroppingSettings: CoverCroppingSettings = {
     verticalCroppingEnabled: false,
     horizontalCroppingEnabled: false,
@@ -53,6 +49,7 @@ export class GlobalPreferencesComponent implements OnInit {
 
   private appSettingsService = inject(AppSettingsService);
   private bookMetadataManageService = inject(BookMetadataManageService);
+  private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private t = inject(TranslocoService);
 
@@ -100,12 +97,6 @@ export class GlobalPreferencesComponent implements OnInit {
     }
   }
 
-  onSupportAnimationChange(checked: boolean): void {
-    this.supportButtonAnimation = checked;
-    localStorage.setItem(SUPPORT_ANIMATION_KEY, String(checked));
-    window.dispatchEvent(new StorageEvent('storage', {key: SUPPORT_ANIMATION_KEY, newValue: String(checked)}));
-  }
-
   onCoverCroppingChange(): void {
     this.saveSetting(AppSettingKey.COVER_CROPPING_SETTINGS, this.coverCroppingSettings);
   }
@@ -125,6 +116,48 @@ export class GlobalPreferencesComponent implements OnInit {
       error: () =>
         this.showMessage('error', this.t.translate('common.error'), this.t.translate('settingsApp.covers.regenerateError'))
     });
+  }
+
+  exportSettings(): void {
+    this.appSettingsService.exportSettings().subscribe(() => {
+      this.showMessage('success', this.t.translate('settingsApp.transfer.exportSuccess'), this.t.translate('settingsApp.transfer.exportSuccessDetail'));
+    });
+  }
+
+  async onImportFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const payload = JSON.parse(text) as AppSettingsTransferFile;
+
+      if (!payload || typeof payload.version !== 'number' || !Array.isArray(payload.settings)) {
+        this.showMessage('error', this.t.translate('settingsApp.transfer.importInvalid'), this.t.translate('settingsApp.transfer.importInvalidDetail'));
+        return;
+      }
+
+      this.confirmationService.confirm({
+        header: this.t.translate('settingsApp.transfer.importConfirmHeader'),
+        message: this.t.translate('settingsApp.transfer.importConfirmMessage'),
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: this.t.translate('common.yes'),
+        rejectLabel: this.t.translate('common.no'),
+        rejectButtonStyleClass: 'p-button-text',
+        accept: () => {
+          this.appSettingsService.importSettings(payload).subscribe(() => {
+            this.showMessage('success', this.t.translate('settingsApp.transfer.importSuccess'), this.t.translate('settingsApp.transfer.importSuccessDetail'));
+          });
+        }
+      });
+    } catch {
+      this.showMessage('error', this.t.translate('settingsApp.transfer.importInvalid'), this.t.translate('settingsApp.transfer.importInvalidDetail'));
+    }
   }
 
   private saveSetting(key: string, value: unknown): void {

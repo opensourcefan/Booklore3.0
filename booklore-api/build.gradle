@@ -16,6 +16,18 @@ java {
     }
 }
 
+compileJava {
+    options.compilerArgs += ['--enable-preview']
+}
+
+compileTestJava {
+    options.compilerArgs += ['--enable-preview']
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['--enable-preview']
+}
+
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.booklore.model.dto.settings.AppSettingKey;
+import org.booklore.model.dto.settings.AppSettingsTransferFile;
 import org.booklore.model.dto.settings.AppSettings;
 import org.booklore.model.dto.settings.OidcProviderDetails;
 import org.booklore.model.dto.settings.SettingRequest;
@@ -48,6 +49,23 @@ public class AppSettingController {
             AppSettingKey key = AppSettingKey.valueOf(settingRequest.getName());
             appSettingService.updateSetting(key, settingRequest.getValue());
         }
+    }
+
+    @Operation(summary = "Export application settings", description = "Export all application-wide settings that the current user can manage.")
+    @ApiResponse(responseCode = "200", description = "Application settings export created successfully")
+    @GetMapping("/export")
+    public AppSettingsTransferFile exportSettings() {
+        return appSettingService.exportSettings();
+    }
+
+    @Operation(summary = "Import application settings", description = "Import a previously exported application settings file.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Settings imported successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid import file")
+    })
+    @PostMapping("/import")
+    public void importSettings(@RequestBody AppSettingsTransferFile transferFile) throws JacksonException {
+        appSettingService.importSettings(transferFile);
     }
 
     @PostMapping("/oidc/test")

@@ -34,6 +34,21 @@
         "invalidInput": "无效输入",
         "invalidInputDetail": "请输入有效的最大文件上传大小（以 MB 为单位）。"
     },
+    "transfer": {
+        "sectionTitle": "Settings Transfer",
+        "title": "Export / Import Application Settings",
+        "description": "Export your application settings to a file and import them later on this or another instance.",
+        "exportBtn": "Export",
+        "importBtn": "Import",
+        "exportSuccess": "Settings Exported",
+        "exportSuccessDetail": "The settings file was downloaded successfully.",
+        "importSuccess": "Settings Imported",
+        "importSuccessDetail": "The settings were imported and applied successfully.",
+        "importInvalid": "Invalid Settings File",
+        "importInvalidDetail": "The selected file is not a valid settings export.",
+        "importConfirmHeader": "Confirm Import",
+        "importConfirmMessage": "Importing will overwrite matching application settings. Continue?"
+    },
     "telemetry": {
         "sectionTitle": "遥测",
         "enableTelemetry": "启用遥测",

@@ -14,8 +14,8 @@
     <div class="preferences-section">
       <div class="section-header">
         <h3 class="section-title">
-          <i class="pi pi-palette"></i>
-          {{ t('appearance.sectionTitle') }}
+          <i class="pi pi-download"></i>
+          {{ t('transfer.sectionTitle') }}
         </h3>
       </div>
 
@@ -23,15 +23,35 @@
         <div class="setting-item">
           <div class="setting-info">
             <div class="setting-label-row">
-              <label class="setting-label">{{ t('appearance.supportButtonAnimation') }}</label>
-              <p-toggleswitch
-                [(ngModel)]="supportButtonAnimation"
-                (onChange)="onSupportAnimationChange($event.checked)">
-              </p-toggleswitch>
+              <label class="setting-label">{{ t('transfer.title') }}</label>
+              <div class="input-group">
+                <p-button
+                  [label]="t('transfer.exportBtn')"
+                  icon="pi pi-download"
+                  outlined
+                  severity="info"
+                  (onClick)="exportSettings()">
+                </p-button>
+
+                <p-button
+                  [label]="t('transfer.importBtn')"
+                  icon="pi pi-upload"
+                  outlined
+                  severity="contrast"
+                  (onClick)="settingsImportInput.click()">
+                </p-button>
+
+                <input
+                  #settingsImportInput
+                  class="visually-hidden"
+                  type="file"
+                  accept="application/json,.json"
+                  (change)="onImportFileSelected($event)">
+              </div>
             </div>
             <p class="setting-description">
               <i class="pi pi-info-circle"></i>
-              {{ t('appearance.supportButtonAnimationDesc') }}
+              {{ t('transfer.description') }}
             </p>
           </div>
         </div>
