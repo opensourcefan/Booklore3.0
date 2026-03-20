@@ -11,9 +11,9 @@ I will not delete this if I get upset, I am always upset
 
 ### Current State of Affairs
 ```ini
-I still have a few quality of life mods to fulfill my vision of how this app should function.
-Currently also working on stability and application caching and refresh issues.
-Once that is done the 3.0 tagged version will be released. 
+We've finally reached v3.0.0
+Booklore is now what I wanted it to be from the beginning.
+more to come 
 ```
 
 
@@ -37,6 +37,7 @@ Removal of all Telemetry
 Removal of support icon
 Upper Toolbar Customization - add, remove, reorder, seperators ... Button on far right side
 References to Booklore3.0
+Click,hold,and drag sorting of Left Sidebar Elements.
 ```
 
 
