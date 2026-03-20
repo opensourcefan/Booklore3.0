@@ -93,31 +93,6 @@
 
 .menu-section {
   position: relative;
-  padding-left: 0.95rem;
-
-  &:hover .menu-section-drag-handle {
-    opacity: 0.9;
-  }
-}
-
-.menu-section-drag-handle {
-  position: absolute;
-  left: -0.05rem;
-  top: 1.55rem;
-  width: 0.95rem;
-  height: 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--p-surface-500);
-  cursor: grab;
-  opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
-  z-index: 2;
-
-  &:hover {
-    color: var(--p-primary-color);
-  }
 }
 
 .cdk-drag-preview {

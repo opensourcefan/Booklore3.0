@@ -2,6 +2,9 @@
   @if (root) {
     @if (item.hasDropDown) {
       <div class="layout-menuitem-root-text root-item-with-dropdown">
+        <span class="section-drag-handle" cdkDragHandle>
+          <i class="pi pi-ellipsis-v"></i>
+        </span>
         <div class="root-item-label-container">
           <div>{{ item.label }}</div>
           @if (item.hasCreate) {
@@ -23,6 +26,9 @@
       </div>
     } @else {
       <div class="layout-menuitem-root-text root-item">
+        <span class="section-drag-handle" cdkDragHandle>
+          <i class="pi pi-ellipsis-v"></i>
+        </span>
         <div>{{ item.label }}</div>
       </div>
     }

@@ -1,3 +1,30 @@
+.layout-menuitem-root-text {
+  position: relative;
+  padding-left: 0.95rem;
+}
+
+.section-drag-handle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.95rem;
+  height: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--p-surface-500);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  z-index: 2;
+
+  &:hover {
+    opacity: 0.9;
+    color: var(--p-primary-color);
+  }
+}
+
 .plus-icon {
   color: var(--p-primary-color);
   transition: color 0.2s ease;
@@ -57,10 +84,6 @@
 
 .menu-item-container.draggable-child {
   padding-left: 1rem;
-
-  &:hover .menu-item-drag-handle {
-    opacity: 0.9;
-  }
 }
 
 .menu-item-drag-handle {
@@ -79,6 +102,7 @@
   transition: opacity 0.15s ease, color 0.15s ease;
 
   &:hover {
+    opacity: 0.9;
     color: var(--p-primary-color);
   }
 }

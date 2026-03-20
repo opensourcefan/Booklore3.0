@@ -4,10 +4,6 @@
     <div class="menu-sections" cdkDropList [cdkDropListData]="sectionOrder" (cdkDropListDropped)="onSectionDrop($event)">
       @for (section of sectionOrder; track section) {
         <div class="menu-section" cdkDrag>
-          <span class="menu-section-drag-handle" cdkDragHandle>
-            <i class="pi pi-ellipsis-v"></i>
-          </span>
-
           @switch (section) {
             @case ('home') {
               <div class="home-menu-section">

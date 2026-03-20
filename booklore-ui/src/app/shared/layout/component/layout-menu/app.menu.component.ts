@@ -27,12 +27,12 @@ import {Slider} from 'primeng/slider';
 import {FormsModule} from '@angular/forms';
 import {Popover} from 'primeng/popover';
 import {LocalStorageService} from '../../../service/local-storage.service';
-import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
+import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, Slider, FormsModule, Popover, CdkDropList, CdkDrag, CdkDragHandle],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, Slider, FormsModule, Popover, CdkDropList, CdkDrag],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
