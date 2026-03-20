@@ -93,7 +93,7 @@
 
 .menu-section {
   position: relative;
-  padding-left: 0.25rem;
+  padding-left: 0.95rem;
 
   &:hover .menu-section-drag-handle {
     opacity: 0.9;
@@ -102,8 +102,8 @@
 
 .menu-section-drag-handle {
   position: absolute;
-  left: -0.55rem;
-  top: 0.95rem;
+  left: -0.05rem;
+  top: 1.55rem;
   width: 0.95rem;
   height: 0.95rem;
   display: inline-flex;
