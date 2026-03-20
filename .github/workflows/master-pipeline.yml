@@ -289,6 +289,16 @@ jobs:
         working-directory: ./booklore-api
         run: ./gradlew clean build -x test --no-daemon --parallel --build-cache
 
+      - name: Prepare Spring Boot Artifact for Container Build
+        run: |
+          jar_path=$(ls booklore-api/build/libs/booklore-api-*.jar | grep -v -- '-plain\.jar$' | head -n 1)
+          if [ -z "$jar_path" ]; then
+            echo "❌ No Spring Boot executable JAR found in booklore-api/build/libs"
+            exit 1
+          fi
+          cp "$jar_path" booklore-api/build/libs/app.jar
+          echo "Using JAR: $jar_path"
+
       # ----------------------------------------
       # Docker build & push
       # ----------------------------------------
