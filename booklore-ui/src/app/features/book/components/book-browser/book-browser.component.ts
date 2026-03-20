@@ -162,6 +162,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   // Cover preview state
   selectedCoverUrl: string | null = null;
   selectedBookTitle = '';
+  private hoverPreviewTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingPreviewBookId: number | null = null;
 
   private readonly MOBILE_BREAKPOINT = 768;
   private readonly CARD_ASPECT_RATIO = 7 / 5;
@@ -169,6 +171,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly MOBILE_PADDING = 48;
   private readonly MOBILE_TITLE_BAR_HEIGHT = 32;
   private readonly MOBILE_COLUMNS_STORAGE_KEY = 'mobileColumnsPreference';
+  private readonly COVER_PREVIEW_HOVER_DELAY_MS = 120;
 
   private settingFiltersFromUrl = false;
   private destroy$ = new Subject<void>();
@@ -305,8 +308,25 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Handle book card hover for cover preview
   onBookClicked(book: Book): void {
-    this.selectedCoverUrl = this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
-    this.selectedBookTitle = book.metadata?.title ?? book.fileName ?? '';
+    this.clearHoverPreviewTimer();
+    this.pendingPreviewBookId = book.id;
+
+    this.hoverPreviewTimer = setTimeout(() => {
+      if (this.pendingPreviewBookId !== book.id) {
+        return;
+      }
+      this.selectedCoverUrl = this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
+      this.selectedBookTitle = book.metadata?.title ?? book.fileName ?? '';
+      this.pendingPreviewBookId = null;
+      this.hoverPreviewTimer = null;
+    }, this.COVER_PREVIEW_HOVER_DELAY_MS);
+  }
+
+  onBookHoverEnded(bookId: number): void {
+    if (this.pendingPreviewBookId === bookId) {
+      this.pendingPreviewBookId = null;
+      this.clearHoverPreviewTimer();
+    }
   }
 
   ngOnInit(): void {
@@ -343,8 +363,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.clearHoverPreviewTimer();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private clearHoverPreviewTimer(): void {
+    if (!this.hoverPreviewTimer) {
+      return;
+    }
+    clearTimeout(this.hoverPreviewTimer);
+    this.hoverPreviewTimer = null;
   }
 
   private getScrollPositionKey(): string {

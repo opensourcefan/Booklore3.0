@@ -41,6 +41,7 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
 
   @Output() bookClicked = new EventEmitter<Book>();
+  @Output() bookHoverEnded = new EventEmitter<number>();
   @Output() checkboxClick = new EventEmitter<{ index: number; book: Book; selected: boolean; shiftKey: boolean }>();
   @Output() menuToggled = new EventEmitter<boolean>();
 

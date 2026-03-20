@@ -186,6 +186,12 @@
   }
 }
 
+.toolbar-editor-trigger {
+  @media (max-width: 991px) {
+    display: none;
+  }
+}
+
 .sidebar-toggle-icon {
   font-size: 1.3rem;
   font-weight: 900;

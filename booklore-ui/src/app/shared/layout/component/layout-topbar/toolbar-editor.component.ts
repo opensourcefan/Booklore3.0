@@ -19,8 +19,8 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
             (dragover)="onDragOver($event, i)"
             (drop)="onDrop(i)">
           <i class="pi pi-bars drag-icon"></i>
-          <span class="item-label">{{ item.type === 'separator' ? '— separator —' : item.label }}</span>
-          <button class="toggle-btn" (click)="toggleVisible(item)" *ngIf="item.type !== 'separator'">
+          <span class="item-label">{{ getItemLabel(item) }}</span>
+          <button class="toggle-btn" (click)="toggleVisible(item)">
             <i [class]="item.visible ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
           </button>
         </li>
@@ -57,6 +57,12 @@ export class ToolbarEditorComponent {
     items.splice(i, 0, moved);
     this.config.items = items;
     this.dragIndex = -1;
+  }
+  getItemLabel(item: ToolbarItem): string {
+    if (item.type !== 'separator') {
+      return item.label ?? item.id;
+    }
+    return item.id === 'sep1' ? 'Separator 1' : item.id === 'sep2' ? 'Separator 2' : 'Separator';
   }
   toggleVisible(item: ToolbarItem) { item.visible = !item.visible; }
   save() { this.config.save(); this.saved.emit(); }

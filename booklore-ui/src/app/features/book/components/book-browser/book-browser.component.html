@@ -251,13 +251,33 @@
           }
         </div>
 
-        <a class="topbar-items topbar-item" (click)="toggleSidebar()">
-          <i
-            [ngClass]="showFilter ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"
-            [pTooltip]="t('tooltip.toggleSidebar')"
-            tooltipPosition="top">
-          </i>
-        </a>
+        @if (isMobile) {
+          <a class="topbar-items topbar-item" (click)="mobileRightSidebarPop.toggle($event)">
+            <i
+              class="pi pi-angle-double-left"
+              [pTooltip]="t('tooltip.toggleSidebar')"
+              tooltipPosition="top">
+            </i>
+          </a>
+          <p-popover #mobileRightSidebarPop styleClass="mobile-right-sidebar-popover" [dismissable]="true" appendTo="body">
+            <app-book-filter
+              [showFilter]="true"
+              [entity$]="entity$"
+              [entityType$]="entityType$"
+              [resetFilter$]="resetFilterSubject"
+              (filterSelected)="onFilterSelected($event)"
+              (filterModeChanged)="onFilterModeChanged($event)">
+            </app-book-filter>
+          </p-popover>
+        } @else {
+          <a class="topbar-items topbar-item" (click)="toggleSidebar()">
+            <i
+              [ngClass]="showFilter ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"
+              [pTooltip]="t('tooltip.toggleSidebar')"
+              tooltipPosition="top">
+            </i>
+          </a>
+        }
       </div>
     </div>
 
@@ -312,6 +332,7 @@
                         [isSeriesCollapsed]="seriesCollapseFilter.isSeriesCollapsed"
                         (checkboxClick)="onCheckboxClicked($event)"
                         (bookClicked)="onBookClicked($event)"
+                        (bookHoverEnded)="onBookHoverEnded($event)"
                         [isSelected]="selectedBooks.has(book.id)"
                         [useSquareCovers]="isAudiobookOnlyLibrary"
                         [overlayPreferenceService]="bookCardOverlayPreferenceService">
@@ -450,7 +471,7 @@
     }
   </div>
 
-  @if (this.showFilter) {
+  @if (this.showFilter && !isMobile) {
     <div
       class="mobile-filter-mask"
       (click)="toggleSidebar()">

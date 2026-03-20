@@ -67,10 +67,32 @@ export class AppMenuComponent implements OnInit {
   shelfSortOrder: 'asc' | 'desc' = 'asc';
   magicShelfSortField: 'name' | 'id' = 'name';
   magicShelfSortOrder: 'asc' | 'desc' = 'asc';
-  sectionOrder: string[] = ['home', 'library', 'shelf', 'magicShelf'];
+  sectionOrder: string[] = ['home', 'library', 'shelf', 'magicShelf', 'bookType'];
+  sectionVisibility: Record<string, boolean> = {
+    home: true,
+    library: true,
+    shelf: true,
+    magicShelf: true,
+    bookType: false,
+  };
 
   private readonly sectionOrderKey = 'sidebarSectionOrder';
+  private readonly sectionVisibilityKey = 'sidebarSectionVisibility';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
+
+  get visibleSectionOrder(): string[] {
+    return this.sectionOrder.filter(section => this.sectionVisibility[section] !== false);
+  }
+
+  get sectionToggleMenuItems(): MenuItem[] {
+    return [
+      this.buildSectionToggleMenuItem('home', this.t.translate('layout.menu.home')),
+      this.buildSectionToggleMenuItem('library', this.t.translate('layout.menu.libraries')),
+      this.buildSectionToggleMenuItem('shelf', this.t.translate('layout.menu.shelves')),
+      this.buildSectionToggleMenuItem('magicShelf', this.t.translate('layout.menu.magicShelves')),
+      this.buildSectionToggleMenuItem('bookType', 'Book Type'),
+    ];
+  }
 
 
   ngOnInit(): void {
@@ -78,6 +100,9 @@ export class AppMenuComponent implements OnInit {
     if (savedSectionOrder?.length) {
       this.sectionOrder = this.normalizeSectionOrder(savedSectionOrder);
     }
+
+    const savedSectionVisibility = this.localStorageService.get<Record<string, boolean>>(this.sectionVisibilityKey);
+    this.sectionVisibility = this.normalizeSectionVisibility(savedSectionVisibility);
 
     this.activeLang = this.t.getActiveLang();
     this.buildLangMenu();
@@ -155,8 +180,51 @@ export class AppMenuComponent implements OnInit {
       return;
     }
 
-    moveItemInArray(this.sectionOrder, event.previousIndex, event.currentIndex);
+    const visibleSections = [...this.visibleSectionOrder];
+    moveItemInArray(visibleSections, event.previousIndex, event.currentIndex);
+
+    let visibleIndex = 0;
+    this.sectionOrder = this.sectionOrder.map(section => {
+      if (this.sectionVisibility[section] !== false) {
+        return visibleSections[visibleIndex++];
+      }
+      return section;
+    });
+
     this.localStorageService.set(this.sectionOrderKey, this.sectionOrder);
+  }
+
+  getSectionHeading(section: string): string {
+    switch (section) {
+      case 'home':
+        return this.t.translate('layout.menu.home');
+      case 'library':
+        return this.t.translate('layout.menu.libraries');
+      case 'shelf':
+        return this.t.translate('layout.menu.shelves');
+      case 'magicShelf':
+        return this.t.translate('layout.menu.magicShelves');
+      case 'bookType':
+        return 'Book Type';
+      default:
+        return section;
+    }
+  }
+
+  toggleSectionVisibility(section: string): void {
+    const currentlyVisible = this.sectionVisibility[section] !== false;
+    const visibleCount = this.visibleSectionOrder.length;
+
+    if (currentlyVisible && visibleCount <= 1) {
+      return;
+    }
+
+    this.sectionVisibility = {
+      ...this.sectionVisibility,
+      [section]: !currentlyVisible,
+    };
+
+    this.localStorageService.set(this.sectionVisibilityKey, this.sectionVisibility);
   }
 
   navigateToSettings(): void {
@@ -354,7 +422,7 @@ export class AppMenuComponent implements OnInit {
   }
 
   private normalizeSectionOrder(savedOrder: string[]): string[] {
-    const defaults = ['home', 'library', 'shelf', 'magicShelf'];
+    const defaults = ['home', 'library', 'shelf', 'magicShelf', 'bookType'];
     const filtered = savedOrder.filter(section => defaults.includes(section));
     for (const section of defaults) {
       if (!filtered.includes(section)) {
@@ -362,6 +430,25 @@ export class AppMenuComponent implements OnInit {
       }
     }
     return filtered;
+  }
+
+  private normalizeSectionVisibility(savedVisibility: Record<string, boolean> | null | undefined): Record<string, boolean> {
+    return {
+      home: savedVisibility?.['home'] ?? true,
+      library: savedVisibility?.['library'] ?? true,
+      shelf: savedVisibility?.['shelf'] ?? true,
+      magicShelf: savedVisibility?.['magicShelf'] ?? true,
+      bookType: savedVisibility?.['bookType'] ?? false,
+    };
+  }
+
+  private buildSectionToggleMenuItem(section: string, label: string): MenuItem {
+    const visible = this.sectionVisibility[section] !== false;
+    return {
+      label,
+      icon: visible ? 'pi pi-check-square' : 'pi pi-square',
+      command: () => this.toggleSectionVisibility(section),
+    };
   }
 
   private applyNestedItemOrder(menuKey: string, menuItems: MenuItem[]): MenuItem[] {

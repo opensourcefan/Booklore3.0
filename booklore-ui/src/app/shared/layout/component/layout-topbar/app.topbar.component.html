@@ -315,13 +315,13 @@
     </div>
 
     <!-- Toolbar editor -->
-    <a class="topbar-item"
+    <a class="topbar-item toolbar-editor-trigger"
        (click)="toolbarEditorPop.toggle($event)"
        pTooltip="Customize toolbar"
        tooltipPosition="bottom">
       <i class="pi pi-sliders-h"></i>
     </a>
-    <p-popover #toolbarEditorPop appendTo="body">
+    <p-popover #toolbarEditorPop appendTo="body" styleClass="toolbar-editor-popover">
       <app-toolbar-editor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
     </p-popover>
   </div>

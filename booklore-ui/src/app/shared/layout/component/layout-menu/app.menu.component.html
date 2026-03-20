@@ -1,8 +1,21 @@
 <ng-container *transloco="let t; prefix: 'layout.menu'">
 <div class="menu-container">
+  <div class="menu-header-actions">
+    <button
+      class="section-visibility-btn"
+      type="button"
+      (click)="sectionVisibilityMenu.toggle($event)"
+      pTooltip="Show / hide sidebar headings"
+      tooltipPosition="right"
+      aria-label="Show or hide sidebar headings">
+      <i class="pi pi-sliders-h"></i>
+    </button>
+    <p-menu #sectionVisibilityMenu [model]="sectionToggleMenuItems" [popup]="true" appendTo="body"/>
+  </div>
+
   <div class="menu-scrollable">
-    <div class="menu-sections" cdkDropList [cdkDropListData]="sectionOrder" (cdkDropListDropped)="onSectionDrop($event)">
-      @for (section of sectionOrder; track section) {
+    <div class="menu-sections" cdkDropList [cdkDropListData]="visibleSectionOrder" (cdkDropListDropped)="onSectionDrop($event)">
+      @for (section of visibleSectionOrder; track section) {
         <div class="menu-section" cdkDrag [cdkDragStartDelay]="sectionDragStartDelay">
           @switch (section) {
             @case ('home') {
@@ -50,6 +63,9 @@
                   }
                 }
               </ul>
+            }
+            @case ('bookType') {
+              <div class="book-type-heading">{{ getSectionHeading(section) }}</div>
             }
           }
         </div>
