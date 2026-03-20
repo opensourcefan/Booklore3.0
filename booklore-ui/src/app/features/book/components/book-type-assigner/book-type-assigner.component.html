@@ -1,0 +1,86 @@
+<div class="book-type-assigner">
+  <div class="panel-header">
+    <div class="header-icon-wrapper">
+      <i class="pi pi-tag header-icon"></i>
+    </div>
+    <div class="header-text">
+      <h2 class="panel-title">Assign Book Type</h2>
+      <p class="panel-description">
+        @if (isMultiBooks) {
+          Assign a book type to {{ bookIds.size }} selected assets.
+        } @else {
+          Assign a book type to "{{ book.metadata?.title || book.fileName }}".
+        }
+      </p>
+    </div>
+    <p-button
+      icon="pi pi-times"
+      [text]="true"
+      [rounded]="true"
+      severity="secondary"
+      (onClick)="closeDialog()"
+      class="close-button">
+    </p-button>
+  </div>
+
+  <div class="book-types-container">
+    <div class="types-list">
+      <div class="list-header">
+        <span class="type-count">
+          <i class="pi pi-tag"></i>
+          {{ allBookTypes.length }} types available
+        </span>
+        <p-iconfield class="type-search">
+          <p-inputicon class="pi pi-search"/>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="searchQuery"
+            placeholder="Search book type"
+          />
+          @if (searchQuery) {
+            <i class="pi pi-times clear-icon" (click)="searchQuery = ''"></i>
+          }
+        </p-iconfield>
+      </div>
+
+      <div class="types-grid">
+        @for (bookType of filterBookTypes(allBookTypes); track bookType) {
+          <div class="type-item" [class.selected]="isBookTypeSelected(bookType)" (click)="setSelectedBookType(bookType)">
+            <div class="type-checkbox">
+              <p-checkbox
+                [inputId]="'book-type-' + bookType"
+                [binary]="true"
+                [ngModel]="isBookTypeSelected(bookType)"
+                (onChange)="onBookTypeCheckboxChange(bookType, !!$event.checked)">
+              </p-checkbox>
+            </div>
+            <label [for]="'book-type-' + bookType" class="type-label">
+              <div class="type-icon-wrapper">
+                <i class="pi pi-book type-icon"></i>
+              </div>
+              <span class="type-name">{{ bookType }}</span>
+            </label>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-footer">
+    <div class="footer-actions">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="closeDialog()"
+      />
+      <p-button
+        label="Save Changes"
+        icon="pi pi-check"
+        severity="success"
+        (onClick)="updateBookType()"
+      />
+    </div>
+  </div>
+</div>

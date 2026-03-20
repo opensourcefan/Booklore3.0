@@ -671,6 +671,17 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
     }
   }
 
+  openBookTypeAssigner(): void {
+    this.dialogRef = this.dialogHelperService.openBookTypeAssignerDialog(null, this.selectedBooks);
+    if (this.dialogRef) {
+      this.dialogRef.onClose.subscribe(result => {
+        if (result.assigned) {
+          this.selectedBooks.clear();
+        }
+      });
+    }
+  }
+
   lockUnlockMetadata(): void {
     this.dialogRef = this.dialogHelperService.openLockUnlockMetadataDialog(this.selectedBooks);
     if (this.dialogRef) {

@@ -21,6 +21,9 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Menu} from 'primeng/menu';
 import {Router} from '@angular/router';
 import {TooltipModule} from 'primeng/tooltip';
+import {Popover} from 'primeng/popover';
+import {CheckboxModule} from 'primeng/checkbox';
+import {FormsModule} from '@angular/forms';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {LocalStorageService} from '../../../service/local-storage.service';
@@ -29,7 +32,7 @@ import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/d
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, Popover, CheckboxModule, FormsModule],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
@@ -80,20 +83,17 @@ export class AppMenuComponent implements OnInit {
   private readonly sectionVisibilityKey = 'sidebarSectionVisibility';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
 
+  readonly sectionOptions: Array<{key: string; label: string}> = [
+    {key: 'home', label: 'layout.menu.home'},
+    {key: 'library', label: 'layout.menu.libraries'},
+    {key: 'shelf', label: 'layout.menu.shelves'},
+    {key: 'magicShelf', label: 'layout.menu.magicShelves'},
+    {key: 'bookType', label: 'Book Type'},
+  ];
+
   get visibleSectionOrder(): string[] {
     return this.sectionOrder.filter(section => this.sectionVisibility[section] !== false);
   }
-
-  get sectionToggleMenuItems(): MenuItem[] {
-    return [
-      this.buildSectionToggleMenuItem('home', this.t.translate('layout.menu.home')),
-      this.buildSectionToggleMenuItem('library', this.t.translate('layout.menu.libraries')),
-      this.buildSectionToggleMenuItem('shelf', this.t.translate('layout.menu.shelves')),
-      this.buildSectionToggleMenuItem('magicShelf', this.t.translate('layout.menu.magicShelves')),
-      this.buildSectionToggleMenuItem('bookType', 'Book Type'),
-    ];
-  }
-
 
   ngOnInit(): void {
     const savedSectionOrder = this.localStorageService.get<string[]>(this.sectionOrderKey);
@@ -225,6 +225,25 @@ export class AppMenuComponent implements OnInit {
     };
 
     this.localStorageService.set(this.sectionVisibilityKey, this.sectionVisibility);
+  }
+
+  isSectionVisible(section: string): boolean {
+    return this.sectionVisibility[section] !== false;
+  }
+
+  getSectionOptionLabel(option: {key: string; label: string}): string {
+    if (option.key === 'bookType') {
+      return option.label;
+    }
+    return this.t.translate(option.label);
+  }
+
+  onSectionVisibilityCheckboxChange(section: string, visible: boolean): void {
+    const currentlyVisible = this.sectionVisibility[section] !== false;
+    if (visible === currentlyVisible) {
+      return;
+    }
+    this.toggleSectionVisibility(section);
   }
 
   navigateToSettings(): void {
@@ -442,14 +461,6 @@ export class AppMenuComponent implements OnInit {
     };
   }
 
-  private buildSectionToggleMenuItem(section: string, label: string): MenuItem {
-    const visible = this.sectionVisibility[section] !== false;
-    return {
-      label,
-      icon: visible ? 'pi pi-check-square' : 'pi pi-square',
-      command: () => this.toggleSectionVisibility(section),
-    };
-  }
 
   private applyNestedItemOrder(menuKey: string, menuItems: MenuItem[]): MenuItem[] {
     const savedOrder = this.localStorageService.get<string[]>(`${this.nestedOrderPrefix}${menuKey}`);

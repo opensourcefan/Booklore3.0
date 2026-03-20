@@ -246,6 +246,11 @@ public class BookService {
         return bookUpdateService.assignShelvesToBooks(bookIds, shelfIdsToAssign, shelfIdsToUnassign);
     }
 
+    @Transactional
+    public List<Book> assignBookTypeToBooks(Set<Long> bookIds, BookFileType bookType) {
+        return bookUpdateService.assignBookTypeToBooks(bookIds, bookType);
+    }
+
     public Resource getBookThumbnail(long bookId) {
         Path thumbnailPath = Paths.get(fileService.getThumbnailFile(bookId));
         try {

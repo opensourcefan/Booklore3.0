@@ -375,6 +375,14 @@
                           [pTooltip]="t('tooltip.assignToShelf')"
                           tooltipPosition="top">
                         </p-button>
+                        <p-button
+                          icon="pi pi-tag"
+                          outlined="true"
+                          severity="info"
+                          (onClick)="openBookTypeAssigner()"
+                          pTooltip="Assign Book Type"
+                          tooltipPosition="top">
+                        </p-button>
                         @if (entityType === EntityType.SHELF) {
                           <p-button
                             icon="pi pi-bookmark"

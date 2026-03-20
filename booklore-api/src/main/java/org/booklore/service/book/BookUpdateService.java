@@ -7,6 +7,7 @@ import org.booklore.model.dto.*;
 import org.booklore.model.dto.response.BookStatusUpdateResponse;
 import org.booklore.model.dto.response.PersonalRatingUpdateResponse;
 import org.booklore.model.entity.*;
+import org.booklore.model.enums.BookFileType;
 import org.booklore.model.enums.ReadStatus;
 import org.booklore.model.enums.UserPermission;
 import org.booklore.repository.*;
@@ -111,6 +112,26 @@ public class BookUpdateService {
         updateBookShelves(bookEntities, shelvesToAssign, shelfIdsToUnassign);
         bookRepository.saveAll(bookEntities);
 
+        return buildBooksWithProgress(bookEntities, user.getId());
+    }
+
+    @Transactional
+    public List<Book> assignBookTypeToBooks(Set<Long> bookIds, BookFileType bookType) {
+        BookLoreUser user = authenticationService.getAuthenticatedUser();
+        if (!UserPermission.CAN_MANAGE_LIBRARY.isGranted(user.getPermissions())) {
+            throw ApiError.PERMISSION_DENIED.createException(UserPermission.CAN_MANAGE_LIBRARY);
+        }
+
+        List<BookEntity> bookEntities = bookQueryService.findAllWithMetadataByIds(bookIds);
+        for (BookEntity bookEntity : bookEntities) {
+            BookFileEntity primaryBookFile = bookEntity.getPrimaryBookFile();
+            if (primaryBookFile == null) {
+                continue;
+            }
+            primaryBookFile.setBookType(bookType);
+        }
+
+        bookRepository.saveAll(bookEntities);
         return buildBooksWithProgress(bookEntities, user.getId());
     }
 

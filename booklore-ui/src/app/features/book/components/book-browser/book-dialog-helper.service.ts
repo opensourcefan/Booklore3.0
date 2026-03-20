@@ -2,6 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {DialogLauncherService, DialogSize, DialogStyle} from '../../../../shared/services/dialog-launcher.service';
 import {ShelfAssignerComponent} from '../shelf-assigner/shelf-assigner.component';
+import {BookTypeAssignerComponent} from '../book-type-assigner/book-type-assigner.component';
 import {LockUnlockMetadataDialogComponent} from './lock-unlock-metadata-dialog/lock-unlock-metadata-dialog.component';
 import {MetadataRefreshType} from '../../../metadata/model/request/metadata-refresh-type.enum';
 import {BulkMetadataUpdateComponent} from '../../../metadata/component/bulk-metadata-update/bulk-metadata-update-component';
@@ -53,6 +54,25 @@ export class BookDialogHelperService {
     return this.openDialog(ShelfAssignerComponent, {
       showHeader: false,
       data: data,
+      styleClass: `${DialogSize.SM} ${DialogStyle.MINIMAL}`,
+    });
+  }
+
+  openBookTypeAssignerDialog(book: Book | null, bookIds: Set<number> | null): DynamicDialogRef | null {
+    const data: any = {};
+    if (book !== null) {
+      data.isMultiBooks = false;
+      data.book = book;
+    } else if (bookIds !== null) {
+      data.isMultiBooks = true;
+      data.bookIds = bookIds;
+    } else {
+      return null;
+    }
+
+    return this.openDialog(BookTypeAssignerComponent, {
+      showHeader: false,
+      data,
       styleClass: `${DialogSize.SM} ${DialogStyle.MINIMAL}`,
     });
   }

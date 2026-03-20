@@ -4,13 +4,27 @@
     <button
       class="section-visibility-btn"
       type="button"
-      (click)="sectionVisibilityMenu.toggle($event)"
+      (click)="sectionVisibilityPop.toggle($event)"
       pTooltip="Show / hide sidebar headings"
       tooltipPosition="right"
       aria-label="Show or hide sidebar headings">
       <i class="pi pi-sliders-h"></i>
     </button>
-    <p-menu #sectionVisibilityMenu [model]="sectionToggleMenuItems" [popup]="true" appendTo="body"/>
+    <p-popover #sectionVisibilityPop [dismissable]="true" appendTo="body" styleClass="sidebar-section-selector-popover">
+      <div class="section-selector-list">
+        @for (option of sectionOptions; track option.key) {
+          <div class="section-selector-item">
+            <p-checkbox
+              [inputId]="'section-toggle-' + option.key"
+              [binary]="true"
+              [ngModel]="isSectionVisible(option.key)"
+              (onChange)="onSectionVisibilityCheckboxChange(option.key, !!$event.checked)">
+            </p-checkbox>
+            <label [for]="'section-toggle-' + option.key">{{ getSectionOptionLabel(option) }}</label>
+          </div>
+        }
+      </div>
+    </p-popover>
   </div>
 
   <div class="menu-scrollable">

@@ -358,6 +358,11 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
         command: () => this.openShelfDialog()
       },
       {
+        label: 'Assign Book Type',
+        icon: 'pi pi-tag',
+        command: () => this.openBookTypeDialog()
+      },
+      {
         label: this.t.translate('book.card.menu.viewDetails'),
         icon: 'pi pi-info-circle',
         command: () => {
@@ -678,6 +683,10 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
 
   private openShelfDialog(): void {
     this.bookDialogHelperService.openShelfAssignerDialog(this.book, null);
+  }
+
+  private openBookTypeDialog(): void {
+    this.bookDialogHelperService.openBookTypeAssignerDialog(this.book, null);
   }
 
   openSeriesInfo(): void {

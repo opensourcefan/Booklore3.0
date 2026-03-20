@@ -2,7 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable, Subject} from 'rxjs';
 import {distinctUntilChanged, exhaustMap, share, tap} from 'rxjs/operators';
-import {Book, BookFileProgress, ReadStatus} from '../model/book.model';
+import {Book, BookFileProgress, BookType, ReadStatus} from '../model/book.model';
 import {BookStateService} from './book-state.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {ResetProgressType, ResetProgressTypes} from '../../../shared/constants/reset-progress-type';
@@ -61,6 +61,24 @@ export class BookPatchService {
       shelvesToUnassign: Array.from(shelvesToUnassign),
     };
     return this.http.post<Book[]>(`${this.url}/shelves`, requestPayload).pipe(
+      tap(updatedBooks => {
+        const currentState = this.bookStateService.getCurrentBookState();
+        if (currentState.books && updatedBooks.length > 0) {
+          const updatedBookMap = new Map(updatedBooks.map(b => [b.id, b]));
+          const newBooks = currentState.books.map(book => updatedBookMap.get(book.id) ?? book);
+          this.bookStateService.updateBookState({...currentState, books: newBooks});
+        }
+      })
+    );
+  }
+
+  updateBookType(bookIds: Set<number | undefined>, bookType: BookType): Observable<Book[]> {
+    const requestPayload = {
+      bookIds: Array.from(bookIds),
+      bookType,
+    };
+
+    return this.http.post<Book[]>(`${this.url}/book-types`, requestPayload).pipe(
       tap(updatedBooks => {
         const currentState = this.bookStateService.getCurrentBookState();
         if (currentState.books && updatedBooks.length > 0) {

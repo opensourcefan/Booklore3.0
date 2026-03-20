@@ -11,7 +11,7 @@ I will not delete this if I get upset, I am always upset
 
 ### Current State of Affairs
 ```ini
-We have finally reached v3.0.0
+We have finally reached v3.0.1
 Booklore is now what I wanted it to be from the beginning.
 more to come 
 ```
@@ -34,10 +34,10 @@ Settings button moved to bottom of Left Sidebar
 Language Selection  moved to bottom of Left Sidebar
 Adjustable Left and Right Sidepanels
 Removal of all Telemetry
-Removal of support icon
+Removal of Support Icon
 Upper Toolbar Customization - add, remove, reorder, seperators ... Button on far right side
-References to Booklore3.0
 Click,hold,and drag sorting of Left Sidebar Elements.
+Settings Backup and Restore added.
 ```
 
 
@@ -45,3 +45,4 @@ Click,hold,and drag sorting of Left Sidebar Elements.
 
 <img src="assets/booklore3.0-screenshot2.png" width="800">
 
+<img src="assets/booklore3.0-screenshot3.png" width="800">

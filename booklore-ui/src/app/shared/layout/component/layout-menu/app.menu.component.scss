@@ -30,6 +30,26 @@
   }
 }
 
+.section-selector-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 11rem;
+}
+
+.section-selector-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  label {
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--text-color);
+    user-select: none;
+  }
+}
+
 .home-menu-section {
   position: relative;
 }

@@ -232,6 +232,16 @@ export class BookService {
     );
   }
 
+  updateBookType(bookIds: Set<number | undefined>, bookType: BookType): Observable<Book[]> {
+    return this.bookPatchService.updateBookType(bookIds, bookType).pipe(
+      catchError(error => {
+        const currentState = this.bookStateService.getCurrentBookState();
+        this.bookStateService.updateBookState({...currentState, error: error.message});
+        throw error;
+      })
+    );
+  }
+
   createPhysicalBook(request: CreatePhysicalBookRequest): Observable<Book> {
     return this.http.post<Book>(`${this.url}/physical`, request).pipe(
       tap(newBook => {
