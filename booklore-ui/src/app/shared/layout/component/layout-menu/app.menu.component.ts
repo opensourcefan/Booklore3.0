@@ -27,11 +27,12 @@ import {Slider} from 'primeng/slider';
 import {FormsModule} from '@angular/forms';
 import {Popover} from 'primeng/popover';
 import {LocalStorageService} from '../../../service/local-storage.service';
+import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, Slider, FormsModule, Popover],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, Slider, FormsModule, Popover, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
@@ -69,10 +70,18 @@ export class AppMenuComponent implements OnInit {
   magicShelfSortField: 'name' | 'id' = 'name';
   magicShelfSortOrder: 'asc' | 'desc' = 'asc';
   sidebarWidth = 225;
+  sectionOrder: string[] = ['home', 'library', 'shelf', 'magicShelf'];
+
+  private readonly sectionOrderKey = 'sidebarSectionOrder';
+  private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
 
 
   ngOnInit(): void {
     this.sidebarWidth = this.localStorageService.get<number>('sidebarWidth') ?? 225;
+    const savedSectionOrder = this.localStorageService.get<string[]>(this.sectionOrderKey);
+    if (savedSectionOrder?.length) {
+      this.sectionOrder = this.normalizeSectionOrder(savedSectionOrder);
+    }
 
     this.activeLang = this.t.getActiveLang();
     this.buildLangMenu();
@@ -140,7 +149,8 @@ export class AppMenuComponent implements OnInit {
             }
           ],
         },
-      ])
+      ]),
+      map(menuItems => this.applyNestedItemOrder('home', menuItems))
     );
   }
 
@@ -150,6 +160,15 @@ export class AppMenuComponent implements OnInit {
 
   saveSidebarWidth(): void {
     this.localStorageService.set('sidebarWidth', this.sidebarWidth);
+  }
+
+  onSectionDrop(event: CdkDragDrop<string[]>): void {
+    if (event.previousIndex === event.currentIndex) {
+      return;
+    }
+
+    moveItemInArray(this.sectionOrder, event.previousIndex, event.currentIndex);
+    this.localStorageService.set(this.sectionOrderKey, this.sectionOrder);
   }
 
   navigateToSettings(): void {
@@ -197,7 +216,8 @@ export class AppMenuComponent implements OnInit {
             })),
           },
         ];
-      })
+      }),
+      map(menuItems => this.applyNestedItemOrder('library', menuItems))
     );
 
     this.magicShelfMenu$ = combineLatest([this.magicShelfService.shelvesState$, this.t.langChanges$]).pipe(
@@ -221,7 +241,8 @@ export class AppMenuComponent implements OnInit {
             })),
           },
         ];
-      })
+      }),
+      map(menuItems => this.applyNestedItemOrder('magicShelf', menuItems))
     );
 
     this.shelfMenu$ = combineLatest([this.shelfService.shelfState$, this.t.langChanges$]).pipe(
@@ -276,7 +297,8 @@ export class AppMenuComponent implements OnInit {
             items,
           },
         ];
-      })
+      }),
+      map(menuItems => this.applyNestedItemOrder('shelf', menuItems))
     );
   }
 
@@ -319,5 +341,59 @@ export class AppMenuComponent implements OnInit {
 
   private validateSortOrder(order: string): 'asc' | 'desc' {
     return order === 'desc' ? 'desc' : 'asc';
+  }
+
+  private normalizeSectionOrder(savedOrder: string[]): string[] {
+    const defaults = ['home', 'library', 'shelf', 'magicShelf'];
+    const filtered = savedOrder.filter(section => defaults.includes(section));
+    for (const section of defaults) {
+      if (!filtered.includes(section)) {
+        filtered.push(section);
+      }
+    }
+    return filtered;
+  }
+
+  private applyNestedItemOrder(menuKey: string, menuItems: MenuItem[]): MenuItem[] {
+    const savedOrder = this.localStorageService.get<string[]>(`${this.nestedOrderPrefix}${menuKey}`);
+    if (!savedOrder?.length) {
+      return menuItems;
+    }
+
+    return menuItems.map(item => {
+      if (!item.items?.length) {
+        return item;
+      }
+
+      const items = [...item.items];
+      const lookup = new Map(items.map(child => [this.getMenuItemOrderId(child), child]));
+      const ordered: MenuItem[] = [];
+
+      for (const id of savedOrder) {
+        const match = lookup.get(id);
+        if (match) {
+          ordered.push(match);
+          lookup.delete(id);
+        }
+      }
+
+      for (const child of items) {
+        const id = this.getMenuItemOrderId(child);
+        if (lookup.has(id)) {
+          ordered.push(child);
+          lookup.delete(id);
+        }
+      }
+
+      return {
+        ...item,
+        items: ordered,
+      };
+    });
+  }
+
+  private getMenuItemOrderId(item: MenuItem): string {
+    const link = Array.isArray(item.routerLink) ? item.routerLink[0] : item.routerLink;
+    return String(link ?? item.label ?? '');
   }
 }

@@ -1,62 +1,79 @@
 <ng-container *transloco="let t; prefix: 'layout.menu'">
 <div class="menu-container">
   <div class="menu-scrollable">
-    <div class="home-menu-section">
-      <ul class="layout-menu">
-        @if (homeMenu$ | async; as homeMenu) {
-          @for (item of homeMenu; track item.label; let i = $index) {
-            @if (!item.separator) {
-              <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="home"></li>
+    <div class="menu-sections" cdkDropList [cdkDropListData]="sectionOrder" (cdkDropListDropped)="onSectionDrop($event)">
+      @for (section of sectionOrder; track section) {
+        <div class="menu-section" cdkDrag>
+          <span class="menu-section-drag-handle" cdkDragHandle>
+            <i class="pi pi-bars"></i>
+          </span>
+
+          @switch (section) {
+            @case ('home') {
+              <div class="home-menu-section">
+                <ul class="layout-menu">
+                  @if (homeMenu$ | async; as homeMenu) {
+                    @for (item of homeMenu; track item.label; let i = $index) {
+                      @if (!item.separator) {
+                        <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="home"></li>
+                      }
+                    }
+                  }
+                </ul>
+                <i class="pi pi-objects-column sidebar-width-btn"
+                   (click)="widthPanel.toggle($event)"></i>
+                <p-popover #widthPanel appendTo="body">
+                  <div class="sidebar-width-popover">
+                    <label class="sidebar-width-popover-label">{{ sidebarWidth }}px</label>
+                    <p-slider
+                      [(ngModel)]="sidebarWidth"
+                      [min]="175"
+                      [max]="400"
+                      [step]="1"
+                      (onChange)="onSidebarWidthChange()"
+                      (onSlideEnd)="saveSidebarWidth()">
+                    </p-slider>
+                  </div>
+                </p-popover>
+              </div>
+            }
+            @case ('library') {
+              <ul class="layout-menu">
+                @if (libraryMenu$ | async; as libraryMenu) {
+                  @for (item of libraryMenu; track item.label; let i = $index) {
+                    @if (!item.separator) {
+                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="library"></li>
+                    }
+                  }
+                }
+              </ul>
+            }
+            @case ('shelf') {
+              <ul class="layout-menu">
+                @if (shelfMenu$ | async; as shelfMenu) {
+                  @for (item of shelfMenu; track item.label; let i = $index) {
+                    @if (!item.separator) {
+                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="shelf"></li>
+                    }
+                  }
+                }
+              </ul>
+            }
+            @case ('magicShelf') {
+              <ul class="layout-menu">
+                @if (magicShelfMenu$ | async; as shelfMenu) {
+                  @for (item of shelfMenu; track item.label; let i = $index) {
+                    @if (!item.separator) {
+                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="magicShelf"></li>
+                    }
+                  }
+                }
+              </ul>
             }
           }
-        }
-      </ul>
-      <i class="pi pi-objects-column sidebar-width-btn"
-         (click)="widthPanel.toggle($event)"></i>
-      <p-popover #widthPanel appendTo="body">
-        <div class="sidebar-width-popover">
-          <label class="sidebar-width-popover-label">{{ sidebarWidth }}px</label>
-          <p-slider
-            [(ngModel)]="sidebarWidth"
-            [min]="175"
-            [max]="400"
-            [step]="1"
-            (onChange)="onSidebarWidthChange()"
-            (onSlideEnd)="saveSidebarWidth()">
-          </p-slider>
         </div>
-      </p-popover>
+      }
     </div>
-
-    <ul class="layout-menu">
-      @if (libraryMenu$ | async; as libraryMenu) {
-        @for (item of libraryMenu; track item.label; let i = $index) {
-          @if (!item.separator) {
-            <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="library"></li>
-          }
-        }
-      }
-    </ul>
-
-    <ul class="layout-menu">
-      @if (shelfMenu$ | async; as shelfMenu) {
-        @for (item of shelfMenu; track item.label; let i = $index) {
-          @if (!item.separator) {
-            <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="shelf"></li>
-          }
-        }
-      }
-    </ul>
-
-    <ul class="layout-menu">
-      @if (magicShelfMenu$ | async; as shelfMenu) {
-        @for (item of shelfMenu; track item.label; let i = $index) {
-          @if (!item.separator) {
-            <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="magicShelf"></li>
-          }
-        }
-      }
-    </ul>
   </div>
 
   <!-- Footer: icons, divider, version -->

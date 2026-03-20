@@ -47,10 +47,39 @@
   justify-content: space-between;
   border-radius: 8px;
   cursor: pointer;
+  position: relative;
 
   &:hover {
     background-color: var(--p-surface-800);
     border-radius: 8px;
+  }
+}
+
+.menu-item-container.draggable-child {
+  padding-left: 0.8rem;
+
+  &:hover .menu-item-drag-handle {
+    opacity: 0.9;
+  }
+}
+
+.menu-item-drag-handle {
+  position: absolute;
+  left: -0.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.95rem;
+  height: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--p-surface-500);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    color: var(--p-primary-color);
   }
 }
 

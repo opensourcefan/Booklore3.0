@@ -31,9 +31,15 @@
   <div>
     <div
       class="menu-item-container"
+      [class.draggable-child]="!root"
       [class.active-route-container]="isRouteActive"
       (click)="triggerLink()"
     >
+      @if (!root) {
+        <span class="menu-item-drag-handle" cdkDragHandle>
+          <i class="pi pi-bars"></i>
+        </span>
+      }
       @if ((item.routerLink && !item.items)) {
         <a
           #link
@@ -100,9 +106,21 @@
 
     <div [@children]="isExpanded(key) ? 'expanded' : 'collapsed'" class="submenu-container">
       @if (item.items) {
-        <ul>
+        <ul
+          cdkDropList
+          [cdkDropListData]="item.items"
+          [cdkDropListDisabled]="!isChildSortable()"
+          (cdkDropListDropped)="onChildDrop($event)">
           @for (child of item.items; track child.routerLink?.[0] ?? child.label; let i = $index) {
-            <li app-menuitem [item]="child" [index]="i" [parentKey]="key" [class]="child.badgeClass"></li>
+            <li
+              app-menuitem
+              [item]="child"
+              [index]="i"
+              [parentKey]="key"
+              [menuKey]="menuKey"
+              [class]="child.badgeClass"
+              cdkDrag
+              [cdkDragDisabled]="!isChildSortable()"></li>
           }
         </ul>
       }

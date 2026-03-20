@@ -16,6 +16,8 @@ import {Tooltip} from 'primeng/tooltip';
 import {MenuItem} from 'primeng/api';
 import {IconSelection} from '../../../service/icon-picker.service';
 import {TranslocoPipe} from '@jsverse/transloco';
+import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
+import {LocalStorageService} from '../../../service/local-storage.service';
 
 @Component({
   selector: '[app-menuitem]',
@@ -30,7 +32,10 @@ import {TranslocoPipe} from '@jsverse/transloco';
     Menu,
     IconDisplayComponent,
     Tooltip,
-    TranslocoPipe
+    TranslocoPipe,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle
   ],
   animations: [
     trigger('children', [
@@ -74,7 +79,8 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     private menuService: MenuService,
     private userService: UserService,
     private dialogLauncher: DialogLauncherService,
-    private bookDialogHelperService: BookDialogHelperService
+    private bookDialogHelperService: BookDialogHelperService,
+    private localStorageService: LocalStorageService
   ) {
     this.userStateSubscription = this.userService.userState$.subscribe(userState => {
       if (userState?.user) {
@@ -133,6 +139,19 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
 
   isExpanded(key: string): boolean {
     return this.expandedItems.has(key);
+  }
+
+  onChildDrop(event: CdkDragDrop<any[]>): void {
+    if (!this.root || !this.item?.items || event.previousIndex === event.currentIndex) {
+      return;
+    }
+
+    moveItemInArray(this.item.items, event.previousIndex, event.currentIndex);
+    this.saveNestedOrder();
+  }
+
+  isChildSortable(): boolean {
+    return this.root && !!this.item?.items?.length;
   }
 
   updateActiveStateFromRoute() {
@@ -194,6 +213,20 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
       type: this.item.iconType || 'PRIME_NG',
       value: this.item.icon
     };
+  }
+
+  private saveNestedOrder(): void {
+    if (!this.menuKey || !Array.isArray(this.item?.items)) {
+      return;
+    }
+
+    const order = this.item.items.map((child: any) => this.getItemOrderId(child));
+    this.localStorageService.set(`sidebarNestedOrder_${this.menuKey}`, order);
+  }
+
+  private getItemOrderId(item: any): string {
+    const link = Array.isArray(item?.routerLink) ? item.routerLink[0] : item?.routerLink;
+    return String(link ?? item?.label ?? '');
   }
 
 }

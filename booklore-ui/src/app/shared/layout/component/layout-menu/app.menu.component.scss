@@ -85,6 +85,52 @@
   min-height: 0;
 }
 
+.menu-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.menu-section {
+  position: relative;
+  padding-left: 0.25rem;
+
+  &:hover .menu-section-drag-handle {
+    opacity: 0.9;
+  }
+}
+
+.menu-section-drag-handle {
+  position: absolute;
+  left: -0.55rem;
+  top: 0.95rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--p-surface-500);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  z-index: 2;
+
+  &:hover {
+    color: var(--p-primary-color);
+  }
+}
+
+.cdk-drag-preview {
+  border-radius: 8px;
+  background: var(--card-background);
+  border: 1px solid var(--p-content-border-color);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
 .sidebar-footer {
   flex-shrink: 0;
   margin-top: auto;
