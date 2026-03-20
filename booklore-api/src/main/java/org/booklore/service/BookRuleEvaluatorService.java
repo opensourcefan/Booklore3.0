@@ -536,7 +536,7 @@ public class BookRuleEvaluatorService {
             if ("UNSET".equals(value.toString())) {
                 return cb.isNull(field);
             }
-            return cb.equal(field, value.toString());
+            return cb.equal(field.as(String.class), value.toString());
         } else if (value instanceof Number) {
             return cb.equal(field, value);
         }
