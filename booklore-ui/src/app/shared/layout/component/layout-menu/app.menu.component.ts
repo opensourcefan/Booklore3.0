@@ -41,6 +41,7 @@ export class AppMenuComponent implements OnInit {
   shelfMenu$: Observable<MenuItem[]> | undefined;
   homeMenu$: Observable<MenuItem[]> | undefined;
   magicShelfMenu$: Observable<MenuItem[]> | undefined;
+  readonly sectionDragStartDelay = {mouse: 220, touch: 350};
 
   versionInfo: AppVersion | null = null;
   dynamicDialogRef: DynamicDialogRef | undefined | null;

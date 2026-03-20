@@ -1,10 +1,7 @@
 <ng-container>
   @if (root) {
     @if (item.hasDropDown) {
-      <div class="layout-menuitem-root-text root-item-with-dropdown">
-        <span class="section-drag-handle" cdkDragHandle>
-          <i class="pi pi-ellipsis-v"></i>
-        </span>
+      <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle>
         <div class="root-item-label-container">
           <div>{{ item.label }}</div>
           @if (item.hasCreate) {
@@ -25,10 +22,7 @@
         ></i>
       </div>
     } @else {
-      <div class="layout-menuitem-root-text root-item">
-        <span class="section-drag-handle" cdkDragHandle>
-          <i class="pi pi-ellipsis-v"></i>
-        </span>
+      <div class="layout-menuitem-root-text root-item drag-press-target" cdkDragHandle>
         <div>{{ item.label }}</div>
       </div>
     }
@@ -37,15 +31,13 @@
   <div>
     <div
       class="menu-item-container"
+      cdkDragHandle
+      [class.drag-press-target]="!root"
       [class.draggable-child]="!root"
       [class.active-route-container]="isRouteActive"
+      [class.child-drag-row]="!root"
       (click)="triggerLink()"
     >
-      @if (!root) {
-        <span class="menu-item-drag-handle" cdkDragHandle>
-          <i class="pi pi-ellipsis-v"></i>
-        </span>
-      }
       @if ((item.routerLink && !item.items)) {
         <a
           #link
@@ -126,6 +118,7 @@
               [menuKey]="menuKey"
               [class]="child.badgeClass"
               cdkDrag
+              [cdkDragStartDelay]="childDragStartDelay"
               [cdkDragDisabled]="!isChildSortable()"></li>
           }
         </ul>

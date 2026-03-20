@@ -56,6 +56,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   @Input() parentKey!: string;
   @Input() menuKey!: string;
   @ViewChild('linkRef') linkRef!: ElementRef<HTMLAnchorElement>;
+  readonly childDragStartDelay = {mouse: 220, touch: 350};
 
   hovered = false;
   active = false;

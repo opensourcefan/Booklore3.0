@@ -1,28 +1,10 @@
 .layout-menuitem-root-text {
   position: relative;
-  padding-left: 0.95rem;
 }
 
-.section-drag-handle {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0.95rem;
-  height: 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--p-surface-500);
-  cursor: grab;
-  opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
-  z-index: 2;
-
-  &:hover {
-    opacity: 0.9;
-    color: var(--p-primary-color);
-  }
+.drag-press-target {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .plus-icon {
@@ -83,28 +65,12 @@
 }
 
 .menu-item-container.draggable-child {
-  padding-left: 1rem;
+  cursor: grab;
 }
 
-.menu-item-drag-handle {
-  position: absolute;
-  left: -0.35rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0.95rem;
-  height: 0.95rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--p-surface-500);
-  cursor: grab;
-  opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
-
-  &:hover {
-    opacity: 0.9;
-    color: var(--p-primary-color);
-  }
+.child-drag-row:active,
+.layout-menuitem-root-text:active {
+  cursor: grabbing;
 }
 
 .menu-item-container.active-route-container {

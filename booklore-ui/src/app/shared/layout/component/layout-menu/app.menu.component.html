@@ -3,7 +3,7 @@
   <div class="menu-scrollable">
     <div class="menu-sections" cdkDropList [cdkDropListData]="sectionOrder" (cdkDropListDropped)="onSectionDrop($event)">
       @for (section of sectionOrder; track section) {
-        <div class="menu-section" cdkDrag>
+        <div class="menu-section" cdkDrag [cdkDragStartDelay]="sectionDragStartDelay">
           @switch (section) {
             @case ('home') {
               <div class="home-menu-section">
