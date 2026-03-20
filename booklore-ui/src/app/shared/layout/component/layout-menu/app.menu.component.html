@@ -120,10 +120,10 @@
               rel="noopener noreferrer"
               class="version-link"
               >
-              {{ versionInfo.current }}
+              {{ getDisplayVersion(versionInfo.current) }}
             </a>
           } @else {
-            <span class="version-label">{{ versionInfo.current }}</span>
+            <span class="version-label">{{ getDisplayVersion(versionInfo.current) }}</span>
           }
         </div>
         @if (isSemanticVersion(versionInfo.current) && versionInfo.latest && versionInfo.latest !== versionInfo.current) {

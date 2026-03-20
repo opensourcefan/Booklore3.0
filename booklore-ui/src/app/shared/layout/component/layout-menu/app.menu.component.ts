@@ -309,15 +309,25 @@ export class AppMenuComponent implements OnInit {
 
   getVersionUrl(version: string | undefined): string {
     if (!version) return '#';
-    return version.startsWith('v')
-      ? `https://github.com/booklore-app/booklore/releases/tag/${version}`
+    const normalizedVersion = this.getNormalizedSemanticVersion(version);
+    return normalizedVersion
+      ? `https://github.com/booklore-app/booklore/releases/tag/${normalizedVersion}`
       : `https://github.com/booklore-app/booklore/commit/${version}`;
   }
 
   isSemanticVersion(version: string | undefined): boolean {
-    if (!version) return false;
-    const semanticVersionPattern = /^v\d+\.\d+\.\d+$/;
-    return semanticVersionPattern.test(version);
+    return !!this.getNormalizedSemanticVersion(version);
+  }
+
+  getDisplayVersion(version: string | undefined): string {
+    return this.getNormalizedSemanticVersion(version) ?? (version ?? '');
+  }
+
+  private getNormalizedSemanticVersion(version: string | undefined): string | null {
+    if (!version) return null;
+    const semanticVersionPattern = /^v?(\d+\.\d+\.\d+)$/;
+    const match = version.trim().match(semanticVersionPattern);
+    return match ? `v${match[1]}` : null;
   }
 
   private sortArray<T>(array: T[], field: 'name' | 'id', order: 'asc' | 'desc'): T[] {

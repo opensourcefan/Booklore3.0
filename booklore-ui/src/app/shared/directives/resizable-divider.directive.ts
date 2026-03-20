@@ -19,6 +19,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   private target!: HTMLElement;
   private unlisten: (() => void)[] = [];
   private rafId: number | null = null;
+  private resizeObserver: ResizeObserver | null = null;
 
   constructor(private el: ElementRef, private renderer: Renderer2) {}
 
@@ -53,6 +54,14 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
     // Position handle over the correct edge of the target
     this.updateHandlePosition();
+    requestAnimationFrame(() => this.updateHandlePosition());
+    requestAnimationFrame(() => this.updateHandlePosition());
+
+    // Keep handle synced when target dimensions change without window resize events
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.updateHandlePosition());
+      this.resizeObserver.observe(this.target);
+    }
 
     // Keep handle positioned correctly on scroll/resize
     const updatePos = () => this.updateHandlePosition();
@@ -134,6 +143,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.rafId) cancelAnimationFrame(this.rafId);
+    this.resizeObserver?.disconnect();
     this.unlisten.forEach(fn => fn());
     if (this.handle && this.handle.parentNode) {
       this.handle.parentNode.removeChild(this.handle);
