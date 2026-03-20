@@ -128,7 +128,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
   tabConfigs: TabConfig[] = [
     {type: 'authors', labelKey: 'tabs.author', labelPluralKey: 'tabs.authors', placeholderKey: 'placeholders.searchAuthors', selectAllKey: 'selectAllAuthors', icon: 'pi-user'},
     {type: 'categories', labelKey: 'tabs.genre', labelPluralKey: 'tabs.genres', placeholderKey: 'placeholders.searchGenres', selectAllKey: 'selectAllCategories', icon: 'pi-tag'},
-    {type: 'moods', labelKey: 'tabs.mood', labelPluralKey: 'tabs.moods', placeholderKey: 'placeholders.searchMoods', selectAllKey: 'selectAllMoods', icon: 'pi-heart'},
+    {type: 'moods', labelKey: 'tabs.mood', labelPluralKey: 'tabs.moods', placeholderKey: 'placeholders.searchMoods', selectAllKey: 'selectAllMoods', icon: 'pi-fire'},
     {type: 'tags', labelKey: 'tabs.tag', labelPluralKey: 'tabs.tags', placeholderKey: 'placeholders.searchTags', selectAllKey: 'selectAllTags', icon: 'pi-tags'},
     {type: 'series', labelKey: 'tabs.series', labelPluralKey: 'tabs.seriesPlural', placeholderKey: 'placeholders.searchSeries', selectAllKey: 'selectAllSeries', icon: 'pi-book'},
     {type: 'publishers', labelKey: 'tabs.publisher', labelPluralKey: 'tabs.publishers', placeholderKey: 'placeholders.searchPublishers', selectAllKey: 'selectAllPublishers', icon: 'pi-building'},

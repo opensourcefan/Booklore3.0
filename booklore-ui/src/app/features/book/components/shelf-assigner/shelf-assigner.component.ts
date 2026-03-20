@@ -101,11 +101,15 @@ export class ShelfAssignerComponent implements OnInit {
     const loader = this.loadingService.show(this.t.translate('book.shelfAssigner.loading.updatingShelves', { count: bookIds.size }));
 
     this.bookService.updateBookShelves(bookIds, idsToAssign, idsToUnassign)
-      .pipe(finalize(() => this.loadingService.hide(loader)))
+      .pipe(
+        finalize(() => {
+          this.bookService.refreshBooks().subscribe();
+          this.loadingService.hide(loader);
+        })
+      )
       .subscribe({
         next: () => {
           this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfAssigner.toast.updateSuccessDetail')});
-          this.bookService.refreshBooks();
           this.dynamicDialogRef.close({assigned: true});
         },
         error: () => {

@@ -60,19 +60,7 @@ export class BookPatchService {
       shelvesToAssign: Array.from(shelvesToAssign),
       shelvesToUnassign: Array.from(shelvesToUnassign),
     };
-    return this.http.post<Book[]>(`${this.url}/shelves`, requestPayload).pipe(
-      tap(updatedBooks => {
-        const currentState = this.bookStateService.getCurrentBookState();
-        const currentBooks = currentState.books || [];
-        updatedBooks.forEach(updatedBook => {
-          const index = currentBooks.findIndex(b => b.id === updatedBook.id);
-          if (index !== -1) {
-            currentBooks[index] = updatedBook;
-          }
-        });
-        this.bookStateService.updateBookState({...currentState, books: [...currentBooks]});
-      })
-    );
+    return this.http.post<Book[]>(`${this.url}/shelves`, requestPayload);
   }
 
   savePdfProgress(bookId: number, page: number, percentage: number, bookFileId?: number): Observable<void> {

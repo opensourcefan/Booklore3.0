@@ -34,7 +34,7 @@ const DATA_TYPE_DEFS: { key: string; value: DataType; icon: string; color: strin
   {key: 'series', value: 'series', icon: 'pi-tag', color: '#DB2777'},
   {key: 'publishers', value: 'publishers', icon: 'pi-building', color: '#7C3AED'},
   {key: 'tags', value: 'tags', icon: 'pi-bookmark', color: '#EAB308'},
-  {key: 'moods', value: 'moods', icon: 'pi-heart', color: '#EA580C'}
+  {key: 'moods', value: 'moods', icon: 'pi-fire', color: '#EA580C'}
 ];
 
 const READ_STATUS_KEYS: Record<ReadStatus, string> = {

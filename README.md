@@ -9,6 +9,13 @@ I am not taking requests
 I will not delete this if I get upset, I am always upset
 ```
 
+### Current State of Affairs
+```ini
+I still have a few quality of life mods to fulfill my vision of how this app should function.
+Currently also working on stability and application caching and refresh issues.
+Once that is done the 3.0 tagged version will be released. 
+```
+
 
 ### Install
 ```ini

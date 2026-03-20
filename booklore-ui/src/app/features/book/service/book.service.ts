@@ -93,8 +93,8 @@ export class BookService {
     );
   }
 
-  refreshBooks(): void {
-    this.http.get<Book[]>(this.url).pipe(
+  refreshBooks(): Observable<Book[]> {
+    return this.http.get<Book[]>(this.url).pipe(
       tap(bookList => {
         this.bookStateService.updateBookState({
           books: bookList,
@@ -103,14 +103,15 @@ export class BookService {
         });
       }),
       catchError(error => {
+        const curr = this.bookStateService.getCurrentBookState();
         this.bookStateService.updateBookState({
-          books: null,
+          books: curr.books,
           loaded: true,
           error: error.message,
         });
-        return of(null);
+        return of(curr.books || []);
       })
-    ).subscribe();
+    );
   }
 
   removeBooksByLibraryId(libraryId: number): void {
