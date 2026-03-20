@@ -68,7 +68,7 @@ export enum EntityType {
   SHELF = 'Shelf',
   MAGIC_SHELF = 'Magic Shelf',
   ALL_BOOKS = 'All Books',
-  UNSHELVED = 'Unshelved Books',
+  NOT_SHELFED = 'Not Shelfed',
 }
 
 @Component({
@@ -372,8 +372,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private initializeEntityRouting(): void {
     const currentPath = this.activatedRoute.snapshot.routeConfig?.path;
 
-    if (currentPath === 'all-books' || currentPath === 'unshelved-books') {
-      const entityType = currentPath === 'all-books' ? EntityType.ALL_BOOKS : EntityType.UNSHELVED;
+    if (currentPath === 'all-books' || currentPath === 'not-shelfed') {
+      const entityType = currentPath === 'all-books' ? EntityType.ALL_BOOKS : EntityType.NOT_SHELFED;
       this.entityType = entityType;
       this.entityType$ = of(entityType);
       this.entityRouteInfo$ = of({entityId: NaN, entityType});
@@ -647,8 +647,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
         switchMap(bookState => this.applyBookFilters(bookState))
       );
-    } else if (this.entityType === EntityType.UNSHELVED) {
-      this.bookState$ = this.entityService.fetchUnshelvedBooks(primarySort).pipe(
+    } else if (this.entityType === EntityType.NOT_SHELFED) {
+      this.bookState$ = this.entityService.fetchNotShelfedBooks(primarySort).pipe(
         map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
         switchMap(bookState => this.applyBookFilters(bookState))
       );
@@ -710,7 +710,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
            this.entityType === EntityType.SHELF ||
            this.entityType === EntityType.MAGIC_SHELF ||
            this.entityType === EntityType.ALL_BOOKS ||
-           this.entityType === EntityType.UNSHELVED;
+           this.entityType === EntityType.NOT_SHELFED;
   }
 
   onSaveSortConfig(criteria: SortOption[]): void {
@@ -728,7 +728,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       user.userSettings.entityViewPreferences ?? {global: {sortKey: 'title', sortDir: 'ASC', view: 'GRID', coverSize: 1.0, seriesCollapsed: false, overlayBookType: true}, overrides: []}
     );
 
-    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.UNSHELVED) {
+    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED) {
       prefs.global = {
         ...prefs.global,
         sortKey: sortCriteria[0]?.field ?? 'title',
@@ -779,7 +779,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.messageService.add({
       severity: 'success',
       summary: this.t.translate('book.browser.toast.sortSavedSummary'),
-      detail: this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.UNSHELVED
+      detail: this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED
         ? this.t.translate('book.browser.toast.sortSavedGlobalDetail')
         : this.t.translate('book.browser.toast.sortSavedEntityDetail', {entityType: this.entityType.toLowerCase()})
     });

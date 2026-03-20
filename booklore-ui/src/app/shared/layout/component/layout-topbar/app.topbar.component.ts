@@ -1,5 +1,6 @@
 import {ToolbarConfigService} from './toolbar-config.service';
 import {ToolbarEditorComponent} from './toolbar-editor.component';
+import {AppSidebarComponent} from '../layout-sidebar/app.sidebar.component';
 import {Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import {MenuItem} from 'primeng/api';
 import {LayoutService} from '../layout-main/service/app.layout.service';
@@ -54,6 +55,7 @@ import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
     NgStyle,
     Menu,
     TranslocoDirective,
+    AppSidebarComponent,
   ],
 })
 export class AppTopBarComponent implements OnDestroy {

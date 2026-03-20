@@ -245,16 +245,16 @@ export class AppMenuComponent implements OnInit {
           bookCount$: this.shelfService.getBookCount(shelf.id ?? 0),
         }));
 
-        const unshelvedItem = {
+        const notShelfedItem = {
           label: this.t.translate('layout.menu.unshelved'),
           type: 'Shelf',
           icon: 'pi pi-inbox',
           iconType: 'PRIME_NG' as 'PRIME_NG' | 'CUSTOM_SVG',
-          routerLink: ['/unshelved-books'],
+          routerLink: ['/not-shelfed'],
           bookCount$: this.shelfService.getUnshelvedBookCount?.() ?? of(0),
         };
 
-        const items: MenuItem[] = [unshelvedItem];
+        const items: MenuItem[] = [notShelfedItem];
         if (koboShelf) {
           items.push({
             label: koboShelf.name,

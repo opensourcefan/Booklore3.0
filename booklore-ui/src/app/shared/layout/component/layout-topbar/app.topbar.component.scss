@@ -170,6 +170,20 @@
     border-color: var(--p-primary-color);
     background: var(--p-surface-800);
   }
+
+  @media (max-width: 991px) {
+    display: none;
+  }
+}
+
+.mobile-sidebar-trigger {
+  display: none;
+  flex-shrink: 0;
+
+  @media (max-width: 991px) {
+    display: flex;
+    align-items: center;
+  }
 }
 
 .sidebar-toggle-icon {

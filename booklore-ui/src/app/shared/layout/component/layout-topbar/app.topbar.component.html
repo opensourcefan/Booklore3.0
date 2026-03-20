@@ -1,6 +1,20 @@
 <ng-container *transloco="let t; prefix: 'layout.topbar'">
 <div class="layout-topbar">
 
+  <!-- Mobile only: left sidebar as popup -->
+  <div class="mobile-sidebar-trigger">
+    <p-button
+      icon="pi pi-bars"
+      [text]="true"
+      (click)="mobileSidebarPop.toggle($event)"
+      pTooltip="Navigation"
+      tooltipPosition="bottom">
+    </p-button>
+    <p-popover #mobileSidebarPop styleClass="mobile-sidebar-popover">
+      <app-sidebar></app-sidebar>
+    </p-popover>
+  </div>
+
   <a class="layout-topbar-logo topbar-logo" routerLink="">
     <svg class="logo-icon half-title" viewBox="0 0 126 50" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
       <path

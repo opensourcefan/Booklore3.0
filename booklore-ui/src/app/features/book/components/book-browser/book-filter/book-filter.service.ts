@@ -53,6 +53,9 @@ export class BookFilterService {
     entity: Library | Shelf | MagicShelf | null,
     entityType: EntityType
   ): Book[] {
+    if (entityType === EntityType.NOT_SHELFED) {
+      return books.filter(book => !book.shelves || book.shelves.length === 0);
+    }
     if (!entity) return books;
 
     switch (entityType) {

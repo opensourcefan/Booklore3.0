@@ -15,7 +15,7 @@
                 } @else {
                   {{ t('labels.allBooks') }}
                 }
-              } @else if (entityType === EntityType.UNSHELVED) {
+              } @else if (entityType === EntityType.NOT_SHELFED) {
                 {{ (isFilterActive || hasSearchTerm) ? t('labels.unshelvedBooksFiltered') : t('labels.unshelvedBooks') }}
               } @else {
                 {{ entityType }}: {{ (entity$ | async)?.name }}{{ (isFilterActive || hasSearchTerm) ? ' ' + t('labels.filteredSuffix') : '' }}
@@ -29,7 +29,7 @@
           </div>
 
           @if (userService.userState$ | async; as userState) {
-            @if (entityType !== EntityType.ALL_BOOKS && entityType !== EntityType.UNSHELVED &&
+            @if (entityType !== EntityType.ALL_BOOKS && entityType !== EntityType.NOT_SHELFED &&
             (userState.user!.permissions.admin || userState.user!.permissions.canManageLibrary)) {
               <div class="entity-menu-wrapper">
                 <p-button

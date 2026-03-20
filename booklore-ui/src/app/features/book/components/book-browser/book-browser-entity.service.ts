@@ -87,7 +87,7 @@ export class BookBrowserEntityService {
     );
   }
 
-  fetchUnshelvedBooks(sortOption: SortOption): Observable<BookState> {
+  fetchNotShelfedBooks(sortOption: SortOption): Observable<BookState> {
     return this.bookService.bookState$.pipe(
       map(bookState => ({
         ...bookState,

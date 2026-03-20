@@ -38,7 +38,7 @@ export const routes: Routes = [
       {path: 'settings', loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent), canActivate: [AuthGuard]},
       {path: 'library/:libraryId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},
       {path: 'shelf/:shelfId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},
-      {path: 'unshelved-books', component: BookBrowserComponent, canActivate: [AuthGuard]},
+      {path: 'not-shelfed', component: BookBrowserComponent, canActivate: [AuthGuard]},
       {path: 'series', loadComponent: () => import('./features/series-browser/components/series-browser/series-browser.component').then(m => m.SeriesBrowserComponent), canActivate: [AuthGuard]},
       {path: 'series/:seriesName', loadComponent: () => import('./features/book/components/series-page/series-page.component').then(m => m.SeriesPageComponent), canActivate: [AuthGuard]},
       {path: 'authors', loadComponent: () => import('./features/author-browser/components/author-browser/author-browser.component').then(m => m.AuthorBrowserComponent), canActivate: [AuthGuard]},
