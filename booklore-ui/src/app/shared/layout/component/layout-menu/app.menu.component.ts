@@ -307,7 +307,8 @@ export class AppMenuComponent implements OnInit {
     this.dialogLauncherService.openVersionChangelogDialog();
   }
 
-  getVersionUrl(version: string | undefined): string {
+  getVersionUrl(current: string | undefined, latest?: string | undefined): string {
+    const version = this.getPreferredDisplayVersion(current, latest);
     if (!version) return '#';
     const normalizedVersion = this.getNormalizedSemanticVersion(version);
     return normalizedVersion
@@ -315,12 +316,23 @@ export class AppMenuComponent implements OnInit {
       : `https://github.com/booklore-app/booklore/commit/${version}`;
   }
 
-  isSemanticVersion(version: string | undefined): boolean {
-    return !!this.getNormalizedSemanticVersion(version);
+  isSemanticVersion(current: string | undefined, latest?: string | undefined): boolean {
+    return !!this.getNormalizedSemanticVersion(this.getPreferredDisplayVersion(current, latest));
   }
 
-  getDisplayVersion(version: string | undefined): string {
+  getDisplayVersion(current: string | undefined, latest?: string | undefined): string {
+    const version = this.getPreferredDisplayVersion(current, latest);
     return this.getNormalizedSemanticVersion(version) ?? (version ?? '');
+  }
+
+  private getPreferredDisplayVersion(current: string | undefined, latest?: string | undefined): string | undefined {
+    if (this.getNormalizedSemanticVersion(current)) {
+      return current;
+    }
+    if (this.getNormalizedSemanticVersion(latest)) {
+      return latest;
+    }
+    return current ?? latest;
   }
 
   private getNormalizedSemanticVersion(version: string | undefined): string | null {
