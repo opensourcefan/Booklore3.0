@@ -6,7 +6,6 @@ import {AppSidebarComponent} from "../layout-sidebar/app.sidebar.component";
 import {AppTopBarComponent} from '../layout-topbar/app.topbar.component';
 import {NgClass} from '@angular/common';
 import {ToastModule} from 'primeng/toast';
-import {LocalStorageService} from '../../../service/local-storage.service';
 import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
 
 @Component({
@@ -33,7 +32,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
 
   @ViewChild(AppTopBarComponent) appTopbar!: AppTopBarComponent;
 
-  constructor(public layoutService: LayoutService, public renderer: Renderer2, public router: Router, private localStorageService: LocalStorageService) {
+  constructor(public layoutService: LayoutService, public renderer: Renderer2, public router: Router) {
     this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
       if (!this.menuOutsideClickListener) {
         this.menuOutsideClickListener = this.renderer.listen('document', 'click', (event) => {
@@ -56,9 +55,9 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Use saved sidebar width if available, otherwise fall back to default
     const saved = localStorage.getItem('bl-sidebar-width');
-    const width = saved ? parseInt(saved, 10) : (this.localStorageService.get<number>('sidebarWidth') ?? 225);
+    localStorage.removeItem('sidebarWidth');
+    const width = saved ? parseInt(saved, 10) : 225;
     document.documentElement.style.setProperty('--sidebar-width', width + 'px');
   }
 

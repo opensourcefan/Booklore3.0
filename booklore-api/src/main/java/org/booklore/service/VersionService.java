@@ -56,12 +56,37 @@ public class VersionService {
                     .body(String.class);
 
             JsonNode root = MAPPER.readTree(response);
-            return root.path("tag_name").asText("unknown");
+            String releaseTag = root.path("tag_name").asText("unknown");
+            if (releaseTag != null && !releaseTag.isBlank() && !"unknown".equalsIgnoreCase(releaseTag)) {
+                return releaseTag;
+            }
 
         } catch (Exception e) {
             log.warn("Failed to fetch latest release version");
-            return "unknown";
         }
+
+        return fetchLatestGitHubTagVersion();
+    }
+
+    private String fetchLatestGitHubTagVersion() {
+        try {
+            String response = REST_CLIENT.get()
+                    .uri(getGithubApiBaseUri() + "/tags?per_page=1")
+                    .retrieve()
+                    .body(String.class);
+
+            JsonNode tags = MAPPER.readTree(response);
+            if (tags.isArray() && !tags.isEmpty()) {
+                String tag = tags.get(0).path("name").asText("unknown");
+                if (tag != null && !tag.isBlank()) {
+                    return tag;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch latest tag version");
+        }
+
+        return "unknown";
     }
 
     public List<ReleaseNote> fetchReleaseNotesSince(String currentVersion) {

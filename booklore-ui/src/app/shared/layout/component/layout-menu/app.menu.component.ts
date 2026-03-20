@@ -23,16 +23,13 @@ import {Router} from '@angular/router';
 import {TooltipModule} from 'primeng/tooltip';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
-import {Slider} from 'primeng/slider';
-import {FormsModule} from '@angular/forms';
-import {Popover} from 'primeng/popover';
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, Slider, FormsModule, Popover, CdkDropList, CdkDrag],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
@@ -70,7 +67,6 @@ export class AppMenuComponent implements OnInit {
   shelfSortOrder: 'asc' | 'desc' = 'asc';
   magicShelfSortField: 'name' | 'id' = 'name';
   magicShelfSortOrder: 'asc' | 'desc' = 'asc';
-  sidebarWidth = 225;
   sectionOrder: string[] = ['home', 'library', 'shelf', 'magicShelf'];
 
   private readonly sectionOrderKey = 'sidebarSectionOrder';
@@ -78,7 +74,6 @@ export class AppMenuComponent implements OnInit {
 
 
   ngOnInit(): void {
-    this.sidebarWidth = this.localStorageService.get<number>('sidebarWidth') ?? 225;
     const savedSectionOrder = this.localStorageService.get<string[]>(this.sectionOrderKey);
     if (savedSectionOrder?.length) {
       this.sectionOrder = this.normalizeSectionOrder(savedSectionOrder);
@@ -153,14 +148,6 @@ export class AppMenuComponent implements OnInit {
       ]),
       map(menuItems => this.applyNestedItemOrder('home', menuItems))
     );
-  }
-
-  onSidebarWidthChange(): void {
-    document.documentElement.style.setProperty('--sidebar-width', this.sidebarWidth + 'px');
-  }
-
-  saveSidebarWidth(): void {
-    this.localStorageService.set('sidebarWidth', this.sidebarWidth);
   }
 
   onSectionDrop(event: CdkDragDrop<string[]>): void {

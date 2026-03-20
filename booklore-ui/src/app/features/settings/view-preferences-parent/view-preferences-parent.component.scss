@@ -96,13 +96,3 @@
   }
 }
 
-.slider-container {
-  flex: 1;
-  min-width: 200px;
-  max-width: 300px;
-
-  @media (max-width: 768px) {
-    min-width: 180px;
-    max-width: 250px;
-  }
-}

@@ -16,21 +16,6 @@
                     }
                   }
                 </ul>
-                <i class="pi pi-objects-column sidebar-width-btn"
-                   (click)="widthPanel.toggle($event)"></i>
-                <p-popover #widthPanel appendTo="body">
-                  <div class="sidebar-width-popover">
-                    <label class="sidebar-width-popover-label">{{ sidebarWidth }}px</label>
-                    <p-slider
-                      [(ngModel)]="sidebarWidth"
-                      [min]="175"
-                      [max]="400"
-                      [step]="1"
-                      (onChange)="onSidebarWidthChange()"
-                      (onSlideEnd)="saveSidebarWidth()">
-                    </p-slider>
-                  </div>
-                </p-popover>
               </div>
             }
             @case ('library') {

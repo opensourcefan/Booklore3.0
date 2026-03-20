@@ -6,12 +6,10 @@ import {ViewPreferencesComponent} from './view-preferences/view-preferences.comp
 import {SidebarSortingPreferencesComponent} from './sidebar-sorting-preferences/sidebar-sorting-preferences.component';
 import {MetaCenterViewModeComponent} from './meta-center-view-mode/meta-center-view-mode-component';
 import {FilterPreferencesComponent} from './filter-preferences/filter-preferences.component';
-import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import {Slider} from 'primeng/slider';
+import {TranslocoDirective} from '@jsverse/transloco';
 import {MessageService} from 'primeng/api';
 import {UiPreferencesService} from '../../../shared/service/ui-preferences.service';
 import {ToggleSwitch} from 'primeng/toggleswitch';
-import {LocalStorageService} from '../../../shared/service/local-storage.service';
 
 @Component({
   selector: 'app-view-preferences-parent',
@@ -33,20 +31,10 @@ import {LocalStorageService} from '../../../shared/service/local-storage.service
 export class ViewPreferencesParentComponent implements OnInit {
   private uiPrefs = inject(UiPreferencesService);
   showCoverPreview = false;
-
-  sidebarWidth = 225;
-
-  private localStorageService = inject(LocalStorageService);
   private messageService = inject(MessageService);
-  private t = inject(TranslocoService);
 
   ngOnInit(): void {
     this.showCoverPreview = this.uiPrefs.showCoverPreview;
-    this.sidebarWidth = this.localStorageService.get<number>('sidebarWidth') ?? 225;
-  }
-
-  onSidebarWidthChange(): void {
-    document.documentElement.style.setProperty('--sidebar-width', this.sidebarWidth + 'px');
   }
 
   onCoverPreviewToggle(checked: boolean): void {
@@ -54,14 +42,5 @@ export class ViewPreferencesParentComponent implements OnInit {
     this.uiPrefs.setShowCoverPreview(checked);
     this.messageService.add({ severity: 'success', summary: 'Saved',
       detail: checked ? 'Cover preview enabled' : 'Cover preview disabled' });
-  }
-
-  saveSidebarWidth(): void {
-    this.localStorageService.set('sidebarWidth', this.sidebarWidth);
-    this.messageService.add({
-      severity: 'success',
-      summary: this.t.translate('settingsView.layout.saved'),
-      detail: this.t.translate('settingsView.layout.savedDetail')
-    });
   }
 }
