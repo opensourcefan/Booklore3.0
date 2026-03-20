@@ -11,7 +11,7 @@ I will not delete this if I get upset, I am always upset
 
 ### Current State of Affairs
 ```ini
-We have finally reached v3.0.2
+We have finally reached v3.0.6
 Booklore is now what I wanted it to be from the beginning.
 more to come 
 ```
