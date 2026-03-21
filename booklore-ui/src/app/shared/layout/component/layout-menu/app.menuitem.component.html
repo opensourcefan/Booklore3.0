@@ -80,9 +80,9 @@
             [displayEmpty]="true"
           ></app-icon-display>
           <span class="layout-menuitem-text menu-item-text"
-                [class.menu-item-text-scroll]="(item.label?.length ?? 0) > 24">
+                [class.menu-item-text-scroll]="(item.label?.length ?? 0) > 20">
             <span class="menu-item-text-inner"
-                  [class.menu-item-text-marquee]="(item.label?.length ?? 0) > 24">
+                  [class.menu-item-text-marquee]="(item.label?.length ?? 0) > 20">
               {{ item.label }}
             </span>
           </span>

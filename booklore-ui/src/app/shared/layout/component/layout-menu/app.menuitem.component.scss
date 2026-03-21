@@ -160,6 +160,11 @@
 }
 
 :host-context(.mobile-sidebar-popover) .menu-item-text-scroll .menu-item-text-inner {
+  max-width: none;
+  overflow: visible;
+}
+
+:host-context(.mobile-sidebar-popover) .menu-item-text-scroll {
   text-overflow: clip;
 }
 

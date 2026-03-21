@@ -313,6 +313,11 @@
   text-overflow: clip;
 }
 
+:host-context(.mobile-sidebar-popover) .book-type-label-scroll .book-type-label-inner {
+  max-width: none;
+  overflow: visible;
+}
+
 :host-context(.mobile-sidebar-popover) .book-type-label-scroll .book-type-label-inner.book-type-label-marquee {
   padding-right: 1.5rem;
   will-change: transform;
