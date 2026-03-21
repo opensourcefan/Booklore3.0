@@ -83,6 +83,7 @@
   align-items: center;
   gap: 0.5rem;
   width: 100%;
+  min-width: 0;
 }
 
 .library-item-link {
@@ -95,6 +96,9 @@
 
 
 .menu-item-text {
+  display: block;
+  flex: 1;
+  min-width: 0;
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -143,13 +147,25 @@
 }
 
 :host-context(.mobile-sidebar-popover) .menu-item-text {
-  overflow-x: auto;
-  overflow-y: hidden;
-  text-overflow: clip;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-:host-context(.mobile-sidebar-popover) .menu-item-text::-webkit-scrollbar {
-  display: none;
+:host-context(.mobile-sidebar-popover) .menu-item-text-scroll {
+  display: inline-block;
+  padding-right: 1.5rem;
+  text-overflow: clip;
+  animation: mobile-menu-marquee 8s linear infinite;
+}
+
+@keyframes mobile-menu-marquee {
+  0%, 14% {
+    transform: translateX(0);
+  }
+  48%, 86% {
+    transform: translateX(-35%);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }

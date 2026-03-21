@@ -143,6 +143,7 @@
   display: flex;
   align-items: center;
   min-width: 0;
+  flex: 1;
   gap: 0.5rem;
 }
 
@@ -285,16 +286,19 @@
 }
 
 :host-context(.mobile-sidebar-popover) .book-type-main {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-:host-context(.mobile-sidebar-popover) .book-type-main::-webkit-scrollbar {
-  display: none;
+  overflow: hidden;
 }
 
 :host-context(.mobile-sidebar-popover) .book-type-label {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:host-context(.mobile-sidebar-popover) .book-type-label-scroll {
+  padding-right: 1.5rem;
   text-overflow: clip;
+  animation: mobile-menu-marquee 8s linear infinite;
 }
