@@ -265,16 +265,14 @@
           }
         </div>
 
-        @if (isMobile) {
-          <div class="mobile-right-sidebar-trigger">
-            <p-button
-              icon="pi pi-ellipsis-v"
-              [text]="true"
-              (click)="mobileRightSidebarPop.toggle($event)"
-              [pTooltip]="t('tooltip.toggleSidebar')"
-              tooltipPosition="bottom">
-            </p-button>
-          </div>
+        <!-- Mobile-only: popover trigger (hidden on desktop via CSS) -->
+        <div class="mobile-right-sidebar-trigger">
+          <a class="topbar-items topbar-item"
+             (click)="mobileRightSidebarPop.toggle($event)"
+             [pTooltip]="t('tooltip.toggleSidebar')"
+             tooltipPosition="bottom">
+            <i class="pi pi-sliders-h"></i>
+          </a>
           <p-popover #mobileRightSidebarPop styleClass="mobile-right-sidebar-popover" [dismissable]="true" appendTo="body">
             <app-book-filter
               [showFilter]="true"
@@ -285,7 +283,9 @@
               (filterModeChanged)="onFilterModeChanged($event)">
             </app-book-filter>
           </p-popover>
-        } @else {
+        </div>
+        <!-- Desktop-only: toggle the filter sidebar panel (hidden on mobile via CSS) -->
+        <div class="desktop-right-sidebar-trigger">
           <a class="topbar-items topbar-item" (click)="toggleSidebar()">
             <i
               [ngClass]="showFilter ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"
@@ -293,7 +293,7 @@
               tooltipPosition="top">
             </i>
           </a>
-        }
+        </div>
       </div>
     </div>
 

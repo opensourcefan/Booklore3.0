@@ -138,3 +138,13 @@
     padding: 0.75rem;
   }
 }
+
+// Ensure desktop resize handles never show on mobile/tablet viewports.
+// Both the left sidebar (blResizable on layout-sidebar) and right filter panel
+// (blResizable on filter-overlay-container) are hidden at ≤991px — hide their
+// fixed-position drag handles at the same breakpoint.
+@media (max-width: 991px) {
+  .bl-resize-handle {
+    display: none !important;
+  }
+}

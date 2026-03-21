@@ -251,6 +251,19 @@
 .mobile-right-sidebar-trigger {
   display: flex;
   align-items: center;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+.desktop-right-sidebar-trigger {
+  display: none;
+
+  @media (min-width: 768px) {
+    display: flex;
+    align-items: center;
+  }
 }
 
 .search-clear-btn {
