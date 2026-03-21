@@ -69,6 +69,9 @@ public class BookEntity {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    @Column(name = "file_type", length = 120)
+    private String fileType;
+
     @ManyToMany
     @JoinTable(
             name = "book_shelf_mapping",

@@ -6,9 +6,9 @@ import org.booklore.model.dto.Book;
 import org.booklore.model.dto.BookRecommendation;
 import org.booklore.model.dto.BookViewerSettings;
 import org.booklore.model.dto.request.AttachBookFileRequest;
-import org.booklore.model.dto.request.BookTypeAssignmentRequest;
 import org.booklore.model.dto.request.CreatePhysicalBookRequest;
 import org.booklore.model.dto.request.DuplicateDetectionRequest;
+import org.booklore.model.dto.request.FileTypeAssignmentRequest;
 import org.booklore.model.dto.request.PersonalRatingUpdateRequest;
 import org.booklore.model.dto.request.ReadProgressRequest;
 import org.booklore.model.dto.request.ReadStatusUpdateRequest;
@@ -208,12 +208,12 @@ public class BookController {
         return ResponseEntity.ok(bookService.assignShelvesToBooks(request.getBookIds(), request.getShelvesToAssign(), request.getShelvesToUnassign()));
     }
 
-    @Operation(summary = "Assign book type to books", description = "Assign a primary book type to one or more books.")
-    @ApiResponse(responseCode = "200", description = "Book types assigned successfully")
-    @PostMapping("/book-types")
-    public ResponseEntity<List<Book>> assignBookType(
-            @Parameter(description = "Book type assignment request") @RequestBody @Valid BookTypeAssignmentRequest request) {
-        return ResponseEntity.ok(bookService.assignBookTypeToBooks(request.getBookIds(), request.getBookType()));
+    @Operation(summary = "Assign file type to books", description = "Assign a custom file type to one or more books.")
+    @ApiResponse(responseCode = "200", description = "File types assigned successfully")
+    @PostMapping("/file-types")
+    public ResponseEntity<List<Book>> assignFileType(
+            @Parameter(description = "File type assignment request") @RequestBody @Valid FileTypeAssignmentRequest request) {
+        return ResponseEntity.ok(bookService.assignFileTypeToBooks(request.getBookIds(), request.getFileType()));
     }
 
     @Operation(summary = "Update read progress", description = "Update the read progress for a book.")

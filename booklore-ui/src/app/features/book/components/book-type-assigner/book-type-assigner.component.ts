@@ -1,6 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {Book, BookType} from '../../model/book.model';
+import {Book} from '../../model/book.model';
 import {MessageService} from 'primeng/api';
 import {finalize} from 'rxjs';
 import {BookService} from '../../service/book.service';
@@ -33,54 +33,76 @@ export class BookTypeAssignerComponent implements OnInit {
   private bookService = inject(BookService);
   private loadingService = inject(LoadingService);
 
-  readonly allBookTypes: BookType[] = ['PDF', 'EPUB', 'CBX', 'FB2', 'MOBI', 'AZW3', 'AUDIOBOOK'];
+  allFileTypes: string[] = [];
 
   searchQuery = '';
-  selectedBookType: BookType | null = null;
+  newFileType = '';
+  selectedFileType: string | null = null;
 
   book: Book = this.dynamicDialogConfig.data.book;
   bookIds: Set<number> = this.dynamicDialogConfig.data.bookIds;
   isMultiBooks: boolean = this.dynamicDialogConfig.data.isMultiBooks;
 
   ngOnInit(): void {
+    const books = this.bookService.getCurrentBookState().books ?? [];
+    this.allFileTypes = [...new Set(books
+      .map(item => item.fileType?.trim())
+      .filter((item): item is string => !!item))]
+      .sort((a, b) => a.localeCompare(b));
+
     if (!this.isMultiBooks) {
-      this.selectedBookType = this.book?.primaryFile?.bookType ?? null;
+      this.selectedFileType = this.book?.fileType ?? null;
     }
   }
 
-  isBookTypeSelected(bookType: BookType): boolean {
-    return this.selectedBookType === bookType;
+  isFileTypeSelected(fileType: string): boolean {
+    return this.selectedFileType === fileType;
   }
 
-  setSelectedBookType(bookType: BookType): void {
-    this.selectedBookType = this.selectedBookType === bookType ? null : bookType;
+  setSelectedFileType(fileType: string): void {
+    this.selectedFileType = this.selectedFileType === fileType ? null : fileType;
   }
 
-  onBookTypeCheckboxChange(bookType: BookType, checked: boolean): void {
-    this.selectedBookType = checked ? bookType : null;
+  onFileTypeCheckboxChange(fileType: string, checked: boolean): void {
+    this.selectedFileType = checked ? fileType : null;
   }
 
-  updateBookType(): void {
-    if (!this.selectedBookType) {
+  createFileType(): void {
+    const candidate = this.newFileType.trim();
+    if (!candidate) {
+      return;
+    }
+
+    const exists = this.allFileTypes.some(type => type.toLowerCase() === candidate.toLowerCase());
+    if (!exists) {
+      this.allFileTypes = [...this.allFileTypes, candidate].sort((a, b) => a.localeCompare(b));
+    }
+
+    this.selectedFileType = this.allFileTypes.find(type => type.toLowerCase() === candidate.toLowerCase()) ?? candidate;
+    this.newFileType = '';
+  }
+
+  updateFileType(): void {
+    if (!this.selectedFileType) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Select Book Type',
-        detail: 'Choose a book type before saving.'
+        summary: 'Select File Type',
+        detail: 'Choose a file type before saving.'
       });
       return;
     }
 
     const ids = this.isMultiBooks ? this.bookIds : new Set([this.book.id]);
-    const loader = this.loadingService.show(`Updating book type for ${ids.size} book${ids.size === 1 ? '' : 's'}...`);
+    const loader = this.loadingService.show(`Updating file type for ${ids.size} book${ids.size === 1 ? '' : 's'}...`);
 
-    this.bookService.updateBookType(ids, this.selectedBookType)
+    this.bookService.updateFileType(ids, this.selectedFileType)
       .pipe(finalize(() => this.loadingService.hide(loader)))
       .subscribe({
         next: () => {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: 'Book type updated successfully.'
+            detail: 'File type updated successfully.'
           });
           this.dynamicDialogRef.close({assigned: true});
         },
@@ -88,19 +110,19 @@ export class BookTypeAssignerComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to update book type.'
+            detail: 'Failed to update file type.'
           });
           this.dynamicDialogRef.close({assigned: false});
         }
       });
   }
 
-  filterBookTypes(bookTypes: BookType[]): BookType[] {
+  filterFileTypes(fileTypes: string[]): string[] {
     if (!this.searchQuery.trim()) {
-      return bookTypes;
+      return fileTypes;
     }
     const query = this.searchQuery.trim().toLowerCase();
-    return bookTypes.filter(bookType => bookType.toLowerCase().includes(query));
+    return fileTypes.filter(fileType => fileType.toLowerCase().includes(query));
   }
 
   closeDialog(): void {

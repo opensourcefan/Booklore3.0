@@ -88,7 +88,7 @@ export class AppMenuComponent implements OnInit {
     {key: 'library', label: 'layout.menu.libraries'},
     {key: 'shelf', label: 'layout.menu.shelves'},
     {key: 'magicShelf', label: 'layout.menu.magicShelves'},
-    {key: 'bookType', label: 'Book Type'},
+    {key: 'bookType', label: 'FILE TYPES'},
   ];
 
   get visibleSectionOrder(): string[] {
@@ -205,7 +205,7 @@ export class AppMenuComponent implements OnInit {
       case 'magicShelf':
         return this.t.translate('layout.menu.magicShelves');
       case 'bookType':
-        return 'Book Type';
+        return 'FILE TYPES';
       default:
         return section;
     }

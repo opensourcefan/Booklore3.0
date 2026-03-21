@@ -1,11 +1,11 @@
 import {Component, EventEmitter, inject, Output} from '@angular/core';
-import {NgFor, NgIf} from '@angular/common';
+import {NgFor} from '@angular/common';
 import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 
 @Component({
   selector: 'app-toolbar-editor',
   standalone: true,
-  imports: [NgFor, NgIf],
+  imports: [NgFor],
   template: `
     <div class="toolbar-editor">
       <div class="toolbar-editor-header">

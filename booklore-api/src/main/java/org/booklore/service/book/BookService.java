@@ -247,8 +247,8 @@ public class BookService {
     }
 
     @Transactional
-    public List<Book> assignBookTypeToBooks(Set<Long> bookIds, BookFileType bookType) {
-        return bookUpdateService.assignBookTypeToBooks(bookIds, bookType);
+    public List<Book> assignFileTypeToBooks(Set<Long> bookIds, String fileType) {
+        return bookUpdateService.assignFileTypeToBooks(bookIds, fileType);
     }
 
     public Resource getBookThumbnail(long bookId) {

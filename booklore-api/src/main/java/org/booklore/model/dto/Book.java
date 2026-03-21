@@ -14,6 +14,7 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Book {
     private Long id;
+    private String fileType;
     private Long libraryId;
     private String libraryName;
     private BookFile primaryFile;

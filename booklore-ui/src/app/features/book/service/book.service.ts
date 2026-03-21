@@ -232,8 +232,8 @@ export class BookService {
     );
   }
 
-  updateBookType(bookIds: Set<number | undefined>, bookType: BookType): Observable<Book[]> {
-    return this.bookPatchService.updateBookType(bookIds, bookType).pipe(
+  updateFileType(bookIds: Set<number | undefined>, fileType: string): Observable<Book[]> {
+    return this.bookPatchService.updateFileType(bookIds, fileType).pipe(
       catchError(error => {
         const currentState = this.bookStateService.getCurrentBookState();
         this.bookStateService.updateBookState({...currentState, error: error.message});

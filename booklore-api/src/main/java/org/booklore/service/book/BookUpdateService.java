@@ -116,19 +116,20 @@ public class BookUpdateService {
     }
 
     @Transactional
-    public List<Book> assignBookTypeToBooks(Set<Long> bookIds, BookFileType bookType) {
+    public List<Book> assignFileTypeToBooks(Set<Long> bookIds, String fileType) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
         if (!UserPermission.CAN_MANAGE_LIBRARY.isGranted(user.getPermissions())) {
             throw ApiError.PERMISSION_DENIED.createException(UserPermission.CAN_MANAGE_LIBRARY);
         }
 
+        String normalizedFileType = fileType == null ? null : fileType.trim();
+        if (normalizedFileType != null && normalizedFileType.isBlank()) {
+            normalizedFileType = null;
+        }
+
         List<BookEntity> bookEntities = bookQueryService.findAllWithMetadataByIds(bookIds);
         for (BookEntity bookEntity : bookEntities) {
-            BookFileEntity primaryBookFile = bookEntity.getPrimaryBookFile();
-            if (primaryBookFile == null) {
-                continue;
-            }
-            primaryBookFile.setBookType(bookType);
+            bookEntity.setFileType(normalizedFileType);
         }
 
         bookRepository.saveAll(bookEntities);

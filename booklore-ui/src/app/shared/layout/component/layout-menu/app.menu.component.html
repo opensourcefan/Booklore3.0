@@ -79,7 +79,9 @@
               </ul>
             }
             @case ('bookType') {
-              <div class="book-type-heading">{{ getSectionHeading(section) }}</div>
+              <div class="layout-menuitem-root-text root-item drag-press-target" cdkDragHandle>
+                <div>{{ getSectionHeading(section) }}</div>
+              </div>
             }
           }
         </div>

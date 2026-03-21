@@ -20,6 +20,7 @@ public interface BookMapper {
 
     @Mapping(source = "library.id", target = "libraryId")
     @Mapping(source = "library.name", target = "libraryName")
+    @Mapping(source = "fileType", target = "fileType")
     @Mapping(source = "libraryPath", target = "libraryPath", qualifiedByName = "mapLibraryPathIdOnly")
     @Mapping(source = "metadata", target = "metadata")
     @Mapping(source = "shelves", target = "shelves")
@@ -30,6 +31,7 @@ public interface BookMapper {
 
     @Mapping(source = "library.id", target = "libraryId")
     @Mapping(source = "library.name", target = "libraryName")
+    @Mapping(source = "fileType", target = "fileType")
     @Mapping(source = "libraryPath", target = "libraryPath", qualifiedByName = "mapLibraryPathIdOnly")
     @Mapping(source = "metadata", target = "metadata")
     @Mapping(source = "shelves", target = "shelves")

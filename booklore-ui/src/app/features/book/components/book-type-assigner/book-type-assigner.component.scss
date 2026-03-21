@@ -30,6 +30,20 @@
   overflow: hidden;
 }
 
+.create-type-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  .type-name-input {
+    flex: 1;
+
+    input {
+      width: 100%;
+    }
+  }
+}
+
 .types-list {
   display: flex;
   flex-direction: column;

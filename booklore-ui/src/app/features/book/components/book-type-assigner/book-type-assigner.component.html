@@ -4,12 +4,12 @@
       <i class="pi pi-tag header-icon"></i>
     </div>
     <div class="header-text">
-      <h2 class="panel-title">Assign Book Type</h2>
+      <h2 class="panel-title">Assign File Type</h2>
       <p class="panel-description">
         @if (isMultiBooks) {
-          Assign a book type to {{ bookIds.size }} selected assets.
+          Assign a file type to {{ bookIds.size }} selected assets.
         } @else {
-          Assign a book type to "{{ book.metadata?.title || book.fileName }}".
+          Assign a file type to "{{ book.metadata?.title || book.fileName }}".
         }
       </p>
     </div>
@@ -24,11 +24,31 @@
   </div>
 
   <div class="book-types-container">
+    <div class="create-type-row">
+      <p-iconfield class="type-name-input">
+        <p-inputicon class="pi pi-plus"/>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="newFileType"
+          placeholder="Create a new file type"
+          (keydown.enter)="createFileType()"
+        />
+      </p-iconfield>
+      <p-button
+        label="Create"
+        icon="pi pi-plus"
+        severity="secondary"
+        (onClick)="createFileType()"
+        [disabled]="!newFileType.trim()"
+      />
+    </div>
+
     <div class="types-list">
       <div class="list-header">
         <span class="type-count">
           <i class="pi pi-tag"></i>
-          {{ allBookTypes.length }} types available
+          {{ allFileTypes.length }} types available
         </span>
         <p-iconfield class="type-search">
           <p-inputicon class="pi pi-search"/>
@@ -36,7 +56,7 @@
             type="text"
             pInputText
             [(ngModel)]="searchQuery"
-            placeholder="Search book type"
+            placeholder="Search file type"
           />
           @if (searchQuery) {
             <i class="pi pi-times clear-icon" (click)="searchQuery = ''"></i>
@@ -45,21 +65,21 @@
       </div>
 
       <div class="types-grid">
-        @for (bookType of filterBookTypes(allBookTypes); track bookType) {
-          <div class="type-item" [class.selected]="isBookTypeSelected(bookType)" (click)="setSelectedBookType(bookType)">
+        @for (fileType of filterFileTypes(allFileTypes); track fileType) {
+          <div class="type-item" [class.selected]="isFileTypeSelected(fileType)" (click)="setSelectedFileType(fileType)">
             <div class="type-checkbox">
               <p-checkbox
-                [inputId]="'book-type-' + bookType"
+                [inputId]="'file-type-' + fileType"
                 [binary]="true"
-                [ngModel]="isBookTypeSelected(bookType)"
-                (onChange)="onBookTypeCheckboxChange(bookType, !!$event.checked)">
+                [ngModel]="isFileTypeSelected(fileType)"
+                (onChange)="onFileTypeCheckboxChange(fileType, !!$event.checked)">
               </p-checkbox>
             </div>
-            <label [for]="'book-type-' + bookType" class="type-label">
+            <label [for]="'file-type-' + fileType" class="type-label">
               <div class="type-icon-wrapper">
                 <i class="pi pi-book type-icon"></i>
               </div>
-              <span class="type-name">{{ bookType }}</span>
+              <span class="type-name">{{ fileType }}</span>
             </label>
           </div>
         }
@@ -79,7 +99,8 @@
         label="Save Changes"
         icon="pi pi-check"
         severity="success"
-        (onClick)="updateBookType()"
+        (onClick)="updateFileType()"
+        [disabled]="!selectedFileType"
       />
     </div>
   </div>

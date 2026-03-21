@@ -62,7 +62,8 @@
               "path-webpack",
               "jszip/dist/jszip",
               "localforage",
-              "marks-pane"
+              "marks-pane",
+              "@stomp/stompjs"
             ]
           },
           "configurations": {

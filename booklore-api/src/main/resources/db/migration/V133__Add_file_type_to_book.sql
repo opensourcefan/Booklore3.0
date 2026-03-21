@@ -1,0 +1,2 @@
+ALTER TABLE book
+    ADD COLUMN file_type VARCHAR(120) NULL;
