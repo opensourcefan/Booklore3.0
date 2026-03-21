@@ -67,7 +67,15 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
 
   get isRouteActive(): boolean {
     if (!this.item?.routerLink?.[0]) return false;
-    return this.router.url.split('?')[0] === this.item.routerLink[0];
+    if (this.router.url.split('?')[0] !== this.item.routerLink[0]) return false;
+    // Don't highlight (e.g.) "All Books" when a Media Type filter is active —
+    // those rows carry their own active state and should own the highlight.
+    const filterParam = this.router.parseUrl(this.router.url).queryParams['filter'];
+    if (typeof filterParam === 'string' &&
+        (filterParam.includes('customMediaType:') || filterParam.includes('customBookType:'))) {
+      return false;
+    }
+    return true;
   }
 
   private userStateSubscription: Subscription;
