@@ -428,7 +428,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.pageTitle.setPageTitle('');
-    this.coverScalePreferenceService.scaleChange$.pipe(debounceTime(1000)).subscribe();
+    this.coverScalePreferenceService.scaleChange$.pipe(debounceTime(1000), takeUntil(this.destroy$)).subscribe();
     this.loadMobileColumnsPreference();
     this.loadTitleRowsPreference();
     this.loadSubtitlePreference();
@@ -443,6 +443,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setupAppSettingsSubscription();
     this.setupUserStateSubscription();
     this.setupQueryParamSubscription();
+    this.setupFilterToggleSubscription();
     this.setupSearchTermSubscription();
     this.setupScrollPositionTracking();
     this.setupSelectionSubscription();
@@ -554,7 +555,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.entity$ = routeEntityInfo$.pipe(
         switchMap(({entityId, entityType}) => this.entityService.fetchEntity(entityId, entityType))
       );
-      this.entity$.subscribe(entity => this.handleEntityLoaded(entity));
+      this.entity$.pipe(takeUntil(this.destroy$)).subscribe(entity => this.handleEntityLoaded(entity));
     }
   }
 
@@ -574,7 +575,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private setupRouteChangeHandlers(): void {
-    this.activatedRoute.paramMap.subscribe(() => {
+    this.activatedRoute.paramMap.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.searchTerm$.next('');
       this.bookTitle = '';
       this.bookSelectionService.deselectAll();
@@ -584,8 +585,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private setupUserStateSubscription(): void {
-    this.userService.userState$.pipe(filter(u => !!u?.user && u.loaded))
-      .subscribe(userState => {
+    this.userService.userState$.pipe(
+      filter(u => !!u?.user && u.loaded),
+      takeUntil(this.destroy$)
+    ).subscribe(userState => {
         this.metadataMenuItems = this.bookMenuService.getMetadataMenuItems(
           () => this.autoFetchMetadata(),
           () => this.fetchMetadata(),
@@ -620,14 +623,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.entityRouteInfo$,
       this.activatedRoute.queryParamMap,
       this.userService.userState$.pipe(filter(u => !!u?.user && u.loaded))
-    ]).subscribe(([entityInfo, queryParamMap, user]) => {
+    ]).pipe(takeUntil(this.destroy$)).subscribe(([entityInfo, queryParamMap, user]) => {
       const entityKey = `${entityInfo.entityType}:${entityInfo.entityId}`;
       if (this.lastEntityKey !== null && this.lastEntityKey !== entityKey) {
         this.directoryFilterService.clear();
       }
       this.lastEntityKey = entityKey;
       this.syncActiveDirectoryFilter();
-
       const parseResult = this.queryParamsService.parseQueryParams(
         queryParamMap,
         user.user?.userSettings?.entityViewPreferences,
@@ -715,9 +717,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private setupSearchTermSubscription(): void {
-    this.searchTerm$.subscribe(term => {
+    this.searchTerm$.pipe(takeUntil(this.destroy$)).subscribe(term => {
       this.hasSearchTerm = !!term && term.trim().length > 0;
     });
+  }
+
+  private setupFilterToggleSubscription(): void {
+    this.sidebarFilterTogglePrefService.showFilter$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => {
+        this.showFilter = value;
+      });
   }
 
   private setupSelectionSubscription(): void {
