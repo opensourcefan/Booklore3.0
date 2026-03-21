@@ -82,17 +82,6 @@
               <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle>
                 <div class="root-item-label-container">
                   <div class="media-heading-label">{{ getSectionHeading(section) }}</div>
-                  @if (activeBookTypeFilter) {
-                    <div class="media-heading-actions" (click)="$event.stopPropagation()">
-                      <button
-                        class="media-heading-menu-btn"
-                        type="button"
-                        (click)="mediaHeadingMenu.toggle($event)">
-                        <i class="pi pi-ellipsis-v"></i>
-                      </button>
-                      <p-menu #mediaHeadingMenu [model]="getMediaTypeMenuItems(activeBookTypeFilter)" [popup]="true" appendTo="body"/>
-                    </div>
-                  }
                   <i
                     class="pi pi-plus plus-icon"
                     pTooltip="Create Media Type"

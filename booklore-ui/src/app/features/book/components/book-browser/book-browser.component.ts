@@ -291,6 +291,40 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       : filterSummary;
   }
 
+  get activeMediaTypeFilter(): string | null {
+    const filters = this.selectedFilter.value;
+    if (!filters) {
+      return null;
+    }
+
+    const mediaTypes = filters['customMediaType'] ?? filters['customBookType'];
+    if (!mediaTypes || mediaTypes.length !== 1) {
+      return null;
+    }
+
+    return mediaTypes[0] ?? null;
+  }
+
+  get mediaTypeMenuItems(): MenuItem[] {
+    const mediaType = this.activeMediaTypeFilter;
+    if (!mediaType) {
+      return [];
+    }
+
+    return [
+      {
+        label: 'Edit Media Type',
+        icon: 'pi pi-pencil',
+        command: () => this.editMediaType(mediaType)
+      },
+      {
+        label: 'Delete Media Type',
+        icon: 'pi pi-trash',
+        command: () => this.deleteMediaType(mediaType)
+      }
+    ];
+  }
+
   get isAudiobookOnlyLibrary(): boolean {
     if (!this.entity || this.entityType !== EntityType.LIBRARY) return false;
     const library = this.entity as Library;
@@ -814,6 +848,90 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       detail: this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED
         ? this.t.translate('book.browser.toast.sortSavedGlobalDetail')
         : this.t.translate('book.browser.toast.sortSavedEntityDetail', {entityType: this.entityType.toLowerCase()})
+    });
+  }
+
+  private getStoredMediaTypes(): string[] {
+    const mediaTypes = this.localStorageService.get<string[]>('customMediaTypes') ?? [];
+    const legacyBookTypes = this.localStorageService.get<string[]>('customBookTypes') ?? [];
+    return [...new Set([...mediaTypes, ...legacyBookTypes])].sort((a, b) => a.localeCompare(b));
+  }
+
+  private setStoredMediaTypes(types: string[]): void {
+    this.localStorageService.set('customMediaTypes', types);
+    this.localStorageService.remove('customBookTypes');
+  }
+
+  private editMediaType(mediaType: string): void {
+    const next = window.prompt('Edit Media Type', mediaType)?.trim();
+    if (!next || next === mediaType) {
+      return;
+    }
+
+    const existing = this.getStoredMediaTypes();
+    if (existing.some(type => type.toLowerCase() === next.toLowerCase() && type.toLowerCase() !== mediaType.toLowerCase())) {
+      this.messageService.add({severity: 'warn', summary: 'Media Type exists', detail: 'That Media Type already exists.'});
+      return;
+    }
+
+    const updated = existing.map(type => type.toLowerCase() === mediaType.toLowerCase() ? next : type);
+    this.setStoredMediaTypes([...new Set(updated)].sort((a, b) => a.localeCompare(b)));
+
+    const ids = new Set((this.bookService.getCurrentBookState().books ?? [])
+      .filter(book => (book.fileType ?? '').trim().toLowerCase() === mediaType.toLowerCase())
+      .map(book => book.id));
+
+    if (!ids.size) {
+      if (this.activeMediaTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
+        this.queryParamsService.updateFilters({customMediaType: [next]});
+      }
+      this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type renamed.'});
+      return;
+    }
+
+    this.bookService.updateFileType(ids, next).subscribe({
+      next: () => {
+        if (this.activeMediaTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
+          this.queryParamsService.updateFilters({customMediaType: [next]});
+        }
+        this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type renamed.'});
+      },
+      error: () => {
+        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to rename Media Type.'});
+      }
+    });
+  }
+
+  private deleteMediaType(mediaType: string): void {
+    if (!window.confirm(`Delete Media Type "${mediaType}"?`)) {
+      return;
+    }
+
+    const updated = this.getStoredMediaTypes().filter(type => type.toLowerCase() !== mediaType.toLowerCase());
+    this.setStoredMediaTypes(updated);
+
+    const ids = new Set((this.bookService.getCurrentBookState().books ?? [])
+      .filter(book => (book.fileType ?? '').trim().toLowerCase() === mediaType.toLowerCase())
+      .map(book => book.id));
+
+    if (!ids.size) {
+      if (this.activeMediaTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
+        this.clearFilter();
+      }
+      this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type deleted.'});
+      return;
+    }
+
+    this.bookService.updateFileType(ids, null).subscribe({
+      next: () => {
+        if (this.activeMediaTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
+          this.clearFilter();
+        }
+        this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type deleted.'});
+      },
+      error: () => {
+        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete Media Type.'});
+      }
     });
   }
 

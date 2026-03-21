@@ -6,21 +6,35 @@
       <div class="entity-info-wrapper">
         @if (entityType$ | async; as entityType) {
           <div class="entity-info">
-            <p class="entity-title">
-              @if (entityType === EntityType.ALL_BOOKS) {
-                @if (currentFilterLabel && rawFilterParamFromUrl) {
-                  {{ currentFilterLabel }}
-                } @else if (isFilterActive || hasSearchTerm) {
-                  {{ computedFilterLabel }}
+            <div class="entity-title-row">
+              <p class="entity-title">
+                @if (entityType === EntityType.ALL_BOOKS) {
+                  @if (currentFilterLabel && rawFilterParamFromUrl) {
+                    {{ currentFilterLabel }}
+                  } @else if (isFilterActive || hasSearchTerm) {
+                    {{ computedFilterLabel }}
+                  } @else {
+                    {{ t('labels.allBooks') }}
+                  }
+                } @else if (entityType === EntityType.NOT_SHELFED) {
+                  {{ (isFilterActive || hasSearchTerm) ? t('labels.unshelvedBooksFiltered') : t('labels.unshelvedBooks') }}
                 } @else {
-                  {{ t('labels.allBooks') }}
+                  {{ entityType }}: {{ (entity$ | async)?.name }}{{ (isFilterActive || hasSearchTerm) ? ' ' + t('labels.filteredSuffix') : '' }}
                 }
-              } @else if (entityType === EntityType.NOT_SHELFED) {
-                {{ (isFilterActive || hasSearchTerm) ? t('labels.unshelvedBooksFiltered') : t('labels.unshelvedBooks') }}
-              } @else {
-                {{ entityType }}: {{ (entity$ | async)?.name }}{{ (isFilterActive || hasSearchTerm) ? ' ' + t('labels.filteredSuffix') : '' }}
+              </p>
+              @if (activeMediaTypeFilter) {
+                <div class="entity-menu-wrapper media-type-menu-wrapper">
+                  <p-button
+                    icon="pi pi-ellipsis-v"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="info"
+                    (click)="mediaTypeMenu.toggle($event)">
+                  </p-button>
+                  <p-menu #mediaTypeMenu [model]="mediaTypeMenuItems" [popup]="true" appendTo="body"></p-menu>
+                </div>
               }
-            </p>
+            </div>
             @if (seriesCollapseFilter.isSeriesCollapsed && (bookState$ | async)?.books; as books) {
               <p class="series-collapsed-info">
                 {{ t('labels.seriesCollapsedInfo', { count: books.length, itemWord: books.length === 1 ? t('labels.item') : t('labels.items') }) }}

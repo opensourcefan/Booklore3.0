@@ -90,29 +90,6 @@
   white-space: nowrap;
 }
 
-.media-heading-actions {
-  display: inline-flex;
-  align-items: center;
-}
-
-.media-heading-menu-btn {
-  width: 1.6rem;
-  height: 1.6rem;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary-color);
-  border-radius: 4px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    color: var(--p-primary-color);
-    background: var(--p-surface-700);
-  }
-}
-
 .plus-icon {
   color: var(--p-primary-color);
   transition: color 0.2s ease;

@@ -52,12 +52,19 @@
   }
 }
 
+.entity-title-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
 .entity-title {
   font-size: 1.25rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
+  min-width: 0;
 
   @media (max-width: 767px) {
     font-size: 1rem;
@@ -81,6 +88,11 @@
 .entity-menu-wrapper {
   margin-left: 0.5rem;
   flex-shrink: 0;
+}
+
+.media-type-menu-wrapper {
+  display: inline-flex;
+  align-items: center;
 }
 
 // Toolbar actions

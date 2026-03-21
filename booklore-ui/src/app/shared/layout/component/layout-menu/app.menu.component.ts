@@ -238,7 +238,7 @@ export class AppMenuComponent implements OnInit {
       case 'magicShelf':
         return this.t.translate('layout.menu.magicShelves');
       case 'bookType':
-        return this.activeBookTypeFilter ? `Media: ${this.activeBookTypeFilter}` : 'Media Type';
+        return 'Media Type';
       default:
         return section;
     }
