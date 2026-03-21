@@ -111,7 +111,10 @@
                         <span class="book-type-main">
                           <i class="pi pi-file book-type-icon"></i>
                           <span class="book-type-label"
-                                [class.book-type-label-scroll]="(entry.label?.length ?? 0) > 24">{{ entry.label }}</span>
+                                [class.book-type-label-scroll]="(entry.label?.length ?? 0) > 24">
+                            <span class="book-type-label-inner"
+                                  [class.book-type-label-marquee]="(entry.label?.length ?? 0) > 24">{{ entry.label }}</span>
+                          </span>
                         </span>
                         <span class="book-type-count">{{ entry.count }}</span>
                       </li>

@@ -154,10 +154,22 @@
 }
 
 .book-type-label {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-right: 0.35rem;
+}
+
+.book-type-label-inner {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .book-type-count {
@@ -298,7 +310,23 @@
 }
 
 :host-context(.mobile-sidebar-popover) .book-type-label-scroll {
-  padding-right: 1.5rem;
   text-overflow: clip;
+}
+
+:host-context(.mobile-sidebar-popover) .book-type-label-scroll .book-type-label-inner.book-type-label-marquee {
+  padding-right: 1.5rem;
+  will-change: transform;
   animation: mobile-menu-marquee 8s linear infinite;
+}
+
+@keyframes mobile-menu-marquee {
+  0%, 14% {
+    transform: translateX(0);
+  }
+  48%, 86% {
+    transform: translateX(-35%);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }

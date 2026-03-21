@@ -107,6 +107,14 @@
   font-size: 0.985rem;
 }
 
+.menu-item-text-inner {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .menu-item-end-content {
   display: flex;
 }
@@ -151,10 +159,13 @@
   text-overflow: ellipsis;
 }
 
-:host-context(.mobile-sidebar-popover) .menu-item-text-scroll {
-  display: inline-block;
-  padding-right: 1.5rem;
+:host-context(.mobile-sidebar-popover) .menu-item-text-scroll .menu-item-text-inner {
   text-overflow: clip;
+}
+
+:host-context(.mobile-sidebar-popover) .menu-item-text-scroll .menu-item-text-inner.menu-item-text-marquee {
+  padding-right: 1.5rem;
+  will-change: transform;
   animation: mobile-menu-marquee 8s linear infinite;
 }
 
