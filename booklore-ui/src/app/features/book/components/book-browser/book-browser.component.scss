@@ -252,7 +252,7 @@
   display: flex;
   align-items: center;
 
-  @media (min-width: 768px) {
+  @media (min-width: 992px) {
     display: none;
   }
 }
@@ -260,7 +260,7 @@
 .desktop-right-sidebar-trigger {
   display: none;
 
-  @media (min-width: 768px) {
+  @media (min-width: 992px) {
     display: flex;
     align-items: center;
   }
