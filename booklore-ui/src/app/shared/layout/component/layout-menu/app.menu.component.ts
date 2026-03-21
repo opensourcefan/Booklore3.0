@@ -4,7 +4,7 @@ import {AsyncPipe, NgClass} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
-import {combineLatest, Observable, of} from 'rxjs';
+import {BehaviorSubject, combineLatest, Observable, of} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
 import {ShelfService} from '../../../../features/book/service/shelf.service';
 import {BookService} from '../../../../features/book/service/book.service';
@@ -89,6 +89,7 @@ export class AppMenuComponent implements OnInit {
   private readonly sectionVisibilityKey = 'sidebarSectionVisibility';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
   private readonly customMediaTypesKey = 'customMediaTypes';
+  private readonly mediaTypeMenuRefresh$ = new BehaviorSubject<void>(undefined);
 
   readonly sectionOptions: Array<{key: string; label: string}> = [
     {key: 'home', label: 'layout.menu.home'},
@@ -114,6 +115,11 @@ export class AppMenuComponent implements OnInit {
     this.activeLang = this.t.getActiveLang();
     this.buildLangMenu();
     this.t.langChanges$.subscribe((lang: string) => { this.activeLang = lang; this.buildLangMenu(); });
+    this.localStorageService.keyChanges$.subscribe((key: string) => {
+      if (key === this.customMediaTypesKey || key === 'customBookTypes') {
+        this.mediaTypeMenuRefresh$.next();
+      }
+    });
 
     this.syncActiveBookTypeFilterFromUrl();
     this.router.events.subscribe(() => this.syncActiveBookTypeFilterFromUrl());
@@ -184,8 +190,8 @@ export class AppMenuComponent implements OnInit {
       map(menuItems => this.applyNestedItemOrder('home', menuItems))
     );
 
-    this.bookTypeMenu$ = this.bookService.bookState$.pipe(
-      map(bookState => {
+    this.bookTypeMenu$ = combineLatest([this.bookService.bookState$, this.mediaTypeMenuRefresh$]).pipe(
+      map(([bookState]) => {
         const counts = new Map<string, number>();
         for (const book of bookState.books ?? []) {
           const type = (book.fileType ?? '').trim();
@@ -276,6 +282,7 @@ export class AppMenuComponent implements OnInit {
       }
       const created = typeof result === 'boolean' ? result : !!result.created;
       if (created) {
+        this.mediaTypeMenuRefresh$.next();
         const type = typeof result === 'object' ? result.type : undefined;
         if (type) {
           this.selectBookTypeFilter(type);
@@ -388,6 +395,7 @@ export class AppMenuComponent implements OnInit {
   private setStoredMediaTypes(types: string[]): void {
     this.localStorageService.set(this.customMediaTypesKey, types);
     this.localStorageService.remove('customBookTypes');
+    this.mediaTypeMenuRefresh$.next();
   }
 
   private editMediaType(mediaType: string): void {

@@ -1,0 +1,47 @@
+@use '../../../../shared/styles/panel-shared' as panel;
+
+.delete-dialog {
+  display: flex;
+  flex-direction: column;
+  min-width: 460px;
+
+  @media (max-width: 640px) {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+.panel-header {
+  @include panel.panel-header;
+
+  .header-icon-wrapper.danger {
+    background: color-mix(in srgb, var(--p-red-500), transparent 80%);
+
+    .header-icon {
+      color: var(--p-red-500);
+    }
+  }
+}
+
+.content {
+  padding: 1.4rem 1.5rem 1.25rem;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-top: none;
+}
+
+.message {
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
+}
+
+.sub-message {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-color-secondary);
+}
+
+.dialog-footer {
+  @include panel.dialog-footer;
+  border-top: none;
+}

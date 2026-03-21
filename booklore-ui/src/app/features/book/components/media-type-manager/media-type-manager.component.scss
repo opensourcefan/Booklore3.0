@@ -1,0 +1,78 @@
+@use '../../../../shared/styles/panel-shared' as panel;
+
+.media-type-manager {
+  display: flex;
+  flex-direction: column;
+  min-width: 640px;
+
+  @media (max-width: 760px) {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+.panel-header {
+  @include panel.panel-header;
+}
+
+.list-container {
+  padding: 1rem 1.25rem;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  min-height: 260px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color-secondary);
+  font-size: 0.95rem;
+  padding: 1rem 0.25rem;
+}
+
+.type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.type-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--ground-background);
+  padding: 0.35rem 0.45rem 0.35rem 0.75rem;
+}
+
+.type-cell {
+  min-width: 0;
+  flex: 1;
+}
+
+.type-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+.edit-input {
+  width: 100%;
+}
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.dialog-footer {
+  @include panel.dialog-footer;
+  border-top: none;
+}

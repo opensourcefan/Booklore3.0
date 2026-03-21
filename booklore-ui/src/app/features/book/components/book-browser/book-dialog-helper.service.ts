@@ -21,6 +21,8 @@ import {BookFileAttacherComponent} from '../book-file-attacher/book-file-attache
 import {AddPhysicalBookDialogComponent} from '../add-physical-book-dialog/add-physical-book-dialog.component';
 import {BulkIsbnImportDialogComponent} from '../bulk-isbn-import-dialog/bulk-isbn-import-dialog.component';
 import {DuplicateMergerComponent} from '../duplicate-merger/duplicate-merger.component';
+import {MediaTypeManagerComponent} from '../media-type-manager/media-type-manager.component';
+import {MediaTypeDeleteDialogComponent} from '../media-type-delete-dialog/media-type-delete-dialog.component';
 
 @Injectable({providedIn: 'root'})
 export class BookDialogHelperService {
@@ -89,6 +91,24 @@ export class BookDialogHelperService {
     return this.openDialog(BookTypeCreatorComponent, {
       showHeader: false,
       styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+    })!;
+  }
+
+  openMediaTypeManagerDialog(): DynamicDialogRef {
+    return this.openDialog(MediaTypeManagerComponent, {
+      showHeader: false,
+      styleClass: `${DialogSize.LG} ${DialogStyle.MINIMAL}`,
+    })!;
+  }
+
+  openMediaTypeDeleteDialog(mediaType: string, usageCount: number): DynamicDialogRef {
+    return this.openDialog(MediaTypeDeleteDialogComponent, {
+      showHeader: false,
+      styleClass: `${DialogSize.SM} ${DialogStyle.MINIMAL}`,
+      data: {
+        mediaType,
+        usageCount,
+      },
     })!;
   }
 

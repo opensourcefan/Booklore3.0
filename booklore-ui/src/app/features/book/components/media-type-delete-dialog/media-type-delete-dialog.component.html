@@ -1,0 +1,50 @@
+<div class="delete-dialog">
+  <div class="panel-header">
+    <div class="header-icon-wrapper danger">
+      <i class="pi pi-trash header-icon"></i>
+    </div>
+    <div class="header-text">
+      <h2 class="panel-title">Delete Type</h2>
+      <p class="panel-description">This will remove the selected Media Type label.</p>
+    </div>
+    <p-button
+      icon="pi pi-times"
+      severity="secondary"
+      [text]="true"
+      [rounded]="true"
+      class="close-button"
+      (onClick)="cancel()"
+    />
+  </div>
+
+  <div class="content">
+    <p class="message">
+      Delete Media Type <strong>"{{ mediaType }}"</strong>?
+    </p>
+    <p class="sub-message">
+      @if (usageCount > 0) {
+        {{ usageCount }} book(s) currently use this Media Type and will be cleared.
+      } @else {
+        No books are currently assigned to this Media Type.
+      }
+    </p>
+  </div>
+
+  <div class="dialog-footer">
+    <div></div>
+    <div class="footer-actions">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="cancel()"
+      />
+      <p-button
+        label="Delete Type"
+        icon="pi pi-trash"
+        severity="danger"
+        (onClick)="confirmDelete()"
+      />
+    </div>
+  </div>
+</div>

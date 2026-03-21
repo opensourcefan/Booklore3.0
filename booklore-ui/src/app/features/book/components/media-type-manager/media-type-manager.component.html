@@ -1,0 +1,96 @@
+<div class="media-type-manager">
+  <div class="panel-header">
+    <div class="header-icon-wrapper">
+      <i class="pi pi-list header-icon"></i>
+    </div>
+    <div class="header-text">
+      <h2 class="panel-title">Edit Media Types</h2>
+      <p class="panel-description">Manage all created Media Type labels.</p>
+    </div>
+    <p-button
+      icon="pi pi-times"
+      severity="secondary"
+      [text]="true"
+      [rounded]="true"
+      class="close-button"
+      (onClick)="close()"
+    />
+  </div>
+
+  <div class="list-container">
+    @if (!mediaTypes.length) {
+      <div class="empty-state">
+        <i class="pi pi-info-circle"></i>
+        <span>No Media Types have been created yet.</span>
+      </div>
+    } @else {
+      <div class="type-list">
+        @for (type of mediaTypes; track type) {
+          <div class="type-row">
+            <div class="type-cell">
+              @if (editingType === type) {
+                <input
+                  pInputText
+                  [(ngModel)]="editingValue"
+                  class="edit-input"
+                  placeholder="Media Type name"
+                />
+              } @else {
+                <span class="type-name">{{ type }}</span>
+              }
+            </div>
+            <div class="row-actions">
+              @if (editingType === type) {
+                <p-button
+                  icon="pi pi-check"
+                  severity="success"
+                  [text]="true"
+                  [rounded]="true"
+                  [disabled]="busyType === type"
+                  (onClick)="saveEdit()"
+                />
+                <p-button
+                  icon="pi pi-times"
+                  severity="secondary"
+                  [text]="true"
+                  [rounded]="true"
+                  [disabled]="busyType === type"
+                  (onClick)="cancelEdit()"
+                />
+              } @else {
+                <p-button
+                  icon="pi pi-pencil"
+                  severity="info"
+                  [text]="true"
+                  [rounded]="true"
+                  [disabled]="!!busyType"
+                  (onClick)="startEdit(type)"
+                />
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  [disabled]="!!busyType"
+                  (onClick)="requestDelete(type)"
+                />
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="dialog-footer">
+    <div></div>
+    <div class="footer-actions">
+      <p-button
+        label="Done"
+        icon="pi pi-check"
+        severity="success"
+        (onClick)="close()"
+      />
+    </div>
+  </div>
+</div>

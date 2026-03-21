@@ -315,12 +315,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       {
         label: 'Edit Media Type',
         icon: 'pi pi-pencil',
-        command: () => this.editMediaType(mediaType)
+        command: () => this.openMediaTypeManagerDialog()
       },
       {
         label: 'Delete Media Type',
         icon: 'pi pi-trash',
-        command: () => this.deleteMediaType(mediaType)
+        command: () => this.openMediaTypeDeleteDialog(mediaType)
       }
     ];
   }
@@ -862,51 +862,59 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.localStorageService.remove('customBookTypes');
   }
 
-  private editMediaType(mediaType: string): void {
-    const next = window.prompt('Edit Media Type', mediaType)?.trim();
-    if (!next || next === mediaType) {
+  private openMediaTypeManagerDialog(): void {
+    this.dynamicDialogRef = this.dialogHelperService.openMediaTypeManagerDialog();
+    if (!this.dynamicDialogRef) {
       return;
     }
 
-    const existing = this.getStoredMediaTypes();
-    if (existing.some(type => type.toLowerCase() === next.toLowerCase() && type.toLowerCase() !== mediaType.toLowerCase())) {
-      this.messageService.add({severity: 'warn', summary: 'Media Type exists', detail: 'That Media Type already exists.'});
-      return;
-    }
-
-    const updated = existing.map(type => type.toLowerCase() === mediaType.toLowerCase() ? next : type);
-    this.setStoredMediaTypes([...new Set(updated)].sort((a, b) => a.localeCompare(b)));
-
-    const ids = new Set((this.bookService.getCurrentBookState().books ?? [])
-      .filter(book => (book.fileType ?? '').trim().toLowerCase() === mediaType.toLowerCase())
-      .map(book => book.id));
-
-    if (!ids.size) {
-      if (this.activeMediaTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
-        this.queryParamsService.updateFilters({customMediaType: [next]});
+    this.dynamicDialogRef.onClose.subscribe((result: {
+      changed?: boolean;
+      renamed?: Array<{from: string; to: string}>;
+      deleted?: string[];
+    } | boolean) => {
+      if (!result || typeof result === 'boolean' || !result.changed) {
+        return;
       }
-      this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type renamed.'});
-      return;
-    }
 
-    this.bookService.updateFileType(ids, next).subscribe({
-      next: () => {
-        if (this.activeMediaTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
-          this.queryParamsService.updateFilters({customMediaType: [next]});
-        }
-        this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type renamed.'});
-      },
-      error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to rename Media Type.'});
+      const active = this.activeMediaTypeFilter;
+      if (!active) {
+        return;
+      }
+
+      const renamedMatch = (result.renamed ?? [])
+        .find(rename => rename.from.toLowerCase() === active.toLowerCase());
+
+      if (renamedMatch) {
+        this.queryParamsService.updateFilters({customMediaType: [renamedMatch.to]});
+        return;
+      }
+
+      const deletedActive = (result.deleted ?? [])
+        .some(type => type.toLowerCase() === active.toLowerCase());
+      if (deletedActive) {
+        this.clearFilter();
       }
     });
   }
 
-  private deleteMediaType(mediaType: string): void {
-    if (!window.confirm(`Delete Media Type "${mediaType}"?`)) {
+  private openMediaTypeDeleteDialog(mediaType: string): void {
+    this.dynamicDialogRef = this.dialogHelperService.openMediaTypeDeleteDialog(mediaType, this.getMediaTypeUsageCount(mediaType));
+    if (!this.dynamicDialogRef) {
       return;
     }
 
+    this.dynamicDialogRef.onClose.subscribe((result: {confirmed?: boolean} | boolean) => {
+      const confirmed = typeof result === 'boolean' ? result : !!result?.confirmed;
+      if (!confirmed) {
+        return;
+      }
+
+      this.deleteMediaType(mediaType);
+    });
+  }
+
+  private deleteMediaType(mediaType: string): void {
     const updated = this.getStoredMediaTypes().filter(type => type.toLowerCase() !== mediaType.toLowerCase());
     this.setStoredMediaTypes(updated);
 
@@ -933,6 +941,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete Media Type.'});
       }
     });
+  }
+
+  private getMediaTypeUsageCount(mediaType: string): number {
+    return (this.bookService.getCurrentBookState().books ?? [])
+      .filter(book => (book.fileType ?? '').trim().toLowerCase() === mediaType.toLowerCase())
+      .length;
   }
 
   get sortCriteriaCount(): number {
