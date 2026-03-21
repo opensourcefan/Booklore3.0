@@ -177,6 +177,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
   protected metadataMenuItems: MenuItem[] | undefined;
   protected moreActionsMenuItems: MenuItem[] | undefined;
+  mediaTypeActionsMenuItems: MenuItem[] = [];
 
   private sideBarFilter = new SideBarFilter(this.selectedFilter, this.selectedFilterMode);
   private headerFilter = new HeaderFilter(this.searchTerm$);
@@ -305,13 +306,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     return mediaTypes[0] ?? null;
   }
 
-  get mediaTypeMenuItems(): MenuItem[] {
+  openMediaTypeActionsMenu(event: Event, menu: Menu): void {
     const mediaType = this.activeMediaTypeFilter;
     if (!mediaType) {
-      return [];
+      this.mediaTypeActionsMenuItems = [];
+      return;
     }
 
-    return [
+    this.mediaTypeActionsMenuItems = [
       {
         label: 'Edit Media Type',
         icon: 'pi pi-pencil',
@@ -323,6 +325,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         command: () => this.openMediaTypeDeleteDialog(mediaType)
       }
     ];
+
+    menu.toggle(event);
   }
 
   get isAudiobookOnlyLibrary(): boolean {
