@@ -283,3 +283,18 @@
   letter-spacing: 0.03em;
   line-height: 1;
 }
+
+:host-context(.mobile-sidebar-popover) .book-type-main {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+:host-context(.mobile-sidebar-popover) .book-type-main::-webkit-scrollbar {
+  display: none;
+}
+
+:host-context(.mobile-sidebar-popover) .book-type-label {
+  text-overflow: clip;
+}

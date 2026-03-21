@@ -11,7 +11,7 @@
       tooltipPosition="bottom">
     </p-button>
     <p-popover #mobileSidebarPop styleClass="mobile-sidebar-popover">
-      <app-sidebar></app-sidebar>
+      <app-sidebar (click)="onMobileSidebarClick($event)"></app-sidebar>
     </p-popover>
   </div>
 

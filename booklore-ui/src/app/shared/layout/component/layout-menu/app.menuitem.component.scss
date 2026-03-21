@@ -141,3 +141,15 @@
     stroke-width: 1.9;
   }
 }
+
+:host-context(.mobile-sidebar-popover) .menu-item-text {
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-overflow: clip;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+:host-context(.mobile-sidebar-popover) .menu-item-text::-webkit-scrollbar {
+  display: none;
+}

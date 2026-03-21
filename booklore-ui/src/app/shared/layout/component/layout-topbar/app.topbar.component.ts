@@ -69,6 +69,7 @@ export class AppTopBarComponent implements OnDestroy {
   @ViewChild('topbarmenubutton') topbarMenuButton!: ElementRef;
   @ViewChild('topbarmenu') menu!: ElementRef;
   @ViewChild('statsMenu') statsMenu: Menu | undefined;
+  @ViewChild('mobileSidebarPop') mobileSidebarPop: Popover | undefined;
 
   isMenuVisible = true;
   mobileSearchVisible = false;
@@ -153,6 +154,7 @@ export class AppTopBarComponent implements OnDestroy {
       )
       .subscribe(() => {
         this.mobileSearchVisible = false;
+        this.mobileSidebarPop?.hide();
       });
   }
 
@@ -177,6 +179,21 @@ export class AppTopBarComponent implements OnDestroy {
 
   openMobileSearch(): void {
     this.mobileSearchVisible = true;
+  }
+
+  onMobileSidebarClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target) {
+      return;
+    }
+
+    // Close on row-level selections, but keep open for inline action controls.
+    const selectedRow = target.closest('.menu-item-container, .book-type-item, .sidebar-bottom-btn');
+    const inlineAction = target.closest('.entity-menu-button, .expand-icon, .plus-icon, .section-visibility-btn');
+
+    if (selectedRow && !inlineAction) {
+      this.mobileSidebarPop?.hide();
+    }
   }
 
 
