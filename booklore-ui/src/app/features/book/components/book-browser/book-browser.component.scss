@@ -16,6 +16,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
   width: 100%;
   gap: 0.25rem;
   padding: 0.35rem 0.35rem;
@@ -28,6 +29,11 @@
     gap: 1rem;
     padding: 0.5rem 1rem;
     margin-bottom: 1rem;
+  }
+
+  @media (max-width: 991px) {
+    // Reserve space for the pinned mobile right-sidebar trigger.
+    padding-right: 2.8rem;
   }
 }
 
@@ -254,6 +260,14 @@
 
   @media (min-width: 992px) {
     display: none;
+  }
+
+  @media (max-width: 991px) {
+    position: absolute;
+    right: 0.35rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
   }
 }
 
