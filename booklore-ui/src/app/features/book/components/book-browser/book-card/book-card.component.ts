@@ -358,7 +358,7 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
         command: () => this.openShelfDialog()
       },
       {
-        label: 'Assign Book Type',
+        label: 'Assign Media Type',
         icon: 'pi pi-file',
         command: () => this.openBookTypeDialog()
       },

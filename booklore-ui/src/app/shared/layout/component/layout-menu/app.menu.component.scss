@@ -78,9 +78,39 @@
 .root-item-label-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.5rem;
   cursor: pointer;
+}
+
+.media-heading-label {
+  max-width: 10.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-heading-actions {
+  display: inline-flex;
+  align-items: center;
+}
+
+.media-heading-menu-btn {
+  width: 1.6rem;
+  height: 1.6rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary-color);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: var(--p-primary-color);
+    background: var(--p-surface-700);
+  }
 }
 
 .plus-icon {
@@ -116,9 +146,19 @@
   border-radius: 8px;
   color: var(--text-color);
   font-size: 0.985rem;
+  cursor: pointer;
 
   &:hover {
     background-color: var(--p-surface-800);
+  }
+
+  &.active {
+    background-color: color-mix(in srgb, var(--p-primary-300), transparent 91%);
+
+    .book-type-icon,
+    .book-type-count {
+      color: var(--p-primary-color);
+    }
   }
 }
 

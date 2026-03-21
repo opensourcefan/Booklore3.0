@@ -15,7 +15,7 @@ import {UserService} from '../../../../features/settings/user-management/user.se
 import {MagicShelfService, MagicShelfState} from '../../../../features/magic-shelf/service/magic-shelf.service';
 import {SeriesDataService} from '../../../../features/series-browser/service/series-data.service';
 import {AuthorService} from '../../../../features/author-browser/service/author.service';
-import {MenuItem} from 'primeng/api';
+import {MenuItem, MessageService} from 'primeng/api';
 import {DialogLauncherService} from '../../../services/dialog-launcher.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Menu} from 'primeng/menu';
@@ -64,6 +64,7 @@ export class AppMenuComponent implements OnInit {
   private t = inject(TranslocoService);
   private localStorageService = inject(LocalStorageService);
   private bookDialogHelperService = inject(BookDialogHelperService);
+  private messageService = inject(MessageService);
 
   activeLang = '';
   langMenuItems: any[] = [];
@@ -87,14 +88,14 @@ export class AppMenuComponent implements OnInit {
   private readonly sectionOrderKey = 'sidebarSectionOrder';
   private readonly sectionVisibilityKey = 'sidebarSectionVisibility';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
-  private readonly customBookTypesKey = 'customBookTypes';
+  private readonly customMediaTypesKey = 'customMediaTypes';
 
   readonly sectionOptions: Array<{key: string; label: string}> = [
     {key: 'home', label: 'layout.menu.home'},
     {key: 'library', label: 'layout.menu.libraries'},
     {key: 'shelf', label: 'layout.menu.shelves'},
     {key: 'magicShelf', label: 'layout.menu.magicShelves'},
-    {key: 'bookType', label: 'Book Type'},
+    {key: 'bookType', label: 'Media Type'},
   ];
 
   get visibleSectionOrder(): string[] {
@@ -237,7 +238,7 @@ export class AppMenuComponent implements OnInit {
       case 'magicShelf':
         return this.t.translate('layout.menu.magicShelves');
       case 'bookType':
-        return 'Book Type';
+        return this.activeBookTypeFilter ? `Media: ${this.activeBookTypeFilter}` : 'Media Type';
       default:
         return section;
     }
@@ -258,7 +259,7 @@ export class AppMenuComponent implements OnInit {
 
     this.router.navigate(['/all-books'], {
       queryParams: {
-        filter: `customBookType:${encodeURIComponent(bookType)}`,
+        filter: `customMediaType:${encodeURIComponent(bookType)}`,
       }
     });
   }
@@ -267,8 +268,35 @@ export class AppMenuComponent implements OnInit {
     return this.activeBookTypeFilter === bookType;
   }
 
-  openBookTypeCreatorDialog(): void {
-    this.bookDialogHelperService.openBookTypeCreatorDialog();
+  openMediaTypeCreatorDialog(): void {
+    const dialogRef = this.bookDialogHelperService.openBookTypeCreatorDialog();
+    dialogRef.onClose.subscribe((result: {created?: boolean; type?: string} | boolean) => {
+      if (!result) {
+        return;
+      }
+      const created = typeof result === 'boolean' ? result : !!result.created;
+      if (created) {
+        const type = typeof result === 'object' ? result.type : undefined;
+        if (type) {
+          this.selectBookTypeFilter(type);
+        }
+      }
+    });
+  }
+
+  getMediaTypeMenuItems(mediaType: string): MenuItem[] {
+    return [
+      {
+        label: 'Edit Media Type',
+        icon: 'pi pi-pencil',
+        command: () => this.editMediaType(mediaType)
+      },
+      {
+        label: 'Delete Media Type',
+        icon: 'pi pi-trash',
+        command: () => this.deleteMediaType(mediaType)
+      }
+    ];
   }
 
   toggleSectionVisibility(section: string): void {
@@ -336,18 +364,109 @@ export class AppMenuComponent implements OnInit {
     }
 
     const entries = filterParam.split(',');
-    const customTypeEntry = entries.find(entry => entry.startsWith('customBookType:'));
+    const customTypeEntry = entries.find(entry => entry.startsWith('customMediaType:'))
+      ?? entries.find(entry => entry.startsWith('customBookType:'));
     if (!customTypeEntry) {
       this.activeBookTypeFilter = null;
       return;
     }
 
-    const rawValue = customTypeEntry.substring('customBookType:'.length).split('|')[0]?.trim();
+
+    const keyLength = customTypeEntry.startsWith('customMediaType:')
+      ? 'customMediaType:'.length
+      : 'customBookType:'.length;
+    const rawValue = customTypeEntry.substring(keyLength).split('|')[0]?.trim();
     this.activeBookTypeFilter = rawValue ? decodeURIComponent(rawValue) : null;
   }
 
   private getStoredCustomBookTypes(): string[] {
-    return this.localStorageService.get<string[]>(this.customBookTypesKey) ?? [];
+    const mediaTypes = this.localStorageService.get<string[]>(this.customMediaTypesKey) ?? [];
+    const legacyBookTypes = this.localStorageService.get<string[]>('customBookTypes') ?? [];
+    return [...new Set([...mediaTypes, ...legacyBookTypes])].sort((a, b) => a.localeCompare(b));
+  }
+
+  private setStoredMediaTypes(types: string[]): void {
+    this.localStorageService.set(this.customMediaTypesKey, types);
+    this.localStorageService.remove('customBookTypes');
+  }
+
+  private editMediaType(mediaType: string): void {
+    const next = window.prompt('Edit Media Type', mediaType)?.trim();
+    if (!next || next === mediaType) {
+      return;
+    }
+
+    const existing = this.getStoredCustomBookTypes();
+    if (existing.some(type => type.toLowerCase() === next.toLowerCase() && type.toLowerCase() !== mediaType.toLowerCase())) {
+      this.messageService.add({severity: 'warn', summary: 'Media Type exists', detail: 'That Media Type already exists.'});
+      return;
+    }
+
+    const updated = existing.map(type => type.toLowerCase() === mediaType.toLowerCase() ? next : type);
+    this.setStoredMediaTypes([...new Set(updated)].sort((a, b) => a.localeCompare(b)));
+
+    const ids = new Set((this.bookService.getCurrentBookState().books ?? [])
+      .filter(book => (book.fileType ?? '').trim().toLowerCase() === mediaType.toLowerCase())
+      .map(book => book.id));
+
+    if (!ids.size) {
+      if (this.activeBookTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
+        this.selectBookTypeFilter(next);
+      }
+      this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type renamed.'});
+      return;
+    }
+
+    this.bookService.updateFileType(ids, next).subscribe({
+      next: () => {
+        if (this.activeBookTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
+          this.selectBookTypeFilter(next);
+        }
+        this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type renamed.'});
+      },
+      error: () => {
+        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to rename Media Type.'});
+      }
+    });
+  }
+
+  private deleteMediaType(mediaType: string): void {
+    if (!window.confirm(`Delete Media Type "${mediaType}"?`)) {
+      return;
+    }
+
+    const updated = this.getStoredCustomBookTypes().filter(type => type.toLowerCase() !== mediaType.toLowerCase());
+    this.setStoredMediaTypes(updated);
+
+    const ids = new Set((this.bookService.getCurrentBookState().books ?? [])
+      .filter(book => (book.fileType ?? '').trim().toLowerCase() === mediaType.toLowerCase())
+      .map(book => book.id));
+
+    if (!ids.size) {
+      if (this.activeBookTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
+        this.router.navigate(['/all-books'], {
+          queryParams: {filter: null},
+          queryParamsHandling: 'merge'
+        });
+      }
+      this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type deleted.'});
+      return;
+    }
+
+    this.bookService.updateFileType(ids, null).subscribe({
+      next: () => {
+        if (this.activeBookTypeFilter?.toLowerCase() === mediaType.toLowerCase()) {
+          this.router.navigate(['/all-books'], {
+            queryParams: {filter: null},
+            queryParamsHandling: 'merge'
+          });
+        }
+        this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type deleted.'});
+      },
+      error: () => {
+        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete Media Type.'});
+      }
+    });
   }
 
   private initMenus(): void {

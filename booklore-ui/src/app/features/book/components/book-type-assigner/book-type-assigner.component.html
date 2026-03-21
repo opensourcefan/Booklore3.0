@@ -4,12 +4,12 @@
       <i class="pi pi-file header-icon"></i>
     </div>
     <div class="header-text">
-      <h2 class="panel-title">Assign Book Type</h2>
+      <h2 class="panel-title">Assign Media Type</h2>
       <p class="panel-description">
         @if (isMultiBooks) {
-          Assign a book type to {{ bookIds.size }} selected assets.
+          Assign a media type to {{ bookIds.size }} selected assets.
         } @else {
-          Assign a book type to "{{ book.metadata?.title || book.fileName }}".
+          Assign a media type to "{{ book.metadata?.title || book.fileName }}".
         }
       </p>
     </div>
@@ -36,7 +36,7 @@
             type="text"
             pInputText
             [(ngModel)]="searchQuery"
-            placeholder="Search book type"
+            placeholder="Search media type"
           />
           @if (searchQuery) {
             <i class="pi pi-times clear-icon" (click)="searchQuery = ''"></i>
@@ -69,7 +69,7 @@
 
   <div class="dialog-footer">
     <p-button
-      label="Create Book Type"
+      label="Create Media Type"
       icon="pi pi-plus"
       [outlined]="true"
       severity="info"

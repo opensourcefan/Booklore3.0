@@ -22,37 +22,40 @@ export class BookTypeCreatorComponent {
   private messageService = inject(MessageService);
   private localStorageService = inject(LocalStorageService);
 
-  private readonly customBookTypesKey = 'customBookTypes';
+  private readonly customMediaTypesKey = 'customMediaTypes';
 
-  bookTypeName = '';
+  mediaTypeName = '';
 
   cancel(): void {
     this.dynamicDialogRef.close(false);
   }
 
   createBookType(): void {
-    const candidate = this.bookTypeName.trim();
+    const candidate = this.mediaTypeName.trim();
     if (!candidate) {
       return;
     }
 
-    const existing = this.localStorageService.get<string[]>(this.customBookTypesKey) ?? [];
+    const existing = this.localStorageService.get<string[]>(this.customMediaTypesKey)
+      ?? this.localStorageService.get<string[]>('customBookTypes')
+      ?? [];
     if (existing.some(type => type.toLowerCase() === candidate.toLowerCase())) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Book Type exists',
-        detail: 'That Book Type label already exists.'
+        summary: 'Media Type exists',
+        detail: 'That Media Type label already exists.'
       });
       return;
     }
 
     const updated = [...existing, candidate].sort((a, b) => a.localeCompare(b));
-    this.localStorageService.set(this.customBookTypesKey, updated);
+    this.localStorageService.set(this.customMediaTypesKey, updated);
+    this.localStorageService.remove('customBookTypes');
 
     this.messageService.add({
       severity: 'info',
       summary: 'Success',
-      detail: `Created Book Type "${candidate}".`
+      detail: `Created Media Type "${candidate}".`
     });
 
     this.dynamicDialogRef.close({created: true, type: candidate});

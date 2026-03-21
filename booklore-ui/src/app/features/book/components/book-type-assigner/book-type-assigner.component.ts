@@ -37,7 +37,7 @@ export class BookTypeAssignerComponent implements OnInit {
   private localStorageService = inject(LocalStorageService);
   private bookDialogHelper = inject(BookDialogHelperService);
 
-  private readonly customBookTypesKey = 'customBookTypes';
+  private readonly customMediaTypesKey = 'customMediaTypes';
 
   allFileTypes: string[] = [];
 
@@ -109,7 +109,7 @@ export class BookTypeAssignerComponent implements OnInit {
 
     const payloadFileType = fileType ?? '';
     const ids = this.isMultiBooks ? this.bookIds : new Set([this.book.id]);
-    const loader = this.loadingService.show(`Updating book type for ${ids.size} book${ids.size === 1 ? '' : 's'}...`);
+    const loader = this.loadingService.show(`Updating media type for ${ids.size} asset${ids.size === 1 ? '' : 's'}...`);
 
     this.bookService.updateFileType(ids, payloadFileType)
       .pipe(finalize(() => this.loadingService.hide(loader)))
@@ -118,7 +118,7 @@ export class BookTypeAssignerComponent implements OnInit {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: fileType ? 'Book type updated successfully.' : 'Book type cleared successfully.'
+            detail: fileType ? 'Media type updated successfully.' : 'Media type cleared successfully.'
           });
           this.dynamicDialogRef.close({assigned: true});
         },
@@ -126,7 +126,7 @@ export class BookTypeAssignerComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to update book type.'
+            detail: 'Failed to update media type.'
           });
           this.dynamicDialogRef.close({assigned: false});
         }
@@ -146,11 +146,14 @@ export class BookTypeAssignerComponent implements OnInit {
   }
 
   private getStoredCustomBookTypes(): string[] {
-    return this.localStorageService.get<string[]>(this.customBookTypesKey) ?? [];
+    return this.localStorageService.get<string[]>(this.customMediaTypesKey)
+      ?? this.localStorageService.get<string[]>('customBookTypes')
+      ?? [];
   }
 
   private persistCustomBookTypes(types: string[]): void {
-    this.localStorageService.set(this.customBookTypesKey, this.mergeTypes(types));
+    this.localStorageService.set(this.customMediaTypesKey, this.mergeTypes(types));
+    this.localStorageService.remove('customBookTypes');
   }
 
   private mergeTypes(...sources: string[][]): string[] {

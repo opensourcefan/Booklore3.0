@@ -269,6 +269,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (filterEntries.length === 1) {
       const [filterType, values] = filterEntries[0];
+      if ((filterType === 'customMediaType' || filterType === 'customBookType') && values.length === 1) {
+        return `Media: ${values[0]}`;
+      }
       const filterName = FilterLabelHelper.getFilterTypeName(filterType);
 
       if (values.length === 1) {

@@ -4,8 +4,8 @@
       <i class="pi pi-file header-icon"></i>
     </div>
     <div class="header-text">
-      <h2 class="panel-title">Create Book Type</h2>
-      <p class="panel-description">Create a reusable Book Type label.</p>
+      <h2 class="panel-title">Create Media Type</h2>
+      <p class="panel-description">Create a reusable Media Type label.</p>
     </div>
     <p-button
       icon="pi pi-times"
@@ -18,22 +18,22 @@
 
   <div class="form-container">
     <div class="form-group highlight-group">
-      <label for="bookTypeName" class="form-label">
+      <label for="mediaTypeName" class="form-label">
         <i class="pi pi-file label-icon"></i>
-        Book Type Name
+        Media Type Name
         <span class="required-indicator">*</span>
       </label>
       <div class="input-wrapper">
         <input
-          id="bookTypeName"
+          id="mediaTypeName"
           type="text"
           pInputText
-          [(ngModel)]="bookTypeName"
+          [(ngModel)]="mediaTypeName"
           class="input-full"
-          placeholder="Enter book type name"
-          [class.filled]="bookTypeName.trim()"
+          placeholder="Enter media type name"
+          [class.filled]="mediaTypeName.trim()"
         />
-        @if (bookTypeName.trim()) {
+        @if (mediaTypeName.trim()) {
           <i class="pi pi-check-circle input-icon success"></i>
         }
       </div>
@@ -42,15 +42,15 @@
 
   <div class="dialog-footer">
     <div class="validation-status">
-      @if (!bookTypeName.trim()) {
+      @if (!mediaTypeName.trim()) {
         <div class="validation-message error">
           <i class="pi pi-exclamation-circle"></i>
-          <span>Book Type name is required.</span>
+          <span>Media Type name is required.</span>
         </div>
       } @else {
         <div class="validation-message success">
           <i class="pi pi-check-circle"></i>
-          <span>Ready to create Book Type.</span>
+          <span>Ready to create Media Type.</span>
         </div>
       }
     </div>
@@ -66,7 +66,7 @@
         icon="pi pi-plus"
         severity="success"
         (onClick)="createBookType()"
-        [disabled]="!bookTypeName.trim()"
+        [disabled]="!mediaTypeName.trim()"
       />
     </div>
   </div>
