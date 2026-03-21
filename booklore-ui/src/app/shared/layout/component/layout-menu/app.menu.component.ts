@@ -29,8 +29,6 @@ import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
-import {BookSelectionService} from '../../../../features/book/components/book-browser/book-selection.service';
-import {MessageService} from 'primeng/api';
 
 @Component({
   selector: 'app-menu',
@@ -47,6 +45,7 @@ export class AppMenuComponent implements OnInit {
   bookTypeMenu$: Observable<Array<{label: string; count: number}>> | undefined;
   readonly sectionDragStartDelay = {mouse: 220, touch: 350};
   bookTypeSectionExpanded = true;
+  activeBookTypeFilter: string | null = null;
 
   versionInfo: AppVersion | null = null;
   dynamicDialogRef: DynamicDialogRef | undefined | null;
@@ -65,8 +64,6 @@ export class AppMenuComponent implements OnInit {
   private t = inject(TranslocoService);
   private localStorageService = inject(LocalStorageService);
   private bookDialogHelperService = inject(BookDialogHelperService);
-  private bookSelectionService = inject(BookSelectionService);
-  private messageService = inject(MessageService);
 
   activeLang = '';
   langMenuItems: any[] = [];
@@ -90,6 +87,7 @@ export class AppMenuComponent implements OnInit {
   private readonly sectionOrderKey = 'sidebarSectionOrder';
   private readonly sectionVisibilityKey = 'sidebarSectionVisibility';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
+  private readonly customBookTypesKey = 'customBookTypes';
 
   readonly sectionOptions: Array<{key: string; label: string}> = [
     {key: 'home', label: 'layout.menu.home'},
@@ -115,6 +113,9 @@ export class AppMenuComponent implements OnInit {
     this.activeLang = this.t.getActiveLang();
     this.buildLangMenu();
     this.t.langChanges$.subscribe((lang: string) => { this.activeLang = lang; this.buildLangMenu(); });
+
+    this.syncActiveBookTypeFilterFromUrl();
+    this.router.events.subscribe(() => this.syncActiveBookTypeFilterFromUrl());
 
     this.versionService.getVersion().subscribe((data) => {
       this.versionInfo = data;
@@ -193,6 +194,12 @@ export class AppMenuComponent implements OnInit {
           counts.set(type, (counts.get(type) ?? 0) + 1);
         }
 
+        for (const savedType of this.getStoredCustomBookTypes()) {
+          if (!counts.has(savedType)) {
+            counts.set(savedType, 0);
+          }
+        }
+
         return [...counts.entries()]
           .map(([label, count]) => ({label, count}))
           .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
@@ -240,18 +247,28 @@ export class AppMenuComponent implements OnInit {
     this.bookTypeSectionExpanded = !this.bookTypeSectionExpanded;
   }
 
-  openBookTypeAssignerDialog(): void {
-    const bookIds = new Set(this.bookSelectionService.selectedBooks);
-    if (!bookIds.size) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'No assets selected',
-        detail: 'Select at least one asset before assigning a Book Type.'
+  selectBookTypeFilter(bookType: string): void {
+    if (this.activeBookTypeFilter === bookType) {
+      this.router.navigate(['/all-books'], {
+        queryParams: {filter: null},
+        queryParamsHandling: 'merge'
       });
       return;
     }
 
-    this.bookDialogHelperService.openBookTypeAssignerDialog(null, bookIds);
+    this.router.navigate(['/all-books'], {
+      queryParams: {
+        filter: `customBookType:${encodeURIComponent(bookType)}`,
+      }
+    });
+  }
+
+  isBookTypeFilterActive(bookType: string): boolean {
+    return this.activeBookTypeFilter === bookType;
+  }
+
+  openBookTypeCreatorDialog(): void {
+    this.bookDialogHelperService.openBookTypeCreatorDialog();
   }
 
   toggleSectionVisibility(section: string): void {
@@ -309,6 +326,28 @@ export class AppMenuComponent implements OnInit {
       icon: lang === this.activeLang ? 'pi pi-check' : undefined,
       command: () => this.switchLanguage(lang),
     }));
+  }
+
+  private syncActiveBookTypeFilterFromUrl(): void {
+    const filterParam = this.router.parseUrl(this.router.url).queryParams['filter'];
+    if (typeof filterParam !== 'string' || !filterParam) {
+      this.activeBookTypeFilter = null;
+      return;
+    }
+
+    const entries = filterParam.split(',');
+    const customTypeEntry = entries.find(entry => entry.startsWith('customBookType:'));
+    if (!customTypeEntry) {
+      this.activeBookTypeFilter = null;
+      return;
+    }
+
+    const rawValue = customTypeEntry.substring('customBookType:'.length).split('|')[0]?.trim();
+    this.activeBookTypeFilter = rawValue ? decodeURIComponent(rawValue) : null;
+  }
+
+  private getStoredCustomBookTypes(): string[] {
+    return this.localStorageService.get<string[]>(this.customBookTypesKey) ?? [];
   }
 
   private initMenus(): void {

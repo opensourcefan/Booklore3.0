@@ -84,9 +84,9 @@
                   <div>{{ getSectionHeading(section) }}</div>
                   <i
                     class="pi pi-plus plus-icon"
-                    pTooltip="Assign Book Type"
+                    pTooltip="Create Book Type"
                     tooltipPosition="right"
-                    (click)="openBookTypeAssignerDialog(); $event.stopPropagation()"
+                    (click)="openBookTypeCreatorDialog(); $event.stopPropagation()"
                   ></i>
                 </div>
                 <i
@@ -104,7 +104,10 @@
                 <ul class="layout-menu book-type-submenu">
                   @if (bookTypeMenu$ | async; as bookTypes) {
                     @for (entry of bookTypes; track entry.label) {
-                      <li class="book-type-item">
+                      <li
+                        class="book-type-item"
+                        [class.active]="isBookTypeFilterActive(entry.label)"
+                        (click)="selectBookTypeFilter(entry.label)">
                         <span class="book-type-main">
                           <i class="pi pi-file book-type-icon"></i>
                           <span class="book-type-label">{{ entry.label }}</span>

@@ -28,19 +28,11 @@
   min-height: 350px;
   max-height: 450px;
   overflow: hidden;
-}
 
-.create-type-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-
-  .type-name-input {
-    flex: 1;
-
-    input {
-      width: 100%;
-    }
+  @media (max-width: 480px) {
+    padding: 1rem;
+    min-height: 300px;
+    max-height: 400px;
   }
 }
 
@@ -95,6 +87,24 @@
       color: var(--text-secondary-color);
       font-size: 0.75rem;
       z-index: 1;
+
+      &:hover {
+        color: var(--text-color);
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.5rem 0.625rem;
+    flex-wrap: wrap;
+
+    .type-count {
+      font-size: 0.85rem;
+    }
+
+    .type-search {
+      max-width: 100%;
+      order: 1;
     }
   }
 }

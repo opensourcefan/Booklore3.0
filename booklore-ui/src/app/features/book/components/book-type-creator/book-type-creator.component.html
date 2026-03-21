@@ -1,0 +1,73 @@
+<div class="book-type-creator">
+  <div class="panel-header">
+    <div class="header-icon-wrapper">
+      <i class="pi pi-file header-icon"></i>
+    </div>
+    <div class="header-text">
+      <h2 class="panel-title">Create Book Type</h2>
+      <p class="panel-description">Create a reusable Book Type label.</p>
+    </div>
+    <p-button
+      icon="pi pi-times"
+      (click)="cancel()"
+      severity="secondary"
+      [text]="true"
+      [rounded]="true"
+      class="close-button"/>
+  </div>
+
+  <div class="form-container">
+    <div class="form-group highlight-group">
+      <label for="bookTypeName" class="form-label">
+        <i class="pi pi-file label-icon"></i>
+        Book Type Name
+        <span class="required-indicator">*</span>
+      </label>
+      <div class="input-wrapper">
+        <input
+          id="bookTypeName"
+          type="text"
+          pInputText
+          [(ngModel)]="bookTypeName"
+          class="input-full"
+          placeholder="Enter book type name"
+          [class.filled]="bookTypeName.trim()"
+        />
+        @if (bookTypeName.trim()) {
+          <i class="pi pi-check-circle input-icon success"></i>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-footer">
+    <div class="validation-status">
+      @if (!bookTypeName.trim()) {
+        <div class="validation-message error">
+          <i class="pi pi-exclamation-circle"></i>
+          <span>Book Type name is required.</span>
+        </div>
+      } @else {
+        <div class="validation-message success">
+          <i class="pi pi-check-circle"></i>
+          <span>Ready to create Book Type.</span>
+        </div>
+      }
+    </div>
+    <div class="footer-actions">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="cancel()"
+      />
+      <p-button
+        label="Create"
+        icon="pi pi-plus"
+        severity="success"
+        (onClick)="createBookType()"
+        [disabled]="!bookTypeName.trim()"
+      />
+    </div>
+  </div>
+</div>

@@ -10,6 +10,7 @@ import {MultiBookMetadataEditorComponent} from '../../../metadata/component/mult
 import {MultiBookMetadataFetchComponent} from '../../../metadata/component/multi-book-metadata-fetch/multi-book-metadata-fetch-component';
 import {FileMoverComponent} from '../../../../shared/components/file-mover/file-mover-component';
 import {ShelfCreatorComponent} from '../shelf-creator/shelf-creator.component';
+import {BookTypeCreatorComponent} from '../book-type-creator/book-type-creator.component';
 import {BookSenderComponent} from '../book-sender/book-sender.component';
 import {MetadataFetchOptionsComponent} from '../../../metadata/component/metadata-options-dialog/metadata-fetch-options/metadata-fetch-options.component';
 import {BookMetadataCenterComponent} from '../../../metadata/component/book-metadata-center/book-metadata-center.component';
@@ -79,6 +80,13 @@ export class BookDialogHelperService {
 
   openShelfCreatorDialog(): DynamicDialogRef {
     return this.openDialog(ShelfCreatorComponent, {
+      showHeader: false,
+      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+    })!;
+  }
+
+  openBookTypeCreatorDialog(): DynamicDialogRef {
+    return this.openDialog(BookTypeCreatorComponent, {
       showHeader: false,
       styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
     })!;

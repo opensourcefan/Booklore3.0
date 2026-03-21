@@ -24,26 +24,6 @@
   </div>
 
   <div class="book-types-container">
-    <div class="create-type-row">
-      <p-iconfield class="type-name-input">
-        <p-inputicon class="pi pi-plus"/>
-        <input
-          type="text"
-          pInputText
-          [(ngModel)]="newFileType"
-          placeholder="Create a new book type"
-          (keydown.enter)="createFileType()"
-        />
-      </p-iconfield>
-      <p-button
-        label="Create"
-        icon="pi pi-plus"
-        severity="secondary"
-        (onClick)="createFileType()"
-        [disabled]="!newFileType.trim()"
-      />
-    </div>
-
     <div class="types-list">
       <div class="list-header">
         <span class="type-count">
@@ -88,6 +68,13 @@
   </div>
 
   <div class="dialog-footer">
+    <p-button
+      label="Create Book Type"
+      icon="pi pi-plus"
+      [outlined]="true"
+      severity="info"
+      (onClick)="createBookTypeDialog()"
+    />
     <div class="footer-actions">
       <p-button
         label="Cancel"
@@ -101,15 +88,6 @@
         severity="success"
         (onClick)="updateFileType()"
       />
-      @if (isMultiBooks) {
-        <p-button
-          label="Remove Book Types"
-          icon="pi pi-times"
-          severity="danger"
-          [outlined]="true"
-          (onClick)="removeFileType()"
-        />
-      }
     </div>
   </div>
 </div>

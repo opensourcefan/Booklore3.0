@@ -11,6 +11,8 @@ import {LoadingService} from '../../../../core/services/loading.service';
 import {InputText} from 'primeng/inputtext';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
+import {LocalStorageService} from '../../../../shared/service/local-storage.service';
+import {BookDialogHelperService} from '../book-browser/book-dialog-helper.service';
 
 @Component({
   selector: 'app-book-type-assigner',
@@ -32,11 +34,14 @@ export class BookTypeAssignerComponent implements OnInit {
   private messageService = inject(MessageService);
   private bookService = inject(BookService);
   private loadingService = inject(LoadingService);
+  private localStorageService = inject(LocalStorageService);
+  private bookDialogHelper = inject(BookDialogHelperService);
+
+  private readonly customBookTypesKey = 'customBookTypes';
 
   allFileTypes: string[] = [];
 
   searchQuery = '';
-  newFileType = '';
   selectedFileType: string | null = null;
 
   book: Book = this.dynamicDialogConfig.data.book;
@@ -44,15 +49,20 @@ export class BookTypeAssignerComponent implements OnInit {
   isMultiBooks: boolean = this.dynamicDialogConfig.data.isMultiBooks;
 
   ngOnInit(): void {
-    const books = this.bookService.getCurrentBookState().books ?? [];
-    this.allFileTypes = [...new Set(books
-      .map(item => item.fileType?.trim())
-      .filter((item): item is string => !!item))]
-      .sort((a, b) => a.localeCompare(b));
+    this.reloadFileTypes();
 
     if (!this.isMultiBooks) {
       this.selectedFileType = this.book?.fileType ?? null;
     }
+  }
+
+  private reloadFileTypes(): void {
+    const books = this.bookService.getCurrentBookState().books ?? [];
+    const assignedTypes = books
+      .map(item => item.fileType?.trim())
+      .filter((item): item is string => !!item);
+    this.allFileTypes = this.mergeTypes(assignedTypes, this.getStoredCustomBookTypes());
+    this.persistCustomBookTypes(this.allFileTypes);
   }
 
   isFileTypeSelected(fileType: string): boolean {
@@ -67,19 +77,24 @@ export class BookTypeAssignerComponent implements OnInit {
     this.selectedFileType = checked ? fileType : null;
   }
 
-  createFileType(): void {
-    const candidate = this.newFileType.trim();
-    if (!candidate) {
-      return;
-    }
+  createBookTypeDialog(): void {
+    const dialogRef = this.bookDialogHelper.openBookTypeCreatorDialog();
 
-    const exists = this.allFileTypes.some(type => type.toLowerCase() === candidate.toLowerCase());
-    if (!exists) {
-      this.allFileTypes = [...this.allFileTypes, candidate].sort((a, b) => a.localeCompare(b));
-    }
+    dialogRef.onClose.subscribe((result: {created?: boolean; type?: string} | boolean) => {
+      if (!result) {
+        return;
+      }
 
-    this.selectedFileType = this.allFileTypes.find(type => type.toLowerCase() === candidate.toLowerCase()) ?? candidate;
-    this.newFileType = '';
+      const created = typeof result === 'boolean' ? result : !!result.created;
+      if (!created) {
+        return;
+      }
+
+      this.reloadFileTypes();
+      if (typeof result === 'object' && result.type) {
+        this.selectedFileType = result.type;
+      }
+    });
   }
 
   updateFileType(): void {
@@ -87,12 +102,11 @@ export class BookTypeAssignerComponent implements OnInit {
     this.persistFileType(normalizedFileType);
   }
 
-  removeFileType(): void {
-    this.selectedFileType = null;
-    this.persistFileType(null);
-  }
-
   private persistFileType(fileType: string | null): void {
+    if (fileType) {
+      this.persistCustomBookTypes(this.mergeTypes(this.allFileTypes, [fileType]));
+    }
+
     const payloadFileType = fileType ?? '';
     const ids = this.isMultiBooks ? this.bookIds : new Set([this.book.id]);
     const loader = this.loadingService.show(`Updating book type for ${ids.size} book${ids.size === 1 ? '' : 's'}...`);
@@ -129,5 +143,29 @@ export class BookTypeAssignerComponent implements OnInit {
 
   closeDialog(): void {
     this.dynamicDialogRef.close({assigned: false});
+  }
+
+  private getStoredCustomBookTypes(): string[] {
+    return this.localStorageService.get<string[]>(this.customBookTypesKey) ?? [];
+  }
+
+  private persistCustomBookTypes(types: string[]): void {
+    this.localStorageService.set(this.customBookTypesKey, this.mergeTypes(types));
+  }
+
+  private mergeTypes(...sources: string[][]): string[] {
+    const merged: string[] = [];
+    for (const source of sources) {
+      for (const rawType of source) {
+        const type = rawType.trim();
+        if (!type) {
+          continue;
+        }
+        if (!merged.some(existing => existing.toLowerCase() === type.toLowerCase())) {
+          merged.push(type);
+        }
+      }
+    }
+    return merged.sort((a, b) => a.localeCompare(b));
   }
 }
