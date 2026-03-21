@@ -3,7 +3,7 @@
     @if (item.hasDropDown) {
       <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle>
         <div class="root-item-label-container">
-          <div>{{ item.label }}</div>
+          <div [class.library-root-heading-label]="item.type === 'library'">{{ item.label }}</div>
           @if (item.hasCreate) {
             <i
               class="pi pi-plus plus-icon"
