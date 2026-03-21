@@ -86,14 +86,14 @@ export class BookTypeAssignerComponent implements OnInit {
     if (!this.selectedFileType) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Select File Type',
-        detail: 'Choose a file type before saving.'
+        summary: 'Select Book Type',
+        detail: 'Choose a book type before saving.'
       });
       return;
     }
 
     const ids = this.isMultiBooks ? this.bookIds : new Set([this.book.id]);
-    const loader = this.loadingService.show(`Updating file type for ${ids.size} book${ids.size === 1 ? '' : 's'}...`);
+    const loader = this.loadingService.show(`Updating book type for ${ids.size} book${ids.size === 1 ? '' : 's'}...`);
 
     this.bookService.updateFileType(ids, this.selectedFileType)
       .pipe(finalize(() => this.loadingService.hide(loader)))
@@ -102,7 +102,7 @@ export class BookTypeAssignerComponent implements OnInit {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: 'File type updated successfully.'
+            detail: 'Book type updated successfully.'
           });
           this.dynamicDialogRef.close({assigned: true});
         },
@@ -110,7 +110,7 @@ export class BookTypeAssignerComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Failed to update file type.'
+            detail: 'Failed to update book type.'
           });
           this.dynamicDialogRef.close({assigned: false});
         }

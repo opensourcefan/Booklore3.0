@@ -4,12 +4,12 @@
       <i class="pi pi-tag header-icon"></i>
     </div>
     <div class="header-text">
-      <h2 class="panel-title">Assign File Type</h2>
+      <h2 class="panel-title">Assign Book Type</h2>
       <p class="panel-description">
         @if (isMultiBooks) {
-          Assign a file type to {{ bookIds.size }} selected assets.
+          Assign a book type to {{ bookIds.size }} selected assets.
         } @else {
-          Assign a file type to "{{ book.metadata?.title || book.fileName }}".
+          Assign a book type to "{{ book.metadata?.title || book.fileName }}".
         }
       </p>
     </div>
@@ -31,7 +31,7 @@
           type="text"
           pInputText
           [(ngModel)]="newFileType"
-          placeholder="Create a new file type"
+          placeholder="Create a new book type"
           (keydown.enter)="createFileType()"
         />
       </p-iconfield>
@@ -56,7 +56,7 @@
             type="text"
             pInputText
             [(ngModel)]="searchQuery"
-            placeholder="Search file type"
+            placeholder="Search book type"
           />
           @if (searchQuery) {
             <i class="pi pi-times clear-icon" (click)="searchQuery = ''"></i>

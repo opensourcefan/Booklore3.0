@@ -1,6 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {AppMenuitemComponent} from './app.menuitem.component';
-import {AsyncPipe} from '@angular/common';
+import {AsyncPipe, NgClass} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
@@ -28,11 +28,12 @@ import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-lo
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
+import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, Popover, CheckboxModule, FormsModule],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, NgClass, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, Popover, CheckboxModule, FormsModule],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
@@ -41,7 +42,9 @@ export class AppMenuComponent implements OnInit {
   shelfMenu$: Observable<MenuItem[]> | undefined;
   homeMenu$: Observable<MenuItem[]> | undefined;
   magicShelfMenu$: Observable<MenuItem[]> | undefined;
+  bookTypeMenu$: Observable<Array<{label: string; count: number}>> | undefined;
   readonly sectionDragStartDelay = {mouse: 220, touch: 350};
+  bookTypeSectionExpanded = true;
 
   versionInfo: AppVersion | null = null;
   dynamicDialogRef: DynamicDialogRef | undefined | null;
@@ -59,6 +62,7 @@ export class AppMenuComponent implements OnInit {
   private authorService = inject(AuthorService);
   private t = inject(TranslocoService);
   private localStorageService = inject(LocalStorageService);
+  private bookDialogHelperService = inject(BookDialogHelperService);
 
   activeLang = '';
   langMenuItems: any[] = [];
@@ -88,7 +92,7 @@ export class AppMenuComponent implements OnInit {
     {key: 'library', label: 'layout.menu.libraries'},
     {key: 'shelf', label: 'layout.menu.shelves'},
     {key: 'magicShelf', label: 'layout.menu.magicShelves'},
-    {key: 'bookType', label: 'FILE TYPES'},
+    {key: 'bookType', label: 'Book Type'},
   ];
 
   get visibleSectionOrder(): string[] {
@@ -173,6 +177,23 @@ export class AppMenuComponent implements OnInit {
       ]),
       map(menuItems => this.applyNestedItemOrder('home', menuItems))
     );
+
+    this.bookTypeMenu$ = this.bookService.bookState$.pipe(
+      map(bookState => {
+        const counts = new Map<string, number>();
+        for (const book of bookState.books ?? []) {
+          const type = (book.fileType ?? book.primaryFile?.bookType ?? 'Unknown').trim();
+          if (!type) {
+            continue;
+          }
+          counts.set(type, (counts.get(type) ?? 0) + 1);
+        }
+
+        return [...counts.entries()]
+          .map(([label, count]) => ({label, count}))
+          .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+      })
+    );
   }
 
   onSectionDrop(event: CdkDragDrop<string[]>): void {
@@ -205,10 +226,23 @@ export class AppMenuComponent implements OnInit {
       case 'magicShelf':
         return this.t.translate('layout.menu.magicShelves');
       case 'bookType':
-        return 'FILE TYPES';
+        return 'Book Type';
       default:
         return section;
     }
+  }
+
+  toggleBookTypeSection(): void {
+    this.bookTypeSectionExpanded = !this.bookTypeSectionExpanded;
+  }
+
+  openBookTypeAssignerDialog(): void {
+    const bookIds = new Set((this.bookService.getCurrentBookState().books ?? []).map(book => book.id));
+    if (!bookIds.size) {
+      return;
+    }
+
+    this.bookDialogHelperService.openBookTypeAssignerDialog(null, bookIds);
   }
 
   toggleSectionVisibility(section: string): void {
