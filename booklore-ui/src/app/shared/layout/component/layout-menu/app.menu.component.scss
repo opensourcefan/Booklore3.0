@@ -112,21 +112,34 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.55rem 0.75rem 0.55rem 1.95rem;
+  padding: 0.65rem 0.75rem 0.65rem 1.25rem;
   border-radius: 8px;
   color: var(--text-color);
-  font-size: 0.92rem;
+  font-size: 0.985rem;
 
   &:hover {
     background-color: var(--p-surface-800);
   }
 }
 
+.book-type-main {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.5rem;
+}
+
+.book-type-icon {
+  color: var(--text-secondary-color);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
 .book-type-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-right: 0.5rem;
+  margin-right: 0.35rem;
 }
 
 .book-type-count {

@@ -84,7 +84,16 @@ export class BookTypeAssignerComponent implements OnInit {
 
   updateFileType(): void {
     const normalizedFileType = this.selectedFileType?.trim() || null;
-    const payloadFileType = normalizedFileType ?? '';
+    this.persistFileType(normalizedFileType);
+  }
+
+  removeFileType(): void {
+    this.selectedFileType = null;
+    this.persistFileType(null);
+  }
+
+  private persistFileType(fileType: string | null): void {
+    const payloadFileType = fileType ?? '';
     const ids = this.isMultiBooks ? this.bookIds : new Set([this.book.id]);
     const loader = this.loadingService.show(`Updating book type for ${ids.size} book${ids.size === 1 ? '' : 's'}...`);
 
@@ -95,7 +104,7 @@ export class BookTypeAssignerComponent implements OnInit {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: normalizedFileType ? 'Book type updated successfully.' : 'Book type cleared successfully.'
+            detail: fileType ? 'Book type updated successfully.' : 'Book type cleared successfully.'
           });
           this.dynamicDialogRef.close({assigned: true});
         },

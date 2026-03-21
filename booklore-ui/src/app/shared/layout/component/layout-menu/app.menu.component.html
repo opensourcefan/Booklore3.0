@@ -105,7 +105,10 @@
                   @if (bookTypeMenu$ | async; as bookTypes) {
                     @for (entry of bookTypes; track entry.label) {
                       <li class="book-type-item">
-                        <span class="book-type-label">{{ entry.label }}</span>
+                        <span class="book-type-main">
+                          <i class="pi pi-file book-type-icon"></i>
+                          <span class="book-type-label">{{ entry.label }}</span>
+                        </span>
                         <span class="book-type-count">{{ entry.count }}</span>
                       </li>
                     }

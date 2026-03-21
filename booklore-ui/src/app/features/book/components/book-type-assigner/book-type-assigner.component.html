@@ -1,7 +1,7 @@
 <div class="book-type-assigner">
   <div class="panel-header">
     <div class="header-icon-wrapper">
-      <i class="pi pi-tag header-icon"></i>
+      <i class="pi pi-file header-icon"></i>
     </div>
     <div class="header-text">
       <h2 class="panel-title">Assign Book Type</h2>
@@ -47,7 +47,7 @@
     <div class="types-list">
       <div class="list-header">
         <span class="type-count">
-          <i class="pi pi-tag"></i>
+          <i class="pi pi-file"></i>
           {{ allFileTypes.length }} types available
         </span>
         <p-iconfield class="type-search">
@@ -101,6 +101,15 @@
         severity="success"
         (onClick)="updateFileType()"
       />
+      @if (isMultiBooks) {
+        <p-button
+          label="Remove Book Types"
+          icon="pi pi-times"
+          severity="danger"
+          [outlined]="true"
+          (onClick)="removeFileType()"
+        />
+      }
     </div>
   </div>
 </div>
