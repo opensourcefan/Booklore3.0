@@ -3,7 +3,7 @@
     @if (item.hasDropDown) {
       <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle>
         <div class="root-item-label-container">
-          <div [class.library-root-heading-label]="item.type === 'library'">{{ item.label }}</div>
+          <div>{{ item.label }}</div>
           @if (item.hasCreate) {
             <i
               class="pi pi-plus plus-icon"
@@ -44,6 +44,7 @@
           (click)="itemClick($event)"
           [ngClass]="item.class"
           class="menu-item-link"
+          [class.library-item-link]="item.type === 'Library'"
           [class.active-route]="isRouteActive"
           [routerLink]="item.routerLink"
           [fragment]="item.fragment"

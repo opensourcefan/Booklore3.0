@@ -34,10 +34,6 @@
   cursor: pointer;
 }
 
-.library-root-heading-label {
-  margin-left: -0.35rem;
-}
-
 .expand-icon {
   color: var(--p-surface-500);
   padding-right: 0.75rem;
@@ -87,6 +83,14 @@
   align-items: center;
   gap: 0.5rem;
   width: 100%;
+}
+
+.library-item-link {
+  gap: 0.3rem;
+
+  .menu-item-text {
+    margin-left: 0;
+  }
 }
 
 
