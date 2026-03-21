@@ -29,6 +29,8 @@ import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
+import {BookSelectionService} from '../../../../features/book/components/book-browser/book-selection.service';
+import {MessageService} from 'primeng/api';
 
 @Component({
   selector: 'app-menu',
@@ -63,6 +65,8 @@ export class AppMenuComponent implements OnInit {
   private t = inject(TranslocoService);
   private localStorageService = inject(LocalStorageService);
   private bookDialogHelperService = inject(BookDialogHelperService);
+  private bookSelectionService = inject(BookSelectionService);
+  private messageService = inject(MessageService);
 
   activeLang = '';
   langMenuItems: any[] = [];
@@ -182,7 +186,7 @@ export class AppMenuComponent implements OnInit {
       map(bookState => {
         const counts = new Map<string, number>();
         for (const book of bookState.books ?? []) {
-          const type = (book.fileType ?? book.primaryFile?.bookType ?? 'Unknown').trim();
+          const type = (book.fileType ?? '').trim();
           if (!type) {
             continue;
           }
@@ -237,8 +241,13 @@ export class AppMenuComponent implements OnInit {
   }
 
   openBookTypeAssignerDialog(): void {
-    const bookIds = new Set((this.bookService.getCurrentBookState().books ?? []).map(book => book.id));
+    const bookIds = new Set(this.bookSelectionService.selectedBooks);
     if (!bookIds.size) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No assets selected',
+        detail: 'Select at least one asset before assigning a Book Type.'
+      });
       return;
     }
 

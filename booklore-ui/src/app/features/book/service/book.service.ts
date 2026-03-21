@@ -232,7 +232,7 @@ export class BookService {
     );
   }
 
-  updateFileType(bookIds: Set<number | undefined>, fileType: string): Observable<Book[]> {
+  updateFileType(bookIds: Set<number | undefined>, fileType: string | null): Observable<Book[]> {
     return this.bookPatchService.updateFileType(bookIds, fileType).pipe(
       catchError(error => {
         const currentState = this.bookStateService.getCurrentBookState();

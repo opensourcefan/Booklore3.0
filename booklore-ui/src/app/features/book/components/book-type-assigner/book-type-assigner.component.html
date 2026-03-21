@@ -67,7 +67,7 @@
       <div class="types-grid">
         @for (fileType of filterFileTypes(allFileTypes); track fileType) {
           <div class="type-item" [class.selected]="isFileTypeSelected(fileType)" (click)="setSelectedFileType(fileType)">
-            <div class="type-checkbox">
+            <div class="type-checkbox" (click)="$event.stopPropagation()">
               <p-checkbox
                 [inputId]="'file-type-' + fileType"
                 [binary]="true"
@@ -100,7 +100,6 @@
         icon="pi pi-check"
         severity="success"
         (onClick)="updateFileType()"
-        [disabled]="!selectedFileType"
       />
     </div>
   </div>

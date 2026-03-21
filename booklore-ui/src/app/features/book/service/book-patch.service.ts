@@ -72,7 +72,7 @@ export class BookPatchService {
     );
   }
 
-  updateFileType(bookIds: Set<number | undefined>, fileType: string): Observable<Book[]> {
+  updateFileType(bookIds: Set<number | undefined>, fileType: string | null): Observable<Book[]> {
     const requestPayload = {
       bookIds: Array.from(bookIds),
       fileType,
