@@ -12,7 +12,7 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
         <span>Customize Toolbar</span>
       </div>
       <ul class="toolbar-editor-list">
-        <li *ngFor="let item of config.items; let i = index"
+        <li *ngFor="let item of draftItems; let i = index"
             class="toolbar-editor-item"
             draggable="true"
             (dragstart)="onDragStart(i)"
@@ -47,15 +47,16 @@ export class ToolbarEditorComponent {
   config = inject(ToolbarConfigService);
   @Output() saved = new EventEmitter<void>();
   private dragIndex = -1;
+  draftItems: ToolbarItem[] = this.config.items.map(item => ({...item}));
 
   onDragStart(i: number) { this.dragIndex = i; }
   onDragOver(e: DragEvent, i: number) { e.preventDefault(); }
   onDrop(i: number) {
     if (this.dragIndex < 0 || this.dragIndex === i) return;
-    const items = [...this.config.items];
+    const items = [...this.draftItems];
     const [moved] = items.splice(this.dragIndex, 1);
     items.splice(i, 0, moved);
-    this.config.items = items;
+    this.draftItems = items;
     this.dragIndex = -1;
   }
   getItemLabel(item: ToolbarItem): string {
@@ -65,6 +66,14 @@ export class ToolbarEditorComponent {
     return item.id === 'sep1' ? 'Separator 1' : item.id === 'sep2' ? 'Separator 2' : 'Separator';
   }
   toggleVisible(item: ToolbarItem) { item.visible = !item.visible; }
-  save() { this.config.save(); this.saved.emit(); }
-  reset() { this.config.reset(); this.saved.emit(); }
+  save() {
+    this.config.setItems(this.draftItems.map(item => ({...item})));
+    this.config.save();
+    this.saved.emit();
+  }
+  reset() {
+    this.config.reset();
+    this.draftItems = this.config.items.map(item => ({...item}));
+    this.saved.emit();
+  }
 }

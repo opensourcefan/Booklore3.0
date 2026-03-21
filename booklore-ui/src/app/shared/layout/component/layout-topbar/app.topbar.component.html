@@ -40,140 +40,107 @@
   <div class="topbar-content">
     <app-book-searcher class="topbar-search"></app-book-searcher>
     <ul class="topbar-items topbar-desktop-items">
-      <div class="topbar-action-group">
-        @if (userService.userState$ | async; as userState) {
-          @if (userState.user?.permissions?.canAccessBookdrop || userState.user?.permissions?.admin) {
-            @if (toolbarConfig.isVisible('bookdrop')) {
-            <li>
-              <a class="topbar-item" (click)="navigateToBookdrop()" [pTooltip]="t('bookdrop')" tooltipPosition="bottom">
-                <i class="pi pi-inbox topbar-icon"></i>
-              </a>
-            </li>
+      @for (item of visibleDesktopToolbarItems; track item.id) {
+        @if (item.type === 'separator') {
+          <p-divider layout="vertical"/>
+        } @else {
+          @switch (item.id) {
+            @case ('bookdrop') {
+              <li>
+                <a class="topbar-item" (click)="navigateToBookdrop()" [pTooltip]="t('bookdrop')" tooltipPosition="bottom">
+                  <i class="pi pi-inbox topbar-icon"></i>
+                </a>
+              </li>
             }
-          }
-          @if (userState.user?.permissions?.canManageLibrary || userState.user?.permissions?.admin) {
-            <li>
-              <a class="topbar-item" (click)="openLibraryCreatorDialog()" [pTooltip]="t('createNewLibrary')" tooltipPosition="bottom">
-                <i class="pi pi-plus-circle topbar-icon"></i>
-              </a>
-            </li>
-          }
-          @if (userState.user?.permissions?.canUpload || userState.user?.permissions?.admin) {
-            @if (toolbarConfig.isVisible('upload')) {
-            <li>
-              <a class="topbar-item" (click)="openFileUploadDialog()" [pTooltip]="t('uploadBook')" tooltipPosition="bottom">
-                <i class="pi pi-upload topbar-icon"></i>
-              </a>
-            </li>
+            @case ('createLibrary') {
+              <li>
+                <a class="topbar-item" (click)="openLibraryCreatorDialog()" [pTooltip]="t('createNewLibrary')" tooltipPosition="bottom">
+                  <i class="pi pi-plus-circle topbar-icon"></i>
+                </a>
+              </li>
+            }
+            @case ('upload') {
+              <li>
+                <a class="topbar-item" (click)="openFileUploadDialog()" [pTooltip]="t('uploadBook')" tooltipPosition="bottom">
+                  <i class="pi pi-upload topbar-icon"></i>
+                </a>
+              </li>
+            }
+            @case ('metadata') {
+              <li>
+                <a class="topbar-item" (click)="navigateToMetadataManager()" [pTooltip]="t('metadataManager')" tooltipPosition="bottom">
+                  <i class="pi pi-sparkles topbar-icon"></i>
+                </a>
+              </li>
+            }
+            @case ('stats') {
+              <li>
+                <button
+                  class="topbar-item"
+                  (click)="shouldShowStatsMenu ? statsMenu?.toggle($event) : handleStatsButtonClick($event)"
+                  [pTooltip]="statsTooltip"
+                  tooltipPosition="bottom">
+                  <svg class="multi-color-chart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1.25rem; height: 1.25rem;">
+                    <rect x="2" y="13" width="4" height="9" rx="1" fill="#ef4444"/>
+                    <rect x="7.5" y="3" width="4" height="19" rx="1" fill="#f59e0b"/>
+                    <rect x="13" y="9" width="4" height="13" rx="1" fill="#3b82f6"/>
+                    <rect x="18.5" y="5" width="4" height="17" rx="1" fill="#10b981"/>
+                  </svg>
+                </button>
+                @if (shouldShowStatsMenu) {
+                  <p-menu #statsMenu [model]="statsMenuItems" [popup]="true" appendTo="body"/>
+                }
+              </li>
+            }
+            @case ('notifications') {
+              <li class="topbar-item-relative">
+                <button type="button" class="topbar-item" (click)="notificationPopover.toggle($event)">
+                  <i
+                    class="pi"
+                    [ngClass]="iconClass"
+                    [ngStyle]="{ color: iconColor }"
+                    style="font-size: 1.25rem"
+                    [class.pulsating]="iconPulsating"
+                    [attr.aria-label]="t('notificationAriaLabel')"></i>
+                </button>
+                @if (shouldShowNotificationBadge) {
+                  <span class="notification-badge">{{ completedTaskCount }}</span>
+                }
+                <p-popover #notificationPopover>
+                  <app-unified-notification-popover-component></app-unified-notification-popover-component>
+                </p-popover>
+              </li>
+            }
+            @case ('theme') {
+              <li class="topbar-item-relative">
+                <button type="button"
+                        class="topbar-item config-item"
+                        enterActiveClass="animate-scalein"
+                        enterFromClass="hidden"
+                        leaveActiveClass="animate-fadeout"
+                        leaveToClass="hidden"
+                        pStyleClass="@next" [hideOnOutsideClick]="true">
+                  <i class="pi pi-palette"></i>
+                </button>
+                <app-theme-configurator></app-theme-configurator>
+              </li>
+            }
+            @case ('user') {
+              <li>
+                <button class="topbar-item" (click)="openUserProfileDialog()" [pTooltip]="t('profile')" tooltipPosition="bottom">
+                  <i class="pi pi-user topbar-icon"></i>
+                </button>
+              </li>
             }
           }
         }
-        @if (hasStatsAccess && toolbarConfig.isVisible('stats')) {
-          <li>
-            <button
-              class="topbar-item"
-              (click)="shouldShowStatsMenu ? statsMenu?.toggle($event) : handleStatsButtonClick($event)"
-              [pTooltip]="statsTooltip"
-              tooltipPosition="bottom">
-              <svg class="multi-color-chart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1.25rem; height: 1.25rem;">
-                <rect x="2" y="13" width="4" height="9" rx="1" fill="#ef4444"/>
-                <rect x="7.5" y="3" width="4" height="19" rx="1" fill="#f59e0b"/>
-                <rect x="13" y="9" width="4" height="13" rx="1" fill="#3b82f6"/>
-                <rect x="18.5" y="5" width="4" height="17" rx="1" fill="#10b981"/>
-              </svg>
-            </button>
-            @if (shouldShowStatsMenu) {
-              <p-menu #statsMenu [model]="statsMenuItems" [popup]="true" appendTo="body"/>
-            }
-          </li>
-        }
-        @if (userService.userState$ | async; as userState) {
-          @if (userState.user?.permissions?.canManageLibrary || userState.user?.permissions?.admin) {
-            <li>
-              @if (toolbarConfig.isVisible('metadata')) {
-              <a class="topbar-item" (click)="navigateToMetadataManager()" [pTooltip]="t('metadataManager')" tooltipPosition="bottom">
-                <i class="pi pi-sparkles topbar-icon"></i>
-              </a>
-              }
-            </li>
-          }
-        }
-        <li>
-        </li>
-      </div>
-
-      @if (toolbarConfig.isVisible('sep1')) {
-        <p-divider layout="vertical"/>
       }
 
-
-      <div class="topbar-action-group">
-        @if (toolbarConfig.isVisible('notifications')) {
-          <li class="topbar-item-relative">
-            <button
-              type="button"
-              class="topbar-item"
-              (click)="notificationPopover.toggle($event)"
-            >
-              <i
-                class="pi"
-                [ngClass]="iconClass"
-                [ngStyle]="{ color: iconColor }"
-                style="font-size: 1.25rem"
-                [class.pulsating]="iconPulsating"
-                [attr.aria-label]="t('notificationAriaLabel')"
-              ></i>
-            </button>
-
-            @if (shouldShowNotificationBadge) {
-              <span class="notification-badge">{{ completedTaskCount }}</span>
-            }
-
-            <p-popover #notificationPopover>
-              <app-unified-notification-popover-component></app-unified-notification-popover-component>
-            </p-popover>
-          </li>
-        }
-
-        @if (toolbarConfig.isVisible('theme')) {
-          <li class="topbar-item-relative">
-            <button type="button"
-                    class="topbar-item config-item"
-                    enterActiveClass="animate-scalein"
-                    enterFromClass="hidden"
-                    leaveActiveClass="animate-fadeout"
-                    leaveToClass="hidden"
-                    pStyleClass="@next" [hideOnOutsideClick]="true">
-              <i class="pi pi-palette"></i>
-            </button>
-            <app-theme-configurator></app-theme-configurator>
-          </li>
-        }
-      </div>
-      @if (toolbarConfig.isVisible('sep2')) {
-        <p-divider layout="vertical"/>
-      }
-      <div class="topbar-action-group">
-
-        <!-- Show Profile only to demo users -->
-        @if (userService.userState$ | async; as userState) {
-          @if (!userState.user?.permissions?.demoUser) {
-            @if (toolbarConfig.isVisible('user')) {
-            <li>
-              <button class="topbar-item" (click)="openUserProfileDialog()" [pTooltip]="t('profile')" tooltipPosition="bottom">
-                <i class="pi pi-user topbar-icon"></i>
-              </button>
-            </li>
-            }
-          }
-        }
-
-        <li>
-          <button class="topbar-item" (click)="logout()" [pTooltip]="t('logout')" tooltipPosition="left">
-            <i class="pi pi-sign-out topbar-icon"></i>
-          </button>
-        </li>
-      </div>
+      <li>
+        <button class="topbar-item" (click)="logout()" [pTooltip]="t('logout')" tooltipPosition="left">
+          <i class="pi pi-sign-out topbar-icon"></i>
+        </button>
+      </li>
     </ul>
     <!-- Trigger Button -->
     <div class="mobile-trigger">

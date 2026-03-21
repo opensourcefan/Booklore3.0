@@ -1,4 +1,4 @@
-import {ToolbarConfigService} from './toolbar-config.service';
+import {STORAGE_KEY, ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 import {ToolbarEditorComponent} from './toolbar-editor.component';
 import {AppSidebarComponent} from '../layout-sidebar/app.sidebar.component';
 import {Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
@@ -153,6 +153,9 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   private onStorageChange(event: StorageEvent): void {
+    if (event.key === STORAGE_KEY) {
+      this.toolbarConfig.load();
+    }
   }
 
   toggleMenu() {
@@ -339,5 +342,61 @@ export class AppTopBarComponent implements OnDestroy {
       !this.progressHighlight &&
       !this.showPulse
     );
+  }
+
+  get visibleDesktopToolbarItems(): ToolbarItem[] {
+    const userState = this.userService.userStateSubject.value;
+    const filtered = this.toolbarConfig.items.filter(item => this.isToolbarItemVisible(item, userState.user));
+    return this.normalizeToolbarSequence(filtered);
+  }
+
+  private isToolbarItemVisible(item: ToolbarItem, user: any): boolean {
+    if (!item.visible) {
+      return false;
+    }
+
+    if (item.type === 'separator') {
+      return true;
+    }
+
+    switch (item.id) {
+      case 'bookdrop':
+        return !!(user?.permissions?.canAccessBookdrop || user?.permissions?.admin);
+      case 'createLibrary':
+        return !!(user?.permissions?.canManageLibrary || user?.permissions?.admin);
+      case 'upload':
+        return !!(user?.permissions?.canUpload || user?.permissions?.admin);
+      case 'metadata':
+        return !!(user?.permissions?.canManageLibrary || user?.permissions?.admin);
+      case 'stats':
+        return this.hasStatsAccess;
+      case 'notifications':
+      case 'theme':
+        return true;
+      case 'user':
+        return !user?.permissions?.demoUser;
+      default:
+        return true;
+    }
+  }
+
+  private normalizeToolbarSequence(items: ToolbarItem[]): ToolbarItem[] {
+    const normalized: ToolbarItem[] = [];
+
+    for (const item of items) {
+      if (item.type === 'separator') {
+        if (!normalized.length || normalized[normalized.length - 1].type === 'separator') {
+          continue;
+        }
+      }
+
+      normalized.push(item);
+    }
+
+    while (normalized.length && normalized[normalized.length - 1].type === 'separator') {
+      normalized.pop();
+    }
+
+    return normalized;
   }
 }
