@@ -4,7 +4,7 @@ import {AppSidebarComponent} from '../layout-sidebar/app.sidebar.component';
 import {Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import {MenuItem} from 'primeng/api';
 import {LayoutService} from '../layout-main/service/app.layout.service';
-import {Router, RouterLink} from '@angular/router';
+import {NavigationStart, Router, RouterLink} from '@angular/router';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {TooltipModule} from 'primeng/tooltip';
 import {FormsModule} from '@angular/forms';
@@ -20,13 +20,14 @@ import {AuthService} from '../../../service/auth.service';
 import {UserService} from '../../../../features/settings/user-management/user.service';
 import {Popover} from 'primeng/popover';
 import {MetadataProgressService} from '../../../service/metadata-progress.service';
-import {takeUntil} from 'rxjs/operators';
+import {filter, takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
 import {MetadataBatchProgressNotification} from '../../../model/metadata-batch-progress.model';
 import {BookdropFileService} from '../../../../features/bookdrop/service/bookdrop-file.service';
 import {DialogLauncherService} from '../../../services/dialog-launcher.service';
 import {UnifiedNotificationBoxComponent} from '../../../components/unified-notification-popover/unified-notification-popover-component';
 import {Severity, LogNotification} from '../../../websocket/model/log-notification.model';
+import {Dialog} from 'primeng/dialog';
 import {Menu} from 'primeng/menu';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
@@ -54,6 +55,7 @@ import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
     UnifiedNotificationBoxComponent,
     NgStyle,
     Menu,
+    Dialog,
     TranslocoDirective,
     AppSidebarComponent,
   ],
@@ -69,6 +71,7 @@ export class AppTopBarComponent implements OnDestroy {
   @ViewChild('statsMenu') statsMenu: Menu | undefined;
 
   isMenuVisible = true;
+  mobileSearchVisible = false;
   progressHighlight = false;
   completedTaskCount = 0;
   hasActiveOrCompletedTasks = false;
@@ -142,6 +145,15 @@ export class AppTopBarComponent implements OnDestroy {
       .subscribe(() => {
         this.initializeStatsMenu();
       });
+
+    this.router.events
+      .pipe(
+        filter(e => e instanceof NavigationStart),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.mobileSearchVisible = false;
+      });
   }
 
   ngOnDestroy(): void {
@@ -161,6 +173,10 @@ export class AppTopBarComponent implements OnDestroy {
   toggleMenu() {
     this.isMenuVisible = !this.isMenuVisible;
     this.layoutService.onMenuToggle();
+  }
+
+  openMobileSearch(): void {
+    this.mobileSearchVisible = true;
   }
 
 

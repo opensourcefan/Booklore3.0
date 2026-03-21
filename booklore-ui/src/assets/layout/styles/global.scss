@@ -130,3 +130,11 @@
     overflow-wrap: break-word;
   }
 }
+
+// Mobile search dialog — allow absolute dropdown to overflow the dialog content
+.mobile-search-dialog.p-dialog {
+  .p-dialog-content {
+    overflow: visible;
+    padding: 0.75rem;
+  }
+}

@@ -39,6 +39,10 @@
 .topbar-search {
   flex-grow: 1;
   min-width: 0;
+
+  @media (max-width: 767px) {
+    display: none;
+  }
 }
 
 .topbar-desktop-items {
@@ -73,6 +77,24 @@
 
   @media (max-width: 767px) {
     display: block;
+  }
+}
+
+.mobile-center-bar {
+  display: none;
+
+  @media (max-width: 767px) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    .mobile-trigger {
+      margin-left: 0;
+    }
   }
 }
 
