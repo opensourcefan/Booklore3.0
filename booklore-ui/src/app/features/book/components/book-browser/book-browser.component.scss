@@ -242,10 +242,15 @@
 }
 
 :host ::ng-deep .mobile-right-sidebar-popover .p-popover-content {
-  width: min(24rem, calc(100vw - 1rem));
-  max-height: calc(100dvh - 8rem);
+  width: 16rem;
+  max-height: calc(100dvh - 5rem);
   overflow-y: auto;
-  padding: 0.5rem;
+  padding: 0 0.25rem 0 0.6rem;
+}
+
+.mobile-right-sidebar-trigger {
+  display: flex;
+  align-items: center;
 }
 
 .search-clear-btn {
@@ -491,51 +496,10 @@
   }
 }
 
-// Filter overlay (mobile sidebar)
-.mobile-filter-mask {
-  @media (max-width: 991px) {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 998;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-  }
-}
-
 // Filter panel + cover preview container
 .filter-overlay-container {
   flex-shrink: 0;
   z-index: 50;
-
-  @media (max-width: 991px) {
-    width: var(--sidebar-width, 225px);
-    position: fixed;
-    top: 3.85rem;
-    right: 0;
-    bottom: 0;
-    height: calc(100% - 3.85rem);
-    background-color: var(--card-background);
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    z-index: 1001;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-
-    &.active {
-      transform: translateX(0);
-      margin-left: 0;
-    }
-
-    app-book-filter {
-      flex: 1;
-      overflow-y: auto;
-      min-height: 0;
-    }
-  }
 
   @media (min-width: 992px) {
     position: relative;

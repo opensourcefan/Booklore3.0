@@ -266,13 +266,15 @@
         </div>
 
         @if (isMobile) {
-          <a class="topbar-items topbar-item" (click)="mobileRightSidebarPop.toggle($event)">
-            <i
-              class="pi pi-angle-double-left"
+          <div class="mobile-right-sidebar-trigger">
+            <p-button
+              icon="pi pi-ellipsis-v"
+              [text]="true"
+              (click)="mobileRightSidebarPop.toggle($event)"
               [pTooltip]="t('tooltip.toggleSidebar')"
-              tooltipPosition="top">
-            </i>
-          </a>
+              tooltipPosition="bottom">
+            </p-button>
+          </div>
           <p-popover #mobileRightSidebarPop styleClass="mobile-right-sidebar-popover" [dismissable]="true" appendTo="body">
             <app-book-filter
               [showFilter]="true"
