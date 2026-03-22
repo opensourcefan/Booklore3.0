@@ -39,6 +39,9 @@
   width: 16rem;
   max-height: calc(100dvh - 5rem);
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding: 0 0.25rem 0 0.6rem;
 }
 

@@ -3,7 +3,7 @@
     @if (item.hasDropDown) {
       <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle>
         <div class="root-item-label-container">
-          <div>{{ item.label }}</div>
+          <div class="sidebar-heading-label">{{ item.label }}</div>
           @if (item.hasCreate) {
             <i
               class="pi pi-plus plus-icon"
@@ -23,7 +23,7 @@
       </div>
     } @else {
       <div class="layout-menuitem-root-text root-item drag-press-target" cdkDragHandle>
-        <div>{{ item.label }}</div>
+        <div class="sidebar-heading-label">{{ item.label }}</div>
       </div>
     }
   }
@@ -60,7 +60,7 @@
         >
           @if (item.unhealthy$ | async) {
             <span
-              class="library-health-icon"
+              class="sidebar-row-status-slot sidebar-row-status-slot-visible library-health-icon"
               [pTooltip]="'common.libraryPathInaccessible' | transloco"
               tooltipPosition="right"
               aria-hidden="true"
@@ -72,6 +72,8 @@
                 <path d="m8.1 8.1 7.8 7.8"></path>
               </svg>
             </span>
+          } @else {
+            <span class="sidebar-row-status-slot" aria-hidden="true"></span>
           }
           <app-icon-display
             [icon]="getIconSelection()"
