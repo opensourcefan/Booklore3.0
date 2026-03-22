@@ -37,7 +37,7 @@ export class MediaTypeManagerComponent implements OnInit {
   deleted: string[] = [];
 
   ngOnInit(): void {
-    this.mediaTypes = this.getStoredMediaTypes();
+    this.mediaTypes = this.getAllDisplayTypes();
   }
 
   close(): void {
@@ -75,7 +75,7 @@ export class MediaTypeManagerComponent implements OnInit {
       return;
     }
 
-    const existing = this.getStoredMediaTypes();
+    const existing = this.getAllDisplayTypes();
     if (existing.some(type => type.toLowerCase() === next.toLowerCase() && type.toLowerCase() !== current.toLowerCase())) {
       this.messageService.add({severity: 'warn', summary: 'Media Type exists', detail: 'That Media Type already exists.'});
       return;
@@ -89,7 +89,7 @@ export class MediaTypeManagerComponent implements OnInit {
 
       this.changed = true;
       this.renamed.push({from: current, to: next});
-      this.mediaTypes = this.getStoredMediaTypes();
+      this.mediaTypes = this.getAllDisplayTypes();
       this.cancelEdit();
       this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type renamed.'});
     });
@@ -122,7 +122,7 @@ export class MediaTypeManagerComponent implements OnInit {
       if (this.editingType?.toLowerCase() === mediaType.toLowerCase()) {
         this.cancelEdit();
       }
-      this.mediaTypes = this.getStoredMediaTypes();
+      this.mediaTypes = this.getAllDisplayTypes();
       this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type deleted.'});
     });
   }
@@ -173,6 +173,14 @@ export class MediaTypeManagerComponent implements OnInit {
     return (this.bookService.getCurrentBookState().books ?? [])
       .filter(book => (book.fileType ?? '').trim().toLowerCase() === mediaType.toLowerCase())
       .length;
+  }
+
+  private getAllDisplayTypes(): string[] {
+    const stored = this.getStoredMediaTypes();
+    const fromBooks = (this.bookService.getCurrentBookState().books ?? [])
+      .map(b => (b.fileType ?? '').trim())
+      .filter(t => !!t);
+    return [...new Set([...stored, ...fromBooks])].sort((a, b) => a.localeCompare(b));
   }
 
   private getStoredMediaTypes(): string[] {
