@@ -240,6 +240,40 @@
       </div>
     </div>
 
+    <div class="preferences-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="pi pi-heart-fill"></i>
+          {{ t('libraryHealth.sectionTitle') }}
+        </h3>
+      </div>
+
+      <div class="settings-card">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label-row">
+              <label class="setting-label">{{ t('libraryHealth.checkInterval') }}</label>
+              <div class="input-group">
+                <div class="input-with-unit">
+                  <input
+                    type="text"
+                    pInputText
+                    [(ngModel)]="healthCheckIntervalSeconds"
+                    [placeholder]="t('libraryHealth.checkIntervalPlaceholder')"/>
+                  <span class="unit">{{ t('libraryHealth.seconds') }}</span>
+                </div>
+                <p-button [label]="'common.save' | transloco" outlined severity="success" (onClick)="saveHealthCheckInterval()"></p-button>
+              </div>
+            </div>
+            <p class="setting-description">
+              <i class="pi pi-info-circle"></i>
+              {{ t('libraryHealth.checkIntervalDesc') }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 </ng-container>

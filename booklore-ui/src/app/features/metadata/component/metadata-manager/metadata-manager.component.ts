@@ -18,6 +18,7 @@ import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
+import {filter, take} from 'rxjs/operators';
 import {ExternalDocLinkComponent} from '../../../../shared/components/external-doc-link/external-doc-link.component';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 
@@ -166,11 +167,12 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
 
   loadMetadata() {
     this.loading = true;
-    this.bookService.bookState$.subscribe(state => {
-      if (state.loaded && state.books) {
-        this.extractMetadata(state.books);
-        this.loading = false;
-      }
+    this.bookService.bookState$.pipe(
+      filter(state => state.loaded && !!state.books),
+      take(1)
+    ).subscribe(state => {
+      this.extractMetadata(state.books!);
+      this.loading = false;
     });
   }
 

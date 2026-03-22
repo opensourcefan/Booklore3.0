@@ -40,4 +40,5 @@ public class AppSettings {
     private String oidcGroupSyncMode;
     private boolean oidcForceOnlyMode;
     private String diskType;
+    private Integer libraryHealthCheckIntervalSeconds;
 }

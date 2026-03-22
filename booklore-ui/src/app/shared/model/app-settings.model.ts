@@ -198,6 +198,7 @@ export interface AppSettings {
   oidcGroupSyncMode: string | null;
   oidcForceOnlyMode: boolean;
   diskType: string;
+  libraryHealthCheckIntervalSeconds: number;
 }
 
 export interface MetadataProviderSpecificFields {
@@ -247,4 +248,5 @@ export enum AppSettingKey {
   OIDC_SESSION_DURATION_HOURS = 'OIDC_SESSION_DURATION_HOURS',
   OIDC_GROUP_SYNC_MODE = 'OIDC_GROUP_SYNC_MODE',
   OIDC_FORCE_ONLY_MODE = 'OIDC_FORCE_ONLY_MODE',
+  LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS = 'LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS',
 }

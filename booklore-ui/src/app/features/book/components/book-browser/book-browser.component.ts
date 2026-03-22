@@ -506,6 +506,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private setupQueryParamSubscription(): void {
+    this.sidebarFilterTogglePrefService.showFilter$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => {
+        this.showFilter = value;
+      });
+
     combineLatest([
       this.entityRouteInfo$,
       this.activatedRoute.queryParamMap,
@@ -527,11 +533,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           this.bookFilterComponent.selectedFilterMode = parseResult.filterMode;
         }
       }
-
-      this.sidebarFilterTogglePrefService.showFilter$.subscribe(value => {
-        this.showFilter = value;
-      });
-
 
       this.currentFilterLabel = this.t.translate('book.browser.labels.allBooks');
       const filterParams = queryParamMap.get('filter');

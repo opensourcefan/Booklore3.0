@@ -35,6 +35,15 @@
     "invalidInput": "Invalid Input",
     "invalidInputDetail": "Please enter a valid max file upload size in MB."
   },
+  "libraryHealth": {
+    "sectionTitle": "Library Health Monitoring",
+    "checkInterval": "Health Check Interval",
+    "checkIntervalPlaceholder": "Interval",
+    "checkIntervalDesc": "How often (in seconds) the server checks whether library paths are accessible. Changes take effect immediately. Minimum 30 seconds. Default: 120.",
+    "seconds": "sec",
+    "invalidInput": "Invalid Input",
+    "invalidInputDetail": "Please enter a valid interval of at least 30 seconds."
+  },
   "transfer": {
     "sectionTitle": "Settings Transfer",
     "title": "Export / Import Application Settings",

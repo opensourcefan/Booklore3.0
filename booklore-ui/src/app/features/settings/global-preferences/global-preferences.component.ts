@@ -53,6 +53,7 @@ export class GlobalPreferencesComponent implements OnInit {
 
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
   maxFileUploadSizeInMb?: number;
+  healthCheckIntervalSeconds?: number;
   regenerateCoverMenuItems: MenuItem[] = [];
 
   ngOnInit(): void {
@@ -70,6 +71,9 @@ export class GlobalPreferencesComponent implements OnInit {
     ).subscribe(settings => {
       if (settings?.maxFileUploadSizeInMb) {
         this.maxFileUploadSizeInMb = settings.maxFileUploadSizeInMb;
+      }
+      if (settings?.libraryHealthCheckIntervalSeconds) {
+        this.healthCheckIntervalSeconds = settings.libraryHealthCheckIntervalSeconds;
       }
       if (settings?.coverCroppingSettings) {
         this.coverCroppingSettings = {...settings.coverCroppingSettings};
@@ -105,6 +109,14 @@ export class GlobalPreferencesComponent implements OnInit {
       return;
     }
     this.saveSetting(AppSettingKey.MAX_FILE_UPLOAD_SIZE_IN_MB, this.maxFileUploadSizeInMb);
+  }
+
+  saveHealthCheckInterval() {
+    if (!this.healthCheckIntervalSeconds || this.healthCheckIntervalSeconds < 30) {
+      this.showMessage('error', this.t.translate('settingsApp.libraryHealth.invalidInput'), this.t.translate('settingsApp.libraryHealth.invalidInputDetail'));
+      return;
+    }
+    this.saveSetting(AppSettingKey.LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS, this.healthCheckIntervalSeconds);
   }
 
   regenerateCovers(missingOnly = false): void {

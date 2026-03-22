@@ -1,4 +1,5 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, DestroyRef, inject, OnInit} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Observable} from 'rxjs';
@@ -31,6 +32,7 @@ export class LibraryMetadataSettingsComponent implements OnInit {
   private messageService = inject(MessageService);
   private sidecarService = inject(SidecarService);
   private t = inject(TranslocoService);
+  private destroyRef = inject(DestroyRef);
 
   libraries$: Observable<Library[]> = this.libraryService.libraryState$.pipe(
     map(state => state.libraries || [])
@@ -45,7 +47,7 @@ export class LibraryMetadataSettingsComponent implements OnInit {
   private cachedDefaultOptions: Record<number, MetadataRefreshOptions> = {};
 
   ngOnInit() {
-    this.appSettingsService.appSettings$.subscribe(appSettings => {
+    this.appSettingsService.appSettings$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(appSettings => {
       if (appSettings) {
         this.isLocalStorage = appSettings.diskType === 'LOCAL';
         this.defaultMetadataOptions = appSettings.defaultMetadataRefreshOptions;
@@ -55,7 +57,7 @@ export class LibraryMetadataSettingsComponent implements OnInit {
       }
     });
 
-    this.libraries$.subscribe(libraries => {
+    this.libraries$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(libraries => {
       libraries.forEach(library => {
         if (library.id && !this.libraryMetadataOptions[library.id]) {
           const libraryOptions = this.getLibrarySpecificOptions(library.id);

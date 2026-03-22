@@ -7,6 +7,7 @@ import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.model.websocket.LibraryHealthPayload;
 import org.booklore.model.websocket.Topic;
 import org.booklore.repository.LibraryPathRepository;
+import org.booklore.service.appsettings.AppSettingService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,16 +27,24 @@ public class LibraryHealthService {
 
     private final LibraryPathRepository libraryPathRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final AppSettingService appSettingService;
     private final ConcurrentHashMap<Long, Boolean> previousHealth = new ConcurrentHashMap<>();
+    private final AtomicLong lastCheckEpochMs = new AtomicLong(0);
 
     @PostConstruct
     public void init() {
         var health = checkHealth();
         previousHealth.putAll(health);
+        lastCheckEpochMs.set(System.currentTimeMillis());
     }
 
     @Scheduled(fixedDelay = 30, timeUnit = TimeUnit.SECONDS)
     public void checkAndBroadcast() {
+        long intervalMs = (long) appSettingService.getAppSettings().getLibraryHealthCheckIntervalSeconds() * 1000;
+        if (System.currentTimeMillis() - lastCheckEpochMs.get() < intervalMs) {
+            return;
+        }
+        lastCheckEpochMs.set(System.currentTimeMillis());
         var health = checkHealth();
         if (!health.equals(previousHealth)) {
             previousHealth.clear();
