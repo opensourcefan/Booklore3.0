@@ -1,0 +1,171 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 3 /Kids [5 0 R 7 0 R 9 0 R] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 2902 >>
+stream
+BT
+/F1 11 Tf
+1 0 0 1 50 742 Tm (Booklore Import Organization: Findings and Options) Tj
+1 0 0 1 50 728 Tm () Tj
+1 0 0 1 50 714 Tm (Date: 2026-03-21) Tj
+1 0 0 1 50 700 Tm () Tj
+1 0 0 1 50 686 Tm (Problem Summary) Tj
+1 0 0 1 50 672 Tm () Tj
+1 0 0 1 50 658 Tm (When importing large parent directories with many already-organized child folders, all) Tj
+1 0 0 1 50 644 Tm (imported books initially appear in Not Shelved because no shelf assignments are automatically) Tj
+1 0 0 1 50 630 Tm (created during import. This makes users re-sort content manually, and effectively encourages) Tj
+1 0 0 1 50 616 Tm (one-folder-at-a-time import.) Tj
+1 0 0 1 50 602 Tm () Tj
+1 0 0 1 50 588 Tm (Prior Findings \(from previous research\)) Tj
+1 0 0 1 50 574 Tm () Tj
+1 0 0 1 50 560 Tm (1. Recursive import intermittency) Tj
+1 0 0 1 50 546 Tm () Tj
+1 0 0 1 50 532 Tm (Observed behavior can appear intermittent due to a few scan-path realities:) Tj
+1 0 0 1 50 518 Tm () Tj
+1 0 0 1 50 504 Tm (- Directory traversal uses recursive file walking with symlink following.) Tj
+1 0 0 1 50 490 Tm (- Certain directories are intentionally skipped \(hidden/system/temp patterns, unreadable) Tj
+1 0 0 1 50 476 Tm (directories, and directories with a .ignore marker\).) Tj
+1 0 0 1 50 462 Tm (- The audio-folder classifier can collapse multi-file audio directories into folder-based) Tj
+1 0 0 1 50 448 Tm (audiobook entries, which can feel like missing files depending on expectations.) Tj
+1 0 0 1 50 434 Tm (- Some processing exceptions are handled without a highly visible user-facing diagnostic.) Tj
+1 0 0 1 50 420 Tm () Tj
+1 0 0 1 50 406 Tm (Suggested mitigations:) Tj
+1 0 0 1 50 392 Tm () Tj
+1 0 0 1 50 378 Tm (- Increase scan diagnostics \(surface skipped paths/reasons\).) Tj
+1 0 0 1 50 364 Tm (- Add an import/scan summary report \(processed, skipped, inaccessible\).) Tj
+1 0 0 1 50 350 Tm (- Add guardrails for folder-based audiobook classification edge cases.) Tj
+1 0 0 1 50 336 Tm () Tj
+1 0 0 1 50 322 Tm (2. Import-time tagging concept) Tj
+1 0 0 1 50 308 Tm () Tj
+1 0 0 1 50 294 Tm (Feasibility is high because tags already exist in metadata and are applied through standard) Tj
+1 0 0 1 50 280 Tm (metadata services. This could allow import-assigned tags and then Magic Shelf rules on tags.) Tj
+1 0 0 1 50 266 Tm () Tj
+1 0 0 1 50 252 Tm (Current Option Review) Tj
+1 0 0 1 50 238 Tm () Tj
+1 0 0 1 50 224 Tm (Option 1: Magic Shelf by Library \(no code\)) Tj
+1 0 0 1 50 210 Tm () Tj
+1 0 0 1 50 196 Tm (Pros:) Tj
+1 0 0 1 50 182 Tm () Tj
+1 0 0 1 50 168 Tm (- Works immediately.) Tj
+1 0 0 1 50 154 Tm (- No migration, no code changes.) Tj
+1 0 0 1 50 140 Tm () Tj
+1 0 0 1 50 126 Tm (Cons:) Tj
+1 0 0 1 50 112 Tm () Tj
+1 0 0 1 50 98 Tm (- Only library-level grouping; does not segment by child folder path.) Tj
+1 0 0 1 50 84 Tm () Tj
+1 0 0 1 50 70 Tm (Option 2: Magic Shelf Folder Path rule \(implemented\)) Tj
+1 0 0 1 50 56 Tm () Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 2491 >>
+stream
+BT
+/F1 11 Tf
+1 0 0 1 50 742 Tm (What it does:) Tj
+1 0 0 1 50 728 Tm () Tj
+1 0 0 1 50 714 Tm (- Adds a new Magic Shelf rule field: folderPath.) Tj
+1 0 0 1 50 700 Tm (- Allows matching on each book file subpath \(relative folder path under library path\).) Tj
+1 0 0 1 50 686 Tm () Tj
+1 0 0 1 50 672 Tm (Use examples:) Tj
+1 0 0 1 50 658 Tm () Tj
+1 0 0 1 50 644 Tm (- folderPath contains "Comics/Marvel") Tj
+1 0 0 1 50 630 Tm (- folderPath starts_with "Manga/") Tj
+1 0 0 1 50 616 Tm (- folderPath equals "Books/Fantasy") Tj
+1 0 0 1 50 602 Tm () Tj
+1 0 0 1 50 588 Tm (Pros:) Tj
+1 0 0 1 50 574 Tm () Tj
+1 0 0 1 50 560 Tm (- Low invasiveness.) Tj
+1 0 0 1 50 546 Tm (- No database migration.) Tj
+1 0 0 1 50 532 Tm (- Works for existing and future imports.) Tj
+1 0 0 1 50 518 Tm (- Keeps physical folder organization usable as a dynamic view layer.) Tj
+1 0 0 1 50 504 Tm () Tj
+1 0 0 1 50 490 Tm (Cons:) Tj
+1 0 0 1 50 476 Tm () Tj
+1 0 0 1 50 462 Tm (- Dynamic organization only; does not physically assign shelves unless users also perform) Tj
+1 0 0 1 50 448 Tm (shelf assignment actions.) Tj
+1 0 0 1 50 434 Tm () Tj
+1 0 0 1 50 420 Tm (Option 3: Auto-create shelves from folder structure \(future\)) Tj
+1 0 0 1 50 406 Tm () Tj
+1 0 0 1 50 392 Tm (Pros:) Tj
+1 0 0 1 50 378 Tm () Tj
+1 0 0 1 50 364 Tm (- Fully automatic shelf assignment based on folder names.) Tj
+1 0 0 1 50 350 Tm () Tj
+1 0 0 1 50 336 Tm (Cons:) Tj
+1 0 0 1 50 322 Tm () Tj
+1 0 0 1 50 308 Tm (- More invasive.) Tj
+1 0 0 1 50 294 Tm (- Requires additional design choices \(depth, naming collisions, re-runs, ownership behavior\).) Tj
+1 0 0 1 50 280 Tm () Tj
+1 0 0 1 50 266 Tm (Recommendation) Tj
+1 0 0 1 50 252 Tm () Tj
+1 0 0 1 50 238 Tm (Near term \(now\):) Tj
+1 0 0 1 50 224 Tm () Tj
+1 0 0 1 50 210 Tm (1. Use Option 2 \(folderPath Magic Shelf rules\) to preserve folder-based organization at scale) Tj
+1 0 0 1 50 196 Tm (without forcing one-folder-at-a-time import.) Tj
+1 0 0 1 50 182 Tm (2. Add improved scan diagnostics as a follow-up for intermittent recursive concerns.) Tj
+1 0 0 1 50 168 Tm () Tj
+1 0 0 1 50 154 Tm (Later:) Tj
+1 0 0 1 50 140 Tm () Tj
+1 0 0 1 50 126 Tm (1. Evaluate Option 3 if fully automatic shelf assignment is desired.) Tj
+1 0 0 1 50 112 Tm (2. Optionally combine import-time tags with Magic Shelves for explicit labeling workflows.) Tj
+1 0 0 1 50 98 Tm () Tj
+1 0 0 1 50 84 Tm (Implementation Status \(this session\)) Tj
+1 0 0 1 50 70 Tm () Tj
+1 0 0 1 50 56 Tm (Option 2 has been implemented end-to-end:) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 628 >>
+stream
+BT
+/F1 11 Tf
+1 0 0 1 50 742 Tm () Tj
+1 0 0 1 50 728 Tm (- Backend RuleField enum includes folderPath.) Tj
+1 0 0 1 50 714 Tm (- Backend rule evaluator maps folderPath to book file subpath.) Tj
+1 0 0 1 50 700 Tm (- Magic Shelf UI includes folderPath as a selectable field.) Tj
+1 0 0 1 50 686 Tm (- Frontend rule evaluator supports folderPath for local evaluation paths.) Tj
+1 0 0 1 50 672 Tm (- English i18n includes Folder Path label.) Tj
+1 0 0 1 50 658 Tm () Tj
+1 0 0 1 50 644 Tm (Validation:) Tj
+1 0 0 1 50 630 Tm () Tj
+1 0 0 1 50 616 Tm (- Backend compile successful.) Tj
+1 0 0 1 50 602 Tm (- Frontend build successful.) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000127 00000 n 
+0000000197 00000 n 
+0000003151 00000 n 
+0000003277 00000 n 
+0000005820 00000 n 
+0000005946 00000 n 
+0000006625 00000 n 
+trailer
+<< /Size 10 /Root 1 0 R >>
+startxref
+6751
+%%EOF

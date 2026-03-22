@@ -50,6 +50,7 @@ export type RuleOperator =
 export type RuleField =
   | 'library'
   | 'shelf'
+  | 'folderPath'
   | 'title'
   | 'subtitle'
   | 'authors'
@@ -145,6 +146,7 @@ export type GroupFormGroup = FormGroup<{
 const FIELD_CONFIGS: Record<RuleField, FullFieldConfig> = {
   library: {label: 'library'},
   shelf: {label: 'shelf'},
+  folderPath: {label: 'folderPath'},
   readStatus: {label: 'readStatus'},
   dateFinished: {label: 'dateFinished', type: 'date'},
   lastReadTime: {label: 'lastReadTime', type: 'date'},
@@ -201,7 +203,7 @@ interface FieldGroup {
 }
 
 const FIELD_GROUPS: FieldGroup[] = [
-  { translationKey: 'organization', fields: ['library', 'shelf', 'readStatus', 'readingProgress'] },
+  { translationKey: 'organization', fields: ['library', 'shelf', 'folderPath', 'readStatus', 'readingProgress'] },
   { translationKey: 'bookInfo', fields: ['title', 'subtitle', 'description', 'authors', 'categories', 'publisher', 'language', 'pageCount', 'ageRating', 'contentRating'] },
   { translationKey: 'series', fields: ['seriesName', 'seriesNumber', 'seriesTotal', 'seriesStatus', 'seriesGaps', 'seriesPosition'] },
   { translationKey: 'dates', fields: ['publishedDate', 'dateFinished', 'lastReadTime', 'addedOn'] },

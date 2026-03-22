@@ -757,6 +757,7 @@ public class BookRuleEvaluatorService {
         return switch (field) {
             case LIBRARY -> root.get("library").get("id");
             case SHELF -> null;
+            case FOLDER_PATH -> root.join("bookFiles", JoinType.LEFT).get("fileSubPath");
             case READ_STATUS -> progressJoin.get("readStatus");
             case DATE_FINISHED -> progressJoin.get("dateFinished");
             case LAST_READ_TIME -> progressJoin.get("lastReadTime");

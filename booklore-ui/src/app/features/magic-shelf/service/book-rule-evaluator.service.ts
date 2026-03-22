@@ -76,6 +76,8 @@ export class BookRuleEvaluatorService {
           return [String(book.libraryId)];
         case 'shelf':
           return (book.shelves ?? []).map(s => String(s.id));
+        case 'folderPath':
+          return [String(book.fileSubPath ?? '').toLowerCase()];
         case 'language':
           return [String(book.metadata?.language ?? '').toLowerCase()];
         case 'title':
@@ -272,6 +274,8 @@ export class BookRuleEvaluatorService {
         return book.libraryId;
       case 'shelf':
         return (book.shelves ?? []).map(s => s.id);
+      case 'folderPath':
+        return book.fileSubPath?.toLowerCase() ?? null;
       case 'readStatus':
         return book.readStatus ?? 'UNSET';
       case 'fileType':

@@ -7,6 +7,8 @@ public enum RuleField {
     LIBRARY,
     @JsonProperty("shelf")
     SHELF,
+    @JsonProperty("folderPath")
+    FOLDER_PATH,
     @JsonProperty("title")
     TITLE,
     @JsonProperty("subtitle")

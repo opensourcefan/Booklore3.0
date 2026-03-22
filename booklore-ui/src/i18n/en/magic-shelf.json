@@ -61,6 +61,7 @@
   "fields": {
     "library": "Library",
     "shelf": "Shelf",
+    "folderPath": "Folder Path",
     "readStatus": "Read Status",
     "dateFinished": "Date Finished",
     "lastReadTime": "Last Read Time",
