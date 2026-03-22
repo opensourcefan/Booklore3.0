@@ -155,6 +155,10 @@
   }
 }
 
+:host-context(.mobile-sidebar-popover) .library-item-link {
+  gap: 0.3rem;
+}
+
 :host-context(.mobile-sidebar-popover) .menu-item-text {
   overflow: hidden;
   text-overflow: ellipsis;
