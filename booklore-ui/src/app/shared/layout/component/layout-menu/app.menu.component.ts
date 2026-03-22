@@ -90,6 +90,10 @@ export class AppMenuComponent implements OnInit {
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
   private readonly customMediaTypesKey = 'customMediaTypes';
   private readonly mediaTypeMenuRefresh$ = new BehaviorSubject<void>(undefined);
+  private touchStartX: number | null = null;
+  private touchStartY: number | null = null;
+  private touchMoved = false;
+  private suppressTapUntil = 0;
 
   readonly sectionOptions: Array<{key: string; label: string}> = [
     {key: 'home', label: 'layout.menu.home'},
@@ -254,7 +258,13 @@ export class AppMenuComponent implements OnInit {
     this.bookTypeSectionExpanded = !this.bookTypeSectionExpanded;
   }
 
-  selectBookTypeFilter(bookType: string): void {
+  selectBookTypeFilter(bookType: string, event?: Event): void {
+    if (this.shouldSuppressTap()) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      return;
+    }
+
     if (this.activeBookTypeFilter === bookType) {
       this.router.navigate(['/all-books'], {
         queryParams: {filter: null},
@@ -272,6 +282,47 @@ export class AppMenuComponent implements OnInit {
 
   isBookTypeFilterActive(bookType: string): boolean {
     return this.activeBookTypeFilter === bookType;
+  }
+
+  onTouchStart(event: TouchEvent): void {
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+    this.touchMoved = false;
+  }
+
+  onTouchMove(event: TouchEvent): void {
+    const touch = event.touches[0];
+    if (!touch || this.touchStartX == null || this.touchStartY == null) {
+      return;
+    }
+
+    const deltaX = Math.abs(touch.clientX - this.touchStartX);
+    const deltaY = Math.abs(touch.clientY - this.touchStartY);
+    if (deltaX > 8 || deltaY > 8) {
+      this.touchMoved = true;
+    }
+  }
+
+  onTouchEnd(): void {
+    if (this.touchMoved) {
+      this.suppressTapUntil = Date.now() + 250;
+    }
+
+    this.touchStartX = null;
+    this.touchStartY = null;
+    this.touchMoved = false;
+  }
+
+  onTouchCancel(): void {
+    this.touchStartX = null;
+    this.touchStartY = null;
+    this.touchMoved = false;
+    this.suppressTapUntil = Date.now() + 250;
   }
 
   openMediaTypeCreatorDialog(): void {
@@ -712,5 +763,8 @@ export class AppMenuComponent implements OnInit {
   private getMenuItemOrderId(item: MenuItem): string {
     const link = Array.isArray(item.routerLink) ? item.routerLink[0] : item.routerLink;
     return String(link ?? item.label ?? '');
+  }
+  private shouldSuppressTap(): boolean {
+    return Date.now() < this.suppressTapUntil;
   }
 }

@@ -98,6 +98,15 @@
   touch-action: pan-y;
 }
 
+:host-context(.mobile-sidebar-popover) .layout-menuitem-root-text {
+  margin-left: -0.3rem;
+}
+
+:host-context(.mobile-sidebar-popover) .menu-item-link {
+  margin-left: -0.3rem;
+  width: calc(100% + 0.3rem);
+}
+
 :host-context(.mobile-sidebar-popover) .cdk-drag-dragging,
 :host-context(.mobile-sidebar-popover) .cdk-drag-dragging * {
   touch-action: none;

@@ -36,6 +36,10 @@
       [class.draggable-child]="!root"
       [class.active-route-container]="isRouteActive"
       [class.child-drag-row]="!root"
+      (touchstart)="onTouchStart($event)"
+      (touchmove)="onTouchMove($event)"
+      (touchend)="onTouchEnd()"
+      (touchcancel)="onTouchCancel()"
       (click)="triggerLink()"
     >
       @if ((item.routerLink && !item.items)) {
