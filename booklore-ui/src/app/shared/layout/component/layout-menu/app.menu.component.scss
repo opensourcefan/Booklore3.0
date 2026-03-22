@@ -244,13 +244,8 @@
   touch-action: pan-y;
 }
 
-:host-context(.mobile-sidebar-popover) .layout-menuitem-root-text {
+:host-context(.mobile-sidebar-popover) .layout-menuitem-root-text .sidebar-heading-label {
   margin-left: -0.3rem;
-}
-
-:host-context(.mobile-sidebar-popover) .book-type-item {
-  margin-left: -0.3rem;
-  width: calc(100% + 0.3rem);
 }
 
 .menu-sections {
