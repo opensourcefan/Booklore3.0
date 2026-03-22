@@ -558,6 +558,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.parsedFilters = parseResult.filters;
 
+      if (entityInfo.entityType === EntityType.ALL_BOOKS || entityInfo.entityType === EntityType.NOT_SHELFED) {
+        this.pageTitle.setPageTitle(this.currentFilterLabel ?? '');
+      }
 
       this.entityViewPreferences = user.user?.userSettings?.entityViewPreferences;
       this.coverScalePreferenceService.initScaleValue(this.coverScalePreferenceService.scaleFactor);
