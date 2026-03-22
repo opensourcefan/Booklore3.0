@@ -108,8 +108,7 @@
                         class="book-type-item"
                         [class.active]="isBookTypeFilterActive(entry.label)"
                         (touchstart)="onTouchStart($event)"
-                        (touchmove)="onTouchMove($event)"
-                        (touchend)="onTouchEnd()"
+                        (touchend)="onTouchEnd($event)"
                         (touchcancel)="onTouchCancel()"
                         (click)="selectBookTypeFilter(entry.label, $event)">
                         <span class="book-type-main">

@@ -92,7 +92,6 @@ export class AppMenuComponent implements OnInit {
   private readonly mediaTypeMenuRefresh$ = new BehaviorSubject<void>(undefined);
   private touchStartX: number | null = null;
   private touchStartY: number | null = null;
-  private touchMoved = false;
   private suppressTapUntil = 0;
 
   readonly sectionOptions: Array<{key: string; label: string}> = [
@@ -289,39 +288,26 @@ export class AppMenuComponent implements OnInit {
     if (!touch) {
       return;
     }
-
     this.touchStartX = touch.clientX;
     this.touchStartY = touch.clientY;
-    this.touchMoved = false;
   }
 
-  onTouchMove(event: TouchEvent): void {
-    const touch = event.touches[0];
-    if (!touch || this.touchStartX == null || this.touchStartY == null) {
-      return;
+  onTouchEnd(event: TouchEvent): void {
+    const touch = event.changedTouches[0];
+    if (touch && this.touchStartX != null && this.touchStartY != null) {
+      const deltaX = Math.abs(touch.clientX - this.touchStartX);
+      const deltaY = Math.abs(touch.clientY - this.touchStartY);
+      if (deltaX > 8 || deltaY > 8) {
+        this.suppressTapUntil = Date.now() + 250;
+      }
     }
-
-    const deltaX = Math.abs(touch.clientX - this.touchStartX);
-    const deltaY = Math.abs(touch.clientY - this.touchStartY);
-    if (deltaX > 8 || deltaY > 8) {
-      this.touchMoved = true;
-    }
-  }
-
-  onTouchEnd(): void {
-    if (this.touchMoved) {
-      this.suppressTapUntil = Date.now() + 250;
-    }
-
     this.touchStartX = null;
     this.touchStartY = null;
-    this.touchMoved = false;
   }
 
   onTouchCancel(): void {
     this.touchStartX = null;
     this.touchStartY = null;
-    this.touchMoved = false;
     this.suppressTapUntil = Date.now() + 250;
   }
 

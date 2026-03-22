@@ -37,8 +37,7 @@
       [class.active-route-container]="isRouteActive"
       [class.child-drag-row]="!root"
       (touchstart)="onTouchStart($event)"
-      (touchmove)="onTouchMove($event)"
-      (touchend)="onTouchEnd()"
+      (touchend)="onTouchEnd($event)"
       (touchcancel)="onTouchCancel()"
       (click)="triggerLink()"
     >
