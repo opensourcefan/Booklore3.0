@@ -148,9 +148,12 @@
 }
 
 .book-type-icon {
-  color: var(--text-secondary-color);
-  font-size: 0.95rem;
+  color: var(--text-color);
+  font-size: 0.92rem;
   flex-shrink: 0;
+  line-height: 1;
+  margin-left: 0;
+  margin-right: 0.15rem;
 }
 
 .book-type-label {
