@@ -5,6 +5,8 @@ import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.model.websocket.LibraryHealthPayload;
 import org.booklore.model.websocket.Topic;
 import org.booklore.repository.LibraryPathRepository;
+import org.booklore.model.dto.settings.AppSettings;
+import org.booklore.service.appsettings.AppSettingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +33,9 @@ class LibraryHealthServiceTest {
     @Mock
     private SimpMessagingTemplate messagingTemplate;
 
+    @Mock
+    private AppSettingService appSettingService;
+
     private LibraryHealthService libraryHealthService;
 
     @TempDir
@@ -38,8 +43,11 @@ class LibraryHealthServiceTest {
 
     @BeforeEach
     void setUp() {
+        AppSettings settings = new AppSettings();
+        settings.setLibraryHealthCheckIntervalSeconds(0);
+        when(appSettingService.getAppSettings()).thenReturn(settings);
         when(libraryPathRepository.findAllWithLibrary()).thenReturn(List.of());
-        libraryHealthService = new LibraryHealthService(libraryPathRepository, messagingTemplate);
+        libraryHealthService = new LibraryHealthService(libraryPathRepository, messagingTemplate, appSettingService);
         libraryHealthService.init();
     }
 
