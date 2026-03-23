@@ -56,6 +56,7 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() overlayPreferenceService?: BookCardOverlayPreferenceService;
   @Input() forceEbookMode: boolean = false;
   @Input() useSquareCovers: boolean = false;
+  @Input() titleRows = 1;
 
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
 
@@ -241,6 +242,10 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
 
   get coverImageUrl(): string {
     return this._coverImageUrl;
+  }
+
+  get normalizedTitleRows(): number {
+    return Math.min(5, Math.max(1, this.titleRows || 1));
   }
 
   private buildReadStatusMenuItems(): void {

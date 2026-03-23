@@ -44,6 +44,7 @@
             "collapseSeries": "Kollapsa serier",
             "gridColumns": "Rutnätskolumner",
             "gridItemSize": "Rutnätsstorlek",
+            "textRows": "Text rows",
             "bookTypeOverlay": "Filformats-overlay",
             "noBooks": "Denna samling har inga böcker!",
             "failedLibrary": "Kunde inte ladda bibliotekets böcker!",

@@ -44,6 +44,7 @@
             "collapseSeries": "Zwiń serie",
             "gridColumns": "Kolumny siatki",
             "gridItemSize": "Rozmiar elementu siatki",
+            "textRows": "Text rows",
             "bookTypeOverlay": "Nakładka typu książki",
             "noBooks": "Ta kolekcja nie zawiera książek!",
             "failedLibrary": "Nie udało się załadować książek biblioteki!",

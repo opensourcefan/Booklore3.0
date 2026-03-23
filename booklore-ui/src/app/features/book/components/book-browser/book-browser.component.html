@@ -147,6 +147,26 @@
                         (click)="setMobileColumns(4)">4</button>
                     </div>
                   </div>
+                  <div class="display-settings-section">
+                    <label class="display-settings-label">{{ t('labels.textRows') }}</label>
+                    <div class="column-options">
+                      <button
+                        type="button"
+                        class="column-option-btn"
+                        [class.active]="mobileTitleRows === 1"
+                        (click)="setMobileTitleRows(1)">1</button>
+                      <button
+                        type="button"
+                        class="column-option-btn"
+                        [class.active]="mobileTitleRows === 2"
+                        (click)="setMobileTitleRows(2)">2</button>
+                      <button
+                        type="button"
+                        class="column-option-btn"
+                        [class.active]="mobileTitleRows === 3"
+                        (click)="setMobileTitleRows(3)">3</button>
+                    </div>
+                  </div>
                 } @else {
                   <div class="display-settings-section">
                     <label class="display-settings-label">{{ t('labels.gridItemSize') }}</label>
@@ -160,6 +180,36 @@
                     </p-slider>
                     <div class="scale-value-display">
                       {{ coverScalePreferenceService.scaleFactor.toFixed(2) }}x
+                    </div>
+                  </div>
+                  <div class="display-settings-section">
+                    <label class="display-settings-label">{{ t('labels.textRows') }}</label>
+                    <div class="column-options">
+                      <button
+                        type="button"
+                        class="column-option-btn"
+                        [class.active]="desktopTitleRows === 1"
+                        (click)="setDesktopTitleRows(1)">1</button>
+                      <button
+                        type="button"
+                        class="column-option-btn"
+                        [class.active]="desktopTitleRows === 2"
+                        (click)="setDesktopTitleRows(2)">2</button>
+                      <button
+                        type="button"
+                        class="column-option-btn"
+                        [class.active]="desktopTitleRows === 3"
+                        (click)="setDesktopTitleRows(3)">3</button>
+                      <button
+                        type="button"
+                        class="column-option-btn"
+                        [class.active]="desktopTitleRows === 4"
+                        (click)="setDesktopTitleRows(4)">4</button>
+                      <button
+                        type="button"
+                        class="column-option-btn"
+                        [class.active]="desktopTitleRows === 5"
+                        (click)="setDesktopTitleRows(5)">5</button>
                     </div>
                   </div>
                 }
@@ -342,6 +392,7 @@
                       <app-book-card
                         [index]="books.indexOf(book)"
                         [book]="book"
+                        [titleRows]="isMobile ? mobileTitleRows : desktopTitleRows"
                         [isCheckboxEnabled]="true"
                         [seriesViewEnabled]="seriesViewEnabled"
                         [onBookSelect]="handleBookSelect.bind(this)"

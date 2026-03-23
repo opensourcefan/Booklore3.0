@@ -44,6 +44,7 @@
             "collapseSeries": "Strni zbirke",
             "gridColumns": "Stolpci mreže",
             "gridItemSize": "Velikost elementov",
+            "textRows": "Text rows",
             "bookTypeOverlay": "Oznaka formata knjige",
             "noBooks": "Ta zbirka nima knjig!",
             "failedLibrary": "Napaka pri nalaganju knjig iz knjižnice!",

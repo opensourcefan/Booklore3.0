@@ -44,6 +44,7 @@
             "collapseSeries": "Comprimi serie",
             "gridColumns": "Colonne griglia",
             "gridItemSize": "Dimensione elemento griglia",
+            "textRows": "Text rows",
             "bookTypeOverlay": "Overlay tipo libro",
             "noBooks": "Questa collezione non ha libri!",
             "failedLibrary": "Impossibile caricare i libri della libreria!",

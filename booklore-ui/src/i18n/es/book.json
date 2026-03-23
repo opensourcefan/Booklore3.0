@@ -44,6 +44,7 @@
             "collapseSeries": "Contraer series",
             "gridColumns": "Columnas de cuadrícula",
             "gridItemSize": "Tamaño de elemento",
+            "textRows": "Text rows",
             "bookTypeOverlay": "Indicador de formato de archivo",
             "noBooks": "¡Esta colección no tiene libros!",
             "failedLibrary": "¡Error al cargar los libros de la biblioteca!",

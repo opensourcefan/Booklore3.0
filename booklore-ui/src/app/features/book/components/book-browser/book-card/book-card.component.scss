@@ -108,12 +108,16 @@
   flex-grow: 1;
   font-size: 0.9rem;
   color: var(--text-color);
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--title-rows, 1);
+  white-space: normal;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   text-align: center;
   margin: 0;
-  padding-left: 0.5rem;
+  padding: 0.15rem 0 0.15rem 0.5rem;
+  line-height: 1.2;
 
   @media (max-width: 767px) {
     font-size: 0.75rem;

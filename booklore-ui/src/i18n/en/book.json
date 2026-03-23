@@ -44,6 +44,7 @@
       "collapseSeries": "Collapse series",
       "gridColumns": "Grid columns",
       "gridItemSize": "Grid item size",
+            "textRows": "Text rows",
       "bookTypeOverlay": "File format overlay",
       "noBooks": "This collection has no books!",
       "failedLibrary": "Failed to load library's books!",

@@ -44,6 +44,7 @@
             "collapseSeries": "",
             "gridColumns": "",
             "gridItemSize": "",
+            "textRows": "Text rows",
             "bookTypeOverlay": "",
             "noBooks": "Tidak ada buku di koleksi ini!",
             "failedLibrary": "Gagal memuat buku perpustakaan!",

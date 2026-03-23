@@ -44,6 +44,7 @@
             "collapseSeries": "Згорнути серії",
             "gridColumns": "Стовпці сітки",
             "gridItemSize": "Розмір елементів сітки",
+            "textRows": "Text rows",
             "bookTypeOverlay": "Накладення типу книги",
             "noBooks": "У цій колекції немає книг!",
             "failedLibrary": "Не вдалося завантажити книги з бібліотеки!",

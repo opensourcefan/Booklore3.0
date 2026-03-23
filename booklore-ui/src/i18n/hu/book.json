@@ -44,6 +44,7 @@
             "collapseSeries": "Sorozatok összevonása",
             "gridColumns": "Rácsnézet oszlopai",
             "gridItemSize": "Rácsnézet elem mérete",
+            "textRows": "Text rows",
             "bookTypeOverlay": "Fájlformátum overlay",
             "noBooks": "Ebben a gyűjteményben nem találhatóak könyvek!",
             "failedLibrary": "Nem sikerült betölteni a könyvtárban lévő könyveket!",

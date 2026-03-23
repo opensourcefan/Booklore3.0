@@ -99,6 +99,7 @@
       </div>
       <p-tieredmenu #readStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body"></p-tieredmenu>
       <h4 class="book-title"
+          [style.--title-rows]="normalizedTitleRows"
           tooltipPosition="bottom"
           [pTooltip]="titleTooltip">
         {{ displayTitle }}

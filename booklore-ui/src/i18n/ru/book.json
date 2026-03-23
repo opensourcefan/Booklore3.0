@@ -44,6 +44,7 @@
             "collapseSeries": "Свернуть серии",
             "gridColumns": "Столбцы сетки",
             "gridItemSize": "Размер элемента сетки",
+            "textRows": "Text rows",
             "bookTypeOverlay": "Наложение типа книги",
             "noBooks": "В этой коллекции нет книг!",
             "failedLibrary": "Не удалось загрузить книги библиотеки!",

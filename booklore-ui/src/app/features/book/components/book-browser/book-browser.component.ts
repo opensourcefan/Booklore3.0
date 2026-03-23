@@ -157,6 +157,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   showFilter = false;
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
   mobileColumnCount = 3;
+  mobileTitleRows = 2;
+  desktopTitleRows = 2;
   selectedCount = 0;
 
   // Cover preview state
@@ -171,6 +173,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly MOBILE_PADDING = 48;
   private readonly MOBILE_TITLE_BAR_HEIGHT = 32;
   private readonly MOBILE_COLUMNS_STORAGE_KEY = 'mobileColumnsPreference';
+  private readonly MOBILE_TITLE_ROWS_STORAGE_KEY = 'mobileTitleRowsPreference';
+  private readonly DESKTOP_TITLE_ROWS_STORAGE_KEY = 'desktopTitleRowsPreference';
   private readonly COVER_PREVIEW_HOVER_DELAY_MS = 120;
 
   private settingFiltersFromUrl = false;
@@ -211,7 +215,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const availableWidth = this.screenWidth - totalGaps - this.MOBILE_PADDING;
     const cardWidth = Math.floor(availableWidth / columns);
     const coverHeight = this.isAudiobookOnlyLibrary ? cardWidth : Math.floor(cardWidth * this.CARD_ASPECT_RATIO);
-    const cardHeight = coverHeight + this.MOBILE_TITLE_BAR_HEIGHT;
+    const cardHeight = coverHeight + this.getMobileTitleBarHeight();
     return {width: cardWidth, height: cardHeight};
   }
 
@@ -245,10 +249,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isMobile) {
       return this.mobileCardSize.height;
     }
+    const desktopTitleRowsExtra = (this.desktopTitleRows - 1) * 18;
     if (this.isAudiobookOnlyLibrary) {
-      return this.currentCardSize.height;
+      return this.currentCardSize.height + desktopTitleRowsExtra;
     }
-    return this.coverScalePreferenceService.getCardHeight(_book);
+    return this.coverScalePreferenceService.getCardHeight(_book) + desktopTitleRowsExtra;
   }
 
   get viewIcon(): string {
@@ -374,6 +379,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pageTitle.setPageTitle('');
     this.coverScalePreferenceService.scaleChange$.pipe(debounceTime(1000)).subscribe();
     this.loadMobileColumnsPreference();
+    this.loadTitleRowsPreference();
 
     this.initializeEntityRouting();
     this.setupRouteChangeHandlers();
@@ -1256,10 +1262,36 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.localStorageService.set(this.MOBILE_COLUMNS_STORAGE_KEY, columns);
   }
 
+  setMobileTitleRows(rows: number): void {
+    this.mobileTitleRows = Math.min(3, Math.max(1, rows));
+    this.localStorageService.set(this.MOBILE_TITLE_ROWS_STORAGE_KEY, this.mobileTitleRows);
+  }
+
+  setDesktopTitleRows(rows: number): void {
+    this.desktopTitleRows = Math.min(5, Math.max(1, rows));
+    this.localStorageService.set(this.DESKTOP_TITLE_ROWS_STORAGE_KEY, this.desktopTitleRows);
+  }
+
   private loadMobileColumnsPreference(): void {
     const saved = this.localStorageService.get<number>(this.MOBILE_COLUMNS_STORAGE_KEY);
     if (saved !== null && [2, 3, 4].includes(saved)) {
       this.mobileColumnCount = saved;
     }
+  }
+
+  private loadTitleRowsPreference(): void {
+    const savedMobileRows = this.localStorageService.get<number>(this.MOBILE_TITLE_ROWS_STORAGE_KEY);
+    if (savedMobileRows !== null && [1, 2, 3].includes(savedMobileRows)) {
+      this.mobileTitleRows = savedMobileRows;
+    }
+
+    const savedDesktopRows = this.localStorageService.get<number>(this.DESKTOP_TITLE_ROWS_STORAGE_KEY);
+    if (savedDesktopRows !== null && [1, 2, 3, 4, 5].includes(savedDesktopRows)) {
+      this.desktopTitleRows = savedDesktopRows;
+    }
+  }
+
+  private getMobileTitleBarHeight(): number {
+    return this.MOBILE_TITLE_BAR_HEIGHT + (this.mobileTitleRows - 1) * 16;
   }
 }
