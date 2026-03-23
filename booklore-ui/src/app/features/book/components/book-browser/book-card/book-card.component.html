@@ -57,6 +57,28 @@
       </p-checkbox>
     }
 
+    <div class="cover-corner-controls">
+      <div class="read-status-indicator cover-corner-control-left"
+           [ngClass]="_readStatusClass"
+           [pTooltip]="readStatusTooltip"
+           tooltipPosition="bottom"
+           (click)="toggleReadStatusMenu($event, readStatusMenu)"
+           [attr.aria-label]="'book.card.alt.readStatusMenu' | transloco">
+        <i [class]="_readStatusIcon" style="font-size: 0.9rem"></i>
+      </div>
+      <p-button
+        class="custom-button-padding cover-corner-control-right"
+        size="small"
+        [text]="true"
+        (click)="onMenuToggle($event, menu)"
+        icon="pi pi-ellipsis-v"
+        [ariaLabel]="'book.card.alt.bookMenu' | transloco">
+      </p-button>
+    </div>
+
+    <p-tieredmenu #readStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body"></p-tieredmenu>
+    <p-tieredmenu #menu [model]="items" [popup]="true" appendTo="body" (onShow)="onMenuShow()" (onHide)="onMenuHide()"></p-tieredmenu>
+
     @if (hasProgress) {
       <div class="cover-progress-bar-container" [pTooltip]="progressTooltip" tooltipPosition="top">
         @if (_progressPercentage !== null) {
@@ -89,30 +111,12 @@
 
   @if (!bottomBarHidden) {
     <div class="book-title-container">
-      <div class="read-status-indicator"
-           [ngClass]="_readStatusClass"
-           [pTooltip]="readStatusTooltip"
-           tooltipPosition="bottom"
-           (click)="toggleReadStatusMenu($event, readStatusMenu)"
-           [attr.aria-label]="'book.card.alt.readStatusMenu' | transloco">
-        <i [class]="_readStatusIcon" style="font-size: 0.9rem"></i>
-      </div>
-      <p-tieredmenu #readStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body"></p-tieredmenu>
       <h4 class="book-title"
           [style.--title-rows]="normalizedTitleRows"
           tooltipPosition="bottom"
           [pTooltip]="titleTooltip">
         {{ displayTitle }}
       </h4>
-      <p-tieredmenu #menu [model]="items" [popup]="true" appendTo="body" (onShow)="onMenuShow()" (onHide)="onMenuHide()"></p-tieredmenu>
-      <p-button
-        class="custom-button-padding"
-        size="small"
-        [text]="true"
-        (click)="onMenuToggle($event, menu)"
-        icon="pi pi-ellipsis-v"
-        [ariaLabel]="'book.card.alt.bookMenu' | transloco">
-      </p-button>
     </div>
   }
 </div>
