@@ -315,25 +315,16 @@
           }
         </div>
 
-        <!-- Mobile-only: popover trigger (hidden on desktop via CSS) -->
-        <div class="mobile-right-sidebar-trigger">
-          <a class="topbar-items topbar-item"
-             (click)="mobileRightSidebarPop.toggle($event)"
-             [pTooltip]="t('tooltip.toggleSidebar')"
-             tooltipPosition="bottom">
-            <i class="pi pi-ellipsis-v"></i>
-          </a>
-          <p-popover #mobileRightSidebarPop styleClass="mobile-right-sidebar-popover" [dismissable]="true" appendTo="body">
-            <app-book-filter
-              [showFilter]="true"
-              [entity$]="entity$"
-              [entityType$]="entityType$"
-              [resetFilter$]="resetFilterSubject"
-              (filterSelected)="onFilterSelected($event)"
-              (filterModeChanged)="onFilterModeChanged($event)">
-            </app-book-filter>
-          </p-popover>
-        </div>
+        <p-popover #mobileRightSidebarPop styleClass="mobile-right-sidebar-popover" [dismissable]="true" appendTo="body">
+          <app-book-filter
+            [showFilter]="true"
+            [entity$]="entity$"
+            [entityType$]="entityType$"
+            [resetFilter$]="resetFilterSubject"
+            (filterSelected)="onFilterSelected($event)"
+            (filterModeChanged)="onFilterModeChanged($event)">
+          </app-book-filter>
+        </p-popover>
         <!-- Desktop-only: toggle the filter sidebar panel (hidden on mobile via CSS) -->
         <div class="desktop-right-sidebar-trigger">
           <a class="topbar-items topbar-item" (click)="toggleSidebar()">

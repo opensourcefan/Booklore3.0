@@ -32,6 +32,7 @@ import {Menu} from 'primeng/menu';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
+import {SidebarFilterTogglePrefService} from '../../../../features/book/components/book-browser/filters/sidebar-filter-toggle-pref.service';
 
 @Component({
   selector: 'app-topbar',
@@ -79,6 +80,7 @@ export class AppTopBarComponent implements OnDestroy {
   showPulse = false;
   hasAnyTasks = false;
   hasPendingBookdropFiles = false;
+  showMobileBookFilterTrigger = false;
 
   private eventTimer: number | undefined;
   private destroy$ = new Subject<void>();
@@ -102,9 +104,11 @@ export class AppTopBarComponent implements OnDestroy {
     private metadataProgressService: MetadataProgressService,
     private bookdropFileService: BookdropFileService,
     private dialogLauncher: DialogLauncherService,
-    translocoService: TranslocoService
+    translocoService: TranslocoService,
+    private sidebarFilterTogglePrefService: SidebarFilterTogglePrefService
   ) {
     this.translocoService = translocoService;
+    this.updateMobileBookFilterTriggerVisibility(this.router.url);
     this.activeLang = translocoService.getActiveLang();
     this.langMenuItems = AVAILABLE_LANGS.map(lang => ({
       label: LANG_LABELS[lang] || lang,
@@ -152,9 +156,10 @@ export class AppTopBarComponent implements OnDestroy {
         filter(e => e instanceof NavigationStart),
         takeUntil(this.destroy$)
       )
-      .subscribe(() => {
+      .subscribe((event) => {
         this.mobileSearchVisible = false;
         this.mobileSidebarPop?.hide();
+        this.updateMobileBookFilterTriggerVisibility((event as NavigationStart).url);
       });
   }
 
@@ -179,6 +184,10 @@ export class AppTopBarComponent implements OnDestroy {
 
   openMobileSearch(): void {
     this.mobileSearchVisible = true;
+  }
+
+  toggleMobileBookFilter(event: MouseEvent): void {
+    this.sidebarFilterTogglePrefService.requestMobileFilterToggle(event);
   }
 
   onMobileSidebarClick(event: MouseEvent): void {
@@ -431,5 +440,10 @@ export class AppTopBarComponent implements OnDestroy {
     }
 
     return normalized;
+  }
+
+  private updateMobileBookFilterTriggerVisibility(url: string): void {
+    const path = (url || '').split('?')[0].split('#')[0];
+    this.showMobileBookFilterTrigger = /^\/(all-books|not-shelfed|library\/[^/]+\/books|shelf\/[^/]+\/books|magic-shelf\/[^/]+\/books)\/?$/.test(path);
   }
 }

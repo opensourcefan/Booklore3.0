@@ -199,6 +199,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   bookFilterComponent!: BookFilterComponent;
   @ViewChild('scroll')
   virtualScroller: VirtualScrollerComponent | undefined;
+  @ViewChild('mobileRightSidebarPop')
+  mobileRightSidebarPop: Popover | undefined;
 
   @HostListener('window:resize')
   onResize(): void {
@@ -391,6 +393,15 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.sidebarFilterTogglePrefService.mobileFilterToggle$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event: MouseEvent) => {
+        if (!this.isMobile) {
+          return;
+        }
+        this.mobileRightSidebarPop?.toggle(event);
+      });
+
     if (this.bookFilterComponent) {
       this.bookFilterComponent.setFilters?.(this.parsedFilters);
       this.bookFilterComponent.onFiltersChanged?.();

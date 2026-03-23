@@ -288,6 +288,18 @@
     <p-popover #toolbarEditorPop appendTo="body" styleClass="toolbar-editor-popover">
       <app-toolbar-editor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
     </p-popover>
+
+    @if (showMobileBookFilterTrigger) {
+      <div class="mobile-right-filter-trigger">
+        <p-button
+          icon="pi pi-ellipsis-v"
+          [text]="true"
+          (click)="toggleMobileBookFilter($event)"
+          pTooltip="Filters"
+          tooltipPosition="bottom">
+        </p-button>
+      </div>
+    }
   </div>
 </div>
 

@@ -1,5 +1,5 @@
 import {inject, Injectable} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Subject} from 'rxjs';
 import {MessageService} from 'primeng/api';
 import {TranslocoService} from '@jsverse/transloco';
 import {LocalStorageService} from '../../../../../shared/service/local-storage.service';
@@ -16,6 +16,8 @@ export class SidebarFilterTogglePrefService {
 
   private readonly showFilterSubject = new BehaviorSubject<boolean>(true);
   readonly showFilter$ = this.showFilterSubject.asObservable();
+  private readonly mobileFilterToggleSubject = new Subject<MouseEvent>();
+  readonly mobileFilterToggle$ = this.mobileFilterToggleSubject.asObservable();
 
   constructor() {
     const isNarrow = window.innerWidth <= 768;
@@ -37,6 +39,10 @@ export class SidebarFilterTogglePrefService {
 
   toggle(): void {
     this.selectedShowFilter = !this.selectedShowFilter;
+  }
+
+  requestMobileFilterToggle(event: MouseEvent): void {
+    this.mobileFilterToggleSubject.next(event);
   }
 
   private savePreference(value: boolean): void {

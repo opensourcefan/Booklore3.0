@@ -208,6 +208,17 @@
   }
 }
 
+.mobile-right-filter-trigger {
+  display: none;
+  flex-shrink: 0;
+  margin-left: auto;
+
+  @media (max-width: 991px) {
+    display: flex;
+    align-items: center;
+  }
+}
+
 .toolbar-editor-trigger {
   @media (max-width: 991px) {
     display: none;
