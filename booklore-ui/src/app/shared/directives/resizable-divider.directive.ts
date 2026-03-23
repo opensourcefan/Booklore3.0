@@ -20,6 +20,8 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   private unlisten: (() => void)[] = [];
   private rafId: number | null = null;
   private resizeObserver: ResizeObserver | null = null;
+  private mutationObserver: MutationObserver | null = null;
+  private updateScheduled = false;
 
   constructor(private el: ElementRef, private renderer: Renderer2) {}
 
@@ -47,30 +49,41 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     this.renderer.setStyle(this.handle, 'position', 'fixed');
     this.renderer.setStyle(this.handle, 'width', '6px');
     this.renderer.setStyle(this.handle, 'cursor', 'col-resize');
-    this.renderer.setStyle(this.handle, 'z-index', '9999');
+    this.renderer.setStyle(this.handle, 'z-index', '960');
     this.renderer.setStyle(this.handle, 'background', 'transparent');
     this.renderer.setStyle(this.handle, 'transition', 'background 0.15s ease');
     this.renderer.appendChild(document.body, this.handle);
 
     // Position handle over the correct edge of the target
-    this.updateHandlePosition();
-    requestAnimationFrame(() => this.updateHandlePosition());
-    requestAnimationFrame(() => this.updateHandlePosition());
+    this.scheduleUpdateHandlePosition();
+    requestAnimationFrame(() => this.scheduleUpdateHandlePosition());
+    requestAnimationFrame(() => this.scheduleUpdateHandlePosition());
 
     // Keep handle synced when target dimensions change without window resize events
     if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(() => this.updateHandlePosition());
+      this.resizeObserver = new ResizeObserver(() => this.scheduleUpdateHandlePosition());
       this.resizeObserver.observe(this.target);
     }
 
     // Keep handle positioned correctly on scroll/resize
-    const updatePos = () => this.updateHandlePosition();
+    const updatePos = () => this.scheduleUpdateHandlePosition();
     window.addEventListener('resize', updatePos);
     window.addEventListener('scroll', updatePos, true);
     this.unlisten.push(
       () => window.removeEventListener('resize', updatePos),
       () => window.removeEventListener('scroll', updatePos, true)
     );
+
+    // Watch DOM mutations so overlays/dialogs immediately hide the handle.
+    if (typeof MutationObserver !== 'undefined') {
+      this.mutationObserver = new MutationObserver(() => this.scheduleUpdateHandlePosition());
+      this.mutationObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style']
+      });
+    }
 
     // Hover styles
     this.handle.addEventListener('mouseenter', () => {
@@ -109,7 +122,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
         if (this.storageKey === 'bl-sidebar-width') {
           document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
         }
-        this.updateHandlePosition();
+        this.scheduleUpdateHandlePosition();
       });
     };
 
@@ -129,9 +142,47 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     );
   }
 
+  private scheduleUpdateHandlePosition(): void {
+    if (this.updateScheduled) {
+      return;
+    }
+    this.updateScheduled = true;
+    requestAnimationFrame(() => {
+      this.updateScheduled = false;
+      this.updateHandlePosition();
+    });
+  }
+
   private updateHandlePosition(): void {
     if (!this.handle || !this.target) return;
+
+    if (window.innerWidth <= 991) {
+      this.renderer.setStyle(this.handle, 'display', 'none');
+      return;
+    }
+
+    if (!this.dragging && this.hasVisibleBlockingOverlay()) {
+      this.renderer.setStyle(this.handle, 'display', 'none');
+      return;
+    }
+
     const rect = this.target.getBoundingClientRect();
+    const style = getComputedStyle(this.target);
+    const isVisible = rect.width > 0
+      && rect.height > 0
+      && rect.bottom > 0
+      && rect.right > 0
+      && rect.top < window.innerHeight
+      && rect.left < window.innerWidth
+      && style.display !== 'none'
+      && style.visibility !== 'hidden';
+
+    if (!isVisible) {
+      this.renderer.setStyle(this.handle, 'display', 'none');
+      return;
+    }
+
+    this.renderer.removeStyle(this.handle, 'display');
     this.renderer.setStyle(this.handle, 'top', rect.top + 'px');
     this.renderer.setStyle(this.handle, 'height', rect.height + 'px');
     if (this.blResizable === 'right') {
@@ -141,9 +192,32 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
   }
 
+  private hasVisibleBlockingOverlay(): boolean {
+    const overlays = document.querySelectorAll<HTMLElement>(
+      '.p-dialog-mask, .p-component-overlay, .p-overlay-mask, .dialog-overlay, .cdk-overlay-backdrop, .cdk-overlay-pane'
+    );
+
+    for (const overlay of overlays) {
+      if (overlay.contains(this.handle) || overlay === this.handle) {
+        continue;
+      }
+      const style = getComputedStyle(overlay);
+      if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+        continue;
+      }
+      if (overlay.getBoundingClientRect().width <= 0 || overlay.getBoundingClientRect().height <= 0) {
+        continue;
+      }
+      return true;
+    }
+
+    return false;
+  }
+
   ngOnDestroy(): void {
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this.resizeObserver?.disconnect();
+    this.mutationObserver?.disconnect();
     this.unlisten.forEach(fn => fn());
     if (this.handle && this.handle.parentNode) {
       this.handle.parentNode.removeChild(this.handle);

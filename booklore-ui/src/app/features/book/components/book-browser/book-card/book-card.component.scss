@@ -389,11 +389,6 @@
   font-weight: bold;
   cursor: pointer;
   border-radius: 6px;
-  transition: opacity 0.15s ease;
-
-  &:hover {
-    opacity: 0.7;
-  }
 }
 
 .cover-corner-controls {
@@ -413,6 +408,15 @@
   border: 1px solid rgba(255, 255, 255, 0.26);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.36);
   backdrop-filter: blur(2px);
+  border-radius: 6px;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover,
+  &:focus-within {
+    background: rgba(18, 30, 48, 0.78);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  }
 }
 
 .cover-corner-control-left {
@@ -431,6 +435,11 @@
   background: transparent;
   border: none;
   border-radius: 6px;
+
+  &:hover,
+  &:focus {
+    background: transparent;
+  }
 }
 
 @media (max-width: 767px) {
