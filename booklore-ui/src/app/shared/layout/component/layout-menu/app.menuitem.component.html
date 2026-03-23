@@ -1,7 +1,7 @@
 <ng-container>
   @if (root) {
     @if (item.hasDropDown) {
-      <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle>
+      <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle [cdkDragHandleDisabled]="isMobileViewport">
         <div class="root-item-label-container">
           <div class="sidebar-heading-label">{{ item.label }}</div>
           @if (item.hasCreate) {
@@ -11,6 +11,11 @@
             ></i>
           }
         </div>
+        @if (isMobileViewport) {
+          <span class="mobile-drag-handle" cdkDragHandle (click)="$event.stopPropagation()" pTooltip="Reorder" tooltipPosition="right">
+            <i class="pi pi-bars"></i>
+          </span>
+        }
         <i
           (click)="toggleExpand(key)"
           [ngClass]="{
@@ -22,8 +27,13 @@
         ></i>
       </div>
     } @else {
-      <div class="layout-menuitem-root-text root-item drag-press-target" cdkDragHandle>
+      <div class="layout-menuitem-root-text root-item drag-press-target" cdkDragHandle [cdkDragHandleDisabled]="isMobileViewport">
         <div class="sidebar-heading-label">{{ item.label }}</div>
+        @if (isMobileViewport) {
+          <span class="mobile-drag-handle" cdkDragHandle (click)="$event.stopPropagation()" pTooltip="Reorder" tooltipPosition="right">
+            <i class="pi pi-bars"></i>
+          </span>
+        }
       </div>
     }
   }
@@ -32,6 +42,7 @@
     <div
       class="menu-item-container"
       cdkDragHandle
+      [cdkDragHandleDisabled]="isMobileViewport"
       [class.drag-press-target]="!root"
       [class.draggable-child]="!root"
       [class.active-route-container]="isRouteActive"
@@ -95,6 +106,11 @@
       }
 
       <span class="menu-item-end-content">
+    @if (isMobileViewport && !root && isChildSortable()) {
+      <span class="mobile-drag-handle" cdkDragHandle (click)="$event.stopPropagation()" pTooltip="Reorder" tooltipPosition="right">
+        <i class="pi pi-bars"></i>
+      </span>
+    }
     @if (item.type === 'Library' || item.type === 'Shelf' || item.type === 'magicShelfItem') {
       @if ((item.type !== 'Library' || (admin || canManipulateLibrary)) && item.label !== 'Unshelved' && item.label !== 'Kobo') {
         <p-button

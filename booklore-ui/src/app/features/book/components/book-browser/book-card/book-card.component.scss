@@ -400,7 +400,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 10px;
+  bottom: 4px;
   z-index: 4;
   pointer-events: none;
 }
@@ -409,21 +409,21 @@
 .cover-corner-control-right {
   position: absolute;
   pointer-events: auto;
-  background: rgba(8, 12, 20, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  background: rgba(8, 12, 20, 0.59);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.36);
   backdrop-filter: blur(2px);
 }
 
 .cover-corner-control-left {
-  left: 6px;
+  left: 2px;
   bottom: 0;
   min-width: 1.7rem;
   min-height: 1.7rem;
 }
 
 .cover-corner-control-right {
-  right: 6px;
+  right: 2px;
   bottom: 0;
 }
 
@@ -435,17 +435,17 @@
 
 @media (max-width: 767px) {
   .cover-corner-controls {
-    bottom: 8px;
+    bottom: 3px;
   }
 
   .cover-corner-control-left {
-    left: 4px;
+    left: 1px;
     min-width: 1.5rem;
     min-height: 1.5rem;
   }
 
   .cover-corner-control-right {
-    right: 4px;
+    right: 1px;
   }
 }
 

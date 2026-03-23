@@ -72,6 +72,27 @@
   justify-content: space-between;
 }
 
+.mobile-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--p-surface-500);
+  border-radius: 4px;
+  cursor: grab;
+  touch-action: none;
+
+  &:hover {
+    background: var(--p-surface-800);
+    color: var(--p-primary-color);
+  }
+
+  i {
+    font-size: 0.75rem;
+  }
+}
+
 .menu-item-container {
   display: flex;
   flex-direction: row;
@@ -172,6 +193,8 @@
 
 .menu-item-end-content {
   display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .entity-menu-button {

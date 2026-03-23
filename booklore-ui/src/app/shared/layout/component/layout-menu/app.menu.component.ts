@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, HostListener, inject, OnInit} from '@angular/core';
 import {AppMenuitemComponent} from './app.menuitem.component';
 import {AsyncPipe, NgClass} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
@@ -27,13 +27,13 @@ import {FormsModule} from '@angular/forms';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {LocalStorageService} from '../../../service/local-storage.service';
-import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
+import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, NgClass, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, Popover, CheckboxModule, FormsModule],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, NgClass, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, CdkDragHandle, Popover, CheckboxModule, FormsModule],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
@@ -68,6 +68,7 @@ export class AppMenuComponent implements OnInit {
 
   activeLang = '';
   langMenuItems: any[] = [];
+  isMobileViewport = typeof window !== 'undefined' ? window.innerWidth <= 991 : false;
   private router = inject(Router);
 
   librarySortField: 'name' | 'id' = 'name';
@@ -107,6 +108,7 @@ export class AppMenuComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.syncViewportMode();
     const savedSectionOrder = this.localStorageService.get<string[]>(this.sectionOrderKey);
     if (savedSectionOrder?.length) {
       this.sectionOrder = this.normalizeSectionOrder(savedSectionOrder);
@@ -752,5 +754,18 @@ export class AppMenuComponent implements OnInit {
   }
   private shouldSuppressTap(): boolean {
     return Date.now() < this.suppressTapUntil;
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.syncViewportMode();
+  }
+
+  private syncViewportMode(): void {
+    if (typeof window === 'undefined') {
+      this.isMobileViewport = false;
+      return;
+    }
+    this.isMobileViewport = window.innerWidth <= 991;
   }
 }
