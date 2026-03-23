@@ -8,7 +8,8 @@
 .book-browser-main {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 // Header bar

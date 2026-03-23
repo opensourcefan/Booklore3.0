@@ -83,7 +83,30 @@
   position: relative;
   z-index: 2;
 
+  // Firefox: `thin` gives a slimmer bar while preserving platform behavior.
+  scrollbar-width: thin;
   scrollbar-color: var(--primary-color) rgba(20, 20, 30, 0.5);
+
+  // Chromium/WebKit: keep a 12px interactive lane but render a 6px visual bar.
+  &::-webkit-scrollbar {
+    height: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(20, 20, 30, 0.5);
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
 }
 
 .dashboard-scroller-card {
