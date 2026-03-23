@@ -34,6 +34,8 @@
               [book$]="book$"
               [disableNext]="disableNext"
               [disablePrevious]="disablePrevious"
+              [currentBookPosition]="currentBookPosition"
+              [totalBooks]="filteredBooks.length"
               (nextBookClicked)="handleNextBook()"
               (previousBookClicked)="handlePreviousBook()"
               (closeDialogButtonClicked)="handleCloseDialogButton()"

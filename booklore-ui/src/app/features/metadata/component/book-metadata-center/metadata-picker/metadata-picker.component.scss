@@ -578,6 +578,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.footer-transfer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .footer-divider {
@@ -621,6 +629,10 @@
     .footer-left,
     .footer-right {
       width: 100%;
+      justify-content: center;
+    }
+
+    .footer-transfer-actions {
       justify-content: center;
     }
   }

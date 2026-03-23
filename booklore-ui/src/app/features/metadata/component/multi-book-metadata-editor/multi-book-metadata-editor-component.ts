@@ -112,4 +112,8 @@ export class MultiBookMetadataEditorComponent implements OnInit, OnDestroy {
   get disablePrevious(): boolean {
     return this.currentIndex$.value <= 0;
   }
+
+  get currentBookPosition(): number {
+    return this.currentIndex$.value + 1;
+  }
 }

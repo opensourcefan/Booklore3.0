@@ -61,34 +61,6 @@
           </div>
         </div>
 
-        @if (navigationState$ | async) {
-          <div class="navigation-buttons-mobile">
-            <p-button
-              icon="pi pi-chevron-left"
-              [disabled]="!canNavigatePrevious()"
-              (onClick)="navigatePrevious()"
-              rounded
-              outlined
-              severity="info"
-              [pTooltip]="t('goToPreviousBook')"
-              tooltipPosition="bottom">
-            </p-button>
-            <span class="navigation-position">
-              {{ getNavigationPosition() }}
-            </span>
-            <p-button
-              icon="pi pi-chevron-right"
-              iconPos="right"
-              [disabled]="!canNavigateNext()"
-              (onClick)="navigateNext()"
-              severity="info"
-              rounded
-              outlined
-              [pTooltip]="t('goToNextBook')"
-              tooltipPosition="bottom">
-            </p-button>
-          </div>
-        }
       </div>
 
       <div class="info-section">
@@ -628,7 +600,7 @@
                   <p-button
                     icon="pi pi-chevron-left"
                     [disabled]="!canNavigatePrevious()"
-                    (onClick)="navigatePrevious()"`
+                    (onClick)="navigatePrevious()"
                     outlined
                     severity="secondary"
                     [pTooltip]="t('goToPreviousBook')"

@@ -568,7 +568,9 @@
     margin-right: 0.25rem;
 
     @media (max-width: 767px) {
-      display: none;
+      padding-right: 0;
+      margin-right: 0;
+      border-right: none;
     }
   }
 
@@ -616,17 +618,6 @@
   ::ng-deep .read-button-responsive.p-splitbutton .p-button-label::after {
     content: "Read";
     font-size: 0.875rem;
-  }
-}
-
-.navigation-buttons-mobile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-
-  @media (min-width: 768px) {
-    display: none;
   }
 }
 

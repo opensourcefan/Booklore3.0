@@ -33,6 +33,7 @@ export class FilterPreferencesComponent implements OnInit, OnDestroy {
   readonly filterModes = [
     {label: 'And', value: 'and'},
     {label: 'Or', value: 'or'},
+    {label: 'Not', value: 'not'},
     {label: 'Single', value: 'single'},
   ];
 

@@ -70,6 +70,8 @@ export class MetadataEditorComponent implements OnInit {
   @Input() disableNext = false;
   @Input() disablePrevious = false;
   @Input() showNavigationButtons = false;
+  @Input() currentBookPosition = 0;
+  @Input() totalBooks = 0;
 
   private messageService = inject(MessageService);
   private bookService = inject(BookService);
@@ -1138,14 +1140,25 @@ export class MetadataEditorComponent implements OnInit {
   }
 
   canNavigatePrevious(): boolean {
+    if (this.showNavigationButtons) {
+      return !this.disablePrevious;
+    }
     return this.bookNavigationService.canNavigatePrevious();
   }
 
   canNavigateNext(): boolean {
+    if (this.showNavigationButtons) {
+      return !this.disableNext;
+    }
     return this.bookNavigationService.canNavigateNext();
   }
 
   navigatePrevious(): void {
+    if (this.showNavigationButtons) {
+      this.onPrevious();
+      return;
+    }
+
     const prevBookId = this.bookNavigationService.getPreviousBookId();
     if (prevBookId) {
       if (this.autoSaveEnabled && this.metadataForm.dirty) {
@@ -1157,6 +1170,11 @@ export class MetadataEditorComponent implements OnInit {
   }
 
   navigateNext(): void {
+    if (this.showNavigationButtons) {
+      this.onNext();
+      return;
+    }
+
     const nextBookId = this.bookNavigationService.getNextBookId();
     if (nextBookId) {
       if (this.autoSaveEnabled && this.metadataForm.dirty) {
@@ -1179,6 +1197,13 @@ export class MetadataEditorComponent implements OnInit {
   }
 
   getNavigationPosition(): string {
+    if (this.showNavigationButtons && this.currentBookPosition > 0 && this.totalBooks > 0) {
+      return this.t.translate('metadata.editor.navigationPosition', {
+        current: this.currentBookPosition,
+        total: this.totalBooks
+      });
+    }
+
     const position = this.bookNavigationService.getCurrentPosition();
     return position ? this.t.translate('metadata.editor.navigationPosition', {current: position.current, total: position.total}) : '';
   }

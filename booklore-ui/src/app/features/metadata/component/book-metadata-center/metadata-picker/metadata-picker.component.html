@@ -766,6 +766,25 @@
           />
         </div>
         <div class="footer-right">
+          <div class="footer-transfer-actions">
+            <p-button
+              icon="pi pi-angle-left"
+              severity="secondary"
+              [outlined]="true"
+              [pTooltip]="t('copyMissingTooltip')"
+              tooltipPosition="top"
+              (onClick)="copyMissing()"
+            />
+            <p-button
+              icon="pi pi-angle-double-left"
+              severity="primary"
+              [outlined]="true"
+              [pTooltip]="t('copyAllTooltip')"
+              tooltipPosition="top"
+              (onClick)="copyAll()"
+            />
+          </div>
+          <div class="footer-divider"></div>
           <p-button
             icon="pi pi-lock-open"
             severity="success"

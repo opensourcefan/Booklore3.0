@@ -68,7 +68,7 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   private metadataByProvider: Map<string, BookMetadata[]> = new Map();
   private providerCompletionStatus: Map<string, boolean> = new Map();
   private pendingAutoSearch = false;
-  private providerInitialized = false;
+  private readonly providerStorageKey = 'bl-metadata-searcher-providers';
 
   constructor() {
     this.form = this.formBuilder.group({
@@ -88,6 +88,12 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnInit() {
     this.subscription.add(
+      this.form.get('provider')!.valueChanges.subscribe((providers: string[] | null) => {
+        this.saveProviderSelection(providers ?? []);
+      })
+    );
+
+    this.subscription.add(
       this.appSettings$
         .pipe(filter(settings => !!settings))
         .subscribe(settings => {
@@ -96,10 +102,19 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
             .filter(([_, value]) => !!value && typeof value === 'object' && 'enabled' in value && (value as any).enabled)
             .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
 
-          const currentProviders = this.form.get('provider')?.value || [];
+          const currentProviders = this.getSelectedProviders();
           const validProviders = currentProviders.filter((p: string) => this.providers.includes(p));
-          if (validProviders.length !== currentProviders.length) {
-            this.form.patchValue({provider: validProviders.length > 0 ? validProviders : null});
+          const storedProviders = this.getStoredProviders();
+          const validStoredProviders = storedProviders === null
+            ? null
+            : storedProviders.filter((p: string) => this.providers.includes(p));
+          const nextProviders = validStoredProviders !== null
+            ? validStoredProviders
+            : validProviders.length > 0 ? validProviders : this.providers;
+
+          if (!this.areProviderSelectionsEqual(currentProviders, nextProviders)) {
+            this.form.patchValue({provider: nextProviders}, {emitEvent: false});
+            this.saveProviderSelection(nextProviders);
           }
         })
     );
@@ -155,11 +170,6 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
       isbn: book.metadata?.isbn13 ?? book.metadata?.isbn10 ?? ''
     };
 
-    if (!this.providerInitialized) {
-      formUpdate['provider'] = this.providers;
-      this.providerInitialized = true;
-    }
-
     this.form.patchValue(formUpdate);
   }
 
@@ -179,7 +189,7 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   get isSearchEnabled(): boolean {
-    const providerSelected = !!this.form.get('provider')?.value;
+    const providerSelected = this.getSelectedProviders().length > 0;
     const title = this.form.get('title')?.value;
     const isbn = this.form.get('isbn')?.value;
     return providerSelected && (title || isbn);
@@ -188,8 +198,8 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   onSubmit(): void {
     this.searchTriggered = true;
     if (this.form.valid) {
-      const providerKeys = this.form.get('provider')?.value;
-      if (!providerKeys) return;
+      const providerKeys = this.getSelectedProviders();
+      if (providerKeys.length === 0) return;
 
       const fetchRequest: FetchMetadataRequest = {
         bookId: this.bookId,
@@ -318,6 +328,37 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
           value: provider
         }))
     ];
+  }
+
+  private getSelectedProviders(): string[] {
+    const providers = this.form.get('provider')?.value;
+    return Array.isArray(providers) ? providers : [];
+  }
+
+  private getStoredProviders(): string[] | null {
+    const saved = localStorage.getItem(this.providerStorageKey);
+    if (saved === null) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter((provider): provider is string => typeof provider === 'string') : [];
+    } catch {
+      return null;
+    }
+  }
+
+  private saveProviderSelection(providers: string[]): void {
+    localStorage.setItem(this.providerStorageKey, JSON.stringify(providers));
+  }
+
+  private areProviderSelectionsEqual(left: string[], right: string[]): boolean {
+    if (left.length !== right.length) {
+      return false;
+    }
+
+    return left.every((provider, index) => provider === right[index]);
   }
 
   onProviderPillClick(provider: string, event: MouseEvent): void {

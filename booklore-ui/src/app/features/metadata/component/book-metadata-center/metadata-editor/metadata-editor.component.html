@@ -946,13 +946,10 @@
           @if (showNavigationButtons) {
             <div class="navigation-left">
               <p-button [label]="t('closeBtn')" icon="pi pi-times" [outlined]="true" severity="danger" (onClick)="closeDialog()"></p-button>
-              <p-divider layout="vertical"/>
-              <p-button [label]="t('previousBookBtn')" [disabled]="disablePrevious" icon="pi pi-arrow-left" [outlined]="true" severity="info" (onClick)="onPrevious()"></p-button>
-              <p-button [label]="t('nextBookBtn')" [disabled]="disableNext" icon="pi pi-arrow-right" iconPos="right" [outlined]="true" severity="info" (onClick)="onNext()"></p-button>
             </div>
           }
 
-          @if (navigationState$ | async) {
+          @if ((showNavigationButtons && totalBooks > 0) || (navigationState$ | async)) {
             <div class="navigation-center">
               <p-button
                 icon="pi pi-chevron-left"
@@ -1017,13 +1014,11 @@
           @if (showNavigationButtons) {
             <div class="mobile-nav-buttons">
               <p-button size="small" icon="pi pi-times" [outlined]="true" severity="danger" (onClick)="closeDialog()" [pTooltip]="t('closeBtn')" tooltipPosition="top"></p-button>
-              <p-button size="small" icon="pi pi-arrow-left" [disabled]="disablePrevious" [outlined]="true" severity="info" (onClick)="onPrevious()" [pTooltip]="t('previousBookBtn')" tooltipPosition="top"></p-button>
-              <p-button size="small" icon="pi pi-arrow-right" [disabled]="disableNext" iconPos="right" [outlined]="true" severity="info" (onClick)="onNext()" [pTooltip]="t('nextBookBtn')" tooltipPosition="top"></p-button>
             </div>
           }
 
           <div class="mobile-actions-row">
-            @if (navigationState$ | async) {
+            @if ((showNavigationButtons && totalBooks > 0) || (navigationState$ | async)) {
               <div class="navigation-center">
                 <p-button
                   icon="pi pi-chevron-left"
