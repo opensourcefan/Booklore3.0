@@ -1,4 +1,4 @@
-import {Component, HostListener, inject, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {AppMenuitemComponent} from './app.menuitem.component';
 import {AsyncPipe, NgClass} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
@@ -68,7 +68,6 @@ export class AppMenuComponent implements OnInit {
 
   activeLang = '';
   langMenuItems: any[] = [];
-  isMobileViewport = typeof window !== 'undefined' ? window.innerWidth <= 991 : false;
   private router = inject(Router);
 
   librarySortField: 'name' | 'id' = 'name';
@@ -108,7 +107,6 @@ export class AppMenuComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.syncViewportMode();
     const savedSectionOrder = this.localStorageService.get<string[]>(this.sectionOrderKey);
     if (savedSectionOrder?.length) {
       this.sectionOrder = this.normalizeSectionOrder(savedSectionOrder);
@@ -754,18 +752,5 @@ export class AppMenuComponent implements OnInit {
   }
   private shouldSuppressTap(): boolean {
     return Date.now() < this.suppressTapUntil;
-  }
-
-  @HostListener('window:resize')
-  onWindowResize(): void {
-    this.syncViewportMode();
-  }
-
-  private syncViewportMode(): void {
-    if (typeof window === 'undefined') {
-      this.isMobileViewport = false;
-      return;
-    }
-    this.isMobileViewport = window.innerWidth <= 991;
   }
 }

@@ -79,7 +79,7 @@
               </ul>
             }
             @case ('bookType') {
-              <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle [cdkDragHandleDisabled]="isMobileViewport">
+              <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle>
                 <div class="root-item-label-container">
                   <div class="media-heading-label sidebar-heading-label">{{ getSectionHeading(section) }}</div>
                   <i
@@ -89,11 +89,6 @@
                     (click)="openMediaTypeCreatorDialog(); $event.stopPropagation()"
                   ></i>
                 </div>
-                @if (isMobileViewport) {
-                  <span class="mobile-section-drag-handle" cdkDragHandle (click)="$event.stopPropagation()" pTooltip="Reorder" tooltipPosition="right">
-                    <i class="pi pi-bars"></i>
-                  </span>
-                }
                 <i
                   class="expand-icon"
                   [ngClass]="{

@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostBinding, HostListener, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {NavigationEnd, Router, RouterLink} from '@angular/router';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {Subscription} from 'rxjs';
@@ -67,7 +67,6 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   private touchStartX: number | null = null;
   private touchStartY: number | null = null;
   private suppressTapUntil = 0;
-  isMobileViewport = typeof window !== 'undefined' ? window.innerWidth <= 991 : false;
 
   get isRouteActive(): boolean {
     if (!this.item?.routerLink?.[0]) return false;
@@ -127,7 +126,6 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.syncViewportMode();
     const rootKey = this.menuKey ? this.menuKey + '-' : '';
     this.key = this.parentKey ? this.parentKey + '-' + this.index : rootKey + String(this.index);
     this.expandedItems.add(this.key);
@@ -283,19 +281,6 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
 
   private shouldSuppressTap(): boolean {
     return Date.now() < this.suppressTapUntil;
-  }
-
-  @HostListener('window:resize')
-  onWindowResize(): void {
-    this.syncViewportMode();
-  }
-
-  private syncViewportMode(): void {
-    if (typeof window === 'undefined') {
-      this.isMobileViewport = false;
-      return;
-    }
-    this.isMobileViewport = window.innerWidth <= 991;
   }
 
 }
