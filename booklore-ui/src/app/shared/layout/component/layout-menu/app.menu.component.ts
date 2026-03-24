@@ -752,13 +752,13 @@ export class AppMenuComponent implements OnInit {
       && normalizedCurrent !== normalizedLatest;
   }
 
-  private getNormalizedDisplayVersion(version: string | undefined): string | null {
+  private getNormalizedDisplayVersion(version: string | undefined): string | undefined {
     if (!version) {
-      return null;
+      return undefined;
     }
 
     const trimmed = version.trim();
-    return trimmed.length ? trimmed : null;
+    return trimmed.length ? trimmed : undefined;
   }
 
   private getNormalizedSemanticVersion(version: string | undefined): string | null {
