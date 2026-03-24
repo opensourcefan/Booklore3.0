@@ -127,8 +127,8 @@
   margin: 0;
   width: 100%;
   line-height: var(--title-line-height);
-  max-height: calc(var(--title-rows, 1) * var(--title-line-height) * 1em);
-  padding: 0;
+  max-height: calc(var(--title-rows, 1) * var(--title-line-height) * 1em + 0.16em);
+  padding: 0 0 0.06em;
 
   @media (max-width: 767px) {
     font-size: 0.75rem;
