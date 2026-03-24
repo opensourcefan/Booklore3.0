@@ -89,6 +89,7 @@ export class AppMenuComponent implements OnInit {
   private readonly sectionVisibilityKey = 'sidebarSectionVisibility';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
   private readonly customMediaTypesKey = 'customMediaTypes';
+  private readonly bookTypeOrderKey = 'sidebarBookTypeOrder';
   private readonly mediaTypeMenuRefresh$ = new BehaviorSubject<void>(undefined);
   private touchStartX: number | null = null;
   private touchStartY: number | null = null;
@@ -125,6 +126,9 @@ export class AppMenuComponent implements OnInit {
     this.t.langChanges$.subscribe((lang: string) => { this.activeLang = lang; this.buildLangMenu(); });
     this.localStorageService.keyChanges$.subscribe((key: string) => {
       if (key === this.customMediaTypesKey || key === 'customBookTypes') {
+        this.mediaTypeMenuRefresh$.next();
+      }
+      if (key === this.bookTypeOrderKey) {
         this.mediaTypeMenuRefresh$.next();
       }
       if (key === this.sectionOrderKey) {
@@ -225,11 +229,28 @@ export class AppMenuComponent implements OnInit {
           }
         }
 
-        return [...counts.entries()]
+        const sortedBookTypes = [...counts.entries()]
           .map(([label, count]) => ({label, count}))
           .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+        return this.applyBookTypeOrder(sortedBookTypes);
       })
     );
+  }
+
+  onBookTypeDrop(event: CdkDragDrop<Array<{label: string; count: number}>>): void {
+    if (event.previousIndex === event.currentIndex) {
+      return;
+    }
+
+    const reordered = [...event.container.data];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+    this.localStorageService.set(this.bookTypeOrderKey, reordered.map(item => item.label));
+    this.mediaTypeMenuRefresh$.next();
+  }
+
+  onBookTypeDragStart(): void {
+    this.suppressTapUntil = Date.now() + 300;
   }
 
   onSectionDrop(event: CdkDragDrop<string[]>): void {
@@ -759,6 +780,33 @@ export class AppMenuComponent implements OnInit {
         items: ordered,
       };
     });
+  }
+
+  private applyBookTypeOrder(bookTypes: Array<{label: string; count: number}>): Array<{label: string; count: number}> {
+    const savedOrder = this.localStorageService.get<string[]>(this.bookTypeOrderKey);
+    if (!savedOrder?.length) {
+      return bookTypes;
+    }
+
+    const lookup = new Map(bookTypes.map(type => [type.label, type]));
+    const ordered: Array<{label: string; count: number}> = [];
+
+    for (const label of savedOrder) {
+      const match = lookup.get(label);
+      if (match) {
+        ordered.push(match);
+        lookup.delete(label);
+      }
+    }
+
+    for (const type of bookTypes) {
+      if (lookup.has(type.label)) {
+        ordered.push(type);
+        lookup.delete(type.label);
+      }
+    }
+
+    return ordered;
   }
 
   private getMenuItemOrderId(item: MenuItem): string {

@@ -101,11 +101,18 @@
               </div>
 
               @if (bookTypeSectionExpanded) {
-                <ul class="layout-menu book-type-submenu">
-                  @if (bookTypeMenu$ | async; as bookTypes) {
+                @if (bookTypeMenu$ | async; as bookTypes) {
+                  <ul
+                    class="layout-menu book-type-submenu"
+                    cdkDropList
+                    [cdkDropListData]="bookTypes"
+                    (cdkDropListDropped)="onBookTypeDrop($event)">
                     @for (entry of bookTypes; track entry.label) {
                       <li
                         class="book-type-item"
+                        cdkDrag
+                        [cdkDragStartDelay]="sectionDragStartDelay"
+                        (cdkDragStarted)="onBookTypeDragStart()"
                         [class.active]="isBookTypeFilterActive(entry.label)"
                         (touchstart)="onTouchStart($event)"
                         (touchend)="onTouchEnd($event)"
@@ -125,8 +132,8 @@
                         <span class="book-type-count">{{ entry.count }}</span>
                       </li>
                     }
-                  }
-                </ul>
+                  </ul>
+                }
               }
             }
           }
