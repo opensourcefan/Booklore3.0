@@ -110,10 +110,15 @@ export class AppMenuComponent implements OnInit {
     const savedSectionOrder = this.localStorageService.get<string[]>(this.sectionOrderKey);
     if (savedSectionOrder?.length) {
       this.sectionOrder = this.normalizeSectionOrder(savedSectionOrder);
+    } else {
+      this.localStorageService.set(this.sectionOrderKey, this.sectionOrder);
     }
 
     const savedSectionVisibility = this.localStorageService.get<Record<string, boolean>>(this.sectionVisibilityKey);
     this.sectionVisibility = this.normalizeSectionVisibility(savedSectionVisibility);
+    if (!savedSectionVisibility) {
+      this.localStorageService.set(this.sectionVisibilityKey, this.sectionVisibility);
+    }
 
     this.activeLang = this.t.getActiveLang();
     this.buildLangMenu();
@@ -121,6 +126,16 @@ export class AppMenuComponent implements OnInit {
     this.localStorageService.keyChanges$.subscribe((key: string) => {
       if (key === this.customMediaTypesKey || key === 'customBookTypes') {
         this.mediaTypeMenuRefresh$.next();
+      }
+      if (key === this.sectionOrderKey) {
+        const updatedOrder = this.localStorageService.get<string[]>(this.sectionOrderKey);
+        if (updatedOrder?.length) {
+          this.sectionOrder = this.normalizeSectionOrder(updatedOrder);
+        }
+      }
+      if (key === this.sectionVisibilityKey) {
+        const updatedVisibility = this.localStorageService.get<Record<string, boolean>>(this.sectionVisibilityKey);
+        this.sectionVisibility = this.normalizeSectionVisibility(updatedVisibility);
       }
     });
 

@@ -641,6 +641,16 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedFilterMode.next(mode);
     this.queryParamsService.updateFilterMode(mode, this.parsedFilters);
+    this.persistFilterModePreference(mode);
+  }
+
+  private persistFilterModePreference(mode: BookFilterMode): void {
+    const user = this.userService.getCurrentUser();
+    if (!user || user.userSettings?.filterMode === mode) {
+      return;
+    }
+
+    this.userService.updateUserSetting(user.id, 'filterMode', mode);
   }
 
   toggleSidebar(): void {
