@@ -214,7 +214,7 @@
 }
 
 .version-info {
-  padding: 1rem;
+  padding: 0.8rem 1rem 0.95rem;
   text-align: center;
   width: 100%;
   font-size: 0.875rem;
@@ -222,6 +222,8 @@
 
 .version-text {
   color: #e5e7eb;
+  min-height: 1.1rem;
+  overflow-wrap: anywhere;
 }
 
 .version-link {
@@ -235,6 +237,7 @@
 
 .version-label {
   font-size: 0.875rem;
+  line-height: 1.2;
 }
 
 .update-link {

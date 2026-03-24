@@ -180,34 +180,34 @@
     </div>
     <div class="sidebar-footer-divider"></div>
 
-    @if (versionInfo) {
-      <div class="version-info">
-        <div class="version-text">
-          @if (isSemanticVersion(versionInfo.current, versionInfo.latest)) {
-            <a
-              [href]="getVersionUrl(versionInfo.current, versionInfo.latest)"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="version-link"
-              >
-              {{ getDisplayVersion(versionInfo.current, versionInfo.latest) }}
-            </a>
-          } @else {
-            <span class="version-label">{{ getDisplayVersion(versionInfo.current, versionInfo.latest) }}</span>
-          }
-        </div>
-        @if (isSemanticVersion(versionInfo.current, versionInfo.latest) && versionInfo.latest && getDisplayVersion(versionInfo.current, versionInfo.latest) !== getDisplayVersion(versionInfo.latest)) {
-          <div>
-            <a
-              (click)="openChangelogDialog()"
-              class="update-link"
-              >
-              {{ t('update') }}
-            </a>
-          </div>
+    <div class="version-info">
+      <div class="version-text"
+           pTooltip="{{ getVersionTooltip(versionInfo?.current, versionInfo?.latest) }}"
+           tooltipPosition="top">
+        @if (isSemanticVersion(versionInfo?.current, versionInfo?.latest)) {
+          <a
+            [href]="getVersionUrl(versionInfo?.current, versionInfo?.latest)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="version-link"
+            >
+            {{ getDisplayVersion(versionInfo?.current, versionInfo?.latest) }}
+          </a>
+        } @else {
+          <span class="version-label">{{ getDisplayVersion(versionInfo?.current, versionInfo?.latest) }}</span>
         }
       </div>
-    }
+      @if (shouldShowUpdateLink(versionInfo?.current, versionInfo?.latest)) {
+        <div>
+          <a
+            (click)="openChangelogDialog()"
+            class="update-link"
+            >
+            {{ t('update') }}
+          </a>
+        </div>
+      }
+    </div>
   </div>
 </div>
 </ng-container>

@@ -5,7 +5,7 @@ import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
 import {BehaviorSubject, combineLatest, Observable, of} from 'rxjs';
-import {filter, map} from 'rxjs/operators';
+import {catchError, filter, map} from 'rxjs/operators';
 import {ShelfService} from '../../../../features/book/service/shelf.service';
 import {BookService} from '../../../../features/book/service/book.service';
 import {LibraryShelfMenuService} from '../../../../features/book/service/library-shelf-menu.service';
@@ -146,7 +146,9 @@ export class AppMenuComponent implements OnInit {
     this.syncActiveBookTypeFilterFromUrl();
     this.router.events.subscribe(() => this.syncActiveBookTypeFilterFromUrl());
 
-    this.versionService.getVersion().subscribe((data) => {
+    this.versionService.getVersion().pipe(
+      catchError(() => of({current: 'unknown', latest: 'unknown'}))
+    ).subscribe((data) => {
       this.versionInfo = data;
     });
 
@@ -664,6 +666,13 @@ export class AppMenuComponent implements OnInit {
   }
 
   getVersionUrl(current: string | undefined, latest?: string | undefined): string {
+    if (this.shouldShowCombinedVersion(current, latest)) {
+      const stableVersion = this.getNormalizedSemanticVersion(latest);
+      return stableVersion
+        ? `https://github.com/booklore-app/booklore/releases/tag/${stableVersion}`
+        : '#';
+    }
+
     const version = this.getPreferredDisplayVersion(current, latest);
     if (!version) return '#';
     const normalizedVersion = this.getNormalizedSemanticVersion(version);
@@ -673,22 +682,83 @@ export class AppMenuComponent implements OnInit {
   }
 
   isSemanticVersion(current: string | undefined, latest?: string | undefined): boolean {
+    if (this.shouldShowCombinedVersion(current, latest)) {
+      return false;
+    }
     return !!this.getNormalizedSemanticVersion(this.getPreferredDisplayVersion(current, latest));
   }
 
+  shouldShowUpdateLink(current: string | undefined, latest?: string | undefined): boolean {
+    const normalizedCurrent = this.getNormalizedSemanticVersion(current);
+    const normalizedLatest = this.getNormalizedSemanticVersion(latest);
+    return !!normalizedCurrent && !!normalizedLatest && normalizedCurrent !== normalizedLatest;
+  }
+
   getDisplayVersion(current: string | undefined, latest?: string | undefined): string {
+    if (this.shouldShowCombinedVersion(current, latest)) {
+      const buildLabel = this.getNormalizedDisplayVersion(current);
+      const stableLabel = this.getNormalizedSemanticVersion(latest);
+      if (buildLabel && stableLabel) {
+        return `${buildLabel} · latest ${stableLabel}`;
+      }
+    }
+
     const version = this.getPreferredDisplayVersion(current, latest);
-    return this.getNormalizedSemanticVersion(version) ?? (version ?? '');
+    return this.getNormalizedSemanticVersion(version) ?? this.getNormalizedDisplayVersion(version) ?? 'unknown';
+  }
+
+  getVersionTooltip(current: string | undefined, latest?: string | undefined): string {
+    const normalizedCurrent = this.getNormalizedDisplayVersion(current);
+    const normalizedLatest = this.getNormalizedSemanticVersion(latest);
+
+    if (this.shouldShowCombinedVersion(current, latest) && normalizedCurrent && normalizedLatest) {
+      return `Current build: ${normalizedCurrent}. Latest stable release: ${normalizedLatest}.`;
+    }
+
+    const semanticCurrent = this.getNormalizedSemanticVersion(current);
+    if (semanticCurrent) {
+      return `Current release: ${semanticCurrent}.`;
+    }
+
+    if (normalizedCurrent) {
+      return `Current build: ${normalizedCurrent}.`;
+    }
+
+    return 'Version information is temporarily unavailable.';
   }
 
   private getPreferredDisplayVersion(current: string | undefined, latest?: string | undefined): string | undefined {
-    if (this.getNormalizedSemanticVersion(current)) {
-      return current;
+    const normalizedCurrent = this.getNormalizedDisplayVersion(current);
+    const normalizedLatest = this.getNormalizedDisplayVersion(latest);
+
+    if (this.getNormalizedSemanticVersion(normalizedCurrent)) {
+      return normalizedCurrent;
     }
-    if (this.getNormalizedSemanticVersion(latest)) {
-      return latest;
+    if (this.getNormalizedSemanticVersion(normalizedLatest)) {
+      return normalizedLatest;
     }
-    return current ?? latest;
+    return normalizedCurrent ?? normalizedLatest;
+  }
+
+  private shouldShowCombinedVersion(current: string | undefined, latest?: string | undefined): boolean {
+    const normalizedCurrent = this.getNormalizedDisplayVersion(current);
+    const normalizedLatest = this.getNormalizedDisplayVersion(latest);
+    if (!normalizedCurrent || !normalizedLatest) {
+      return false;
+    }
+
+    return !this.getNormalizedSemanticVersion(normalizedCurrent)
+      && !!this.getNormalizedSemanticVersion(normalizedLatest)
+      && normalizedCurrent !== normalizedLatest;
+  }
+
+  private getNormalizedDisplayVersion(version: string | undefined): string | null {
+    if (!version) {
+      return null;
+    }
+
+    const trimmed = version.trim();
+    return trimmed.length ? trimmed : null;
   }
 
   private getNormalizedSemanticVersion(version: string | undefined): string | null {
