@@ -110,7 +110,7 @@
 }
 
 .dashboard-scroller-card {
-  height: 200px;
+  height: auto;
   width: 116px;
   flex-basis: 124px;
   flex-shrink: 0;
@@ -179,22 +179,17 @@
     filter: blur(6px);
   }
 
-  // Audiobook covers should fill the container height
+  // Let card content define height so extra title rows grow downward.
   ::ng-deep {
     app-book-card {
       display: block;
-      height: 100%;
+      height: auto;
     }
 
     .book-card {
-      height: 100%;
+      height: auto;
       display: flex;
       flex-direction: column;
-    }
-
-    .cover-container.audiobook-cover {
-      aspect-ratio: unset;
-      flex: 1;
     }
   }
 }
@@ -211,7 +206,7 @@
 @media (max-width: 767px) {
 
   .dashboard-scroller-card {
-    height: 184px;
+    height: auto;
     width: 108px;
     flex-basis: 108px;
 

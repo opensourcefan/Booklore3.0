@@ -32,6 +32,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 5/7;
+  flex-shrink: 0;
   background-color: var(--card-background);
   border-radius: 8px 8px 0 0;
   overflow: hidden;
