@@ -100,7 +100,18 @@
 }
 
 .book-title-container {
-  display: block;
+  --title-line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.24rem;
+  padding: 0.1rem 0.4rem 0.2rem;
+  min-height: calc(var(--title-rows, 1) * var(--title-line-height) * 1em + 0.3rem);
+
+  @media (max-width: 767px) {
+    --title-line-height: 1.16;
+  }
 }
 
 .book-title {
@@ -115,12 +126,12 @@
   text-align: center;
   margin: 0;
   width: 100%;
-  padding: 0.2rem 0.5rem;
-  line-height: 1.2;
+  line-height: var(--title-line-height);
+  max-height: calc(var(--title-rows, 1) * var(--title-line-height) * 1em);
+  padding: 0;
 
   @media (max-width: 767px) {
     font-size: 0.75rem;
-    padding-left: 0.25rem;
   }
 }
 

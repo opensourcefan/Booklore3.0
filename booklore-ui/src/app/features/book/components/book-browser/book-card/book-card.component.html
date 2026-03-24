@@ -110,7 +110,7 @@
   </div>
 
   @if (!bottomBarHidden) {
-    <div class="book-title-container">
+    <div class="book-title-container" [style.--title-rows]="normalizedTitleRows">
       <h4 class="book-title"
           [style.--title-rows]="normalizedTitleRows"
           tooltipPosition="bottom"
