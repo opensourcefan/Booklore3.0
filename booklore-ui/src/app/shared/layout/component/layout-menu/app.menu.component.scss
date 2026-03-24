@@ -9,6 +9,9 @@
   --sidebar-heading-font-size: 0.857rem;
   --sidebar-heading-font-weight: 700;
   --sidebar-heading-letter-case: uppercase;
+  --sidebar-row-status-slot-width: 1.05rem;
+  --sidebar-row-icon-slot-width: 1.25rem;
+  --sidebar-row-gap: 0.5rem;
 }
 
 .menu-header-actions {
@@ -135,7 +138,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.4rem 0.75rem 0.4rem 0.95rem;
+  padding: 0.2rem 0.75rem 0.2rem 0;
+  min-height: 2rem;
   border-radius: 8px;
   color: var(--text-color);
   font-size: 0.985rem;
@@ -156,28 +160,41 @@
 }
 
 .book-type-main {
+  display: grid;
+  align-items: center;
+  grid-template-columns: var(--sidebar-row-status-slot-width) var(--sidebar-row-icon-slot-width) minmax(0, 1fr);
+  column-gap: var(--sidebar-row-gap);
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-row-status-slot {
+  width: var(--sidebar-row-status-slot-width);
+  height: var(--sidebar-row-status-slot-width);
+  opacity: 0;
+}
+
+.book-type-icon-slot {
+  width: var(--sidebar-row-icon-slot-width);
   display: flex;
   align-items: center;
-  min-width: 0;
-  flex: 1;
-  gap: 0.8rem;
+  justify-content: center;
 }
 
 .book-type-icon {
   color: var(--text-color);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   flex-shrink: 0;
-  transform: translateY(-4px);
 }
 
 .book-type-label {
-  display: inline-block;
+  display: block;
   min-width: 0;
-  max-width: 100%;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-right: 0.35rem;
+  line-height: 1.2;
 }
 
 .book-type-label-inner {
@@ -194,6 +211,7 @@
   font-weight: 600;
   min-width: 1.5rem;
   text-align: right;
+  padding-right: 0.75rem;
 }
 
 .version-info {

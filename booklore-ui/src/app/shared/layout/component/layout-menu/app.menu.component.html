@@ -112,7 +112,10 @@
                         (touchcancel)="onTouchCancel()"
                         (click)="selectBookTypeFilter(entry.label, $event)">
                         <span class="book-type-main">
-                          <i class="pi pi-file book-type-icon"></i>
+                          <span class="sidebar-row-status-slot" aria-hidden="true"></span>
+                          <span class="book-type-icon-slot" aria-hidden="true">
+                            <i class="pi pi-file book-type-icon"></i>
+                          </span>
                           <span class="book-type-label"
                                 [class.book-type-label-scroll]="entry.label.length > 20">
                             <span class="book-type-label-inner"
