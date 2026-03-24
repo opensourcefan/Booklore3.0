@@ -6,6 +6,7 @@ import {Library} from '../../book/model/library.model';
 import {catchError, distinctUntilChanged, finalize, shareReplay, tap} from 'rxjs/operators';
 import {AuthService} from '../../../shared/service/auth.service';
 import {DashboardConfig} from '../../dashboard/models/dashboard-config.model';
+import {AppState} from '../../../shared/model/app-state.model';
 
 export interface EntityViewPreferences {
   global: EntityViewPreference;
@@ -275,6 +276,7 @@ export interface UserSettings {
   sidebarLibrarySorting: SidebarLibrarySorting;
   sidebarShelfSorting: SidebarShelfSorting;
   sidebarMagicShelfSorting: SidebarMagicShelfSorting;
+  themeSettings?: AppState;
   filterMode: BookFilterMode;
   visibleFilters?: VisibleFilterType[];
   visibleSortFields?: string[];

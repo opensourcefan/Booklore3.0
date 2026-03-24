@@ -14,6 +14,7 @@ public enum UserSettingKey {
     SIDEBAR_SHELF_SORTING("sidebarShelfSorting", true),
     SIDEBAR_MAGIC_SHELF_SORTING("sidebarMagicShelfSorting", true),
     ENTITY_VIEW_PREFERENCES("entityViewPreferences", true),
+    THEME_SETTINGS("themeSettings", true),
     TABLE_COLUMN_PREFERENCE("tableColumnPreference", true),
     DASHBOARD_CONFIG("dashboardConfig", true),
     FILTER_MODE("filterMode", false),

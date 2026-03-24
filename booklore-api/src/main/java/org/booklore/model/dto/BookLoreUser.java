@@ -70,6 +70,7 @@ public class BookLoreUser {
         public SidebarSortOption sidebarShelfSorting;
         public SidebarSortOption sidebarMagicShelfSorting;
         public EntityViewPreferences entityViewPreferences;
+        public ThemeSettings themeSettings;
         public List<TableColumnPreference> tableColumnPreference;
         public String filterMode;
         public String filterSortingMode;
@@ -99,6 +100,16 @@ public class BookLoreUser {
         public static class EntityViewPreferences {
             private GlobalPreferences global;
             private List<OverridePreference> overrides;
+        }
+
+        @Data
+        @Builder
+        @AllArgsConstructor
+        @NoArgsConstructor
+        public static class ThemeSettings {
+            private String preset;
+            private String primary;
+            private String surface;
         }
 
         @Data

@@ -56,6 +56,7 @@ public class BookLoreUserTransformer {
                         case SIDEBAR_SHELF_SORTING -> userSettings.setSidebarShelfSorting(objectMapper.readValue(value, SidebarSortOption.class));
                         case SIDEBAR_MAGIC_SHELF_SORTING -> userSettings.setSidebarMagicShelfSorting(objectMapper.readValue(value, SidebarSortOption.class));
                         case ENTITY_VIEW_PREFERENCES -> userSettings.setEntityViewPreferences(objectMapper.readValue(value, BookLoreUser.UserSettings.EntityViewPreferences.class));
+                        case THEME_SETTINGS -> userSettings.setThemeSettings(objectMapper.readValue(value, BookLoreUser.UserSettings.ThemeSettings.class));
                         case TABLE_COLUMN_PREFERENCE -> userSettings.setTableColumnPreference(objectMapper.readValue(value, new TypeReference<>() {
                         }));
                         case DASHBOARD_CONFIG -> userSettings.setDashboardConfig(objectMapper.readValue(value, BookLoreUser.UserSettings.DashboardConfig.class));
@@ -63,6 +64,8 @@ public class BookLoreUserTransformer {
                         }));
                         case VISIBLE_SORT_FIELDS -> userSettings.setVisibleSortFields(objectMapper.readValue(value, new TypeReference<>() {
                         }));
+                        default -> {
+                        }
                     }
                 } else {
                     switch (settingKey) {
@@ -71,6 +74,8 @@ public class BookLoreUserTransformer {
                         case METADATA_CENTER_VIEW_MODE -> userSettings.setMetadataCenterViewMode(value);
                         case ENABLE_SERIES_VIEW -> userSettings.setEnableSeriesView(Boolean.parseBoolean(value));
                         case AUTO_SAVE_METADATA -> userSettings.setAutoSaveMetadata(Boolean.parseBoolean(value));
+                        default -> {
+                        }
                     }
                 }
             } catch (IllegalArgumentException e) {

@@ -3,6 +3,9 @@ import { effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { $t, updatePreset, updateSurfacePalette } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { AppState } from '../model/app-state.model';
+import {UserService} from '../../features/settings/user-management/user.service';
+import {filter, takeUntil} from 'rxjs/operators';
+import {Subject} from 'rxjs';
 
 type ColorPalette = Record<string, string>;
 
@@ -19,7 +22,11 @@ export class AppConfigService {
   appState = signal<AppState>({});
   document = inject(DOCUMENT);
   platformId = inject(PLATFORM_ID);
+  private userService = inject(UserService);
   private initialized = false;
+  private syncingFromServer = false;
+  private seededServerFromLocal = false;
+  private destroy$ = new Subject<void>();
 
   readonly surfaces: Palette[] = [
     {
@@ -337,6 +344,7 @@ export class AppConfigService {
 
     if (isPlatformBrowser(this.platformId)) {
       this.onPresetChange();
+      this.bindUserThemeSettings();
     }
 
     effect(() => {
@@ -347,7 +355,38 @@ export class AppConfigService {
       }
       this.saveAppState(state);
       this.onPresetChange();
+      this.saveThemeSettingsToUser(state);
     });
+  }
+
+  private bindUserThemeSettings(): void {
+    this.userService.userState$
+      .pipe(
+        filter(state => !!state?.user && state.loaded),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((state) => {
+        const user = state.user;
+        if (!user) {
+          return;
+        }
+
+        const serverTheme = this.normalizeAppState(user.userSettings?.themeSettings);
+        if (serverTheme) {
+          if (!this.areThemeStatesEqual(serverTheme, this.appState())) {
+            this.syncingFromServer = true;
+            this.appState.set(serverTheme);
+            this.syncingFromServer = false;
+          }
+          this.saveAppState(serverTheme);
+          return;
+        }
+
+        if (!this.seededServerFromLocal) {
+          this.seededServerFromLocal = true;
+          this.saveThemeSettingsToUser(this.appState());
+        }
+      });
   }
 
   private loadAppState(): AppState {
@@ -368,6 +407,53 @@ export class AppConfigService {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
     }
+  }
+
+  private saveThemeSettingsToUser(state: AppState): void {
+    if (this.syncingFromServer) {
+      return;
+    }
+
+    const user = this.userService.getCurrentUser();
+    if (!user) {
+      return;
+    }
+
+    const normalizedState = this.normalizeAppState(state) ?? this.getDefaultAppState();
+    const currentUserTheme = this.normalizeAppState(user.userSettings?.themeSettings);
+    if (currentUserTheme && this.areThemeStatesEqual(currentUserTheme, normalizedState)) {
+      return;
+    }
+
+    this.userService.updateUserSetting(user.id, 'themeSettings', normalizedState);
+  }
+
+  private normalizeAppState(state: AppState | null | undefined): AppState | null {
+    if (!state) {
+      return null;
+    }
+
+    return {
+      preset: state.preset ?? 'Aura',
+      primary: state.primary ?? 'green',
+      surface: state.surface ?? 'ash',
+    };
+  }
+
+  private areThemeStatesEqual(a: AppState | null | undefined, b: AppState | null | undefined): boolean {
+    const normalizedA = this.normalizeAppState(a);
+    const normalizedB = this.normalizeAppState(b);
+    return normalizedA?.preset === normalizedB?.preset
+      && normalizedA?.primary === normalizedB?.primary
+      && normalizedA?.surface === normalizedB?.surface;
+  }
+
+  private getDefaultAppState(): AppState {
+    return {
+      preset: 'Aura',
+      primary: 'green',
+      surface: 'ash',
+    };
   }
 
   private getSurfacePalette(surface: string): ColorPalette {

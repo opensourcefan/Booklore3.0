@@ -31,6 +31,7 @@ public class DefaultUserSettingsProvider {
         defaultSettings.put(UserSettingKey.SIDEBAR_SHELF_SORTING, this::buildDefaultSidebarShelfSorting);
         defaultSettings.put(UserSettingKey.SIDEBAR_MAGIC_SHELF_SORTING, this::buildDefaultSidebarMagicShelfSorting);
         defaultSettings.put(UserSettingKey.ENTITY_VIEW_PREFERENCES, this::buildDefaultEntityViewPreferences);
+        defaultSettings.put(UserSettingKey.THEME_SETTINGS, this::buildDefaultThemeSettings);
         defaultSettings.put(UserSettingKey.TABLE_COLUMN_PREFERENCE, () -> null);
         defaultSettings.put(UserSettingKey.FILTER_MODE, () -> "and");
         defaultSettings.put(UserSettingKey.FILTER_SORTING_MODE, () -> "count");
@@ -137,6 +138,14 @@ public class DefaultUserSettingsProvider {
                         .overlayBookType(true)
                         .build())
                 .overrides(null)
+                .build();
+    }
+
+    private BookLoreUser.UserSettings.ThemeSettings buildDefaultThemeSettings() {
+        return BookLoreUser.UserSettings.ThemeSettings.builder()
+                .preset("Aura")
+                .primary("green")
+                .surface("ash")
                 .build();
     }
 }
