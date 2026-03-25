@@ -15,6 +15,12 @@ import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
 import {LibraryService} from '../../book/service/library.service';
 
+interface AiStartupEvent {
+  timestamp: string;
+  level: 'info' | 'success' | 'warning' | 'error';
+  text: string;
+}
+
 @Component({
   selector: 'app-ai-settings',
   standalone: true,
@@ -30,6 +36,9 @@ import {LibraryService} from '../../book/service/library.service';
   styleUrl: './ai-settings.component.scss'
 })
 export class AiSettingsComponent implements OnInit, OnDestroy {
+  private startupPollHandle: ReturnType<typeof setTimeout> | null = null;
+  private lastStartupFingerprint: string | null = null;
+
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
   private libraryService = inject(LibraryService);
@@ -48,6 +57,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   selectedLibraryPathIds: number[] = [];
   libraryPathOptions: Array<{label: string; value: number}> = [];
   batchProgress: AiPanelScanProgressPayload | null = null;
+  startupEvents: AiStartupEvent[] = [];
+  lastStatusCheckedAt: string | null = null;
 
   ngOnInit(): void {
     this.appSettings$.pipe(
@@ -88,6 +99,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.clearStartupPolling();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -118,19 +130,21 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     this.statusLoading = true;
     this.appSettingsService.getAiServiceStatus().subscribe({
       next: status => {
-        this.status = status;
+        this.applyStatus(status, false);
         this.statusLoading = false;
       },
       error: err => {
         this.statusLoading = false;
-        this.status = {
+        this.applyStatus({
           enabled: this.aiEnabled,
           serviceReachable: false,
           status: 'ERROR',
           message: 'Failed to fetch AI service status.',
           error: err?.message ?? 'Unknown error',
-          baseUrl: ''
-        };
+          baseUrl: '',
+          modelExists: null,
+          modelPath: null
+        }, false);
       }
     });
   }
@@ -202,8 +216,157 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
+  get statusTone(): 'ok' | 'warning' | 'error' {
+    switch (this.status?.status) {
+      case 'READY':
+        return 'ok';
+      case 'STARTING':
+        return 'warning';
+      default:
+        return 'error';
+    }
+  }
+
+  get showStartupActivity(): boolean {
+    return this.isDockerEndpoint && this.aiEnabled;
+  }
+
+  get isDockerEndpoint(): boolean {
+    const baseUrl = this.status?.baseUrl?.trim();
+    if (!baseUrl) {
+      return false;
+    }
+
+    try {
+      const {host} = new URL(baseUrl);
+      return host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel');
+    } catch {
+      return false;
+    }
+  }
+
+  get startupPanelTone(): 'ok' | 'warning' | 'error' {
+    if (this.status?.status === 'READY') {
+      return 'ok';
+    }
+    if (this.status?.status === 'STARTING') {
+      return 'warning';
+    }
+    return 'error';
+  }
+
   get batchProgressText(): string {
     return this.batchProgress ? this.aiPanelScanProgressService.buildStatusText(this.batchProgress) : '';
+  }
+
+  private applyStatus(status: AiServiceStatus, fromPolling: boolean): void {
+    this.status = status;
+    this.lastStatusCheckedAt = this.formatTimestamp(new Date());
+    this.recordStartupEvent(status, fromPolling);
+
+    if (status.status === 'STARTING') {
+      this.scheduleStartupPolling();
+      return;
+    }
+
+    this.clearStartupPolling();
+  }
+
+  private scheduleStartupPolling(): void {
+    if (this.startupPollHandle) {
+      return;
+    }
+
+    this.startupPollHandle = setTimeout(() => {
+      this.startupPollHandle = null;
+      this.appSettingsService.getAiServiceStatus().subscribe({
+        next: status => this.applyStatus(status, true),
+        error: err => {
+          this.applyStatus({
+            enabled: this.aiEnabled,
+            serviceReachable: false,
+            status: 'ERROR',
+            message: 'Failed to refresh AI startup status.',
+            error: err?.message ?? 'Unknown error',
+            baseUrl: this.status?.baseUrl ?? '',
+            modelExists: null,
+            modelPath: null
+          }, true);
+        }
+      });
+    }, 5000);
+  }
+
+  private clearStartupPolling(): void {
+    if (!this.startupPollHandle) {
+      return;
+    }
+
+    clearTimeout(this.startupPollHandle);
+    this.startupPollHandle = null;
+  }
+
+  private recordStartupEvent(status: AiServiceStatus, fromPolling: boolean): void {
+    if (!this.isDockerEndpoint && !status.baseUrl) {
+      return;
+    }
+
+    const detailParts = [
+      `state=${status.status}`,
+      `reachable=${status.serviceReachable}`,
+      `modelExists=${status.modelExists ?? 'unknown'}`,
+      `modelPath=${status.modelPath ?? 'n/a'}`,
+      `message=${status.message}`,
+      `error=${status.error ?? 'none'}`
+    ];
+    const fingerprint = detailParts.join('|');
+
+    if (fromPolling && fingerprint === this.lastStartupFingerprint) {
+      return;
+    }
+
+    this.lastStartupFingerprint = fingerprint;
+    const prefix = fromPolling ? 'Auto-check' : 'Manual check';
+    const textParts = [`${prefix}: ${status.message}`];
+
+    if (status.modelPath) {
+      textParts.push(`model path ${status.modelPath}`);
+    }
+
+    if (status.modelExists === false) {
+      textParts.push('model file not present yet');
+    } else if (status.modelExists === true) {
+      textParts.push('model file detected');
+    }
+
+    if (status.error) {
+      textParts.push(`error ${status.error}`);
+    }
+
+    const level: AiStartupEvent['level'] = status.status === 'READY'
+      ? 'success'
+      : status.status === 'STARTING'
+        ? 'warning'
+        : status.status === 'ERROR' || status.status === 'UNAVAILABLE'
+          ? 'error'
+          : 'info';
+
+    this.startupEvents = [
+      {
+        timestamp: this.formatTimestamp(new Date()),
+        level,
+        text: textParts.join(' · ')
+      },
+      ...this.startupEvents
+    ].slice(0, 12);
+  }
+
+  private formatTimestamp(date: Date): string {
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
   }
 
   private showMessage(severity: 'success' | 'error' | 'info', summary: string, detail: string): void {

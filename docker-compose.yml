@@ -50,7 +50,6 @@ services:
   booklore-ai-panel:
     image: ghcr.io/opensourcefan/booklore-panel-ai:latest
     container_name: booklore-ai-panel
-    profiles: ["ai"]
     environment:
       - TZ=${TZ}
       - MODEL_ID=${AI_MODEL_ID:-mosesb/best-comic-panel-detection}

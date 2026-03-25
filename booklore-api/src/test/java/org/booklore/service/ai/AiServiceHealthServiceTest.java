@@ -62,7 +62,7 @@ class AiServiceHealthServiceTest {
 
     @Test
     void returnsReadyWhenHealthPayloadReportsOk() throws Exception {
-        startHealthServer(200, "{\"status\":\"ok\",\"mock\":true}");
+        startHealthServer(200, "{\"status\":\"ok\",\"mock\":true,\"modelExists\":true,\"modelPath\":\"/models/best.pt\"}");
         when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder()
                 .aiPanelDetectionEnabled(true)
                 .build());
@@ -73,11 +73,13 @@ class AiServiceHealthServiceTest {
         assertThat(status.isServiceReachable()).isTrue();
         assertThat(status.getStatus()).isEqualTo("READY");
         assertThat(status.getMessage()).isEqualTo("AI service is ready.");
+        assertThat(status.getModelExists()).isTrue();
+        assertThat(status.getModelPath()).isEqualTo("/models/best.pt");
     }
 
     @Test
     void returnsWarmingWhenHealthPayloadReportsWarming() throws Exception {
-        startHealthServer(200, "{\"status\":\"warming\",\"modelExists\":false}");
+        startHealthServer(200, "{\"status\":\"warming\",\"modelExists\":false,\"modelPath\":\"/models/best.pt\"}");
         when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder()
                 .aiPanelDetectionEnabled(true)
                 .build());
@@ -86,8 +88,10 @@ class AiServiceHealthServiceTest {
 
         assertThat(status.isEnabled()).isTrue();
         assertThat(status.isServiceReachable()).isFalse();
-        assertThat(status.getStatus()).isEqualTo("WARMING");
-        assertThat(status.getMessage()).contains("model is not ready");
+        assertThat(status.getStatus()).isEqualTo("STARTING");
+        assertThat(status.getMessage()).contains("downloading or preparing the model");
+        assertThat(status.getModelExists()).isFalse();
+        assertThat(status.getModelPath()).isEqualTo("/models/best.pt");
     }
 
     @Test

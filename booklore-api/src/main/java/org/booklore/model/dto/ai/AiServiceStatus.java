@@ -16,4 +16,6 @@ public class AiServiceStatus {
     private String message;
     private String error;
     private String baseUrl;
+    private Boolean modelExists;
+    private String modelPath;
 }

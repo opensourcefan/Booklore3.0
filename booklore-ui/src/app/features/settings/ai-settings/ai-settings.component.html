@@ -38,7 +38,7 @@
         </p-button>
       </div>
 
-      <div class="status-box" [ngClass]="status?.serviceReachable ? 'ok' : 'error'">
+      <div class="status-box" [ngClass]="statusTone">
         <div class="status-title">{{ t('status.current') }}</div>
         <div class="status-line"><strong>{{ t('status.state') }}</strong>: {{ status?.status || t('status.unknown') }}</div>
         <div class="status-line"><strong>{{ t('status.messageLabel') }}</strong>: {{ status?.message || t('status.noData') }}</div>
@@ -52,6 +52,39 @@
           <div class="status-line hint-text">{{ t('status.dockerHint') }}</div>
         }
       </div>
+
+      @if (showStartupActivity) {
+        <div class="startup-panel" [ngClass]="startupPanelTone">
+          <div class="status-title">{{ t('status.startupPanelTitle') }}</div>
+          <div class="status-line startup-panel-copy">{{ t('status.startupPanelDescription') }}</div>
+          @if (lastStatusCheckedAt) {
+            <div class="startup-meta-row">
+              <strong>{{ t('status.lastChecked') }}</strong>: {{ lastStatusCheckedAt }}
+            </div>
+          }
+          @if (status?.modelPath) {
+            <div class="startup-meta-row">
+              <strong>{{ t('status.modelPath') }}</strong>: {{ status?.modelPath }}
+            </div>
+          }
+          @if (status?.modelExists !== null && status?.modelExists !== undefined) {
+            <div class="startup-meta-row">
+              <strong>{{ t('status.modelFile') }}</strong>: {{ status?.modelExists ? t('status.modelDetected') : t('status.modelMissing') }}
+            </div>
+          }
+          <div class="startup-event-list">
+            @for (startupEvent of startupEvents; track startupEvent.timestamp + startupEvent.text) {
+              <div class="startup-event" [ngClass]="startupEvent.level">
+                <span class="startup-event-time">{{ startupEvent.timestamp }}</span>
+                <span class="startup-event-text">{{ startupEvent.text }}</span>
+              </div>
+            }
+          </div>
+          @if (!startupEvents.length) {
+            <div class="status-line">{{ t('status.startupWaiting') }}</div>
+          }
+        </div>
+      }
     </div>
 
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">

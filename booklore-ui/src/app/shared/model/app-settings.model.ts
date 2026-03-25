@@ -260,4 +260,6 @@ export interface AiServiceStatus {
   message: string;
   error: string | null;
   baseUrl: string;
+  modelExists: boolean | null;
+  modelPath: string | null;
 }
