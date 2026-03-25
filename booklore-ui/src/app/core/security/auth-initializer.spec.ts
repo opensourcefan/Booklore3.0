@@ -6,6 +6,14 @@ import {AuthService} from '../../shared/service/auth.service';
 import {AppSettingsService, PublicAppSettings} from '../../shared/service/app-settings.service';
 import {BehaviorSubject} from 'rxjs';
 
+const defaultPublicSettings: PublicAppSettings = {
+  oidcEnabled: false,
+  remoteAuthEnabled: false,
+  aiPanelDetectionEnabled: false,
+  oidcProviderDetails: null!,
+  oidcForceOnlyMode: false,
+};
+
 describe('initializeAuthFactory', () => {
   let authInitService: AuthInitializationService;
   let publicSettingsSubject: BehaviorSubject<PublicAppSettings | null>;
@@ -32,7 +40,7 @@ describe('initializeAuthFactory', () => {
     const factory = TestBed.runInInjectionContext(() => initializeAuthFactory());
     const initPromise = TestBed.runInInjectionContext(() => factory());
 
-    publicSettingsSubject.next({oidcEnabled: false, remoteAuthEnabled: false, oidcProviderDetails: null!, oidcForceOnlyMode: false});
+    publicSettingsSubject.next(defaultPublicSettings);
 
     await initPromise;
 
@@ -49,7 +57,7 @@ describe('initializeAuthFactory', () => {
     const factory = TestBed.runInInjectionContext(() => initializeAuthFactory());
     const initPromise = TestBed.runInInjectionContext(() => factory());
 
-    publicSettingsSubject.next({oidcEnabled: false, remoteAuthEnabled: false, oidcProviderDetails: null!, oidcForceOnlyMode: false});
+    publicSettingsSubject.next(defaultPublicSettings);
 
     await initPromise;
 
