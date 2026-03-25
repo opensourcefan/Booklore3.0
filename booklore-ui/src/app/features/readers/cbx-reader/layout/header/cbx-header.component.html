@@ -20,7 +20,7 @@
           [disabled]="aiWorking"
           [class.active]="aiReady && aiScanned"
           [title]="aiWorking ? ('readerCbx.header.aiWorking' | transloco) : ('readerCbx.header.aiPanelDetection' | transloco)">
-          <span class="ai-pill" [class.ready]="aiReady && aiScanned">AI</span>
+          <span class="ai-text">AI</span>
           <app-reader-icon name="chevron-down" [size]="14" />
         </button>
         @if (aiMenuOpen) {
@@ -93,7 +93,7 @@
         <div class="overflow-backdrop" (click)="overflowOpen = false"></div>
         <div class="overflow-dropdown">
           <button class="overflow-item" (click)="onTogglePin(); overflowOpen = false" [class.active]="isPinned">
-            <img class="pin-image" [src]="pinIconData" alt="Pin" />
+            <app-reader-icon name="pin" [size]="18" />
             <span>{{ isPinned ? ('readerCbx.header.unpinBarsLabel' | transloco) : ('readerCbx.header.pinBarsLabel' | transloco) }}</span>
           </button>
           <button class="overflow-item" (click)="onTogglePanelMode(); overflowOpen = false" [class.active]="state.isPanelModeEnabled">
@@ -114,7 +114,7 @@
           </button>
           @if (aiEnabled) {
             <button class="overflow-item" (click)="onAiPanelDetection(); overflowOpen = false" [disabled]="aiWorking" [class.active]="aiReady && aiScanned">
-              <span class="ai-pill" [class.ready]="aiReady && aiScanned">AI</span>
+              <span class="ai-text">AI</span>
               <span>{{ aiWorking ? ('readerCbx.header.aiWorking' | transloco) : ('readerCbx.header.aiPanelDetectionLabel' | transloco) }}</span>
             </button>
           }
@@ -125,7 +125,7 @@
       <app-reader-icon name="settings" [size]="20" />
     </button>
     <button class="icon-btn pin-btn" (click)="onTogglePin()" [title]="isPinned ? ('readerCbx.header.unpinBars' | transloco) : ('readerCbx.header.pinBars' | transloco)" [class.active]="isPinned">
-      <img class="pin-image" [src]="pinIconData" alt="Pin" />
+      <app-reader-icon name="pin" [size]="18" />
     </button>
     <button class="icon-btn close-btn" (click)="onClose(); $event.stopPropagation()" [title]="'readerCbx.header.closeReader' | transloco">
       <app-reader-icon name="close" [size]="20" />

@@ -9,7 +9,8 @@
     "aiScanTitle": "AI is scanning panels",
     "aiScanStatusChecking": "Checking AI service...",
     "aiScanStatusRunning": "Analyzing comic pages...",
-    "aiScanStatusParsing": "Applying detected panels..."
+    "aiScanStatusParsing": "Applying detected panels...",
+    "aiScanFailed": "AI panel scan failed."
   },
   "noteDialog": {
     "editNote": "Edit Note",

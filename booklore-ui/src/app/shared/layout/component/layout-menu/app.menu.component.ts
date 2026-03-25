@@ -420,6 +420,10 @@ export class AppMenuComponent implements OnInit {
     this.router.navigate(['/settings']);
   }
 
+  openAcknowledgementsDialog(): void {
+    this.dialogLauncherService.openAcknowledgementsDialog();
+  }
+
   switchLanguage(lang: string): void {
     if (lang === this.activeLang) return;
     this.t.load(lang).subscribe(() => {

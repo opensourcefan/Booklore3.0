@@ -159,23 +159,22 @@
     }
   }
 
-  .ai-pill {
+  .ai-btn {
+    gap: 0.25rem;
+    padding-left: 0.65rem;
+    padding-right: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .ai-text {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 24px;
-    height: 18px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    background: rgba(148, 163, 184, 0.3);
-    color: #e2e8f0;
-
-    &.ready {
-      background: rgba(34, 197, 94, 0.25);
-      color: #86efac;
-    }
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1;
   }
 
   .ai-dropdown {
@@ -202,15 +201,7 @@
   }
 
   .pin-btn {
-    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 6px;
-  }
-
-  .pin-image {
-    width: 18px;
-    height: 18px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.45));
   }
 
   .book-title {

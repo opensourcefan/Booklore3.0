@@ -1,5 +1,7 @@
 package org.booklore.controller;
 
+import org.booklore.model.dto.ai.AiBulkScanRequest;
+import org.booklore.model.dto.ai.AiBulkScanResponse;
 import org.booklore.service.ai.ComicPanelFlowService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class ComicPanelFlowControllerTest {
 
@@ -84,5 +87,26 @@ class ComicPanelFlowControllerTest {
                                 """);
 
                 assertThat(actualPayload).isEqualTo(expectedPayload);
+    }
+
+    @Test
+    void startsMissingScanForSelectedPaths() {
+        AiBulkScanRequest request = new AiBulkScanRequest();
+        request.setLibraryPathIds(List.of(4L, 8L));
+
+        when(comicPanelFlowService.startScanMissingPanelFlow(List.of(4L, 8L))).thenReturn(AiBulkScanResponse.builder()
+                .started(true)
+                .missingBooks(3)
+                .alreadyScannedBooks(2)
+                .totalEligibleBooks(5)
+                .message("Started scanning missing AI panel data in the background.")
+                .build());
+
+        var response = controller.scanMissingPanelFlow(request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatusCode.valueOf(200));
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().isStarted()).isTrue();
+        assertThat(response.getBody().getMissingBooks()).isEqualTo(3);
     }
 }

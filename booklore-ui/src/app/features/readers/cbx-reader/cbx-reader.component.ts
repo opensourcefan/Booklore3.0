@@ -29,6 +29,8 @@ import {CbxShortcutsHelpComponent} from './dialogs/cbx-shortcuts-help.component'
 import {BookNoteV2} from '../../../shared/service/book-note-v2.service';
 import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {ComicPanelFlowService} from '../../../shared/service/comic-panel-flow.service';
+import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-progress.model';
+import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
 
 interface CbxPanelRegion {
   x: number;
@@ -182,6 +184,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   private quickSettingsService = inject(CbxQuickSettingsService);
   private appSettingsService = inject(AppSettingsService);
   private comicPanelFlowService = inject(ComicPanelFlowService);
+  private aiPanelScanProgressService = inject(AiPanelScanProgressService);
 
   protected readonly CbxScrollMode = CbxScrollMode;
   protected readonly CbxFitMode = CbxFitMode;
@@ -224,12 +227,18 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
         this.aiPanelDetectionEnabled = settings.aiPanelDetectionEnabled;
       });
 
+    this.aiPanelScanProgressService.progress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(progress => this.handleAiScanProgress(progress));
+
     this.route.paramMap.subscribe((params) => {
       this.isLoading = true;
       this.bookId = +params.get('bookId')!;
       this.altBookType = this.route.snapshot.queryParamMap.get('bookType') ?? undefined;
       this.aiPanelDetectionReady = false;
       this.hasSavedAiPanelFlow = false;
+      this.isAiPanelDetectionWorking = false;
+      this.aiScanStatusText = '';
       this.detectedPanelsByPage.clear();
       this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
 
@@ -1178,24 +1187,16 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: flow => {
-        this.aiScanStatusText = this.t.translate('readerCbx.reader.aiScanStatusParsing');
         const hasParsedPanels = this.applyPanelFlow(flow?.data);
-        const panelStats = this.getDetectedPanelStats();
         this.isAiPanelDetectionWorking = false;
         this.aiScanStatusText = '';
         this.aiPanelDetectionReady = hasParsedPanels;
         this.hasSavedAiPanelFlow = hasParsedPanels;
-        this.messageService.add({
-          severity: hasParsedPanels ? 'success' : 'warn',
-          summary: 'AI Panel Detection',
-          detail: hasParsedPanels
-            ? `Detected ${panelStats.totalPanels} panels across ${panelStats.pagesWithPanels} pages.`
-            : 'No detected panel data is available for this comic yet.'
-        });
       },
       error: err => {
         this.isAiPanelDetectionWorking = false;
         this.aiScanStatusText = '';
+        this.messageService.clear('ai-scan');
         this.aiPanelDetectionReady = false;
         this.messageService.add({
           severity: 'warn',
@@ -1204,6 +1205,29 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  private handleAiScanProgress(progress: AiPanelScanProgressPayload | null): void {
+    if (!progress || progress.mode !== 'BOOK' || progress.bookId !== this.bookId) {
+      return;
+    }
+
+    this.aiPanelScanProgressService.updateReaderToast(progress);
+
+    if (progress.event === 'FAILED') {
+      this.isAiPanelDetectionWorking = false;
+      this.aiScanStatusText = progress.error || progress.message || this.t.translate('readerCbx.reader.aiScanFailed');
+      return;
+    }
+
+    if (progress.event === 'COMPLETED') {
+      this.isAiPanelDetectionWorking = false;
+      this.aiScanStatusText = '';
+      return;
+    }
+
+    this.isAiPanelDetectionWorking = true;
+    this.aiScanStatusText = this.aiPanelScanProgressService.buildStatusText(progress);
   }
 
   private extractAiErrorMessage(err: unknown): string {
@@ -1637,6 +1661,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
     this.comicPanelFlowService.deletePanelFlow(this.bookId).pipe(first()).subscribe({
       next: () => {
+        this.messageService.clear('ai-scan');
         this.detectedPanelsByPage.clear();
         this.hasSavedAiPanelFlow = false;
         this.aiPanelDetectionReady = false;

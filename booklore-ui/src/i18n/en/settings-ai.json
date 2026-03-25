@@ -15,7 +15,17 @@
     "endpoint": "Endpoint",
     "error": "Error",
     "unknown": "Unknown",
-    "noData": "No status data available."
+    "noData": "No status data available.",
+    "dockerHint": "This AI endpoint is configured for Docker networking. If Booklore is running outside Docker, point AI_SERVICE_BASE_URL to something reachable like http://localhost:8080."
+  },
+  "prescan": {
+    "title": "Pre-Scan Missing Panels",
+    "description": "Scan selected library paths in the background and only generate AI panel data for comics that do not already have saved results.",
+    "action": "Pre-Scan Missing",
+    "pathsLabel": "Library Paths",
+    "pathsPlaceholder": "Select library paths",
+    "progressTitle": "Background Scan Progress",
+    "currentBook": "Current Book"
   },
   "cleanup": {
     "title": "Generated Data Cleanup",

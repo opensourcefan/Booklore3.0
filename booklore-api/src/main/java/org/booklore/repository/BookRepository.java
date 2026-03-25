@@ -49,6 +49,17 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query("SELECT b.id FROM BookEntity b WHERE b.libraryPath.id IN :libraryPathIds AND (b.deleted IS NULL OR b.deleted = false)")
     List<Long> findAllBookIdsByLibraryPathIdIn(@Param("libraryPathIds") Collection<Long> libraryPathIds);
 
+        @Query("""
+                        SELECT DISTINCT b.id FROM BookEntity b
+                        JOIN b.bookFiles bf
+                        WHERE b.libraryPath.id IN :libraryPathIds
+                            AND bf.isBookFormat = true
+                            AND bf.bookType = :bookType
+                            AND (b.deleted IS NULL OR b.deleted = false)
+                        """)
+        List<Long> findAllBookIdsByLibraryPathIdInAndBookType(@Param("libraryPathIds") Collection<Long> libraryPathIds,
+                                                                                                                    @Param("bookType") BookFileType bookType);
+
     @EntityGraph(attributePaths = {"metadata", "metadata.comicMetadata", "shelves", "libraryPath", "bookFiles"})
     @Query("SELECT b FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
     List<BookEntity> findAllWithMetadata();

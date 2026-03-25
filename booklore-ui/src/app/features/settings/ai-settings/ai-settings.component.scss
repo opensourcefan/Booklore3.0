@@ -72,6 +72,29 @@
   color: #b91c1c;
 }
 
+.hint-text {
+  color: color-mix(in srgb, var(--text-color) 74%, #0f766e 26%);
+}
+
+.scan-row {
+  align-items: flex-start;
+}
+
+.prescan-controls {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.prescan-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.progress-box {
+  margin-top: 1rem;
+}
+
 @media (min-width: 992px) {
   .settings-card {
     padding: 1.25rem;
@@ -89,7 +112,9 @@
   }
 
   .setting-row p-button,
-  .setting-row p-toggleswitch {
+  .setting-row p-toggleswitch,
+  .setting-row .p-button,
+  .prescan-controls p-multiselect {
     width: 100%;
   }
 

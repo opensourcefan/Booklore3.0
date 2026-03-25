@@ -37,10 +37,15 @@ public class AiPanelDetectionService {
     private static final float JPEG_QUALITY = 0.68f;
 
     private final AppProperties appProperties;
+    private final AiServiceEndpointResolver aiServiceEndpointResolver;
     private final CbxReaderService cbxReaderService;
     private final ObjectMapper objectMapper;
 
     public String detectPanelFlow(Long bookId, String bookType) {
+        return detectPanelFlow(bookId, bookType, null);
+    }
+
+    public String detectPanelFlow(Long bookId, String bookType, AiPanelDetectionProgressListener progressListener) {
         List<Integer> pages = cbxReaderService.getAvailablePages(bookId, bookType);
         if (pages.isEmpty()) {
             throw new IllegalStateException("No pages available for AI panel detection.");
@@ -50,11 +55,16 @@ public class AiPanelDetectionService {
                 .requestFactory(buildRequestFactory())
                 .build();
 
-        String endpoint = appProperties.getAi().getBaseUrl() + "/v1/panel-detection/scan";
+        String endpoint = aiServiceEndpointResolver.resolveBaseUrl(restClient) + "/v1/panel-detection/scan";
 
         List<Map<String, Object>> detectedPages = new ArrayList<>(pages.size());
         int pagesWithPanels = 0;
         int requestFailures = 0;
+        int totalPanelsFound = 0;
+
+        if (progressListener != null) {
+            progressListener.onScanStarted(pages.size());
+        }
 
         for (Integer pageNumber : pages) {
             Map<String, Object> payload = new HashMap<>();
@@ -141,15 +151,24 @@ public class AiPanelDetectionService {
             if (!panels.isEmpty()) {
                 pagesWithPanels++;
             }
+            totalPanelsFound += panels.size();
 
             Map<String, Object> pageResult = new HashMap<>();
             pageResult.put("pageNumber", pageNumber);
             pageResult.put("panels", panels);
             detectedPages.add(pageResult);
+
+            if (progressListener != null) {
+                progressListener.onPageProcessed(pageNumber, detectedPages.size(), pages.size(), panels.size(), totalPanelsFound, pagesWithPanels);
+            }
         }
 
         if (pagesWithPanels == 0) {
             throw new IllegalStateException("AI service returned no detected panels. requestedPages=" + pages.size() + ", returnedPages=0, requestFailures=" + requestFailures);
+        }
+
+        if (progressListener != null) {
+            progressListener.onScanCompleted(detectedPages.size(), pages.size(), totalPanelsFound, pagesWithPanels);
         }
 
         Map<String, Object> aggregated = new HashMap<>();
@@ -248,7 +267,6 @@ public class AiPanelDetectionService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private List<Map<String, Object>> extractPanelsForPage(Map<String, Object> response, int pageNumber) {
         if (response == null) {
             return List.of();
@@ -289,7 +307,6 @@ public class AiPanelDetectionService {
         return asPanelList(response.get("boxes"));
     }
 
-    @SuppressWarnings("unchecked")
     private List<Map<String, Object>> asPanelList(Object value) {
         List<?> rawList = asObjectList(value);
         if (rawList.isEmpty()) {
@@ -306,7 +323,6 @@ public class AiPanelDetectionService {
         return panels;
     }
 
-    @SuppressWarnings("unchecked")
     private List<?> asObjectList(Object value) {
         if (value == null) {
             return List.of();
@@ -367,7 +383,7 @@ public class AiPanelDetectionService {
 
         Object dataObj = rawResponse.get("data");
         if (dataObj instanceof Map<?, ?> dataMap) {
-            return (Map<String, Object>) dataMap;
+            return objectMapper.convertValue(dataMap, Map.class);
         }
 
         if (dataObj instanceof String dataStr) {
@@ -380,7 +396,7 @@ public class AiPanelDetectionService {
 
         Object resultObj = rawResponse.get("result");
         if (resultObj instanceof Map<?, ?> resultMap) {
-            return (Map<String, Object>) resultMap;
+            return objectMapper.convertValue(resultMap, Map.class);
         }
 
         return rawResponse;
@@ -391,5 +407,13 @@ public class AiPanelDetectionService {
         factory.setConnectTimeout(appProperties.getAi().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAi().getReadTimeoutMs());
         return factory;
+    }
+
+    public interface AiPanelDetectionProgressListener {
+        void onScanStarted(int totalPages);
+
+        void onPageProcessed(int pageNumber, int processedPages, int totalPages, int pagePanelsFound, int totalPanelsFound, int pagesWithPanels);
+
+        void onScanCompleted(int processedPages, int totalPages, int totalPanelsFound, int pagesWithPanels);
     }
 }

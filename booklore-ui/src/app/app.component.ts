@@ -19,6 +19,8 @@ import {LibraryHealthService} from './features/book/service/library-health.servi
 import {LibraryLoadingService} from './features/library-creator/library-loading.service';
 import {scan, withLatestFrom} from 'rxjs/operators';
 import {AuthService} from './shared/service/auth.service';
+import {AiPanelScanProgressPayload} from './shared/model/ai-panel-scan-progress.model';
+import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progress.service';
 
 @Component({
   selector: 'app-root',
@@ -46,6 +48,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private libraryHealthService = inject(LibraryHealthService);
   private libraryLoadingService = inject(LibraryLoadingService);
   private authService = inject(AuthService);
+  private aiPanelScanProgressService = inject(AiPanelScanProgressService);
 
   ngOnInit(): void {
     window.addEventListener('online', this.onOnline);
@@ -149,6 +152,12 @@ export class AppComponent implements OnInit, OnDestroy {
       this.rxStompService.watch('/user/queue/task-progress').subscribe(msg => {
         const progress = JSON.parse(msg.body) as TaskProgressPayload;
         this.taskService.handleTaskProgress(progress);
+      })
+    );
+    this.subscriptions.push(
+      this.rxStompService.watch('/user/queue/ai-panel-scan-progress').subscribe(msg => {
+        const progress = JSON.parse(msg.body) as AiPanelScanProgressPayload;
+        this.aiPanelScanProgressService.handleIncomingProgress(progress);
       })
     );
     this.subscriptions.push(

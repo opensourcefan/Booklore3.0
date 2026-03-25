@@ -16,6 +16,7 @@ public enum Topic {
     BOOKDROP_FILE("/queue/bookdrop-file"),
     LOG("/queue/log"),
     TASK_PROGRESS("/queue/task-progress"),
+    AI_PANEL_SCAN_PROGRESS("/queue/ai-panel-scan-progress"),
     LIBRARY_HEALTH("/topic/library-health"),
     SESSION_REVOKED("/queue/session-revoked");
 

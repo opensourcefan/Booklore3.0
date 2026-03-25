@@ -28,6 +28,7 @@ class AiServiceHealthServiceTest {
 
     private AppProperties appProperties;
     private AiServiceHealthService service;
+    private AiServiceEndpointResolver endpointResolver;
     private HttpServer server;
 
     @BeforeEach
@@ -35,7 +36,8 @@ class AiServiceHealthServiceTest {
         appProperties = new AppProperties();
         appProperties.getAi().setConnectTimeoutMs(1000);
         appProperties.getAi().setReadTimeoutMs(1000);
-        service = new AiServiceHealthService(appProperties, appSettingService);
+        endpointResolver = new AiServiceEndpointResolver(appProperties);
+        service = new AiServiceHealthService(appProperties, appSettingService, endpointResolver);
     }
 
     @AfterEach
@@ -101,6 +103,21 @@ class AiServiceHealthServiceTest {
         assertThat(status.isServiceReachable()).isFalse();
         assertThat(status.getStatus()).isEqualTo("ERROR");
         assertThat(status.getError()).contains("mystery");
+    }
+
+    @Test
+    void fallsBackToLocalhostWhenConfiguredDockerHostIsNotReachable() throws Exception {
+        startHealthServer(200, "{\"status\":\"ok\"}");
+        int port = server.getAddress().getPort();
+        appProperties.getAi().setBaseUrl("http://booklore-ai-panel:" + port);
+        when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder()
+                .aiPanelDetectionEnabled(true)
+                .build());
+
+        AiServiceStatus status = service.getStatus();
+
+        assertThat(status.isServiceReachable()).isTrue();
+        assertThat(status.getBaseUrl()).isEqualTo("http://localhost:" + port);
     }
 
     private void startHealthServer(int responseCode, String responseBody) throws IOException {

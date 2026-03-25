@@ -16,10 +16,11 @@ public class AiServiceHealthService {
 
     private final AppProperties appProperties;
     private final AppSettingService appSettingService;
+    private final AiServiceEndpointResolver aiServiceEndpointResolver;
 
     public AiServiceStatus getStatus() {
         boolean enabled = appSettingService.getAppSettings().isAiPanelDetectionEnabled();
-        String baseUrl = appProperties.getAi().getBaseUrl();
+        String baseUrl = aiServiceEndpointResolver.getConfiguredBaseUrl();
 
         if (!enabled) {
             return AiServiceStatus.builder()
@@ -37,19 +38,21 @@ public class AiServiceHealthService {
                     .requestFactory(buildRequestFactory())
                     .build();
 
+            String resolvedBaseUrl = aiServiceEndpointResolver.resolveBaseUrl(restClient);
+
             @SuppressWarnings("unchecked")
             Map<String, Object> healthPayload = restClient.get()
-                    .uri(baseUrl + "/health")
+                .uri(resolvedBaseUrl + "/health")
                     .retrieve()
                 .body(Map.class);
 
-            return mapHealthPayload(baseUrl, healthPayload);
+            return mapHealthPayload(resolvedBaseUrl, healthPayload);
         } catch (Exception ex) {
             return AiServiceStatus.builder()
                     .enabled(true)
                     .serviceReachable(false)
                     .status("UNAVAILABLE")
-                    .message("Could not reach AI service.")
+                .message("Could not reach AI service. Start the AI container or set AI_SERVICE_BASE_URL to a reachable endpoint.")
                     .error(ex.getMessage())
                     .baseUrl(baseUrl)
                     .build();

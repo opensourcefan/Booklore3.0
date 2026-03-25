@@ -14,6 +14,7 @@ import {LibraryService} from './features/book/service/library.service';
 import {LibraryHealthService} from './features/book/service/library-health.service';
 import {LibraryLoadingService} from './features/library-creator/library-loading.service';
 import {TranslocoTestingModule} from '@jsverse/transloco';
+import {MessageService} from 'primeng/api';
 
 describe('AppComponent offline detection', () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -37,6 +38,7 @@ describe('AppComponent offline detection', () => {
         {provide: LibraryService, useValue: {largeLibraryLoading$: of({isLoading: false, expectedCount: 0})}},
         {provide: LibraryHealthService, useValue: {initialize: vi.fn()}},
         {provide: LibraryLoadingService, useValue: {hide: vi.fn()}},
+        MessageService,
       ]
     });
 

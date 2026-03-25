@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
+import {AiBulkScanResponse} from '../model/ai-panel-scan-progress.model';
 import {AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
 
 export interface SettingsTransferEntry {
@@ -99,6 +100,12 @@ export class AppSettingsService {
 
   cleanupAiPanelData(): Observable<{ deletedCount: number }> {
     return this.http.delete<{ deletedCount: number }>(`${API_CONFIG.BASE_URL}/api/v1/ai/panel-flow`);
+  }
+
+  scanMissingAiPanelData(libraryPathIds: number[]): Observable<AiBulkScanResponse> {
+    return this.http.post<AiBulkScanResponse>(`${API_CONFIG.BASE_URL}/api/v1/ai/panel-flow/scan-missing`, {
+      libraryPathIds
+    });
   }
 
   exportSettings(): Observable<void> {

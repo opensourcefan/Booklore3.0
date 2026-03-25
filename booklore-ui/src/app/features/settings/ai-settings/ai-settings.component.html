@@ -42,13 +42,59 @@
         <div class="status-title">{{ t('status.current') }}</div>
         <div class="status-line"><strong>{{ t('status.state') }}</strong>: {{ status?.status || t('status.unknown') }}</div>
         <div class="status-line"><strong>{{ t('status.messageLabel') }}</strong>: {{ status?.message || t('status.noData') }}</div>
-        @if (status?.baseUrl) {
-          <div class="status-line"><strong>{{ t('status.endpoint') }}</strong>: {{ status?.baseUrl }}</div>
+        @if (statusEndpointLabel) {
+          <div class="status-line"><strong>{{ t('status.endpoint') }}</strong>: {{ statusEndpointLabel }}</div>
         }
         @if (status?.error) {
           <div class="status-line error-text"><strong>{{ t('status.error') }}</strong>: {{ status?.error }}</div>
         }
+        @if (showDockerHint) {
+          <div class="status-line hint-text">{{ t('status.dockerHint') }}</div>
+        }
       </div>
+    </div>
+
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
+      <div class="setting-row scan-row">
+        <div>
+          <h3>{{ t('prescan.title') }}</h3>
+          <p>{{ t('prescan.description') }}</p>
+        </div>
+        <p-button
+          icon="pi pi-bolt"
+          [label]="t('prescan.action')"
+          [loading]="preScanRunning"
+          [disabled]="!aiEnabled || !selectedLibraryPathIds.length"
+          (onClick)="preScanMissing()">
+        </p-button>
+      </div>
+
+      <div class="prescan-controls">
+        <label class="prescan-label">{{ t('prescan.pathsLabel') }}</label>
+        <p-multiSelect
+          [options]="libraryPathOptions"
+          [(ngModel)]="selectedLibraryPathIds"
+          optionLabel="label"
+          optionValue="value"
+          [placeholder]="t('prescan.pathsPlaceholder')"
+          display="chip"
+          appendTo="body"
+          [disabled]="!aiEnabled || preScanRunning">
+        </p-multiSelect>
+      </div>
+
+      @if (batchProgress) {
+        <div class="status-box progress-box" [ngClass]="batchProgress.event === 'FAILED' ? 'error' : 'ok'">
+          <div class="status-title">{{ t('prescan.progressTitle') }}</div>
+          @if (batchProgress.bookTitle) {
+            <div class="status-line"><strong>{{ t('prescan.currentBook') }}</strong>: {{ batchProgress.bookTitle }}</div>
+          }
+          <div class="status-line">{{ batchProgressText }}</div>
+          @if (batchProgress.error) {
+            <div class="status-line error-text"><strong>{{ t('status.error') }}</strong>: {{ batchProgress.error }}</div>
+          }
+        </div>
+      }
     </div>
 
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
