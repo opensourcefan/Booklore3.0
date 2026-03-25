@@ -7,8 +7,10 @@ import org.springframework.web.client.RestClient;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Component
@@ -66,11 +68,60 @@ public class AiServiceEndpointResolver {
 
             String scheme = uri.getScheme() == null ? "http" : uri.getScheme();
             int port = uri.getPort();
-            String authority = port > 0 ? "localhost:" + port : "localhost";
-            return List.of(scheme + "://" + authority);
+            LinkedHashSet<String> fallbacks = new LinkedHashSet<>();
+
+            addHostFallback(fallbacks, scheme, "localhost", port);
+            addHostFallback(fallbacks, scheme, "127.0.0.1", port);
+
+            for (Integer candidatePort : getHostMappedPorts(port)) {
+                addHostFallback(fallbacks, scheme, "localhost", candidatePort);
+                addHostFallback(fallbacks, scheme, "127.0.0.1", candidatePort);
+            }
+
+            return new ArrayList<>(fallbacks);
         } catch (Exception ignored) {
             return List.of();
         }
+    }
+
+    private List<Integer> getHostMappedPorts(int configuredPort) {
+        Map<String, String> envOverrides = new LinkedHashMap<>();
+        envOverrides.put("AI_SERVICE_HOST_PORT", System.getenv("AI_SERVICE_HOST_PORT"));
+        envOverrides.put("AI_PANEL_PORT", System.getenv("AI_PANEL_PORT"));
+        envOverrides.put("BOOKLORE_AI_PORT", System.getenv("BOOKLORE_AI_PORT"));
+
+        LinkedHashSet<Integer> ports = new LinkedHashSet<>();
+        for (String value : envOverrides.values()) {
+            Integer parsed = parsePort(value);
+            if (parsed != null) {
+                ports.add(parsed);
+            }
+        }
+
+        if (configuredPort == 8080) {
+            ports.add(18080);
+        }
+
+        ports.remove(configuredPort);
+        return new ArrayList<>(ports);
+    }
+
+    private Integer parsePort(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            int parsed = Integer.parseInt(value.trim());
+            return parsed > 0 ? parsed : null;
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private void addHostFallback(Set<String> fallbacks, String scheme, String host, int port) {
+        String authority = port > 0 ? host + ":" + port : host;
+        fallbacks.add(scheme + "://" + authority);
     }
 
     private String normalize(String value) {

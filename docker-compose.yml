@@ -57,9 +57,11 @@ services:
       - HF_HOME=/models
     volumes:
       - ./data/ai-models:/models
+    ports:
+      - "${AI_PANEL_PORT:-18080}:8080"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]
       interval: 30s
       timeout: 5s
       retries: 5
