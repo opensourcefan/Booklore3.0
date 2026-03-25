@@ -39,6 +39,7 @@ public enum AppSettingKey {
     PDF_CACHE_SIZE_IN_MB                ("pdf_cache_size_in_mb",                 false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
     MAX_FILE_UPLOAD_SIZE_IN_MB          ("max_file_upload_size_in_mb",           false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
     TELEMETRY_ENABLED                   ("telemetryEnabled",                     false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
+    AI_PANEL_DETECTION_ENABLED          ("ai_panel_detection_enabled",           false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
     LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS ("library_health_check_interval_seconds", false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
 
     // No specific permissions required

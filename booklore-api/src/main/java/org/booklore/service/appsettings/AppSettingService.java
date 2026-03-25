@@ -274,6 +274,7 @@ public class AppSettingService {
         PublicAppSetting.PublicAppSettingBuilder builder = PublicAppSetting.builder();
 
         builder.oidcEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.OIDC_ENABLED, "false")));
+        builder.aiPanelDetectionEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.AI_PANEL_DETECTION_ENABLED, "false")));
         builder.remoteAuthEnabled(appProperties.getRemoteAuth().isEnabled());
         OidcProviderDetails details = settingPersistenceHelper.getJsonSetting(settingsMap, AppSettingKey.OIDC_PROVIDER_DETAILS, OidcProviderDetails.class, null, false);
         if (details != null) {
@@ -318,6 +319,7 @@ public class AppSettingService {
         builder.komgaApiEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.KOMGA_API_ENABLED, "false")));
         builder.komgaGroupUnknown(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.KOMGA_GROUP_UNKNOWN, "true")));
         builder.telemetryEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.TELEMETRY_ENABLED, "true")));
+        builder.aiPanelDetectionEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.AI_PANEL_DETECTION_ENABLED, "false")));
         builder.pdfCacheSizeInMb(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.PDF_CACHE_SIZE_IN_MB, "5120")));
         builder.maxFileUploadSizeInMb(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.MAX_FILE_UPLOAD_SIZE_IN_MB, "100")));
         builder.metadataDownloadOnBookdrop(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.METADATA_DOWNLOAD_ON_BOOKDROP, "true")));

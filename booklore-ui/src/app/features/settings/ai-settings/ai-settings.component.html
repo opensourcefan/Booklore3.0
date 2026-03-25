@@ -1,0 +1,71 @@
+<ng-container *transloco="let t; prefix: 'settingsAi'">
+  <div class="ai-settings-container">
+    <div class="settings-header">
+      <h2>
+        <i class="pi pi-sparkles"></i>
+        {{ t('title') }}
+      </h2>
+      <p>{{ t('description') }}</p>
+    </div>
+
+    <div class="settings-card">
+      <div class="setting-row">
+        <div>
+          <h3>{{ t('enable.title') }}</h3>
+          <p>{{ t('enable.description') }}</p>
+        </div>
+        <p-toggleswitch
+          [(ngModel)]="aiEnabled"
+          [disabled]="saveRunning"
+          (onChange)="onToggleAiEnabled($event.checked)">
+        </p-toggleswitch>
+      </div>
+    </div>
+
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
+      <div class="setting-row">
+        <div>
+          <h3>{{ t('status.title') }}</h3>
+          <p>{{ t('status.description') }}</p>
+        </div>
+        <p-button
+          icon="pi pi-refresh"
+          [label]="t('status.refresh')"
+          [loading]="statusLoading"
+          [disabled]="!aiEnabled"
+          outlined
+          (onClick)="refreshStatus()">
+        </p-button>
+      </div>
+
+      <div class="status-box" [ngClass]="status?.serviceReachable ? 'ok' : 'error'">
+        <div class="status-title">{{ t('status.current') }}</div>
+        <div class="status-line"><strong>{{ t('status.state') }}</strong>: {{ status?.status || t('status.unknown') }}</div>
+        <div class="status-line"><strong>{{ t('status.messageLabel') }}</strong>: {{ status?.message || t('status.noData') }}</div>
+        @if (status?.baseUrl) {
+          <div class="status-line"><strong>{{ t('status.endpoint') }}</strong>: {{ status?.baseUrl }}</div>
+        }
+        @if (status?.error) {
+          <div class="status-line error-text"><strong>{{ t('status.error') }}</strong>: {{ status?.error }}</div>
+        }
+      </div>
+    </div>
+
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
+      <div class="setting-row">
+        <div>
+          <h3>{{ t('cleanup.title') }}</h3>
+          <p>{{ t('cleanup.description') }}</p>
+        </div>
+        <p-button
+          icon="pi pi-trash"
+          severity="danger"
+          [label]="t('cleanup.action')"
+          [loading]="cleanupRunning"
+          [disabled]="!aiEnabled"
+          (onClick)="cleanupAiData()">
+        </p-button>
+      </div>
+    </div>
+  </div>
+</ng-container>

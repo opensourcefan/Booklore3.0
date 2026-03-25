@@ -1,0 +1,25 @@
+{
+  "title": "AI Panel Detection",
+  "description": "Configure local AI panel detection and manage generated panel-flow data.",
+  "enable": {
+    "title": "Enable AI Panel Detection",
+    "description": "Turn AI-assisted comic panel detection on or off for the instance."
+  },
+  "status": {
+    "title": "Status",
+    "description": "Shows whether the AI service is reachable and ready.",
+    "refresh": "Refresh",
+    "current": "Current Status",
+    "state": "State",
+    "messageLabel": "Message",
+    "endpoint": "Endpoint",
+    "error": "Error",
+    "unknown": "Unknown",
+    "noData": "No status data available."
+  },
+  "cleanup": {
+    "title": "Generated Data Cleanup",
+    "description": "Delete all saved AI panel-flow records for your user account.",
+    "action": "Delete Saved AI Data"
+  }
+}

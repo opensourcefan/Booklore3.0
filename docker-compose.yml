@@ -11,6 +11,7 @@ services:
       - DATABASE_PASSWORD=${DB_PASSWORD}
       - DISK_TYPE=${DISK_TYPE}
       - TELEMETRY_ENABLED=false
+      - AI_SERVICE_BASE_URL=${AI_SERVICE_BASE_URL:-http://booklore-ai-panel:8080}
     depends_on:
       mariadb:
         condition: service_healthy
@@ -45,3 +46,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  booklore-ai-panel:
+    image: ghcr.io/opensourcefan/booklore-panel-ai:latest
+    container_name: booklore-ai-panel
+    profiles: ["ai"]
+    environment:
+      - TZ=${TZ}
+      - MODEL_ID=${AI_MODEL_ID:-mosesb/best-comic-panel-detection}
+      - HF_HOME=/models
+    volumes:
+      - ./data/ai-models:/models
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5

@@ -10,7 +10,8 @@ services:
       - DATABASE_USERNAME=booklore
       - DATABASE_PASSWORD=booklore
       - REMOTE_DEBUG_ENABLED=true
-      - ALLOWED_ORIGINS=http://localhost:4200
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:4200}
+      - AI_SERVICE_BASE_URL=http://ai-panel:8080
     stdin_open: true
     tty: true
     restart: unless-stopped
@@ -63,6 +64,20 @@ services:
       - '/dev/null:/angular-app/package-lock.json'
     ports:
       - "${FRONTEND_PORT:-4200}:4200"
+
+  ai-panel:
+    image: ghcr.io/opensourcefan/booklore-panel-ai:latest
+    profiles: [ "ai" ]
+    restart: unless-stopped
+    environment:
+      - MODEL_ID=${AI_MODEL_ID:-mosesb/best-comic-panel-detection}
+    ports:
+      - "${AI_PANEL_PORT:-8080}:8080"
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:8080/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
 volumes:
   node_modules:

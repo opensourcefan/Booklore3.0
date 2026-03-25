@@ -21,6 +21,10 @@ app:
   force-disable-oidc: ${FORCE_DISABLE_OIDC:false}
   telemetry:
     base-url: ${TELEMETRY_BASE_URL:https://telemetry.booklore.org}
+  ai:
+    base-url: ${AI_SERVICE_BASE_URL:http://booklore-ai-panel:8080}
+    connect-timeout-ms: ${AI_SERVICE_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-ms: ${AI_SERVICE_READ_TIMEOUT_MS:30000}
   disk-type: ${DISK_TYPE:LOCAL}
 
 server:

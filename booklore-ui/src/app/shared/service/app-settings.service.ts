@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
-import {AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
 
 export interface SettingsTransferEntry {
   name: string;
@@ -19,6 +19,7 @@ export interface AppSettingsTransferFile {
 export interface PublicAppSettings {
   oidcEnabled: boolean;
   remoteAuthEnabled: boolean;
+  aiPanelDetectionEnabled: boolean;
   oidcProviderDetails: OidcProviderDetails;
   oidcForceOnlyMode: boolean;
 }
@@ -92,6 +93,14 @@ export class AppSettingsService {
     return this.http.post<OidcTestResult>(`${this.apiUrl}/oidc/test`, providerDetails);
   }
 
+  getAiServiceStatus(): Observable<AiServiceStatus> {
+    return this.http.get<AiServiceStatus>(`${API_CONFIG.BASE_URL}/api/v1/ai/status`);
+  }
+
+  cleanupAiPanelData(): Observable<{ deletedCount: number }> {
+    return this.http.delete<{ deletedCount: number }>(`${API_CONFIG.BASE_URL}/api/v1/ai/panel-flow`);
+  }
+
   exportSettings(): Observable<void> {
     return this.http.get<AppSettingsTransferFile>(`${this.apiUrl}/export`).pipe(
       map(payload => {
@@ -129,6 +138,7 @@ export class AppSettingsService {
     const updatedPublicSettings: PublicAppSettings = {
       oidcEnabled: appSettings.oidcEnabled,
       remoteAuthEnabled: appSettings.remoteAuthEnabled,
+      aiPanelDetectionEnabled: appSettings.aiPanelDetectionEnabled,
       oidcProviderDetails: appSettings.oidcProviderDetails,
       oidcForceOnlyMode: appSettings.oidcForceOnlyMode
     };
@@ -138,6 +148,7 @@ export class AppSettingsService {
       !current ||
       current.oidcEnabled !== updatedPublicSettings.oidcEnabled ||
       current.remoteAuthEnabled !== updatedPublicSettings.remoteAuthEnabled ||
+      current.aiPanelDetectionEnabled !== updatedPublicSettings.aiPanelDetectionEnabled ||
       current.oidcForceOnlyMode !== updatedPublicSettings.oidcForceOnlyMode ||
       JSON.stringify(current.oidcProviderDetails) !== JSON.stringify(updatedPublicSettings.oidcProviderDetails)
     ) {
@@ -153,11 +164,7 @@ export class AppSettingsService {
 
     return this.http.put<void>(this.apiUrl, payload).pipe(
       switchMap(() => this.fetchAppSettings()),
-      map(() => void 0),
-      catchError(err => {
-        console.error('Error saving settings:', err);
-        return of();
-      })
+      map(() => void 0)
     );
   }
 

@@ -9,6 +9,7 @@ import lombok.*;
 public class PublicAppSetting {
     private boolean oidcEnabled;
     private boolean remoteAuthEnabled;
+    private boolean aiPanelDetectionEnabled;
     private OidcProviderDetails oidcProviderDetails;
     private boolean oidcForceOnlyMode;
 }

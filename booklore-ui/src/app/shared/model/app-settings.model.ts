@@ -174,6 +174,7 @@ export interface OidcTestResult {
 export interface AppSettings {
   autoBookSearch: boolean;
   similarBookRecommendation: boolean;
+  aiPanelDetectionEnabled: boolean;
   defaultMetadataRefreshOptions: MetadataRefreshOptions;
   libraryMetadataRefreshOptions: MetadataRefreshOptions[];
   uploadPattern: string;
@@ -249,4 +250,14 @@ export enum AppSettingKey {
   OIDC_GROUP_SYNC_MODE = 'OIDC_GROUP_SYNC_MODE',
   OIDC_FORCE_ONLY_MODE = 'OIDC_FORCE_ONLY_MODE',
   LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS = 'LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS',
+  AI_PANEL_DETECTION_ENABLED = 'AI_PANEL_DETECTION_ENABLED',
+}
+
+export interface AiServiceStatus {
+  enabled: boolean;
+  serviceReachable: boolean;
+  status: string;
+  message: string;
+  error: string | null;
+  baseUrl: string;
 }

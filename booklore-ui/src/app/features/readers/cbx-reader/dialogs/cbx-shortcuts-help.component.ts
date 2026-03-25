@@ -45,6 +45,8 @@ export class CbxShortcutsHelpComponent {
         shortcuts: [
           {keys: ['F'], description: this.t.translate('readerCbx.shortcutsHelp.toggleFullscreen')},
           {keys: ['D'], description: this.t.translate('readerCbx.shortcutsHelp.toggleReadingDirection')},
+          {keys: ['P'], description: this.t.translate('readerCbx.shortcutsHelp.togglePanelMode')},
+          {keys: ['I'], description: this.t.translate('readerCbx.shortcutsHelp.togglePinBars')},
           {keys: ['Escape'], description: this.t.translate('readerCbx.shortcutsHelp.exitFullscreenCloseDialogs')},
           {keys: ['Double-click'], description: this.t.translate('readerCbx.shortcutsHelp.toggleZoom'), mobileGesture: this.t.translate('readerCbx.shortcutsHelp.doubleTap')},
           {keys: ['M'], description: this.t.translate('readerCbx.shortcutsHelp.toggleMagnifier')},
@@ -55,7 +57,7 @@ export class CbxShortcutsHelpComponent {
       {
         title: this.t.translate('readerCbx.shortcutsHelp.groupPlayback'),
         shortcuts: [
-          {keys: ['P'], description: this.t.translate('readerCbx.shortcutsHelp.toggleSlideshow')}
+          {keys: ['L'], description: this.t.translate('readerCbx.shortcutsHelp.toggleSlideshow')}
         ]
       },
       {

@@ -19,6 +19,7 @@ import {LibraryMetadataSettingsComponent} from './library-metadata-settings/libr
 import {PageTitleService} from "../../shared/service/page-title.service";
 import {EmailV2Component} from './email-v2/email-v2.component';
 import {TranslocoDirective} from '@jsverse/transloco';
+import {AiSettingsComponent} from './ai-settings/ai-settings.component';
 
 export enum SettingsTab {
   ReaderSettings = 'reader',
@@ -34,6 +35,7 @@ export enum SettingsTab {
   OpdsV2 = 'opds',
   Tasks = 'task',
   AuditLogs = 'audit-logs',
+  AiSettings = 'ai-settings',
 }
 
 @Component({
@@ -58,6 +60,7 @@ export enum SettingsTab {
     TaskManagementComponent,
     AuditLogsComponent,
     EmailV2Component,
+    AiSettingsComponent,
     TranslocoDirective
   ],
   templateUrl: './settings.component.html',

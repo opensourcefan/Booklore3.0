@@ -1,4 +1,4 @@
-<div class="cbx-header" [class.visible]="isVisible">
+<div class="cbx-header" [class.visible]="isVisible" (click)="closeMenus()">
   <div class="header-left">
     <button class="icon-btn" (click)="onOpenSidebar()" [title]="'readerCbx.header.contents' | transloco">
       <app-reader-icon name="menu" [size]="20" />
@@ -12,9 +12,67 @@
         <span class="indicator-dot"></span>
       }
     </button>
+    @if (aiEnabled) {
+      <div class="ai-menu">
+        <button
+          class="icon-btn ai-btn"
+          (click)="onToggleAiMenu($event)"
+          [disabled]="aiWorking"
+          [class.active]="aiReady && aiScanned"
+          [title]="aiWorking ? ('readerCbx.header.aiWorking' | transloco) : ('readerCbx.header.aiPanelDetection' | transloco)">
+          <span class="ai-pill" [class.ready]="aiReady && aiScanned">AI</span>
+          <app-reader-icon name="chevron-down" [size]="14" />
+        </button>
+        @if (aiMenuOpen) {
+          <div class="overflow-backdrop" (click)="closeMenus()"></div>
+          <div class="ai-dropdown" (click)="$event.stopPropagation()">
+            <button class="overflow-item" (click)="onAiPanelDetection(); closeMenus()" [disabled]="aiWorking">
+              <app-reader-icon name="play" [size]="16" />
+              <span>{{ 'readerCbx.header.aiScanNowLabel' | transloco }}</span>
+            </button>
+            <button class="overflow-item" (click)="onAiRescan(); closeMenus()" [disabled]="aiWorking">
+              <app-reader-icon name="book" [size]="16" />
+              <span>{{ 'readerCbx.header.aiRescanLabel' | transloco }}</span>
+            </button>
+            <button class="overflow-item" (click)="onAiDeleteScan(); closeMenus()" [disabled]="aiWorking || !aiScanned">
+              <app-reader-icon name="trash" [size]="16" />
+              <span>{{ 'readerCbx.header.aiDeleteScanLabel' | transloco }}</span>
+            </button>
+            <div class="ai-stats-row">
+              {{ 'readerCbx.header.aiStatsLabel' | transloco: { panels: aiPanelCount, pages: aiPageCount } }}
+            </div>
+            <button class="overflow-item" (click)="onAiOpenSettings(); closeMenus()">
+              <app-reader-icon name="settings" [size]="16" />
+              <span>{{ 'readerCbx.header.aiOpenSettingsLabel' | transloco }}</span>
+            </button>
+          </div>
+        }
+      </div>
+    }
   </div>
   <span class="book-title">{{ bookTitle }}</span>
   <div class="header-right">
+    <div class="panel-mode-control desktop-only">
+      <button class="icon-btn" (click)="onTogglePanelMode()" [title]="state.isPanelModeEnabled ? ('readerCbx.header.disablePanelMode' | transloco) : ('readerCbx.header.enablePanelMode' | transloco)" [class.active]="state.isPanelModeEnabled">
+        <app-reader-icon name="book" [size]="20" />
+      </button>
+      @if (panelTravelControlsVisible) {
+        <button class="icon-btn panel-adjust-toggle" (click)="onTogglePanelAdjust($event)" title="Panel travel sensitivity">
+          <app-reader-icon name="chevron-down" [size]="14" />
+        </button>
+      }
+      @if (panelAdjustOpen && panelTravelControlsVisible) {
+        <div class="panel-adjust-popover" (click)="$event.stopPropagation()">
+          <div class="panel-adjust-title">Panel travel</div>
+          <div class="panel-adjust-row">
+            <button class="adjust-btn" (click)="onPanelTravelDelta(-0.1)">-</button>
+            <input type="range" min="0.4" max="2.5" step="0.05" [value]="panelTravelFactor" (input)="onPanelTravelInput($event)" />
+            <button class="adjust-btn" (click)="onPanelTravelDelta(0.1)">+</button>
+          </div>
+          <div class="panel-adjust-value">{{ panelTravelFactor | number:'1.2-2' }}x</div>
+        </div>
+      }
+    </div>
     <button class="icon-btn desktop-only" (click)="onToggleMagnifier()" [title]="state.isMagnifierActive ? ('readerCbx.header.disableMagnifier' | transloco) : ('readerCbx.header.enableMagnifier' | transloco)" [class.active]="state.isMagnifierActive">
       <app-reader-icon name="magnifier" [size]="20" />
     </button>
@@ -34,6 +92,14 @@
       @if (overflowOpen) {
         <div class="overflow-backdrop" (click)="overflowOpen = false"></div>
         <div class="overflow-dropdown">
+          <button class="overflow-item" (click)="onTogglePin(); overflowOpen = false" [class.active]="isPinned">
+            <img class="pin-image" [src]="pinIconData" alt="Pin" />
+            <span>{{ isPinned ? ('readerCbx.header.unpinBarsLabel' | transloco) : ('readerCbx.header.pinBarsLabel' | transloco) }}</span>
+          </button>
+          <button class="overflow-item" (click)="onTogglePanelMode(); overflowOpen = false" [class.active]="state.isPanelModeEnabled">
+            <app-reader-icon name="book" [size]="18" />
+            <span>{{ state.isPanelModeEnabled ? ('readerCbx.header.disablePanelModeLabel' | transloco) : ('readerCbx.header.enablePanelModeLabel' | transloco) }}</span>
+          </button>
           <button class="overflow-item" (click)="onToggleSlideshow(); overflowOpen = false" [class.active]="state.isSlideshowActive">
             <app-reader-icon [name]="state.isSlideshowActive ? 'pause' : 'play'" [size]="18" />
             <span>{{ state.isSlideshowActive ? ('readerCbx.header.stopSlideshowLabel' | transloco) : ('readerCbx.header.startSlideshowLabel' | transloco) }}</span>
@@ -46,11 +112,20 @@
             <app-reader-icon name="help" [size]="18" />
             <span>{{ 'readerCbx.header.keyboardShortcutsLabel' | transloco }}</span>
           </button>
+          @if (aiEnabled) {
+            <button class="overflow-item" (click)="onAiPanelDetection(); overflowOpen = false" [disabled]="aiWorking" [class.active]="aiReady && aiScanned">
+              <span class="ai-pill" [class.ready]="aiReady && aiScanned">AI</span>
+              <span>{{ aiWorking ? ('readerCbx.header.aiWorking' | transloco) : ('readerCbx.header.aiPanelDetectionLabel' | transloco) }}</span>
+            </button>
+          }
         </div>
       }
     </div>
     <button class="icon-btn" (click)="onOpenSettings()" [title]="'readerCbx.header.settings' | transloco">
       <app-reader-icon name="settings" [size]="20" />
+    </button>
+    <button class="icon-btn pin-btn" (click)="onTogglePin()" [title]="isPinned ? ('readerCbx.header.unpinBars' | transloco) : ('readerCbx.header.pinBars' | transloco)" [class.active]="isPinned">
+      <img class="pin-image" [src]="pinIconData" alt="Pin" />
     </button>
     <button class="icon-btn close-btn" (click)="onClose(); $event.stopPropagation()" [title]="'readerCbx.header.closeReader' | transloco">
       <app-reader-icon name="close" [size]="20" />

@@ -2,7 +2,24 @@
   [class.rtl-reading]="readingDirection === CbxReadingDirection.RTL"
   [class.fullscreen-mode]="isFullscreen"
   [class.slideshow-active]="isSlideshowActive">
-  <app-cbx-header [isCurrentPageBookmarked]="isCurrentPageBookmarked" [currentPageHasNotes]="currentPageHasNotes"></app-cbx-header>
+  <app-cbx-header
+    [isCurrentPageBookmarked]="isCurrentPageBookmarked"
+    [currentPageHasNotes]="currentPageHasNotes"
+    [aiEnabled]="aiPanelDetectionEnabled"
+    [aiWorking]="isAiPanelDetectionWorking"
+    [aiReady]="aiPanelDetectionReady"
+    [aiScanned]="hasSavedAiPanelFlow"
+    [aiPanelCount]="detectedPanelTotal"
+    [aiPageCount]="detectedPanelPageCount"
+    [panelTravelFactor]="panelTravelFactor"
+    [panelTravelControlsVisible]="isPanelModeActive"
+    [isPinned]="isHeaderFooterPinned"
+    (togglePin)="toggleHeaderFooterPin()"
+    (panelTravelFactorChange)="onPanelTravelFactorChange($event)"
+    (aiPanelDetection)="onAiPanelDetectionRequested()"
+    (aiRescan)="onAiRescanRequested()"
+    (aiDeleteScan)="onAiDeleteScanRequested()"
+    (aiOpenSettings)="onOpenAiSettingsRequested()"></app-cbx-header>
 
   <app-cbx-sidebar></app-cbx-sidebar>
 
@@ -52,10 +69,20 @@
     [class.bg-gray]="backgroundColor === CbxBackgroundColor.GRAY"
     [class.bg-white]="backgroundColor === CbxBackgroundColor.WHITE"
     (scroll)="onScroll($event)">
+    @if (isAiPanelDetectionWorking) {
+      <div class="ai-scan-overlay" aria-live="polite">
+        <div class="ai-scan-card">
+          <div class="ai-scan-spinner"></div>
+          <div class="ai-scan-title">{{ 'readerCbx.reader.aiScanTitle' | transloco }}</div>
+          <div class="ai-scan-status">{{ aiScanStatusText || ('readerCbx.reader.aiScanStatusRunning' | transloco) }}</div>
+        </div>
+      </div>
+    }
+
     @if (!isLoading) {
       @if (pages.length > 0) {
         @if (scrollMode === CbxScrollMode.PAGINATED) {
-          <div class="pages-wrapper" (click)="onImageClick()" (dblclick)="onImageDoubleClick()">
+          <div class="pages-wrapper" (click)="onImageClick()" (dblclick)="onImageDoubleClick()" (mousedown)="onPanelPointerDown($event)">
             @if (isPageTransitioning && previousImageUrls.length > 0) {
               <div class="previous-page-layer">
                 @for (url of previousImageUrls; track url) {
@@ -63,11 +90,37 @@
                 }
               </div>
             }
-            <div class="current-page-layer" [class.fade-in]="isPageTransitioning && imagesLoaded">
+            <div
+              class="current-page-layer"
+              [class.fade-in]="isPageTransitioning && imagesLoaded"
+              [class.panel-mode]="isPanelBoxingActive"
+              [ngStyle]="panelTransformStyles">
               @for (url of currentImageUrls; track url; let i = $index) {
                 <img [src]="url" alt="Page Image" class="page-image" (load)="onPageImageLoad($event, currentPage + i)"/>
               }
+
+              @if (isPanelModeActive && panelCount > 0) {
+                <div class="panel-indicator">
+                  {{ 'readerCbx.reader.panelIndicator' | transloco: { current: (activePanelIndex >= 0 ? activePanelIndex + 1 : 0), total: panelCount } }}
+                </div>
+              }
             </div>
+
+            @if (isPanelModeActive && panelCount > 0) {
+              <div class="panel-overview-map" [attr.aria-label]="'readerCbx.reader.panelOverviewMap' | transloco">
+                @for (panel of currentPanels; track $index; let panelIdx = $index) {
+                  <div
+                    class="overview-panel"
+                    [class.active]="activePanelIndex === panelIdx"
+                    [style.left.%]="panel.x * 100"
+                    [style.top.%]="panel.y * 100"
+                    [style.width.%]="panel.width * 100"
+                    [style.height.%]="panel.height * 100">
+                  </div>
+                }
+                <div class="overview-location" [style.left.%]="activePanelCenterX" [style.top.%]="activePanelCenterY"></div>
+              </div>
+            }
           </div>
           @if (isAtLastPage && nextBookInSeries) {
             <div class="end-of-comic-action">

@@ -7,6 +7,7 @@ export interface CbxHeaderState {
   isFullscreen: boolean;
   isSlideshowActive: boolean;
   isMagnifierActive: boolean;
+  isPanelModeEnabled: boolean;
 }
 
 @Injectable()
@@ -24,7 +25,8 @@ export class CbxHeaderService {
   private _state = new BehaviorSubject<CbxHeaderState>({
     isFullscreen: false,
     isSlideshowActive: false,
-    isMagnifierActive: false
+    isMagnifierActive: false,
+    isPanelModeEnabled: false
   });
   state$ = this._state.asObservable();
 
@@ -48,6 +50,9 @@ export class CbxHeaderService {
 
   private _showShortcutsHelp = new Subject<void>();
   showShortcutsHelp$ = this._showShortcutsHelp.asObservable();
+
+  private _togglePanelMode = new Subject<void>();
+  togglePanelMode$ = this._togglePanelMode.asObservable();
 
   get title(): string {
     return this.bookTitle;
@@ -107,13 +112,17 @@ export class CbxHeaderService {
     this._showShortcutsHelp.next();
   }
 
+  togglePanelMode(): void {
+    this._togglePanelMode.next();
+  }
+
   close(): void {
     this.location.back();
   }
 
   reset(): void {
     this._forceVisible.next(true);
-    this._state.next({isFullscreen: false, isSlideshowActive: false, isMagnifierActive: false});
+    this._state.next({isFullscreen: false, isSlideshowActive: false, isMagnifierActive: false, isPanelModeEnabled: false});
     this.bookTitle = '';
   }
 }

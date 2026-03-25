@@ -22,6 +22,9 @@
               <p-tab [value]="SettingsTab.ApplicationSettings">
                 <i class="pi pi-cog"></i> {{ t('application') }}
               </p-tab>
+              <p-tab [value]="SettingsTab.AiSettings">
+                <i class="pi pi-sparkles"></i> {{ t('ai') }}
+              </p-tab>
             }
             @if (userState.user.permissions.admin) {
               <p-tab [value]="SettingsTab.UserManagement">
@@ -85,6 +88,11 @@
               <p-tabpanel [value]="SettingsTab.ApplicationSettings">
                 <ng-template #content>
                   <app-global-preferences></app-global-preferences>
+                </ng-template>
+              </p-tabpanel>
+              <p-tabpanel [value]="SettingsTab.AiSettings">
+                <ng-template #content>
+                  <app-ai-settings></app-ai-settings>
                 </ng-template>
               </p-tabpanel>
             }

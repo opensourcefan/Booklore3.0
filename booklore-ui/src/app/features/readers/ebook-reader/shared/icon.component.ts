@@ -35,6 +35,7 @@ export type ReaderIconName =
   | 'long-strip'
   | 'direction-ltr'
   | 'direction-rtl'
+  | 'pin'
   | 'magnifier';
 
 interface IconPath {
@@ -193,6 +194,13 @@ const ICONS: Record<ReaderIconName, IconPath[]> = {
   'direction-rtl': [
     {d: 'M19,12 L5,12', type: 'line'},
     {d: 'M9,8 L5,12 L9,16', type: 'polyline'}
+  ],
+  'pin': [
+    {d: 'M12 4m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0', type: 'path'},
+    {d: 'M8,9 L16,9', type: 'line'},
+    {d: 'M9,9 L15,9 L13.2,13 L10.8,13 Z', type: 'path'},
+    {d: 'M12,13 L12,21', type: 'line'},
+    {d: 'M12,21 L10.5,19.5', type: 'line'}
   ],
   'magnifier': [
     {d: 'M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0-14 0', type: 'path'},

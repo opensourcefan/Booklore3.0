@@ -27,6 +27,21 @@ import {CbxQuickSettingsService} from './layout/quick-settings/cbx-quick-setting
 import {CbxNoteDialogComponent, CbxNoteDialogData, CbxNoteDialogResult} from './dialogs/cbx-note-dialog.component';
 import {CbxShortcutsHelpComponent} from './dialogs/cbx-shortcuts-help.component';
 import {BookNoteV2} from '../../../shared/service/book-note-v2.service';
+import {AppSettingsService} from '../../../shared/service/app-settings.service';
+import {ComicPanelFlowService} from '../../../shared/service/comic-panel-flow.service';
+
+interface CbxPanelRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  confidence?: number;
+}
+
+interface CbxPagePanelData {
+  pageNumber: number;
+  panels: CbxPanelRegion[];
+}
 
 
 @Component({
@@ -117,6 +132,22 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   // Shortcuts help dialog
   showShortcutsHelp = false;
 
+  // Panel mode
+  panelModeEnabled = false;
+  activePanelIndex = -1;
+  private detectedPanelsByPage = new Map<number, CbxPanelRegion[]>();
+  panelManualZoom = 1;
+  panelTravelFactor = 1;
+  panelPanX = 0;
+  panelPanY = 0;
+  private isPanelDragging = false;
+  private panelDragMoved = false;
+  private panelDragStartX = 0;
+  private panelDragStartY = 0;
+
+  // Header/footer pin state
+  isHeaderFooterPinned = false;
+
   // Magnifier
   isMagnifierActive = false;
   @ViewChild('magnifierLens', {static: true}) private magnifierLensRef!: ElementRef<HTMLDivElement>;
@@ -126,6 +157,12 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
   // Double page detection
   private pageDimensionsCache = new Map<number, {width: number, height: number}>();
+
+  aiPanelDetectionEnabled = false;
+  isAiPanelDetectionWorking = false;
+  aiPanelDetectionReady = false;
+  hasSavedAiPanelFlow = false;
+  aiScanStatusText = '';
 
   protected readonly CbxReadingDirection = CbxReadingDirection;
   protected readonly CbxSlideshowInterval = CbxSlideshowInterval;
@@ -143,6 +180,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   private sidebarService = inject(CbxSidebarService);
   private footerService = inject(CbxFooterService);
   private quickSettingsService = inject(CbxQuickSettingsService);
+  private appSettingsService = inject(AppSettingsService);
+  private comicPanelFlowService = inject(ComicPanelFlowService);
 
   protected readonly CbxScrollMode = CbxScrollMode;
   protected readonly CbxFitMode = CbxFitMode;
@@ -155,7 +194,9 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.visibilityManager = new ReaderHeaderFooterVisibilityManager(window.innerHeight);
+    this.isHeaderFooterPinned = this.visibilityManager.getIsPinned();
     this.visibilityManager.onStateChange((state) => {
+      this.isHeaderFooterPinned = this.visibilityManager.getIsPinned();
       this.headerService.setForceVisible(state.headerVisible);
       this.footerService.setForceVisible(state.footerVisible);
     });
@@ -174,10 +215,23 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     this.subscribeToFooterEvents();
     this.subscribeToQuickSettingsEvents();
 
+    this.appSettingsService.appSettings$
+      .pipe(
+        filter((settings) => !!settings),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(settings => {
+        this.aiPanelDetectionEnabled = settings.aiPanelDetectionEnabled;
+      });
+
     this.route.paramMap.subscribe((params) => {
       this.isLoading = true;
       this.bookId = +params.get('bookId')!;
       this.altBookType = this.route.snapshot.queryParamMap.get('bookType') ?? undefined;
+      this.aiPanelDetectionReady = false;
+      this.hasSavedAiPanelFlow = false;
+      this.detectedPanelsByPage.clear();
+      this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
 
       this.previousBookInSeries = null;
       this.nextBookInSeries = null;
@@ -258,6 +312,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
               this.updateCurrentImageUrls();
               this.preloadAdjacentPages();
+              this.loadExistingAiPanelFlow();
 
               const percentage = this.pages.length > 0 ? Math.round(((this.currentPage + 1) / this.pages.length) * 1000) / 10 : 0;
               this.readingSessionService.startSession(this.bookId, "CBX", (this.currentPage + 1).toString(), percentage);
@@ -323,6 +378,12 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.showShortcutsHelp = true;
+      });
+
+    this.headerService.togglePanelMode$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.togglePanelMode();
       });
   }
 
@@ -454,7 +515,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
     this.headerService.updateState({
       isFullscreen: this.isFullscreen,
-      isSlideshowActive: this.isSlideshowActive
+      isSlideshowActive: this.isSlideshowActive,
+      isPanelModeEnabled: this.isPanelModeActive
     });
 
     this.sidebarService.setCurrentPage(this.currentPage + 1);
@@ -630,11 +692,21 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
   nextPage() {
     this.pauseSlideshowOnInteraction();
+
+    if (this.tryNavigatePanel(1)) {
+      return;
+    }
+
     this.advancePage(1);
   }
 
   previousPage() {
     this.pauseSlideshowOnInteraction();
+
+    if (this.tryNavigatePanel(-1)) {
+      return;
+    }
+
     this.advancePage(-1);
   }
 
@@ -676,6 +748,12 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     }
 
     if (this.currentPage !== previousPage) {
+      if (this.panelModeEnabled) {
+        // Enter each new page at full-page view first, then step into panels.
+        this.activePanelIndex = -1;
+      } else {
+        this.activePanelIndex = 0;
+      }
       this.transitionToNewPage();
       this.updateProgress();
       this.updateSessionProgress();
@@ -730,6 +808,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       this.updateCurrentImageUrls();
       this.preloadAdjacentPages();
     }
+
+    this.ensurePanelModeCompatibility();
   }
 
   onPageViewModeChange(mode: CbxPageViewMode): void {
@@ -741,6 +821,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     this.preloadAdjacentPages();
     this.footerService.setTwoPageView(this.isTwoPageView);
     this.updateViewerSetting();
+    this.ensurePanelModeCompatibility();
   }
 
   onPageSpreadChange(spread: CbxPageSpread): void {
@@ -861,6 +942,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     if (targetIndex === this.currentPage) return;
 
     this.currentPage = targetIndex;
+    this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
 
     if (this.scrollMode === CbxScrollMode.INFINITE || this.scrollMode === CbxScrollMode.LONG_STRIP) {
       this.ensurePageLoaded(targetIndex);
@@ -915,7 +997,32 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   }
 
   onImageClick(): void {
-    this.visibilityManager.togglePinned();
+    if (this.panelDragMoved) {
+      this.panelDragMoved = false;
+      return;
+    }
+
+    // Keep pin state explicit via toolbar button/shortcut only.
+    if (this.isHeaderFooterPinned) {
+      return;
+    }
+  }
+
+  onPanelPointerDown(event: MouseEvent): void {
+    if (!this.isPanelBoxingActive) {
+      return;
+    }
+
+    this.isPanelDragging = true;
+    this.panelDragMoved = false;
+    this.panelDragStartX = event.clientX - this.panelPanX;
+    this.panelDragStartY = event.clientY - this.panelPanY;
+    event.preventDefault();
+  }
+
+  toggleHeaderFooterPin(): void {
+    this.isHeaderFooterPinned = !this.isHeaderFooterPinned;
+    this.visibilityManager.setPinned(this.isHeaderFooterPinned);
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -970,6 +1077,11 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       case 'p':
       case 'P':
         event.preventDefault();
+        this.togglePanelMode();
+        break;
+      case 'l':
+      case 'L':
+        event.preventDefault();
         this.toggleSlideshow();
         break;
       case 'm':
@@ -980,6 +1092,16 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
           this.hideMagnifier();
         }
         this.headerService.updateState({isMagnifierActive: this.isMagnifierActive});
+        break;
+      case 'a':
+      case 'A':
+        event.preventDefault();
+        this.onAiPanelDetectionRequested();
+        break;
+      case 'i':
+      case 'I':
+        event.preventDefault();
+        this.toggleHeaderFooterPin();
         break;
       case '+':
       case '=':
@@ -1015,6 +1137,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
           this.isMagnifierActive = false;
           this.hideMagnifier();
           this.headerService.updateState({isMagnifierActive: false});
+        } else if (this.isPanelModeActive) {
+          this.panelModeEnabled = false;
+          this.activePanelIndex = 0;
+          this.headerService.updateState({isPanelModeEnabled: false});
         } else if (this.showShortcutsHelp) {
           this.showShortcutsHelp = false;
         } else if (this.showNoteDialog) {
@@ -1026,6 +1152,248 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
         }
         break;
     }
+  }
+
+  onAiPanelDetectionRequested(): void {
+    if (!this.aiPanelDetectionEnabled || this.isAiPanelDetectionWorking || !this.bookId) {
+      return;
+    }
+
+    this.isAiPanelDetectionWorking = true;
+    this.aiScanStatusText = this.t.translate('readerCbx.reader.aiScanStatusChecking');
+
+    this.appSettingsService.getAiServiceStatus().pipe(
+      first(),
+      switchMap(status => {
+        if (!status.enabled) {
+          throw new Error('AI panel detection is disabled in settings.');
+        }
+
+        if (!status.serviceReachable) {
+          throw new Error(status.error || 'AI service is unavailable.');
+        }
+
+        this.aiScanStatusText = this.t.translate('readerCbx.reader.aiScanStatusRunning');
+        return this.comicPanelFlowService.scanPanelFlow(this.bookId, this.altBookType).pipe(first());
+      })
+    ).subscribe({
+      next: flow => {
+        this.aiScanStatusText = this.t.translate('readerCbx.reader.aiScanStatusParsing');
+        const hasParsedPanels = this.applyPanelFlow(flow?.data);
+        const panelStats = this.getDetectedPanelStats();
+        this.isAiPanelDetectionWorking = false;
+        this.aiScanStatusText = '';
+        this.aiPanelDetectionReady = hasParsedPanels;
+        this.hasSavedAiPanelFlow = hasParsedPanels;
+        this.messageService.add({
+          severity: hasParsedPanels ? 'success' : 'warn',
+          summary: 'AI Panel Detection',
+          detail: hasParsedPanels
+            ? `Detected ${panelStats.totalPanels} panels across ${panelStats.pagesWithPanels} pages.`
+            : 'No detected panel data is available for this comic yet.'
+        });
+      },
+      error: err => {
+        this.isAiPanelDetectionWorking = false;
+        this.aiScanStatusText = '';
+        this.aiPanelDetectionReady = false;
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'AI Panel Detection',
+          detail: this.extractAiErrorMessage(err)
+        });
+      }
+    });
+  }
+
+  private extractAiErrorMessage(err: unknown): string {
+    const fallback = 'Unable to run AI panel detection.';
+    const e = err as { message?: string; error?: { message?: string; error?: string; detail?: string } } | undefined;
+    return e?.error?.message || e?.error?.detail || e?.error?.error || e?.message || fallback;
+  }
+
+  private loadExistingAiPanelFlow(): void {
+    if (!this.bookId) {
+      return;
+    }
+
+    this.comicPanelFlowService.getPanelFlow(this.bookId).pipe(first()).subscribe({
+      next: flow => {
+        const hasParsedPanels = this.applyPanelFlow(flow?.data);
+        this.hasSavedAiPanelFlow = hasParsedPanels;
+        this.aiPanelDetectionReady = hasParsedPanels;
+      },
+      error: () => {
+        this.detectedPanelsByPage.clear();
+        this.hasSavedAiPanelFlow = false;
+        this.aiPanelDetectionReady = false;
+      }
+    });
+  }
+
+  private applyPanelFlow(flowData: unknown): boolean {
+    const parsed = this.parsePanelFlow(flowData);
+    this.detectedPanelsByPage = parsed;
+
+    if (this.activePanelIndex >= this.panelCount) {
+      this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
+    }
+
+    return Array.from(parsed.values()).some(panels => panels.length > 0);
+  }
+
+  private getDetectedPanelStats(): { totalPanels: number; pagesWithPanels: number } {
+    let totalPanels = 0;
+    let pagesWithPanels = 0;
+
+    for (const panels of this.detectedPanelsByPage.values()) {
+      if (!panels || panels.length === 0) {
+        continue;
+      }
+
+      pagesWithPanels++;
+      totalPanels += panels.length;
+    }
+
+    return { totalPanels, pagesWithPanels };
+  }
+
+  private parsePanelFlow(flowData: unknown): Map<number, CbxPanelRegion[]> {
+    if (!flowData) {
+      return new Map<number, CbxPanelRegion[]>();
+    }
+
+    let parsedFlow: unknown;
+    if (typeof flowData === 'string') {
+      try {
+        parsedFlow = JSON.parse(flowData);
+      } catch {
+        return new Map<number, CbxPanelRegion[]>();
+      }
+    } else {
+      parsedFlow = flowData;
+    }
+
+    const pages = this.extractPagePanelData(parsedFlow);
+    const panelMap = new Map<number, CbxPanelRegion[]>();
+
+    for (const page of pages) {
+      const pageIndex = page.pageNumber - 1;
+      if (pageIndex < 0 || pageIndex >= this.pages.length) {
+        continue;
+      }
+
+      if (page.panels.length > 0) {
+        panelMap.set(pageIndex, page.panels);
+      }
+    }
+
+    return panelMap;
+  }
+
+  private extractPagePanelData(rawFlow: unknown): CbxPagePanelData[] {
+    if (!rawFlow || typeof rawFlow !== 'object') {
+      return [];
+    }
+
+    const raw = rawFlow as Record<string, unknown>;
+    const rawPagesValue = raw['pages'];
+    const rawPages = Array.isArray(rawPagesValue) ? rawPagesValue : [];
+
+    return rawPages
+      .map((rawPage, index) => {
+        const pageObj = (rawPage && typeof rawPage === 'object') ? rawPage as Record<string, unknown> : {};
+        const pageNumber = this.toSafeInteger(pageObj['pageNumber'] ?? pageObj['page'] ?? (index + 1), index + 1);
+        const rawPanelsValue = pageObj['panels'];
+        const rawPanels = Array.isArray(rawPanelsValue) ? rawPanelsValue : [];
+        const panels = rawPanels
+          .map(panel => this.normalizePanel(panel))
+          .filter((panel): panel is CbxPanelRegion => !!panel);
+
+        return {pageNumber, panels};
+      })
+      .filter(page => page.pageNumber > 0);
+  }
+
+  private normalizePanel(rawPanel: unknown): CbxPanelRegion | null {
+    if (!rawPanel || typeof rawPanel !== 'object') {
+      return null;
+    }
+
+    const panel = rawPanel as Record<string, unknown>;
+    const x = this.normalizeCoordinate(panel['x'] ?? panel['left'] ?? panel['x1']);
+    const y = this.normalizeCoordinate(panel['y'] ?? panel['top'] ?? panel['y1']);
+
+    const rightValue = panel['x2'] ?? panel['right'];
+    const bottomValue = panel['y2'] ?? panel['bottom'];
+    const widthValue = panel['width'] ?? panel['w'];
+    const heightValue = panel['height'] ?? panel['h'];
+
+    const right = this.normalizeCoordinate(rightValue);
+    const bottom = this.normalizeCoordinate(bottomValue);
+    let width = widthValue !== undefined ? this.normalizeCoordinate(widthValue) : right - x;
+    let height = heightValue !== undefined ? this.normalizeCoordinate(heightValue) : bottom - y;
+
+    if (width <= 0 || height <= 0) {
+      return null;
+    }
+
+    const padFactor = 0.14;
+    const padX = width * padFactor;
+    const padY = height * padFactor;
+    const expandedX = x - padX;
+    const expandedY = y - padY;
+    width += padX * 2;
+    height += padY * 2;
+
+    // Allow slight overflow so edge panels can still be centered properly.
+    const clampedX = this.clamp(expandedX, -0.25, 1.25);
+    const clampedY = this.clamp(expandedY, -0.25, 1.25);
+    const maxWidth = this.clamp(width, 0.02, 1.5);
+    const maxHeight = this.clamp(height, 0.02, 1.5);
+
+    return {
+      x: clampedX,
+      y: clampedY,
+      width: maxWidth,
+      height: maxHeight,
+      confidence: this.toNumber(panel['confidence'])
+    };
+  }
+
+  private normalizeCoordinate(value: unknown): number {
+    const numeric = this.toNumber(value);
+    if (numeric <= 1) {
+      return numeric;
+    }
+
+    if (numeric <= 100) {
+      return numeric / 100;
+    }
+
+    return 0;
+  }
+
+  private toSafeInteger(value: unknown, fallback: number): number {
+    const numeric = Math.floor(this.toNumber(value));
+    return Number.isFinite(numeric) && numeric > 0 ? numeric : fallback;
+  }
+
+  private toNumber(value: unknown): number {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    return 0;
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
   }
 
   @HostListener('document:fullscreenchange')
@@ -1053,6 +1421,14 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent): void {
+    if (this.isPanelDragging && this.isPanelBoxingActive) {
+      this.panelPanX = event.clientX - this.panelDragStartX;
+      this.panelPanY = event.clientY - this.panelDragStartY;
+      if (Math.abs(this.panelPanX) > 2 || Math.abs(this.panelPanY) > 2) {
+        this.panelDragMoved = true;
+      }
+    }
+
     this.lastMouseEvent = event;
     this.visibilityManager.handleMouseMove(event.clientY);
     if (this.isMagnifierActive) {
@@ -1068,6 +1444,28 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     }
   }
 
+  @HostListener('document:mouseup')
+  onGlobalMouseUp(): void {
+    this.isPanelDragging = false;
+  }
+
+  @HostListener('document:wheel', ['$event'])
+  onGlobalWheel(event: WheelEvent): void {
+    if (!this.isPanelBoxingActive) {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if (!target || !target.closest('.image-container')) {
+      return;
+    }
+
+    const direction = event.deltaY < 0 ? 1 : -1;
+    const step = 0.1;
+    this.panelManualZoom = this.clamp(this.panelManualZoom + (direction * step), 0.6, 3.5);
+    event.preventDefault();
+  }
+
   private handleSwipeGesture() {
     if (this.scrollMode === CbxScrollMode.INFINITE || this.scrollMode === CbxScrollMode.LONG_STRIP) return;
 
@@ -1078,6 +1476,195 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       const shouldGoNext = isRtl ? delta > 0 : delta < 0;
       shouldGoNext ? this.nextPage() : this.previousPage();
     }
+  }
+
+  get currentPanels(): CbxPanelRegion[] {
+    const panels = this.detectedPanelsByPage.get(this.currentPage) ?? [];
+    return [...panels].sort((a, b) => {
+      const rowGap = a.y - b.y;
+      if (Math.abs(rowGap) > 0.08) {
+        return rowGap;
+      }
+
+      return this.readingDirection === CbxReadingDirection.RTL
+        ? b.x - a.x
+        : a.x - b.x;
+    });
+  }
+
+  get panelCount(): number {
+    return this.currentPanels.length;
+  }
+
+  get isPanelModeAvailable(): boolean {
+    return this.scrollMode === CbxScrollMode.PAGINATED && !this.isTwoPageView && this.currentImageUrls.length === 1;
+  }
+
+  get isPanelModeActive(): boolean {
+    return this.panelModeEnabled && this.isPanelModeAvailable;
+  }
+
+  get isPanelBoxingActive(): boolean {
+    return this.isPanelModeActive && this.activePanelIndex >= 0 && this.activePanelIndex < this.panelCount;
+  }
+
+  get activePanel(): CbxPanelRegion | null {
+    if (!this.isPanelBoxingActive) {
+      return null;
+    }
+
+    return this.currentPanels[this.activePanelIndex] ?? null;
+  }
+
+  get panelTransformStyles(): Record<string, string> {
+    const panel = this.activePanel;
+    if (!panel) {
+      return {};
+    }
+
+    const originX = (panel.x + panel.width / 2) * 100;
+    const originY = (panel.y + panel.height / 2) * 100;
+    const baseScale = this.clamp(Math.min(1 / panel.width, 1 / panel.height) * 0.92, 1, 6);
+    const scale = this.clamp(baseScale * this.panelManualZoom, 1, 10);
+    const travel = this.panelTravelFactor;
+    const translateX = (50 - originX) * scale * travel;
+    const translateY = (50 - originY) * scale * travel;
+
+    return {
+      '--panel-translate-x': `${translateX}`,
+      '--panel-translate-y': `${translateY}`,
+      '--panel-pan-x': `${this.panelPanX}px`,
+      '--panel-pan-y': `${this.panelPanY}px`,
+      '--panel-scale': `${scale}`
+    };
+  }
+
+  get activePanelCenterX(): number {
+    const panel = this.activePanel;
+    return panel ? (panel.x + panel.width / 2) * 100 : 50;
+  }
+
+  get activePanelCenterY(): number {
+    const panel = this.activePanel;
+    return panel ? (panel.y + panel.height / 2) * 100 : 50;
+  }
+
+  togglePanelMode(): void {
+    this.panelModeEnabled = !this.panelModeEnabled;
+    this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
+    this.panelPanX = 0;
+    this.panelPanY = 0;
+    this.panelManualZoom = 1;
+    this.ensurePanelModeCompatibility();
+    this.headerService.updateState({isPanelModeEnabled: this.isPanelModeActive});
+  }
+
+  private ensurePanelModeCompatibility(): void {
+    if (!this.isPanelModeAvailable) {
+      this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
+    }
+
+    if (this.isPanelModeAvailable && this.panelModeEnabled && this.activePanelIndex >= this.panelCount) {
+      this.activePanelIndex = -1;
+    }
+
+    this.headerService.updateState({isPanelModeEnabled: this.isPanelModeActive});
+  }
+
+  private tryNavigatePanel(direction: 1 | -1): boolean {
+    if (!this.isPanelModeActive) {
+      return false;
+    }
+
+    const maxPanelIndex = this.panelCount - 1;
+
+    if (direction > 0) {
+      if (this.activePanelIndex < 0) {
+        this.activePanelIndex = 0;
+        this.panelPanX = 0;
+        this.panelPanY = 0;
+        return true;
+      }
+
+      if (this.activePanelIndex < maxPanelIndex) {
+        this.activePanelIndex++;
+        this.panelPanX = 0;
+        this.panelPanY = 0;
+        return true;
+      }
+      return false;
+    }
+
+    if (this.activePanelIndex < 0) {
+      return false;
+    }
+
+    if (this.activePanelIndex > 0) {
+      this.activePanelIndex--;
+      this.panelPanX = 0;
+      this.panelPanY = 0;
+      return true;
+    }
+    return false;
+  }
+
+  get detectedPanelTotal(): number {
+    let total = 0;
+    for (const panels of this.detectedPanelsByPage.values()) {
+      total += panels.length;
+    }
+    return total;
+  }
+
+  get detectedPanelPageCount(): number {
+    let count = 0;
+    for (const panels of this.detectedPanelsByPage.values()) {
+      if (panels.length > 0) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  onAiRescanRequested(): void {
+    this.onAiPanelDetectionRequested();
+  }
+
+  onAiDeleteScanRequested(): void {
+    if (!this.bookId || this.isAiPanelDetectionWorking) {
+      return;
+    }
+
+    this.comicPanelFlowService.deletePanelFlow(this.bookId).pipe(first()).subscribe({
+      next: () => {
+        this.detectedPanelsByPage.clear();
+        this.hasSavedAiPanelFlow = false;
+        this.aiPanelDetectionReady = false;
+        this.panelModeEnabled = false;
+        this.activePanelIndex = 0;
+        this.headerService.updateState({isPanelModeEnabled: false});
+        this.messageService.add({
+          severity: 'success',
+          summary: 'AI Panel Detection',
+          detail: 'Deleted saved scan data for this comic.'
+        });
+      },
+      error: err => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'AI Panel Detection',
+          detail: this.extractAiErrorMessage(err)
+        });
+      }
+    });
+  }
+
+  onOpenAiSettingsRequested(): void {
+    this.router.navigate(['/settings'], {queryParams: {tab: 'ai-settings'}});
+  }
+
+  onPanelTravelFactorChange(value: number): void {
+    this.panelTravelFactor = this.clamp(value, 0.4, 2.5);
   }
 
   private enforcePortraitSinglePageView() {

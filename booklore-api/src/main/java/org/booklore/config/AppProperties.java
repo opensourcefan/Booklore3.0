@@ -16,6 +16,7 @@ public class AppProperties {
     private RemoteAuth remoteAuth;
     private Boolean forceDisableOidc = false;
     private Telemetry telemetry = new Telemetry();
+    private Ai ai = new Ai();
 
     /**
      * Type of disk storage where library files are stored.
@@ -46,5 +47,13 @@ public class AppProperties {
     @Setter
     public static class Telemetry {
         private String baseUrl = "https://telemetry.booklore.org";
+    }
+
+    @Getter
+    @Setter
+    public static class Ai {
+        private String baseUrl = "http://booklore-ai-panel:8080";
+        private int connectTimeoutMs = 3000;
+        private int readTimeoutMs = 30000;
     }
 }

@@ -27,6 +27,7 @@ public class AppSettings {
     private boolean metadataDownloadOnBookdrop;
     private boolean oidcEnabled;
     private boolean telemetryEnabled;
+    private boolean aiPanelDetectionEnabled;
     private OidcProviderDetails oidcProviderDetails;
     private OidcAutoProvisionDetails oidcAutoProvisionDetails;
     private MetadataProviderSettings metadataProviderSettings;
