@@ -272,3 +272,21 @@ jobs:
           cache-to: |
             type=gha,mode=max
             type=registry,ref=ghcr.io/opensourcefan/booklore3:buildcache,mode=max
+
+      - name: Build and push AI Docker image
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: ./docker/ai-panel
+          file: ./docker/ai-panel/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/opensourcefan/booklore-panel-ai:${{ env.image_tag }}
+            ghcr.io/opensourcefan/booklore-panel-ai:latest
+          cache-from: |
+            type=gha,scope=booklore-panel-ai
+            type=registry,ref=ghcr.io/opensourcefan/booklore-panel-ai:buildcache
+          cache-to: |
+            type=gha,scope=booklore-panel-ai,mode=max
+            type=registry,ref=ghcr.io/opensourcefan/booklore-panel-ai:buildcache,mode=max

@@ -48,7 +48,7 @@ services:
       retries: 10
 
   booklore-ai-panel:
-    image: ghcr.io/opensourcefan/booklore-panel-ai:latest
+    image: ${AI_PANEL_IMAGE:-ghcr.io/opensourcefan/booklore-panel-ai:latest}
     container_name: booklore-ai-panel
     environment:
       - TZ=${TZ}

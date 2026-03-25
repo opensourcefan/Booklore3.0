@@ -66,8 +66,12 @@ services:
       - "${FRONTEND_PORT:-4200}:4200"
 
   ai-panel:
-    image: ghcr.io/opensourcefan/booklore-panel-ai:latest
+    build:
+      context: ./docker/ai-panel
+      dockerfile: Dockerfile
+    image: booklore-ai-panel:local
     profiles: [ "ai" ]
+    pull_policy: never
     restart: unless-stopped
     environment:
       - MODEL_ID=${AI_MODEL_ID:-mosesb/best-comic-panel-detection}
