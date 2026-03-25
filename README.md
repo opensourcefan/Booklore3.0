@@ -11,9 +11,10 @@ I will not delete this if I get upset, I am always upset
 
 ### Current State of Affairs
 ```ini
-Latest 'complete' build v3.1.2 'complete' = Not in the middle of adding and debugging new features. 
+Latest build v3.1.5
 Most of the DESKTOP UI has been modified to my liking. 
 Currently working on improving the MOBILE UI 
+Title row tweaks and controls for book cards.
 ```
 
 
@@ -40,6 +41,7 @@ Upper Toolbar Customization - add, remove, reorder, seperators ... Button on far
 Click,hold,and drag sorting of Left Sidebar Elements.
 Settings Backup and Restore added.
 User generated Media Types ie Magazines, Catalog, Text Books etc can be added and filtered.
+Title row tweaks and controls for book cards.
 ```
 
 
