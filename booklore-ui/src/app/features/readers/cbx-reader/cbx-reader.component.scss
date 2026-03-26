@@ -63,36 +63,6 @@
     background-repeat: no-repeat;
   }
 
-  .mobile-panel-zoom-dock {
-    position: absolute;
-    top: 0.55rem;
-    right: 0.7rem;
-    display: none;
-    align-items: center;
-    gap: 0.3rem;
-    z-index: 1102;
-  }
-
-  .mobile-panel-zoom-btn {
-    width: 2rem;
-    height: 2rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 999px;
-    background: rgba(17, 24, 39, 0.72);
-    color: #f8fafc;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(8px);
-
-    .zoom-step-symbol {
-      font-size: 1.1rem;
-      font-weight: 700;
-      line-height: 1;
-    }
-  }
-
   .bookmark-indicator {
     position: absolute;
     top: 0;
@@ -296,7 +266,7 @@
         transform: translate(-50%, 50%);
         width: 132px;
         height: 182px;
-        background: rgba(0, 0, 0, 0.42);
+        background: rgba(0, 0, 0, 0.72);
         z-index: 15;
       }
 
@@ -788,10 +758,6 @@
       .mobile-panel-overview-map {
         display: block;
       }
-    }
-
-    .mobile-panel-zoom-dock {
-      display: inline-flex;
     }
 
     .end-of-comic-action {

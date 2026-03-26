@@ -52,6 +52,16 @@
   </div>
   <span class="book-title">{{ bookTitle }}</span>
   <div class="header-right">
+    @if (panelZoomControlsVisible) {
+      <div class="mobile-only mobile-panel-zoom-controls">
+        <button class="icon-btn zoom-step-btn" (click)="onPanelZoomOut()" title="Zoom out">
+          <span class="zoom-step-symbol">−</span>
+        </button>
+        <button class="icon-btn zoom-step-btn" (click)="onPanelZoomIn()" title="Zoom in">
+          <span class="zoom-step-symbol">+</span>
+        </button>
+      </div>
+    }
     <div class="panel-mode-control desktop-only">
       <button class="icon-btn" (click)="onTogglePanelMode()" [title]="state.isPanelModeEnabled ? ('readerCbx.header.disablePanelMode' | transloco) : ('readerCbx.header.enablePanelMode' | transloco)" [class.active]="state.isPanelModeEnabled">
         <app-reader-icon name="book" [size]="20" />

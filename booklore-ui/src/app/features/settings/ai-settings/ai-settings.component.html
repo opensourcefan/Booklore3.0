@@ -74,14 +74,9 @@
           }
           <div class="startup-event-list">
             @for (startupEvent of startupEvents; track startupEvent.timestamp + startupEvent.text) {
-              <div class="startup-event-row">
-                <div class="startup-event" [ngClass]="startupEvent.level">
+              <div class="startup-event" [ngClass]="startupEvent.level">
                 <span class="startup-event-time">{{ startupEvent.timestamp }}</span>
                 <span class="startup-event-text">{{ startupEvent.text }}</span>
-                </div>
-                @if (!$last) {
-                  <div class="startup-event-separator" aria-hidden="true"></div>
-                }
               </div>
             }
           </div>

@@ -56,17 +56,6 @@
     <div class="slideshow-progress" [class.above-footer]="isFooterVisible" [style.animation-duration.ms]="slideshowInterval"></div>
   }
 
-  @if (isMobileViewport && isPanelModeActive) {
-    <div class="mobile-panel-zoom-dock">
-      <button class="mobile-panel-zoom-btn" (click)="onPanelZoomOutRequested()" aria-label="Zoom out panel view">
-        <span class="zoom-step-symbol">−</span>
-      </button>
-      <button class="mobile-panel-zoom-btn" (click)="onPanelZoomInRequested()" aria-label="Zoom in panel view">
-        <span class="zoom-step-symbol">+</span>
-      </button>
-    </div>
-  }
-
   <div #magnifierLens class="magnifier-lens"></div>
 
   <div class="image-container"
