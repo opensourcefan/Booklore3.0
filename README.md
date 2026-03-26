@@ -33,6 +33,7 @@ Latest build v3.2.0-AI
 	docker compose up -d booklore-ai-panel
 ```
 
+
 ### Update Existing Install
 ```ini
 1. curl -O https://raw.githubusercontent.com/opensourcefan/Booklore3.0/develop/docker-compose.yml
@@ -45,6 +46,7 @@ Latest build v3.2.0-AI
 	docker compose pull booklore-ai-panel
 	docker compose up -d booklore-ai-panel
 ```
+
 
 ### AI Install Notes
 ```ini
@@ -65,6 +67,36 @@ Notes:
 - Place the local model file at ./data/ai-models/best.pt to keep it persistent across container restarts, recreates, and image updates.
 - During first startup, the AI status may show STARTING while the local model is being loaded.
 ```
+
+
+### Sample .env
+```ini
+# Application Settings
+APP_USER_ID=1000
+APP_GROUP_ID=1000
+TZ=America/Vancouver
+AI_SERVICE_BASE_URL=http://booklore-ai-panel:8080
+AI_PANEL_PORT=18080
+
+# Database Connection (BookLore)
+DATABASE_URL=jdbc:mariadb://mariadb:3306/booklore
+DB_USER=booklore
+DB_PASSWORD=ChangeMe@$@P
+
+# Storage: LOCAL (default) or NETWORK (all data is written to mariadb only)
+#DISK_TYPE=NETWORK
+
+# Adds AI image to your regular >>docker compose pull && docker compose up -d<< routine.
+COMPOSE_PROFILES=ai
+
+# MariaDB Container Settings
+DB_USER_ID=1000
+DB_GROUP_ID=1000
+MYSQL_ROOT_PASSWORD=ChangeMe@$@P
+MYSQL_DATABASE=booklore
+REMOTE_USER_PASSWORD=ChangeMe@$@P
+```
+
 
 ### AI Quick Start
 ```ini
@@ -92,6 +124,7 @@ Notes:
 
 10. If Booklore is running outside Docker, point AI_SERVICE_BASE_URL to the host-mapped endpoint, for example http://localhost:18080
 ```
+
 
 ### Install Without AI
 ```ini
