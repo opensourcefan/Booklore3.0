@@ -188,6 +188,29 @@ describe('CbxReaderComponent mobile panel interactions', () => {
     expect(component.showMobilePanelOverview).toBe(false);
   });
 
+  it('keeps manual zoom when moving between panels and pages', () => {
+    (component as any).detectedPanelsByPage.set(1, [
+      {x: 0.12, y: 0.14, width: 0.3, height: 0.3}
+    ]);
+    component.activePanelIndex = 0;
+    component.panelManualZoom = 1.8;
+    component.panelPanX = 28;
+    component.panelPanY = -16;
+
+    component.nextPage();
+
+    expect(component.activePanelIndex).toBe(1);
+    expect(component.panelManualZoom).toBe(1.8);
+    expect(component.panelPanX).toBe(0);
+    expect(component.panelPanY).toBe(0);
+
+    component.goToPage(2);
+
+    expect(component.currentPage).toBe(1);
+    expect(component.activePanelIndex).toBe(-1);
+    expect(component.panelManualZoom).toBe(1.8);
+  });
+
   it('uses two-finger movement to zoom and pan the active panel', () => {
     component.activePanelIndex = -1;
 

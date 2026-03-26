@@ -258,6 +258,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       this.isAiPanelDetectionWorking = false;
       this.aiScanStatusText = '';
       this.detectedPanelsByPage.clear();
+      this.resetPanelViewport();
       this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
 
       this.previousBookInSeries = null;
@@ -1689,9 +1690,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   togglePanelMode(): void {
     this.panelModeEnabled = !this.panelModeEnabled;
     this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
-    this.panelPanX = 0;
-    this.panelPanY = 0;
-    this.panelManualZoom = 1;
+    this.resetPanelPan();
     this.ensurePanelModeCompatibility();
     this.headerService.updateState({isPanelModeEnabled: this.isPanelModeActive});
 
@@ -1722,14 +1721,14 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     if (direction > 0) {
       if (this.activePanelIndex < 0) {
         this.activePanelIndex = 0;
-        this.resetPanelViewport();
+        this.resetPanelPan();
         this.flashPanelNavigationUi();
         return true;
       }
 
       if (this.activePanelIndex < maxPanelIndex) {
         this.activePanelIndex++;
-        this.resetPanelViewport();
+        this.resetPanelPan();
         this.flashPanelNavigationUi();
         return true;
       }
@@ -1742,7 +1741,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
     if (this.activePanelIndex > 0) {
       this.activePanelIndex--;
-      this.resetPanelViewport();
+      this.resetPanelPan();
       this.flashPanelNavigationUi();
       return true;
     }
@@ -2241,9 +2240,13 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   }
 
   private resetPanelViewport(): void {
+    this.resetPanelPan();
+    this.panelManualZoom = 1;
+  }
+
+  private resetPanelPan(): void {
     this.panelPanX = 0;
     this.panelPanY = 0;
-    this.panelManualZoom = 1;
   }
 
   private preparePanelGestureInteraction(): boolean {
@@ -2253,8 +2256,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
     if (this.activePanelIndex < 0) {
       this.activePanelIndex = 0;
-      this.panelPanX = 0;
-      this.panelPanY = 0;
+      this.resetPanelPan();
     }
 
     return this.isPanelBoxingActive;

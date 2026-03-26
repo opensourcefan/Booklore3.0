@@ -1,11 +1,11 @@
 <ng-container *transloco="let t; prefix: 'settingsAi'">
   <div class="ai-settings-container">
     <div class="settings-header">
-      <h2>
+      <h2 class="settings-title">
         <i class="pi pi-sparkles"></i>
         {{ t('title') }}
       </h2>
-      <p>{{ t('description') }}</p>
+      <p class="settings-description">{{ t('description') }}</p>
     </div>
 
     <div class="settings-card">
@@ -21,6 +21,8 @@
         </p-toggleswitch>
       </div>
     </div>
+
+    <div class="section-divider"><hr></div>
 
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
       <div class="setting-row">
@@ -87,6 +89,8 @@
       }
     </div>
 
+    <div class="section-divider"><hr></div>
+
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
       <div class="setting-row scan-row">
         <div>
@@ -138,6 +142,8 @@
         <div class="status-line"><strong>{{ t('prescan.savedDiskUsage') }}</strong>: {{ panelFlowStorageLabel }}</div>
       </div>
     </div>
+
+    <div class="section-divider"><hr></div>
 
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
       <div class="setting-row">
