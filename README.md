@@ -39,6 +39,7 @@ Notes:
 - Leave COMPOSE_PROFILES unset to install Booklore without downloading the AI image.
 - The AI container image is pulled from GHCR only when the ai profile is enabled.
 - The AI container image is ghcr.io/opensourcefan/booklore-panel-ai:latest.
+- The published AI container uses CPU-only inference dependencies to keep the image smaller.
 - The model files are stored in ./data/ai-models.
 - First startup can take a while because the AI model may need to download and initialize.
 - During first startup, the AI status may show STARTING until the model is ready.
