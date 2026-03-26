@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.booklore.config.security.annotation.CheckBookAccess;
 import org.booklore.model.dto.ai.AiBulkScanRequest;
 import org.booklore.model.dto.ai.AiBulkScanResponse;
+import org.booklore.model.dto.ai.AiPanelFlowStatsResponse;
 import org.booklore.service.ai.ComicPanelFlowService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -81,6 +82,11 @@ public class ComicPanelFlowController {
     public ResponseEntity<Map<String, Long>> deleteAllPanelFlowForCurrentUser() {
         long deletedCount = comicPanelFlowService.deleteAllPanelFlowForCurrentUser();
         return ResponseEntity.ok(Map.of("deletedCount", deletedCount));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<AiPanelFlowStatsResponse> getPanelFlowStats() {
+        return ResponseEntity.ok(comicPanelFlowService.getPanelFlowStatsForCurrentUser());
     }
 
     @PostMapping("/scan-missing")

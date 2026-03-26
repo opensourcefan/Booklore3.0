@@ -11,6 +11,11 @@ import java.util.Optional;
 
 public interface ComicPanelFlowRepository extends JpaRepository<ComicPanelFlowEntity, Long> {
 
+    interface AiPanelFlowStatsProjection {
+        long getScannedComicCount();
+        Long getStoredBytes();
+    }
+
     Optional<ComicPanelFlowEntity> findByBookIdAndUserId(Long bookId, Long userId);
 
     long deleteByBookIdAndUserId(Long bookId, Long userId);
@@ -20,4 +25,12 @@ public interface ComicPanelFlowRepository extends JpaRepository<ComicPanelFlowEn
     @Query("SELECT cpf.book.id FROM ComicPanelFlowEntity cpf WHERE cpf.user.id = :userId AND cpf.book.id IN :bookIds")
     List<Long> findScannedBookIdsByUserIdAndBookIdIn(@Param("userId") Long userId,
                                                      @Param("bookIds") Collection<Long> bookIds);
+
+        @Query("""
+            SELECT COUNT(DISTINCT cpf.book.id) as scannedComicCount,
+               COALESCE(SUM(LENGTH(cpf.flowData)), 0) as storedBytes
+            FROM ComicPanelFlowEntity cpf
+            WHERE cpf.user.id = :userId
+            """)
+        AiPanelFlowStatsProjection findStatsByUserId(@Param("userId") Long userId);
 }

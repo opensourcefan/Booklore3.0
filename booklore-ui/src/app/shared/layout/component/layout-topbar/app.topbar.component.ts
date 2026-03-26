@@ -33,6 +33,8 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {SidebarFilterTogglePrefService} from '../../../../features/book/components/book-browser/filters/sidebar-filter-toggle-pref.service';
+import {AiPanelScanProgressPayload} from '../../../model/ai-panel-scan-progress.model';
+import {AiPanelScanProgressService} from '../../../service/ai-panel-scan-progress.service';
 
 @Component({
   selector: 'app-topbar',
@@ -81,6 +83,7 @@ export class AppTopBarComponent implements OnDestroy {
   hasAnyTasks = false;
   hasPendingBookdropFiles = false;
   showMobileBookFilterTrigger = false;
+  aiBatchProgress: AiPanelScanProgressPayload | null = null;
 
   private eventTimer: number | undefined;
   private destroy$ = new Subject<void>();
@@ -105,7 +108,8 @@ export class AppTopBarComponent implements OnDestroy {
     private bookdropFileService: BookdropFileService,
     private dialogLauncher: DialogLauncherService,
     translocoService: TranslocoService,
-    private sidebarFilterTogglePrefService: SidebarFilterTogglePrefService
+    private sidebarFilterTogglePrefService: SidebarFilterTogglePrefService,
+    private aiPanelScanProgressService: AiPanelScanProgressService
   ) {
     this.translocoService = translocoService;
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -137,6 +141,12 @@ export class AppTopBarComponent implements OnDestroy {
         this.hasPendingBookdropFiles = hasPending;
         this.updateCompletedTaskCount();
         this.updateTaskVisibilityWithBookdrop();
+      });
+
+    this.aiPanelScanProgressService.batchProgress$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(progress => {
+        this.aiBatchProgress = progress;
       });
 
     this.userService.userState$
@@ -390,6 +400,45 @@ export class AppTopBarComponent implements OnDestroy {
     const userState = this.userService.userStateSubject.value;
     const filtered = this.toolbarConfig.items.filter(item => this.isToolbarItemVisible(item, userState.user));
     return this.normalizeToolbarSequence(filtered);
+  }
+
+  get showDesktopAiScanStatus(): boolean {
+    return !!this.aiBatchProgress;
+  }
+
+  get aiScanTone(): 'ok' | 'warning' | 'error' {
+    if (!this.aiBatchProgress) {
+      return 'warning';
+    }
+
+    if (this.aiBatchProgress.event === 'FAILED') {
+      return 'error';
+    }
+
+    if (this.aiBatchProgress.event === 'COMPLETED') {
+      return 'ok';
+    }
+
+    return 'warning';
+  }
+
+  get aiScanSummary(): string {
+    if (!this.aiBatchProgress) {
+      return '';
+    }
+
+    if (this.aiBatchProgress.event === 'FAILED') {
+      return this.aiBatchProgress.error || this.aiBatchProgress.message || this.translocoService.translate('layout.topbar.aiScanFailed');
+    }
+
+    if (this.aiBatchProgress.event === 'COMPLETED') {
+      return this.translocoService.translate('layout.topbar.aiScanCompleted');
+    }
+
+    return this.translocoService.translate('layout.topbar.aiScanProgress', {
+      completed: this.aiBatchProgress.completedBooks ?? 0,
+      total: this.aiBatchProgress.totalBooks ?? 0
+    });
   }
 
   private isToolbarItemVisible(item: ToolbarItem, user: any): boolean {

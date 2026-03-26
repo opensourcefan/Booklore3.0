@@ -13,9 +13,12 @@
     [aiPageCount]="detectedPanelPageCount"
     [panelTravelFactor]="panelTravelFactor"
     [panelTravelControlsVisible]="isPanelModeActive"
+    [panelZoomControlsVisible]="isPanelModeActive"
     [isPinned]="isHeaderFooterPinned"
     (togglePin)="toggleHeaderFooterPin()"
     (panelTravelFactorChange)="onPanelTravelFactorChange($event)"
+    (panelZoomOut)="onPanelZoomOutRequested()"
+    (panelZoomIn)="onPanelZoomInRequested()"
     (aiPanelDetection)="onAiPanelDetectionRequested()"
     (aiRescan)="onAiRescanRequested()"
     (aiDeleteScan)="onAiDeleteScanRequested()"
@@ -120,6 +123,33 @@
                 }
                 <div class="overview-location" [style.left.%]="activePanelCenterX" [style.top.%]="activePanelCenterY"></div>
               </div>
+
+              @if (isMobileViewport && showMobilePanelOverview) {
+                <div class="panel-overview-map mobile-panel-overview-map" [attr.aria-label]="'readerCbx.reader.panelOverviewMap' | transloco">
+                  @for (panel of currentPanels; track $index; let panelIdx = $index) {
+                    <div
+                      class="overview-panel"
+                      [class.active]="activePanelIndex === panelIdx"
+                      [style.left.%]="panel.x * 100"
+                      [style.top.%]="panel.y * 100"
+                      [style.width.%]="panel.width * 100"
+                      [style.height.%]="panel.height * 100">
+                    </div>
+                  }
+                  <div class="overview-location" [style.left.%]="activePanelCenterX" [style.top.%]="activePanelCenterY"></div>
+                </div>
+              }
+
+              @if (isMobileViewport && showPanelTouchZones) {
+                <div class="panel-touch-zones" aria-hidden="true">
+                  <div class="panel-touch-zone left">
+                    <span>{{ 'readerCbx.reader.previousPanelHint' | transloco }}</span>
+                  </div>
+                  <div class="panel-touch-zone right">
+                    <span>{{ 'readerCbx.reader.nextPanelHint' | transloco }}</span>
+                  </div>
+                </div>
+              }
             }
           </div>
           @if (isAtLastPage && nextBookInSeries) {

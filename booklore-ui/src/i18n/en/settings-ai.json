@@ -29,11 +29,14 @@
   "prescan": {
     "title": "Manual Panel Detection Scan",
     "description": "Scan selected library paths in the background and only generate AI panel data for comics that do not already have saved results.",
-    "action": "SCAN NOW",
+    "action": "Scan Now",
     "pathsLabel": "Library Paths",
     "pathsPlaceholder": "Select library paths",
     "progressTitle": "Background Scan Progress",
-    "currentBook": "Current Book"
+    "currentBook": "Current Book",
+    "savedDataTitle": "Saved AI Panel Data",
+    "savedComicCount": "Comics scanned",
+    "savedDiskUsage": "Disk usage"
   },
   "cleanup": {
     "title": "Generated Data Cleanup",

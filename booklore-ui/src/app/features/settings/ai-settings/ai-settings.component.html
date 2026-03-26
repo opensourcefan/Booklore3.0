@@ -117,8 +117,11 @@
       </div>
 
       @if (batchProgress) {
-        <div class="status-box progress-box" [ngClass]="batchProgress.event === 'FAILED' ? 'error' : 'ok'">
-          <div class="status-title">{{ t('prescan.progressTitle') }}</div>
+        <div class="status-box progress-box" [ngClass]="batchProgressTone">
+          <div class="progress-title-row">
+            <div class="status-title">{{ t('prescan.progressTitle') }}</div>
+            <span class="progress-state-pill" [ngClass]="batchProgressTone">{{ batchProgressStateLabel }}</span>
+          </div>
           @if (batchProgress.bookTitle) {
             <div class="status-line"><strong>{{ t('prescan.currentBook') }}</strong>: {{ batchProgress.bookTitle }}</div>
           }
@@ -128,6 +131,12 @@
           }
         </div>
       }
+
+      <div class="status-box usage-box">
+        <div class="status-title">{{ t('prescan.savedDataTitle') }}</div>
+        <div class="status-line"><strong>{{ t('prescan.savedComicCount') }}</strong>: {{ panelFlowStats?.scannedComicCount ?? 0 }}</div>
+        <div class="status-line"><strong>{{ t('prescan.savedDiskUsage') }}</strong>: {{ panelFlowStorageLabel }}</div>
+      </div>
     </div>
 
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">

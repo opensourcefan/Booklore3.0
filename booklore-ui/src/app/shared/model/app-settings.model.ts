@@ -263,3 +263,8 @@ export interface AiServiceStatus {
   modelExists: boolean | null;
   modelPath: string | null;
 }
+
+export interface AiPanelFlowStats {
+  scannedComicCount: number;
+  storedBytes: number;
+}

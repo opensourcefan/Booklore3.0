@@ -223,6 +223,25 @@
     display: none;
   }
 
+  .mobile-panel-zoom-controls {
+    display: none;
+    align-items: center;
+    gap: 0.2rem;
+    margin-right: 0.2rem;
+  }
+
+  .zoom-step-btn {
+    min-width: 1.9rem;
+    min-height: 1.9rem;
+    padding: 0.25rem;
+  }
+
+  .zoom-step-symbol {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
   .overflow-menu {
     position: relative;
   }
@@ -295,6 +314,10 @@
 
     .mobile-only {
       display: block;
+    }
+
+    .mobile-panel-zoom-controls {
+      display: inline-flex;
     }
   }
 }

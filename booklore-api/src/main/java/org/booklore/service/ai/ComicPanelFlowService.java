@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.model.dto.ai.AiBulkScanResponse;
+import org.booklore.model.dto.ai.AiPanelFlowStatsResponse;
 import org.booklore.model.dto.ai.AiPanelScanProgressPayload;
 import org.booklore.model.dto.BookLoreUser;
 import org.booklore.model.entity.BookEntity;
@@ -85,6 +86,16 @@ public class ComicPanelFlowService {
         long deleted = comicPanelFlowRepository.deleteByUserId(userId);
         log.info("Deleted {} comic panel flow records for user {}", deleted, userId);
         return deleted;
+    }
+
+    @Transactional(readOnly = true)
+    public AiPanelFlowStatsResponse getPanelFlowStatsForCurrentUser() {
+        Long userId = getCurrentUserId();
+        ComicPanelFlowRepository.AiPanelFlowStatsProjection stats = comicPanelFlowRepository.findStatsByUserId(userId);
+        return AiPanelFlowStatsResponse.builder()
+                .scannedComicCount(stats != null ? stats.getScannedComicCount() : 0)
+                .storedBytes(stats != null && stats.getStoredBytes() != null ? stats.getStoredBytes() : 0)
+                .build();
     }
 
     public String scanAndSavePanelFlow(Long bookId, String bookType) {

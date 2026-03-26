@@ -9,7 +9,7 @@ import {TranslocoDirective} from '@jsverse/transloco';
 import {Subject} from 'rxjs';
 import {filter, take, takeUntil} from 'rxjs/operators';
 
-import {AiServiceStatus, AppSettingKey, AppSettings} from '../../../shared/model/app-settings.model';
+import {AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings} from '../../../shared/model/app-settings.model';
 import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-progress.model';
 import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
@@ -57,6 +57,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   selectedLibraryPathIds: number[] = [];
   libraryPathOptions: Array<{label: string; value: number}> = [];
   batchProgress: AiPanelScanProgressPayload | null = null;
+  panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];
   lastStatusCheckedAt: string | null = null;
 
@@ -67,6 +68,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     ).subscribe(settings => {
       this.aiEnabled = settings.aiPanelDetectionEnabled ?? false;
       this.refreshStatus();
+      this.refreshPanelFlowStats();
     });
 
     this.libraryService.libraryState$
@@ -95,6 +97,9 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       .subscribe(progress => {
         this.batchProgress = progress;
         this.preScanRunning = !['COMPLETED', 'FAILED'].includes(progress.event);
+        if (progress.event === 'COMPLETED') {
+          this.refreshPanelFlowStats();
+        }
       });
   }
 
@@ -154,6 +159,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     this.appSettingsService.cleanupAiPanelData().subscribe({
       next: result => {
         this.cleanupRunning = false;
+        this.refreshPanelFlowStats();
         this.showMessage('success', 'Cleanup completed', `Deleted ${result.deletedCount} saved AI panel-flow records.`);
       },
       error: () => {
@@ -257,6 +263,42 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   get batchProgressText(): string {
     return this.batchProgress ? this.aiPanelScanProgressService.buildStatusText(this.batchProgress) : '';
+  }
+
+  get batchProgressTone(): 'ok' | 'warning' | 'error' {
+    if (!this.batchProgress) {
+      return 'warning';
+    }
+
+    if (this.batchProgress.event === 'FAILED') {
+      return 'error';
+    }
+
+    if (this.batchProgress.event === 'COMPLETED') {
+      return 'ok';
+    }
+
+    return 'warning';
+  }
+
+  get batchProgressStateLabel(): string {
+    if (!this.batchProgress) {
+      return '';
+    }
+
+    if (this.batchProgress.event === 'FAILED') {
+      return 'Failed';
+    }
+
+    if (this.batchProgress.event === 'COMPLETED') {
+      return 'Completed';
+    }
+
+    return 'Scanning';
+  }
+
+  get panelFlowStorageLabel(): string {
+    return this.formatBytes(this.panelFlowStats?.storedBytes ?? 0);
   }
 
   private applyStatus(status: AiServiceStatus, fromPolling: boolean): void {
@@ -367,6 +409,35 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       minute: '2-digit',
       second: '2-digit'
     });
+  }
+
+  private refreshPanelFlowStats(): void {
+    this.appSettingsService.getAiPanelFlowStats().subscribe({
+      next: stats => {
+        this.panelFlowStats = stats;
+      },
+      error: () => {
+        this.panelFlowStats = null;
+      }
+    });
+  }
+
+  private formatBytes(bytes: number): string {
+    if (!Number.isFinite(bytes) || bytes <= 0) {
+      return '0 B';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let unitIndex = 0;
+
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+
+    const digits = value >= 10 || unitIndex === 0 ? 0 : 1;
+    return `${value.toFixed(digits)} ${units[unitIndex]}`;
   }
 
   private showMessage(severity: 'success' | 'error' | 'info', summary: string, detail: string): void {

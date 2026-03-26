@@ -2,6 +2,7 @@ package org.booklore.service.ai;
 
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.model.dto.BookLoreUser;
+import org.booklore.model.dto.ai.AiPanelFlowStatsResponse;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.model.entity.ComicPanelFlowEntity;
@@ -68,8 +69,6 @@ class ComicPanelFlowServiceTest {
                 transactionManager,
                 notificationService
         );
-
-        when(transactionManager.getTransaction(any(TransactionDefinition.class))).thenReturn(transactionStatus);
     }
 
     @Test
@@ -90,6 +89,7 @@ class ComicPanelFlowServiceTest {
                 .build();
 
         when(authenticationService.getAuthenticatedUser()).thenReturn(currentUser);
+        when(transactionManager.getTransaction(any(TransactionDefinition.class))).thenReturn(transactionStatus);
         when(bookRepository.findByIdWithBookFiles(1L)).thenReturn(Optional.of(book));
         when(aiPanelDetectionService.detectPanelFlow(eq(1L), eq("CBX"), any())).thenReturn("new-flow");
         when(comicPanelFlowRepository.findByBookIdAndUserId(1L, 7L)).thenReturn(Optional.of(existingFlow));
@@ -100,5 +100,34 @@ class ComicPanelFlowServiceTest {
         assertThat(result).isEqualTo("new-flow");
         verify(bookRepository).findByIdWithBookFiles(1L);
         verify(bookRepository, never()).findById(anyLong());
+    }
+
+    @Test
+    void getPanelFlowStatsForCurrentUserReturnsStoredBytesAndScannedComics() {
+        BookLoreUser currentUser = BookLoreUser.builder()
+                .id(7L)
+                .username("michael")
+                .build();
+
+        ComicPanelFlowRepository.AiPanelFlowStatsProjection stats = new ComicPanelFlowRepository.AiPanelFlowStatsProjection() {
+            @Override
+            public long getScannedComicCount() {
+                return 12;
+            }
+
+            @Override
+            public Long getStoredBytes() {
+                return 4096L;
+            }
+        };
+
+        when(authenticationService.getAuthenticatedUser()).thenReturn(currentUser);
+        when(comicPanelFlowRepository.findStatsByUserId(7L)).thenReturn(stats);
+
+        AiPanelFlowStatsResponse result = service.getPanelFlowStatsForCurrentUser();
+
+        assertThat(result.getScannedComicCount()).isEqualTo(12);
+        assertThat(result.getStoredBytes()).isEqualTo(4096L);
+        verify(comicPanelFlowRepository).findStatsByUserId(7L);
     }
 }

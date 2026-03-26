@@ -6,6 +6,8 @@
     "slideshow": "Slideshow",
     "panelIndicator": "Panel {{ current }}/{{ total }}",
     "panelOverviewMap": "Detected panel overview",
+    "previousPanelHint": "Prev",
+    "nextPanelHint": "Next",
     "aiScanTitle": "AI is scanning panels",
     "aiScanStatusChecking": "Checking AI service...",
     "aiScanStatusRunning": "Analyzing comic pages...",

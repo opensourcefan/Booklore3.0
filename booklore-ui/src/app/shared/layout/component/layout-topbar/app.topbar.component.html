@@ -39,6 +39,13 @@
 
   <div class="topbar-content">
     <app-book-searcher class="topbar-search"></app-book-searcher>
+    @if (showDesktopAiScanStatus) {
+      <div class="topbar-ai-status" [ngClass]="aiScanTone">
+        <i class="pi pi-sparkles"></i>
+        <span class="topbar-ai-label">{{ t('aiScan') }}</span>
+        <span class="topbar-ai-summary">{{ aiScanSummary }}</span>
+      </div>
+    }
     <ul class="topbar-items topbar-desktop-items">
       @for (item of visibleDesktopToolbarItems; track item.id) {
         @if (item.type === 'separator') {

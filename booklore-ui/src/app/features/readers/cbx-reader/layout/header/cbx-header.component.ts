@@ -28,6 +28,7 @@ export class CbxHeaderComponent implements OnInit, OnDestroy {
   @Input() isPinned = false;
   @Input() panelTravelFactor = 1;
   @Input() panelTravelControlsVisible = false;
+  @Input() panelZoomControlsVisible = false;
 
   @Output() aiPanelDetection = new EventEmitter<void>();
   @Output() aiRescan = new EventEmitter<void>();
@@ -35,6 +36,8 @@ export class CbxHeaderComponent implements OnInit, OnDestroy {
   @Output() aiOpenSettings = new EventEmitter<void>();
   @Output() togglePin = new EventEmitter<void>();
   @Output() panelTravelFactorChange = new EventEmitter<number>();
+  @Output() panelZoomOut = new EventEmitter<void>();
+  @Output() panelZoomIn = new EventEmitter<void>();
 
   isVisible = true;
   overflowOpen = false;
@@ -152,6 +155,14 @@ export class CbxHeaderComponent implements OnInit, OnDestroy {
 
   onTogglePin(): void {
     this.togglePin.emit();
+  }
+
+  onPanelZoomOut(): void {
+    this.panelZoomOut.emit();
+  }
+
+  onPanelZoomIn(): void {
+    this.panelZoomIn.emit();
   }
 
   onClose(): void {

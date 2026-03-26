@@ -4,7 +4,7 @@ import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
 import {AiBulkScanResponse} from '../model/ai-panel-scan-progress.model';
-import {AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {AiPanelFlowStats, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
 
 export interface SettingsTransferEntry {
   name: string;
@@ -96,6 +96,10 @@ export class AppSettingsService {
 
   getAiServiceStatus(): Observable<AiServiceStatus> {
     return this.http.get<AiServiceStatus>(`${API_CONFIG.BASE_URL}/api/v1/ai/status`);
+  }
+
+  getAiPanelFlowStats(): Observable<AiPanelFlowStats> {
+    return this.http.get<AiPanelFlowStats>(`${API_CONFIG.BASE_URL}/api/v1/ai/panel-flow/stats`);
   }
 
   cleanupAiPanelData(): Observable<{ deletedCount: number }> {

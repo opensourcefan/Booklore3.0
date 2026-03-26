@@ -89,7 +89,18 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   scrollMode: CbxScrollMode = CbxScrollMode.PAGINATED;
 
   private touchStartX = 0;
+  private touchStartY = 0;
   private touchEndX = 0;
+  private touchEndY = 0;
+  private touchMoved = false;
+  private touchIsMultiGesture = false;
+  private touchStartTime = 0;
+  private pinchStartDistance = 0;
+  private pinchStartZoom = 1;
+  private pinchStartPanX = 0;
+  private pinchStartPanY = 0;
+  private pinchStartCenterX = 0;
+  private pinchStartCenterY = 0;
 
   currentBook: Book | null = null;
   nextBookInSeries: Book | null = null;
@@ -142,10 +153,16 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   panelTravelFactor = 1;
   panelPanX = 0;
   panelPanY = 0;
+  showPanelTouchZones = false;
+  showMobilePanelOverview = false;
   private isPanelDragging = false;
   private panelDragMoved = false;
   private panelDragStartX = 0;
   private panelDragStartY = 0;
+  private panelTouchHintTimeout: ReturnType<typeof setTimeout> | null = null;
+  private mobilePanelOverviewTimeout: ReturnType<typeof setTimeout> | null = null;
+  private touchChromeTimeout: ReturnType<typeof setTimeout> | null = null;
+  private suppressImageClick = false;
 
   // Header/footer pin state
   isHeaderFooterPinned = false;
@@ -1006,8 +1023,19 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   }
 
   onImageClick(): void {
+    if (this.suppressImageClick) {
+      this.suppressImageClick = false;
+      return;
+    }
+
     if (this.panelDragMoved) {
       this.panelDragMoved = false;
+      return;
+    }
+
+    if (this.isMobileViewport) {
+      this.revealTouchChrome();
+      this.flashMobilePanelOverview();
       return;
     }
 
@@ -1428,12 +1456,90 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent) {
-    this.touchStartX = event.changedTouches[0].screenX;
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.image-container')) {
+      return;
+    }
+
+    this.touchStartTime = Date.now();
+    this.touchMoved = false;
+    this.touchIsMultiGesture = event.touches.length > 1;
+
+    if (event.touches.length > 0) {
+      this.touchStartX = event.touches[0].screenX;
+      this.touchStartY = event.touches[0].screenY;
+      this.touchEndX = this.touchStartX;
+      this.touchEndY = this.touchStartY;
+    }
+
+    if (event.touches.length === 2 && this.isPanelBoxingActive) {
+      const [firstTouch, secondTouch] = Array.from(event.touches);
+      this.pinchStartDistance = this.getTouchDistance(firstTouch, secondTouch);
+      this.pinchStartZoom = this.panelManualZoom;
+      this.pinchStartPanX = this.panelPanX;
+      this.pinchStartPanY = this.panelPanY;
+      this.pinchStartCenterX = (firstTouch.clientX + secondTouch.clientX) / 2;
+      this.pinchStartCenterY = (firstTouch.clientY + secondTouch.clientY) / 2;
+      this.flashMobilePanelOverview();
+    }
+  }
+
+  @HostListener('touchmove', ['$event'])
+  onTouchMove(event: TouchEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.image-container')) {
+      return;
+    }
+
+    if (event.touches.length > 0) {
+      this.touchEndX = event.touches[0].screenX;
+      this.touchEndY = event.touches[0].screenY;
+      if (Math.abs(this.touchEndX - this.touchStartX) > 8 || Math.abs(this.touchEndY - this.touchStartY) > 8) {
+        this.touchMoved = true;
+      }
+    }
+
+    if (event.touches.length === 2 && this.isPanelBoxingActive) {
+      const [firstTouch, secondTouch] = Array.from(event.touches);
+      const distance = this.getTouchDistance(firstTouch, secondTouch);
+      const centerX = (firstTouch.clientX + secondTouch.clientX) / 2;
+      const centerY = (firstTouch.clientY + secondTouch.clientY) / 2;
+
+      if (this.pinchStartDistance > 0) {
+        this.panelManualZoom = this.clamp(this.pinchStartZoom * (distance / this.pinchStartDistance), 0.6, 3.5);
+        this.panelPanX = this.pinchStartPanX + (centerX - this.pinchStartCenterX);
+        this.panelPanY = this.pinchStartPanY + (centerY - this.pinchStartCenterY);
+        this.touchIsMultiGesture = true;
+        this.touchMoved = true;
+        this.flashMobilePanelOverview();
+        event.preventDefault();
+      }
+    }
   }
 
   @HostListener('touchend', ['$event'])
   onTouchEnd(event: TouchEvent) {
-    this.touchEndX = event.changedTouches[0].screenX;
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.image-container')) {
+      return;
+    }
+
+    if (event.changedTouches.length > 0) {
+      this.touchEndX = event.changedTouches[0].screenX;
+      this.touchEndY = event.changedTouches[0].screenY;
+    }
+
+    if (this.touchIsMultiGesture || this.isPanelDragging) {
+      this.touchIsMultiGesture = false;
+      this.isPanelDragging = false;
+      return;
+    }
+
+    if (this.isPanelModeActive && this.isMobileViewport && this.handleMobilePanelTap()) {
+      this.suppressImageClick = true;
+      return;
+    }
+
     this.handleSwipeGesture();
   }
 
@@ -1493,6 +1599,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   private handleSwipeGesture() {
     if (this.scrollMode === CbxScrollMode.INFINITE || this.scrollMode === CbxScrollMode.LONG_STRIP) return;
 
+    if (this.isPanelModeActive) {
+      return;
+    }
+
     const delta = this.touchEndX - this.touchStartX;
     if (Math.abs(delta) >= 50) {
       // In RTL mode, swipe directions are reversed
@@ -1526,6 +1636,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
   get isPanelModeActive(): boolean {
     return this.panelModeEnabled && this.isPanelModeAvailable;
+  }
+
+  get isMobileViewport(): boolean {
+    return window.innerWidth < 768;
   }
 
   get isPanelBoxingActive(): boolean {
@@ -1581,6 +1695,12 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     this.panelManualZoom = 1;
     this.ensurePanelModeCompatibility();
     this.headerService.updateState({isPanelModeEnabled: this.isPanelModeActive});
+
+    if (this.panelModeEnabled && this.isMobileViewport) {
+      this.flashPanelTouchZones();
+      this.flashMobilePanelOverview();
+      this.revealTouchChrome();
+    }
   }
 
   private ensurePanelModeCompatibility(): void {
@@ -1605,15 +1725,15 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     if (direction > 0) {
       if (this.activePanelIndex < 0) {
         this.activePanelIndex = 0;
-        this.panelPanX = 0;
-        this.panelPanY = 0;
+        this.resetPanelViewport();
+        this.flashPanelNavigationUi();
         return true;
       }
 
       if (this.activePanelIndex < maxPanelIndex) {
         this.activePanelIndex++;
-        this.panelPanX = 0;
-        this.panelPanY = 0;
+        this.resetPanelViewport();
+        this.flashPanelNavigationUi();
         return true;
       }
       return false;
@@ -1625,8 +1745,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
     if (this.activePanelIndex > 0) {
       this.activePanelIndex--;
-      this.panelPanX = 0;
-      this.panelPanY = 0;
+      this.resetPanelViewport();
+      this.flashPanelNavigationUi();
       return true;
     }
     return false;
@@ -1690,6 +1810,26 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
   onPanelTravelFactorChange(value: number): void {
     this.panelTravelFactor = this.clamp(value, 0.4, 2.5);
+  }
+
+  onPanelZoomOutRequested(): void {
+    if (!this.isPanelModeActive) {
+      return;
+    }
+
+    this.panelManualZoom = this.clamp(this.panelManualZoom - 0.2, 0.6, 3.5);
+    this.flashMobilePanelOverview();
+    this.revealTouchChrome();
+  }
+
+  onPanelZoomInRequested(): void {
+    if (!this.isPanelModeActive) {
+      return;
+    }
+
+    this.panelManualZoom = this.clamp(this.panelManualZoom + 0.2, 0.6, 3.5);
+    this.flashMobilePanelOverview();
+    this.revealTouchChrome();
   }
 
   private enforcePortraitSinglePageView() {
@@ -2011,10 +2151,117 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.clearReaderTimeout(this.panelTouchHintTimeout);
+    this.clearReaderTimeout(this.mobilePanelOverviewTimeout);
+    this.clearReaderTimeout(this.touchChromeTimeout);
     this.stopSlideshow();
     this.endReadingSession();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private handleMobilePanelTap(): boolean {
+    const deltaX = this.touchEndX - this.touchStartX;
+    const deltaY = this.touchEndY - this.touchStartY;
+    const isTap = !this.touchMoved && Math.abs(deltaX) < 18 && Math.abs(deltaY) < 18 && (Date.now() - this.touchStartTime) < 350;
+
+    if (!isTap) {
+      return false;
+    }
+
+    const viewportWidth = window.innerWidth;
+    const leftEdgeLimit = viewportWidth * 0.24;
+    const rightEdgeLimit = viewportWidth * 0.76;
+
+    if (this.touchEndX <= leftEdgeLimit) {
+      this.flashPanelTouchZones();
+      if (!(this.readingDirection === CbxReadingDirection.RTL ? this.tryNavigatePanel(1) : this.tryNavigatePanel(-1))) {
+        this.readingDirection === CbxReadingDirection.RTL ? this.nextPage() : this.previousPage();
+      }
+      this.revealTouchChrome();
+      return true;
+    }
+
+    if (this.touchEndX >= rightEdgeLimit) {
+      this.flashPanelTouchZones();
+      if (!(this.readingDirection === CbxReadingDirection.RTL ? this.tryNavigatePanel(-1) : this.tryNavigatePanel(1))) {
+        this.readingDirection === CbxReadingDirection.RTL ? this.previousPage() : this.nextPage();
+      }
+      this.revealTouchChrome();
+      return true;
+    }
+
+    this.revealTouchChrome();
+    this.flashMobilePanelOverview();
+    return true;
+  }
+
+  private flashPanelNavigationUi(): void {
+    if (!this.isMobileViewport) {
+      return;
+    }
+
+    this.flashPanelTouchZones();
+    this.flashMobilePanelOverview();
+  }
+
+  private flashPanelTouchZones(): void {
+    if (!this.isMobileViewport || !this.isPanelModeActive) {
+      return;
+    }
+
+    this.showPanelTouchZones = true;
+    this.clearReaderTimeout(this.panelTouchHintTimeout);
+    this.panelTouchHintTimeout = setTimeout(() => {
+      this.showPanelTouchZones = false;
+      this.panelTouchHintTimeout = null;
+    }, 1200);
+  }
+
+  private flashMobilePanelOverview(): void {
+    if (!this.isMobileViewport || !this.isPanelModeActive || this.panelCount === 0) {
+      return;
+    }
+
+    this.showMobilePanelOverview = true;
+    this.clearReaderTimeout(this.mobilePanelOverviewTimeout);
+    this.mobilePanelOverviewTimeout = setTimeout(() => {
+      this.showMobilePanelOverview = false;
+      this.mobilePanelOverviewTimeout = null;
+    }, 1000);
+  }
+
+  private revealTouchChrome(): void {
+    if (!this.isMobileViewport || this.isHeaderFooterPinned) {
+      return;
+    }
+
+    this.headerService.setForceVisible(true);
+    this.footerService.setForceVisible(true);
+    this.clearReaderTimeout(this.touchChromeTimeout);
+    this.touchChromeTimeout = setTimeout(() => {
+      if (!this.isHeaderFooterPinned) {
+        this.headerService.setForceVisible(false);
+        this.footerService.setForceVisible(false);
+      }
+      this.touchChromeTimeout = null;
+    }, 2200);
+  }
+
+  private resetPanelViewport(): void {
+    this.panelPanX = 0;
+    this.panelPanY = 0;
+    this.panelManualZoom = 1;
+  }
+
+  private getTouchDistance(firstTouch: Touch, secondTouch: Touch): number {
+    return Math.hypot(secondTouch.clientX - firstTouch.clientX, secondTouch.clientY - firstTouch.clientY);
+  }
+
+  private clearReaderTimeout(timeoutHandle: ReturnType<typeof setTimeout> | null): void {
+    if (timeoutHandle) {
+      clearTimeout(timeoutHandle);
+    }
   }
 
   private endReadingSession(): void {

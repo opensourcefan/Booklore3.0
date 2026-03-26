@@ -15,7 +15,11 @@
     "createLibrary": "Create Library",
     "stats": "Stats",
     "libraryStats": "Library Stats",
-    "readingStats": "Reading Stats"
+    "readingStats": "Reading Stats",
+    "aiScan": "AI Scan",
+    "aiScanProgress": "{{ completed }}/{{ total }} comics",
+    "aiScanCompleted": "Completed",
+    "aiScanFailed": "Failed"
   },
   "menu": {
     "home": "Home",
