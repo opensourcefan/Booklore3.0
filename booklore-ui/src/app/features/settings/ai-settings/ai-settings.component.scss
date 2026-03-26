@@ -66,19 +66,21 @@
 }
 
 .state-value {
-  font-weight: 700;
+  font-size: 1.08rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 
 .state-value.ok {
-  color: #15803d;
+  color: #22c55e;
 }
 
 .state-value.warning {
-  color: #b45309;
+  color: #f59e0b;
 }
 
 .state-value.error {
-  color: #b91c1c;
+  color: #ef4444;
 }
 
 .status-title {

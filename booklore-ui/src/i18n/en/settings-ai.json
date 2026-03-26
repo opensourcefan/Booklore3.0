@@ -27,9 +27,9 @@
     "startupWaiting": "Startup activity will appear here after the next status check."
   },
   "prescan": {
-    "title": "Scan Missing Comics",
+    "title": "Manual Panel Detection Scan",
     "description": "Scan selected library paths in the background and only generate AI panel data for comics that do not already have saved results.",
-    "action": "Scan Missing Comics",
+    "action": "SCAN NOW",
     "pathsLabel": "Library Paths",
     "pathsPlaceholder": "Select library paths",
     "progressTitle": "Background Scan Progress",
