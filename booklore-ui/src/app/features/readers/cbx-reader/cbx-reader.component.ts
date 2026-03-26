@@ -163,6 +163,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   private mobilePanelOverviewTimeout: ReturnType<typeof setTimeout> | null = null;
   private touchChromeTimeout: ReturnType<typeof setTimeout> | null = null;
   private suppressImageClick = false;
+  private isReaderTouchActive = false;
 
   // Header/footer pin state
   isHeaderFooterPinned = false;
@@ -1035,7 +1036,6 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
     if (this.isMobileViewport) {
       this.revealTouchChrome();
-      this.flashMobilePanelOverview();
       return;
     }
 
@@ -1461,6 +1461,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isReaderTouchActive = true;
     this.touchStartTime = Date.now();
     this.touchMoved = false;
     this.touchIsMultiGesture = event.touches.length > 1;
@@ -1472,7 +1473,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       this.touchEndY = this.touchStartY;
     }
 
-    if (event.touches.length === 2 && this.isPanelBoxingActive) {
+    if (event.touches.length === 2 && this.preparePanelGestureInteraction()) {
       const [firstTouch, secondTouch] = Array.from(event.touches);
       this.pinchStartDistance = this.getTouchDistance(firstTouch, secondTouch);
       this.pinchStartZoom = this.panelManualZoom;
@@ -1480,14 +1481,12 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       this.pinchStartPanY = this.panelPanY;
       this.pinchStartCenterX = (firstTouch.clientX + secondTouch.clientX) / 2;
       this.pinchStartCenterY = (firstTouch.clientY + secondTouch.clientY) / 2;
-      this.flashMobilePanelOverview();
     }
   }
 
-  @HostListener('touchmove', ['$event'])
+  @HostListener('document:touchmove', ['$event'])
   onTouchMove(event: TouchEvent): void {
-    const target = event.target as HTMLElement | null;
-    if (!target?.closest('.image-container')) {
+    if (!this.isReaderTouchActive) {
       return;
     }
 
@@ -1499,7 +1498,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (event.touches.length === 2 && this.isPanelBoxingActive) {
+    if (event.touches.length === 2 && this.preparePanelGestureInteraction()) {
       const [firstTouch, secondTouch] = Array.from(event.touches);
       const distance = this.getTouchDistance(firstTouch, secondTouch);
       const centerX = (firstTouch.clientX + secondTouch.clientX) / 2;
@@ -1511,18 +1510,18 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
         this.panelPanY = this.pinchStartPanY + (centerY - this.pinchStartCenterY);
         this.touchIsMultiGesture = true;
         this.touchMoved = true;
-        this.flashMobilePanelOverview();
         event.preventDefault();
       }
     }
   }
 
-  @HostListener('touchend', ['$event'])
+  @HostListener('document:touchend', ['$event'])
   onTouchEnd(event: TouchEvent) {
-    const target = event.target as HTMLElement | null;
-    if (!target?.closest('.image-container')) {
+    if (!this.isReaderTouchActive) {
       return;
     }
+
+    this.isReaderTouchActive = false;
 
     if (event.changedTouches.length > 0) {
       this.touchEndX = event.changedTouches[0].screenX;
@@ -1697,8 +1696,6 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     this.headerService.updateState({isPanelModeEnabled: this.isPanelModeActive});
 
     if (this.panelModeEnabled && this.isMobileViewport) {
-      this.flashPanelTouchZones();
-      this.flashMobilePanelOverview();
       this.revealTouchChrome();
     }
   }
@@ -1813,22 +1810,20 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   }
 
   onPanelZoomOutRequested(): void {
-    if (!this.isPanelModeActive) {
+    if (!this.preparePanelGestureInteraction()) {
       return;
     }
 
     this.panelManualZoom = this.clamp(this.panelManualZoom - 0.2, 0.6, 3.5);
-    this.flashMobilePanelOverview();
     this.revealTouchChrome();
   }
 
   onPanelZoomInRequested(): void {
-    if (!this.isPanelModeActive) {
+    if (!this.preparePanelGestureInteraction()) {
       return;
     }
 
     this.panelManualZoom = this.clamp(this.panelManualZoom + 0.2, 0.6, 3.5);
-    this.flashMobilePanelOverview();
     this.revealTouchChrome();
   }
 
@@ -2174,7 +2169,6 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     const rightEdgeLimit = viewportWidth * 0.76;
 
     if (this.touchEndX <= leftEdgeLimit) {
-      this.flashPanelTouchZones();
       if (!(this.readingDirection === CbxReadingDirection.RTL ? this.tryNavigatePanel(1) : this.tryNavigatePanel(-1))) {
         this.readingDirection === CbxReadingDirection.RTL ? this.nextPage() : this.previousPage();
       }
@@ -2183,7 +2177,6 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     }
 
     if (this.touchEndX >= rightEdgeLimit) {
-      this.flashPanelTouchZones();
       if (!(this.readingDirection === CbxReadingDirection.RTL ? this.tryNavigatePanel(-1) : this.tryNavigatePanel(1))) {
         this.readingDirection === CbxReadingDirection.RTL ? this.previousPage() : this.nextPage();
       }
@@ -2192,7 +2185,6 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     }
 
     this.revealTouchChrome();
-    this.flashMobilePanelOverview();
     return true;
   }
 
@@ -2228,7 +2220,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     this.mobilePanelOverviewTimeout = setTimeout(() => {
       this.showMobilePanelOverview = false;
       this.mobilePanelOverviewTimeout = null;
-    }, 1000);
+    }, 450);
   }
 
   private revealTouchChrome(): void {
@@ -2252,6 +2244,20 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     this.panelPanX = 0;
     this.panelPanY = 0;
     this.panelManualZoom = 1;
+  }
+
+  private preparePanelGestureInteraction(): boolean {
+    if (!this.isPanelModeActive || this.panelCount === 0) {
+      return false;
+    }
+
+    if (this.activePanelIndex < 0) {
+      this.activePanelIndex = 0;
+      this.panelPanX = 0;
+      this.panelPanY = 0;
+    }
+
+    return this.isPanelBoxingActive;
   }
 
   private getTouchDistance(firstTouch: Touch, secondTouch: Touch): number {

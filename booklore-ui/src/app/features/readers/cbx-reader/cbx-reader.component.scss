@@ -8,7 +8,7 @@
   background: #1a1a1a;
   color: #ffffff;
   position: relative;
-  touch-action: none;
+  touch-action: manipulation;
   overscroll-behavior: none;
   -webkit-user-select: none;
   user-select: none;
@@ -728,19 +728,26 @@
     .image-container {
       top: 0;
       bottom: 0;
+      padding: 0;
+      align-items: stretch;
+      justify-content: flex-start;
 
       &.fit-height {
         .pages-wrapper,
         .previous-page-layer,
         .current-page-layer {
+          height: auto;
+          min-height: 100%;
           align-items: flex-start;
+          justify-content: center;
         }
 
         .page-image {
+          display: block;
           width: auto;
           height: auto;
           max-width: 100%;
-          max-height: calc(100dvh - 1rem);
+          max-height: 100dvh;
         }
       }
 
