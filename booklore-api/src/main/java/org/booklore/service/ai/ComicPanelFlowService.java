@@ -183,7 +183,7 @@ public class ComicPanelFlowService {
     }
 
     private BookEntity findBook(Long bookId) {
-        return bookRepository.findById(bookId)
+        return bookRepository.findByIdWithBookFiles(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book not found: " + bookId));
     }
 
