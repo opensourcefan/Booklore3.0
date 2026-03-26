@@ -334,9 +334,9 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     }
 
     if (status.modelExists === false) {
-      textParts.push('model file not present yet');
+      textParts.push('local model file not present yet');
     } else if (status.modelExists === true) {
-      textParts.push('model file detected');
+      textParts.push('local model file detected');
     }
 
     if (status.error) {

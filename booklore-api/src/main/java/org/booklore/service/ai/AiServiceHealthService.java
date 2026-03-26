@@ -95,14 +95,26 @@ public class AiServiceHealthService {
             case "warming" -> AiServiceStatus.builder()
                     .enabled(true)
                     .serviceReachable(false)
-                .status("STARTING")
+                    .status("STARTING")
                     .message(modelExists
-                    ? "AI service is reachable and still loading the model."
-                    : "AI service is reachable and downloading or preparing the model.")
+                        ? "AI service is reachable and still loading the local model."
+                        : "AI service is reachable and preparing the local model file.")
                     .error(null)
                     .baseUrl(baseUrl)
-                .modelExists(modelExists)
-                .modelPath(modelPath)
+                    .modelExists(modelExists)
+                    .modelPath(modelPath)
+                    .build();
+                case "missing_model" -> AiServiceStatus.builder()
+                    .enabled(true)
+                    .serviceReachable(false)
+                    .status("ERROR")
+                    .message("AI service is reachable but no local model file is available yet.")
+                    .error(modelPath == null
+                        ? "Missing local model file"
+                        : "Missing local model file at " + modelPath)
+                    .baseUrl(baseUrl)
+                    .modelExists(modelExists)
+                    .modelPath(modelPath)
                     .build();
             default -> AiServiceStatus.builder()
                     .enabled(true)

@@ -41,8 +41,8 @@ Notes:
 - The AI container image is ghcr.io/opensourcefan/booklore-panel-ai:latest.
 - The published AI container uses CPU-only inference dependencies to keep the image smaller.
 - The model files are stored in ./data/ai-models.
-- First startup can take a while because the AI model may need to download and initialize.
-- During first startup, the AI status may show STARTING until the model is ready.
+- Place the local model file at ./data/ai-models/best.pt to keep it persistent across container restarts, recreates, and image updates.
+- During first startup, the AI status may show STARTING while the local model is being loaded.
 ```
 
 ### AI Quick Start
@@ -57,13 +57,15 @@ Notes:
 
 5. Wait for Status to change to READY
 
-6. If Status shows STARTING, give it time on first run while the model downloads/prepares
+6. If you already have the model, place it at ./data/ai-models/best.pt so Booklore can keep using the same local file permanently
 
-7. Open a comic in the reader and use the AI button to scan the current book
+7. If Status shows STARTING, give it time while the local model is being loaded
 
-8. Optional: use Scan Missing Comics in AI settings to process comics that do not already have saved AI panel data
+8. Open a comic in the reader and use the AI button to scan the current book
 
-9. If Booklore is running outside Docker, point AI_SERVICE_BASE_URL to the host-mapped endpoint, for example http://localhost:18080
+9. Optional: use Scan Missing Comics in AI settings to process comics that do not already have saved AI panel data
+
+10. If Booklore is running outside Docker, point AI_SERVICE_BASE_URL to the host-mapped endpoint, for example http://localhost:18080
 ```
 
 ### Install Without AI

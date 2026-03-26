@@ -52,6 +52,7 @@
 
 .status-box.ok {
   border-color: #4caf50;
+  background: color-mix(in srgb, var(--surface-card) 86%, #22c55e 14%);
 }
 
 .status-box.warning {
@@ -61,6 +62,23 @@
 
 .status-box.error {
   border-color: #ef4444;
+  background: color-mix(in srgb, var(--surface-card) 86%, #ef4444 14%);
+}
+
+.state-value {
+  font-weight: 700;
+}
+
+.state-value.ok {
+  color: #15803d;
+}
+
+.state-value.warning {
+  color: #b45309;
+}
+
+.state-value.error {
+  color: #b91c1c;
 }
 
 .status-title {
@@ -91,14 +109,17 @@
 
 .startup-panel.ok {
   border-color: #4caf50;
+  background: color-mix(in srgb, var(--surface-card) 88%, #22c55e 12%);
 }
 
 .startup-panel.warning {
   border-color: #f59e0b;
+  background: color-mix(in srgb, var(--surface-card) 88%, #f59e0b 12%);
 }
 
 .startup-panel.error {
   border-color: #ef4444;
+  background: color-mix(in srgb, var(--surface-card) 88%, #ef4444 12%);
 }
 
 .startup-panel-copy {

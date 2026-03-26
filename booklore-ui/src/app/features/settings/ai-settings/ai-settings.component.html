@@ -40,7 +40,7 @@
 
       <div class="status-box" [ngClass]="statusTone">
         <div class="status-title">{{ t('status.current') }}</div>
-        <div class="status-line"><strong>{{ t('status.state') }}</strong>: {{ status?.status || t('status.unknown') }}</div>
+        <div class="status-line"><strong>{{ t('status.state') }}</strong>: <span class="state-value" [ngClass]="statusTone">{{ status?.status || t('status.unknown') }}</span></div>
         <div class="status-line"><strong>{{ t('status.messageLabel') }}</strong>: {{ status?.message || t('status.noData') }}</div>
         @if (statusEndpointLabel) {
           <div class="status-line"><strong>{{ t('status.endpoint') }}</strong>: {{ statusEndpointLabel }}</div>

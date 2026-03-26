@@ -89,9 +89,26 @@ class AiServiceHealthServiceTest {
         assertThat(status.isEnabled()).isTrue();
         assertThat(status.isServiceReachable()).isFalse();
         assertThat(status.getStatus()).isEqualTo("STARTING");
-        assertThat(status.getMessage()).contains("downloading or preparing the model");
+        assertThat(status.getMessage()).contains("preparing the local model file");
         assertThat(status.getModelExists()).isFalse();
         assertThat(status.getModelPath()).isEqualTo("/models/best.pt");
+    }
+
+    @Test
+    void returnsErrorWhenHealthPayloadReportsMissingLocalModel() throws Exception {
+        startHealthServer(200, "{\"status\":\"missing_model\",\"modelExists\":false,\"modelPath\":\"/models/best.pt\"}");
+        when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder()
+                .aiPanelDetectionEnabled(true)
+                .build());
+
+        AiServiceStatus status = service.getStatus();
+
+        assertThat(status.isEnabled()).isTrue();
+        assertThat(status.isServiceReachable()).isFalse();
+        assertThat(status.getStatus()).isEqualTo("ERROR");
+        assertThat(status.getMessage()).contains("no local model file");
+        assertThat(status.getError()).contains("/models/best.pt");
+        assertThat(status.getModelExists()).isFalse();
     }
 
     @Test

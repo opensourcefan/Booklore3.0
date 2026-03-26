@@ -1,6 +1,7 @@
 import base64
 import io
 import os
+import shutil
 from datetime import datetime, timezone
 from typing import Any
 
@@ -12,10 +13,28 @@ from ultralytics import YOLO
 app = FastAPI()
 
 MODEL_PATH = os.getenv("MODEL_PATH", "/models/best.pt")
+MODEL_SEED_PATH = os.getenv("MODEL_SEED_PATH", "/app/model-seed/best.pt")
 CONF_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.20"))
 IOU_THRESHOLD = float(os.getenv("IOU_THRESHOLD", "0.50"))
 
 _model: YOLO | None = None
+
+
+def _seed_model_if_available() -> bool:
+    if os.path.exists(MODEL_PATH):
+        return True
+
+    if not os.path.exists(MODEL_SEED_PATH):
+        return False
+
+    model_dir = os.path.dirname(MODEL_PATH)
+    if model_dir:
+        os.makedirs(model_dir, exist_ok=True)
+
+    if os.path.abspath(MODEL_PATH) != os.path.abspath(MODEL_SEED_PATH):
+        shutil.copy2(MODEL_SEED_PATH, MODEL_PATH)
+
+    return os.path.exists(MODEL_PATH)
 
 
 def _load_model() -> YOLO:
@@ -23,7 +42,7 @@ def _load_model() -> YOLO:
     if _model is not None:
         return _model
 
-    if not os.path.exists(MODEL_PATH):
+    if not _seed_model_if_available():
         raise RuntimeError(f"Local model file not found at {MODEL_PATH}")
 
     _model = YOLO(MODEL_PATH)
@@ -53,12 +72,22 @@ def startup() -> None:
 @app.get("/health")
 def health() -> dict[str, Any]:
     model_exists = os.path.exists(MODEL_PATH)
+    seed_exists = os.path.exists(MODEL_SEED_PATH)
     ready = _model is not None and model_exists
+    if ready:
+        status = "ok"
+    elif model_exists or seed_exists:
+        status = "warming"
+    else:
+        status = "missing_model"
+
     return {
-        "status": "ok" if ready else "warming",
+        "status": status,
         "mock": False,
         "modelPath": MODEL_PATH,
         "modelExists": model_exists,
+        "seedPath": MODEL_SEED_PATH,
+        "seedExists": seed_exists,
     }
 
 
