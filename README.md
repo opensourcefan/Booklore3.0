@@ -11,10 +11,8 @@ I will not delete this if I get upset, I am always upset
 
 ### Current State of Affairs
 ```ini
-Latest build v3.1.5
-Most of the DESKTOP UI has been modified to my liking. 
-Currently working on improving the MOBILE UI 
-Title row tweaks and controls for book cards.
+Latest build v3.2.0-AI
+>>> Now has Comic Book Panel Detection AI service available. See below for applicable notes. <<<
 ```
 
 
