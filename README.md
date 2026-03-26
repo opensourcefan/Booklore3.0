@@ -22,7 +22,28 @@ Latest build v3.2.0-AI
 
 2. create .env with your settings
 
+3. Optional: add COMPOSE_PROFILES=ai to .env if you want the AI service enabled
+
+4. docker compose pull
+
+5. docker compose up -d
+
+6. If AI is enabled, refresh the AI service explicitly:
+	docker compose pull booklore-ai-panel
+	docker compose up -d booklore-ai-panel
+```
+
+### Update Existing Install
+```ini
+1. curl -O https://raw.githubusercontent.com/opensourcefan/Booklore3.0/develop/docker-compose.yml
+
+2. docker compose pull
+
 3. docker compose up -d
+
+4. If AI is enabled, refresh the AI service explicitly:
+	docker compose pull booklore-ai-panel
+	docker compose up -d booklore-ai-panel
 ```
 
 ### AI Install Notes
@@ -49,7 +70,11 @@ Notes:
 ```ini
 1. Add COMPOSE_PROFILES=ai to .env
 
-2. Start Booklore normally with docker compose up -d
+2. Start Booklore with:
+	docker compose pull
+	docker compose up -d
+	docker compose pull booklore-ai-panel
+	docker compose up -d booklore-ai-panel
 
 3. Open Settings > AI Panel Detection
 
