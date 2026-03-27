@@ -26,6 +26,8 @@ export interface EntityViewPreference {
   coverSize: number;
   seriesCollapsed: boolean;
   overlayBookType: boolean;
+  overlayAiPanelData: boolean;
+  overlayIssueNumber: boolean;
 }
 
 export interface EntityViewPreferenceOverride {

@@ -15,6 +15,7 @@ import org.booklore.model.entity.UserBookProgressEntity;
 import org.booklore.model.enums.BookFileType;
 import org.booklore.repository.*;
 import org.booklore.repository.BookFileRepository;
+import org.booklore.repository.ComicPanelFlowRepository;
 import org.booklore.service.metadata.sidecar.SidecarMetadataWriter;
 import org.booklore.service.monitoring.MonitoringRegistrationService;
 import org.booklore.service.progress.ReadingProgressService;
@@ -62,6 +63,7 @@ public class BookService {
     private final AuthenticationService authenticationService;
     private final BookQueryService bookQueryService;
     private final ReadingProgressService readingProgressService;
+    private final ComicPanelFlowRepository comicPanelFlowRepository;
     private final BookDownloadService bookDownloadService;
     private final MonitoringRegistrationService monitoringRegistrationService;
     private final BookUpdateService bookUpdateService;
@@ -98,6 +100,8 @@ public class BookService {
             Set<Shelf> filtered = filterShelvesByUserId(book.getShelves(), user.getId());
             book.setShelves(!includeDescription && filtered != null && filtered.isEmpty() ? null : filtered);
         });
+
+        applyAiPanelFlags(books, user.getId());
 
         return books;
     }
@@ -137,7 +141,10 @@ public class BookService {
                     fileProgressMap.get(bookEntity.getId())
             );
             return book;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.collectingAndThen(Collectors.toList(), books -> {
+            applyAiPanelFlags(books, user.getId());
+            return books;
+        }));
     }
 
     public Book getBook(long bookId, boolean withDescription) {
@@ -160,7 +167,30 @@ public class BookService {
             book.getMetadata().setDescription(null);
         }
 
+        applyAiPanelFlags(List.of(book), user.getId());
+
         return book;
+    }
+
+    private void applyAiPanelFlags(List<Book> books, Long userId) {
+        if (books == null || books.isEmpty()) {
+            return;
+        }
+
+        Set<Long> bookIds = books.stream()
+                .map(Book::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (bookIds.isEmpty()) {
+            return;
+        }
+
+        Set<Long> scannedBookIds = new HashSet<>(
+                comicPanelFlowRepository.findScannedBookIdsByUserIdAndBookIdIn(userId, bookIds)
+        );
+
+        books.forEach(book -> book.setHasAiPanelData(book.getId() != null && scannedBookIds.contains(book.getId())));
     }
 
 

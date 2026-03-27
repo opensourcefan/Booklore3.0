@@ -21,9 +21,14 @@
           {{ displayFormat }}
         </div>
       }
-      @if (!book.seriesCount && book.metadata?.seriesNumber != null) {
+      @if (showAiPanelDataOverlay && book.hasAiPanelData) {
+        <div class="ai-panel-overlay">
+          AI
+        </div>
+      }
+      @if (showIssueNumberOverlay && getDisplayIssueNumber(); as displayIssueNumber) {
         <div class="series-number-overlay">
-          #{{ book.metadata?.seriesNumber }}
+          {{ displayIssueNumber }}
         </div>
       }
       @if (book.seriesCount && book.seriesCount >= 1) {

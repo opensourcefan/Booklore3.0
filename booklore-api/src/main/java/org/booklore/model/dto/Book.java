@@ -15,6 +15,7 @@ import java.util.Set;
 public class Book {
     private Long id;
     private String fileType;
+    private Boolean hasAiPanelData;
     private Long libraryId;
     private String libraryName;
     private BookFile primaryFile;

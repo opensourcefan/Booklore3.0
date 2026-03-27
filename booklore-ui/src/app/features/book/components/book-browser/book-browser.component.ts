@@ -466,6 +466,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.entityRouteInfo$ = of({entityId: NaN, entityType});
       this.entity$ = of(null);
       this.seriesCollapseFilter.setContext(null, null);
+      this.bookCardOverlayPreferenceService.setContext(null, null);
       this.pageTitle.setPageTitle(currentPath === 'all-books' ? this.t.translate('book.browser.labels.allBooks') : this.t.translate('book.browser.labels.unshelvedBooks'));
     } else {
       const routeEntityInfo$ = this.entityService.getEntityInfoFromRoute(this.activatedRoute);
@@ -826,7 +827,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }));
 
     const prefs: EntityViewPreferences = structuredClone(
-      user.userSettings.entityViewPreferences ?? {global: {sortKey: 'title', sortDir: 'ASC', view: 'GRID', coverSize: 1.0, seriesCollapsed: false, overlayBookType: true}, overrides: []}
+      user.userSettings.entityViewPreferences ?? {global: {sortKey: 'title', sortDir: 'ASC', view: 'GRID', coverSize: 1.0, seriesCollapsed: false, overlayBookType: true, overlayAiPanelData: true, overlayIssueNumber: true}, overrides: []}
     );
 
     if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED) {
@@ -870,7 +871,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
             view: 'GRID',
             coverSize: 1.0,
             seriesCollapsed: false,
-            overlayBookType: true
+            overlayBookType: true,
+            overlayAiPanelData: true,
+            overlayIssueNumber: true
           }
         });
       }
@@ -1255,6 +1258,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.seriesCollapseFilter.setContext(type, id);
+    this.bookCardOverlayPreferenceService.setContext(type, id);
   }
 
   private applyBookFilters(bookState: BookState): Observable<BookState> {

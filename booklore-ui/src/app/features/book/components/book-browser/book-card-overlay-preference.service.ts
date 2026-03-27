@@ -10,9 +10,14 @@ export class BookCardOverlayPreferenceService {
   private readonly userService = inject(UserService);
 
   private readonly _showBookTypePill = new BehaviorSubject<boolean>(true);
+  private readonly _showAiPanelData = new BehaviorSubject<boolean>(true);
+  private readonly _showIssueNumber = new BehaviorSubject<boolean>(true);
   readonly showBookTypePill$ = this._showBookTypePill.asObservable();
+  readonly showAiPanelData$ = this._showAiPanelData.asObservable();
+  readonly showIssueNumber$ = this._showIssueNumber.asObservable();
 
   private destroy$ = new Subject<void>();
+  private savePreferences$ = new Subject<void>();
   private hasUserToggled = false;
   private currentContext: { type: 'LIBRARY' | 'SHELF' | 'MAGIC_SHELF', id: number } | null = null;
 
@@ -26,32 +31,66 @@ export class BookCardOverlayPreferenceService {
         this.loadPreferencesFromUser();
       });
 
-    this.showBookTypePill$
+    this.savePreferences$
       .pipe(debounceTime(500))
-      .subscribe(show => {
+      .subscribe(() => {
         if (this.hasUserToggled) {
-          this.persistPreference(show);
+          this.persistPreferences();
         }
       });
+  }
+
+  setContext(type: 'LIBRARY' | 'SHELF' | 'MAGIC_SHELF' | null, id: number | null): void {
+    if (type && id) {
+      this.currentContext = {type, id};
+    } else {
+      this.currentContext = null;
+    }
+    this.loadPreferencesFromUser();
   }
 
   setShowBookTypePill(show: boolean): void {
     this.hasUserToggled = true;
     this._showBookTypePill.next(show);
+    this.savePreferences$.next();
+  }
+
+  setShowAiPanelData(show: boolean): void {
+    this.hasUserToggled = true;
+    this._showAiPanelData.next(show);
+    this.savePreferences$.next();
+  }
+
+  setShowIssueNumber(show: boolean): void {
+    this.hasUserToggled = true;
+    this._showIssueNumber.next(show);
+    this.savePreferences$.next();
   }
 
   get showBookTypePill(): boolean {
     return this._showBookTypePill.value;
   }
 
+  get showAiPanelData(): boolean {
+    return this._showAiPanelData.value;
+  }
+
+  get showIssueNumber(): boolean {
+    return this._showIssueNumber.value;
+  }
+
   private loadPreferencesFromUser(): void {
     const user = this.userService.getCurrentUser();
     const prefs = user?.userSettings?.entityViewPreferences;
 
-    let show = true;
+    let showBookType = true;
+    let showAiPanelData = true;
+    let showIssueNumber = true;
     if (prefs) {
       const globalAny = prefs.global as any;
-      show = prefs.global?.overlayBookType ?? globalAny?.showBookTypePill ?? true;
+      showBookType = prefs.global?.overlayBookType ?? globalAny?.showBookTypePill ?? true;
+      showAiPanelData = prefs.global?.overlayAiPanelData ?? true;
+      showIssueNumber = prefs.global?.overlayIssueNumber ?? true;
 
       if (this.currentContext) {
         const override = prefs.overrides?.find(o =>
@@ -60,23 +99,33 @@ export class BookCardOverlayPreferenceService {
         if (override) {
           const prefAny = override.preferences as any;
           if (override.preferences.overlayBookType !== undefined) {
-            show = override.preferences.overlayBookType;
+            showBookType = override.preferences.overlayBookType;
           } else if (prefAny?.showBookTypePill !== undefined) {
-            show = prefAny.showBookTypePill;
+            showBookType = prefAny.showBookTypePill;
+          }
+          if (override.preferences.overlayAiPanelData !== undefined) {
+            showAiPanelData = override.preferences.overlayAiPanelData;
+          }
+          if (override.preferences.overlayIssueNumber !== undefined) {
+            showIssueNumber = override.preferences.overlayIssueNumber;
           }
         }
       }
     }
 
     this.hasUserToggled = false;
-    if (this._showBookTypePill.value !== show) {
-      this._showBookTypePill.next(show);
-    }
+    if (this._showBookTypePill.value !== showBookType) this._showBookTypePill.next(showBookType);
+    if (this._showAiPanelData.value !== showAiPanelData) this._showAiPanelData.next(showAiPanelData);
+    if (this._showIssueNumber.value !== showIssueNumber) this._showIssueNumber.next(showIssueNumber);
   }
 
-  private persistPreference(show: boolean): void {
+  private persistPreferences(): void {
     const user = this.userService.getCurrentUser();
     if (!user) return;
+
+    const showBookType = this._showBookTypePill.value;
+    const showAiPanelData = this._showAiPanelData.value;
+    const showIssueNumber = this._showIssueNumber.value;
 
     const prefs = structuredClone(user.userSettings.entityViewPreferences ?? {
       global: {
@@ -85,7 +134,9 @@ export class BookCardOverlayPreferenceService {
         view: 'GRID',
         coverSize: 1.0,
         seriesCollapsed: false,
-        overlayBookType: true
+        overlayBookType: true,
+        overlayAiPanelData: true,
+        overlayIssueNumber: true
       },
       overrides: []
     });
@@ -105,15 +156,21 @@ export class BookCardOverlayPreferenceService {
           entityId: this.currentContext.id,
           preferences: {
             ...prefs.global,
-            overlayBookType: show
+            overlayBookType: showBookType,
+            overlayAiPanelData: showAiPanelData,
+            overlayIssueNumber: showIssueNumber
           }
         };
         prefs.overrides.push(override);
       } else {
-        override.preferences.overlayBookType = show;
+        override.preferences.overlayBookType = showBookType;
+        override.preferences.overlayAiPanelData = showAiPanelData;
+        override.preferences.overlayIssueNumber = showIssueNumber;
       }
     } else {
-      prefs.global.overlayBookType = show;
+      prefs.global.overlayBookType = showBookType;
+      prefs.global.overlayAiPanelData = showAiPanelData;
+      prefs.global.overlayIssueNumber = showIssueNumber;
     }
 
     this.userService.updateUserSetting(user.id, 'entityViewPreferences', prefs);

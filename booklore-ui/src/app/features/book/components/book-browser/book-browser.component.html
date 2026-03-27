@@ -224,6 +224,28 @@
                     <label for="show-book-type-pill-checkbox" class="display-settings-label">{{ t('labels.bookTypeOverlay') }}</label>
                   </div>
                 </div>
+                <div class="display-settings-section">
+                  <div class="display-settings-checkbox-row">
+                    <p-checkbox
+                      inputId="show-ai-panel-overlay-checkbox"
+                      [binary]="true"
+                      [ngModel]="bookCardOverlayPreferenceService.showAiPanelData"
+                      (onChange)="bookCardOverlayPreferenceService.setShowAiPanelData($event.checked)">
+                    </p-checkbox>
+                    <label for="show-ai-panel-overlay-checkbox" class="display-settings-label">{{ t('labels.aiOverlay') }}</label>
+                  </div>
+                </div>
+                <div class="display-settings-section">
+                  <div class="display-settings-checkbox-row">
+                    <p-checkbox
+                      inputId="show-issue-number-overlay-checkbox"
+                      [binary]="true"
+                      [ngModel]="bookCardOverlayPreferenceService.showIssueNumber"
+                      (onChange)="bookCardOverlayPreferenceService.setShowIssueNumber($event.checked)">
+                    </p-checkbox>
+                    <label for="show-issue-number-overlay-checkbox" class="display-settings-label">{{ t('labels.issueNumberOverlay') }}</label>
+                  </div>
+                </div>
               </div>
             </p-popover>
           </div>

@@ -46,6 +46,8 @@
       "gridItemSize": "Grid item size",
             "textRows": "Text rows",
       "bookTypeOverlay": "File format overlay",
+      "aiOverlay": "AI overlay",
+      "issueNumberOverlay": "Issue number overlay",
       "noBooks": "This collection has no books!",
       "failedLibrary": "Failed to load library's books!",
       "failedShelf": "Failed to load shelf's books!",

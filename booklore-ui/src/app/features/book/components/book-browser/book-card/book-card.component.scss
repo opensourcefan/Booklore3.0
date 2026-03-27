@@ -290,6 +290,21 @@
   transition: background 0.2s;
 }
 
+.ai-panel-overlay {
+  background: #4b5563;
+  color: #22c55e;
+  font-size: 0.675rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 6px;
+  z-index: 3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  letter-spacing: 0.06em;
+  user-select: none;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
 .top-left-overlay-stack {
   position: absolute;
   top: 7px;
@@ -308,6 +323,7 @@
 }
 
 .book-type-pill-overlay,
+.ai-panel-overlay,
 .series-number-overlay,
 .series-items-count-overlay {
   position: static;

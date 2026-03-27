@@ -136,6 +136,8 @@ public class DefaultUserSettingsProvider {
                         .coverSize(1.0F)
                         .seriesCollapsed(false)
                         .overlayBookType(true)
+                .overlayAiPanelData(true)
+                .overlayIssueNumber(true)
                         .build())
                 .overrides(null)
                 .build();

@@ -125,6 +125,8 @@ public class BookLoreUser {
             @JsonAlias("seriesCollapse")
             private Boolean seriesCollapsed;
             private Boolean overlayBookType;
+            private Boolean overlayAiPanelData;
+            private Boolean overlayIssueNumber;
         }
 
         @Data
@@ -149,6 +151,8 @@ public class BookLoreUser {
             @JsonAlias("seriesCollapse")
             private Boolean seriesCollapsed;
             private Boolean overlayBookType;
+            private Boolean overlayAiPanelData;
+            private Boolean overlayIssueNumber;
             private Float coverSize;
         }
 

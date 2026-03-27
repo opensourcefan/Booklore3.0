@@ -34,6 +34,7 @@ export interface AdditionalFile extends BookFile {
 export interface Book extends FileInfo {
   id: number;
   fileType?: string;
+  hasAiPanelData?: boolean;
   primaryFile?: BookFile;
   libraryId: number;
   libraryName: string;

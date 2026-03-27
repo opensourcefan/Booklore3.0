@@ -387,7 +387,9 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
           view: o.view,
           coverSize: existing?.coverSize ?? 1.0,
           seriesCollapsed: existing?.seriesCollapsed ?? false,
-          overlayBookType: existing?.overlayBookType ?? true
+          overlayBookType: existing?.overlayBookType ?? true,
+          overlayAiPanelData: existing?.overlayAiPanelData ?? true,
+          overlayIssueNumber: existing?.overlayIssueNumber ?? true
         }
       };
     });

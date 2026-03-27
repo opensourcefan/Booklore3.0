@@ -232,6 +232,10 @@ export class AppTopBarComponent implements OnDestroy {
     this.router.navigate(['/settings']);
   }
 
+  navigateToAiSettings() {
+    this.router.navigate(['/settings'], {queryParams: {tab: 'ai-settings'}});
+  }
+
   navigateToBookdrop() {
     this.router.navigate(['/bookdrop']);
   }

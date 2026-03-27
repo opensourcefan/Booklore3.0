@@ -108,6 +108,8 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
   private menuInitialized = false;
 
   showBookTypePill = true;
+  showAiPanelDataOverlay = true;
+  showIssueNumberOverlay = true;
 
   private overlayPrefSub?: Subscription;
 
@@ -135,10 +137,19 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
       });
 
     if (this.overlayPreferenceService) {
-      this.overlayPrefSub = this.overlayPreferenceService.showBookTypePill$.subscribe(val => {
+      this.overlayPrefSub = new Subscription();
+      this.overlayPrefSub.add(this.overlayPreferenceService.showBookTypePill$.subscribe(val => {
         this.showBookTypePill = val;
         this.cdr.markForCheck();
-      });
+      }));
+      this.overlayPrefSub.add(this.overlayPreferenceService.showAiPanelData$.subscribe(val => {
+        this.showAiPanelDataOverlay = val;
+        this.cdr.markForCheck();
+      }));
+      this.overlayPrefSub.add(this.overlayPreferenceService.showIssueNumber$.subscribe(val => {
+        this.showIssueNumberOverlay = val;
+        this.cdr.markForCheck();
+      }));
     }
   }
 
@@ -882,6 +893,19 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
       return ext.toUpperCase();
     }
     return this.getFileExtension(this.book?.primaryFile?.filePath);
+  }
+
+  getDisplayIssueNumber(): string | null {
+    const comicIssueNumber = this.book?.metadata?.comicMetadata?.issueNumber?.trim();
+    if (comicIssueNumber) {
+      return comicIssueNumber.startsWith('#') ? comicIssueNumber : `#${comicIssueNumber}`;
+    }
+
+    if (!this.book?.seriesCount && this.book?.metadata?.seriesNumber != null) {
+      return `#${this.book.metadata.seriesNumber}`;
+    }
+
+    return null;
   }
 
   hasDigitalFile(): boolean {

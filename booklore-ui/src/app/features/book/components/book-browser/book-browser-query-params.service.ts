@@ -80,7 +80,9 @@ export class BookBrowserQueryParamsService {
       view: 'GRID',
       coverSize: 1.0,
       seriesCollapsed: false,
-      overlayBookType: true
+      overlayBookType: true,
+      overlayAiPanelData: true,
+      overlayIssueNumber: true
     };
 
     // Parse sort criteria - supports both legacy and new multi-sort format
