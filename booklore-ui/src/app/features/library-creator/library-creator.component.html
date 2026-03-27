@@ -133,6 +133,18 @@
 
           <div class="option-row">
             <div class="option-label">
+              <span>{{ t('tagByDirectory') }}</span>
+              <i
+                class="pi pi-question-circle info-icon"
+                [pTooltip]="t('tagByDirectoryTooltip')"
+                tooltipPosition="top"
+              ></i>
+            </div>
+            <p-toggleswitch [(ngModel)]="tagByDirectory" />
+          </div>
+
+          <div class="option-row">
+            <div class="option-label">
               <span>{{ t('metadataSource') }}</span>
               <i
                 class="pi pi-question-circle info-icon"

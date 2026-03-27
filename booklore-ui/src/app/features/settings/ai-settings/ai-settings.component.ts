@@ -102,7 +102,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(progress => {
         this.batchProgress = progress;
-        this.preScanRunning = !['COMPLETED', 'FAILED'].includes(progress.event);
+        this.preScanRunning = !['COMPLETED', 'FAILED', 'STOPPED'].includes(progress.event);
         if (progress.event === 'COMPLETED') {
           this.refreshPanelFlowStats();
         }
@@ -198,6 +198,16 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
         this.showMessage('error', 'Reload failed', 'Could not contact the AI service.');
       }
     });
+  }
+
+  get isActivelyScanning(): boolean {
+    if (!this.batchProgress) return false;
+    const event = this.batchProgress.event;
+    return event !== 'COMPLETED' && event !== 'FAILED' && event !== 'STOPPED';
+  }
+
+  stopAiScan(): void {
+    this.appSettingsService.stopAiScan().subscribe();
   }
 
   preScanMissing(): void {

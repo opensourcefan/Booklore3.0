@@ -36,6 +36,7 @@ export class LibraryCreatorComponent implements OnInit {
   library!: Library | undefined;
   editModeLibraryName: string = '';
   watch: boolean = false;
+  tagByDirectory: boolean = false;
   formatPriority: {type: BookType, label: string}[] = [];
   allowAllFormats: boolean = true;
   selectedAllowedFormats: Set<BookType> = new Set();
@@ -96,6 +97,7 @@ export class LibraryCreatorComponent implements OnInit {
         }
 
         this.watch = watch;
+        this.tagByDirectory = this.library.tagByDirectory ?? false;
         if (formatPriority && formatPriority.length > 0) {
           this.formatPriority = formatPriority.map(type =>
             this.allBookFormats.find(f => f.type === type)!
@@ -258,7 +260,8 @@ export class LibraryCreatorComponent implements OnInit {
       formatPriority: this.formatPriority.map(f => f.type),
       allowedFormats: this.allowAllFormats ? [] : Array.from(this.selectedAllowedFormats),
       metadataSource: this.metadataSource,
-      organizationMode: this.organizationMode
+      organizationMode: this.organizationMode,
+      tagByDirectory: this.tagByDirectory
     };
 
     if (this.mode === 'edit') {

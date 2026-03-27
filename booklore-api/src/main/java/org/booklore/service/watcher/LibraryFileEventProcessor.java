@@ -12,6 +12,7 @@ import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
 import org.booklore.service.file.FileFingerprint;
 import org.booklore.service.library.LibraryProcessingService;
+import org.booklore.service.library.LibraryService;
 import org.booklore.util.FileUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -161,6 +162,10 @@ public class LibraryFileEventProcessor {
     }
 
     private void handleFileCreate(LibraryEntity library, Path path) {
+        if (LibraryService.isLibraryScanning(library.getId())) {
+            log.debug("[SKIP] Library {} is currently scanning, skipping watcher event for: '{}'", library.getId(), path);
+            return;
+        }
         if (!fileHasContent(path)) {
             log.debug("[SKIP] Zero-byte file: '{}'", path);
             return;
@@ -196,6 +201,11 @@ public class LibraryFileEventProcessor {
 
     private void handleFolderCreate(LibraryEntity library, Path folderPath) {
         log.info("[FOLDER_CREATE] '{}'", folderPath);
+
+        if (LibraryService.isLibraryScanning(library.getId())) {
+            log.debug("[SKIP] Library {} is currently scanning, skipping watcher folder event for: '{}'", library.getId(), folderPath);
+            return;
+        }
 
         pendingFolderCreates.entrySet().removeIf(entry -> {
             if (entry.getKey().startsWith(folderPath) && !entry.getKey().equals(folderPath)) {

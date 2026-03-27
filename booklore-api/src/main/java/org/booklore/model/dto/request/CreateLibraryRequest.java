@@ -35,4 +35,5 @@ public class CreateLibraryRequest {
     private List<BookFileType> allowedFormats;
     private MetadataSource metadataSource;
     private LibraryOrganizationMode organizationMode;
+    private boolean tagByDirectory;
 }

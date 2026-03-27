@@ -110,13 +110,24 @@
           <h3>{{ t('prescan.title') }}</h3>
           <p>{{ t('prescan.description') }}</p>
         </div>
-        <p-button
-          icon="pi pi-bolt"
-          [label]="t('prescan.action')"
-          [loading]="preScanRunning"
-          [disabled]="!aiEnabled || !selectedLibraryPathIds.length"
-          (onClick)="preScanMissing()">
-        </p-button>
+        <div class="prescan-action-group">
+          <p-button
+            icon="pi pi-bolt"
+            [label]="t('prescan.action')"
+            [loading]="preScanRunning"
+            [disabled]="!aiEnabled || !selectedLibraryPathIds.length"
+            (onClick)="preScanMissing()">
+          </p-button>
+          @if (isActivelyScanning) {
+            <p-button
+              icon="pi pi-stop-circle"
+              severity="danger"
+              [outlined]="true"
+              [title]="t('prescan.stopAction')"
+              (onClick)="stopAiScan()">
+            </p-button>
+          }
+        </div>
       </div>
 
       <div class="prescan-controls">

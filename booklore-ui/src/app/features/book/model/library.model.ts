@@ -18,6 +18,7 @@ export interface Library {
   allowedFormats?: BookType[];
   metadataSource?: MetadataSource;
   organizationMode?: OrganizationMode;
+  tagByDirectory?: boolean;
 }
 
 export interface LibraryPath {

@@ -70,4 +70,8 @@ public class LibraryEntity {
     @Builder.Default
     private MetadataSource metadataSource = MetadataSource.EMBEDDED;
 
+    @Column(name = "tag_by_directory")
+    @Builder.Default
+    private boolean tagByDirectory = false;
+
 }

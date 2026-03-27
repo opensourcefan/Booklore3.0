@@ -93,6 +93,7 @@ public class LibraryService {
         library.setWatch(request.isWatch());
         library.setFormatPriority(request.getFormatPriority());
         library.setAllowedFormats(request.getAllowedFormats());
+        library.setTagByDirectory(request.isTagByDirectory());
         if (request.getMetadataSource() != null) {
             library.setMetadataSource(request.getMetadataSource());
         }
@@ -178,7 +179,9 @@ public class LibraryService {
                         request.getPaths() == null || request.getPaths().isEmpty() ?
                                 Collections.emptyList() :
                                 request.getPaths().stream()
-                                        .map(path -> LibraryPathEntity.builder().path(path.getPath()).build())
+                                        .map(LibraryPath::getPath)
+                                        .distinct()
+                                        .map(path -> LibraryPathEntity.builder().path(path).build())
                                         .collect(Collectors.toList())
                 )
                 .icon(request.getIcon())
@@ -188,6 +191,7 @@ public class LibraryService {
                 .allowedFormats(request.getAllowedFormats())
                 .metadataSource(request.getMetadataSource())
                 .organizationMode(request.getOrganizationMode())
+                .tagByDirectory(request.isTagByDirectory())
                 .users(List.of(user.get()))
                 .build();
 

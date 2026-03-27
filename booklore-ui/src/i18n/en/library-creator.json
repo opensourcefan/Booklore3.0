@@ -16,6 +16,8 @@
     "options": "Options",
     "watchFolders": "Watch folders",
     "watchFoldersTooltip": "Automatically detect new books added to folders",
+    "tagByDirectory": "Tag by directory",
+    "tagByDirectoryTooltip": "Automatically tag each imported book with the name of its parent directory",
     "metadataSource": "Metadata source",
     "metadataSourceTooltip": "Choose where to read metadata from when scanning books",
     "metadataSourcePlaceholder": "Select source",

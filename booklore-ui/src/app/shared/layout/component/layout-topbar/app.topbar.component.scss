@@ -89,33 +89,6 @@
   font-size: 0.82rem;
 }
 
-.topbar-ai-stop {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  border: 1.5px solid var(--p-red-600, #dc2626);
-  background: rgba(220, 38, 38, 0.08);
-  color: var(--p-red-600, #dc2626);
-  cursor: pointer;
-  appearance: none;
-  flex-shrink: 0;
-  transition: background 0.18s ease, transform 0.18s ease;
-
-  @media (min-width: 768px) {
-    display: inline-flex;
-  }
-
-  &:hover,
-  &:focus-visible {
-    background: rgba(220, 38, 38, 0.16);
-    transform: translateY(-1px);
-    outline: none;
-  }
-}
-
 .topbar-desktop-items {
   display: none;
   align-items: center;

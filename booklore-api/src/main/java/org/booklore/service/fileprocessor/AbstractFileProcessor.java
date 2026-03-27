@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 public abstract class AbstractFileProcessor implements BookFileProcessor {
@@ -67,6 +68,7 @@ public abstract class AbstractFileProcessor implements BookFileProcessor {
     private Book createAndMapBook(LibraryFile libraryFile, String hash) {
         BookEntity entity = processNewFile(libraryFile);
         entity.getPrimaryBookFile().setCurrentHash(hash);
+        applyDirectoryTag(entity, libraryFile);
         entity.setMetadataMatchScore(metadataMatchService.calculateMatchScore(entity));
         bookCreatorService.saveConnections(entity);
 
@@ -82,6 +84,20 @@ public abstract class AbstractFileProcessor implements BookFileProcessor {
     }
 
     protected abstract BookEntity processNewFile(LibraryFile libraryFile);
+
+    private void applyDirectoryTag(BookEntity entity, LibraryFile libraryFile) {
+        var library = libraryFile.getLibraryPathEntity().getLibrary();
+        if (library == null || !library.isTagByDirectory()) return;
+        String subPath = libraryFile.getFileSubPath();
+        if (subPath == null || subPath.isEmpty()) return;
+        Path subPathObj = Path.of(subPath);
+        Path lastSegment = subPathObj.getFileName();
+        if (lastSegment == null) return;
+        String dirTag = lastSegment.toString();
+        if (!dirTag.isEmpty()) {
+            bookCreatorService.addTagsToBook(Set.of(dirTag), entity);
+        }
+    }
 
     protected Path getBookFolderForCoverFallback(LibraryFile libraryFile) {
         if (libraryFile.isFolderBased()) {

@@ -30,5 +30,6 @@ public class Library {
     private List<BookFileType> allowedFormats;
     private LibraryOrganizationMode organizationMode;
     private MetadataSource metadataSource;
+    private boolean tagByDirectory;
 }
 
