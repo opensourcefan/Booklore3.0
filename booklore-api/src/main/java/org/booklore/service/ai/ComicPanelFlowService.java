@@ -284,6 +284,19 @@ public class ComicPanelFlowService {
                     .pagesWithPanels(pagesWithPanels)
                     .message("Missing AI panel scan completed.")
                     .build());
+        } catch (AiPanelDetectionService.ScanStoppedException e) {
+            log.info("AI panel scan stopped by user after {} completed books", completedBooks);
+            sendProgress(username, AiPanelScanProgressPayload.builder()
+                    .mode("BATCH")
+                    .event("STOPPED")
+                    .completedBooks(completedBooks)
+                    .totalBooks(missingBookIds.size())
+                    .skippedBooks(alreadyScannedBooks)
+                    .processedPages(processedPages)
+                    .panelsFound(panelsFound)
+                    .pagesWithPanels(pagesWithPanels)
+                    .message("Scan stopped by user.")
+                    .build());
         } catch (Exception ex) {
             log.error("Failed to complete missing AI panel scan for user {}", username, ex);
             sendProgress(username, AiPanelScanProgressPayload.builder()
@@ -479,6 +492,11 @@ public class ComicPanelFlowService {
 
         private int getFinalPagesWithPanels() {
             return finalPagesWithPanels;
+        }
+
+        @Override
+        public boolean shouldStop() {
+            return stopRequested;
         }
     }
 }

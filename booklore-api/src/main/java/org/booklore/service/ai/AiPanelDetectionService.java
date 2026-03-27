@@ -67,6 +67,9 @@ public class AiPanelDetectionService {
         }
 
         for (Integer pageNumber : pages) {
+            if (progressListener != null && progressListener.shouldStop()) {
+                throw new ScanStoppedException();
+            }
             Map<String, Object> payload = new HashMap<>();
             payload.put("bookId", bookId);
             payload.put("bookType", bookType);
@@ -415,5 +418,15 @@ public class AiPanelDetectionService {
         void onPageProcessed(int pageNumber, int processedPages, int totalPages, int pagePanelsFound, int totalPanelsFound, int pagesWithPanels);
 
         void onScanCompleted(int processedPages, int totalPages, int totalPanelsFound, int pagesWithPanels);
+
+        default boolean shouldStop() {
+            return false;
+        }
+    }
+
+    public static class ScanStoppedException extends RuntimeException {
+        public ScanStoppedException() {
+            super("Scan stopped by user.");
+        }
     }
 }
