@@ -63,9 +63,11 @@ Notes:
 - The AI container image is pulled from GHCR only when the ai profile is enabled.
 - The AI container image is ghcr.io/opensourcefan/booklore-panel-ai:latest.
 - The published AI container uses CPU-only inference dependencies to keep the image smaller.
-- The model files are stored in ./data/ai-models.
-- Place the local model file at ./data/ai-models/best.pt to keep it persistent across container restarts, recreates, and image updates.
-- During first startup, the AI status may show STARTING while the local model is being loaded.
+- The model is bundled inside the AI container image. No manual file placement required.
+- On first start the model is automatically seeded to ./data/ai-models/best.pt for persistence.
+- The model persists across container restarts, recreates, and image updates via the mounted volume.
+- During first startup, the AI status will show STARTING while the model loads in the background.
+- If the model fails to load, use the Reload Model button in Settings > AI Panel Detection.
 ```
 
 
@@ -113,16 +115,15 @@ REMOTE_USER_PASSWORD=ChangeMe@$@P
 4. Turn on Enable AI Panel Detection
 
 5. Wait for Status to change to READY
+   The model is bundled in the AI container image.
+   On first start it is seeded to ./data/ai-models/best.pt automatically.
+   No manual file placement is needed.
 
-6. If you already have the model, place it at ./data/ai-models/best.pt so Booklore can keep using the same local file permanently
+6. Open a comic in the reader and use the AI button to scan the current book
 
-7. If Status shows STARTING, give it time while the local model is being loaded
+7. Optional: use Manual Panel Detection Scan in AI settings to process comics that do not already have saved AI panel data
 
-8. Open a comic in the reader and use the AI button to scan the current book
-
-9. Optional: use Scan Missing Comics in AI settings to process comics that do not already have saved AI panel data
-
-10. If Booklore is running outside Docker, point AI_SERVICE_BASE_URL to the host-mapped endpoint, for example http://localhost:18080
+8. If Booklore is running outside Docker, point AI_SERVICE_BASE_URL to the host-mapped endpoint, for example http://localhost:18080
 ```
 
 

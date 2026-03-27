@@ -5,6 +5,8 @@ ENV PYTHONUNBUFFERED=1 \
     HF_HOME=/models/hf \
     YOLO_CONFIG_DIR=/tmp/ultralytics
 
+ARG MODEL_ID=mosesb/best-comic-panel-detection
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     libgl1 \
@@ -15,6 +17,16 @@ WORKDIR /app
 
 COPY requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && pip install -r /app/requirements.txt
+
+# Bake the model into the image as a seed file.
+# On first container start, _seed_model_if_available() copies it to the
+# mounted volume (/models/best.pt) so it persists across recreates.
+# HF_HOME is overridden to a temp dir during build and cleaned up after.
+RUN mkdir -p /app/model-seed && \
+    HF_HOME=/tmp/hf-build python -c \
+      "from huggingface_hub import hf_hub_download; \
+       hf_hub_download(repo_id='$MODEL_ID', filename='best.pt', local_dir='/app/model-seed')" && \
+    rm -rf /tmp/hf-build
 
 COPY app.py /app/app.py
 
