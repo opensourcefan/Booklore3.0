@@ -46,7 +46,19 @@ jobs:
           ./gradlew test --no-daemon --parallel --build-cache
         continue-on-error: true
 
+      - name: Compute OWASP Cache Bucket
+        id: owasp-key
+        run: echo "key=$(( $(date +%s) / 172800 ))" >> "$GITHUB_OUTPUT"
+
+      - name: Restore OWASP NVD Cache
+        id: owasp-cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: ~/.gradle/dependency-check-data
+          key: owasp-nvd-${{ runner.os }}-${{ steps.owasp-key.outputs.key }}
+
       - name: OWASP Dependency Check (Backend)
+        if: steps.owasp-cache.outputs.cache-hit != 'true'
         working-directory: ./booklore-api
         run: |
           echo "Running OWASP Dependency-Check..."
