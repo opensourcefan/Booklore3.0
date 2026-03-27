@@ -85,6 +85,19 @@
           @if (!startupEvents.length) {
             <div class="status-line">{{ t('status.startupWaiting') }}</div>
           }
+          @if (status?.status !== 'READY') {
+            <div class="startup-reload-row">
+              <p-button
+                icon="pi pi-refresh"
+                [label]="t('status.reload')"
+                [loading]="reloadRunning"
+                [disabled]="reloadRunning"
+                outlined
+                size="small"
+                (onClick)="reloadAiService()">
+              </p-button>
+            </div>
+          }
         </div>
       }
     </div>

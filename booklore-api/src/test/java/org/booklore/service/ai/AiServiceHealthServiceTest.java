@@ -112,6 +112,24 @@ class AiServiceHealthServiceTest {
     }
 
     @Test
+    void returnsErrorWhenHealthPayloadReportsLoadFailed() throws Exception {
+        startHealthServer(200, "{\"status\":\"load_failed\",\"modelExists\":true,\"modelPath\":\"/models/best.pt\",\"loadError\":\"CUDA out of memory\"}");
+        when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder()
+                .aiPanelDetectionEnabled(true)
+                .build());
+
+        AiServiceStatus status = service.getStatus();
+
+        assertThat(status.isEnabled()).isTrue();
+        assertThat(status.isServiceReachable()).isFalse();
+        assertThat(status.getStatus()).isEqualTo("ERROR");
+        assertThat(status.getMessage()).contains("model initialization failed");
+        assertThat(status.getError()).isEqualTo("CUDA out of memory");
+        assertThat(status.getModelExists()).isTrue();
+        assertThat(status.getModelPath()).isEqualTo("/models/best.pt");
+    }
+
+    @Test
     void returnsErrorWhenHealthPayloadHasUnknownStatus() throws Exception {
         startHealthServer(200, "{\"status\":\"mystery\"}");
         when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder()

@@ -24,7 +24,8 @@
     "modelFile": "Model file",
     "modelDetected": "Detected",
     "modelMissing": "Not downloaded yet",
-    "startupWaiting": "Startup activity will appear here after the next status check."
+    "startupWaiting": "Startup activity will appear here after the next status check.",
+    "reload": "Reload Model"
   },
   "prescan": {
     "title": "Manual Panel Detection Scan",

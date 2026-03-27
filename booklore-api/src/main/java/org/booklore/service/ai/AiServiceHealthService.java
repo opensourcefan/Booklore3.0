@@ -80,6 +80,7 @@ public class AiServiceHealthService {
         String rawStatus = asNormalizedString(healthPayload.get("status"));
         boolean modelExists = asBoolean(healthPayload.get("modelExists"));
         String modelPath = asNullableString(healthPayload.get("modelPath"));
+        String loadError = asNullableString(healthPayload.get("loadError"));
 
         return switch (rawStatus) {
             case "ok" -> AiServiceStatus.builder()
@@ -100,6 +101,16 @@ public class AiServiceHealthService {
                         ? "AI service is reachable and still loading the local model."
                         : "AI service is reachable and preparing the local model file.")
                     .error(null)
+                    .baseUrl(baseUrl)
+                    .modelExists(modelExists)
+                    .modelPath(modelPath)
+                    .build();
+                case "load_failed" -> AiServiceStatus.builder()
+                    .enabled(true)
+                    .serviceReachable(false)
+                    .status("ERROR")
+                    .message("AI service is reachable but model initialization failed.")
+                    .error(loadError != null ? loadError : "Model load failed — check container logs for details.")
                     .baseUrl(baseUrl)
                     .modelExists(modelExists)
                     .modelPath(modelPath)
@@ -154,6 +165,27 @@ public class AiServiceHealthService {
 
         String normalized = value.toString().trim();
         return normalized.isEmpty() ? null : normalized;
+    }
+
+    public java.util.Map<String, Object> triggerReload() {
+        boolean enabled = appSettingService.getAppSettings().isAiPanelDetectionEnabled();
+        if (!enabled) {
+            return java.util.Map.of("triggered", false, "reason", "AI panel detection is disabled.");
+        }
+        try {
+            RestClient restClient = RestClient.builder()
+                    .requestFactory(buildRequestFactory())
+                    .build();
+            String resolvedBaseUrl = aiServiceEndpointResolver.resolveBaseUrl(restClient);
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Object> result = restClient.post()
+                    .uri(resolvedBaseUrl + "/v1/reload")
+                    .retrieve()
+                    .body(java.util.Map.class);
+            return result != null ? result : java.util.Map.of("triggered", false, "reason", "Empty response from AI service.");
+        } catch (Exception ex) {
+            return java.util.Map.of("triggered", false, "reason", "Could not reach AI service: " + ex.getMessage());
+        }
     }
 
     private SimpleClientHttpRequestFactory buildRequestFactory() {

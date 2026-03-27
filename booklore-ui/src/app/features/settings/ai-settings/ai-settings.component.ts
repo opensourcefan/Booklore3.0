@@ -52,6 +52,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   statusLoading = false;
   cleanupRunning = false;
   preScanRunning = false;
+  reloadRunning = false;
 
   status: AiServiceStatus | null = null;
   selectedLibraryPathIds: number[] = [];
@@ -165,6 +166,25 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       error: () => {
         this.cleanupRunning = false;
         this.showMessage('error', 'Cleanup failed', 'Could not delete saved AI panel-flow records.');
+      }
+    });
+  }
+
+  reloadAiService(): void {
+    this.reloadRunning = true;
+    this.appSettingsService.reloadAiService().subscribe({
+      next: result => {
+        this.reloadRunning = false;
+        if (result.triggered) {
+          this.showMessage('success', 'Reload triggered', 'Model load has started. Status will update shortly.');
+          setTimeout(() => this.refreshStatus(), 1500);
+        } else {
+          this.showMessage('info', 'Reload not started', result.reason);
+        }
+      },
+      error: () => {
+        this.reloadRunning = false;
+        this.showMessage('error', 'Reload failed', 'Could not contact the AI service.');
       }
     });
   }

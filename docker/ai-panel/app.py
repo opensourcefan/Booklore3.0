@@ -1,7 +1,9 @@
 import base64
 import io
+import logging
 import os
 import shutil
+import threading
 from datetime import datetime, timezone
 from typing import Any
 
@@ -9,6 +11,13 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from PIL import Image
 from ultralytics import YOLO
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S",
+)
+logger = logging.getLogger("booklore-ai-panel")
 
 app = FastAPI()
 
@@ -18,6 +27,9 @@ CONF_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.20"))
 IOU_THRESHOLD = float(os.getenv("IOU_THRESHOLD", "0.50"))
 
 _model: YOLO | None = None
+_loading: bool = False
+_load_error: str | None = None
+_load_lock = threading.Lock()
 
 
 def _seed_model_if_available() -> bool:
@@ -37,16 +49,56 @@ def _seed_model_if_available() -> bool:
     return os.path.exists(MODEL_PATH)
 
 
+def _do_load() -> None:
+    """Background thread: loads the YOLO model and updates global state."""
+    global _model, _loading, _load_error
+    logger.info("Model load started from %s", MODEL_PATH)
+    try:
+        if not _seed_model_if_available():
+            raise RuntimeError(f"Model file not found at {MODEL_PATH}")
+        loaded = YOLO(MODEL_PATH)
+        _model = loaded
+        logger.info("Model loaded successfully from %s", MODEL_PATH)
+    except Exception as exc:
+        _load_error = str(exc)
+        logger.error("Model load failed: %s", exc)
+    finally:
+        _loading = False
+
+
+def _start_load_thread_locked() -> None:
+    """Start background load thread. Caller must hold _load_lock."""
+    global _loading, _load_error
+    _loading = True
+    _load_error = None
+    threading.Thread(target=_do_load, daemon=True).start()
+
+
+def _ensure_loading() -> None:
+    """If a model file appeared but no load is running or previously failed, start one."""
+    with _load_lock:
+        if _model is not None or _loading or _load_error is not None:
+            return
+        if not (os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)):
+            return
+        logger.info("Model file detected; triggering automatic background load.")
+        _start_load_thread_locked()
+
+
 def _load_model() -> YOLO:
-    global _model
+    """Return the loaded model or raise a descriptive RuntimeError."""
     if _model is not None:
         return _model
-
-    if not _seed_model_if_available():
-        raise RuntimeError(f"Local model file not found at {MODEL_PATH}")
-
-    _model = YOLO(MODEL_PATH)
-    return _model
+    if _loading:
+        raise RuntimeError("Model is currently loading. Please try again shortly.")
+    if _load_error:
+        raise RuntimeError(
+            f"Model load failed: {_load_error}. Use the Reload button in AI settings to retry."
+        )
+    raise RuntimeError(
+        "Model is not loaded. Place best.pt in the ai-models folder and use "
+        "the Reload button, or restart the AI container."
+    )
 
 
 def _decode_image(b64: str) -> tuple[np.ndarray, int, int]:
@@ -63,19 +115,32 @@ def _clamp(value: float, low: float, high: float) -> float:
 
 @app.on_event("startup")
 def startup() -> None:
-    try:
-        _load_model()
-    except Exception:
-        pass
+    model_available = os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)
+    if model_available:
+        logger.info("Model file found at startup; beginning background load.")
+        with _load_lock:
+            _start_load_thread_locked()
+    else:
+        logger.info(
+            "No model file at %s and no seed at %s. "
+            "Place best.pt in ./data/ai-models/ and it will load automatically.",
+            MODEL_PATH,
+            MODEL_SEED_PATH,
+        )
 
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    _ensure_loading()
     model_exists = os.path.exists(MODEL_PATH)
     seed_exists = os.path.exists(MODEL_SEED_PATH)
     ready = _model is not None and model_exists
     if ready:
         status = "ok"
+    elif _load_error is not None:
+        status = "load_failed"
+    elif _loading:
+        status = "warming"
     elif model_exists or seed_exists:
         status = "warming"
     else:
@@ -88,7 +153,24 @@ def health() -> dict[str, Any]:
         "modelExists": model_exists,
         "seedPath": MODEL_SEED_PATH,
         "seedExists": seed_exists,
+        "loadError": _load_error,
     }
+
+
+@app.post("/v1/reload")
+def reload_model() -> dict[str, Any]:
+    """Reset any previous load error and retry loading the model in the background."""
+    with _load_lock:
+        if _loading:
+            return {"triggered": False, "reason": "Load already in progress."}
+        if _model is not None:
+            return {"triggered": False, "reason": "Model is already loaded and ready."}
+        model_available = os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)
+        if not model_available:
+            return {"triggered": False, "reason": f"No model file found at {MODEL_PATH}."}
+        logger.info("Manual reload triggered via API.")
+        _start_load_thread_locked()
+    return {"triggered": True, "reason": "Background model load started."}
 
 
 @app.post("/v1/panel-detection/scan")

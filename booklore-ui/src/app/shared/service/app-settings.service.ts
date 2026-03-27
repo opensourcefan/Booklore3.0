@@ -112,6 +112,10 @@ export class AppSettingsService {
     });
   }
 
+  reloadAiService(): Observable<{triggered: boolean; reason: string}> {
+    return this.http.post<{triggered: boolean; reason: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/reload`, {});
+  }
+
   exportSettings(): Observable<void> {
     return this.http.get<AppSettingsTransferFile>(`${this.apiUrl}/export`).pipe(
       map(payload => {
