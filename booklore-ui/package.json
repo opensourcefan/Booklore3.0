@@ -44,7 +44,7 @@
     "rxjs": "^7.8.2",
     "showdown": "^2.1.0",
     "tslib": "^2.8.1",
-    "uuid": "^11.1.0",
+    "uuid": "^13.0.0",
     "ws": "^8.20.0",
     "zone.js": "^0.16.1"
   },
@@ -61,7 +61,7 @@
     "angular-eslint": "^21.3.1",
     "eslint": "^10.1.0",
     "jsdom": "^29.0.1",
-    "typescript": "~5.9.3",
+    "typescript": "~6.0.2",
     "typescript-eslint": "^8.57.2",
     "vitest": "^4.1.2"
   },
