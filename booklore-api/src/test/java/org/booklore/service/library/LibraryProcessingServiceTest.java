@@ -9,6 +9,7 @@ import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.repository.BookAdditionalFileRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
+import org.booklore.service.library.DirectoryTagService;
 import org.booklore.service.NotificationService;
 import org.booklore.task.options.RescanLibraryContext;
 import jakarta.persistence.EntityManager;
@@ -52,6 +53,8 @@ class LibraryProcessingServiceTest {
     @Mock
     private BookGroupingService bookGroupingService;
     @Mock
+    private DirectoryTagService directoryTagService;
+    @Mock
     private EntityManager entityManager;
 
     private LibraryProcessingService libraryProcessingService;
@@ -68,6 +71,7 @@ class LibraryProcessingServiceTest {
                 bookDeletionService,
                 libraryFileHelper,
                 bookGroupingService,
+                directoryTagService,
                 entityManager
         );
     }

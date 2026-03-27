@@ -46,6 +46,7 @@ public class LibraryProcessingService {
     private final BookDeletionService bookDeletionService;
     private final LibraryFileHelper libraryFileHelper;
     private final BookGroupingService bookGroupingService;
+    private final DirectoryTagService directoryTagService;
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -60,6 +61,9 @@ public class LibraryProcessingService {
             // Use BookGroupingService for consistent grouping based on organization mode
             Map<String, List<LibraryFile>> groups = bookGroupingService.groupForInitialScan(newFiles, libraryEntity);
             fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity);
+            if (libraryEntity.isTagByDirectory()) {
+                directoryTagService.applyMissingDirectoryTags(libraryId);
+            }
 
             notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished processing library: " + libraryEntity.getName()));
         } catch (IOException e) {
@@ -121,6 +125,9 @@ public class LibraryProcessingService {
 
         // Process new book groups
         fileAsBookProcessor.processLibraryFilesGrouped(groupingResult.newBookGroups(), libraryEntity);
+        if (libraryEntity.isTagByDirectory()) {
+            directoryTagService.applyMissingDirectoryTags(context.getLibraryId());
+        }
 
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished refreshing library: " + libraryEntity.getName()));
     }

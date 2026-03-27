@@ -86,7 +86,7 @@ public abstract class AbstractFileProcessor implements BookFileProcessor {
     protected abstract BookEntity processNewFile(LibraryFile libraryFile);
 
     private void applyDirectoryTag(BookEntity entity, LibraryFile libraryFile) {
-        var library = libraryFile.getLibraryPathEntity().getLibrary();
+        var library = libraryFile.getLibraryEntity();
         if (library == null || !library.isTagByDirectory()) return;
         String subPath = libraryFile.getFileSubPath();
         if (subPath == null || subPath.isEmpty()) return;
