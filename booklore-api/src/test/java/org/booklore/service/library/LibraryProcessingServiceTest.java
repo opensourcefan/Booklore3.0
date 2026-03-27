@@ -7,6 +7,7 @@ import org.booklore.model.entity.BookFileEntity;
 import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.repository.BookAdditionalFileRepository;
+import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
 import org.booklore.service.NotificationService;
 import org.booklore.task.options.RescanLibraryContext;
@@ -35,6 +36,8 @@ class LibraryProcessingServiceTest {
     @Mock
     private LibraryRepository libraryRepository;
     @Mock
+    private BookRepository bookRepository;
+    @Mock
     private NotificationService notificationService;
     @Mock
     private BookAdditionalFileRepository bookAdditionalFileRepository;
@@ -57,6 +60,7 @@ class LibraryProcessingServiceTest {
     void setUp() {
         libraryProcessingService = new LibraryProcessingService(
                 libraryRepository,
+                bookRepository,
                 notificationService,
                 bookAdditionalFileRepository,
                 fileAsBookProcessor,
@@ -89,6 +93,7 @@ class LibraryProcessingServiceTest {
         libraryEntity.setBookEntities(List.of(existingBook));
 
         when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
+        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
 
         LibraryFile existingFile = LibraryFile.builder()
                 .libraryEntity(libraryEntity)
@@ -150,6 +155,7 @@ class LibraryProcessingServiceTest {
         libraryEntity.setBookEntities(List.of(existingBook));
 
         when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
+        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
 
         LibraryFile existingFile = LibraryFile.builder()
                 .libraryEntity(libraryEntity)
@@ -554,6 +560,7 @@ class LibraryProcessingServiceTest {
         when(libraryRepository.findById(libraryId))
                 .thenReturn(Optional.of(libraryEntity))
                 .thenReturn(Optional.of(freshLibraryEntity)); // Second call returns fresh entity
+        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
         when(libraryFileHelper.getAllLibraryFiles(any(LibraryEntity.class))).thenReturn(List.of(fileOnDisk));
         when(libraryFileHelper.filterByAllowedFormats(anyList(), any())).thenAnswer(inv -> inv.getArgument(0));
         when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
