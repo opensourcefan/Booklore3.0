@@ -2,6 +2,7 @@ import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {NgClass} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
+import {Dialog} from 'primeng/dialog';
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {MultiSelect} from 'primeng/multiselect';
 import {MessageService} from 'primeng/api';
@@ -14,6 +15,7 @@ import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-pr
 import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
 import {LibraryService} from '../../book/service/library.service';
+import {BookService} from '../../book/service/book.service';
 
 interface AiStartupEvent {
   timestamp: string;
@@ -26,6 +28,7 @@ interface AiStartupEvent {
   standalone: true,
   imports: [
     Button,
+    Dialog,
     FormsModule,
     MultiSelect,
     NgClass,
@@ -42,6 +45,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
   private libraryService = inject(LibraryService);
+  private bookService = inject(BookService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private destroy$ = new Subject<void>();
 
@@ -51,6 +55,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   saveRunning = false;
   statusLoading = false;
   cleanupRunning = false;
+  showDeleteConfirm = false;
   preScanRunning = false;
   reloadRunning = false;
 
@@ -155,12 +160,18 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  confirmCleanupAiData(): void {
+    this.showDeleteConfirm = false;
+    this.cleanupAiData();
+  }
+
   cleanupAiData(): void {
     this.cleanupRunning = true;
     this.appSettingsService.cleanupAiPanelData().subscribe({
       next: result => {
         this.cleanupRunning = false;
         this.refreshPanelFlowStats();
+        this.bookService.clearAiPanelDataFromState();
         this.showMessage('success', 'Cleanup completed', `Deleted ${result.deletedCount} saved AI panel-flow records.`);
       },
       error: () => {

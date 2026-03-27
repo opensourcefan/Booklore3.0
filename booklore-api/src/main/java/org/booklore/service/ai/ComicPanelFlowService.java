@@ -42,6 +42,12 @@ public class ComicPanelFlowService {
     private final PlatformTransactionManager transactionManager;
     private final NotificationService notificationService;
 
+    private volatile boolean stopRequested = false;
+
+    public void requestStop() {
+        stopRequested = true;
+    }
+
     @Transactional(readOnly = true)
     public Optional<String> getPanelFlow(Long bookId) {
         Long userId = getCurrentUserId();
@@ -174,6 +180,7 @@ public class ComicPanelFlowService {
                     .build();
         }
 
+        stopRequested = false;
         CompletableFuture.runAsync(() -> runMissingScan(username, userId, missingBookIds, scannedBookIds.size()));
 
         return AiBulkScanResponse.builder()
@@ -223,6 +230,20 @@ public class ComicPanelFlowService {
 
         try {
             for (Long bookId : missingBookIds) {
+                if (stopRequested) {
+                    sendProgress(username, AiPanelScanProgressPayload.builder()
+                            .mode("BATCH")
+                            .event("STOPPED")
+                            .completedBooks(completedBooks)
+                            .totalBooks(missingBookIds.size())
+                            .skippedBooks(alreadyScannedBooks)
+                            .processedPages(processedPages)
+                            .panelsFound(panelsFound)
+                            .pagesWithPanels(pagesWithPanels)
+                            .message("Scan stopped by user.")
+                            .build());
+                    return;
+                }
                 BookEntity book = findBook(bookId);
                 String bookTitle = getBookTitle(book);
                 BatchBookProgress batchProgress = new BatchBookProgress(username, bookId, bookTitle, completedBooks, missingBookIds.size(), alreadyScannedBooks, processedPages, panelsFound, pagesWithPanels);

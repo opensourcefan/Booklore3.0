@@ -112,6 +112,10 @@ export class AppSettingsService {
     });
   }
 
+  stopAiScan(): Observable<void> {
+    return this.http.post<void>(`${API_CONFIG.BASE_URL}/api/v1/ai/panel-flow/stop-scan`, {});
+  }
+
   reloadAiService(): Observable<{triggered: boolean; reason: string}> {
     return this.http.post<{triggered: boolean; reason: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/reload`, {});
   }

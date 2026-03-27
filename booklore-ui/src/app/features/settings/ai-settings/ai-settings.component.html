@@ -170,9 +170,33 @@
           [label]="t('cleanup.action')"
           [loading]="cleanupRunning"
           [disabled]="!aiEnabled"
-          (onClick)="cleanupAiData()">
+          (onClick)="showDeleteConfirm = true">
         </p-button>
       </div>
     </div>
+
+    <p-dialog
+      [(visible)]="showDeleteConfirm"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [resizable]="false"
+      [style]="{ width: '28rem' }"
+      [header]="t('cleanup.confirmTitle')">
+      <p style="margin: 0 0 1.5rem">{{ t('cleanup.confirmMessage') }}</p>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem">
+        <p-button
+          [label]="t('cleanup.confirmCancel')"
+          severity="secondary"
+          (onClick)="showDeleteConfirm = false">
+        </p-button>
+        <p-button
+          icon="pi pi-trash"
+          severity="danger"
+          [label]="t('cleanup.confirmAction')"
+          (onClick)="confirmCleanupAiData()">
+        </p-button>
+      </div>
+    </p-dialog>
   </div>
 </ng-container>

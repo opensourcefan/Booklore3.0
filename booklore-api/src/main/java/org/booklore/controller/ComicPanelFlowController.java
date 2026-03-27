@@ -97,6 +97,12 @@ public class ComicPanelFlowController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/stop-scan")
+    public ResponseEntity<Void> stopScan() {
+        comicPanelFlowService.requestStop();
+        return ResponseEntity.noContent().build();
+    }
+
     private String toJson(Object value) {
         try {
             return objectMapper.writeValueAsString(value);

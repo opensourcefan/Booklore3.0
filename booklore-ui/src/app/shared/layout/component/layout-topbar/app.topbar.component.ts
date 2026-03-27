@@ -35,6 +35,7 @@ import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {SidebarFilterTogglePrefService} from '../../../../features/book/components/book-browser/filters/sidebar-filter-toggle-pref.service';
 import {AiPanelScanProgressPayload} from '../../../model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from '../../../service/ai-panel-scan-progress.service';
+import {AppSettingsService} from '../../../service/app-settings.service';
 
 @Component({
   selector: 'app-topbar',
@@ -109,7 +110,8 @@ export class AppTopBarComponent implements OnDestroy {
     private dialogLauncher: DialogLauncherService,
     translocoService: TranslocoService,
     private sidebarFilterTogglePrefService: SidebarFilterTogglePrefService,
-    private aiPanelScanProgressService: AiPanelScanProgressService
+    private aiPanelScanProgressService: AiPanelScanProgressService,
+    private appSettingsService: AppSettingsService
   ) {
     this.translocoService = translocoService;
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -408,6 +410,16 @@ export class AppTopBarComponent implements OnDestroy {
 
   get showDesktopAiScanStatus(): boolean {
     return !!this.aiBatchProgress;
+  }
+
+  get isActivelyScanning(): boolean {
+    if (!this.aiBatchProgress) return false;
+    const event = this.aiBatchProgress.event;
+    return event !== 'COMPLETED' && event !== 'FAILED' && event !== 'STOPPED';
+  }
+
+  stopAiScan(): void {
+    this.appSettingsService.stopAiScan().subscribe();
   }
 
   get aiScanTone(): 'ok' | 'warning' | 'error' {

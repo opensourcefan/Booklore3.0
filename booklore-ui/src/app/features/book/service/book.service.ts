@@ -403,4 +403,13 @@ export class BookService {
   handleMultipleBookCoverPatches(patches: { id: number; coverUpdatedOn: string }[]): void {
     this.bookSocketService.handleMultipleBookCoverPatches(patches);
   }
+
+  clearAiPanelDataFromState(): void {
+    const currentState = this.bookStateService.getCurrentBookState();
+    const updatedBooks = (currentState.books || []).map(book => ({
+      ...book,
+      hasAiPanelData: false
+    }));
+    this.bookStateService.updateBookState({ ...currentState, books: updatedBooks });
+  }
 }

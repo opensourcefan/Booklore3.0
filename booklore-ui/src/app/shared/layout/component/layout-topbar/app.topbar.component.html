@@ -45,6 +45,11 @@
         <span class="topbar-ai-label">{{ t('aiScan') }}</span>
         <span class="topbar-ai-summary">{{ aiScanSummary }}</span>
       </button>
+      @if (isActivelyScanning) {
+        <button type="button" class="topbar-ai-stop" (click)="stopAiScan()" [title]="t('stopScan')">
+          <i class="pi pi-stop-circle"></i>
+        </button>
+      }
     }
     <ul class="topbar-items topbar-desktop-items">
       @for (item of visibleDesktopToolbarItems; track item.id) {

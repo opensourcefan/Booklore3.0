@@ -42,6 +42,10 @@
   "cleanup": {
     "title": "Generated Data Cleanup",
     "description": "Delete all saved AI panel-flow records for your user account.",
-    "action": "Delete Saved AI Data"
+    "action": "Delete Saved AI Data",
+    "confirmTitle": "Confirm Delete",
+    "confirmMessage": "This will permanently delete all saved AI panel-flow records for your account. This action cannot be undone.",
+    "confirmAction": "Yes, Delete",
+    "confirmCancel": "Cancel"
   }
 }

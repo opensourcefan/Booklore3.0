@@ -19,7 +19,8 @@
     "aiScan": "AI Scan",
     "aiScanProgress": "{{ completed }}/{{ total }} comics",
     "aiScanCompleted": "Completed",
-    "aiScanFailed": "Failed"
+    "aiScanFailed": "Failed",
+    "stopScan": "Stop Scan"
   },
   "menu": {
     "home": "Home",
