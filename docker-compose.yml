@@ -1,5 +1,10 @@
 services:
   booklore:
+    # M6 NOTE: image:latest is mutable — the same tag may resolve to a different image
+    # after 'docker compose pull'.  For reproducible deployments pin to a specific
+    # semantic-version tag or SHA digest, e.g.:
+    #   image: ghcr.io/opensourcefan/booklore3:3.2.1
+    #   image: ghcr.io/opensourcefan/booklore3@sha256:<digest>
     image: ghcr.io/opensourcefan/booklore3:latest
     container_name: booklore
     environment:
@@ -12,6 +17,13 @@ services:
       - DISK_TYPE=${DISK_TYPE}
       - TELEMETRY_ENABLED=false
       - AI_SERVICE_BASE_URL=${AI_SERVICE_BASE_URL:-http://booklore-ai-panel:8080}
+      # CORS / Cross-origin access:
+      # Leave ALLOWED_ORIGINS unset (default) for same-origin deployments (most common).
+      # Set to your frontend URL only when the UI is served from a different origin:
+      #   ALLOWED_ORIGINS=https://books.example.com
+      # WARNING: ALLOWED_ORIGINS=* is insecure — it allows any website to make
+      # credentialed cross-origin requests to the API while a user session is active.
+      # - ALLOWED_ORIGINS=
     depends_on:
       mariadb:
         condition: service_healthy

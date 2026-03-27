@@ -2,7 +2,7 @@ import {HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequ
 import {inject} from '@angular/core';
 import {Router} from '@angular/router';
 import {catchError, filter, switchMap, take} from 'rxjs/operators';
-import {BehaviorSubject, Observable, throwError} from 'rxjs';
+import {Observable, throwError} from 'rxjs';
 import {AuthService} from '../../shared/service/auth.service';
 import {API_CONFIG} from '../config/api-config';
 
@@ -25,35 +25,36 @@ export const AuthInterceptorService: HttpInterceptorFn = (req, next: HttpHandler
   );
 };
 
-let isRefreshing = false;
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+// isRefreshing and refreshTokenSubject have been moved to AuthService to make
+// them injectable instance state rather than module-level mutable globals.
+// This prevents test pollution and makes the state lifecycle explicit (L3 fix).
 
 function handle401Error(authService: AuthService, request: HttpRequest<unknown>, next: HttpHandlerFn, router: Router): Observable<HttpEvent<unknown>> {
-  if (!isRefreshing) {
-    isRefreshing = true;
-    refreshTokenSubject.next(null);
+  if (!authService.isRefreshing) {
+    authService.isRefreshing = true;
+    authService.refreshTokenSubject.next(null);
 
     return authService.internalRefreshToken().pipe(
       switchMap(response => {
-        isRefreshing = false;
+        authService.isRefreshing = false;
         const { accessToken, refreshToken } = response;
         if (accessToken && refreshToken) {
           authService.saveInternalTokens(accessToken, refreshToken);
-          refreshTokenSubject.next(accessToken);
+          authService.refreshTokenSubject.next(accessToken);
         }
         return next(request.clone({
           setHeaders: { Authorization: `Bearer ${accessToken}` }
         }));
       }),
       catchError(err => {
-        isRefreshing = false;
+        authService.isRefreshing = false;
         forceLogout(authService, router);
         return throwError(() => err);
       })
     );
   }
 
-  return refreshTokenSubject.pipe(
+  return authService.refreshTokenSubject.pipe(
     filter(token => token !== null),
     take(1),
     switchMap(token =>

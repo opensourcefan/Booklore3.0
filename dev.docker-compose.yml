@@ -1,9 +1,13 @@
 services:
   backend:
-    image: gradle:9.3.1-jdk25-alpine
+    image: gradle:9.4.1-jdk25-alpine
     command: sh -c "cd /booklore-api && ./gradlew bootRun"
     ports:
       - "${BACKEND_PORT:-6060}:6060"
+      # SECURITY (L2): JDWP remote debugger is bound to 127.0.0.1 (loopback only).
+      # DO NOT change this to 0.0.0.0 — JDWP allows unauthenticated remote code execution.
+      # This file is FOR LOCAL DEVELOPMENT ONLY and must never be used in production or
+      # in any internet-facing / shared network environment.
       - "127.0.0.1:${REMOTE_DEBUG_PORT:-5005}:5005"
     environment:
       - DATABASE_URL=jdbc:mariadb://backend_db:3306/booklore

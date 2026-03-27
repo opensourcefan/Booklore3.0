@@ -34,17 +34,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        String allowedOrigins = env.getProperty("app.cors.allowed-origins", "*").trim();
+        String allowedOriginsStr = env.getProperty("app.cors.allowed-origins", "").trim();
         var endpoint = registry.addEndpoint("/ws");
-        if ("*".equals(allowedOrigins)) {
+        if ("*".equals(allowedOriginsStr)) {
             endpoint.setAllowedOriginPatterns("*");
-            log.warn("WebSocket endpoint is configured to allow all origins (*). " +
-                    "This is the default for backward compatibility, but it's recommended to set 'app.cors.allowed-origins' to an explicit list.");
-        } else if (allowedOrigins.isEmpty()) {
-            // No explicit origins configured: enforce same-origin check (Spring WebSocket default)
-            log.info("WebSocket endpoint registered at /ws (same-origin only)");
+            log.error(
+                "WebSocket CSWSH: ALLOWED_ORIGINS=* allows cross-site WebSocket hijacking. " +
+                "Set ALLOWED_ORIGINS to your explicit frontend origin (e.g. https://books.example.com)."
+            );
+        } else if (allowedOriginsStr.isEmpty()) {
+            // No explicit origins configured: enforce same-origin check (Spring WebSocket default).
+            log.info("WebSocket endpoint registered at /ws (same-origin only — secure default).");
         } else {
-            String[] origins = Arrays.stream(allowedOrigins.split("\\s*,\\s*"))
+            String[] origins = Arrays.stream(allowedOriginsStr.split("\\s*,\\s*"))
                     .filter(s -> !s.isEmpty())
                     .toArray(String[]::new);
             endpoint.setAllowedOriginPatterns(origins);

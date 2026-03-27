@@ -10,6 +10,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,6 +31,24 @@ public class KepubConversionService {
     private static final String BIN_LINUX_X86 = "kepubify-linux-32bit";
     private static final String BIN_LINUX_ARM = "kepubify-linux-arm";
     private static final String BIN_LINUX_ARM64 = "kepubify-linux-arm64";
+
+    /**
+     * Known SHA-256 digests for each kepubify binary variant (pgaskin/kepubify v4.0.4).
+     * These are verified against the upstream release assets and must be updated whenever
+     * the binaries in booklore-tools are upgraded to a new kepubify version.
+     *
+     * SECURITY (OWASP A08): Verifying the digest before executing the binary prevents
+     * supply-chain attacks where a DNS hijack, BGP hijack, or repository compromise could
+     * deliver a malicious executable in place of the real kepubify binary.
+     */
+    private static final Map<String, String> KNOWN_SHA256 = Map.of(
+        BIN_DARWIN_ARM64,  "6467d44439ee899113c7f710b509ef9e5ce65e8df711c85192b9ea5b683594b7",
+        BIN_DARWIN_X64,    "851afab0b83ecaf11f6965c901483eed3e74a6b41a3ab0a68f7321bc48bac4a3",
+        BIN_LINUX_X64,     "37d7628d26c5c906f607f24b36f781f306075e7073a6fe7820a751bb60431fc5",
+        BIN_LINUX_X86,     "3365a848ce06d43fca8f1999eb69c6c8e0e20a56b6b8658a8466b9726adef0f5",
+        BIN_LINUX_ARM,     "07f23275c4e674093443f01a591aa0980b0b87dbb0a10986d5001e9d56b0e1e7",
+        BIN_LINUX_ARM64,   "5a15b8f6f6a96216c69330601bca29638cfee50f7bf48712795cff88ae2d03a3"
+    );
 
     public File convertEpubToKepub(File epubFile, File tempDir, boolean forceEnableHyphenation) throws IOException, InterruptedException {
         validateInputs(epubFile);
@@ -56,13 +78,16 @@ public class KepubConversionService {
         if (!Files.exists(binaryPath)) {
             String downloadUrl = KEPUBIFY_GITHUB_BASE_URL + binaryName;
             log.info("Downloading kepubify binary '{}' from {}", binaryName, downloadUrl);
+            Path tempPath = toolsDir.resolve(binaryName + ".tmp");
             try (InputStream in = java.net.URI.create(downloadUrl).toURL().openStream()) {
-                Files.copy(in, binaryPath, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(in, tempPath, StandardCopyOption.REPLACE_EXISTING);
             }
+            verifyBinaryIntegrity(tempPath, binaryName);
+            Files.move(tempPath, binaryPath, StandardCopyOption.REPLACE_EXISTING);
             if (!binaryPath.toFile().setExecutable(true)) {
                 log.warn("Failed to set executable permission for '{}'", binaryPath.toAbsolutePath());
             }
-            log.info("Downloaded kepubify binary to {}", binaryPath.toAbsolutePath());
+            log.info("Downloaded and verified kepubify binary at {}", binaryPath.toAbsolutePath());
         } else {
             if (!binaryPath.toFile().setExecutable(true)) {
                 log.warn("Failed to set executable permission for '{}'", binaryPath.toAbsolutePath());
@@ -70,6 +95,36 @@ public class KepubConversionService {
             log.debug("Using existing kepubify binary at {}", binaryPath.toAbsolutePath());
         }
         return binaryPath;
+    }
+
+    /**
+     * Verifies the SHA-256 digest of the downloaded binary against the known-good value.
+     * Deletes the file and throws if the digest does not match (OWASP A08 – Software Integrity).
+     */
+    private void verifyBinaryIntegrity(Path filePath, String binaryName) throws IOException {
+        String expectedHex = KNOWN_SHA256.get(binaryName);
+        if (expectedHex == null) {
+            log.warn("No known SHA-256 digest for kepubify binary '{}' — skipping integrity check. " +
+                    "Please add the expected digest to KepubConversionService.KNOWN_SHA256.", binaryName);
+            return;
+        }
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] fileBytes = Files.readAllBytes(filePath);
+            byte[] digestBytes = md.digest(fileBytes);
+            String actualHex = HexFormat.of().formatHex(digestBytes);
+            if (!expectedHex.equalsIgnoreCase(actualHex)) {
+                Files.deleteIfExists(filePath);
+                throw new IOException(
+                    "kepubify binary integrity check FAILED for '" + binaryName + "'. " +
+                    "Expected SHA-256: " + expectedHex + " — Got: " + actualHex + ". " +
+                    "The downloaded binary has been deleted. This may indicate a supply-chain compromise."
+                );
+            }
+            log.info("kepubify binary '{}' passed SHA-256 integrity check.", binaryName);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException("SHA-256 algorithm not available for integrity check", e);
+        }
     }
 
     private String getKepubifyBinaryName() {

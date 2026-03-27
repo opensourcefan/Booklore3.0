@@ -2,8 +2,10 @@ package org.booklore.service.audit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
@@ -12,31 +14,60 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class GeoIpService {
 
-    private static final String GEO_API_URL = "http://ip-api.com/json/%s?fields=countryCode";
+    /**
+     * PRIVACY NOTE: GeoIP country-code lookup is disabled by default (app.geo-ip.enabled=false).
+     * When enabled, each unique visitor IP is sent to ip-api.com over HTTPS.
+     * Set GEO_IP_ENABLED=true in your environment only if you need country codes in the
+     * audit log and accept the associated privacy trade-off.
+     */
+
+    // HTTPS endpoint — prevents interception of user IPs and falsified country codes (OWASP A02).
+    private static final String GEO_API_URL = "https://ip-api.com/json/%s?fields=countryCode";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(2);
 
+    private final boolean geoIpEnabled;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final Map<String, String> cache = new ConcurrentHashMap<>();
 
+    /**
+     * Bounded Caffeine cache with TTL: max 5 000 entries (sufficient for typical self-hosted
+     * traffic) expiring after 24 hours.  Replaces the previous unbounded ConcurrentHashMap
+     * that grew without eviction (memory-leak risk under sustained traffic).
+     */
+    private final Cache<String, String> cache;
+
+    public GeoIpService(
+            @Value("${app.geo-ip.enabled:false}") boolean geoIpEnabled,
+            HttpClient httpClient) {
+        this.geoIpEnabled = geoIpEnabled;
+        this.httpClient = httpClient;
+        this.cache = Caffeine.newBuilder()
+                .maximumSize(5_000)
+                .expireAfterWrite(Duration.ofHours(24))
+                .build();
+        if (!geoIpEnabled) {
+            log.info("GeoIP country-code lookup is DISABLED (GEO_IP_ENABLED=false). " +
+                    "Country codes will not be recorded in the audit log.");
+        }
+    }
+
+    /**
+     * Resolves the country code for the given IP address.
+     * Returns {@code null} immediately when GeoIP is disabled (privacy default).
+     */
     public String resolveCountryCode(String ip) {
+        if (!geoIpEnabled) {
+            return null;
+        }
         if (ip == null || ip.isBlank() || isPrivateOrLocal(ip)) {
             return null;
         }
-        String result = cache.get(ip);
-        if (result == null) {
-            result = fetchCountryCode(ip);
-            cache.put(ip, result);
-        }
-        return result.isEmpty() ? null : result;
+        return cache.get(ip, this::fetchCountryCode);
     }
 
     private String fetchCountryCode(String ip) {
@@ -56,9 +87,9 @@ public class GeoIpService {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.debug("Interrupted while resolving country code for IP: {}", ip);
+            log.debug("Interrupted while resolving country code for IP");
         } catch (Exception e) {
-            log.debug("Failed to resolve country code for IP: {}", ip);
+            log.debug("Failed to resolve country code for IP");
         }
         return "";
     }

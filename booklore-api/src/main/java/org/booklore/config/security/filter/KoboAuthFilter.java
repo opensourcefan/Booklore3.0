@@ -53,7 +53,10 @@ public class KoboAuthFilter extends OncePerRequestFilter {
 
         var userTokenOpt = koboUserSettingsRepository.findByToken(token);
         if (userTokenOpt.isEmpty()) {
-            log.warn("Invalid KOBO token: {}", token);
+            // Log only a masked prefix — the full token is a long-lived credential and
+            // must not appear in logs (it would be readable in any log aggregator).
+            String masked = token.length() > 6 ? token.substring(0, 6) + "…[REDACTED]" : "[REDACTED]";
+            log.warn("Invalid KOBO token: {}", masked);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid KOBO token");
             return;
         }

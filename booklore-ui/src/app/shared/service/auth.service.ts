@@ -24,6 +24,15 @@ export class AuthService {
   public tokenSubject = new BehaviorSubject<string | null>(this.getInternalAccessToken());
   public token$ = this.tokenSubject.asObservable();
 
+  /**
+   * Token-refresh state used by the auth interceptor.
+   * Keeping these as injectable service instance fields (rather than module-level
+   * variables in the interceptor file) prevents test pollution and makes state
+   * ownership explicit (L3 — OWASP A07 code-quality fix).
+   */
+  public isRefreshing = false;
+  public readonly refreshTokenSubject = new BehaviorSubject<string | null>(null);
+
   internalLogin(credentials: { username: string; password: string }): Observable<{ accessToken: string; refreshToken: string, isDefaultPassword: string }> {
     return this.http.post<{ accessToken: string; refreshToken: string, isDefaultPassword: string }>(`${this.apiUrl}/login`, credentials).pipe(
       tap((response) => {

@@ -1,6 +1,8 @@
 package org.booklore.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.booklore.config.security.service.AuthRateLimitService;
 import org.booklore.exception.ErrorResponse;
 import org.booklore.model.dto.request.InitialUserRequest;
 import org.booklore.model.dto.response.SuccessResponse;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class SetupController {
 
     private final UserProvisioningService userProvisioningService;
+    private final AuthRateLimitService authRateLimitService;
 
     @Operation(summary = "Get setup status", description = "Check if initial setup has been completed.")
     @ApiResponse(responseCode = "200", description = "Setup status returned successfully")
@@ -36,11 +39,16 @@ public class SetupController {
     @ApiResponse(responseCode = "200", description = "Admin user created successfully")
     @PostMapping
     public ResponseEntity<?> setupFirstUser(
-            @Parameter(description = "Initial user request") @RequestBody @Valid InitialUserRequest request) {
+            HttpServletRequest request,
+            @Parameter(description = "Initial user request") @RequestBody @Valid InitialUserRequest initialUserRequest) {
+        // Rate-limit the setup endpoint to prevent brute-force admin account registration
+        // during the brief window before initial setup is completed (OWASP A07).
+        authRateLimitService.checkLoginRateLimit(request.getRemoteAddr());
         if (userProvisioningService.isInitialUserAlreadyProvisioned()) {
             return ResponseEntity.status(403).body(new ErrorResponse(403, "Setup is disabled after the first user is created."));
         }
-        userProvisioningService.provisionInitialUser(request);
+        userProvisioningService.provisionInitialUser(initialUserRequest);
+        authRateLimitService.resetLoginAttempts(request.getRemoteAddr());
         return ResponseEntity.ok(new SuccessResponse<>(200, "Admin user created successfully."));
     }
 }

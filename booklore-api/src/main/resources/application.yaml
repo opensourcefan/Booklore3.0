@@ -4,10 +4,15 @@ app:
   version: 'development'
 
   cors:
-    # Comma-separated list of allowed CORS origins.
-    # Leave empty (default) to allow same-origin requests only.
-    # Example: ALLOWED_ORIGINS=https://app.example.com,https://mobile.example.com
-    allowed-origins: ${ALLOWED_ORIGINS:*}
+    # Comma-separated list of allowed CORS origins for both HTTP and WebSocket endpoints.
+    # SECURITY: Leave unset or empty (default) to allow same-origin requests only.
+    # Setting ALLOWED_ORIGINS=* (wildcard) is INSECURE: it allows any website to make
+    # credentialed cross-origin requests to this API (CORS credential-exfiltration risk).
+    # For cross-origin / reverse-proxy deployments set this to your explicit frontend origin:
+    #   ALLOWED_ORIGINS=https://books.example.com
+    # Multiple origins (comma-separated):
+    #   ALLOWED_ORIGINS=https://books.example.com,https://mobile.example.com
+    allowed-origins: ${ALLOWED_ORIGINS:}
 
   remote-auth:
     enabled: ${REMOTE_AUTH_ENABLED:false}
@@ -18,6 +23,12 @@ app:
     header-groups: ${REMOTE_AUTH_HEADER_GROUPS:Remote-Groups}
     admin-group: ${REMOTE_AUTH_ADMIN_GROUP}
     groups-delimiter: ${REMOTE_AUTH_GROUPS_DELIMITER:\\s+}
+  geo-ip:
+    # PRIVACY: GeoIP country-code lookup is disabled by default. When enabled it sends
+    # each unique visitor IP address to ip-api.com (HTTPS). Enable only if you need
+    # country codes in the audit log and accept the associated privacy trade-off.
+    enabled: ${GEO_IP_ENABLED:false}
+
   force-disable-oidc: ${FORCE_DISABLE_OIDC:false}
   telemetry:
     base-url: ${TELEMETRY_BASE_URL:https://telemetry.booklore.org}

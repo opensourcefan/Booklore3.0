@@ -257,27 +257,47 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        String allowedOriginsStr = env.getProperty("app.cors.allowed-origins", "*").trim();
-        if ("*".equals(allowedOriginsStr) || allowedOriginsStr.isEmpty()) {
-            log.warn(
-                "CORS is configured to allow all origins (*) because 'app.cors.allowed-origins' is '{}'. " +
-                "This maintains backward compatibility, but it's recommended to set it to an explicit origin list.",
-                allowedOriginsStr.isEmpty() ? "empty" : "*"
+
+        String allowedOriginsStr = env.getProperty("app.cors.allowed-origins", "").trim();
+        boolean isWildcard = "*".equals(allowedOriginsStr);
+
+        if (isWildcard) {
+            // SECURITY ADVISORY: wildcard CORS origin with credentials enabled allows any
+            // website to make credentialed cross-origin requests to this API while a user
+            // session is active.  Set ALLOWED_ORIGINS to your explicit frontend origin
+            // (e.g. https://books.example.com) to eliminate this risk.
+            log.error(
+                "╔══════════════════════════════════════════════════════════════════╗\n" +
+                "║  SECURITY WARNING — INSECURE CORS CONFIGURATION                 ║\n" +
+                "║  ALLOWED_ORIGINS=* allows ALL origins to make credentialed       ║\n" +
+                "║  requests to this API (CORS credential-exfiltration risk).       ║\n" +
+                "║  Set ALLOWED_ORIGINS to your explicit frontend origin, e.g.:     ║\n" +
+                "║    ALLOWED_ORIGINS=https://books.example.com                     ║\n" +
+                "╚══════════════════════════════════════════════════════════════════╝"
             );
             configuration.setAllowedOriginPatterns(List.of("*"));
+            // Credentials MUST be false when using wildcard patterns to prevent
+            // cross-origin credential exfiltration (OWASP A05).
+            configuration.setAllowCredentials(false);
+        } else if (allowedOriginsStr.isEmpty()) {
+            // No cross-origin access — same-origin requests work without CORS headers.
+            // This is the secure default.
+            log.info("CORS: no cross-origin origins configured; same-origin requests only.");
+            configuration.setAllowedOrigins(List.of());
+            configuration.setAllowCredentials(false);
         } else {
             List<String> origins = Arrays.stream(ALLOWED.split(allowedOriginsStr))
                     .filter(s -> !s.isEmpty())
                     .map(String::trim)
                     .toList();
             configuration.setAllowedOriginPatterns(origins);
+            configuration.setAllowCredentials(true);
+            log.info("CORS: configured for origins: {}", origins);
         }
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "Range", "If-None-Match"));
         configuration.setExposedHeaders(List.of("Content-Disposition", "Accept-Ranges", "Content-Range", "Content-Length", "ETag", "Date"));
-        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -46,6 +46,13 @@ jobs:
           ./gradlew test --no-daemon --parallel --build-cache
         continue-on-error: true
 
+      - name: OWASP Dependency Check (Backend)
+        working-directory: ./booklore-api
+        run: |
+          echo "Running OWASP Dependency-Check..."
+          ./gradlew dependencyCheckAnalyze --no-daemon || true
+        continue-on-error: true
+
       - name: Publish Backend Test Results
         uses: EnricoMi/publish-unit-test-result-action@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2
         if: always()
@@ -97,7 +104,7 @@ jobs:
 
       - name: Audit Frontend Dependencies
         working-directory: ./booklore-ui
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --omit=dev --audit-level=moderate
 
       - name: Validate Dependency Tree
         working-directory: ./booklore-ui
@@ -182,7 +189,7 @@ jobs:
 
       - name: Audit Frontend Dependencies
         working-directory: ./booklore-ui
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --omit=dev --audit-level=moderate
 
       - name: Validate Dependency Tree
         working-directory: ./booklore-ui

@@ -13,7 +13,7 @@ COPY ./booklore-ui /angular-app/
 RUN npm run build --configuration=production
 
 # Stage 2: Build the Spring Boot app with Gradle
-FROM gradle:9.3.1-jdk25-alpine AS springboot-build
+FROM gradle:9.4.1-jdk25-alpine AS springboot-build
 
 WORKDIR /springboot-app
 
@@ -69,6 +69,11 @@ COPY --from=springboot-build /springboot-app/build/libs/booklore-api-0.0.1-SNAPS
 
 ARG BOOKLORE_PORT=6060
 EXPOSE ${BOOKLORE_PORT}
+
+# Health check for container orchestration (Docker Compose, K8s readiness probes, etc.)
+# The /api/v1/healthcheck endpoint is unauthenticated and returns 200 when the app is ready.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD wget -qO- http://localhost:${BOOKLORE_PORT}/api/v1/healthcheck || exit 1
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["java", "-jar", "/app/app.jar"]

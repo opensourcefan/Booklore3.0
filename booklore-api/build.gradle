@@ -5,6 +5,9 @@ plugins {
     id 'org.hibernate.orm' version '7.3.0.Final'
     id 'com.github.ben-manes.versions' version '0.53.0'
     id 'jacoco'
+    // OWASP Dependency-Check: scans Gradle dependencies for known CVEs (C2 / OWASP A06).
+    // Run with: ./gradlew dependencyCheckAnalyze
+    id 'org.owasp.dependencycheck' version '12.1.1'
 }
 
 group = 'org.booklore'
@@ -26,6 +29,17 @@ compileTestJava {
 
 tasks.withType(JavaCompile) {
     options.compilerArgs += ['--enable-preview']
+}
+
+// OWASP Dependency-Check configuration
+dependencyCheck {
+    // Fail the build when a CVSS score >= 9.0 (critical) is found.
+    // Review the HTML report at build/reports/dependency-check-report.html.
+    failBuildOnCVSS = 9.0
+    suppressionFile = file("${rootDir}/dependency-check-suppressions.xml").exists()
+            ? "${rootDir}/dependency-check-suppressions.xml"
+            : null
+    format = 'HTML'
 }
 
 repositories {

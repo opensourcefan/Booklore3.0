@@ -11,11 +11,21 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Slf4j
 @Component
 @Profile({"dev"})
 public class LoggingFilter extends OncePerRequestFilter {
+
+    /**
+     * Headers that carry credentials or tokens and must never be logged in plaintext.
+     * Logging full bearer tokens exposes long-lived session secrets to any log aggregator
+     * (OWASP A09 – Security Logging and Monitoring Failures).
+     */
+    private static final Set<String> SENSITIVE_HEADERS = Set.of(
+            "authorization", "cookie", "set-cookie", "x-auth-token", "x-api-key", "proxy-authorization"
+    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -42,7 +52,9 @@ public class LoggingFilter extends OncePerRequestFilter {
         if (headerNames != null) {
             while (headerNames.hasMoreElements()) {
                 String headerName = headerNames.nextElement();
-                String headerValue = request.getHeader(headerName);
+                String headerValue = SENSITIVE_HEADERS.contains(headerName.toLowerCase())
+                        ? "[REDACTED]"
+                        : request.getHeader(headerName);
                 log.info("Header: {}={}", headerName, headerValue);
             }
         }

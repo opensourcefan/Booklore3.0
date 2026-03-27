@@ -15,6 +15,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class AuthRateLimitService {
 
+    /**
+     * In-memory rate limiting using Caffeine cache.
+     *
+     * <p><strong>Limitation (OWASP A07):</strong> Rate-limit counters are held in JVM heap
+     * memory only.  This means:
+     * <ul>
+     *   <li>Counters are <em>reset on every application restart</em>.  An attacker who can
+     *       trigger a restart (e.g. via a health-check probe on a non-HA deployment) can
+     *       bypass the limit.</li>
+     *   <li>In a <em>horizontally-scaled (multi-instance) deployment</em> each instance
+     *       maintains independent counters, so an attacker can spread 5 × N attempts across
+     *       N instances without being blocked.</li>
+     * </ul>
+     * For single-node self-hosted deployments this is an acceptable trade-off.  For HA
+     * deployments consider replacing this with a distributed store
+     * (e.g. Redis via Bucket4j or Spring's RedisCacheManager).
+     */
     private static final int MAX_ATTEMPTS = 5;
 
     private final Cache<String, AtomicInteger> attemptCache;

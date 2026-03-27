@@ -9,12 +9,31 @@ export class LoadingService {
   show(message: string = 'Loading...'): HTMLElement {
     const loader = document.createElement('div');
     loader.className = 'fullscreen-loader';
-    loader.innerHTML = `
-      <div class="loader-content">
-        <i class="pi pi-spin pi-spinner" style="font-size: 3rem; color: var(--primary-color);"></i>
-        <p style="margin-top: 1rem; color: var(--text-color);">${message}</p>
-      </div>
+
+    // Build the loader DOM structure without innerHTML to avoid XSS (OWASP A03).
+    // The message is inserted via textContent so no HTML escaping is required and
+    // no user-controlled or server-sourced content can be interpreted as markup.
+    const icon = document.createElement('i');
+    icon.className = 'pi pi-spin pi-spinner';
+    icon.style.cssText = 'font-size: 3rem; color: var(--primary-color);';
+
+    const msgEl = document.createElement('p');
+    msgEl.style.cssText = 'margin-top: 1rem; color: var(--text-color);';
+    msgEl.textContent = message;
+
+    const content = document.createElement('div');
+    content.className = 'loader-content';
+    content.appendChild(icon);
+    content.appendChild(msgEl);
+    content.style.cssText = `
+      text-align: center;
+      background: var(--surface-card);
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     `;
+    loader.appendChild(content);
+
     loader.style.cssText = `
       position: fixed;
       top: 0;
@@ -28,17 +47,6 @@ export class LoadingService {
       z-index: 9999;
       backdrop-filter: blur(4px);
     `;
-
-    const content = loader.querySelector('.loader-content') as HTMLElement;
-    if (content) {
-      content.style.cssText = `
-        text-align: center;
-        background: var(--surface-card);
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-      `;
-    }
 
     document.body.appendChild(loader);
     document.body.style.cursor = 'wait';

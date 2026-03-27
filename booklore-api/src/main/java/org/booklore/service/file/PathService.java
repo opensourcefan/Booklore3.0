@@ -18,15 +18,50 @@ import java.util.stream.Stream;
 @Service
 public class PathService {
 
-    private static final Set<String> BLOCKED_PATHS = Set.of(
-            "/proc", "/sys", "/dev", "/run", "/var/run"
+    /**
+     * Comprehensive denylist of sensitive OS paths.
+     * The admin file-browser is an allowable feature, but it must not expose sensitive
+     * host paths. Any path that equals or starts with one of these prefixes is blocked.
+     *
+     * NOTE: This denylist is defense-in-depth. In Docker deployments the container
+     * boundary provides the primary isolation; on bare-metal deployments this list
+     * prevents browsing credential/config files.
+     */
+    private static final Set<String> BLOCKED_PATH_PREFIXES = Set.of(
+            "/proc",     // kernel process info
+            "/sys",      // kernel/device sysfs
+            "/dev",      // device files (RCE risk via /dev/mem, /dev/kmem etc.)
+            "/run",      // runtime sockets/PIDs
+            "/var/run",  // legacy runtime sockets
+            "/etc",      // system config and credentials (passwd, shadow, ssl keys …)
+            "/root",     // root home directory
+            "/home",     // user home directories
+            "/tmp",      // world-writable temporary files
+            "/var/lib",  // database volumes, package manager state …
+            "/var/log",  // application and system logs
+            "/boot",     // boot loader and kernel images
+            "/lost+found"
     );
 
     public List<String> getFoldersAtPath(String path) {
-        Path directory = Paths.get(path).toAbsolutePath().normalize();
+        Path requested = Paths.get(path).toAbsolutePath().normalize();
+
+        // Resolve symlinks before applying the denylist so symbolic links cannot be
+        // used to bypass the check by pointing into a blocked directory.
+        Path resolved;
+        try {
+            resolved = requested.toRealPath();
+        } catch (IOException e) {
+            // Path doesn't exist yet (user is navigating to a mount point that is
+            // not yet populated) – fall back to the normalised but unresolved path.
+            resolved = requested;
+        }
+        final Path directory = resolved;
+
         String normalized = directory.toString();
 
-        if (BLOCKED_PATHS.stream().anyMatch(blocked -> normalized.equals(blocked) || normalized.startsWith(blocked + "/"))) {
+        if (BLOCKED_PATH_PREFIXES.stream()
+                .anyMatch(blocked -> normalized.equals(blocked) || normalized.startsWith(blocked + "/"))) {
             log.warn("Blocked path browsing attempt to restricted directory: {}", normalized);
             throw ApiError.GENERIC_BAD_REQUEST.createException("Access to this directory is not allowed");
         }
