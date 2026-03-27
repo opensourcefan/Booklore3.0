@@ -52,7 +52,7 @@ jobs:
 
       - name: Restore OWASP NVD Cache
         id: owasp-cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: ~/.gradle/dependency-check-data
           key: owasp-nvd-${{ runner.os }}-${{ steps.owasp-key.outputs.key }}
