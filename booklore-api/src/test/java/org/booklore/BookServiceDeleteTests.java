@@ -51,6 +51,7 @@ class BookServiceDeleteTests {
         AuthenticationService authenticationService = Mockito.mock(AuthenticationService.class);
         BookQueryService bookQueryService = Mockito.mock(BookQueryService.class);
         ReadingProgressService readingProgressService = Mockito.mock(ReadingProgressService.class);
+        ComicPanelFlowRepository comicPanelFlowRepository = Mockito.mock(ComicPanelFlowRepository.class);
         BookDownloadService bookDownloadService = Mockito.mock(BookDownloadService.class);
         MonitoringRegistrationService monitoringRegistrationService = Mockito.mock(MonitoringRegistrationService.class);
         BookUpdateService bookUpdateService = Mockito.mock(BookUpdateService.class);
@@ -70,6 +71,7 @@ class BookServiceDeleteTests {
                 authenticationService,
                 bookQueryService,
                 readingProgressService,
+                comicPanelFlowRepository,
                 bookDownloadService,
                 monitoringRegistrationService,
                 bookUpdateService,

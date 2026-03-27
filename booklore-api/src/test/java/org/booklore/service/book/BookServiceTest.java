@@ -65,6 +65,8 @@ class BookServiceTest {
     @Mock
     private ReadingProgressService readingProgressService;
     @Mock
+    private ComicPanelFlowRepository comicPanelFlowRepository;
+    @Mock
     private BookDownloadService bookDownloadService;
     @Mock
     private MonitoringRegistrationService monitoringRegistrationService;
@@ -87,6 +89,9 @@ class BookServiceTest {
                 .permissions(perms)
                 .assignedLibraries(List.of())
                 .isDefaultPassword(false).build();
+
+        lenient().when(comicPanelFlowRepository.findScannedBookIdsByUserIdAndBookIdIn(anyLong(), anyCollection()))
+            .thenReturn(List.of());
     }
 
     @Test
