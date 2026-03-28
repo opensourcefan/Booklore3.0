@@ -129,8 +129,9 @@ export class GlobalPreferencesComponent implements OnInit {
   }
 
   exportSettings(): void {
-    this.appSettingsService.exportSettings().subscribe(() => {
-      this.showMessage('success', this.t.translate('settingsApp.transfer.exportSuccess'), this.t.translate('settingsApp.transfer.exportSuccessDetail'));
+    this.appSettingsService.exportSettings().subscribe({
+      next: () => this.showMessage('success', this.t.translate('settingsApp.transfer.exportSuccess'), this.t.translate('settingsApp.transfer.exportSuccessDetail')),
+      error: () => this.showMessage('error', this.t.translate('common.error'), this.t.translate('settingsApp.transfer.exportError'))
     });
   }
 
@@ -160,8 +161,9 @@ export class GlobalPreferencesComponent implements OnInit {
         rejectLabel: this.t.translate('common.no'),
         rejectButtonStyleClass: 'p-button-text',
         accept: () => {
-          this.appSettingsService.importSettings(payload).subscribe(() => {
-            this.showMessage('success', this.t.translate('settingsApp.transfer.importSuccess'), this.t.translate('settingsApp.transfer.importSuccessDetail'));
+          this.appSettingsService.importSettings(payload).subscribe({
+            next: () => this.showMessage('success', this.t.translate('settingsApp.transfer.importSuccess'), this.t.translate('settingsApp.transfer.importSuccessDetail')),
+            error: () => this.showMessage('error', this.t.translate('common.error'), this.t.translate('settingsApp.transfer.importError'))
           });
         }
       });

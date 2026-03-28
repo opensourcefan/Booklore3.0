@@ -179,6 +179,46 @@ networks:
 
 ---
 
+## Saving Your Data
+
+Booklore stores your data in two places. Back up both to ensure a complete recovery.
+
+### Application Settings
+
+Your admin configuration (libraries, users, shelves, metadata settings, etc.) lives in the MariaDB database.
+
+**Export via the UI** — Go to **Settings → Global Preferences → Settings Transfer** and click **Export**. This downloads a `booklore-settings-*.json` file you can re-import on the same or a new instance.
+
+**Full database backup (recommended for complete protection)** — Exports everything including all book metadata, read progress, and shelf assignments:
+
+```bash
+# Load your .env variables, then run:
+docker exec mariadb mariadb-dump \
+  --single-transaction --quick --no-tablespaces \
+  -u root -p"$MYSQL_ROOT_PASSWORD" \
+  booklore > "booklore_backup_$(date +%Y%m%d_%H%M%S).sql"
+```
+
+> See [docs/mariadb-backup-restore.html](docs/mariadb-backup-restore.html) for the full backup, restore, and automation guide.
+
+### Book Files and Covers
+
+Your actual book files, cover images, and thumbnails are **not** stored in the database. Back them up separately:
+
+| Directory | Contents |
+|---|---|
+| `./books/` | All book files |
+| `./data/` | Cover images, thumbnails, author images, AI model |
+| `./bookdrop/` | Bookdrop inbox (if in use) |
+
+A simple full backup copies all three:
+
+```bash
+tar -czf booklore-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
+```
+
+---
+
 ## AI Panel Detection — Quick Start
 
 1. Add `COMPOSE_PROFILES=ai` to your `.env`

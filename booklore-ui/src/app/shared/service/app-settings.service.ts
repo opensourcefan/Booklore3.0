@@ -137,7 +137,7 @@ export class AppSettingsService {
       }),
       catchError(err => {
         console.error('Error exporting settings:', err);
-        return of(void 0);
+        throw err;
       })
     );
   }
@@ -148,7 +148,7 @@ export class AppSettingsService {
       map(() => void 0),
       catchError(err => {
         console.error('Error importing settings:', err);
-        return of(void 0);
+        throw err;
       })
     );
   }

@@ -46,6 +46,9 @@ public class AppSettingController {
     @PutMapping
     public void updateSettings(@Parameter(description = "List of settings to update") @RequestBody List<SettingRequest> settingRequests) throws JacksonException {
         for (SettingRequest settingRequest : settingRequests) {
+            if (settingRequest == null || settingRequest.getName() == null || settingRequest.getName().isBlank()) {
+                continue;
+            }
             AppSettingKey key = AppSettingKey.valueOf(settingRequest.getName());
             appSettingService.updateSetting(key, settingRequest.getValue());
         }

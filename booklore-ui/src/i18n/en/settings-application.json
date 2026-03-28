@@ -57,7 +57,11 @@
     "importInvalid": "Invalid Settings File",
     "importInvalidDetail": "The selected file is not a valid settings export.",
         "importConfirmHeader": "Confirm Import",
-        "importConfirmMessage": "Importing will overwrite matching application settings. Continue?"
+        "importConfirmMessage": "Importing will overwrite matching application settings. Continue?",
+    "exportError": "Export Failed",
+    "exportErrorDetail": "There was an error exporting the settings.",
+    "importError": "Import Failed",
+    "importErrorDetail": "There was an error importing the settings."
   },
   "telemetry": {
     "sectionTitle": "Telemetry",
