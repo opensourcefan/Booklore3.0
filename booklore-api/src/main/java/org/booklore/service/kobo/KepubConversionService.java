@@ -14,6 +14,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,6 +26,9 @@ public class KepubConversionService {
     private FileService fileService;
 
     private static final String KEPUBIFY_GITHUB_BASE_URL = "https://github.com/booklore-app/booklore-tools/raw/main/kepubify/";
+
+    /** Maximum time kepubify is allowed to run before the process is killed. */
+    private static final long KEPUBIFY_TIMEOUT_MINUTES = 10;
 
     private static final String BIN_DARWIN_ARM64 = "kepubify-darwin-arm64";
     private static final String BIN_DARWIN_X64 = "kepubify-darwin-64bit";
@@ -167,10 +172,27 @@ public class KepubConversionService {
 
         Process process = pb.start();
 
-        String output = readProcessOutput(process.getInputStream());
-        String error = readProcessOutput(process.getErrorStream());
+        // Drain stdout and stderr concurrently to prevent pipe-buffer deadlock
+        CompletableFuture<String> outputFuture = CompletableFuture.supplyAsync(
+                () -> readProcessOutput(process.getInputStream()));
+        CompletableFuture<String> errorFuture = CompletableFuture.supplyAsync(
+                () -> readProcessOutput(process.getErrorStream()));
 
-        int exitCode = process.waitFor();
+        try {
+            if (!process.waitFor(KEPUBIFY_TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
+                process.destroyForcibly();
+                throw new IOException("Kepubify conversion timed out after " + KEPUBIFY_TIMEOUT_MINUTES
+                        + " minutes for: " + epubFile.getName());
+            }
+        } catch (InterruptedException e) {
+            process.destroyForcibly();
+            Thread.currentThread().interrupt();
+            throw new IOException("Kepubify conversion interrupted for: " + epubFile.getName(), e);
+        }
+
+        int exitCode = process.exitValue();
+        String output = outputFuture.getNow("");
+        String error  = errorFuture.getNow("");
         logProcessResults(exitCode, output, error);
 
         if (exitCode != 0) {

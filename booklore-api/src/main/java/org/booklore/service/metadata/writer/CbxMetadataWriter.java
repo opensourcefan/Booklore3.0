@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -48,6 +49,12 @@ import java.util.zip.ZipOutputStream;
 public class CbxMetadataWriter implements MetadataWriter {
 
     private static final Pattern VALID_FILENAME_PATTERN = Pattern.compile("^[\\w./\\\\-]+$");
+
+    /** Timeout for the rar repack process (seconds). */
+    private static final int RAR_PROCESS_TIMEOUT_SECONDS = 120;
+
+    /** Timeout for the rar binary availability check (seconds). */
+    private static final int RAR_CHECK_TIMEOUT_SECONDS = 5;
     private static final int BUFFER_SIZE = 8192;
 
     // Cache JAXBContext for performance
@@ -592,8 +599,26 @@ public class CbxMetadataWriter implements MetadataWriter {
         String safeCommand = isExecutableSafe(rarCommand) ? rarCommand : "rar";
         ProcessBuilder processBuilder = new ProcessBuilder(safeCommand, "a", "-idq", "-ep1", "-ma5", targetRar.toString(), ".");
         processBuilder.directory(extractDir.toFile());
+        processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
-        int exitCode = process.waitFor();
+        // Drain stdout/stderr so the process is never blocked on a full pipe buffer
+        try (InputStream ignored = process.getInputStream()) {
+            ignored.transferTo(OutputStream.nullOutputStream());
+        }
+        int exitCode;
+        try {
+            if (!process.waitFor(RAR_PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                log.warn("RAR process timed out after {} s for {}. Falling back to CBZ conversion.",
+                        RAR_PROCESS_TIMEOUT_SECONDS, originalRar.getName());
+                return convertRarToZipArchive(originalRar, xmlContent);
+            }
+            exitCode = process.exitValue();
+        } catch (InterruptedException e) {
+            process.destroyForcibly();
+            Thread.currentThread().interrupt();
+            throw new IOException("RAR process interrupted for: " + originalRar.getName(), e);
+        }
 
         if (exitCode == 0) {
             return null;
@@ -838,8 +863,16 @@ public class CbxMetadataWriter implements MetadataWriter {
         try {
             String safeCommand = isExecutableSafe(rarCommand) ? rarCommand : "rar";
             Process check = new ProcessBuilder(safeCommand, "--help").redirectErrorStream(true).start();
-            int exitCode = check.waitFor();
-            return (exitCode == 0);
+            // Drain output so the process never blocks on a full pipe buffer
+            try (InputStream ignored = check.getInputStream()) {
+                ignored.transferTo(OutputStream.nullOutputStream());
+            }
+            if (!check.waitFor(RAR_CHECK_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                check.destroyForcibly();
+                log.warn("RAR availability check timed out after {} s — treating rar as unavailable.", RAR_CHECK_TIMEOUT_SECONDS);
+                return false;
+            }
+            return (check.exitValue() == 0);
         } catch (Exception ex) {
             log.warn("RAR binary check failed: {}", ex.getMessage());
             return false;
