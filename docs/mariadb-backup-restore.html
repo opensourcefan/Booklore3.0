@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booklore — MariaDB Backup &amp; Restore Guide</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #6c8ef5;
+      --accent2: #8ab4f8;
+      --text: #d8dce8;
+      --muted: #707898;
+      --green: #4ade80;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --tip-bg: #0d2a1a;
+      --tip-border: #2a6b44;
+      --warn-bg: #2a1f0d;
+      --warn-border: #7a5c1e;
+      --danger-bg: #2a0d0d;
+      --danger-border: #7a2020;
+      --code-bg: #12151f;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    .page-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 28px;
+      margin-bottom: 36px;
+    }
+    .page-header .badge {
+      display: inline-block;
+      background: var(--surface2);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #f0f2ff;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* ── TOC ─────────────────────────────────────────────── */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 40px;
+    }
+    .toc-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .toc ol {
+      padding-left: 18px;
+    }
+    .toc li { margin-bottom: 4px; }
+    .toc a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .toc a:hover { text-decoration: underline; }
+
+    /* ── Sections ────────────────────────────────────────── */
+    section { margin-bottom: 52px; }
+
+    h2 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-top: 8px;
+      margin-bottom: 18px;
+      padding: 14px 18px;
+      background: linear-gradient(90deg, var(--surface2) 0%, transparent 100%);
+      border-left: 3px solid var(--accent);
+      border-bottom: none;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: 0.01em;
+    }
+    h2 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f1117;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #c8ccdf;
+      margin: 24px 0 10px;
+    }
+
+    p { margin-bottom: 12px; color: var(--text); }
+
+    /* ── Callouts ────────────────────────────────────────── */
+    .callout {
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+      display: flex;
+      gap: 12px;
+    }
+    .callout .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .callout.tip    { background: var(--tip-bg);    border: 1px solid var(--tip-border); }
+    .callout.warn   { background: var(--warn-bg);   border: 1px solid var(--warn-border); }
+    .callout.danger { background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .callout.info   { background: var(--surface);   border: 1px solid var(--border); }
+
+    .callout.tip .label    { color: var(--green); }
+    .callout.warn .label   { color: var(--yellow); }
+    .callout.danger .label { color: var(--red); }
+    .callout.info .label   { color: var(--accent2); }
+
+    .callout .label {
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    /* ── Code blocks ─────────────────────────────────────── */
+    .code-block {
+      position: relative;
+      margin: 14px 0;
+    }
+    .code-block pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 52px 16px 18px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace;
+      font-size: 13.5px;
+      line-height: 1.65;
+      white-space: pre;
+    }
+    .code-block code { color: #c9d1d9; }
+    .code-block code .hl  { color: #79c0ff; }   /* flags / keywords */
+    .code-block code .str { color: #a5d6ff; }   /* strings */
+    .code-block code .cmt { color: var(--muted); font-style: italic; }
+    .code-block code .var { color: #d2a8ff; }   /* env vars */
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 5px;
+      padding: 4px 9px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      user-select: none;
+    }
+    .copy-btn:hover { background: var(--border); color: var(--text); }
+    .copy-btn.copied { color: var(--green); border-color: var(--tip-border); }
+
+    /* ── Steps ───────────────────────────────────────────── */
+    .steps { padding-left: 0; list-style: none; counter-reset: step; }
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .steps li::before {
+      content: counter(step);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 26px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    /* ── Table ───────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+    th {
+      background: var(--surface2);
+      color: var(--muted);
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 13px;
+    }
+
+    /* ── Divider ─────────────────────────────────────────── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Header ──────────────────────────────────────────── -->
+  <header class="page-header">
+    <div class="badge">Booklore · Docker</div>
+    <h1>MariaDB Backup &amp; Restore</h1>
+    <p class="subtitle">Complete guide for exporting, importing, and automating Booklore database backups using Docker.</p>
+  </header>
+
+  <!-- ── TOC ─────────────────────────────────────────────── -->
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#s1">What is (and isn't) in the database</a></li>
+      <li><a href="#s2">Prerequisites</a></li>
+      <li><a href="#s3">Logical backup — recommended</a></li>
+      <li><a href="#s4">Physical / volume backup</a></li>
+      <li><a href="#s5">Restoring a backup</a></li>
+      <li><a href="#s6">Automating backups with cron</a></li>
+      <li><a href="#s7">Verifying a backup</a></li>
+      <li><a href="#s8">Important caveats</a></li>
+    </ol>
+  </nav>
+
+  <!-- ── Section 1: What's in the DB ─────────────────────── -->
+  <section id="s1">
+    <h2><span class="num">1</span> What is (and isn't) in the database</h2>
+    <p>Understanding the scope of a database backup avoids surprises during a restore.</p>
+
+    <table>
+      <thead>
+        <tr><th>Stored in the database ✓</th><th>NOT stored — lives on disk ✗</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Libraries and their paths</td>
+          <td>Actual book files (<code>./books/</code>)</td>
+        </tr>
+        <tr>
+          <td>All book metadata &amp; read progress</td>
+          <td>Cover images &amp; thumbnails (<code>./data/</code>)</td>
+        </tr>
+        <tr>
+          <td>Shelves and shelf assignments</td>
+          <td>AI model files (<code>./data/ai-models/</code>)</td>
+        </tr>
+        <tr>
+          <td>User accounts and preferences</td>
+          <td>Author images (<code>./data/author-images/</code>)</td>
+        </tr>
+        <tr>
+          <td>App settings (all admin config)</td>
+          <td>Bookdrop temp files (<code>./bookdrop/</code>)</td>
+        </tr>
+        <tr>
+          <td>Custom media types and categories</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <span class="icon">⚠</span>
+      <div><span class="label">Important</span>
+        A full Booklore backup requires <strong>both</strong> a database dump <strong>and</strong> a copy of your book files and <code>./data/</code> directory. The database backup alone will not recover your books.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 2: Prerequisites ─────────────────────────── -->
+  <section id="s2">
+    <h2><span class="num">2</span> Prerequisites</h2>
+    <ul style="padding-left:20px; margin-bottom:12px;">
+      <li style="margin-bottom:6px;">Docker is installed and the Booklore stack is deployed</li>
+      <li style="margin-bottom:6px;">Your shell is in the same directory as your <code>docker-compose.yml</code></li>
+      <li style="margin-bottom:6px;">The <code>.env</code> file is present with <code>MYSQL_ROOT_PASSWORD</code>, <code>DB_USER</code>, and <code>DB_PASSWORD</code> set</li>
+      <li style="margin-bottom:6px;">Sufficient disk space for the dump file (check with <code>df -h .</code>)</li>
+    </ul>
+
+    <p>All commands below use the root account for maximum reliability. Load your credentials into the current shell session first:</p>
+
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code><span class="cmt"># Load your .env variables into the current shell</span>
+<span class="hl">export</span> $(grep -v '^#' .env | xargs)</code></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">ℹ</span>
+      <div><span class="label">Note</span>
+        The <code>mariadb-dump</code> command (not <code>mysqldump</code>) is used here because the linuxserver.io MariaDB image ships <code>mariadb-dump</code> as the canonical tool name. On older images the alias <code>mysqldump</code> also works, but <code>mariadb-dump</code> is preferred.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 3: Logical backup ───────────────────────── -->
+  <section id="s3">
+    <h2><span class="num">3</span> Logical backup — recommended</h2>
+    <p>
+      A logical backup exports the database as a SQL text file using <code>mariadb-dump</code>.
+      It is portable, human-readable, and works with any compatible MariaDB version.
+      The Booklore database is typically small (a few MB), so this is fast and easy to manage.
+    </p>
+
+    <h3>Basic dump</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>docker exec mariadb mariadb-dump \
+  <span class="hl">--single-transaction</span> \
+  <span class="hl">--quick</span> \
+  <span class="hl">--no-tablespaces</span> \
+  -u root -p"<span class="var">$MYSQL_ROOT_PASSWORD</span>" \
+  booklore > booklore_backup.sql</code></pre>
+    </div>
+
+    <dl style="font-size:14px; margin-bottom:16px;">
+      <dt style="font-weight:600; color:var(--accent2); margin-bottom:2px;"><code>--single-transaction</code></dt>
+      <dd style="margin-left:16px; margin-bottom:8px; color:var(--muted);">Takes a consistent snapshot without locking tables (safe for InnoDB while the app is running).</dd>
+      <dt style="font-weight:600; color:var(--accent2); margin-bottom:2px;"><code>--quick</code></dt>
+      <dd style="margin-left:16px; margin-bottom:8px; color:var(--muted);">Streams rows directly to output instead of buffering them in memory — important for large tables.</dd>
+      <dt style="font-weight:600; color:var(--accent2); margin-bottom:2px;"><code>--no-tablespaces</code></dt>
+      <dd style="margin-left:16px; color:var(--muted);">Omits tablespace metadata that the Booklore DB user cannot re-import anyway.</dd>
+    </dl>
+
+    <h3>Timestamped backup (recommended for routines)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>docker exec mariadb mariadb-dump \
+  --single-transaction --quick --no-tablespaces \
+  -u root -p"<span class="var">$MYSQL_ROOT_PASSWORD</span>" \
+  booklore > "booklore_backup_$(date +%Y%m%d_%H%M%S).sql"</code></pre>
+    </div>
+
+    <h3>Compressed backup (saves disk space)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>docker exec mariadb mariadb-dump \
+  --single-transaction --quick --no-tablespaces \
+  -u root -p"<span class="var">$MYSQL_ROOT_PASSWORD</span>" \
+  booklore | gzip > "booklore_backup_$(date +%Y%m%d_%H%M%S).sql.gz"</code></pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">✓</span>
+      <div><span class="label">Best practice</span>
+        Store backup files outside your compose directory — e.g. <code>~/booklore-backups/</code> — so they are not accidentally overwritten by an update or <code>git pull</code>, and are easy to find during a disaster recovery.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 4: Physical backup ──────────────────────── -->
+  <section id="s4">
+    <h2><span class="num">4</span> Physical / volume backup</h2>
+    <p>
+      A physical backup copies the raw database files on disk. It is faster than a logical dump for very large databases, but
+      <strong>must be done while MariaDB is stopped</strong> to avoid corruption.
+    </p>
+
+    <ol class="steps">
+      <li>
+        <div>
+          <strong>Stop the entire Booklore stack</strong>
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>docker compose down</code></pre>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Copy the MariaDB config/data directory</strong>
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>cp -r ./mariadb/config "./mariadb_config_backup_$(date +%Y%m%d_%H%M%S)"</code></pre>
+          </div>
+          <p style="font-size:13px; color:var(--muted); margin-top:6px;">The linuxserver image stores all database files under <code>./mariadb/config/</code>. This command copies the entire directory.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Restart the stack</strong>
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>docker compose up -d</code></pre>
+          </div>
+        </div>
+      </li>
+    </ol>
+
+    <div class="callout warn">
+      <span class="icon">⚠</span>
+      <div><span class="label">Warning</span>
+        Copying volume files while MariaDB is running will produce an inconsistent backup that may not restore correctly. Always stop containers first.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 5: Restoring ─────────────────────────────── -->
+  <section id="s5">
+    <h2><span class="num">5</span> Restoring a backup</h2>
+
+    <h3>Restore from a logical dump (.sql)</h3>
+    <ol class="steps">
+      <li>
+        <div>
+          <strong>Stop the Booklore application container</strong> (keep MariaDB running)
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>docker compose stop booklore</code></pre>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Import the backup into the existing <code>booklore</code> schema</strong>
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>docker exec -i mariadb mariadb \
+  -u root -p"<span class="var">$MYSQL_ROOT_PASSWORD</span>" \
+  booklore < booklore_backup.sql</code></pre>
+          </div>
+          <p style="font-size:13px; color:var(--muted); margin-top:6px;">Replace <code>booklore_backup.sql</code> with the path to your actual dump file.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Restore from a compressed backup</strong> (if you used gzip)
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>gunzip -c booklore_backup.sql.gz | docker exec -i mariadb mariadb \
+  -u root -p"<span class="var">$MYSQL_ROOT_PASSWORD</span>" \
+  booklore</code></pre>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Restart the Booklore app</strong>
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>docker compose start booklore</code></pre>
+          </div>
+        </div>
+      </li>
+    </ol>
+
+    <div class="callout danger">
+      <span class="icon">✖</span>
+      <div><span class="label">Critical</span>
+        The Booklore DB user has <code>GRANT ALL ON booklore.*</code> — it <strong>cannot</strong> create a new database. You must always restore <em>into the existing</em> <code>booklore</code> schema (as shown above), not try to drop and recreate it with the app user.
+      </div>
+    </div>
+
+    <h3>Restore from a physical backup</h3>
+    <ol class="steps">
+      <li>
+        <div>
+          <strong>Stop the whole stack</strong>
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>docker compose down</code></pre>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Replace the data directory with your backup copy</strong>
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code><span class="cmt"># Replace with the name of your backup directory</span>
+rm -rf ./mariadb/config
+cp -r ./mariadb_config_backup_YYYYMMDD_HHMMSS ./mariadb/config</code></pre>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Restart the stack</strong>
+          <div class="code-block" style="margin-top:8px;">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre><code>docker compose up -d</code></pre>
+          </div>
+        </div>
+      </li>
+    </ol>
+
+    <h3>Restoring to a fresh install</h3>
+    <p>If you're moving to a new machine or starting from scratch:</p>
+    <ol class="steps">
+      <li><div>Deploy Booklore normally and let it initialize the database (<code>docker compose up -d</code>). Wait for the <code>booklore</code> container to become healthy.</div></li>
+      <li><div>Stop the app container: <div class="code-block" style="margin-top:8px;"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><code>docker compose stop booklore</code></pre></div></div></li>
+      <li><div>Import your backup: <div class="code-block" style="margin-top:8px;"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><code>docker exec -i mariadb mariadb \
+  -u root -p"<span class="var">$MYSQL_ROOT_PASSWORD</span>" \
+  booklore < booklore_backup.sql</code></pre></div></div></li>
+      <li><div>Restart the app: <div class="code-block" style="margin-top:8px;"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><code>docker compose start booklore</code></pre></div></div></li>
+      <li><div>Log in as admin and verify library paths. If paths changed between systems, update them in Settings → Libraries and trigger a rescan.</div></li>
+    </ol>
+  </section>
+
+  <!-- ── Section 6: Automating ─────────────────────────────── -->
+  <section id="s6">
+    <h2><span class="num">6</span> Automating backups with cron</h2>
+    <p>Run <code>crontab -e</code> and add an entry. The example below creates a nightly compressed backup at 2 AM and prunes files older than 30 days.</p>
+
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code><span class="cmt"># Booklore — nightly MariaDB backup (runs at 02:00 every day)</span>
+<span class="hl">0 2 * * *</span>  \
+  BACKUP_DIR=<span class="str">$HOME/booklore-backups</span> && \
+  COMPOSE_DIR=<span class="str">/path/to/your/compose/directory</span> && \
+  mkdir -p "$BACKUP_DIR" && \
+  source "$COMPOSE_DIR/.env" && \
+  docker exec mariadb mariadb-dump \
+    --single-transaction --quick --no-tablespaces \
+    -u root -p"$MYSQL_ROOT_PASSWORD" \
+    booklore | gzip > "$BACKUP_DIR/booklore_$(date +\%Y\%m\%d_\%H\%M\%S).sql.gz" && \
+  find "$BACKUP_DIR" -name 'booklore_*.sql.gz' -mtime +30 -delete</code></pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">✓</span>
+      <div><span class="label">Tip</span>
+        Replace <code>/path/to/your/compose/directory</code> with the absolute path to the directory containing your <code>docker-compose.yml</code> and <code>.env</code> files. Adjust the retention window (<code>-mtime +30</code>) as needed.
+      </div>
+    </div>
+
+    <h3>Optional: copy backups off-site</h3>
+    <p>Append a <code>rclone</code> or <code>rsync</code> call to push backups to a remote location after the dump:</p>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code><span class="cmt"># After the dump command, sync to a remote (requires rclone configured)</span>
+rclone copy "$BACKUP_DIR" remote:booklore-backups</code></pre>
+    </div>
+  </section>
+
+  <!-- ── Section 7: Verifying ──────────────────────────────── -->
+  <section id="s7">
+    <h2><span class="num">7</span> Verifying a backup</h2>
+
+    <h3>Check the file is non-empty and valid SQL</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code><span class="cmt"># Should report a size and that the file ends with '-- Dump completed'</span>
+ls -lh booklore_backup.sql
+tail -3 booklore_backup.sql</code></pre>
+    </div>
+
+    <h3>Quick row-count sanity check after restore</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>docker exec -it mariadb mariadb \
+  -u root -p"<span class="var">$MYSQL_ROOT_PASSWORD</span>" \
+  -e "SELECT table_name, table_rows
+      FROM information_schema.tables
+      WHERE table_schema = 'booklore'
+      ORDER BY table_rows DESC;" booklore</code></pre>
+    </div>
+
+    <h3>Verify the compressed dump is intact</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>gunzip -t booklore_backup.sql.gz && echo "Archive OK"</code></pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="icon">✓</span>
+      <div><span class="label">Best practice</span>
+        Periodically do a full test restore to a separate MariaDB container to confirm your backups are actually usable. A backup you have never tested is a backup you cannot trust.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 8: Caveats ─────────────────────────────────── -->
+  <section id="s8">
+    <h2><span class="num">8</span> Important caveats</h2>
+
+    <div class="callout warn">
+      <span class="icon">⚠</span>
+      <div>
+        <span class="label">Library paths</span>
+        Library paths are stored in the database. If you restore to a machine where the book directory is at a different path (e.g. <code>/mnt/nas/books</code> instead of <code>/books</code>), libraries will appear offline. Fix them in <strong>Settings → Libraries</strong> and trigger a rescan.
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚠</span>
+      <div>
+        <span class="label">Media files are separate</span>
+        Your actual book files (<code>./books/</code>), cover images, and thumbnails (<code>./data/</code>) are <strong>not</strong> in the database. Back them up separately — the database backup alone is not sufficient for a complete recovery.
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚠</span>
+      <div>
+        <span class="label">Port 3306 exposure</span>
+        The default <code>docker-compose.yml</code> exposes port <code>3306</code> to all interfaces. For production use, consider binding it to <code>127.0.0.1:3306:3306</code> or removing the port mapping entirely if you don't need external DB access.
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">ℹ</span>
+      <div>
+        <span class="label">Settings export vs. full DB backup</span>
+        The Booklore admin panel includes a <em>Settings export</em> option — this only exports application settings, not the full database. Use the commands in this guide for a complete backup that includes libraries, books, users, shelves, and all metadata.
+      </div>
+    </div>
+  </section>
+
+  <hr />
+  <div class="footer">Booklore · MariaDB Backup &amp; Restore Guide · Generated for linuxserver/mariadb image</div>
+
+</div>
+
+<script>
+  function copyCode(button) {
+    const pre = button.nextElementSibling;
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      button.textContent = 'Copied!';
+      button.classList.add('copied');
+      setTimeout(() => {
+        button.textContent = 'Copy';
+        button.classList.remove('copied');
+      }, 2000);
+    }).catch(() => {
+      // Fallback for environments where clipboard API is unavailable
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      button.textContent = 'Copied!';
+      button.classList.add('copied');
+      setTimeout(() => {
+        button.textContent = 'Copy';
+        button.classList.remove('copied');
+      }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
