@@ -8,6 +8,25 @@ A personal fork of [BookLore](https://github.com/adityachandelgit/BookLore) with
 
 ---
 
+## Contents
+
+- [Under the Hood](#under-the-hood)
+- [Main Features](#main-features)
+- [Installation](#installation)
+  - [Requirements](#requirements)
+  - [Fresh Install](#fresh-install)
+  - [Update Existing Install](#update-existing-install)
+  - [Install Without AI](#install-without-ai)
+- [Sample `.env`](#sample-env)
+- [Sample `docker-compose.yml`](#sample-docker-composeyml)
+- [Saving Your Data](#saving-your-data)
+  - [Application Settings](#application-settings)
+  - [Book Files and Covers](#book-files-and-covers)
+- [AI Panel Detection — Quick Start](#ai-panel-detection--quick-start)
+- [Screenshots](#screenshots)
+
+---
+
 ## Under the Hood
 
 This fork includes a number of targeted fixes to improve reliability, memory efficiency, and UI responsiveness — particularly for larger libraries. No upstream features were removed.
@@ -247,5 +266,3 @@ tar -czf booklore-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 <img src="assets/booklore3.0-screenshot2.png" width="800">
 
 <img src="assets/booklore3.0-screenshot3.png" width="800">
-
-## Main Features
