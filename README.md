@@ -8,6 +8,20 @@ A personal fork of [BookLore](https://github.com/adityachandelgit/BookLore) with
 
 ---
 
+## Under the Hood
+
+This fork includes a number of targeted fixes to improve reliability, memory efficiency, and UI responsiveness — particularly for larger libraries. No upstream features were removed.
+
+- **~50% less peak memory per image operation** — reduced pixel decode ceiling and replaced a lazy image scaler that held source buffers in memory with a direct bicubic draw that flushes source memory immediately
+- **Native image buffers always released** — flush calls are now guaranteed via `finally` blocks across all thumbnail generation paths, preventing silent leaks during error conditions
+- **No more zombie subprocesses** — KEPUB conversion and CBR metadata extraction processes are now properly terminated in `finally` blocks; failed or timed-out operations can no longer accumulate as orphaned OS processes
+- **Up to N× fewer database queries on Komga series pages** — a loop that previously ran a full eager-loaded table scan once per series on the page now runs a single query and groups results in memory
+- **Covers load once, not on every navigation** — browser-cache headers added to all image endpoints (7-day TTL for book covers, 1-hour for author images); the existing cache-busting URL timestamps ensure stale images are never served
+- **Sidebar navigation no longer rebuilds the book grid** — the Angular route reuse strategy now correctly stores and reattaches the "All Books" and "Not Shelfed" views, preventing unnecessary cover reloads when switching sidebar sections
+- **HTTP download safety** — downloaded image payloads are now rejected if they exceed 5 MB before being handed to the image decoder; network connections for image fetching are bounded by connect (10 s) and read (30 s) timeouts, preventing runaway thread holds on slow or unresponsive sources
+
+---
+
 ## Main Features
 
 - **Comic Panel Detection AI** — Detects and saves panel flow data for CBZ/CBR comics using a bundled YOLO-based AI model. Enables panel-by-panel navigation in the reader.
@@ -194,56 +208,4 @@ networks:
 
 <img src="assets/booklore3.0-screenshot3.png" width="800">
 
----
-
-## Stability & Performance Improvements
-
-This fork includes a series of targeted fixes across four phases to improve reliability, memory usage, scalability, and UI responsiveness. No upstream features were removed.
-
-### Phase 1 — Process Lifecycle Safety (v3.2.3)
-
-| Area | Fix |
-|---|---|
-| `KepubConversionService` | Added `process.destroy()` and cleanup in a `finally` block; `kepub-convert` processes can no longer become zombie threads if conversion fails or times out |
-| `CbxMetadataWriter` | Added `process.destroy()` and cleanup in a `finally` block; `unrar` processes are now reliably terminated after CBR metadata extraction |
-| `KomgaCleanContextFilter` | New request filter that catches unhandled exceptions in the Komga-compatible API path and returns a clean `500` response instead of leaking internal stack traces |
-
-**Resource impact:** Eliminates OS-level process leaks for every failed KEPUB conversion and CBR metadata extraction.
-
----
-
-### Phase 2 — Memory & Buffer Efficiency (v3.2.4)
-
-| Area | Fix |
-|---|---|
-| `FileService.MAX_IMAGE_PIXELS` | Reduced from 20 million to 10 million pixels. Limits peak heap allocation per image decode to ~120 MB (was ~240 MB for 20 MP images) |
-| `FileService.resizeImage()` | Replaced `getScaledInstance` (returns a lazy `ToolkitImage` that holds the full source in memory) with a direct `Graphics2D` bicubic draw onto a pre-allocated `BufferedImage`. Source is flushed immediately after use |
-| `FileService.createThumbnailFrom*` (seven methods) | Wrapped `originalImage.flush()` in `try-finally` blocks so the native pixel buffer is always released, even when downstream processing throws |
-| `BookTableComponent` | Fixed event-listener leak: `resize` handler was registered as an arrow lambda and removed as a different lambda reference (no-op). Handler is now stored as an instance field so `addEventListener` and `removeEventListener` see the same reference |
-
-**Resource impact:** Peak per-image heap cut by ~50%; native image buffers reliably freed after processing; DOM event listener no longer accumulates on every table render.
-
----
-
-### Phase 3 — Scalability & HTTP Enforcement (v3.2.5)
-
-| Area | Fix |
-|---|---|
-| `FileService.downloadImageFromUrlInternal()` | Added HTTP response body size check: if the downloaded payload exceeds `MAX_FILE_SIZE_BYTES` (5 MB), an `IOException` is thrown before the bytes reach `readImage()`. Prevents oversized or non-image responses from being fully buffered |
-| `KomgaService.getAllSeries()` — null-libraryId path | `bookRepository.findAllWithMetadata()` was being called once per series name per page request inside a loop (N full eager-loaded DB scans per page). Fixed by hoisting the call outside the loop with lazy `Map<String, List<BookEntity>>` initialization using `Collectors.groupingBy`. DB calls per page: **N → 1** |
-
-**Resource impact:** Eliminates runaway heap allocations from malicious/misconfigured image URLs; eliminates N×(full-table-scan + 6-table eager join) per Komga series page request.
-
----
-
-### Phase 4 — Network Safety & UI Cache Performance (v3.2.6)
-
-| Area | Fix |
-|---|---|
-| `BookMediaController` — thumbnail & cover endpoints | Added `Cache-Control: public, max-age=604800` (7 days) to all book image responses. The existing `?coverUpdatedOn` timestamp in the frontend URL serves as cache-busting, so long-lived caching is safe. Result: covers are served from the browser cache on subsequent navigations instead of triggering new network requests |
-| `BookMediaController` — author image endpoints | Added `Cache-Control: public, max-age=3600` (1 hour) to author photo and thumbnail responses |
-| `CustomReuseStrategy` (Angular) | Added `all-books` and `not-shelfed` routes to the stored-component list. These `BookBrowserComponent` instances were previously always destroyed and recreated on each navigation, forcing covers to reload. They are now stored and reattached like library/shelf/magic-shelf routes |
-| `SecurityConfig.noRedirectRestTemplate` | Added `connectTimeout(10 s)` on the `HttpClient.Builder` and `setReadTimeout(30 s)` on the `JdkClientHttpRequestFactory`. The no-redirect template used for image URL downloads had no timeouts; a hung or slow remote could hold a virtual thread indefinitely |
-
-**Resource impact:** Eliminates redundant image network requests during sidebar navigation; cover rebuild delay eliminated for cached routes; prevents unbounded thread hold on slow/hung image sources.
-
+## Main Features
