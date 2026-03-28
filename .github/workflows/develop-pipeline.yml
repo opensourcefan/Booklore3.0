@@ -48,7 +48,7 @@ jobs:
 
       - name: Compute OWASP Cache Bucket
         id: owasp-key
-        run: echo "key=$(( $(date +%s) / 172800 ))" >> "$GITHUB_OUTPUT"
+        run: echo "key=$(( $(date +%s) / 604800 ))" >> "$GITHUB_OUTPUT"
 
       - name: Restore OWASP NVD Cache
         id: owasp-cache
