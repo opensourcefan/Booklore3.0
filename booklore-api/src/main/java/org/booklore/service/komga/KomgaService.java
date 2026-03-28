@@ -105,6 +105,9 @@ public class KomgaService {
         }
         
         // Now load books only for the series on this page (optimized - only loads what's needed)
+        // For the null-libraryId fallback: load all books ONCE and build a series→books map
+        // (Previously loaded all books N times — once per series name on the page)
+        Map<String, List<BookEntity>> allLibrariesSeriesMap = null;
         List<KomgaSeriesDto> content = new ArrayList<>();
         for (String seriesName : pageSeriesNames) {
             try {
@@ -119,11 +122,13 @@ public class KomgaService {
                             seriesName, libraryId);
                     }
                 } else {
-                    // For all libraries, need to load all books and filter (less common case)
-                    List<BookEntity> allBooks = bookRepository.findAllWithMetadata();
-                    seriesBooks = allBooks.stream()
-                            .filter(book -> komgaMapper.getBookSeriesName(book).equals(seriesName))
-                            .collect(Collectors.toList());
+                    // For all libraries: load all books once, then group by series name in memory.
+                    // Previously called findAllWithMetadata() once per series — N full-table-scans per page.
+                    if (allLibrariesSeriesMap == null) {
+                        allLibrariesSeriesMap = bookRepository.findAllWithMetadata().stream()
+                                .collect(Collectors.groupingBy(komgaMapper::getBookSeriesName));
+                    }
+                    seriesBooks = allLibrariesSeriesMap.getOrDefault(seriesName, List.of());
                 }
                 
                 if (!seriesBooks.isEmpty()) {

@@ -310,7 +310,13 @@ public class FileService {
             );
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return readImage(response.getBody());
+                byte[] body = response.getBody();
+                if (body.length > MAX_FILE_SIZE_BYTES) {
+                    throw new IOException(String.format(
+                            "Downloaded image body (%d bytes) exceeds the %d-byte limit — possible oversized or non-image content",
+                            body.length, MAX_FILE_SIZE_BYTES));
+                }
+                return readImage(body);
             } else if (response.getStatusCode().is3xxRedirection()) {
                 String location = response.getHeaders().getFirst(HttpHeaders.LOCATION);
                 if (location == null) {
