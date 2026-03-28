@@ -175,6 +175,8 @@ export function doesBookMatchFilter(
   }
 }
 
+const NAV_FILTER_TYPES = new Set(['customMediaType', 'customBookType']);
+
 export function filterBooksByFilters(
   books: Book[],
   activeFilters: Record<string, unknown[]> | null,
@@ -183,12 +185,24 @@ export function filterBooksByFilters(
 ): Book[] {
   if (!activeFilters) return books;
 
+  // Navigation-level pre-filters (customMediaType / customBookType) always
+  // act as mandatory AND constraints regardless of the active mode. They
+  // represent the navigation scope chosen from the left sidebar and must
+  // never participate in NOT / OR logic.
+  let pool = books;
+  for (const navKey of NAV_FILTER_TYPES) {
+    const vals = activeFilters[navKey];
+    if (vals?.length && navKey !== excludeFilterType) {
+      pool = pool.filter(book => doesBookMatchFilter(book, navKey, vals, 'and'));
+    }
+  }
+
   const filterEntries = Object.entries(activeFilters)
-    .filter(([type]) => type !== excludeFilterType);
+    .filter(([type]) => type !== excludeFilterType && !NAV_FILTER_TYPES.has(type));
 
-  if (filterEntries.length === 0) return books;
+  if (filterEntries.length === 0) return pool;
 
-  return books.filter(book => {
+  return pool.filter(book => {
     const matches = filterEntries.map(([filterType, filterValues]) =>
       doesBookMatchFilter(book, filterType, filterValues, mode)
     );
