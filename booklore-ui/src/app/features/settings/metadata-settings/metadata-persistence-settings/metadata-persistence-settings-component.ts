@@ -7,6 +7,8 @@ import {SettingsHelperService} from '../../../../shared/service/settings-helper.
 import {filter, take} from 'rxjs/operators';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {TaskService, TaskType} from '../../../settings/task-management/task.service';
+import {Button} from 'primeng/button';
 
 @Component({
   selector: 'app-metadata-persistence-settings-component',
@@ -14,7 +16,8 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
     ToggleSwitch,
     FormsModule,
     Tooltip,
-    TranslocoDirective
+    TranslocoDirective,
+    Button
   ],
   templateUrl: './metadata-persistence-settings-component.html',
   styleUrl: './metadata-persistence-settings-component.scss'
@@ -51,9 +54,11 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
   };
 
   isNetworkStorage = false;
+  isFlushRunning = false;
 
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly settingsHelper = inject(SettingsHelperService);
+  private readonly taskService = inject(TaskService);
   private t = inject(TranslocoService);
 
   private readonly appSettings$ = this.appSettingsService.appSettings$;
@@ -132,5 +137,26 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
         }
       };
     }
+  }
+
+  flushMetadataToFiles(): void {
+    this.isFlushRunning = true;
+    this.taskService.startTask({
+      taskType: TaskType.FLUSH_METADATA_TO_FILES,
+      options: null
+    }).subscribe({
+      next: () => {
+        this.isFlushRunning = false;
+        this.settingsHelper.showMessage('success',
+          this.t.translate('common.success'),
+          this.t.translate('settingsMeta.persistence.flushStarted'));
+      },
+      error: () => {
+        this.isFlushRunning = false;
+        this.settingsHelper.showMessage('error',
+          this.t.translate('common.error'),
+          this.t.translate('settingsMeta.persistence.flushError'));
+      }
+    });
   }
 }

@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.booklore.model.enums.TaskType;
 import org.booklore.task.options.LibraryRescanOptions;
+import org.booklore.task.options.MetadataFlushOptions;
 import tools.jackson.databind.ObjectMapper;
 
 @Data
@@ -27,6 +28,7 @@ public class TaskCreateRequest {
     @JsonSubTypes({
             @JsonSubTypes.Type(value = LibraryRescanOptions.class, name = "REFRESH_LIBRARY_METADATA"),
             @JsonSubTypes.Type(value = MetadataRefreshRequest.class, name = "REFRESH_METADATA_MANUAL"),
+            @JsonSubTypes.Type(value = MetadataFlushOptions.class, name = "FLUSH_METADATA_TO_FILES"),
     })
     private Object options;
 

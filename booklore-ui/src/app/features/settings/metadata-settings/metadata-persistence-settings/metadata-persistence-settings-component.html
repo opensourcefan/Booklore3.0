@@ -247,4 +247,36 @@
       }
     </div>
   </div>
+
+  <div class="settings-card">
+    <div class="section-header">
+      <h3 class="section-title">
+        <i class="pi pi-upload"></i>
+        {{ t('flushTitle') }}
+      </h3>
+      <p class="section-description">
+        {{ t('flushDesc') }}
+      </p>
+    </div>
+
+    <div class="section-body" [class.network-disabled]="isNetworkStorage">
+      <div class="setting-item">
+        <div class="setting-header">
+          <div>
+            <p class="setting-description">{{ t('flushHint') }}</p>
+          </div>
+        </div>
+        <div class="setting-actions">
+          <p-button
+            [label]="t('flushBtn')"
+            icon="pi pi-upload"
+            [loading]="isFlushRunning"
+            [disabled]="isNetworkStorage || isFlushRunning"
+            (onClick)="flushMetadataToFiles()"
+            severity="secondary">
+          </p-button>
+        </div>
+      </div>
+    </div>
+  </div>
 </ng-container>

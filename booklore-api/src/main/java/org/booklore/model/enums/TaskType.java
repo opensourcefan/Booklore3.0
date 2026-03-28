@@ -58,6 +58,14 @@ public enum TaskType {
             true,
             "Refresh Metadata",
             "Updates metadata information for your selected books."
+    ),
+    FLUSH_METADATA_TO_FILES(
+            false,
+            true,
+            false,
+            false,
+            "Push Metadata to Files",
+            "Writes the current database metadata back to the original book files for all books where the file has not yet been updated. Only available in LOCAL storage mode."
     );
 
     @Getter

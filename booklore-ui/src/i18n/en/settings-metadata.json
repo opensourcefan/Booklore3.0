@@ -39,7 +39,13 @@
     "writeOnScanDesc": "Create sidecar JSON files when books are first added to the library during scanning.",
     "includeCover": "Include Cover Image File",
     "includeCoverDesc": "Also save the cover image as <code>BookName.cover.jpg</code> alongside the sidecar JSON file.",
-    "loadError": "Failed to load settings."
+    "loadError": "Failed to load settings.",
+    "flushTitle": "Push Metadata to Files",
+    "flushDesc": "Manually write all current database metadata back to the original book files on disk. Use this to sync metadata after switching from NETWORK to LOCAL storage mode, or to populate files that were never written.",
+    "flushHint": "This writes metadata for all books where the corresponding file format write option (EPUB, PDF, CBX, Audiobook) is enabled above. Books whose format is not enabled, or books with no supported writer, will be skipped.",
+    "flushBtn": "Push Metadata to Files",
+    "flushStarted": "Metadata flush task started. Monitor progress in Task Management.",
+    "flushError": "Failed to start metadata flush task."
   },
   "providers": {
     "sectionTitle": "Metadata Providers",
