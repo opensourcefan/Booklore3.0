@@ -19,7 +19,12 @@
     "aiScan": "AI Scan",
     "aiScanProgress": "{{ completed }}/{{ total }} comics",
     "aiScanCompleted": "Completed",
-    "aiScanFailed": "Failed"
+    "aiScanFailed": "Failed",
+    "metadataFlush": "Metadata Flush",
+    "metadataFlushProgress": "{{ progress }}%",
+    "metadataFlushCompleted": "Completed",
+    "metadataFlushCancelled": "Cancelled",
+    "metadataFlushFailed": "Failed"
   },
   "menu": {
     "home": "Home",

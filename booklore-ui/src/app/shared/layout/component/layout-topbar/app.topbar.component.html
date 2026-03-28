@@ -45,7 +45,13 @@
         <span class="topbar-ai-label">{{ t('aiScan') }}</span>
         <span class="topbar-ai-summary">{{ aiScanSummary }}</span>
       </button>
-
+    }
+    @if (showMetadataFlushStatus) {
+      <button type="button" class="topbar-flush-status" (click)="navigateToMetadataPersistenceSettings()">
+        <i class="pi pi-upload"></i>
+        <span class="topbar-flush-label">{{ t('metadataFlush') }}</span>
+        <span class="topbar-flush-summary">{{ metadataFlushSummary }}</span>
+      </button>
     }
     <ul class="topbar-items topbar-desktop-items">
       @for (item of visibleDesktopToolbarItems; track item.id) {

@@ -35,6 +35,7 @@ import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {SidebarFilterTogglePrefService} from '../../../../features/book/components/book-browser/filters/sidebar-filter-toggle-pref.service';
 import {AiPanelScanProgressPayload} from '../../../model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from '../../../service/ai-panel-scan-progress.service';
+import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from '../../../../features/settings/task-management/task.service';
 
 @Component({
   selector: 'app-topbar',
@@ -84,8 +85,10 @@ export class AppTopBarComponent implements OnDestroy {
   hasPendingBookdropFiles = false;
   showMobileBookFilterTrigger = false;
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
+  metadataFlushProgress: TaskProgressPayload | null = null;
 
   private eventTimer: number | undefined;
+  private flushDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private destroy$ = new Subject<void>();
 
   private latestTasks: Record<string, MetadataBatchProgressNotification> = {};
@@ -109,7 +112,8 @@ export class AppTopBarComponent implements OnDestroy {
     private dialogLauncher: DialogLauncherService,
     translocoService: TranslocoService,
     private sidebarFilterTogglePrefService: SidebarFilterTogglePrefService,
-    private aiPanelScanProgressService: AiPanelScanProgressService
+    private aiPanelScanProgressService: AiPanelScanProgressService,
+    private taskService: TaskService
   ) {
     this.translocoService = translocoService;
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -149,6 +153,21 @@ export class AppTopBarComponent implements OnDestroy {
         this.aiBatchProgress = progress;
       });
 
+    this.taskService.taskProgress$
+      .pipe(
+        filter((p): p is TaskProgressPayload => !!p && p.taskType === TaskType.FLUSH_METADATA_TO_FILES),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(progress => {
+        this.metadataFlushProgress = progress;
+        if (progress.taskStatus === TaskStatus.COMPLETED || progress.taskStatus === TaskStatus.CANCELLED) {
+          clearTimeout(this.flushDismissTimer);
+          this.flushDismissTimer = setTimeout(() => {
+            this.metadataFlushProgress = null;
+          }, 5000);
+        }
+      });
+
     this.userService.userState$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
@@ -176,6 +195,7 @@ export class AppTopBarComponent implements OnDestroy {
   ngOnDestroy(): void {
     if (this.ref) this.ref.close();
     clearTimeout(this.eventTimer);
+    clearTimeout(this.flushDismissTimer);
     window.removeEventListener('storage', this.onStorageChange);
     this.destroy$.next();
     this.destroy$.complete();
@@ -234,6 +254,10 @@ export class AppTopBarComponent implements OnDestroy {
 
   navigateToAiSettings() {
     this.router.navigate(['/settings'], {queryParams: {tab: 'ai-settings'}});
+  }
+
+  navigateToMetadataPersistenceSettings(): void {
+    this.router.navigate(['/settings'], {queryParams: {tab: 'metadata'}});
   }
 
   navigateToBookdrop() {
@@ -408,6 +432,19 @@ export class AppTopBarComponent implements OnDestroy {
 
   get showDesktopAiScanStatus(): boolean {
     return !!this.aiBatchProgress;
+  }
+
+  get showMetadataFlushStatus(): boolean {
+    return !!this.metadataFlushProgress;
+  }
+
+  get metadataFlushSummary(): string {
+    if (!this.metadataFlushProgress) return '';
+    const s = this.metadataFlushProgress.taskStatus;
+    if (s === TaskStatus.COMPLETED) return this.translocoService.translate('layout.topbar.metadataFlushCompleted');
+    if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.metadataFlushCancelled');
+    if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.metadataFlushFailed');
+    return this.translocoService.translate('layout.topbar.metadataFlushProgress', {progress: this.metadataFlushProgress.progress});
   }
 
   get aiScanTone(): 'ok' | 'warning' | 'error' {

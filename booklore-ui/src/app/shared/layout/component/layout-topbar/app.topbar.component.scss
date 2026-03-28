@@ -89,6 +89,50 @@
   font-size: 0.82rem;
 }
 
+.topbar-flush-status {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 26rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--p-green-700, #15803d);
+  background: rgba(21, 128, 61, 0.08);
+  color: var(--p-green-700, #15803d);
+  cursor: pointer;
+  appearance: none;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+
+  @media (min-width: 768px) {
+    display: inline-flex;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(21, 128, 61, 0.16);
+    border-color: var(--p-green-800, #166534);
+    transform: translateY(-1px);
+    outline: none;
+  }
+}
+
+.topbar-flush-label {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.topbar-flush-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+
 .topbar-desktop-items {
   display: none;
   align-items: center;
