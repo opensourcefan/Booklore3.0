@@ -203,7 +203,14 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     const current = this.activeFilters[filterType];
     const isSame = current?.length === 1 && this.valuesMatch(current[0], id);
 
-    this.activeFilters = isSame ? {} : {[filterType]: [id]};
+    // Preserve navigation-level pre-filters (customMediaType / customBookType) so
+    // that clicking a tag in single mode doesn't lose the active media type.
+    const preserved: Record<string, unknown[]> = {};
+    for (const key of ['customMediaType', 'customBookType']) {
+      if (this.activeFilters[key]) preserved[key] = this.activeFilters[key];
+    }
+
+    this.activeFilters = isSame ? preserved : {...preserved, [filterType]: [id]};
   }
 
   private handleMultiMode(filterType: string, value: unknown): void {

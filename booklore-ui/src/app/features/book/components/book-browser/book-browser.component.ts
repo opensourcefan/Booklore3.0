@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
@@ -195,8 +195,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(BookTableComponent)
   bookTableComponent!: BookTableComponent;
-  @ViewChild(BookFilterComponent, {static: false})
-  bookFilterComponent!: BookFilterComponent;
+  @ViewChildren(BookFilterComponent)
+  bookFilterComponents!: QueryList<BookFilterComponent>;
   @ViewChild('scroll')
   virtualScroller: VirtualScrollerComponent | undefined;
   @ViewChild('mobileRightSidebarPop')
@@ -402,11 +402,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.mobileRightSidebarPop?.toggle(event);
       });
 
-    if (this.bookFilterComponent) {
-      this.bookFilterComponent.setFilters?.(this.parsedFilters);
-      this.bookFilterComponent.onFiltersChanged?.();
-      this.bookFilterComponent.selectedFilterMode = this.selectedFilterMode.getValue();
-    }
+    this.settingFiltersFromUrl = true;
+    this.bookFilterComponents?.forEach(comp => {
+      comp.setFilters?.(this.parsedFilters);
+      comp.onFiltersChanged?.();
+      comp.selectedFilterMode = this.selectedFilterMode.getValue();
+    });
+    this.settingFiltersFromUrl = false;
 
     const key = this.getScrollPositionKey();
     const savedPosition = this.scrollService.getPosition(key);
@@ -545,34 +547,39 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       );
 
 
+      this.settingFiltersFromUrl = true;
+
       if (parseResult.filterMode !== this.selectedFilterMode.getValue()) {
         this.selectedFilterMode.next(parseResult.filterMode);
-        if (this.bookFilterComponent) {
-          this.bookFilterComponent.selectedFilterMode = parseResult.filterMode;
-        }
+        this.bookFilterComponents?.forEach(comp => {
+          comp.selectedFilterMode = parseResult.filterMode;
+        });
       }
 
       this.currentFilterLabel = this.t.translate('book.browser.labels.allBooks');
       const filterParams = queryParamMap.get('filter');
 
       if (filterParams) {
-        this.settingFiltersFromUrl = true;
         this.selectedFilter.next(parseResult.filters);
 
-        if (this.bookFilterComponent) {
-          this.bookFilterComponent.setFilters?.(parseResult.filters);
-          this.bookFilterComponent.onFiltersChanged?.();
-        }
+        this.bookFilterComponents?.forEach(comp => {
+          comp.setFilters?.(parseResult.filters);
+          comp.onFiltersChanged?.();
+        });
 
         if (Object.keys(parseResult.filters).length > 0) {
           this.currentFilterLabel = this.computedFilterLabel;
         }
 
         this.rawFilterParamFromUrl = filterParams;
-        this.settingFiltersFromUrl = false;
       } else {
-        this.clearFilter();
         this.rawFilterParamFromUrl = null;
+      }
+
+      this.settingFiltersFromUrl = false;
+
+      if (!filterParams) {
+        this.clearFilter();
       }
 
       this.parsedFilters = parseResult.filters;
