@@ -83,6 +83,7 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
   ];
 
   scrollHeight = 'calc(100dvh - 160px)';
+  private readonly onResize = () => this.setScrollHeight();
 
   ngOnInit(): void {
     this.userService.userState$
@@ -98,7 +99,7 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
     this.selectedBookIds = this.preselectedBookIds;
     this.selectedBooks = this.bookService.getBooksByIdsFromState([...this.selectedBookIds]);
     this.setScrollHeight();
-    window.addEventListener('resize', this.setScrollHeight.bind(this));
+    window.addEventListener('resize', this.onResize);
   }
 
   setScrollHeight() {
@@ -349,6 +350,6 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    window.removeEventListener('resize', this.setScrollHeight.bind(this));
+    window.removeEventListener('resize', this.onResize);
   }
 }
