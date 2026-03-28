@@ -29,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -250,8 +251,11 @@ public class SecurityConfig {
     public RestTemplate noRedirectRestTemplate() {
         HttpClient httpClient = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NEVER)
+                .connectTimeout(Duration.ofSeconds(10))
                 .build();
-        return new RestTemplate(new JdkClientHttpRequestFactory(httpClient));
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(Duration.ofSeconds(30));
+        return new RestTemplate(factory);
     }
 
     @Bean

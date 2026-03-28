@@ -15,6 +15,8 @@ export class CustomReuseStrategy implements RouteReuseStrategy {
     'library/:libraryId/books',
     'shelf/:shelfId/books',
     'magic-shelf/:magicShelfId/books',
+    'all-books',
+    'not-shelfed',
     'authors',
     'series'
   ];

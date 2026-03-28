@@ -12,12 +12,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 @Tag(name = "Book Media", description = "Endpoints for retrieving book media such as covers, thumbnails, and pages")
 @AllArgsConstructor
@@ -30,12 +32,21 @@ public class BookMediaController {
     private final BookDropService bookDropService;
     private final AuthorMetadataService authorMetadataService;
 
+    // 7-day public cache for book images. The URL includes a ?coverUpdatedOn timestamp
+    // (set by the frontend's UrlHelperService) which changes whenever the cover changes,
+    // so long-lived caching here is safe — a new cover produce a new cache-busting URL.
+    private static final CacheControl COVER_CACHE = CacheControl.maxAge(7, TimeUnit.DAYS).cachePublic();
+
+    // 1-hour cache for author images. Author photo URLs may not include a cache-busting
+    // timestamp when no cacheBuster is provided, so a shorter TTL limits staleness.
+    private static final CacheControl AUTHOR_CACHE = CacheControl.maxAge(1, TimeUnit.HOURS).cachePublic();
+
     @Operation(summary = "Get book thumbnail", description = "Retrieve the thumbnail image for a specific book.")
     @ApiResponse(responseCode = "200", description = "Book thumbnail returned successfully")
     @GetMapping("/book/{bookId}/thumbnail")
     @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<Resource> getBookThumbnail(@Parameter(description = "ID of the book") @PathVariable long bookId) {
-        return ResponseEntity.ok(bookService.getBookThumbnail(bookId));
+        return ResponseEntity.ok().cacheControl(COVER_CACHE).body(bookService.getBookThumbnail(bookId));
     }
 
     @Operation(summary = "Get book cover", description = "Retrieve the cover image for a specific book.")
@@ -43,7 +54,7 @@ public class BookMediaController {
     @GetMapping("/book/{bookId}/cover")
     @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<Resource> getBookCover(@Parameter(description = "ID of the book") @PathVariable long bookId) {
-        return ResponseEntity.ok(bookService.getBookCover(bookId));
+        return ResponseEntity.ok().cacheControl(COVER_CACHE).body(bookService.getBookCover(bookId));
     }
 
     @Operation(summary = "Get audiobook thumbnail", description = "Retrieve the audiobook thumbnail image for a specific book.")
@@ -51,7 +62,7 @@ public class BookMediaController {
     @GetMapping("/book/{bookId}/audiobook-thumbnail")
     @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<Resource> getAudiobookThumbnail(@Parameter(description = "ID of the book") @PathVariable long bookId) {
-        return ResponseEntity.ok(bookService.getAudiobookThumbnail(bookId));
+        return ResponseEntity.ok().cacheControl(COVER_CACHE).body(bookService.getAudiobookThumbnail(bookId));
     }
 
     @Operation(summary = "Get audiobook cover", description = "Retrieve the audiobook cover image for a specific book.")
@@ -59,7 +70,7 @@ public class BookMediaController {
     @GetMapping("/book/{bookId}/audiobook-cover")
     @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<Resource> getAudiobookCover(@Parameter(description = "ID of the book") @PathVariable long bookId) {
-        return ResponseEntity.ok(bookService.getAudiobookCover(bookId));
+        return ResponseEntity.ok().cacheControl(COVER_CACHE).body(bookService.getAudiobookCover(bookId));
     }
 
     @Operation(summary = "Get CBX page as image", description = "Retrieve a specific page from a CBX book as an image.")
@@ -83,7 +94,7 @@ public class BookMediaController {
         if (photo == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(photo);
+        return ResponseEntity.ok().cacheControl(AUTHOR_CACHE).contentType(MediaType.IMAGE_JPEG).body(photo);
     }
 
     @Operation(summary = "Get author thumbnail", description = "Retrieve the thumbnail for a specific author.")
@@ -94,7 +105,7 @@ public class BookMediaController {
         if (thumbnail == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(thumbnail);
+        return ResponseEntity.ok().cacheControl(AUTHOR_CACHE).contentType(MediaType.IMAGE_JPEG).body(thumbnail);
     }
 
     @Operation(summary = "Get bookdrop cover", description = "Retrieve the cover image for a specific bookdrop file.")
