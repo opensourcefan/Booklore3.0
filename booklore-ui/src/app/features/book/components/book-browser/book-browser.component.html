@@ -342,6 +342,7 @@
             [showFilter]="true"
             [entity$]="entity$"
             [entityType$]="entityType$"
+            [urlFilter$]="selectedFilter"
             [resetFilter$]="resetFilterSubject"
             (filterSelected)="onFilterSelected($event)"
             (filterModeChanged)="onFilterModeChanged($event)">
@@ -574,6 +575,7 @@
         [showFilter]="showFilter"
         [entity$]="entity$"
         [entityType$]="entityType$"
+        [urlFilter$]="selectedFilter"
         [resetFilter$]="resetFilterSubject"
         (filterSelected)="onFilterSelected($event)"
         (filterModeChanged)="onFilterModeChanged($event)">

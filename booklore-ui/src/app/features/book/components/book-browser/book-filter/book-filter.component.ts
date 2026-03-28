@@ -36,6 +36,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   @Input() entityType$: Observable<EntityType> | undefined;
   @Input() resetFilter$!: Subject<void>;
   @Input() showFilter = false;
+  @Input() urlFilter$: Observable<Record<string, string[]> | null> | undefined;
 
   @Output() filterSelected = new EventEmitter<Record<string, unknown> | null>();
   @Output() filterModeChanged = new EventEmitter<BookFilterMode>();
@@ -177,7 +178,8 @@ export class BookFilterComponent implements OnInit, OnDestroy {
       entity$,
       entityType$,
       this.activeFilters$,
-      this.filterMode$
+      this.filterMode$,
+      this.urlFilter$ ?? of(null)
     );
     this.filterTypes = Object.keys(this.filterStreams) as FilterType[];
     this.updateVisibleFilterTypes();

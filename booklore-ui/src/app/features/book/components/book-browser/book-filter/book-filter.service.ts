@@ -25,9 +25,10 @@ export class BookFilterService {
     entity$: Observable<Library | Shelf | MagicShelf | null>,
     entityType$: Observable<EntityType>,
     activeFilters$: Observable<Record<string, unknown[]> | null> = of(null),
-    filterMode$: Observable<BookFilterMode> = of('and')
+    filterMode$: Observable<BookFilterMode> = of('and'),
+    urlFilter$: Observable<Record<string, string[]> | null> = of(null)
   ): Record<FilterType, Observable<Filter[]>> {
-    const filteredBooks$ = this.createFilteredBooksStream(entity$, entityType$);
+    const filteredBooks$ = this.createFilteredBooksStream(entity$, entityType$, urlFilter$);
 
     const streams = {} as Record<FilterType, Observable<Filter[]>>;
 
@@ -87,16 +88,23 @@ export class BookFilterService {
 
   private createFilteredBooksStream(
     entity$: Observable<Library | Shelf | MagicShelf | null>,
-    entityType$: Observable<EntityType>
+    entityType$: Observable<EntityType>,
+    urlFilter$: Observable<Record<string, string[]> | null> = of(null)
   ): Observable<Book[]> {
     return combineLatest([
       this.bookService.bookState$,
       entity$,
-      entityType$
+      entityType$,
+      urlFilter$
     ]).pipe(
-      map(([state, entity, entityType]) =>
-        this.filterBooksByEntity(state.books || [], entity, entityType)
-      ),
+      map(([state, entity, entityType, urlFilter]) => {
+        let books = this.filterBooksByEntity(state.books || [], entity, entityType);
+        const mediaTypeValues = urlFilter?.['customMediaType'] ?? urlFilter?.['customBookType'];
+        if (mediaTypeValues?.length) {
+          books = books.filter(book => book.fileType != null && mediaTypeValues.includes(book.fileType));
+        }
+        return books;
+      }),
       shareReplay({bufferSize: 1, refCount: true})
     );
   }
