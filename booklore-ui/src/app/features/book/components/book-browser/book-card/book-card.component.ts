@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {TooltipModule} from "primeng/tooltip";
 import {AdditionalFile, Book, BookType, ReadStatus} from '../../../model/book.model';
 import {Button} from 'primeng/button';
@@ -38,7 +38,7 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
+export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
 
   @Output() bookClicked = new EventEmitter<Book>();
   @Output() bookHoverEnded = new EventEmitter<number>();
@@ -59,6 +59,7 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() titleRows = 1;
 
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
+  @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
 
   items: MenuItem[] | undefined;
   readStatusMenuItems: MenuItem[] = [];
@@ -291,6 +292,14 @@ export class BookCardComponent implements OnInit, OnChanges, OnDestroy {
       this.buildReadStatusMenuItems();
     }
     menu.toggle(event);
+  }
+
+  ngAfterViewInit(): void {
+    const img = this.coverImgRef?.nativeElement;
+    if (img && img.complete && img.naturalWidth > 0) {
+      this.isImageLoaded = true;
+      this.cdr.markForCheck();
+    }
   }
 
   onImageLoad(): void {

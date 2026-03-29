@@ -7,11 +7,11 @@
   <div class="cover-container" [ngClass]="{ 'center-info-btn': _isSeriesViewActive || !hasDigitalFile(), 'loaded': isImageLoaded, 'audiobook-cover': _isAudiobook, 'square-library-cover': useSquareCovers }">
     <img
       [src]="coverImageUrl"
+      #coverImg
       class="book-cover"
       [class.loaded]="isImageLoaded"
       [class.square-cover]="_isAudiobook || useSquareCovers"
       [alt]="('book.card.alt.cover' | transloco: { title: displayTitle })"
-      loading="lazy"
       decoding="async"
       (load)="onImageLoad()"/>
 
