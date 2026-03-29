@@ -3,14 +3,39 @@
 
   <div class="filter-header">
     <span class="filter-title">{{ t('title') }}</span>
-    <p-selectButton
-      [options]="filterModeOptions"
-      [(ngModel)]="selectedFilterMode"
-      optionLabel="label"
-      optionValue="value"
-      class="filter-mode-select"
-      allowEmpty="false"
-    ></p-selectButton>
+    <div class="filter-controls">
+      <div class="filter-sort-buttons">
+        <p-button
+          icon="pi pi-sort-amount-down-alt"
+          [text]="true"
+          size="small"
+          [styleClass]="'sort-btn' + (filterSort === 'count' ? ' sort-active' : '')"
+          title="Sort by count"
+          (click)="setFilterSort('count')"/>
+        <p-button
+          icon="pi pi-sort-alpha-down"
+          [text]="true"
+          size="small"
+          [styleClass]="'sort-btn' + (filterSort === 'az' ? ' sort-active' : '')"
+          title="Sort A → Z"
+          (click)="setFilterSort('az')"/>
+        <p-button
+          icon="pi pi-sort-alpha-up-alt"
+          [text]="true"
+          size="small"
+          [styleClass]="'sort-btn' + (filterSort === 'za' ? ' sort-active' : '')"
+          title="Sort Z → A"
+          (click)="setFilterSort('za')"/>
+      </div>
+      <p-selectButton
+        [options]="filterModeOptions"
+        [(ngModel)]="selectedFilterMode"
+        optionLabel="label"
+        optionValue="value"
+        class="filter-mode-select"
+        allowEmpty="false"
+      ></p-selectButton>
+    </div>
   </div>
 
   <div class="filter-content">

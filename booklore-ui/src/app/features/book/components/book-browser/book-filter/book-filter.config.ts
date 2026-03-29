@@ -25,6 +25,7 @@ export type FilterType =
   | 'comicCharacter' | 'comicTeam' | 'comicLocation' | 'comicCreator';
 
 export type SortMode = 'count' | 'sortIndex';
+export type UserFilterSort = 'count' | 'az' | 'za';
 
 export interface RangeConfig {
   id: number;

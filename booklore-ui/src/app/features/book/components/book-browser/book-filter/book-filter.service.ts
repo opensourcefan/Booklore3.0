@@ -9,7 +9,7 @@ import {LibraryService} from '../../../service/library.service';
 import {BookRuleEvaluatorService} from '../../../../magic-shelf/service/book-rule-evaluator.service';
 import {GroupRule} from '../../../../magic-shelf/component/magic-shelf-component';
 import {EntityType} from '../book-browser.component';
-import {Filter, FILTER_CONFIGS, FILTER_EXTRACTORS, FilterType, FilterValue, NUMERIC_ID_FILTER_TYPES, SortMode} from './book-filter.config';
+import {Filter, FILTER_CONFIGS, FILTER_EXTRACTORS, FilterType, FilterValue, NUMERIC_ID_FILTER_TYPES, SortMode, UserFilterSort} from './book-filter.config';
 import {filterBooksByFilters} from '../filters/sidebar-filter';
 import {BookFilterMode} from '../../../../settings/user-management/user.service';
 
@@ -26,7 +26,8 @@ export class BookFilterService {
     entityType$: Observable<EntityType>,
     activeFilters$: Observable<Record<string, unknown[]> | null> = of(null),
     filterMode$: Observable<BookFilterMode> = of('and'),
-    urlFilter$: Observable<Record<string, string[]> | null> = of(null)
+    urlFilter$: Observable<Record<string, string[]> | null> = of(null),
+    userSort$: Observable<UserFilterSort> = of('count')
   ): Record<FilterType, Observable<Filter[]>> {
     const filteredBooks$ = this.createFilteredBooksStream(entity$, entityType$, urlFilter$);
 
@@ -40,11 +41,12 @@ export class BookFilterService {
         filterMode$,
         filterType,
         FILTER_EXTRACTORS[filterType],
-        config.sortMode
+        config.sortMode,
+        userSort$
       );
     }
 
-    streams.library = this.createCascadingLibraryFilterStream(filteredBooks$, activeFilters$, filterMode$);
+    streams.library = this.createCascadingLibraryFilterStream(filteredBooks$, activeFilters$, filterMode$, userSort$);
 
     return streams;
   }
@@ -115,12 +117,13 @@ export class BookFilterService {
     filterMode$: Observable<BookFilterMode>,
     filterType: FilterType,
     extractor: (book: Book) => FilterValue[],
-    sortMode: SortMode
+    sortMode: SortMode,
+    userSort$: Observable<UserFilterSort>
   ): Observable<Filter[]> {
-    return combineLatest([books$, activeFilters$, filterMode$]).pipe(
-      map(([books, activeFilters, mode]) => {
+    return combineLatest([books$, activeFilters$, filterMode$, userSort$]).pipe(
+      map(([books, activeFilters, mode, userSort]) => {
         const filteredBooks = filterBooksByFilters(books, activeFilters, mode, filterType);
-        return this.buildAndSortFilters(filteredBooks, extractor, sortMode);
+        return this.buildAndSortFilters(filteredBooks, extractor, sortMode, userSort);
       }),
       shareReplay({bufferSize: 1, refCount: true})
     );
@@ -129,10 +132,11 @@ export class BookFilterService {
   private createCascadingLibraryFilterStream(
     books$: Observable<Book[]>,
     activeFilters$: Observable<Record<string, unknown[]> | null>,
-    filterMode$: Observable<BookFilterMode>
+    filterMode$: Observable<BookFilterMode>,
+    userSort$: Observable<UserFilterSort>
   ): Observable<Filter[]> {
-    return combineLatest([books$, this.libraryService.libraryState$, activeFilters$, filterMode$]).pipe(
-      map(([books, libraryState, activeFilters, mode]) => {
+    return combineLatest([books$, this.libraryService.libraryState$, activeFilters$, filterMode$, userSort$]).pipe(
+      map(([books, libraryState, activeFilters, mode, userSort]) => {
         const filteredBooks = filterBooksByFilters(books, activeFilters, mode, 'library');
 
         const libraryMap = new Map(
@@ -158,7 +162,7 @@ export class BookFilterService {
           filterMap.get(book.libraryId)!.bookCount++;
         }
 
-        return this.sortFiltersByCount(Array.from(filterMap.values()));
+        return this.sortFiltersByUserSort(Array.from(filterMap.values()), userSort);
       }),
       shareReplay({bufferSize: 1, refCount: true})
     );
@@ -167,7 +171,8 @@ export class BookFilterService {
   private buildAndSortFilters(
     books: Book[],
     extractor: (book: Book) => FilterValue[],
-    sortMode: SortMode
+    sortMode: SortMode,
+    userSort: UserFilterSort
   ): Filter[] {
     const filterMap = new Map<unknown, Filter>();
 
@@ -184,9 +189,17 @@ export class BookFilterService {
     const filters = Array.from(filterMap.values());
     const sorted = sortMode === 'sortIndex'
       ? this.sortFiltersBySortIndex(filters)
-      : this.sortFiltersByCount(filters);
+      : this.sortFiltersByUserSort(filters, userSort);
 
     return sorted.slice(0, MAX_FILTER_ITEMS);
+  }
+
+  private sortFiltersByUserSort(filters: Filter[], userSort: UserFilterSort): Filter[] {
+    switch (userSort) {
+      case 'az': return filters.sort((a, b) => this.compareNames(a, b));
+      case 'za': return filters.sort((a, b) => this.compareNames(b, a));
+      default:   return this.sortFiltersByCount(filters);
+    }
   }
 
   private sortFiltersByCount(filters: Filter[]): Filter[] {

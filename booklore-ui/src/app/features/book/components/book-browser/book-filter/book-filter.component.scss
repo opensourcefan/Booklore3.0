@@ -6,6 +6,21 @@
   --p-togglebutton-content-padding: 0.25rem 0.35rem;
 }
 
+:host ::ng-deep .sort-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 !important;
+  color: var(--p-text-muted-color);
+
+  &.sort-active {
+    color: var(--primary-color) !important;
+  }
+
+  .p-button-icon {
+    font-size: 0.8rem;
+  }
+}
+
 :host ::ng-deep .cdk-virtual-scroll-orientation-vertical .cdk-virtual-scroll-content-wrapper {
   width: 100% !important;
   min-width: unset;
@@ -25,8 +40,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--p-content-border-color);
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.filter-sort-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-right: 1px solid var(--p-content-border-color);
+  padding-right: 0.35rem;
+  margin-right: 0;
 }
 
 .filter-title {

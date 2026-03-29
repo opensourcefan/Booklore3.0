@@ -9,9 +9,10 @@ import {AsyncPipe, NgClass} from '@angular/common';
 import {Badge} from 'primeng/badge';
 import {FormsModule} from '@angular/forms';
 import {SelectButton} from 'primeng/selectbutton';
+import {Button} from 'primeng/button';
 import {BookFilterMode, DEFAULT_VISIBLE_FILTERS, UserService, VisibleFilterType} from '../../../../settings/user-management/user.service';
 import {MagicShelf} from '../../../../magic-shelf/service/magic-shelf.service';
-import {Filter, FILTER_LABEL_KEYS, FilterType} from './book-filter.config';
+import {Filter, FILTER_LABEL_KEYS, FilterType, UserFilterSort} from './book-filter.config';
 import {BookFilterService} from './book-filter.service';
 import {filter} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
@@ -27,7 +28,7 @@ type FilterModeOption = { label: string; value: BookFilterMode };
   imports: [
     Accordion, AccordionPanel, AccordionHeader, AccordionContent,
     CdkVirtualScrollViewport, CdkFixedSizeVirtualScroll, CdkVirtualForOf,
-    NgClass, Badge, AsyncPipe, FormsModule, SelectButton,
+    NgClass, Badge, AsyncPipe, FormsModule, SelectButton, Button,
     TranslocoDirective
   ]
 })
@@ -55,9 +56,11 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   visibleFilterTypes: FilterType[] = [];
   expandedPanels: number[] = [0];
   truncatedFilters: Record<string, boolean> = {};
+  filterSort: UserFilterSort = 'count';
 
   private _selectedFilterMode: BookFilterMode = 'and';
   private _visibleFilters: VisibleFilterType[] = [...DEFAULT_VISIBLE_FILTERS];
+  private readonly filterSort$ = new BehaviorSubject<UserFilterSort>('count');
 
   readonly filterLabelKeys = FILTER_LABEL_KEYS;
 
@@ -86,6 +89,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscribeToUserSettings();
+    this.loadFilterSort();
     this.initializeFilterStreams();
     this.subscribeToReset();
   }
@@ -130,6 +134,13 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   getVirtualScrollHeight = (itemCount: number): number => Math.min(itemCount * 28, 440);
+
+  setFilterSort(sort: UserFilterSort): void {
+    if (sort === this.filterSort) return;
+    this.filterSort = sort;
+    this.filterSort$.next(sort);
+    localStorage.setItem('bl-filter-sort', sort);
+  }
 
   trackByFilterType = (_: number, type: FilterType): string => type;
 
@@ -179,7 +190,8 @@ export class BookFilterComponent implements OnInit, OnDestroy {
       entityType$,
       this.activeFilters$,
       this.filterMode$,
-      this.urlFilter$ ?? of(null)
+      this.urlFilter$ ?? of(null),
+      this.filterSort$
     );
     this.filterTypes = Object.keys(this.filterStreams) as FilterType[];
     this.updateVisibleFilterTypes();
@@ -196,6 +208,14 @@ export class BookFilterComponent implements OnInit, OnDestroy {
 
   private subscribeToReset(): void {
     this.resetFilter$?.pipe(takeUntil(this.destroy$)).subscribe(() => this.clearActiveFilter());
+  }
+
+  private loadFilterSort(): void {
+    const saved = localStorage.getItem('bl-filter-sort') as UserFilterSort | null;
+    if (saved && ['count', 'az', 'za'].includes(saved)) {
+      this.filterSort = saved;
+      this.filterSort$.next(saved);
+    }
   }
 
   private handleSingleMode(filterType: string, value: unknown): void {
