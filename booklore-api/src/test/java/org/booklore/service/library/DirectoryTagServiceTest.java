@@ -70,5 +70,10 @@ class DirectoryTagServiceTest {
     // -----------------------------------------------------------------------
     // null depth falls back to LAST_ONLY behaviour via the callers (not tested
     // here — callers guard null before calling extractDirectoryTags)
+    //
+    // NOTE: extractDirectoryTags operates on the subPath RELATIVE to the library
+    // root.  The library root folder name itself is added by applyMissingDirectoryTags
+    // directly (not by extractDirectoryTags), so it is intentionally absent from
+    // the results of this static helper.
     // -----------------------------------------------------------------------
 }

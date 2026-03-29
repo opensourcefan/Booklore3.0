@@ -13,8 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -56,13 +58,37 @@ public class DirectoryTagService {
         DirectoryTagDepth depth = library.getDirectoryTagDepth() != null
                 ? library.getDirectoryTagDepth()
                 : DirectoryTagDepth.LAST_ONLY;
+
+        // Build map: libraryPathId → root folder name (the selected library folder itself).
+        // fileSubPath is relative to this root, so the root name is never included in
+        // extractDirectoryTags — we must add it explicitly here.
+        Map<Long, String> rootFolderNames = new HashMap<>();
+        for (var lp : library.getLibraryPaths()) {
+            Path rootFolderName = Path.of(lp.getPath()).getFileName();
+            if (rootFolderName != null && !rootFolderName.toString().isEmpty()) {
+                rootFolderNames.put(lp.getId(), rootFolderName.toString());
+            }
+        }
+
         int applied = 0;
         for (BookEntity book : books) {
             BookFileEntity primary = book.getPrimaryBookFile();
             if (primary == null) continue;
             String subPath = primary.getFileSubPath();
-            if (subPath == null || subPath.isEmpty()) continue;
-            Set<String> tags = extractDirectoryTags(subPath, depth);
+
+            Set<String> tags = new HashSet<>();
+
+            // Always tag with the library root folder name (e.g. "folder1")
+            String rootName = rootFolderNames.get(book.getLibraryPath().getId());
+            if (rootName != null) {
+                tags.add(rootName);
+            }
+
+            // Tag with subfolder segments relative to library root (e.g. "folder2", "folder3")
+            if (subPath != null && !subPath.isEmpty()) {
+                tags.addAll(extractDirectoryTags(subPath, depth));
+            }
+
             if (tags.isEmpty()) continue;
             bookCreatorService.addTagsToBook(tags, book);
             bookMetadataRepository.save(book.getMetadata());
