@@ -116,6 +116,77 @@
     }
   }
 
+  .recent-paths {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+
+    .recent-label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-secondary-color);
+      white-space: nowrap;
+      padding-top: 0.3rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+
+      i {
+        font-size: 0.78rem;
+      }
+    }
+
+    .recent-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+    }
+  }
+
+  .recent-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--overlay-background);
+    color: var(--text-color);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    appearance: none;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    i {
+      font-size: 0.75rem;
+      color: var(--primary-color);
+      flex-shrink: 0;
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &:hover {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: var(--primary-contrast-color);
+
+      i {
+        color: var(--primary-contrast-color);
+      }
+    }
+  }
+
   .selection-badge {
     display: flex;
     align-items: center;

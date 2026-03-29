@@ -87,7 +87,8 @@
     "foldersAvailable": "{{ count }} folders available",
     "folderWillBeSelected": "{{ count }} folder will be selected",
     "foldersWillBeSelected": "{{ count }} folders will be selected",
-    "selectDirectoriesBtn": "Select Directories"
+    "selectDirectoriesBtn": "Select Directories",
+    "recentLabel": "Recent:"
   },
   "liveNotification": {
     "defaultMessage": "No recent notifications..."

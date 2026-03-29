@@ -67,7 +67,7 @@ public class LibraryProcessingService {
             Map<String, List<LibraryFile>> groups = bookGroupingService.groupForInitialScan(newFiles, libraryEntity);
             int total = groups.size();
             if (total > 0) {
-                sendSyncProgress(taskId, 0, "Working 0 of " + total, TaskStatus.IN_PROGRESS);
+                sendSyncProgress(taskId, 0, "Preparing 0 of " + total, TaskStatus.IN_PROGRESS);
                 fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity, (current, t) -> {
                     int pct = t > 0 ? (current * 100) / t : 100;
                     sendSyncProgress(taskId, pct, "Importing " + current + " of " + t, TaskStatus.IN_PROGRESS);
@@ -143,7 +143,7 @@ public class LibraryProcessingService {
         int total = newBookGroups.size();
         if (total > 0) {
             String taskId = UUID.randomUUID().toString();
-            sendSyncProgress(taskId, 0, "Working 0 of " + total, TaskStatus.IN_PROGRESS);
+            sendSyncProgress(taskId, 0, "Preparing 0 of " + total, TaskStatus.IN_PROGRESS);
             fileAsBookProcessor.processLibraryFilesGrouped(newBookGroups, libraryEntity, (current, t) -> {
                 int pct = t > 0 ? (current * 100) / t : 100;
                 sendSyncProgress(taskId, pct, "Importing " + current + " of " + t, TaskStatus.IN_PROGRESS);

@@ -21,6 +21,23 @@
       </div>
     </div>
 
+    @if (recentPaths.length > 0) {
+      <div class="recent-paths">
+        <span class="recent-label">
+          <i class="pi pi-history"></i>
+          {{ t('recentLabel') }}
+        </span>
+        <div class="recent-chips">
+          @for (path of recentPaths; track path) {
+            <button type="button" class="recent-chip" (click)="navigateToRecent(path)" [pTooltip]="path" tooltipPosition="bottom">
+              <i class="pi pi-folder"></i>
+              <span>{{ getFolderName(path) }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
     <div class="controls-row">
       <p-iconfield class="search-input-wrapper">
         <p-inputicon class="pi pi-search"/>
