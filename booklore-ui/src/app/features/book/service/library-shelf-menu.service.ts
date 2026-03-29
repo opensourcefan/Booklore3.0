@@ -9,8 +9,7 @@ import {MetadataRefreshType} from '../../metadata/model/request/metadata-refresh
 import {MagicShelf, MagicShelfService} from '../../magic-shelf/service/magic-shelf.service';
 import {TaskHelperService} from '../../settings/task-management/task-helper.service';
 import {UserService} from "../../settings/user-management/user.service";
-import {LoadingService} from '../../../core/services/loading.service';
-import {finalize} from 'rxjs';
+import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
 import {BookDialogHelperService} from '../components/book-browser/book-dialog-helper.service';
 import {TranslocoService} from '@jsverse/transloco';
@@ -29,7 +28,7 @@ export class LibraryShelfMenuService {
   private dialogLauncherService = inject(DialogLauncherService);
   private magicShelfService = inject(MagicShelfService);
   private userService = inject(UserService);
-  private loadingService = inject(LoadingService);
+  private writeProgressService = inject(WriteProgressService);
   private bookDialogHelperService = inject(BookDialogHelperService);
   private readonly t = inject(TranslocoService);
 
@@ -146,16 +145,17 @@ export class LibraryShelfMenuService {
                   severity: 'danger',
                 },
                 accept: () => {
-                  const loader = this.loadingService.show(this.t.translate('book.shelfMenuService.loading.deletingLibrary', {name: entity?.name}));
+                  this.writeProgressService.show(this.t.translate('book.shelfMenuService.loading.deletingLibrary', {name: entity?.name}));
 
                   this.libraryService.deleteLibrary(entity?.id!)
-                    .pipe(finalize(() => this.loadingService.hide(loader)))
                     .subscribe({
                       complete: () => {
+                        this.writeProgressService.complete(this.t.translate('book.shelfMenuService.toast.libraryDeletedDetail'));
                         this.router.navigate(['/']);
                         this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.libraryDeletedDetail')});
                       },
                       error: () => {
+                        this.writeProgressService.fail(this.t.translate('book.shelfMenuService.toast.libraryDeleteFailedDetail'));
                         this.messageService.add({
                           severity: 'error',
                           summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),

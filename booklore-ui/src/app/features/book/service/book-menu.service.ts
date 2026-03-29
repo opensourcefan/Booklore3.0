@@ -5,12 +5,11 @@ import {BookMetadataManageService} from './book-metadata-manage.service';
 import {AGE_RATING_OPTIONS, CONTENT_RATING_LABELS, readStatusLabels} from '../components/book-browser/book-filter/book-filter.config';
 import {ReadStatus} from '../model/book.model';
 import {ResetProgressTypes} from '../../../shared/constants/reset-progress-type';
-import {finalize} from 'rxjs';
-import {LoadingService} from '../../../core/services/loading.service';
 import {User} from '../../settings/user-management/user.service';
 import {APIException} from '../../../shared/models/api-exception.model';
 import {HttpErrorResponse} from '@angular/common/http';
 import {TranslocoService} from '@jsverse/transloco';
+import {WriteProgressService} from '../../../shared/service/write-progress.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +20,7 @@ export class BookMenuService {
   messageService = inject(MessageService);
   bookService = inject(BookService);
   bookMetadataManageService = inject(BookMetadataManageService);
-  loadingService = inject(LoadingService);
+  writeProgressService = inject(WriteProgressService);
   private readonly t = inject(TranslocoService);
 
   getMetadataMenuItems(
@@ -108,12 +107,12 @@ export class BookMenuService {
                 severity: 'secondary'
               },
               accept: () => {
-                const loader = this.loadingService.show(this.t.translate('book.menuService.loading.updatingReadStatus', {count}));
+                this.writeProgressService.show(this.t.translate('book.menuService.loading.updatingReadStatus', {count}));
 
                 this.bookService.updateBookReadStatus(Array.from(selectedBooks), status as ReadStatus)
-                  .pipe(finalize(() => this.loadingService.hide(loader)))
                   .subscribe({
                     next: () => {
+                      this.writeProgressService.complete(this.t.translate('book.menuService.toast.readStatusUpdatedSummary'));
                       this.messageService.add({
                         severity: 'success',
                         summary: this.t.translate('book.menuService.toast.readStatusUpdatedSummary'),
@@ -123,6 +122,7 @@ export class BookMenuService {
                     },
                     error: (err: HttpErrorResponse) => {
                       const apiError = err.error as APIException;
+                      this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
                       this.messageService.add({
                         severity: 'error',
                         summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
@@ -153,13 +153,13 @@ export class BookMenuService {
                 acceptLabel: this.t.translate('common.yes'),
                 rejectLabel: this.t.translate('common.no'),
                 accept: () => {
-                  const loader = this.loadingService.show(this.t.translate('book.menuService.loading.settingAgeRating', {count}));
+                  this.writeProgressService.show(this.t.translate('book.menuService.loading.settingAgeRating', {count}));
                   this.bookMetadataManageService.updateBooksMetadata({
                     bookIds: Array.from(selectedBooks),
                     ageRating: option.id
-                  }).pipe(finalize(() => this.loadingService.hide(loader)))
-                    .subscribe({
+                  }).subscribe({
                       next: () => {
+                        this.writeProgressService.complete(this.t.translate('book.menuService.toast.ageRatingUpdatedSummary'));
                         this.messageService.add({
                           severity: 'success',
                           summary: this.t.translate('book.menuService.toast.ageRatingUpdatedSummary'),
@@ -169,6 +169,7 @@ export class BookMenuService {
                       },
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
+                        this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
                         this.messageService.add({
                           severity: 'error',
                           summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
@@ -195,13 +196,13 @@ export class BookMenuService {
                 acceptLabel: this.t.translate('common.yes'),
                 rejectLabel: this.t.translate('common.no'),
                 accept: () => {
-                  const loader = this.loadingService.show(this.t.translate('book.menuService.loading.clearingAgeRating', {count}));
+                  this.writeProgressService.show(this.t.translate('book.menuService.loading.clearingAgeRating', {count}));
                   this.bookMetadataManageService.updateBooksMetadata({
                     bookIds: Array.from(selectedBooks),
                     clearAgeRating: true
-                  }).pipe(finalize(() => this.loadingService.hide(loader)))
-                    .subscribe({
+                  }).subscribe({
                       next: () => {
+                        this.writeProgressService.complete(this.t.translate('book.menuService.toast.ageRatingClearedSummary'));
                         this.messageService.add({
                           severity: 'success',
                           summary: this.t.translate('book.menuService.toast.ageRatingClearedSummary'),
@@ -211,6 +212,7 @@ export class BookMenuService {
                       },
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
+                        this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
                         this.messageService.add({
                           severity: 'error',
                           summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
@@ -240,13 +242,13 @@ export class BookMenuService {
                 acceptLabel: this.t.translate('common.yes'),
                 rejectLabel: this.t.translate('common.no'),
                 accept: () => {
-                  const loader = this.loadingService.show(this.t.translate('book.menuService.loading.settingContentRating', {count}));
+                  this.writeProgressService.show(this.t.translate('book.menuService.loading.settingContentRating', {count}));
                   this.bookMetadataManageService.updateBooksMetadata({
                     bookIds: Array.from(selectedBooks),
                     contentRating: value
-                  }).pipe(finalize(() => this.loadingService.hide(loader)))
-                    .subscribe({
+                  }).subscribe({
                       next: () => {
+                        this.writeProgressService.complete(this.t.translate('book.menuService.toast.contentRatingUpdatedSummary'));
                         this.messageService.add({
                           severity: 'success',
                           summary: this.t.translate('book.menuService.toast.contentRatingUpdatedSummary'),
@@ -256,6 +258,7 @@ export class BookMenuService {
                       },
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
+                        this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
                         this.messageService.add({
                           severity: 'error',
                           summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
@@ -282,13 +285,13 @@ export class BookMenuService {
                 acceptLabel: this.t.translate('common.yes'),
                 rejectLabel: this.t.translate('common.no'),
                 accept: () => {
-                  const loader = this.loadingService.show(this.t.translate('book.menuService.loading.clearingContentRating', {count}));
+                  this.writeProgressService.show(this.t.translate('book.menuService.loading.clearingContentRating', {count}));
                   this.bookMetadataManageService.updateBooksMetadata({
                     bookIds: Array.from(selectedBooks),
                     clearContentRating: true
-                  }).pipe(finalize(() => this.loadingService.hide(loader)))
-                    .subscribe({
+                  }).subscribe({
                       next: () => {
+                        this.writeProgressService.complete(this.t.translate('book.menuService.toast.contentRatingClearedSummary'));
                         this.messageService.add({
                           severity: 'success',
                           summary: this.t.translate('book.menuService.toast.contentRatingClearedSummary'),
@@ -298,6 +301,7 @@ export class BookMenuService {
                       },
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
+                        this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
                         this.messageService.add({
                           severity: 'error',
                           summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
@@ -327,7 +331,6 @@ export class BookMenuService {
              acceptLabel: this.t.translate('common.yes'),
              rejectLabel: this.t.translate('common.no'),
              accept: () => {
-               const loader = this.loadingService.show(this.t.translate('book.menuService.loading.removingFromShelves', {count}));
                const books = this.bookService.getBooksByIdsFromState(Array.from(selectedBooks));
                const allShelfIds = new Set<number>();
                books.forEach(b => b.shelves?.forEach(s => {
@@ -335,18 +338,19 @@ export class BookMenuService {
                }));
 
                if (allShelfIds.size === 0) {
-                 this.loadingService.hide(loader);
                  this.messageService.add({ severity: 'info', summary: this.t.translate('common.info'), detail: this.t.translate('book.menuService.toast.noBooksOnShelvesDetail') });
                  return;
                }
 
+               this.writeProgressService.show(this.t.translate('book.menuService.loading.removingFromShelves', {count}));
                this.bookService.updateBookShelves(selectedBooks, new Set(), allShelfIds)
-                 .pipe(finalize(() => this.loadingService.hide(loader)))
                  .subscribe({
                    next: () => {
+                     this.writeProgressService.complete(this.t.translate('book.menuService.toast.unshelveSuccessDetail'));
                      this.messageService.add({severity: 'success', summary: this.t.translate('common.success'), detail: this.t.translate('book.menuService.toast.unshelveSuccessDetail')});
                    },
                    error: () => {
+                     this.writeProgressService.fail(this.t.translate('book.menuService.toast.unshelveFailedDetail'));
                      this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('book.menuService.toast.unshelveFailedDetail')});
                    }
                  });
@@ -368,12 +372,11 @@ export class BookMenuService {
             acceptLabel: this.t.translate('common.yes'),
             rejectLabel: this.t.translate('common.no'),
             accept: () => {
-              const loader = this.loadingService.show(this.t.translate('book.menuService.loading.resettingBookloreProgress', {count}));
-
+              this.writeProgressService.show(this.t.translate('book.menuService.loading.resettingBookloreProgress', {count}));
               this.bookService.resetProgress(Array.from(selectedBooks), ResetProgressTypes.BOOKLORE)
-                .pipe(finalize(() => this.loadingService.hide(loader)))
                 .subscribe({
                   next: () => {
+                    this.writeProgressService.complete(this.t.translate('book.menuService.toast.progressResetSummary'));
                     this.messageService.add({
                       severity: 'success',
                       summary: this.t.translate('book.menuService.toast.progressResetSummary'),
@@ -383,6 +386,7 @@ export class BookMenuService {
                   },
                   error: (err: HttpErrorResponse) => {
                     const apiError = err.error as APIException;
+                    this.writeProgressService.fail(this.t.translate('book.menuService.toast.failedSummary'));
                     this.messageService.add({
                       severity: 'error',
                       summary: this.t.translate('book.menuService.toast.failedSummary'),
@@ -409,12 +413,11 @@ export class BookMenuService {
             acceptLabel: this.t.translate('common.yes'),
             rejectLabel: this.t.translate('common.no'),
             accept: () => {
-              const loader = this.loadingService.show(this.t.translate('book.menuService.loading.resettingKOReaderProgress', {count}));
-
+              this.writeProgressService.show(this.t.translate('book.menuService.loading.resettingKOReaderProgress', {count}));
               this.bookService.resetProgress(Array.from(selectedBooks), ResetProgressTypes.KOREADER)
-                .pipe(finalize(() => this.loadingService.hide(loader)))
                 .subscribe({
                   next: () => {
+                    this.writeProgressService.complete(this.t.translate('book.menuService.toast.progressResetSummary'));
                     this.messageService.add({
                       severity: 'success',
                       summary: this.t.translate('book.menuService.toast.progressResetSummary'),
@@ -424,6 +427,7 @@ export class BookMenuService {
                   },
                   error: (err: HttpErrorResponse) => {
                     const apiError = err.error as APIException;
+                    this.writeProgressService.fail(this.t.translate('book.menuService.toast.failedSummary'));
                     this.messageService.add({
                       severity: 'error',
                       summary: this.t.translate('book.menuService.toast.failedSummary'),

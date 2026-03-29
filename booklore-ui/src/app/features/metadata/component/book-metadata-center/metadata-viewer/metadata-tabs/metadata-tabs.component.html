@@ -207,6 +207,12 @@
               <p class="empty-state-message">{{ t('physicalBookMessage') }}</p>
               <p class="empty-state-hint">{{ t('physicalBookHint') }}</p>
             </div>
+          } @else if (isFileless()) {
+            <div class="empty-state">
+              <i class="pi pi-file empty-state-icon"></i>
+              <h4 class="empty-state-title">{{ t('filelessBookTitle') }}</h4>
+              <p class="empty-state-message">{{ t('filelessBookMessage') }}</p>
+            </div>
           } @else {
             @if (hasMultipleFiles(book)) {
               <div class="files-section download-all-section">

@@ -25,6 +25,18 @@
   </div>
 
   <div class="shelves-container">
+    @if (recentShelves.length > 0) {
+      <div class="recent-shelves">
+        <span class="recent-label">Recent</span>
+        <div class="recent-chips">
+          @for (shelf of recentShelves; track shelf.id) {
+            <button type="button" class="recent-chip" [class.recent-chip-selected]="isShelfSelected(shelf)" (click)="selectRecentShelf(shelf)">
+              {{ shelf.name }}
+            </button>
+          }
+        </div>
+      </div>
+    }
     @if ((shelfState$ | async)?.shelves && (shelfState$ | async)!.shelves!.length > 0) {
       <div class="shelves-list">
         <div class="list-header">

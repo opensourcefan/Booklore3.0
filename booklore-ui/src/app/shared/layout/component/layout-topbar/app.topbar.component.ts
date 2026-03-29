@@ -36,6 +36,7 @@ import {SidebarFilterTogglePrefService} from '../../../../features/book/componen
 import {AiPanelScanProgressPayload} from '../../../model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from '../../../service/ai-panel-scan-progress.service';
 import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from '../../../../features/settings/task-management/task.service';
+import {WriteProgressPayload, WriteProgressService} from '../../../../shared/service/write-progress.service';
 
 @Component({
   selector: 'app-topbar',
@@ -87,10 +88,12 @@ export class AppTopBarComponent implements OnDestroy {
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
   metadataFlushProgress: TaskProgressPayload | null = null;
   importScanProgress: TaskProgressPayload | null = null;
+  writeProgress: WriteProgressPayload | null = null;
 
   private eventTimer: number | undefined;
   private flushDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private importDismissTimer: ReturnType<typeof setTimeout> | undefined;
+  private writeDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private destroy$ = new Subject<void>();
 
   private latestTasks: Record<string, MetadataBatchProgressNotification> = {};
@@ -115,7 +118,8 @@ export class AppTopBarComponent implements OnDestroy {
     translocoService: TranslocoService,
     private sidebarFilterTogglePrefService: SidebarFilterTogglePrefService,
     private aiPanelScanProgressService: AiPanelScanProgressService,
-    private taskService: TaskService
+    private taskService: TaskService,
+    private writeProgressService: WriteProgressService
   ) {
     this.translocoService = translocoService;
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -187,6 +191,20 @@ export class AppTopBarComponent implements OnDestroy {
         }
       });
 
+    this.writeProgressService.progress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(payload => {
+        this.writeProgress = payload;
+        if (payload?.status === 'COMPLETED' || payload?.status === 'FAILED') {
+          clearTimeout(this.writeDismissTimer);
+          this.writeDismissTimer = setTimeout(() => {
+            this.writeProgress = null;
+          }, 3000);
+        } else {
+          clearTimeout(this.writeDismissTimer);
+        }
+      });
+
     this.userService.userState$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
@@ -216,6 +234,7 @@ export class AppTopBarComponent implements OnDestroy {
     clearTimeout(this.eventTimer);
     clearTimeout(this.flushDismissTimer);
     clearTimeout(this.importDismissTimer);
+    clearTimeout(this.writeDismissTimer);
     window.removeEventListener('storage', this.onStorageChange);
     this.destroy$.next();
     this.destroy$.complete();
@@ -460,6 +479,15 @@ export class AppTopBarComponent implements OnDestroy {
 
   get showImportScanStatus(): boolean {
     return !!this.importScanProgress;
+  }
+
+  get showWriteStatus(): boolean {
+    return !!this.writeProgress;
+  }
+
+  get writeStatusSummary(): string {
+    if (!this.writeProgress) return '';
+    return this.writeProgress.message;
   }
 
   get metadataFlushSummary(): string {

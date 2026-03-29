@@ -2,7 +2,7 @@ import {FormsModule} from "@angular/forms";
 import {Button} from "primeng/button";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AsyncPipe, DecimalPipe, KeyValuePipe, NgClass, NgStyle} from "@angular/common";
-import {filter, finalize, map, switchMap, tap} from "rxjs/operators";
+import {filter, map, switchMap, tap} from "rxjs/operators";
 import {combineLatest, Observable, Subscription} from "rxjs";
 import {Book, BookType, ReadStatus} from "../../model/book.model";
 import {BookService} from "../../service/book.service";
@@ -17,7 +17,7 @@ import {DynamicDialogRef} from "primeng/dynamicdialog";
 import {ConfirmationService, MenuItem, MessageService} from "primeng/api";
 import {UserService} from "../../../settings/user-management/user.service";
 import {BookMenuService} from "../../service/book-menu.service";
-import {LoadingService} from "../../../../core/services/loading.service";
+import {WriteProgressService} from '../../../../shared/service/write-progress.service';
 import {BookDialogHelperService} from "../book-browser/book-dialog-helper.service";
 import {TaskHelperService} from "../../../settings/task-management/task-helper.service";
 import {MetadataRefreshType} from "../../../metadata/model/request/metadata-refresh-type.enum";
@@ -115,7 +115,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
   protected userService = inject(UserService);
   private bookMenuService = inject(BookMenuService);
   protected confirmationService = inject(ConfirmationService);
-  private loadingService = inject(LoadingService);
+  private writeProgressService = inject(WriteProgressService);
   private dialogHelperService = inject(BookDialogHelperService);
   protected taskHelperService = inject(TaskHelperService);
   private messageService = inject(MessageService);
@@ -647,11 +647,11 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
       rejectButtonStyleClass: 'p-button-outlined',
       accept: () => {
         const count = this.selectedBooks.size;
-        const loader = this.loadingService.show(this.t.translate('book.browser.loading.deleting', {count}));
+        this.writeProgressService.show(this.t.translate('book.browser.loading.deleting', {count}));
 
         this.bookService.deleteBooks(this.selectedBooks)
-          .pipe(finalize(() => this.loadingService.hide(loader)))
           .subscribe(() => {
+            this.writeProgressService.complete(`Deleted ${count} book${count === 1 ? '' : 's'}`);
             this.selectedBooks.clear();
           });
       },

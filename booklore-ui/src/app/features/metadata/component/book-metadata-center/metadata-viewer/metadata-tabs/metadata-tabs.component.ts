@@ -194,7 +194,11 @@ export class MetadataTabsComponent {
   }
 
   isPhysicalBook(): boolean {
-    return !this.book?.primaryFile && (!this.book?.alternativeFormats || this.book.alternativeFormats.length === 0);
+    return !!this.book?.isPhysical;
+  }
+
+  isFileless(): boolean {
+    return !this.book?.isPhysical && !this.book?.primaryFile && (!this.book?.alternativeFormats || this.book.alternativeFormats.length === 0);
   }
 
   supportsDualCovers(): boolean {

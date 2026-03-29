@@ -24,6 +24,18 @@
   </div>
 
   <div class="book-types-container">
+    @if (recentMediaTypes.length > 0) {
+      <div class="recent-types">
+        <span class="recent-label">Recent</span>
+        <div class="recent-chips">
+          @for (type of recentMediaTypes; track type) {
+            <button type="button" class="recent-chip" [class.recent-chip-selected]="selectedFileType === type" (click)="selectRecentType(type)">
+              {{ type }}
+            </button>
+          }
+        </div>
+      </div>
+    }
     <div class="types-list">
       <div class="list-header">
         <span class="type-count">

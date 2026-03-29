@@ -190,3 +190,47 @@
   @include panel.dialog-footer;
   border-top: none;
 }
+
+.recent-types {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem 0.5rem;
+  flex-wrap: wrap;
+}
+
+.recent-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-color-secondary);
+  flex-shrink: 0;
+}
+
+.recent-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.recent-chip {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--p-content-border-color);
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--surface-hover);
+  }
+
+  &.recent-chip-selected {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--primary-color-text);
+  }
+}

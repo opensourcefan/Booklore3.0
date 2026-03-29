@@ -6,9 +6,8 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MessageService} from 'primeng/api';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
 import {Divider} from 'primeng/divider';
-import {LoadingService} from '../../../../../core/services/loading.service';
-import {finalize} from 'rxjs';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {WriteProgressService} from '../../../../../shared/service/write-progress.service';
 
 @Component({
   selector: 'app-lock-unlock-metadata-dialog',
@@ -27,7 +26,7 @@ export class LockUnlockMetadataDialogComponent implements OnInit {
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   dialogRef = inject(DynamicDialogRef);
   private messageService = inject(MessageService);
-  private loadingService = inject(LoadingService);
+  private writeProgressService = inject(WriteProgressService);
   private readonly t = inject(TranslocoService);
   fieldLocks: Record<string, boolean | undefined> = {};
 
@@ -127,23 +126,23 @@ export class LockUnlockMetadataDialogComponent implements OnInit {
     }
 
     this.isSaving = true;
-    const loader = this.loadingService.show(this.t.translate('book.lockUnlockDialog.toast.updatingFieldLocks'));
+    this.writeProgressService.show(this.t.translate('book.lockUnlockDialog.toast.updatingFieldLocks'));
+    this.dialogRef.close('fields-updated');
 
     this.bookMetadataManageService.toggleFieldLocks(this.bookIds, fieldActions)
-      .pipe(finalize(() => {
-        this.isSaving = false;
-        this.loadingService.hide(loader);
-      }))
       .subscribe({
         next: () => {
+          this.isSaving = false;
+          this.writeProgressService.complete(this.t.translate('book.lockUnlockDialog.toast.updatedSummary'));
           this.messageService.add({
             severity: 'success',
             summary: this.t.translate('book.lockUnlockDialog.toast.updatedSummary'),
             detail: this.t.translate('book.lockUnlockDialog.toast.updatedDetail')
           });
-          this.dialogRef.close('fields-updated');
         },
         error: () => {
+          this.isSaving = false;
+          this.writeProgressService.fail(this.t.translate('book.lockUnlockDialog.toast.failedSummary'));
           this.messageService.add({
             severity: 'error',
             summary: this.t.translate('book.lockUnlockDialog.toast.failedSummary'),

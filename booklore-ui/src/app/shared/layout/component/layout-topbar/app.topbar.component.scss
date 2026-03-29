@@ -169,6 +169,54 @@
   font-size: 0.82rem;
 }
 
+.topbar-write-status {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 26rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--p-purple-700, #7e22ce);
+  background: rgba(126, 34, 206, 0.08);
+  color: var(--p-purple-700, #7e22ce);
+  cursor: default;
+  appearance: none;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease;
+
+  @media (min-width: 768px) {
+    display: inline-flex;
+  }
+
+  &.topbar-write-complete {
+    border-color: var(--p-green-700, #15803d);
+    background: rgba(21, 128, 61, 0.08);
+    color: var(--p-green-700, #15803d);
+  }
+
+  &.topbar-write-failed {
+    border-color: var(--p-red-700, #b91c1c);
+    background: rgba(185, 28, 28, 0.08);
+    color: var(--p-red-700, #b91c1c);
+  }
+}
+
+.topbar-write-label {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.topbar-write-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+
 .topbar-desktop-items {
   display: none;
   align-items: center;

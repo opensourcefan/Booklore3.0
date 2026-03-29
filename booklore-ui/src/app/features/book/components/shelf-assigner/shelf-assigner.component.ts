@@ -3,7 +3,7 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Book} from '../../model/book.model';
 import {MessageService} from 'primeng/api';
 import {ShelfService} from '../../service/shelf.service';
-import {combineLatest, finalize, Observable} from 'rxjs';
+import {combineLatest, Observable} from 'rxjs';
 import {BookService} from '../../service/book.service';
 import {map, tap} from 'rxjs/operators';
 import {Shelf} from '../../model/shelf.model';
@@ -13,7 +13,6 @@ import {AsyncPipe} from '@angular/common';
 import {Checkbox} from 'primeng/checkbox';
 import {FormsModule} from '@angular/forms';
 import {BookDialogHelperService} from '../book-browser/book-dialog-helper.service';
-import {LoadingService} from '../../../../core/services/loading.service';
 import {UserService} from '../../../settings/user-management/user.service';
 import {IconDisplayComponent} from '../../../../shared/components/icon-display/icon-display.component';
 import {IconSelection} from '../../../../shared/service/icon-picker.service';
@@ -21,6 +20,8 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {InputText} from 'primeng/inputtext';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
+import {WriteProgressService} from '../../../../shared/service/write-progress.service';
+import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 
 @Component({
   selector: 'app-shelf-assigner',
@@ -47,11 +48,16 @@ export class ShelfAssignerComponent implements OnInit {
   private messageService = inject(MessageService);
   private bookService = inject(BookService);
   private bookDialogHelper = inject(BookDialogHelperService);
-  private loadingService = inject(LoadingService);
+  private writeProgressService = inject(WriteProgressService);
+  private localStorageService = inject(LocalStorageService);
   private userService = inject(UserService);
   private readonly t = inject(TranslocoService);
 
+  private readonly RECENT_SHELVES_KEY = 'BOOKLORE_RECENT_SHELVES';
+  private readonly MAX_RECENT = 5;
+
   searchQuery = '';
+  recentShelves: Shelf[] = [];
   private shelfSortField: 'name' | 'id' = 'name';
   private shelfSortOrder: 'asc' | 'desc' = 'asc';
 
@@ -78,6 +84,7 @@ export class ShelfAssignerComponent implements OnInit {
   isMultiBooks: boolean = this.dynamicDialogConfig.data.isMultiBooks;
 
   ngOnInit(): void {
+    this.loadRecentShelves();
     if (!this.isMultiBooks && this.book.shelves) {
       this.shelfState$.pipe(
         map(state => state.shelves || []),
@@ -90,6 +97,30 @@ export class ShelfAssignerComponent implements OnInit {
     }
   }
 
+  private loadRecentShelves(): void {
+    this.recentShelves = this.localStorageService.get<Shelf[]>(this.RECENT_SHELVES_KEY) ?? [];
+  }
+
+  private saveRecentShelves(assigned: Shelf[]): void {
+    if (!assigned.length) return;
+    const existing = this.localStorageService.get<Shelf[]>(this.RECENT_SHELVES_KEY) ?? [];
+    const merged: Shelf[] = [...assigned];
+    for (const s of existing) {
+      if (!merged.some(m => m.id === s.id)) {
+        merged.push(s);
+      }
+    }
+    this.localStorageService.set(this.RECENT_SHELVES_KEY, merged.slice(0, this.MAX_RECENT));
+  }
+
+  selectRecentShelf(shelf: Shelf): void {
+    if (!this.isShelfSelected(shelf)) {
+      this.selectedShelves = [...this.selectedShelves, shelf];
+    } else {
+      this.selectedShelves = this.selectedShelves.filter(s => s.id !== shelf.id);
+    }
+  }
+
   updateBooksShelves(): void {
     const idsToAssign = new Set<number | undefined>(this.selectedShelves.map(shelf => shelf.id));
     const idsToUnassign: Set<number> = this.isMultiBooks ? new Set() : this.getIdsToUnAssign(this.book, idsToAssign);
@@ -98,23 +129,20 @@ export class ShelfAssignerComponent implements OnInit {
   }
 
   private updateBookShelves(bookIds: Set<number>, idsToAssign: Set<number | undefined>, idsToUnassign: Set<number>): void {
-    const loader = this.loadingService.show(this.t.translate('book.shelfAssigner.loading.updatingShelves', { count: bookIds.size }));
+    this.saveRecentShelves(this.selectedShelves);
+    this.writeProgressService.show(this.t.translate('book.shelfAssigner.loading.updatingShelves', { count: bookIds.size }));
+    this.dynamicDialogRef.close({assigned: true});
 
     this.bookService.updateBookShelves(bookIds, idsToAssign, idsToUnassign)
-      .pipe(
-        finalize(() => {
-          this.bookService.refreshBooks().subscribe();
-          this.loadingService.hide(loader);
-        })
-      )
       .subscribe({
         next: () => {
+          this.bookService.refreshBooks().subscribe();
+          this.writeProgressService.complete(this.t.translate('book.shelfAssigner.toast.updateSuccessDetail'));
           this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfAssigner.toast.updateSuccessDetail')});
-          this.dynamicDialogRef.close({assigned: true});
         },
         error: () => {
+          this.writeProgressService.fail(this.t.translate('book.shelfAssigner.toast.updateFailedDetail'));
           this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('book.shelfAssigner.toast.updateFailedDetail')});
-          this.dynamicDialogRef.close({assigned: false});
         }
       });
   }

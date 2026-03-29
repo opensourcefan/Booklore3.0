@@ -212,6 +212,8 @@
     "audiobookCover": "Audiobook Cover",
     "physicalBookTitle": "Physical Book",
     "physicalBookMessage": "This book is a physical book record without digital files.",
+    "filelessBookTitle": "No Files Attached",
+    "filelessBookMessage": "This book has no digital files associated with it.",
     "downloadAll": "Download All ({{ count }} files)",
     "primaryFile": "Primary File",
     "alternativeFormats": "Alternative Formats",

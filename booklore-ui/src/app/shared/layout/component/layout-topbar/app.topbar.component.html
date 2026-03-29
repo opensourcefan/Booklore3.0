@@ -60,6 +60,19 @@
         <span class="topbar-import-summary">{{ importScanSummary }}</span>
       </button>
     }
+    @if (showWriteStatus) {
+      <div class="topbar-write-status" [class.topbar-write-complete]="writeProgress?.status === 'COMPLETED'" [class.topbar-write-failed]="writeProgress?.status === 'FAILED'">
+        @if (writeProgress?.status === 'IN_PROGRESS') {
+          <i class="pi pi-spin pi-spinner"></i>
+        } @else if (writeProgress?.status === 'COMPLETED') {
+          <i class="pi pi-check"></i>
+        } @else {
+          <i class="pi pi-times"></i>
+        }
+        <span class="topbar-write-label">{{ writeProgress?.status === 'IN_PROGRESS' ? 'UPDATING' : (writeProgress?.status === 'COMPLETED' ? 'DONE' : 'FAILED') }}</span>
+        <span class="topbar-write-summary">{{ writeStatusSummary }}</span>
+      </div>
+    }
     <ul class="topbar-items topbar-desktop-items">
       @for (item of visibleDesktopToolbarItems; track item.id) {
         @if (item.type === 'separator') {

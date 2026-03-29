@@ -5,7 +5,7 @@ import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {BookService} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
 import {debounceTime, filter, map, switchMap, takeUntil} from 'rxjs/operators';
-import {BehaviorSubject, combineLatest, finalize, Observable, of, Subject, Subscription} from 'rxjs';
+import {BehaviorSubject, combineLatest, Observable, of, Subject, Subscription} from 'rxjs';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Library} from '../../model/library.model';
 import {Shelf} from '../../model/shelf.model';
@@ -46,8 +46,8 @@ import {SidebarFilterTogglePrefService} from './filters/sidebar-filter-toggle-pr
 import {MetadataRefreshType} from '../../../metadata/model/request/metadata-refresh-type.enum';
 import {TaskHelperService} from '../../../settings/task-management/task-helper.service';
 import {FilterLabelHelper} from './filter-label.helper';
-import {LoadingService} from '../../../../core/services/loading.service';
 import {LocalStorageService} from '../../../../shared/service/local-storage.service';
+import {WriteProgressService} from '../../../../shared/service/write-progress.service';
 import {BookNavigationService} from '../../service/book-navigation.service';
 import {BookCardOverlayPreferenceService} from './book-card-overlay-preference.service';
 import {BookSelectionService, CheckboxClickEvent} from './book-selection.service';
@@ -119,7 +119,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private bookMenuService = inject(BookMenuService);
   private libraryShelfMenuService = inject(LibraryShelfMenuService);
   private pageTitle = inject(PageTitleService);
-  private loadingService = inject(LoadingService);
+  private writeProgressService = inject(WriteProgressService);
   private bookNavigationService = inject(BookNavigationService);
   private queryParamsService = inject(BookBrowserQueryParamsService);
   private entityService = inject(BookBrowserEntityService);
@@ -724,11 +724,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       rejectButtonStyleClass: 'p-button-outlined',
       accept: () => {
         const count = this.selectedBooks.size;
-        const loader = this.loadingService.show(this.t.translate('book.browser.loading.deleting', {count}));
+        this.writeProgressService.show(this.t.translate('book.browser.loading.deleting', {count}));
 
         this.bookService.deleteBooks(this.selectedBooks)
-          .pipe(finalize(() => this.loadingService.hide(loader)))
           .subscribe(() => {
+            this.writeProgressService.complete(`Deleted ${count} book${count === 1 ? '' : 's'}`);
             this.bookSelectionService.deselectAll();
           });
       }
@@ -1027,17 +1027,18 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   unshelfBooks(): void {
     if (!this.entity) return;
     const count = this.selectedBooks.size;
-    const loader = this.loadingService.show(this.t.translate('book.browser.loading.unshelving', {count}));
+    this.writeProgressService.show(this.t.translate('book.browser.loading.unshelving', {count}));
 
     this.bookService.updateBookShelves(this.selectedBooks, new Set(), new Set([this.entity.id!]))
-      .pipe(finalize(() => this.loadingService.hide(loader)))
       .subscribe({
         next: () => {
+          this.writeProgressService.complete(this.t.translate('book.browser.toast.unshelveSuccessDetail'));
           this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.browser.toast.unshelveSuccessDetail')});
           this.bookService.refreshBooks();
           this.bookSelectionService.deselectAll();
         },
         error: () => {
+          this.writeProgressService.fail(this.t.translate('book.browser.toast.unshelveFailedDetail'));
           this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('book.browser.toast.unshelveFailedDetail')});
         }
       });
