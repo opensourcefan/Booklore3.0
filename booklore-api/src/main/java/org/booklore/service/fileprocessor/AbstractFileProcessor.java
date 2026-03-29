@@ -5,6 +5,7 @@ import org.booklore.model.FileProcessResult;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.settings.LibraryFile;
 import org.booklore.model.entity.BookEntity;
+import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.model.enums.FileProcessStatus;
 import org.booklore.model.enums.LibraryOrganizationMode;
 import org.booklore.repository.BookAdditionalFileRepository;
@@ -69,6 +70,7 @@ public abstract class AbstractFileProcessor implements BookFileProcessor {
         BookEntity entity = processNewFile(libraryFile);
         entity.getPrimaryBookFile().setCurrentHash(hash);
         applyDirectoryTag(entity, libraryFile);
+        applyTitleFallback(entity, libraryFile);
         entity.setMetadataMatchScore(metadataMatchService.calculateMatchScore(entity));
         bookCreatorService.saveConnections(entity);
 
@@ -84,6 +86,24 @@ public abstract class AbstractFileProcessor implements BookFileProcessor {
     }
 
     protected abstract BookEntity processNewFile(LibraryFile libraryFile);
+
+    private void applyTitleFallback(BookEntity entity, LibraryFile libraryFile) {
+        BookMetadataEntity metadata = entity.getMetadata();
+        if (metadata == null) return;
+        if (metadata.getTitle() != null && !metadata.getTitle().isBlank()) return;
+        String filename = libraryFile.getFileName();
+        if (filename == null || filename.isBlank()) return;
+        String base;
+        if (libraryFile.isFolderBased()) {
+            base = filename.trim();
+        } else {
+            int lastDot = filename.lastIndexOf('.');
+            base = (lastDot > 0 ? filename.substring(0, lastDot) : filename).trim();
+        }
+        if (!base.isBlank()) {
+            metadata.setTitle(base);
+        }
+    }
 
     private void applyDirectoryTag(BookEntity entity, LibraryFile libraryFile) {
         var library = libraryFile.getLibraryEntity();
