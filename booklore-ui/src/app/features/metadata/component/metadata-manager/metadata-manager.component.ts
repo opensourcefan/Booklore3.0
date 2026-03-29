@@ -21,6 +21,7 @@ import {Subscription} from 'rxjs';
 import {filter, take} from 'rxjs/operators';
 import {ExternalDocLinkComponent} from '../../../../shared/components/external-doc-link/external-doc-link.component';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import {WriteProgressService} from '../../../../shared/service/write-progress.service';
 
 interface MetadataItem {
   value: string;
@@ -76,6 +77,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private pageTitle = inject(PageTitleService);
   private readonly t = inject(TranslocoService);
+  private readonly writeProgressService = inject(WriteProgressService);
 
   private routeSub!: Subscription;
 
@@ -331,8 +333,12 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     this.mergingInProgress = true;
+    this.writeProgressService.show(action === 'renamed' ? `Renaming "${oldValue}"...` : `Splitting "${oldValue}"...`);
     this.bookMetadataManageService.consolidateMetadata(this.currentMergeType, targetValues, [oldValue]).subscribe({
       next: () => {
+        this.writeProgressService.complete(action === 'renamed'
+          ? `Renamed "${oldValue}" → ${resultText}`
+          : `Split "${oldValue}" into ${resultText}`);
         this.messageService.add({
           severity: 'success',
           summary: action === 'renamed'
@@ -351,6 +357,9 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
         this.loadMetadata();
       },
       error: (error) => {
+        this.writeProgressService.fail(action === 'renamed'
+          ? this.t.translate('metadata.manager.toast.renameFailedDetail')
+          : this.t.translate('metadata.manager.toast.splitFailedDetail'));
         this.messageService.add({
           severity: 'error',
           summary: action === 'renamed'
@@ -408,8 +417,12 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     this.mergingInProgress = true;
+    this.writeProgressService.show(`Merging ${selected.length} ${this.getTypeLabel(this.currentMergeType, selected.length !== 1)}...`);
     this.bookMetadataManageService.consolidateMetadata(this.currentMergeType, targetValues, valuesToMerge).subscribe({
       next: () => {
+        this.writeProgressService.complete(operation === 'merge'
+          ? this.t.translate('metadata.manager.toast.mergeSuccessfulDetail', {selectedCount: selected.length, type: this.getTypeLabel(this.currentMergeType, true), targetCount: targetValues.length, bookCount: affectedBooks})
+          : this.t.translate('metadata.manager.toast.mergeSplitSuccessfulDetail', {selectedCount: selected.length, type: this.getTypeLabel(this.currentMergeType, true), targetCount: targetValues.length, bookCount: affectedBooks}));
         this.messageService.add({
           severity: 'success',
           summary: operation === 'merge'
@@ -428,6 +441,9 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
         this.loadMetadata();
       },
       error: (error) => {
+        this.writeProgressService.fail(operation === 'merge'
+          ? this.t.translate('metadata.manager.toast.mergeFailedDetail')
+          : this.t.translate('metadata.manager.toast.mergeSplitFailedDetail'));
         this.messageService.add({
           severity: 'error',
           summary: operation === 'merge'
@@ -468,8 +484,10 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     this.deletingInProgress = true;
+    this.writeProgressService.show(`Deleting ${itemCount} ${this.getTypeLabel(this.currentMergeType, itemCount !== 1)}...`);
     this.bookMetadataManageService.deleteMetadata(this.currentMergeType, valuesToDelete).subscribe({
       next: () => {
+        this.writeProgressService.complete(this.t.translate('metadata.manager.toast.deleteSuccessfulDetail', {count: itemCount, type: itemCount > 1 ? this.getTypeLabel(this.currentMergeType, true) : this.getTypeLabel(this.currentMergeType, false), bookCount: affectedBooks}));
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('metadata.manager.toast.deleteSuccessfulSummary'),
@@ -484,6 +502,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
         this.loadMetadata();
       },
       error: (error) => {
+        this.writeProgressService.fail(this.t.translate('metadata.manager.toast.deleteFailedDetail'));
         this.messageService.add({
           severity: 'error',
           summary: this.t.translate('metadata.manager.toast.deleteFailedSummary'),

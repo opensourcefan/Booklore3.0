@@ -33,6 +33,7 @@ import {UserService} from '../../../../settings/user-management/user.service';
 import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
 import {MetadataProviderSpecificFields} from '../../../../../shared/model/app-settings.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {WriteProgressService} from '../../../../../shared/service/write-progress.service';
 import {CdkDragDrop, CdkDropList, CdkDrag, moveItemInArray} from '@angular/cdk/drag-drop';
 
 @Component({
@@ -86,6 +87,7 @@ export class MetadataEditorComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private appSettingsService = inject(AppSettingsService);
   private readonly t = inject(TranslocoService);
+  private readonly writeProgressService = inject(WriteProgressService);
 
   metadataForm: FormGroup;
   currentBookId!: number;
@@ -641,6 +643,7 @@ export class MetadataEditorComponent implements OnInit {
 
   saveMetadata(): Observable<void> {
     this.isSaving = true;
+    this.writeProgressService.show(this.t.translate('metadata.editor.toast.metadataUpdated'));
     return this.bookMetadataManageService
       .updateBookMetadata(
         this.currentBookId,
@@ -651,6 +654,7 @@ export class MetadataEditorComponent implements OnInit {
         tap({
           next: (response: any) => {
             this.isSaving = false;
+            this.writeProgressService.complete(this.t.translate('metadata.editor.toast.metadataUpdated'));
             this.messageService.add({
               severity: "info",
               summary: this.t.translate('metadata.editor.toast.successSummary'),
@@ -661,6 +665,7 @@ export class MetadataEditorComponent implements OnInit {
           },
           error: (err: any) => {
             this.isSaving = false;
+            this.writeProgressService.fail(err?.error?.message || this.t.translate('metadata.editor.toast.metadataUpdateFailed'));
             this.messageService.add({
               severity: "error",
               summary: this.t.translate('metadata.editor.toast.errorSummary'),

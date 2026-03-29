@@ -15,6 +15,7 @@ import {AutoComplete} from 'primeng/autocomplete';
 import {AutoCompleteSelectEvent} from 'primeng/autocomplete';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {filter, take} from "rxjs/operators";
+import {WriteProgressService} from '../../../../shared/service/write-progress.service';
 
 @Component({
   selector: 'app-bulk-metadata-update-component',
@@ -63,6 +64,7 @@ export class BulkMetadataUpdateComponent implements OnInit {
   private readonly bookService = inject(BookService);
   private readonly bookMetadataManageService = inject(BookMetadataManageService);
   private readonly messageService = inject(MessageService);
+  private readonly writeProgressService = inject(WriteProgressService);
 
   allAuthors!: string[];
   allGenres!: string[];
@@ -258,49 +260,26 @@ export class BulkMetadataUpdateComponent implements OnInit {
       mergeTags: this.mergeTags
     };
 
-    this.loading = true;
+    const count = this.bookIds.length;
+    this.ref.close(true);
+    this.writeProgressService.show(`Updating metadata for ${count} book${count === 1 ? '' : 's'}`);
     this.bookMetadataManageService.updateBooksMetadata(payload).subscribe({
       next: () => {
         if (this.selectedCoverFile) {
           this.bookMetadataManageService.bulkUploadCover(this.bookIds, this.selectedCoverFile).subscribe({
             next: () => {
-              this.loading = false;
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Metadata & Cover Updated',
-                detail: 'Books updated and cover upload started.'
-              });
-              this.ref.close(true);
+              this.writeProgressService.complete('Metadata & cover updated');
             },
-            error: err => {
-              console.error('Bulk cover upload failed:', err);
-              this.loading = false;
-              this.messageService.add({
-                severity: 'warn',
-                summary: 'Partial Success',
-                detail: 'Metadata updated but cover upload failed'
-              });
-              this.ref.close(true);
+            error: () => {
+              this.writeProgressService.fail('Metadata updated but cover upload failed');
             }
           });
         } else {
-          this.loading = false;
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Metadata Updated',
-            detail: 'Books updated successfully'
-          });
-          this.ref.close(true);
+          this.writeProgressService.complete(`Metadata updated for ${count} book${count === 1 ? '' : 's'}`);
         }
       },
-      error: err => {
-        console.error('Bulk metadata update failed:', err);
-        this.loading = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Update Failed',
-          detail: 'An error occurred while updating book metadata'
-        });
+      error: () => {
+        this.writeProgressService.fail('Metadata update failed');
       }
     });
   }
