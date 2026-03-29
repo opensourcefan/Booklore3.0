@@ -25,7 +25,7 @@
     "metadataFlushCompleted": "Completed",
     "metadataFlushCancelled": "Cancelled",
     "metadataFlushFailed": "Failed",
-    "importScan": "Importing",
+    "importScan": "Import",
     "importScanCompleted": "Completed",
     "importScanCancelled": "Cancelled",
     "importScanFailed": "Failed"
