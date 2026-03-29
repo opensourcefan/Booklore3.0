@@ -22,7 +22,8 @@ export type FilterType =
   | 'goodreadsRating' | 'hardcoverRating' | 'language' | 'pageCount' | 'mood'
   | 'ageRating' | 'contentRating'
   | 'narrator'
-  | 'comicCharacter' | 'comicTeam' | 'comicLocation' | 'comicCreator';
+  | 'comicCharacter' | 'comicTeam' | 'comicLocation' | 'comicCreator'
+  | 'addedOn' | 'folderPath';
 
 export type SortMode = 'count' | 'sortIndex';
 export type UserFilterSort = 'count' | 'az' | 'za';
@@ -134,7 +135,7 @@ export const matchScoreRanges = MATCH_SCORE_RANGES;
 export const NUMERIC_ID_FILTER_TYPES = new Set<FilterType>([
   'personalRating', 'matchScore', 'fileSize', 'amazonRating',
   'goodreadsRating', 'hardcoverRating', 'pageCount', 'library', 'shelf',
-  'ageRating'
+  'ageRating', 'addedOn'
 ]);
 
 export const FILTER_LABELS: Readonly<Record<FilterType, string>> = {
@@ -164,7 +165,9 @@ export const FILTER_LABELS: Readonly<Record<FilterType, string>> = {
   comicCharacter: 'Comic Character',
   comicTeam: 'Comic Team',
   comicLocation: 'Comic Location',
-  comicCreator: 'Comic Creator'
+  comicCreator: 'Comic Creator',
+  addedOn: 'Date Added',
+  folderPath: 'Folder'
 };
 
 // ============================================================================
@@ -267,6 +270,21 @@ export const FILTER_EXTRACTORS: Readonly<Record<Exclude<FilterType, 'library'>, 
       }
     }
     return creators;
+  },
+  addedOn: (book) => {
+    const addedOn = book.addedOn;
+    if (!addedOn) return [];
+    const daysAgo = (Date.now() - new Date(addedOn).getTime()) / (1000 * 60 * 60 * 24);
+    if (daysAgo < 1)   return [{id: 0, name: 'Today',          sortIndex: 0}];
+    if (daysAgo < 7)   return [{id: 1, name: 'Last 7 Days',    sortIndex: 1}];
+    if (daysAgo < 30)  return [{id: 2, name: 'Last 30 Days',   sortIndex: 2}];
+    if (daysAgo < 365) return [{id: 3, name: 'Within a Year',  sortIndex: 3}];
+    return                    [{id: 4, name: 'Older',           sortIndex: 4}];
+  },
+  folderPath: (book) => {
+    const subPath = book.primaryFile?.fileSubPath;
+    if (!subPath || subPath.trim() === '') return [];
+    return [{id: subPath, name: subPath}];
   }
 };
 
@@ -298,7 +316,9 @@ export const FILTER_LABEL_KEYS: Readonly<Record<FilterType, string>> = {
   comicCharacter: 'book.filter.labels.comicCharacter',
   comicTeam: 'book.filter.labels.comicTeam',
   comicLocation: 'book.filter.labels.comicLocation',
-  comicCreator: 'book.filter.labels.comicCreator'
+  comicCreator: 'book.filter.labels.comicCreator',
+  addedOn: 'book.filter.labels.addedOn',
+  folderPath: 'book.filter.labels.folderPath'
 };
 
 export const READ_STATUS_LABEL_KEYS: Readonly<Record<ReadStatus, string>> = {
@@ -363,5 +383,7 @@ export const FILTER_CONFIGS: Readonly<Record<Exclude<FilterType, 'library'>, Omi
   comicCharacter: {label: 'Comic Character', sortMode: 'count'},
   comicTeam: {label: 'Comic Team', sortMode: 'count'},
   comicLocation: {label: 'Comic Location', sortMode: 'count'},
-  comicCreator: {label: 'Comic Creator', sortMode: 'count'}
+  comicCreator: {label: 'Comic Creator', sortMode: 'count'},
+  addedOn: {label: 'Date Added', sortMode: 'sortIndex', isNumericId: true},
+  folderPath: {label: 'Folder', sortMode: 'count'}
 };

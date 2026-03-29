@@ -62,7 +62,7 @@ public class LibraryProcessingService {
             Map<String, List<LibraryFile>> groups = bookGroupingService.groupForInitialScan(newFiles, libraryEntity);
             fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity);
             if (libraryEntity.isTagByDirectory()) {
-                directoryTagService.applyMissingDirectoryTags(libraryId);
+                directoryTagService.applyMissingDirectoryTags(libraryEntity);
             }
 
             notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished processing library: " + libraryEntity.getName()));
@@ -126,7 +126,7 @@ public class LibraryProcessingService {
         // Process new book groups
         fileAsBookProcessor.processLibraryFilesGrouped(groupingResult.newBookGroups(), libraryEntity);
         if (libraryEntity.isTagByDirectory()) {
-            directoryTagService.applyMissingDirectoryTags(context.getLibraryId());
+            directoryTagService.applyMissingDirectoryTags(libraryEntity);
         }
 
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished refreshing library: " + libraryEntity.getName()));

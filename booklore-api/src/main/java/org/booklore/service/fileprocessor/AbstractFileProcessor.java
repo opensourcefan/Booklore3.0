@@ -16,6 +16,8 @@ import org.booklore.service.metadata.MetadataMatchService;
 import org.booklore.service.metadata.sidecar.SidecarMetadataWriter;
 import org.booklore.util.FileService;
 import org.booklore.util.FileUtils;
+import org.booklore.model.enums.DirectoryTagDepth;
+import org.booklore.service.library.DirectoryTagService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,12 +112,12 @@ public abstract class AbstractFileProcessor implements BookFileProcessor {
         if (library == null || !library.isTagByDirectory()) return;
         String subPath = libraryFile.getFileSubPath();
         if (subPath == null || subPath.isEmpty()) return;
-        Path subPathObj = Path.of(subPath);
-        Path lastSegment = subPathObj.getFileName();
-        if (lastSegment == null) return;
-        String dirTag = lastSegment.toString();
-        if (!dirTag.isEmpty()) {
-            bookCreatorService.addTagsToBook(Set.of(dirTag), entity);
+        DirectoryTagDepth depth = library.getDirectoryTagDepth() != null
+                ? library.getDirectoryTagDepth()
+                : DirectoryTagDepth.LAST_ONLY;
+        Set<String> tags = DirectoryTagService.extractDirectoryTags(subPath, depth);
+        if (!tags.isEmpty()) {
+            bookCreatorService.addTagsToBook(tags, entity);
         }
     }
 

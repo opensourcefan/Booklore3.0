@@ -18,6 +18,7 @@ import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.model.enums.AuditAction;
 import org.booklore.model.enums.BookFileType;
+import org.booklore.model.enums.DirectoryTagDepth;
 import org.booklore.model.websocket.Topic;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryPathRepository;
@@ -94,6 +95,7 @@ public class LibraryService {
         library.setFormatPriority(request.getFormatPriority());
         library.setAllowedFormats(request.getAllowedFormats());
         library.setTagByDirectory(request.isTagByDirectory());
+        library.setDirectoryTagDepth(request.getDirectoryTagDepth() != null ? request.getDirectoryTagDepth() : DirectoryTagDepth.LAST_ONLY);
         if (request.getMetadataSource() != null) {
             library.setMetadataSource(request.getMetadataSource());
         }
@@ -192,6 +194,7 @@ public class LibraryService {
                 .metadataSource(request.getMetadataSource())
                 .organizationMode(request.getOrganizationMode())
                 .tagByDirectory(request.isTagByDirectory())
+                .directoryTagDepth(request.getDirectoryTagDepth() != null ? request.getDirectoryTagDepth() : DirectoryTagDepth.LAST_ONLY)
                 .users(List.of(user.get()))
                 .build();
 

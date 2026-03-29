@@ -5,6 +5,8 @@ export type MetadataSource = 'EMBEDDED' | 'SIDECAR' | 'PREFER_SIDECAR' | 'PREFER
 
 export type OrganizationMode = 'BOOK_PER_FILE' | 'BOOK_PER_FOLDER' | 'AUTO_DETECT';
 
+export type DirectoryTagDepth = 'LAST_ONLY' | 'ALL_SEGMENTS';
+
 export interface Library {
   id?: number;
   name: string;
@@ -19,6 +21,7 @@ export interface Library {
   metadataSource?: MetadataSource;
   organizationMode?: OrganizationMode;
   tagByDirectory?: boolean;
+  directoryTagDepth?: DirectoryTagDepth;
 }
 
 export interface LibraryPath {

@@ -1,0 +1,1 @@
+ALTER TABLE library ADD COLUMN directory_tag_depth VARCHAR(20) DEFAULT 'LAST_ONLY' NOT NULL;

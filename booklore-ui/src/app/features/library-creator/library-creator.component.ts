@@ -5,7 +5,7 @@ import {Router} from '@angular/router';
 import {LibraryService} from '../book/service/library.service';
 import {FormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
-import {Library, MetadataSource, OrganizationMode} from '../book/model/library.model';
+import {Library, MetadataSource, OrganizationMode, DirectoryTagDepth} from '../book/model/library.model';
 import {BookType} from '../book/model/book.model';
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {Tooltip} from 'primeng/tooltip';
@@ -37,6 +37,8 @@ export class LibraryCreatorComponent implements OnInit {
   editModeLibraryName: string = '';
   watch: boolean = false;
   tagByDirectory: boolean = false;
+  directoryTagDepth: DirectoryTagDepth = 'LAST_ONLY';
+  directoryTagDepthOptions: {label: string, value: string}[] = [];
   formatPriority: {type: BookType, label: string}[] = [];
   allowAllFormats: boolean = true;
   selectedAllowedFormats: Set<BookType> = new Set();
@@ -74,6 +76,10 @@ export class LibraryCreatorComponent implements OnInit {
       {label: this.t.translate('libraryCreator.creator.metadataSourcePreferEmbedded'), value: 'PREFER_EMBEDDED'},
       {label: this.t.translate('libraryCreator.creator.metadataSourceNone'), value: 'NONE'}
     ];
+    this.directoryTagDepthOptions = [
+      {label: this.t.translate('libraryCreator.creator.directoryTagDepthLastOnly'), value: 'LAST_ONLY'},
+      {label: this.t.translate('libraryCreator.creator.directoryTagDepthAllSegments'), value: 'ALL_SEGMENTS'}
+    ];
     this.initializeFormatPriority();
     this.initializeAllowedFormats();
     this.initializeOrganizationModeOptions();
@@ -98,6 +104,7 @@ export class LibraryCreatorComponent implements OnInit {
 
         this.watch = watch;
         this.tagByDirectory = this.library.tagByDirectory ?? false;
+        this.directoryTagDepth = this.library.directoryTagDepth ?? 'LAST_ONLY';
         if (formatPriority && formatPriority.length > 0) {
           this.formatPriority = formatPriority.map(type =>
             this.allBookFormats.find(f => f.type === type)!
@@ -261,7 +268,8 @@ export class LibraryCreatorComponent implements OnInit {
       allowedFormats: this.allowAllFormats ? [] : Array.from(this.selectedAllowedFormats),
       metadataSource: this.metadataSource,
       organizationMode: this.organizationMode,
-      tagByDirectory: this.tagByDirectory
+      tagByDirectory: this.tagByDirectory,
+      directoryTagDepth: this.directoryTagDepth
     };
 
     if (this.mode === 'edit') {

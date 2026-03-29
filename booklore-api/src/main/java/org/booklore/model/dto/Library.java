@@ -1,6 +1,7 @@
 package org.booklore.model.dto;
 
 import org.booklore.model.enums.BookFileType;
+import org.booklore.model.enums.DirectoryTagDepth;
 import org.booklore.model.enums.IconType;
 import org.booklore.model.enums.LibraryOrganizationMode;
 import org.booklore.model.enums.MetadataSource;
@@ -31,5 +32,6 @@ public class Library {
     private LibraryOrganizationMode organizationMode;
     private MetadataSource metadataSource;
     private boolean tagByDirectory;
+    private DirectoryTagDepth directoryTagDepth;
 }
 

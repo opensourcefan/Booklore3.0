@@ -143,6 +143,26 @@
             <p-toggleswitch [(ngModel)]="tagByDirectory" />
           </div>
 
+          @if (tagByDirectory) {
+            <div class="option-row">
+              <div class="option-label">
+                <span>{{ t('directoryTagDepth') }}</span>
+                <i
+                  class="pi pi-question-circle info-icon"
+                  [pTooltip]="t('directoryTagDepthTooltip')"
+                  tooltipPosition="top"
+                ></i>
+              </div>
+              <p-select
+                [(ngModel)]="directoryTagDepth"
+                [options]="directoryTagDepthOptions"
+                optionLabel="label"
+                optionValue="value"
+                appendTo="body"
+              />
+            </div>
+          }
+
           <div class="option-row">
             <div class="option-label">
               <span>{{ t('metadataSource') }}</span>

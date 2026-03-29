@@ -4,6 +4,7 @@ import org.booklore.convertor.FormatPriorityConverter;
 import org.booklore.convertor.SortConverter;
 import org.booklore.model.dto.Sort;
 import org.booklore.model.enums.BookFileType;
+import org.booklore.model.enums.DirectoryTagDepth;
 import org.booklore.model.enums.IconType;
 import org.booklore.model.enums.LibraryOrganizationMode;
 import org.booklore.model.enums.MetadataSource;
@@ -73,5 +74,10 @@ public class LibraryEntity {
     @Column(name = "tag_by_directory")
     @Builder.Default
     private boolean tagByDirectory = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "directory_tag_depth")
+    @Builder.Default
+    private DirectoryTagDepth directoryTagDepth = DirectoryTagDepth.LAST_ONLY;
 
 }
