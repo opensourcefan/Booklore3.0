@@ -86,9 +86,11 @@ export class AppTopBarComponent implements OnDestroy {
   showMobileBookFilterTrigger = false;
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
   metadataFlushProgress: TaskProgressPayload | null = null;
+  importScanProgress: TaskProgressPayload | null = null;
 
   private eventTimer: number | undefined;
   private flushDismissTimer: ReturnType<typeof setTimeout> | undefined;
+  private importDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private destroy$ = new Subject<void>();
 
   private latestTasks: Record<string, MetadataBatchProgressNotification> = {};
@@ -168,6 +170,23 @@ export class AppTopBarComponent implements OnDestroy {
         }
       });
 
+    this.taskService.taskProgress$
+      .pipe(
+        filter((p): p is TaskProgressPayload => !!p && p.taskType === TaskType.SYNC_LIBRARY_FILES),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(progress => {
+        this.importScanProgress = progress;
+        if (progress.taskStatus === TaskStatus.COMPLETED || progress.taskStatus === TaskStatus.CANCELLED) {
+          clearTimeout(this.importDismissTimer);
+          this.importDismissTimer = setTimeout(() => {
+            this.importScanProgress = null;
+          }, 5000);
+        } else if (progress.taskStatus === TaskStatus.IN_PROGRESS) {
+          clearTimeout(this.importDismissTimer);
+        }
+      });
+
     this.userService.userState$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
@@ -196,6 +215,7 @@ export class AppTopBarComponent implements OnDestroy {
     if (this.ref) this.ref.close();
     clearTimeout(this.eventTimer);
     clearTimeout(this.flushDismissTimer);
+    clearTimeout(this.importDismissTimer);
     window.removeEventListener('storage', this.onStorageChange);
     this.destroy$.next();
     this.destroy$.complete();
@@ -438,6 +458,10 @@ export class AppTopBarComponent implements OnDestroy {
     return !!this.metadataFlushProgress;
   }
 
+  get showImportScanStatus(): boolean {
+    return !!this.importScanProgress;
+  }
+
   get metadataFlushSummary(): string {
     if (!this.metadataFlushProgress) return '';
     const s = this.metadataFlushProgress.taskStatus;
@@ -445,6 +469,15 @@ export class AppTopBarComponent implements OnDestroy {
     if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.metadataFlushCancelled');
     if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.metadataFlushFailed');
     return this.translocoService.translate('layout.topbar.metadataFlushProgress', {progress: this.metadataFlushProgress.progress});
+  }
+
+  get importScanSummary(): string {
+    if (!this.importScanProgress) return '';
+    const s = this.importScanProgress.taskStatus;
+    if (s === TaskStatus.COMPLETED) return this.translocoService.translate('layout.topbar.importScanCompleted');
+    if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.importScanCancelled');
+    if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.importScanFailed');
+    return this.importScanProgress.message;
   }
 
   get aiScanTone(): 'ok' | 'warning' | 'error' {

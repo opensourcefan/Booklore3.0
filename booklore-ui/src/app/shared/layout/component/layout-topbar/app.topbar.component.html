@@ -53,6 +53,13 @@
         <span class="topbar-flush-summary">{{ metadataFlushSummary }}</span>
       </button>
     }
+    @if (showImportScanStatus) {
+      <button type="button" class="topbar-import-status">
+        <i class="pi pi-download"></i>
+        <span class="topbar-import-label">{{ t('importScan') }}</span>
+        <span class="topbar-import-summary">{{ importScanSummary }}</span>
+      </button>
+    }
     <ul class="topbar-items topbar-desktop-items">
       @for (item of visibleDesktopToolbarItems; track item.id) {
         @if (item.type === 'separator') {

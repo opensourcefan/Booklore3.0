@@ -6,13 +6,16 @@ import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookFileEntity;
 import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.entity.LibraryPathEntity;
+import org.booklore.model.enums.TaskType;
 import org.booklore.model.websocket.LogNotification;
+import org.booklore.model.websocket.TaskProgressPayload;
 import org.booklore.model.websocket.Topic;
 import org.booklore.repository.BookAdditionalFileRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
 import org.booklore.service.NotificationService;
 import org.booklore.service.file.FileFingerprint;
+import org.booklore.task.TaskStatus;
 import org.booklore.task.options.RescanLibraryContext;
 import org.booklore.util.FileUtils;
 import jakarta.persistence.EntityManager;
@@ -30,6 +33,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -54,13 +58,24 @@ public class LibraryProcessingService {
     public void processLibrary(long libraryId) {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Started processing library: " + libraryEntity.getName()));
+        String taskId = UUID.randomUUID().toString();
         try {
             List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity);
             List<LibraryFile> newFiles = detectNewBookPaths(libraryFiles, libraryEntity);
 
             // Use BookGroupingService for consistent grouping based on organization mode
             Map<String, List<LibraryFile>> groups = bookGroupingService.groupForInitialScan(newFiles, libraryEntity);
-            fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity);
+            int total = groups.size();
+            if (total > 0) {
+                sendSyncProgress(taskId, 0, "Importing 0 of " + total, TaskStatus.IN_PROGRESS);
+                fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity, (current, t) -> {
+                    int pct = t > 0 ? (current * 100) / t : 100;
+                    sendSyncProgress(taskId, pct, "Importing " + current + " of " + t, TaskStatus.IN_PROGRESS);
+                });
+                sendSyncProgress(taskId, 100, "Imported " + total + " books", TaskStatus.COMPLETED);
+            } else {
+                fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity);
+            }
             if (libraryEntity.isTagByDirectory()) {
                 directoryTagService.applyMissingDirectoryTags(libraryEntity);
             }
@@ -124,7 +139,19 @@ public class LibraryProcessingService {
         }
 
         // Process new book groups
-        fileAsBookProcessor.processLibraryFilesGrouped(groupingResult.newBookGroups(), libraryEntity);
+        Map<String, List<LibraryFile>> newBookGroups = groupingResult.newBookGroups();
+        int total = newBookGroups.size();
+        if (total > 0) {
+            String taskId = UUID.randomUUID().toString();
+            sendSyncProgress(taskId, 0, "Importing 0 of " + total, TaskStatus.IN_PROGRESS);
+            fileAsBookProcessor.processLibraryFilesGrouped(newBookGroups, libraryEntity, (current, t) -> {
+                int pct = t > 0 ? (current * 100) / t : 100;
+                sendSyncProgress(taskId, pct, "Importing " + current + " of " + t, TaskStatus.IN_PROGRESS);
+            });
+            sendSyncProgress(taskId, 100, "Imported " + total + " books", TaskStatus.COMPLETED);
+        } else {
+            fileAsBookProcessor.processLibraryFilesGrouped(newBookGroups, libraryEntity);
+        }
         if (libraryEntity.isTagByDirectory()) {
             directoryTagService.applyMissingDirectoryTags(libraryEntity);
         }
@@ -263,5 +290,20 @@ public class LibraryProcessingService {
                 .filter(additionalFile -> !currentFileKeys.contains(generateUniqueKey(additionalFile)))
                 .map(BookFileEntity::getId)
                 .collect(Collectors.toList());
+    }
+
+    private void sendSyncProgress(String taskId, int progress, String message, TaskStatus status) {
+        try {
+            TaskProgressPayload payload = TaskProgressPayload.builder()
+                    .taskId(taskId)
+                    .taskType(TaskType.SYNC_LIBRARY_FILES)
+                    .message(message)
+                    .progress(progress)
+                    .taskStatus(status)
+                    .build();
+            notificationService.sendMessage(Topic.TASK_PROGRESS, payload);
+        } catch (Exception e) {
+            log.error("Failed to send sync progress notification: {}", e.getMessage(), e);
+        }
     }
 }

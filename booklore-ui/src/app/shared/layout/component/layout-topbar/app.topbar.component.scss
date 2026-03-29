@@ -133,6 +133,42 @@
   font-size: 0.82rem;
 }
 
+.topbar-import-status {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 26rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--p-orange-700, #c2410c);
+  background: rgba(194, 65, 12, 0.08);
+  color: var(--p-orange-700, #c2410c);
+  cursor: default;
+  appearance: none;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease;
+
+  @media (min-width: 768px) {
+    display: inline-flex;
+  }
+}
+
+.topbar-import-label {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.topbar-import-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+
 .topbar-desktop-items {
   display: none;
   align-items: center;

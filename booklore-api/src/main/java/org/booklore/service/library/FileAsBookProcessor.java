@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 @AllArgsConstructor
 @Component
@@ -59,10 +60,21 @@ public class FileAsBookProcessor {
 
     @Transactional
     public void processLibraryFilesGrouped(Map<String, List<LibraryFile>> groups, LibraryEntity libraryEntity) {
+        processLibraryFilesGrouped(groups, libraryEntity, null);
+    }
+
+    @Transactional
+    public void processLibraryFilesGrouped(Map<String, List<LibraryFile>> groups, LibraryEntity libraryEntity, BiConsumer<Integer, Integer> progressCallback) {
         LibraryEntity managedLibrary = ensureManaged(libraryEntity);
+        int total = groups.size();
+        int current = 0;
         for (Map.Entry<String, List<LibraryFile>> entry : groups.entrySet()) {
             entry.getValue().forEach(lf -> lf.setLibraryEntity(managedLibrary));
             processGroupWithErrorHandling(entry.getValue(), managedLibrary);
+            current++;
+            if (progressCallback != null) {
+                progressCallback.accept(current, total);
+            }
         }
         log.info("Finished processing library '{}'", managedLibrary.getName());
     }
