@@ -13,7 +13,7 @@ import {MetadataBatchProgressNotification} from './shared/model/metadata-batch-p
 import {MetadataProgressService} from './shared/service/metadata-progress.service';
 import {BookdropFileNotification, BookdropFileService} from './features/bookdrop/service/bookdrop-file.service';
 import {Subscription} from 'rxjs';
-import {TaskProgressPayload, TaskService} from './features/settings/task-management/task.service';
+import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from './features/settings/task-management/task.service';
 import {LibraryService} from './features/book/service/library.service';
 import {LibraryHealthService} from './features/book/service/library-health.service';
 import {LibraryLoadingService} from './features/library-creator/library-loading.service';
@@ -152,6 +152,13 @@ export class AppComponent implements OnInit, OnDestroy {
       this.rxStompService.watch('/user/queue/task-progress').subscribe(msg => {
         const progress = JSON.parse(msg.body) as TaskProgressPayload;
         this.taskService.handleTaskProgress(progress);
+        if (
+          (progress.taskType === TaskType.SYNC_LIBRARY_FILES ||
+            progress.taskType === TaskType.BOOKDROP_PERIODIC_SCANNING) &&
+          progress.taskStatus === TaskStatus.COMPLETED
+        ) {
+          this.bookService.refreshBooks().subscribe();
+        }
       })
     );
     this.subscriptions.push(
