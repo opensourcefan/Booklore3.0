@@ -8,8 +8,7 @@ import {DynamicDialogRef} from 'primeng/dynamicdialog';
     <div class="ack-dialog">
       <div class="ack-header">
         <div>
-          <div class="eyebrow">Info</div>
-          <h2>Acknowledgements</h2>
+          <h2>Thanks to:</h2>
         </div>
         <button type="button" class="close-btn" (click)="close()" aria-label="Close">×</button>
       </div>
@@ -41,16 +40,8 @@ import {DynamicDialogRef} from 'primeng/dynamicdialog';
     }
 
     .ack-header h2 {
-      margin: 0.15rem 0 0;
+      margin: 0;
       font-size: 1.2rem;
-    }
-
-    .eyebrow {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--primary-color);
     }
 
     .close-btn {
