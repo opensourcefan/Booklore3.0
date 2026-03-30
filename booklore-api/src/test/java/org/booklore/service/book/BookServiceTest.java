@@ -11,6 +11,8 @@ import org.booklore.model.dto.response.BookStatusUpdateResponse;
 import org.booklore.model.entity.*;
 import org.booklore.model.enums.BookFileType;
 import org.booklore.repository.*;
+import org.booklore.model.dto.settings.AppSettings;
+import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.service.monitoring.MonitoringRegistrationService;
 import org.booklore.service.progress.ReadingProgressService;
 import org.booklore.util.FileService;
@@ -74,6 +76,8 @@ class BookServiceTest {
     private BookUpdateService bookUpdateService;
     @Mock
     private AuditService auditService;
+    @Mock
+    private AppSettingService appSettingService;
 
     @InjectMocks
     private BookService bookService;
@@ -382,6 +386,7 @@ class BookServiceTest {
         doNothing().when(bookRepository).deleteAllInBatch(anyList());
         when(bookQueryService.findAllWithMetadataByIds(Set.of(11L))).thenReturn(List.of(entity));
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
+        when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder().allowFileDeletion(true).build());
 
         BookDeletionResponse response = bookService.deleteBooks(Set.of(11L)).getBody();
 
@@ -411,6 +416,7 @@ class BookServiceTest {
         when(bookQueryService.findAllWithMetadataByIds(Set.of(13L))).thenReturn(List.of(entity));
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
         doNothing().when(bookRepository).deleteAllInBatch(anyList());
+        when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder().allowFileDeletion(true).build());
 
         BookDeletionResponse response = bookService.deleteBooks(Set.of(13L)).getBody();
 
