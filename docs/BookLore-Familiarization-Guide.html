@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BookLore 3.0 — Familiarization Guide</title>
+<style>
+  @page {
+    size: A4;
+    margin: 2cm 2.2cm;
+    @bottom-center {
+      content: "BookLore 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      font-size: 8pt;
+      color: #888;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    color: #222;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1em;
+  }
+
+  /* Cover / title block */
+  .cover {
+    text-align: center;
+    padding: 4em 1em 3em;
+    page-break-after: always;
+  }
+  .cover h1 {
+    font-size: 28pt;
+    color: #1a5276;
+    margin-bottom: 0.1em;
+    letter-spacing: -0.5px;
+  }
+  .cover .subtitle {
+    font-size: 14pt;
+    color: #555;
+    margin-bottom: 2em;
+  }
+  .cover .meta {
+    font-size: 10pt;
+    color: #777;
+    line-height: 1.8;
+  }
+
+  /* Headings */
+  h1 { font-size: 20pt; color: #1a5276; margin-top: 1.5em; page-break-after: avoid; }
+  h2 { font-size: 15pt; color: #1a5276; border-bottom: 2px solid #d4e6f1; padding-bottom: 4px; margin-top: 1.8em; page-break-after: avoid; }
+  h3 { font-size: 12pt; color: #2e86c1; margin-top: 1.3em; page-break-after: avoid; }
+  h4 { font-size: 10.5pt; color: #2e86c1; margin-top: 1em; page-break-after: avoid; }
+
+  /* Table of contents */
+  .toc { page-break-after: always; }
+  .toc h2 { font-size: 18pt; border: none; }
+  .toc ol { padding-left: 1.5em; }
+  .toc li { margin-bottom: 0.3em; font-size: 10.5pt; }
+  .toc a { color: #1a5276; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0 1.2em;
+    font-size: 10pt;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #eaf2f8;
+    color: #1a5276;
+    font-weight: 600;
+  }
+  tr:nth-child(even) { background: #fafafa; }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 4px solid #e67e22;
+    background: #fef9e7;
+    padding: 10px 14px;
+    margin: 1em 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10pt;
+  }
+  .callout.warning {
+    border-left-color: #e74c3c;
+    background: #fdedec;
+  }
+  .callout.info {
+    border-left-color: #2e86c1;
+    background: #eaf2f8;
+  }
+  .callout.tip {
+    border-left-color: #27ae60;
+    background: #eafaf1;
+  }
+  .callout strong:first-child { display: inline; }
+
+  /* Code */
+  code {
+    background: #f0f0f0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 9.5pt;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  pre {
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 9pt;
+    overflow-x: auto;
+    line-height: 1.4;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  /* Lists */
+  ul, ol { padding-left: 1.5em; }
+  li { margin-bottom: 0.25em; }
+
+  /* Section breaks */
+  hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 2em 0;
+  }
+
+  /* Maintenance log */
+  .maintenance-log { margin-top: 2em; }
+
+  /* Print helpers */
+  .page-break { page-break-before: always; }
+  h2 { page-break-inside: avoid; }
+  table { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<div class="cover">
+  <h1>BookLore 3.0</h1>
+  <div class="subtitle">Familiarization Guide</div>
+  <p style="font-size:11pt; color:#444; max-width:500px; margin:0 auto 2em;">
+    A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
+  </p>
+  <div class="meta">
+    Version 1.0 &mdash; March 30, 2026<br>
+    Audience: New and non-technical users<br><br>
+    <em>This guide should be updated whenever features are added, changed, or removed.</em>
+  </div>
+</div>
+
+<!-- ==================== TABLE OF CONTENTS ==================== -->
+<div class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#sec1">What Is BookLore?</a></li>
+    <li><a href="#sec2">Getting Started &mdash; First-Time Setup</a></li>
+    <li><a href="#sec3">The Dashboard &mdash; Your Home Screen</a></li>
+    <li><a href="#sec4">Navigating the Interface</a></li>
+    <li><a href="#sec5">Libraries &mdash; Organizing Your Collection</a></li>
+    <li><a href="#sec6">Books &mdash; Adding, Browsing, and Managing</a></li>
+    <li><a href="#sec7">BookDrop &mdash; Importing New Books</a></li>
+    <li><a href="#sec8">Shelves &mdash; Custom Collections</a></li>
+    <li><a href="#sec9">Magic Shelves &mdash; Smart Filtered Collections</a></li>
+    <li><a href="#sec10">Reading Books</a>
+      <ol style="list-style-type:lower-alpha;">
+        <li><a href="#sec10a">PDF Reader</a></li>
+        <li><a href="#sec10b">E-Book (EPUB) Reader</a></li>
+        <li><a href="#sec10c">Comic (CBX) Reader</a></li>
+        <li><a href="#sec10d">Audiobook Player</a></li>
+      </ol>
+    </li>
+    <li><a href="#sec11">Bookmarks, Annotations, and the Notebook</a></li>
+    <li><a href="#sec12">Reading Progress and Statistics</a></li>
+    <li><a href="#sec13">Series and Authors</a></li>
+    <li><a href="#sec14">Metadata &mdash; Book Information</a></li>
+    <li><a href="#sec15">Metadata Manager &mdash; Bulk Editing</a></li>
+    <li><a href="#sec16">Search and Filtering</a></li>
+    <li><a href="#sec17">AI Comic Panel Detection</a></li>
+    <li><a href="#sec18">OPDS Feeds &mdash; E-Reader Integration</a></li>
+    <li><a href="#sec19">Kobo and KoReader Device Sync</a></li>
+    <li><a href="#sec20">Email &mdash; Sending Books</a></li>
+    <li><a href="#sec21">User Accounts and Permissions</a></li>
+    <li><a href="#sec22">Authentication &mdash; Login Methods</a></li>
+    <li><a href="#sec23">Application Settings</a></li>
+    <li><a href="#sec24">Background Tasks</a></li>
+    <li><a href="#sec25">Backup and Restore</a></li>
+    <li><a href="#sec26">Audit Logs</a></li>
+    <li><a href="#sec27">Tips and Best Practices</a></li>
+    <li><a href="#sec28">Glossary</a></li>
+    <li><a href="#sec29">Document Maintenance Log</a></li>
+  </ol>
+</div>
+
+<!-- ==================== SECTION 1 ==================== -->
+<h2 id="sec1">1. What Is BookLore?</h2>
+
+<p>BookLore is a <strong>self-hosted digital library</strong> &mdash; a personal application you run on your own computer or server to organize, read, and manage your book and comic collection. Think of it as your own private digital bookshelf accessible from any web browser on any device.</p>
+
+<h3>Supported Formats</h3>
+<table>
+  <tr><th>Format</th><th>Description</th></tr>
+  <tr><td><strong>PDF</strong></td><td>Standard document files (books, manuals, magazines)</td></tr>
+  <tr><td><strong>EPUB</strong></td><td>Common e-book format used by most e-readers</td></tr>
+  <tr><td><strong>CBZ / CBR</strong></td><td>Comic book archives (zipped or RAR-compressed image collections)</td></tr>
+  <tr><td><strong>Audiobooks</strong></td><td>Audio files organized in folders (MP3, M4A, etc.)</td></tr>
+  <tr><td><strong>Physical Books</strong></td><td>Catalog entries for physical books you own (no digital file required)</td></tr>
+</table>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Store and organize thousands of books across multiple libraries</li>
+  <li>Read books, comics, and listen to audiobooks directly in your browser</li>
+  <li>Track your reading progress across devices</li>
+  <li>Highlight text, add bookmarks, and write notes</li>
+  <li>Search and filter your entire collection</li>
+  <li>Fetch book information (metadata) from the internet automatically</li>
+  <li>Share your catalog with e-readers via OPDS feeds</li>
+  <li>Manage multiple users with different access levels</li>
+  <li>Use AI to detect comic panels for panel-by-panel reading</li>
+</ul>
+
+<!-- ==================== SECTION 2 ==================== -->
+<h2 id="sec2">2. Getting Started &mdash; First-Time Setup</h2>
+
+<p>When you open BookLore for the very first time, you will see the <strong>Setup Wizard</strong>.</p>
+
+<h3>What You Do</h3>
+<ol>
+  <li><strong>Create your admin account</strong> &mdash; Choose a username and strong password. This is the main administrator account.</li>
+  <li><strong>Set up your first library</strong> &mdash; Point BookLore to the folder on disk where your books are stored (for example, <code>/books</code>).</li>
+  <li><strong>Configure authentication</strong> &mdash; Choose how users will log in (local password, OIDC, or forward auth).</li>
+</ol>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>You cannot skip creating the admin account &mdash; it is required.</li>
+  <li>You cannot change the admin username later through the normal interface.</li>
+  <li>You cannot undo the first-time setup once completed &mdash; but you can change all settings afterward.</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> Choose a strong password. Anyone who knows this password has full control over BookLore. If you lose the admin password and have no other login method configured, recovery requires direct database access.
+</div>
+
+<!-- ==================== SECTION 3 ==================== -->
+<h2 id="sec3">3. The Dashboard &mdash; Your Home Screen</h2>
+
+<p>The Dashboard is the first screen you see after logging in. It provides a quick overview of your library.</p>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>See library statistics at a glance (total books, reading status, etc.)</li>
+  <li>Access recently added books</li>
+  <li>Jump to any section using the sidebar navigation</li>
+</ul>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Customize which statistics appear on the dashboard (the layout is fixed)</li>
+</ul>
+
+<!-- ==================== SECTION 4 ==================== -->
+<h2 id="sec4">4. Navigating the Interface</h2>
+
+<p>BookLore uses a <strong>sidebar + main content</strong> layout.</p>
+
+<h3>Left Sidebar</h3>
+<table>
+  <tr><th>Item</th><th>What It Does</th></tr>
+  <tr><td><strong>Dashboard</strong></td><td>Returns to the home screen</td></tr>
+  <tr><td><strong>All Books</strong></td><td>Shows every book across all your libraries</td></tr>
+  <tr><td><strong>Libraries</strong></td><td>Expandable list &mdash; click a library to see only its books</td></tr>
+  <tr><td><strong>Shelves</strong></td><td>Your custom collections</td></tr>
+  <tr><td><strong>Not Shelfed</strong></td><td>Books not assigned to any shelf</td></tr>
+  <tr><td><strong>Series</strong></td><td>Browse books grouped by series</td></tr>
+  <tr><td><strong>Authors</strong></td><td>Browse books by author</td></tr>
+  <tr><td><strong>Magic Shelves</strong></td><td>Your smart filtered collections</td></tr>
+  <tr><td><strong>Settings</strong> (bottom)</td><td>Application configuration</td></tr>
+  <tr><td><strong>Language</strong> (bottom)</td><td>Switch the interface language</td></tr>
+</table>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li><strong>Resize sidebars</strong> &mdash; Drag the edge of either sidebar to make it wider or narrower</li>
+  <li><strong>Reorder sidebar items</strong> &mdash; Click, hold, and drag sidebar entries to rearrange them</li>
+  <li><strong>Collapse sections</strong> &mdash; Click section headers to expand or collapse groups</li>
+</ul>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> Switching between sidebar views does <em>not</em> reload your book grid from scratch &mdash; BookLore remembers what was on screen, so navigation is fast.
+</div>
+
+<!-- ==================== SECTION 5 ==================== -->
+<h2 id="sec5">5. Libraries &mdash; Organizing Your Collection</h2>
+
+<p>A <strong>Library</strong> is a connection between BookLore and a folder on your computer or server where book files are stored.</p>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li><strong>Create multiple libraries</strong> &mdash; For example, one for &ldquo;Fiction,&rdquo; one for &ldquo;Comics,&rdquo; one for &ldquo;Audiobooks&rdquo;</li>
+  <li><strong>Scan libraries</strong> &mdash; Tell BookLore to look for new files in a library folder</li>
+  <li><strong>Rescan libraries</strong> &mdash; Force BookLore to re-examine all files in a library</li>
+  <li><strong>Check library health</strong> &mdash; Verify the folder is accessible and working</li>
+  <li><strong>Delete libraries</strong> &mdash; Remove a library from BookLore (optionally deleting its files too)</li>
+  <li><strong>Restrict library access</strong> &mdash; Control which users can see which libraries</li>
+</ul>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Assign the same folder to two different libraries (each folder should belong to one library)</li>
+  <li>Manage files on remote cloud services directly &mdash; BookLore reads from local or network-mounted folders</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li><strong>Deleting a library can optionally delete the actual files from disk.</strong> If you only want to remove BookLore&rsquo;s catalog entry, make sure you uncheck &ldquo;delete files from disk.&rdquo;</li>
+    <li><strong>Moving or renaming book files outside of BookLore</strong> will cause them to appear missing. Always let BookLore manage file movements.</li>
+    <li><strong>If your book folder is on a network drive,</strong> set <code>DISK_TYPE=NETWORK</code> in your environment configuration for better compatibility.</li>
+  </ul>
+</div>
+
+<!-- ==================== SECTION 6 ==================== -->
+<h2 id="sec6">6. Books &mdash; Adding, Browsing, and Managing</h2>
+
+<h3>Browsing Books</h3>
+<ul>
+  <li><strong>All Books</strong> &mdash; View every book in your collection, displayed as a grid of cover images</li>
+  <li><strong>Click any book cover</strong> to open its detail page with full information</li>
+  <li><strong>Right-click a book cover</strong> (or long-press on mobile) for quick actions</li>
+</ul>
+
+<h3>What You Can Do</h3>
+<table>
+  <tr><th>Action</th><th>How</th></tr>
+  <tr><td>View book details</td><td>Click the book cover</td></tr>
+  <tr><td>Read a book</td><td>Click &ldquo;Read&rdquo; on the detail page or double-click the cover</td></tr>
+  <tr><td>Add to a shelf</td><td>Right-click &rarr; Add to Shelf, or use the book detail page</td></tr>
+  <tr><td>Remove from shelf</td><td>Right-click &rarr; Remove from Shelf</td></tr>
+  <tr><td>Change reading status</td><td>Set to: Not Started, Reading, Completed, or Abandoned</td></tr>
+  <tr><td>Rate a book</td><td>Give it 1&ndash;5 stars on the detail page</td></tr>
+  <tr><td>Edit metadata</td><td>Update title, author, description, cover, etc.</td></tr>
+  <tr><td>Delete a book</td><td>Right-click &rarr; Delete (with optional disk deletion)</td></tr>
+  <tr><td>Delete multiple books</td><td>Select books (checkbox mode) then delete in bulk</td></tr>
+  <tr><td>Add a physical book</td><td>Create a catalog entry for a book you own physically (no file needed)</td></tr>
+  <tr><td>Assign file type</td><td>Choose how to open a file (e.g., read a PDF as an e-book instead)</td></tr>
+</table>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Directly edit the book file contents (BookLore is a reader and organizer, not an editor)</li>
+  <li>Upload books from this screen (use BookDrop for that &mdash; see Section 7)</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li><strong>Deleting a book with &ldquo;delete from disk&rdquo; enabled is permanent.</strong> The file is gone. There is no recycle bin.</li>
+    <li><strong>Bulk deleting books</strong> is powerful &mdash; double-check your selection before confirming.</li>
+  </ul>
+</div>
+
+<!-- ==================== SECTION 7 ==================== -->
+<h2 id="sec7">7. BookDrop &mdash; Importing New Books</h2>
+
+<p>BookDrop is a <strong>watch folder</strong> &mdash; a special folder where you drop new book files, and BookLore will detect and import them.</p>
+
+<h3>How It Works</h3>
+<ol>
+  <li><strong>Place files</strong> in the BookDrop folder (usually mapped to <code>./bookdrop</code> in Docker)</li>
+  <li><strong>BookLore detects</strong> the new files automatically (or you can click &ldquo;Rescan&rdquo;)</li>
+  <li><strong>Go to the BookDrop page</strong> in BookLore to see pending files</li>
+  <li><strong>Review and edit</strong> &mdash; Adjust metadata, assign to a library, set the destination path</li>
+  <li><strong>Finalize</strong> &mdash; Click to import the files into your library</li>
+</ol>
+
+<h3>What You Can Do</h3>
+<table>
+  <tr><th>Action</th><th>Description</th></tr>
+  <tr><td>Rescan</td><td>Manually trigger a scan of the BookDrop folder</td></tr>
+  <tr><td>Preview files</td><td>See file details before importing</td></tr>
+  <tr><td>Edit metadata</td><td>Change title, author, cover, etc. before import</td></tr>
+  <tr><td>Bulk edit</td><td>Update metadata for multiple files at once</td></tr>
+  <tr><td>Pattern extraction</td><td>Automatically parse filenames to extract title, author, series, etc.</td></tr>
+  <tr><td>Choose destination</td><td>Pick which library and folder path to import into</td></tr>
+  <tr><td>Discard files</td><td>Skip files you don&rsquo;t want to import</td></tr>
+  <tr><td>Finalize import</td><td>Move files from BookDrop into your library</td></tr>
+</table>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Import files directly from a URL or the internet &mdash; you must first download them to the BookDrop folder</li>
+  <li>Import unsupported file formats (stick to PDF, EPUB, CBZ, CBR, and audio formats)</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li><strong>Files are moved, not copied,</strong> during import. After finalization, the original file in BookDrop is removed.</li>
+    <li><strong>Pattern extraction is only as good as your filename.</strong> If filenames are messy, you may need to edit metadata manually.</li>
+    <li><strong>Don&rsquo;t put files into BookDrop while a scan is actively running.</strong> Wait for the scan to complete first, then add files and rescan.</li>
+  </ul>
+</div>
+
+<!-- ==================== SECTION 8 ==================== -->
+<h2 id="sec8">8. Shelves &mdash; Custom Collections</h2>
+
+<p>Shelves are like playlists for your books. You can create as many as you want and assign any book to one or more shelves.</p>
+
+<h3>What You Can Do</h3>
+<table>
+  <tr><th>Action</th><th>Description</th></tr>
+  <tr><td>Create a shelf</td><td>Give it a name and optionally an icon</td></tr>
+  <tr><td>Add books</td><td>Assign books to a shelf from the book detail page or right-click menu</td></tr>
+  <tr><td>Remove books</td><td>Take books off a shelf without deleting them</td></tr>
+  <tr><td>Rename a shelf</td><td>Change its name anytime</td></tr>
+  <tr><td>Delete a shelf</td><td>Remove the shelf (books are not deleted)</td></tr>
+  <tr><td>Browse a shelf</td><td>Click a shelf in the sidebar to see only its books</td></tr>
+  <tr><td>Make a shelf public</td><td>Admins can make shelves visible to all users</td></tr>
+  <tr><td>Kobo device shelf</td><td>Special shelf type that syncs to connected Kobo e-readers</td></tr>
+</table>
+
+<div class="callout tip">
+  <strong>Tip:</strong> Click <strong>Not Shelfed</strong> in the sidebar to see every book not assigned to any shelf &mdash; useful for organizing new additions.
+</div>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Nest shelves inside other shelves (shelves are flat, not hierarchical)</li>
+</ul>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> Deleting a shelf does <em>NOT</em> delete its books. The books remain in your library &mdash; only the shelf grouping is removed.
+</div>
+
+<!-- ==================== SECTION 9 ==================== -->
+<h2 id="sec9">9. Magic Shelves &mdash; Smart Filtered Collections</h2>
+
+<p>Magic Shelves are <strong>automatic collections</strong> that populate themselves based on rules you define. They update automatically as your library changes.</p>
+
+<h3>Examples</h3>
+<ul>
+  <li>&ldquo;Books I Haven&rsquo;t Read Yet&rdquo; (filter: reading status = Not Started)</li>
+  <li>&ldquo;5-Star Books&rdquo; (filter: rating = 5)</li>
+  <li>&ldquo;All Comics&rdquo; (filter: media type = Comic)</li>
+  <li>&ldquo;Books by Stephen King&rdquo; (filter: author = Stephen King)</li>
+  <li>&ldquo;Added This Month&rdquo; (filter: date added = last 30 days)</li>
+</ul>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Create magic shelves with custom filter rules</li>
+  <li>Combine multiple filters (e.g., &ldquo;Unread comics rated 4+ stars&rdquo;)</li>
+  <li>Edit filter rules anytime &mdash; the shelf updates automatically</li>
+  <li>Make them public (admin only) &mdash; share with all users</li>
+  <li>Delete magic shelves when no longer needed</li>
+</ul>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Manually add or remove specific books from a magic shelf &mdash; membership is determined entirely by the filter rules</li>
+</ul>
+
+<div class="callout">
+  <strong>Be Careful:</strong> A magic shelf with very broad rules may include thousands of books, which can slow down loading.
+</div>
+
+<!-- ==================== SECTION 10 ==================== -->
+<h2 id="sec10">10. Reading Books</h2>
+
+<p>BookLore includes built-in readers for every supported format. Each reader is tailored to its format.</p>
+
+<!-- 10a: PDF -->
+<h3 id="sec10a">a) PDF Reader</h3>
+<p>Opens PDF files (books, manuals, documents) in a dedicated viewer.</p>
+
+<table>
+  <tr><th>Feature</th><th>Description</th></tr>
+  <tr><td>Page navigation</td><td>Go to any page, use forward/back arrows, or type a page number</td></tr>
+  <tr><td>Table of contents</td><td>Jump to chapters using the built-in outline (if the PDF has one)</td></tr>
+  <tr><td>Page thumbnails</td><td>See small previews of all pages for quick navigation</td></tr>
+  <tr><td>Zoom</td><td>Zoom in and out for easier reading</td></tr>
+  <tr><td>Bookmarks</td><td>Save your place with labeled bookmarks</td></tr>
+  <tr><td>Highlights</td><td>Select text and highlight it in different colors</td></tr>
+  <tr><td>Annotations</td><td>Add notes to highlighted sections</td></tr>
+  <tr><td>Reading progress</td><td>Automatically saved &mdash; pick up where you left off</td></tr>
+</table>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Edit PDF text, fill in forms, or print directly from BookLore (use your browser&rsquo;s print function).</p>
+
+<div class="callout">
+  <strong>Be Careful:</strong> Very large PDFs (hundreds of megabytes) may load slowly. Some complex PDFs with unusual formatting may not render perfectly.
+</div>
+
+<!-- 10b: EPUB -->
+<h3 id="sec10b">b) E-Book (EPUB) Reader</h3>
+<p>Opens EPUB e-book files with a clean, comfortable reading experience.</p>
+
+<table>
+  <tr><th>Feature</th><th>Description</th></tr>
+  <tr><td>Chapter navigation</td><td>Use the table of contents to jump between chapters</td></tr>
+  <tr><td>Adjust font size</td><td>Make text larger or smaller for comfortable reading</td></tr>
+  <tr><td>Adjust line spacing</td><td>Increase or decrease space between lines</td></tr>
+  <tr><td>Bookmarks</td><td>Save your place</td></tr>
+  <tr><td>Highlights</td><td>Select text and highlight in colors</td></tr>
+  <tr><td>Annotations</td><td>Write notes attached to highlighted text</td></tr>
+  <tr><td>Reading progress</td><td>Automatically tracked</td></tr>
+  <tr><td>Custom fonts</td><td>Upload and use your preferred fonts (see Settings)</td></tr>
+</table>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Change the book&rsquo;s text or view DRM-protected (copy-protected) files.</p>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> BookLore only supports DRM-free e-books. DRM-locked files will not open.
+</div>
+
+<!-- 10c: CBX -->
+<h3 id="sec10c">c) Comic (CBX) Reader</h3>
+<p>Opens CBZ and CBR comic book files with page and panel navigation.</p>
+
+<table>
+  <tr><th>Feature</th><th>Description</th></tr>
+  <tr><td>Page navigation</td><td>Flip through comic pages</td></tr>
+  <tr><td>Page list</td><td>Jump to any page by number</td></tr>
+  <tr><td>Webtoon mode</td><td>Enable continuous vertical scrolling for web comics</td></tr>
+  <tr><td>AI panel detection</td><td>Navigate panel-by-panel within each page (requires AI feature)</td></tr>
+  <tr><td>Bookmarks</td><td>Mark favorite pages</td></tr>
+  <tr><td>Reading progress</td><td>Automatically tracked</td></tr>
+</table>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Annotate or highlight on comic pages (image-based format), or edit/reorder pages.</p>
+
+<div class="callout">
+  <strong>Be Careful:</strong> CBR files (RAR format) may extract more slowly than CBZ files (ZIP format). Very high-resolution scans can use significant memory.
+</div>
+
+<!-- 10d: Audiobook -->
+<h3 id="sec10d">d) Audiobook Player</h3>
+<p>Plays audiobooks &mdash; collections of audio files organized in a folder.</p>
+
+<table>
+  <tr><th>Feature</th><th>Description</th></tr>
+  <tr><td>Track listing</td><td>See all tracks/chapters in the audiobook</td></tr>
+  <tr><td>Play / Pause</td><td>Standard audio controls</td></tr>
+  <tr><td>Seek / Scrub</td><td>Jump forward or backward within a track</td></tr>
+  <tr><td>Chapter navigation</td><td>Skip between tracks/chapters</td></tr>
+  <tr><td>Duration display</td><td>See total and remaining time</td></tr>
+  <tr><td>Progress tracking</td><td>Automatically saves your listening position</td></tr>
+</table>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Adjust playback speed natively (use browser extensions if needed).</p>
+
+<div class="callout">
+  <strong>Be Careful:</strong> Audiobooks must be organized as folders containing audio files. Make sure files are in common formats (MP3, M4A, OGG, etc.).
+</div>
+
+<!-- ==================== SECTION 11 ==================== -->
+<h2 id="sec11">11. Bookmarks, Annotations, and the Notebook</h2>
+
+<h3>Bookmarks</h3>
+<p>Simple position markers with an optional label. Use them to mark pages you want to return to.</p>
+<ul>
+  <li><strong>Create:</strong> While reading, click the bookmark icon at your current position</li>
+  <li><strong>Label:</strong> Give bookmarks descriptive names (e.g., &ldquo;Important chapter&rdquo;)</li>
+  <li><strong>Color coding:</strong> Assign colors to categorize bookmarks</li>
+  <li><strong>Navigate:</strong> Click any bookmark to jump back to that spot</li>
+  <li><strong>Delete:</strong> Remove bookmarks when no longer needed</li>
+</ul>
+
+<h3>Annotations (Highlights and Notes)</h3>
+<p>Available in PDF and EPUB readers.</p>
+<ul>
+  <li><strong>Highlight:</strong> Select text &rarr; choose a highlight color</li>
+  <li><strong>Underline / Strikethrough:</strong> Additional marking styles</li>
+  <li><strong>Add notes:</strong> Attach written notes to any highlight</li>
+  <li><strong>Edit:</strong> Change colors, styles, or note text anytime</li>
+  <li><strong>Delete:</strong> Remove individual annotations</li>
+</ul>
+
+<h3>The Notebook</h3>
+<p>A centralized view of <strong>all your annotations across every book</strong>.</p>
+<ul>
+  <li>See all highlights and notes in one place</li>
+  <li>Filter by book, type, or date</li>
+  <li>Search through your annotations</li>
+  <li>Export all annotations for backup</li>
+  <li>Quickly jump to the source book and location</li>
+</ul>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> Annotations are created while reading &mdash; you cannot create them from the Notebook view.
+</div>
+
+<!-- ==================== SECTION 12 ==================== -->
+<h2 id="sec12">12. Reading Progress and Statistics</h2>
+
+<h3>Reading Progress</h3>
+<ul>
+  <li><strong>Automatic saving</strong> &mdash; Your position is saved every time you read</li>
+  <li><strong>Resume reading</strong> &mdash; Open a book and you&rsquo;re taken right back to where you left off</li>
+  <li><strong>Reading status</strong> &mdash; Set to: Not Started, Reading, Completed, or Abandoned</li>
+  <li><strong>Sync across devices</strong> &mdash; Read on your phone then your computer; progress stays in sync</li>
+</ul>
+
+<h3>Reading Statistics Page</h3>
+<table>
+  <tr><th>Statistic</th><th>What It Shows</th></tr>
+  <tr><td>Books completed</td><td>Total count of finished books</td></tr>
+  <tr><td>Currently reading</td><td>Books you&rsquo;re in the middle of</td></tr>
+  <tr><td>Reading streaks</td><td>Consecutive days with reading activity</td></tr>
+  <tr><td>Time spent</td><td>Total time spent reading</td></tr>
+  <tr><td>Monthly / Yearly breakdown</td><td>Reading activity over time</td></tr>
+  <tr><td>Favorite authors</td><td>Most-read authors based on your habits</td></tr>
+</table>
+
+<h3>Library Statistics Page</h3>
+<p>A separate page showing collection-level statistics: total books by format, genre, author, series; books by reading status; collection growth over time; and most recent additions.</p>
+
+<!-- ==================== SECTION 13 ==================== -->
+<h2 id="sec13">13. Series and Authors</h2>
+
+<h3>Series</h3>
+<p>Books can be grouped into series (e.g., &ldquo;Harry Potter,&rdquo; &ldquo;The Walking Dead&rdquo;).</p>
+<ul>
+  <li><strong>Browse by series</strong> &mdash; Click &ldquo;Series&rdquo; in the sidebar</li>
+  <li><strong>View all books in a series</strong> &mdash; Click a series name to see its books in order</li>
+  <li>Series are auto-detected from metadata</li>
+</ul>
+<p><strong>What You Can&rsquo;t Do:</strong> Manually create a series from scratch (series come from book metadata) or reorder books within a series.</p>
+
+<h3>Authors</h3>
+<ul>
+  <li><strong>Browse all authors</strong> &mdash; Alphabetical listing with book counts</li>
+  <li><strong>View author details</strong> &mdash; Biography, photo, and all their books</li>
+  <li><strong>Edit author information</strong> &mdash; Update name, bio, description, photo</li>
+  <li><strong>Upload author photos</strong> &mdash; Add images for authors who don&rsquo;t have one</li>
+</ul>
+
+<div class="callout tip">
+  <strong>Tip:</strong> Use consistent author names in book metadata to avoid duplicate author entries (e.g., always &ldquo;J.K. Rowling,&rdquo; not sometimes &ldquo;Rowling, J.K.&rdquo;).
+</div>
+
+<!-- ==================== SECTION 14 ==================== -->
+<h2 id="sec14">14. Metadata &mdash; Book Information</h2>
+
+<p><strong>Metadata</strong> is all the information about a book: title, author, description, cover image, publication date, genre, ISBN, and more.</p>
+
+<h3>Fetching Metadata from the Internet</h3>
+<table>
+  <tr><th>Action</th><th>Description</th></tr>
+  <tr><td>Fetch metadata</td><td>Search online providers by title, author, or ISBN</td></tr>
+  <tr><td>Preview results</td><td>See what information was found before applying</td></tr>
+  <tr><td>Apply selectively</td><td>Choose which fields to update</td></tr>
+  <tr><td>Replace all</td><td>Overwrite all metadata with fetched information</td></tr>
+  <tr><td>Merge</td><td>Keep your edits and fill in only the missing fields</td></tr>
+  <tr><td>Fetch covers</td><td>Download book cover images</td></tr>
+  <tr><td>Fetch author info</td><td>Download author biographies and photos</td></tr>
+</table>
+
+<h3>Editing Metadata Manually</h3>
+<ul>
+  <li>Edit title, author, description, and all other fields by hand</li>
+  <li>Upload a custom cover image</li>
+  <li>Add or change genres, categories, and moods</li>
+  <li>Set or update ISBN, publication date, and language</li>
+  <li>Create custom media types (Magazines, Textbooks, etc.)</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li><strong>&ldquo;Replace All&rdquo; overwrites everything,</strong> including any manual edits you&rsquo;ve made. Use &ldquo;Merge&rdquo; if you want to keep your changes.</li>
+    <li><strong>Fetched cover images may not match your edition.</strong> Review the cover before applying.</li>
+    <li><strong>ISBN lookup is the most reliable</strong> way to get accurate metadata. Use it when available.</li>
+    <li>You cannot undo a metadata overwrite once applied.</li>
+  </ul>
+</div>
+
+<!-- ==================== SECTION 15 ==================== -->
+<h2 id="sec15">15. Metadata Manager &mdash; Bulk Editing</h2>
+
+<p>The Metadata Manager lets you edit metadata for many books at once.</p>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Select multiple books for batch metadata operations</li>
+  <li>Apply the same genre, category, or mood to many books at once</li>
+  <li>Bulk-update reading status or media type</li>
+  <li>Bulk-fetch metadata for selected books</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> Bulk edits are immediate and cannot be reversed. Double-check your selection and changes before applying. Start with small batches to verify results.
+</div>
+
+<!-- ==================== SECTION 16 ==================== -->
+<h2 id="sec16">16. Search and Filtering</h2>
+
+<h3>Global Search</h3>
+<p>Type in the search bar to find books across your entire collection by title, author name, description, or ISBN.</p>
+
+<h3>Filters</h3>
+<table>
+  <tr><th>Filter</th><th>Options</th></tr>
+  <tr><td>Library</td><td>Show books from a specific library only</td></tr>
+  <tr><td>Shelf</td><td>Show books on a specific shelf</td></tr>
+  <tr><td>Reading status</td><td>Not Started, Reading, Completed, Abandoned</td></tr>
+  <tr><td>Media type</td><td>E-book, PDF, Comic, Audiobook, Physical, Custom types</td></tr>
+  <tr><td>Author</td><td>Filter by specific author</td></tr>
+  <tr><td>Series</td><td>Filter by series</td></tr>
+  <tr><td>Genre / Category</td><td>Filter by genre or category tag</td></tr>
+  <tr><td>Rating</td><td>Filter by your personal star rating</td></tr>
+  <tr><td>Language</td><td>Filter by book language</td></tr>
+</table>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Combine multiple filters (e.g., &ldquo;Unread comics in my Comics library&rdquo;)</li>
+  <li>Clear all filters with one click</li>
+</ul>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Search inside book contents (search only covers metadata)</li>
+  <li>Save filter combinations as presets (use Magic Shelves instead)</li>
+</ul>
+
+<!-- ==================== SECTION 17 ==================== -->
+<h2 id="sec17">17. AI Comic Panel Detection</h2>
+
+<p>An <strong>optional</strong> feature that uses artificial intelligence to detect individual panels on comic book pages, enabling panel-by-panel reading.</p>
+
+<h3>How to Use</h3>
+<ol>
+  <li>Enable AI in <strong>Settings &rarr; AI Panel Detection</strong></li>
+  <li>Wait for status to show &ldquo;READY&rdquo;</li>
+  <li>Open a comic in the reader</li>
+  <li>Click the AI button to scan the current book</li>
+  <li>Or use bulk scan from AI settings to process all comics at once</li>
+</ol>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Scan individual comics or bulk scan entire libraries</li>
+  <li>Delete panel data for specific comics</li>
+  <li>View statistics on scanned comics</li>
+  <li>Reload the AI model if it stops responding</li>
+</ul>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Use panel detection on non-comic formats</li>
+  <li>Guarantee 100% accurate panel detection &mdash; AI may occasionally miss or misidentify panels</li>
+</ul>
+
+<div class="callout">
+  <strong>Be Careful:</strong> AI processing uses significant CPU resources. Bulk scanning large collections may slow down your server. The AI container is optional &mdash; omit <code>COMPOSE_PROFILES=ai</code> from your environment to skip it entirely.
+</div>
+
+<!-- ==================== SECTION 18 ==================== -->
+<h2 id="sec18">18. OPDS Feeds &mdash; E-Reader Integration</h2>
+
+<p><strong>OPDS</strong> (Open Publication Distribution System) lets e-readers browse and download books directly from your BookLore library.</p>
+
+<h3>How to Set Up</h3>
+<ol>
+  <li>Go to <strong>Settings &rarr; OPDS</strong></li>
+  <li>Copy your personal OPDS feed URL</li>
+  <li>Enter the URL in your e-reader&rsquo;s OPDS catalog settings</li>
+</ol>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Browse your library from any OPDS-compatible e-reader or app</li>
+  <li>Download books directly to your e-reader</li>
+  <li>Search your catalog from the e-reader&rsquo;s search function</li>
+  <li>Access feeds by category: Libraries, Shelves, Magic Shelves, Series, Authors</li>
+</ul>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Stream audiobooks via OPDS (downloads only)</li>
+  <li>Use OPDS to upload books to BookLore (download only)</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> Keep your OPDS token private. Anyone with the URL can access your library. If you change your token, all connected e-readers will need to be updated.
+</div>
+
+<!-- ==================== SECTION 19 ==================== -->
+<h2 id="sec19">19. Kobo and KoReader Device Sync</h2>
+
+<p>BookLore can sync reading progress with <strong>Kobo</strong> and <strong>KoReader</strong> compatible devices.</p>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Sync reading position between BookLore and your device</li>
+  <li>Create a dedicated Kobo device shelf for content management</li>
+  <li>Transfer books to your device and keep progress synchronized</li>
+</ul>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Sync with Kindle devices directly (use OPDS or email-to-Kindle instead).</p>
+
+<div class="callout">
+  <strong>Be Careful:</strong> Device sync is experimental. Minor discrepancies in page positioning may occur between the web reader and physical device.
+</div>
+
+<!-- ==================== SECTION 20 ==================== -->
+<h2 id="sec20">20. Email &mdash; Sending Books</h2>
+
+<h3>How to Set Up</h3>
+<ol>
+  <li>Go to <strong>Settings &rarr; Email</strong></li>
+  <li>Configure your email provider (SMTP server, port, username, password)</li>
+  <li>Add recipient email addresses</li>
+</ol>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Send individual books to configured email addresses</li>
+  <li>Configure multiple recipients</li>
+  <li>Use email templates for formatting</li>
+</ul>
+
+<h3>What You Can&rsquo;t Do</h3>
+<ul>
+  <li>Send books larger than your email provider&rsquo;s attachment limit (typically 25 MB)</li>
+  <li>Send audiobooks via email (file sizes are too large)</li>
+</ul>
+
+<div class="callout">
+  <strong>Be Careful:</strong> Store your SMTP credentials securely. Large books may fail to send if they exceed your provider&rsquo;s size limit.
+</div>
+
+<!-- ==================== SECTION 21 ==================== -->
+<h2 id="sec21">21. User Accounts and Permissions</h2>
+
+<h3>User Roles</h3>
+<table>
+  <tr><th>Role</th><th>Access Level</th></tr>
+  <tr><td><strong>Admin</strong></td><td>Full access to everything, including settings and user management</td></tr>
+  <tr><td><strong>Regular User</strong></td><td>Access to assigned libraries and personal features</td></tr>
+</table>
+
+<h3>Permissions (Configurable per User)</h3>
+<table>
+  <tr><th>Permission</th><th>What It Allows</th></tr>
+  <tr><td>BookDrop Access</td><td>Upload and import books through BookDrop</td></tr>
+  <tr><td>Metadata Editing</td><td>Fetch and edit book metadata</td></tr>
+  <tr><td>Library Management</td><td>Create, modify, and delete libraries</td></tr>
+  <tr><td>Book Deletion</td><td>Delete books (optionally from disk)</td></tr>
+  <tr><td>Task Manager</td><td>View and run background tasks</td></tr>
+  <tr><td>View Audit Logs</td><td>Access the audit log</td></tr>
+</table>
+
+<h3>What Admins Can Do</h3>
+<ul>
+  <li>Create, edit, and delete user accounts</li>
+  <li>Reset user passwords</li>
+  <li>Assign permissions to each user</li>
+  <li>Restrict users to specific libraries</li>
+  <li>Make shelves and magic shelves public</li>
+</ul>
+
+<h3>What Regular Users Can Do</h3>
+<ul>
+  <li>Read books in their assigned libraries</li>
+  <li>Create personal shelves and magic shelves</li>
+  <li>Manage their own bookmarks, annotations, and reading progress</li>
+  <li>Change their own password and profile</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li>The <strong>&ldquo;Book Deletion&rdquo; permission allows permanent file deletion from disk.</strong> Only grant this to trusted users.</li>
+    <li><strong>Library Management permission</strong> allows creating and deleting libraries &mdash; grant carefully.</li>
+  </ul>
+</div>
+
+<!-- ==================== SECTION 22 ==================== -->
+<h2 id="sec22">22. Authentication &mdash; Login Methods</h2>
+
+<p>BookLore supports three ways to log in:</p>
+
+<h3>Local Password</h3>
+<p>The default method &mdash; log in with your username and password. Simplest option for personal use. Passwords are stored securely (hashed). Sessions use JWT tokens that auto-refresh.</p>
+
+<h3>OIDC (OpenID Connect)</h3>
+<p>Use a third-party identity provider (like PocketID, Keycloak, or Authentik) for single sign-on.</p>
+<ol>
+  <li>Configure the OIDC provider (create a client for BookLore)</li>
+  <li>In BookLore Settings &rarr; Authentication, enter the Client ID, Issuer URI, and JWKS URL</li>
+  <li>Enable OIDC</li>
+  <li>Users can now log in with the &ldquo;Login with [Provider]&rdquo; button</li>
+</ol>
+
+<h3>Forward Auth (Reverse Proxy)</h3>
+<p>If you run BookLore behind a reverse proxy with an authentication layer (like Authelia), BookLore can trust the proxy&rsquo;s authentication headers.</p>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li><strong>If using Forward Auth, NEVER expose BookLore directly to the internet.</strong> Always route through your authenticated reverse proxy.</li>
+    <li><strong>OIDC requires correct URL configuration.</strong> Incorrect Issuer URI or JWKS URL will prevent login entirely.</li>
+    <li><strong>Test new authentication settings before disabling local login,</strong> or you may lock yourself out.</li>
+  </ul>
+</div>
+
+<!-- ==================== SECTION 23 ==================== -->
+<h2 id="sec23">23. Application Settings</h2>
+
+<p>Access settings via the gear icon at the bottom of the sidebar.</p>
+
+<table>
+  <tr><th>Category</th><th>What You Can Configure</th></tr>
+  <tr><td>Reader Settings</td><td>Default font size, zoom, reading mode preferences</td></tr>
+  <tr><td>View Preferences</td><td>Book grid layout, cover preview panel, toolbar customization</td></tr>
+  <tr><td>User Management</td><td>Create/edit/delete users and their permissions</td></tr>
+  <tr><td>Email</td><td>SMTP server for sending books via email</td></tr>
+  <tr><td>File Naming Patterns</td><td>How imported files are named and organized</td></tr>
+  <tr><td>Metadata</td><td>Default metadata providers and API keys</td></tr>
+  <tr><td>Library Metadata</td><td>Per-library metadata provider configuration</td></tr>
+  <tr><td>Authentication</td><td>OIDC and forward auth configuration</td></tr>
+  <tr><td>OPDS</td><td>E-reader feed configuration</td></tr>
+  <tr><td>Tasks</td><td>Background task scheduling (cron jobs)</td></tr>
+  <tr><td>Audit Logs</td><td>View user activity logs</td></tr>
+  <tr><td>AI Panel Detection</td><td>Enable/disable and manage comic panel AI</td></tr>
+  <tr><td>Global Preferences</td><td>Theme (light/dark), language, timezone, settings backup</td></tr>
+</table>
+
+<h4>Customizable Toolbar</h4>
+<ul>
+  <li><strong>Add or remove buttons</strong> &mdash; Choose which actions appear in the toolbar</li>
+  <li><strong>Reorder buttons</strong> &mdash; Drag and drop to rearrange</li>
+  <li><strong>Add separators</strong> &mdash; Insert visual dividers between button groups</li>
+</ul>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li><strong>Changing authentication settings can lock you out.</strong> Test OIDC configuration before disabling local login.</li>
+    <li><strong>Settings export/import includes sensitive data</strong> (email credentials, API keys). Store exported files securely.</li>
+  </ul>
+</div>
+
+<!-- ==================== SECTION 24 ==================== -->
+<h2 id="sec24">24. Background Tasks</h2>
+
+<p>BookLore can run jobs in the background to maintain and update your library.</p>
+
+<table>
+  <tr><th>Task</th><th>What It Does</th></tr>
+  <tr><td>Library Scan</td><td>Detect newly added book files</td></tr>
+  <tr><td>Library Rescan</td><td>Full re-scan of all files in a library</td></tr>
+  <tr><td>Metadata Refresh</td><td>Re-fetch metadata from providers for existing books</td></tr>
+  <tr><td>Deleted Books Cleanup</td><td>Remove catalog entries for files that no longer exist on disk</td></tr>
+  <tr><td>Temp Metadata Cleanup</td><td>Clear old cached metadata from previous searches</td></tr>
+  <tr><td>BookDrop Scan</td><td>Check the BookDrop folder for new files</td></tr>
+  <tr><td>KEPUB Conversion</td><td>Convert book formats for e-reader compatibility</td></tr>
+</table>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Run tasks manually &mdash; Start any task on demand</li>
+  <li>Schedule tasks &mdash; Set up automatic timing</li>
+  <li>Cancel running tasks</li>
+  <li>View task history and results</li>
+</ul>
+
+<div class="callout">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li><strong>Library Rescan on a very large library</strong> can take a long time and use significant resources.</li>
+    <li><strong>Metadata Refresh</strong> makes network calls &mdash; running too frequently may cause rate limiting from providers.</li>
+  </ul>
+</div>
+
+<!-- ==================== SECTION 25 ==================== -->
+<h2 id="sec25">25. Backup and Restore</h2>
+
+<p>Protecting your BookLore data requires backing up <strong>two things</strong>:</p>
+
+<h3>1. Application Settings (Database)</h3>
+
+<h4>Quick Export (Settings Only)</h4>
+<ol>
+  <li>Go to <strong>Settings &rarr; Global Preferences &rarr; Settings Transfer</strong></li>
+  <li>Click <strong>Export</strong></li>
+  <li>Save the downloaded JSON file</li>
+</ol>
+<p>This exports libraries, users, shelves, metadata settings, and preferences.</p>
+
+<h4>Full Database Backup (Recommended)</h4>
+<p>For complete protection (including all book metadata, reading progress, annotations, and shelf assignments), use a database dump:</p>
+<pre><code>docker exec mariadb mariadb-dump \
+  --single-transaction --quick --no-tablespaces \
+  -u root -p"YOUR_ROOT_PASSWORD" \
+  booklore &gt; booklore_backup.sql</code></pre>
+
+<h3>2. Book Files and Data</h3>
+<table>
+  <tr><th>What to Back Up</th><th>Folder</th></tr>
+  <tr><td>Book files</td><td><code>./books/</code></td></tr>
+  <tr><td>Covers, thumbnails, and images</td><td><code>./data/</code></td></tr>
+  <tr><td>BookDrop inbox</td><td><code>./bookdrop/</code></td></tr>
+</table>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li><strong>Settings export does NOT include reading progress, annotations, or book files.</strong> For full protection, do a database dump AND file backup.</li>
+    <li><strong>Store backups in a separate location</strong> from your BookLore server.</li>
+    <li><strong>Test your backups periodically.</strong> A backup you&rsquo;ve never tested is a backup you can&rsquo;t trust.</li>
+  </ul>
+</div>
+
+<!-- ==================== SECTION 26 ==================== -->
+<h2 id="sec26">26. Audit Logs</h2>
+
+<h3>What Is Logged</h3>
+<ul>
+  <li>User logins and logouts</li>
+  <li>Book operations (create, update, delete)</li>
+  <li>Shelf changes</li>
+  <li>Metadata updates</li>
+  <li>Settings changes</li>
+  <li>User management actions</li>
+  <li>BookDrop operations</li>
+</ul>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>View the full audit log (admin only)</li>
+  <li>Filter by user, action type, or date</li>
+  <li>Track who made changes and when</li>
+</ul>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Delete individual log entries (logs are append-only).</p>
+
+<!-- ==================== SECTION 27 ==================== -->
+<h2 id="sec27">27. Tips and Best Practices</h2>
+
+<h3>For New Users</h3>
+<ol>
+  <li><strong>Start small.</strong> Set up one library, add a few books, and explore before importing your entire collection.</li>
+  <li><strong>Use BookDrop</strong> for importing rather than manually placing files.</li>
+  <li><strong>Fetch metadata early.</strong> After importing, fetch metadata to fill in titles, authors, covers, and descriptions.</li>
+  <li><strong>Create shelves</strong> to organize your favorites.</li>
+  <li><strong>Set your reading status</strong> so you can track what you&rsquo;ve read.</li>
+</ol>
+
+<h3>For Security</h3>
+<ol>
+  <li>Use strong passwords for all accounts, especially the admin account.</li>
+  <li>Never expose BookLore directly to the internet without a reverse proxy and authentication.</li>
+  <li>Keep your OPDS token private.</li>
+  <li>Review user permissions carefully &mdash; only grant deletion rights to trusted users.</li>
+  <li>Back up regularly &mdash; both the database and your book files.</li>
+</ol>
+
+<h3>For Performance</h3>
+<ol>
+  <li>Use CBZ over CBR when possible &mdash; ZIP extraction is faster than RAR.</li>
+  <li>Keep image sizes reasonable &mdash; extremely high-resolution scans use more memory.</li>
+  <li>Schedule background tasks during off-hours.</li>
+  <li>Don&rsquo;t scan libraries too frequently &mdash; once-daily scans are usually sufficient.</li>
+</ol>
+
+<h3>For Organization</h3>
+<ol>
+  <li>Be consistent with author names to avoid duplicates.</li>
+  <li>Use genres and categories &mdash; they make filtering and Magic Shelves more useful.</li>
+  <li>Rate your books &mdash; ratings enable great Magic Shelf filters.</li>
+  <li>Use the Notebook to review all your annotations in one place.</li>
+</ol>
+
+<!-- ==================== SECTION 28 ==================== -->
+<h2 id="sec28">28. Glossary</h2>
+
+<table>
+  <tr><th>Term</th><th>Definition</th></tr>
+  <tr><td><strong>Library</strong></td><td>A connection between BookLore and a folder on your server where book files are stored</td></tr>
+  <tr><td><strong>Shelf</strong></td><td>A user-created collection for grouping books (like a playlist)</td></tr>
+  <tr><td><strong>Magic Shelf</strong></td><td>An automatically populated collection based on filter rules</td></tr>
+  <tr><td><strong>BookDrop</strong></td><td>A watch folder where you place new files for BookLore to import</td></tr>
+  <tr><td><strong>Metadata</strong></td><td>Information about a book &mdash; title, author, description, cover, ISBN, etc.</td></tr>
+  <tr><td><strong>OPDS</strong></td><td>A standard protocol that lets e-readers browse and download from your library</td></tr>
+  <tr><td><strong>OIDC</strong></td><td>OpenID Connect &mdash; a single sign-on standard for logging in via a third-party provider</td></tr>
+  <tr><td><strong>Forward Auth</strong></td><td>A method where a reverse proxy handles authentication before requests reach BookLore</td></tr>
+  <tr><td><strong>CBZ / CBR</strong></td><td>Comic book archive formats (CBZ&nbsp;=&nbsp;ZIP, CBR&nbsp;=&nbsp;RAR) containing image files</td></tr>
+  <tr><td><strong>EPUB</strong></td><td>The most common e-book file format</td></tr>
+  <tr><td><strong>Panel Detection</strong></td><td>AI feature that identifies individual comic panels on a page</td></tr>
+  <tr><td><strong>KEPUB</strong></td><td>Kobo&rsquo;s enhanced EPUB format</td></tr>
+  <tr><td><strong>JWT</strong></td><td>JSON Web Token &mdash; the authentication token used for login sessions</td></tr>
+  <tr><td><strong>Cron</strong></td><td>A scheduling system for running tasks automatically at set times</td></tr>
+  <tr><td><strong>SMTP</strong></td><td>Simple Mail Transfer Protocol &mdash; the standard for sending email</td></tr>
+  <tr><td><strong>Annotation</strong></td><td>A highlight, underline, or note you create while reading</td></tr>
+  <tr><td><strong>Bookmark</strong></td><td>A saved position marker in a book</td></tr>
+  <tr><td><strong>Media Type</strong></td><td>A category for your books (e-book, PDF, comic, audiobook, physical, or custom)</td></tr>
+  <tr><td><strong>Audit Log</strong></td><td>A record of actions taken by users in the application</td></tr>
+  <tr><td><strong>Reverse Proxy</strong></td><td>A server that sits between the internet and BookLore, handling security and routing</td></tr>
+</table>
+
+<!-- ==================== SECTION 29 ==================== -->
+<h2 id="sec29">29. Document Maintenance Log</h2>
+
+<div class="callout info">
+  <strong>Important:</strong> This guide must be updated whenever features are added, changed, or removed from BookLore. After any fix, feature addition, or removal, review this guide and update the relevant sections. Record changes below to track guide accuracy over time.
+</div>
+
+<table class="maintenance-log">
+  <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-03-30</td><td>1.0</td><td>Initial guide created &mdash; covers all BookLore 3.0 features</td></tr>
+</table>
+
+<hr>
+<p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
+  <em>BookLore 3.0 Familiarization Guide &mdash; Maintained as part of the BookLore documentation.</em><br>
+  <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
+</p>
+
+</body>
+</html>

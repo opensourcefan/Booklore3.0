@@ -23,6 +23,7 @@ A personal fork of [BookLore](https://github.com/adityachandelgit/BookLore) with
   - [Application Settings](#application-settings)
   - [Book Files and Covers](#book-files-and-covers)
 - [AI Panel Detection — Quick Start](#ai-panel-detection--quick-start)
+- [Familiarization Guide](#familiarization-guide)
 - [Screenshots](#screenshots)
 
 ---
@@ -256,6 +257,17 @@ tar -czf booklore-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 - The AI container uses CPU-only inference to keep the image size manageable.
 - If the model fails to load, use the **Reload Model** button in Settings.
 - If running Booklore outside Docker, set `AI_SERVICE_BASE_URL` to the host-mapped endpoint (e.g., `http://localhost:18080`).
+
+---
+
+## Familiarization Guide
+
+New to BookLore? A complete **Familiarization Guide** is available in the `docs/` folder:
+
+- **[BookLore-Familiarization-Guide.pdf](docs/BookLore-Familiarization-Guide.pdf)** — 26-page printable PDF
+- **[BookLore-Familiarization-Guide.html](docs/BookLore-Familiarization-Guide.html)** — Browser-viewable HTML version
+
+The guide is written for users of all experience levels and covers every feature — libraries, importing, reading, shelves, metadata, search, AI panel detection, OPDS, user management, settings, backups, and more. Each section includes what you can do, what you can't do, and things to be careful about.
 
 ---
 
