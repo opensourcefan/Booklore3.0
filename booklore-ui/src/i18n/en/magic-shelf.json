@@ -288,5 +288,14 @@
     "successDetail": "Magic shelf saved successfully.",
     "errorSummary": "Error",
     "errorDetailDefault": "Failed to save magic shelf."
+  },
+  "examples": {
+    "try": "Quick examples:",
+    "currentlyReading": "Currently Reading",
+    "unread": "Unread Books",
+    "addedThisMonth": "Added This Month",
+    "addedLast30Days": "Added in Last 30 Days",
+    "standalone": "Standalone Books",
+    "hasTags": "Has Tags"
   }
 }

@@ -345,3 +345,38 @@
     font-size: 0.9rem;
   }
 }
+
+.rule-examples {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.25rem 1rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--overlay-background);
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+
+  .rule-examples-label {
+    font-size: 0.78rem;
+    color: var(--text-secondary-color);
+    white-space: nowrap;
+    margin-right: 0.25rem;
+  }
+}
+
+.rule-example-chip {
+  font-size: 0.78rem;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--primary-color);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--primary-color);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: var(--primary-color);
+    color: #fff;
+  }
+}

@@ -75,6 +75,7 @@ public class LibraryService {
     private final AuthenticationService authenticationService;
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final DirectoryTagService directoryTagService;
 
     @Transactional
     @EventListener(ApplicationReadyEvent.class)
@@ -165,6 +166,11 @@ public class LibraryService {
                 }
                 log.info("Parsing task completed!");
             });
+        } else if (savedLibrary.isTagByDirectory()) {
+            log.info("tag-by-directory enabled/updated for library {} — backfilling missing directory tags", libraryId);
+            LibraryEntity libraryForTagging = savedLibrary;
+            SecurityContextVirtualThread.runWithSecurityContext(() ->
+                    directoryTagService.applyMissingDirectoryTags(libraryForTagging));
         }
 
         auditService.log(AuditAction.LIBRARY_UPDATED, "Library", libraryId, "Updated library: " + library.getName());

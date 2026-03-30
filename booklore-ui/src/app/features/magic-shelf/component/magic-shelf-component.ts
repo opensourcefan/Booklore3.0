@@ -690,6 +690,28 @@ export class MagicShelfComponent implements OnInit {
     rules.push(this.createRule());
   }
 
+  readonly ruleExamples: Array<{key: string; field: RuleField; operator: RuleOperator; value?: string; valueEnd?: string}> = [
+    {key: 'currentlyReading', field: 'readStatus', operator: 'equals', value: 'READING'},
+    {key: 'unread', field: 'readStatus', operator: 'equals', value: 'UNREAD'},
+    {key: 'addedThisMonth', field: 'addedOn', operator: 'this_period', value: 'month'},
+    {key: 'addedLast30Days', field: 'addedOn', operator: 'within_last', value: '30', valueEnd: 'days'},
+    {key: 'standalone', field: 'seriesName', operator: 'is_empty'},
+    {key: 'hasTags', field: 'tags', operator: 'is_not_empty'},
+  ];
+
+  applyRuleExample(ruleCtrl: AbstractControl, example: {field: RuleField; operator: RuleOperator; value?: string; valueEnd?: string}) {
+    ruleCtrl.get('field')?.setValue(example.field);
+    this.onFieldChange(ruleCtrl as RuleFormGroup);
+    ruleCtrl.get('operator')?.setValue(example.operator);
+    this.onOperatorChange(ruleCtrl as FormGroup);
+    if (example.value !== undefined) {
+      ruleCtrl.get('value')?.setValue(example.value);
+    }
+    if (example.valueEnd !== undefined) {
+      ruleCtrl.get('valueEnd')?.setValue(example.valueEnd);
+    }
+  }
+
   deleteGroup(group: GroupFormGroup) {
     const parent = group.parent;
     if (parent && parent instanceof FormArray) {

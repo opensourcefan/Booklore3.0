@@ -224,6 +224,14 @@
               <p-button icon="pi pi-trash" text severity="danger" (click)="removeRule(group, i)"></p-button>
             }
           </div>
+          @if (!isGroup(ruleCtrl) && !ruleCtrl.get('field')?.value) {
+            <div class="rule-examples">
+              <span class="rule-examples-label">{{ t('examples.try') }}</span>
+              @for (ex of ruleExamples; track ex.key) {
+                <button class="rule-example-chip" type="button" (click)="applyRuleExample(ruleCtrl, ex)">{{ t('examples.' + ex.key) }}</button>
+              }
+            </div>
+          }
         }
         @if (group.get('rules')['controls'].length === 0) {
           <div class="no-rules-hint">
