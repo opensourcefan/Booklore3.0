@@ -403,6 +403,9 @@ public class CbxReaderService {
                 entries = UnrarHelper.listEntries(cbxPath).stream()
                         .filter(this::isImageFile)
                         .collect(Collectors.toCollection(ArrayList::new));
+                if (entries.isEmpty()) {
+                    log.warn("unrar CLI fallback returned no image entries for {}; archive may be corrupt, empty, or contain unsupported image formats", cbxPath.getFileName());
+                }
             } else {
                 throw new IOException("Failed to read RAR archive: " + e.getMessage(), e);
             }

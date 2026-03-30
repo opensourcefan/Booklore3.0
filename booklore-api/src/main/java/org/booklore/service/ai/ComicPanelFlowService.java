@@ -212,6 +212,7 @@ public class ComicPanelFlowService {
 
     private void runMissingScan(String username, Long userId, List<Long> missingBookIds, int alreadyScannedBooks) {
         int completedBooks = 0;
+        int skippedWithError = 0;
         int processedPages = 0;
         int panelsFound = 0;
         int pagesWithPanels = 0;
@@ -246,31 +247,52 @@ public class ComicPanelFlowService {
                 }
                 BookEntity book = findBook(bookId);
                 String bookTitle = getBookTitle(book);
-                BatchBookProgress batchProgress = new BatchBookProgress(username, bookId, bookTitle, completedBooks, missingBookIds.size(), alreadyScannedBooks, processedPages, panelsFound, pagesWithPanels);
+                BatchBookProgress batchProgress = new BatchBookProgress(username, bookId, bookTitle, completedBooks, missingBookIds.size(), alreadyScannedBooks + skippedWithError, processedPages, panelsFound, pagesWithPanels);
 
-                String flowData = aiPanelDetectionService.detectPanelFlow(bookId, null, batchProgress);
+                try {
+                    String flowData = aiPanelDetectionService.detectPanelFlow(bookId, null, batchProgress);
 
-                TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-                transactionTemplate.executeWithoutResult(status -> savePanelFlowInternal(bookId, flowData, userId));
+                    TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+                    transactionTemplate.executeWithoutResult(status -> savePanelFlowInternal(bookId, flowData, userId));
 
-                completedBooks++;
-                processedPages += batchProgress.getFinalProcessedPages();
-                panelsFound += batchProgress.getFinalPanelsFound();
-                pagesWithPanels += batchProgress.getFinalPagesWithPanels();
+                    completedBooks++;
+                    processedPages += batchProgress.getFinalProcessedPages();
+                    panelsFound += batchProgress.getFinalPanelsFound();
+                    pagesWithPanels += batchProgress.getFinalPagesWithPanels();
 
-                sendProgress(username, AiPanelScanProgressPayload.builder()
-                        .mode("BATCH")
-                        .event("BOOK_COMPLETED")
-                        .bookId(bookId)
-                        .bookTitle(bookTitle)
-                        .completedBooks(completedBooks)
-                        .totalBooks(missingBookIds.size())
-                        .skippedBooks(alreadyScannedBooks)
-                        .processedPages(processedPages)
-                        .panelsFound(panelsFound)
-                        .pagesWithPanels(pagesWithPanels)
-                        .message("Saved AI panel scan.")
-                        .build());
+                    sendProgress(username, AiPanelScanProgressPayload.builder()
+                            .mode("BATCH")
+                            .event("BOOK_COMPLETED")
+                            .bookId(bookId)
+                            .bookTitle(bookTitle)
+                            .completedBooks(completedBooks)
+                            .totalBooks(missingBookIds.size())
+                            .skippedBooks(alreadyScannedBooks + skippedWithError)
+                            .processedPages(processedPages)
+                            .panelsFound(panelsFound)
+                            .pagesWithPanels(pagesWithPanels)
+                            .message("Saved AI panel scan.")
+                            .build());
+                } catch (AiPanelDetectionService.ScanStoppedException e) {
+                    throw e;
+                } catch (Exception bookEx) {
+                    skippedWithError++;
+                    log.warn("Skipping book {} ({}) in panel scan due to error: {}", bookId, bookTitle, bookEx.getMessage());
+                    sendProgress(username, AiPanelScanProgressPayload.builder()
+                            .mode("BATCH")
+                            .event("BOOK_SKIPPED")
+                            .bookId(bookId)
+                            .bookTitle(bookTitle)
+                            .completedBooks(completedBooks)
+                            .totalBooks(missingBookIds.size())
+                            .skippedBooks(alreadyScannedBooks + skippedWithError)
+                            .processedPages(processedPages)
+                            .panelsFound(panelsFound)
+                            .pagesWithPanels(pagesWithPanels)
+                            .message("Skipped: " + bookEx.getMessage())
+                            .error(bookEx.getMessage())
+                            .build());
+                }
             }
 
             sendProgress(username, AiPanelScanProgressPayload.builder()
@@ -278,7 +300,7 @@ public class ComicPanelFlowService {
                     .event("COMPLETED")
                     .completedBooks(completedBooks)
                     .totalBooks(missingBookIds.size())
-                    .skippedBooks(alreadyScannedBooks)
+                    .skippedBooks(alreadyScannedBooks + skippedWithError)
                     .processedPages(processedPages)
                     .panelsFound(panelsFound)
                     .pagesWithPanels(pagesWithPanels)

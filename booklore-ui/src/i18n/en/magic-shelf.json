@@ -2,7 +2,7 @@
   "header": {
     "titleEdit": "Edit Magic Shelf",
     "titleCreate": "Magic Shelf Builder",
-    "description": "Create smart shelves with custom rules to automatically organize your books"
+    "description": "A Magic Shelf auto-updates its book list based on rules you define. Books that match appear automatically — no manual curation needed."
   },
   "form": {
     "shelfName": "Magic Shelf Name",
@@ -11,16 +11,21 @@
     "clickToChange": "Click to change",
     "removeIcon": "Remove icon",
     "selectIcon": "Select Icon",
-    "public": "Public"
+    "public": "Public",
+    "publicTooltip": "When Public, this shelf is visible to all users on this server"
   },
   "actions": {
     "cancel": "Cancel",
-    "saveFilter": "Save Filter",
+    "saveFilter": "Save Shelf",
     "addRule": "Add Rule",
     "addGroup": "Add Group"
   },
   "group": {
-    "condition": "Condition:"
+    "condition": "Match:",
+    "conditionTooltip": "AND — book must match ALL rules in this group\nOR — book only needs to match ONE rule",
+    "addRuleTooltip": "Add a filter condition (e.g. Read Status = Reading)",
+    "addGroupTooltip": "Add a nested sub-group with its own AND/OR logic — useful for complex queries like (A AND B) OR (C)",
+    "noRulesHint": "No conditions yet — click 'Add Rule' to start filtering books"
   },
   "placeholders": {
     "field": "Field",
@@ -267,7 +272,8 @@
     "comicEditors": "Editors"
   },
   "importJson": {
-    "buttonLabel": "Import",
+    "buttonLabel": "Import JSON",
+    "buttonTooltip": "Paste a previously exported Magic Shelf JSON to restore its rules",
     "placeholder": "{\n  \"type\": \"group\",\n  \"join\": \"and\",\n  \"rules\": [\n    { \"field\": \"readStatus\", \"operator\": \"equals\", \"value\": \"READING\" }\n  ]\n}",
     "apply": "Apply",
     "emptyError": "Please paste a JSON configuration first.",

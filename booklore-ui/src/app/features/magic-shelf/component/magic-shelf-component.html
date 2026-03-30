@@ -66,7 +66,7 @@
           <div class="public-checkbox-section">
             <div class="checkbox-wrapper">
               <p-checkbox formControlName="isPublic" [binary]="true" inputId="isPublic" (onChange)="onIsPublicChange($event)"></p-checkbox>
-              <label for="isPublic">{{ t('form.public') }}</label>
+              <label for="isPublic" [pTooltip]="t('form.publicTooltip')" tooltipPosition="top">{{ t('form.public') }}</label>
             </div>
           </div>
         }
@@ -96,6 +96,8 @@
         [outlined]="true"
         severity="info"
         size="small"
+        [pTooltip]="t('importJson.buttonTooltip')"
+        tooltipPosition="top"
         (onClick)="toggleImportPanel()"
       />
     }
@@ -119,10 +121,13 @@
   <ng-template #groupTemplate let-group="group">
     <div class="group-container" [formGroup]="group">
       <div class="group-header">
-        <label>{{ t('group.condition') }}</label>
+        <label [pTooltip]="t('group.conditionTooltip')" tooltipPosition="top">
+          {{ t('group.condition') }}
+          <i class="pi pi-info-circle condition-info-icon"></i>
+        </label>
         <p-select [options]="conditionOptions" formControlName="join" class="condition-select" appendTo="body" [showClear]="false"/>
-        <p-button icon="pi pi-plus" size="small" text (click)="addRule(group)" [label]="t('actions.addRule')" outlined></p-button>
-        <p-button icon="pi pi-folder-open" size="small" text (click)="addGroup(group)" [label]="t('actions.addGroup')" outlined></p-button>
+        <p-button icon="pi pi-plus" size="small" text (click)="addRule(group)" [label]="t('actions.addRule')" outlined [pTooltip]="t('group.addRuleTooltip')" tooltipPosition="top"></p-button>
+        <p-button icon="pi pi-folder-open" size="small" text (click)="addGroup(group)" [label]="t('actions.addGroup')" outlined [pTooltip]="t('group.addGroupTooltip')" tooltipPosition="top"></p-button>
         @if (group.parent) {
           <p-button icon="pi pi-trash" text (click)="deleteGroup(group)" severity="danger"></p-button>
         }
@@ -218,6 +223,12 @@
               }
               <p-button icon="pi pi-trash" text severity="danger" (click)="removeRule(group, i)"></p-button>
             }
+          </div>
+        }
+        @if (group.get('rules')['controls'].length === 0) {
+          <div class="no-rules-hint">
+            <i class="pi pi-info-circle"></i>
+            <span>{{ t('group.noRulesHint') }}</span>
           </div>
         }
       </div>

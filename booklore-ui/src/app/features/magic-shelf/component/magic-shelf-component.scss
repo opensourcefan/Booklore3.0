@@ -257,6 +257,14 @@
     font-size: 0.9rem;
   }
 
+  .condition-info-icon {
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+    color: var(--text-secondary-color);
+    opacity: 0.7;
+    vertical-align: middle;
+  }
+
   .condition-select {
     width: 9rem;
   }
@@ -317,5 +325,23 @@
     .operator-select {
       min-width: 100%;
     }
+  }
+}
+
+.no-rules-hint {
+  margin: 0.75rem 1rem;
+  padding: 0.625rem 1rem;
+  background: var(--overlay-background);
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary-color);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    color: var(--primary-color);
+    font-size: 0.9rem;
   }
 }
