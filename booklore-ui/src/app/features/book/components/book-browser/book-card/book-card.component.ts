@@ -447,22 +447,48 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         items.push({
           label: this.t.translate('book.card.menu.delete'),
           icon: 'pi pi-trash',
-          command: () => {
-            this.confirmationService.confirm({
-              message: this.t.translate('book.card.confirm.deleteBookMessage', {title: this.book.metadata?.title}),
-              header: this.t.translate('book.card.confirm.deleteBookHeader'),
-              icon: 'pi pi-exclamation-triangle',
-              acceptIcon: 'pi pi-trash',
-              rejectIcon: 'pi pi-times',
-              acceptLabel: this.t.translate('common.delete'),
-              rejectLabel: this.t.translate('common.cancel'),
-              acceptButtonStyleClass: 'p-button-danger',
-              rejectButtonStyleClass: 'p-button-outlined',
-              accept: () => {
-                this.bookService.deleteBooks(new Set([this.book.id])).subscribe();
+          items: [
+            {
+              label: this.t.translate('book.card.menu.deleteFromDisk'),
+              icon: 'pi pi-trash',
+              command: () => {
+                this.confirmationService.confirm({
+                  message: this.t.translate('book.card.confirm.deleteBookMessage', {title: this.book.metadata?.title}),
+                  header: this.t.translate('book.card.confirm.deleteBookHeader'),
+                  icon: 'pi pi-exclamation-triangle',
+                  acceptIcon: 'pi pi-trash',
+                  rejectIcon: 'pi pi-times',
+                  acceptLabel: this.t.translate('common.delete'),
+                  rejectLabel: this.t.translate('common.cancel'),
+                  acceptButtonStyleClass: 'p-button-danger',
+                  rejectButtonStyleClass: 'p-button-outlined',
+                  accept: () => {
+                    this.bookService.deleteBooks(new Set([this.book.id]), true).subscribe();
+                  }
+                });
               }
-            });
-          }
+            },
+            {
+              label: this.t.translate('book.card.menu.removeFromLibrary'),
+              icon: 'pi pi-minus-circle',
+              command: () => {
+                this.confirmationService.confirm({
+                  message: this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: this.book.metadata?.title}),
+                  header: this.t.translate('book.card.confirm.removeFromLibraryHeader'),
+                  icon: 'pi pi-exclamation-triangle',
+                  acceptIcon: 'pi pi-minus-circle',
+                  rejectIcon: 'pi pi-times',
+                  acceptLabel: this.t.translate('common.remove'),
+                  rejectLabel: this.t.translate('common.cancel'),
+                  acceptButtonStyleClass: 'p-button-warning',
+                  rejectButtonStyleClass: 'p-button-outlined',
+                  accept: () => {
+                    this.bookService.deleteBooks(new Set([this.book.id]), false).subscribe();
+                  }
+                });
+              }
+            }
+          ]
         });
       } else {
         items.push({
@@ -788,8 +814,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     const items: MenuItem[] = [];
 
     items.push({
-      label: this.t.translate('book.card.menu.book'),
-      icon: 'pi pi-book',
+      label: this.t.translate('book.card.menu.deleteFromDisk'),
+      icon: 'pi pi-trash',
       command: () => {
         this.confirmationService.confirm({
           message: this.t.translate('book.card.confirm.deleteBookMessage', {title: this.book.metadata?.title}),
@@ -802,7 +828,28 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
           acceptButtonStyleClass: 'p-button-danger',
           rejectButtonStyleClass: 'p-button-outlined',
           accept: () => {
-            this.bookService.deleteBooks(new Set([this.book.id])).subscribe();
+            this.bookService.deleteBooks(new Set([this.book.id]), true).subscribe();
+          }
+        });
+      }
+    });
+
+    items.push({
+      label: this.t.translate('book.card.menu.removeFromLibrary'),
+      icon: 'pi pi-minus-circle',
+      command: () => {
+        this.confirmationService.confirm({
+          message: this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: this.book.metadata?.title}),
+          header: this.t.translate('book.card.confirm.removeFromLibraryHeader'),
+          icon: 'pi pi-exclamation-triangle',
+          acceptIcon: 'pi pi-minus-circle',
+          rejectIcon: 'pi pi-times',
+          acceptLabel: this.t.translate('common.remove'),
+          rejectLabel: this.t.translate('common.cancel'),
+          acceptButtonStyleClass: 'p-button-warning',
+          rejectButtonStyleClass: 'p-button-outlined',
+          accept: () => {
+            this.bookService.deleteBooks(new Set([this.book.id]), false).subscribe();
           }
         });
       }

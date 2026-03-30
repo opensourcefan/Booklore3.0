@@ -28,6 +28,8 @@
   },
   "fileManagement": {
     "sectionTitle": "File Management",
+    "allowFileDeletion": "Allow File Deletion",
+    "allowFileDeletionDesc": "When enabled, deleting a book also permanently removes its files from the filesystem. When disabled, book deletions only remove the library record — files remain on disk.",
     "maxUploadSize": "Max File Upload Size",
     "maxUploadPlaceholder": "Max size",
     "maxUploadDesc": "Defines the maximum allowed size (in MB) for each uploaded file. Applies to all supported file formats.",

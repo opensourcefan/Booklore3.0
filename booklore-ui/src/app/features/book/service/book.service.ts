@@ -180,9 +180,9 @@ export class BookService {
 
   /*------------------ Book Operations ------------------*/
 
-  deleteBooks(ids: Set<number>): Observable<BookDeletionResponse> {
+  deleteBooks(ids: Set<number>, deleteFromDisk: boolean = true): Observable<BookDeletionResponse> {
     const idList = Array.from(ids);
-    const params = new HttpParams().set('ids', idList.join(','));
+    const params = new HttpParams().set('ids', idList.join(',')).set('deleteFromDisk', String(deleteFromDisk));
 
     return this.http.delete<BookDeletionResponse>(this.url, {params}).pipe(
       tap(response => {

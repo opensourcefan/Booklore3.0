@@ -376,7 +376,34 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
       rejectLabel: this.t.translate('common.no'),
       acceptButtonProps: {severity: 'danger'},
       accept: () => {
-        this.bookService.deleteBooks(new Set(idsToDelete)).pipe(
+        this.bookService.deleteBooks(new Set(idsToDelete), true).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe({
+          next: () => {
+            group.books = group.books.filter(b => !group.selectedForDeletion.has(b.id));
+            group.selectedForDeletion.clear();
+            if (group.books.length <= 1) {
+              group.dismissed = true;
+            }
+          }
+        });
+      }
+    });
+  }
+
+  removeGroupFromLibrary(group: DisplayGroup): void {
+    const idsToRemove = Array.from(group.selectedForDeletion);
+    if (idsToRemove.length === 0) return;
+
+    this.confirmationService.confirm({
+      message: this.t.translate('book.duplicateMerger.confirm.removeFromLibraryMessage', {count: idsToRemove.length}),
+      header: this.t.translate('book.duplicateMerger.confirm.removeFromLibraryHeader'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: this.t.translate('common.yes'),
+      rejectLabel: this.t.translate('common.no'),
+      acceptButtonProps: {severity: 'warn'},
+      accept: () => {
+        this.bookService.deleteBooks(new Set(idsToRemove), false).pipe(
           takeUntil(this.destroy$)
         ).subscribe({
           next: () => {

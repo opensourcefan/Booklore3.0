@@ -336,6 +336,10 @@
     "menuDeleteSupplementaryFiles": "Delete Supplementary Files",
     "menuDeleteBookAllFiles": "Delete Book & All Files",
     "menuDeleteBook": "Delete Book",
+    "menuDeleteBookFromDisk": "Delete from Disk",
+    "menuRemoveBookFromLibrary": "Remove from Library",
+    "menuDeleteFromDisk": "Delete from Disk",
+    "menuRemoveFromLibrary": "Remove from Library",
     "navigationPosition": "{{ current }} of {{ total }}",
     "channelMono": "Mono",
     "channelStereo": "Stereo",
@@ -399,7 +403,9 @@
       "deleteEverythingBtn": "Delete Everything",
       "largeFileMessage": "This file exceeds 25MB. Some email providers may reject large attachments.\n\nDo you want to send it anyway?",
       "largeFileHeader": "Large File Warning",
-      "sendAnyway": "Send Anyway"
+      "sendAnyway": "Send Anyway",
+      "removeFromLibraryMessage": "Are you sure you want to remove \"{{ title }}\" from the library?\n\nThe file will remain on disk and can be re-imported by rescanning the library.",
+      "removeFromLibraryHeader": "Remove from Library"
     }
   },
   "sidecar": {

@@ -154,6 +154,15 @@
                   </p-button>
                   @if (getDeleteSelectedCount(group) > 0) {
                     <p-button
+                      [label]="t('removeFromLibrarySelected', { count: getDeleteSelectedCount(group) })"
+                      icon="pi pi-minus-circle"
+                      size="small"
+                      severity="warn"
+                      [outlined]="true"
+                      (click)="removeGroupFromLibrary(group)"
+                      [disabled]="isMerging">
+                    </p-button>
+                    <p-button
                       [label]="t('deleteSelected', { count: getDeleteSelectedCount(group) })"
                       icon="pi pi-trash"
                       size="small"

@@ -324,6 +324,7 @@ public class AppSettingService {
         builder.maxFileUploadSizeInMb(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.MAX_FILE_UPLOAD_SIZE_IN_MB, "100")));
         builder.metadataDownloadOnBookdrop(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.METADATA_DOWNLOAD_ON_BOOKDROP, "true")));
         builder.libraryHealthCheckIntervalSeconds(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS, "120")));
+        builder.allowFileDeletion(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.ALLOW_FILE_DELETION, "false")));
 
         String sessionDurationStr = settingsMap.get(AppSettingKey.OIDC_SESSION_DURATION_HOURS.getDbKey());
         if (sessionDurationStr != null && !sessionDurationStr.isBlank()) {

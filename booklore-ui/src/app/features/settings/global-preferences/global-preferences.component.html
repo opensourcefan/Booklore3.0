@@ -214,8 +214,23 @@
         <div class="setting-item">
           <div class="setting-info">
             <div class="setting-label-row">
-              <label class="setting-label">{{ t('fileManagement.maxUploadSize') }}</label>
-              <div class="input-group">
+              <label class="setting-label">{{ t('fileManagement.allowFileDeletion') }}</label>
+              <p-toggleswitch
+                [(ngModel)]="toggles.allowFileDeletion"
+                (onChange)="onToggleChange('allowFileDeletion', $event.checked)">
+              </p-toggleswitch>
+            </div>
+            <p class="setting-description">
+              <i class="pi pi-info-circle"></i>
+              {{ t('fileManagement.allowFileDeletionDesc') }}
+            </p>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label-row">
+              <label class="setting-label">{{ t('fileManagement.maxUploadSize') }}</label>              <div class="input-group">
                 <div class="input-with-unit">
                   <input
                     type="text"

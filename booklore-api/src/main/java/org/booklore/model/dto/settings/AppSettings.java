@@ -42,4 +42,5 @@ public class AppSettings {
     private boolean oidcForceOnlyMode;
     private String diskType;
     private Integer libraryHealthCheckIntervalSeconds;
+    private boolean allowFileDeletion;
 }

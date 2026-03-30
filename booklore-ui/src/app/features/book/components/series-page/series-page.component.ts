@@ -649,13 +649,37 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
         const count = this.selectedBooks.size;
         this.writeProgressService.show(this.t.translate('book.browser.loading.deleting', {count}));
 
-        this.bookService.deleteBooks(this.selectedBooks)
+        this.bookService.deleteBooks(this.selectedBooks, true)
           .subscribe(() => {
             this.writeProgressService.complete(`Deleted ${count} book${count === 1 ? '' : 's'}`);
             this.selectedBooks.clear();
           });
       },
       reject: () => {
+      }
+    });
+  }
+
+  confirmDeleteBooksLibraryOnly(): void {
+    this.confirmationService.confirm({
+      message: this.t.translate('book.browser.confirm.removeFromLibraryMessage', {count: this.selectedBooks.size}),
+      header: this.t.translate('book.browser.confirm.removeFromLibraryHeader'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptIcon: 'pi pi-minus-circle',
+      rejectIcon: 'pi pi-times',
+      acceptLabel: this.t.translate('common.remove'),
+      rejectLabel: this.t.translate('common.cancel'),
+      acceptButtonStyleClass: 'p-button-warning',
+      rejectButtonStyleClass: 'p-button-outlined',
+      accept: () => {
+        const count = this.selectedBooks.size;
+        this.writeProgressService.show(this.t.translate('book.browser.loading.deleting', {count}));
+
+        this.bookService.deleteBooks(this.selectedBooks, false)
+          .subscribe(() => {
+            this.writeProgressService.complete(`Removed ${count} book${count === 1 ? '' : 's'} from library`);
+            this.selectedBooks.clear();
+          });
       }
     });
   }

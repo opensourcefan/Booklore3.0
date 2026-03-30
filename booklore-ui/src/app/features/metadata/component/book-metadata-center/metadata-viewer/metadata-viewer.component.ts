@@ -395,32 +395,66 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
               items.push({
                 label: deleteLabel,
                 icon: 'pi pi-trash',
-                command: () => {
-                  this.confirmationService.confirm({
-                    message: deleteMessage,
-                    header: deleteLabel,
-                    icon: 'pi pi-exclamation-triangle',
-                    acceptIcon: 'pi pi-trash',
-                    rejectIcon: 'pi pi-times',
-                    acceptLabel: deleteAcceptLabel,
-                    rejectLabel: this.t.translate('common.cancel'),
-                    acceptButtonStyleClass: 'p-button-danger',
-                    rejectButtonStyleClass: 'p-button-outlined',
-                    accept: () => {
-                      this.bookService.deleteBooks(new Set([book.id])).subscribe({
-                        next: () => {
-                          if (this.metadataCenterViewMode === 'route') {
-                            this.router.navigate(['/dashboard']);
-                          } else {
-                            this.dialogRef?.close();
-                          }
-                        },
-                        error: () => {
+                items: [
+                  {
+                    label: isPhysical ? deleteLabel : this.t.translate('metadata.viewer.menuDeleteFromDisk'),
+                    icon: 'pi pi-trash',
+                    command: () => {
+                      this.confirmationService.confirm({
+                        message: deleteMessage,
+                        header: deleteLabel,
+                        icon: 'pi pi-exclamation-triangle',
+                        acceptIcon: 'pi pi-trash',
+                        rejectIcon: 'pi pi-times',
+                        acceptLabel: deleteAcceptLabel,
+                        rejectLabel: this.t.translate('common.cancel'),
+                        acceptButtonStyleClass: 'p-button-danger',
+                        rejectButtonStyleClass: 'p-button-outlined',
+                        accept: () => {
+                          this.bookService.deleteBooks(new Set([book.id]), true).subscribe({
+                            next: () => {
+                              if (this.metadataCenterViewMode === 'route') {
+                                this.router.navigate(['/dashboard']);
+                              } else {
+                                this.dialogRef?.close();
+                              }
+                            },
+                            error: () => {}
+                          });
                         }
                       });
                     }
-                  });
-                },
+                  },
+                  ...(!isPhysical ? [{
+                    label: this.t.translate('metadata.viewer.menuRemoveFromLibrary'),
+                    icon: 'pi pi-minus-circle',
+                    command: () => {
+                      this.confirmationService.confirm({
+                        message: this.t.translate('metadata.viewer.confirm.removeFromLibraryMessage', {title: book.metadata?.title}),
+                        header: this.t.translate('metadata.viewer.menuRemoveFromLibrary'),
+                        icon: 'pi pi-exclamation-triangle',
+                        acceptIcon: 'pi pi-minus-circle',
+                        rejectIcon: 'pi pi-times',
+                        acceptLabel: this.t.translate('common.remove'),
+                        rejectLabel: this.t.translate('common.cancel'),
+                        acceptButtonStyleClass: 'p-button-warning',
+                        rejectButtonStyleClass: 'p-button-outlined',
+                        accept: () => {
+                          this.bookService.deleteBooks(new Set([book.id]), false).subscribe({
+                            next: () => {
+                              if (this.metadataCenterViewMode === 'route') {
+                                this.router.navigate(['/dashboard']);
+                              } else {
+                                this.dialogRef?.close();
+                              }
+                            },
+                            error: () => {}
+                          });
+                        }
+                      });
+                    }
+                  }] : [])
+                ]
               });
             }
 

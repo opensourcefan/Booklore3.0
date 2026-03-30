@@ -108,8 +108,9 @@ public class BookController {
     @PreAuthorize("@securityUtil.canDeleteBook() or @securityUtil.isAdmin()")
     @DeleteMapping
     public ResponseEntity<BookDeletionResponse> deleteBooks(
-            @Parameter(description = "Set of book IDs to delete") @RequestParam Set<Long> ids) {
-        return bookService.deleteBooks(ids);
+            @Parameter(description = "Set of book IDs to delete") @RequestParam Set<Long> ids,
+            @Parameter(description = "Whether to also delete the physical files from disk") @RequestParam(defaultValue = "true") boolean deleteFromDisk) {
+        return bookService.deleteBooks(ids, deleteFromDisk);
     }
 
     @Operation(summary = "Get books by IDs", description = "Retrieve multiple books by their IDs. Optionally include descriptions.")

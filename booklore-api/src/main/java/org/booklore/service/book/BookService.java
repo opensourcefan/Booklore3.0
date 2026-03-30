@@ -22,6 +22,7 @@ import org.booklore.service.progress.ReadingProgressService;
 import org.booklore.service.FileStreamingService;
 import org.booklore.util.FileService;
 import org.booklore.util.FileUtils;
+import org.booklore.service.appsettings.AppSettingService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -71,6 +72,7 @@ public class BookService {
     private final SidecarMetadataWriter sidecarMetadataWriter;
     private final FileStreamingService fileStreamingService;
     private final AuditService auditService;
+    private final AppSettingService appSettingService;
 
 
     public List<Book> getBookDTOs(boolean includeDescription) {
@@ -406,6 +408,11 @@ public class BookService {
 
     @Transactional
     public ResponseEntity<BookDeletionResponse> deleteBooks(Set<Long> ids) {
+        return deleteBooks(ids, true);
+    }
+
+    @Transactional
+    public ResponseEntity<BookDeletionResponse> deleteBooks(Set<Long> ids, boolean deleteFromDisk) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
         List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(ids);
 
@@ -416,11 +423,12 @@ public class BookService {
                     .toList();
         }
         List<Long> failedFileDeletions = new ArrayList<>();
+        boolean actuallyDeleteFromDisk = deleteFromDisk && appSettingService.getAppSettings().isAllowFileDeletion();
         for (BookEntity book : books) {
             for (BookFileEntity bookFile : book.getBookFiles()) {
                 Path fullFilePath = bookFile.getFullFilePath();
                 try {
-                    if (Files.exists(fullFilePath)) {
+                    if (actuallyDeleteFromDisk && Files.exists(fullFilePath)) {
                         try {
                             monitoringRegistrationService.unregisterSpecificPath(fullFilePath.getParent());
                         } catch (Exception ex) {

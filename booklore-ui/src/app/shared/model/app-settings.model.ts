@@ -200,6 +200,7 @@ export interface AppSettings {
   oidcForceOnlyMode: boolean;
   diskType: string;
   libraryHealthCheckIntervalSeconds: number;
+  allowFileDeletion: boolean;
 }
 
 export interface MetadataProviderSpecificFields {
@@ -251,6 +252,7 @@ export enum AppSettingKey {
   OIDC_FORCE_ONLY_MODE = 'OIDC_FORCE_ONLY_MODE',
   LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS = 'LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS',
   AI_PANEL_DETECTION_ENABLED = 'AI_PANEL_DETECTION_ENABLED',
+  ALLOW_FILE_DELETION = 'ALLOW_FILE_DELETION',
 }
 
 export interface AiServiceStatus {

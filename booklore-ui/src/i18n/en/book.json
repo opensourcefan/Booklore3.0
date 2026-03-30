@@ -3,6 +3,8 @@
     "confirm": {
       "deleteMessage": "Are you sure you want to delete {{ count }} book(s)?\n\nThis will permanently remove the book files from your filesystem.\n\nThis action cannot be undone.",
       "deleteHeader": "Confirm Deletion",
+      "removeFromLibraryMessage": "Are you sure you want to remove {{ count }} book(s) from the library?\n\nFiles will remain on disk and can be re-imported by rescanning the library.",
+      "removeFromLibraryHeader": "Remove from Library",
       "regenCoverMessage": "Are you sure you want to regenerate covers for {{ count }} book(s)?",
       "regenCoverHeader": "Confirm Cover Regeneration",
       "customCoverMessage": "Are you sure you want to generate custom covers for {{ count }} book(s)?",
@@ -70,7 +72,8 @@
       "moreActions": "More actions",
       "selectAll": "Select all books",
       "deselectAll": "Deselect all books",
-      "deleteSelected": "Delete selected books"
+      "deleteSelected": "Delete selected books",
+      "removeFromLibrary": "Remove selected books from library (keep files on disk)"
     },
     "placeholder": {
       "selectColumns": "Select Columns",
@@ -83,6 +86,8 @@
       "viewDetails": "View Details",
       "download": "Download",
       "delete": "Delete",
+      "deleteFromDisk": "Delete from disk",
+      "removeFromLibrary": "Remove from library",
       "emailBook": "Email Book",
       "quickSend": "Quick Send",
       "customSend": "Custom Send",
@@ -103,6 +108,8 @@
     "confirm": {
       "deleteBookMessage": "Are you sure you want to delete \"{{ title }}\"?\n\nThis will permanently remove the book file from your filesystem.\n\nThis action cannot be undone.",
       "deleteBookHeader": "Confirm Deletion",
+      "removeFromLibraryMessage": "Are you sure you want to remove \"{{ title }}\" from the library?\n\nThe file will remain on disk and can be re-imported by rescanning the library.",
+      "removeFromLibraryHeader": "Remove from Library",
       "deleteFileMessage": "Are you sure you want to delete the additional file \"{{ fileName }}\"?",
       "deleteFileHeader": "Confirm File Deletion",
       "largeFileMessage": "This file exceeds 25MB. Some email providers may reject large attachments.\n\nDo you want to send it anyway?",
@@ -882,6 +889,7 @@
     "mergeAll": "Merge All ({{ count }})",
     "merge": "Merge",
     "deleteSelected": "Delete ({{ count }})",
+    "removeFromLibrarySelected": "Remove from Library ({{ count }})",
     "dismiss": "Dismiss",
     "target": "Target",
     "sameFormatWarning": "Same format",
@@ -897,7 +905,9 @@
     },
     "confirm": {
       "deleteHeader": "Confirm Deletion",
-      "deleteMessage": "This will permanently delete {{ count }} book(s) and their files from disk. This cannot be undone."
+      "deleteMessage": "This will permanently delete {{ count }} book(s) and their files from disk. This cannot be undone.",
+      "removeFromLibraryHeader": "Remove from Library",
+      "removeFromLibraryMessage": "Are you sure you want to remove {{ count }} book(s) from the library?\n\nFiles will remain on disk and can be re-imported by rescanning the library."
     },
     "toast": {
       "scanFailedSummary": "Scan Failed",

@@ -41,6 +41,7 @@ public enum AppSettingKey {
     TELEMETRY_ENABLED                   ("telemetryEnabled",                     false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
     AI_PANEL_DETECTION_ENABLED          ("ai_panel_detection_enabled",           false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
     LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS ("library_health_check_interval_seconds", false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
+    ALLOW_FILE_DELETION                 ("allow_file_deletion",                  false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
 
     // No specific permissions required
     SIDEBAR_LIBRARY_SORTING             ("sidebar_library_sorting",              true,  false, List.of()),
