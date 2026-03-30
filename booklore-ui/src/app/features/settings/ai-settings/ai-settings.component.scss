@@ -178,6 +178,12 @@
   align-items: flex-start;
 }
 
+.prescan-action-group {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
 .prescan-controls {
   margin-top: 1rem;
   display: grid;
