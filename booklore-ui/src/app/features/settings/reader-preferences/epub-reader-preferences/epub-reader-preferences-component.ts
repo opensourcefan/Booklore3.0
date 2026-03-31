@@ -141,7 +141,7 @@ export class EpubReaderPreferencesComponent implements OnInit, OnDestroy {
     if (typeof value === "string") {
       this.userSettings.ebookReaderSetting.fontFamily = value;
     } else {
-      this.userSettings.ebookReaderSetting.fontFamily = null as any;
+      this.userSettings.ebookReaderSetting.fontFamily = null as unknown as string;
     }
     this.readerPreferencesService.updatePreference(['ebookReaderSetting', 'fontFamily'], value);
   }
