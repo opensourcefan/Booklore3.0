@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, ViewChild, inject } from '@angular/core';
 
 @Component({
   selector: 'app-cover-preview',
