@@ -69,7 +69,10 @@ export class ReaderStateService {
     return this.fontsSubject.value;
   }
 
-  constructor(private bookService: BookService, private userService: UserService) {
+  private bookService = inject(BookService);
+  private userService = inject(UserService);
+
+  constructor() {
     this.loadCustomFontsIntoList();
   }
 

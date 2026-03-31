@@ -43,6 +43,12 @@ interface UploadingFile {
 })
 export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
   private readonly t = inject(TranslocoService);
+  private dialogRef = inject(DynamicDialogRef);
+  private config = inject(DynamicDialogConfig);
+  private bookFileService = inject(BookFileService);
+  private appSettingsService = inject(AppSettingsService);
+  private messageService = inject(MessageService);
+  private cdr = inject(ChangeDetectorRef);
 
   book!: Book;
   files: UploadingFile[] = [];
@@ -57,15 +63,6 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
 
   @ViewChild(FileUpload) private fileUpload!: FileUpload;
   private destroy$ = new Subject<void>();
-
-  constructor(
-    private dialogRef: DynamicDialogRef,
-    private config: DynamicDialogConfig,
-    private bookFileService: BookFileService,
-    private appSettingsService: AppSettingsService,
-    private messageService: MessageService,
-    private cdr: ChangeDetectorRef
-  ) {}
 
   ngOnInit(): void {
     this.book = this.config.data.book;

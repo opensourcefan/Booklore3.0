@@ -30,13 +30,10 @@ export class CustomFontsComponent implements OnInit {
   readonly maxFonts = 10;
 
   private t = inject(TranslocoService);
-
-  constructor(
-    private customFontService: CustomFontService,
-    private messageService: MessageService,
-    private confirmationService: ConfirmationService,
-    private dialogService: DialogService
-  ) {}
+  private customFontService = inject(CustomFontService);
+  private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
+  private dialogService = inject(DialogService);
 
   ngOnInit(): void {
     this.loadFonts();

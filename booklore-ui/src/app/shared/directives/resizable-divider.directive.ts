@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, inject } from '@angular/core';
 
 /**
  * Adds a drag handle to a panel so users can resize it by hover + click + drag.
@@ -24,7 +24,8 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   private mutationObserver: MutationObserver | null = null;
   private updateScheduled = false;
 
-  constructor(private el: ElementRef, private renderer: Renderer2) {}
+  private el = inject(ElementRef);
+  private renderer = inject(Renderer2);
 
   ngOnInit(): void {
     this.target = this.el.nativeElement as HTMLElement;

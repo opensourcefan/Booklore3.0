@@ -15,7 +15,7 @@ export class CustomFontService {
   private loadedFonts = new Set<string>();
   private authService = inject(AuthService);
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   uploadFont(file: File, fontName?: string): Observable<CustomFont> {
     const formData = new FormData();

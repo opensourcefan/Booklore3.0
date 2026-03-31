@@ -27,12 +27,11 @@ export class SetupComponent {
   error: string | null = null;
   success = false;
   private readonly t = inject(TranslocoService);
+  private fb = inject(FormBuilder);
+  private setupService = inject(SetupService);
+  private router = inject(Router);
 
-  constructor(
-    private fb: FormBuilder,
-    private setupService: SetupService,
-    private router: Router
-  ) {
+  constructor() {
     this.setupForm = this.fb.group({
       name: ['', [Validators.required]],
       username: ['', [Validators.required]],

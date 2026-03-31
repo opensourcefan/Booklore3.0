@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {NavigationEnd, Router, RouterLink} from '@angular/router';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {Subscription, Observable} from 'rxjs';
@@ -100,14 +100,14 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   menuResetSubscription: Subscription;
   private routerSubscription: Subscription;
 
-  constructor(
-    public router: Router,
-    private menuService: MenuService,
-    private userService: UserService,
-    private dialogLauncher: DialogLauncherService,
-    private bookDialogHelperService: BookDialogHelperService,
-    private localStorageService: LocalStorageService
-  ) {
+  public router = inject(Router);
+  private menuService = inject(MenuService);
+  private userService = inject(UserService);
+  private dialogLauncher = inject(DialogLauncherService);
+  private bookDialogHelperService = inject(BookDialogHelperService);
+  private localStorageService = inject(LocalStorageService);
+
+  constructor() {
     this.userStateSubscription = this.userService.userState$.subscribe(userState => {
       if (userState?.user) {
         this.canManipulateLibrary = userState.user.permissions.canManageLibrary;

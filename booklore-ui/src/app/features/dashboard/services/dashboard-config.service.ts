@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {DashboardConfig, DEFAULT_DASHBOARD_CONFIG, ScrollerType} from '../models/dashboard-config.model';
 import {UserService} from '../../settings/user-management/user.service';
@@ -13,7 +13,10 @@ export class DashboardConfigService {
 
   public config$: Observable<DashboardConfig> = this.configSubject.asObservable();
 
-  constructor(private userService: UserService, private magicShelfService: MagicShelfService) {
+  private userService = inject(UserService);
+  private magicShelfService = inject(MagicShelfService);
+
+  constructor() {
     this.userService.userState$
       .pipe(
         filter(userState => !!userState?.user && userState.loaded),

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {API_CONFIG} from '../../core/config/api-config';
@@ -22,7 +22,7 @@ export interface ReleaseNote {
 export class VersionService {
   private versionUrl = `${API_CONFIG.BASE_URL}/api/v1/version`;
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   getVersion(): Observable<AppVersion> {
     return this.http.get<AppVersion>(this.versionUrl);

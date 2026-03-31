@@ -72,11 +72,8 @@ export class BookMetadataCenterComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor(
-    @Optional() public config?: DynamicDialogConfig,
-    @Optional() public ref?: DynamicDialogRef
-  ) {
-  }
+  public config = inject(DynamicDialogConfig, {optional: true});
+  public ref = inject(DynamicDialogRef, {optional: true});
 
   ngOnInit(): void {
     const bookIdFromDialog: number | undefined = this.config?.data?.bookId;

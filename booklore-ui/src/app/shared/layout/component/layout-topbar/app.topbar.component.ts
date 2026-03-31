@@ -1,7 +1,7 @@
 import {STORAGE_KEY, ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 import {ToolbarEditorComponent} from './toolbar-editor.component';
 import {AppSidebarComponent} from '../layout-sidebar/app.sidebar.component';
-import {Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
+import {Component, ElementRef, OnDestroy, ViewChild, inject} from '@angular/core';
 import {MenuItem} from 'primeng/api';
 import {LayoutService} from '../layout-main/service/app.layout.service';
 import {NavigationStart, Router, RouterLink} from '@angular/router';
@@ -103,27 +103,25 @@ export class AppTopBarComponent implements OnDestroy {
   activeLang = '';
   langMenuItems: MenuItem[] = [];
 
-  private translocoService: TranslocoService;
+  private translocoService = inject(TranslocoService);
 
-  constructor(
-    public layoutService: LayoutService,
-    public toolbarConfig: ToolbarConfigService,
-    private notificationService: NotificationEventService,
-    private router: Router,
-    private authService: AuthService,
-    protected userService: UserService,
-    private metadataProgressService: MetadataProgressService,
-    private bookdropFileService: BookdropFileService,
-    private dialogLauncher: DialogLauncherService,
-    translocoService: TranslocoService,
-    private sidebarFilterTogglePrefService: SidebarFilterTogglePrefService,
-    private aiPanelScanProgressService: AiPanelScanProgressService,
-    private taskService: TaskService,
-    private writeProgressService: WriteProgressService
-  ) {
-    this.translocoService = translocoService;
+  public layoutService = inject(LayoutService);
+  public toolbarConfig = inject(ToolbarConfigService);
+  private notificationService = inject(NotificationEventService);
+  private router = inject(Router);
+  private authService = inject(AuthService);
+  protected userService = inject(UserService);
+  private metadataProgressService = inject(MetadataProgressService);
+  private bookdropFileService = inject(BookdropFileService);
+  private dialogLauncher = inject(DialogLauncherService);
+  private sidebarFilterTogglePrefService = inject(SidebarFilterTogglePrefService);
+  private aiPanelScanProgressService = inject(AiPanelScanProgressService);
+  private taskService = inject(TaskService);
+  private writeProgressService = inject(WriteProgressService);
+
+  constructor() {
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
-    this.activeLang = translocoService.getActiveLang();
+    this.activeLang = this.translocoService.getActiveLang();
     this.langMenuItems = AVAILABLE_LANGS.map(lang => ({
       label: LANG_LABELS[lang] || lang,
       icon: lang === this.activeLang ? 'pi pi-check' : undefined,

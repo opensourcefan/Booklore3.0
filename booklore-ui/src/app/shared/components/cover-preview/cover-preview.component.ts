@@ -58,7 +58,7 @@ export class CoverPreviewComponent implements AfterViewInit, OnDestroy {
   private unlisten: (() => void)[] = [];
   private readonly STORAGE_KEY = 'bl-cover-preview-height';
 
-  constructor(private renderer: Renderer2) {}
+  private renderer = inject(Renderer2);
 
   ngAfterViewInit(): void {
     const panel = this.panelRef.nativeElement;

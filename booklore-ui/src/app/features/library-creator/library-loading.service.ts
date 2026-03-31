@@ -1,4 +1,4 @@
-import { Injectable, ComponentRef, ApplicationRef, createComponent, EnvironmentInjector, EmbeddedViewRef } from '@angular/core';
+import { Injectable, ComponentRef, ApplicationRef, createComponent, EnvironmentInjector, EmbeddedViewRef, inject } from '@angular/core';
 import { LibraryLoadingComponent } from './library-loading/library-loading.component';
 
 @Injectable({
@@ -7,10 +7,8 @@ import { LibraryLoadingComponent } from './library-loading/library-loading.compo
 export class LibraryLoadingService {
   private componentRef: ComponentRef<LibraryLoadingComponent> | null = null;
 
-  constructor(
-    private appRef: ApplicationRef,
-    private injector: EnvironmentInjector
-  ) {}
+  private appRef = inject(ApplicationRef);
+  private injector = inject(EnvironmentInjector);
 
   showBookLoadingProgress(bookTitle: string, current: number, total: number): void {
     if (this.componentRef) {
