@@ -24,7 +24,7 @@ interface ShortcutGroup {
 export class CbxShortcutsHelpComponent {
   private readonly t = inject(TranslocoService);
 
-  @Output() close = new EventEmitter<void>();
+  @Output() dialogClose = new EventEmitter<void>();
 
   get shortcutGroups(): ShortcutGroup[] {
     return [
@@ -72,7 +72,7 @@ export class CbxShortcutsHelpComponent {
   isMobile = window.innerWidth < 768;
 
   onClose(): void {
-    this.close.emit();
+    this.dialogClose.emit();
   }
 
   onOverlayClick(event: MouseEvent): void {

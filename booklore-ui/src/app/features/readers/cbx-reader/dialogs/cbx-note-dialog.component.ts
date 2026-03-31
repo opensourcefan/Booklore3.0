@@ -28,7 +28,7 @@ export class CbxNoteDialogComponent implements OnChanges {
 
   @Input() data: CbxNoteDialogData | null = null;
   @Output() save = new EventEmitter<CbxNoteDialogResult>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output() dialogCancel = new EventEmitter<void>();
 
   noteContent = '';
   selectedColor = '#FFC107';
@@ -65,7 +65,7 @@ export class CbxNoteDialogComponent implements OnChanges {
   }
 
   onCancel(): void {
-    this.cancel.emit();
+    this.dialogCancel.emit();
   }
 
   selectColor(color: string): void {

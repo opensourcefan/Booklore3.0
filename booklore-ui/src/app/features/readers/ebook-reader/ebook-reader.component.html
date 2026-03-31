@@ -45,7 +45,7 @@
     <app-reader-quick-settings
       [stateService]="stateService"
       [bookId]="bookId"
-      (close)="showQuickSettings = false"
+      (dialogClose)="showQuickSettings = false"
       (openFullSettings)="showControls = true">
     </app-reader-quick-settings>
   }
@@ -55,14 +55,14 @@
       [stateService]="stateService"
       [viewManager]="viewManager"
       [bookId]="bookId"
-      (close)="showControls = false">
+      (dialogClose)="showControls = false">
     </app-settings-dialog>
   }
 
   @if (showMetadata) {
     <app-reader-book-metadata-dialog
       [book]="book"
-      (close)="showMetadata = false"
+      (dialogClose)="showMetadata = false"
     ></app-reader-book-metadata-dialog>
   }
 
@@ -79,11 +79,11 @@
     <app-reader-note-dialog
       [data]="noteDialogData"
       (save)="onNoteSave($event)"
-      (cancel)="onNoteCancel()"
+      (dialogCancel)="onNoteCancel()"
     ></app-reader-note-dialog>
   }
 
   @if (showShortcutsHelp) {
-    <app-ebook-shortcuts-help (close)="showShortcutsHelp = false"></app-ebook-shortcuts-help>
+    <app-ebook-shortcuts-help (dialogClose)="showShortcutsHelp = false"></app-ebook-shortcuts-help>
   }
 </div>

@@ -1,9 +1,9 @@
 <ng-container *transloco="let t; prefix: 'readerEbook.metadataDialog'">
-<div class="dialog-overlay" (click)="close.emit()">
+<div class="dialog-overlay" (click)="dialogClose.emit()">
   <div class="dialog" (click)="$event.stopPropagation()">
     <div class="dialog-header">
       <h2>{{ t('title') }}</h2>
-      <button class="close-btn" (click)="close.emit()">&#10005;</button>
+      <button class="close-btn" (click)="dialogClose.emit()">&#10005;</button>
     </div>
 
     <div class="dialog-body">
