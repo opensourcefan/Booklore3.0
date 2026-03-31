@@ -3,7 +3,7 @@ import {CommonModule} from '@angular/common';
 import {BaseChartDirective} from 'ng2-charts';
 import {BehaviorSubject, EMPTY, Observable, Subject} from 'rxjs';
 import {catchError, filter, first, switchMap, takeUntil} from 'rxjs/operators';
-import {Chart, ChartConfiguration, ChartData} from 'chart.js';
+import {Chart, ChartConfiguration, ChartData, TooltipModel} from 'chart.js';
 import {LibraryFilterService} from '../../service/library-filter.service';
 import {BookService} from '../../../../../book/service/book.service';
 import {BookState} from '../../../../../book/model/state/book-state.model';
@@ -518,7 +518,7 @@ export class AuthorUniverseChartComponent implements OnInit, OnDestroy {
     return insights;
   }
 
-  private handleExternalTooltip(context: { chart: Chart; tooltip: any }): void {
+  private handleExternalTooltip(context: { chart: Chart; tooltip: TooltipModel<'bubble'> }): void {
     const {chart, tooltip} = context;
     let tooltipEl = document.getElementById('author-chart-tooltip');
 

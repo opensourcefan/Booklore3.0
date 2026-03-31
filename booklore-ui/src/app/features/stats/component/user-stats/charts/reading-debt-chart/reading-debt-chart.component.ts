@@ -4,7 +4,7 @@ import {BaseChartDirective} from 'ng2-charts';
 import {Tooltip} from 'primeng/tooltip';
 import {EMPTY, Subject} from 'rxjs';
 import {catchError, filter, first, takeUntil} from 'rxjs/operators';
-import {ChartConfiguration, ChartData} from 'chart.js';
+import {ChartConfiguration, ChartData, ChartDataset} from 'chart.js';
 import {BookService} from '../../../../../book/service/book.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
@@ -154,7 +154,7 @@ export class ReadingDebtChartComponent implements OnInit, OnDestroy {
           tension: 0.3,
           yAxisID: 'y1',
           order: 1
-        } as any
+        } as unknown as ChartDataset<'bar', number[]>
       ]
     };
     this.hasData = true;

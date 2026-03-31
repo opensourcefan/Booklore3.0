@@ -632,7 +632,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  onFilterSelected(filters: Record<string, any> | null): void {
+  onFilterSelected(filters: Record<string, string[]> | null): void {
     if (this.settingFiltersFromUrl) return;
 
     this.selectedFilter.next(filters);

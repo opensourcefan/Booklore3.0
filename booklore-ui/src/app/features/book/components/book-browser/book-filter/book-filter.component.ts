@@ -39,7 +39,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   @Input() showFilter = false;
   @Input() urlFilter$: Observable<Record<string, string[]> | null> | undefined;
 
-  @Output() filterSelected = new EventEmitter<Record<string, unknown> | null>();
+  @Output() filterSelected = new EventEmitter<Record<string, string[]> | null>();
   @Output() filterModeChanged = new EventEmitter<BookFilterMode>();
 
   private readonly filterService = inject(BookFilterService);
@@ -267,7 +267,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     const hasFilters = Object.keys(this.activeFilters).length > 0;
     const filtersToEmit = hasFilters ? {...this.activeFilters} : null;
     this.activeFilters$.next(filtersToEmit);
-    this.filterSelected.emit(filtersToEmit);
+    this.filterSelected.emit(filtersToEmit as Record<string, string[]> | null);
   }
 
   private updateExpandedPanels(): void {

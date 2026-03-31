@@ -69,7 +69,7 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
         taskId,
         setTimeout(() => {
           this.markTaskStalled(taskId);
-        }, this.TASK_STALL_TIMEOUT_MS) as any
+        }, this.TASK_STALL_TIMEOUT_MS)
       );
     }
   }
