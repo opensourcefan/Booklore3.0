@@ -123,7 +123,7 @@ export function doesBookMatchFilter(
     case 'language':
       return filterValues.includes(book.metadata?.language);
     case 'pageCount':
-      return filterValues.some(range => isPageCountInRange(book.metadata?.pageCount!, range as string | number));
+      return filterValues.some(range => isPageCountInRange(book.metadata?.pageCount ?? undefined, range as string | number));
     case 'mood':
       return effectiveMode === 'or'
         ? filterValues.some(val => book.metadata?.moods?.includes(val as string))

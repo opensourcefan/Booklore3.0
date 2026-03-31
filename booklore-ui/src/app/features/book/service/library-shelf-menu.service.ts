@@ -84,7 +84,7 @@ export class LibraryShelfMenuService {
                   severity: 'success',
                 },
                 accept: () => {
-                  this.libraryService.refreshLibrary(entity?.id!).subscribe({
+                  this.libraryService.refreshLibrary(entity!.id as number).subscribe({
                     complete: () => {
                       this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.libraryRefreshSuccessDetail')});
                     },
@@ -147,7 +147,7 @@ export class LibraryShelfMenuService {
                 accept: () => {
                   this.writeProgressService.show(this.t.translate('book.shelfMenuService.loading.deletingLibrary', {name: entity?.name}));
 
-                  this.libraryService.deleteLibrary(entity?.id!)
+                  this.libraryService.deleteLibrary(entity!.id as number)
                     .subscribe({
                       complete: () => {
                         this.writeProgressService.complete(this.t.translate('book.shelfMenuService.toast.libraryDeletedDetail'));
@@ -212,7 +212,7 @@ export class LibraryShelfMenuService {
                   severity: 'secondary'
                 },
                 accept: () => {
-                  this.shelfService.deleteShelf(entity?.id!).subscribe({
+                  this.shelfService.deleteShelf(entity!.id).subscribe({
                     complete: () => {
                       this.router.navigate(['/']);
                       this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.shelfDeletedDetail')});
@@ -284,7 +284,7 @@ export class LibraryShelfMenuService {
                   severity: 'secondary'
                 },
                 accept: () => {
-                  this.magicShelfService.deleteShelf(entity?.id!).subscribe({
+                  this.magicShelfService.deleteShelf(entity!.id as number).subscribe({
                     complete: () => {
                       this.router.navigate(['/']);
                       this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.magicShelfDeletedDetail')});

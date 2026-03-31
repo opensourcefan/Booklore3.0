@@ -231,7 +231,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
         this.book = book;
 
         // Use alternative bookType from query param if provided, otherwise use primary
-        const bookType = (this.altBookType as BookType) ?? book.primaryFile?.bookType!;
+        const bookType = (this.altBookType as BookType) ?? book.primaryFile?.bookType ?? 'EPUB';;
 
         // Determine which file ID to use for progress tracking
         let bookFileId: number | undefined;

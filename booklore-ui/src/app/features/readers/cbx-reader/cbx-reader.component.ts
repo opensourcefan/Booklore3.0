@@ -268,7 +268,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       this.bookService.getBookByIdFromAPI(this.bookId, false).pipe(
         switchMap((book) => {
           // Use alternative bookType from query param if provided, otherwise use primary
-          this.bookType = (this.altBookType as BookType) ?? book.primaryFile?.bookType!;
+          this.bookType = (this.altBookType as BookType) ?? book.primaryFile?.bookType ?? 'EPUB';;
           this.currentBook = book;
 
           // Determine which file ID to use for progress tracking
