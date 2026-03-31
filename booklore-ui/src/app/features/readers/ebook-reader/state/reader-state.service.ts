@@ -118,8 +118,8 @@ export class ReaderStateService {
               newState.fontFamily = settings.fontFamily;
             }
           }
-        } else if ((settings as any).customFontId != null) {
-          newState.fontFamily = `custom:${(settings as any).customFontId}`;
+        } else if ((settings as { customFontId?: number | null }).customFontId != null) {
+          newState.fontFamily = `custom:${(settings as { customFontId?: number | null }).customFontId}`;
         }
 
         if (settings.gap != null) newState.gap = Math.min(settings.gap, 0.5);

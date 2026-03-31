@@ -115,7 +115,7 @@ export class BookUploaderComponent implements OnInit {
     return this.files.length > 0;
   }
 
-  choose(_event: any, chooseCallback: () => void): void {
+  choose(_event: Event, chooseCallback: () => void): void {
     chooseCallback();
   }
 
@@ -164,7 +164,7 @@ export class BookUploaderComponent implements OnInit {
     }
   }
 
-  onRemoveTemplatingFile(_event: any, file: File, removeFileCallback: (event: any, index: number) => void, _index: number): void {
+  onRemoveTemplatingFile(_event: Event, file: File, removeFileCallback: (event: Event, index: number) => void, _index: number): void {
     // Remove from our tracking array
     this.files = this.files.filter(f => f.file !== file);
 

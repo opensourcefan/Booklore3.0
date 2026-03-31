@@ -172,7 +172,7 @@ export class LibraryShelfMenuService {
     ];
   }
 
-  initializeShelfMenuItems(entity: any): MenuItem[] {
+  initializeShelfMenuItems(entity: Shelf): MenuItem[] {
     const user = this.userService.getCurrentUser();
     const isOwner = entity?.userId === user?.id;
     const isPublicShelf = entity?.publicShelf ?? false;
@@ -187,7 +187,7 @@ export class LibraryShelfMenuService {
             icon: 'pi pi-pen-to-square',
             disabled: disableOptions,
             command: () => {
-              this.dialogLauncherService.openShelfEditDialog((entity?.id as number));
+              this.dialogLauncherService.openShelfEditDialog(entity.id!);
             }
           },
           {
@@ -212,7 +212,7 @@ export class LibraryShelfMenuService {
                   severity: 'secondary'
                 },
                 accept: () => {
-                  this.shelfService.deleteShelf(entity!.id).subscribe({
+                  this.shelfService.deleteShelf(entity.id!).subscribe({
                     complete: () => {
                       this.router.navigate(['/']);
                       this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.shelfDeletedDetail')});

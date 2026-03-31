@@ -3,31 +3,6 @@ import {TranslocoDirective} from '@jsverse/transloco';
 import {ReaderViewManagerService} from '../../core/view-manager.service';
 import {ReaderIconComponent} from '../../shared/icon.component';
 
-interface TocItem {
-  label: string;
-  href: string;
-  subitems: any;
-  id: number;
-}
-
-interface PageItem {
-  label: string;
-  href: string;
-  subitems: any;
-  id: number;
-}
-
-interface RelocateEventDetail {
-  fraction: number;
-  section: { current: number; total: number };
-  location: { current: number; next: number; total: number };
-  time: { section: number; total: number };
-  tocItem: TocItem;
-  pageItem: PageItem;
-  cfi: string;
-  range: any;
-}
-
 @Component({
   selector: 'app-reader-navbar',
   standalone: true,
@@ -36,7 +11,7 @@ interface RelocateEventDetail {
   styleUrls: ['./footer.component.scss']
 })
 export class ReaderNavbarComponent {
-  @Input() progressData: RelocateEventDetail | null = null;
+  @Input() progressData: FoliateRelocateDetail | null = null;
   @Input() forceVisible = false;
   @Input() set sectionFractions(value: number[]) {
     this._sectionFractions = value.filter(f => f > 0.001 && f < 0.999);
@@ -82,19 +57,19 @@ export class ReaderNavbarComponent {
   }
 
   get timeTotal(): string {
-    return this.formatDuration((this.progressData?.time.total ?? 0) * 60);
+    return this.formatDuration((this.progressData?.time?.total ?? 0) * 60);
   }
 
   get timeSection(): string {
-    return this.formatDuration((this.progressData?.time.section ?? 0) * 60);
+    return this.formatDuration((this.progressData?.time?.section ?? 0) * 60);
   }
 
   get sectionCurrent(): number {
-    return this.progressData?.section.current ?? 0;
+    return this.progressData?.section?.current ?? 0;
   }
 
   get sectionTotal(): number {
-    return this.progressData?.section.total ?? 0;
+    return this.progressData?.section?.total ?? 0;
   }
 
   get currentChapter(): string {

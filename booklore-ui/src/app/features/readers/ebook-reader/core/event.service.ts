@@ -4,7 +4,7 @@ import {ReaderAnnotationService} from '../features/annotations/annotation-render
 
 export interface ViewEvent {
   type: 'load' | 'relocate' | 'error' | 'middle-single-tap' | 'draw-annotation' | 'show-annotation' | 'text-selected' | 'toggle-fullscreen' | 'toggle-shortcuts-help' | 'escape-pressed' | 'go-first-section' | 'go-last-section' | 'toggle-toc' | 'toggle-search' | 'toggle-notes';
-  detail?: any;
+  detail?: unknown;
   popupPosition?: { x: number; y: number; showBelow?: boolean };
 }
 
@@ -34,7 +34,7 @@ export class ReaderEventService {
 
   private annotationService = inject(ReaderAnnotationService);
 
-  private view: any;
+  private view: FoliateView | null = null;
   private viewCallbacks: ViewCallbacks | null = null;
   private isNavigating = false;
   private lastClickTime = 0;
@@ -53,7 +53,7 @@ export class ReaderEventService {
   private eventSubject = new Subject<ViewEvent>();
   public events$ = this.eventSubject.asObservable();
 
-  initialize(view: any, callbacks: ViewCallbacks): void {
+  initialize(view: FoliateView, callbacks: ViewCallbacks): void {
     this.view = view;
     this.viewCallbacks = callbacks;
     this.attachViewEventListeners();
@@ -78,7 +78,7 @@ export class ReaderEventService {
   private attachViewEventListeners(): void {
     if (!this.view) return;
 
-    this.view.addEventListener('load', (e: any) => {
+    this.view.addEventListener('load', (e: CustomEvent<FoliateLoadDetail>) => {
       this.eventSubject.next({type: 'load', detail: e.detail});
       if (e.detail?.doc) {
         if (this.keydownHandler) {
@@ -97,15 +97,15 @@ export class ReaderEventService {
       }
     });
 
-    this.view.addEventListener('relocate', (e: any) => {
+    this.view.addEventListener('relocate', (e: CustomEvent<FoliateRelocateDetail>) => {
       this.eventSubject.next({type: 'relocate', detail: e.detail});
     });
 
-    this.view.addEventListener('error', (e: any) => {
+    this.view.addEventListener('error', (e: CustomEvent<unknown>) => {
       this.eventSubject.next({type: 'error', detail: e.detail});
     });
 
-    this.view.addEventListener('draw-annotation', (e: any) => {
+    this.view.addEventListener('draw-annotation', (e: CustomEvent<FoliateDrawAnnotationDetail>) => {
       const {draw, annotation, doc, range} = e.detail;
       const storedStyle = this.annotationService.getAnnotationStyle(annotation.value);
       if (storedStyle) {
@@ -115,7 +115,7 @@ export class ReaderEventService {
       this.eventSubject.next({type: 'draw-annotation', detail: {annotation, doc, range}});
     });
 
-    this.view.addEventListener('show-annotation', (e: any) => {
+    this.view.addEventListener('show-annotation', (e: CustomEvent<unknown>) => {
       this.eventSubject.next({type: 'show-annotation', detail: e.detail});
     });
   }
@@ -415,7 +415,7 @@ export class ReaderEventService {
     }, 10);
   }
 
-  private handleIframeClickMessage(data: any): void {
+  private handleIframeClickMessage(data: IframeClickMessage): void {
     if (!this.view) return;
 
     const now = Date.now();
@@ -454,7 +454,7 @@ export class ReaderEventService {
     }, this.DOUBLE_CLICK_INTERVAL_MS);
   }
 
-  private processIframeClick(data: any): void {
+  private processIframeClick(data: IframeClickMessage): void {
     if (!this.longHoldTimeout) {
       return;
     }

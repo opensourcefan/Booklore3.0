@@ -17,7 +17,7 @@ import {StyleClass} from 'primeng/styleclass';
 import {Divider} from 'primeng/divider';
 import {ThemeConfiguratorComponent} from '../theme-configurator/theme-configurator.component';
 import {AuthService} from '../../../service/auth.service';
-import {UserService} from '../../../../features/settings/user-management/user.service';
+import {User, UserService} from '../../../../features/settings/user-management/user.service';
 import {Popover} from 'primeng/popover';
 import {MetadataProgressService} from '../../../service/metadata-progress.service';
 import {filter, takeUntil} from 'rxjs/operators';
@@ -543,7 +543,7 @@ export class AppTopBarComponent implements OnDestroy {
     });
   }
 
-  private isToolbarItemVisible(item: ToolbarItem, user: any): boolean {
+  private isToolbarItemVisible(item: ToolbarItem, user: User | null | undefined): boolean {
     if (!item.visible) {
       return false;
     }

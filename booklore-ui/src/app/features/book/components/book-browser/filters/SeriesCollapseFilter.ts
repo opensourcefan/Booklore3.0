@@ -5,7 +5,7 @@ import {debounceTime, filter, map, takeUntil} from 'rxjs/operators';
 import {Book} from '../../../model/book.model';
 import {inject, Injectable, OnDestroy} from '@angular/core';
 import {MessageService} from 'primeng/api';
-import {UserService} from '../../../../settings/user-management/user.service';
+import {EntityViewPreference, UserService} from '../../../../settings/user-management/user.service';
 
 @Injectable({providedIn: 'root'})
 export class SeriesCollapseFilter implements BookFilter, OnDestroy {
@@ -64,7 +64,7 @@ export class SeriesCollapseFilter implements BookFilter, OnDestroy {
 
     if (prefs) {
       // Backward compatibility: check for old 'seriesCollapse' field
-      const globalAny = prefs.global as any;
+      const globalAny = prefs.global as EntityViewPreference & { seriesCollapse?: boolean };
       collapsed = prefs.global?.seriesCollapsed ?? globalAny?.seriesCollapse ?? false;
 
       if (this.currentContext) {
@@ -72,7 +72,7 @@ export class SeriesCollapseFilter implements BookFilter, OnDestroy {
           o.entityType === this.currentContext?.type && o.entityId === this.currentContext?.id
         );
         if (override) {
-           const prefAny = override.preferences as any;
+           const prefAny = override.preferences as EntityViewPreference & { seriesCollapse?: boolean };
            if (override.preferences.seriesCollapsed !== undefined) {
              collapsed = override.preferences.seriesCollapsed;
            } else if (prefAny?.seriesCollapse !== undefined) {

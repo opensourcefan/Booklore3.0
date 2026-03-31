@@ -10,7 +10,7 @@ import {ReaderStyleService} from './core/style.service';
 import {ReaderBookmarkService} from './features/bookmarks/bookmark.service';
 import {ReaderAnnotationHttpService} from './features/annotations/annotation.service';
 import {ReaderProgressService} from './state/progress.service';
-import {ReaderSelectionService} from './features/selection/selection.service';
+import {ReaderSelectionService, SelectionDetail} from './features/selection/selection.service';
 import {ReaderSidebarService} from './layout/sidebar/sidebar.service';
 import {ReaderLeftSidebarService} from './layout/panel/panel.service';
 import {ReaderHeaderService} from './layout/header/header.service';
@@ -94,8 +94,8 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
   private hasLoadedOnce = false;
   private _fileUrl: string | null = null;
   private visibilityManager!: ReaderHeaderFooterVisibilityManager;
-  private relocateTimeout: any;
-  private sectionFractionsTimeout: any;
+  private relocateTimeout: ReturnType<typeof setTimeout> | null = null;
+  private sectionFractionsTimeout: ReturnType<typeof setTimeout> | null = null;
 
   isLoading = true;
   showQuickSettings = false;
@@ -118,7 +118,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
   isFullscreen = false;
   showShortcutsHelp = false;
 
-  get currentProgressData(): any {
+  get currentProgressData(): FoliateRelocateDetail | null {
     return this.progressService.currentProgressData;
   }
 
@@ -315,7 +315,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
           case 'relocate':
             if (this.relocateTimeout) clearTimeout(this.relocateTimeout);
             this.relocateTimeout = setTimeout(() => {
-              this.progressService.handleRelocateEvent(event.detail);
+              this.progressService.handleRelocateEvent(event.detail as FoliateRelocateDetail);
               this.updateBookmarkIndicator();
             }, 100);
 
@@ -328,7 +328,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
             this.toggleHeaderNavbarPinned();
             break;
           case 'text-selected':
-            this.selectionService.handleTextSelected(event.detail, event.popupPosition);
+            this.selectionService.handleTextSelected(event.detail as SelectionDetail, event.popupPosition);
             break;
           case 'toggle-fullscreen':
             this.toggleFullscreen();

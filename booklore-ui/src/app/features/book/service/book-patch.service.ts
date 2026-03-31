@@ -28,7 +28,11 @@ export class BookPatchService {
       prev.bookFileId === curr.bookFileId
     ),
     exhaustMap(payload => {
-      const body: any = {
+      const body: {
+        bookId: number;
+        epubProgress: { cfi: string; href: string; percentage: number };
+        fileProgress?: { bookFileId: number; positionData: string; positionHref: string; progressPercent: number };
+      } = {
         bookId: payload.bookId,
         epubProgress: {
           cfi: payload.cfi,
@@ -91,7 +95,11 @@ export class BookPatchService {
   }
 
   savePdfProgress(bookId: number, page: number, percentage: number, bookFileId?: number): Observable<void> {
-    const body: any = {
+    const body: {
+      bookId: number;
+      pdfProgress: { page: number; percentage: number };
+      fileProgress?: { bookFileId: number; positionData: string; progressPercent: number };
+    } = {
       bookId: bookId,
       pdfProgress: {
         page: page,
@@ -114,7 +122,11 @@ export class BookPatchService {
   }
 
   saveCbxProgress(bookId: number, page: number, percentage: number, bookFileId?: number): Observable<void> {
-    const body: any = {
+    const body: {
+      bookId: number;
+      cbxProgress: { page: number; percentage: number };
+      fileProgress?: { bookFileId: number; positionData: string; progressPercent: number };
+    } = {
       bookId: bookId,
       cbxProgress: {
         page: page,

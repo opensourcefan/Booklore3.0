@@ -193,9 +193,9 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
         this.matchByDirectory || this.matchByFilename);
   }
 
-  onPageChange(event: any): void {
-    this.pageFirst = event.first;
-    this.pageSize = event.rows;
+  onPageChange(event: { first?: number; rows?: number }): void {
+    this.pageFirst = event.first ?? 0;
+    this.pageSize = event.rows ?? this.pageSize;
   }
 
   getBookFormats(book: Book): string[] {

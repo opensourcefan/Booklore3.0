@@ -11,7 +11,7 @@ import {BookService} from '../../service/book.service';
 import {BookMetadataService} from '../../service/book-metadata.service';
 import {LibraryService} from '../../service/library.service';
 import {Library} from '../../model/library.model';
-import {Book, CreatePhysicalBookRequest} from '../../model/book.model';
+import {Book, BookMetadata, CreatePhysicalBookRequest} from '../../model/book.model';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {Tabs, TabList, Tab, TabPanels, TabPanel} from 'primeng/tabs';
@@ -177,9 +177,9 @@ export class BulkIsbnImportDialogComponent implements OnInit {
           entry.status = 'created-no-metadata';
           this.noMetadataCount++;
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         entry.status = 'failed';
-        entry.error = err?.message || 'Unknown error';
+        entry.error = err instanceof Error ? err.message : 'Unknown error';
         this.failedCount++;
       }
 
@@ -332,7 +332,7 @@ export class BulkIsbnImportDialogComponent implements OnInit {
     return false;
   }
 
-  private lookupIsbn(isbn: string): Promise<any> {
+  private lookupIsbn(isbn: string): Promise<BookMetadata | null> {
     return new Promise((resolve, _reject) => {
       this.bookMetadataService.lookupByIsbn(isbn).subscribe({
         next: metadata => resolve(metadata),

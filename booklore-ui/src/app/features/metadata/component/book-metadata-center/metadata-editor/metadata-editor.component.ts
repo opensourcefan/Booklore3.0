@@ -15,7 +15,7 @@ import {BookService} from "../../../../book/service/book.service";
 import {BookMetadataManageService} from "../../../../book/service/book-metadata-manage.service";
 import {ProgressSpinner} from "primeng/progressspinner";
 import {Tooltip} from "primeng/tooltip";
-import {filter, finalize, switchMap, take, tap} from "rxjs/operators";
+import {filter, finalize, map, switchMap, take, tap} from "rxjs/operators";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {MetadataRefreshType} from "../../../model/request/metadata-refresh-type.enum";
 import {AutoComplete, AutoCompleteSelectEvent} from "primeng/autocomplete";
@@ -652,7 +652,7 @@ export class MetadataEditorComponent implements OnInit {
       )
       .pipe(
         tap({
-          next: (_response: any) => {
+          next: (_response) => {
             this.isSaving = false;
             this.writeProgressService.complete(this.t.translate('metadata.editor.toast.metadataUpdated'));
             this.messageService.add({
@@ -663,16 +663,17 @@ export class MetadataEditorComponent implements OnInit {
             this.prepareAutoComplete();
             this.metadataForm.markAsPristine();
           },
-          error: (err: any) => {
+          error: (err: unknown) => {
             this.isSaving = false;
-            this.writeProgressService.fail(err?.error?.message || this.t.translate('metadata.editor.toast.metadataUpdateFailed'));
+            this.writeProgressService.fail((err as { error?: { message?: string } })?.error?.message || this.t.translate('metadata.editor.toast.metadataUpdateFailed'));
             this.messageService.add({
               severity: "error",
               summary: this.t.translate('metadata.editor.toast.errorSummary'),
-              detail: err?.error?.message || this.t.translate('metadata.editor.toast.metadataUpdateFailed'),
+              detail: (err as { error?: { message?: string } })?.error?.message || this.t.translate('metadata.editor.toast.metadataUpdateFailed'),
             });
           },
-        })
+        }),
+        map((): void => { return; })
       );
   }
 

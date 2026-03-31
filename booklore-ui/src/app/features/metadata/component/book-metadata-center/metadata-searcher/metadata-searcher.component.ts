@@ -99,7 +99,7 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
         .subscribe(settings => {
           const providerSettings = settings!.metadataProviderSettings ?? {};
           this.providers = Object.entries(providerSettings)
-            .filter(([_, value]) => !!value && typeof value === 'object' && 'enabled' in value && (value as any).enabled)
+            .filter(([_, value]) => !!value && typeof value === 'object' && 'enabled' in value && (value as { enabled: unknown }).enabled)
             .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
 
           const currentProviders = this.getSelectedProviders();
@@ -164,7 +164,7 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
     this.selectedProviderFilters = new Set(['all']);
     this.bookId = book.id;
 
-    const formUpdate: Record<string, any> = {
+    const formUpdate: Record<string, unknown> = {
       title: book.metadata?.title ?? '',
       author: book.metadata?.authors?.[0] ?? '',
       isbn: book.metadata?.isbn13 ?? book.metadata?.isbn10 ?? ''

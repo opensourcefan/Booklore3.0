@@ -294,7 +294,7 @@ export class BookService {
     const isAlternativeFormat = explicitBookType && explicitBookType !== book.primaryFile?.bookType;
 
     let baseUrl: string | null = null;
-    const queryParams: Record<string, any> = {};
+    const queryParams: Record<string, string | boolean> = {};
 
     switch (bookType) {
       case 'PDF':
@@ -328,7 +328,7 @@ export class BookService {
       return;
     }
 
-    if (isAlternativeFormat) {
+    if (isAlternativeFormat && bookType) {
       queryParams['bookType'] = bookType;
     }
 

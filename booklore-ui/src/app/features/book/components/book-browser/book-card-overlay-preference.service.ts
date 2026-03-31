@@ -1,7 +1,7 @@
 import {inject, Injectable, OnDestroy} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {debounceTime, filter, takeUntil} from 'rxjs/operators';
-import {UserService} from '../../../settings/user-management/user.service';
+import {EntityViewPreference, UserService} from '../../../settings/user-management/user.service';
 
 @Injectable({
   providedIn: 'root'
@@ -87,7 +87,7 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
     let showAiPanelData = true;
     let showIssueNumber = true;
     if (prefs) {
-      const globalAny = prefs.global as any;
+      const globalAny = prefs.global as EntityViewPreference & { showBookTypePill?: boolean };
       showBookType = prefs.global?.overlayBookType ?? globalAny?.showBookTypePill ?? true;
       showAiPanelData = prefs.global?.overlayAiPanelData ?? true;
       showIssueNumber = prefs.global?.overlayIssueNumber ?? true;
@@ -97,7 +97,7 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
           o.entityType === this.currentContext?.type && o.entityId === this.currentContext?.id
         );
         if (override) {
-          const prefAny = override.preferences as any;
+          const prefAny = override.preferences as EntityViewPreference & { showBookTypePill?: boolean };
           if (override.preferences.overlayBookType !== undefined) {
             showBookType = override.preferences.overlayBookType;
           } else if (prefAny?.showBookTypePill !== undefined) {

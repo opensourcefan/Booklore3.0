@@ -175,7 +175,7 @@ export class ReaderStyleService {
     return !isNaN(id) && id.toString() === fontFamily ? id : null;
   }
 
-  applyStylesToRenderer(renderer: any, state: ReaderState): void {
+  applyStylesToRenderer(renderer: FoliateRenderer, state: ReaderState): void {
     if (!renderer) return;
 
     renderer.setAttribute('max-column-count', state.maxColumnCount);

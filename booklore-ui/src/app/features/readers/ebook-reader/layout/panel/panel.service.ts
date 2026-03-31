@@ -143,7 +143,7 @@ export class ReaderLeftSidebarService {
       for await (const result of searchGenerator) {
         if (this.searchAbortController?.signal.aborted) break;
 
-        if (typeof result === 'string' && result === 'done') {
+        if (typeof result === 'string') {
           break;
         }
 
@@ -155,7 +155,7 @@ export class ReaderLeftSidebarService {
         }
 
         if ('subitems' in result && result.subitems) {
-          const sectionResults = result.subitems.map((item: any) => ({
+          const sectionResults = result.subitems.map((item) => ({
             cfi: item.cfi,
             excerpt: item.excerpt,
             sectionLabel: result.label
