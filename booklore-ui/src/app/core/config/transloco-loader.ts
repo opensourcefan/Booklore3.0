@@ -51,12 +51,12 @@ export const LANG_LABELS: Record<string, string> = {
   da: 'Dansk',
 };
 
-function deepMerge(base: Record<string, any>, override: Record<string, any>): Record<string, any> {
+function deepMerge(base: Record<string, unknown>, override: Record<string, unknown>): Record<string, unknown> {
   const result = {...base};
   for (const key of Object.keys(override)) {
     if (override[key] && typeof override[key] === 'object' && !Array.isArray(override[key])
       && base[key] && typeof base[key] === 'object' && !Array.isArray(base[key])) {
-      result[key] = deepMerge(base[key], override[key]);
+      result[key] = deepMerge(base[key] as Record<string, unknown>, override[key] as Record<string, unknown>);
     } else if (override[key] !== '') {
       result[key] = override[key];
     }

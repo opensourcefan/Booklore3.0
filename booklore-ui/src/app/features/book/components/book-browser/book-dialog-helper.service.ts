@@ -43,16 +43,12 @@ export class BookDialogHelperService {
   }
 
   openShelfAssignerDialog(book: Book | null, bookIds: Set<number> | null): DynamicDialogRef | null {
-    const data: any = {};
-    if (book !== null) {
-      data.isMultiBooks = false;
-      data.book = book;
-    } else if (bookIds !== null) {
-      data.isMultiBooks = true;
-      data.bookIds = bookIds;
-    } else {
-      return null;
-    }
+    const data: { isMultiBooks: boolean; book?: Book; bookIds?: Set<number> } = book !== null
+      ? { isMultiBooks: false, book }
+      : bookIds !== null
+        ? { isMultiBooks: true, bookIds }
+        : null as never;
+    if (book === null && bookIds === null) return null;
     return this.openDialog(ShelfAssignerComponent, {
       showHeader: false,
       data: data,
@@ -61,16 +57,12 @@ export class BookDialogHelperService {
   }
 
   openBookTypeAssignerDialog(book: Book | null, bookIds: Set<number> | null): DynamicDialogRef | null {
-    const data: any = {};
-    if (book !== null) {
-      data.isMultiBooks = false;
-      data.book = book;
-    } else if (bookIds !== null) {
-      data.isMultiBooks = true;
-      data.bookIds = bookIds;
-    } else {
-      return null;
-    }
+    const data: { isMultiBooks: boolean; book?: Book; bookIds?: Set<number> } = book !== null
+      ? { isMultiBooks: false, book }
+      : bookIds !== null
+        ? { isMultiBooks: true, bookIds }
+        : null as never;
+    if (book === null && bookIds === null) return null;
 
     return this.openDialog(BookTypeAssignerComponent, {
       showHeader: false,

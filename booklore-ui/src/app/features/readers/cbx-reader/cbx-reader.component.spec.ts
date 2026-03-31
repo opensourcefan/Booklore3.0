@@ -161,7 +161,7 @@ describe('CbxReaderComponent mobile panel interactions', () => {
       {x: 0.1, y: 0.1, width: 0.3, height: 0.3},
       {x: 0.55, y: 0.1, width: 0.25, height: 0.3}
     ];
-    (component as any).detectedPanelsByPage.set(0, panels);
+    (component as unknown as { detectedPanelsByPage: Map<number, {x: number; y: number; width: number; height: number}[]> }).detectedPanelsByPage.set(0, panels);
   });
 
   it('activates the first panel when zoom-in is requested before panel navigation starts', () => {
@@ -189,7 +189,7 @@ describe('CbxReaderComponent mobile panel interactions', () => {
   });
 
   it('keeps manual zoom when moving between panels and pages', () => {
-    (component as any).detectedPanelsByPage.set(1, [
+    (component as unknown as { detectedPanelsByPage: Map<number, {x: number; y: number; width: number; height: number}[]> }).detectedPanelsByPage.set(1, [
       {x: 0.12, y: 0.14, width: 0.3, height: 0.3}
     ]);
     component.activePanelIndex = 0;
