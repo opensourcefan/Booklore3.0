@@ -33,6 +33,7 @@ export interface AppMenuItem extends MenuItem {
 }
 
 @Component({
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: '[app-menuitem]',
   templateUrl: './app.menuitem.component.html',
   styleUrls: ['./app.menuitem.component.scss'],

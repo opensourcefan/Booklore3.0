@@ -31,10 +31,10 @@ interface FoliateRelocateDetail {
 type FoliateSearchChunk =
   | string
   | { progress: number }
-  | { subitems: ReadonlyArray<{ cfi: string; excerpt: { pre: string; match: string; post: string } }>; label: string };
+  | { subitems: readonly { cfi: string; excerpt: { pre: string; match: string; post: string } }[]; label: string };
 
 interface FoliateRenderer {
-  getContents?(): Array<{ index: number; doc: Document }> | null;
+  getContents?(): { index: number; doc: Document }[] | null;
   heads?: HTMLElement[];
   feet?: HTMLElement[];
   setAttribute(key: string, value: string | number): void;

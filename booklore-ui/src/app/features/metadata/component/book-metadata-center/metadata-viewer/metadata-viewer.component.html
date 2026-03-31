@@ -13,7 +13,7 @@
             [preview]="true">
           </p-image>
 
-          @if (book?.metadata!.seriesNumber != null) {
+          @if (book?.metadata!.seriesNumber !== null) {
             <div class="series-badge">
               #{{ book?.metadata!.seriesNumber }}
             </div>
@@ -395,7 +395,7 @@
 
             <div class="metadata-item">
               <span class="metadata-key">{{ t('metadataMatchLabel') }}</span>
-              @if (book?.metadataMatchScore != null) {
+              @if (book?.metadataMatchScore !== null) {
                 <span (click)="goToMatchScoreRange(book?.metadataMatchScore!)" style="cursor: pointer;">
                   <app-tag size="3xs" variant="pill" [color]="getMatchScoreColor(book?.metadataMatchScore!)">
                     {{ (book?.metadataMatchScore!) | number:'1.0-0' }}%
@@ -434,7 +434,7 @@
               </span>
             </div>
 
-            @if (book?.koreaderProgress && book.koreaderProgress?.percentage != null) {
+            @if (book?.koreaderProgress && book.koreaderProgress?.percentage !== null) {
               <div class="metadata-item">
                 <span class="metadata-key">{{ t('koreaderProgressLabel') }}</span>
                 <span class="metadata-value-group">
@@ -455,7 +455,7 @@
               </div>
             }
 
-            @if (book?.koboProgress && book.koboProgress?.percentage != null) {
+            @if (book?.koboProgress && book.koboProgress?.percentage !== null) {
               <div class="metadata-item">
                 <span class="metadata-key">{{ t('koboProgressLabel') }}</span>
                 <span class="metadata-value-group">
@@ -517,7 +517,7 @@
 
             <div class="metadata-item">
               <span class="metadata-key">{{ t('ageRatingLabel') }}</span>
-              @if (book?.metadata?.ageRating != null) {
+              @if (book?.metadata?.ageRating !== null) {
                 <span class="metadata-value metadata-link" (click)="goToAgeRating(book?.metadata?.ageRating!)">
                   {{ getAgeRatingLabel(book?.metadata?.ageRating) }}
                 </span>
@@ -559,7 +559,7 @@
                   <span class="metadata-value">{{ audio.chapterCount }}</span>
                 </div>
               }
-              @if (book.metadata?.abridged != null) {
+              @if (book.metadata?.abridged !== null) {
                 <div class="metadata-item">
                   <span class="metadata-key">{{ t('audiobookAbridged') }}</span>
                   <span class="metadata-value">{{ book.metadata?.abridged ? t('abridged') : t('unabridged') }}</span>

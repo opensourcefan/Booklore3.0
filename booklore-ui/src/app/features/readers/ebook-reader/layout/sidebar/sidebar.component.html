@@ -65,7 +65,7 @@
             </ul>
 
             <ng-template #chapterItem let-chapter let-depth="depth">
-              <li role="treeitem">
+              <li role="treeitem" [attr.aria-selected]="isChapterActive(chapter.href)">
                 <button
                   class="chapter-row"
                   [class.active]="isChapterActive(chapter.href)"

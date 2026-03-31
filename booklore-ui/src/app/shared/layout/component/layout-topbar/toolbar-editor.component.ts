@@ -1,29 +1,30 @@
 import {Component, EventEmitter, inject, Output} from '@angular/core';
-import {NgFor} from '@angular/common';
 import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 
 @Component({
   selector: 'app-toolbar-editor',
   standalone: true,
-  imports: [NgFor],
+  imports: [],
   template: `
     <div class="toolbar-editor">
       <div class="toolbar-editor-header">
         <span>Customize Toolbar</span>
       </div>
       <ul class="toolbar-editor-list">
-        <li *ngFor="let item of draftItems; let i = index"
-            class="toolbar-editor-item"
-            draggable="true"
-            (dragstart)="onDragStart(i)"
-            (dragover)="onDragOver($event, i)"
-            (drop)="onDrop(i)">
-          <i class="pi pi-bars drag-icon"></i>
-          <span class="item-label">{{ getItemLabel(item) }}</span>
-          <button class="toggle-btn" (click)="toggleVisible(item)">
-            <i [class]="item.visible ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
-          </button>
-        </li>
+        @for (item of draftItems; track item; let i = $index) {
+          <li
+              class="toolbar-editor-item"
+              draggable="true"
+              (dragstart)="onDragStart(i)"
+              (dragover)="onDragOver($event, i)"
+              (drop)="onDrop(i)">
+            <i class="pi pi-bars drag-icon"></i>
+            <span class="item-label">{{ getItemLabel(item) }}</span>
+            <button class="toggle-btn" (click)="toggleVisible(item)">
+              <i [class]="item.visible ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
+            </button>
+          </li>
+        }
       </ul>
       <div class="toolbar-editor-actions">
         <button class="save-btn" (click)="save()">Save</button>

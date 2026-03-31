@@ -323,6 +323,7 @@ export class FileMoverComponent implements OnDestroy {
 
   sanitize(input: string | undefined): string {
     return input?.replace(/[\\/:*?"<>|]/g, '')
+      // eslint-disable-next-line no-control-regex
       .replace(/[\x00-\x1F\x7F]/g, '')
       .replace(/\s+/g, ' ')
       .trim() ?? '';

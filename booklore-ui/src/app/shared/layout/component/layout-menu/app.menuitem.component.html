@@ -100,6 +100,7 @@
         <p-button
           (click)="entitymenu.toggle($event); $event.stopPropagation()"
           (mouseover)="hovered = true"
+          (focus)="hovered = true"
           (mouseleave)="hovered = false"
           [text]="true"
           [outlined]="false"

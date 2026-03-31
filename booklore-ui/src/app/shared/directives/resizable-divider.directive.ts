@@ -5,6 +5,7 @@ import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2 } from '@ang
  * The handle is absolutely positioned relative to the target element.
  * Width is persisted to localStorage via storageKey.
  */
+// eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[blResizable]', standalone: true })
 export class ResizableDividerDirective implements OnInit, OnDestroy {
   @Input() blResizable: 'left' | 'right' = 'right';

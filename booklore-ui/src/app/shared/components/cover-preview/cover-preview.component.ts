@@ -1,32 +1,32 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-cover-preview',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="cover-preview-panel" #panel>
       <div class="cover-preview-resize-handle" #resizeHandle></div>
       <div class="cover-preview-header">
         <span class="cover-preview-label">Cover Preview</span>
-        <span *ngIf="bookTitle" class="cover-preview-title" [title]="bookTitle">{{ bookTitle }}</span>
+        @if (bookTitle) {
+          <span class="cover-preview-title" [title]="bookTitle">{{ bookTitle }}</span>
+        }
       </div>
       <div class="cover-preview-body">
-        <ng-container *ngIf="coverUrl; else placeholder">
+        @if (coverUrl) {
           <img
             [src]="coverUrl"
             [alt]="bookTitle"
             class="cover-img"
             (error)="onImgError()"
           />
-        </ng-container>
-        <ng-template #placeholder>
+        } @else {
           <div class="cover-placeholder">
             <i class="pi pi-book"></i>
             <span>Hover over a book to preview</span>
           </div>
-        </ng-template>
+        }
       </div>
     </div>
   `,
