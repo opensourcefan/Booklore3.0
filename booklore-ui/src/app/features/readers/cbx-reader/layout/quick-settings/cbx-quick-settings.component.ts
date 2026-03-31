@@ -143,29 +143,20 @@ export class CbxQuickSettingsComponent implements OnInit, OnDestroy {
     this.quickSettingsService.emitScrollModeChange(mode);
   }
 
-  onPageViewToggle(): void {
-    const newMode = this.state.pageViewMode === CbxPageViewMode.SINGLE_PAGE
-      ? CbxPageViewMode.TWO_PAGE
-      : CbxPageViewMode.SINGLE_PAGE;
-    this.quickSettingsService.emitPageViewModeChange(newMode);
+  onPageViewSelect(mode: CbxPageViewMode): void {
+    this.quickSettingsService.emitPageViewModeChange(mode);
   }
 
-  onPageSpreadToggle(): void {
-    const newSpread = this.state.pageSpread === CbxPageSpread.ODD
-      ? CbxPageSpread.EVEN
-      : CbxPageSpread.ODD;
-    this.quickSettingsService.emitPageSpreadChange(newSpread);
+  onPageSpreadSelect(spread: CbxPageSpread): void {
+    this.quickSettingsService.emitPageSpreadChange(spread);
   }
 
   onBackgroundSelect(color: CbxBackgroundColor): void {
     this.quickSettingsService.emitBackgroundColorChange(color);
   }
 
-  onReadingDirectionToggle(): void {
-    const newDirection = this.state.readingDirection === CbxReadingDirection.LTR
-      ? CbxReadingDirection.RTL
-      : CbxReadingDirection.LTR;
-    this.quickSettingsService.emitReadingDirectionChange(newDirection);
+  onReadingDirectionSelect(direction: CbxReadingDirection): void {
+    this.quickSettingsService.emitReadingDirectionChange(direction);
   }
 
   onSlideshowIntervalSelect(interval: CbxSlideshowInterval): void {

@@ -43,10 +43,14 @@
         <div class="control">
           <label>{{ 'readerCbx.quickSettings.pageView' | transloco }}</label>
           <div class="control-right">
-            <span class="mode-label">{{ isTwoPageView ? ('readerCbx.quickSettings.twoPage' | transloco) : ('readerCbx.quickSettings.single' | transloco) }}</span>
-            <button class="switch" [class.active]="isTwoPageView" (click)="onPageViewToggle()">
-              <span class="slider"></span>
-            </button>
+            <div class="button-group text-btns">
+              <button class="option-btn text-btn" [class.active]="!isTwoPageView" (click)="onPageViewSelect(CbxPageViewMode.SINGLE_PAGE)">
+                {{ 'readerCbx.quickSettings.single' | transloco }}
+              </button>
+              <button class="option-btn text-btn" [class.active]="isTwoPageView" (click)="onPageViewSelect(CbxPageViewMode.TWO_PAGE)">
+                {{ 'readerCbx.quickSettings.twoPage' | transloco }}
+              </button>
+            </div>
           </div>
         </div>
       }
@@ -56,10 +60,14 @@
         <div class="control">
           <label>{{ 'readerCbx.quickSettings.pageSpread' | transloco }}</label>
           <div class="control-right">
-            <span class="mode-label">{{ state.pageSpread === CbxPageSpread.ODD ? ('readerCbx.quickSettings.oddFirst' | transloco) : ('readerCbx.quickSettings.evenFirst' | transloco) }}</span>
-            <button class="switch" [class.active]="state.pageSpread === CbxPageSpread.EVEN" (click)="onPageSpreadToggle()">
-              <span class="slider"></span>
-            </button>
+            <div class="button-group text-btns">
+              <button class="option-btn text-btn" [class.active]="state.pageSpread === CbxPageSpread.ODD" (click)="onPageSpreadSelect(CbxPageSpread.ODD)">
+                {{ 'readerCbx.quickSettings.oddFirst' | transloco }}
+              </button>
+              <button class="option-btn text-btn" [class.active]="state.pageSpread === CbxPageSpread.EVEN" (click)="onPageSpreadSelect(CbxPageSpread.EVEN)">
+                {{ 'readerCbx.quickSettings.evenFirst' | transloco }}
+              </button>
+            </div>
           </div>
         </div>
       }
@@ -68,10 +76,14 @@
       <div class="control">
         <label>{{ 'readerCbx.quickSettings.readingDirection' | transloco }}</label>
         <div class="control-right">
-          <span class="mode-label">{{ state.readingDirection === CbxReadingDirection.LTR ? ('readerCbx.quickSettings.leftToRight' | transloco) : ('readerCbx.quickSettings.rightToLeft' | transloco) }}</span>
-          <button class="switch" [class.active]="state.readingDirection === CbxReadingDirection.RTL" (click)="onReadingDirectionToggle()">
-            <span class="slider"></span>
-          </button>
+          <div class="button-group text-btns">
+            <button class="option-btn text-btn" [class.active]="state.readingDirection === CbxReadingDirection.LTR" (click)="onReadingDirectionSelect(CbxReadingDirection.LTR)">
+              {{ 'readerCbx.quickSettings.leftToRight' | transloco }}
+            </button>
+            <button class="option-btn text-btn" [class.active]="state.readingDirection === CbxReadingDirection.RTL" (click)="onReadingDirectionSelect(CbxReadingDirection.RTL)">
+              {{ 'readerCbx.quickSettings.rightToLeft' | transloco }}
+            </button>
+          </div>
         </div>
       </div>
 
