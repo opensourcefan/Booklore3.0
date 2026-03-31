@@ -43,9 +43,9 @@ export class ExternalDocLinkComponent {
   };
 
   @Input() docType!: DocType;
-  @Input() tooltip: string = 'View documentation';
+  @Input() tooltip = 'View documentation';
   @Input() tooltipPosition: 'top' | 'bottom' | 'left' | 'right' = 'right';
-  @Input() size: string = '1rem';
+  @Input() size = '1rem';
 
   openLink(): void {
     const url = this.DOC_URLS[this.docType];

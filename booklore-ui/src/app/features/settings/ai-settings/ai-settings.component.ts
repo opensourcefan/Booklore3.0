@@ -61,7 +61,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   status: AiServiceStatus | null = null;
   selectedLibraryPathIds: number[] = [];
-  libraryPathOptions: Array<{label: string; value: number}> = [];
+  libraryPathOptions: {label: string; value: number}[] = [];
   batchProgress: AiPanelScanProgressPayload | null = null;
   panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];

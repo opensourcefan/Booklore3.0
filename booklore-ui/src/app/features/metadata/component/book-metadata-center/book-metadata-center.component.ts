@@ -46,11 +46,11 @@ export class BookMetadataCenterComponent implements OnInit, OnDestroy {
 
   book$!: Observable<Book>;
   recommendedBooks: BookRecommendation[] = [];
-  private _tab: string = 'view';
-  canEditMetadata: boolean = false;
-  admin: boolean = false;
-  isPhysical: boolean = false;
-  isLocalStorage: boolean = true;
+  private _tab = 'view';
+  canEditMetadata = false;
+  admin = false;
+  isPhysical = false;
+  isLocalStorage = true;
 
   private appSettings$ = this.appSettingsService.appSettings$;
   private currentBookId$ = new BehaviorSubject<number | null>(null);

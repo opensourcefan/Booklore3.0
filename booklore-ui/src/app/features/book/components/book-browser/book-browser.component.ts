@@ -939,7 +939,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.dynamicDialogRef.onClose.subscribe((result: {
       changed?: boolean;
-      renamed?: Array<{from: string; to: string}>;
+      renamed?: {from: string; to: string}[];
       deleted?: string[];
     } | boolean) => {
       if (!result || typeof result === 'boolean' || !result.changed) {

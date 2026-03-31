@@ -76,7 +76,7 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
   // Cron Editing State
   cronUpdating = false;
   editingCronTaskType: string | null = null;
-  editingCronExpression: string = '';
+  editingCronExpression = '';
   cronValidationError: string | null = null;
 
   // Constants

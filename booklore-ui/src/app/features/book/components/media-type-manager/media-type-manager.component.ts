@@ -9,7 +9,7 @@ import {MessageService} from 'primeng/api';
 import {BookDialogHelperService} from '../book-browser/book-dialog-helper.service';
 import {catchError, finalize, map, of} from 'rxjs';
 
-type RenameRecord = {from: string; to: string};
+interface RenameRecord {from: string; to: string}
 
 @Component({
   selector: 'app-media-type-manager',

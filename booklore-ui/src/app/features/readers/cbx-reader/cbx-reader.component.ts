@@ -107,8 +107,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   previousBookInSeries: Book | null = null;
 
   infiniteScrollPages: number[] = [];
-  preloadCount: number = 3;
-  isLoadingMore: boolean = false;
+  preloadCount = 3;
+  isLoadingMore = false;
 
   private preloadedImages = new Map<string, HTMLImageElement>();
   previousImageUrls: string[] = [];
@@ -1934,13 +1934,13 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   private enterFullscreen(): void {
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
-      elem.requestFullscreen().catch(() => {});
+      elem.requestFullscreen().catch(() => { /* browser blocked fullscreen — safe to ignore */ });
     }
   }
 
   private exitFullscreen(): void {
     if (document.exitFullscreen) {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => { /* already not fullscreen — safe to ignore */ });
     }
   }
 

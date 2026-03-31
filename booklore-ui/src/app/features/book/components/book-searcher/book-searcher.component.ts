@@ -32,7 +32,7 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
   standalone: true
 })
 export class BookSearcherComponent implements OnInit, OnDestroy {
-  searchQuery: string = '';
+  searchQuery = '';
   books: Book[] = [];
   isLoading = false;
   activeIndex = -1;

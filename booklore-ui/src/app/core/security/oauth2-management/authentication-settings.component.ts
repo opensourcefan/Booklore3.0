@@ -85,7 +85,7 @@ export class AuthenticationSettingsComponent implements OnInit {
   showTestDetails = false;
 
   // Group mapping
-  groupSyncMode: string = 'DISABLED';
+  groupSyncMode = 'DISABLED';
   groupSyncModeOptions = [
     {label: 'Disabled', value: 'DISABLED'},
     {label: 'On Login (Replace)', value: 'ON_LOGIN'},

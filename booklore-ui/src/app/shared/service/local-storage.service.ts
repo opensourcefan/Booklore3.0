@@ -20,6 +20,7 @@ export class LocalStorageService {
       localStorage.setItem(key, JSON.stringify(value));
       this.keyChangesSubject.next(key);
     } catch {
+      // localStorage unavailable (private mode / storage full) — safe to ignore
     }
   }
 

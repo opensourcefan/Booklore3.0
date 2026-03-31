@@ -50,11 +50,11 @@ import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 })
 export class IconDisplayComponent implements OnInit, OnChanges {
   @Input() icon: IconSelection | null = null;
-  @Input() iconClass: string = 'icon';
+  @Input() iconClass = 'icon';
   @Input() iconStyle: Record<string, string> = {};
-  @Input() size: string = '16px';
-  @Input() alt: string = 'Icon';
-  @Input() displayEmpty: boolean = false;
+  @Input() size = '16px';
+  @Input() alt = 'Icon';
+  @Input() displayEmpty = false;
 
   private iconCache = inject(IconCacheService);
   private iconService = inject(IconService);

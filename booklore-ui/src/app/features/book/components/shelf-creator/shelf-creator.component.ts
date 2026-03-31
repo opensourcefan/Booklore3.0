@@ -36,9 +36,9 @@ export class ShelfCreatorComponent {
   private userService = inject(UserService);
   private readonly t = inject(TranslocoService);
 
-  shelfName: string = '';
+  shelfName = '';
   selectedIcon: IconSelection | null = null;
-  isPublic: boolean = false;
+  isPublic = false;
   isAdmin: boolean = this.userService.getCurrentUser()?.permissions.admin ?? false;
 
   openIconPicker(): void {

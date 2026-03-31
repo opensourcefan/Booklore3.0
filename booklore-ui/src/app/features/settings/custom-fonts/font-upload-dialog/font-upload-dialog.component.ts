@@ -66,9 +66,6 @@ export class FontUploadDialogComponent implements OnDestroy {
     const previewToken = Date.now();
     this.currentPreviewToken = previewToken;
 
-    if (this.isLoadingPreview) {
-    }
-
     this.isLoadingPreview = true;
 
     try {

@@ -420,6 +420,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy {
           position: this.currentTime
         });
       } catch {
+        // setPositionState may throw on invalid position during seek — safe to ignore
       }
     }
   }

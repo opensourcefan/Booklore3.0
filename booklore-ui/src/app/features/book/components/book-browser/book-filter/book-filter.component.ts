@@ -17,7 +17,7 @@ import {BookFilterService} from './book-filter.service';
 import {filter} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
-type FilterModeOption = { label: string; value: BookFilterMode };
+interface FilterModeOption { label: string; value: BookFilterMode }
 
 @Component({
   selector: 'app-book-filter',

@@ -99,7 +99,6 @@ export class CoverSearchComponent implements OnInit {
             this.hasSearched = true;
           }
         });
-    } else {
     }
   }
 

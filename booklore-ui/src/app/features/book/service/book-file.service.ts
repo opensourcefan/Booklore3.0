@@ -251,7 +251,7 @@ export class BookFileService {
       tap(response => {
         const currentState = this.bookStateService.getCurrentBookState();
         const deletedIdSet = new Set(response.deletedSourceBookIds);
-        let updatedBooks = (currentState.books || []).map(book =>
+        const updatedBooks = (currentState.books || []).map(book =>
           book.id === targetBookId ? response.updatedBook : book
         ).filter(book => !deletedIdSet.has(book.id));
 

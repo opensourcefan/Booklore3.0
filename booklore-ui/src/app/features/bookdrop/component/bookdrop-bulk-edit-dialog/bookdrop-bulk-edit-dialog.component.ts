@@ -48,7 +48,7 @@ export class BookdropBulkEditDialogComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly t = inject(TranslocoService);
 
-  fileCount: number = 0;
+  fileCount = 0;
   mergeArrays = true;
 
   enabledFields = new Set<string>();

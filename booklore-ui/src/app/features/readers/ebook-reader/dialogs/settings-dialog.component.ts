@@ -29,7 +29,7 @@ export class ReaderSettingsDialogComponent implements OnInit {
 
   activeTab: 'theme' | 'typography' | 'layout' = 'theme';
 
-  selectedAnnotationColor: string = '#FFFF00';
+  selectedAnnotationColor = '#FFFF00';
 
   annotationColors: AnnotationColor[] = [
     {name: 'yellow', value: '#FFFF00', label: 'Yellow'},

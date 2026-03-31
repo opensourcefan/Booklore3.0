@@ -8,7 +8,7 @@ import {ALL_COMIC_METADATA_FIELDS, ALL_METADATA_FIELDS, AUDIOBOOK_METADATA_FIELD
 export class MetadataFormBuilder {
 
   buildForm(
-    includeLockedControls: boolean = true,
+    includeLockedControls = true,
     fields: MetadataFieldConfig[] = ALL_METADATA_FIELDS
   ): FormGroup {
     const controls: Record<string, FormControl> = {};

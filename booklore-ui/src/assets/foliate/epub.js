@@ -581,7 +581,7 @@ const WebCryptoSHA1 = async str => {
 const deobfuscators = (sha1 = WebCryptoSHA1) => ({
     'http://www.idpf.org/2008/embedding': {
         key: opf => sha1(getIdentifier(opf)
-            // eslint-disable-next-line no-control-regex
+             
             .replaceAll(/[\u0020\u0009\u000d\u000a]/g, '')),
         decode: (key, blob) => deobfuscate(key, 1040, blob),
     },

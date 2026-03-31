@@ -28,7 +28,7 @@ export class ReaderAnnotationHttpService {
     bookId: number,
     cfi: string,
     text: string,
-    color: string = '#FACC15',
+    color = '#FACC15',
     style: AnnotationStyle = 'highlight',
     note?: string
   ): Observable<Annotation | null> {

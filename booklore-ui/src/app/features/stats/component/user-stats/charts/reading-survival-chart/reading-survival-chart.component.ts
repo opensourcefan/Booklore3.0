@@ -140,7 +140,7 @@ export class ReadingSurvivalChartComponent implements OnInit, OnDestroy {
     this.completionRate = Math.round(survivalValues[survivalValues.length - 1]);
 
     // Median dropout: find where survival drops below 50%
-    let medianIdx = survivalValues.findIndex(v => v < 50);
+    const medianIdx = survivalValues.findIndex(v => v < 50);
     if (medianIdx === -1) {
       this.medianDropout = '100%+';
     } else if (medianIdx === 0) {

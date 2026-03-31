@@ -257,8 +257,8 @@ export class BookLengthChartComponent implements OnInit, OnDestroy {
     // Find range with highest average rating
     let bestRange = '';
     let bestAvg = 0;
-    let bestPageCount = 0;
-    let bestRating = 0;
+    const bestPageCount = 0;
+    const bestRating = 0;
 
     for (const range of PAGE_RANGES) {
       const rangeBooks = books.filter(b =>

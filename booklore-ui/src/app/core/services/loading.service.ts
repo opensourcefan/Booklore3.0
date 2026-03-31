@@ -6,7 +6,7 @@ import { Injectable } from '@angular/core';
 export class LoadingService {
   private activeLoaders: HTMLElement[] = [];
 
-  show(message: string = 'Loading...'): HTMLElement {
+  show(message = 'Loading...'): HTMLElement {
     const loader = document.createElement('div');
     loader.className = 'fullscreen-loader';
 

@@ -44,13 +44,13 @@ export class AddPhysicalBookDialogComponent implements OnInit {
 
   libraries: Library[] = [];
   selectedLibraryId: number | null = null;
-  title: string = '';
-  isbn: string = '';
+  title = '';
+  isbn = '';
   authors: string[] = [];
-  description: string = '';
-  publisher: string = '';
-  publishedDate: string = '';
-  language: string = '';
+  description = '';
+  publisher = '';
+  publishedDate = '';
+  language = '';
   pageCount: number | null = null;
   categories: string[] = [];
 
@@ -60,8 +60,8 @@ export class AddPhysicalBookDialogComponent implements OnInit {
   filteredCategories: string[] = [];
 
   coverUrl: string | null = null;
-  isLoading: boolean = false;
-  isFetchingMetadata: boolean = false;
+  isLoading = false;
+  isFetchingMetadata = false;
 
   ngOnInit(): void {
     this.libraryService.libraryState$

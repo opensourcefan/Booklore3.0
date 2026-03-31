@@ -172,7 +172,7 @@ export class BookService {
     );
   }
 
-  getBookRecommendations(bookId: number, limit: number = 20): Observable<BookRecommendation[]> {
+  getBookRecommendations(bookId: number, limit = 20): Observable<BookRecommendation[]> {
     return this.http.get<BookRecommendation[]>(`${this.url}/${bookId}/recommendations`, {
       params: {limit: limit.toString()}
     });
@@ -180,7 +180,7 @@ export class BookService {
 
   /*------------------ Book Operations ------------------*/
 
-  deleteBooks(ids: Set<number>, deleteFromDisk: boolean = true): Observable<BookDeletionResponse> {
+  deleteBooks(ids: Set<number>, deleteFromDisk = true): Observable<BookDeletionResponse> {
     const idList = Array.from(ids);
     const params = new HttpParams().set('ids', idList.join(',')).set('deleteFromDisk', String(deleteFromDisk));
 
@@ -294,7 +294,7 @@ export class BookService {
     const isAlternativeFormat = explicitBookType && explicitBookType !== book.primaryFile?.bookType;
 
     let baseUrl: string | null = null;
-    let queryParams: Record<string, any> = {};
+    const queryParams: Record<string, any> = {};
 
     switch (bookType) {
       case 'PDF':

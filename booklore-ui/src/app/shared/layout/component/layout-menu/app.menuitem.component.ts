@@ -60,9 +60,9 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
 
   hovered = false;
   active = false;
-  key: string = "";
-  canManipulateLibrary: boolean = false;
-  admin: boolean = false;
+  key = "";
+  canManipulateLibrary = false;
+  admin = false;
   expandedItems = new Set<string>();
   private touchStartX: number | null = null;
   private touchStartY: number | null = null;

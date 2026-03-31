@@ -102,7 +102,7 @@ export class BookdropFileMetadataPickerComponent implements OnInit {
     );
   }
 
-  copyAll(includeCover: boolean = true): void {
+  copyAll(includeCover = true): void {
     const excludeFields = includeCover ? ['bookId'] : ['thumbnailUrl', 'bookId'];
     this.metadataUtils.copyAllFields(
       this.fetchedMetadata,

@@ -108,7 +108,7 @@ export class HardcoverSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  copyText(text: string, label: string = 'Text') {
+  copyText(text: string, label = 'Text') {
     if (!text) {
       return;
     }

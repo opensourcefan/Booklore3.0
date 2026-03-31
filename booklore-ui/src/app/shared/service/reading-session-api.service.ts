@@ -55,7 +55,7 @@ export class ReadingSessionApiService {
     return this.http.post<void>(this.url, sessionData);
   }
 
-  getSessionsByBookId(bookId: number, page: number = 0, size: number = 5): Observable<PageableResponse<ReadingSessionResponse>> {
+  getSessionsByBookId(bookId: number, page = 0, size = 5): Observable<PageableResponse<ReadingSessionResponse>> {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());

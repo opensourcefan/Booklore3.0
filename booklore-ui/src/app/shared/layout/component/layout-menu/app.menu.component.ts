@@ -42,7 +42,7 @@ export class AppMenuComponent implements OnInit {
   shelfMenu$: Observable<MenuItem[]> | undefined;
   homeMenu$: Observable<MenuItem[]> | undefined;
   magicShelfMenu$: Observable<MenuItem[]> | undefined;
-  bookTypeMenu$: Observable<Array<{label: string; count: number}>> | undefined;
+  bookTypeMenu$: Observable<{label: string; count: number}[]> | undefined;
   readonly sectionDragStartDelay = {mouse: 220, touch: 350};
   bookTypeSectionExpanded = true;
   activeBookTypeFilter: string | null = null;
@@ -95,7 +95,7 @@ export class AppMenuComponent implements OnInit {
   private touchStartY: number | null = null;
   private suppressTapUntil = 0;
 
-  readonly sectionOptions: Array<{key: string; label: string}> = [
+  readonly sectionOptions: {key: string; label: string}[] = [
     {key: 'home', label: 'layout.menu.home'},
     {key: 'library', label: 'layout.menu.libraries'},
     {key: 'shelf', label: 'layout.menu.shelves'},
@@ -240,7 +240,7 @@ export class AppMenuComponent implements OnInit {
     );
   }
 
-  onBookTypeDrop(event: CdkDragDrop<Array<{label: string; count: number}>>): void {
+  onBookTypeDrop(event: CdkDragDrop<{label: string; count: number}[]>): void {
     if (event.previousIndex === event.currentIndex) {
       return;
     }
@@ -856,14 +856,14 @@ export class AppMenuComponent implements OnInit {
     });
   }
 
-  private applyBookTypeOrder(bookTypes: Array<{label: string; count: number}>): Array<{label: string; count: number}> {
+  private applyBookTypeOrder(bookTypes: {label: string; count: number}[]): {label: string; count: number}[] {
     const savedOrder = this.localStorageService.get<string[]>(this.bookTypeOrderKey);
     if (!savedOrder?.length) {
       return bookTypes;
     }
 
     const lookup = new Map(bookTypes.map(type => [type.label, type]));
-    const ordered: Array<{label: string; count: number}> = [];
+    const ordered: {label: string; count: number}[] = [];
 
     for (const label of savedOrder) {
       const match = lookup.get(label);

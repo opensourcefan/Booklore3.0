@@ -60,9 +60,9 @@ export class MetadataAdvancedFetchOptionsComponent implements OnChanges {
   providers: string[] = ['Amazon', 'Google', 'GoodReads', 'Hardcover', 'Comicvine', 'Douban', 'Lubimyczytac', 'Ranobedb', 'Audible'];
   providersWithClear: string[] = ['Clear All', 'Amazon', 'Google', 'GoodReads', 'Hardcover', 'Comicvine', 'Douban', 'Lubimyczytac', 'Ranobedb', 'Audible'];
 
-  refreshCovers: boolean = false;
-  mergeCategories: boolean = false;
-  reviewBeforeApply: boolean = false;
+  refreshCovers = false;
+  mergeCategories = false;
+  reviewBeforeApply = false;
   replaceMode: MetadataReplaceMode = 'REPLACE_MISSING';
 
   get replaceModeOptions(): { label: string; value: MetadataReplaceMode }[] {

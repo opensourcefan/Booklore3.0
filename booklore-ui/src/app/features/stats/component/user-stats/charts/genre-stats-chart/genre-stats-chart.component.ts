@@ -18,7 +18,7 @@ type GenreChartData = ChartData<'bar', number[], string>;
   styleUrls: ['./genre-stats-chart.component.scss']
 })
 export class GenreStatsChartComponent implements OnInit, OnDestroy {
-  @Input() maxGenres: number = 35;
+  @Input() maxGenres = 35;
 
   public readonly chartType = 'bar' as const;
   public readonly chartData$: Observable<GenreChartData>;

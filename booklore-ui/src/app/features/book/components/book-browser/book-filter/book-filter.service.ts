@@ -65,9 +65,10 @@ export class BookFilterService {
       case EntityType.LIBRARY:
         return books.filter(book => book.libraryId === (entity as Library).id);
 
-      case EntityType.SHELF:
+      case EntityType.SHELF: {
         const shelfId = (entity as Shelf).id;
         return books.filter(book => book.shelves?.some(s => s.id === shelfId));
+      }
 
       case EntityType.MAGIC_SHELF:
         return this.filterByMagicShelf(books, entity as MagicShelf);

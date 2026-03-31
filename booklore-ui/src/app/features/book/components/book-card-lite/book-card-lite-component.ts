@@ -22,8 +22,8 @@ import {TooltipModule} from 'primeng/tooltip';
 })
 export class BookCardLiteComponent implements OnInit, OnDestroy {
   @Input() book!: Book;
-  @Input() isActive: boolean = false;
-  @Input() showSeriesNumber: boolean = false;
+  @Input() isActive = false;
+  @Input() showSeriesNumber = false;
 
   private router = inject(Router);
   protected urlHelper = inject(UrlHelperService);
@@ -33,7 +33,7 @@ export class BookCardLiteComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   private metadataCenterViewMode: 'route' | 'dialog' = 'route';
-  isHovered: boolean = false;
+  isHovered = false;
 
   isAudiobookOnly(): boolean {
     const primaryIsAudiobook = this.book.primaryFile?.bookType === 'AUDIOBOOK';

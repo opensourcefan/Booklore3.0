@@ -49,7 +49,7 @@ export class AuthorService {
     return this.http.post<AuthorDetails>(`${this.baseUrl}/${authorId}/match`, request);
   }
 
-  quickMatchAuthor(authorId: number, region: string = 'us'): Observable<AuthorDetails> {
+  quickMatchAuthor(authorId: number, region = 'us'): Observable<AuthorDetails> {
     return this.http.post<AuthorDetails>(`${this.baseUrl}/${authorId}/quick-match`, null, {
       params: {region}
     });

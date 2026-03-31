@@ -98,18 +98,20 @@ export function doesBookMatchFilter(
       return effectiveMode === 'or'
         ? filterValues.some(val => book.shelves?.some(s => s.id == val))
         : filterValues.every(val => book.shelves?.some(s => s.id == val));
-    case 'shelfStatus':
+    case 'shelfStatus': {
       const shelved = book.shelves && book.shelves.length > 0 ? 'shelved' : 'not-shelfed';
       return filterValues.includes(shelved);
+    }
     case 'tag':
       return effectiveMode === 'or'
         ? filterValues.some(val => book.metadata?.tags?.includes(val as string))
         : filterValues.every(val => book.metadata?.tags?.includes(val as string));
-    case 'publishedDate':
+    case 'publishedDate': {
       const bookYear = book.metadata?.publishedDate
         ? new Date(book.metadata.publishedDate).getFullYear()
         : null;
       return bookYear ? filterValues.some(val => val == bookYear || val == bookYear.toString()) : false;
+    }
     case 'fileSize':
       return filterValues.some(range => isFileSizeInRange(book.fileSizeKb, range as string | number));
     case 'amazonRating':

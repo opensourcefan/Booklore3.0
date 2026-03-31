@@ -419,7 +419,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
                                 this.dialogRef?.close();
                               }
                             },
-                            error: () => {}
+                            error: () => { /* handled by global error handler */ }
                           });
                         }
                       });
@@ -448,7 +448,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
                                 this.dialogRef?.close();
                               }
                             },
-                            error: () => {}
+                            error: () => { /* handled by global error handler */ }
                           });
                         }
                       });
@@ -999,7 +999,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
     return `${size.toFixed(decimals)} ${units[unitIndex]}`;
   }
 
-  truncateFileName(fileName: string | undefined, maxLength: number = 30): string {
+  truncateFileName(fileName: string | undefined, maxLength = 30): string {
     if (!fileName) return '';
     if (fileName.length <= maxLength) return fileName;
 
@@ -1127,7 +1127,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
     return `var(--book-type-${type}-color, var(--p-gray-500))`;
   }
 
-  getStarColorScaled(rating?: number | null, maxScale: number = 5): string {
+  getStarColorScaled(rating?: number | null, maxScale = 5): string {
     if (rating == null) {
       return 'rgb(203, 213, 225)';
     }

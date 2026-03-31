@@ -102,7 +102,7 @@ export class BookdropService {
   private readonly url = `${API_CONFIG.BASE_URL}/api/v1/bookdrop`;
   private http = inject(HttpClient);
 
-  getPendingFiles(page: number = 0, size: number = 50): Observable<Page<BookdropFile>> {
+  getPendingFiles(page = 0, size = 50): Observable<Page<BookdropFile>> {
     return this.http.get<Page<BookdropFile>>(`${this.url}/files?status=pending&page=${page}&size=${size}`);
   }
 

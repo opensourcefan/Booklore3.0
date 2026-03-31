@@ -33,7 +33,7 @@ export class AuditLogService {
   private readonly http = inject(HttpClient);
   private readonly url = `${API_CONFIG.BASE_URL}/api/v1/audit-logs`;
 
-  getAuditLogs(page: number = 0, size: number = 25, action?: string, username?: string, from?: string, to?: string): Observable<PageableResponse<AuditLog>> {
+  getAuditLogs(page = 0, size = 25, action?: string, username?: string, from?: string, to?: string): Observable<PageableResponse<AuditLog>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());

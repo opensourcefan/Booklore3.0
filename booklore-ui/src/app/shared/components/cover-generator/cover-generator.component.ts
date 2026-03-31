@@ -5,9 +5,9 @@ import {Component, Input} from '@angular/core';
   template: ''
 })
 export class CoverGeneratorComponent {
-  @Input() title: string = '';
-  @Input() author: string = '';
-  @Input() isSquare: boolean = false;
+  @Input() title = '';
+  @Input() author = '';
+  @Input() isSquare = false;
 
   private wrapText(text: string, maxLineLength: number): string[] {
     const words = text.split(' ');

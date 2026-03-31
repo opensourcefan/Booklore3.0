@@ -47,15 +47,15 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   @Input() index!: number;
   @Input() book!: Book;
-  @Input() isCheckboxEnabled: boolean = false;
+  @Input() isCheckboxEnabled = false;
   @Input() onBookSelect?: (book: Book, selected: boolean) => void;
-  @Input() isSelected: boolean = false;
-  @Input() bottomBarHidden: boolean = false;
-  @Input() seriesViewEnabled: boolean = false;
-  @Input() isSeriesCollapsed: boolean = false;
+  @Input() isSelected = false;
+  @Input() bottomBarHidden = false;
+  @Input() seriesViewEnabled = false;
+  @Input() isSeriesCollapsed = false;
   @Input() overlayPreferenceService?: BookCardOverlayPreferenceService;
-  @Input() forceEbookMode: boolean = false;
-  @Input() useSquareCovers: boolean = false;
+  @Input() forceEbookMode = false;
+  @Input() useSquareCovers = false;
   @Input() titleRows = 1;
 
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
@@ -63,7 +63,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   items: MenuItem[] | undefined;
   readStatusMenuItems: MenuItem[] = [];
-  isImageLoaded: boolean = false;
+  isImageLoaded = false;
   isSubMenuLoading = false;
   private additionalFilesLoaded = false;
 
@@ -87,25 +87,25 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   protected _koProgressPercentage: number | null = null;
   protected _koboProgressPercentage: number | null = null;
   protected _displayTitle: string | undefined = undefined;
-  protected _isSeriesViewActive: boolean = false;
-  protected _coverImageUrl: string = '';
-  protected _readStatusIcon: string = '';
-  protected _readStatusClass: string = '';
-  protected _readStatusTooltip: string = '';
-  protected _shouldShowStatusIcon: boolean = false;
-  protected _seriesCountTooltip: string = '';
-  protected _titleTooltip: string = '';
-  protected _hasProgress: boolean = false;
-  protected _isAudiobook: boolean = false;
-  protected _progressTooltip: string = '';
-  protected _isContinueReading: boolean = false;
-  protected _readButtonIcon: string = 'pi pi-book';
+  protected _isSeriesViewActive = false;
+  protected _coverImageUrl = '';
+  protected _readStatusIcon = '';
+  protected _readStatusClass = '';
+  protected _readStatusTooltip = '';
+  protected _shouldShowStatusIcon = false;
+  protected _seriesCountTooltip = '';
+  protected _titleTooltip = '';
+  protected _hasProgress = false;
+  protected _isAudiobook = false;
+  protected _progressTooltip = '';
+  protected _isContinueReading = false;
+  protected _readButtonIcon = 'pi pi-book';
 
   private metadataCenterViewMode: 'route' | 'dialog' = 'route';
   private destroy$ = new Subject<void>();
   protected readStatusHelper = inject(ReadStatusHelper);
   private user: User | null = null;
-  private diskType: string = 'LOCAL';
+  private diskType = 'LOCAL';
   private menuInitialized = false;
 
   showBookTypePill = true;

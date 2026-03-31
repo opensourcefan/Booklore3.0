@@ -84,20 +84,20 @@ export class MetadataProviderSettingsComponent implements OnInit {
   ];
 
   selectedAudibleDomain = 'com';
-  audibleEnabled: boolean = false;
+  audibleEnabled = false;
 
-  hardcoverToken: string = '';
-  amazonCookie: string = '';
-  hardcoverEnabled: boolean = false;
-  amazonEnabled: boolean = false;
-  goodreadsEnabled: boolean = false;
-  googleEnabled: boolean = false;
-  comicvineEnabled: boolean = false;
-  comicvineToken: string = '';
-  doubanEnabled: boolean = false;
-  lubimyCzytacEnabled: boolean = false;
-  ranobedbEnabled: boolean = false;
-  googleApiKey: string = '';
+  hardcoverToken = '';
+  amazonCookie = '';
+  hardcoverEnabled = false;
+  amazonEnabled = false;
+  goodreadsEnabled = false;
+  googleEnabled = false;
+  comicvineEnabled = false;
+  comicvineToken = '';
+  doubanEnabled = false;
+  lubimyCzytacEnabled = false;
+  ranobedbEnabled = false;
+  googleApiKey = '';
 
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);

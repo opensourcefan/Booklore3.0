@@ -68,11 +68,11 @@ export class IconPickerComponent implements OnInit {
   messageService = inject(MessageService);
   userService = inject(UserService);
 
-  searchText: string = '';
+  searchText = '';
   selectedIcon: string | null = null;
   icons: string[] = IconCategoriesHelper.createIconList();
 
-  private _activeTabIndex: string = '0';
+  private _activeTabIndex = '0';
 
   get activeTabIndex(): string {
     return this._activeTabIndex;
@@ -85,23 +85,23 @@ export class IconPickerComponent implements OnInit {
     }
   }
 
-  svgContent: string = '';
-  svgName: string = '';
+  svgContent = '';
+  svgName = '';
   svgPreview: SafeHtml | null = null;
-  errorMessage: string = '';
+  errorMessage = '';
 
   svgEntries: SvgEntry[] = [];
-  isSavingBatch: boolean = false;
-  batchErrorMessage: string = '';
+  isSavingBatch = false;
+  batchErrorMessage = '';
 
   svgIcons: string[] = [];
-  svgSearchText: string = '';
-  isLoadingSvgIcons: boolean = false;
-  svgIconsError: string = '';
+  svgSearchText = '';
+  isLoadingSvgIcons = false;
+  svgIconsError = '';
   selectedSvgIcon: string | null = null;
 
   draggedSvgIcon: string | null = null;
-  isTrashHover: boolean = false;
+  isTrashHover = false;
 
   get canManageIcons(): boolean {
     const user = this.userService.getCurrentUser();

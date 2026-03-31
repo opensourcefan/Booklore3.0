@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Injectable, OnDestroy} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {debounceTime, filter, takeUntil} from 'rxjs/operators';
 import {UserService} from '../../../settings/user-management/user.service';
@@ -6,7 +6,7 @@ import {UserService} from '../../../settings/user-management/user.service';
 @Injectable({
   providedIn: 'root'
 })
-export class BookCardOverlayPreferenceService {
+export class BookCardOverlayPreferenceService implements OnDestroy {
   private readonly userService = inject(UserService);
 
   private readonly _showBookTypePill = new BehaviorSubject<boolean>(true);

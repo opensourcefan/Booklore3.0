@@ -17,7 +17,7 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 })
 export class MetaCenterViewModeComponent implements OnInit, OnDestroy {
   viewMode: 'route' | 'dialog' = 'route';
-  seriesViewMode: boolean = false;
+  seriesViewMode = false;
 
   private userService = inject(UserService);
   private messageService = inject(MessageService);

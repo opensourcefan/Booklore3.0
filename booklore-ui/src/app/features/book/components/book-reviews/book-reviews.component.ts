@@ -25,7 +25,7 @@ import {AppSettingsService} from '../../../../shared/service/app-settings.servic
 export class BookReviewsComponent implements OnInit, OnChanges {
   @Input() bookId!: number;
   @Input() reviews: BookReview[] | undefined = [];
-  @Input() active: boolean = false;
+  @Input() active = false;
 
   private reviewService = inject(BookReviewService);
   private bookService = inject(BookService);

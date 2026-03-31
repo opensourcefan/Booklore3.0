@@ -51,8 +51,10 @@ export class ShelfService {
   public reloadShelves(): void {
     this.fetchShelves().subscribe({
       next: () => {
+        // state managed in BehaviorSubject — no action needed
       },
       error: () => {
+        // errors handled in fetchShelves — non-critical reload failure
       }
     });
   }

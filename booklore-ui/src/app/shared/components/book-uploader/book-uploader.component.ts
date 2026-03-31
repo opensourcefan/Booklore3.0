@@ -52,8 +52,8 @@ export class BookUploaderComponent implements OnInit {
   @ViewChild(FileUpload) fileUpload!: FileUpload;
 
   files: UploadingFile[] = [];
-  isUploading: boolean = false;
-  uploadCompleted: boolean = false;
+  isUploading = false;
+  uploadCompleted = false;
   _selectedLibrary: Library | null = null;
   selectedPath: LibraryPath | null = null;
 
@@ -68,7 +68,7 @@ export class BookUploaderComponent implements OnInit {
   readonly libraryState$: Observable<LibraryState> = this.libraryService.libraryState$;
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
   maxFileSizeBytes?: number;
-  maxFileSizeDisplay: string = '100 MB';
+  maxFileSizeDisplay = '100 MB';
   stateOptions = [
     {label: this.t.translate('shared.bookUploader.destinationLibrary'), value: 'library'},
     {label: this.t.translate('shared.bookUploader.destinationBookdrop'), value: 'bookdrop'}

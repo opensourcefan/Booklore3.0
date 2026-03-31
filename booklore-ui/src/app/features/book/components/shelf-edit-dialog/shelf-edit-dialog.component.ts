@@ -38,10 +38,10 @@ export class ShelfEditDialogComponent implements OnInit {
   private userService = inject(UserService);
   private readonly t = inject(TranslocoService);
 
-  shelfName: string = '';
+  shelfName = '';
   selectedIcon: IconSelection | null = null;
   shelf!: Shelf | undefined;
-  isPublic: boolean = false;
+  isPublic = false;
   isAdmin: boolean = this.userService.getCurrentUser()?.permissions.admin ?? false;
 
   ngOnInit(): void {

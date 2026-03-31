@@ -40,7 +40,7 @@ export class EmailV2ProviderComponent implements OnInit {
   private t = inject(TranslocoService);
   defaultProviderId: unknown;
   currentUserId: number | null = null;
-  isAdmin: boolean = false;
+  isAdmin = false;
 
   ngOnInit(): void {
     this.loadCurrentUser();

@@ -454,7 +454,7 @@ export class MagicShelfComponent implements OnInit {
   });
 
   shelfId: number | null = null;
-  isAdmin: boolean = false;
+  isAdmin = false;
   editMode!: boolean;
   showImportPanel = false;
   importJson = '';
@@ -690,7 +690,7 @@ export class MagicShelfComponent implements OnInit {
     rules.push(this.createRule());
   }
 
-  readonly ruleExamples: Array<{key: string; field: RuleField; operator: RuleOperator; value?: string; valueEnd?: string}> = [
+  readonly ruleExamples: {key: string; field: RuleField; operator: RuleOperator; value?: string; valueEnd?: string}[] = [
     {key: 'currentlyReading', field: 'readStatus', operator: 'equals', value: 'READING'},
     {key: 'unread', field: 'readStatus', operator: 'equals', value: 'UNREAD'},
     {key: 'addedThisMonth', field: 'addedOn', operator: 'this_period', value: 'month'},

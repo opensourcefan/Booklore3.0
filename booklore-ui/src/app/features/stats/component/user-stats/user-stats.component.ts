@@ -75,7 +75,7 @@ export class UserStatsComponent implements OnInit, OnDestroy {
   private chartConfigService = inject(UserChartConfigService);
 
   public currentYear = new Date().getFullYear();
-  public userName: string = '';
+  public userName = '';
   public showConfigPanel = false;
   public charts: UserChartConfig[] = [];
   public visibleCharts: UserChartConfig[] = [];

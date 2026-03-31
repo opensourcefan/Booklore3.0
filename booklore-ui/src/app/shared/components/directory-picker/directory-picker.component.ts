@@ -38,11 +38,11 @@ export class DirectoryPickerComponent implements OnInit {
   value: unknown;
   paths: string[] = [];
   filteredPaths: string[] = [];
-  selectedProductName: string = '';
+  selectedProductName = '';
   selectedFolders: string[] = [];
   selectedFoldersMap: Record<string, boolean> = {};
-  searchQuery: string = '';
-  isLoading: boolean = false;
+  searchQuery = '';
+  isLoading = false;
   breadcrumbItems: MenuItem[] = [];
   home: MenuItem = {icon: 'pi pi-home', command: () => this.navigateToRoot()};
   recentPaths: string[] = [];
@@ -73,7 +73,9 @@ export class DirectoryPickerComponent implements OnInit {
     });
     try {
       localStorage.setItem(this.RECENT_DIRS_KEY, JSON.stringify(this.recentPaths));
-    } catch {}
+    } catch {
+      // localStorage unavailable — recent paths not persisted
+    }
   }
 
   navigateToRecent(path: string): void {

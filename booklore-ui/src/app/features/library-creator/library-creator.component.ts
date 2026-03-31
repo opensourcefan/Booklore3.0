@@ -28,20 +28,20 @@ import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/tran
   styleUrl: './library-creator.component.scss'
 })
 export class LibraryCreatorComponent implements OnInit {
-  chosenLibraryName: string = '';
+  chosenLibraryName = '';
   folders: string[] = [];
   selectedIcon: IconSelection | null = null;
 
   mode!: string;
   library!: Library | undefined;
-  editModeLibraryName: string = '';
-  watch: boolean = false;
-  tagByDirectory: boolean = false;
+  editModeLibraryName = '';
+  watch = false;
+  tagByDirectory = false;
   directoryTagDepth: DirectoryTagDepth = 'LAST_ONLY';
   directoryTagDepthOptions: {label: string, value: string}[] = [];
   formatPriority: {type: BookType, label: string}[] = [];
-  allowAllFormats: boolean = true;
-  selectedAllowedFormats: Set<BookType> = new Set();
+  allowAllFormats = true;
+  selectedAllowedFormats = new Set<BookType>();
   formatCounts: Record<string, number> = {};
   metadataSource: MetadataSource = 'EMBEDDED';
   organizationMode: OrganizationMode = 'BOOK_PER_FILE';

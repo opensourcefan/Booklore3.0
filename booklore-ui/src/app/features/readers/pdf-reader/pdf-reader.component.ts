@@ -31,7 +31,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   }
 
   isLoading = true;
-  totalPages: number = 0;
+  totalPages = 0;
   isDarkTheme = true;
   canPrint = false;
 

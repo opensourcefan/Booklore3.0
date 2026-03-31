@@ -29,8 +29,8 @@ export class DashboardScrollerComponent implements OnInit {
   @Input() bookListType: ScrollerType | null = null;
   @Input() title!: string;
   @Input() books!: Book[] | null;
-  @Input() isMagicShelf: boolean = false;
-  @Input() useSquareCovers: boolean = false;
+  @Input() isMagicShelf = false;
+  @Input() useSquareCovers = false;
 
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   openMenuBookId: number | null = null;

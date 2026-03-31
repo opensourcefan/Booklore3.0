@@ -125,7 +125,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
   protected urlHelper = inject(UrlHelperService);
 
   @ViewChild('descriptionContent') descriptionContentRef?: ElementRef<HTMLElement>;
-  tab: string = "view";
+  tab = "view";
   isExpanded = false;
   isOverflowing = false;
 
@@ -656,6 +656,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
           });
       },
       reject: () => {
+        // user dismissed — no action needed
       }
     });
   }

@@ -51,7 +51,7 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
   readonly AdditionalFileType = AdditionalFileType;
   private static readonly BOOK_FORMAT_ACCEPT = '.pdf,.epub,.cbz,.cbr,.cb7,.fb2,.mobi,.azw,.azw3,.m4b,.m4a,.mp3,.opus';
   maxFileSizeBytes?: number;
-  maxFileSizeDisplay: string = '100 MB';
+  maxFileSizeDisplay = '100 MB';
 
   fileTypeOptions: FileTypeOption[] = [];
 

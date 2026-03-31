@@ -50,7 +50,7 @@ export class AudiobookSessionService {
   startSession(
     bookId: number,
     startPositionMs: number,
-    playbackRate: number = 1,
+    playbackRate = 1,
     bookFileId?: number,
     trackIndex?: number
   ): void {

@@ -63,9 +63,9 @@ export class ReaderStateService {
   }
 
   readonly themes = themes;
-  private fontsSubject = new BehaviorSubject<Array<{ name: string; value: string | null }>>(this.BASE_FONTS);
+  private fontsSubject = new BehaviorSubject<{ name: string; value: string | null }[]>(this.BASE_FONTS);
 
-  get fonts(): Array<{ name: string; value: string | null }> {
+  get fonts(): { name: string; value: string | null }[] {
     return this.fontsSubject.value;
   }
 

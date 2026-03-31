@@ -66,7 +66,7 @@ export class OpdsSettings implements OnInit, OnDestroy {
   editingSortOrder: OpdsSortOrder | null = null;
 
   private readonly destroy$ = new Subject<void>();
-  dummyPassword: string = "***********************";
+  dummyPassword = "***********************";
 
   sortOrderOptions = [
     {label: 'Recently Added', value: 'RECENT' as OpdsSortOrder, translationKey: 'settingsOpds.sortOrders.recent'},

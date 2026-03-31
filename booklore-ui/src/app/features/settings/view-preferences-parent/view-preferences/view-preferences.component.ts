@@ -85,10 +85,10 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
   shelfOptions: { label: string; value: number }[] = [];
   magicShelfOptions: { label: string; value: number }[] = [];
 
-  selectedSort: string = 'title';
+  selectedSort = 'title';
   selectedSortDir: 'ASC' | 'DESC' = 'ASC';
   selectedView: 'GRID' | 'TABLE' = 'GRID';
-  autoSaveMetadata: boolean = false;
+  autoSaveMetadata = false;
   sortCriteria: SortCriterion[] = [];
 
   // SortOption[] versions for the multi-sort-popover component

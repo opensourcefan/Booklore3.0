@@ -24,9 +24,9 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
   styleUrl: './change-password.component.scss'
 })
 export class ChangePasswordComponent {
-  currentPassword: string = '';
-  newPassword: string = '';
-  confirmNewPassword: string = '';
+  currentPassword = '';
+  newPassword = '';
+  confirmNewPassword = '';
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
