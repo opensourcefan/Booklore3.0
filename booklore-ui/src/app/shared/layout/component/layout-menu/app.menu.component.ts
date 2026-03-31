@@ -1,5 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {AppMenuitemComponent} from './app.menuitem.component';
+import {AppMenuitemComponent, AppMenuItem} from './app.menuitem.component';
 import {AsyncPipe, NgClass} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
@@ -38,10 +38,10 @@ import {BookDialogHelperService} from '../../../../features/book/components/book
   styleUrl: './app.menu.component.scss',
 })
 export class AppMenuComponent implements OnInit {
-  libraryMenu$: Observable<MenuItem[]> | undefined;
-  shelfMenu$: Observable<MenuItem[]> | undefined;
-  homeMenu$: Observable<MenuItem[]> | undefined;
-  magicShelfMenu$: Observable<MenuItem[]> | undefined;
+  libraryMenu$: Observable<AppMenuItem[]> | undefined;
+  shelfMenu$: Observable<AppMenuItem[]> | undefined;
+  homeMenu$: Observable<AppMenuItem[]> | undefined;
+  magicShelfMenu$: Observable<AppMenuItem[]> | undefined;
   bookTypeMenu$: Observable<{label: string; count: number}[]> | undefined;
   readonly sectionDragStartDelay = {mouse: 220, touch: 350};
   bookTypeSectionExpanded = true;
@@ -67,7 +67,7 @@ export class AppMenuComponent implements OnInit {
   private messageService = inject(MessageService);
 
   activeLang = '';
-  langMenuItems: any[] = [];
+  langMenuItems: MenuItem[] = [];
   private router = inject(Router);
 
   librarySortField: 'name' | 'id' = 'name';
@@ -366,7 +366,7 @@ export class AppMenuComponent implements OnInit {
     });
   }
 
-  getMediaTypeMenuItems(mediaType: string): MenuItem[] {
+  getMediaTypeMenuItems(mediaType: string): AppMenuItem[] {
     return [
       {
         label: 'Edit Media Type',
@@ -638,7 +638,7 @@ export class AppMenuComponent implements OnInit {
           bookCount$: this.shelfService.getUnshelvedBookCount?.() ?? of(0),
         };
 
-        const items: MenuItem[] = [notShelfedItem];
+          const items: AppMenuItem[] = [notShelfedItem];
         if (koboShelf) {
           items.push({
             label: koboShelf.name,
@@ -818,7 +818,7 @@ export class AppMenuComponent implements OnInit {
   }
 
 
-  private applyNestedItemOrder(menuKey: string, menuItems: MenuItem[]): MenuItem[] {
+  private applyNestedItemOrder(menuKey: string, menuItems: AppMenuItem[]): AppMenuItem[] {
     const savedOrder = this.localStorageService.get<string[]>(`${this.nestedOrderPrefix}${menuKey}`);
     if (!savedOrder?.length) {
       return menuItems;
@@ -831,7 +831,7 @@ export class AppMenuComponent implements OnInit {
 
       const items = [...item.items];
       const lookup = new Map(items.map(child => [this.getMenuItemOrderId(child), child]));
-      const ordered: MenuItem[] = [];
+      const ordered: AppMenuItem[] = [];
 
       for (const id of savedOrder) {
         const match = lookup.get(id);

@@ -1,7 +1,7 @@
 import {Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {NavigationEnd, Router, RouterLink} from '@angular/router';
 import {animate, state, style, transition, trigger} from '@angular/animations';
-import {Subscription} from 'rxjs';
+import {Subscription, Observable} from 'rxjs';
 import {filter} from 'rxjs/operators';
 import {MenuService} from './service/app.menu.service';
 import {AsyncPipe, NgClass} from '@angular/common';
@@ -15,8 +15,22 @@ import {IconDisplayComponent} from '../../../components/icon-display/icon-displa
 import {Tooltip} from 'primeng/tooltip';
 import {IconSelection} from '../../../service/icon-picker.service';
 import {TranslocoPipe} from '@jsverse/transloco';
+import {MenuItem} from 'primeng/api';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {LocalStorageService} from '../../../service/local-storage.service';
+
+export interface AppMenuItem extends MenuItem {
+  type?: string;
+  class?: string;
+  badgeClass?: string;
+  hasDropDown?: boolean;
+  hasCreate?: boolean;
+  iconType?: 'PRIME_NG' | 'CUSTOM_SVG';
+  menu?: AppMenuItem[];
+  bookCount$?: Observable<number>;
+  unhealthy$?: Observable<boolean>;
+  items?: AppMenuItem[];
+}
 
 @Component({
   selector: '[app-menuitem]',
@@ -49,7 +63,7 @@ import {LocalStorageService} from '../../../service/local-storage.service';
   ]
 })
 export class AppMenuitemComponent implements OnInit, OnDestroy {
-  @Input() item: any;
+  @Input() item!: AppMenuItem;
   @Input() index!: number;
   @Input() @HostBinding('class.layout-root-menuitem') root!: boolean;
   @Input() parentKey!: string;
@@ -152,7 +166,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     return this.expandedItems.has(key);
   }
 
-  onChildDrop(event: CdkDragDrop<any[]>): void {
+  onChildDrop(event: CdkDragDrop<AppMenuItem[]>): void {
     if (!this.root || !this.item?.items || event.previousIndex === event.currentIndex) {
       return;
     }
@@ -199,7 +213,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     this.menuService.onMenuStateChange({key: this.key});
   }
 
-  openDialog(item: any) {
+  openDialog(item: AppMenuItem) {
     if (item.type === 'library' && this.canManipulateLibrary) {
       this.dialogLauncher.openLibraryCreateDialog();
     }
@@ -269,11 +283,11 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const order = this.item.items.map((child: any) => this.getItemOrderId(child));
+    const order = this.item.items!.map((child: AppMenuItem) => this.getItemOrderId(child));
     this.localStorageService.set(`sidebarNestedOrder_${this.menuKey}`, order);
   }
 
-  private getItemOrderId(item: any): string {
+  private getItemOrderId(item: AppMenuItem): string {
     const link = Array.isArray(item?.routerLink) ? item.routerLink[0] : item?.routerLink;
     return String(link ?? item?.label ?? '');
   }
