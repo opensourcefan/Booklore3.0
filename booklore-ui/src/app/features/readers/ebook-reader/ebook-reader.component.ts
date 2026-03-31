@@ -438,12 +438,12 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('document:mouseleave', ['$event'])
-  onMouseLeave(event: MouseEvent): void {
+  onMouseLeave(_event: MouseEvent): void {
     this.visibilityManager.handleMouseLeave();
   }
 
   @HostListener('window:resize', ['$event'])
-  onWindowResize(event: Event): void {
+  onWindowResize(_event: Event): void {
     this.visibilityManager.updateWindowHeight(window.innerHeight);
   }
 

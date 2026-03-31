@@ -376,7 +376,6 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
   }
 
   confirmMerge() {
-    const selected = this.getSelectedItems(this.currentMergeType);
     if (!this.mergeTarget.trim()) {
       this.messageService.add({
         severity: 'warn',

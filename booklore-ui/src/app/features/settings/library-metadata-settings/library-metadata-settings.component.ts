@@ -172,7 +172,7 @@ export class LibraryMetadataSettingsComponent implements OnInit {
     }
   }
 
-  private updateLibraryOptionsFromSettings(appSettings: AppSettings) {
+  private updateLibraryOptionsFromSettings(_appSettings: AppSettings) {
     Object.keys(this.libraryMetadataOptions).forEach(libraryIdStr => {
       const libraryId = parseInt(libraryIdStr, 10);
       if (!this.hasLibrarySpecificOptions(libraryId)) {

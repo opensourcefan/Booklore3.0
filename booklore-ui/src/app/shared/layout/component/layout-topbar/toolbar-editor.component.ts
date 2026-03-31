@@ -50,7 +50,7 @@ export class ToolbarEditorComponent {
   draftItems: ToolbarItem[] = this.config.items.map(item => ({...item}));
 
   onDragStart(i: number) { this.dragIndex = i; }
-  onDragOver(e: DragEvent, i: number) { e.preventDefault(); }
+  onDragOver(e: DragEvent, _i: number) { e.preventDefault(); }
   onDrop(i: number) {
     if (this.dragIndex < 0 || this.dragIndex === i) return;
     const items = [...this.draftItems];

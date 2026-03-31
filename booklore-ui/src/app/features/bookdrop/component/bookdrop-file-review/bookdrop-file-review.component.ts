@@ -278,7 +278,7 @@ export class BookdropFileReviewComponent implements OnInit {
   }
 
   copyMetadata(): void {
-    const files = this.getSelectedFiles().map(fileUi => {
+    this.getSelectedFiles().map(fileUi => {
       const cachedfUi = this.fileUiCache[fileUi.file.id];
       const fetched = cachedfUi.file.fetchedMetadata;
       const form = cachedfUi.metadataForm;
@@ -299,7 +299,7 @@ export class BookdropFileReviewComponent implements OnInit {
   resetMetadata(): void {
     const selectedFiles = this.getSelectedFiles();
 
-    const files = selectedFiles.map(fileUi => {
+    selectedFiles.map(fileUi => {
       const original = fileUi.file.originalMetadata;
       fileUi.metadataForm.patchValue({
         title: original?.title || null,

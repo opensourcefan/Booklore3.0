@@ -159,7 +159,7 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
     uploadCallback();
   }
 
-  uploadFiles(event: FileUploadHandlerEvent): void {
+  uploadFiles(_event: FileUploadHandlerEvent): void {
     const filesToUpload = this.files.filter(f => f.status === 'Pending');
 
     if (filesToUpload.length === 0) return;

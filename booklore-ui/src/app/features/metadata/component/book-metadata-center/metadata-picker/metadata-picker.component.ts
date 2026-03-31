@@ -190,7 +190,7 @@ export class MetadataPickerComponent implements OnInit {
     });
   }
 
-  private patchMetadataToForm(metadata: BookMetadata, book: Book): void {
+  private patchMetadataToForm(metadata: BookMetadata, _book: Book): void {
     const patchData: Record<string, unknown> = {};
 
     for (const field of ALL_METADATA_FIELDS) {

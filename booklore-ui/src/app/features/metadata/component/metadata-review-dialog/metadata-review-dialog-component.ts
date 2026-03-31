@@ -93,7 +93,7 @@ export class MetadataReviewDialogComponent implements OnInit {
     return this.proposals[this.currentIndex] ?? null;
   }
 
-  onSave(updatedFields: Partial<FetchedProposal>): void {
+  onSave(_updatedFields: Partial<FetchedProposal>): void {
     const currentProposal = this.currentProposal;
     if (!currentProposal) return;
     this.pickerComponent.onSave();

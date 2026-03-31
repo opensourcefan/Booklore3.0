@@ -1,5 +1,4 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {LibraryService} from '../../../book/service/library.service';
 import {Observable} from 'rxjs';
 import {map, shareReplay, switchMap} from 'rxjs/operators';
@@ -74,7 +73,7 @@ export class MainDashboardComponent implements OnInit {
     });
   }
 
-  private getLastReadBooks(maxItems: number, sortBy?: string): Observable<Book[]> {
+  private getLastReadBooks(maxItems: number, _sortBy?: string): Observable<Book[]> {
     return this.bookService.bookState$.pipe(
       map((state: BookState) => {
         let books = (state.books || []).filter(book =>
@@ -114,7 +113,7 @@ export class MainDashboardComponent implements OnInit {
     return !!(book.epubProgress || book.pdfProgress || book.cbxProgress || book.koreaderProgress || book.koboProgress);
   }
 
-  private getLatestAddedBooks(maxItems: number, sortBy?: string): Observable<Book[]> {
+  private getLatestAddedBooks(maxItems: number, _sortBy?: string): Observable<Book[]> {
     return this.bookService.bookState$.pipe(
       map((state: BookState) => {
         let books = (state.books || []).filter(book => book.addedOn);
@@ -130,7 +129,7 @@ export class MainDashboardComponent implements OnInit {
     );
   }
 
-  private getRandomBooks(maxItems: number, sortBy?: string): Observable<Book[]> {
+  private getRandomBooks(maxItems: number, _sortBy?: string): Observable<Book[]> {
     return this.bookService.bookState$.pipe(
       map((state: BookState) => {
         const excludedStatuses = new Set<ReadStatus>([
@@ -151,7 +150,7 @@ export class MainDashboardComponent implements OnInit {
     );
   }
 
-  private getMagicShelfBooks(shelfId: number, maxItems?: number, sortBy?: string): Observable<Book[]> {
+  private getMagicShelfBooks(shelfId: number, maxItems?: number, _sortBy?: string): Observable<Book[]> {
     return this.magicShelfService.getShelf(shelfId).pipe(
       switchMap((shelf) => {
         if (!shelf) return this.bookService.bookState$.pipe(map(() => []));

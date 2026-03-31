@@ -10,12 +10,7 @@ import {BookState} from '../../../../../book/model/state/book-state.model';
 import {Book} from '../../../../../book/model/book.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
-interface ScoreRange {
-  label: string;
-  min: number;
-  max: number;
-  color: string;
-}
+type ScoreRangeKey = 'excellent' | 'good' | 'fair' | 'poor' | 'veryPoor';
 
 interface ScoreStats {
   range: string;
@@ -26,9 +21,7 @@ interface ScoreStats {
 
 type ScoreChartData = ChartData<'doughnut', number[], string>;
 
-const SCORE_RANGE_KEYS = ['excellent', 'good', 'fair', 'poor', 'veryPoor'] as const;
-
-const SCORE_RANGE_DEFS: { key: typeof SCORE_RANGE_KEYS[number]; min: number; max: number; color: string }[] = [
+const SCORE_RANGE_DEFS: { key: ScoreRangeKey; min: number; max: number; color: string }[] = [
   {key: 'excellent', min: 90, max: 100, color: '#16A34A'},
   {key: 'good', min: 70, max: 89, color: '#22C55E'},
   {key: 'fair', min: 50, max: 69, color: '#F59E0B'},

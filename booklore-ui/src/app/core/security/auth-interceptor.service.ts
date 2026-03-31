@@ -65,6 +65,6 @@ function handle401Error(authService: AuthService, request: HttpRequest<unknown>,
   );
 }
 
-function forceLogout(authService: AuthService, router: Router): void {
+function forceLogout(authService: AuthService, _router: Router): void {
   authService.logout();
 }

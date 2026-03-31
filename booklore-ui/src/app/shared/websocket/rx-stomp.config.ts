@@ -16,7 +16,7 @@ export function createRxStompConfig(authService: AuthService): RxStompConfig {
         };
       }
     },
-    debug: (msg: string): void => {
+    debug: (_msg: string): void => {
       // console.log(new Date(), msg);
     },
   };

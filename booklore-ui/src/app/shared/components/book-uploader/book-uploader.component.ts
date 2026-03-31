@@ -11,7 +11,6 @@ import {Library, LibraryPath} from '../../../features/book/model/library.model';
 import {LibraryState} from '../../../features/book/model/state/library-state.model';
 import {Observable} from 'rxjs';
 import {API_CONFIG} from '../../../core/config/api-config';
-import {Book} from '../../../features/book/model/book.model';
 import {HttpClient, HttpEventType, HttpRequest} from '@angular/common/http';
 import {Tooltip} from 'primeng/tooltip';
 import {AppSettingsService} from '../../service/app-settings.service';
@@ -180,7 +179,7 @@ export class BookUploaderComponent implements OnInit {
     uploadCallback();
   }
 
-  uploadFiles(event: FileUploadHandlerEvent): void {
+  uploadFiles(_event: FileUploadHandlerEvent): void {
     if (this.value === 'library' && (!this.selectedLibrary || !this.selectedPath)) {
       this.messageService.add({
         severity: 'warn',

@@ -333,7 +333,7 @@ export class BulkIsbnImportDialogComponent implements OnInit {
   }
 
   private lookupIsbn(isbn: string): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       this.bookMetadataService.lookupByIsbn(isbn).subscribe({
         next: metadata => resolve(metadata),
         error: err => {

@@ -1,7 +1,7 @@
 import {AfterViewChecked, Component, ElementRef, inject, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
-import {combineLatest, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ProgressSpinner} from 'primeng/progressspinner';

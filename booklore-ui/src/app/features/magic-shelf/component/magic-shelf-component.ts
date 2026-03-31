@@ -471,7 +471,7 @@ export class MagicShelfComponent implements OnInit {
 
   selectedIcon: IconSelection | null = null;
 
-  trackByFn(ruleCtrl: AbstractControl, index: number): unknown {
+  trackByFn(ruleCtrl: AbstractControl, _index: number): unknown {
     return ruleCtrl;
   }
 

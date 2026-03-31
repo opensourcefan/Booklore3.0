@@ -12,7 +12,6 @@ import {FileMoverComponent} from '../../../../shared/components/file-mover/file-
 import {ShelfCreatorComponent} from '../shelf-creator/shelf-creator.component';
 import {BookTypeCreatorComponent} from '../book-type-creator/book-type-creator.component';
 import {BookSenderComponent} from '../book-sender/book-sender.component';
-import {MetadataFetchOptionsComponent} from '../../../metadata/component/metadata-options-dialog/metadata-fetch-options/metadata-fetch-options.component';
 import {BookMetadataCenterComponent} from '../../../metadata/component/book-metadata-center/book-metadata-center.component';
 import {CoverSearchComponent} from '../../../metadata/component/cover-search/cover-search.component';
 import {Book} from '../../model/book.model';

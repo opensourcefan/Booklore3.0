@@ -517,7 +517,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
     ).subscribe(book => this.filterRecommendations(book));
   }
 
-  private filterRecommendations(book: Book | null): void {
+  private filterRecommendations(_book: Book | null): void {
     if (!this.originalRecommendedBooks) return;
     const bookInSeriesIds = new Set(this.bookInSeries.map(book => book.id));
     this.recommendedBooks = this.originalRecommendedBooks.filter(
@@ -743,7 +743,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
       }
 
       this.bookService.updateBookReadStatus(book.id, status).subscribe({
-        next: (updatedBooks) => {
+        next: (_updatedBooks) => {
           this.selectedReadStatus = status;
           this.messageService.add({
             severity: 'success',

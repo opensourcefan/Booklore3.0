@@ -1567,7 +1567,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('document:mouseleave', ['$event'])
-  onMouseLeave(event: MouseEvent): void {
+  onMouseLeave(_event: MouseEvent): void {
     this.visibilityManager.handleMouseLeave();
     if (this.isMagnifierActive) {
       this.hideMagnifier();

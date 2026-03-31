@@ -1,6 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {distinctUntilChanged, filter, map} from 'rxjs/operators';
+import {filter} from 'rxjs/operators';
 import {MessageService} from 'primeng/api';
 
 import {AiPanelScanProgressPayload} from '../model/ai-panel-scan-progress.model';

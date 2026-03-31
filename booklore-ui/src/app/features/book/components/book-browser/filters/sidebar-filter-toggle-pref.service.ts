@@ -48,7 +48,7 @@ export class SidebarFilterTogglePrefService {
   private savePreference(value: boolean): void {
     try {
       this.localStorageService.set(this.STORAGE_KEY, value);
-    } catch (e) {
+    } catch (_e) {
       this.messageService.add({
         severity: 'error',
         summary: this.t.translate('book.filterPref.toast.saveFailedSummary'),

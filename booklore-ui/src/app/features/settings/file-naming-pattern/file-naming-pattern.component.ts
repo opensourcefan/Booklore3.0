@@ -100,7 +100,7 @@ export class FileNamingPatternComponent implements OnInit {
     this.defaultErrorMessage = this.validatePattern(pattern) ? '' : this.t.translate('settingsNaming.defaultPattern.invalidChars');
   }
 
-  onLibraryPatternChange(library: Library): void {
+  onLibraryPatternChange(_library: Library): void {
     // Optionally add per-library validation here
   }
 

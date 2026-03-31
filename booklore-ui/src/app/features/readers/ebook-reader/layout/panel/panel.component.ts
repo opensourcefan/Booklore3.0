@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Subject} from 'rxjs';
@@ -6,7 +6,7 @@ import {takeUntil, debounceTime, distinctUntilChanged, filter} from 'rxjs/operat
 import {TranslocoDirective} from '@jsverse/transloco';
 import {ReaderLeftSidebarService, LeftSidebarTab} from './panel.service';
 import {BookNoteV2} from '../../../../../shared/service/book-note-v2.service';
-import {SearchState, SearchResult} from '../sidebar/sidebar.service';
+import {SearchState} from '../sidebar/sidebar.service';
 import {ReaderIconComponent} from '../../shared/icon.component';
 
 @Component({

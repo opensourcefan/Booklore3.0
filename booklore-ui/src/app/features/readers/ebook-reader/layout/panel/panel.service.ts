@@ -174,7 +174,7 @@ export class ReaderLeftSidebarService {
         isSearching: false,
         progress: 1
       });
-    } catch (error) {
+    } catch (_error) {
       this._searchState.next({
         ...this._searchState.value,
         isSearching: false

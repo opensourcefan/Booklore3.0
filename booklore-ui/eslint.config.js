@@ -16,6 +16,13 @@ module.exports = tseslint.config(
     rules: {
       "*": "off",
       "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unused-vars": ["error", {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }],
       "@angular-eslint/directive-selector": [
         "error",
         {

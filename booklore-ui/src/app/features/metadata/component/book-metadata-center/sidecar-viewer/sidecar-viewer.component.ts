@@ -1,6 +1,6 @@
 import {Component, inject, Input, OnDestroy, OnInit} from '@angular/core';
 import {Observable, Subject} from 'rxjs';
-import {filter, switchMap, takeUntil} from 'rxjs/operators';
+import {filter, takeUntil} from 'rxjs/operators';
 import {Book} from '../../../../book/model/book.model';
 import {SidecarMetadata, SidecarService, SidecarSyncStatus} from '../../../service/sidecar.service';
 import {MessageService} from 'primeng/api';

@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {Book} from '../../../../book/model/book.model';
 

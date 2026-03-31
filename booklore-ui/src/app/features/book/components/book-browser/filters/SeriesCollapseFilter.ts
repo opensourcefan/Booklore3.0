@@ -111,7 +111,7 @@ export class SeriesCollapseFilter implements BookFilter, OnDestroy {
           }
         }
 
-        for (const [seriesName, group] of seriesMap.entries()) {
+        for (const [_seriesName, group] of seriesMap.entries()) {
           const sortedGroup = group.slice().sort((a, b) => {
             const aNum = a.metadata?.seriesNumber ?? Number.MAX_VALUE;
             const bNum = b.metadata?.seriesNumber ?? Number.MAX_VALUE;
