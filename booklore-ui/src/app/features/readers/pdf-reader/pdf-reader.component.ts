@@ -1,6 +1,6 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, pdfDefaultOptions, ZoomType} from 'ngx-extended-pdf-viewer';
+import {EditorAnnotation, NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, pdfDefaultOptions, ZoomType} from 'ngx-extended-pdf-viewer';
 import {PageTitleService} from "../../../shared/service/page-title.service";
 import {BookService} from '../../book/service/book.service';
 import {forkJoin, Subject, Subscription} from 'rxjs';
@@ -217,7 +217,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     }
     const serialized = this.pdfViewerService.getSerializedAnnotations();
     if (serialized && serialized.length > 0) {
-      const cleaned = serialized.map(({id, ...rest}: any) => rest);
+      const cleaned = serialized.map(({id: _id, ...rest}: EditorAnnotation) => rest);
       const data = JSON.stringify(cleaned);
       this.pdfAnnotationService.saveAnnotations(this.bookId, data).subscribe();
     }

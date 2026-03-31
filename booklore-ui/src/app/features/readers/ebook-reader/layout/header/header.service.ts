@@ -120,7 +120,7 @@ export class ReaderHeaderService {
       fontSize: state.fontSize,
       theme: typeof state.theme === 'object' && 'name' in state.theme
         ? state.theme.name
-        : (state.theme as any),
+        : (state.theme as unknown as string),
       maxInlineSize: state.maxInlineSize,
       maxBlockSize: state.maxBlockSize,
       fontFamily: state.fontFamily,
