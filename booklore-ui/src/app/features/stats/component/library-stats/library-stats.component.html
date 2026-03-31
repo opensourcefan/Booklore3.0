@@ -65,8 +65,8 @@
   </div>
 
   @if (showConfigPanel) {
-    <div class="config-modal-overlay" (click)="closeConfigPanel()">
-      <div class="config-modal" (click)="$event.stopPropagation()">
+    <div class="config-modal-overlay" tabindex="0" (keydown.enter)="closeConfigPanel()" (click)="closeConfigPanel()">
+      <div class="config-modal" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
         <div class="config-modal-header">
           <h3><i class="pi pi-cog"></i> {{ t('config.title') }}</h3>
           <button type="button" class="close-btn" (click)="closeConfigPanel()" [title]="t('config.close')">

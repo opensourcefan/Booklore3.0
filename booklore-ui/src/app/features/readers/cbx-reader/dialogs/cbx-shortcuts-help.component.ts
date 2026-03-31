@@ -75,7 +75,7 @@ export class CbxShortcutsHelpComponent {
     this.dialogClose.emit();
   }
 
-  onOverlayClick(event: MouseEvent): void {
+  onOverlayClick(event: Event): void {
     if ((event.target as HTMLElement).classList.contains('dialog-overlay')) {
       this.onClose();
     }

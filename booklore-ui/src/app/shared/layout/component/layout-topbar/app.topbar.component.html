@@ -29,13 +29,13 @@
     </span>
   </a>
 
-  <a class="topbar-item sidebar-toggle-btn"
+  <button type="button" class="topbar-item sidebar-toggle-btn"
      #menubutton
      (click)="toggleMenu()"
      [pTooltip]="isMenuVisible ? 'Hide sidebar' : 'Show sidebar'"
      tooltipPosition="bottom">
     <i [ngClass]="isMenuVisible ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"></i>
-  </a>
+  </button>
 
   <div class="topbar-content">
     <app-book-searcher class="topbar-search"></app-book-searcher>
@@ -81,30 +81,30 @@
           @switch (item.id) {
             @case ('bookdrop') {
               <li>
-                <a class="topbar-item" (click)="navigateToBookdrop()" [pTooltip]="t('bookdrop')" tooltipPosition="bottom">
+                <button type="button" class="topbar-item" (click)="navigateToBookdrop()" [pTooltip]="t('bookdrop')" tooltipPosition="bottom">
                   <i class="pi pi-inbox topbar-icon"></i>
-                </a>
+                </button>
               </li>
             }
             @case ('createLibrary') {
               <li>
-                <a class="topbar-item" (click)="openLibraryCreatorDialog()" [pTooltip]="t('createNewLibrary')" tooltipPosition="bottom">
+                <button type="button" class="topbar-item" (click)="openLibraryCreatorDialog()" [pTooltip]="t('createNewLibrary')" tooltipPosition="bottom">
                   <i class="pi pi-plus-circle topbar-icon"></i>
-                </a>
+                </button>
               </li>
             }
             @case ('upload') {
               <li>
-                <a class="topbar-item" (click)="openFileUploadDialog()" [pTooltip]="t('uploadBook')" tooltipPosition="bottom">
+                <button type="button" class="topbar-item" (click)="openFileUploadDialog()" [pTooltip]="t('uploadBook')" tooltipPosition="bottom">
                   <i class="pi pi-upload topbar-icon"></i>
-                </a>
+                </button>
               </li>
             }
             @case ('metadata') {
               <li>
-                <a class="topbar-item" (click)="navigateToMetadataManager()" [pTooltip]="t('metadataManager')" tooltipPosition="bottom">
+                <button type="button" class="topbar-item" (click)="navigateToMetadataManager()" [pTooltip]="t('metadataManager')" tooltipPosition="bottom">
                   <i class="pi pi-sparkles topbar-icon"></i>
-                </a>
+                </button>
               </li>
             }
             @case ('stats') {
@@ -313,12 +313,12 @@
     </div>
 
     <!-- Toolbar editor -->
-    <a class="topbar-item toolbar-editor-trigger"
+    <button type="button" class="topbar-item toolbar-editor-trigger"
        (click)="toolbarEditorPop.toggle($event)"
        pTooltip="Customize toolbar"
        tooltipPosition="bottom">
       <i class="pi pi-sliders-h"></i>
-    </a>
+    </button>
     <p-popover #toolbarEditorPop appendTo="body" styleClass="toolbar-editor-popover">
       <app-toolbar-editor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
     </p-popover>

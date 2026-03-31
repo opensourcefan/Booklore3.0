@@ -51,15 +51,15 @@
             placeholder="Search media type"
           />
           @if (searchQuery) {
-            <i class="pi pi-times clear-icon" (click)="searchQuery = ''"></i>
+            <i class="pi pi-times clear-icon" tabindex="0" role="button" (keydown.enter)="searchQuery = ''" (keydown.space)="searchQuery = ''" (click)="searchQuery = ''"></i>
           }
         </p-iconfield>
       </div>
 
       <div class="types-grid">
         @for (fileType of filterFileTypes(allFileTypes); track fileType) {
-          <div class="type-item" [class.selected]="isFileTypeSelected(fileType)" (click)="setSelectedFileType(fileType)">
-            <div class="type-checkbox" (click)="$event.stopPropagation()">
+          <div class="type-item" [class.selected]="isFileTypeSelected(fileType)" tabindex="0" (keydown.enter)="setSelectedFileType(fileType)" (click)="setSelectedFileType(fileType)">
+            <div class="type-checkbox" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
               <p-checkbox
                 [inputId]="'file-type-' + fileType"
                 [binary]="true"

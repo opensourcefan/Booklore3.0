@@ -7,12 +7,20 @@
           @if (item.hasCreate) {
             <i
               class="pi pi-plus plus-icon"
+              tabindex="0"
+              role="button"
               (click)="openDialog(item)"
+              (keydown.enter)="openDialog(item)"
+              (keydown.space)="openDialog(item)"
             ></i>
           }
         </div>
         <i
+          tabindex="0"
+          role="button"
           (click)="toggleExpand(key)"
+          (keydown.enter)="toggleExpand(key)"
+          (keydown.space)="toggleExpand(key)"
           [ngClass]="{
           'pi': true,
           'pi-angle-up': isExpanded(key),
@@ -39,6 +47,8 @@
       (touchstart)="onTouchStart($event)"
       (touchend)="onTouchEnd($event)"
       (touchcancel)="onTouchCancel()"
+      tabindex="0"
+      (keydown.enter)="triggerLink()"
       (click)="triggerLink()"
     >
       @if ((item.routerLink && !item.items)) {

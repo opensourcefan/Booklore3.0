@@ -191,7 +191,7 @@
                     <span class="author-chip" [class.main-author]="$index === 0" cdkDrag>
                       @if ($index === 0) { <span class="main-author-badge">m</span> }
                       {{ author }}
-                      <i class="pi pi-times author-chip-remove" (click)="removeAuthor($index)"></i>
+                      <i class="pi pi-times author-chip-remove" tabindex="0" role="button" (keydown.enter)="removeAuthor($index)" (keydown.space)="removeAuthor($index)" (click)="removeAuthor($index)"></i>
                     </span>
                   }
                   <p-autoComplete
@@ -441,7 +441,7 @@
                       <span class="author-chip" [class.main-author]="$index === 0" cdkDrag>
                         @if ($index === 0) { <span class="main-author-badge">m</span> }
                         {{ author }}
-                        <i class="pi pi-times author-chip-remove" (click)="removeAuthor($index)"></i>
+                        <i class="pi pi-times author-chip-remove" tabindex="0" role="button" (keydown.enter)="removeAuthor($index)" (keydown.space)="removeAuthor($index)" (click)="removeAuthor($index)"></i>
                       </span>
                     }
                     <p-autoComplete

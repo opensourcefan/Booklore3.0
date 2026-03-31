@@ -1004,7 +1004,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.lastMouseEvent = event;
   }
 
-  onCardClick(event: MouseEvent): void {
+  onCardClick(event: MouseEvent | KeyboardEvent): void {
     if (!event.ctrlKey) {
       return;
     }

@@ -1,4 +1,4 @@
-<div class="author-card" [class.selected]="isSelected" (click)="onCardClick($event)">
+<div class="author-card" [class.selected]="isSelected" tabindex="0" (keydown.enter)="onCardClick($any($event))" (click)="onCardClick($event)">
   <div class="cover-container" [ngClass]="{'loaded': isImageLoaded}">
     @if (hasPhoto) {
       <img

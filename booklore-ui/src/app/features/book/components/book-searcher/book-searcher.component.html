@@ -41,7 +41,7 @@
         }
       } @else if (books.length > 0) {
         @for (book of books; track book; let idx = $index) {
-          <div class="search-dropdown-item" [class.active]="activeIndex === idx" (click)="onBookClick(book)">
+          <div class="search-dropdown-item" [class.active]="activeIndex === idx" tabindex="0" (keydown.enter)="onBookClick(book)" (click)="onBookClick(book)">
             <div class="search-item-content">
               <img
                 [attr.src]="urlHelper.getThumbnailUrl(book.id, book.metadata?.coverUpdatedOn)"

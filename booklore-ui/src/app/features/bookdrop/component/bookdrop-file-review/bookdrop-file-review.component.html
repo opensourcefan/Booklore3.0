@@ -165,6 +165,9 @@
                   alt="Cover"
                   [title]="t('originalCoverTitle')"
                   class="cover-image"
+                  tabindex="0"
+                  role="button"
+                  (keydown.enter)="file.showDetails = !file.showDetails"
                   (click)="file.showDetails = !file.showDetails"/>
               } @else {
                 <div [title]="t('noCoverFoundTitle')" class="cover-image cover-placeholder">?</div>
@@ -176,12 +179,15 @@
                   alt="Fetched Cover"
                   [title]="t('fetchedCoverTitle')"
                   class="cover-image"
+                  tabindex="0"
+                  role="button"
+                  (keydown.enter)="file.showDetails = !file.showDetails"
                   (click)="file.showDetails = !file.showDetails"/>
               } @else {
                 <div [title]="t('noCoverFetchedTitle')" class="cover-image cover-placeholder">?</div>
               }
 
-              <div class="file-name" (click)="file.showDetails = !file.showDetails">
+              <div class="file-name" tabindex="0" (keydown.enter)="file.showDetails = !file.showDetails" (click)="file.showDetails = !file.showDetails">
                 {{ file.file.fileName }}
               </div>
 

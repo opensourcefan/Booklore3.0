@@ -70,6 +70,8 @@
                     'active': activeFilters[filterType]?.includes(getFilterValueId(filter)),
                     'active-not': activeFilters[filterType]?.includes(getFilterValueId(filter)) && selectedFilterMode === 'not'
                   }"
+                      tabindex="0"
+                      (keydown.enter)="handleFilterClick(filterType, getFilterValueId(filter))"
                       (click)="handleFilterClick(filterType, getFilterValueId(filter))">
                       <span class="filter-value-text">{{ getFilterValueDisplay(filter) }}</span>
                       <p-badge class="filter-value-badge" [value]="filter.bookCount"></p-badge>

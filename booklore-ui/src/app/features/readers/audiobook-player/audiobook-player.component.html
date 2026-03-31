@@ -308,6 +308,8 @@
                 <li
                   class="track-item"
                   [class.active]="track.index === currentTrackIndex"
+                  tabindex="0"
+                  (keydown.enter)="selectTrack(track)"
                   (click)="selectTrack(track)"
                 >
                   <span class="track-index">{{ track.index + 1 }}</span>
@@ -327,6 +329,8 @@
                 <li
                   class="track-item"
                   [class.active]="getCurrentChapter()?.index === chapter.index"
+                  tabindex="0"
+                  (keydown.enter)="selectChapter(chapter)"
                   (click)="selectChapter(chapter)"
                 >
                   <span class="track-index">{{ chapter.index + 1 }}</span>
@@ -370,6 +374,8 @@
               @for (bookmark of bookmarks; track bookmark.id) {
                 <li
                   class="track-item bookmark-item"
+                  tabindex="0"
+                  (keydown.enter)="goToBookmark(bookmark)"
                   (click)="goToBookmark(bookmark)"
                 >
                   <i class="pi pi-bookmark-fill bookmark-icon"></i>

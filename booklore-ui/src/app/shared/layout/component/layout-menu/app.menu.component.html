@@ -86,7 +86,10 @@
                     class="pi pi-plus plus-icon"
                     pTooltip="Create Media Type"
                     tooltipPosition="right"
+                    tabindex="0"
+                    role="button"
                     (click)="openMediaTypeCreatorDialog(); $event.stopPropagation()"
+                    (keydown.enter)="openMediaTypeCreatorDialog(); $event.stopPropagation()"
                   ></i>
                 </div>
                 <i
@@ -96,7 +99,10 @@
                     'pi-angle-up': bookTypeSectionExpanded,
                     'pi-angle-down': !bookTypeSectionExpanded
                   }"
+                  tabindex="0"
+                  role="button"
                   (click)="toggleBookTypeSection(); $event.stopPropagation()"
+                  (keydown.enter)="toggleBookTypeSection(); $event.stopPropagation()"
                 ></i>
               </div>
 
@@ -117,6 +123,8 @@
                         (touchstart)="onTouchStart($event)"
                         (touchend)="onTouchEnd($event)"
                         (touchcancel)="onTouchCancel()"
+                        tabindex="0"
+                        (keydown.enter)="selectBookTypeFilter(entry.label, $event)"
                         (click)="selectBookTypeFilter(entry.label, $event)">
                         <span class="book-type-main">
                           <span class="sidebar-row-status-slot" aria-hidden="true"></span>
@@ -217,12 +225,13 @@
       </div>
       @if (shouldShowUpdateLink(versionInfo?.current, versionInfo?.latest)) {
         <div>
-          <a
+          <button
+            type="button"
             (click)="openChangelogDialog()"
             class="update-link"
             >
             {{ t('update') }}
-          </a>
+          </button>
         </div>
       }
     </div>

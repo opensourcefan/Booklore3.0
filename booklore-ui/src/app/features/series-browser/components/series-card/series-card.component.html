@@ -1,4 +1,4 @@
-<div class="series-card" (click)="onCardClick($event)">
+<div class="series-card" tabindex="0" (keydown.enter)="onCardClick($event)" (click)="onCardClick($event)">
   <div class="stacked-covers" [ngClass]="'covers-' + series.coverBooks.length">
     @for (book of series.coverBooks; track book.id; let i = $index) {
       <img

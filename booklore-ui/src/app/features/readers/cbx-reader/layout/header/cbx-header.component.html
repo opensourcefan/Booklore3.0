@@ -1,4 +1,4 @@
-<div class="cbx-header" [class.visible]="isVisible" (click)="closeMenus()">
+<div class="cbx-header" [class.visible]="isVisible" tabindex="0" (keydown.enter)="closeMenus()" (click)="closeMenus()">
   <div class="header-left">
     <button class="icon-btn" (click)="onOpenSidebar()" [title]="'readerCbx.header.contents' | transloco">
       <app-reader-icon name="menu" [size]="20" />
@@ -24,8 +24,8 @@
           <app-reader-icon name="chevron-down" [size]="14" />
         </button>
         @if (aiMenuOpen) {
-          <div class="overflow-backdrop" (click)="closeMenus()"></div>
-          <div class="ai-dropdown" (click)="$event.stopPropagation()">
+          <div class="overflow-backdrop" tabindex="0" (keydown.enter)="closeMenus()" (click)="closeMenus()"></div>
+          <div class="ai-dropdown" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
             <button class="overflow-item" (click)="onAiPanelDetection(); closeMenus()" [disabled]="aiWorking">
               <app-reader-icon name="play" [size]="16" />
               <span>{{ 'readerCbx.header.aiScanNowLabel' | transloco }}</span>
@@ -72,7 +72,7 @@
         </button>
       }
       @if (panelAdjustOpen && panelTravelControlsVisible) {
-        <div class="panel-adjust-popover" (click)="$event.stopPropagation()">
+        <div class="panel-adjust-popover" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
           <div class="panel-adjust-title">Panel travel</div>
           <div class="panel-adjust-row">
             <button class="adjust-btn" (click)="onPanelTravelDelta(-0.1)">-</button>
@@ -100,7 +100,7 @@
         <app-reader-icon name="dots-vertical" [size]="20" />
       </button>
       @if (overflowOpen) {
-        <div class="overflow-backdrop" (click)="overflowOpen = false"></div>
+        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="overflowOpen = false" (click)="overflowOpen = false"></div>
         <div class="overflow-dropdown">
           <button class="overflow-item" (click)="onTogglePin(); overflowOpen = false" [class.active]="isPinned">
             <app-reader-icon name="pin" [size]="18" />

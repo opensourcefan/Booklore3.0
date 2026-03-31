@@ -103,6 +103,8 @@
                  [class.has-results]="tab.count > 0"
                  [class.active]="isProviderPillActive(tab.provider)"
                  [class]="'provider-pill provider-' + tab.provider.toLowerCase() + (tab.count > 0 ? ' has-results' : '') + (isProviderPillActive(tab.provider) ? ' active' : '')"
+                 tabindex="0"
+                 (keydown.enter)="tab.count > 0 && onProviderPillClick(tab.provider, $any($event))"
                  (click)="tab.count > 0 && onProviderPillClick(tab.provider, $event)"
                  [style.cursor]="tab.count > 0 ? 'pointer' : 'default'">
               <div class="pill-icon">
@@ -146,7 +148,7 @@
       <div class="results-section">
         <div class="results-grid">
           @for (metadata of filteredMetadata; track trackByMetadata($index, metadata)) {
-            <div class="metadata-card" (click)="onBookClick(metadata)">
+            <div class="metadata-card" tabindex="0" (keydown.enter)="onBookClick(metadata)" (click)="onBookClick(metadata)">
               <div class="card-image">
                 <img
                   [src]="metadata.thumbnailUrl || 'assets/images/missing-cover.jpg'"
@@ -165,6 +167,8 @@
                     class="card-provider"
                     [class]="'card-provider provider-' + getProviderClass(metadata)"
                     [innerHTML]="buildProviderLink(metadata)"
+                    tabindex="0"
+                    (keydown.enter)="onProviderClick($event)"
                     (click)="onProviderClick($event)">
                   </div>
                 </div>

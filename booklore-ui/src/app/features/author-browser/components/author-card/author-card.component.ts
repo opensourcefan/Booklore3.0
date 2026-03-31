@@ -70,7 +70,7 @@ export class AuthorCardComponent implements OnChanges {
     return !!this.author.asin;
   }
 
-  onCardClick(event: MouseEvent): void {
+  onCardClick(event: MouseEvent | KeyboardEvent): void {
     const target = event.target as HTMLElement;
     if (target.closest('.menu-button-container')) {
       return;

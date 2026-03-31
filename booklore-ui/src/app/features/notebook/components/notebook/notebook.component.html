@@ -137,7 +137,7 @@
         @for (group of filteredGroups; track group.bookId) {
           <div class="settings-card book-group-card">
             <!-- Book Header -->
-            <div class="book-group-header" (click)="toggleGroup(group.bookId)">
+            <div class="book-group-header" tabindex="0" (keydown.enter)="toggleGroup(group.bookId)" (click)="toggleGroup(group.bookId)">
               <img [src]="group.thumbnailUrl" [alt]="group.bookTitle" class="book-thumbnail" />
               <div class="book-info">
                 <span class="book-title">{{ group.bookTitle }}</span>

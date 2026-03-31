@@ -215,6 +215,8 @@
           @if (testConnectionResult) {
             <div class="test-results-toggle"
                  [style.border-radius]="showTestDetails ? '6px 6px 0 0' : '6px'"
+                 tabindex="0"
+                 (keydown.enter)="showTestDetails = !showTestDetails"
                  (click)="showTestDetails = !showTestDetails">
               @if (testConnectionResult.success) {
                 <i class="pi pi-check-circle" style="color: var(--p-green-500);"></i>

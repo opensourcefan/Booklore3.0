@@ -38,7 +38,7 @@
                     @if (allAuthors$ | async; as authors) {
                       <p class="series-authors">
                         @for (author of authors; track $index; let isLast = $last) {
-                          <a class="author-link" (click)="goToAuthorBooks(author)">{{ author }}</a>
+                          <a class="author-link" tabindex="0" (keydown.enter)="goToAuthorBooks(author)" (click)="goToAuthorBooks(author)">{{ author }}</a>
                           @if (!isLast) {<span>, </span>}
                         }
                       </p>
@@ -49,7 +49,7 @@
                         <div class="categories-scroll">
                           <div class="categories-list">
                             @for (category of categories; track category) {
-                              <a (click)="goToCategory(category)" class="category-link">
+                              <a tabindex="0" (keydown.enter)="goToCategory(category)" (click)="goToCategory(category)" class="category-link">
                                 <app-tag color="red" size="xs">{{ category }}</app-tag>
                               </a>
                             }
@@ -61,7 +61,7 @@
                     <div class="metadata-cards">
                       @if (allPublishers$ | async; as publishers) {
                         @if (publishers.length) {
-                          <span class="meta-card meta-card--publisher" (click)="goToPublisher(publishers[0])">
+                          <span class="meta-card meta-card--publisher" tabindex="0" (keydown.enter)="goToPublisher(publishers[0])" (click)="goToPublisher(publishers[0])">
                             <i class="pi pi-building"></i>
                             @for (pub of publishers; track pub; let isLast = $last) {
                               {{ pub }}{{ isLast ? '' : ', ' }}
@@ -156,7 +156,7 @@
                     <!-- Next Up + Progress (pushed to bottom, aligned with cover) -->
                     <div class="hero-status">
                       @if (nextUp$ | async; as nextUp) {
-                        <div class="next-up-card" (click)="readBook(nextUp.book.id)">
+                        <div class="next-up-card" tabindex="0" (keydown.enter)="readBook(nextUp.book.id)" (click)="readBook(nextUp.book.id)">
                           <img [src]="nextUp.thumbnailUrl"
                             [alt]="nextUp.book.metadata?.title || ''"
                             class="next-up-thumb"

@@ -62,24 +62,24 @@
       <div class="toolbar-actions">
         <div class="toolbar-icons">
           @if (isFilterActive) {
-            <a class="topbar-items topbar-item" (click)="clearFilter()">
+            <button type="button" class="topbar-items topbar-item" (click)="clearFilter()">
               <i
                 class="pi pi-filter-slash filter-clear-icon"
                 [pTooltip]="t('tooltip.clearFilters')"
                 tooltipPosition="top">
               </i>
-            </a>
+            </button>
           }
 
           @if (currentViewMode === 'table') {
             <div>
-              <a class="topbar-items topbar-item" (click)="columnPopover.toggle($event)">
+              <button type="button" class="topbar-items topbar-item" (click)="columnPopover.toggle($event)">
                 <i
                   class="pi pi-eye"
                   [pTooltip]="t('tooltip.visibleColumns')"
                   tooltipPosition="top">
                 </i>
-              </a>
+              </button>
               <p-popover #columnPopover [dismissable]="true" appendTo="body">
                 <div class="column-popover-content">
                   <p-multiSelect
@@ -106,13 +106,14 @@
             </div>
           }
           <div>
-            <a
+            <button
+              type="button"
               class="topbar-items topbar-item"
               (click)="seriesCollapseOverlay.toggle($event)"
               [pTooltip]="t('tooltip.displaySettings')"
               tooltipPosition="top">
               <i class="pi pi-cog"></i>
-            </a>
+            </button>
             <p-popover #seriesCollapseOverlay [dismissable]="true" appendTo="body">
               <div class="display-settings-popover">
                 <div class="display-settings-section">
@@ -251,7 +252,7 @@
           </div>
 
           <div class="sort-button-wrapper">
-            <a class="topbar-items topbar-item" (click)="sortPopover.toggle($event)">
+            <button type="button" class="topbar-items topbar-item" (click)="sortPopover.toggle($event)">
               <i
                 class="pi pi-sort"
                 [pTooltip]="t('tooltip.selectSorting')"
@@ -260,7 +261,7 @@
               @if (sortCriteriaCount > 1) {
                 <p-badge [value]="sortCriteriaCount.toString()" class="sort-badge"/>
               }
-            </a>
+            </button>
             <p-popover #sortPopover [dismissable]="true" appendTo="body">
               <app-multi-sort-popover
                 [sortCriteria]="this.bookSorter.selectedSortCriteria"
@@ -272,13 +273,13 @@
             </p-popover>
           </div>
 
-          <a class="topbar-items topbar-item" (click)="toggleTableGrid()">
+          <button type="button" class="topbar-items topbar-item" (click)="toggleTableGrid()">
             <i
               [ngClass]="viewIcon"
               [pTooltip]="t('tooltip.toggleView')"
               tooltipPosition="top">
             </i>
-          </a>
+          </button>
         </div>
 
         <!-- MOBILE SEARCH (only visible below md) -->
@@ -350,13 +351,13 @@
         </p-popover>
         <!-- Desktop-only: toggle the filter sidebar panel (hidden on mobile via CSS) -->
         <div class="desktop-right-sidebar-trigger">
-          <a class="topbar-items topbar-item" (click)="toggleSidebar()">
+          <button type="button" class="topbar-items topbar-item" (click)="toggleSidebar()">
             <i
               [ngClass]="showFilter ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"
               [pTooltip]="t('tooltip.toggleSidebar')"
               tooltipPosition="top">
             </i>
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -571,6 +572,8 @@
   @if (this.showFilter && !isMobile) {
     <div
       class="mobile-filter-mask"
+      tabindex="0"
+      (keydown.enter)="toggleSidebar()"
       (click)="toggleSidebar()">
     </div>
     <div class="filter-overlay-container"

@@ -14,7 +14,11 @@ export type DocType = 'kobo' | 'opds' | 'metadataManager' | 'koReader' | 'email'
        [pTooltip]="tooltip"
        [tooltipPosition]="tooltipPosition"
        [style.font-size]="size"
+       tabindex="0"
+       role="button"
        (click)="openLink()"
+       (keydown.enter)="openLink()"
+       (keydown.space)="openLink()"
        style="cursor: pointer;">
     </i>
   `,

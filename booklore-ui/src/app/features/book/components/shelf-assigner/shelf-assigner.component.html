@@ -53,7 +53,7 @@
               [placeholder]="t('searchPlaceholder')"
             />
             @if (searchQuery) {
-              <i class="pi pi-times clear-icon" (click)="searchQuery = ''"></i>
+              <i class="pi pi-times clear-icon" tabindex="0" role="button" (keydown.enter)="searchQuery = ''" (keydown.space)="searchQuery = ''" (click)="searchQuery = ''"></i>
             }
           </p-iconfield>
         </div>

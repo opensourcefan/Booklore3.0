@@ -521,7 +521,7 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
       metadata.hardcoverId || metadata.comicvineId || metadata.audibleId || index.toString();
   }
 
-  onProviderClick(event: MouseEvent) {
+  onProviderClick(event: Event) {
     const target = event.target as HTMLElement;
     if (target.tagName === 'A' || target.closest('a')) {
       event.stopPropagation();

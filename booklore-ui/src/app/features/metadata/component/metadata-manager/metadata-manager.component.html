@@ -118,7 +118,7 @@
                         (ngModelChange)="onRowSelect(tab.type)"></p-checkbox>
                     </td>
                     <td>
-                      <span class="clickable-cell" (click)="onMetadataClick(tab.type, item.value)">
+                      <span class="clickable-cell" tabindex="0" (keydown.enter)="onMetadataClick(tab.type, item.value)" (click)="onMetadataClick(tab.type, item.value)">
                         {{ item.value }}
                       </span>
                     </td>
