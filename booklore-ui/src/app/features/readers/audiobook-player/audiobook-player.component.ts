@@ -369,10 +369,10 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy {
     navigator.mediaSession.setActionHandler('seekbackward', () => this.seekRelative(-30));
     navigator.mediaSession.setActionHandler('seekforward', () => this.seekRelative(30));
     navigator.mediaSession.setActionHandler('previoustrack', () => {
-      this.audiobookInfo.folderBased ? this.previousTrack() : this.previousChapter();
+      if (this.audiobookInfo.folderBased) { this.previousTrack(); } else { this.previousChapter(); }
     });
     navigator.mediaSession.setActionHandler('nexttrack', () => {
-      this.audiobookInfo.folderBased ? this.nextTrack() : this.nextChapter();
+      if (this.audiobookInfo.folderBased) { this.nextTrack(); } else { this.nextChapter(); }
     });
     navigator.mediaSession.setActionHandler('seekto', (details) => {
       if (details.seekTime !== undefined) {

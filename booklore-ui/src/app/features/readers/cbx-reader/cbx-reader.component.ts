@@ -1075,16 +1075,16 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
     switch (event.key) {
       case 'ArrowRight':
-        isRtl ? this.previousPage() : this.nextPage();
+        if (isRtl) { this.previousPage(); } else { this.nextPage(); }
         event.preventDefault();
         break;
       case 'ArrowLeft':
-        isRtl ? this.nextPage() : this.previousPage();
+        if (isRtl) { this.nextPage(); } else { this.previousPage(); }
         event.preventDefault();
         break;
       case ' ':
         event.preventDefault();
-        event.shiftKey ? this.previousPage() : this.nextPage();
+        if (event.shiftKey) { this.previousPage(); } else { this.nextPage(); }
         break;
       case 'Home':
         event.preventDefault();
@@ -1608,7 +1608,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
       // In RTL mode, swipe directions are reversed
       const isRtl = this.readingDirection === CbxReadingDirection.RTL;
       const shouldGoNext = isRtl ? delta > 0 : delta < 0;
-      shouldGoNext ? this.nextPage() : this.previousPage();
+      if (shouldGoNext) { this.nextPage(); } else { this.previousPage(); }
     }
   }
 
@@ -2169,7 +2169,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
     if (this.touchEndX <= leftEdgeLimit) {
       if (!(this.readingDirection === CbxReadingDirection.RTL ? this.tryNavigatePanel(1) : this.tryNavigatePanel(-1))) {
-        this.readingDirection === CbxReadingDirection.RTL ? this.nextPage() : this.previousPage();
+        if (this.readingDirection === CbxReadingDirection.RTL) { this.nextPage(); } else { this.previousPage(); }
       }
       this.revealTouchChrome();
       return true;
@@ -2177,7 +2177,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
     if (this.touchEndX >= rightEdgeLimit) {
       if (!(this.readingDirection === CbxReadingDirection.RTL ? this.tryNavigatePanel(-1) : this.tryNavigatePanel(1))) {
-        this.readingDirection === CbxReadingDirection.RTL ? this.previousPage() : this.nextPage();
+        if (this.readingDirection === CbxReadingDirection.RTL) { this.previousPage(); } else { this.nextPage(); }
       }
       this.revealTouchChrome();
       return true;

@@ -100,9 +100,11 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   handleFilterClick(filterType: string, value: unknown): void {
-    this._selectedFilterMode === 'single'
-      ? this.handleSingleMode(filterType, value)
-      : this.handleMultiMode(filterType, value);
+    if (this._selectedFilterMode === 'single') {
+      this.handleSingleMode(filterType, value);
+    } else {
+      this.handleMultiMode(filterType, value);
+    }
     this.emitFilters();
   }
 
