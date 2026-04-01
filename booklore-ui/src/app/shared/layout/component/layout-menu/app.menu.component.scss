@@ -149,6 +149,12 @@
     background-color: var(--p-surface-800);
   }
 
+  &:focus-visible {
+    outline: none;
+    background-color: color-mix(in srgb, var(--p-primary-color) 18%, var(--p-surface-800));
+    border-radius: 8px;
+  }
+
   &.active {
     background-color: color-mix(in srgb, var(--p-primary-300), transparent 91%);
 

@@ -47,7 +47,7 @@
       (touchstart)="onTouchStart($event)"
       (touchend)="onTouchEnd($event)"
       (touchcancel)="onTouchCancel()"
-      tabindex="0"
+      [attr.tabindex]="(item.routerLink && !item.items) ? '0' : '-1'"
       (keydown.enter)="triggerLink()"
       (click)="triggerLink()"
     >
@@ -68,7 +68,7 @@
           [state]="item.state"
           [queryParams]="item.queryParams"
           [attr.target]="item.target"
-          tabindex="0"
+          tabindex="-1"
           pRipple
         >
           @if (item.unhealthy$ | async) {
@@ -118,6 +118,7 @@
           [label]="hovered ? '' : (item.bookCount$ | async)?.toString() || ''"
           [icon]="hovered ? 'pi pi-ellipsis-v' : ''"
           class="entity-menu-button"
+          [tabindex]="-1"
         ></p-button>
       }
       <p-menu #entitymenu [model]="item.menu" [popup]="true" appendTo="body"></p-menu>
