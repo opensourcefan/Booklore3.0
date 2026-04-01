@@ -19,12 +19,12 @@
             <div class="setting-item">
               <div class="setting-header">
                 <p-toggleswitch [(ngModel)]="amazonEnabled"></p-toggleswitch>
-                <label class="setting-label">Amazon</label>
+                <span class="setting-label">Amazon</span>
               </div>
               @if (amazonEnabled) {
                 <div class="setting-options">
                   <div class="config-field">
-                    <label class="config-label">{{ t('region') }}</label>
+                    <span class="config-label">{{ t('region') }}</span>
                     <p-select
                       [options]="amazonDomains"
                       [(ngModel)]="selectedAmazonDomain"
@@ -34,13 +34,13 @@
                   </div>
                   <div class="config-field">
                     <div class="config-label-row">
-                      <label class="config-label">{{ t('cookieLabel') }}</label>
+                      <label class="config-label" for="amazon-cookie">{{ t('cookieLabel') }}</label>
                       <app-external-doc-link docType="amazonCookie"></app-external-doc-link>
                     </div>
                     <p class="config-description">{{ t('cookieDesc') }}</p>
                     <input
                       type="text"
-                      pInputText
+                      pInputText                      id="hardcover-token"                      id="amazon-cookie"
                       [placeholder]="t('cookiePlaceholder')"
                       [(ngModel)]="amazonCookie"
                       class="config-input"/>
@@ -52,12 +52,12 @@
             <div class="setting-item">
               <div class="setting-header">
                 <p-toggleswitch [(ngModel)]="googleEnabled"></p-toggleswitch>
-                <label class="setting-label">Google Books</label>
+                <span class="setting-label">Google Books</span>
               </div>
               @if (googleEnabled) {
                 <div class="setting-options">
                   <div class="config-field">
-                    <label class="config-label">{{ t('languageRestriction') }}</label>
+                    <span class="config-label">{{ t('languageRestriction') }}</span>
                     <p-select
                       [options]="googleLanguages"
                       [(ngModel)]="selectedGoogleLanguage"
@@ -67,11 +67,12 @@
                     </p-select>
                   </div>
                   <div class="config-field">
-                    <label class="config-label">{{ t('apiKeyOptional') }}</label>
+                    <label class="config-label" for="google-api-key">{{ t('apiKeyOptional') }}</label>
                     <p class="config-description">{{ t('googleApiDesc') }}</p>
                     <input
                       type="text"
                       pInputText
+                      id="google-api-key"
                       [placeholder]="t('googleApiPlaceholder')"
                       [(ngModel)]="googleApiKey"
                       class="config-input"/>
@@ -86,12 +87,12 @@
                   [(ngModel)]="hardcoverEnabled"
                   [disabled]="!hardcoverToken">
                 </p-toggleswitch>
-                <label class="setting-label">Hardcover</label>
+                <span class="setting-label">Hardcover</span>
               </div>
               <div class="setting-options">
                 <div class="config-field">
                   <div class="config-label-row">
-                    <label class="config-label">{{ t('apiToken') }}</label>
+                    <label class="config-label" for="hardcover-token">{{ t('apiToken') }}</label>
                     <app-external-doc-link docType="hardcover"></app-external-doc-link>
                   </div>
                   <input
@@ -108,15 +109,16 @@
             <div class="setting-item">
               <div class="setting-header">
                 <p-toggleswitch [(ngModel)]="comicvineEnabled"></p-toggleswitch>
-                <label class="setting-label">Comic Vine</label>
+                <span class="setting-label">Comic Vine</span>
               </div>
               @if (comicvineEnabled) {
                 <div class="setting-options">
                   <div class="config-field">
-                    <label class="config-label">{{ t('apiToken') }}</label>
+                    <label class="config-label" for="comicvine-token">{{ t('apiToken') }}</label>
                     <input
                       type="text"
                       pInputText
+                      id="comicvine-token"
                       [placeholder]="t('comicvinePlaceholder')"
                       [(ngModel)]="comicvineToken"
                       (ngModelChange)="onComicTokenChange($event)"
@@ -129,12 +131,12 @@
             <div class="setting-item">
               <div class="setting-header">
                 <p-toggleswitch [(ngModel)]="audibleEnabled"></p-toggleswitch>
-                <label class="setting-label">Audible</label>
+                <span class="setting-label">Audible</span>
               </div>
               @if (audibleEnabled) {
                 <div class="setting-options">
                   <div class="config-field">
-                    <label class="config-label">{{ t('region') }}</label>
+                    <span class="config-label">{{ t('region') }}</span>
                     <p-select
                       [options]="audibleDomains"
                       [(ngModel)]="selectedAudibleDomain"
@@ -155,28 +157,28 @@
             <div class="setting-item simple-provider">
               <div class="setting-header">
                 <p-toggleswitch [(ngModel)]="goodreadsEnabled"></p-toggleswitch>
-                <label class="setting-label">Goodreads</label>
+                <span class="setting-label">Goodreads</span>
               </div>
             </div>
 
             <div class="setting-item simple-provider">
               <div class="setting-header">
                 <p-toggleswitch [(ngModel)]="doubanEnabled"></p-toggleswitch>
-                <label class="setting-label">Douban</label>
+                <span class="setting-label">Douban</span>
               </div>
             </div>
 
             <div class="setting-item simple-provider">
               <div class="setting-header">
                 <p-toggleswitch [(ngModel)]="lubimyCzytacEnabled"></p-toggleswitch>
-                <label class="setting-label">Lubimyczytac</label>
+                <span class="setting-label">Lubimyczytac</span>
               </div>
             </div>
 
             <div class="setting-item simple-provider">
               <div class="setting-header">
                 <p-toggleswitch [(ngModel)]="ranobedbEnabled"></p-toggleswitch>
-                <label class="setting-label">Ranobedb</label>
+                <span class="setting-label">Ranobedb</span>
               </div>
             </div>
           </div>
