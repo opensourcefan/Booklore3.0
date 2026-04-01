@@ -89,7 +89,7 @@
 
   &:focus-visible {
     outline: none;
-    background-color: color-mix(in srgb, var(--p-primary-color) 18%, var(--p-surface-800));
+    background-color: var(--sidebar-focus-row-background);
     border-radius: 8px;
   }
 }
@@ -128,6 +128,11 @@
 .menu-item-container.active-route-container {
   background-color: color-mix(in srgb, var(--p-primary-300), transparent 93%);
   border-radius: 8px;
+
+  &:focus-visible {
+    background-color: color-mix(in srgb, var(--p-primary-300), transparent 93%);
+    box-shadow: inset 0 0 0 1px var(--sidebar-active-focus-indicator);
+  }
 }
 
 .menu-item-link {

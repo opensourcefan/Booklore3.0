@@ -5,6 +5,8 @@
   position: fixed;
   width: var(--sidebar-width, 225px);
   height: calc(100dvh - 6.1rem);
+  --sidebar-focus-row-background: color-mix(in srgb, var(--p-primary-color) 18%, var(--p-surface-800));
+  --sidebar-active-focus-indicator: color-mix(in srgb, var(--p-surface-200) 38%, transparent);
   z-index: 999;
   overflow-y: auto;
   user-select: none;
