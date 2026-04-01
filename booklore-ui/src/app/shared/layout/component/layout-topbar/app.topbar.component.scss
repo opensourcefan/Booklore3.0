@@ -70,7 +70,11 @@
     background: rgba(29, 78, 216, 0.16);
     border-color: var(--p-blue-800, #1e40af);
     transform: translateY(-1px);
-    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: 2px;
   }
 }
 
@@ -114,7 +118,11 @@
     background: rgba(21, 128, 61, 0.16);
     border-color: var(--p-green-800, #166534);
     transform: translateY(-1px);
-    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: 2px;
   }
 }
 

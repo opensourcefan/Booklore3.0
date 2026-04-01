@@ -17,6 +17,12 @@
   &.selected {
     border: 2px solid var(--primary-color);
   }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 0 0 3px var(--p-primary-color);
+    transform: translateY(-2px);
+  }
 }
 
 @keyframes shimmer {

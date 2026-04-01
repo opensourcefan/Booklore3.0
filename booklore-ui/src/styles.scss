@@ -137,3 +137,24 @@ body.bl-resizing-vertical {
     pointer-events: none;
   }
 }
+
+/* ================================================================
+   Uniform keyboard focus ring
+   – Uses outline (clean, non-layout-shifting) as default.
+   – Components inside overflow:hidden containers override with
+     inset box-shadow in their own SCSS (never clipped).
+   ================================================================ */
+*:focus-visible {
+  outline: 2px solid var(--p-primary-color);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Backdrop / overlay divs are keyboard-dismissible but not visually
+   interactive — suppress the ring on them */
+.sidebar-overlay:focus-visible,
+.dialog-overlay:focus-visible,
+.mobile-filter-mask:focus-visible,
+.config-modal-overlay:focus-visible {
+  outline: none;
+}
