@@ -3,15 +3,15 @@
     <div class="search-form">
       <div class="search-fields">
         <div class="field">
-          <label>{{ t('authorNameLabel') }}</label>
-          <input pInputText type="text" [(ngModel)]="searchQuery" [placeholder]="t('authorNamePlaceholder')" class="search-input"/>
+          <label for="author-match-name">{{ t('authorNameLabel') }}</label>
+          <input pInputText id="author-match-name" type="text" [(ngModel)]="searchQuery" [placeholder]="t('authorNamePlaceholder')" class="search-input"/>
         </div>
         <div class="field">
-          <label>{{ t('asinLabel') }}</label>
-          <input pInputText type="text" [(ngModel)]="asinQuery" [placeholder]="t('asinPlaceholder')" class="search-input"/>
+          <label for="author-match-asin">{{ t('asinLabel') }}</label>
+          <input pInputText id="author-match-asin" type="text" [(ngModel)]="asinQuery" [placeholder]="t('asinPlaceholder')" class="search-input"/>
         </div>
         <div class="field region-field">
-          <label>{{ t('regionLabel') }}</label>
+          <span>{{ t('regionLabel') }}</span>
           <p-select
             [options]="regionOptions"
             [(ngModel)]="selectedRegion"

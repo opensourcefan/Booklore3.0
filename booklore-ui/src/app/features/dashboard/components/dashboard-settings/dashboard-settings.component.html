@@ -28,7 +28,7 @@
 
             <div class="scroller-fields">
               <div class="scroller-field" [class.expanded]="scroller.type !== 'magicShelf'">
-                <label>{{ t('type') }}</label>
+                <span>{{ t('type') }}</span>
                 <p-select
                   fluid
                   [options]="availableScrollerTypes"
@@ -41,7 +41,7 @@
 
               @if (scroller.type === 'magicShelf') {
                 <div class="scroller-field">
-                  <label>{{ t('magicShelf') }}</label>
+                  <span>{{ t('magicShelf') }}</span>
                   <p-select
                     fluid
                     [options]="(magicShelves$ | async)!"
@@ -52,7 +52,7 @@
                 </div>
 
                 <div class="scroller-field">
-                  <label>{{ t('sortField') }}</label>
+                  <span>{{ t('sortField') }}</span>
                   <p-select
                     fluid
                     [options]="sortFieldOptions"
@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="scroller-field">
-                  <label>{{ t('direction') }}</label>
+                  <span>{{ t('direction') }}</span>
                   <p-select
                     fluid
                     [options]="sortDirectionOptions"
@@ -76,9 +76,10 @@
             </div>
 
             <div class="scroller-field max-items-field">
-              <label>{{ t('maxItems') }}</label>
+              <label for="dashboard-max-items">{{ t('maxItems') }}</label>
               <p-inputNumber
                 fluid
+                inputId="dashboard-max-items"
                 [(ngModel)]="scroller.maxItems"
                 [min]="MIN_ITEMS"
                 [max]="MAX_ITEMS"

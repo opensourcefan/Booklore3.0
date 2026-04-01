@@ -51,7 +51,7 @@
             </button>
             <p-popover #displaySettingsPopover>
               <div class="display-settings-content">
-                <label class="display-settings-label">{{ t('cardSize') }}</label>
+                <span class="display-settings-label">{{ t('cardSize') }}</span>
                 <p-slider
                   [(ngModel)]="seriesScaleService.scaleFactor"
                   [min]="0.7"

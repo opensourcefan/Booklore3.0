@@ -146,10 +146,11 @@
 
                 <div class="form-fields">
                   <div class="form-field">
-                    <label>Icon Name</label>
+                    <label for="icon-svg-name">Icon Name</label>
                     <input
                       type="text"
                       pInputText
+                      id="icon-svg-name"
                       [(ngModel)]="svgName"
                       placeholder="e.g., my-custom-icon"
                       class="input-full"
@@ -157,9 +158,10 @@
                   </div>
 
                   <div class="form-field">
-                    <label>SVG Code</label>
+                    <label for="icon-svg-code">SVG Code</label>
                     <textarea
                       pInputTextarea
+                      id="icon-svg-code"
                       [(ngModel)]="svgContent"
                       (ngModelChange)="onSvgContentChange()"
                       placeholder="<svg>...</svg>"

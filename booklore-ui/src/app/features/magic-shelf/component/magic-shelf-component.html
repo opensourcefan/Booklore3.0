@@ -29,7 +29,7 @@
         </div>
         <div class="icon-picker-section">
           <div class="icon-picker-wrapper">
-            <label>{{ t('form.shelfIcon') }}</label>
+            <span>{{ t('form.shelfIcon') }}</span>
             @if (selectedIcon) {
               <div class="selected-icon-display">
                 <div class="icon-display-container" (click)="openIconPicker()" (keydown.enter)="openIconPicker()" tabindex="0" role="button">
@@ -121,10 +121,10 @@
   <ng-template #groupTemplate let-group="group">
     <div class="group-container" [formGroup]="group">
       <div class="group-header">
-        <label [pTooltip]="t('group.conditionTooltip')" tooltipPosition="top">
+        <span [pTooltip]="t('group.conditionTooltip')" tooltipPosition="top">
           {{ t('group.condition') }}
           <i class="pi pi-info-circle condition-info-icon"></i>
-        </label>
+        </span>
         <p-select [options]="conditionOptions" formControlName="join" class="condition-select" appendTo="body" [showClear]="false"/>
         <p-button icon="pi pi-plus" size="small" text (click)="addRule(group)" [label]="t('actions.addRule')" outlined [pTooltip]="t('group.addRuleTooltip')" tooltipPosition="top"></p-button>
         <p-button icon="pi pi-folder-open" size="small" text (click)="addGroup(group)" [label]="t('actions.addGroup')" outlined [pTooltip]="t('group.addGroupTooltip')" tooltipPosition="top"></p-button>

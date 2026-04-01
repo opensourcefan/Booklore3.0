@@ -21,7 +21,7 @@
   <div class="dialog-content">
     <div class="form-fields">
       <div class="form-field">
-        <label class="field-label">{{ t('emailProvider') }}</label>
+        <span class="field-label">{{ t('emailProvider') }}</span>
         <p-select
           [options]="emailProviders"
           optionLabel="label"
@@ -33,7 +33,7 @@
       </div>
 
       <div class="form-field">
-        <label class="field-label">{{ t('recipient') }}</label>
+        <span class="field-label">{{ t('recipient') }}</span>
         <p-select
           [options]="emailRecipients"
           optionLabel="label"
@@ -47,7 +47,7 @@
 
       @if (emailableFiles.length > 0) {
         <div class="form-field">
-          <label class="field-label">{{ t('fileFormat') }}</label>
+          <span class="field-label">{{ t('fileFormat') }}</span>
           <div class="format-options">
             @for (file of emailableFiles; track file.id) {
               <div class="format-option" [class.selected]="selectedFileId === file.id">
