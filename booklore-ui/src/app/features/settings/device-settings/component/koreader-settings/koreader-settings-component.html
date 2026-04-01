@@ -31,7 +31,7 @@
             <div class="setting-item">
               <div class="setting-info">
                 <div class="setting-label-row">
-                  <label class="setting-label">{{ t('koreader.enableSync') }}</label>
+                  <label class="setting-label" for="syncEnabled">{{ t('koreader.enableSync') }}</label>
                   <p-toggle-switch
                     name="syncEnabled"
                     [(ngModel)]="koReaderSyncEnabled"
@@ -49,7 +49,7 @@
             <div class="setting-item">
               <div class="setting-info">
                 <div class="setting-label-row">
-                  <label class="setting-label">{{ t('koreader.syncWithBooklore') }}</label>
+                  <label class="setting-label" for="syncWithBookloreReader">{{ t('koreader.syncWithBooklore') }}</label>
                   <p-toggle-switch
                     name="syncWithBookloreReader"
                     [(ngModel)]="syncWithBookloreReader"
@@ -66,7 +66,7 @@
             <div class="setting-item">
               <div class="setting-info">
                 <div class="setting-label-row">
-                  <label class="setting-label">{{ t('koreader.apiPath') }}</label>
+                  <label class="setting-label" for="koreaderEndpoint">{{ t('koreader.apiPath') }}</label>
                   <div class="token-input-group">
                     <input
                       pInputText
@@ -93,7 +93,7 @@
             <div class="setting-item">
               <div class="setting-info">
                 <div class="setting-label-row">
-                  <label class="setting-label">{{ t('koreader.username') }}</label>
+                  <label class="setting-label" for="username">{{ t('koreader.username') }}</label>
                   <div class="token-input-group">
                     <input
                       pInputText
@@ -129,7 +129,7 @@
             <div class="setting-item">
               <div class="setting-info">
                 <div class="setting-label-row">
-                  <label class="setting-label">{{ t('koreader.password') }}</label>
+                  <label class="setting-label" for="password">{{ t('koreader.password') }}</label>
                   <div class="token-input-group">
                     <input
                       pInputText
@@ -175,7 +175,7 @@
             <div class="setting-item">
               <div class="setting-info">
                 <div class="setting-label-row">
-                  <label class="setting-label">{{ t('koreader.settingsManagement') }}</label>
+                  <span class="setting-label">{{ t('koreader.settingsManagement') }}</span>
                   <p-button
                     [icon]="!editMode ? 'pi pi-save' : 'pi pi-pencil'"
                     outlined="true"

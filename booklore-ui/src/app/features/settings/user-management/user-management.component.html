@@ -185,7 +185,7 @@
                     </h4>
                     <div class="details-grid">
                       <div class="detail-field">
-                        <label>{{ t('userInfo.fullName') }}</label>
+                        <span>{{ t('userInfo.fullName') }}</span>
                         @if (user.isEditing) {
                           <input type="text" pInputText [(ngModel)]="user.name" [placeholder]="t('userInfo.enterFullName')"/>
                         } @else {
@@ -193,7 +193,7 @@
                         }
                       </div>
                       <div class="detail-field">
-                        <label>{{ t('userInfo.email') }}</label>
+                        <span>{{ t('userInfo.email') }}</span>
                         @if (user.isEditing) {
                           <input type="email" pInputText [(ngModel)]="user.email" [placeholder]="t('userInfo.enterEmail')"/>
                         } @else {
@@ -201,7 +201,7 @@
                         }
                       </div>
                       <div class="detail-field detail-field-wide">
-                        <label>{{ t('userInfo.libraries') }}</label>
+                        <span>{{ t('userInfo.libraries') }}</span>
                         @if (user.isEditing) {
                           <p-multiSelect
                             [options]="allLibraries"

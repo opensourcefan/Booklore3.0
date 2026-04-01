@@ -107,60 +107,60 @@
               <div class="provider-details">
                 <div class="detail-grid">
                   <div class="detail-item">
-                    <label class="detail-label">
+                    <label class="detail-label" [for]="'provider-host-' + provider.id">
                       <i class="pi pi-server"></i>
                       {{ t('host') }}
                     </label>
                     @if (provider.isEditing) {
-                      <input type="text" pInputText [(ngModel)]="provider.host" [placeholder]="t('hostPlaceholder')"/>
+                      <input type="text" pInputText id="provider-host-{{provider.id}}" [(ngModel)]="provider.host" [placeholder]="t('hostPlaceholder')"/>
                     } @else {
                       <span class="detail-value">{{ provider.host }}</span>
                     }
                   </div>
 
                   <div class="detail-item">
-                    <label class="detail-label">
+                    <label class="detail-label" [for]="'provider-port-' + provider.id">
                       <i class="pi pi-link"></i>
                       {{ t('port') }}
                     </label>
                     @if (provider.isEditing) {
-                      <input type="number" pInputText [(ngModel)]="provider.port" [placeholder]="t('portPlaceholder')"/>
+                      <input type="number" pInputText id="provider-port-{{provider.id}}" [(ngModel)]="provider.port" [placeholder]="t('portPlaceholder')"/>
                     } @else {
                       <span class="detail-value">{{ provider.port }}</span>
                     }
                   </div>
 
                   <div class="detail-item">
-                    <label class="detail-label">
+                    <label class="detail-label" [for]="'provider-username-' + provider.id">
                       <i class="pi pi-user"></i>
                       {{ t('username') }}
                     </label>
                     @if (provider.isEditing) {
-                      <input type="text" pInputText [(ngModel)]="provider.username" [placeholder]="t('usernamePlaceholder')"/>
+                      <input type="text" pInputText id="provider-username-{{provider.id}}" [(ngModel)]="provider.username" [placeholder]="t('usernamePlaceholder')"/>
                     } @else {
                       <span class="detail-value">{{ provider.username }}</span>
                     }
                   </div>
 
                   <div class="detail-item">
-                    <label class="detail-label">
+                    <label class="detail-label" [for]="'provider-password-' + provider.id">
                       <i class="pi pi-lock"></i>
                       {{ t('password') }}
                     </label>
                     @if (provider.isEditing) {
-                      <input type="password" pInputText [(ngModel)]="provider.password" [placeholder]="t('passwordPlaceholder')"/>
+                      <input type="password" pInputText id="provider-password-{{provider.id}}" [(ngModel)]="provider.password" [placeholder]="t('passwordPlaceholder')"/>
                     } @else {
                       <span class="detail-value password-hidden">********</span>
                     }
                   </div>
 
                   <div class="detail-item detail-item-wide">
-                    <label class="detail-label">
+                    <label class="detail-label" [for]="'provider-from-' + provider.id">
                       <i class="pi pi-envelope"></i>
                       {{ t('fromAddress') }}
                     </label>
                     @if (provider.isEditing) {
-                      <input type="email" pInputText [(ngModel)]="provider.fromAddress" [placeholder]="t('fromAddressPlaceholder')"/>
+                      <input type="email" pInputText id="provider-from-{{provider.id}}" [(ngModel)]="provider.fromAddress" [placeholder]="t('fromAddressPlaceholder')"/>
                     } @else {
                       <span class="detail-value">{{ provider.fromAddress }}</span>
                     }

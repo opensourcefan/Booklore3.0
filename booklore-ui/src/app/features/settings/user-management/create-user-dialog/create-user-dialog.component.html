@@ -30,10 +30,11 @@
 
         <div class="form-fields-grid">
           <div class="form-field">
-            <label class="field-label">{{ t('createDialog.fullName') }}</label>
+            <label class="field-label" for="create-full-name">{{ t('createDialog.fullName') }}</label>
             <input
               type="text"
               pInputText
+              id="create-full-name"
               formControlName="name"
               [placeholder]="t('createDialog.enterFullName')"
               class="field-input"
@@ -47,10 +48,11 @@
           </div>
 
           <div class="form-field">
-            <label class="field-label">{{ t('createDialog.username') }}</label>
+            <label class="field-label" for="create-username">{{ t('createDialog.username') }}</label>
             <input
               type="text"
               pInputText
+              id="create-username"
               formControlName="username"
               [placeholder]="t('createDialog.enterUsername')"
               class="field-input"
@@ -64,10 +66,11 @@
           </div>
 
           <div class="form-field field-full">
-            <label class="field-label">{{ t('createDialog.email') }}</label>
+            <label class="field-label" for="create-email">{{ t('createDialog.email') }}</label>
             <input
               type="email"
               pInputText
+              id="create-email"
               formControlName="email"
               [placeholder]="t('createDialog.enterEmail')"
               class="field-input"
@@ -83,10 +86,11 @@
           <div class="password-row field-full">
             <div class="password-grid">
               <div class="form-field">
-                <label class="field-label">{{ t('createDialog.password') }}</label>
+                <label class="field-label" for="create-password">{{ t('createDialog.password') }}</label>
                 <input
                   type="password"
                   pInputText
+                  id="create-password"
                   formControlName="password"
                   [placeholder]="t('createDialog.enterPassword')"
                   class="field-input"
@@ -100,10 +104,11 @@
               </div>
 
               <div class="form-field">
-                <label class="field-label">{{ t('createDialog.confirmPassword') }}</label>
+                <label class="field-label" for="create-confirm-password">{{ t('createDialog.confirmPassword') }}</label>
                 <input
                   type="password"
                   pInputText
+                  id="create-confirm-password"
                   formControlName="confirmPassword"
                   [placeholder]="t('createDialog.confirmPasswordPlaceholder')"
                   class="field-input"
@@ -135,10 +140,11 @@
         </h3>
 
         <div class="form-field">
-          <label class="field-label">{{ t('createDialog.accessibleLibraries') }}</label>
+          <label class="field-label" for="create-libraries">{{ t('createDialog.accessibleLibraries') }}</label>
           <p-multiselect
             [options]="libraries"
             formControlName="selectedLibraries"
+            inputId="create-libraries"
             [placeholder]="t('createDialog.selectLibraries')"
             optionLabel="name"
             display="chip"

@@ -132,12 +132,13 @@
       </div>
 
       <div class="prescan-controls">
-        <label class="prescan-label">{{ t('prescan.pathsLabel') }}</label>
+        <label class="prescan-label" for="ai-prescan-paths">{{ t('prescan.pathsLabel') }}</label>
         <p-multiSelect
           [options]="libraryPathOptions"
           [(ngModel)]="selectedLibraryPathIds"
           optionLabel="label"
           optionValue="value"
+          inputId="ai-prescan-paths"
           [placeholder]="t('prescan.pathsPlaceholder')"
           display="chip"
           appendTo="body"

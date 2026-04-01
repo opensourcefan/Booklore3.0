@@ -4,7 +4,7 @@
     <div class="add-restriction-form">
       <div class="form-row">
         <div class="form-field">
-          <label>{{ t('type') }}</label>
+          <span>{{ t('type') }}</span>
           <p-select
             [options]="restrictionTypes"
             [(ngModel)]="newRestriction.restrictionType"
@@ -20,7 +20,7 @@
           </p-select>
         </div>
         <div class="form-field">
-          <label>{{ t('mode') }}</label>
+          <span>{{ t('mode') }}</span>
           <p-select
             [options]="restrictionModes"
             [(ngModel)]="newRestriction.mode"
@@ -36,7 +36,7 @@
           </p-select>
         </div>
         <div class="form-field form-field-wide">
-          <label>{{ t('value') }}</label>
+          <span>{{ t('value') }}</span>
           <p-select
             [options]="getValueOptions()"
             [(ngModel)]="newRestriction.value"
