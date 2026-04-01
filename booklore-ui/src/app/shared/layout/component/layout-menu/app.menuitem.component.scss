@@ -86,6 +86,12 @@
     background-color: var(--p-surface-800);
     border-radius: 8px;
   }
+
+  &:focus-visible {
+    outline: none;
+    background-color: color-mix(in srgb, var(--p-primary-color) 18%, var(--p-surface-800));
+    border-radius: 8px;
+  }
 }
 
 .menu-item-container.draggable-child {

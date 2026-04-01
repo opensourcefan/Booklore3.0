@@ -96,6 +96,11 @@
       &:focus {
         @include mixins.focused-inset();
       }
+
+      &:focus-visible {
+        outline: none;
+        background-color: color-mix(in srgb, var(--primary-color) 18%, var(--surface-hover));
+      }
     }
 
     ul {
