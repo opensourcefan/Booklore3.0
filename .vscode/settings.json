@@ -1,0 +1,17 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "github-actions.workflows.pinned.workflows": [
+        ".github/workflows/develop-pipeline.yml"
+    ],
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "eslint.workingDirectories": [
+        "booklore-ui"
+    ],
+    "eslint.validate": [
+        "typescript",
+        "html"
+    ],
+    "editor.formatOnSave": false
+}
