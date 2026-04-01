@@ -12,7 +12,7 @@
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="search-card">
       <div class="search-grid">
         <div class="search-field search-field-provider">
-          <label>
+          <label for="meta-search-providers">
             <i class="pi pi-globe"></i>
             {{ t('providersLabel') }}
           </label>
@@ -21,13 +21,14 @@
             showToggleAll="false"
             [options]="providers"
             formControlName="provider"
+            inputId="meta-search-providers"
             [placeholder]="t('selectProviders')"
             class="'custom-multiselect'">
           </p-multiselect>
         </div>
 
         <div class="search-field">
-          <label>
+          <label for="meta-search-isbn">
             <i class="pi pi-barcode"></i>
             {{ t('isbnLabel') }}
             <i
@@ -39,30 +40,33 @@
           </label>
           <input
             pInputText
+            id="meta-search-isbn"
             formControlName="isbn"
             [placeholder]="t('isbnPlaceholder')"
             class="custom-input"/>
         </div>
 
         <div class="search-field">
-          <label>
+          <label for="meta-search-title">
             <i class="pi pi-book"></i>
             {{ t('titleLabel') }}
           </label>
           <input
             pInputText
+            id="meta-search-title"
             formControlName="title"
             [placeholder]="t('titlePlaceholder')"
             class="custom-input"/>
         </div>
 
         <div class="search-field">
-          <label>
+          <label for="meta-search-author">
             <i class="pi pi-user"></i>
             {{ t('authorLabel') }}
           </label>
           <input
             pInputText
+            id="meta-search-author"
             formControlName="author"
             [placeholder]="t('authorPlaceholder')"
             class="custom-input"/>

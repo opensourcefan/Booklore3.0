@@ -4,7 +4,7 @@
     <div class="panel-body">
       <!-- Fit Mode -->
       <div class="control">
-        <label>{{ 'readerCbx.quickSettings.fitMode' | transloco }}</label>
+        <span>{{ 'readerCbx.quickSettings.fitMode' | transloco }}</span>
         <div class="control-right">
           <div class="button-group">
             @for (option of fitModeOptions; track option.value) {
@@ -22,7 +22,7 @@
 
       <!-- Scroll Mode -->
       <div class="control">
-        <label>{{ 'readerCbx.quickSettings.scrollMode' | transloco }}</label>
+        <span>{{ 'readerCbx.quickSettings.scrollMode' | transloco }}</span>
         <div class="control-right">
           <div class="button-group text-btns">
             @for (option of scrollModeOptions; track option.value) {
@@ -41,7 +41,7 @@
       <!-- Page View (only in paginated mode) -->
       @if (isPaginated && !isPhonePortrait) {
         <div class="control">
-          <label>{{ 'readerCbx.quickSettings.pageView' | transloco }}</label>
+          <span>{{ 'readerCbx.quickSettings.pageView' | transloco }}</span>
           <div class="control-right">
             <div class="button-group text-btns">
               <button class="option-btn text-btn" [class.active]="!isTwoPageView" (click)="onPageViewSelect(CbxPageViewMode.SINGLE_PAGE)">
@@ -58,7 +58,7 @@
       <!-- Page Spread (only in two-page mode) -->
       @if (isPaginated && isTwoPageView) {
         <div class="control">
-          <label>{{ 'readerCbx.quickSettings.pageSpread' | transloco }}</label>
+          <span>{{ 'readerCbx.quickSettings.pageSpread' | transloco }}</span>
           <div class="control-right">
             <div class="button-group text-btns">
               <button class="option-btn text-btn" [class.active]="state.pageSpread === CbxPageSpread.ODD" (click)="onPageSpreadSelect(CbxPageSpread.ODD)">
@@ -74,7 +74,7 @@
 
       <!-- Reading Direction -->
       <div class="control">
-        <label>{{ 'readerCbx.quickSettings.readingDirection' | transloco }}</label>
+        <span>{{ 'readerCbx.quickSettings.readingDirection' | transloco }}</span>
         <div class="control-right">
           <div class="button-group text-btns">
             <button class="option-btn text-btn" [class.active]="state.readingDirection === CbxReadingDirection.LTR" (click)="onReadingDirectionSelect(CbxReadingDirection.LTR)">
@@ -89,7 +89,7 @@
 
       <!-- Slideshow Interval -->
       <div class="control">
-        <label>{{ 'readerCbx.quickSettings.slideshowInterval' | transloco }}</label>
+        <span>{{ 'readerCbx.quickSettings.slideshowInterval' | transloco }}</span>
         <div class="control-right">
           <div class="button-group text-btns">
             @for (option of slideshowIntervalOptions; track option.value) {
@@ -107,7 +107,7 @@
 
       <!-- Background Color -->
       <div class="control">
-        <label>{{ 'readerCbx.quickSettings.background' | transloco }}</label>
+        <span>{{ 'readerCbx.quickSettings.background' | transloco }}</span>
         <div class="control-right">
           <div class="button-group">
             @for (option of backgroundOptions; track option.value) {
@@ -125,7 +125,7 @@
 
       <!-- Magnifier Lens Size -->
       <div class="control">
-        <label>{{ 'readerCbx.quickSettings.magnifierLensSize' | transloco }}</label>
+        <span>{{ 'readerCbx.quickSettings.magnifierLensSize' | transloco }}</span>
         <div class="control-right">
           <div class="button-group text-btns">
             @for (option of magnifierLensSizeOptions; track option.value) {
@@ -143,7 +143,7 @@
 
       <!-- Magnifier Zoom -->
       <div class="control">
-        <label>{{ 'readerCbx.quickSettings.magnifierZoom' | transloco }}</label>
+        <span>{{ 'readerCbx.quickSettings.magnifierZoom' | transloco }}</span>
         <div class="control-right">
           <div class="button-group text-btns">
             @for (option of magnifierZoomOptions; track option.value) {
