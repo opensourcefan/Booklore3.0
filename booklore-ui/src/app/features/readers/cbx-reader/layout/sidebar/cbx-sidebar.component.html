@@ -1,6 +1,6 @@
 @if (isOpen) {
   <div class="sidebar-overlay" tabindex="0" (keydown.enter)="onOverlayClick()" (click)="onOverlayClick()" [class.closing]="closing">
-    <aside class="sidebar" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()" [class.closing]="closing">
+    <aside class="sidebar" tabindex="0" (keydown.escape)="onOverlayClick()" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()" [class.closing]="closing">
       <header class="sidebar-header">
         @if (bookInfo.coverUrl) {
           <img

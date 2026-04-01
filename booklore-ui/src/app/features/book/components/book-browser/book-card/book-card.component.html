@@ -1,7 +1,7 @@
 <div class="book-card"
      [class.selected]="isSelected"
      tabindex="0"
-     (keydown.enter)="onCardClick($any($event))"
+     (keydown.enter)="readBook(book)"
      (click)="onCardClick($event)"
   (mouseenter)="bookClicked.emit(book)"
   (mouseleave)="bookHoverEnded.emit(book.id)">
