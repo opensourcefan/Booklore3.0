@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -624,7 +625,11 @@ class BookRuleEvaluatorServiceIntegrationTest {
         @Test
         void thisPeriod_month_matchesThisMonthBook() {
             BookEntity thisMonth = createBook("This Month Book");
-            thisMonth.setAddedOn(Instant.now().minus(1, ChronoUnit.HOURS));
+            // Use the 1st of the current month at noon (system timezone) to avoid
+            // month-boundary failures when the test runs just after midnight UTC.
+            Instant midMonthInstant = LocalDate.now().withDayOfMonth(1)
+                    .atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant();
+            thisMonth.setAddedOn(midMonthInstant);
             em.merge(thisMonth);
 
             BookEntity notThisMonth = createBook("Not This Month Book");
