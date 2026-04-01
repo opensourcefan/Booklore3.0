@@ -10,9 +10,9 @@ const assignIDs = toc => {
 }
 
 const flatten = items => items
-    .map(item => item.subitems?.length
-        ? [item, flatten(item.subitems)].flat()
-        : item)
+    .map(item => item.subitems?.length ?
+        [item, flatten(item.subitems)].flat() :
+        item)
     .flat()
 
 export class TOCProgress {
@@ -57,7 +57,7 @@ export class TOCProgress {
 
 export class SectionProgress {
     constructor(sections, sizePerLoc, sizePerTimeUnit) {
-        this.sizes = sections.map(s => s.linear != 'no' && s.size > 0 ? s.size : 0)
+        this.sizes = sections.map(s => s.linear !== 'no' && s.size > 0 ? s.size : 0)
         this.sizePerLoc = sizePerLoc
         this.sizePerTimeUnit = sizePerTimeUnit
         this.sizeTotal = this.sizes.reduce((a, b) => a + b, 0)
@@ -106,8 +106,8 @@ export class SectionProgress {
         let index = this.sectionFractions.findIndex(x => x > fraction) - 1
         if (index < 0) return [0, 0]
         while (!this.sizes[index]) index++
-        const fractionInSection = (fraction - this.sectionFractions[index])
-            / (this.sizes[index] / sizeTotal)
+        const fractionInSection = (fraction - this.sectionFractions[index]) /
+            (this.sizes[index] / sizeTotal)
         return [index, fractionInSection]
     }
 }

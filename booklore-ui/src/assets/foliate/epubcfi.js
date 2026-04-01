@@ -1,5 +1,5 @@
 const findIndices = (arr, f) => arr
-    .map((x, i, a) => f(x, i, a) ? i : null).filter(x => x != null)
+    .map((x, i, a) => f(x, i, a) ? i : null).filter(x => x !== null)
 const splitAt = (arr, is) => [-1, ...is, arr.length].reduce(({ xs, a }, b) =>
     ({ xs: xs?.concat([arr.slice(a + 1, b)]) ?? [], a: b }), {}).xs
 const concatArrays = (a, b) =>
@@ -68,8 +68,8 @@ const tokenizer = str => {
             else cat(char)
             continue
         }
-        if (char === '/' || char === ':' || char === '~' || char === '@'
-        || char === '[' || char === '!' || char === ',') state = char
+        if (char === '/' || char === ':' || char === '~' || char === '@' ||
+        char === '[' || char === '!' || char === ',') state = char
     }
     return tokens
 }
@@ -114,26 +114,26 @@ export const parse = cfi => {
 
 const partToString = ({ index, id, offset, temporal, spatial, text, side }) => {
     const param = side ? `;s=${side}` : ''
-    return `/${index}`
-        + (id ? `[${escapeCFI(id)}${param}]` : '')
+    return `/${index}` +
+        (id ? `[${escapeCFI(id)}${param}]` : '') +
         // "CFI expressions [..] SHOULD include an explicit character offset"
-        + (offset != null && index % 2 ? `:${offset}` : '')
-        + (temporal ? `~${temporal}` : '')
-        + (spatial ? `@${spatial.join(':')}` : '')
-        + (text || (!id && side) ? '['
-            + (text?.map(escapeCFI)?.join(',') ?? '')
-            + param + ']' : '')
+        (offset !== null && index % 2 ? `:${offset}` : '') +
+        (temporal ? `~${temporal}` : '') +
+        (spatial ? `@${spatial.join(':')}` : '') +
+        (text || (!id && side) ? '[' +
+            (text?.map(escapeCFI)?.join(',') ?? '') +
+            param + ']' : '')
 }
 
-const toInnerString = parsed => parsed.parent
-    ? [parsed.parent, parsed.start, parsed.end].map(toInnerString).join(',')
-    : parsed.map(parts => parts.map(partToString).join('')).join('!')
+const toInnerString = parsed => parsed.parent ?
+    [parsed.parent, parsed.start, parsed.end].map(toInnerString).join(',') :
+    parsed.map(parts => parts.map(partToString).join('')).join('!')
 
 const toString = parsed => wrap(toInnerString(parsed))
 
-export const collapse = (x, toEnd) => typeof x === 'string'
-    ? toString(collapse(parse(x), toEnd))
-    : x.parent ? concatArrays(x.parent, x[toEnd ? 'end' : 'start']) : x
+export const collapse = (x, toEnd) => typeof x === 'string' ?
+    toString(collapse(parse(x), toEnd)) :
+    x.parent ? concatArrays(x.parent, x[toEnd ? 'end' : 'start']) : x
 
 // create range CFI from two CFIs
 const buildRange = (from, to) => {
@@ -163,8 +163,8 @@ const buildRange = (from, to) => {
 export const compare = (a, b) => {
     if (typeof a === 'string') a = parse(a)
     if (typeof b === 'string') b = parse(b)
-    if (a.start || b.start) return compare(collapse(a), collapse(b))
-        || compare(collapse(a, true), collapse(b, true))
+    if (a.start || b.start) return compare(collapse(a), collapse(b)) ||
+        compare(collapse(a, true), collapse(b, true))
 
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
         const p = a[i] ?? [], q = b[i] ?? []
@@ -275,8 +275,8 @@ const nodeToParts = (node, offset, filter) => {
         offset = sum
     }
     const part = { id, index, offset }
-    return (parentNode !== node.ownerDocument.documentElement
-        ? nodeToParts(parentNode, null, filter).concat(part) : [part])
+    return (parentNode !== node.ownerDocument.documentElement ?
+        nodeToParts(parentNode, null, filter).concat(part) : [part])
         // remove ignored nodes
         .filter(x => x.index !== -1)
 }

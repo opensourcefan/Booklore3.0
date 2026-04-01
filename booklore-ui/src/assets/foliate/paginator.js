@@ -178,20 +178,20 @@ const setSelectionTo = (target, collapse) => {
 const getDirection = doc => {
     const { defaultView } = doc
     const { writingMode, direction } = defaultView.getComputedStyle(doc.body)
-    const vertical = writingMode === 'vertical-rl'
-        || writingMode === 'vertical-lr'
-    const rtl = doc.body.dir === 'rtl'
-        || direction === 'rtl'
-        || doc.documentElement.dir === 'rtl'
+    const vertical = writingMode === 'vertical-rl' ||
+        writingMode === 'vertical-lr'
+    const rtl = doc.body.dir === 'rtl' ||
+        direction === 'rtl' ||
+        doc.documentElement.dir === 'rtl'
     return { vertical, rtl }
 }
 
 const getBackground = doc => {
     const bodyStyle = doc.defaultView.getComputedStyle(doc.body)
-    return bodyStyle.backgroundColor === 'rgba(0, 0, 0, 0)'
-        && bodyStyle.backgroundImage === 'none'
-        ? doc.defaultView.getComputedStyle(doc.documentElement).background
-        : bodyStyle.background
+    return bodyStyle.backgroundColor === 'rgba(0, 0, 0, 0)' &&
+        bodyStyle.backgroundImage === 'none' ?
+        doc.defaultView.getComputedStyle(doc.documentElement).background :
+        bodyStyle.background
 }
 
 const makeMarginals = (length, part) => Array.from({ length }, () => {

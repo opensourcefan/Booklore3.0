@@ -20,8 +20,8 @@ class DictZip {
     inflate
     async load(file) {
         const header = new DataView(await file.slice(0, 12).arrayBuffer())
-        if (header.getUint8(0) !== 31 || header.getUint8(1) !== 139
-        || header.getUint8(2) !== 8) throw new Error('Not a DictZip file')
+        if (header.getUint8(0) !== 31 || header.getUint8(1) !== 139 ||
+        header.getUint8(2) !== 8) throw new Error('Not a DictZip file')
         const flg = header.getUint8(3)
         if (!flg & 0b100) throw new Error('Missing FEXTRA flag')
 

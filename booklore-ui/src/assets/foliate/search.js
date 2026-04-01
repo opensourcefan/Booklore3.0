@@ -6,11 +6,11 @@ const normalizeWhitespace = str => str.replace(/\s+/g, ' ')
 const makeExcerpt = (strs, { startIndex, startOffset, endIndex, endOffset }) => {
     const start = strs[startIndex]
     const end = strs[endIndex]
-    const match = start === end
-        ? start.slice(startOffset, endOffset)
-        : start.slice(startOffset)
-            + strs.slice(start + 1, end).join('')
-            + end.slice(0, endOffset)
+    const match = start === end ?
+        start.slice(startOffset, endOffset) :
+        start.slice(startOffset) +
+            strs.slice(start + 1, end).join('') +
+            end.slice(0, endOffset)
     const trimmedStart = normalizeWhitespace(start.slice(0, startOffset)).trimStart()
     const trimmedEnd = normalizeWhitespace(end.slice(endOffset)).trimEnd()
     const ellipsisPre = trimmedStart.length < CONTEXT_LENGTH ? '' : '…'
@@ -53,7 +53,7 @@ const segmenterSearch = function* (strs, query, options = {}) {
         segmenter = new Intl.Segmenter(locales, { usage: 'search', granularity })
         collator = new Intl.Collator(locales, { sensitivity })
     } catch (e) {
-        console.warn(e)
+        console.warn(e) // jshint ignore:line
         segmenter = new Intl.Segmenter('en', { usage: 'search', granularity })
         collator = new Intl.Collator('en', { sensitivity })
     }
@@ -102,8 +102,8 @@ const segmenterSearch = function* (strs, query, options = {}) {
 
 export const search = (strs, query, options) => {
     const { granularity = 'grapheme', sensitivity = 'base' } = options
-    if (!Intl?.Segmenter || granularity === 'grapheme'
-    && (sensitivity === 'variant' || sensitivity === 'accent'))
+    if (!Intl?.Segmenter || granularity === 'grapheme' &&
+    (sensitivity === 'variant' || sensitivity === 'accent'))
         return simpleSearch(strs, query, options)
     return segmenterSearch(strs, query, options)
 }

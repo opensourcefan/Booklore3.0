@@ -62,8 +62,8 @@ export class FixedLayout extends HTMLElement {
     attributeChangedCallback(name, _, value) {
         switch (name) {
             case 'zoom':
-                this.#zoom = value !== 'fit-width' && value !== 'fit-page'
-                    ? parseFloat(value) : value
+                this.#zoom = value !== 'fit-width' && value !== 'fit-page' ?
+                    parseFloat(value) : value
                 this.#render()
                 break
         }
@@ -109,8 +109,8 @@ export class FixedLayout extends HTMLElement {
         const right = this.#center ?? this.#right ?? {}
         const target = side === 'left' ? left : right
         const { width, height } = this.getBoundingClientRect()
-        const portrait = this.spread !== 'both' && this.spread !== 'portrait'
-            && height > width
+        const portrait = this.spread !== 'both' && this.spread !== 'portrait' &&
+            height > width
         this.#portrait = portrait
         const blankWidth = left.width ?? right.width ?? 0
         const blankHeight = left.height ?? right.height ?? 0

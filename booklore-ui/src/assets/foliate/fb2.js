@@ -85,9 +85,9 @@ class FB2Converter {
         const [, id] = href.split('#')
         if (!id) return href
         const bin = this.bins.get(id)
-        return bin
-            ? `data:${bin.getAttribute('content-type')};base64,${bin.textContent}`
-            : href
+        return bin ?
+            `data:${bin.getAttribute('content-type')};base64,${bin.textContent}` :
+            href
     }
     image(node) {
         const el = this.doc.createElement('img')
@@ -159,10 +159,10 @@ const parseXML = async blob => {
     const str = new TextDecoder('utf-8').decode(buffer)
     const parser = new DOMParser()
     const doc = parser.parseFromString(str, MIME.XML)
-    const encoding = doc.xmlEncoding
+    const encoding = doc.xmlEncoding ||
         // `Document.xmlEncoding` is deprecated, and already removed in Firefox
         // so parse the XML declaration manually
-        || str.match(/^<\?xml\s+version\s*=\s*["']1.\d+"\s+encoding\s*=\s*["']([A-Za-z0-9._-]*)["']/)?.[1]
+        str.match(/^<\?xml\s+version\s*=\s*["']1.\d+"\s+encoding\s*=\s*["']([A-Za-z0-9._-]*)["']/)?.[1]
     if (encoding && encoding.toLowerCase() !== 'utf-8') {
         const str = new TextDecoder(encoding).decode(buffer)
         return parser.parseFromString(str, MIME.XML)
@@ -243,9 +243,9 @@ export const makeFB2 = async blob => {
         const middle = getElementText(el.querySelector('middle-name'))
         const last = getElementText(el.querySelector('last-name'))
         const name = [first, middle, last].filter(x => x).join(' ')
-        const sortAs = last
-            ? [last, [first, middle].filter(x => x).join(' ')].join(', ')
-            : null
+        const sortAs = last ?
+            [last, [first, middle].filter(x => x).join(' ')].join(', ') :
+            null
         return { name, sortAs }
     }
     const getDate = el => el?.getAttribute('value') ?? getElementText(el)
@@ -309,8 +309,8 @@ export const makeFB2 = async blob => {
             const url = URL.createObjectURL(blob)
             urls.push(url)
             const title = normalizeWhitespace(
-                el.querySelector('.title, .subtitle, p')?.textContent
-                ?? (el.classList.contains('title') ? el.textContent : ''))
+                el.querySelector('.title, .subtitle, p')?.textContent ??
+                (el.classList.contains('title') ? el.textContent : ''))
             return {
                 ids, title, titles, load: () => url,
                 createDocument: () => new DOMParser().parseFromString(str, MIME.XHTML),
@@ -343,11 +343,11 @@ export const makeFB2 = async blob => {
 
     book.resolveHref = href => {
         const [a, b] = href.split('#')
-        return a
+        return a ?
             // the link is from the TOC
-            ? { index: Number(a), anchor: doc => doc.querySelector(`[${dataID}="${b}"]`) }
+            { index: Number(a), anchor: doc => doc.querySelector(`[${dataID}="${b}"]`) } :
             // link from within the page
-            : { index: idMap.get(b), anchor: doc => doc.getElementById(b) }
+            { index: idMap.get(b), anchor: doc => doc.getElementById(b) }
     }
     book.splitTOCHref = href => href?.split('#')?.map(x => Number(x)) ?? []
     book.getTOCFragment = (doc, id) => doc.querySelector(`[${dataID}="${id}"]`)

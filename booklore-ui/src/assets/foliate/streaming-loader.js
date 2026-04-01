@@ -64,12 +64,12 @@ export const makeStreamingLoader = (bookId, baseUrl, bookInfo, authToken = null,
       const url = getFileUrl(name)
       const response = await fetch(url, getFetchOptions())
       if (!response.ok) {
-        console.warn(`Failed to load text: ${name}`, response.status)
+        console.warn(`Failed to load text: ${name}`, response.status) // jshint ignore:line
         return null
       }
       return await response.text()
     } catch (e) {
-      console.error(`Error loading text ${name}:`, e)
+      console.error(`Error loading text ${name}:`, e) // jshint ignore:line
       return null
     }
   }
@@ -83,7 +83,7 @@ export const makeStreamingLoader = (bookId, baseUrl, bookInfo, authToken = null,
       const url = getFileUrl(name)
       const response = await fetch(url, getFetchOptions())
       if (!response.ok) {
-        console.warn(`Failed to load blob: ${name}`, response.status)
+        console.warn(`Failed to load blob: ${name}`, response.status) // jshint ignore:line
         return null
       }
       const blob = await response.blob()
@@ -93,7 +93,7 @@ export const makeStreamingLoader = (bookId, baseUrl, bookInfo, authToken = null,
       }
       return blob
     } catch (e) {
-      console.error(`Error loading blob ${name}:`, e)
+      console.error(`Error loading blob ${name}:`, e) // jshint ignore:line
       return null
     }
   }

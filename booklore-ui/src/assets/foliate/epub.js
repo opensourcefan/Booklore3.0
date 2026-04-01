@@ -66,11 +66,11 @@ const normalizeWhitespace = str => str ? str
     .replace(/^[\t\n\f\r ]+/, '')
     .replace(/[\t\n\f\r ]+$/, '') : ''
 
-const filterAttribute = (attr, value, isList) => isList
-    ? el => el.getAttribute(attr)?.split(/\s/)?.includes(value)
-    : typeof value === 'function'
-        ? el => value(el.getAttribute(attr))
-        : el => el.getAttribute(attr) === value
+const filterAttribute = (attr, value, isList) => isList ?
+    el => el.getAttribute(attr)?.split(/\s/)?.includes(value) :
+    typeof value === 'function' ?
+        el => value(el.getAttribute(attr)) :
+        el => el.getAttribute(attr) === value
 
 const getAttributes = (...xs) => el =>
     el ? Object.fromEntries(xs.map(x => [camel(x), el.getAttribute(x)])) : null
@@ -80,15 +80,15 @@ const getElementText = el => normalizeWhitespace(el?.textContent)
 const childGetter = (doc, ns) => {
     // ignore the namespace if it doesn't appear in document at all
     const useNS = doc.lookupNamespaceURI(null) === ns || doc.lookupPrefix(ns)
-    const f = useNS
-        ? (el, name) => el => el.namespaceURI === ns && el.localName === name
-        : (el, name) => el => el.localName === name
+    const f = useNS ?
+        (el, name) => el => el.namespaceURI === ns && el.localName === name :
+        (el, name) => el => el.localName === name
     return {
         $: (el, name) => [...el.children].find(f(el, name)),
         $$: (el, name) => [...el.children].filter(f(el, name)),
-        $$$: useNS
-            ? (el, name) => [...el.getElementsByTagNameNS(ns, name)]
-            : (el, name) => [...el.getElementsByTagName(name)],
+        $$$: useNS ?
+            (el, name) => [...el.getElementsByTagNameNS(ns, name)] :
+            (el, name) => [...el.getElementsByTagName(name)],
     }
 }
 
@@ -152,8 +152,8 @@ const tidy = obj => {
 // https://www.w3.org/TR/epub/#sec-prefix-attr
 const getPrefixes = doc => {
     const map = new Map(Object.entries(PREFIX))
-    const value = doc.documentElement.getAttributeNS(NS.EPUB, 'prefix')
-        || doc.documentElement.getAttribute('prefix')
+    const value = doc.documentElement.getAttributeNS(NS.EPUB, 'prefix') ||
+        doc.documentElement.getAttribute('prefix')
     if (value) for (const [, prefix, url] of value
         .matchAll(/(.+): +(.+)[ \t\r\n]*/g)) map.set(prefix, url)
     return map
@@ -176,11 +176,11 @@ const getMetadata = opf => {
 
     // first pass: convert to JS objects
     const els = Object.groupBy($metadata.children, el =>
-        el.namespaceURI === NS.DC ? 'dc'
-        : el.namespaceURI === NS.OPF && el.localName === 'meta' ?
+        el.namespaceURI === NS.DC ? 'dc' :
+        el.namespaceURI === NS.OPF && el.localName === 'meta' ?
             (el.hasAttribute('name') ? 'legacyMeta' : 'meta') : '')
-    const baseLang = $metadata.getAttribute('xml:lang')
-        ?? opf.documentElement.getAttribute('xml:lang') ?? 'und'
+    const baseLang = $metadata.getAttribute('xml:lang') ??
+        opf.documentElement.getAttribute('xml:lang') ?? 'und'
     const prefixes = getPrefixes(opf)
     const parse = el => {
         const property = el.getAttribute('property')
@@ -261,22 +261,22 @@ const getMetadata = opf => {
     const metadata = {
         identifier: getIdentifier(opf),
         title: makeLanguageMap(mainTitle),
-        sortAs: makeLanguageMap(mainTitle?.props?.['file-as']?.[0])
-            ?? mainTitle?.attrs?.['file-as']
-            ?? legacyMeta?.['calibre:title_sort'],
+        sortAs: makeLanguageMap(mainTitle?.props?.['file-as']?.[0]) ??
+            mainTitle?.attrs?.['file-as'] ??
+            legacyMeta?.['calibre:title_sort'],
         subtitle: dc.title?.find(x => prop(x, 'title-type') === 'subtitle')?.value,
         language: dc.language?.map(x => x.value),
         description: one(dc.description),
         publisher: makeContributor(dc.publisher?.[0]),
-        published: dc.date?.find(x => x.attrs.event === 'publication')?.value
-            ?? one(dc.date),
-        modified: one(properties[PREFIX.dcterms + 'modified'])
-            ?? dc.date?.find(x => x.attrs.event === 'modification')?.value,
+        published: dc.date?.find(x => x.attrs.event === 'publication')?.value ??
+            one(dc.date),
+        modified: one(properties[PREFIX.dcterms + 'modified']) ??
+            dc.date?.find(x => x.attrs.event === 'modification')?.value,
         subject: dc.subject?.map(makeContributor),
         belongsTo: {
             collection: belongsTo.collection?.map(makeCollection),
-            series: belongsTo.series?.map(makeCollection)
-            ?? legacyMeta?.['calibre:series'] ? {
+            series: belongsTo.series?.map(makeCollection) ??
+            legacyMeta?.['calibre:series'] ? {
                 name: legacyMeta?.['calibre:series'],
                 position: parseFloat(legacyMeta?.['calibre:series_index']),
             } : null,

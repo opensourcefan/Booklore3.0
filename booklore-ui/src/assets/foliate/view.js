@@ -13,9 +13,9 @@ const isZip = async file => {
 
 const isPDF = async file => {
   const arr = new Uint8Array(await file.slice(0, 5).arrayBuffer())
-  return arr[0] === 0x25
-    && arr[1] === 0x50 && arr[2] === 0x44 && arr[3] === 0x46
-    && arr[4] === 0x2d
+  return arr[0] === 0x25 &&
+    arr[1] === 0x50 && arr[2] === 0x44 && arr[3] === 0x46 &&
+    arr[4] === 0x2d
 }
 
 const isCBZ = ({name, type}) =>
@@ -43,8 +43,8 @@ const isFB2 = async file => {
 }
 
 const isFBZ = ({name, type}) =>
-  type === 'application/x-zip-compressed-fb2'
-  || name.endsWith('.fb2.zip') || name.endsWith('.fbz')
+  type === 'application/x-zip-compressed-fb2' ||
+  name.endsWith('.fb2.zip') || name.endsWith('.fbz')
 
 const makeZipLoader = async file => {
   const {configure, ZipReader, BlobReader, TextWriter, BlobWriter} =
