@@ -72,6 +72,7 @@ export class ToolbarConfigService {
     const seen = new Set<string>();
     const normalized: ToolbarItem[] = [];
 
+    // First pass: add all saved items that exist in defaults (maintaining saved order)
     for (const item of items) {
       const defaultItem = defaults.get(item.id);
       if (!defaultItem || seen.has(item.id)) {
@@ -81,9 +82,27 @@ export class ToolbarConfigService {
       seen.add(item.id);
     }
 
-    for (const defaultItem of DEFAULT_ITEMS) {
-      if (!seen.has(defaultItem.id)) {
-        normalized.push({...defaultItem});
+    // Second pass: insert new default items in their correct position relative to
+    // their predecessors in DEFAULT_ITEMS (so new toolbar items aren't appended at the end)
+    for (let i = 0; i < DEFAULT_ITEMS.length; i++) {
+      const defaultItem = DEFAULT_ITEMS[i];
+      if (seen.has(defaultItem.id)) continue;
+
+      // Find the last predecessor (from DEFAULT_ITEMS) that is already in normalized
+      let insertAfterIdx = -1;
+      for (let j = i - 1; j >= 0; j--) {
+        const predecessorId = DEFAULT_ITEMS[j].id;
+        const idx = normalized.findIndex(n => n.id === predecessorId);
+        if (idx >= 0) {
+          insertAfterIdx = idx;
+          break;
+        }
+      }
+
+      if (insertAfterIdx >= 0) {
+        normalized.splice(insertAfterIdx + 1, 0, {...defaultItem});
+      } else {
+        normalized.unshift({...defaultItem});
       }
     }
 

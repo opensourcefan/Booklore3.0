@@ -2,6 +2,7 @@ import {Injectable, inject} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
 import {tap} from 'rxjs/operators';
+import {API_CONFIG} from '../../../core/config/api-config';
 
 export interface DirectoryNode {
   name: string;
@@ -27,14 +28,14 @@ export class DirectoryTreeService {
   getTreeForLibrary(libraryId: number): Observable<DirectoryRootNode[]> {
     const cached = this.libraryCache.get(libraryId);
     if (cached) return of(cached);
-    return this.http.get<DirectoryRootNode[]>(`/api/v1/libraries/${libraryId}/directory-tree`).pipe(
+    return this.http.get<DirectoryRootNode[]>(`${API_CONFIG.BASE_URL}/api/v1/libraries/${libraryId}/directory-tree`).pipe(
       tap(data => this.libraryCache.set(libraryId, data))
     );
   }
 
   getAllLibrariesTree(): Observable<DirectoryRootNode[]> {
     if (this.allCache) return of(this.allCache);
-    return this.http.get<DirectoryRootNode[]>('/api/v1/libraries/directory-tree').pipe(
+    return this.http.get<DirectoryRootNode[]>(`${API_CONFIG.BASE_URL}/api/v1/libraries/directory-tree`).pipe(
       tap(data => { this.allCache = data; })
     );
   }
