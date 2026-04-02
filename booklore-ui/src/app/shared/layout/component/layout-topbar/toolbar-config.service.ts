@@ -14,7 +14,6 @@ const DEFAULT_ITEMS: ToolbarItem[] = [
   {id: 'bookdrop', type: 'button', visible: true, label: 'Bookdrop', icon: 'pi pi-inbox'},
   {id: 'createLibrary', type: 'button', visible: true, label: 'Create New Library', icon: 'pi pi-plus-circle'},
   {id: 'upload', type: 'button', visible: true, label: 'Upload', icon: 'pi pi-upload'},
-  {id: 'dirExplorer', type: 'button', visible: true, label: 'Directory Explorer', icon: 'pi pi-folder'},
   {id: 'sep1', type: 'separator', visible: true},
   {id: 'metadata', type: 'button', visible: true, label: 'Metadata', icon: 'pi pi-database'},
   {id: 'stats', type: 'button', visible: true, label: 'Stats', icon: 'pi pi-chart-bar'},

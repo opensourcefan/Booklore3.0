@@ -8,12 +8,11 @@ import {DirectoryFilterService} from '../../service/directory-filter.service';
 import {DirectoryPanelService} from '../../service/directory-panel.service';
 import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-node.component';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
-import {Tooltip} from 'primeng/tooltip';
 
 @Component({
   selector: 'app-directory-panel',
   standalone: true,
-  imports: [ProgressSpinner, DirectoryTreeNodeComponent, ResizableDividerDirective, Tooltip],
+  imports: [ProgressSpinner, DirectoryTreeNodeComponent, ResizableDividerDirective],
   templateUrl: './directory-panel.component.html',
   styleUrls: ['./directory-panel.component.scss']
 })
@@ -108,14 +107,14 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       if (newLibId !== this.currentLibraryId) {
         this.currentLibraryId = newLibId;
         this.tree = [];
-        if (this.visible) this.loadTree();
+        this.loadTree();
       }
     } else {
       this.isLibraryRoute = false;
       if (this.currentLibraryId !== null) {
         this.currentLibraryId = null;
         this.tree = [];
-        if (this.visible) this.loadTree();
+        this.loadTree();
       }
     }
   }

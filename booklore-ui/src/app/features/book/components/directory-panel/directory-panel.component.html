@@ -28,9 +28,7 @@
           <div class="dir-tree-root">
             <button type="button" class="dir-tree-root__header"
                  [class.dir-tree-root__header--selected]="isRootSelected(root)"
-                 (click)="selectRoot(root)"
-                 pTooltip="{{ root.rootPath }}"
-                 tooltipPosition="right">
+                 (click)="selectRoot(root)">
               <i class="pi pi-database dir-tree-root__icon"></i>
               <span class="dir-tree-root__label">
                 @if (!isLibraryRoute) {
@@ -38,7 +36,7 @@
                 }{{ getShortPath(root.rootPath) }}
               </span>
               @if (!root.hasRootBooks) {
-                <span class="dir-tree-root__no-root-indicator" pTooltip="No books at root level" tooltipPosition="right">
+                <span class="dir-tree-root__no-root-indicator">
                   <i class="pi pi-ban" style="font-size:0.65rem; opacity:0.4"></i>
                 </span>
               }

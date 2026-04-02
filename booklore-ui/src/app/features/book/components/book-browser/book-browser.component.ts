@@ -63,6 +63,7 @@ import {ResizableDividerDirective} from '../../../../shared/directives/resizable
 import {CoverPreviewComponent} from '../../../../shared/components/cover-preview/cover-preview.component';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {DirectoryFilterService} from '../../service/directory-filter.service';
+import {DirectoryPanelService} from '../../service/directory-panel.service';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -130,6 +131,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly t = inject(TranslocoService);
   private urlHelper = inject(UrlHelperService);
   private directoryFilterService = inject(DirectoryFilterService);
+  readonly dirPanelService = inject(DirectoryPanelService);
 
   bookState$: Observable<BookState> | undefined;
   entity$: Observable<Library | Shelf | MagicShelf | null> | undefined;

@@ -100,18 +100,7 @@
                 </button>
               </li>
             }
-            @case ('dirExplorer') {
-              <li>
-                <button type="button"
-                        class="topbar-item"
-                        [class.topbar-item--active]="dirPanelService.isVisible"
-                        (click)="toggleDirectoryPanel()"
-                        [pTooltip]="t('dirExplorer')"
-                        tooltipPosition="bottom">
-                  <i class="pi pi-folder topbar-icon"></i>
-                </button>
-              </li>
-            }
+
             @case ('metadata') {
               <li>
                 <button type="button" class="topbar-item" (click)="navigateToMetadataManager()" [pTooltip]="t('metadataManager')" tooltipPosition="bottom">

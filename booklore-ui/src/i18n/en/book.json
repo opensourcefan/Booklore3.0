@@ -57,6 +57,7 @@
       "rootFolder": "Root"
     },
     "tooltip": {
+      "dirExplorer": "Directory explorer",
       "clearFilters": "Clear applied filters",
       "visibleColumns": "Visible columns",
       "displaySettings": "Display settings",

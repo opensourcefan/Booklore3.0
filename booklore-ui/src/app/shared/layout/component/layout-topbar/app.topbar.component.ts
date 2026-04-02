@@ -33,7 +33,6 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {SidebarFilterTogglePrefService} from '../../../../features/book/components/book-browser/filters/sidebar-filter-toggle-pref.service';
-import {DirectoryPanelService} from '../../../../features/book/service/directory-panel.service';
 import {DirectoryMobilePanelComponent} from '../../../../features/book/components/directory-mobile-panel/directory-mobile-panel.component';
 import {AiPanelScanProgressPayload} from '../../../model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from '../../../service/ai-panel-scan-progress.service';
@@ -120,7 +119,6 @@ export class AppTopBarComponent implements OnDestroy {
   private bookdropFileService = inject(BookdropFileService);
   private dialogLauncher = inject(DialogLauncherService);
   private sidebarFilterTogglePrefService = inject(SidebarFilterTogglePrefService);
-  readonly dirPanelService = inject(DirectoryPanelService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private taskService = inject(TaskService);
   private writeProgressService = inject(WriteProgressService);
@@ -253,10 +251,6 @@ export class AppTopBarComponent implements OnDestroy {
   toggleMenu() {
     this.isMenuVisible = !this.isMenuVisible;
     this.layoutService.onMenuToggle();
-  }
-
-  toggleDirectoryPanel(): void {
-    this.dirPanelService.toggle();
   }
 
   openMobileSearch(): void {

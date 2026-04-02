@@ -85,7 +85,7 @@
   transition: background 0.12s;
 
   &:hover {
-    background: var(--p-surface-100, rgba(0,0,0,0.05));
+    background: var(--surface-hover);
   }
 
   &--selected {

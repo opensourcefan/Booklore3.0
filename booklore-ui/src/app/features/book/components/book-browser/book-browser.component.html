@@ -67,6 +67,17 @@
       </div>
       <div class="toolbar-actions">
         <div class="toolbar-icons">
+          @if (entityType === EntityType.LIBRARY && !isMobile) {
+            <button type="button"
+                    class="topbar-items topbar-item"
+                    [class.topbar-item--active]="dirPanelService.isVisible"
+                    (click)="dirPanelService.toggle()"
+                    [pTooltip]="t('tooltip.dirExplorer')"
+                    tooltipPosition="top">
+              <i class="pi pi-folder"></i>
+            </button>
+          }
+
           @if (isFilterActive) {
             <button type="button" class="topbar-items topbar-item" (click)="clearFilter()">
               <i

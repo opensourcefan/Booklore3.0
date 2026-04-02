@@ -55,7 +55,6 @@ export class DirectoryTreeNodeComponent {
   }
 
   onSelect(): void {
-    this.expanded = !this.expanded;
     this.nodeSelected.emit({libraryPathId: this.libraryPathId, fileSubPath: this.node.path});
   }
 }
