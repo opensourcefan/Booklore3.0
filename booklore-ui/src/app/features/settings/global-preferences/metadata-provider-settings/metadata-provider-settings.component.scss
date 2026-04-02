@@ -157,3 +157,122 @@
   padding-top: 0.5rem;
   border-top: 1px solid var(--p-content-border-color);
 }
+
+// Amazon cookie setup guide
+.cookie-setup {
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-left: 3px solid var(--primary-color);
+  border-radius: settings.$settings-item-border-radius;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cookie-setup-title {
+  font-weight: settings.$settings-label-weight;
+  font-size: settings.$settings-description-size;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  .pi-info-circle {
+    color: var(--primary-color);
+  }
+}
+
+.cookie-setup-steps {
+  margin: 0;
+  padding-left: 1.375rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.cookie-setup-step {
+  font-size: settings.$settings-description-size;
+  color: var(--p-text-muted-color);
+  line-height: 1.5;
+
+  b {
+    color: var(--text-color);
+    font-weight: settings.$settings-label-weight;
+  }
+}
+
+.bookmarklet-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  margin-top: 0.375rem;
+}
+
+.bookmarklet-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.875rem;
+  border: 2px dashed var(--primary-color);
+  border-radius: 20px;
+  color: var(--primary-color);
+  font-size: settings.$settings-description-size;
+  font-weight: 600;
+  cursor: grab;
+  text-decoration: none;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.bookmarklet-hint {
+  font-size: 0.78rem;
+  color: var(--p-text-muted-color);
+  font-style: italic;
+}
+
+// Cookie input row: input + paste button side by side
+.cookie-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  flex-wrap: wrap;
+
+  .config-input {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+// Cookie status badge
+.cookie-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.is-set {
+    background: color-mix(in srgb, var(--p-green-500) 15%, transparent);
+    color: var(--p-green-500);
+  }
+
+  &.is-empty {
+    background: color-mix(in srgb, var(--p-yellow-500) 15%, transparent);
+    color: var(--p-yellow-600);
+  }
+}

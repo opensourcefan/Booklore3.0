@@ -67,7 +67,20 @@
     "googleApiPlaceholder": "Enter Google Books API key",
     "apiToken": "API Token",
     "hardcoverPlaceholder": "Enter Hardcover API token",
-    "comicvinePlaceholder": "Enter Comic Vine API token"
+    "comicvinePlaceholder": "Enter Comic Vine API token",
+    "amazonSetupTitle": "How to set up Amazon cookies",
+    "amazonStep1": "Go to your Amazon website (e.g. amazon.com) in this browser and sign in to your account.",
+    "amazonStep2": "Drag the bookmark below onto your bookmarks bar — you only need to do this once:",
+    "amazonStep3": "While on any Amazon page, click the <b>Get Amazon Cookies</b> bookmark.",
+    "amazonStep4": "Return to this page and click <b>Paste Cookies</b> — the field will fill in automatically.",
+    "amazonStep5": "Click <b>Save Configurations</b>. Amazon cookies expire periodically — repeat these steps if Amazon stops returning results.",
+    "amazonBookmarkletLabel": "Get Amazon Cookies",
+    "amazonBookmarkletHint": "← Drag to bookmarks bar",
+    "amazonPasteBtn": "Paste Cookies",
+    "amazonPasteSuccess": "Cookies pasted from clipboard!",
+    "amazonPasteError": "Could not read clipboard. Please paste manually into the field below.",
+    "amazonCookieSet": "Cookie saved",
+    "amazonCookieEmpty": "Not configured"
   },
   "publicReviews": {
     "sectionTitle": "Public Reviews",

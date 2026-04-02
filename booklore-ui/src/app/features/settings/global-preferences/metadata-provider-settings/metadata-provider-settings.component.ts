@@ -10,8 +10,9 @@ import {MessageService} from 'primeng/api';
 import {AppSettingKey} from '../../../../shared/model/app-settings.model';
 import {Select} from 'primeng/select';
 import {ExternalDocLinkComponent} from '../../../../shared/components/external-doc-link/external-doc-link.component';
-import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import {ToggleSwitchModule} from 'primeng/toggleswitch';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-metadata-provider-settings',
@@ -103,6 +104,7 @@ export class MetadataProviderSettingsComponent implements OnInit {
   private messageService = inject(MessageService);
   private destroyRef = inject(DestroyRef);
   private t = inject(TranslocoService);
+  private sanitizer = inject(DomSanitizer);
 
   private appSettings$ = this.appSettingsService.appSettings$;
 
@@ -131,6 +133,40 @@ export class MetadataProviderSettingsComponent implements OnInit {
         this.audibleEnabled = metadataProviderSettings?.audible?.enabled ?? false;
         this.selectedAudibleDomain = metadataProviderSettings?.audible?.domain ?? 'com';
       });
+  }
+
+  get amazonBookmarkletHref(): SafeUrl {
+    const js = `javascript:(function(){` +
+      `var c=document.cookie;` +
+      `if(!c){alert('No cookies found. Make sure you are on an Amazon page and signed in.');return;}` +
+      `navigator.clipboard.writeText(c).then(function(){` +
+        `alert('Amazon cookies copied! Return to BookLore and click Paste Cookies.');` +
+      `}).catch(function(){` +
+        `var t=document.createElement('textarea');t.value=c;` +
+        `document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);` +
+        `alert('Amazon cookies copied! Return to BookLore and click Paste Cookies.');` +
+      `});` +
+    `})();`;
+    return this.sanitizer.bypassSecurityTrustUrl(js);
+  }
+
+  pasteFromClipboard(): void {
+    navigator.clipboard.readText().then(text => {
+      if (text?.trim()) {
+        this.amazonCookie = text.trim();
+        this.messageService.add({
+          severity: 'success',
+          summary: this.t.translate('common.success'),
+          detail: this.t.translate('settingsMeta.providers.amazonPasteSuccess')
+        });
+      }
+    }).catch(() => {
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.t.translate('common.warning'),
+        detail: this.t.translate('settingsMeta.providers.amazonPasteError')
+      });
+    });
   }
 
   onTokenChange(newToken: string): void {

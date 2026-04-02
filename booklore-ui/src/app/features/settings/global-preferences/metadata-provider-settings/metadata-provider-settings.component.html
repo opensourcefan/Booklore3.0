@@ -23,6 +23,28 @@
               </div>
               @if (amazonEnabled) {
                 <div class="setting-options">
+                  <div class="cookie-setup">
+                    <div class="cookie-setup-title">
+                      <i class="pi pi-info-circle"></i>
+                      {{ t('amazonSetupTitle') }}
+                    </div>
+                    <ol class="cookie-setup-steps">
+                      <li class="cookie-setup-step">{{ t('amazonStep1') }}</li>
+                      <li class="cookie-setup-step">
+                        <span>{{ t('amazonStep2') }}</span>
+                        <div class="bookmarklet-row">
+                          <a [href]="amazonBookmarkletHref" class="bookmarklet-link" (click)="$event.stopPropagation()">
+                            <i class="pi pi-bookmark-fill"></i>
+                            {{ t('amazonBookmarkletLabel') }}
+                          </a>
+                          <span class="bookmarklet-hint">{{ t('amazonBookmarkletHint') }}</span>
+                        </div>
+                      </li>
+                      <li class="cookie-setup-step" [innerHTML]="t('amazonStep3')"></li>
+                      <li class="cookie-setup-step" [innerHTML]="t('amazonStep4')"></li>
+                      <li class="cookie-setup-step" [innerHTML]="t('amazonStep5')"></li>
+                    </ol>
+                  </div>
                   <div class="config-field">
                     <span class="config-label">{{ t('region') }}</span>
                     <p-select
@@ -36,14 +58,30 @@
                     <div class="config-label-row">
                       <label class="config-label" for="amazon-cookie">{{ t('cookieLabel') }}</label>
                       <app-external-doc-link docType="amazonCookie"></app-external-doc-link>
+                      @if (amazonCookie) {
+                        <span class="cookie-status is-set"><i class="pi pi-check-circle"></i>{{ t('amazonCookieSet') }}</span>
+                      } @else {
+                        <span class="cookie-status is-empty"><i class="pi pi-exclamation-circle"></i>{{ t('amazonCookieEmpty') }}</span>
+                      }
                     </div>
                     <p class="config-description">{{ t('cookieDesc') }}</p>
-                    <input
-                      type="text"
-                      pInputText                      id="hardcover-token"                      id="amazon-cookie"
-                      [placeholder]="t('cookiePlaceholder')"
-                      [(ngModel)]="amazonCookie"
-                      class="config-input"/>
+                    <div class="cookie-input-row">
+                      <input
+                        type="password"
+                        pInputText
+                        id="amazon-cookie"
+                        [placeholder]="t('cookiePlaceholder')"
+                        [(ngModel)]="amazonCookie"
+                        class="config-input"/>
+                      <p-button
+                        [label]="t('amazonPasteBtn')"
+                        icon="pi pi-clipboard"
+                        severity="secondary"
+                        [outlined]="true"
+                        size="small"
+                        (onClick)="pasteFromClipboard()">
+                      </p-button>
+                    </div>
                   </div>
                 </div>
               }
