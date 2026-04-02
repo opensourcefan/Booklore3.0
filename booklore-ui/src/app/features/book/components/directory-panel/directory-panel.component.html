@@ -29,7 +29,6 @@
             <button type="button" class="dir-tree-root__header"
                  [class.dir-tree-root__header--selected]="isRootSelected(root)"
                  (click)="selectRoot(root)">
-              <i class="pi pi-database dir-tree-root__icon"></i>
               <span class="dir-tree-root__label">
                 @if (!isLibraryRoute) {
                   <span class="dir-tree-root__libname">{{ root.libraryName }}: </span>

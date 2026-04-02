@@ -67,7 +67,7 @@
       </div>
       <div class="toolbar-actions">
         <div class="toolbar-icons">
-          @if (entityType === EntityType.LIBRARY && !isMobile) {
+          @if ((entityType === EntityType.LIBRARY || entityType === EntityType.ALL_BOOKS) && !isMobile) {
             <button type="button"
                     class="topbar-items topbar-item"
                     [class.topbar-item--active]="dirPanelService.isVisible"
