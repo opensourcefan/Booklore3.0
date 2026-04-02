@@ -1,0 +1,65 @@
+@if (visible) {
+  <div class="layout-dir-panel"
+       blResizable="right"
+       storageKey="bl-dir-panel-width"
+       cssVar="--dir-panel-width"
+       [minWidth]="120"
+       [maxWidth]="400">
+
+    <div class="dir-panel-header">
+      <span class="dir-panel-title">
+        <i class="pi pi-folder-open dir-panel-title-icon"></i>
+        Folders
+      </span>
+      <button type="button" class="dir-panel-close" (click)="panelService.close()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <div class="dir-panel-body">
+      @if (loading) {
+        <div class="dir-panel-loading">
+          <p-progress-spinner strokeWidth="4" styleClass="dir-panel-spinner"></p-progress-spinner>
+        </div>
+      } @else if (tree.length === 0) {
+        <div class="dir-panel-empty">No folders found</div>
+      } @else {
+        @for (root of tree; track root.libraryPathId) {
+          <div class="dir-tree-root">
+            <button type="button" class="dir-tree-root__header"
+                 [class.dir-tree-root__header--selected]="isRootSelected(root)"
+                 (click)="selectRoot(root)"
+                 pTooltip="{{ root.rootPath }}"
+                 tooltipPosition="right">
+              <i class="pi pi-database dir-tree-root__icon"></i>
+              <span class="dir-tree-root__label">
+                @if (!isLibraryRoute) {
+                  <span class="dir-tree-root__libname">{{ root.libraryName }}: </span>
+                }{{ getShortPath(root.rootPath) }}
+              </span>
+              @if (!root.hasRootBooks) {
+                <span class="dir-tree-root__no-root-indicator" pTooltip="No books at root level" tooltipPosition="right">
+                  <i class="pi pi-ban" style="font-size:0.65rem; opacity:0.4"></i>
+                </span>
+              }
+            </button>
+            @if (root.children && root.children.length > 0) {
+              <ul class="dir-tree-children">
+                @for (child of root.children; track child.path) {
+                  <app-directory-tree-node
+                    [node]="child"
+                    [libraryPathId]="root.libraryPathId"
+                    [selectedPath]="selectedPath"
+                    [selectedLibraryPathId]="selectedLibraryPathId"
+                    (nodeSelected)="onNodeSelected($event)">
+                  </app-directory-tree-node>
+                }
+              </ul>
+            }
+          </div>
+        }
+      }
+    </div>
+
+  </div>
+}

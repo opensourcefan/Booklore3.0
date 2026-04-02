@@ -100,6 +100,18 @@
                 </button>
               </li>
             }
+            @case ('dirExplorer') {
+              <li>
+                <button type="button"
+                        class="topbar-item"
+                        [class.topbar-item--active]="dirPanelService.isVisible"
+                        (click)="toggleDirectoryPanel()"
+                        [pTooltip]="t('dirExplorer')"
+                        tooltipPosition="bottom">
+                  <i class="pi pi-folder topbar-icon"></i>
+                </button>
+              </li>
+            }
             @case ('metadata') {
               <li>
                 <button type="button" class="topbar-item" (click)="navigateToMetadataManager()" [pTooltip]="t('metadataManager')" tooltipPosition="bottom">
@@ -332,6 +344,20 @@
           pTooltip="Filters"
           tooltipPosition="bottom">
         </p-button>
+      </div>
+    }
+    @if (showMobileDirTrigger) {
+      <div class="mobile-right-dir-trigger">
+        <p-button
+          icon="pi pi-folder"
+          [text]="true"
+          (click)="mobileDirPop.toggle($event)"
+          pTooltip="Folders"
+          tooltipPosition="bottom">
+        </p-button>
+        <p-popover #mobileDirPop styleClass="dir-mobile-panel-popover">
+          <app-directory-mobile-panel></app-directory-mobile-panel>
+        </p-popover>
       </div>
     }
   </div>

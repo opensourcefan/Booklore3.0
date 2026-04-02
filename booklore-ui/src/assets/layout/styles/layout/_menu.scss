@@ -20,6 +20,40 @@
   box-shadow: 0px 3px 5px rgba(0, 0, 0, .02), 0px 0px 2px rgba(0, 0, 0, .05), 0px 1px 4px rgba(0, 0, 0, .08);
 }
 
+.layout-dir-panel {
+  position: fixed;
+  width: 200px;
+  height: calc(100dvh - 6.1rem);
+  z-index: 998;
+  display: flex;
+  flex-direction: column;
+  top: 5rem;
+  left: calc(var(--sidebar-width, 225px) + 1.9rem);
+  transition: left variables.$transitionDuration;
+  background-color: var(--card-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: variables.$borderRadius;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, .02), 0px 0px 2px rgba(0, 0, 0, .05), 0px 1px 4px rgba(0, 0, 0, .08);
+  overflow: hidden;
+
+  @media (max-width: 991px) {
+    display: none;
+  }
+}
+
+.layout-wrapper.layout-static-inactive .layout-dir-panel {
+  left: 1.1rem;
+}
+
+.layout-wrapper.layout-overlay .layout-dir-panel {
+  left: 1.1rem;
+}
+
+// Active state indicator for topbar directory explorer button
+.topbar-item--active {
+  color: var(--p-primary-color) !important;
+}
+
 
 .layout-menu {
   margin: 0;
@@ -145,5 +179,88 @@
         }
       }
     }
+  }
+}
+
+// Directory tree node styles (used in DirectoryTreeNodeComponent inline template)
+.dir-tree-node {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0 0.25rem;
+  }
+
+  &__body {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.6rem 0.28rem 0.3rem;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    color: var(--p-text-color);
+    user-select: none;
+    transition: background 0.12s;
+    background: none;
+    border: none;
+    flex: 1;
+    text-align: left;
+
+    &:hover {
+      background: var(--p-surface-100, rgba(0,0,0,0.05));
+    }
+  }
+
+  &--selected > .dir-tree-node__row > .dir-tree-node__body {
+    background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
+    color: var(--p-primary-color);
+  }
+
+  &__toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--p-text-muted-color, #9ca3af);
+    padding: 0;
+    width: 1rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+
+    &--leaf {
+      pointer-events: none;
+    }
+  }
+
+  &__icon {
+    font-size: 0.8rem;
+    color: var(--p-text-muted-color, #9ca3af);
+    flex-shrink: 0;
+  }
+
+  &__label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Mobile dir trigger button positioning
+.mobile-right-dir-trigger {
+  position: fixed;
+  top: 0.5rem;
+  right: 3rem;
+  z-index: 1001;
+
+  @media (min-width: 992px) {
+    display: none;
   }
 }

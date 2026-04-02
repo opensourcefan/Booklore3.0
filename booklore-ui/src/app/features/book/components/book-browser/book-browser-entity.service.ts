@@ -15,6 +15,7 @@ import {MagicShelf, MagicShelfService} from '../../../magic-shelf/service/magic-
 import {BookRuleEvaluatorService} from '../../../magic-shelf/service/book-rule-evaluator.service';
 import {GroupRule} from '../../../magic-shelf/component/magic-shelf-component';
 import {EntityType} from './book-browser.component';
+import {DirectoryFilterService, DirectorySelection} from '../../service/directory-filter.service';
 
 export interface EntityInfo {
   entityId: number;
@@ -29,6 +30,7 @@ export class BookBrowserEntityService {
   private sortService = inject(SortService);
   private magicShelfService = inject(MagicShelfService);
   private bookRuleEvaluatorService = inject(BookRuleEvaluatorService);
+  private directoryFilterService = inject(DirectoryFilterService);
 
   getEntityInfoFromRoute(activatedRoute: ActivatedRoute): Observable<EntityInfo> {
     return activatedRoute.paramMap.pipe(
@@ -82,18 +84,23 @@ export class BookBrowserEntityService {
   }
 
   fetchAllBooks(sortOption: SortOption): Observable<BookState> {
-    return this.bookService.bookState$.pipe(
-      map(bookState => this.processBookState(bookState, sortOption))
+    return combineLatest([
+      this.bookService.bookState$,
+      this.directoryFilterService.filter$
+    ]).pipe(
+      map(([bookState, dirFilter]) => this.processBookStateWithDirFilter(bookState, sortOption, dirFilter, null))
     );
   }
 
   fetchNotShelfedBooks(sortOption: SortOption): Observable<BookState> {
-    return this.bookService.bookState$.pipe(
-      map(bookState => ({
-        ...bookState,
-        books: (bookState.books || []).filter(book => !book.shelves || book.shelves.length === 0)
-      })),
-      map(bookState => this.processBookState(bookState, sortOption))
+    return combineLatest([
+      this.bookService.bookState$,
+      this.directoryFilterService.filter$
+    ]).pipe(
+      map(([bookState, dirFilter]) => {
+        const unshelfed = {...bookState, books: (bookState.books || []).filter(book => !book.shelves || book.shelves.length === 0)};
+        return this.processBookStateWithDirFilter(unshelfed, sortOption, dirFilter, null);
+      })
     );
   }
 
@@ -150,9 +157,10 @@ export class BookBrowserEntityService {
   private fetchMagicShelfBooks(magicShelfId: number, sortOption: SortOption): Observable<BookState> {
     return combineLatest([
       this.bookService.bookState$,
-      this.magicShelfService.getShelf(magicShelfId)
+      this.magicShelfService.getShelf(magicShelfId),
+      this.directoryFilterService.filter$
     ]).pipe(
-      map(([bookState, magicShelf]) => {
+      map(([bookState, magicShelf, dirFilter]) => {
         if (!bookState.loaded || bookState.error || !magicShelf?.filterJson) {
           return bookState;
         }
@@ -160,30 +168,44 @@ export class BookBrowserEntityService {
         const filteredBooks = allBooks.filter(book =>
           this.bookRuleEvaluatorService.evaluateGroup(book, JSON.parse(magicShelf.filterJson!) as GroupRule, allBooks)
         );
-        const sortedBooks = this.sortService.applySort(filteredBooks ?? [], sortOption);
-        return {...bookState, books: sortedBooks};
+        return this.processBookStateWithDirFilter({...bookState, books: filteredBooks}, sortOption, dirFilter, null);
       })
     );
   }
 
   private fetchBooks(bookFilter: (book: Book) => boolean, sortOption: SortOption): Observable<BookState> {
-    return this.bookService.bookState$.pipe(
-      map(bookState => {
-        if (bookState.loaded && !bookState.error) {
-          const filteredBooks = bookState.books?.filter(bookFilter) || [];
-          const sortedBooks = this.sortService.applySort(filteredBooks, sortOption);
-          return {...bookState, books: sortedBooks};
-        }
-        return bookState;
-      })
+    return combineLatest([
+      this.bookService.bookState$,
+      this.directoryFilterService.filter$
+    ]).pipe(
+      map(([bookState, dirFilter]) => this.processBookStateWithDirFilter(bookState, sortOption, dirFilter, bookFilter))
     );
   }
 
-  private processBookState(bookState: BookState, sortOption: SortOption): BookState {
+  private processBookStateWithDirFilter(
+    bookState: BookState,
+    sortOption: SortOption,
+    dirFilter: DirectorySelection | null,
+    entityFilter: ((book: Book) => boolean) | null
+  ): BookState {
     if (bookState.loaded && !bookState.error) {
-      const sortedBooks = this.sortService.applySort(bookState.books || [], sortOption);
+      let books = bookState.books || [];
+      if (entityFilter) {
+        books = books.filter(entityFilter);
+      }
+      if (dirFilter) {
+        books = books.filter(book =>
+          book.libraryPath?.id === dirFilter.libraryPathId &&
+          book.primaryFile?.fileSubPath === dirFilter.fileSubPath
+        );
+      }
+      const sortedBooks = this.sortService.applySort(books, sortOption);
       return {...bookState, books: sortedBooks};
     }
     return bookState;
+  }
+
+  private processBookState(bookState: BookState, sortOption: SortOption): BookState {
+    return this.processBookStateWithDirFilter(bookState, sortOption, null, null);
   }
 }

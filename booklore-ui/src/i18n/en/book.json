@@ -53,7 +53,8 @@
       "noBooks": "This collection has no books!",
       "failedLibrary": "Failed to load library's books!",
       "failedShelf": "Failed to load shelf's books!",
-      "activeFilters": "{{ count }} Active Filters"
+      "activeFilters": "{{ count }} Active Filters",
+      "rootFolder": "Root"
     },
     "tooltip": {
       "clearFilters": "Clear applied filters",

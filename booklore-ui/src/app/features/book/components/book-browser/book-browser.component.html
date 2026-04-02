@@ -40,6 +40,12 @@
                 {{ t('labels.seriesCollapsedInfo', { count: books.length, itemWord: books.length === 1 ? t('labels.item') : t('labels.items') }) }}
               </p>
             }
+            @if (activeDirFilterPath !== null) {
+              <p class="dir-filter-breadcrumb">
+                <i class="pi pi-folder"></i>
+                {{ activeDirFilterPath === '' ? t('labels.rootFolder') : activeDirFilterPath }}
+              </p>
+            }
           </div>
 
           @if (userService.userState$ | async; as userState) {

@@ -7,6 +7,7 @@ import {AppTopBarComponent} from '../layout-topbar/app.topbar.component';
 import {NgClass} from '@angular/common';
 import {ToastModule} from 'primeng/toast';
 import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
+import {DirectoryPanelComponent} from '../../../../features/book/components/directory-panel/directory-panel.component';
 
 @Component({
   selector: 'app-layout',
@@ -17,6 +18,7 @@ import {ResizableDividerDirective} from '../../../directives/resizable-divider.d
     NgClass,
     ToastModule,
     ResizableDividerDirective,
+    DirectoryPanelComponent,
   ],
   templateUrl: './app.layout.component.html'
 })

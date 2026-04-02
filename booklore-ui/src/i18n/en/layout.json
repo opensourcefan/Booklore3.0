@@ -28,7 +28,8 @@
     "importScan": "Import",
     "importScanCompleted": "Completed",
     "importScanCancelled": "Cancelled",
-    "importScanFailed": "Failed"
+    "importScanFailed": "Failed",
+    "dirExplorer": "Directory Explorer"
   },
   "menu": {
     "home": "Home",

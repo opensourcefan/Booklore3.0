@@ -12,6 +12,8 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   @Input() minWidth = 160;
   @Input() maxWidth = 600;
   @Input() storageKey = '';
+  /** Optional CSS variable to update on resize (e.g. '--dir-panel-width'). */
+  @Input() cssVar = '';
 
   private handle!: HTMLElement;
   private dragging = false;
@@ -37,7 +39,9 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
         const w = parseInt(saved, 10);
         if (!isNaN(w)) {
           this.renderer.setStyle(this.target, 'width', w + 'px');
-          if (this.storageKey === 'bl-sidebar-width') {
+          if (this.cssVar) {
+            document.documentElement.style.setProperty(this.cssVar, w + 'px');
+          } else if (this.storageKey === 'bl-sidebar-width') {
             document.documentElement.style.setProperty('--sidebar-width', w + 'px');
           }
         }
@@ -121,7 +125,9 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
         if (this.storageKey) {
           localStorage.setItem(this.storageKey, String(newWidth));
         }
-        if (this.storageKey === 'bl-sidebar-width') {
+        if (this.cssVar) {
+          document.documentElement.style.setProperty(this.cssVar, newWidth + 'px');
+        } else if (this.storageKey === 'bl-sidebar-width') {
           document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
         }
         this.scheduleUpdateHandlePosition();

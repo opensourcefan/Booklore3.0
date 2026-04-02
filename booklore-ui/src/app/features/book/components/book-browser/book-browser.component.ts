@@ -62,6 +62,7 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
 import {CoverPreviewComponent} from '../../../../shared/components/cover-preview/cover-preview.component';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
+import {DirectoryFilterService} from '../../service/directory-filter.service';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -128,6 +129,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private scrollService = inject(BookBrowserScrollService);
   private readonly t = inject(TranslocoService);
   private urlHelper = inject(UrlHelperService);
+  private directoryFilterService = inject(DirectoryFilterService);
 
   bookState$: Observable<BookState> | undefined;
   entity$: Observable<Library | Shelf | MagicShelf | null> | undefined;
@@ -149,6 +151,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   currentFilterLabel: string | null = null;
   rawFilterParamFromUrl: string | null = null;
   hasSearchTerm = false;
+  activeDirFilterPath: string | null = null;
   visibleColumns: { field: string; header: string }[] = [];
   entityViewPreferences: EntityViewPreferences | undefined;
   currentViewMode: string | undefined;
@@ -179,6 +182,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private settingFiltersFromUrl = false;
   private destroy$ = new Subject<void>();
+  private lastEntityKey: string | null = null;
   protected metadataMenuItems: MenuItem[] | undefined;
   protected moreActionsMenuItems: MenuItem[] | undefined;
   mediaTypeActionsMenuItems: MenuItem[] = [];
@@ -383,6 +387,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadMobileColumnsPreference();
     this.loadTitleRowsPreference();
 
+    this.directoryFilterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(f => {
+      this.activeDirFilterPath = f ? f.fileSubPath : null;
+    });
+
     this.initializeEntityRouting();
     this.setupRouteChangeHandlers();
     this.setupUserStateSubscription();
@@ -537,6 +545,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activatedRoute.queryParamMap,
       this.userService.userState$.pipe(filter(u => !!u?.user && u.loaded))
     ]).subscribe(([entityInfo, queryParamMap, user]) => {
+      const entityKey = `${entityInfo.entityType}:${entityInfo.entityId}`;
+      if (this.lastEntityKey !== null && this.lastEntityKey !== entityKey) {
+        this.directoryFilterService.clear();
+      }
+      this.lastEntityKey = entityKey;
+
       const parseResult = this.queryParamsService.parseQueryParams(
         queryParamMap,
         user.user?.userSettings?.entityViewPreferences,

@@ -33,6 +33,8 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {SidebarFilterTogglePrefService} from '../../../../features/book/components/book-browser/filters/sidebar-filter-toggle-pref.service';
+import {DirectoryPanelService} from '../../../../features/book/service/directory-panel.service';
+import {DirectoryMobilePanelComponent} from '../../../../features/book/components/directory-mobile-panel/directory-mobile-panel.component';
 import {AiPanelScanProgressPayload} from '../../../model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from '../../../service/ai-panel-scan-progress.service';
 import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from '../../../../features/settings/task-management/task.service';
@@ -63,6 +65,8 @@ import {WriteProgressPayload, WriteProgressService} from '../../../../shared/ser
     Dialog,
     TranslocoDirective,
     AppSidebarComponent,
+    DirectoryMobilePanelComponent,
+    Popover,
   ],
 })
 export class AppTopBarComponent implements OnDestroy {
@@ -85,6 +89,7 @@ export class AppTopBarComponent implements OnDestroy {
   hasAnyTasks = false;
   hasPendingBookdropFiles = false;
   showMobileBookFilterTrigger = false;
+  showMobileDirTrigger = false;
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
   metadataFlushProgress: TaskProgressPayload | null = null;
   importScanProgress: TaskProgressPayload | null = null;
@@ -115,6 +120,7 @@ export class AppTopBarComponent implements OnDestroy {
   private bookdropFileService = inject(BookdropFileService);
   private dialogLauncher = inject(DialogLauncherService);
   private sidebarFilterTogglePrefService = inject(SidebarFilterTogglePrefService);
+  readonly dirPanelService = inject(DirectoryPanelService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private taskService = inject(TaskService);
   private writeProgressService = inject(WriteProgressService);
@@ -247,6 +253,10 @@ export class AppTopBarComponent implements OnDestroy {
   toggleMenu() {
     this.isMenuVisible = !this.isMenuVisible;
     this.layoutService.onMenuToggle();
+  }
+
+  toggleDirectoryPanel(): void {
+    this.dirPanelService.toggle();
   }
 
   openMobileSearch(): void {
@@ -564,6 +574,8 @@ export class AppTopBarComponent implements OnDestroy {
       case 'notifications':
       case 'theme':
         return true;
+      case 'dirExplorer':
+        return true;
       case 'user':
         return !user?.permissions?.demoUser;
       default:
@@ -593,6 +605,8 @@ export class AppTopBarComponent implements OnDestroy {
 
   private updateMobileBookFilterTriggerVisibility(url: string): void {
     const path = (url || '').split('?')[0].split('#')[0];
-    this.showMobileBookFilterTrigger = /^\/(all-books|not-shelfed|library\/[^/]+\/books|shelf\/[^/]+\/books|magic-shelf\/[^/]+\/books)\/?$/.test(path);
+    const isBookBrowsing = /^\/(all-books|not-shelfed|library\/[^/]+\/books|shelf\/[^/]+\/books|magic-shelf\/[^/]+\/books)\/?$/.test(path);
+    this.showMobileBookFilterTrigger = isBookBrowsing;
+    this.showMobileDirTrigger = isBookBrowsing;
   }
 }

@@ -35,7 +35,7 @@
 
     &.layout-static {
       .layout-main-container {
-        padding-left: calc(var(--sidebar-width, 225px) + 30px);
+        padding-left: calc(var(--sidebar-width, 225px) + var(--dir-panel-width, 0px) + 30px);
         box-sizing: border-box;
       }
 
@@ -47,7 +47,10 @@
 
         .layout-main-container {
           margin-left: 0;
-          padding: 5rem 1.1rem 1.1rem 1.1rem;
+          padding-top: 5rem;
+          padding-right: 1.1rem;
+          padding-bottom: 1.1rem;
+          padding-left: calc(1.1rem + var(--dir-panel-width, 0px));
         }
       }
     }

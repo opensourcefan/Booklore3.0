@@ -1,0 +1,121 @@
+// Styles for DirectoryPanelComponent
+// The .layout-dir-panel fixed positioning and width are defined in _menu.scss
+// so they apply globally. Only component-specific inner styles go here.
+
+.dir-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.8rem 0.4rem 1.1rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  background: var(--card-background);
+  z-index: 1;
+}
+
+.dir-panel-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color, #6b7280);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dir-panel-title-icon {
+  font-size: 0.85rem;
+}
+
+.dir-panel-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--p-text-muted-color, #6b7280);
+  padding: 0.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: var(--p-text-color);
+    background: var(--p-surface-100, rgba(0,0,0,0.06));
+  }
+}
+
+.dir-panel-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0.4rem 0;
+}
+
+.dir-panel-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.dir-panel-empty {
+  color: var(--p-text-muted-color, #9ca3af);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+// Root node styles
+.dir-tree-root {
+  margin-bottom: 0.2rem;
+}
+
+.dir-tree-root__header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.6rem 0.32rem 0.9rem;
+  cursor: pointer;
+  border-radius: 6px;
+  margin: 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+  user-select: none;
+  transition: background 0.12s;
+
+  &:hover {
+    background: var(--p-surface-100, rgba(0,0,0,0.05));
+  }
+
+  &--selected {
+    background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
+    color: var(--p-primary-color);
+  }
+}
+
+.dir-tree-root__icon {
+  font-size: 0.8rem;
+  color: var(--p-primary-color);
+  flex-shrink: 0;
+}
+
+.dir-tree-root__label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dir-tree-root__libname {
+  color: var(--p-text-muted-color, #6b7280);
+  font-weight: 400;
+}
+
+// Shared tree children list
+.dir-tree-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  padding-left: 0.9rem;
+}
