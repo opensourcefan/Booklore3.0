@@ -6,7 +6,7 @@ import {BookMetadata} from '../model/book.model';
 import {AuthService} from '../../../shared/service/auth.service';
 import {SseClient} from 'ngx-sse-client';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {map} from 'rxjs/operators';
+import {filter, map} from 'rxjs/operators';
 
 @Injectable({providedIn: 'root'})
 export class BookMetadataService {
@@ -40,14 +40,10 @@ export class BookMetadataService {
       },
       'POST'
     ).pipe(
+      filter((event) => event.type !== 'error'),
       map((event) => {
-        if (event.type === 'error') {
-          const errorEvent = event as ErrorEvent;
-          throw new Error(errorEvent.message);
-        } else {
-          const messageEvent = event as MessageEvent;
-          return JSON.parse(messageEvent.data) as BookMetadata;
-        }
+        const messageEvent = event as MessageEvent;
+        return JSON.parse(messageEvent.data) as BookMetadata;
       })
     );
   }
