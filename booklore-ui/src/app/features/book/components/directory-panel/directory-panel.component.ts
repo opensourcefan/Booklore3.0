@@ -24,6 +24,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   selectedLibraryPathId: number | null = null;
   currentLibraryId: number | null = null;
   isLibraryRoute = false;
+  private expandedRootIds = new Set<number>();
 
   private destroy$ = new Subject<void>();
 
@@ -93,6 +94,19 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     return this.selectedLibraryPathId === root.libraryPathId && this.selectedPath === '';
   }
 
+  isRootExpanded(root: DirectoryRootNode): boolean {
+    return this.expandedRootIds.has(root.libraryPathId);
+  }
+
+  toggleRoot(root: DirectoryRootNode, event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.isRootExpanded(root)) {
+      this.expandedRootIds.delete(root.libraryPathId);
+      return;
+    }
+    this.expandedRootIds.add(root.libraryPathId);
+  }
+
   getShortPath(fullPath: string): string {
     const parts = fullPath.replace(/\\/g, '/').split('/');
     return parts[parts.length - 1] || fullPath;
@@ -107,6 +121,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       if (newLibId !== this.currentLibraryId) {
         this.currentLibraryId = newLibId;
         this.tree = [];
+        this.expandedRootIds.clear();
         this.loadTree();
       }
     } else {
@@ -114,6 +129,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       if (this.currentLibraryId !== null) {
         this.currentLibraryId = null;
         this.tree = [];
+        this.expandedRootIds.clear();
         this.loadTree();
       }
     }
@@ -125,7 +141,15 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       ? this.treeService.getTreeForLibrary(this.currentLibraryId)
       : this.treeService.getAllLibrariesTree();
     obs.pipe(takeUntil(this.destroy$)).subscribe({
-      next: tree => { this.tree = tree; this.loading = false; },
+      next: tree => {
+        this.tree = tree;
+        this.expandedRootIds.forEach(rootId => {
+          if (!tree.some(root => root.libraryPathId === rootId)) {
+            this.expandedRootIds.delete(rootId);
+          }
+        });
+        this.loading = false;
+      },
       error: () => { this.tree = []; this.loading = false; }
     });
   }

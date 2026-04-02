@@ -2,6 +2,18 @@
 // The .layout-dir-panel fixed positioning and width are defined in _menu.scss
 // so they apply globally. Only component-specific inner styles go here.
 
+:host {
+  --dir-tree-row-height: 2rem;
+  --dir-tree-row-radius: 8px;
+  --dir-tree-row-font-size: 0.95rem;
+  --dir-tree-toggle-slot-width: 1rem;
+  --dir-tree-row-gap: 0.35rem;
+  --dir-tree-row-padding-inline: 0.65rem;
+  --dir-tree-indent: 1rem;
+  --dir-tree-hover-background: var(--surface-hover, var(--p-surface-100, rgba(0, 0, 0, 0.06)));
+  --dir-tree-selected-background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
+}
+
 .dir-panel-header {
   display: flex;
   align-items: center;
@@ -70,34 +82,65 @@
   margin-bottom: 0.2rem;
 }
 
+.dir-tree-root__row {
+  display: grid;
+  grid-template-columns: var(--dir-tree-toggle-slot-width) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--dir-tree-row-gap);
+  margin: 0 0.25rem;
+}
+
+.dir-tree-root__toggle,
+.dir-tree-root__toggle-slot {
+  width: var(--dir-tree-toggle-slot-width);
+  height: var(--dir-tree-toggle-slot-width);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dir-tree-root__toggle {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--p-text-muted-color, #6b7280);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+
+  &:hover {
+    color: var(--p-primary-color);
+  }
+}
+
 .dir-tree-root__header {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.32rem 0.6rem 0.32rem 0.9rem;
+  justify-content: space-between;
+  gap: 0.55rem;
+  min-height: var(--dir-tree-row-height);
+  width: 100%;
+  padding: 0 var(--dir-tree-row-padding-inline);
   cursor: pointer;
+  border: none;
+  background: none;
   border-radius: 6px;
-  margin: 0 0.25rem;
-  font-size: 0.8rem;
+  font-size: var(--dir-tree-row-font-size);
   font-weight: 600;
   color: var(--p-text-color);
   user-select: none;
   transition: background 0.12s;
 
   &:hover {
-    background: var(--surface-hover);
+    background: var(--dir-tree-hover-background);
   }
 
   &--selected {
-    background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
+    background: var(--dir-tree-selected-background);
     color: var(--p-primary-color);
   }
-}
-
-.dir-tree-root__icon {
-  font-size: 0.8rem;
-  color: var(--p-primary-color);
-  flex-shrink: 0;
 }
 
 .dir-tree-root__label {
@@ -105,6 +148,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.35;
 }
 
 .dir-tree-root__libname {
@@ -112,10 +156,19 @@
   font-weight: 400;
 }
 
+.dir-tree-root__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--p-text-muted-color, #6b7280);
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+
 // Shared tree children list
 .dir-tree-children {
   list-style: none;
   margin: 0;
   padding: 0;
-  padding-left: 0.9rem;
+  padding-left: var(--dir-tree-indent);
 }
