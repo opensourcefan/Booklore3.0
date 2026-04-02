@@ -194,10 +194,12 @@ export class BookBrowserEntityService {
         books = books.filter(entityFilter);
       }
       if (dirFilter) {
-        books = books.filter(book =>
-          book.libraryPath?.id === dirFilter.libraryPathId &&
-          book.primaryFile?.fileSubPath === dirFilter.fileSubPath
-        );
+        books = books.filter(book => {
+          if (book.libraryPath?.id !== dirFilter.libraryPathId) return false;
+          const bookPath = book.primaryFile?.fileSubPath ?? '';
+          if (dirFilter.fileSubPath === '') return true;
+          return bookPath === dirFilter.fileSubPath || bookPath.startsWith(dirFilter.fileSubPath + '/');
+        });
       }
       const sortedBooks = this.sortService.applySort(books, sortOption);
       return {...bookState, books: sortedBooks};

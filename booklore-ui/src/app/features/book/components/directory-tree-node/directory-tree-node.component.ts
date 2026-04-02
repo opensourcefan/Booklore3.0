@@ -10,13 +10,12 @@ import {DirectoryNode} from '../../service/directory-tree.service';
       <div class="dir-tree-node__row">
         @if (node.children && node.children.length > 0) {
           <button type="button" class="dir-tree-node__toggle" (click)="toggle($event)" [attr.aria-label]="expanded ? 'Collapse' : 'Expand'">
-            <i [class]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
+            {{ expanded ? '−' : '+' }}
           </button>
         } @else {
           <span class="dir-tree-node__toggle dir-tree-node__toggle--leaf"></span>
         }
         <button type="button" class="dir-tree-node__body" (click)="onSelect()">
-          <i class="pi pi-folder dir-tree-node__icon"></i>
           <span class="dir-tree-node__label">{{ node.name }}</span>
         </button>
       </div>

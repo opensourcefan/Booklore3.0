@@ -394,7 +394,7 @@
               </p>
             </div>
           }
-          @if (!bookState?.error && bookState?.loaded && bookState?.books?.length === 0) {
+          @if (!bookState?.error && bookState?.loaded && bookState?.books?.length === 0 && activeDirFilterPath === null) {
             <div class="no-books-container">
               <p class="no-books-text">
                 {{ t('labels.noBooks') }}
