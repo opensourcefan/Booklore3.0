@@ -36,6 +36,7 @@ import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-
 
               <button type="button"
                       class="dir-tree-root__header"
+                      [class.dir-tree-root__header--selected]="isRootSelected(root)"
                       (click)="onRootRowClick(root, $event)">
                 <span class="dir-tree-root__label">
                   @if (!isLibraryRoute) {
@@ -232,13 +233,27 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
     }
   }
 
+  selectRoot(root: DirectoryRootNode): void {
+    const fileSubPath = '';
+    const current = this.filterService.currentFilter;
+    if (current?.libraryPathId === root.libraryPathId && current?.fileSubPath === fileSubPath) {
+      this.filterService.clear();
+    } else {
+      this.filterService.setFilter({libraryPathId: root.libraryPathId, fileSubPath});
+    }
+  }
+
+  isRootSelected(root: DirectoryRootNode): boolean {
+    return this.selectedLibraryPathId === root.libraryPathId && this.selectedPath === '';
+  }
+
   isRootExpanded(root: DirectoryRootNode): boolean {
     return this.expandedRootIds.has(root.libraryPathId);
   }
 
   onRootRowClick(root: DirectoryRootNode, event: MouseEvent): void {
     event.stopPropagation();
-    this.toggleRoot(root, event);
+    this.selectRoot(root);
   }
 
   toggleRoot(root: DirectoryRootNode, event: MouseEvent): void {

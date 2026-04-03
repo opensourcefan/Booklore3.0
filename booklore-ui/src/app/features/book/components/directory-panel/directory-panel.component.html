@@ -40,6 +40,7 @@
 
               <button type="button"
                       class="dir-tree-root__header"
+                      [class.dir-tree-root__header--selected]="isRootSelected(root)"
                       (click)="onRootRowClick(root, $event)">
                 <span class="dir-tree-root__label">
                   @if (!isLibraryRoute) {
