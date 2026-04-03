@@ -21,11 +21,6 @@
   }
 }
 
-:host ::ng-deep .cdk-virtual-scroll-orientation-vertical .cdk-virtual-scroll-content-wrapper {
-  width: 100% !important;
-  min-width: unset;
-}
-
 .book-filter-container {
   height: calc(100dvh - 6.1rem);
   border-radius: 0.75rem;
@@ -107,6 +102,8 @@
 }
 
 .filter-list {
+  max-height: 440px;
+  overflow-y: auto;
   padding-right: 0.25rem;
 }
 
@@ -149,14 +146,6 @@
 
 .filter-value-badge {
   flex-shrink: 0;
-}
-
-.truncation-notice {
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-align: center;
-  padding-top: 0.5rem;
-  border-top: 1px solid #e5e7eb;
 }
 
 

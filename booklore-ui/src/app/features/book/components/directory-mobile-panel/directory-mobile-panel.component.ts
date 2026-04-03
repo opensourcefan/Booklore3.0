@@ -4,7 +4,7 @@ import {takeUntil} from 'rxjs/operators';
 import {NavigationEnd, Router} from '@angular/router';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {DirectoryTreeService, DirectoryRootNode} from '../../service/directory-tree.service';
-import {DirectoryFilterService} from '../../service/directory-filter.service';
+import {DirectoryFilterService, DirectorySelection} from '../../service/directory-filter.service';
 import {BookService} from '../../service/book.service';
 import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-node.component';
 import {Book} from '../../model/book.model';
@@ -212,8 +212,7 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.filterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(f => {
-      this.selectedPath = f?.fileSubPath ?? null;
-      this.selectedLibraryPathId = f?.libraryPathId ?? null;
+      this.syncSelectionFromFilter(f);
     });
 
     this.bookService.bookState$.pipe(takeUntil(this.destroy$)).subscribe(state => {
@@ -235,21 +234,31 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
   }
 
   onNodeSelected(event: {libraryPathId: number; fileSubPath: string}): void {
-    const current = this.filterService.currentFilter;
+    const scopeKey = this.filterService.getScopeKeyFromUrl(this.router.url);
+    if (!scopeKey) {
+      return;
+    }
+
+    const current = this.filterService.getScopedFilter(scopeKey);
     if (current?.libraryPathId === event.libraryPathId && current?.fileSubPath === event.fileSubPath) {
       this.filterService.clear();
     } else {
-      this.filterService.setFilter(event);
+      this.filterService.setFilter({...event, scopeKey});
     }
   }
 
   selectRoot(root: DirectoryRootNode): void {
     const fileSubPath = '';
-    const current = this.filterService.currentFilter;
+    const scopeKey = this.filterService.getScopeKeyFromUrl(this.router.url);
+    if (!scopeKey) {
+      return;
+    }
+
+    const current = this.filterService.getScopedFilter(scopeKey);
     if (current?.libraryPathId === root.libraryPathId && current?.fileSubPath === fileSubPath) {
       this.filterService.clear();
     } else {
-      this.filterService.setFilter({libraryPathId: root.libraryPathId, fileSubPath});
+      this.filterService.setFilter({libraryPathId: root.libraryPathId, fileSubPath, scopeKey});
     }
   }
 
@@ -301,6 +310,8 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
         this.loadTree();
       }
     }
+
+    this.syncSelectionFromFilter(this.filterService.currentFilter);
   }
 
   private handleBookStateChanged(state: BookState): void {
@@ -373,5 +384,12 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
         this.flushPendingReload();
       }
     });
+  }
+
+  private syncSelectionFromFilter(filter: DirectorySelection | null): void {
+    const scopeKey = this.filterService.getScopeKeyFromUrl(this.router.url);
+    const scopedFilter = this.filterService.getScopedFilter(scopeKey, filter);
+    this.selectedPath = scopedFilter?.fileSubPath ?? null;
+    this.selectedLibraryPathId = scopedFilter?.libraryPathId ?? null;
   }
 }

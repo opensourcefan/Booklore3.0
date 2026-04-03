@@ -4,6 +4,7 @@ import {BehaviorSubject} from 'rxjs';
 export interface DirectorySelection {
   libraryPathId: number;
   fileSubPath: string;
+  scopeKey: string;
 }
 
 @Injectable({providedIn: 'root'})
@@ -21,5 +22,33 @@ export class DirectoryFilterService {
 
   clear(): void {
     this.filterSubject.next(null);
+  }
+
+  getScopeKeyFromUrl(url: string): string | null {
+    const cleanUrl = url.split('?')[0].split('#')[0];
+
+    if (/^\/all-books\/?$/.test(cleanUrl)) {
+      return 'all-books';
+    }
+
+    const libraryMatch = cleanUrl.match(/^\/library\/(\d+)\/books\/?$/);
+    if (libraryMatch) {
+      return `library:${libraryMatch[1]}`;
+    }
+
+    const shelfMatch = cleanUrl.match(/^\/shelf\/(\d+)\/books\/?$/);
+    if (shelfMatch) {
+      return `shelf:${shelfMatch[1]}`;
+    }
+
+    return null;
+  }
+
+  getScopedFilter(scopeKey: string | null, filter: DirectorySelection | null = this.filterSubject.value): DirectorySelection | null {
+    if (!scopeKey || !filter) {
+      return null;
+    }
+
+    return filter.scopeKey === scopeKey ? filter : null;
   }
 }

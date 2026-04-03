@@ -273,7 +273,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get isWaitingForDirectorySelection(): boolean {
-    return this.dirPanelService.isVisible && this.activeDirFilterPath === null;
+    return this.canShowDirectoryExplorer && this.dirPanelService.isVisible && this.activeDirFilterPath === null;
   }
 
   get canShowDirectoryExplorer(): boolean {
@@ -403,8 +403,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadMobileColumnsPreference();
     this.loadTitleRowsPreference();
 
-    this.directoryFilterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(f => {
-      this.activeDirFilterPath = f ? f.fileSubPath : null;
+    this.directoryFilterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.syncActiveDirectoryFilter();
     });
 
     this.initializeEntityRouting();
@@ -529,6 +529,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.bookTitle = '';
       this.bookSelectionService.deselectAll();
       this.clearFilter();
+      this.syncActiveDirectoryFilter();
     });
   }
 
@@ -566,6 +567,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.directoryFilterService.clear();
       }
       this.lastEntityKey = entityKey;
+      this.syncActiveDirectoryFilter();
 
       const parseResult = this.queryParamsService.parseQueryParams(
         queryParamMap,
@@ -1342,6 +1344,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       forceExpandSeries,
       primarySort
     );
+  }
+
+  private syncActiveDirectoryFilter(): void {
+    const scopeKey = this.directoryFilterService.getScopeKeyFromUrl(this.router.url);
+    const scopedFilter = this.directoryFilterService.getScopedFilter(scopeKey);
+    this.activeDirFilterPath = scopedFilter ? scopedFilter.fileSubPath : null;
   }
 
   setMobileColumns(columns: number): void {

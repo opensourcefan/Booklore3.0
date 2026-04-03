@@ -4,7 +4,6 @@ import {Library} from '../../../model/library.model';
 import {Shelf} from '../../../model/shelf.model';
 import {EntityType} from '../book-browser.component';
 import {Accordion, AccordionContent, AccordionHeader, AccordionPanel} from 'primeng/accordion';
-import {CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
 import {AsyncPipe, NgClass} from '@angular/common';
 import {Badge} from 'primeng/badge';
 import {FormsModule} from '@angular/forms';
@@ -27,7 +26,6 @@ interface FilterModeOption { label: string; value: BookFilterMode }
   standalone: true,
   imports: [
     Accordion, AccordionPanel, AccordionHeader, AccordionContent,
-    CdkVirtualScrollViewport, CdkFixedSizeVirtualScroll, CdkVirtualForOf,
     NgClass, Badge, AsyncPipe, FormsModule, SelectButton, Button,
     TranslocoDirective
   ]
@@ -134,8 +132,6 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   onFiltersChanged(): void {
     this.updateExpandedPanels();
   }
-
-  getVirtualScrollHeight = (itemCount: number): number => Math.min(itemCount * 28, 440);
 
   setFilterSort(sort: UserFilterSort): void {
     if (sort === this.filterSort) return;

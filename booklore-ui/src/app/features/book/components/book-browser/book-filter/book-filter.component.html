@@ -59,29 +59,22 @@
 
               <p-accordion-content>
                 @if (expandedPanels.includes(i)) {
-                  <cdk-virtual-scroll-viewport
-                    [itemSize]="28"
-                    [style.height.px]="getVirtualScrollHeight(filters.length)"
-                    class="filter-list">
-                    <div
-                      *cdkVirtualFor="let filter of filters; trackBy: trackByFilter"
-                      class="filter-row"
-                      [ngClass]="{
-                    'active': activeFilters[filterType]?.includes(getFilterValueId(filter)),
-                    'active-not': activeFilters[filterType]?.includes(getFilterValueId(filter)) && selectedFilterMode === 'not'
-                  }"
-                      tabindex="0"
-                      (keydown.enter)="handleFilterClick(filterType, getFilterValueId(filter))"
-                      (click)="handleFilterClick(filterType, getFilterValueId(filter))">
-                      <span class="filter-value-text">{{ getFilterValueDisplay(filter) }}</span>
-                      <p-badge class="filter-value-badge" [value]="filter.bookCount"></p-badge>
-                    </div>
-                  </cdk-virtual-scroll-viewport>
-                  @if (truncatedFilters[filterType]) {
-                    <div class="truncation-notice">
-                      {{ t('showingFirst100') }}
-                    </div>
-                  }
+                  <div class="filter-list">
+                    @for (filter of filters; track trackByFilter($index, filter)) {
+                      <div
+                        class="filter-row"
+                        [ngClass]="{
+                          'active': activeFilters[filterType]?.includes(getFilterValueId(filter)),
+                          'active-not': activeFilters[filterType]?.includes(getFilterValueId(filter)) && selectedFilterMode === 'not'
+                        }"
+                        tabindex="0"
+                        (keydown.enter)="handleFilterClick(filterType, getFilterValueId(filter))"
+                        (click)="handleFilterClick(filterType, getFilterValueId(filter))">
+                        <span class="filter-value-text">{{ getFilterValueDisplay(filter) }}</span>
+                        <p-badge class="filter-value-badge" [value]="filter.bookCount"></p-badge>
+                      </div>
+                    }
+                  </div>
                 }
               </p-accordion-content>
             </p-accordion-panel>

@@ -72,7 +72,7 @@ export class BookBrowserEntityService {
   ): Observable<BookState> {
     switch (entityType) {
       case EntityType.LIBRARY:
-        return this.fetchBooks(book => book.libraryId === entityId, sortOption);
+        return this.fetchBooks(book => book.libraryId === entityId, sortOption, `library:${entityId}`);
       case EntityType.SHELF:
         return this.fetchShelfBooks(entityId, sortOption);
       case EntityType.MAGIC_SHELF:
@@ -88,18 +88,20 @@ export class BookBrowserEntityService {
       this.bookService.bookState$,
       this.directoryFilterService.filter$
     ]).pipe(
-      map(([bookState, dirFilter]) => this.processBookStateWithDirFilter(bookState, sortOption, dirFilter, null))
+      map(([bookState, dirFilter]) => this.processBookStateWithDirFilter(
+        bookState,
+        sortOption,
+        this.directoryFilterService.getScopedFilter('all-books', dirFilter),
+        null
+      ))
     );
   }
 
   fetchNotShelfedBooks(sortOption: SortOption): Observable<BookState> {
-    return combineLatest([
-      this.bookService.bookState$,
-      this.directoryFilterService.filter$
-    ]).pipe(
-      map(([bookState, dirFilter]) => {
+    return this.bookService.bookState$.pipe(
+      map(bookState => {
         const unshelfed = {...bookState, books: (bookState.books || []).filter(book => !book.shelves || book.shelves.length === 0)};
-        return this.processBookStateWithDirFilter(unshelfed, sortOption, dirFilter, null);
+        return this.processBookState(unshelfed, sortOption);
       })
     );
   }
@@ -151,16 +153,15 @@ export class BookBrowserEntityService {
   }
 
   private fetchShelfBooks(shelfId: number, sortOption: SortOption): Observable<BookState> {
-    return this.fetchBooks(book => book.shelves?.some(s => s.id === shelfId) ?? false, sortOption);
+    return this.fetchBooks(book => book.shelves?.some(s => s.id === shelfId) ?? false, sortOption, `shelf:${shelfId}`);
   }
 
   private fetchMagicShelfBooks(magicShelfId: number, sortOption: SortOption): Observable<BookState> {
     return combineLatest([
       this.bookService.bookState$,
-      this.magicShelfService.getShelf(magicShelfId),
-      this.directoryFilterService.filter$
+      this.magicShelfService.getShelf(magicShelfId)
     ]).pipe(
-      map(([bookState, magicShelf, dirFilter]) => {
+      map(([bookState, magicShelf]) => {
         if (!bookState.loaded || bookState.error || !magicShelf?.filterJson) {
           return bookState;
         }
@@ -168,17 +169,22 @@ export class BookBrowserEntityService {
         const filteredBooks = allBooks.filter(book =>
           this.bookRuleEvaluatorService.evaluateGroup(book, JSON.parse(magicShelf.filterJson!) as GroupRule, allBooks)
         );
-        return this.processBookStateWithDirFilter({...bookState, books: filteredBooks}, sortOption, dirFilter, null);
+        return this.processBookState({...bookState, books: filteredBooks}, sortOption);
       })
     );
   }
 
-  private fetchBooks(bookFilter: (book: Book) => boolean, sortOption: SortOption): Observable<BookState> {
+  private fetchBooks(bookFilter: (book: Book) => boolean, sortOption: SortOption, scopeKey: string | null): Observable<BookState> {
     return combineLatest([
       this.bookService.bookState$,
       this.directoryFilterService.filter$
     ]).pipe(
-      map(([bookState, dirFilter]) => this.processBookStateWithDirFilter(bookState, sortOption, dirFilter, bookFilter))
+      map(([bookState, dirFilter]) => this.processBookStateWithDirFilter(
+        bookState,
+        sortOption,
+        this.directoryFilterService.getScopedFilter(scopeKey, dirFilter),
+        bookFilter
+      ))
     );
   }
 
