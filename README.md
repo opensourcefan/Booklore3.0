@@ -45,6 +45,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 ## Main Features
 
 - **Comic Panel Detection AI** — Detects and saves panel flow data for CBZ/CBR comics using a bundled YOLO-based AI model. Enables panel-by-panel navigation in the reader.
+- **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views.
 - **Adjustable Cover Preview Panel** — Toggle the right-side cover preview on or off in Settings.
 - **Customizable Upper Toolbar** — Add, remove, and reorder toolbar buttons; insert separators. Drag-and-drop support.
 - **Adjustable Side Panels** — Resizable left and right sidebars.
@@ -268,6 +269,8 @@ New to BookLore? A complete **Familiarization Guide** is available in the `docs/
 - **[BookLore-Familiarization-Guide.html](docs/BookLore-Familiarization-Guide.html)** — Browser-viewable HTML version
 
 The guide is written for users of all experience levels and covers every feature — libraries, importing, reading, shelves, metadata, search, AI panel detection, OPDS, user management, settings, backups, and more. Each section includes what you can do, what you can't do, and things to be careful about.
+
+The current HTML guide also documents the directory explorer workflow, including opening the folder panel, expanding folders, and filtering the book grid by top-level folders or subfolders.
 
 ---
 
