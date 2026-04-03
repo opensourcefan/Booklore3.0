@@ -3,6 +3,19 @@
   <div class="book-browser-main">
 
     <div class="book-browser-header">
+      @if (canShowDirectoryExplorer) {
+        <div class="header-leading-action">
+          <button type="button"
+                  class="topbar-items topbar-item"
+                  [class.topbar-item--active]="dirPanelService.isVisible"
+                  (click)="dirPanelService.toggle()"
+                  [pTooltip]="t('tooltip.dirExplorer')"
+                  tooltipPosition="top">
+            <i class="pi pi-folder"></i>
+          </button>
+        </div>
+      }
+
       <div class="entity-info-wrapper">
         @if (entityType$ | async; as entityType) {
           <div class="entity-info">
@@ -67,17 +80,6 @@
       </div>
       <div class="toolbar-actions">
         <div class="toolbar-icons">
-          @if ((entityType === EntityType.LIBRARY || entityType === EntityType.ALL_BOOKS) && !isMobile) {
-            <button type="button"
-                    class="topbar-items topbar-item"
-                    [class.topbar-item--active]="dirPanelService.isVisible"
-                    (click)="dirPanelService.toggle()"
-                    [pTooltip]="t('tooltip.dirExplorer')"
-                    tooltipPosition="top">
-              <i class="pi pi-folder"></i>
-            </button>
-          }
-
           @if (isFilterActive) {
             <button type="button" class="topbar-items topbar-item" (click)="clearFilter()">
               <i

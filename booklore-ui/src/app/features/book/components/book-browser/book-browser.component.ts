@@ -276,6 +276,16 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.dirPanelService.isVisible && this.activeDirFilterPath === null;
   }
 
+  get canShowDirectoryExplorer(): boolean {
+    if (this.isMobile || !this.entityType) {
+      return false;
+    }
+
+    return this.entityType === EntityType.ALL_BOOKS
+      || this.entityType === EntityType.LIBRARY
+      || this.entityType === EntityType.SHELF;
+  }
+
   get computedFilterLabel(): string {
     const filters = this.selectedFilter.value;
 

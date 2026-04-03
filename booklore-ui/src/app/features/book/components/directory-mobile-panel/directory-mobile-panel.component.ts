@@ -5,7 +5,10 @@ import {NavigationEnd, Router} from '@angular/router';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {DirectoryTreeService, DirectoryRootNode} from '../../service/directory-tree.service';
 import {DirectoryFilterService} from '../../service/directory-filter.service';
+import {BookService} from '../../service/book.service';
 import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-node.component';
+import {Book} from '../../model/book.model';
+import {BookState} from '../../model/state/book-state.model';
 
 @Component({
   selector: 'app-directory-mobile-panel',
@@ -198,16 +201,23 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
   currentLibraryId: number | null = null;
   isLibraryRoute = false;
   private expandedRootIds = new Set<number>();
+  private lastTreeSignature = '';
+  private pendingReload = false;
 
   private destroy$ = new Subject<void>();
   private router = inject(Router);
   private treeService = inject(DirectoryTreeService);
   private filterService = inject(DirectoryFilterService);
+  private bookService = inject(BookService);
 
   ngOnInit(): void {
     this.filterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(f => {
       this.selectedPath = f?.fileSubPath ?? null;
       this.selectedLibraryPathId = f?.libraryPathId ?? null;
+    });
+
+    this.bookService.bookState$.pipe(takeUntil(this.destroy$)).subscribe(state => {
+      this.handleBookStateChanged(state);
     });
 
     this.router.events.pipe(
@@ -293,6 +303,54 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
     }
   }
 
+  private handleBookStateChanged(state: BookState): void {
+    if (!state.loaded || state.error) {
+      return;
+    }
+
+    const nextSignature = this.buildTreeSignature(state.books || []);
+    if (nextSignature === this.lastTreeSignature) {
+      return;
+    }
+
+    this.lastTreeSignature = nextSignature;
+    this.treeService.invalidateAll();
+    this.refreshTree();
+  }
+
+  private buildTreeSignature(books: Book[]): string {
+    return books
+      .filter(book => !!book.primaryFile)
+      .map(book => {
+        const libraryId = book.libraryId ?? -1;
+        const libraryPathId = book.libraryPath?.id ?? -1;
+        const fileSubPath = book.primaryFile?.fileSubPath ?? '';
+        const folderBased = book.primaryFile?.folderBased ? '1' : '0';
+        const folderName = book.primaryFile?.folderBased ? (book.primaryFile?.fileName ?? '') : '';
+        return `${libraryId}|${libraryPathId}|${fileSubPath}|${folderBased}|${folderName}`;
+      })
+      .sort()
+      .join('\n');
+  }
+
+  private refreshTree(): void {
+    if (this.loading) {
+      this.pendingReload = true;
+      return;
+    }
+
+    this.loadTree();
+  }
+
+  private flushPendingReload(): void {
+    if (!this.pendingReload) {
+      return;
+    }
+
+    this.pendingReload = false;
+    this.loadTree();
+  }
+
   private loadTree(): void {
     this.loading = true;
     const obs = this.currentLibraryId !== null
@@ -307,8 +365,13 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
           }
         });
         this.loading = false;
+        this.flushPendingReload();
       },
-      error: () => { this.tree = []; this.loading = false; }
+      error: () => {
+        this.tree = [];
+        this.loading = false;
+        this.flushPendingReload();
+      }
     });
   }
 }
