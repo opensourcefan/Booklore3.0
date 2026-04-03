@@ -145,47 +145,6 @@
   }
 }
 
-.dir-tree-root-entry {
-  list-style: none;
-}
-
-.dir-tree-root-entry__button {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: var(--dir-tree-row-height);
-  width: 100%;
-  padding: 0 var(--dir-tree-row-padding-inline);
-  border: none;
-  border-radius: var(--dir-tree-row-radius);
-  background: none;
-  color: var(--p-text-color);
-  font-size: var(--dir-tree-row-font-size);
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-
-  &:hover {
-    background: var(--dir-tree-hover-background);
-    color: var(--p-text-color);
-  }
-
-  &--selected {
-    background: var(--dir-tree-selected-background);
-    color: var(--p-primary-color);
-  }
-}
-
-.dir-tree-root-entry__label {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: left;
-  line-height: 1.35;
-}
-
 .dir-tree-root__label {
   display: block;
   flex: 1;

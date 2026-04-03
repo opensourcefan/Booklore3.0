@@ -52,16 +52,6 @@ import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-
 
             @if (isRootExpanded(root) && root.children && root.children.length > 0) {
               <ul class="dir-tree-children">
-                @if (root.hasRootBooks) {
-                  <li class="dir-tree-root-entry">
-                    <button type="button"
-                            class="dir-tree-root-entry__button"
-                            [class.dir-tree-root-entry__button--selected]="isRootSelected(root)"
-                            (click)="selectRoot(root)">
-                      <span class="dir-tree-root-entry__label">Root</span>
-                    </button>
-                  </li>
-                }
                 @for (child of root.children; track child.path) {
                   <app-directory-tree-node
                     [node]="child"
@@ -166,46 +156,6 @@ import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-
       color: var(--p-primary-color);
     }
 
-    .dir-tree-root-entry {
-      list-style: none;
-    }
-
-    .dir-tree-root-entry__button {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: var(--dir-tree-row-height);
-      width: 100%;
-      padding: 0 var(--dir-tree-row-padding-inline);
-      border: none;
-      border-radius: var(--dir-tree-row-radius);
-      background: none;
-      color: var(--p-text-color);
-      font-size: var(--dir-tree-row-font-size);
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .dir-tree-root-entry__button:hover {
-      background: var(--dir-tree-hover-background);
-      color: var(--p-text-color);
-    }
-
-    .dir-tree-root-entry__button--selected {
-      background: var(--dir-tree-selected-background);
-      color: var(--p-primary-color);
-    }
-
-    .dir-tree-root-entry__label {
-      display: block;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      text-align: left;
-      line-height: 1.35;
-    }
-
     .dir-tree-root__label {
       display: block;
       flex: 1;
@@ -280,20 +230,6 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
     } else {
       this.filterService.setFilter(event);
     }
-  }
-
-  selectRoot(root: DirectoryRootNode): void {
-    const fileSubPath = '';
-    const current = this.filterService.currentFilter;
-    if (current?.libraryPathId === root.libraryPathId && current?.fileSubPath === fileSubPath) {
-      this.filterService.clear();
-    } else {
-      this.filterService.setFilter({libraryPathId: root.libraryPathId, fileSubPath});
-    }
-  }
-
-  isRootSelected(root: DirectoryRootNode): boolean {
-    return this.selectedLibraryPathId === root.libraryPathId && this.selectedPath === '';
   }
 
   isRootExpanded(root: DirectoryRootNode): boolean {

@@ -56,16 +56,6 @@
 
             @if (isRootExpanded(root) && root.children && root.children.length > 0) {
               <ul class="dir-tree-children">
-                @if (root.hasRootBooks) {
-                  <li class="dir-tree-root-entry">
-                    <button type="button"
-                            class="dir-tree-root-entry__button"
-                            [class.dir-tree-root-entry__button--selected]="isRootSelected(root)"
-                            (click)="selectRoot(root)">
-                      <span class="dir-tree-root-entry__label">Root</span>
-                    </button>
-                  </li>
-                }
                 @for (child of root.children; track child.path) {
                   <app-directory-tree-node
                     [node]="child"

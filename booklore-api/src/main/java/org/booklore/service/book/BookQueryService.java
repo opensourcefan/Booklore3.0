@@ -76,8 +76,6 @@ public class BookQueryService {
     }
 
     private void stripFieldsForListView(Book dto) {
-        dto.setLibraryPath(null);
-
         BookMetadata m = dto.getMetadata();
         if (m != null) {
             // Compute allMetadataLocked before stripping lock flags

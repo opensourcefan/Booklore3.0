@@ -80,20 +80,6 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectRoot(root: DirectoryRootNode): void {
-    const fileSubPath = '';
-    const current = this.filterService.currentFilter;
-    if (current?.libraryPathId === root.libraryPathId && current?.fileSubPath === fileSubPath) {
-      this.filterService.clear();
-    } else {
-      this.filterService.setFilter({libraryPathId: root.libraryPathId, fileSubPath});
-    }
-  }
-
-  isRootSelected(root: DirectoryRootNode): boolean {
-    return this.selectedLibraryPathId === root.libraryPathId && this.selectedPath === '';
-  }
-
   isRootExpanded(root: DirectoryRootNode): boolean {
     return this.expandedRootIds.has(root.libraryPathId);
   }
