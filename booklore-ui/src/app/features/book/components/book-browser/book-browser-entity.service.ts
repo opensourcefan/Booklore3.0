@@ -201,9 +201,10 @@ export class BookBrowserEntityService {
           const folderBasedPath = book.primaryFile?.folderBased && bookFileName
             ? (bookPath ? `${bookPath}/${bookFileName}` : bookFileName)
             : null;
-          if (dirFilter.fileSubPath === '') return true;
+          if (dirFilter.fileSubPath === '') {
+            return bookPath === '' && !book.primaryFile?.folderBased;
+          }
           return bookPath === dirFilter.fileSubPath
-            || bookPath.startsWith(dirFilter.fileSubPath + '/')
             || folderBasedPath === dirFilter.fileSubPath;
         });
       }
