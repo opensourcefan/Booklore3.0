@@ -15,7 +15,8 @@
     "newPassword": "新密码",
     "confirmNewPassword": "确认新密码",
     "changePassword": "修改密码",
-    "loading": "正在加载用户数据...",
+    "logout": "Logout",
+  "loading": "正在加载用户数据...",
     "validation": {
         "currentPasswordRequired": "请输入当前密码。",
         "newPasswordRequired": "请输入新密码。",

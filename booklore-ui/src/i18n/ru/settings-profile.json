@@ -15,7 +15,8 @@
     "newPassword": "Новый пароль",
     "confirmNewPassword": "Подтвердите новый пароль",
     "changePassword": "Изменить пароль",
-    "loading": "Загрузка данных пользователя...",
+    "logout": "Logout",
+  "loading": "Загрузка данных пользователя...",
     "validation": {
         "currentPasswordRequired": "Текущий пароль обязателен.",
         "newPasswordRequired": "Новый пароль обязателен.",

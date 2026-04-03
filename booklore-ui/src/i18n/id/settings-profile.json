@@ -15,7 +15,8 @@
     "newPassword": "",
     "confirmNewPassword": "",
     "changePassword": "",
-    "loading": "",
+    "logout": "Logout",
+  "loading": "",
     "validation": {
         "currentPasswordRequired": "",
         "newPasswordRequired": "",

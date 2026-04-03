@@ -15,7 +15,8 @@
     "newPassword": "Nuova password",
     "confirmNewPassword": "Conferma nuova password",
     "changePassword": "Cambia password",
-    "loading": "Caricamento dati utente...",
+    "logout": "Logout",
+  "loading": "Caricamento dati utente...",
     "validation": {
         "currentPasswordRequired": "La password attuale è obbligatoria.",
         "newPasswordRequired": "La nuova password è obbligatoria.",

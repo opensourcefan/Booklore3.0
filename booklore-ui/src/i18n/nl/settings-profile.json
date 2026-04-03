@@ -15,7 +15,8 @@
     "newPassword": "Nieuw wachtwoord",
     "confirmNewPassword": "Nieuw wachtwoord bevestigen",
     "changePassword": "Wachtwoord wijzigen",
-    "loading": "Gebruikersgegevens laden...",
+    "logout": "Logout",
+  "loading": "Gebruikersgegevens laden...",
     "validation": {
         "currentPasswordRequired": "Huidig wachtwoord is vereist.",
         "newPasswordRequired": "Nieuw wachtwoord is vereist.",

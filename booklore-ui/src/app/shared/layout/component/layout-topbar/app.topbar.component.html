@@ -72,6 +72,13 @@
         <span class="topbar-import-summary">{{ importScanSummary }}</span>
       </button>
     }
+    @if (showMetadataFetchStatus) {
+      <button type="button" class="topbar-metadata-fetch-status" (click)="navigateToMetadataManager()">
+        <i class="pi pi-cloud-download"></i>
+        <span class="topbar-metadata-fetch-label">{{ t('metadataFetch') }}</span>
+        <span class="topbar-metadata-fetch-summary">{{ metadataFetchSummary }}</span>
+      </button>
+    }
     @if (showWriteStatus) {
       <div class="topbar-write-status" [class.topbar-write-complete]="writeProgress?.status === 'COMPLETED'" [class.topbar-write-failed]="writeProgress?.status === 'FAILED'">
         @if (writeProgress?.status === 'IN_PROGRESS') {
@@ -179,15 +186,16 @@
                 </button>
               </li>
             }
+            @case ('logout') {
+              <li>
+                <button class="topbar-item" (click)="logout()" [pTooltip]="t('logout')" tooltipPosition="left">
+                  <i class="pi pi-sign-out topbar-icon"></i>
+                </button>
+              </li>
+            }
           }
         }
       }
-
-      <li>
-        <button class="topbar-item" (click)="logout()" [pTooltip]="t('logout')" tooltipPosition="left">
-          <i class="pi pi-sign-out topbar-icon"></i>
-        </button>
-      </li>
     </ul>
     <!-- Mobile center bar: search + menu (mobile only) -->
     <div class="mobile-center-bar">

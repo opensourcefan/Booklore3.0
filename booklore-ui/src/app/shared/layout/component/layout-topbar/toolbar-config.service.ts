@@ -21,6 +21,7 @@ const DEFAULT_ITEMS: ToolbarItem[] = [
   {id: 'notifications', type: 'button', visible: true, label: 'Notifications', icon: 'pi pi-bell'},
   {id: 'theme', type: 'button', visible: true, label: 'Theme', icon: 'pi pi-palette'},
   {id: 'user', type: 'button', visible: true, label: 'User', icon: 'pi pi-user'},
+  {id: 'logout', type: 'button', visible: true, label: 'Logout', icon: 'pi pi-sign-out'},
 ];
 
 @Injectable({providedIn: 'root'})

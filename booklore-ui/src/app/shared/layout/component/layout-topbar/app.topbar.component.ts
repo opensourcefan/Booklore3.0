@@ -92,11 +92,13 @@ export class AppTopBarComponent implements OnDestroy {
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
   metadataFlushProgress: TaskProgressPayload | null = null;
   importScanProgress: TaskProgressPayload | null = null;
+  metadataFetchProgress: TaskProgressPayload | null = null;
   writeProgress: WriteProgressPayload | null = null;
 
   private eventTimer: number | undefined;
   private flushDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private importDismissTimer: ReturnType<typeof setTimeout> | undefined;
+  private metadataFetchDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private writeDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private destroy$ = new Subject<void>();
 
@@ -193,6 +195,24 @@ export class AppTopBarComponent implements OnDestroy {
         }
       });
 
+    this.taskService.taskProgress$
+      .pipe(
+        filter((p): p is TaskProgressPayload =>
+          !!p && (p.taskType === TaskType.REFRESH_LIBRARY_METADATA || p.taskType === TaskType.REFRESH_METADATA_MANUAL)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(progress => {
+        this.metadataFetchProgress = progress;
+        if (progress.taskStatus === TaskStatus.COMPLETED || progress.taskStatus === TaskStatus.CANCELLED) {
+          clearTimeout(this.metadataFetchDismissTimer);
+          this.metadataFetchDismissTimer = setTimeout(() => {
+            this.metadataFetchProgress = null;
+          }, 5000);
+        } else if (progress.taskStatus === TaskStatus.IN_PROGRESS) {
+          clearTimeout(this.metadataFetchDismissTimer);
+        }
+      });
+
     this.writeProgressService.progress$
       .pipe(takeUntil(this.destroy$))
       .subscribe(payload => {
@@ -236,6 +256,7 @@ export class AppTopBarComponent implements OnDestroy {
     clearTimeout(this.eventTimer);
     clearTimeout(this.flushDismissTimer);
     clearTimeout(this.importDismissTimer);
+    clearTimeout(this.metadataFetchDismissTimer);
     clearTimeout(this.writeDismissTimer);
     window.removeEventListener('storage', this.onStorageChange);
     this.destroy$.next();
@@ -483,6 +504,10 @@ export class AppTopBarComponent implements OnDestroy {
     return !!this.importScanProgress;
   }
 
+  get showMetadataFetchStatus(): boolean {
+    return !!this.metadataFetchProgress;
+  }
+
   get showWriteStatus(): boolean {
     return !!this.writeProgress;
   }
@@ -508,6 +533,15 @@ export class AppTopBarComponent implements OnDestroy {
     if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.importScanCancelled');
     if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.importScanFailed');
     return this.importScanProgress.message;
+  }
+
+  get metadataFetchSummary(): string {
+    if (!this.metadataFetchProgress) return '';
+    const s = this.metadataFetchProgress.taskStatus;
+    if (s === TaskStatus.COMPLETED) return this.translocoService.translate('layout.topbar.metadataFetchCompleted');
+    if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.metadataFetchCancelled');
+    if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.metadataFetchFailed');
+    return this.translocoService.translate('layout.topbar.metadataFetchProgress', {progress: this.metadataFetchProgress.progress});
   }
 
   get aiScanTone(): 'ok' | 'warning' | 'error' {
@@ -572,6 +606,8 @@ export class AppTopBarComponent implements OnDestroy {
         return true;
       case 'user':
         return !user?.permissions?.demoUser;
+      case 'logout':
+        return true;
       default:
         return true;
     }

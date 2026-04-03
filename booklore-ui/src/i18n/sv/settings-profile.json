@@ -15,7 +15,8 @@
     "newPassword": "Nytt lösenord",
     "confirmNewPassword": "Bekräfta nytt lösenord",
     "changePassword": "Byt lösenord",
-    "loading": "Laddar användardata...",
+    "logout": "Logout",
+  "loading": "Laddar användardata...",
     "validation": {
         "currentPasswordRequired": "Nuvarande lösenord krävs.",
         "newPasswordRequired": "Nytt lösenord krävs.",

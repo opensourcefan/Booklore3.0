@@ -16,6 +16,11 @@
     "stats": "统计",
     "libraryStats": "书库统计",
     "readingStats": "阅读统计",
+    "metadataFetch": "Metadata Fetch",
+    "metadataFetchProgress": "{{ progress }}%",
+    "metadataFetchCompleted": "Completed",
+    "metadataFetchCancelled": "Cancelled",
+    "metadataFetchFailed": "Failed",
     "dirExplorer": "Directory Explorer"
   },
   "menu": {

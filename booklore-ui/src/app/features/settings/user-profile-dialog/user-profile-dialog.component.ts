@@ -9,6 +9,7 @@ import {Subject} from 'rxjs';
 import {filter, takeUntil} from 'rxjs/operators';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import {AuthService} from '../../../shared/service/auth.service';
 
 export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const newPassword = control.get('newPassword');
@@ -49,6 +50,7 @@ export class UserProfileDialogComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(DynamicDialogRef);
   private readonly t = inject(TranslocoService);
+  private readonly authService = inject(AuthService);
 
   constructor() {
     this.changePasswordForm = this.fb.group(
@@ -157,5 +159,10 @@ export class UserProfileDialogComponent implements OnInit, OnDestroy {
 
   closeDialog(): void {
     this.dialogRef.close();
+  }
+
+  logout(): void {
+    this.dialogRef.close();
+    this.authService.logout();
   }
 }
