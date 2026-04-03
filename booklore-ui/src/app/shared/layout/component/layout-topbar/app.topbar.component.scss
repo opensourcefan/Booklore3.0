@@ -405,6 +405,35 @@
 }
 
 .toolbar-editor-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 6px;
+  margin: 0;
+  padding: 0;
+  outline-color: transparent;
+  background-color: var(--card-background);
+  cursor: pointer;
+  transition: outline-color 0.2s, border-color 0.2s;
+
+  &:hover {
+    border-color: var(--primary-color);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+
+  i,
+  span {
+    color: var(--text-color);
+  }
+
   @media (max-width: 991px) {
     display: none;
   }

@@ -302,14 +302,6 @@ export class AppMenuComponent implements OnInit {
       return;
     }
 
-    if (this.activeBookTypeFilter === bookType) {
-      this.router.navigate(['/all-books'], {
-        queryParams: {filter: null},
-        queryParamsHandling: 'merge'
-      });
-      return;
-    }
-
     this.router.navigate(['/all-books'], {
       queryParams: {
         filter: `customMediaType:${encodeURIComponent(bookType)}`,
