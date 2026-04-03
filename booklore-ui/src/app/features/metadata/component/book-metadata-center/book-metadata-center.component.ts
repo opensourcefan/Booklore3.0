@@ -1,4 +1,5 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Location} from '@angular/common';
 import {ActivatedRoute, Router} from '@angular/router';
 import {UserService} from '../../../settings/user-management/user.service';
 import {Book, BookRecommendation} from '../../../book/model/book.model';
@@ -38,6 +39,7 @@ import {SidecarViewerComponent} from './sidecar-viewer/sidecar-viewer.component'
 export class BookMetadataCenterComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private bookService = inject(BookService);
   private userService = inject(UserService);
   private appSettingsService = inject(AppSettingsService);
@@ -55,6 +57,7 @@ export class BookMetadataCenterComponent implements OnInit, OnDestroy {
   private appSettings$ = this.appSettingsService.appSettings$;
   private currentBookId$ = new BehaviorSubject<number | null>(null);
   private validTabs = ['view', 'edit', 'match', 'sidecar'];
+  private returnToUrl: string | null = null;
 
   get tab(): string {
     return this._tab;
@@ -126,12 +129,16 @@ export class BookMetadataCenterComponent implements OnInit, OnDestroy {
 
     this.route.queryParamMap
       .pipe(
-        map(params => params.get('tab') ?? 'view'),
+        map(params => ({
+          tab: params.get('tab') ?? 'view',
+          returnTo: params.get('returnTo')
+        })),
         distinctUntilChanged(),
         takeUntil(this.destroy$)
       )
-      .subscribe(tabParam => {
-        this._tab = this.validTabs.includes(tabParam) ? tabParam : 'view';
+      .subscribe(({tab, returnTo}) => {
+        this._tab = this.validTabs.includes(tab) ? tab : 'view';
+        this.returnToUrl = returnTo;
       });
 
     this.userService.userState$
@@ -167,6 +174,25 @@ export class BookMetadataCenterComponent implements OnInit, OnDestroy {
         (a, b) => (b.similarityScore ?? 0) - (a.similarityScore ?? 0)
       );
     });
+  }
+
+  closeMetadataCenter(): void {
+    if (this.config) {
+      this.ref?.close();
+      return;
+    }
+
+    if (this.returnToUrl && this.returnToUrl !== this.router.url) {
+      this.router.navigateByUrl(this.returnToUrl);
+      return;
+    }
+
+    if (window.history.length > 1) {
+      this.location.back();
+      return;
+    }
+
+    this.router.navigate(['/all-books']);
   }
 
   ngOnDestroy(): void {

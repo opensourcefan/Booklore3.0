@@ -62,7 +62,10 @@ export class BookCardLiteComponent implements OnInit, OnDestroy {
   openBookInfo(book: Book): void {
     if (this.metadataCenterViewMode === 'route') {
       this.router.navigate(['/book', book.id], {
-        queryParams: {tab: 'view'}
+        queryParams: {
+          tab: 'view',
+          returnTo: this.router.url,
+        }
       });
     } else {
       this.bookMetadataHostService.requestBookSwitch(book.id);

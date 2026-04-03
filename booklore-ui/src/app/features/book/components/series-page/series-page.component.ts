@@ -549,7 +549,10 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
 
   viewBookDetails(bookId: number): void {
     this.router.navigate(['/book', bookId], {
-      queryParams: {tab: 'view'}
+      queryParams: {
+        tab: 'view',
+        returnTo: this.router.url,
+      }
     });
   }
 

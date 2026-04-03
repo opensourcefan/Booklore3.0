@@ -95,7 +95,10 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   onBookClick(book: Book): void {
     this.clearSearch();
     this.router.navigate(['/book', book.id], {
-      queryParams: {tab: 'view'}
+      queryParams: {
+        tab: 'view',
+        returnTo: this.router.url,
+      }
     });
   }
 

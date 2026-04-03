@@ -1,23 +1,21 @@
 <div class="book-metadata-center-container" *transloco="let t; prefix: 'metadata.center'">
-  @if (config) {
-    <div class="panel-header">
-      <div class="header-icon-wrapper">
-        <i class="pi pi-book header-icon"></i>
-      </div>
-      <div class="header-text">
-        <h2 class="panel-title">{{ t('title') }}</h2>
-        <p class="panel-description">{{ t('description') }}</p>
-      </div>
-      <p-button
-        icon="pi pi-times"
-        [rounded]="true"
-        [text]="true"
-        severity="secondary"
-        (click)="ref?.close()"
-        class="close-button">
-      </p-button>
+  <div class="panel-header">
+    <div class="header-icon-wrapper">
+      <i class="pi pi-book header-icon"></i>
     </div>
-  }
+    <div class="header-text">
+      <h2 class="panel-title">{{ t('title') }}</h2>
+      <p class="panel-description">{{ t('description') }}</p>
+    </div>
+    <p-button
+      [icon]="config ? 'pi pi-times' : 'pi pi-arrow-left'"
+      [rounded]="true"
+      [text]="true"
+      severity="secondary"
+      (click)="closeMetadataCenter()"
+      class="close-button">
+    </p-button>
+  </div>
   <div class="tabs-wrapper" [class.dialog-mode]="config">
     <p-tabs [(value)]="tab" lazy="true" scrollable>
     <p-tablist>
