@@ -98,6 +98,11 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     return this.expandedRootIds.has(root.libraryPathId);
   }
 
+  onRootRowClick(root: DirectoryRootNode, event: MouseEvent): void {
+    event.stopPropagation();
+    this.toggleRoot(root, event);
+  }
+
   toggleRoot(root: DirectoryRootNode, event: MouseEvent): void {
     event.stopPropagation();
     if (this.isRootExpanded(root)) {

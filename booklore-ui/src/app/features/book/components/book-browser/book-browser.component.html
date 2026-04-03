@@ -408,33 +408,34 @@
               </p>
             </div>
           }
-          @if (bookState?.books; as books) {
-            @if (currentViewMode === 'table' && books.length > 0) {
-              <app-book-table
-                [books]="books"
-                [preselectedBookIds]="selectedBooks"
-                (selectedBooksChange)="onSelectedBooksChange($event)"
-                [sortOption]="this.bookSorter.selectedSort!"
-                [visibleColumns]="visibleColumns"
-              ></app-book-table>
-            }
-            @if (currentViewMode === 'grid') {
-              <virtual-scroller class="virtual-scroller" #scroll [items]="books">
-                <div
-                  class="grid"
-                  #container
-                  [ngStyle]="{'grid-template-columns': 'repeat(auto-fill, minmax(' + gridColumnMinWidth + ', 1fr))'}">
-                  @for (book of scroll.viewPortItems; let i = $index; track book.id) {
-                    <div
-                      class="virtual-scroller-item"
-                      [ngStyle]="{width: currentCardSize.width + 'px', height: getCardHeight(book) + 'px'}">
-                      <app-book-card
-                        [index]="books.indexOf(book)"
-                        [book]="book"
-                        [titleRows]="isMobile ? mobileTitleRows : desktopTitleRows"
-                        [isCheckboxEnabled]="true"
-                        [seriesViewEnabled]="seriesViewEnabled"
-                        [onBookSelect]="handleBookSelect.bind(this)"
+          @if (!isWaitingForDirectorySelection) {
+            @if (bookState?.books; as books) {
+              @if (currentViewMode === 'table' && books.length > 0) {
+                <app-book-table
+                  [books]="books"
+                  [preselectedBookIds]="selectedBooks"
+                  (selectedBooksChange)="onSelectedBooksChange($event)"
+                  [sortOption]="this.bookSorter.selectedSort!"
+                  [visibleColumns]="visibleColumns"
+                ></app-book-table>
+              }
+              @if (currentViewMode === 'grid') {
+                <virtual-scroller class="virtual-scroller" #scroll [items]="books">
+                  <div
+                    class="grid"
+                    #container
+                    [ngStyle]="{'grid-template-columns': 'repeat(auto-fill, minmax(' + gridColumnMinWidth + ', 1fr))'}">
+                    @for (book of scroll.viewPortItems; let i = $index; track book.id) {
+                      <div
+                        class="virtual-scroller-item"
+                        [ngStyle]="{width: currentCardSize.width + 'px', height: getCardHeight(book) + 'px'}">
+                        <app-book-card
+                          [index]="books.indexOf(book)"
+                          [book]="book"
+                          [titleRows]="isMobile ? mobileTitleRows : desktopTitleRows"
+                          [isCheckboxEnabled]="true"
+                          [seriesViewEnabled]="seriesViewEnabled"
+                          [onBookSelect]="handleBookSelect.bind(this)"
                         [isSeriesCollapsed]="seriesCollapseFilter.isSeriesCollapsed"
                         (checkboxClick)="onCheckboxClicked($event)"
                         (bookClicked)="onBookClicked($event)"
@@ -448,6 +449,7 @@
                 </div>
               </virtual-scroller>
             }
+          }
           }
           @if (userService.userState$ | async; as userState) {
             <div class="book-browser-footer" [class.footer-hidden]="selectedCount === 0">

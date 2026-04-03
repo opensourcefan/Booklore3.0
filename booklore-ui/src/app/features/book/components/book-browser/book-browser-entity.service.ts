@@ -16,7 +16,6 @@ import {BookRuleEvaluatorService} from '../../../magic-shelf/service/book-rule-e
 import {GroupRule} from '../../../magic-shelf/component/magic-shelf-component';
 import {EntityType} from './book-browser.component';
 import {DirectoryFilterService, DirectorySelection} from '../../service/directory-filter.service';
-import {DirectoryPanelService} from '../../service/directory-panel.service';
 
 export interface EntityInfo {
   entityId: number;
@@ -32,7 +31,6 @@ export class BookBrowserEntityService {
   private magicShelfService = inject(MagicShelfService);
   private bookRuleEvaluatorService = inject(BookRuleEvaluatorService);
   private directoryFilterService = inject(DirectoryFilterService);
-  private directoryPanelService = inject(DirectoryPanelService);
 
   getEntityInfoFromRoute(activatedRoute: ActivatedRoute): Observable<EntityInfo> {
     return activatedRoute.paramMap.pipe(
@@ -88,12 +86,9 @@ export class BookBrowserEntityService {
   fetchAllBooks(sortOption: SortOption): Observable<BookState> {
     return combineLatest([
       this.bookService.bookState$,
-      this.directoryFilterService.filter$,
-      this.directoryPanelService.visible$
+      this.directoryFilterService.filter$
     ]).pipe(
-      map(([bookState, dirFilter, dirPanelVisible]) =>
-        this.processBookStateWithDirFilter(bookState, sortOption, dirFilter, null, dirPanelVisible)
-      )
+      map(([bookState, dirFilter]) => this.processBookStateWithDirFilter(bookState, sortOption, dirFilter, null))
     );
   }
 
@@ -181,12 +176,9 @@ export class BookBrowserEntityService {
   private fetchBooks(bookFilter: (book: Book) => boolean, sortOption: SortOption): Observable<BookState> {
     return combineLatest([
       this.bookService.bookState$,
-      this.directoryFilterService.filter$,
-      this.directoryPanelService.visible$
+      this.directoryFilterService.filter$
     ]).pipe(
-      map(([bookState, dirFilter, dirPanelVisible]) =>
-        this.processBookStateWithDirFilter(bookState, sortOption, dirFilter, bookFilter, dirPanelVisible)
-      )
+      map(([bookState, dirFilter]) => this.processBookStateWithDirFilter(bookState, sortOption, dirFilter, bookFilter))
     );
   }
 
@@ -194,23 +186,25 @@ export class BookBrowserEntityService {
     bookState: BookState,
     sortOption: SortOption,
     dirFilter: DirectorySelection | null,
-    entityFilter: ((book: Book) => boolean) | null,
-    requireDirectorySelection = false
+    entityFilter: ((book: Book) => boolean) | null
   ): BookState {
     if (bookState.loaded && !bookState.error) {
       let books = bookState.books || [];
       if (entityFilter) {
         books = books.filter(entityFilter);
       }
-      if (requireDirectorySelection && !dirFilter) {
-        return {...bookState, books: []};
-      }
       if (dirFilter) {
         books = books.filter(book => {
           if (book.libraryPath?.id !== dirFilter.libraryPathId) return false;
           const bookPath = book.primaryFile?.fileSubPath ?? '';
+          const bookFileName = book.primaryFile?.fileName ?? '';
+          const folderBasedPath = book.primaryFile?.folderBased && bookFileName
+            ? (bookPath ? `${bookPath}/${bookFileName}` : bookFileName)
+            : null;
           if (dirFilter.fileSubPath === '') return true;
-          return bookPath === dirFilter.fileSubPath || bookPath.startsWith(dirFilter.fileSubPath + '/');
+          return bookPath === dirFilter.fileSubPath
+            || bookPath.startsWith(dirFilter.fileSubPath + '/')
+            || folderBasedPath === dirFilter.fileSubPath;
         });
       }
       const sortedBooks = this.sortService.applySort(books, sortOption);
