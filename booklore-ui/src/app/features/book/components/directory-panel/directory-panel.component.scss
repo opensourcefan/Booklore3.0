@@ -6,11 +6,11 @@
   --dir-tree-row-height: 2rem;
   --dir-tree-row-radius: 8px;
   --dir-tree-row-font-size: 0.95rem;
-  --dir-tree-toggle-slot-width: 1rem;
+  --dir-tree-toggle-slot-width: 1.35rem;
   --dir-tree-row-gap: 0.35rem;
   --dir-tree-row-padding-inline: 0.65rem;
   --dir-tree-indent: 1rem;
-  --dir-tree-hover-background: var(--surface-hover, var(--p-surface-100, rgba(0, 0, 0, 0.06)));
+  --dir-tree-hover-background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
   --dir-tree-selected-background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
 }
 
@@ -106,7 +106,7 @@
   padding: 0;
   cursor: pointer;
   color: var(--p-text-muted-color, #6b7280);
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   font-weight: 700;
   line-height: 1;
 
@@ -118,8 +118,8 @@
 .dir-tree-root__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.55rem;
+  justify-content: flex-start;
+  gap: 0.5rem;
   min-height: var(--dir-tree-row-height);
   width: 100%;
   padding: 0 var(--dir-tree-row-padding-inline);
@@ -130,11 +130,13 @@
   font-size: var(--dir-tree-row-font-size);
   font-weight: 600;
   color: var(--p-text-color);
+  text-align: left;
   user-select: none;
-  transition: background 0.12s;
+  transition: background 0.12s, color 0.12s;
 
   &:hover {
     background: var(--dir-tree-hover-background);
+    color: var(--p-text-color);
   }
 
   &--selected {
@@ -144,10 +146,12 @@
 }
 
 .dir-tree-root__label {
+  display: block;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
   line-height: 1.35;
 }
 
@@ -160,6 +164,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-left: auto;
   color: var(--p-text-muted-color, #6b7280);
   font-size: 0.72rem;
   opacity: 0.7;

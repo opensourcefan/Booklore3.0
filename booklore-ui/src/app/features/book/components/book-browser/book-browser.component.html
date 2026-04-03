@@ -394,7 +394,14 @@
               </p>
             </div>
           }
-          @if (!bookState?.error && bookState?.loaded && bookState?.books?.length === 0 && activeDirFilterPath === null) {
+          @if (!bookState?.error && bookState?.loaded && isWaitingForDirectorySelection) {
+            <div class="no-books-container">
+              <p class="no-books-text">
+                Select a folder to view assets
+              </p>
+            </div>
+          }
+          @if (!bookState?.error && bookState?.loaded && bookState?.books?.length === 0 && !isWaitingForDirectorySelection && activeDirFilterPath === null) {
             <div class="no-books-container">
               <p class="no-books-text">
                 {{ t('labels.noBooks') }}

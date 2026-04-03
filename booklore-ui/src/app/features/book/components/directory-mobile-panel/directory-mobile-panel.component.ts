@@ -74,11 +74,11 @@ import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-
       --dir-tree-row-height: 2rem;
       --dir-tree-row-radius: 8px;
       --dir-tree-row-font-size: 0.95rem;
-      --dir-tree-toggle-slot-width: 1rem;
+      --dir-tree-toggle-slot-width: 1.35rem;
       --dir-tree-row-gap: 0.35rem;
       --dir-tree-row-padding-inline: 0.65rem;
       --dir-tree-indent: 1rem;
-      --dir-tree-hover-background: var(--surface-hover, var(--p-surface-100, rgba(0, 0, 0, 0.06)));
+      --dir-tree-hover-background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
       --dir-tree-selected-background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
     }
 
@@ -124,7 +124,7 @@ import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-
       padding: 0;
       cursor: pointer;
       color: var(--p-text-muted-color, #6b7280);
-      font-size: 0.95rem;
+      font-size: 1.2rem;
       font-weight: 700;
       line-height: 1;
     }
@@ -132,8 +132,8 @@ import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-
     .dir-tree-root__header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.55rem;
+      justify-content: flex-start;
+      gap: 0.5rem;
       min-height: var(--dir-tree-row-height);
       width: 100%;
       padding: 0 var(--dir-tree-row-padding-inline);
@@ -149,6 +149,7 @@ import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-
 
     .dir-tree-root__header:hover {
       background: var(--dir-tree-hover-background);
+      color: var(--p-text-color);
     }
 
     .dir-tree-root__header--selected {
@@ -157,10 +158,12 @@ import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-
     }
 
     .dir-tree-root__label {
+      display: block;
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      text-align: left;
       line-height: 1.35;
     }
 
@@ -173,6 +176,7 @@ import {DirectoryTreeNodeComponent} from '../directory-tree-node/directory-tree-
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      margin-left: auto;
       color: var(--p-text-muted-color, #6b7280);
       font-size: 0.72rem;
       opacity: 0.7;

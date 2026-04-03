@@ -272,6 +272,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     return !!this.selectedFilter.value && Object.keys(this.selectedFilter.value).length > 0;
   }
 
+  get isWaitingForDirectorySelection(): boolean {
+    return this.dirPanelService.isVisible && this.activeDirFilterPath === null;
+  }
+
   get computedFilterLabel(): string {
     const filters = this.selectedFilter.value;
 

@@ -46,11 +46,11 @@ import {DirectoryNode} from '../../service/directory-tree.service';
       --dir-tree-row-height: 2rem;
       --dir-tree-row-radius: 8px;
       --dir-tree-row-font-size: 0.95rem;
-      --dir-tree-toggle-slot-width: 1rem;
+      --dir-tree-toggle-slot-width: 1.35rem;
       --dir-tree-row-gap: 0.35rem;
       --dir-tree-row-padding-inline: 0.65rem;
       --dir-tree-indent: 1rem;
-      --dir-tree-hover-background: var(--surface-hover, var(--p-surface-100, rgba(0, 0, 0, 0.06)));
+      --dir-tree-hover-background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
       --dir-tree-selected-background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
     }
 
@@ -77,7 +77,7 @@ import {DirectoryNode} from '../../service/directory-tree.service';
       padding: 0;
       cursor: pointer;
       color: var(--p-text-muted-color, #6b7280);
-      font-size: 0.95rem;
+      font-size: 1.2rem;
       font-weight: 700;
       line-height: 1;
     }
@@ -89,6 +89,7 @@ import {DirectoryNode} from '../../service/directory-tree.service';
     .dir-tree-node__body {
       display: flex;
       align-items: center;
+      justify-content: flex-start;
       min-height: var(--dir-tree-row-height);
       width: 100%;
       padding: 0 var(--dir-tree-row-padding-inline);
@@ -104,6 +105,7 @@ import {DirectoryNode} from '../../service/directory-tree.service';
 
     .dir-tree-node__body:hover {
       background: var(--dir-tree-hover-background);
+      color: var(--p-text-color);
     }
 
     .dir-tree-node__body--selected {
