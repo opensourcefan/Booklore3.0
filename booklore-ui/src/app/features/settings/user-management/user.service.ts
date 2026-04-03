@@ -290,6 +290,13 @@ export interface UserSettings {
   enableSeriesView: boolean;
   entityViewPreferences: EntityViewPreferences;
   tableColumnPreference?: TableColumnPreference[];
+  toolbarConfig?: {
+    id: string;
+    type: 'button' | 'separator';
+    visible: boolean;
+    label?: string;
+    icon?: string;
+  }[];
   dashboardConfig?: DashboardConfig;
   koReaderEnabled: boolean;
   autoSaveMetadata: boolean;

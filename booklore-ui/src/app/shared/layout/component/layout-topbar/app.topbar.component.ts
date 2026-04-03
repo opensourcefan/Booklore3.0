@@ -1,4 +1,4 @@
-import {STORAGE_KEY, ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
+import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 import {ToolbarEditorComponent} from './toolbar-editor.component';
 import {AppSidebarComponent} from '../layout-sidebar/app.sidebar.component';
 import {Component, ElementRef, OnDestroy, ViewChild, inject} from '@angular/core';
@@ -133,8 +133,6 @@ export class AppTopBarComponent implements OnDestroy {
       icon: lang === this.activeLang ? 'pi pi-check' : undefined,
       command: () => this.switchLanguage(lang),
     }));
-    this.onStorageChange = this.onStorageChange.bind(this);
-    window.addEventListener('storage', this.onStorageChange);
 
     this.subscribeToMetadataProgress();
     this.subscribeToNotifications();
@@ -229,7 +227,8 @@ export class AppTopBarComponent implements OnDestroy {
 
     this.userService.userState$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
+      .subscribe((userState) => {
+        this.toolbarConfig.load(userState.user);
         this.initializeStatsMenu();
       });
 
@@ -258,15 +257,8 @@ export class AppTopBarComponent implements OnDestroy {
     clearTimeout(this.importDismissTimer);
     clearTimeout(this.metadataFetchDismissTimer);
     clearTimeout(this.writeDismissTimer);
-    window.removeEventListener('storage', this.onStorageChange);
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private onStorageChange(event: StorageEvent): void {
-    if (event.key === STORAGE_KEY) {
-      this.toolbarConfig.load();
-    }
   }
 
   toggleMenu() {

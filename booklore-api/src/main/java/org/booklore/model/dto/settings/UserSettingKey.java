@@ -16,6 +16,7 @@ public enum UserSettingKey {
     ENTITY_VIEW_PREFERENCES("entityViewPreferences", true),
     THEME_SETTINGS("themeSettings", true),
     TABLE_COLUMN_PREFERENCE("tableColumnPreference", true),
+    TOOLBAR_CONFIG("toolbarConfig", true),
     DASHBOARD_CONFIG("dashboardConfig", true),
     FILTER_MODE("filterMode", false),
     FILTER_SORTING_MODE("filterSortingMode", false),

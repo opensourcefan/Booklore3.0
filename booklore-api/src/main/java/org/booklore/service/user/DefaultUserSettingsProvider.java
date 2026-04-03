@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -33,6 +34,7 @@ public class DefaultUserSettingsProvider {
         defaultSettings.put(UserSettingKey.ENTITY_VIEW_PREFERENCES, this::buildDefaultEntityViewPreferences);
         defaultSettings.put(UserSettingKey.THEME_SETTINGS, this::buildDefaultThemeSettings);
         defaultSettings.put(UserSettingKey.TABLE_COLUMN_PREFERENCE, () -> null);
+        defaultSettings.put(UserSettingKey.TOOLBAR_CONFIG, this::buildDefaultToolbarConfig);
         defaultSettings.put(UserSettingKey.FILTER_MODE, () -> "and");
         defaultSettings.put(UserSettingKey.FILTER_SORTING_MODE, () -> "count");
         defaultSettings.put(UserSettingKey.METADATA_CENTER_VIEW_MODE, () -> "route");
@@ -149,5 +151,21 @@ public class DefaultUserSettingsProvider {
                 .primary("green")
                 .surface("ash")
                 .build();
+    }
+
+    private List<BookLoreUser.UserSettings.ToolbarConfigItem> buildDefaultToolbarConfig() {
+        return List.of(
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("bookdrop").type("button").visible(true).label("Bookdrop").icon("pi pi-inbox").build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("createLibrary").type("button").visible(true).label("Create New Library").icon("pi pi-plus-circle").build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("upload").type("button").visible(true).label("Upload").icon("pi pi-upload").build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("sep1").type("separator").visible(true).build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("metadata").type("button").visible(true).label("Metadata").icon("pi pi-database").build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("stats").type("button").visible(true).label("Stats").icon("pi pi-chart-bar").build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("sep2").type("separator").visible(true).build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("notifications").type("button").visible(true).label("Notifications").icon("pi pi-bell").build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("theme").type("button").visible(true).label("Theme").icon("pi pi-palette").build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("user").type("button").visible(true).label("User").icon("pi pi-user").build(),
+                BookLoreUser.UserSettings.ToolbarConfigItem.builder().id("logout").type("button").visible(true).label("Logout").icon("pi pi-sign-out").build()
+        );
     }
 }

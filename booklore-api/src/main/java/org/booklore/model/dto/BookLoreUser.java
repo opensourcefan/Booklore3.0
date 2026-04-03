@@ -72,6 +72,7 @@ public class BookLoreUser {
         public EntityViewPreferences entityViewPreferences;
         public ThemeSettings themeSettings;
         public List<TableColumnPreference> tableColumnPreference;
+        public List<ToolbarConfigItem> toolbarConfig;
         public String filterMode;
         public String filterSortingMode;
         public String metadataCenterViewMode;
@@ -91,6 +92,18 @@ public class BookLoreUser {
             private String field;
             private Boolean visible;
             private Integer order;
+        }
+
+        @Data
+        @Builder
+        @AllArgsConstructor
+        @NoArgsConstructor
+        public static class ToolbarConfigItem {
+            private String id;
+            private String type;
+            private Boolean visible;
+            private String label;
+            private String icon;
         }
 
         @Data

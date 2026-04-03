@@ -1,4 +1,5 @@
-import {Injectable} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
+import {User, UserService} from '../../../../features/settings/user-management/user.service';
 
 export interface ToolbarItem {
   id: string;
@@ -26,24 +27,44 @@ const DEFAULT_ITEMS: ToolbarItem[] = [
 
 @Injectable({providedIn: 'root'})
 export class ToolbarConfigService {
-  items: ToolbarItem[] = [];
+  private userService = inject(UserService);
+  items: ToolbarItem[] = this.getDefaultItems();
 
-  constructor() {
-    this.load();
-  }
+  load(user: User | null | undefined = this.userService.getCurrentUser()): void {
+    const legacyItems = this.readLegacyLocalStorage();
 
-  load(): void {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed: ToolbarItem[] = JSON.parse(saved);
-        this.items = this.mergeWithDefaults(parsed);
-      } else {
-        this.items = this.getDefaultItems();
-      }
-    } catch {
-      this.items = this.getDefaultItems();
+    if (!user) {
+      this.items = legacyItems ? this.mergeWithDefaults(legacyItems) : this.getDefaultItems();
+      return;
     }
+
+    const savedItems = user.userSettings?.toolbarConfig;
+    if (Array.isArray(savedItems)) {
+      const normalizedSaved = this.mergeWithDefaults(savedItems);
+      const normalizedLegacy = legacyItems ? this.mergeWithDefaults(legacyItems) : null;
+
+      if (normalizedLegacy && this.shouldMigrateLegacyConfig(normalizedSaved, normalizedLegacy)) {
+        this.items = normalizedLegacy;
+        this.userService.updateUserSetting(user.id, 'toolbarConfig', normalizedLegacy);
+        this.clearLegacyLocalStorage();
+        return;
+      }
+
+      this.items = normalizedSaved;
+      if (normalizedLegacy && this.isSameConfig(normalizedSaved, normalizedLegacy)) {
+        this.clearLegacyLocalStorage();
+      }
+      return;
+    }
+
+    if (legacyItems) {
+      this.items = this.mergeWithDefaults(legacyItems);
+      this.userService.updateUserSetting(user.id, 'toolbarConfig', this.items);
+      this.clearLegacyLocalStorage();
+      return;
+    }
+
+    this.items = this.getDefaultItems();
   }
 
   setItems(items: ToolbarItem[]): void {
@@ -51,12 +72,22 @@ export class ToolbarConfigService {
   }
 
   save(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items));
+    const user = this.userService.getCurrentUser();
+    if (!user) {
+      return;
+    }
+
+    this.userService.updateUserSetting(user.id, 'toolbarConfig', this.items);
+    this.clearLegacyLocalStorage();
   }
 
   reset(): void {
     this.items = this.getDefaultItems();
-    localStorage.removeItem(STORAGE_KEY);
+    const user = this.userService.getCurrentUser();
+    if (user) {
+      this.userService.updateUserSetting(user.id, 'toolbarConfig', this.items);
+    }
+    this.clearLegacyLocalStorage();
   }
 
   getDefaultItems(): ToolbarItem[] {
@@ -111,5 +142,30 @@ export class ToolbarConfigService {
 
   private mergeWithDefaults(saved: ToolbarItem[]): ToolbarItem[] {
     return this.normalizeItems(saved);
+  }
+
+  private readLegacyLocalStorage(): ToolbarItem[] | null {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) as ToolbarItem[] : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private clearLegacyLocalStorage(): void {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  private shouldMigrateLegacyConfig(serverItems: ToolbarItem[], legacyItems: ToolbarItem[]): boolean {
+    return this.isDefaultConfig(serverItems) && !this.isDefaultConfig(legacyItems) && !this.isSameConfig(serverItems, legacyItems);
+  }
+
+  private isDefaultConfig(items: ToolbarItem[]): boolean {
+    return this.isSameConfig(items, this.getDefaultItems());
+  }
+
+  private isSameConfig(a: ToolbarItem[], b: ToolbarItem[]): boolean {
+    return JSON.stringify(a) === JSON.stringify(b);
   }
 }
