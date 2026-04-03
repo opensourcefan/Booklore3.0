@@ -239,12 +239,7 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const current = this.filterService.getScopedFilter(scopeKey);
-    if (current?.libraryPathId === event.libraryPathId && current?.fileSubPath === event.fileSubPath) {
-      this.filterService.clear();
-    } else {
-      this.filterService.setFilter({...event, scopeKey});
-    }
+    this.filterService.setFilter({...event, scopeKey});
   }
 
   selectRoot(root: DirectoryRootNode): void {
@@ -254,12 +249,7 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const current = this.filterService.getScopedFilter(scopeKey);
-    if (current?.libraryPathId === root.libraryPathId && current?.fileSubPath === fileSubPath) {
-      this.filterService.clear();
-    } else {
-      this.filterService.setFilter({libraryPathId: root.libraryPathId, fileSubPath, scopeKey});
-    }
+    this.filterService.setFilter({libraryPathId: root.libraryPathId, fileSubPath, scopeKey});
   }
 
   isRootSelected(root: DirectoryRootNode): boolean {

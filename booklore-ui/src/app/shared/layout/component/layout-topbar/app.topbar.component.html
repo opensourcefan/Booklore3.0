@@ -10,7 +10,19 @@
       pTooltip="Navigation"
       tooltipPosition="bottom">
     </p-button>
-    <p-popover #mobileSidebarPop styleClass="mobile-sidebar-popover">
+    @if (showMobileDirTrigger) {
+      <p-button
+        icon="pi pi-folder"
+        [text]="true"
+        (click)="mobileDirPop.toggle($event)"
+        pTooltip="Folders"
+        tooltipPosition="bottom">
+      </p-button>
+      <p-popover #mobileDirPop [dismissable]="true" styleClass="dir-mobile-panel-popover">
+        <app-directory-mobile-panel></app-directory-mobile-panel>
+      </p-popover>
+    }
+    <p-popover #mobileSidebarPop [dismissable]="true" styleClass="mobile-sidebar-popover">
       <app-sidebar (click)="onMobileSidebarClick($event)"></app-sidebar>
     </p-popover>
   </div>
@@ -141,7 +153,7 @@
                 @if (shouldShowNotificationBadge) {
                   <span class="notification-badge">{{ completedTaskCount }}</span>
                 }
-                <p-popover #notificationPopover>
+                <p-popover #notificationPopover [dismissable]="true">
                   <app-unified-notification-popover-component></app-unified-notification-popover-component>
                 </p-popover>
               </li>
@@ -190,7 +202,7 @@
         outlined
         (click)="mobileMenu.toggle($event)"
       />
-      <p-popover #mobileMenu>
+      <p-popover #mobileMenu [dismissable]="true">
         <ul class="mobile-menu-list">
           @if (userService.userState$ | async; as userState) {
             @if (userState.user?.permissions?.canAccessBookdrop || userState.user?.permissions?.admin) {
@@ -320,7 +332,7 @@
        tooltipPosition="bottom">
       <i class="pi pi-sliders-h"></i>
     </button>
-    <p-popover #toolbarEditorPop appendTo="body" styleClass="toolbar-editor-popover">
+    <p-popover #toolbarEditorPop [dismissable]="true" appendTo="body" styleClass="toolbar-editor-popover">
       <app-toolbar-editor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
     </p-popover>
 
@@ -335,20 +347,6 @@
         </p-button>
       </div>
     }
-    @if (showMobileDirTrigger) {
-      <div class="mobile-right-dir-trigger">
-        <p-button
-          icon="pi pi-folder"
-          [text]="true"
-          (click)="mobileDirPop.toggle($event)"
-          pTooltip="Folders"
-          tooltipPosition="bottom">
-        </p-button>
-        <p-popover #mobileDirPop styleClass="dir-mobile-panel-popover">
-          <app-directory-mobile-panel></app-directory-mobile-panel>
-        </p-popover>
-      </div>
-    }
   </div>
 </div>
 
@@ -360,6 +358,16 @@
   position="top"
   styleClass="mobile-search-dialog"
   appendTo="body">
+  <div class="mobile-search-dialog-close-row">
+    <p-button
+      icon="pi pi-times"
+      [text]="true"
+      [rounded]="true"
+      (click)="mobileSearchVisible = false"
+      pTooltip="Close"
+      tooltipPosition="left">
+    </p-button>
+  </div>
   <app-book-searcher></app-book-searcher>
 </p-dialog>
 </ng-container>

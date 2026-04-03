@@ -82,8 +82,9 @@ export class CustomFontsComponent implements OnInit {
       showHeader: false,
       styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
       modal: true,
-      dismissableMask: false,
-      closable: false,
+      dismissableMask: true,
+      closable: true,
+      closeOnEscape: true,
     });
 
     if (this.uploadDialogRef) {

@@ -50,6 +50,7 @@ export class DialogLauncherService {
     baseZIndex: 10,
     closable: true,
     dismissableMask: true,
+    closeOnEscape: true,
     draggable: false,
     modal: true,
     resizable: false,

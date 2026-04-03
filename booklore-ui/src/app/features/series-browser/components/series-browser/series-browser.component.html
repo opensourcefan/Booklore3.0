@@ -49,7 +49,7 @@
             <button class="display-settings-btn" (click)="displaySettingsPopover.toggle($event)">
               <i class="pi pi-sliders-h"></i>
             </button>
-            <p-popover #displaySettingsPopover>
+            <p-popover #displaySettingsPopover [dismissable]="true">
               <div class="display-settings-content">
                 <span class="display-settings-label">{{ t('cardSize') }}</span>
                 <p-slider

@@ -385,6 +385,7 @@
   @media (max-width: 991px) {
     display: flex;
     align-items: center;
+    gap: 0.15rem;
   }
 }
 
@@ -397,6 +398,10 @@
     display: flex;
     align-items: center;
   }
+}
+
+.mobile-right-dir-trigger {
+  display: none;
 }
 
 .toolbar-editor-trigger {
@@ -413,4 +418,10 @@
   letter-spacing: -0.15em;
   user-select: none;
   margin-right: -2px;
+}
+
+.mobile-search-dialog-close-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.25rem;
 }
