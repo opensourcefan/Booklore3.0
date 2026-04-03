@@ -16,6 +16,11 @@
     "stats": "Статистика",
     "libraryStats": "Статистика бібліотеки",
     "readingStats": "Статистика читання",
+    "metadataFetch": "Metadata Fetch",
+    "metadataFetchProgress": "{{ progress }}%",
+    "metadataFetchCompleted": "Completed",
+    "metadataFetchCancelled": "Cancelled",
+    "metadataFetchFailed": "Failed",
     "dirExplorer": "Directory Explorer"
   },
   "menu": {

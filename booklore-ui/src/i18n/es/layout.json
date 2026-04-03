@@ -16,6 +16,11 @@
     "stats": "Estadísticas",
     "libraryStats": "Estadísticas de biblioteca",
     "readingStats": "Estadísticas de lectura",
+    "metadataFetch": "Metadata Fetch",
+    "metadataFetchProgress": "{{ progress }}%",
+    "metadataFetchCompleted": "Completed",
+    "metadataFetchCancelled": "Cancelled",
+    "metadataFetchFailed": "Failed",
     "dirExplorer": "Directory Explorer"
   },
   "menu": {

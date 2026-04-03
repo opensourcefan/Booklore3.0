@@ -16,6 +16,11 @@
     "stats": "Statistika",
     "libraryStats": "Knjižnična statistika",
     "readingStats": "Statistika čitanja",
+    "metadataFetch": "Metadata Fetch",
+    "metadataFetchProgress": "{{ progress }}%",
+    "metadataFetchCompleted": "Completed",
+    "metadataFetchCancelled": "Cancelled",
+    "metadataFetchFailed": "Failed",
     "dirExplorer": "Directory Explorer"
   },
   "menu": {

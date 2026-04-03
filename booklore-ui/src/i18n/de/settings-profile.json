@@ -15,7 +15,8 @@
     "newPassword": "Neues Passwort",
     "confirmNewPassword": "Neues Passwort bestätigen",
     "changePassword": "Passwort ändern",
-    "loading": "Benutzerdaten werden geladen...",
+    "logout": "Logout",
+  "loading": "Benutzerdaten werden geladen...",
     "validation": {
         "currentPasswordRequired": "Das aktuelle Passwort ist erforderlich.",
         "newPasswordRequired": "Ein neues Passwort ist erforderlich.",

@@ -15,7 +15,8 @@
     "newPassword": "Новий пароль",
     "confirmNewPassword": "Підтвердіть новий пароль",
     "changePassword": "Змінити пароль",
-    "loading": "Завантаження даних користувача...",
+    "logout": "Logout",
+  "loading": "Завантаження даних користувача...",
     "validation": {
         "currentPasswordRequired": "Поточний пароль є обов'язковим.",
         "newPasswordRequired": "Новий пароль є обов'язковим.",

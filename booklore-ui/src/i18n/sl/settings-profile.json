@@ -15,7 +15,8 @@
     "newPassword": "Novo geslo",
     "confirmNewPassword": "Potrdi novo geslo",
     "changePassword": "Spremeni geslo",
-    "loading": "Nalaganje uporabniških podatkov...",
+    "logout": "Logout",
+  "loading": "Nalaganje uporabniških podatkov...",
     "validation": {
         "currentPasswordRequired": "Trenutno geslo je obvezno.",
         "newPasswordRequired": "Novo geslo je obvezno.",

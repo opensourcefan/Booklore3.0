@@ -15,7 +15,8 @@
     "newPassword": "新しいパスワード",
     "confirmNewPassword": "新しいパスワード（確認）",
     "changePassword": "パスワードを変更",
-    "loading": "ユーザーデータを読み込み中...",
+    "logout": "Logout",
+  "loading": "ユーザーデータを読み込み中...",
     "validation": {
         "currentPasswordRequired": "現在のパスワードは必須です。",
         "newPasswordRequired": "新しいパスワードは必須です。",

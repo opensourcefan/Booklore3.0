@@ -15,7 +15,8 @@
     "newPassword": "Nova lozinka",
     "confirmNewPassword": "Potvrdi novu lozinku",
     "changePassword": "Promijeni lozinku",
-    "loading": "Učitavanje korisničkih podataka...",
+    "logout": "Logout",
+  "loading": "Učitavanje korisničkih podataka...",
     "validation": {
         "currentPasswordRequired": "Trenutna lozinka je obavezna.",
         "newPasswordRequired": "Nova lozinka je obavezna.",
