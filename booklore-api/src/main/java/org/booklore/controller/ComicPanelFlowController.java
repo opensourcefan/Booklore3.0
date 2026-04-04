@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.ObjectMapper;
 
@@ -85,8 +86,8 @@ public class ComicPanelFlowController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<AiPanelFlowStatsResponse> getPanelFlowStats() {
-        return ResponseEntity.ok(comicPanelFlowService.getPanelFlowStatsForCurrentUser());
+    public ResponseEntity<AiPanelFlowStatsResponse> getPanelFlowStats(@RequestParam(required = false) Long libraryId) {
+        return ResponseEntity.ok(comicPanelFlowService.getPanelFlowStatsForCurrentUser(libraryId));
     }
 
     @PostMapping("/scan-missing")

@@ -1,5 +1,5 @@
 import {inject, Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
@@ -98,8 +98,12 @@ export class AppSettingsService {
     return this.http.get<AiServiceStatus>(`${API_CONFIG.BASE_URL}/api/v1/ai/status`);
   }
 
-  getAiPanelFlowStats(): Observable<AiPanelFlowStats> {
-    return this.http.get<AiPanelFlowStats>(`${API_CONFIG.BASE_URL}/api/v1/ai/panel-flow/stats`);
+  getAiPanelFlowStats(libraryId?: number | null): Observable<AiPanelFlowStats> {
+    const params = libraryId == null
+      ? undefined
+      : new HttpParams().set('libraryId', libraryId.toString());
+
+    return this.http.get<AiPanelFlowStats>(`${API_CONFIG.BASE_URL}/api/v1/ai/panel-flow/stats`, {params});
   }
 
   cleanupAiPanelData(): Observable<{ deletedCount: number }> {

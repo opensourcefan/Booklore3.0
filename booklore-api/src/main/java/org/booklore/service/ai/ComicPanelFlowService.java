@@ -96,8 +96,15 @@ public class ComicPanelFlowService {
 
     @Transactional(readOnly = true)
     public AiPanelFlowStatsResponse getPanelFlowStatsForCurrentUser() {
+        return getPanelFlowStatsForCurrentUser(null);
+    }
+
+    @Transactional(readOnly = true)
+    public AiPanelFlowStatsResponse getPanelFlowStatsForCurrentUser(Long libraryId) {
         Long userId = getCurrentUserId();
-        ComicPanelFlowRepository.AiPanelFlowStatsProjection stats = comicPanelFlowRepository.findStatsByUserId(userId);
+        ComicPanelFlowRepository.AiPanelFlowStatsProjection stats = libraryId == null
+                ? comicPanelFlowRepository.findStatsByUserId(userId)
+                : comicPanelFlowRepository.findStatsByUserIdAndLibraryId(userId, libraryId);
         return AiPanelFlowStatsResponse.builder()
                 .scannedComicCount(stats != null ? stats.getScannedComicCount() : 0)
                 .storedBytes(stats != null && stats.getStoredBytes() != null ? stats.getStoredBytes() : 0)

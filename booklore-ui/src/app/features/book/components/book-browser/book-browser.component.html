@@ -2,7 +2,7 @@
 <div class="book-browser-container">
   <div class="book-browser-main" [class.selection-panel-open]="isSelectionActionPanelOpen">
 
-    <div class="book-browser-header">
+    <div class="book-browser-header" [class.book-browser-header--selection-open]="isSelectionActionPanelOpen">
       <div class="book-browser-toolbar">
         @if (canShowDirectoryExplorer) {
           <div class="header-leading-action">

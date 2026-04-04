@@ -1,7 +1,9 @@
 import {inject, Injectable} from '@angular/core';
-import {combineLatest, map, Observable} from 'rxjs';
+import {combineLatest, map, Observable, shareReplay, switchMap} from 'rxjs';
 import {LibraryFilterService} from './library-filter.service';
 import {BookService} from '../../../../book/service/book.service';
+import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
+import {AiPanelFlowStats} from '../../../../../shared/model/app-settings.model';
 
 @Injectable({
   providedIn: 'root'
@@ -9,8 +11,14 @@ import {BookService} from '../../../../book/service/book.service';
 export class LibrariesSummaryService {
   private bookService = inject(BookService);
   private libraryFilterService = inject(LibraryFilterService);
+  private appSettingsService = inject(AppSettingsService);
 
   selectedLibrary$ = this.libraryFilterService.selectedLibrary$;
+
+  private aiPanelFlowStats$ = this.selectedLibrary$.pipe(
+    switchMap(selectedLibraryId => this.appSettingsService.getAiPanelFlowStats(selectedLibraryId)),
+    shareReplay({bufferSize: 1, refCount: true})
+  );
 
   getBooksSummary(): Observable<{
     totalBooks: number;
@@ -71,6 +79,18 @@ export class LibrariesSummaryService {
     );
   }
 
+  getAiPanelFlowStats(): Observable<AiPanelFlowStats> {
+    return this.aiPanelFlowStats$.pipe(
+      map(stats => stats ?? {scannedComicCount: 0, storedBytes: 0})
+    );
+  }
+
+  getFormattedAiStorage(): Observable<string> {
+    return this.aiPanelFlowStats$.pipe(
+      map(stats => this.formatBytes(stats?.storedBytes ?? 0))
+    );
+  }
+
   private formatSizeKb(kb: number): string {
     if (!kb) return '0 KB';
     const kilo = 1024;
@@ -83,5 +103,23 @@ export class LibrariesSummaryService {
       return (kb / megaKb).toFixed(2) + ' MB';
     }
     return kb + ' KB';
+  }
+
+  private formatBytes(bytes: number): string {
+    if (!Number.isFinite(bytes) || bytes <= 0) {
+      return '0 B';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let unitIndex = 0;
+
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+
+    const digits = value >= 10 || unitIndex === 0 ? 0 : 1;
+    return `${value.toFixed(digits)} ${units[unitIndex]}`;
   }
 }

@@ -59,6 +59,18 @@
             <span class="total-label">{{ t('main.librarySize') }}</span>
             <span class="total-value">{{ totalSize$ | async }}</span>
           </div>
+
+          <div class="total-item total-ai-scans" [title]="t('main.totalAiScannedComics')">
+            <i class="pi pi-cog"></i>
+            <span class="total-label">{{ t('main.aiScannedComics') }}</span>
+            <span class="total-value">{{ totalAiScannedComics$ | async }}</span>
+          </div>
+
+          <div class="total-item total-ai-storage" [title]="t('main.totalAiDataSize')">
+            <i class="pi pi-database"></i>
+            <span class="total-label">{{ t('main.aiDataSize') }}</span>
+            <span class="total-value">{{ totalAiStorage$ | async }}</span>
+          </div>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ package org.booklore.controller;
 
 import org.booklore.model.dto.ai.AiBulkScanRequest;
 import org.booklore.model.dto.ai.AiBulkScanResponse;
+import org.booklore.model.dto.ai.AiPanelFlowStatsResponse;
 import org.booklore.service.ai.ComicPanelFlowService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,5 +109,21 @@ class ComicPanelFlowControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().isStarted()).isTrue();
         assertThat(response.getBody().getMissingBooks()).isEqualTo(3);
+    }
+
+    @Test
+    void passesOptionalLibraryIdToStatsQuery() {
+        AiPanelFlowStatsResponse stats = AiPanelFlowStatsResponse.builder()
+                .scannedComicCount(5)
+                .storedBytes(2048)
+                .build();
+
+        when(comicPanelFlowService.getPanelFlowStatsForCurrentUser(42L)).thenReturn(stats);
+
+        var response = controller.getPanelFlowStats(42L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatusCode.valueOf(200));
+        assertThat(response.getBody()).isEqualTo(stats);
+        verify(comicPanelFlowService).getPanelFlowStatsForCurrentUser(42L);
     }
 }

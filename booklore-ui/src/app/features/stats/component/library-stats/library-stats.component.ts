@@ -2,7 +2,7 @@ import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {of, Subject} from 'rxjs';
-import {catchError, map, startWith, takeUntil} from 'rxjs/operators';
+import {catchError, map, shareReplay, startWith, takeUntil} from 'rxjs/operators';
 import {CdkDragDrop, DragDropModule, moveItemInArray} from '@angular/cdk/drag-drop';
 import {Select} from 'primeng/select';
 import {Button} from 'primeng/button';
@@ -77,6 +77,12 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
   public readonly totalSeries$ = this.booksSummary$.pipe(map(summary => summary.totalSeries));
   public readonly totalPublishers$ = this.booksSummary$.pipe(map(summary => summary.totalPublishers));
   public readonly totalSize$ = this.librariesSummaryService.getFormattedSize().pipe(catchError(() => of('0 KB')));
+  public readonly aiPanelFlowStats$ = this.librariesSummaryService.getAiPanelFlowStats().pipe(
+    catchError(() => of({scannedComicCount: 0, storedBytes: 0})),
+    shareReplay(1)
+  );
+  public readonly totalAiScannedComics$ = this.aiPanelFlowStats$.pipe(map(stats => stats.scannedComicCount));
+  public readonly totalAiStorage$ = this.librariesSummaryService.getFormattedAiStorage().pipe(catchError(() => of('0 B')));
 
   ngOnInit(): void {
     this.loadLibraryOptions();

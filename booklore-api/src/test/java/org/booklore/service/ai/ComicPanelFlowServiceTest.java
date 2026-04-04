@@ -130,4 +130,33 @@ class ComicPanelFlowServiceTest {
         assertThat(result.getStoredBytes()).isEqualTo(4096L);
         verify(comicPanelFlowRepository).findStatsByUserId(7L);
     }
+
+    @Test
+    void getPanelFlowStatsForCurrentUserFiltersByLibraryWhenRequested() {
+        BookLoreUser currentUser = BookLoreUser.builder()
+                .id(7L)
+                .username("michael")
+                .build();
+
+        ComicPanelFlowRepository.AiPanelFlowStatsProjection stats = new ComicPanelFlowRepository.AiPanelFlowStatsProjection() {
+            @Override
+            public long getScannedComicCount() {
+                return 3;
+            }
+
+            @Override
+            public Long getStoredBytes() {
+                return 1024L;
+            }
+        };
+
+        when(authenticationService.getAuthenticatedUser()).thenReturn(currentUser);
+        when(comicPanelFlowRepository.findStatsByUserIdAndLibraryId(7L, 99L)).thenReturn(stats);
+
+        AiPanelFlowStatsResponse result = service.getPanelFlowStatsForCurrentUser(99L);
+
+        assertThat(result.getScannedComicCount()).isEqualTo(3);
+        assertThat(result.getStoredBytes()).isEqualTo(1024L);
+        verify(comicPanelFlowRepository).findStatsByUserIdAndLibraryId(7L, 99L);
+    }
 }
