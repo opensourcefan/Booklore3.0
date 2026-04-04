@@ -18,7 +18,19 @@
       </p-button>
     </div>
   }
-  <div class="tabs-wrapper" [class.dialog-mode]="config">
+  <div class="tabs-wrapper" [class.dialog-mode]="config" [class.route-mode]="!config">
+    @if (!config) {
+      <div class="route-return-control">
+        <p-button
+          icon="pi pi-arrow-left"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          (click)="closeMetadataCenter()"
+          class="route-return-button">
+        </p-button>
+      </div>
+    }
     <p-tabs [(value)]="tab" lazy="true" scrollable>
     <p-tablist>
       <p-tab value="view">
