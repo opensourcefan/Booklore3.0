@@ -1,11 +1,11 @@
 <p align="center">
-  <a href="https://github.com/opensourcefan/booklore3.0/releases"><img src="https://img.shields.io/github/v/release/opensourcefan/booklore3?style=flat-square&color=blue" alt="Release"></a>
-  <img src="https://github.com/opensourcefan/booklore3/actions/workflows/ci.yml/badge.svg?branch=main">
-  <img src="https://github.com/opensourcefan/booklore3/actions/workflows/github-code-scanning/codeql/badge.svg">
-  <img src="https://github.com/opensourcefan/booklore3/actions/workflows/security.yml/badge.svg">
-  <a href="https://github.com/opensourcefan/booklore3/blob/main/LICENSE"><img src="https://img.shields.io/github/license/opensourcefan/booklore3?style=flat-square" alt="License"></a>
-  <a href="https://github.com/opensourcefan/booklore3/stargazers"><img src="https://img.shields.io/github/stars/opensourcefan/booklore3?style=flat-square" alt="Stars"></a>
-  <a href="https://github.com/opensourcefan/booklore3/issues"><img src="https://img.shields.io/github/issues/opensourcefan/booklore3?style=flat-square" alt="Issues"></a>
+  <a href="https://github.com/opensourcefan/Booklore3.0/releases"><img src="https://img.shields.io/github/v/release/opensourcefan/Booklore3.0?style=flat-square&color=blue" alt="Release"></a>
+  <img src="https://github.com/opensourcefan/Booklore3.0/actions/workflows/ci.yml/badge.svg?branch=main">
+  <img src="https://github.com/opensourcefan/Booklore3.0/actions/workflows/github-code-scanning/codeql/badge.svg">
+  <img src="https://github.com/opensourcefan/Booklore3.0/actions/workflows/security.yml/badge.svg">
+  <a href="https://github.com/opensourcefan/booklore3/blob/main/LICENSE"><img src="https://img.shields.io/github/license/opensourcefan/Booklore3.0?style=flat-square" alt="License"></a>
+  <a href="https://github.com/opensourcefan/booklore3/stargazers"><img src="https://img.shields.io/github/stars/opensourcefan/Booklore3.0?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/opensourcefan/Booklore3.0/issues"><img src="https://img.shields.io/github/issues/opensourcefan/booklore3?style=flat-square" alt="Issues"></a>
 </p>
 
 
