@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/opensourcefan/Booklore3.0/releases"><img src="https://img.shields.io/github/v/release/opensourcefan/Booklore3.0?style=flat-square&color=blue" alt="Release"></a>
+  <a href="https://github.com/opensourcefan/Booklore3.0/tags"><img src="https://img.shields.io/github/v/release/opensourcefan/Booklore3.0?style=flat-square&color=blue" alt="Release"></a>
   <img src="https://github.com/opensourcefan/Booklore3.0/actions/workflows/ci.yml/badge.svg?branch=main">
   <img src="https://github.com/opensourcefan/Booklore3.0/actions/workflows/github-code-scanning/codeql/badge.svg">
   <img src="https://github.com/opensourcefan/Booklore3.0/actions/workflows/security.yml/badge.svg">
