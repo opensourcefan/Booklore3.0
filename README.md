@@ -1,11 +1,10 @@
 <p align="center">
-  <a href="https://github.com/opensourcefan/Booklore3.0/release"><img src="https://img.shields.io/github/v/release/opensourcefan/Booklore3.0?style=flat-square&color=blue" alt="Release"></a>
-  <img src="https://github.com/opensourcefan/Booklore3.0/actions/workflows/ci.yml/badge.svg?branch=main">
-  <img src="https://github.com/opensourcefan/Booklore3.0/actions/workflows/github-code-scanning/codeql/badge.svg">
-  <img src="https://github.com/opensourcefan/Booklore3.0/actions/workflows/security.yml/badge.svg">
-  <a href="https://github.com/opensourcefan/booklore3/blob/main/LICENSE"><img src="https://img.shields.io/github/license/opensourcefan/Booklore3.0?style=flat-square" alt="License"></a>
-  <a href="https://github.com/opensourcefan/booklore3/stargazers"><img src="https://img.shields.io/github/stars/opensourcefan/Booklore3.0?style=flat-square" alt="Stars"></a>
-  <a href="https://github.com/opensourcefan/Booklore3.0/issues"><img src="https://img.shields.io/github/issues/opensourcefan/booklore3?style=flat-square" alt="Issues"></a>
+  <a href="https://github.com/opensourcefan/Booklore3.0/releases"><img src="https://img.shields.io/github/v/release/opensourcefan/Booklore3.0?display_name=tag&style=flat-square&color=blue" alt="Release"></a>
+  <a href="https://github.com/opensourcefan/Booklore3.0/actions/workflows/develop-pipeline.yml?query=branch%3Adevelop"><img src="https://img.shields.io/github/actions/workflow/status/opensourcefan/Booklore3.0/develop-pipeline.yml?branch=develop&label=develop%20pipeline&style=flat-square" alt="Develop pipeline"></a>
+  <a href="https://github.com/opensourcefan/Booklore3.0/actions/workflows/master-pipeline.yml?query=branch%3Amaster"><img src="https://img.shields.io/github/actions/workflow/status/opensourcefan/Booklore3.0/master-pipeline.yml?branch=master&label=master%20pipeline&style=flat-square" alt="Master pipeline"></a>
+  <a href="https://github.com/opensourcefan/Booklore3.0/blob/develop/LICENSE"><img src="https://img.shields.io/github/license/opensourcefan/Booklore3.0?style=flat-square" alt="License"></a>
+  <a href="https://github.com/opensourcefan/Booklore3.0/stargazers"><img src="https://img.shields.io/github/stars/opensourcefan/Booklore3.0?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/opensourcefan/Booklore3.0/issues"><img src="https://img.shields.io/github/issues/opensourcefan/Booklore3.0?style=flat-square" alt="Issues"></a>
 </p>
 
 
