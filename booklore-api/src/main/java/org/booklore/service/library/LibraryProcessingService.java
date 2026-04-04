@@ -58,33 +58,39 @@ public class LibraryProcessingService {
     public void processLibrary(long libraryId) {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Started processing library: " + libraryEntity.getName()));
-        String taskId = UUID.randomUUID().toString();
         try {
             List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity);
-            List<LibraryFile> newFiles = detectNewBookPaths(libraryFiles, libraryEntity);
-
-            // Use BookGroupingService for consistent grouping based on organization mode
-            Map<String, List<LibraryFile>> groups = bookGroupingService.groupForInitialScan(newFiles, libraryEntity);
-            int total = groups.size();
-            if (total > 0) {
-                sendSyncProgress(taskId, 0, "Preparing 0 of " + total, TaskStatus.IN_PROGRESS);
-                fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity, (current, t) -> {
-                    int pct = t > 0 ? (current * 100) / t : 100;
-                    sendSyncProgress(taskId, pct, "Importing " + current + " of " + t, TaskStatus.IN_PROGRESS);
-                });
-                sendSyncProgress(taskId, 100, "Imported " + total + " books", TaskStatus.COMPLETED);
-            } else {
-                fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity);
-            }
-            if (libraryEntity.isTagByDirectory()) {
-                directoryTagService.applyMissingDirectoryTags(libraryEntity);
-            }
+            importLibraryFiles(libraryEntity, libraryFiles);
 
             notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished processing library: " + libraryEntity.getName()));
         } catch (IOException e) {
             log.error("Failed to process library {}: {}", libraryEntity.getName(), e.getMessage(), e);
             notificationService.sendMessage(Topic.LOG, LogNotification.error("Failed to process library: " + libraryEntity.getName() + " - " + e.getMessage()));
             throw new UncheckedIOException("Library processing failed", e);
+        }
+    }
+
+    @Transactional
+    public void processLibraryPaths(long libraryId, Set<String> targetPaths) {
+        LibraryEntity libraryEntity = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
+        List<LibraryPathEntity> pathEntities = libraryEntity.getLibraryPaths().stream()
+                .filter(pathEntity -> targetPaths.contains(pathEntity.getPath()))
+                .toList();
+
+        if (pathEntities.isEmpty()) {
+            log.info("No matching new library paths found for library {}", libraryId);
+            return;
+        }
+
+        notificationService.sendMessage(Topic.LOG, LogNotification.info("Started processing new library path(s) for: " + libraryEntity.getName()));
+        try {
+            List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity, pathEntities);
+            importLibraryFiles(libraryEntity, libraryFiles);
+            notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished processing new library path(s) for: " + libraryEntity.getName()));
+        } catch (IOException e) {
+            log.error("Failed to process new library paths for {}: {}", libraryEntity.getName(), e.getMessage(), e);
+            notificationService.sendMessage(Topic.LOG, LogNotification.error("Failed to process new library path(s): " + libraryEntity.getName() + " - " + e.getMessage()));
+            throw new UncheckedIOException("Library path processing failed", e);
         }
     }
 
@@ -161,6 +167,27 @@ public class LibraryProcessingService {
 
     public void processLibraryFiles(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
         fileAsBookProcessor.processLibraryFiles(libraryFiles, libraryEntity);
+    }
+
+    private void importLibraryFiles(LibraryEntity libraryEntity, List<LibraryFile> libraryFiles) {
+        String taskId = UUID.randomUUID().toString();
+        List<LibraryFile> newFiles = detectNewBookPaths(libraryFiles, libraryEntity);
+
+        Map<String, List<LibraryFile>> groups = bookGroupingService.groupForInitialScan(newFiles, libraryEntity);
+        int total = groups.size();
+        if (total > 0) {
+            sendSyncProgress(taskId, 0, "Preparing 0 of " + total, TaskStatus.IN_PROGRESS);
+            fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity, (current, t) -> {
+                int pct = t > 0 ? (current * 100) / t : 100;
+                sendSyncProgress(taskId, pct, "Importing " + current + " of " + t, TaskStatus.IN_PROGRESS);
+            });
+            sendSyncProgress(taskId, 100, "Imported " + total + " books", TaskStatus.COMPLETED);
+        } else {
+            fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity);
+        }
+        if (libraryEntity.isTagByDirectory()) {
+            directoryTagService.applyMissingDirectoryTags(libraryEntity);
+        }
     }
 
     private void validateLibraryPathsAccessible(LibraryEntity libraryEntity) {

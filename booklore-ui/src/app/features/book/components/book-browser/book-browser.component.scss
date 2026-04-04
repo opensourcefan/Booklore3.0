@@ -166,6 +166,7 @@
 .selection-panel-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.45rem;
   min-height: 2.5rem;
   padding: 0 0.8rem;
@@ -194,15 +195,6 @@
     padding: 0 0.55rem;
     gap: 0.3rem;
   }
-}
-
-.selection-toggle-count {
-  font-weight: 700;
-}
-
-.selection-toggle-label {
-  font-size: 0.9rem;
-  text-transform: capitalize;
 }
 
 .selection-toggle-chevron {

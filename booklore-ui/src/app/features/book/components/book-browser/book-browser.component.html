@@ -87,12 +87,6 @@
               [class.selection-panel-toggle--active]="isSelectionActionPanelOpen"
               (click)="toggleSelectionActionPanel()">
               <i class="pi pi-check-square"></i>
-              @if (!isMobile) {
-                @if (selectedCount > 0) {
-                  <span class="selection-toggle-count">{{ selectedCount }}</span>
-                }
-                <span class="selection-toggle-label">{{ t('labels.selected') }}</span>
-              }
               <i class="pi selection-toggle-chevron" [ngClass]="isSelectionActionPanelOpen ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
             </button>
 

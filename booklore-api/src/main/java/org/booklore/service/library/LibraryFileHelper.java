@@ -34,27 +34,39 @@ public class LibraryFileHelper {
     private static final int MIN_AUDIO_FILES_FOR_FOLDER_AUDIOBOOK = 2;
 
     public List<LibraryFile> getAllLibraryFiles(LibraryEntity libraryEntity) throws IOException {
+        return getAllLibraryFiles(libraryEntity, libraryEntity.getLibraryPaths());
+    }
+
+    public List<LibraryFile> getAllLibraryFiles(LibraryEntity libraryEntity, List<LibraryPathEntity> pathEntities) throws IOException {
         List<LibraryFile> allFiles = new ArrayList<>();
-        for (LibraryPathEntity pathEntity : libraryEntity.getLibraryPaths()) {
+        for (LibraryPathEntity pathEntity : pathEntities) {
             allFiles.addAll(findLibraryFiles(pathEntity, libraryEntity));
         }
         return allFiles;
     }
 
     public List<LibraryFile> getLibraryFiles(LibraryEntity libraryEntity) throws IOException {
+        return getLibraryFiles(libraryEntity, libraryEntity.getLibraryPaths());
+    }
+
+    public List<LibraryFile> getLibraryFiles(LibraryEntity libraryEntity, List<LibraryPathEntity> pathEntities) throws IOException {
         LibraryOrganizationMode mode = libraryEntity.getOrganizationMode() != null
                 ? libraryEntity.getOrganizationMode() : LibraryOrganizationMode.AUTO_DETECT;
 
         List<LibraryFile> allFiles = switch (mode) {
-            case BOOK_PER_FILE, BOOK_PER_FOLDER -> getAllLibraryFilesFlat(libraryEntity);
-            case AUTO_DETECT -> getAllLibraryFiles(libraryEntity);
+            case BOOK_PER_FILE, BOOK_PER_FOLDER -> getAllLibraryFilesFlat(libraryEntity, pathEntities);
+            case AUTO_DETECT -> getAllLibraryFiles(libraryEntity, pathEntities);
         };
         return filterByAllowedFormats(allFiles, libraryEntity.getAllowedFormats());
     }
 
     public List<LibraryFile> getAllLibraryFilesFlat(LibraryEntity libraryEntity) throws IOException {
+        return getAllLibraryFilesFlat(libraryEntity, libraryEntity.getLibraryPaths());
+    }
+
+    public List<LibraryFile> getAllLibraryFilesFlat(LibraryEntity libraryEntity, List<LibraryPathEntity> pathEntities) throws IOException {
         List<LibraryFile> allFiles = new ArrayList<>();
-        for (LibraryPathEntity pathEntity : libraryEntity.getLibraryPaths()) {
+        for (LibraryPathEntity pathEntity : pathEntities) {
             allFiles.addAll(findLibraryFilesFlat(pathEntity, libraryEntity));
         }
         return allFiles;

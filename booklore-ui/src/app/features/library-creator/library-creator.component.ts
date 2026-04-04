@@ -14,7 +14,7 @@ import {Button} from 'primeng/button';
 import {IconDisplayComponent} from '../../shared/components/icon-display/icon-display.component';
 import {DialogLauncherService} from '../../shared/services/dialog-launcher.service';
 import {switchMap} from 'rxjs/operators';
-import {map} from 'rxjs';
+import {map, of} from 'rxjs';
 import {CdkDragDrop, DragDropModule, moveItemInArray} from '@angular/cdk/drag-drop';
 import {Checkbox} from 'primeng/checkbox';
 import {Select} from 'primeng/select';
@@ -257,6 +257,7 @@ export class LibraryCreatorComponent implements OnInit {
 
     const iconValue = this.selectedIcon?.value ?? null;
     const iconType = this.selectedIcon?.type ?? null;
+    const selectedAllowedFormats = this.allowAllFormats ? [] : Array.from(this.selectedAllowedFormats);
 
     const library: Library = {
       name: this.chosenLibraryName,
@@ -265,7 +266,7 @@ export class LibraryCreatorComponent implements OnInit {
       paths: this.folders.map(folder => ({path: folder})),
       watch: this.watch,
       formatPriority: this.formatPriority.map(f => f.type),
-      allowedFormats: this.allowAllFormats ? [] : Array.from(this.selectedAllowedFormats),
+      allowedFormats: selectedAllowedFormats,
       metadataSource: this.metadataSource,
       organizationMode: this.organizationMode,
       tagByDirectory: this.tagByDirectory,
@@ -273,8 +274,9 @@ export class LibraryCreatorComponent implements OnInit {
     };
 
     if (this.mode === 'edit') {
+      const requiresFullRefresh = this.requiresFullRefreshAfterEdit(selectedAllowedFormats);
       this.libraryService.updateLibrary(library, this.library?.id).pipe(
-        switchMap(() => this.libraryService.refreshLibrary(this.library!.id!))
+        switchMap(() => requiresFullRefresh ? this.libraryService.refreshLibrary(this.library!.id!) : of(void 0))
       ).subscribe({
         next: () => {
           this.messageService.add({severity: 'success', summary: this.t.translate('libraryCreator.creator.toast.updatedSummary'), detail: this.t.translate('libraryCreator.creator.toast.updatedDetail')});
@@ -325,5 +327,21 @@ export class LibraryCreatorComponent implements OnInit {
 
   onFormatPriorityDrop(event: CdkDragDrop<{type: BookType, label: string}[]>): void {
     moveItemInArray(this.formatPriority, event.previousIndex, event.currentIndex);
+  }
+
+  private requiresFullRefreshAfterEdit(nextAllowedFormats: BookType[]): boolean {
+    if (!this.library) {
+      return false;
+    }
+
+    const currentAllowedFormats = this.library.allowedFormats ?? [];
+    const currentOrganizationMode = this.library.organizationMode ?? 'BOOK_PER_FILE';
+
+    return this.normalizeFormats(currentAllowedFormats) !== this.normalizeFormats(nextAllowedFormats)
+      || currentOrganizationMode !== this.organizationMode;
+  }
+
+  private normalizeFormats(formats: BookType[]): string {
+    return [...formats].sort().join('|');
   }
 }

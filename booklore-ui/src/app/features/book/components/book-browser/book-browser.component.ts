@@ -185,6 +185,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly COVER_PREVIEW_HOVER_DELAY_MS = 120;
 
   private settingFiltersFromUrl = false;
+  private hasInitializedFilterMode = false;
   private destroy$ = new Subject<void>();
   private lastEntityKey: string | null = null;
   private previousSelectedCount = 0;
@@ -592,12 +593,16 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
       this.settingFiltersFromUrl = true;
+      const hasExplicitFilterMode = queryParamMap.has('fmode');
 
-      if (parseResult.filterMode !== this.selectedFilterMode.getValue()) {
-        this.selectedFilterMode.next(parseResult.filterMode);
-        this.bookFilterComponents?.forEach(comp => {
-          comp.selectedFilterMode = parseResult.filterMode;
-        });
+      if (!this.hasInitializedFilterMode || hasExplicitFilterMode) {
+        if (parseResult.filterMode !== this.selectedFilterMode.getValue()) {
+          this.selectedFilterMode.next(parseResult.filterMode);
+          this.bookFilterComponents?.forEach(comp => {
+            comp.selectedFilterMode = parseResult.filterMode;
+          });
+        }
+        this.hasInitializedFilterMode = true;
       }
 
       this.currentFilterLabel = this.t.translate('book.browser.labels.allBooks');

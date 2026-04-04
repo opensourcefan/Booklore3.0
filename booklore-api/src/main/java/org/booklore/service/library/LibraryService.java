@@ -158,7 +158,7 @@ public class LibraryService {
                     return;
                 }
                 try {
-                    libraryProcessingService.processLibrary(libraryId);
+                    libraryProcessingService.processLibraryPaths(libraryId, newPaths);
                 } catch (InvalidDataAccessApiUsageException e) {
                     log.debug("InvalidDataAccessApiUsageException - Library id: {}", libraryId);
                 } finally {
