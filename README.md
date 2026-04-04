@@ -1,3 +1,14 @@
+<p align="center">
+  <a href="https://github.com/opensourcefan/booklore3/releases"><img src="https://img.shields.io/github/v/release/opensourcefan/booklore3?style=flat-square&color=blue" alt="Release"></a>
+  <img src="https://github.com/opensourcefan/booklore3/actions/workflows/ci.yml/badge.svg?branch=main">
+  <img src="https://github.com/opensourcefan/booklore3/actions/workflows/github-code-scanning/codeql/badge.svg">
+  <img src="https://github.com/opensourcefan/booklore3/actions/workflows/security.yml/badge.svg">
+  <a href="https://github.com/opensourcefan/booklore3/blob/main/LICENSE"><img src="https://img.shields.io/github/license/opensourcefan/booklore3?style=flat-square" alt="License"></a>
+  <a href="https://github.com/opensourcefan/booklore3/stargazers"><img src="https://img.shields.io/github/stars/opensourcefan/booklore3?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/opensourcefan/booklore3/issues"><img src="https://img.shields.io/github/issues/opensourcefan/booklore3?style=flat-square" alt="Issues"></a>
+</p>
+
+
 # Booklore 3.0
 
 A personal fork of [BookLore](https://github.com/adityachandelgit/BookLore) with extended features, UI customizations, and an optional AI-powered comic panel detection service.
