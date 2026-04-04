@@ -128,6 +128,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
   tab = "view";
   isExpanded = false;
   isOverflowing = false;
+  allowFileDeletion = false;
 
   // Selection state
   selectedBooks = new Set<number>();
@@ -410,19 +411,29 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
   );
 
   constructor() {
-    this.userSub = this.userService.userState$.pipe(filter(u => !!u?.user && u.loaded))
-      .subscribe(userState => {
-        this.metadataMenuItems = this.bookMenuService.getMetadataMenuItems(
-          () => this.autoFetchMetadata(),
-          () => this.fetchMetadata(),
-          () => this.bulkEditMetadata(),
-          () => this.multiBookEditMetadata(),
-          () => this.regenerateCoversForSelected(),
-          () => this.generateCustomCoversForSelected(),
-          userState.user
-        );
-        this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
-      });
+    this.userSub = new Subscription();
+
+    this.userSub.add(
+      this.userService.userState$.pipe(filter(u => !!u?.user && u.loaded))
+        .subscribe(userState => {
+          this.metadataMenuItems = this.bookMenuService.getMetadataMenuItems(
+            () => this.autoFetchMetadata(),
+            () => this.fetchMetadata(),
+            () => this.bulkEditMetadata(),
+            () => this.multiBookEditMetadata(),
+            () => this.regenerateCoversForSelected(),
+            () => this.generateCustomCoversForSelected(),
+            userState.user
+          );
+          this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
+        })
+    );
+
+    this.userSub.add(
+      this.appSettingsService.appSettings$.subscribe(settings => {
+        this.allowFileDeletion = settings?.allowFileDeletion ?? false;
+      })
+    );
   }
 
   ngOnDestroy(): void {

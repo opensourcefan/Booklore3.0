@@ -165,6 +165,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   mobileTitleRows = 2;
   desktopTitleRows = 2;
   selectedCount = 0;
+  allowFileDeletion = false;
+  isSelectionActionPanelOpen = false;
 
   // Cover preview state
   selectedCoverUrl: string | null = null;
@@ -185,6 +187,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private settingFiltersFromUrl = false;
   private destroy$ = new Subject<void>();
   private lastEntityKey: string | null = null;
+  private previousSelectedCount = 0;
   protected metadataMenuItems: MenuItem[] | undefined;
   protected moreActionsMenuItems: MenuItem[] | undefined;
   mediaTypeActionsMenuItems: MenuItem[] = [];
@@ -409,6 +412,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.initializeEntityRouting();
     this.setupRouteChangeHandlers();
+    this.setupAppSettingsSubscription();
     this.setupUserStateSubscription();
     this.setupQueryParamSubscription();
     this.setupSearchTermSubscription();
@@ -550,6 +554,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
   }
 
+  private setupAppSettingsSubscription(): void {
+    this.appSettingsService.appSettings$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(settings => {
+        this.allowFileDeletion = settings?.allowFileDeletion ?? false;
+      });
+  }
+
   private setupQueryParamSubscription(): void {
     this.sidebarFilterTogglePrefService.showFilter$
       .pipe(takeUntil(this.destroy$))
@@ -659,9 +671,22 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.bookSelectionService.selectedBooks$
       .pipe(takeUntil(this.destroy$))
       .subscribe(selectedBooks => {
-        this.selectedCount = selectedBooks.size;
+        const nextSelectedCount = selectedBooks.size;
+
+        if (nextSelectedCount > 0 && this.previousSelectedCount === 0) {
+          this.isSelectionActionPanelOpen = true;
+        } else if (nextSelectedCount === 0 && this.previousSelectedCount > 0) {
+          this.isSelectionActionPanelOpen = false;
+        }
+
+        this.previousSelectedCount = nextSelectedCount;
+        this.selectedCount = nextSelectedCount;
         this.cdr.detectChanges();
       });
+  }
+
+  toggleSelectionActionPanel(): void {
+    this.isSelectionActionPanelOpen = !this.isSelectionActionPanelOpen;
   }
 
   onFilterSelected(filters: Record<string, string[]> | null): void {

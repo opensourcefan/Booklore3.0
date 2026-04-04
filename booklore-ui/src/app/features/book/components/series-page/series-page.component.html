@@ -450,22 +450,27 @@
             </div>
             @if (userState.user!.permissions.admin || userState.user!.permissions.canDeleteBook) {
               <p-divider layout="vertical"></p-divider>
-              <p-button
-                outlined="true"
-                icon="pi pi-minus-circle"
-                severity="warn"
-                (click)="confirmDeleteBooksLibraryOnly()"
-                [pTooltip]="t('tooltip.removeFromLibrary')"
-                tooltipPosition="top">
-              </p-button>
-              <p-button
-                outlined="true"
-                icon="pi pi-trash"
-                severity="danger"
-                (click)="confirmDeleteBooks()"
-                [pTooltip]="t('tooltip.deleteSelected')"
-                tooltipPosition="top">
-              </p-button>
+              <div class="footer-action-group destructive-action-group">
+                <p-button
+                  outlined="true"
+                  icon="pi pi-minus-circle"
+                  severity="warn"
+                  (click)="confirmDeleteBooksLibraryOnly()"
+                  [pTooltip]="t('tooltip.removeFromLibrary')"
+                  tooltipPosition="top">
+                </p-button>
+                @if (allowFileDeletion) {
+                  <span class="destructive-action-separator" aria-hidden="true"></span>
+                  <p-button
+                    outlined="true"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    (click)="confirmDeleteBooks()"
+                    [pTooltip]="t('tooltip.deleteSelected')"
+                    tooltipPosition="top">
+                  </p-button>
+                }
+              </div>
             }
           </div>
           <div class="footer-right"></div>

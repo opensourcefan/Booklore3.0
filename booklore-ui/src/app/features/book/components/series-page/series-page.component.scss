@@ -864,6 +864,21 @@
   }
 }
 
+.destructive-action-group {
+  gap: 0.75rem;
+}
+
+.destructive-action-separator {
+  width: 1px;
+  height: 1.5rem;
+  align-self: center;
+  background: color-mix(in srgb, var(--p-content-border-color) 82%, transparent);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
 .more-actions-wrapper {
   display: flex;
   justify-content: center;
