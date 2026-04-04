@@ -20,6 +20,8 @@ import org.booklore.model.enums.FetchedMetadataProposalStatus;
 import org.booklore.model.enums.MetadataFetchTaskStatus;
 import org.booklore.model.enums.MetadataProvider;
 import org.booklore.model.enums.MetadataReplaceMode;
+import org.booklore.model.enums.TaskType;
+import org.booklore.model.websocket.TaskProgressPayload;
 import org.booklore.model.websocket.Topic;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
@@ -27,6 +29,7 @@ import org.booklore.repository.MetadataFetchJobRepository;
 import org.booklore.service.NotificationService;
 import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.service.metadata.parser.BookParser;
+import org.booklore.task.TaskStatus;
 import org.booklore.task.TaskCancellationManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -258,6 +261,28 @@ public class MetadataRefreshService {
 
     private void sendBatchProgressNotification(String taskId, int current, int total, String message, MetadataFetchTaskStatus status, boolean isReview) {
         notificationService.sendMessage(Topic.BOOK_METADATA_BATCH_PROGRESS, new MetadataBatchProgressNotification(taskId, current, total, message, status.name(), isReview));
+        sendTaskProgressNotification(taskId, current, total, message, status);
+    }
+
+    private void sendTaskProgressNotification(String taskId, int current, int total, String message, MetadataFetchTaskStatus status) {
+        int progress = total > 0 ? Math.min(100, Math.max(0, (current * 100) / total)) : 0;
+
+        notificationService.sendMessage(Topic.TASK_PROGRESS, TaskProgressPayload.builder()
+                .taskId(taskId)
+                .taskType(TaskType.REFRESH_METADATA_MANUAL)
+                .message(message)
+                .progress(progress)
+                .taskStatus(mapTaskStatus(status))
+                .build());
+    }
+
+    private TaskStatus mapTaskStatus(MetadataFetchTaskStatus status) {
+        return switch (status) {
+            case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
+            case COMPLETED -> TaskStatus.COMPLETED;
+            case CANCELLED -> TaskStatus.CANCELLED;
+            case ERROR -> TaskStatus.FAILED;
+        };
     }
 
     private void completeTask(MetadataFetchJobEntity task, int completed, int total, boolean isReviewMode) {
