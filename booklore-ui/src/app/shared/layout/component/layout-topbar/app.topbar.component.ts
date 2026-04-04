@@ -533,6 +533,13 @@ export class AppTopBarComponent implements OnDestroy {
     if (s === TaskStatus.COMPLETED) return this.translocoService.translate('layout.topbar.metadataFetchCompleted');
     if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.metadataFetchCancelled');
     if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.metadataFetchFailed');
+
+    const currentStep = this.metadataFetchProgress.currentStep;
+    const totalSteps = this.metadataFetchProgress.totalSteps;
+    if (currentStep != null && totalSteps != null && totalSteps > 0) {
+      return `${currentStep}/${totalSteps}`;
+    }
+
     return this.translocoService.translate('layout.topbar.metadataFetchProgress', {progress: this.metadataFetchProgress.progress});
   }
 

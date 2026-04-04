@@ -272,6 +272,8 @@ public class MetadataRefreshService {
                 .taskType(TaskType.REFRESH_METADATA_MANUAL)
                 .message(message)
                 .progress(progress)
+            .currentStep(current)
+            .totalSteps(total)
                 .taskStatus(mapTaskStatus(status))
                 .build());
     }

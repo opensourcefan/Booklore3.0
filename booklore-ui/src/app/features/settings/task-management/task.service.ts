@@ -112,6 +112,8 @@ export interface TaskProgressPayload {
   taskType: string;
   message: string;
   progress: number; // 0-100 percentage
+  currentStep?: number;
+  totalSteps?: number;
   taskStatus: TaskStatus;
 }
 

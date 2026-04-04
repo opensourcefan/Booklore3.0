@@ -16,6 +16,8 @@ public class TaskProgressPayload {
     private TaskType taskType;
     private String message;
     private int progress; // 0-100 percentage
+    private Integer currentStep;
+    private Integer totalSteps;
     private TaskStatus taskStatus;
 }
 
