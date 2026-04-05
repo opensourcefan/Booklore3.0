@@ -14,7 +14,6 @@ import org.booklore.model.entity.UserBookFileProgressEntity;
 import org.booklore.model.entity.UserBookProgressEntity;
 import org.booklore.model.enums.BookFileType;
 import org.booklore.repository.*;
-import org.booklore.repository.BookFileRepository;
 import org.booklore.repository.ComicPanelFlowRepository;
 import org.booklore.service.metadata.sidecar.SidecarMetadataWriter;
 import org.booklore.service.monitoring.MonitoringRegistrationService;
@@ -53,8 +52,10 @@ import org.booklore.service.audit.AuditService;
 @Service
 public class BookService {
 
+    public record MediaResource(Resource resource, MediaType mediaType) {
+    }
+
     private final BookRepository bookRepository;
-    private final BookFileRepository bookFileRepository;
     private final PdfViewerPreferencesRepository pdfViewerPreferencesRepository;
     private final CbxViewerPreferencesRepository cbxViewerPreferencesRepository;
     private final NewPdfViewerPreferencesRepository newPdfViewerPreferencesRepository;
@@ -284,13 +285,20 @@ public class BookService {
     }
 
     public Resource getBookThumbnail(long bookId) {
-        Path thumbnailPath = Paths.get(fileService.getThumbnailFile(bookId));
+        return getBookThumbnail(bookId, false).resource();
+    }
+
+    public MediaResource getBookThumbnail(long bookId, boolean preferWebp) {
+        Path webpPath = preferWebp ? fileService.ensureBookThumbnailWebp(bookId) : null;
         try {
-            if (Files.exists(thumbnailPath)) {
-                return new UrlResource(thumbnailPath.toUri());
-            } else {
-                return new ClassPathResource("static/images/missing-cover.jpg");
+            if (webpPath != null && Files.exists(webpPath)) {
+                return toMediaResource(webpPath, MediaType.parseMediaType("image/webp"));
             }
+            Path thumbnailPath = Paths.get(fileService.getThumbnailFile(bookId));
+            if (Files.exists(thumbnailPath)) {
+                return toMediaResource(thumbnailPath, MediaType.IMAGE_JPEG);
+            }
+            return new MediaResource(new ClassPathResource("static/images/missing-cover.jpg"), MediaType.IMAGE_JPEG);
         } catch (MalformedURLException e) {
             throw new RuntimeException("Failed to load book cover for bookId=" + bookId, e);
         }
@@ -315,13 +323,20 @@ public class BookService {
     }
 
     public Resource getAudiobookThumbnail(long bookId) {
-        Path thumbnailPath = Paths.get(fileService.getAudiobookThumbnailFile(bookId));
+        return getAudiobookThumbnail(bookId, false).resource();
+    }
+
+    public MediaResource getAudiobookThumbnail(long bookId, boolean preferWebp) {
+        Path webpPath = preferWebp ? fileService.ensureAudiobookThumbnailWebp(bookId) : null;
         try {
-            if (Files.exists(thumbnailPath)) {
-                return new UrlResource(thumbnailPath.toUri());
-            } else {
-                return new ClassPathResource("static/images/missing-cover.jpg");
+            if (webpPath != null && Files.exists(webpPath)) {
+                return toMediaResource(webpPath, MediaType.parseMediaType("image/webp"));
             }
+            Path thumbnailPath = Paths.get(fileService.getAudiobookThumbnailFile(bookId));
+            if (Files.exists(thumbnailPath)) {
+                return toMediaResource(thumbnailPath, MediaType.IMAGE_JPEG);
+            }
+            return new MediaResource(new ClassPathResource("static/images/missing-cover.jpg"), MediaType.IMAGE_JPEG);
         } catch (MalformedURLException e) {
             throw new RuntimeException("Failed to load audiobook thumbnail for bookId=" + bookId, e);
         }
@@ -342,6 +357,10 @@ public class BookService {
 
     public ResponseEntity<Resource> downloadBook(Long bookId) {
         return bookDownloadService.downloadBook(bookId);
+    }
+
+    private MediaResource toMediaResource(Path path, MediaType mediaType) throws MalformedURLException {
+        return new MediaResource(new UrlResource(path.toUri()), mediaType);
     }
 
     public void downloadAllBookFiles(Long bookId, HttpServletResponse response) {

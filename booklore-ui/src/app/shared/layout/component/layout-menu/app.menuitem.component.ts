@@ -18,6 +18,7 @@ import {TranslocoPipe} from '@jsverse/transloco';
 import {MenuItem} from 'primeng/api';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {LocalStorageService} from '../../../service/local-storage.service';
+import {ThumbnailPrefetchService} from '../../../../features/book/service/thumbnail-prefetch.service';
 
 export interface AppMenuItem extends MenuItem {
   type?: string;
@@ -30,6 +31,7 @@ export interface AppMenuItem extends MenuItem {
   bookCount$?: Observable<number>;
   unhealthy$?: Observable<boolean>;
   items?: AppMenuItem[];
+  prefetchLibraryId?: number;
 }
 
 @Component({
@@ -106,6 +108,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   private dialogLauncher = inject(DialogLauncherService);
   private bookDialogHelperService = inject(BookDialogHelperService);
   private localStorageService = inject(LocalStorageService);
+  private thumbnailPrefetchService = inject(ThumbnailPrefetchService);
 
   constructor() {
     this.userStateSubscription = this.userService.userState$.subscribe(userState => {
@@ -237,6 +240,8 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   onTouchStart(event: TouchEvent): void {
+    this.prefetchItemThumbnails();
+
     const touch = event.touches[0];
     if (!touch) {
       return;
@@ -291,6 +296,14 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   private getItemOrderId(item: AppMenuItem): string {
     const link = Array.isArray(item?.routerLink) ? item.routerLink[0] : item?.routerLink;
     return String(link ?? item?.label ?? '');
+  }
+
+  prefetchItemThumbnails(): void {
+    if (this.item.prefetchLibraryId == null) {
+      return;
+    }
+
+    this.thumbnailPrefetchService.prefetchLibrary(this.item.prefetchLibraryId);
   }
 
   private shouldSuppressTap(): boolean {

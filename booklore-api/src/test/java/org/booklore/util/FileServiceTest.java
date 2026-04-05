@@ -63,9 +63,8 @@ class FileServiceTest {
                 .build();
         lenient().when(appSettingService.getAppSettings()).thenReturn(appSettings);
 
-        RestTemplate mockRestTemplate = mock(RestTemplate.class);
         RestTemplate mockNoRedirectRestTemplate = mock(RestTemplate.class);
-        fileService = new FileService(appProperties, mockRestTemplate, appSettingService, mockNoRedirectRestTemplate);
+        fileService = new FileService(appProperties, appSettingService, mockNoRedirectRestTemplate);
     }
 
     @Nested
@@ -218,6 +217,16 @@ class FileServiceTest {
                 assertAll(
                         () -> assertTrue(result.contains("456")),
                         () -> assertTrue(result.endsWith("thumbnail.jpg"))
+                );
+            }
+
+            @Test
+            void returnsCorrectWebpPath() {
+                String result = fileService.getThumbnailWebpFile(456L);
+
+                assertAll(
+                        () -> assertTrue(result.contains("456")),
+                        () -> assertTrue(result.endsWith("thumbnail.webp"))
                 );
             }
         }
@@ -566,7 +575,25 @@ class FileServiceTest {
                 assertAll(
                         () -> assertTrue(result),
                         () -> assertTrue(Files.exists(Path.of(fileService.getCoverFile(1L)))),
-                        () -> assertTrue(Files.exists(Path.of(fileService.getThumbnailFile(1L))))
+                        () -> assertTrue(Files.exists(Path.of(fileService.getThumbnailFile(1L)))),
+                        () -> assertTrue(Files.exists(Path.of(fileService.getThumbnailWebpFile(1L))))
+                );
+            }
+
+            @Test
+            void ensureBookThumbnailWebp_backfillsMissingVariantFromJpeg() throws IOException {
+                BufferedImage image = createTestImage(640, 960);
+                fileService.saveCoverImages(image, 22L);
+
+                Path webpPath = Path.of(fileService.getThumbnailWebpFile(22L));
+                Files.deleteIfExists(webpPath);
+
+                Path generated = fileService.ensureBookThumbnailWebp(22L);
+
+                assertAll(
+                        () -> assertNotNull(generated),
+                        () -> assertEquals(webpPath, generated),
+                        () -> assertTrue(Files.exists(webpPath))
                 );
             }
 
@@ -1178,7 +1205,7 @@ class FileServiceTest {
                     .build();
             lenient().when(appSettingServiceForNetwork.getAppSettings()).thenReturn(appSettings);
 
-            fileService = new FileService(appProperties, restTemplate, appSettingServiceForNetwork, restTemplate);
+            fileService = new FileService(appProperties, appSettingServiceForNetwork, restTemplate);
         }
 
         @Nested
@@ -1195,7 +1222,7 @@ class FileServiceTest {
 
                 RestTemplate mockRestTemplate = mock(RestTemplate.class);
                 AppSettingService mockAppSettingService = mock(AppSettingService.class);
-                FileService testFileService = new FileService(appProperties, mockRestTemplate, mockAppSettingService, mockRestTemplate);
+                FileService testFileService = new FileService(appProperties, mockAppSettingService, mockRestTemplate);
 
                 ResponseEntity<byte[]> responseEntity = ResponseEntity.ok(imageBytes);
                 when(mockRestTemplate.exchange(
@@ -1275,7 +1302,7 @@ class FileServiceTest {
                 byte[] imageBytes = imageToBytes(testImage);
 
                 RestTemplate mockRestTemplate = mock(RestTemplate.class);
-                FileService testFileService = new FileService(appProperties, mockRestTemplate, appSettingServiceForNetwork, mockRestTemplate);
+                FileService testFileService = new FileService(appProperties, appSettingServiceForNetwork, mockRestTemplate);
 
                 ResponseEntity<byte[]> redirectResponse = ResponseEntity.status(302)
                         .header("Location", cdnIpRedirect).build();
@@ -1303,7 +1330,7 @@ class FileServiceTest {
                 byte[] imageBytes = imageToBytes(testImage);
 
                 RestTemplate mockRestTemplate = mock(RestTemplate.class);
-                FileService testFileService = new FileService(appProperties, mockRestTemplate, appSettingServiceForNetwork, mockRestTemplate);
+                FileService testFileService = new FileService(appProperties, appSettingServiceForNetwork, mockRestTemplate);
 
                 ResponseEntity<byte[]> redirectResponse = ResponseEntity.status(302)
                         .header("Location", cdnIpRedirect).build();
@@ -1329,7 +1356,7 @@ class FileServiceTest {
                 byte[] imageBytes = imageToBytes(testImage);
 
                 RestTemplate mockRestTemplate = mock(RestTemplate.class);
-                FileService testFileService = new FileService(appProperties, mockRestTemplate, appSettingServiceForNetwork, mockRestTemplate);
+                FileService testFileService = new FileService(appProperties, appSettingServiceForNetwork, mockRestTemplate);
 
                 ResponseEntity<byte[]> redirectResponse = ResponseEntity.status(301)
                         .header("Location", hostnameRedirect).build();
@@ -1356,7 +1383,7 @@ class FileServiceTest {
                 byte[] imageBytes = imageToBytes(testImage);
 
                 RestTemplate mockRestTemplate = mock(RestTemplate.class);
-                FileService testFileService = new FileService(appProperties, mockRestTemplate, appSettingServiceForNetwork, mockRestTemplate);
+                FileService testFileService = new FileService(appProperties, appSettingServiceForNetwork, mockRestTemplate);
 
                 ResponseEntity<byte[]> redirect1 = ResponseEntity.status(301)
                         .header("Location", hostnameRedirect).build();
@@ -1383,7 +1410,7 @@ class FileServiceTest {
                 String imageUrl = "http://1.1.1.1/cover.jpg";
 
                 RestTemplate mockRestTemplate = mock(RestTemplate.class);
-                FileService testFileService = new FileService(appProperties, mockRestTemplate, appSettingServiceForNetwork, mockRestTemplate);
+                FileService testFileService = new FileService(appProperties, appSettingServiceForNetwork, mockRestTemplate);
 
                 ResponseEntity<byte[]> redirectResponse = ResponseEntity.status(302)
                         .header("Location", "http://2.2.2.2/cover.jpg")

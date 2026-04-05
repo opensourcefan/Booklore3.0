@@ -11,7 +11,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,11 +24,9 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,7 +42,6 @@ import java.util.stream.Stream;
 public class FileService {
 
     private final AppProperties appProperties;
-    private final RestTemplate restTemplate;
     private final AppSettingService appSettingService;
     private final RestTemplate noRedirectRestTemplate;
 
@@ -63,10 +59,12 @@ public class FileService {
     private static final String ICONS_DIR                     = "icons";
     private static final String SVG_DIR                       = "svg";
     private static final String THUMBNAIL_FILENAME            = "thumbnail.jpg";
+    private static final String THUMBNAIL_WEBP_FILENAME       = "thumbnail.webp";
     private static final String COVER_FILENAME                = "cover.jpg";
     private static final String AUTHOR_PHOTO_FILENAME         = "photo.jpg";
     private static final String AUTHOR_THUMBNAIL_FILENAME     = "thumbnail.jpg";
     private static final String AUDIOBOOK_THUMBNAIL_FILENAME  = "audiobook-thumbnail.jpg";
+    private static final String AUDIOBOOK_THUMBNAIL_WEBP_FILENAME = "audiobook-thumbnail.webp";
     private static final String AUDIOBOOK_COVER_FILENAME      = "audiobook-cover.jpg";
     private static final String JPEG_MIME_TYPE                = "image/jpeg";
     private static final String PNG_MIME_TYPE                 = "image/png";
@@ -80,6 +78,7 @@ public class FileService {
     private static final int    MAX_ORIGINAL_HEIGHT           = 1500;
     private static final int    MAX_SQUARE_SIZE               = 1000;
     private static final String IMAGE_FORMAT                  = "JPEG";
+    private static final String WEBP_IMAGE_FORMAT             = "webp";
     // @formatter:on
 
     // ========================================
@@ -94,12 +93,20 @@ public class FileService {
         return Paths.get(appProperties.getPathConfig(), IMAGES_DIR, String.valueOf(bookId), THUMBNAIL_FILENAME).toString();
     }
 
+    public String getThumbnailWebpFile(long bookId) {
+        return Paths.get(appProperties.getPathConfig(), IMAGES_DIR, String.valueOf(bookId), THUMBNAIL_WEBP_FILENAME).toString();
+    }
+
     public String getCoverFile(long bookId) {
         return Paths.get(appProperties.getPathConfig(), IMAGES_DIR, String.valueOf(bookId), COVER_FILENAME).toString();
     }
 
     public String getAudiobookThumbnailFile(long bookId) {
         return Paths.get(appProperties.getPathConfig(), IMAGES_DIR, String.valueOf(bookId), AUDIOBOOK_THUMBNAIL_FILENAME).toString();
+    }
+
+    public String getAudiobookThumbnailWebpFile(long bookId) {
+        return Paths.get(appProperties.getPathConfig(), IMAGES_DIR, String.valueOf(bookId), AUDIOBOOK_THUMBNAIL_WEBP_FILENAME).toString();
     }
 
     public String getAudiobookCoverFile(long bookId) {
@@ -713,6 +720,7 @@ public class FileService {
             thumb = resizeImage(resized, SQUARE_THUMBNAIL_SIZE, SQUARE_THUMBNAIL_SIZE);
             File thumbnailFile = new File(folder, AUDIOBOOK_THUMBNAIL_FILENAME);
             boolean thumbnailSaved = ImageIO.write(thumb, IMAGE_FORMAT, thumbnailFile);
+            saveThumbnailWebpIfPossible(thumb, new File(folder, AUDIOBOOK_THUMBNAIL_WEBP_FILENAME), "audiobook", bookId);
 
             return originalSaved && thumbnailSaved;
         } finally {
@@ -785,6 +793,7 @@ public class FileService {
             thumb = resizeImage(rgbImage, thumbWidth, thumbHeight);
             File thumbnailFile = new File(folder, THUMBNAIL_FILENAME);
             boolean thumbnailSaved = ImageIO.write(thumb, IMAGE_FORMAT, thumbnailFile);
+            saveThumbnailWebpIfPossible(thumb, new File(folder, THUMBNAIL_WEBP_FILENAME), "book", bookId);
 
             return originalSaved && thumbnailSaved;
         } finally {
@@ -803,6 +812,60 @@ public class FileService {
                 thumb.flush();
             }
         }
+    }
+
+    public Path ensureBookThumbnailWebp(long bookId) {
+        return ensureWebpThumbnail(Paths.get(getThumbnailFile(bookId)), Paths.get(getThumbnailWebpFile(bookId)), "book", bookId);
+    }
+
+    public Path ensureAudiobookThumbnailWebp(long bookId) {
+        return ensureWebpThumbnail(Paths.get(getAudiobookThumbnailFile(bookId)), Paths.get(getAudiobookThumbnailWebpFile(bookId)), "audiobook", bookId);
+    }
+
+    private Path ensureWebpThumbnail(Path jpegPath, Path webpPath, String imageType, long entityId) {
+        if (Files.exists(webpPath)) {
+            return webpPath;
+        }
+        if (!Files.exists(jpegPath)) {
+            return null;
+        }
+
+        BufferedImage image = null;
+        try (InputStream inputStream = Files.newInputStream(jpegPath)) {
+            image = readImage(inputStream);
+            if (image == null) {
+                return null;
+            }
+            if (!writeImageFile(image, WEBP_IMAGE_FORMAT, webpPath.toFile())) {
+                log.warn("WEBP writer unavailable while backfilling {} thumbnail for {} {}", imageType, imageType, entityId);
+                return null;
+            }
+            return webpPath;
+        } catch (IOException e) {
+            log.warn("Failed to backfill WEBP {} thumbnail for {}: {}", imageType, entityId, e.getMessage());
+            return null;
+        } finally {
+            if (image != null) {
+                image.flush();
+            }
+        }
+    }
+
+    private void saveThumbnailWebpIfPossible(BufferedImage thumbnail, File outputFile, String imageType, long entityId) throws IOException {
+        if (thumbnail == null) {
+            return;
+        }
+        if (!writeImageFile(thumbnail, WEBP_IMAGE_FORMAT, outputFile)) {
+            log.debug("WEBP writer unavailable for {} thumbnail {}", imageType, entityId);
+        }
+    }
+
+    private boolean writeImageFile(BufferedImage image, String format, File outputFile) throws IOException {
+        File parentDir = outputFile.getParentFile();
+        if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+            throw new IOException("Failed to create directory: " + parentDir);
+        }
+        return ImageIO.write(image, format, outputFile);
     }
 
     private BufferedImage applyCoverCropping(BufferedImage image) {

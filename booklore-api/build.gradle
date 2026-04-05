@@ -96,6 +96,7 @@ dependencies {
     implementation 'com.twelvemonkeys.imageio:imageio-tiff:3.13.1'
     implementation 'com.twelvemonkeys.imageio:imageio-webp:3.13.1'
     implementation 'com.twelvemonkeys.imageio:imageio-bmp:3.13.1'
+    implementation 'org.sejda.imageio:webp-imageio:0.1.6'
     
     implementation 'io.documentnode:epub4j-core:4.2.3'
 
@@ -155,7 +156,7 @@ hibernate {
 
 test {
     useJUnitPlatform()
-    jvmArgs("-XX:+EnableDynamicAgentLoading")
+    jvmArgs("-XX:+EnableDynamicAgentLoading", "--enable-native-access=ALL-UNNAMED")
     finalizedBy jacocoTestReport
 }
 
@@ -169,6 +170,7 @@ jacocoTestReport {
 
 bootRun {
     def debug = System.getenv('REMOTE_DEBUG_ENABLED')
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
     if (debug.equals("true")) { 
         jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005")
     }

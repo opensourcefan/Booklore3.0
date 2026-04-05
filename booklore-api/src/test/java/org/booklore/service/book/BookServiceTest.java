@@ -28,6 +28,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.nio.file.Files;
@@ -276,6 +277,41 @@ class BookServiceTest {
             assertTrue(res instanceof UrlResource);
         } finally {
             Files.deleteIfExists(path);
+        }
+    }
+
+    @Test
+    void getBookThumbnail_prefersWebpWhenAvailable() throws Exception {
+        Path webpPath = Files.createTempFile("booklore-thumb-", ".webp");
+        when(fileService.ensureBookThumbnailWebp(1L)).thenReturn(webpPath);
+
+        try {
+            BookService.MediaResource result = bookService.getBookThumbnail(1L, true);
+
+            assertAll(
+                    () -> assertTrue(result.resource() instanceof UrlResource),
+                    () -> assertEquals(MediaType.parseMediaType("image/webp"), result.mediaType())
+            );
+        } finally {
+            Files.deleteIfExists(webpPath);
+        }
+    }
+
+    @Test
+    void getBookThumbnail_prefersJpegWhenWebpUnavailable() throws Exception {
+        Path jpegPath = Files.createTempFile("booklore-thumb-", ".jpg");
+        when(fileService.ensureBookThumbnailWebp(1L)).thenReturn(null);
+        when(fileService.getThumbnailFile(1L)).thenReturn(jpegPath.toString());
+
+        try {
+            BookService.MediaResource result = bookService.getBookThumbnail(1L, true);
+
+            assertAll(
+                    () -> assertTrue(result.resource() instanceof UrlResource),
+                    () -> assertEquals(MediaType.IMAGE_JPEG, result.mediaType())
+            );
+        } finally {
+            Files.deleteIfExists(jpegPath);
         }
     }
 

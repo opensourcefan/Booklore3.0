@@ -562,6 +562,7 @@ export class AppMenuComponent implements OnInit {
               icon: library.icon || undefined,
               iconType: (library.iconType || undefined) as 'PRIME_NG' | 'CUSTOM_SVG' | undefined,
               routerLink: [`/library/${library.id}/books`],
+              prefetchLibraryId: library.id ?? undefined,
               bookCount$: this.libraryService.getBookCount(library.id ?? 0),
               unhealthy$: this.libraryHealthService.isUnhealthy$(library.id ?? 0),
             })),

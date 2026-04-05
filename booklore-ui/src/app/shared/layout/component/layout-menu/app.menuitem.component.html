@@ -44,6 +44,8 @@
       [class.draggable-child]="!root"
       [class.active-route-container]="isRouteActive"
       [class.child-drag-row]="!root"
+      (mouseenter)="prefetchItemThumbnails()"
+      (focusin)="prefetchItemThumbnails()"
       (touchstart)="onTouchStart($event)"
       (touchend)="onTouchEnd($event)"
       (touchcancel)="onTouchCancel()"

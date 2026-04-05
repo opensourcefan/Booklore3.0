@@ -3,12 +3,14 @@ package org.booklore.controller;
 import org.booklore.service.AuthorMetadataService;
 import org.booklore.config.security.annotation.CheckBookAccess;
 import org.booklore.service.book.BookService;
+import org.booklore.service.book.BookService.MediaResource;
 import org.booklore.service.bookdrop.BookDropService;
 import org.booklore.service.reader.CbxReaderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -45,8 +47,10 @@ public class BookMediaController {
     @ApiResponse(responseCode = "200", description = "Book thumbnail returned successfully")
     @GetMapping("/book/{bookId}/thumbnail")
     @CheckBookAccess(bookIdParam = "bookId")
-    public ResponseEntity<Resource> getBookThumbnail(@Parameter(description = "ID of the book") @PathVariable long bookId) {
-        return ResponseEntity.ok().cacheControl(COVER_CACHE).body(bookService.getBookThumbnail(bookId));
+    public ResponseEntity<Resource> getBookThumbnail(
+            @Parameter(description = "ID of the book") @PathVariable long bookId,
+            HttpServletRequest request) {
+        return cachedImageResponse(bookService.getBookThumbnail(bookId, acceptsWebp(request)), COVER_CACHE, true);
     }
 
     @Operation(summary = "Get book cover", description = "Retrieve the cover image for a specific book.")
@@ -54,15 +58,17 @@ public class BookMediaController {
     @GetMapping("/book/{bookId}/cover")
     @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<Resource> getBookCover(@Parameter(description = "ID of the book") @PathVariable long bookId) {
-        return ResponseEntity.ok().cacheControl(COVER_CACHE).body(bookService.getBookCover(bookId));
+        return ResponseEntity.ok().cacheControl(COVER_CACHE).contentType(MediaType.IMAGE_JPEG).body(bookService.getBookCover(bookId));
     }
 
     @Operation(summary = "Get audiobook thumbnail", description = "Retrieve the audiobook thumbnail image for a specific book.")
     @ApiResponse(responseCode = "200", description = "Audiobook thumbnail returned successfully")
     @GetMapping("/book/{bookId}/audiobook-thumbnail")
     @CheckBookAccess(bookIdParam = "bookId")
-    public ResponseEntity<Resource> getAudiobookThumbnail(@Parameter(description = "ID of the book") @PathVariable long bookId) {
-        return ResponseEntity.ok().cacheControl(COVER_CACHE).body(bookService.getAudiobookThumbnail(bookId));
+    public ResponseEntity<Resource> getAudiobookThumbnail(
+            @Parameter(description = "ID of the book") @PathVariable long bookId,
+            HttpServletRequest request) {
+        return cachedImageResponse(bookService.getAudiobookThumbnail(bookId, acceptsWebp(request)), COVER_CACHE, true);
     }
 
     @Operation(summary = "Get audiobook cover", description = "Retrieve the audiobook cover image for a specific book.")
@@ -70,7 +76,7 @@ public class BookMediaController {
     @GetMapping("/book/{bookId}/audiobook-cover")
     @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<Resource> getAudiobookCover(@Parameter(description = "ID of the book") @PathVariable long bookId) {
-        return ResponseEntity.ok().cacheControl(COVER_CACHE).body(bookService.getAudiobookCover(bookId));
+        return ResponseEntity.ok().cacheControl(COVER_CACHE).contentType(MediaType.IMAGE_JPEG).body(bookService.getAudiobookCover(bookId));
     }
 
     @Operation(summary = "Get CBX page as image", description = "Retrieve a specific page from a CBX book as an image.")
@@ -120,5 +126,22 @@ public class BookMediaController {
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(file)
                 : ResponseEntity.noContent().build();
+    }
+
+    private ResponseEntity<Resource> cachedImageResponse(MediaResource media, CacheControl cacheControl, boolean varyAccept) {
+        ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
+                .cacheControl(cacheControl)
+                .contentType(media.mediaType());
+
+        if (varyAccept) {
+            builder.header(HttpHeaders.VARY, HttpHeaders.ACCEPT);
+        }
+
+        return builder.body(media.resource());
+    }
+
+    private boolean acceptsWebp(HttpServletRequest request) {
+        String acceptHeader = request.getHeader(HttpHeaders.ACCEPT);
+        return acceptHeader != null && acceptHeader.toLowerCase().contains("image/webp");
     }
 }
