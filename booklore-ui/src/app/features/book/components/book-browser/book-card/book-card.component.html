@@ -120,7 +120,9 @@
   </div>
 
   @if (!bottomBarHidden) {
-    <div class="book-title-container" [style.--title-rows]="normalizedTitleRows">
+    <div class="book-title-container"
+         [class.book-title-container-physical]="book.isPhysical"
+         [style.--title-rows]="normalizedTitleRows">
       <h4 class="book-title"
           [style.--title-rows]="normalizedTitleRows"
           tooltipPosition="bottom"
