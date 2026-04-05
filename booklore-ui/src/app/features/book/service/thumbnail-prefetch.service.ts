@@ -5,16 +5,6 @@ import {Book} from '../model/book.model';
 import {UrlHelperService} from '../../../shared/service/url-helper.service';
 import {BookService} from './book.service';
 
-interface IdleDeadlineLike {
-  didTimeout: boolean;
-  timeRemaining: () => number;
-}
-
-interface IdleWindow extends Window {
-  requestIdleCallback?: (callback: (deadline: IdleDeadlineLike) => void, options?: {timeout: number}) => number;
-  cancelIdleCallback?: (handle: number) => void;
-}
-
 @Injectable({providedIn: 'root'})
 export class ThumbnailPrefetchService {
   private readonly document = inject(DOCUMENT);
@@ -87,8 +77,12 @@ export class ThumbnailPrefetchService {
       return;
     }
 
-    if (typeof win.requestIdleCallback === 'function') {
-      this.idleHandle = win.requestIdleCallback(() => {
+    const requestIdleCallback = 'requestIdleCallback' in win
+      ? win.requestIdleCallback?.bind(win)
+      : null;
+
+    if (requestIdleCallback) {
+      this.idleHandle = requestIdleCallback(() => {
         this.idleHandle = null;
         this.drainQueue();
       }, {timeout: 800});
@@ -156,7 +150,7 @@ export class ThumbnailPrefetchService {
     return isPlatformBrowser(this.platformId);
   }
 
-  private getWindow(): IdleWindow | null {
-    return this.document.defaultView as IdleWindow | null;
+  private getWindow(): Window | null {
+    return this.document.defaultView;
   }
 }
