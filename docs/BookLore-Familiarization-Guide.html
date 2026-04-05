@@ -282,6 +282,7 @@
   <tr><th>Item</th><th>What It Does</th></tr>
   <tr><td><strong>Dashboard</strong></td><td>Returns to the home screen</td></tr>
   <tr><td><strong>All Books</strong></td><td>Shows every book across all your libraries</td></tr>
+  <tr><td><strong>Physical Books</strong></td><td>Shows your physical placeholders grouped by library, like a shelf overview for books you own off-screen</td></tr>
   <tr><td><strong>Libraries</strong></td><td>Expandable list &mdash; click a library to see only its books</td></tr>
   <tr><td><strong>Shelves</strong></td><td>Your custom collections</td></tr>
   <tr><td><strong>Not Shelfed</strong></td><td>Books not assigned to any shelf</td></tr>
@@ -298,6 +299,7 @@
   <li><strong>Reorder sidebar items</strong> &mdash; Click, hold, and drag sidebar entries to rearrange them</li>
   <li><strong>Collapse sections</strong> &mdash; Click section headers to expand or collapse groups</li>
   <li><strong>Hide or show sidebar headings per user</strong> &mdash; Heading visibility is now saved with your account, so the same layout follows you across sessions</li>
+  <li><strong>Choose which HOME shortcuts appear</strong> &mdash; Use the sidebar show/hide controls to decide whether entries like Dashboard, All Books, Physical Books, Series, Authors, and Notebook appear under HOME for your account</li>
   <li><strong>Keep Media Type labels and ordering per user</strong> &mdash; Custom media types, recent choices, and the Media Type sidebar order now follow your account instead of staying in one browser only</li>
   <li><strong>Open the folder panel while browsing books</strong> &mdash; Use the folder button in <strong>All Books</strong> or a library view to browse by real library directories</li>
 </ul>
@@ -375,9 +377,13 @@
   <tr><td>Edit metadata</td><td>Update title, author, description, cover, etc.</td></tr>
   <tr><td>Delete a book</td><td>Right-click &rarr; Delete (with optional disk deletion)</td></tr>
   <tr><td>Delete multiple books</td><td>Select books (checkbox mode) then delete in bulk</td></tr>
-  <tr><td>Add a physical book</td><td>Create a catalog entry for a book you own physically (no file needed)</td></tr>
+  <tr><td>Add a physical book</td><td>Create a catalog entry for a book you own physically in a chosen library directory, while keeping it available for metadata, covers, shelves, and filters</td></tr>
   <tr><td>Assign file type</td><td>Choose how to open a file (e.g., read a PDF as an e-book instead)</td></tr>
 </table>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter.
+</div>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
@@ -755,6 +761,7 @@
 <ul>
   <li>Combine multiple filters (e.g., &ldquo;Unread comics in my Comics library&rdquo;)</li>
   <li>Filter by real storage folders from the directory explorer while keeping your other filters active</li>
+  <li>Use <strong>Media Type &rarr; Physical</strong> from the sidebar to see only physical placeholders, or mix it with other filters like library, shelf, and reading status</li>
   <li>Keep your filter sidebar visibility, filter sort mode, and expanded filter groups with your user account instead of one browser profile</li>
   <li>Clear all filters with one click</li>
 </ul>
@@ -1151,6 +1158,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-05</td><td>1.1.7</td><td>Documented the Physical Books HOME view, library-directory-aware physical book creation, and Physical Media Type filtering</td></tr>
   <tr><td>2026-04-05</td><td>1.1.6</td><td>Documented sidebar-driven thumbnail warming for faster library switching and the new WebP thumbnail delivery path for supported browsers</td></tr>
   <tr><td>2026-04-05</td><td>1.1.5</td><td>Documented per-user Media Type and filter sidebar persistence plus filename-first browsing when selecting directories</td></tr>
   <tr><td>2026-04-05</td><td>1.1.4</td><td>Documented filename fallback for untitled book cards and clarified the metadata editor delete-all action placement near fetch controls</td></tr>
