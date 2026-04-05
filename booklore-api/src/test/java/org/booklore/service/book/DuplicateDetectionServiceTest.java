@@ -852,6 +852,21 @@ class DuplicateDetectionServiceTest {
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().suggestedTargetBookId()).isEqualTo(book1.getId());
         }
+
+        @Test
+        void prefersDigitalBookOverPhysicalPlaceholder() {
+            BookEntity physical = createBook(BookFileType.EPUB, "Book", "Author");
+            physical.setIsPhysical(true);
+            physical.setBookFiles(new ArrayList<>());
+
+            BookEntity digital = createBook(BookFileType.EPUB, "Book", "Author");
+            stubBooks(physical, digital);
+
+            List<DuplicateGroup> result = service.findDuplicates(onlyTitleAuthor());
+
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().suggestedTargetBookId()).isEqualTo(digital.getId());
+        }
     }
 
     // ── Edge cases ──────────────────────────────────────────────

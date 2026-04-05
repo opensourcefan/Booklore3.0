@@ -10,7 +10,7 @@ import {FileUpload, FileSelectEvent} from 'primeng/fileupload';
 import {BookService} from '../../service/book.service';
 import {BookMetadataService} from '../../service/book-metadata.service';
 import {LibraryService} from '../../service/library.service';
-import {Library} from '../../model/library.model';
+import {Library, LibraryPath} from '../../model/library.model';
 import {Book, BookMetadata, CreatePhysicalBookRequest} from '../../model/book.model';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {TranslocoDirective} from '@jsverse/transloco';
@@ -68,6 +68,7 @@ export class BulkIsbnImportDialogComponent implements OnInit {
 
   libraries: Library[] = [];
   selectedLibraryId: number | null = null;
+  selectedLibraryPathId: number | null = null;
 
   phase: ImportPhase = 'upload';
   pasteText = '';
@@ -96,8 +97,34 @@ export class BulkIsbnImportDialogComponent implements OnInit {
           } else if (this.libraries.length > 0 && this.libraries[0].id !== undefined) {
             this.selectedLibraryId = this.libraries[0].id;
           }
+          this.syncSelectedLibraryPath();
         }
       });
+  }
+
+  get selectedLibrary(): Library | undefined {
+    return this.libraries.find(library => library.id === this.selectedLibraryId);
+  }
+
+  get availableLibraryPaths(): LibraryPath[] {
+    return this.selectedLibrary?.paths ?? [];
+  }
+
+  onLibraryChange(): void {
+    this.syncSelectedLibraryPath();
+  }
+
+  private syncSelectedLibraryPath(): void {
+    const availablePaths = this.availableLibraryPaths;
+    if (availablePaths.length === 0) {
+      this.selectedLibraryPathId = null;
+      return;
+    }
+
+    const hasSelectedPath = availablePaths.some(path => path.id === this.selectedLibraryPathId);
+    if (!hasSelectedPath) {
+      this.selectedLibraryPathId = availablePaths[0].id ?? null;
+    }
   }
 
   onFileSelect(event: FileSelectEvent): void {
@@ -131,7 +158,10 @@ export class BulkIsbnImportDialogComponent implements OnInit {
   }
 
   canStartImport(): boolean {
-    return this.phase === 'upload' && this.entries.length > 0 && !!this.selectedLibraryId;
+    return this.phase === 'upload'
+      && this.entries.length > 0
+      && !!this.selectedLibraryId
+      && !!this.selectedLibraryPathId;
   }
 
   async startImport(): Promise<void> {
@@ -155,6 +185,7 @@ export class BulkIsbnImportDialogComponent implements OnInit {
 
         const request: CreatePhysicalBookRequest = {
           libraryId: this.selectedLibraryId!,
+          libraryPathId: this.selectedLibraryPathId!,
           isbn: entry.isbn,
           title: metadata?.title || undefined,
           authors: metadata?.authors?.length ? [...metadata.authors] : undefined,

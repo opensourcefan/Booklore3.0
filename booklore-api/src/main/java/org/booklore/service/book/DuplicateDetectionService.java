@@ -299,8 +299,9 @@ public class DuplicateDetectionService {
 
     private DuplicateGroup toDuplicateGroup(List<BookEntity> entities, String reason, List<BookFileType> formatPriority) {
         BookEntity suggested = entities.stream()
-                .max(Comparator
-                        .comparingInt((BookEntity b) -> formatPriorityScore(b, formatPriority))
+            .max(Comparator
+                .comparingInt((BookEntity b) -> nonPhysicalScore(b))
+                .thenComparingInt(b -> formatPriorityScore(b, formatPriority))
                         .thenComparingLong(b -> b.getBookFiles() == null ? 0 :
                                 b.getBookFiles().stream().filter(BookFileEntity::isBookFormat).count())
                         .thenComparing(b -> b.getMetadataMatchScore() != null ? b.getMetadataMatchScore() : 0f)
@@ -312,6 +313,10 @@ public class DuplicateDetectionService {
                 .toList();
 
         return new DuplicateGroup(suggested.getId(), reason, books);
+    }
+
+    private int nonPhysicalScore(BookEntity book) {
+        return Boolean.TRUE.equals(book.getIsPhysical()) ? 0 : 1;
     }
 
     private int formatPriorityScore(BookEntity book, List<BookFileType> formatPriority) {

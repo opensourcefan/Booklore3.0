@@ -32,10 +32,28 @@
           id="library"
           [options]="libraries"
           [(ngModel)]="selectedLibraryId"
+          (ngModelChange)="onLibraryChange()"
           optionLabel="name"
           optionValue="id"
           [placeholder]="t('libraryPlaceholder')"
           [style]="{'width': '100%'}"/>
+      </div>
+
+      <div class="form-group highlight-group">
+        <label for="libraryPath" class="form-label">
+          <i class="pi pi-map label-icon"></i>
+          {{ t('libraryPathLabel') }}
+          <span class="required-indicator">*</span>
+        </label>
+        <p-select
+          id="libraryPath"
+          [options]="availableLibraryPaths"
+          [(ngModel)]="selectedLibraryPathId"
+          optionLabel="path"
+          optionValue="id"
+          [placeholder]="t('libraryPathPlaceholder')"
+          [style]="{'width': '100%'}"
+          [disabled]="!selectedLibraryId || availableLibraryPaths.length === 0"/>
       </div>
 
       <div class="gradient-divider"></div>
@@ -162,6 +180,11 @@
           <div class="validation-message error">
             <i class="pi pi-exclamation-circle"></i>
             <span>{{ t('validationLibraryRequired') }}</span>
+          </div>
+        } @else if (!selectedLibraryPathId) {
+          <div class="validation-message error">
+            <i class="pi pi-exclamation-circle"></i>
+            <span>{{ t('validationLibraryPathRequired') }}</span>
           </div>
         } @else if (entries.length === 0) {
           <div class="validation-message error">

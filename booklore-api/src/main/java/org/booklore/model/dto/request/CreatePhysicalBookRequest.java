@@ -18,6 +18,8 @@ public class CreatePhysicalBookRequest {
     @NotNull(message = "Library ID must not be null.")
     private Long libraryId;
 
+    private Long libraryPathId;
+
     private String isbn;
     private String title;
     private List<String> authors;

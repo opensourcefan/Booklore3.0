@@ -10,6 +10,7 @@ import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.model.entity.CategoryEntity;
 import org.booklore.model.entity.LibraryEntity;
+import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.repository.AuthorRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.CategoryRepository;
@@ -47,10 +48,11 @@ public class PhysicalBookService {
     public Book createPhysicalBook(CreatePhysicalBookRequest request) {
         LibraryEntity library = libraryRepository.findById(request.getLibraryId())
                 .orElseThrow(() -> new APIException("Library not found with id: " + request.getLibraryId(), HttpStatus.NOT_FOUND));
+        LibraryPathEntity libraryPath = resolveLibraryPath(library, request.getLibraryPathId());
 
         BookEntity bookEntity = BookEntity.builder()
                 .library(library)
-                .libraryPath(null)
+            .libraryPath(libraryPath)
                 .isPhysical(true)
                 .addedOn(Instant.now())
                 .scannedOn(Instant.now())
@@ -94,6 +96,24 @@ public class PhysicalBookService {
         }
 
         return bookMapper.toBook(savedBook);
+    }
+
+    private LibraryPathEntity resolveLibraryPath(LibraryEntity library, Long requestedLibraryPathId) {
+        List<LibraryPathEntity> libraryPaths = library.getLibraryPaths();
+        if (libraryPaths == null || libraryPaths.isEmpty()) {
+            throw new APIException("Library has no library paths configured", HttpStatus.BAD_REQUEST);
+        }
+
+        if (requestedLibraryPathId != null) {
+            return libraryPaths.stream()
+                    .filter(path -> requestedLibraryPathId.equals(path.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new APIException(
+                            "Library path " + requestedLibraryPathId + " does not belong to library " + library.getId(),
+                            HttpStatus.BAD_REQUEST));
+        }
+
+        return libraryPaths.getFirst();
     }
 
     private LocalDate parsePublishedDate(String publishedDate) {

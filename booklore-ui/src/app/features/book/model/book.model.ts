@@ -406,6 +406,7 @@ export enum ReadStatus {
 
 export interface CreatePhysicalBookRequest {
   libraryId: number;
+  libraryPathId?: number;
   isbn?: string;
   title?: string;
   authors?: string[];

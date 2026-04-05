@@ -11,7 +11,7 @@ import {AutoComplete, AutoCompleteCompleteEvent} from 'primeng/autocomplete';
 import {BookService} from '../../service/book.service';
 import {BookMetadataService} from '../../service/book-metadata.service';
 import {LibraryService} from '../../service/library.service';
-import {Library} from '../../model/library.model';
+import {Library, LibraryPath} from '../../model/library.model';
 import {CreatePhysicalBookRequest} from '../../model/book.model';
 import {filter, take} from 'rxjs/operators';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
@@ -44,6 +44,7 @@ export class AddPhysicalBookDialogComponent implements OnInit {
 
   libraries: Library[] = [];
   selectedLibraryId: number | null = null;
+  selectedLibraryPathId: number | null = null;
   title = '';
   isbn = '';
   authors: string[] = [];
@@ -74,9 +75,35 @@ export class AddPhysicalBookDialogComponent implements OnInit {
           } else if (this.libraries.length > 0 && this.libraries[0].id !== undefined) {
             this.selectedLibraryId = this.libraries[0].id;
           }
+          this.syncSelectedLibraryPath();
         }
       });
     this.prepareAutoComplete();
+  }
+
+  get selectedLibrary(): Library | undefined {
+    return this.libraries.find(library => library.id === this.selectedLibraryId);
+  }
+
+  get availableLibraryPaths(): LibraryPath[] {
+    return this.selectedLibrary?.paths ?? [];
+  }
+
+  onLibraryChange(): void {
+    this.syncSelectedLibraryPath();
+  }
+
+  private syncSelectedLibraryPath(): void {
+    const availablePaths = this.availableLibraryPaths;
+    if (availablePaths.length === 0) {
+      this.selectedLibraryPathId = null;
+      return;
+    }
+
+    const hasSelectedPath = availablePaths.some(path => path.id === this.selectedLibraryPathId);
+    if (!hasSelectedPath) {
+      this.selectedLibraryPathId = availablePaths[0].id ?? null;
+    }
   }
 
   private prepareAutoComplete(): void {
@@ -164,7 +191,9 @@ export class AddPhysicalBookDialogComponent implements OnInit {
   }
 
   canCreate(): boolean {
-    return !!this.selectedLibraryId && (!!this.title.trim() || !!this.isbn.trim());
+    return !!this.selectedLibraryId
+      && !!this.selectedLibraryPathId
+      && (!!this.title.trim() || !!this.isbn.trim());
   }
 
   createBook(): void {
@@ -174,6 +203,7 @@ export class AddPhysicalBookDialogComponent implements OnInit {
 
     const request: CreatePhysicalBookRequest = {
       libraryId: this.selectedLibraryId!,
+      libraryPathId: this.selectedLibraryPathId!,
       title: this.title.trim() || undefined,
       isbn: this.isbn.trim() || undefined,
       authors: this.authors.length > 0 ? this.authors : undefined,

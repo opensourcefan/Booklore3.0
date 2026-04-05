@@ -205,6 +205,9 @@
                         <div class="book-authors">{{ book.metadata?.authors?.join(', ') }}</div>
                       }
                       <div class="book-formats">
+                        @if (book.isPhysical) {
+                          <span class="format-badge">PHY</span>
+                        }
                         @for (format of getBookFormats(book); track format) {
                           <span class="format-badge">{{ format }}</span>
                         }
