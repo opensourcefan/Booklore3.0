@@ -13,5 +13,6 @@
         "typescript",
         "html"
     ],
-    "editor.formatOnSave": false
+    "editor.formatOnSave": false,
+    "chat.agent.maxRequests": 100
 }
