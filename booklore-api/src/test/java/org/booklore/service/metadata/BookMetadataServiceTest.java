@@ -590,4 +590,48 @@ class BookMetadataServiceTest {
                     .isInstanceOf(APIException.class);
         }
     }
+    
+        @Nested
+        class WipeMetadata {
+
+                @Test
+                void wipeBookMetadata_unlocksAndBuildsFullClearRequest() {
+                        BookMetadataEntity metadataEntity = BookMetadataEntity.builder()
+                                        .bookId(1L)
+                                        .title("Title")
+                                        .rating(4.5)
+                                        .reviewCount(12)
+                                        .authors(new ArrayList<>())
+                                        .categories(new HashSet<>())
+                                        .moods(new HashSet<>())
+                                        .tags(new HashSet<>())
+                                        .build();
+                        metadataEntity.applyLockToAllFields(true);
+
+                        BookEntity bookEntity = BookEntity.builder()
+                                        .id(1L)
+                                        .metadata(metadataEntity)
+                                        .bookFiles(new ArrayList<>())
+                                        .build();
+                        metadataEntity.setBook(bookEntity);
+
+                        when(bookRepository.findByIdWithBookFiles(1L)).thenReturn(Optional.of(bookEntity));
+                        when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(Book.builder().build());
+                        when(bookMetadataMapper.toBookMetadata(metadataEntity, true)).thenReturn(BookMetadata.builder().bookId(1L).build());
+
+                        service.wipeBookMetadata(1L);
+
+                        var contextCaptor = org.mockito.ArgumentCaptor.forClass(org.booklore.model.MetadataUpdateContext.class);
+                        verify(bookMetadataUpdater).setBookMetadata(contextCaptor.capture());
+
+                        assertThat(metadataEntity.getTitleLocked()).isFalse();
+                        assertThat(metadataEntity.getReviewsLocked()).isFalse();
+                        assertThat(metadataEntity.getRating()).isNull();
+                        assertThat(metadataEntity.getReviewCount()).isNull();
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getClearFlags().isTitle()).isTrue();
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getClearFlags().isReviews()).isTrue();
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getMetadata().getComicMetadata()).isNotNull();
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getMetadata().getComicMetadata().getCharacters()).isEmpty();
+                }
+        }
 }

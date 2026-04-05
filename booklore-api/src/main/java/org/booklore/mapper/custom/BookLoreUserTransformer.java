@@ -55,6 +55,8 @@ public class BookLoreUserTransformer {
                         case SIDEBAR_LIBRARY_SORTING -> userSettings.setSidebarLibrarySorting(objectMapper.readValue(value, SidebarSortOption.class));
                         case SIDEBAR_SHELF_SORTING -> userSettings.setSidebarShelfSorting(objectMapper.readValue(value, SidebarSortOption.class));
                         case SIDEBAR_MAGIC_SHELF_SORTING -> userSettings.setSidebarMagicShelfSorting(objectMapper.readValue(value, SidebarSortOption.class));
+                        case SIDEBAR_SECTION_VISIBILITY -> userSettings.setSidebarSectionVisibility(objectMapper.readValue(value, new TypeReference<>() {
+                        }));
                         case ENTITY_VIEW_PREFERENCES -> userSettings.setEntityViewPreferences(objectMapper.readValue(value, BookLoreUser.UserSettings.EntityViewPreferences.class));
                         case THEME_SETTINGS -> userSettings.setThemeSettings(objectMapper.readValue(value, BookLoreUser.UserSettings.ThemeSettings.class));
                         case TABLE_COLUMN_PREFERENCE -> userSettings.setTableColumnPreference(objectMapper.readValue(value, new TypeReference<>() {

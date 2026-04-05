@@ -297,6 +297,7 @@
   <li><strong>Resize sidebars</strong> &mdash; Drag the edge of either sidebar to make it wider or narrower</li>
   <li><strong>Reorder sidebar items</strong> &mdash; Click, hold, and drag sidebar entries to rearrange them</li>
   <li><strong>Collapse sections</strong> &mdash; Click section headers to expand or collapse groups</li>
+  <li><strong>Hide or show sidebar headings per user</strong> &mdash; Heading visibility is now saved with your account, so the same layout follows you across sessions</li>
   <li><strong>Open the folder panel while browsing books</strong> &mdash; Use the folder button in <strong>All Books</strong> or a library view to browse by real library directories</li>
 </ul>
 
@@ -314,6 +315,7 @@
   <li><strong>Create multiple libraries</strong> &mdash; For example, one for &ldquo;Fiction,&rdquo; one for &ldquo;Comics,&rdquo; one for &ldquo;Audiobooks&rdquo;</li>
   <li><strong>Scan libraries</strong> &mdash; Tell BookLore to look for new files in a library folder</li>
   <li><strong>Rescan libraries</strong> &mdash; Force BookLore to re-examine all files in a library</li>
+  <li><strong>See preparation feedback for large imports</strong> &mdash; When creating a library with many files, the dialog now shows an in-between working state before the full progress overlay appears</li>
   <li><strong>Check library health</strong> &mdash; Verify the folder is accessible and working</li>
   <li><strong>Delete libraries</strong> &mdash; Remove a library from BookLore (optionally deleting its files too)</li>
   <li><strong>Restrict library access</strong> &mdash; Control which users can see which libraries</li>
@@ -341,6 +343,7 @@
 <ul>
   <li><strong>All Books</strong> &mdash; View every book in your collection, displayed as a grid of cover images</li>
   <li><strong>Click any book cover</strong> to open its detail page with full information</li>
+  <li><strong>Close book details cleanly</strong> &mdash; The back arrow in Book Details returns you to the page you opened from instead of walking backward through every detail view</li>
   <li><strong>Right-click a book cover</strong> (or long-press on mobile) for quick actions</li>
 </ul>
 
@@ -691,6 +694,7 @@
   <li>Upload a custom cover image</li>
   <li>Add or change genres, categories, and moods</li>
   <li>Set or update ISBN, publication date, and language</li>
+  <li>Delete all editable metadata for a single book from the metadata editor when you want to start over cleanly</li>
   <li>Create custom media types (Magazines, Textbooks, etc.)</li>
 </ul>
 
@@ -715,10 +719,11 @@
   <li>Apply the same genre, category, or mood to many books at once</li>
   <li>Bulk-update reading status or media type</li>
   <li>Bulk-fetch metadata for selected books</li>
+  <li>Delete all metadata for selected books from the bulk selection action bar</li>
 </ul>
 
 <div class="callout warning">
-  <strong>Be Careful:</strong> Bulk edits are immediate and cannot be reversed. Double-check your selection and changes before applying. Start with small batches to verify results.
+  <strong>Be Careful:</strong> Bulk edits are immediate and cannot be reversed. Double-check your selection and changes before applying. Start with small batches to verify results. Bulk metadata deletion clears the selected books&rsquo; metadata in one step.
 </div>
 
 <!-- ==================== SECTION 16 ==================== -->
@@ -1141,6 +1146,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-05</td><td>1.1.3</td><td>Documented large-library import feedback, persistent sidebar heading visibility, improved Book Details close behavior, and single/bulk metadata deletion actions</td></tr>
   <tr><td>2026-04-04</td><td>1.1.2</td><td>Documented AI totals in Library Statistics and refreshed guide after book browser and shelf-row UI fixes</td></tr>
   <tr><td>2026-04-04</td><td>1.1.1</td><td>Reviewed guide after README badge repair; no feature workflow changes required in user-facing instructions</td></tr>
   <tr><td>2026-04-02</td><td>1.1</td><td>Added directory explorer documentation to interface, browsing, and filtering sections</td></tr>

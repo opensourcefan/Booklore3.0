@@ -100,6 +100,27 @@ public class MetadataController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Wipe book metadata", description = "Delete editable metadata for a single book. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Book metadata wiped successfully")
+    @PostMapping("/{bookId}/metadata/wipe")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    @CheckBookAccess(bookIdParam = "bookId")
+    public ResponseEntity<BookMetadata> wipeMetadata(@Parameter(description = "ID of the book") @PathVariable long bookId) {
+        BookMetadata wipedMetadata = bookMetadataService.wipeBookMetadata(bookId);
+        auditService.log(AuditAction.METADATA_UPDATED, "Book", bookId, "Wiped metadata for book ID: " + bookId);
+        return ResponseEntity.ok(wipedMetadata);
+    }
+
+    @Operation(summary = "Wipe metadata for multiple books", description = "Delete editable metadata for multiple books. Requires bulk metadata edit permission or admin.")
+    @ApiResponse(responseCode = "204", description = "Book metadata wiped successfully")
+    @PostMapping("/metadata/wipe")
+    @PreAuthorize("@securityUtil.canBulkEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<Void> wipeMetadataBulk(@Parameter(description = "Bulk metadata wipe request") @RequestBody BulkMetadataWipeRequest request) {
+        bookMetadataService.wipeBookMetadata(request.getBookIds());
+        auditService.log(AuditAction.METADATA_UPDATED, "Book", null, "Wiped metadata for " + request.getBookIds().size() + " books");
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Toggle all metadata locks", description = "Toggle all metadata locks for books. Requires metadata edit permission or admin.")
     @ApiResponse(responseCode = "200", description = "Metadata locks toggled successfully")
     @PutMapping("/metadata/toggle-all-lock")

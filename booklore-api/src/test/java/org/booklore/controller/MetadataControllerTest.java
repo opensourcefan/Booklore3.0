@@ -5,6 +5,7 @@ import org.booklore.mapper.BookMetadataMapper;
 import org.booklore.model.MetadataUpdateContext;
 import org.booklore.model.MetadataUpdateWrapper;
 import org.booklore.model.dto.BookMetadata;
+import org.booklore.model.dto.request.BulkMetadataWipeRequest;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.repository.BookRepository;
@@ -83,5 +84,24 @@ class MetadataControllerTest {
         MetadataUpdateContext context = captureContextFromUpdate(MetadataReplaceMode.REPLACE_ALL);
 
         assertEquals(MetadataReplaceMode.REPLACE_ALL, context.getReplaceMode());
+    }
+
+    @Test
+    void wipeMetadata_shouldDelegateToService() {
+        when(bookMetadataService.wipeBookMetadata(7L)).thenReturn(new BookMetadata());
+
+        metadataController.wipeMetadata(7L);
+
+        verify(bookMetadataService).wipeBookMetadata(7L);
+    }
+
+    @Test
+    void wipeMetadataBulk_shouldDelegateToService() {
+        BulkMetadataWipeRequest request = new BulkMetadataWipeRequest();
+        request.setBookIds(new java.util.HashSet<>(java.util.List.of(1L, 2L)));
+
+        metadataController.wipeMetadataBulk(request);
+
+        verify(bookMetadataService).wipeBookMetadata(request.getBookIds());
     }
 }

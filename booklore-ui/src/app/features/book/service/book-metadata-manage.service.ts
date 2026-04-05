@@ -47,6 +47,27 @@ export class BookMetadataManageService {
     );
   }
 
+  wipeBookMetadata(bookId: number): Observable<BookMetadata> {
+    return this.http.post<BookMetadata>(`${this.url}/${bookId}/metadata/wipe`, {}).pipe(
+      map(updatedMetadata => {
+        this.bookSocketService.handleBookMetadataUpdate(bookId, updatedMetadata);
+        return updatedMetadata;
+      }),
+      tap(() => {
+        this.bookService.refreshBooks();
+      })
+    );
+  }
+
+  wipeBooksMetadata(bookIds: number[]): Observable<void> {
+    return this.http.post<void>(`${this.url}/metadata/wipe`, {bookIds}).pipe(
+      tap(() => {
+        this.bookService.refreshBooks();
+      }),
+      map(() => void 0)
+    );
+  }
+
   toggleAllLock(bookIds: Set<number>, lock: string): Observable<void> {
     const requestBody = {
       bookIds: Array.from(bookIds),

@@ -28,6 +28,8 @@ import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/tran
   styleUrl: './library-creator.component.scss'
 })
 export class LibraryCreatorComponent implements OnInit {
+  private readonly largeLibraryThreshold = 500;
+
   chosenLibraryName = '';
   folders: string[] = [];
   selectedIcon: IconSelection | null = null;
@@ -48,6 +50,8 @@ export class LibraryCreatorComponent implements OnInit {
 
   metadataSourceOptions: {label: string, value: string}[] = [];
   organizationModeOptions: {label: string, value: string}[] = [];
+  isSubmitting = false;
+  submissionState: 'scanning' | 'creating' | 'updating' | 'handoff' | null = null;
 
   readonly allBookFormats: {type: BookType, label: string}[] = [
     {type: 'EPUB', label: 'EPUB'},
@@ -197,6 +201,10 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   closeDialog(): void {
+    if (this.isSubmitting) {
+      return;
+    }
+
     this.dynamicDialogRef.close();
   }
 
@@ -241,7 +249,26 @@ export class LibraryCreatorComponent implements OnInit {
     return this.folders.length > 0;
   }
 
+  getSubmissionMessage(): string {
+    switch (this.submissionState) {
+      case 'scanning':
+        return this.t.translate('libraryCreator.creator.submission.scanning');
+      case 'creating':
+        return this.t.translate('libraryCreator.creator.submission.creating');
+      case 'updating':
+        return this.t.translate('libraryCreator.creator.submission.updating');
+      case 'handoff':
+        return this.t.translate('libraryCreator.creator.submission.handoff');
+      default:
+        return '';
+    }
+  }
+
   createOrUpdateLibrary(): void {
+    if (this.isSubmitting) {
+      return;
+    }
+
     const trimmedLibraryName = this.chosenLibraryName.trim();
     if (trimmedLibraryName && trimmedLibraryName !== this.editModeLibraryName) {
       const exists = this.libraryService.doesLibraryExistByName(trimmedLibraryName);
@@ -273,56 +300,73 @@ export class LibraryCreatorComponent implements OnInit {
       directoryTagDepth: this.directoryTagDepth
     };
 
+    this.isSubmitting = true;
+    this.submissionState = this.mode === 'edit' ? 'updating' : 'scanning';
+
+    window.setTimeout(() => this.submitLibrary(library, selectedAllowedFormats), 0);
+  }
+
+  private submitLibrary(library: Library, selectedAllowedFormats: BookType[]): void {
     if (this.mode === 'edit') {
       const requiresFullRefresh = this.requiresFullRefreshAfterEdit(selectedAllowedFormats);
       this.libraryService.updateLibrary(library, this.library?.id).pipe(
         switchMap(() => requiresFullRefresh ? this.libraryService.refreshLibrary(this.library!.id!) : of(void 0))
       ).subscribe({
         next: () => {
+          this.resetSubmissionState();
           this.messageService.add({severity: 'success', summary: this.t.translate('libraryCreator.creator.toast.updatedSummary'), detail: this.t.translate('libraryCreator.creator.toast.updatedDetail')});
           this.dynamicDialogRef.close();
         },
         error: (e) => {
+          this.resetSubmissionState();
           this.messageService.add({severity: 'error', summary: this.t.translate('libraryCreator.creator.toast.updateFailedSummary'), detail: this.t.translate('libraryCreator.creator.toast.updateFailedDetail')});
           console.error(e);
         }
       });
-    } else {
-      this.libraryService.scanLibraryPaths(library).pipe(
-        switchMap(count => {
-          if (count < 500) {
-            return this.libraryService.createLibrary(library).pipe(
-              map(createdLibrary => ({ createdLibrary, count }))
-            );
-          } else {
-            console.warn(`Library has ${count} processable files (>500). Will use buffered loading.`);
-            this.libraryService.setLargeLibraryLoading(true, count);
-            return this.libraryService.createLibrary(library).pipe(
-              map(createdLibrary => ({ createdLibrary, count }))
-            );
-          }
-        })
-      ).subscribe({
-        next: ({ createdLibrary, count }) => {
-          if (createdLibrary) {
-            this.router.navigate(['/library', createdLibrary.id, 'books']);
-            this.messageService.add({
-              severity: 'success',
-              summary: this.t.translate('libraryCreator.creator.toast.createdSummary'),
-              detail: count >= 500
-                ? this.t.translate('libraryCreator.creator.toast.createdLargeDetail', {count})
-                : this.t.translate('libraryCreator.creator.toast.createdDetail')
-            });
-            this.dynamicDialogRef.close();
-          }
-        },
-        error: (e) => {
-          this.libraryService.setLargeLibraryLoading(false, 0);
-          this.messageService.add({severity: 'error', summary: this.t.translate('libraryCreator.creator.toast.createFailedSummary'), detail: this.t.translate('libraryCreator.creator.toast.createFailedDetail')});
-          console.error(e);
-        }
-      });
+      return;
     }
+
+    this.libraryService.scanLibraryPaths(library).pipe(
+      switchMap(count => {
+        this.submissionState = 'creating';
+
+        if (count >= this.largeLibraryThreshold) {
+          console.warn(`Library has ${count} processable files (>500). Will use buffered loading.`);
+          this.submissionState = 'handoff';
+          this.libraryService.setLargeLibraryLoading(true, count);
+        }
+
+        return this.libraryService.createLibrary(library).pipe(
+          map(createdLibrary => ({ createdLibrary, count }))
+        );
+      })
+    ).subscribe({
+      next: ({ createdLibrary, count }) => {
+        if (createdLibrary) {
+          this.resetSubmissionState();
+          this.router.navigate(['/library', createdLibrary.id, 'books']);
+          this.messageService.add({
+            severity: 'success',
+            summary: this.t.translate('libraryCreator.creator.toast.createdSummary'),
+            detail: count >= this.largeLibraryThreshold
+              ? this.t.translate('libraryCreator.creator.toast.createdLargeDetail', {count})
+              : this.t.translate('libraryCreator.creator.toast.createdDetail')
+          });
+          this.dynamicDialogRef.close();
+        }
+      },
+      error: (e) => {
+        this.resetSubmissionState();
+        this.libraryService.setLargeLibraryLoading(false, 0);
+        this.messageService.add({severity: 'error', summary: this.t.translate('libraryCreator.creator.toast.createFailedSummary'), detail: this.t.translate('libraryCreator.creator.toast.createFailedDetail')});
+        console.error(e);
+      }
+    });
+  }
+
+  private resetSubmissionState(): void {
+    this.isSubmitting = false;
+    this.submissionState = null;
   }
 
   onFormatPriorityDrop(event: CdkDragDrop<{type: BookType, label: string}[]>): void {

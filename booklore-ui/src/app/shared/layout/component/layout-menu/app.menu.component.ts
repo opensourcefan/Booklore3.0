@@ -90,6 +90,8 @@ export class AppMenuComponent implements OnInit {
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
   private readonly customMediaTypesKey = 'customMediaTypes';
   private readonly bookTypeOrderKey = 'sidebarBookTypeOrder';
+  private initialSectionVisibilityFromStorage: Record<string, boolean> | null = null;
+  private sectionVisibilityUserId: number | null = null;
   private readonly mediaTypeMenuRefresh$ = new BehaviorSubject<void>(undefined);
   private touchStartX: number | null = null;
   private touchStartY: number | null = null;
@@ -116,6 +118,7 @@ export class AppMenuComponent implements OnInit {
     }
 
     const savedSectionVisibility = this.localStorageService.get<Record<string, boolean>>(this.sectionVisibilityKey);
+    this.initialSectionVisibilityFromStorage = savedSectionVisibility ?? null;
     this.sectionVisibility = this.normalizeSectionVisibility(savedSectionVisibility);
     if (!savedSectionVisibility) {
       this.localStorageService.set(this.sectionVisibilityKey, this.sectionVisibility);
@@ -157,6 +160,11 @@ export class AppMenuComponent implements OnInit {
     this.userService.userState$.pipe(
       filter(userState => !!userState?.user && userState.loaded))
       .subscribe(userState => {
+        if (this.sectionVisibilityUserId !== userState.user?.id) {
+          this.sectionVisibilityUserId = userState.user?.id ?? null;
+          this.initializeSectionVisibilityForUser(userState.user?.id ?? null, userState.user?.userSettings.sidebarSectionVisibility);
+        }
+
         if (userState.user?.userSettings.sidebarLibrarySorting) {
           this.librarySortField = this.validateSortField(userState.user.userSettings.sidebarLibrarySorting.field);
           this.librarySortOrder = this.validateSortOrder(userState.user.userSettings.sidebarLibrarySorting.order);
@@ -387,6 +395,7 @@ export class AppMenuComponent implements OnInit {
     };
 
     this.localStorageService.set(this.sectionVisibilityKey, this.sectionVisibility);
+    this.persistSectionVisibility();
   }
 
   isSectionVisible(section: string): boolean {
@@ -807,6 +816,35 @@ export class AppMenuComponent implements OnInit {
       magicShelf: savedVisibility?.['magicShelf'] ?? true,
       bookType: savedVisibility?.['bookType'] ?? false,
     };
+  }
+
+  private initializeSectionVisibilityForUser(userId: number | null, persistedVisibility: Record<string, boolean> | null | undefined): void {
+    const normalizedPersisted = this.normalizeSectionVisibility(persistedVisibility);
+
+    if (persistedVisibility) {
+      this.sectionVisibility = normalizedPersisted;
+      this.localStorageService.set(this.sectionVisibilityKey, normalizedPersisted);
+      return;
+    }
+
+    if (this.initialSectionVisibilityFromStorage) {
+      this.sectionVisibility = this.normalizeSectionVisibility(this.initialSectionVisibilityFromStorage);
+      if (userId != null) {
+        this.userService.updateUserSetting(userId, 'sidebarSectionVisibility', this.sectionVisibility);
+      }
+      return;
+    }
+
+    this.sectionVisibility = this.normalizeSectionVisibility(undefined);
+  }
+
+  private persistSectionVisibility(): void {
+    const userId = this.userService.getCurrentUser()?.id;
+    if (userId == null) {
+      return;
+    }
+
+    this.userService.updateUserSetting(userId, 'sidebarSectionVisibility', this.sectionVisibility);
   }
 
 

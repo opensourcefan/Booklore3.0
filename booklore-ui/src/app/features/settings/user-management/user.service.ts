@@ -282,6 +282,7 @@ export interface UserSettings {
   sidebarLibrarySorting: SidebarLibrarySorting;
   sidebarShelfSorting: SidebarShelfSorting;
   sidebarMagicShelfSorting: SidebarMagicShelfSorting;
+  sidebarSectionVisibility?: Record<string, boolean>;
   themeSettings?: AppState;
   filterMode: BookFilterMode;
   visibleFilters?: VisibleFilterType[];

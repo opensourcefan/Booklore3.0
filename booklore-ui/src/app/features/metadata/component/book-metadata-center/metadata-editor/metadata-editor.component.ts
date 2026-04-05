@@ -5,7 +5,7 @@ import {Divider} from "primeng/divider";
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule,} from "@angular/forms";
 import {Observable, sample} from "rxjs";
 import {AsyncPipe} from "@angular/common";
-import {MessageService} from "primeng/api";
+import {ConfirmationService, MessageService} from "primeng/api";
 import {Book, BookMetadata, ComicMetadata, MetadataClearFlags, MetadataUpdateWrapper,} from "../../../../book/model/book.model";
 import {UrlHelperService} from "../../../../../shared/service/url-helper.service";
 import {ALL_COMIC_METADATA_FIELDS, AUDIOBOOK_METADATA_FIELDS, COMIC_FORM_TO_MODEL_LOCK, COMIC_TEXT_METADATA_FIELDS, COMIC_ARRAY_METADATA_FIELDS, COMIC_TEXTAREA_METADATA_FIELDS, isFieldEmbeddable, hasMetadataWriter} from '../../../../../shared/metadata';
@@ -75,6 +75,7 @@ export class MetadataEditorComponent implements OnInit {
   @Input() totalBooks = 0;
 
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
   private bookService = inject(BookService);
   private bookMetadataManageService = inject(BookMetadataManageService);
   private taskHelperService = inject(TaskHelperService);
@@ -94,6 +95,7 @@ export class MetadataEditorComponent implements OnInit {
   isUploading = false;
   isLoading = false;
   isSaving = false;
+  isWipingMetadata = false;
   isGeneratingCover = false;
   isGeneratingAudiobookCover = false;
 
@@ -677,6 +679,51 @@ export class MetadataEditorComponent implements OnInit {
       );
   }
 
+  confirmWipeMetadata(): void {
+    this.confirmationService.confirm({
+      message: this.t.translate('metadata.editor.confirm.deleteAllMessage'),
+      header: this.t.translate('metadata.editor.confirm.deleteAllHeader'),
+      icon: 'pi pi-database',
+      acceptLabel: this.t.translate('common.delete'),
+      rejectLabel: this.t.translate('common.cancel'),
+      acceptButtonProps: {
+        label: this.t.translate('common.delete'),
+        severity: 'danger'
+      },
+      rejectButtonProps: {
+        label: this.t.translate('common.cancel'),
+        severity: 'secondary'
+      },
+      accept: () => this.wipeMetadata()
+    });
+  }
+
+  private wipeMetadata(): void {
+    this.isWipingMetadata = true;
+    this.bookMetadataManageService.wipeBookMetadata(this.currentBookId).pipe(
+      switchMap(() => this.bookService.getBookByIdFromAPI(this.currentBookId, false)),
+      finalize(() => this.isWipingMetadata = false),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (updatedBook) => {
+        this.bookService.handleBookUpdate(updatedBook);
+        this.metadataForm.markAsPristine();
+        this.messageService.add({
+          severity: 'success',
+          summary: this.t.translate('metadata.editor.toast.successSummary'),
+          detail: this.t.translate('metadata.editor.toast.metadataDeleted'),
+        });
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('metadata.editor.toast.errorSummary'),
+          detail: err?.error?.message || this.t.translate('metadata.editor.toast.metadataDeleteFailed'),
+        });
+      }
+    });
+  }
+
   toggleLock(field: string): void {
     if (field === "thumbnailUrl") {
       field = "cover";
@@ -1195,7 +1242,8 @@ export class MetadataEditorComponent implements OnInit {
     this.bookNavigationService.updateCurrentBook(bookId);
     if (this.metadataCenterViewMode === 'route') {
       this.router.navigate(['/book', bookId], {
-        queryParams: {tab: 'edit'}
+        queryParams: {tab: 'edit'},
+        queryParamsHandling: 'merge'
       });
     } else {
       this.metadataHostService.switchBook(bookId);

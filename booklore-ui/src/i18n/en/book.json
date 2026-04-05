@@ -8,7 +8,9 @@
       "regenCoverMessage": "Are you sure you want to regenerate covers for {{ count }} book(s)?",
       "regenCoverHeader": "Confirm Cover Regeneration",
       "customCoverMessage": "Are you sure you want to generate custom covers for {{ count }} book(s)?",
-      "customCoverHeader": "Confirm Custom Cover Generation"
+      "customCoverHeader": "Confirm Custom Cover Generation",
+      "wipeMetadataMessage": "Are you sure you want to delete all metadata for {{ count }} selected book(s)?\n\nThis clears fetched metadata fields and cannot be undone.",
+      "wipeMetadataHeader": "Delete Metadata"
     },
     "toast": {
       "sortSavedSummary": "Sort Saved",
@@ -23,6 +25,8 @@
       "customCoverFailedDetail": "Could not start custom cover generation.",
       "unshelveSuccessDetail": "Books shelves updated",
       "unshelveFailedDetail": "Failed to update books shelves",
+      "wipeMetadataSuccessDetail": "Metadata deleted for {{ count }} selected book(s).",
+      "wipeMetadataFailedDetail": "Failed to delete metadata for the selected books.",
       "noEligibleBooksSummary": "No Eligible Books",
       "noEligibleBooksDetail": "Selected books must be single-file books (no alternative formats).",
       "multipleLibrariesSummary": "Multiple Libraries",
@@ -30,7 +34,8 @@
     },
     "loading": {
       "deleting": "Deleting {{ count }} book(s)...",
-      "unshelving": "Unshelving {{ count }} book(s)..."
+      "unshelving": "Unshelving {{ count }} book(s)...",
+      "wipingMetadata": "Deleting metadata for {{ count }} book(s)..."
     },
     "labels": {
       "allBooks": "All Books",
@@ -75,7 +80,8 @@
       "selectAll": "Select all books",
       "deselectAll": "Deselect all books",
       "deleteSelected": "Delete selected books",
-      "removeFromLibrary": "Remove selected books from library (keep files on disk)"
+      "removeFromLibrary": "Remove selected books from library (keep files on disk)",
+      "wipeMetadata": "Delete all metadata from selected books"
     },
     "placeholder": {
       "selectColumns": "Select Columns",

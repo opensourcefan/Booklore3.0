@@ -1332,7 +1332,8 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
     this.bookNavigationService.updateCurrentBook(bookId);
     if (this.metadataCenterViewMode === 'route') {
       this.router.navigate(['/book', bookId], {
-        queryParams: {tab: 'view'}
+        queryParams: {tab: 'view'},
+        queryParamsHandling: 'merge'
       });
     } else {
       this.metadataHostService.switchBook(bookId);

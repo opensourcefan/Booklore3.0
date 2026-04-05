@@ -1,5 +1,4 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
-import {Location} from '@angular/common';
 import {ActivatedRoute, Router} from '@angular/router';
 import {UserService} from '../../../settings/user-management/user.service';
 import {Book, BookRecommendation} from '../../../book/model/book.model';
@@ -39,7 +38,6 @@ import {SidecarViewerComponent} from './sidecar-viewer/sidecar-viewer.component'
 export class BookMetadataCenterComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private location = inject(Location);
   private bookService = inject(BookService);
   private userService = inject(UserService);
   private appSettingsService = inject(AppSettingsService);
@@ -184,11 +182,6 @@ export class BookMetadataCenterComponent implements OnInit, OnDestroy {
 
     if (this.returnToUrl && this.returnToUrl !== this.router.url) {
       this.router.navigateByUrl(this.returnToUrl);
-      return;
-    }
-
-    if (window.history.length > 1) {
-      this.location.back();
       return;
     }
 

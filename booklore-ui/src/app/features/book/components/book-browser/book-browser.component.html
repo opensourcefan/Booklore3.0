@@ -512,20 +512,38 @@
                   tooltipPosition="top">
                 </p-button>
               </div>
-              @if (userState?.user?.permissions?.admin || userState?.user?.permissions?.canDeleteBook) {
+              @if (userState?.user?.permissions?.admin || userState?.user?.permissions?.canDeleteBook || userState?.user?.permissions?.canBulkEditMetadata) {
                 <p-divider layout="vertical"></p-divider>
                 <div class="action-buttons-group destructive-actions-group">
-                  <p-button
-                    outlined="true"
-                    icon="pi pi-minus-circle"
-                    severity="warn"
-                    [disabled]="selectedCount === 0"
-                    (click)="confirmDeleteBooksLibraryOnly()"
-                    [pTooltip]="t('tooltip.removeFromLibrary')"
-                    tooltipPosition="top">
-                  </p-button>
-                  @if (allowFileDeletion) {
+                  @if (userState?.user?.permissions?.admin || userState?.user?.permissions?.canDeleteBook) {
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-minus-circle"
+                      severity="warn"
+                      [disabled]="selectedCount === 0"
+                      (click)="confirmDeleteBooksLibraryOnly()"
+                      [pTooltip]="t('tooltip.removeFromLibrary')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                  @if ((userState?.user?.permissions?.admin || userState?.user?.permissions?.canDeleteBook) && (userState?.user?.permissions?.admin || userState?.user?.permissions?.canBulkEditMetadata || allowFileDeletion)) {
                     <span class="destructive-action-separator" aria-hidden="true"></span>
+                  }
+                  @if (userState?.user?.permissions?.admin || userState?.user?.permissions?.canBulkEditMetadata) {
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-database"
+                      severity="danger"
+                      [disabled]="selectedCount === 0"
+                      (click)="wipeSelectedMetadata()"
+                      [pTooltip]="t('tooltip.wipeMetadata')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                  @if (allowFileDeletion) {
+                    @if (userState?.user?.permissions?.admin || userState?.user?.permissions?.canBulkEditMetadata) {
+                      <span class="destructive-action-separator" aria-hidden="true"></span>
+                    }
                     <p-button
                       outlined="true"
                       icon="pi pi-trash"

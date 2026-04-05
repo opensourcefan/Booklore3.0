@@ -1191,6 +1191,49 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  wipeSelectedMetadata(): void {
+    if (!this.selectedBooks || this.selectedBooks.size === 0) return;
+
+    const count = this.selectedBooks.size;
+    this.confirmationService.confirm({
+      message: this.t.translate('book.browser.confirm.wipeMetadataMessage', {count}),
+      header: this.t.translate('book.browser.confirm.wipeMetadataHeader'),
+      icon: 'pi pi-database',
+      acceptLabel: this.t.translate('common.delete'),
+      rejectLabel: this.t.translate('common.cancel'),
+      acceptButtonProps: {
+        label: this.t.translate('common.delete'),
+        severity: 'danger'
+      },
+      rejectButtonProps: {
+        label: this.t.translate('common.cancel'),
+        severity: 'secondary'
+      },
+      accept: () => {
+        this.writeProgressService.show(this.t.translate('book.browser.loading.wipingMetadata', {count}));
+        this.bookMetadataManageService.wipeBooksMetadata(Array.from(this.selectedBooks)).subscribe({
+          next: () => {
+            this.writeProgressService.complete(this.t.translate('book.browser.toast.wipeMetadataSuccessDetail', {count}));
+            this.messageService.add({
+              severity: 'success',
+              summary: this.t.translate('common.success'),
+              detail: this.t.translate('book.browser.toast.wipeMetadataSuccessDetail', {count})
+            });
+            this.bookSelectionService.deselectAll();
+          },
+          error: () => {
+            this.writeProgressService.fail(this.t.translate('book.browser.toast.wipeMetadataFailedDetail'));
+            this.messageService.add({
+              severity: 'error',
+              summary: this.t.translate('common.error'),
+              detail: this.t.translate('book.browser.toast.wipeMetadataFailedDetail')
+            });
+          }
+        });
+      }
+    });
+  }
+
   regenerateCoversForSelected(): void {
     if (!this.selectedBooks || this.selectedBooks.size === 0) return;
     const count = this.selectedBooks.size;

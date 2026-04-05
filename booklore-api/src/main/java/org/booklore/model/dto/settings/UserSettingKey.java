@@ -13,6 +13,7 @@ public enum UserSettingKey {
     SIDEBAR_LIBRARY_SORTING("sidebarLibrarySorting", true),
     SIDEBAR_SHELF_SORTING("sidebarShelfSorting", true),
     SIDEBAR_MAGIC_SHELF_SORTING("sidebarMagicShelfSorting", true),
+    SIDEBAR_SECTION_VISIBILITY("sidebarSectionVisibility", true),
     ENTITY_VIEW_PREFERENCES("entityViewPreferences", true),
     THEME_SETTINGS("themeSettings", true),
     TABLE_COLUMN_PREFERENCE("tableColumnPreference", true),

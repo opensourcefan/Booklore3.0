@@ -82,6 +82,7 @@
     "fetchingBtn": "Fetching...",
     "unlockAllBtn": "Unlock All",
     "lockAllBtn": "Lock All",
+    "deleteAllBtn": "Delete All Metadata",
     "saveBtn": "Save",
     "fetchFromFileBtn": "From File",
     "fetchFromFileTooltip": "Load metadata embedded in the book file",
@@ -91,6 +92,7 @@
     "autoFetchTooltip": "Automatically fetch metadata using default sources",
     "unlockAllTooltip": "Unlock all metadata fields for editing",
     "lockAllTooltip": "Lock all metadata fields to prevent changes",
+    "deleteAllTooltip": "Delete all editable metadata for this book",
     "navigationPosition": "{{ current }} of {{ total }}",
     "booleanUnknown": "Unknown",
     "booleanYes": "Yes",
@@ -102,11 +104,17 @@
     "contentRatingExplicit": "Explicit",
     "ageRatingAllAges": "All Ages",
     "selectPlaceholder": "Select",
+    "confirm": {
+      "deleteAllHeader": "Delete Metadata",
+      "deleteAllMessage": "Are you sure you want to delete all metadata for this book?\n\nThis clears fetched metadata fields and cannot be undone."
+    },
     "toast": {
       "successSummary": "Success",
       "metadataUpdated": "Book metadata updated",
       "errorSummary": "Error",
       "metadataUpdateFailed": "Failed to update book metadata",
+      "metadataDeleted": "Book metadata deleted",
+      "metadataDeleteFailed": "Failed to delete book metadata",
       "metadataLocked": "Metadata Locked",
       "allFieldsLocked": "All fields have been successfully locked.",
       "metadataUnlocked": "Metadata Unlocked",

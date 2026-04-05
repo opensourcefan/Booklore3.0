@@ -69,6 +69,7 @@ public class BookLoreUser {
         public SidebarSortOption sidebarLibrarySorting;
         public SidebarSortOption sidebarShelfSorting;
         public SidebarSortOption sidebarMagicShelfSorting;
+        public java.util.Map<String, Boolean> sidebarSectionVisibility;
         public EntityViewPreferences entityViewPreferences;
         public ThemeSettings themeSettings;
         public List<TableColumnPreference> tableColumnPreference;

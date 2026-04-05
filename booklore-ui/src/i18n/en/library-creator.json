@@ -50,6 +50,12 @@
       "readyCreate": "Ready to create",
       "readyUpdate": "Ready to update"
     },
+    "submission": {
+      "scanning": "Scanning selected folders so the import can start.",
+      "creating": "Creating the library and preparing the import.",
+      "updating": "Saving library changes.",
+      "handoff": "Large import detected. Handing off to the full-screen loading view."
+    },
     "buttonCreate": "Create",
     "buttonUpdate": "Update",
     "toast": {

@@ -566,7 +566,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             command: () => {
               setTimeout(() => {
                 this.router.navigate(['/book', this.book.id], {
-                  queryParams: {tab: 'match'}
+                  queryParams: {tab: 'match', returnTo: this.router.url}
                 })
               }, 150);
             },
@@ -758,7 +758,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
     if (this.metadataCenterViewMode === 'route') {
       this.router.navigate(['/book', book.id], {
-        queryParams: {tab: 'view'}
+        queryParams: {tab: 'view', returnTo: this.router.url}
       });
     } else {
       this.bookDialogHelperService.openBookDetailsDialog(book.id);

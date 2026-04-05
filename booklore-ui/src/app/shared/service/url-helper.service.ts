@@ -115,7 +115,7 @@ export class UrlHelperService {
 
   getBookUrl(book: Book) {
     return this.router.createUrlTree(['/book', book.id], {
-      queryParams: {tab: 'view'}
+      queryParams: {tab: 'view', returnTo: this.router.url}
     });
   }
 

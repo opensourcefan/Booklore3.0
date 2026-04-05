@@ -9,6 +9,7 @@ import org.booklore.model.MetadataUpdateContext;
 import org.booklore.model.MetadataUpdateWrapper;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.BookMetadata;
+import org.booklore.model.dto.ComicMetadata;
 import org.booklore.model.dto.request.BulkMetadataUpdateRequest;
 import org.booklore.model.dto.request.FetchMetadataRequest;
 import org.booklore.model.dto.request.ToggleAllLockRequest;
@@ -236,6 +237,27 @@ public class BookMetadataService {
         }
     }
 
+    @Transactional
+    public BookMetadata wipeBookMetadata(long bookId) {
+        BookEntity book = bookRepository.findByIdWithBookFiles(bookId)
+                .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+
+        wipeBookMetadata(book);
+        notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(book, true));
+        return bookMetadataMapper.toBookMetadata(book.getMetadata(), true);
+    }
+
+    @Transactional
+    public void wipeBookMetadata(Set<Long> bookIds) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            return;
+        }
+
+        for (Long bookId : bookIds) {
+            processSingleBookWipe(bookId);
+        }
+    }
+
     private void processSingleBookUpdate(Long bookId, BookMetadata bookMetadata, MetadataClearFlags clearFlags, boolean mergeCategories, boolean mergeMoods, boolean mergeTags) {
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -262,5 +284,130 @@ public class BookMetadataService {
             notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(book, true));
             return null;
         });
+    }
+
+    private void processSingleBookWipe(Long bookId) {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        transactionTemplate.execute(status -> {
+            BookEntity book = bookRepository.findByIdWithBookFiles(bookId).orElse(null);
+            if (book == null) {
+                log.warn("Book not found for metadata wipe: {}", bookId);
+                return null;
+            }
+
+            wipeBookMetadata(book);
+            notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(book, true));
+            return null;
+        });
+    }
+
+    private void wipeBookMetadata(BookEntity book) {
+        BookMetadataEntity metadata = book.getMetadata();
+        if (metadata == null) {
+            return;
+        }
+
+        metadata.applyLockToAllFields(false);
+        metadata.setRating(null);
+        metadata.setReviewCount(null);
+        metadata.setEmbeddingVector(null);
+        metadata.setEmbeddingUpdatedAt(null);
+
+        MetadataUpdateContext context = MetadataUpdateContext.builder()
+                .bookEntity(book)
+                .metadataUpdateWrapper(buildMetadataWipeWrapper(metadata.getBookId()))
+                .updateThumbnail(false)
+                .mergeCategories(false)
+                .mergeMoods(false)
+                .mergeTags(false)
+                .replaceMode(org.booklore.model.enums.MetadataReplaceMode.REPLACE_ALL)
+                .build();
+
+        bookMetadataUpdater.setBookMetadata(context);
+    }
+
+    private MetadataUpdateWrapper buildMetadataWipeWrapper(Long bookId) {
+        MetadataClearFlags clearFlags = new MetadataClearFlags();
+        clearFlags.setTitle(true);
+        clearFlags.setSubtitle(true);
+        clearFlags.setPublisher(true);
+        clearFlags.setPublishedDate(true);
+        clearFlags.setDescription(true);
+        clearFlags.setSeriesName(true);
+        clearFlags.setSeriesNumber(true);
+        clearFlags.setSeriesTotal(true);
+        clearFlags.setIsbn13(true);
+        clearFlags.setIsbn10(true);
+        clearFlags.setAsin(true);
+        clearFlags.setGoodreadsId(true);
+        clearFlags.setComicvineId(true);
+        clearFlags.setHardcoverId(true);
+        clearFlags.setHardcoverBookId(true);
+        clearFlags.setGoogleId(true);
+        clearFlags.setPageCount(true);
+        clearFlags.setLanguage(true);
+        clearFlags.setAmazonRating(true);
+        clearFlags.setAmazonReviewCount(true);
+        clearFlags.setGoodreadsRating(true);
+        clearFlags.setGoodreadsReviewCount(true);
+        clearFlags.setHardcoverRating(true);
+        clearFlags.setHardcoverReviewCount(true);
+        clearFlags.setLubimyczytacId(true);
+        clearFlags.setLubimyczytacRating(true);
+        clearFlags.setRanobedbId(true);
+        clearFlags.setRanobedbRating(true);
+        clearFlags.setAudibleId(true);
+        clearFlags.setAudibleRating(true);
+        clearFlags.setAudibleReviewCount(true);
+        clearFlags.setAuthors(true);
+        clearFlags.setCategories(true);
+        clearFlags.setMoods(true);
+        clearFlags.setTags(true);
+        clearFlags.setReviews(true);
+        clearFlags.setNarrator(true);
+        clearFlags.setAbridged(true);
+        clearFlags.setAgeRating(true);
+        clearFlags.setContentRating(true);
+
+        ComicMetadata comicMetadata = ComicMetadata.builder()
+                .issueNumber(null)
+                .volumeName(null)
+                .volumeNumber(null)
+                .storyArc(null)
+                .storyArcNumber(null)
+                .alternateSeries(null)
+                .alternateIssue(null)
+                .pencillers(Collections.emptySet())
+                .inkers(Collections.emptySet())
+                .colorists(Collections.emptySet())
+                .letterers(Collections.emptySet())
+                .coverArtists(Collections.emptySet())
+                .editors(Collections.emptySet())
+                .imprint(null)
+                .format(null)
+                .blackAndWhite(null)
+                .manga(null)
+                .readingDirection(null)
+                .characters(Collections.emptySet())
+                .teams(Collections.emptySet())
+                .locations(Collections.emptySet())
+                .webLink(null)
+                .notes(null)
+                .build();
+
+        BookMetadata metadata = BookMetadata.builder()
+                .bookId(bookId)
+                .authors(Collections.emptyList())
+                .categories(Collections.emptySet())
+                .moods(Collections.emptySet())
+                .tags(Collections.emptySet())
+                .comicMetadata(comicMetadata)
+                .build();
+
+        return MetadataUpdateWrapper.builder()
+                .metadata(metadata)
+                .clearFlags(clearFlags)
+                .build();
     }
 }
