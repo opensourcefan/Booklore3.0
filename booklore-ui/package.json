@@ -79,7 +79,6 @@
   },
   "lint-staged": {
     "src/**/*.ts": "eslint --max-warnings=0",
-    "src/**/*.html": "eslint --max-warnings=0",
-    "src/assets/foliate/*.js": "jshint --config .jshintrc"
+    "src/**/*.html": "eslint --max-warnings=0"
   }
 }

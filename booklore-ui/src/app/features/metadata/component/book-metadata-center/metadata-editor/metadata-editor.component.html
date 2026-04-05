@@ -1002,11 +1002,10 @@
               [pTooltip]="t('autoFetchTooltip')"
               tooltipPosition="top">
             </p-button>
+            <p-button [label]="t('deleteAllBtn')" icon="pi pi-database" [outlined]="true" severity="danger" [loading]="isWipingMetadata" [disabled]="isWipingMetadata" (onClick)="confirmWipeMetadata()" [pTooltip]="t('deleteAllTooltip')" tooltipPosition="top"></p-button>
             <p-divider layout="vertical"/>
             <p-button [label]="t('unlockAllBtn')" icon="pi pi-lock-open" [outlined]="true" severity="success" (onClick)="unlockAll()" [pTooltip]="t('unlockAllTooltip')" tooltipPosition="top"></p-button>
             <p-button [label]="t('lockAllBtn')" icon="pi pi-lock" [outlined]="true" severity="warn" (onClick)="lockAll()" [pTooltip]="t('lockAllTooltip')" tooltipPosition="top"></p-button>
-            <p-divider layout="vertical"/>
-            <p-button [label]="t('deleteAllBtn')" icon="pi pi-database" [outlined]="true" severity="danger" [loading]="isWipingMetadata" [disabled]="isWipingMetadata" (onClick)="confirmWipeMetadata()" [pTooltip]="t('deleteAllTooltip')" tooltipPosition="top"></p-button>
             <p-button [label]="t('saveBtn')" icon="pi pi-check" [loading]="isSaving" [disabled]="isSaving" (onClick)="onSave()"></p-button>
           </div>
         </div>
@@ -1071,6 +1070,17 @@
               </p-button>
 
               <p-button
+                icon="pi pi-database"
+                [outlined]="true"
+                severity="danger"
+                [loading]="isWipingMetadata"
+                [disabled]="isWipingMetadata"
+                (onClick)="confirmWipeMetadata()"
+                [pTooltip]="t('deleteAllBtn')"
+                tooltipPosition="top">
+              </p-button>
+
+              <p-button
                 icon="pi pi-lock-open"
                 [outlined]="true"
                 severity="success"
@@ -1085,17 +1095,6 @@
                 severity="warn"
                 (onClick)="lockAll()"
                 [pTooltip]="t('lockAllBtn')"
-                tooltipPosition="top">
-              </p-button>
-
-              <p-button
-                icon="pi pi-database"
-                [outlined]="true"
-                severity="danger"
-                [loading]="isWipingMetadata"
-                [disabled]="isWipingMetadata"
-                (onClick)="confirmWipeMetadata()"
-                [pTooltip]="t('deleteAllBtn')"
                 tooltipPosition="top">
               </p-button>
             </div>

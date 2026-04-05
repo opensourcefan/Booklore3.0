@@ -2,7 +2,7 @@
   <img
     [src]="getThumbnailUrl()"
     class="book-cover"
-    alt="Cover of {{ book.metadata?.title }}"
+    alt="Cover of {{ displayTitle }}"
     loading="lazy"/>
     
   @if (showSeriesNumber && !book.seriesCount && book.metadata?.seriesNumber !== null) {
@@ -16,7 +16,7 @@
       icon="pi pi-info"
       class="info-btn"
       [rounded]="true"
-      [pTooltip]="book.metadata?.title"
+      [pTooltip]="displayTitle"
       tooltipPosition="top"
       [ngClass]="{ 'visible': isHovered }"
       (onClick)="openBookInfo(book)">

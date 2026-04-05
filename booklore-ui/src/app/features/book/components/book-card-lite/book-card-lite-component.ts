@@ -35,6 +35,10 @@ export class BookCardLiteComponent implements OnInit, OnDestroy {
   private metadataCenterViewMode: 'route' | 'dialog' = 'route';
   isHovered = false;
 
+  get displayTitle(): string {
+    return this.book.metadata?.title?.trim() || this.book.fileName?.trim() || this.book.primaryFile?.fileName?.trim() || '';
+  }
+
   isAudiobookOnly(): boolean {
     const primaryIsAudiobook = this.book.primaryFile?.bookType === 'AUDIOBOOK';
     const hasEbookAlternative = this.book.alternativeFormats?.some(f => f.bookType !== 'AUDIOBOOK') ?? false;

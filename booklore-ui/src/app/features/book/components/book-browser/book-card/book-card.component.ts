@@ -165,7 +165,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
     if (changes['seriesViewEnabled'] || changes['isSeriesCollapsed']) {
       this._isSeriesViewActive = this.seriesViewEnabled && !!this.book.seriesCount && this.book.seriesCount >= 1;
-      this._displayTitle = (this.isSeriesCollapsed && this.book.metadata?.seriesName) ? this.book.metadata?.seriesName : this.book.metadata?.title;
+      this._displayTitle = this.resolveDisplayTitle();
       this._titleTooltip = this.t.translate('book.card.alt.titleTooltip', { title: this._displayTitle });
     }
   }
@@ -182,9 +182,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this._hasProgress = this._progressPercentage !== null || this._koProgressPercentage !== null || this._koboProgressPercentage !== null;
 
     this._isSeriesViewActive = this.seriesViewEnabled && !!this.book.seriesCount && this.book.seriesCount >= 1;
-    this._displayTitle = (this.isSeriesCollapsed && this.book.metadata?.seriesName)
-      ? this.book.metadata?.seriesName
-      : this.book.metadata?.title;
+    this._displayTitle = this.resolveDisplayTitle();
     this._isAudiobook = this.book.primaryFile?.bookType === 'AUDIOBOOK' && !this.forceEbookMode;
     this._coverImageUrl = this._isAudiobook
       ? this.urlHelper.getAudiobookThumbnailUrl(this.book.id, this.book.metadata?.audiobookCoverUpdatedOn)
@@ -222,6 +220,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     } else {
       this._readButtonIcon = this._isContinueReading ? 'pi pi-forward' : 'pi pi-book';
     }
+  }
+
+  private resolveDisplayTitle(): string {
+    const collapsedSeriesName = this.isSeriesCollapsed ? this.book.metadata?.seriesName?.trim() : '';
+    const metadataTitle = this.book.metadata?.title?.trim() || '';
+    const fileName = this.book.fileName?.trim() || this.book.primaryFile?.fileName?.trim() || '';
+
+    return collapsedSeriesName || metadataTitle || fileName;
   }
 
   get hasProgress(): boolean {
