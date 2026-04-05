@@ -1,0 +1,201 @@
+.physical-books-page {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.physical-books-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem 1.5rem;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--p-primary-300), transparent 78%), transparent 45%),
+    linear-gradient(180deg, color-mix(in srgb, var(--p-surface-800), transparent 12%), color-mix(in srgb, var(--p-surface-900), transparent 10%));
+  border: 1px solid color-mix(in srgb, var(--p-surface-300), transparent 82%);
+}
+
+.physical-books-header-copy h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.6vw, 2.35rem);
+}
+
+.physical-books-eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--p-primary-color);
+  font-weight: 700;
+}
+
+.physical-books-description {
+  margin: 0.5rem 0 0;
+  max-width: 45rem;
+  color: var(--text-color-secondary);
+  line-height: 1.6;
+}
+
+.physical-books-summary {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.summary-chip {
+  min-width: 6.5rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--p-surface-0), transparent 92%);
+  border: 1px solid color-mix(in srgb, var(--p-surface-0), transparent 84%);
+}
+
+.summary-value {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.summary-label {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-color-secondary);
+}
+
+.physical-shelves {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.physical-shelf {
+  position: relative;
+  padding: 1rem 1rem 1.4rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--p-surface-800), transparent 8%), color-mix(in srgb, var(--p-surface-900), transparent 6%));
+  border: 1px solid color-mix(in srgb, var(--p-surface-200), transparent 84%);
+  overflow: hidden;
+}
+
+.physical-shelf::after {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.85rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, color-mix(in srgb, #7a5638, transparent 12%), color-mix(in srgb, #402718, transparent 5%));
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.physical-shelf-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.physical-shelf-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.physical-shelf-header p {
+  margin: 0.3rem 0 0;
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+}
+
+.physical-shelf-count {
+  min-width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-weight: 700;
+  color: var(--p-primary-color);
+  background: color-mix(in srgb, var(--p-primary-400), transparent 85%);
+}
+
+.physical-shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 116px));
+  justify-content: start;
+  gap: 1rem;
+  align-items: end;
+}
+
+.physical-shelf-card {
+  width: 116px;
+}
+
+.physical-books-state {
+  min-height: 18rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+  border-radius: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--p-surface-800), transparent 8%), color-mix(in srgb, var(--p-surface-900), transparent 6%));
+  border: 1px solid color-mix(in srgb, var(--p-surface-200), transparent 84%);
+}
+
+.physical-books-state i {
+  font-size: 1.8rem;
+  color: var(--p-primary-color);
+}
+
+.physical-books-state h2,
+.physical-books-state p {
+  margin: 0;
+}
+
+.physical-books-state p {
+  color: var(--text-color-secondary);
+  max-width: 30rem;
+}
+
+@media (max-width: 767px) {
+  .physical-books-page {
+    padding: 1rem;
+  }
+
+  .physical-books-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .physical-books-summary {
+    width: 100%;
+  }
+
+  .summary-chip {
+    flex: 1 1 0;
+  }
+
+  .physical-shelf {
+    padding: 0.9rem 0.85rem 1.2rem;
+  }
+
+  .physical-shelf-grid {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 104px));
+    gap: 0.85rem;
+  }
+
+  .physical-shelf-card {
+    width: 104px;
+  }
+}

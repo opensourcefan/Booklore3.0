@@ -38,8 +38,11 @@
   },
   "menu": {
     "home": "Home",
+    "homeItems": "Home Items",
+    "headings": "Headings",
     "dashboard": "Dashboard",
     "allBooks": "All Books",
+    "physicalBooks": "Physical Books",
     "libraries": "Libraries",
     "shelves": "Shelves",
     "magicShelves": "Magic Shelves",

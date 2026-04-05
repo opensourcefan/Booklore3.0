@@ -1,0 +1,70 @@
+<ng-container *transloco="let t; prefix: 'book.physicalBooksPage'">
+  <div class="physical-books-page">
+    @if (vm$ | async; as vm) {
+      <header class="physical-books-header">
+        <div class="physical-books-header-copy">
+          <p class="physical-books-eyebrow">{{ t('eyebrow') }}</p>
+          <h1>{{ t('title') }}</h1>
+          <p class="physical-books-description">{{ t('description') }}</p>
+        </div>
+
+        <div class="physical-books-summary">
+          <div class="summary-chip">
+            <span class="summary-value">{{ vm.totalBooks }}</span>
+            <span class="summary-label">{{ t('summary.books') }}</span>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-value">{{ vm.groups.length }}</span>
+            <span class="summary-label">{{ t('summary.libraries') }}</span>
+          </div>
+        </div>
+      </header>
+
+      @if (vm.loading) {
+        <div class="physical-books-state physical-books-state--loading">
+          <p-progress-spinner strokeWidth="4" ariaLabel="Loading physical books"></p-progress-spinner>
+          <p>{{ t('loading') }}</p>
+        </div>
+      } @else if (vm.error) {
+        <div class="physical-books-state physical-books-state--error">
+          <i class="pi pi-exclamation-triangle"></i>
+          <h2>{{ t('errorTitle') }}</h2>
+          <p>{{ t('errorMessage') }}</p>
+        </div>
+      } @else if (!vm.groups.length) {
+        <div class="physical-books-state physical-books-state--empty">
+          <i class="pi pi-book"></i>
+          <h2>{{ t('emptyTitle') }}</h2>
+          <p>{{ t('emptyMessage') }}</p>
+        </div>
+      } @else {
+        <div class="physical-shelves">
+          @for (group of vm.groups; track group.key) {
+            <section class="physical-shelf">
+              <div class="physical-shelf-header">
+                <div>
+                  <h2>{{ group.libraryName }}</h2>
+                  <p>{{ t('libraryCaption', { count: group.books.length }) }}</p>
+                </div>
+                <span class="physical-shelf-count">{{ group.books.length }}</span>
+              </div>
+
+              <div class="physical-shelf-grid">
+                @for (book of group.books; track book.id) {
+                  <div class="physical-shelf-card">
+                    <app-book-card
+                      [book]="book"
+                      [isCheckboxEnabled]="false"
+                      [titleRows]="titleRowsForViewport"
+                      [overlayPreferenceService]="bookCardOverlayPreferenceService">
+                    </app-book-card>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      }
+    }
+  </div>
+</ng-container>

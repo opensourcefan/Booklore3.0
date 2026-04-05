@@ -35,6 +35,7 @@ export const routes: Routes = [
     children: [
       {path: 'dashboard', component: MainDashboardComponent, canActivate: [AuthGuard]},
       {path: 'all-books', component: BookBrowserComponent, canActivate: [AuthGuard]},
+      {path: 'physical-books', loadComponent: () => import('./features/book/components/physical-books-page/physical-books-page.component').then(m => m.PhysicalBooksPageComponent), canActivate: [AuthGuard]},
       {path: 'settings', loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent), canActivate: [AuthGuard]},
       {path: 'library/:libraryId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},
       {path: 'shelf/:shelfId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},

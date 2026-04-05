@@ -4,7 +4,7 @@ import {AsyncPipe, NgClass} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
-import {combineLatest, Observable, of} from 'rxjs';
+import {BehaviorSubject, combineLatest, Observable, of} from 'rxjs';
 import {catchError, filter, map} from 'rxjs/operators';
 import {ShelfService} from '../../../../features/book/service/shelf.service';
 import {BookService} from '../../../../features/book/service/book.service';
@@ -30,6 +30,8 @@ import {LocalStorageService} from '../../../service/local-storage.service';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
 import {MediaTypePreferencesService} from '../../../../features/book/service/media-type-preferences.service';
+
+type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'series' | 'authors' | 'notebook';
 
 @Component({
   selector: 'app-menu',
@@ -86,10 +88,19 @@ export class AppMenuComponent implements OnInit {
     magicShelf: true,
     bookType: false,
   };
+  homeItemVisibility: Record<HomeItemVisibilityKey, boolean> = {
+    dashboard: true,
+    allBooks: true,
+    physicalBooks: true,
+    series: true,
+    authors: true,
+    notebook: true,
+  };
 
   private readonly sectionOrderKey = 'sidebarSectionOrder';
   private readonly sectionVisibilityKey = 'sidebarSectionVisibility';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
+  private readonly homeItemVisibilitySubject = new BehaviorSubject<Record<HomeItemVisibilityKey, boolean>>(this.homeItemVisibility);
   private initialSectionVisibilityFromStorage: Record<string, boolean> | null = null;
   private sectionVisibilityUserId: number | null = null;
   private touchStartX: number | null = null;
@@ -102,6 +113,14 @@ export class AppMenuComponent implements OnInit {
     {key: 'shelf', label: 'layout.menu.shelves'},
     {key: 'magicShelf', label: 'layout.menu.magicShelves'},
     {key: 'bookType', label: 'Media Type'},
+  ];
+  readonly homeItemOptions: {key: HomeItemVisibilityKey; label: string}[] = [
+    {key: 'dashboard', label: 'layout.menu.dashboard'},
+    {key: 'allBooks', label: 'layout.menu.allBooks'},
+    {key: 'physicalBooks', label: 'layout.menu.physicalBooks'},
+    {key: 'series', label: 'layout.menu.series'},
+    {key: 'authors', label: 'layout.menu.authors'},
+    {key: 'notebook', label: 'layout.menu.notebook'},
   ];
 
   get visibleSectionOrder(): string[] {
@@ -118,9 +137,9 @@ export class AppMenuComponent implements OnInit {
 
     const savedSectionVisibility = this.localStorageService.get<Record<string, boolean>>(this.sectionVisibilityKey);
     this.initialSectionVisibilityFromStorage = savedSectionVisibility ?? null;
-    this.sectionVisibility = this.normalizeSectionVisibility(savedSectionVisibility);
+    this.applySidebarVisibility(savedSectionVisibility);
     if (!savedSectionVisibility) {
-      this.localStorageService.set(this.sectionVisibilityKey, this.sectionVisibility);
+      this.localStorageService.set(this.sectionVisibilityKey, this.buildSidebarVisibilitySettings());
     }
 
     this.activeLang = this.t.getActiveLang();
@@ -135,7 +154,7 @@ export class AppMenuComponent implements OnInit {
       }
       if (key === this.sectionVisibilityKey) {
         const updatedVisibility = this.localStorageService.get<Record<string, boolean>>(this.sectionVisibilityKey);
-        this.sectionVisibility = this.normalizeSectionVisibility(updatedVisibility);
+        this.applySidebarVisibility(updatedVisibility);
       }
     });
 
@@ -173,45 +192,62 @@ export class AppMenuComponent implements OnInit {
         this.initMenus();
       });
 
-    this.homeMenu$ = combineLatest([this.bookService.bookState$, this.t.langChanges$]).pipe(
-      map(([bookState]) => [
-        {
-          label: this.t.translate('layout.menu.home'),
-          items: [
-            {
-              label: this.t.translate('layout.menu.dashboard'),
-              icon: 'pi pi-fw pi-home',
-              routerLink: ['/dashboard'],
-            },
-            {
-              label: this.t.translate('layout.menu.allBooks'),
-              type: 'All Books',
-              icon: 'pi pi-fw pi-book',
-              routerLink: ['/all-books'],
-              bookCount$: of(bookState.books ? bookState.books.length : 0),
-            },
-            {
-              label: this.t.translate('layout.menu.series'),
-              type: 'Series',
-              icon: 'pi pi-fw pi-objects-column',
-              routerLink: ['/series'],
-              bookCount$: this.seriesDataService.allSeries$.pipe(map(series => series.length)),
-            },
-            {
-              label: this.t.translate('layout.menu.authors'),
-              type: 'Authors',
-              icon: 'pi pi-fw pi-users',
-              routerLink: ['/authors'],
-              bookCount$: this.authorService.allAuthors$.pipe(map(authors => authors?.length ?? 0)),
-            },
-            {
-              label: this.t.translate('layout.menu.notebook'),
-              icon: 'pi pi-fw pi-pencil',
-              routerLink: ['/notebook'],
-            }
-          ],
-        },
-      ]),
+    this.homeMenu$ = combineLatest([this.bookService.bookState$, this.t.langChanges$, this.homeItemVisibilitySubject]).pipe(
+      map(([bookState]) => {
+        const items: AppMenuItem[] = [
+          {
+            label: this.t.translate('layout.menu.dashboard'),
+            visibilityKey: 'dashboard',
+            icon: 'pi pi-fw pi-home',
+            routerLink: ['/dashboard'],
+          },
+          {
+            label: this.t.translate('layout.menu.allBooks'),
+            visibilityKey: 'allBooks',
+            type: 'All Books',
+            icon: 'pi pi-fw pi-book',
+            routerLink: ['/all-books'],
+            bookCount$: of(bookState.books ? bookState.books.length : 0),
+          },
+          {
+            label: this.t.translate('layout.menu.physicalBooks'),
+            visibilityKey: 'physicalBooks',
+            type: 'Physical Books',
+            icon: 'pi pi-fw pi-box',
+            routerLink: ['/physical-books'],
+            bookCount$: of((bookState.books ?? []).filter(book => book.isPhysical).length),
+          },
+          {
+            label: this.t.translate('layout.menu.series'),
+            visibilityKey: 'series',
+            type: 'Series',
+            icon: 'pi pi-fw pi-objects-column',
+            routerLink: ['/series'],
+            bookCount$: this.seriesDataService.allSeries$.pipe(map(series => series.length)),
+          },
+          {
+            label: this.t.translate('layout.menu.authors'),
+            visibilityKey: 'authors',
+            type: 'Authors',
+            icon: 'pi pi-fw pi-users',
+            routerLink: ['/authors'],
+            bookCount$: this.authorService.allAuthors$.pipe(map(authors => authors?.length ?? 0)),
+          },
+          {
+            label: this.t.translate('layout.menu.notebook'),
+            visibilityKey: 'notebook',
+            icon: 'pi pi-fw pi-pencil',
+            routerLink: ['/notebook'],
+          }
+        ];
+
+        return [
+          {
+            label: this.t.translate('layout.menu.home'),
+            items: items.filter(item => !item.visibilityKey || this.isHomeItemVisible(item.visibilityKey as HomeItemVisibilityKey)),
+          },
+        ];
+      }),
       map(menuItems => this.applyNestedItemOrder('home', menuItems))
     );
 
@@ -385,7 +421,7 @@ export class AppMenuComponent implements OnInit {
       [section]: !currentlyVisible,
     };
 
-    this.localStorageService.set(this.sectionVisibilityKey, this.sectionVisibility);
+    this.localStorageService.set(this.sectionVisibilityKey, this.buildSidebarVisibilitySettings());
     this.persistSectionVisibility();
   }
 
@@ -406,6 +442,34 @@ export class AppMenuComponent implements OnInit {
       return;
     }
     this.toggleSectionVisibility(section);
+  }
+
+  isHomeItemVisible(key: HomeItemVisibilityKey): boolean {
+    return this.homeItemVisibility[key] !== false;
+  }
+
+  getHomeItemOptionLabel(option: {key: HomeItemVisibilityKey; label: string}): string {
+    return this.t.translate(option.label);
+  }
+
+  onHomeItemVisibilityCheckboxChange(key: HomeItemVisibilityKey, visible: boolean): void {
+    const currentlyVisible = this.isHomeItemVisible(key);
+    if (visible === currentlyVisible) {
+      return;
+    }
+
+    const visibleCount = Object.values(this.homeItemVisibility).filter(Boolean).length;
+    if (currentlyVisible && visibleCount <= 1) {
+      return;
+    }
+
+    this.homeItemVisibility = {
+      ...this.homeItemVisibility,
+      [key]: visible,
+    };
+    this.homeItemVisibilitySubject.next({...this.homeItemVisibility});
+    this.localStorageService.set(this.sectionVisibilityKey, this.buildSidebarVisibilitySettings());
+    this.persistSectionVisibility();
   }
 
   navigateToSettings(): void {
@@ -806,24 +870,39 @@ export class AppMenuComponent implements OnInit {
     };
   }
 
+  private normalizeHomeItemVisibility(savedVisibility: Record<string, boolean> | null | undefined): Record<HomeItemVisibilityKey, boolean> {
+    return {
+      dashboard: savedVisibility?.['home.dashboard'] ?? true,
+      allBooks: savedVisibility?.['home.allBooks'] ?? true,
+      physicalBooks: savedVisibility?.['home.physicalBooks'] ?? true,
+      series: savedVisibility?.['home.series'] ?? true,
+      authors: savedVisibility?.['home.authors'] ?? true,
+      notebook: savedVisibility?.['home.notebook'] ?? true,
+    };
+  }
+
   private initializeSectionVisibilityForUser(userId: number | null, persistedVisibility: Record<string, boolean> | null | undefined): void {
-    const normalizedPersisted = this.normalizeSectionVisibility(persistedVisibility);
+    const normalizedPersisted = this.buildNormalizedSidebarVisibility(persistedVisibility);
 
     if (persistedVisibility) {
-      this.sectionVisibility = normalizedPersisted;
+      this.applySidebarVisibility(normalizedPersisted);
       this.localStorageService.set(this.sectionVisibilityKey, normalizedPersisted);
-      return;
-    }
-
-    if (this.initialSectionVisibilityFromStorage) {
-      this.sectionVisibility = this.normalizeSectionVisibility(this.initialSectionVisibilityFromStorage);
-      if (userId != null) {
-        this.userService.updateUserSetting(userId, 'sidebarSectionVisibility', this.sectionVisibility);
+      if (userId != null && this.requiresSidebarVisibilityMigration(persistedVisibility, normalizedPersisted)) {
+        this.userService.updateUserSetting(userId, 'sidebarSectionVisibility', normalizedPersisted);
       }
       return;
     }
 
-    this.sectionVisibility = this.normalizeSectionVisibility(undefined);
+    if (this.initialSectionVisibilityFromStorage) {
+      const migrated = this.buildNormalizedSidebarVisibility(this.initialSectionVisibilityFromStorage);
+      this.applySidebarVisibility(migrated);
+      if (userId != null) {
+        this.userService.updateUserSetting(userId, 'sidebarSectionVisibility', migrated);
+      }
+      return;
+    }
+
+    this.applySidebarVisibility(undefined);
   }
 
   private persistSectionVisibility(): void {
@@ -832,7 +911,46 @@ export class AppMenuComponent implements OnInit {
       return;
     }
 
-    this.userService.updateUserSetting(userId, 'sidebarSectionVisibility', this.sectionVisibility);
+    this.userService.updateUserSetting(userId, 'sidebarSectionVisibility', this.buildSidebarVisibilitySettings());
+  }
+
+  private applySidebarVisibility(savedVisibility: Record<string, boolean> | null | undefined): void {
+    this.sectionVisibility = this.normalizeSectionVisibility(savedVisibility);
+    this.homeItemVisibility = this.normalizeHomeItemVisibility(savedVisibility);
+    this.homeItemVisibilitySubject.next({...this.homeItemVisibility});
+  }
+
+  private buildNormalizedSidebarVisibility(savedVisibility: Record<string, boolean> | null | undefined): Record<string, boolean> {
+    const homeItemVisibility = this.normalizeHomeItemVisibility(savedVisibility);
+
+    return {
+      ...this.normalizeSectionVisibility(savedVisibility),
+      'home.dashboard': homeItemVisibility.dashboard,
+      'home.allBooks': homeItemVisibility.allBooks,
+      'home.physicalBooks': homeItemVisibility.physicalBooks,
+      'home.series': homeItemVisibility.series,
+      'home.authors': homeItemVisibility.authors,
+      'home.notebook': homeItemVisibility.notebook,
+    };
+  }
+
+  private buildSidebarVisibilitySettings(): Record<string, boolean> {
+    return {
+      ...this.sectionVisibility,
+      'home.dashboard': this.homeItemVisibility.dashboard,
+      'home.allBooks': this.homeItemVisibility.allBooks,
+      'home.physicalBooks': this.homeItemVisibility.physicalBooks,
+      'home.series': this.homeItemVisibility.series,
+      'home.authors': this.homeItemVisibility.authors,
+      'home.notebook': this.homeItemVisibility.notebook,
+    };
+  }
+
+  private requiresSidebarVisibilityMigration(
+    persistedVisibility: Record<string, boolean>,
+    normalizedVisibility: Record<string, boolean>
+  ): boolean {
+    return Object.keys(normalizedVisibility).some(key => persistedVisibility[key] !== normalizedVisibility[key]);
   }
 
 

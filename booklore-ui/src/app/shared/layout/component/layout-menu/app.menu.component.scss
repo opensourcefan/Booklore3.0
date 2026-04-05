@@ -46,6 +46,20 @@
   min-width: 11rem;
 }
 
+.section-selector-group-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-color-secondary);
+}
+
+.section-selector-divider {
+  height: 1px;
+  background: color-mix(in srgb, var(--text-color-secondary), transparent 80%);
+  margin: 0.2rem 0;
+}
+
 .section-selector-item {
   display: flex;
   align-items: center;

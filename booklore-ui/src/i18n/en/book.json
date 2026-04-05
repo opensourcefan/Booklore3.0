@@ -932,5 +932,21 @@
       "mergeFailedDetail": "Could not merge this group.",
       "mergePartialDetail": "{{ success }} merged, {{ failed }} failed."
     }
+  },
+  "physicalBooksPage": {
+    "eyebrow": "Manual Shelf",
+    "title": "Physical Books",
+    "description": "Browse physical placeholders grouped by library so each collection reads like its own shelf.",
+    "loading": "Loading physical books...",
+    "errorTitle": "Physical books are unavailable",
+    "errorMessage": "BookLore could not load your physical-book shelf right now.",
+    "emptyTitle": "No physical books yet",
+    "emptyMessage": "Create a physical placeholder from a library to have it appear here.",
+    "libraryCaption": "{{ count }} placeholder",
+    "summary": {
+      "books": "Books",
+      "libraries": "Libraries"
+    },
+    "unknownLibrary": "Unknown Library"
   }
 }

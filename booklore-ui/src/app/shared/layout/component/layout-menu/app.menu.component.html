@@ -5,13 +5,28 @@
       class="section-visibility-btn"
       type="button"
       (click)="sectionVisibilityPop.toggle($event)"
-      pTooltip="Show / hide sidebar headings"
+      pTooltip="Show / hide sidebar items"
       tooltipPosition="right"
-      aria-label="Show or hide sidebar headings">
+      aria-label="Show or hide sidebar items">
       <i class="pi pi-sliders-h"></i>
     </button>
     <p-popover #sectionVisibilityPop [dismissable]="true" appendTo="body" styleClass="sidebar-section-selector-popover">
       <div class="section-selector-list">
+        <div class="section-selector-group-title">{{ t('homeItems') }}</div>
+        @for (option of homeItemOptions; track option.key) {
+          <div class="section-selector-item">
+            <p-checkbox
+              [inputId]="'home-item-toggle-' + option.key"
+              [binary]="true"
+              [ngModel]="isHomeItemVisible(option.key)"
+              (onChange)="onHomeItemVisibilityCheckboxChange(option.key, !!$event.checked)">
+            </p-checkbox>
+            <label [for]="'home-item-toggle-' + option.key">{{ getHomeItemOptionLabel(option) }}</label>
+          </div>
+        }
+
+        <div class="section-selector-divider"></div>
+        <div class="section-selector-group-title">{{ t('headings') }}</div>
         @for (option of sectionOptions; track option.key) {
           <div class="section-selector-item">
             <p-checkbox

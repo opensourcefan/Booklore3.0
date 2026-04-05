@@ -22,6 +22,7 @@ import {ThumbnailPrefetchService} from '../../../../features/book/service/thumbn
 
 export interface AppMenuItem extends MenuItem {
   type?: string;
+  visibilityKey?: string;
   class?: string;
   badgeClass?: string;
   hasDropDown?: boolean;
