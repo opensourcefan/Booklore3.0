@@ -255,7 +255,7 @@ export class AppMenuComponent implements OnInit {
       map(([bookState, mediaTypeSettings]) => {
         const counts = new Map<string, number>();
         for (const book of bookState.books ?? []) {
-          const type = (book.fileType ?? '').trim();
+          const type = book.isPhysical ? 'PHYSICAL' : (book.fileType ?? '').trim();
           if (!type) {
             continue;
           }

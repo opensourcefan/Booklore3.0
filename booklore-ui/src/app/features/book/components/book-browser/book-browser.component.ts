@@ -343,7 +343,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   openMediaTypeActionsMenu(event: Event, menu: Menu): void {
     const mediaType = this.activeMediaTypeFilter;
-    if (!mediaType) {
+    if (!mediaType || mediaType === 'PHYSICAL') {
       this.mediaTypeActionsMenuItems = [];
       return;
     }
