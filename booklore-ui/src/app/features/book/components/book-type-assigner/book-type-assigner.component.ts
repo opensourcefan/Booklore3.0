@@ -9,9 +9,9 @@ import {FormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
-import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 import {BookDialogHelperService} from '../book-browser/book-dialog-helper.service';
 import {WriteProgressService} from '../../../../shared/service/write-progress.service';
+import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
 
 @Component({
   selector: 'app-book-type-assigner',
@@ -33,12 +33,8 @@ export class BookTypeAssignerComponent implements OnInit {
   private messageService = inject(MessageService);
   private bookService = inject(BookService);
   private writeProgressService = inject(WriteProgressService);
-  private localStorageService = inject(LocalStorageService);
   private bookDialogHelper = inject(BookDialogHelperService);
-
-  private readonly customMediaTypesKey = 'customMediaTypes';
-  private readonly RECENT_MEDIA_TYPES_KEY = 'BOOKLORE_RECENT_MEDIA_TYPES';
-  private readonly MAX_RECENT = 5;
+  private mediaTypePreferences = inject(MediaTypePreferencesService);
 
   allFileTypes: string[] = [];
   recentMediaTypes: string[] = [];
@@ -60,13 +56,12 @@ export class BookTypeAssignerComponent implements OnInit {
   }
 
   private loadRecentMediaTypes(): void {
-    this.recentMediaTypes = this.localStorageService.get<string[]>(this.RECENT_MEDIA_TYPES_KEY) ?? [];
+    this.recentMediaTypes = this.mediaTypePreferences.getRecentTypes();
   }
 
   private saveRecentMediaTypes(type: string): void {
-    const existing = this.localStorageService.get<string[]>(this.RECENT_MEDIA_TYPES_KEY) ?? [];
-    const merged = [type, ...existing.filter(t => t.toLowerCase() !== type.toLowerCase())];
-    this.localStorageService.set(this.RECENT_MEDIA_TYPES_KEY, merged.slice(0, this.MAX_RECENT));
+    this.mediaTypePreferences.rememberRecentType(type);
+    this.loadRecentMediaTypes();
   }
 
   selectRecentType(type: string): void {
@@ -164,14 +159,11 @@ export class BookTypeAssignerComponent implements OnInit {
   }
 
   private getStoredCustomBookTypes(): string[] {
-    return this.localStorageService.get<string[]>(this.customMediaTypesKey)
-      ?? this.localStorageService.get<string[]>('customBookTypes')
-      ?? [];
+    return this.mediaTypePreferences.getCustomTypes();
   }
 
   private persistCustomBookTypes(types: string[]): void {
-    this.localStorageService.set(this.customMediaTypesKey, this.mergeTypes(types));
-    this.localStorageService.remove('customBookTypes');
+    this.mediaTypePreferences.setCustomTypes(this.mergeTypes(types));
   }
 
   private mergeTypes(...sources: string[][]): string[] {

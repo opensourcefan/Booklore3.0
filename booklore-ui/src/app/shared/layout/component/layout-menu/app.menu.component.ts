@@ -4,7 +4,7 @@ import {AsyncPipe, NgClass} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
-import {BehaviorSubject, combineLatest, Observable, of} from 'rxjs';
+import {combineLatest, Observable, of} from 'rxjs';
 import {catchError, filter, map} from 'rxjs/operators';
 import {ShelfService} from '../../../../features/book/service/shelf.service';
 import {BookService} from '../../../../features/book/service/book.service';
@@ -29,6 +29,7 @@ import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
+import {MediaTypePreferencesService} from '../../../../features/book/service/media-type-preferences.service';
 
 @Component({
   selector: 'app-menu',
@@ -65,6 +66,7 @@ export class AppMenuComponent implements OnInit {
   private localStorageService = inject(LocalStorageService);
   private bookDialogHelperService = inject(BookDialogHelperService);
   private messageService = inject(MessageService);
+  private mediaTypePreferences = inject(MediaTypePreferencesService);
 
   activeLang = '';
   langMenuItems: MenuItem[] = [];
@@ -88,11 +90,8 @@ export class AppMenuComponent implements OnInit {
   private readonly sectionOrderKey = 'sidebarSectionOrder';
   private readonly sectionVisibilityKey = 'sidebarSectionVisibility';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
-  private readonly customMediaTypesKey = 'customMediaTypes';
-  private readonly bookTypeOrderKey = 'sidebarBookTypeOrder';
   private initialSectionVisibilityFromStorage: Record<string, boolean> | null = null;
   private sectionVisibilityUserId: number | null = null;
-  private readonly mediaTypeMenuRefresh$ = new BehaviorSubject<void>(undefined);
   private touchStartX: number | null = null;
   private touchStartY: number | null = null;
   private suppressTapUntil = 0;
@@ -128,12 +127,6 @@ export class AppMenuComponent implements OnInit {
     this.buildLangMenu();
     this.t.langChanges$.subscribe((lang: string) => { this.activeLang = lang; this.buildLangMenu(); });
     this.localStorageService.keyChanges$.subscribe((key: string) => {
-      if (key === this.customMediaTypesKey || key === 'customBookTypes') {
-        this.mediaTypeMenuRefresh$.next();
-      }
-      if (key === this.bookTypeOrderKey) {
-        this.mediaTypeMenuRefresh$.next();
-      }
       if (key === this.sectionOrderKey) {
         const updatedOrder = this.localStorageService.get<string[]>(this.sectionOrderKey);
         if (updatedOrder?.length) {
@@ -222,8 +215,8 @@ export class AppMenuComponent implements OnInit {
       map(menuItems => this.applyNestedItemOrder('home', menuItems))
     );
 
-    this.bookTypeMenu$ = combineLatest([this.bookService.bookState$, this.mediaTypeMenuRefresh$]).pipe(
-      map(([bookState]) => {
+    this.bookTypeMenu$ = combineLatest([this.bookService.bookState$, this.mediaTypePreferences.settings$]).pipe(
+      map(([bookState, mediaTypeSettings]) => {
         const counts = new Map<string, number>();
         for (const book of bookState.books ?? []) {
           const type = (book.fileType ?? '').trim();
@@ -233,7 +226,7 @@ export class AppMenuComponent implements OnInit {
           counts.set(type, (counts.get(type) ?? 0) + 1);
         }
 
-        for (const savedType of this.getStoredCustomBookTypes()) {
+        for (const savedType of mediaTypeSettings.customTypes) {
           if (!counts.has(savedType)) {
             counts.set(savedType, 0);
           }
@@ -243,7 +236,7 @@ export class AppMenuComponent implements OnInit {
           .map(([label, count]) => ({label, count}))
           .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 
-        return this.applyBookTypeOrder(sortedBookTypes);
+        return this.applyBookTypeOrder(sortedBookTypes, mediaTypeSettings.sidebarOrder);
       })
     );
   }
@@ -255,8 +248,7 @@ export class AppMenuComponent implements OnInit {
 
     const reordered = [...event.container.data];
     moveItemInArray(reordered, event.previousIndex, event.currentIndex);
-    this.localStorageService.set(this.bookTypeOrderKey, reordered.map(item => item.label));
-    this.mediaTypeMenuRefresh$.next();
+    this.mediaTypePreferences.setSidebarOrder(reordered.map(item => item.label));
   }
 
   onBookTypeDragStart(): void {
@@ -357,7 +349,6 @@ export class AppMenuComponent implements OnInit {
       }
       const created = typeof result === 'boolean' ? result : !!result.created;
       if (created) {
-        this.mediaTypeMenuRefresh$.next();
         const type = typeof result === 'object' ? result.type : undefined;
         if (type) {
           this.selectBookTypeFilter(type);
@@ -467,15 +458,11 @@ export class AppMenuComponent implements OnInit {
   }
 
   private getStoredCustomBookTypes(): string[] {
-    const mediaTypes = this.localStorageService.get<string[]>(this.customMediaTypesKey) ?? [];
-    const legacyBookTypes = this.localStorageService.get<string[]>('customBookTypes') ?? [];
-    return [...new Set([...mediaTypes, ...legacyBookTypes])].sort((a, b) => a.localeCompare(b));
+    return this.mediaTypePreferences.getCustomTypes();
   }
 
   private setStoredMediaTypes(types: string[]): void {
-    this.localStorageService.set(this.customMediaTypesKey, types);
-    this.localStorageService.remove('customBookTypes');
-    this.mediaTypeMenuRefresh$.next();
+    this.mediaTypePreferences.setCustomTypes(types);
   }
 
   private editMediaType(mediaType: string): void {
@@ -886,9 +873,8 @@ export class AppMenuComponent implements OnInit {
     });
   }
 
-  private applyBookTypeOrder(bookTypes: {label: string; count: number}[]): {label: string; count: number}[] {
-    const savedOrder = this.localStorageService.get<string[]>(this.bookTypeOrderKey);
-    if (!savedOrder?.length) {
+  private applyBookTypeOrder(bookTypes: {label: string; count: number}[], savedOrder: string[]): {label: string; count: number}[] {
+    if (!savedOrder.length) {
       return bookTypes;
     }
 

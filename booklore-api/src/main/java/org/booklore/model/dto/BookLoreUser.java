@@ -70,19 +70,32 @@ public class BookLoreUser {
         public SidebarSortOption sidebarShelfSorting;
         public SidebarSortOption sidebarMagicShelfSorting;
         public java.util.Map<String, Boolean> sidebarSectionVisibility;
+        public MediaTypeSettings mediaTypeSettings;
         public EntityViewPreferences entityViewPreferences;
         public ThemeSettings themeSettings;
         public List<TableColumnPreference> tableColumnPreference;
         public List<ToolbarConfigItem> toolbarConfig;
         public String filterMode;
         public String filterSortingMode;
+        public List<Integer> filterExpandedPanels;
         public String metadataCenterViewMode;
         public boolean koReaderEnabled;
+        public Boolean showSidebarFilter;
         public boolean enableSeriesView;
         public boolean autoSaveMetadata;
         public List<String> visibleFilters;
         public List<String> visibleSortFields;
         public DashboardConfig dashboardConfig;
+
+        @Data
+        @Builder
+        @AllArgsConstructor
+        @NoArgsConstructor
+        public static class MediaTypeSettings {
+            private List<String> customTypes;
+            private List<String> recentTypes;
+            private List<String> sidebarOrder;
+        }
 
         @Data
         @Builder

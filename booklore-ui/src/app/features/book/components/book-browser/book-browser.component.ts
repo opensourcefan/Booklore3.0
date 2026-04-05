@@ -64,6 +64,7 @@ import {CoverPreviewComponent} from '../../../../shared/components/cover-preview
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {DirectoryFilterService} from '../../service/directory-filter.service';
 import {DirectoryPanelService} from '../../service/directory-panel.service';
+import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -132,6 +133,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private urlHelper = inject(UrlHelperService);
   private directoryFilterService = inject(DirectoryFilterService);
   readonly dirPanelService = inject(DirectoryPanelService);
+  private mediaTypePreferences = inject(MediaTypePreferencesService);
 
   bookState$: Observable<BookState> | undefined;
   entity$: Observable<Library | Shelf | MagicShelf | null> | undefined;
@@ -158,6 +160,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   entityViewPreferences: EntityViewPreferences | undefined;
   currentViewMode: string | undefined;
   lastAppliedSortCriteria: SortOption[] = [];
+  private baseSortCriteria: SortOption[] = [];
+  private hasExplicitSortQuery = false;
   visibleSortOptions: SortOption[] = [];
   showFilter = false;
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -409,6 +413,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.directoryFilterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.syncActiveDirectoryFilter();
+      this.applyEffectiveSortCriteria();
     });
 
     this.initializeEntityRouting();
@@ -591,6 +596,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         user.user?.userSettings?.filterMode ?? 'and'
       );
 
+      this.hasExplicitSortQuery = queryParamMap.has('sort');
+      this.baseSortCriteria = [...parseResult.sortCriteria];
+      const effectiveSortCriteria = this.getEffectiveSortCriteria(parseResult.sortCriteria);
+
 
       this.settingFiltersFromUrl = true;
       const hasExplicitFilterMode = queryParamMap.has('fmode');
@@ -647,8 +656,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.visibleSortOptions = visibleFields.map(f => sortOptionsByField.get(f)).filter((o): o is SortOption => !!o);
 
 
-      if (!this.areSortCriteriaEqual(this.bookSorter.selectedSortCriteria, parseResult.sortCriteria)) {
-        this.bookSorter.setSortCriteria(parseResult.sortCriteria);
+      if (!this.areSortCriteriaEqual(this.bookSorter.selectedSortCriteria, effectiveSortCriteria)) {
+        this.bookSorter.setSortCriteria(effectiveSortCriteria);
       }
       this.currentViewMode = parseResult.viewMode;
 
@@ -983,14 +992,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getStoredMediaTypes(): string[] {
-    const mediaTypes = this.localStorageService.get<string[]>('customMediaTypes') ?? [];
-    const legacyBookTypes = this.localStorageService.get<string[]>('customBookTypes') ?? [];
-    return [...new Set([...mediaTypes, ...legacyBookTypes])].sort((a, b) => a.localeCompare(b));
+    return this.mediaTypePreferences.getCustomTypes();
   }
 
   private setStoredMediaTypes(types: string[]): void {
-    this.localStorageService.set('customMediaTypes', types);
-    this.localStorageService.remove('customBookTypes');
+    this.mediaTypePreferences.setCustomTypes(types);
   }
 
   private openMediaTypeManagerDialog(): void {
@@ -1078,6 +1084,33 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     return (this.bookService.getCurrentBookState().books ?? [])
       .filter(book => (book.fileType ?? '').trim().toLowerCase() === mediaType.toLowerCase())
       .length;
+  }
+
+  private getEffectiveSortCriteria(baseSortCriteria: SortOption[]): SortOption[] {
+    if (!this.activeDirFilterPath || this.hasExplicitSortQuery) {
+      return baseSortCriteria;
+    }
+
+    return [this.getDirectoryDefaultSortOption()];
+  }
+
+  private applyEffectiveSortCriteria(): void {
+    const baseSortCriteria = this.baseSortCriteria.length > 0 ? this.baseSortCriteria : this.bookSorter.selectedSortCriteria;
+    const effectiveSortCriteria = this.getEffectiveSortCriteria(baseSortCriteria);
+
+    if (!this.areSortCriteriaEqual(this.bookSorter.selectedSortCriteria, effectiveSortCriteria)) {
+      this.bookSorter.setSortCriteria(effectiveSortCriteria);
+    }
+
+    if (!this.areSortCriteriaEqual(this.lastAppliedSortCriteria, effectiveSortCriteria)) {
+      this.lastAppliedSortCriteria = [...effectiveSortCriteria];
+      this.applySortCriteria(effectiveSortCriteria);
+    }
+  }
+
+  private getDirectoryDefaultSortOption(): SortOption {
+    return this.bookSorter.sortOptions.find(option => option.field === 'fileName')
+      ?? {field: 'fileName', direction: SortDirection.ASCENDING, label: 'File Name'};
   }
 
   get sortCriteriaCount(): number {

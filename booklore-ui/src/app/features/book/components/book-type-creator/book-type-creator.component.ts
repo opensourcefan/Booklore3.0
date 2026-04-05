@@ -4,7 +4,7 @@ import {MessageService} from 'primeng/api';
 import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
-import {LocalStorageService} from '../../../../shared/service/local-storage.service';
+import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
 
 @Component({
   selector: 'app-book-type-creator',
@@ -20,9 +20,7 @@ import {LocalStorageService} from '../../../../shared/service/local-storage.serv
 export class BookTypeCreatorComponent {
   private dynamicDialogRef = inject(DynamicDialogRef);
   private messageService = inject(MessageService);
-  private localStorageService = inject(LocalStorageService);
-
-  private readonly customMediaTypesKey = 'customMediaTypes';
+  private mediaTypePreferences = inject(MediaTypePreferencesService);
 
   mediaTypeName = '';
 
@@ -36,9 +34,7 @@ export class BookTypeCreatorComponent {
       return;
     }
 
-    const existing = this.localStorageService.get<string[]>(this.customMediaTypesKey)
-      ?? this.localStorageService.get<string[]>('customBookTypes')
-      ?? [];
+    const existing = this.mediaTypePreferences.getCustomTypes();
     if (existing.some(type => type.toLowerCase() === candidate.toLowerCase())) {
       this.messageService.add({
         severity: 'warn',
@@ -49,8 +45,7 @@ export class BookTypeCreatorComponent {
     }
 
     const updated = [...existing, candidate].sort((a, b) => a.localeCompare(b));
-    this.localStorageService.set(this.customMediaTypesKey, updated);
-    this.localStorageService.remove('customBookTypes');
+    this.mediaTypePreferences.setCustomTypes(updated);
 
     this.messageService.add({
       severity: 'info',

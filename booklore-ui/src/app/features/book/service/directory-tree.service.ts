@@ -29,14 +29,14 @@ export class DirectoryTreeService {
     const cached = this.libraryCache.get(libraryId);
     if (cached) return of(cached);
     return this.http.get<DirectoryRootNode[]>(`${API_CONFIG.BASE_URL}/api/v1/libraries/${libraryId}/directory-tree`).pipe(
-      tap(data => this.libraryCache.set(libraryId, data))
+      tap(data => this.libraryCache.set(libraryId, this.sortRootNodes(data)))
     );
   }
 
   getAllLibrariesTree(): Observable<DirectoryRootNode[]> {
     if (this.allCache) return of(this.allCache);
     return this.http.get<DirectoryRootNode[]>(`${API_CONFIG.BASE_URL}/api/v1/libraries/directory-tree`).pipe(
-      tap(data => { this.allCache = data; })
+      tap(data => { this.allCache = this.sortRootNodes(data); })
     );
   }
 
@@ -48,5 +48,23 @@ export class DirectoryTreeService {
   invalidateAll(): void {
     this.libraryCache.clear();
     this.allCache = null;
+  }
+
+  private sortRootNodes(nodes: DirectoryRootNode[]): DirectoryRootNode[] {
+    return [...nodes]
+      .map(node => ({
+        ...node,
+        children: this.sortDirectoryNodes(node.children ?? []),
+      }))
+      .sort((a, b) => a.rootPath.localeCompare(b.rootPath, undefined, {numeric: true, sensitivity: 'base'}));
+  }
+
+  private sortDirectoryNodes(nodes: DirectoryNode[]): DirectoryNode[] {
+    return [...nodes]
+      .map(node => ({
+        ...node,
+        children: this.sortDirectoryNodes(node.children ?? []),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
   }
 }

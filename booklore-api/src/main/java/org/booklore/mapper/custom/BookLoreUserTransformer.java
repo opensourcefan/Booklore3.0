@@ -57,6 +57,7 @@ public class BookLoreUserTransformer {
                         case SIDEBAR_MAGIC_SHELF_SORTING -> userSettings.setSidebarMagicShelfSorting(objectMapper.readValue(value, SidebarSortOption.class));
                         case SIDEBAR_SECTION_VISIBILITY -> userSettings.setSidebarSectionVisibility(objectMapper.readValue(value, new TypeReference<>() {
                         }));
+                        case MEDIA_TYPE_SETTINGS -> userSettings.setMediaTypeSettings(objectMapper.readValue(value, BookLoreUser.UserSettings.MediaTypeSettings.class));
                         case ENTITY_VIEW_PREFERENCES -> userSettings.setEntityViewPreferences(objectMapper.readValue(value, BookLoreUser.UserSettings.EntityViewPreferences.class));
                         case THEME_SETTINGS -> userSettings.setThemeSettings(objectMapper.readValue(value, BookLoreUser.UserSettings.ThemeSettings.class));
                         case TABLE_COLUMN_PREFERENCE -> userSettings.setTableColumnPreference(objectMapper.readValue(value, new TypeReference<>() {
@@ -68,6 +69,8 @@ public class BookLoreUserTransformer {
                         }));
                         case VISIBLE_SORT_FIELDS -> userSettings.setVisibleSortFields(objectMapper.readValue(value, new TypeReference<>() {
                         }));
+                        case FILTER_EXPANDED_PANELS -> userSettings.setFilterExpandedPanels(objectMapper.readValue(value, new TypeReference<>() {
+                        }));
                         default -> {
                         }
                     }
@@ -76,6 +79,7 @@ public class BookLoreUserTransformer {
                         case FILTER_MODE -> userSettings.setFilterMode(value);
                         case FILTER_SORTING_MODE -> userSettings.setFilterSortingMode(value);
                         case METADATA_CENTER_VIEW_MODE -> userSettings.setMetadataCenterViewMode(value);
+                        case SHOW_SIDEBAR_FILTER -> userSettings.setShowSidebarFilter(Boolean.parseBoolean(value));
                         case ENABLE_SERIES_VIEW -> userSettings.setEnableSeriesView(Boolean.parseBoolean(value));
                         case AUTO_SAVE_METADATA -> userSettings.setAutoSaveMetadata(Boolean.parseBoolean(value));
                         default -> {

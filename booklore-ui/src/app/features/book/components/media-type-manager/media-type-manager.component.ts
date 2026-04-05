@@ -4,10 +4,10 @@ import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
 import {FormsModule} from '@angular/forms';
 import {BookService} from '../../service/book.service';
-import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 import {MessageService} from 'primeng/api';
 import {BookDialogHelperService} from '../book-browser/book-dialog-helper.service';
 import {catchError, finalize, map, of} from 'rxjs';
+import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
 
 interface RenameRecord {from: string; to: string}
 
@@ -21,12 +21,9 @@ interface RenameRecord {from: string; to: string}
 export class MediaTypeManagerComponent implements OnInit {
   private dynamicDialogRef = inject(DynamicDialogRef);
   private bookService = inject(BookService);
-  private localStorageService = inject(LocalStorageService);
   private messageService = inject(MessageService);
   private bookDialogHelperService = inject(BookDialogHelperService);
-
-  private readonly customMediaTypesKey = 'customMediaTypes';
-  private readonly legacyBookTypesKey = 'customBookTypes';
+  private mediaTypePreferences = inject(MediaTypePreferencesService);
 
   mediaTypes: string[] = [];
   editingType: string | null = null;
@@ -184,13 +181,10 @@ export class MediaTypeManagerComponent implements OnInit {
   }
 
   private getStoredMediaTypes(): string[] {
-    const mediaTypes = this.localStorageService.get<string[]>(this.customMediaTypesKey) ?? [];
-    const legacyBookTypes = this.localStorageService.get<string[]>(this.legacyBookTypesKey) ?? [];
-    return [...new Set([...mediaTypes, ...legacyBookTypes])].sort((a, b) => a.localeCompare(b));
+    return this.mediaTypePreferences.getCustomTypes();
   }
 
   private setStoredMediaTypes(types: string[]): void {
-    this.localStorageService.set(this.customMediaTypesKey, types);
-    this.localStorageService.remove(this.legacyBookTypesKey);
+    this.mediaTypePreferences.setCustomTypes(types);
   }
 }

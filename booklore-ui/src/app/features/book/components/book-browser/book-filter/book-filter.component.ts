@@ -47,6 +47,8 @@ export class BookFilterComponent implements OnInit, OnDestroy {
 
   private readonly activeFilters$ = new BehaviorSubject<Record<string, unknown[]> | null>(null);
   private readonly filterMode$ = new BehaviorSubject<BookFilterMode>('and');
+  private readonly filterExpandedPanelsKey = 'bl-filter-expanded-panels';
+  private readonly filterSortKey = 'bl-filter-sort';
 
   activeFilters: Record<string, unknown[]> = {};
   filterStreams: Record<FilterType, Observable<Filter[]>> = {} as Record<FilterType, Observable<Filter[]>>;
@@ -59,6 +61,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   private _selectedFilterMode: BookFilterMode = 'and';
   private _visibleFilters: VisibleFilterType[] = [...DEFAULT_VISIBLE_FILTERS];
   private readonly filterSort$ = new BehaviorSubject<UserFilterSort>('count');
+  private currentUserId: number | null = null;
 
   readonly filterLabelKeys = FILTER_LABEL_KEYS;
 
@@ -86,8 +89,8 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.loadLegacyPreferences();
     this.subscribeToUserSettings();
-    this.loadFilterSort();
     this.initializeFilterStreams();
     this.subscribeToReset();
   }
@@ -125,7 +128,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   onExpandedPanelsChange(value: string | number | string[] | number[] | null | undefined): void {
     if (Array.isArray(value)) {
       this.expandedPanels = value.map(Number);
-      localStorage.setItem('bl-filter-expanded-panels', JSON.stringify(this.expandedPanels));
+      this.persistFilterExpandedPanels();
     }
   }
 
@@ -135,9 +138,8 @@ export class BookFilterComponent implements OnInit, OnDestroy {
 
   setFilterSort(sort: UserFilterSort): void {
     if (sort === this.filterSort) return;
-    this.filterSort = sort;
-    this.filterSort$.next(sort);
-    localStorage.setItem('bl-filter-sort', sort);
+    this.applyFilterSort(sort, false);
+    this.persistFilterSort(sort);
   }
 
   trackByFilterType = (_: number, type: FilterType): string => type;
@@ -165,21 +167,29 @@ export class BookFilterComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(state => {
       const settings = state.user!.userSettings;
+      this.currentUserId = state.user!.id;
       this._visibleFilters = settings.visibleFilters ?? [...DEFAULT_VISIBLE_FILTERS];
+      this.applyPersistedFilterSort(settings.filterSortingMode);
+      this.applyPersistedExpandedPanels(settings.filterExpandedPanels);
       this.updateVisibleFilterTypes();
     });
   }
 
-  private loadExpandedPanels(): void {
+  private loadLegacyPreferences(): void {
     try {
-      const saved = localStorage.getItem('bl-filter-expanded-panels');
-      if (saved) this.expandedPanels = JSON.parse(saved);
+      const savedPanels = localStorage.getItem(this.filterExpandedPanelsKey);
+      if (savedPanels) {
+        this.expandedPanels = this.normalizeExpandedPanels(JSON.parse(savedPanels));
+      }
+
+      const savedSort = localStorage.getItem(this.filterSortKey) as UserFilterSort | null;
+      if (savedSort && ['count', 'az', 'za'].includes(savedSort)) {
+        this.applyFilterSort(savedSort, false);
+      }
     } catch { /* ignore */ }
   }
 
   private initializeFilterStreams(): void {
-    const hasSavedPanels = !!localStorage.getItem('bl-filter-expanded-panels');
-    this.loadExpandedPanels();
     const entity$ = this.entity$ ?? of(null);
     const entityType$ = this.entityType$ ?? of(EntityType.ALL_BOOKS);
 
@@ -193,9 +203,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     );
     this.filterTypes = Object.keys(this.filterStreams) as FilterType[];
     this.updateVisibleFilterTypes();
-    if (!hasSavedPanels) {
-      this.updateExpandedPanels();
-    }
+    this.updateExpandedPanels();
   }
 
   private updateVisibleFilterTypes(): void {
@@ -206,14 +214,6 @@ export class BookFilterComponent implements OnInit, OnDestroy {
 
   private subscribeToReset(): void {
     this.resetFilter$?.pipe(takeUntil(this.destroy$)).subscribe(() => this.clearActiveFilter());
-  }
-
-  private loadFilterSort(): void {
-    const saved = localStorage.getItem('bl-filter-sort') as UserFilterSort | null;
-    if (saved && ['count', 'az', 'za'].includes(saved)) {
-      this.filterSort = saved;
-      this.filterSort$.next(saved);
-    }
   }
 
   private handleSingleMode(filterType: string, value: unknown): void {
@@ -272,5 +272,70 @@ export class BookFilterComponent implements OnInit, OnDestroy {
       if (this.activeFilters[type]?.length) panels.add(i);
     });
     this.expandedPanels = panels.size > 0 ? [...panels] : [0];
+  }
+
+  private applyFilterSort(sort: UserFilterSort, persist = true): void {
+    this.filterSort = sort;
+    this.filterSort$.next(sort);
+    if (persist) {
+      this.persistFilterSort(sort);
+    }
+  }
+
+  private applyPersistedFilterSort(sort: UserFilterSort | undefined): void {
+    if (sort && ['count', 'az', 'za'].includes(sort)) {
+      this.applyFilterSort(sort, false);
+      return;
+    }
+
+    const legacySort = localStorage.getItem(this.filterSortKey) as UserFilterSort | null;
+    if (legacySort && ['count', 'az', 'za'].includes(legacySort)) {
+      this.applyFilterSort(legacySort, false);
+      this.persistFilterSort(legacySort);
+      localStorage.removeItem(this.filterSortKey);
+    }
+  }
+
+  private applyPersistedExpandedPanels(panels: number[] | undefined): void {
+    if (Array.isArray(panels)) {
+      this.expandedPanels = this.normalizeExpandedPanels(panels);
+      return;
+    }
+
+    try {
+      const savedPanels = localStorage.getItem(this.filterExpandedPanelsKey);
+      if (!savedPanels) {
+        return;
+      }
+
+      this.expandedPanels = this.normalizeExpandedPanels(JSON.parse(savedPanels));
+      this.persistFilterExpandedPanels();
+      localStorage.removeItem(this.filterExpandedPanelsKey);
+    } catch {
+      // Ignore malformed legacy data.
+    }
+  }
+
+  private persistFilterSort(sort: UserFilterSort): void {
+    if (this.currentUserId != null) {
+      this.userService.updateUserSetting(this.currentUserId, 'filterSortingMode', sort);
+    } else {
+      localStorage.setItem(this.filterSortKey, sort);
+    }
+  }
+
+  private persistFilterExpandedPanels(): void {
+    const normalized = this.normalizeExpandedPanels(this.expandedPanels);
+    this.expandedPanels = normalized;
+    if (this.currentUserId != null) {
+      this.userService.updateUserSetting(this.currentUserId, 'filterExpandedPanels', normalized);
+    } else {
+      localStorage.setItem(this.filterExpandedPanelsKey, JSON.stringify(normalized));
+    }
+  }
+
+  private normalizeExpandedPanels(panels: number[]): number[] {
+    const normalized = [...new Set(panels.map(Number).filter(value => Number.isInteger(value) && value >= 0))];
+    return normalized.length > 0 ? normalized : [0];
   }
 }

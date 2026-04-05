@@ -51,6 +51,12 @@ export interface SidebarMagicShelfSorting {
   order: string;
 }
 
+export interface MediaTypeSettings {
+  customTypes?: string[];
+  recentTypes?: string[];
+  sidebarOrder?: string[];
+}
+
 export interface PerBookSetting {
   pdf: string;
   epub: string;
@@ -283,8 +289,12 @@ export interface UserSettings {
   sidebarShelfSorting: SidebarShelfSorting;
   sidebarMagicShelfSorting: SidebarMagicShelfSorting;
   sidebarSectionVisibility?: Record<string, boolean>;
+  mediaTypeSettings?: MediaTypeSettings;
   themeSettings?: AppState;
   filterMode: BookFilterMode;
+  filterSortingMode?: 'count' | 'az' | 'za';
+  filterExpandedPanels?: number[];
+  showSidebarFilter?: boolean;
   visibleFilters?: VisibleFilterType[];
   visibleSortFields?: string[];
   metadataCenterViewMode: 'route' | 'dialog';
