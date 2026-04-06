@@ -2,6 +2,7 @@ package org.booklore.controller;
 
 import org.booklore.model.dto.MetadataBatchProgressNotification;
 import org.booklore.model.dto.response.MetadataTaskDetailsResponse;
+import org.booklore.model.dto.response.TaskCancelResponse;
 import org.booklore.service.metadata.MetadataTaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,6 +50,17 @@ public class MetadataTaskController {
             @Parameter(description = "Task ID") @PathVariable String taskId) {
         boolean deleted = metadataTaskService.deleteTaskAndProposals(taskId);
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @Operation(summary = "Cancel a metadata task", description = "Cancel a running metadata batch task by task ID. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Task cancellation requested successfully")
+    @DeleteMapping("/{taskId}/cancel")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<TaskCancelResponse> cancelTask(
+            @Parameter(description = "Task ID") @PathVariable String taskId) {
+        return metadataTaskService.cancelMetadataTask(taskId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Update proposal status", description = "Update the status of a proposal for a metadata task. Requires metadata edit permission or admin.")

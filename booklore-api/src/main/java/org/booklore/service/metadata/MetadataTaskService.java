@@ -6,12 +6,16 @@ import org.booklore.model.dto.FetchedProposal;
 import org.booklore.model.dto.MetadataBatchProgressNotification;
 import org.booklore.model.dto.MetadataFetchTask;
 import org.booklore.model.dto.response.MetadataTaskDetailsResponse;
+import org.booklore.model.dto.response.TaskCancelResponse;
 import org.booklore.model.entity.MetadataFetchJobEntity;
 import org.booklore.model.entity.MetadataFetchProposalEntity;
+import org.booklore.model.enums.TaskType;
 import org.booklore.model.enums.FetchedMetadataProposalStatus;
 import org.booklore.model.enums.MetadataFetchTaskStatus;
 import org.booklore.repository.MetadataFetchJobRepository;
 import org.booklore.repository.MetadataFetchProposalRepository;
+import org.booklore.repository.TaskHistoryRepository;
+import org.booklore.service.task.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +31,20 @@ public class MetadataTaskService {
 
     private final MetadataFetchJobRepository metadataFetchTaskRepository;
     private final MetadataFetchProposalRepository proposalRepository;
+    private final TaskHistoryRepository taskHistoryRepository;
     private final FetchedProposalMapper fetchedProposalMapper;
     private final AuthenticationService authenticationService;
+    private final TaskService taskService;
 
     public Optional<MetadataTaskDetailsResponse> getTaskWithProposals(String taskId) {
         return metadataFetchTaskRepository.findById(taskId)
                 .map(this::buildTaskDetailsResponse);
+    }
+
+    public Optional<TaskCancelResponse> cancelMetadataTask(String taskId) {
+        return taskHistoryRepository.findById(taskId)
+                .filter(task -> task.getType() == TaskType.REFRESH_METADATA_MANUAL)
+                .map(task -> taskService.cancelTask(taskId));
     }
 
     private MetadataTaskDetailsResponse buildTaskDetailsResponse(MetadataFetchJobEntity task) {

@@ -737,7 +737,7 @@
 </div>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> If one metadata source fails to return a usable first match during a bulk custom scan, BookLore now falls back more gracefully instead of abandoning that whole book as aggressively. For providers that temporarily throttle large jobs, BookLore now retries the throttled request itself after the cooldown window, keeps the metadata task visible as still running, shows a provider-wait message with both the reset ETA and the current time left, interrupts long ComicVine cooldown waits promptly when you cancel the job, and uses a lighter top-match lookup path for ComicVine batch scans so large runs are less likely to exhaust the hourly request budget mid-batch.
+  <strong>Good to Know:</strong> If one metadata source fails to return a usable first match during a bulk custom scan, BookLore now falls back more gracefully instead of abandoning that whole book as aggressively. For providers that temporarily throttle large jobs, BookLore now retries the throttled request itself after the cooldown window, keeps the metadata task visible as still running, shows a provider-wait message with both the reset ETA and the current time left, lets metadata editors cancel those metadata jobs directly from the progress widget even without broader task-manager access, interrupts long ComicVine cooldown waits promptly when you cancel the job, and uses a lighter top-match lookup path for ComicVine batch scans so large runs are less likely to exhaust the hourly request budget mid-batch.
 </div>
 
 <!-- ==================== SECTION 16 ==================== -->
@@ -1162,6 +1162,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-05</td><td>1.1.15</td><td>Documented that metadata editors can now cancel running bulk metadata fetches from the progress widget without needing full task-manager access</td></tr>
   <tr><td>2026-04-05</td><td>1.1.14</td><td>Documented that cancelling a throttled ComicVine bulk metadata fetch now breaks out of the provider wait immediately instead of waiting for the cooldown to finish</td></tr>
   <tr><td>2026-04-05</td><td>1.1.13</td><td>Clarified throttled ComicVine bulk metadata notifications to show an explicit time-left snapshot alongside the reset ETA</td></tr>
   <tr><td>2026-04-05</td><td>1.1.12</td><td>Documented the reduced-request ComicVine top-match path for bulk metadata scans to lower the chance of hitting hourly API limits mid-batch</td></tr>

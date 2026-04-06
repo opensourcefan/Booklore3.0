@@ -5,6 +5,12 @@ import {BookMetadata} from '../model/book.model';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {MetadataBatchProgressNotification} from '../../../shared/model/metadata-batch-progress.model';
 
+export interface MetadataTaskCancelResponse {
+  taskId: string;
+  cancelled: boolean;
+  message: string;
+}
+
 export enum FetchedMetadataProposalStatus {
   FETCHED = 'FETCHED',
   ACCEPTED = 'ACCEPTED',
@@ -52,6 +58,10 @@ export class MetadataTaskService {
 
   deleteTask(taskId: string): Observable<void> {
     return this.http.delete<void>(`${this.url}/${taskId}`);
+  }
+
+  cancelTask(taskId: string): Observable<MetadataTaskCancelResponse> {
+    return this.http.delete<MetadataTaskCancelResponse>(`${this.url}/${taskId}/cancel`);
   }
 
   updateProposalStatus(taskId: string, proposalId: number, status: string): Observable<void> {

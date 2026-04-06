@@ -13,7 +13,6 @@ import {MetadataBatchProgressNotification, MetadataBatchStatus} from '../../mode
 import {MetadataProgressService} from '../../service/metadata-progress.service';
 import {MetadataTaskService} from '../../../features/book/service/metadata-task';
 import {Tag} from 'primeng/tag';
-import {TaskService} from '../../../features/settings/task-management/task.service';
 import {DialogLauncherService} from '../../services/dialog-launcher.service';
 
 @Component({
@@ -30,7 +29,6 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   private dialogLauncherService = inject(DialogLauncherService);
   private metadataProgressService = inject(MetadataProgressService);
   private metadataTaskService = inject(MetadataTaskService);
-  private taskService = inject(TaskService);
   private messageService = inject(MessageService);
   private readonly t = inject(TranslocoService);
 
@@ -59,7 +57,7 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   }
 
   cancelTask(taskId: string): void {
-    this.taskService.cancelTask(taskId).subscribe({
+    this.metadataTaskService.cancelTask(taskId).subscribe({
       next: () => {
         const task = this.activeTasks[taskId];
         if (task) {

@@ -5,13 +5,18 @@ import org.booklore.mapper.FetchedProposalMapper;
 import org.booklore.model.dto.BookLoreUser;
 import org.booklore.model.dto.FetchedProposal;
 import org.booklore.model.dto.MetadataBatchProgressNotification;
+import org.booklore.model.dto.response.TaskCancelResponse;
 import org.booklore.model.dto.response.MetadataTaskDetailsResponse;
 import org.booklore.model.entity.MetadataFetchJobEntity;
 import org.booklore.model.entity.MetadataFetchProposalEntity;
+import org.booklore.model.entity.TaskHistoryEntity;
 import org.booklore.model.enums.FetchedMetadataProposalStatus;
 import org.booklore.model.enums.MetadataFetchTaskStatus;
+import org.booklore.model.enums.TaskType;
 import org.booklore.repository.MetadataFetchJobRepository;
 import org.booklore.repository.MetadataFetchProposalRepository;
+import org.booklore.repository.TaskHistoryRepository;
+import org.booklore.service.task.TaskService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,10 +43,16 @@ class MetadataTaskServiceTest {
     private MetadataFetchProposalRepository proposalRepository;
 
     @Mock
+    private TaskHistoryRepository taskHistoryRepository;
+
+    @Mock
     private FetchedProposalMapper fetchedProposalMapper;
 
     @Mock
     private AuthenticationService authenticationService;
+
+    @Mock
+    private TaskService taskService;
 
     @InjectMocks
     private MetadataTaskService service;
@@ -130,6 +141,52 @@ class MetadataTaskServiceTest {
             when(metadataFetchTaskRepository.findById("missing")).thenReturn(Optional.empty());
             assertThat(service.deleteTaskAndProposals("missing")).isFalse();
             verify(metadataFetchTaskRepository, never()).delete(any());
+        }
+    }
+
+    @Nested
+    class CancelMetadataTask {
+
+        @Test
+        void cancelsManualMetadataTask() {
+            TaskHistoryEntity taskHistory = TaskHistoryEntity.builder()
+                    .id("task-1")
+                    .type(TaskType.REFRESH_METADATA_MANUAL)
+                    .build();
+            TaskCancelResponse response = TaskCancelResponse.builder()
+                    .taskId("task-1")
+                    .cancelled(true)
+                    .message("Task cancellation requested. The task will stop at the next checkpoint.")
+                    .build();
+
+            when(taskHistoryRepository.findById("task-1")).thenReturn(Optional.of(taskHistory));
+            when(taskService.cancelTask("task-1")).thenReturn(response);
+
+            Optional<TaskCancelResponse> result = service.cancelMetadataTask("task-1");
+
+            assertThat(result).contains(response);
+            verify(taskService).cancelTask("task-1");
+        }
+
+        @Test
+        void returnsEmptyWhenTaskIsNotMetadataRefresh() {
+            TaskHistoryEntity taskHistory = TaskHistoryEntity.builder()
+                    .id("task-1")
+                    .type(TaskType.CLEANUP_TEMP_METADATA)
+                    .build();
+
+            when(taskHistoryRepository.findById("task-1")).thenReturn(Optional.of(taskHistory));
+
+            assertThat(service.cancelMetadataTask("task-1")).isEmpty();
+            verify(taskService, never()).cancelTask(any());
+        }
+
+        @Test
+        void returnsEmptyWhenTaskHistoryMissing() {
+            when(taskHistoryRepository.findById("missing")).thenReturn(Optional.empty());
+
+            assertThat(service.cancelMetadataTask("missing")).isEmpty();
+            verify(taskService, never()).cancelTask(any());
         }
     }
 
