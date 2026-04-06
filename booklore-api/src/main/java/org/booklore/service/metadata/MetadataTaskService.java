@@ -15,6 +15,7 @@ import org.booklore.repository.MetadataFetchProposalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.List;
@@ -92,7 +93,9 @@ public class MetadataTaskService {
         List<MetadataFetchJobEntity> tasks = metadataFetchTaskRepository.findAllWithProposals();
 
         return tasks.stream()
-                .filter(task -> task.getStatus() == MetadataFetchTaskStatus.COMPLETED || task.getStatus() == MetadataFetchTaskStatus.ERROR)
+            .filter(task -> task.getStatus() == MetadataFetchTaskStatus.IN_PROGRESS
+                || task.getStatus() == MetadataFetchTaskStatus.COMPLETED
+                || task.getStatus() == MetadataFetchTaskStatus.ERROR)
                 .map(task -> {
                     List<MetadataFetchProposalEntity> proposals = task.getProposals();
                     List<MetadataFetchProposalEntity> remaining = proposals.stream()
@@ -110,8 +113,15 @@ public class MetadataTaskService {
                     String message;
                     String status;
                     int completedCount = task.getCompletedBooks() != null ? task.getCompletedBooks() : 0;
+                    boolean isReview = task.getStatus() != MetadataFetchTaskStatus.IN_PROGRESS;
 
-                    if (task.getStatus() == MetadataFetchTaskStatus.ERROR) {
+                    if (task.getStatus() == MetadataFetchTaskStatus.IN_PROGRESS) {
+                        total = task.getTotalBooksCount() != null ? task.getTotalBooksCount() : remaining.size();
+                        message = StringUtils.hasText(task.getStatusMessage())
+                                ? task.getStatusMessage()
+                                : String.format("Metadata fetch still running, processed %d of %d books.", completedCount, total);
+                        status = "IN_PROGRESS";
+                    } else if (task.getStatus() == MetadataFetchTaskStatus.ERROR) {
                         total = task.getTotalBooksCount() != null ? task.getTotalBooksCount() : remaining.size();
                         message = String.format("Metadata fetch failed, processed %d of %d books.", completedCount, total);
                         status = "ERROR";
@@ -128,7 +138,7 @@ public class MetadataTaskService {
                             total,
                             message,
                             status,
-                            true
+                            isReview
                     );
                 })
                 .filter(n -> n.getTotal() > 0)

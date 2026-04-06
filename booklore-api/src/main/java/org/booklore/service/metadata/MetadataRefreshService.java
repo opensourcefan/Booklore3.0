@@ -116,9 +116,11 @@ public class MetadataRefreshService {
                     BookEntity book = bookRepository.findAllWithMetadataByIds(Collections.singleton(bookId))
                             .stream().findFirst()
                             .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+                    MetadataTaskContext.set(jobId, finalCompletedCount, totalBooks, isReviewMode);
                     try {
                         if (book.getMetadata().areAllFieldsLocked()) {
                             log.info("Skipping locked book: {}", getBookIdentifier(book));
+                            updateTaskSnapshot(task, finalCompletedCount, "Skipped locked book: " + book.getMetadata().getTitle());
                             sendBatchProgressNotification(jobId, finalCompletedCount, totalBooks, "Skipped locked book: " + book.getMetadata().getTitle(), MetadataFetchTaskStatus.IN_PROGRESS, isReviewMode);
                             return null;
                         }
@@ -139,6 +141,7 @@ public class MetadataRefreshService {
 
                         if (refreshOptions == null) {
                             log.warn("Skipping metadata refresh for book {} because no refresh options are configured.", getBookIdentifier(book));
+                            updateTaskSnapshot(task, finalCompletedCount, "Skipped: no metadata refresh options configured for " + book.getMetadata().getTitle());
                             sendBatchProgressNotification(jobId, finalCompletedCount, totalBooks,
                                     "Skipped: no metadata refresh options configured for " + book.getMetadata().getTitle(),
                                     MetadataFetchTaskStatus.IN_PROGRESS, isReviewMode);
@@ -173,6 +176,7 @@ public class MetadataRefreshService {
                             updateBookMetadata(book, fetched, refreshOptions.isRefreshCovers(), refreshOptions.isMergeCategories(), replaceMode);
                         }
 
+                        updateTaskSnapshot(task, finalCompletedCount + 1, "Processed: " + book.getMetadata().getTitle());
                         sendBatchProgressNotification(jobId, finalCompletedCount + 1, totalBooks, "Processed: " + book.getMetadata().getTitle(), MetadataFetchTaskStatus.IN_PROGRESS, bookReviewMode);
                     } catch (Exception e) {
                         if (Thread.currentThread().isInterrupted()) {
@@ -181,7 +185,10 @@ public class MetadataRefreshService {
                             return null;
                         }
                         log.error("Metadata update failed for book: {}", getBookIdentifier(book), e);
+                        updateTaskSnapshot(task, finalCompletedCount, String.format("Failed to process: %s - %s", book.getMetadata().getTitle(), e.getMessage()));
                         sendBatchProgressNotification(jobId, finalCompletedCount, totalBooks, String.format("Failed to process: %s - %s", book.getMetadata().getTitle(), e.getMessage()), MetadataFetchTaskStatus.ERROR, isReviewMode);
+                    } finally {
+                        MetadataTaskContext.clear();
                     }
                     bookRepository.saveAndFlush(book);
                     return null;
@@ -253,10 +260,18 @@ public class MetadataRefreshService {
 
     private void reportProgressIfNeeded(MetadataFetchJobEntity task, String taskId, int completedCount, int total, BookEntity book, boolean isReviewMode) {
         if (task == null) return;
-        task.setCompletedBooks(completedCount);
-        metadataFetchJobRepository.save(task);
         String message = String.format("Processing '%s'", book.getMetadata().getTitle());
+        updateTaskSnapshot(task, completedCount, message);
         sendBatchProgressNotification(taskId, completedCount, total, message, MetadataFetchTaskStatus.IN_PROGRESS, isReviewMode);
+    }
+
+    private void updateTaskSnapshot(MetadataFetchJobEntity task, int completedCount, String message) {
+        if (task == null) {
+            return;
+        }
+        task.setCompletedBooks(completedCount);
+        task.setStatusMessage(message);
+        metadataFetchJobRepository.save(task);
     }
 
     private String getBookIdentifier(BookEntity book) {
@@ -311,6 +326,7 @@ public class MetadataRefreshService {
         task.setStatus(MetadataFetchTaskStatus.COMPLETED);
         task.setCompletedAt(Instant.now());
         task.setCompletedBooks(completed);
+        task.setStatusMessage("Batch metadata fetch successfully completed!");
         metadataFetchJobRepository.save(task);
         sendBatchProgressNotification(task.getTaskId(), completed, total, "Batch metadata fetch successfully completed!", MetadataFetchTaskStatus.COMPLETED, isReviewMode);
     }
@@ -318,6 +334,7 @@ public class MetadataRefreshService {
     private void cancelTask(MetadataFetchJobEntity task) {
         task.setStatus(MetadataFetchTaskStatus.CANCELLED);
         task.setCompletedAt(Instant.now());
+        task.setStatusMessage("Task cancelled by user");
         metadataFetchJobRepository.save(task);
         sendBatchProgressNotification(task.getTaskId(), task.getCompletedBooks(), task.getTotalBooksCount(), "Task cancelled by user", MetadataFetchTaskStatus.CANCELLED, false);
     }

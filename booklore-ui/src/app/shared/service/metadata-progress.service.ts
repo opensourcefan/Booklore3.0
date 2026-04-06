@@ -1,9 +1,9 @@
 import {inject, Injectable, OnDestroy} from '@angular/core';
-import {BehaviorSubject, Subject, Subscription} from 'rxjs';
+import {BehaviorSubject, Subject, Subscription, timer} from 'rxjs';
 import {MetadataBatchProgressNotification} from '../model/metadata-batch-progress.model';
 import {MetadataTaskService} from '../../features/book/service/metadata-task';
 import {UserService} from '../../features/settings/user-management/user.service';
-import {filter, take} from 'rxjs/operators';
+import {filter, switchMap, take} from 'rxjs/operators';
 
 @Injectable({providedIn: 'root'})
 export class MetadataProgressService implements OnDestroy {
@@ -30,8 +30,10 @@ export class MetadataProgressService implements OnDestroy {
         if (!this.hasMetadataPermissions(userState.user)) {
           return;
         }
-        const activeTasksSub = this.metadataTaskService.getActiveTasks().subscribe({
-          next: (tasks) => this.initializeActiveTasks(tasks),
+        const activeTasksSub = timer(0, 30000).pipe(
+          switchMap(() => this.metadataTaskService.getActiveTasks())
+        ).subscribe({
+          next: (tasks) => this.syncActiveTasks(tasks),
           error: (err) => console.warn('Failed to fetch active metadata tasks:', err)
         });
         this.subscriptions.add(activeTasksSub);
@@ -70,9 +72,13 @@ export class MetadataProgressService implements OnDestroy {
     return !!(user?.permissions?.admin || user?.permissions?.canEditMetadata);
   }
 
-  private initializeActiveTasks(tasks: MetadataBatchProgressNotification[]): void {
+  private syncActiveTasks(tasks: MetadataBatchProgressNotification[]): void {
     for (const task of tasks) {
-      this.progressMap.set(task.taskId, new BehaviorSubject(task));
+      if (!this.progressMap.has(task.taskId)) {
+        this.progressMap.set(task.taskId, new BehaviorSubject(task));
+      } else {
+        this.progressMap.get(task.taskId)!.next(task);
+      }
       this.progressUpdatesSubject.next(task);
     }
     this.activeTasksSubject.next(this.getActiveTasks());

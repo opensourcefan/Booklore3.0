@@ -230,7 +230,7 @@ class MetadataTaskServiceTest {
     class GetActiveTasks {
 
         @Test
-        void filtersOutInProgressAndCancelledTasks() {
+        void filtersOutCancelledTasks() {
             MetadataFetchJobEntity inProgress = buildTask("ip", MetadataFetchTaskStatus.IN_PROGRESS, new ArrayList<>());
             MetadataFetchJobEntity cancelled = buildTask("ca", MetadataFetchTaskStatus.CANCELLED, new ArrayList<>());
             MetadataFetchJobEntity completed = buildTask("co", MetadataFetchTaskStatus.COMPLETED, List.of(
@@ -242,8 +242,34 @@ class MetadataTaskServiceTest {
 
             List<MetadataBatchProgressNotification> result = service.getActiveTasks();
 
+            assertThat(result).hasSize(2);
+            assertThat(result).extracting(MetadataBatchProgressNotification::getTaskId)
+                    .containsExactlyInAnyOrder("ip", "co");
+        }
+
+        @Test
+        void inProgressTaskUsesPersistedStatusMessageAndIsNotReview() {
+            MetadataFetchJobEntity task = MetadataFetchJobEntity.builder()
+                    .taskId("ip")
+                    .status(MetadataFetchTaskStatus.IN_PROGRESS)
+                    .statusMessage("Waiting for ComicVine rate limit reset until 6:45:00 PM (12m 10s remaining). Processed 66 of 100 books.")
+                    .totalBooksCount(100)
+                    .completedBooks(66)
+                    .startedAt(Instant.now())
+                    .proposals(new ArrayList<>())
+                    .build();
+
+            when(metadataFetchTaskRepository.findAllWithProposals()).thenReturn(List.of(task));
+
+            List<MetadataBatchProgressNotification> result = service.getActiveTasks();
+
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst().getTaskId()).isEqualTo("co");
+            var notification = result.getFirst();
+            assertThat(notification.getCompleted()).isEqualTo(66);
+            assertThat(notification.getTotal()).isEqualTo(100);
+            assertThat(notification.getStatus()).isEqualTo("IN_PROGRESS");
+            assertThat(notification.getMessage()).contains("Waiting for ComicVine rate limit reset");
+            assertThat(notification.isReview()).isFalse();
         }
 
         @Test
@@ -337,7 +363,7 @@ class MetadataTaskServiceTest {
         }
 
         @Test
-        void allNotificationsHaveIsReviewTrue() {
+        void completedNotificationsHaveIsReviewTrue() {
             MetadataFetchProposalEntity fetched = MetadataFetchProposalEntity.builder()
                     .proposalId(1L).status(FetchedMetadataProposalStatus.FETCHED).build();
 

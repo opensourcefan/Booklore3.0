@@ -5,12 +5,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.BookMetadata;
 import org.booklore.model.dto.ComicMetadata;
+import org.booklore.model.dto.MetadataBatchProgressNotification;
 import org.booklore.model.dto.request.FetchMetadataRequest;
 import org.booklore.model.dto.response.comicvineapi.Comic;
 import org.booklore.model.dto.response.comicvineapi.ComicvineApiResponse;
 import org.booklore.model.dto.response.comicvineapi.ComicvineIssueResponse;
+import org.booklore.model.enums.MetadataFetchTaskStatus;
 import org.booklore.model.enums.MetadataProvider;
+import org.booklore.model.websocket.Topic;
+import org.booklore.repository.MetadataFetchJobRepository;
 import org.booklore.service.appsettings.AppSettingService;
+import org.booklore.service.metadata.MetadataTaskContext;
+import org.booklore.service.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.ObjectMapper;
@@ -20,8 +26,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -47,6 +55,7 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     private static final Pattern SPECIAL_ISSUE_PATTERN = Pattern.compile("(annual|special|one-?shot)\\s+(\\d+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern YEAR_PATTERN = Pattern.compile("\\(?(\\d{4})\\)?");
     private static final long MIN_REQUEST_INTERVAL_MS = 2000;
+    private static final DateTimeFormatter RATE_LIMIT_TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm:ss a");
 
     private static final String VOLUME_FIELDS = "id,name,publisher,start_year,count_of_issues,description,deck,image,site_detail_url,aliases,first_issue,last_issue";
     private static final String ISSUE_LIST_FIELDS = "api_detail_url,cover_date,store_date,description,deck,id,image,issue_number,name,volume,site_detail_url,aliases,person_credits,character_credits,team_credits,story_arc_credits,location_credits";
@@ -59,6 +68,8 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
 
     private final ObjectMapper objectMapper;
     private final AppSettingService appSettingService;
+    private final MetadataFetchJobRepository metadataFetchJobRepository;
+    private final NotificationService notificationService;
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     private final AtomicBoolean rateLimited = new AtomicBoolean(false);
@@ -435,23 +446,8 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     }
 
     private <T> T sendRequestWithRetry(URI uri, Class<T> responseType, int retriesLeft) {
-        if (rateLimited.get()) {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime < rateLimitResetTime.get()) {
-                long waitMs = rateLimitResetTime.get() - currentTime;
-                log.warn("ComicVine API is currently rate limited. Waiting {}ms before retrying request. Rate limit resets at: {}",
-                        waitMs, Instant.ofEpochMilli(rateLimitResetTime.get()));
-                try {
-                    Thread.sleep(waitMs);
-                } catch (InterruptedException ignored) {
-                    Thread.currentThread().interrupt();
-                    return null;
-                }
-                rateLimited.compareAndSet(true, false);
-            } else {
-                rateLimited.compareAndSet(true, false);
-                log.info("ComicVine rate limit period expired, resuming normal requests");
-            }
+        if (!waitForRateLimitResetIfNeeded()) {
+            return null;
         }
 
         long now = System.currentTimeMillis();
@@ -485,7 +481,10 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
             if (response.statusCode() == 200) {
                 return objectMapper.readValue(response.body(), responseType);
             } else if (response.statusCode() == 420 || response.statusCode() == 429) {
-                handleRateLimit(response);
+                long waitMs = handleRateLimit(response);
+                if (retriesLeft > 0 && waitForRateLimitReset(waitMs)) {
+                    return sendRequestWithRetry(uri, responseType, retriesLeft - 1);
+                }
                 return null;
             } else if (response.statusCode() >= 500 && retriesLeft > 0) {
                 log.warn("ComicVine API returned status {}. Retrying... ({} retries left)", 
@@ -514,7 +513,42 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         return null;
     }
 
-    private void handleRateLimit(HttpResponse<String> response) {
+    private boolean waitForRateLimitResetIfNeeded() {
+        if (!rateLimited.get()) {
+            return true;
+        }
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime < rateLimitResetTime.get()) {
+            long waitMs = rateLimitResetTime.get() - currentTime;
+            return waitForRateLimitReset(waitMs);
+        }
+
+        rateLimited.set(false);
+        log.info("ComicVine rate limit period expired, resuming normal requests");
+        return true;
+    }
+
+    private boolean waitForRateLimitReset(long waitMs) {
+        if (waitMs <= 0) {
+            rateLimited.set(false);
+            return true;
+        }
+
+        long effectiveWaitMs = Math.max(waitMs, MIN_REQUEST_INTERVAL_MS);
+        log.warn("ComicVine API is currently rate limited. Waiting {}ms before retrying request. Rate limit resets at: {}",
+                effectiveWaitMs, Instant.ofEpochMilli(System.currentTimeMillis() + effectiveWaitMs));
+        try {
+            Thread.sleep(effectiveWaitMs);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        rateLimited.set(false);
+        return true;
+    }
+
+    private long handleRateLimit(HttpResponse<String> response) {
         log.error("ComicVine API rate limit exceeded (Error {}). Setting rate limit flag.", response.statusCode());
 
         long resetDelayMs = 3600000;
@@ -536,10 +570,65 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
             }
         }
 
-        if (rateLimited.compareAndSet(false, true)) {
-            rateLimitResetTime.set(System.currentTimeMillis() + resetDelayMs);
-            log.info("Rate limit will reset at: {}", Instant.ofEpochMilli(rateLimitResetTime.get()));
+        rateLimited.set(true);
+        long resetAt = System.currentTimeMillis() + Math.max(resetDelayMs, MIN_REQUEST_INTERVAL_MS);
+        rateLimitResetTime.set(resetAt);
+        log.info("Rate limit will reset at: {}", Instant.ofEpochMilli(resetAt));
+        publishRateLimitWaitStatus(resetAt);
+        return Math.max(resetDelayMs, MIN_REQUEST_INTERVAL_MS);
+    }
+
+    private void publishRateLimitWaitStatus(long resetAt) {
+        MetadataTaskContext.TaskContext taskContext = MetadataTaskContext.get();
+        if (taskContext == null) {
+            return;
         }
+
+        String message = formatRateLimitWaitMessage(resetAt, taskContext.completed(), taskContext.total());
+        metadataFetchJobRepository.findById(taskContext.taskId()).ifPresent(task -> {
+            task.setCompletedBooks(taskContext.completed());
+            task.setStatusMessage(message);
+            metadataFetchJobRepository.save(task);
+        });
+
+        notificationService.sendMessage(
+                Topic.BOOK_METADATA_BATCH_PROGRESS,
+                new MetadataBatchProgressNotification(
+                        taskContext.taskId(),
+                        taskContext.completed(),
+                        taskContext.total(),
+                        message,
+                        MetadataFetchTaskStatus.IN_PROGRESS.name(),
+                        taskContext.review()
+                )
+        );
+    }
+
+    private String formatRateLimitWaitMessage(long resetAt, int completed, int total) {
+        Duration remaining = Duration.ofMillis(Math.max(0, resetAt - System.currentTimeMillis()));
+        String formattedResetTime = RATE_LIMIT_TIME_FORMATTER.format(Instant.ofEpochMilli(resetAt).atZone(ZoneId.systemDefault()));
+        return String.format(
+                "Waiting for ComicVine rate limit reset until %s (%s remaining). Processed %d of %d books.",
+                formattedResetTime,
+                formatDuration(remaining),
+                completed,
+                total
+        );
+    }
+
+    private String formatDuration(Duration duration) {
+        long totalSeconds = Math.max(0, duration.toSeconds());
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+
+        if (hours > 0) {
+            return String.format("%dh %02dm %02ds", hours, minutes, seconds);
+        }
+        if (minutes > 0) {
+            return String.format("%dm %02ds", minutes, seconds);
+        }
+        return String.format("%ds", seconds);
     }
 
     private String extractEndpointFromUri(URI uri) {

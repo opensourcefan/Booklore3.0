@@ -34,57 +34,12 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private readonly t = inject(TranslocoService);
 
-  private lastUpdateMap = new Map<string, number>();
-  private timeoutHandles = new Map<string, number>();
-  private readonly TASK_STALL_TIMEOUT_MS = 60 * 1000; // 1 minute
-
   ngOnInit(): void {
     this.metadataProgressService.activeTasks$
       .pipe(takeUntil(this.destroy$))
       .subscribe(tasks => {
         this.activeTasks = tasks;
-        this.checkForStalledTasks(tasks);
       });
-  }
-
-  private checkForStalledTasks(tasks: Record<string, MetadataBatchProgressNotification>): void {
-    const now = Date.now();
-
-    for (const taskId of this.timeoutHandles.keys()) {
-      if (!tasks[taskId]) {
-        clearTimeout(this.timeoutHandles.get(taskId));
-        this.timeoutHandles.delete(taskId);
-        this.lastUpdateMap.delete(taskId);
-      }
-    }
-
-    for (const [taskId, _task] of Object.entries(tasks)) {
-      this.lastUpdateMap.set(taskId, now);
-
-      if (this.timeoutHandles.has(taskId)) {
-        clearTimeout(this.timeoutHandles.get(taskId));
-      }
-
-      this.timeoutHandles.set(
-        taskId,
-        setTimeout(() => {
-          this.markTaskStalled(taskId);
-        }, this.TASK_STALL_TIMEOUT_MS)
-      );
-    }
-  }
-
-  private markTaskStalled(taskId: string): void {
-    const task = this.activeTasks[taskId];
-    if (!task) return;
-    if (task.status !== MetadataBatchStatus.COMPLETED && task.status !== 'ERROR') {
-      this.activeTasks[taskId] = {
-        ...task,
-        status: MetadataBatchStatus.ERROR,
-        message: this.t.translate('shared.metadataProgress.taskStalled')
-      };
-      this.activeTasks = {...this.activeTasks};
-    }
   }
 
   getProgressPercent(task: MetadataBatchProgressNotification): number {
@@ -96,9 +51,6 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   clearTask(taskId: string): void {
     this.metadataTaskService.deleteTask(taskId).subscribe(() => {
       this.metadataProgressService.clearTask(taskId);
-      clearTimeout(this.timeoutHandles.get(taskId));
-      this.timeoutHandles.delete(taskId);
-      this.lastUpdateMap.delete(taskId);
     });
   }
 
@@ -139,11 +91,6 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const timeout of this.timeoutHandles.values()) {
-      clearTimeout(timeout);
-    }
-    this.timeoutHandles.clear();
-    this.lastUpdateMap.clear();
   }
 
   getTagSeverity(status: 'IN_PROGRESS' | 'COMPLETED' | 'ERROR' | 'CANCELLED'): 'info' | 'success' | 'danger' | 'warn' {
