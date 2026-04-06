@@ -230,13 +230,14 @@ export class BookBrowserQueryParamsService {
     }
   }
 
-  updateFilterMode(mode: BookFilterMode, currentFilters: Record<string, string[]>): void {
+  updateFilterMode(mode: BookFilterMode, currentFilters: Record<string, string[]>, clearFilters = false): void {
     const params: Record<string, string | null> = {[QUERY_PARAMS.FMODE]: mode};
 
-    // Clear filters if switching from multiple selected to single mode
-    if (mode === 'single') {
+    // Clear filters if switching modes in a context that requires a clean slate,
+    // or when switching from multiple selected to single mode.
+    if (clearFilters || mode === 'single') {
       const categories = Object.keys(currentFilters);
-      if (categories.length > 1 || (categories.length === 1 && currentFilters[categories[0]].length > 1)) {
+      if (clearFilters || categories.length > 1 || (categories.length === 1 && currentFilters[categories[0]].length > 1)) {
         params[QUERY_PARAMS.FILTER] = null;
       }
     }

@@ -81,6 +81,13 @@
   }
 }
 
+:host ::ng-deep .filter-mode-tooltip {
+  max-width: 18rem;
+  min-width: 12rem;
+  white-space: normal;
+  word-break: normal;
+}
+
 .filter-content {
   flex: 1;
   overflow-y: auto;

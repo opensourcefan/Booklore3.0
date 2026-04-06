@@ -637,7 +637,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.settingFiltersFromUrl = false;
 
       if (!filterParams) {
-        this.clearFilter();
+        this.clearSidebarFiltersState();
       }
 
       this.parsedFilters = parseResult.filters;
@@ -719,8 +719,31 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.settingFiltersFromUrl || mode === this.selectedFilterMode.getValue()) return;
 
     this.selectedFilterMode.next(mode);
-    this.queryParamsService.updateFilterMode(mode, this.parsedFilters);
+    this.clearSidebarFiltersState(true);
+    this.queryParamsService.updateFilterMode(mode, {}, true);
     this.persistFilterModePreference(mode);
+  }
+
+  private clearSidebarFiltersState(suppressFilterSelectionEvents = false): void {
+    const previousSettingFiltersFromUrl = this.settingFiltersFromUrl;
+
+    if (suppressFilterSelectionEvents) {
+      this.settingFiltersFromUrl = true;
+    }
+
+    this.rawFilterParamFromUrl = null;
+    this.parsedFilters = {};
+    this.currentFilterLabel = this.t.translate('book.browser.labels.allBooks');
+
+    if (this.selectedFilter.value !== null) {
+      this.selectedFilter.next(null);
+    }
+
+    this.resetFilterSubject.next();
+
+    if (suppressFilterSelectionEvents) {
+      this.settingFiltersFromUrl = previousSettingFiltersFromUrl;
+    }
   }
 
   private persistFilterModePreference(mode: BookFilterMode): void {

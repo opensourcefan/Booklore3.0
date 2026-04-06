@@ -35,6 +35,7 @@
             [text]="selectedFilterMode !== option.value"
             [styleClass]="'filter-mode-btn' + (selectedFilterMode === option.value ? ' filter-mode-btn-active' : '')"
             [pTooltip]="option.tooltip"
+            tooltipStyleClass="filter-mode-tooltip"
             tooltipPosition="bottom"
             (click)="selectedFilterMode = option.value" />
         }

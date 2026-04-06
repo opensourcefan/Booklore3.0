@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.17 &mdash; April 6, 2026<br>
+    Version 1.1.18 &mdash; April 6, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -776,6 +776,10 @@
   <strong>Good to Know:</strong> In <strong>AND</strong> mode, the tag and sidebar option lists now narrow themselves to combinations that can actually exist together. After you choose one tag, BookLore only offers additional tags that still leave at least one matching book in the current result set.
 </div>
 
+<div class="callout info">
+  <strong>Mode Changes Reset Sidebar Selections:</strong> Switching between <strong>AND</strong>, <strong>OR</strong>, <strong>NOT</strong>, and <strong>1</strong> now clears the current sidebar filter selections first. This prevents an old selection set from being silently reinterpreted under a different mode.
+</div>
+
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
   <li>Search inside book contents (search only covers metadata)</li>
@@ -1168,6 +1172,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-06</td><td>1.1.18</td><td>Documented that changing sidebar filter modes now clears the active sidebar selections first, and clarified the filter-mode tooltips for the compact AND/OR/NOT/1 controls</td></tr>
   <tr><td>2026-04-06</td><td>1.1.17</td><td>Clarified sidebar filter mode behavior with tooltips and documented that AND mode now narrows same-filter options, such as tags, to combinations that still have matching books</td></tr>
   <tr><td>2026-04-06</td><td>1.1.16</td><td>Documented same-directory physical placeholder duplicate prevention and clarified that deleting a digital book&rsquo;s last readable format now removes accidental empty shells instead of leaving a fileless non-physical entry behind</td></tr>
   <tr><td>2026-04-05</td><td>1.1.15</td><td>Documented that metadata editors can now cancel running bulk metadata fetches from the progress widget without needing full task-manager access</td></tr>
