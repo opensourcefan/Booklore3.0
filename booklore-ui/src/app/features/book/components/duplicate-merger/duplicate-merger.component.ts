@@ -14,6 +14,12 @@ import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {BookStateService} from '../../service/book-state.service';
 import {BookDialogHelperService} from '../book-browser/book-dialog-helper.service';
 import {BookService} from '../../service/book.service';
+import {
+  DuplicateResolutionMatchingConfig,
+  DuplicateResolutionPlan,
+  DuplicateResolutionPlanEntry,
+  UserService,
+} from '../../../settings/user-management/user.service';
 
 type PresetMode = 'strict' | 'balanced' | 'aggressive' | 'custom';
 
@@ -30,24 +36,6 @@ interface DisplayGroup extends DuplicateGroup {
   inspectedBookId: number;
   preferredTargetBookId: number;
   queuedForPlan: boolean;
-}
-
-interface ResolutionPlanEntry {
-  groupIndex: number;
-  matchReason: string;
-  keepBookId: number;
-  keepTitle: string;
-  candidateBookIds: number[];
-  books: {
-    id: number;
-    title: string;
-    authors: string;
-    library: string;
-    formats: string;
-    path: string;
-    isPreferredKeep: boolean;
-    isSuggestedKeep: boolean;
-  }[];
 }
 
 @Component({
@@ -83,6 +71,7 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
 
   groups: DisplayGroup[] = [];
   currentViewBookIds: number[] = [];
+  savedPlan: DuplicateResolutionPlan | null = null;
 
   pageFirst = 0;
   pageSize = 20;
@@ -92,6 +81,7 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
   private readonly bookStateService = inject(BookStateService);
   private readonly bookDialogHelperService = inject(BookDialogHelperService);
   private readonly bookService = inject(BookService);
+  private readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
   private readonly dialogRef = inject(DynamicDialogRef);
   private readonly config = inject(DynamicDialogConfig);
@@ -104,6 +94,16 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     this.currentViewBookIds = Array.from(new Set((this.bookStateService.getCurrentBookState().books ?? []).map(book => book.id)));
     this.selectedScope = this.getDefaultScope();
     this.applyPreset('balanced');
+
+    this.userService.userState$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(state => {
+      this.savedPlan = state.user?.userSettings?.duplicateResolutionPlan ?? null;
+
+      if (this.savedPlan && !this.hasScanned && !this.isScanning) {
+        this.applySavedWorkflow(this.savedPlan);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -244,6 +244,7 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
           preferredTargetBookId: g.suggestedTargetBookId,
           queuedForPlan: false,
         }));
+        this.rehydrateSavedPlanSelections();
         this.isScanning = false;
         this.hasScanned = true;
       },
@@ -269,6 +270,14 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
 
   get pagedGroups(): DisplayGroup[] {
     return this.activeGroups.slice(this.pageFirst, this.pageFirst + this.pageSize);
+  }
+
+  get hasSavedPlan(): boolean {
+    return !!this.savedPlan && this.getSavedPlanQueuedCount() > 0;
+  }
+
+  get savedPlanEntries(): DuplicateResolutionPlanEntry[] {
+    return this.savedPlan?.entries ?? [];
   }
 
   get canScan(): boolean {
@@ -350,7 +359,9 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
   }
 
   dismissGroup(group: DisplayGroup): void {
+    group.queuedForPlan = false;
     group.dismissed = true;
+    this.persistResolutionPlan();
     if (this.pagedGroups.length === 0 && this.pageFirst > 0) {
       this.pageFirst = Math.max(0, this.pageFirst - this.pageSize);
     }
@@ -387,16 +398,27 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
   setPreferredTarget(group: DisplayGroup, bookId: number): void {
     group.preferredTargetBookId = bookId;
     group.inspectedBookId = bookId;
+
+    if (group.queuedForPlan) {
+      this.persistResolutionPlan();
+    }
   }
 
   toggleGroupPlan(group: DisplayGroup): void {
     group.queuedForPlan = !group.queuedForPlan;
+    this.persistResolutionPlan();
   }
 
   clearResolutionPlan(): void {
     for (const group of this.groups) {
       group.queuedForPlan = false;
     }
+
+    this.persistResolutionPlan();
+  }
+
+  clearSavedPlan(): void {
+    this.clearResolutionPlan();
   }
 
   canOpenBook(book: Book): boolean {
@@ -469,21 +491,42 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     });
   }
 
-  buildResolutionPlanPayload(): {
-    exportedAt: string;
-    scope: DuplicateScanScope;
-    scopeLabel: string;
-    scopeDescription: string;
-    matchingSignals: string[];
-    queuedGroupCount: number;
-    entries: ResolutionPlanEntry[];
-  } {
+  getSavedPlanSummary(): string {
+    if (!this.savedPlan) {
+      return '';
+    }
+
+    return this.t.translate('book.duplicateMerger.savedPlanSummary', {
+      count: this.getSavedPlanQueuedCount(),
+      savedAt: this.formatSavedTimestamp(this.savedPlan.savedAt),
+    });
+  }
+
+  getSavedPlanSignalSummary(): string {
+    if (!this.savedPlan?.matchingSignals?.length) {
+      return this.t.translate('book.duplicateMerger.unknownValue');
+    }
+
+    return this.savedPlan.matchingSignals.join(', ');
+  }
+
+  getSavedEntryCandidateCount(entry: DuplicateResolutionPlanEntry): number {
+    return entry.candidateBookIds?.length ?? Math.max(0, this.getSavedEntryBookIds(entry).length - 1);
+  }
+
+  getSavedEntryBookTitles(entry: DuplicateResolutionPlanEntry): string {
+    const titles = entry.books?.map(book => book.title).filter(title => !!title?.trim()) ?? [];
+    return titles.length > 0 ? titles.join(' • ') : this.t.translate('book.duplicateMerger.unknownValue');
+  }
+
+  buildResolutionPlanPayload(savedAt = new Date().toISOString()): DuplicateResolutionPlan {
     return {
-      exportedAt: new Date().toISOString(),
+      savedAt,
       scope: this.selectedScope,
       scopeLabel: this.getSelectedScopeLabel(),
       scopeDescription: this.getSelectedScopeDescription(),
       matchingSignals: this.getActiveSignalLabels(),
+      matchingConfig: this.getCurrentMatchingConfig(),
       queuedGroupCount: this.plannedGroups.length,
       entries: this.plannedGroups.map((group, index) => this.toResolutionPlanEntry(group, index)),
     };
@@ -494,7 +537,7 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     const lines: string[] = [
       '# BookLore Duplicate Resolution Plan',
       '',
-      `Generated: ${payload.exportedAt}`,
+      `Generated: ${payload.savedAt}`,
       `Scope: ${payload.scopeLabel}`,
       `Signals: ${payload.matchingSignals.join(', ')}`,
       `Queued groups: ${payload.queuedGroupCount}`,
@@ -609,7 +652,17 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     ].filter((value): value is string => !!value);
   }
 
-  private toResolutionPlanEntry(group: DisplayGroup, index: number): ResolutionPlanEntry {
+  private getCurrentMatchingConfig(): DuplicateResolutionMatchingConfig {
+    return {
+      matchByIsbn: this.matchByIsbn,
+      matchByExternalId: this.matchByExternalId,
+      matchByTitleAuthor: this.matchByTitleAuthor,
+      matchByDirectory: this.matchByDirectory,
+      matchByFilename: this.matchByFilename,
+    };
+  }
+
+  private toResolutionPlanEntry(group: DisplayGroup, index: number): DuplicateResolutionPlanEntry {
     const preferredTarget = this.getPreferredTarget(group);
     const keepBookId = preferredTarget?.id ?? group.preferredTargetBookId;
 
@@ -632,6 +685,105 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
         isSuggestedKeep: book.id === group.suggestedTargetBookId,
       })),
     };
+  }
+
+  private persistResolutionPlan(): void {
+    const currentUser = this.userService.getCurrentUser();
+    if (!currentUser) {
+      return;
+    }
+
+    const nextPlan = this.plannedGroups.length > 0 ? this.buildResolutionPlanPayload() : null;
+    this.userService.updateUserSetting(currentUser.id, 'duplicateResolutionPlan', nextPlan);
+  }
+
+  private applySavedWorkflow(plan: DuplicateResolutionPlan): void {
+    if (this.isScopeAvailable(plan.scope)) {
+      this.selectedScope = plan.scope;
+    }
+
+    if (plan.matchingConfig) {
+      this.matchByIsbn = plan.matchingConfig.matchByIsbn;
+      this.matchByExternalId = plan.matchingConfig.matchByExternalId;
+      this.matchByTitleAuthor = plan.matchingConfig.matchByTitleAuthor;
+      this.matchByDirectory = plan.matchingConfig.matchByDirectory;
+      this.matchByFilename = plan.matchingConfig.matchByFilename;
+      this.presetMode = this.detectPresetMode(plan.matchingConfig);
+      this.showAdvanced = this.presetMode === 'custom';
+    }
+  }
+
+  private detectPresetMode(config: DuplicateResolutionMatchingConfig): PresetMode {
+    if (config.matchByIsbn && config.matchByExternalId && !config.matchByTitleAuthor && !config.matchByDirectory && !config.matchByFilename) {
+      return 'strict';
+    }
+
+    if (config.matchByIsbn && config.matchByExternalId && config.matchByTitleAuthor && !config.matchByDirectory && !config.matchByFilename) {
+      return 'balanced';
+    }
+
+    if (config.matchByIsbn && config.matchByExternalId && config.matchByTitleAuthor && config.matchByDirectory && config.matchByFilename) {
+      return 'aggressive';
+    }
+
+    return 'custom';
+  }
+
+  private rehydrateSavedPlanSelections(): void {
+    if (!this.savedPlan?.entries?.length) {
+      return;
+    }
+
+    for (const group of this.groups) {
+      const savedEntry = this.findSavedEntry(group);
+      if (!savedEntry) {
+        continue;
+      }
+
+      if (group.books.some(book => book.id === savedEntry.keepBookId)) {
+        group.preferredTargetBookId = savedEntry.keepBookId;
+        group.inspectedBookId = savedEntry.keepBookId;
+      }
+      group.queuedForPlan = true;
+    }
+  }
+
+  private findSavedEntry(group: DisplayGroup): DuplicateResolutionPlanEntry | undefined {
+    const groupBookIds = [...group.books.map(book => book.id)].sort((left, right) => left - right);
+
+    return this.savedPlan?.entries.find(entry => {
+      const entryBookIds = this.getSavedEntryBookIds(entry).sort((left, right) => left - right);
+      return entryBookIds.length === groupBookIds.length && entryBookIds.every((bookId, index) => bookId === groupBookIds[index]);
+    });
+  }
+
+  private getSavedEntryBookIds(entry: DuplicateResolutionPlanEntry): number[] {
+    if (entry.books?.length) {
+      return entry.books.map(book => book.id);
+    }
+
+    return [entry.keepBookId, ...(entry.candidateBookIds ?? [])];
+  }
+
+  private getSavedPlanQueuedCount(): number {
+    if (!this.savedPlan) {
+      return 0;
+    }
+
+    return this.savedPlan.queuedGroupCount ?? this.savedPlan.entries?.length ?? 0;
+  }
+
+  private formatSavedTimestamp(savedAt?: string): string {
+    if (!savedAt) {
+      return this.t.translate('book.duplicateMerger.unknownValue');
+    }
+
+    const parsed = new Date(savedAt);
+    if (Number.isNaN(parsed.getTime())) {
+      return savedAt;
+    }
+
+    return parsed.toLocaleString();
   }
 
   private downloadTextFile(filename: string, content: string, mimeType: string): void {

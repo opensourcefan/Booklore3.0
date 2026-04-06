@@ -75,6 +75,7 @@ public class BookLoreUser {
         public ThemeSettings themeSettings;
         public List<TableColumnPreference> tableColumnPreference;
         public List<ToolbarConfigItem> toolbarConfig;
+        public DuplicateResolutionPlan duplicateResolutionPlan;
         public String filterMode;
         public String filterSortingMode;
         public List<Integer> filterExpandedPanels;
@@ -118,6 +119,65 @@ public class BookLoreUser {
             private Boolean visible;
             private String label;
             private String icon;
+        }
+
+        @Data
+        @Builder
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class DuplicateResolutionPlan {
+            private String savedAt;
+            private String scope;
+            private String scopeLabel;
+            private String scopeDescription;
+            private List<String> matchingSignals;
+            private DuplicateResolutionMatchingConfig matchingConfig;
+            private Integer queuedGroupCount;
+            private List<DuplicateResolutionPlanEntry> entries;
+        }
+
+        @Data
+        @Builder
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class DuplicateResolutionMatchingConfig {
+            private Boolean matchByIsbn;
+            private Boolean matchByExternalId;
+            private Boolean matchByTitleAuthor;
+            private Boolean matchByDirectory;
+            private Boolean matchByFilename;
+        }
+
+        @Data
+        @Builder
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class DuplicateResolutionPlanEntry {
+            private Integer groupIndex;
+            private String matchReason;
+            private Long keepBookId;
+            private String keepTitle;
+            private List<Long> candidateBookIds;
+            private List<DuplicateResolutionPlanBook> books;
+        }
+
+        @Data
+        @Builder
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class DuplicateResolutionPlanBook {
+            private Long id;
+            private String title;
+            private String authors;
+            private String library;
+            private String formats;
+            private String path;
+            private Boolean isPreferredKeep;
+            private Boolean isSuggestedKeep;
         }
 
         @Data

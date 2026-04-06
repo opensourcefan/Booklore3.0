@@ -20,6 +20,7 @@ public enum UserSettingKey {
     TABLE_COLUMN_PREFERENCE("tableColumnPreference", true),
     TOOLBAR_CONFIG("toolbarConfig", true),
     DASHBOARD_CONFIG("dashboardConfig", true),
+    DUPLICATE_RESOLUTION_PLAN("duplicateResolutionPlan", true),
     FILTER_MODE("filterMode", false),
     FILTER_SORTING_MODE("filterSortingMode", false),
     FILTER_EXPANDED_PANELS("filterExpandedPanels", true),

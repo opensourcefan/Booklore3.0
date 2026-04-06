@@ -124,6 +124,56 @@
       </p-button>
     </div>
 
+    @if (hasSavedPlan) {
+      <div class="saved-plan-banner">
+        <div class="saved-plan-copy">
+          <span class="section-eyebrow">{{ t('savedPlanEyebrow') }}</span>
+          <h3>{{ t('savedPlanTitle') }}</h3>
+          <p>{{ getSavedPlanSummary() }}</p>
+        </div>
+        <div class="saved-plan-actions">
+          <p-tag [value]="t('planQueuedBadge', { count: savedPlan?.queuedGroupCount || 0 })" severity="contrast"></p-tag>
+          <p-button
+            [label]="t('clearSavedPlan')"
+            icon="pi pi-trash"
+            size="small"
+            severity="secondary"
+            [outlined]="true"
+            (click)="clearSavedPlan()">
+          </p-button>
+        </div>
+      </div>
+
+      <section class="saved-plan-snapshot">
+        <div class="section-heading">
+          <span class="section-eyebrow">{{ t('savedPlanSnapshotEyebrow') }}</span>
+          <h3>{{ t('savedPlanSnapshotTitle') }}</h3>
+          <p>{{ t('savedPlanSnapshotDescription', { scope: savedPlan?.scopeLabel || getSelectedScopeLabel(), signals: getSavedPlanSignalSummary() }) }}</p>
+        </div>
+
+        <div class="saved-plan-entry-list">
+          @for (entry of savedPlanEntries; track entry.groupIndex) {
+            <article class="saved-plan-entry">
+              <div class="saved-plan-entry-header">
+                <div>
+                  <span class="saved-plan-entry-index">{{ t('groupLabel', { index: entry.groupIndex }) }}</span>
+                  <h4>{{ entry.keepTitle }}</h4>
+                </div>
+                <p-tag [value]="getMatchReasonLabel(entry.matchReason)" [severity]="getMatchReasonSeverity(entry.matchReason)"></p-tag>
+              </div>
+
+              <div class="saved-plan-entry-meta">
+                <span>{{ t('savedPlanKeepLabel') }}: {{ entry.keepTitle }}</span>
+                <span>{{ t('savedPlanCandidateCount', { count: getSavedEntryCandidateCount(entry) }) }}</span>
+              </div>
+
+              <p class="saved-plan-entry-books">{{ getSavedEntryBookTitles(entry) }}</p>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
     <div class="results-area">
       @if (isScanning) {
         <div class="empty-state">

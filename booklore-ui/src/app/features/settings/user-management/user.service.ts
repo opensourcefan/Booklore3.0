@@ -212,6 +212,45 @@ export interface TableColumnPreference {
   order: number;
 }
 
+export interface DuplicateResolutionMatchingConfig {
+  matchByIsbn: boolean;
+  matchByExternalId: boolean;
+  matchByTitleAuthor: boolean;
+  matchByDirectory: boolean;
+  matchByFilename: boolean;
+}
+
+export interface DuplicateResolutionPlanBook {
+  id: number;
+  title: string;
+  authors: string;
+  library: string;
+  formats: string;
+  path: string;
+  isPreferredKeep: boolean;
+  isSuggestedKeep: boolean;
+}
+
+export interface DuplicateResolutionPlanEntry {
+  groupIndex: number;
+  matchReason: string;
+  keepBookId: number;
+  keepTitle: string;
+  candidateBookIds: number[];
+  books: DuplicateResolutionPlanBook[];
+}
+
+export interface DuplicateResolutionPlan {
+  savedAt: string;
+  scope: 'CURRENT_LIBRARY' | 'ALL_LIBRARIES' | 'BOOK_IDS';
+  scopeLabel: string;
+  scopeDescription: string;
+  matchingSignals: string[];
+  matchingConfig: DuplicateResolutionMatchingConfig;
+  queuedGroupCount: number;
+  entries: DuplicateResolutionPlanEntry[];
+}
+
 export type VisibleFilterType =
   | 'author' | 'category' | 'series' | 'bookType' | 'readStatus'
   | 'personalRating' | 'publisher' | 'matchScore' | 'library' | 'shelf'
@@ -309,6 +348,7 @@ export interface UserSettings {
     icon?: string;
   }[];
   dashboardConfig?: DashboardConfig;
+  duplicateResolutionPlan?: DuplicateResolutionPlan | null;
   koReaderEnabled: boolean;
   autoSaveMetadata: boolean;
 }

@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {of, throwError} from 'rxjs';
+import {BehaviorSubject, of, throwError} from 'rxjs';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MessageService} from 'primeng/api';
 import {TranslocoService} from '@jsverse/transloco';
@@ -12,6 +12,7 @@ import {BookDialogHelperService} from '../book-browser/book-dialog-helper.servic
 import {BookService} from '../../service/book.service';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Book, DuplicateDetectionRequest, DuplicateGroup} from '../../model/book.model';
+import {UserService} from '../../../settings/user-management/user.service';
 
 function createBook(overrides: Partial<Book>): Book {
   return {
@@ -27,12 +28,67 @@ function createBook(overrides: Partial<Book>): Book {
 }
 
 describe('DuplicateMergerComponent', () => {
+  interface TestUserState {
+    user: {id: number; userSettings: Record<string, unknown>} | null;
+    loaded: boolean;
+    error: string | null;
+  }
+
   let component: DuplicateMergerComponent;
   let findDuplicatesSpy: ReturnType<typeof vi.fn>;
   let openBookDetailsSpy: ReturnType<typeof vi.fn>;
   let readBookSpy: ReturnType<typeof vi.fn>;
   let addMessageSpy: ReturnType<typeof vi.fn>;
+  let updateUserSettingSpy: ReturnType<typeof vi.fn>;
+  let userStateSubject: BehaviorSubject<TestUserState>;
   let dialogConfig: {data: {libraryId?: number; libraryName?: string}};
+
+  const savedPlan = {
+    savedAt: '2026-04-06T18:30:00Z',
+    scope: 'CURRENT_LIBRARY',
+    scopeLabel: 'Current library',
+    scopeDescription: 'Scan this library',
+    matchingSignals: ['ISBN', 'External ID', 'Title + Author'],
+    matchingConfig: {
+      matchByIsbn: true,
+      matchByExternalId: true,
+      matchByTitleAuthor: true,
+      matchByDirectory: false,
+      matchByFilename: false,
+    },
+    queuedGroupCount: 1,
+    entries: [
+      {
+        groupIndex: 1,
+        matchReason: 'ISBN',
+        keepBookId: 11,
+        keepTitle: 'Saga Volume One',
+        candidateBookIds: [10],
+        books: [
+          {
+            id: 10,
+            title: 'Saga Vol. 1',
+            authors: 'Brian K. Vaughan',
+            library: 'Comics',
+            formats: 'CBX',
+            path: 'Saga/Saga 001.cbz',
+            isPreferredKeep: false,
+            isSuggestedKeep: true,
+          },
+          {
+            id: 11,
+            title: 'Saga Volume One',
+            authors: 'Brian K. Vaughan',
+            library: 'Comics',
+            formats: 'CBX',
+            path: 'Saga/Saga Volume One.cbz',
+            isPreferredKeep: true,
+            isSuggestedKeep: false,
+          },
+        ],
+      },
+    ],
+  };
 
   const mockGroups: DuplicateGroup[] = [
     {
@@ -84,6 +140,15 @@ describe('DuplicateMergerComponent', () => {
     openBookDetailsSpy = vi.fn();
     readBookSpy = vi.fn();
     addMessageSpy = vi.fn();
+    updateUserSettingSpy = vi.fn();
+    userStateSubject = new BehaviorSubject<TestUserState>({
+      user: {
+        id: 77,
+        userSettings: {},
+      },
+      loaded: true,
+      error: null,
+    });
     dialogConfig = {data: {libraryId: 5, libraryName: 'Comics'}};
 
     TestBed.configureTestingModule({
@@ -105,6 +170,14 @@ describe('DuplicateMergerComponent', () => {
         },
         {provide: BookDialogHelperService, useValue: {openBookDetailsDialog: openBookDetailsSpy}},
         {provide: BookService, useValue: {readBook: readBookSpy}},
+        {
+          provide: UserService,
+          useValue: {
+            userState$: userStateSubject.asObservable(),
+            getCurrentUser: vi.fn(() => ({id: 77})),
+            updateUserSetting: updateUserSettingSpy,
+          },
+        },
         {provide: MessageService, useValue: {add: addMessageSpy}},
         {provide: DynamicDialogRef, useValue: {close: vi.fn()}},
         {provide: DynamicDialogConfig, useValue: dialogConfig},
@@ -165,6 +238,27 @@ describe('DuplicateMergerComponent', () => {
     } satisfies DuplicateDetectionRequest);
   });
 
+  it('rehydrates a saved account plan onto matching scan results', () => {
+    userStateSubject.next({
+      user: {
+        id: 77,
+        userSettings: {
+          duplicateResolutionPlan: savedPlan,
+        },
+      },
+      loaded: true,
+      error: null,
+    });
+
+    component.scan();
+
+    expect(component.hasSavedPlan).toBe(true);
+    expect(component.savedPlanEntries).toHaveLength(1);
+    expect(component.getSavedEntryCandidateCount(component.savedPlanEntries[0])).toBe(1);
+    expect(component.groups[0].preferredTargetBookId).toBe(11);
+    expect(component.groups[0].queuedForPlan).toBe(true);
+  });
+
   it('delegates safe inspection actions without mutating state', () => {
     component.scan();
     const group = component.groups[0];
@@ -206,6 +300,22 @@ describe('DuplicateMergerComponent', () => {
 
     component.clearResolutionPlan();
     expect(component.plannedGroups).toHaveLength(0);
+    expect(updateUserSettingSpy).toHaveBeenLastCalledWith(77, 'duplicateResolutionPlan', null);
+  });
+
+  it('persists queued plan changes to the user settings store', () => {
+    component.scan();
+    const group = component.groups[0];
+
+    component.toggleGroupPlan(group);
+
+    expect(updateUserSettingSpy).toHaveBeenCalledWith(77, 'duplicateResolutionPlan', expect.objectContaining({
+      queuedGroupCount: 1,
+      scope: 'CURRENT_LIBRARY',
+      entries: [expect.objectContaining({
+        keepBookId: 10,
+      })],
+    }));
   });
 
   it('shows a translated error toast when the scan fails', () => {

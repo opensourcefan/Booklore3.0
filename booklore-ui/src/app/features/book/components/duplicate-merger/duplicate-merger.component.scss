@@ -227,6 +227,99 @@
   }
 }
 
+.saved-plan-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--p-primary-color) 18%, var(--border-color));
+  border-radius: 14px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--p-primary-color) 6%, transparent), transparent 70%);
+}
+
+.saved-plan-copy {
+  h3 {
+    margin: 0.2rem 0 0.25rem;
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--p-text-muted-color);
+    line-height: 1.45;
+  }
+}
+
+.saved-plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.saved-plan-snapshot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--p-primary-color) 12%, var(--border-color));
+  border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--p-primary-color) 4%, transparent), transparent 70%);
+}
+
+.saved-plan-entry-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem;
+}
+
+.saved-plan-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--p-surface-0);
+}
+
+.saved-plan-entry-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+
+  h4 {
+    margin: 0.15rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+}
+
+.saved-plan-entry-index {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.saved-plan-entry-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.saved-plan-entry-books {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--p-text-color);
+}
+
 .results-area {
   flex: 1;
   min-height: 0;
@@ -590,6 +683,7 @@
 
 @media (max-width: 900px) {
   .action-bar,
+  .saved-plan-banner,
   .results-header,
   .resolution-workspace,
   .duplicate-group .group-header {
@@ -603,6 +697,15 @@
 
   .resolution-workspace-actions {
     justify-content: flex-start;
+  }
+
+  .saved-plan-actions {
+    justify-content: flex-start;
+  }
+
+  .saved-plan-entry-header {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .book-row {

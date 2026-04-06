@@ -65,6 +65,7 @@ public class BookLoreUserTransformer {
                         case TOOLBAR_CONFIG -> userSettings.setToolbarConfig(objectMapper.readValue(value, new TypeReference<>() {
                         }));
                         case DASHBOARD_CONFIG -> userSettings.setDashboardConfig(objectMapper.readValue(value, BookLoreUser.UserSettings.DashboardConfig.class));
+                        case DUPLICATE_RESOLUTION_PLAN -> userSettings.setDuplicateResolutionPlan(objectMapper.readValue(value, BookLoreUser.UserSettings.DuplicateResolutionPlan.class));
                         case VISIBLE_FILTERS -> userSettings.setVisibleFilters(objectMapper.readValue(value, new TypeReference<>() {
                         }));
                         case VISIBLE_SORT_FIELDS -> userSettings.setVisibleSortFields(objectMapper.readValue(value, new TypeReference<>() {
