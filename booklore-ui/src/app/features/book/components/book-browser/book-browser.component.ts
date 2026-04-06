@@ -1010,13 +1010,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  openDuplicateFinder(): void {
-    this.dynamicDialogRef = this.dialogHelperService.openDuplicateMergerDialog({
-      libraryId: this.entityType === EntityType.LIBRARY ? this.entity?.id ?? undefined : undefined,
-      libraryName: this.entityType === EntityType.LIBRARY ? this.entity?.name : undefined,
-    });
-  }
-
   private getStoredMediaTypes(): string[] {
     return this.mediaTypePreferences.getCustomTypes();
   }

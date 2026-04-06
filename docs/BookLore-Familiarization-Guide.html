@@ -789,7 +789,11 @@
 </div>
 
 <h3>Duplicate Review</h3>
-<p>BookLore&rsquo;s duplicate finder is now designed as a <strong>scoped review tool</strong>. Open it from the book-browser toolbar or from a library menu, then choose whether to scan your <strong>current filtered view</strong>, the <strong>current library</strong>, or <strong>all libraries</strong>.</p>
+<p>BookLore&rsquo;s duplicate finder is now designed as a <strong>scoped review tool</strong>. Open it from a library menu, then choose whether to scan your <strong>current filtered view</strong>, the <strong>current library</strong>, or <strong>all libraries</strong>.</p>
+
+<div class="callout tip">
+  <strong>Sidecar Backup Coverage:</strong> Manual per-library sidecar backup now follows each book&rsquo;s real readable file even when a book also has non-book attachments, so EPUB, PDF, CBR, and CBZ titles are backed up alongside physical placeholders instead of only the physical entries appearing.
+</div>
 
 <div class="callout tip">
   <strong>Good to Know:</strong> The duplicate review screen is intentionally non-destructive. It shows likely duplicate groups, highlights a suggested book to keep, lets you inspect another candidate side-by-side, and can open book details or launch a reader for digital files without deleting or merging anything.
@@ -1217,6 +1221,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-06</td><td>1.1.28</td><td>Clarified that duplicate review is launched from library menus, removed the book-browser duplicate shortcut, and documented that manual sidecar backup now includes normal digital formats even when books also have non-book attachments</td></tr>
   <tr><td>2026-04-06</td><td>1.1.27</td><td>Documented that manual per-library sidecar backup works in both LOCAL and NETWORK disk modes and clarified that normal EPUB and PDF library backups now resolve book paths correctly instead of reporting zero exported books</td></tr>
   <tr><td>2026-04-06</td><td>1.1.26</td><td>Documented the new manual per-library sidecar backup action in Metadata Persistence, including backups that run even when automatic sidecars are disabled and refresh existing backup sidecars in place</td></tr>
   <tr><td>2026-04-06</td><td>1.1.25</td><td>Documented immediate sidebar filter-mode button selection updates plus the new physical-book directory sidecars that preserve physical placeholders across rebuilds and let sidecar exports include physical books</td></tr>

@@ -108,9 +108,17 @@ public class BookEntity {
         if (bookFiles.isEmpty()) {
             return null;
         }
+        List<BookFileEntity> bookFormats = bookFiles.stream()
+                .filter(BookFileEntity::isBook)
+                .toList();
+
+        if (bookFormats.isEmpty()) {
+            return bookFiles.getFirst();
+        }
+
         if (library != null && library.getFormatPriority() != null && !library.getFormatPriority().isEmpty()) {
             for (BookFileType format : library.getFormatPriority()) {
-                var match = bookFiles.stream()
+                var match = bookFormats.stream()
                         .filter(bf -> bf.isBookFormat() && bf.getBookType() == format)
                         .findFirst();
                 if (match.isPresent()) {
@@ -118,7 +126,7 @@ public class BookEntity {
                 }
             }
         }
-        return bookFiles.getFirst();
+        return bookFormats.getFirst();
     }
 
     public boolean hasFiles() {
