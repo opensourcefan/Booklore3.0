@@ -125,6 +125,11 @@ public class LibraryProcessingService {
             log.info("Detected {} removed books in library: {}", bookIds.size(), libraryEntity.getName());
             bookDeletionService.processDeletedLibraryFiles(bookIds, allLibraryFiles);
         }
+        List<Long> unexpectedFilelessBookIds = detectUnexpectedFilelessBookIds(libraryEntity.getId());
+        if (!unexpectedFilelessBookIds.isEmpty()) {
+            log.info("Removing {} non-physical fileless books in library: {}", unexpectedFilelessBookIds.size(), libraryEntity.getName());
+            bookDeletionService.deleteRemovedBooks(unexpectedFilelessBookIds);
+        }
         bookRestorationService.restoreDeletedBooks(allLibraryFiles);
         bookDeletionService.purgeDisallowedFormats(libraryEntity);
         entityManager.clear();
@@ -233,6 +238,13 @@ public class LibraryProcessingService {
         return libraryFiles.stream()
                 .filter(file -> !existingKeys.contains(generateUniqueKey(file)))
                 .collect(Collectors.toList());
+    }
+
+    private List<Long> detectUnexpectedFilelessBookIds(Long libraryId) {
+        return bookRepository.findFilelessBooksByLibraryId(libraryId).stream()
+                .filter(book -> !Boolean.TRUE.equals(book.getIsPhysical()))
+                .map(BookEntity::getId)
+                .toList();
     }
 
     private void autoAttachFile(BookEntity book, LibraryFile file) {

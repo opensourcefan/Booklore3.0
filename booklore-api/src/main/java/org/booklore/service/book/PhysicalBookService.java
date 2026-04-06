@@ -28,9 +28,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -49,6 +53,7 @@ public class PhysicalBookService {
         LibraryEntity library = libraryRepository.findById(request.getLibraryId())
                 .orElseThrow(() -> new APIException("Library not found with id: " + request.getLibraryId(), HttpStatus.NOT_FOUND));
         LibraryPathEntity libraryPath = resolveLibraryPath(library, request.getLibraryPathId());
+        ensureNoConflictingPhysicalBook(library, libraryPath, request);
 
         BookEntity bookEntity = BookEntity.builder()
                 .library(library)
@@ -96,6 +101,63 @@ public class PhysicalBookService {
         }
 
         return bookMapper.toBook(savedBook);
+    }
+
+    private void ensureNoConflictingPhysicalBook(LibraryEntity library, LibraryPathEntity libraryPath, CreatePhysicalBookRequest request) {
+        String requestIsbn13 = extractIsbn13(request.getIsbn());
+        String requestIsbn10 = extractIsbn10(request.getIsbn());
+        String requestTitle = normalizeText(request.getTitle());
+        Set<String> requestAuthors = normalizeAuthors(request.getAuthors());
+
+        List<BookEntity> existingPhysicalBooks = bookRepository
+                .findActivePhysicalBooksByLibraryIdAndLibraryPathId(library.getId(), libraryPath.getId());
+
+        boolean duplicateExists = existingPhysicalBooks.stream()
+                .anyMatch(book -> matchesPhysicalDuplicate(book, requestIsbn13, requestIsbn10, requestTitle, requestAuthors));
+
+        if (duplicateExists) {
+            throw new APIException(
+                    "A matching physical book already exists in this library directory.",
+                    HttpStatus.CONFLICT);
+        }
+    }
+
+    private boolean matchesPhysicalDuplicate(
+            BookEntity existingBook,
+            String requestIsbn13,
+            String requestIsbn10,
+            String requestTitle,
+            Set<String> requestAuthors) {
+        BookMetadataEntity metadata = existingBook.getMetadata();
+        if (metadata == null) {
+            return false;
+        }
+
+        if (requestIsbn13 != null && requestIsbn13.equals(metadata.getIsbn13())) {
+            return true;
+        }
+        if (requestIsbn10 != null && requestIsbn10.equals(metadata.getIsbn10())) {
+            return true;
+        }
+
+        if (requestTitle == null) {
+            return false;
+        }
+
+        String existingTitle = normalizeText(metadata.getTitle());
+        if (!requestTitle.equals(existingTitle)) {
+            return false;
+        }
+
+        Set<String> existingAuthors = normalizeAuthors(metadata.getAuthors() == null
+                ? Collections.emptyList()
+                : metadata.getAuthors().stream().map(AuthorEntity::getName).toList());
+
+        if (requestAuthors.isEmpty() || existingAuthors.isEmpty()) {
+            return true;
+        }
+
+        return requestAuthors.stream().anyMatch(existingAuthors::contains);
     }
 
     private LibraryPathEntity resolveLibraryPath(LibraryEntity library, Long requestedLibraryPathId) {
@@ -181,5 +243,29 @@ public class PhysicalBookService {
     private String truncate(String input, int maxLength) {
         if (input == null) return null;
         return input.length() <= maxLength ? input : input.substring(0, maxLength);
+    }
+
+    private String normalizeText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        String normalized = value.toLowerCase(Locale.ROOT)
+                .replaceAll("[^\\p{L}\\p{Nd}]+", " ")
+                .trim()
+                .replaceAll("\\s+", " ");
+        return normalized.isEmpty() ? null : normalized;
+    }
+
+    private Set<String> normalizeAuthors(List<String> authors) {
+        if (authors == null || authors.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return authors.stream()
+                .flatMap(author -> Arrays.stream(author.split(",")))
+                .map(this::normalizeText)
+                .filter(value -> value != null && !value.isBlank())
+                .collect(Collectors.toCollection(HashSet::new));
     }
 }

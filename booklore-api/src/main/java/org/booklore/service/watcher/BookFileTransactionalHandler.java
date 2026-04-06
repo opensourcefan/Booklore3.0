@@ -225,7 +225,7 @@ public class BookFileTransactionalHandler {
     private static final double FUZZY_MATCH_THRESHOLD = 0.85;
 
     private BookEntity findMatchingFilelessBook(LibraryEntity library, String fileName, LibraryPathEntity fileLibraryPath) {
-        List<BookEntity> filelessBooks = bookRepository.findFilelessBooksByLibraryId(library.getId());
+        List<BookEntity> filelessBooks = bookRepository.findPhysicalFilelessBooksByLibraryId(library.getId());
         String fileBaseName = BookFileGroupingUtils.extractGroupingKey(fileName);
 
         for (BookEntity book : filelessBooks) {
@@ -245,7 +245,7 @@ public class BookFileTransactionalHandler {
     }
 
     private BookEntity findExactFilelessBook(LibraryEntity library, String fileName, LibraryPathEntity fileLibraryPath) {
-        List<BookEntity> filelessBooks = bookRepository.findFilelessBooksByLibraryId(library.getId());
+        List<BookEntity> filelessBooks = bookRepository.findPhysicalFilelessBooksByLibraryId(library.getId());
         String fileBaseName = BookFileGroupingUtils.extractGroupingKey(fileName);
 
         for (BookEntity book : filelessBooks) {

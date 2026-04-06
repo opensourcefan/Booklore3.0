@@ -7,7 +7,6 @@ import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.repository.BookAdditionalFileRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
-import org.booklore.service.library.DirectoryTagService;
 import org.booklore.service.NotificationService;
 import org.booklore.task.options.RescanLibraryContext;
 import jakarta.persistence.EntityManager;
@@ -23,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -92,6 +92,7 @@ class LibraryProcessingServiceRegressionTest {
         BookEntity filelessBook = new BookEntity();
         filelessBook.setId(1L);
         filelessBook.setLibraryPath(pathEntity);
+        filelessBook.setIsPhysical(true);
         filelessBook.setBookFiles(Collections.emptyList());
 
         libraryEntity.setBookEntities(List.of(filelessBook));
@@ -106,6 +107,8 @@ class LibraryProcessingServiceRegressionTest {
         ));
         when(libraryFileHelper.filterByAllowedFormats(anyList(), any())).thenAnswer(inv -> inv.getArgument(0));
         when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
+        when(bookRepository.findFilelessBooksByLibraryId(libraryId)).thenReturn(List.of(filelessBook));
+        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(Collections.emptyList());
         when(bookGroupingService.groupForRescan(anyList(), any(LibraryEntity.class)))
                 .thenReturn(new BookGroupingService.GroupingResult(Collections.emptyMap(), Collections.emptyMap()));
 
@@ -115,5 +118,44 @@ class LibraryProcessingServiceRegressionTest {
 
         // Fileless books should NOT be marked as deleted - they are intentionally without files
         verify(bookDeletionService, never()).processDeletedLibraryFiles(any(), any());
+        verify(bookDeletionService, never()).deleteRemovedBooks(any());
+    }
+
+    @Test
+    void rescanLibrary_shouldDeleteNonPhysicalFilelessBooks(@TempDir Path tempDir) throws IOException {
+        long libraryId = 1L;
+        Path accessiblePath = tempDir.resolve("accessible");
+        Files.createDirectory(accessiblePath);
+
+        LibraryEntity libraryEntity = new LibraryEntity();
+        libraryEntity.setId(libraryId);
+        libraryEntity.setName("Test Library");
+
+        LibraryPathEntity pathEntity = new LibraryPathEntity();
+        pathEntity.setId(10L);
+        pathEntity.setPath(accessiblePath.toString());
+        libraryEntity.setLibraryPaths(List.of(pathEntity));
+        libraryEntity.setBookEntities(List.of());
+
+        BookEntity accidentalShell = new BookEntity();
+        accidentalShell.setId(88L);
+        accidentalShell.setLibraryPath(pathEntity);
+        accidentalShell.setIsPhysical(false);
+        accidentalShell.setBookFiles(Collections.emptyList());
+
+        when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
+        when(libraryFileHelper.getAllLibraryFiles(libraryEntity)).thenReturn(List.of());
+        when(libraryFileHelper.filterByAllowedFormats(anyList(), any())).thenAnswer(inv -> inv.getArgument(0));
+        when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
+        when(bookRepository.findFilelessBooksByLibraryId(libraryId)).thenReturn(List.of(accidentalShell));
+        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(Collections.emptyList());
+        when(bookGroupingService.groupForRescan(anyList(), any(LibraryEntity.class)))
+                .thenReturn(new BookGroupingService.GroupingResult(Collections.emptyMap(), Map.of()));
+
+        RescanLibraryContext context = RescanLibraryContext.builder().libraryId(libraryId).build();
+
+        libraryProcessingService.rescanLibrary(context);
+
+        verify(bookDeletionService).deleteRemovedBooks(List.of(88L));
     }
 }

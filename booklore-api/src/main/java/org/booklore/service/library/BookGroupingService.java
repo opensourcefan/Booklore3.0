@@ -184,7 +184,7 @@ public class BookGroupingService {
     }
 
     private BookEntity findExactFilelessMatch(LibraryFile file, LibraryEntity library) {
-        List<BookEntity> filelessBooks = bookRepository.findFilelessBooksByLibraryId(library.getId());
+        List<BookEntity> filelessBooks = bookRepository.findPhysicalFilelessBooksByLibraryId(library.getId());
         if (filelessBooks.isEmpty()) {
             return null;
         }
@@ -210,7 +210,7 @@ public class BookGroupingService {
     }
 
     private BookEntity findMatchingFilelessBook(LibraryFile file, LibraryEntity library) {
-        List<BookEntity> filelessBooks = bookRepository.findFilelessBooksByLibraryId(library.getId());
+        List<BookEntity> filelessBooks = bookRepository.findPhysicalFilelessBooksByLibraryId(library.getId());
         if (filelessBooks.isEmpty()) {
             return null;
         }

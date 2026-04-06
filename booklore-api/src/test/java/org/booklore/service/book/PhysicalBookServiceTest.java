@@ -4,6 +4,7 @@ import org.booklore.mapper.BookMapper;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.request.CreatePhysicalBookRequest;
 import org.booklore.model.entity.BookEntity;
+import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.repository.AuthorRepository;
@@ -75,6 +76,7 @@ class PhysicalBookServiceTest {
 
     @Test
     void createPhysicalBook_usesRequestedLibraryPath() {
+        when(bookRepository.findActivePhysicalBooksByLibraryIdAndLibraryPathId(1L, 11L)).thenReturn(List.of());
         when(bookRepository.save(any(BookEntity.class))).thenAnswer(invocation -> {
             BookEntity saved = invocation.getArgument(0);
             saved.setId(99L);
@@ -98,6 +100,7 @@ class PhysicalBookServiceTest {
 
     @Test
     void createPhysicalBook_defaultsToFirstLibraryPathWhenNotSpecified() {
+        when(bookRepository.findActivePhysicalBooksByLibraryIdAndLibraryPathId(1L, 10L)).thenReturn(List.of());
         when(bookRepository.save(any(BookEntity.class))).thenAnswer(invocation -> {
             BookEntity saved = invocation.getArgument(0);
             saved.setId(99L);
@@ -126,5 +129,70 @@ class PhysicalBookServiceTest {
                 .build();
 
         assertThrows(RuntimeException.class, () -> physicalBookService.createPhysicalBook(request));
+    }
+
+    @Test
+    void createPhysicalBook_rejectsMatchingPhysicalBookInSameLibraryPath() {
+        BookMetadataEntity metadata = BookMetadataEntity.builder()
+                .title("Physical Book")
+                .isbn13("9780134685991")
+                .build();
+        BookEntity existingBook = BookEntity.builder()
+                .id(5L)
+                .library(library)
+                .libraryPath(primaryPath)
+                .isPhysical(true)
+                .metadata(metadata)
+                .build();
+        metadata.setBook(existingBook);
+
+        when(bookRepository.findActivePhysicalBooksByLibraryIdAndLibraryPathId(1L, 10L)).thenReturn(List.of(existingBook));
+
+        CreatePhysicalBookRequest request = CreatePhysicalBookRequest.builder()
+                .libraryId(1L)
+                .libraryPathId(10L)
+                .title("Physical Book")
+                .isbn("9780134685991")
+                .build();
+
+        assertThrows(RuntimeException.class, () -> physicalBookService.createPhysicalBook(request));
+    }
+
+    @Test
+    void createPhysicalBook_allowsMatchingPhysicalBookInDifferentLibraryPath() {
+        when(bookRepository.save(any(BookEntity.class))).thenAnswer(invocation -> {
+            BookEntity saved = invocation.getArgument(0);
+            saved.setId(99L);
+            return saved;
+        });
+        when(bookMapper.toBook(any(BookEntity.class))).thenReturn(Book.builder().id(99L).build());
+
+        BookMetadataEntity metadata = BookMetadataEntity.builder()
+                .title("Physical Book")
+                .isbn13("9780134685991")
+                .build();
+        BookEntity existingBook = BookEntity.builder()
+                .id(5L)
+                .library(library)
+                .libraryPath(primaryPath)
+                .isPhysical(true)
+                .metadata(metadata)
+                .build();
+        metadata.setBook(existingBook);
+
+        when(bookRepository.findActivePhysicalBooksByLibraryIdAndLibraryPathId(1L, 11L)).thenReturn(List.of());
+
+        CreatePhysicalBookRequest request = CreatePhysicalBookRequest.builder()
+                .libraryId(1L)
+                .libraryPathId(11L)
+                .title("Physical Book")
+                .isbn("9780134685991")
+                .build();
+
+        physicalBookService.createPhysicalBook(request);
+
+        ArgumentCaptor<BookEntity> captor = ArgumentCaptor.forClass(BookEntity.class);
+        verify(bookRepository).save(captor.capture());
+        assertThat(captor.getValue().getLibraryPath()).isSameAs(secondaryPath);
     }
 }

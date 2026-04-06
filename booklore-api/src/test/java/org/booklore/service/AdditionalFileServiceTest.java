@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -77,6 +78,8 @@ class AdditionalFileServiceTest {
         fileEntity.setFileName("test-file.pdf");
         fileEntity.setFileSubPath(".");
         fileEntity.setBookFormat(true);
+
+        bookEntity.setBookFiles(new ArrayList<>(List.of(fileEntity)));
 
         additionalFile = mock(BookFile.class);
     }
@@ -179,7 +182,7 @@ class AdditionalFileServiceTest {
             verify(monitoringRegistrationService).unregisterSpecificPath(parentPath);
             filesMock.verify(() -> Files.deleteIfExists(fileEntity.getFullFilePath()));
             verify(additionalFileRepository).delete(fileEntity);
-            verify(bookRepository, never()).save(any());
+            verify(bookRepository).delete(bookEntity);
         }
     }
 
@@ -199,7 +202,26 @@ class AdditionalFileServiceTest {
             verify(monitoringRegistrationService).unregisterSpecificPath(parentPath);
             filesMock.verify(() -> Files.deleteIfExists(fileEntity.getFullFilePath()));
             verify(additionalFileRepository).delete(fileEntity);
-            verify(bookRepository, never()).save(any());
+            verify(bookRepository).delete(bookEntity);
+        }
+    }
+
+    @Test
+    void deleteAdditionalFile_WhenBookIsPhysical_ShouldKeepPlaceholder() {
+        Long fileId = 1L;
+        Path parentPath = fileEntity.getFullFilePath().getParent();
+        bookEntity.setIsPhysical(true);
+
+        when(additionalFileRepository.findById(fileId)).thenReturn(Optional.of(fileEntity));
+
+        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+            filesMock.when(() -> Files.deleteIfExists(fileEntity.getFullFilePath())).thenReturn(true);
+
+            additionalFileService.deleteAdditionalFile(fileId);
+
+            verify(additionalFileRepository).delete(fileEntity);
+            verify(monitoringRegistrationService).unregisterSpecificPath(parentPath);
+            verify(bookRepository, never()).delete(bookEntity);
         }
     }
 

@@ -1,7 +1,6 @@
 package org.booklore.service.watcher;
 
 import org.booklore.model.entity.*;
-import org.booklore.model.enums.BookFileExtension;
 import org.booklore.model.enums.BookFileType;
 import org.booklore.model.enums.LibraryOrganizationMode;
 import org.booklore.repository.BookAdditionalFileRepository;
@@ -24,7 +23,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -126,7 +124,6 @@ class BookFileTransactionalHandlerTest {
         return new PendingDeletionPool.BookSnapshot(bookId, 1L, "sub", files);
     }
 
-    @SuppressWarnings("unchecked")
     private PendingDeletionPool.MatchResult matchResult(PendingDeletionPool.BookSnapshot book, PendingDeletionPool.FileSnapshot file) {
         var pending = new PendingDeletionPool.PendingDeletion(
                 Path.of("/library/sub"), false, 1L, Instant.now(),
@@ -236,10 +233,11 @@ class BookFileTransactionalHandlerTest {
             // Use reflection or setter to set title
             metadata.setTitle("test");
             BookEntity filelessBook = buildBook(10L, false);
+            filelessBook.setIsPhysical(true);
             filelessBook.setMetadata(metadata);
             filelessBook.setLibraryPath(libraryPath);
 
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of(filelessBook));
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of(filelessBook));
             groupingMock.when(() -> BookFileGroupingUtils.calculateSimilarity(anyString(), anyString())).thenReturn(0.90);
 
             handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
@@ -253,7 +251,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
 
             BookEntity existingBook = buildBook(20L, false);
             BookFileEntity primaryFile = buildBookFile(200L, existingBook, "test.epub", "otherhash");
@@ -275,7 +273,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
             when(bookRepository.findAllByLibraryPathIdAndFileSubPath(anyLong(), anyString())).thenReturn(List.of());
 
             handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
@@ -291,7 +289,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
 
             handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
 
@@ -307,7 +305,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
 
             BookEntity existingBook = buildBook(20L, false);
             BookFileEntity primaryFile = buildBookFile(200L, existingBook, "existing.epub", "otherhash");
@@ -328,7 +326,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
             when(bookRepository.findAllByLibraryPathIdAndFileSubPath(1L, "sub")).thenReturn(List.of());
 
             handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
@@ -345,7 +343,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+                when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
             when(bookRepository.findAllByLibraryPathIdAndFileSubPath(1L, "author/book/audio")).thenReturn(List.of());
 
             BookEntity parentBook = buildBook(30L, false);
@@ -366,6 +364,7 @@ class BookFileTransactionalHandlerTest {
             BookMetadataEntity metadata = BookMetadataEntity.builder().bookId(10L).build();
             metadata.setTitle("different title");
             BookEntity filelessBook = buildBook(10L, false);
+            filelessBook.setIsPhysical(true);
             filelessBook.setMetadata(metadata);
             filelessBook.setLibraryPath(libraryPath);
 
@@ -373,7 +372,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of(filelessBook));
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of(filelessBook));
             // extractGroupingKey returns lowercase of input, so "different title" != "test.epub"
             // No exact match -> should create new
             handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
@@ -390,6 +389,7 @@ class BookFileTransactionalHandlerTest {
             BookMetadataEntity metadata = BookMetadataEntity.builder().bookId(10L).build();
             metadata.setTitle("test");
             BookEntity filelessBook = buildBook(10L, false);
+            filelessBook.setIsPhysical(true);
             filelessBook.setMetadata(metadata);
             filelessBook.setLibraryPath(otherPath);
 
@@ -397,7 +397,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of(filelessBook));
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of(filelessBook));
             when(bookRepository.findAllByLibraryPathIdAndFileSubPath(anyLong(), anyString())).thenReturn(List.of());
 
             handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
@@ -411,7 +411,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
 
             BookEntity book1 = buildBook(20L, false);
             BookFileEntity file1 = buildBookFile(200L, book1, "mybook.epub", "h1");
@@ -443,7 +443,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
 
             handler.handleNewBookFile(1L, Path.of("/library/test.epub"));
 
@@ -459,7 +459,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
 
             BookEntity smallBook = buildBook(20L, false);
             BookFileEntity f1 = buildBookFile(200L, smallBook, "a.epub", "h1");
@@ -502,13 +502,13 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
             when(bookRepository.findAllByLibraryPathIdAndFileSubPath(anyLong(), anyString())).thenReturn(List.of());
 
             handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
 
-            // AUTO_DETECT path: findFilelessBooksByLibraryId is called (fuzzy matching)
-            verify(bookRepository).findFilelessBooksByLibraryId(1L);
+            // AUTO_DETECT path: only physical fileless books are considered for fuzzy matching
+            verify(bookRepository).findPhysicalFilelessBooksByLibraryId(1L);
         }
 
         @Test
@@ -517,7 +517,7 @@ class BookFileTransactionalHandlerTest {
                     .thenReturn(Optional.empty());
             when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
             when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
 
             BookEntity deletedBook = buildBook(20L, true);
             BookFileEntity file = buildBookFile(200L, deletedBook, "test.epub", "h1");
@@ -539,16 +539,31 @@ class BookFileTransactionalHandlerTest {
             BookMetadataEntity metadata = BookMetadataEntity.builder().bookId(10L).build();
             metadata.setTitle("test");
             BookEntity filelessBook = buildBook(10L, false);
+            filelessBook.setIsPhysical(true);
             filelessBook.setMetadata(metadata);
             filelessBook.setLibraryPath(null);
 
-            when(bookRepository.findFilelessBooksByLibraryId(1L)).thenReturn(List.of(filelessBook));
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of(filelessBook));
             groupingMock.when(() -> BookFileGroupingUtils.calculateSimilarity(anyString(), anyString())).thenReturn(0.90);
 
             handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
 
             verify(bookRepository).save(argThat(b -> b.getLibraryPath() != null));
             verify(bookAdditionalFileRepository).save(any(BookFileEntity.class));
+        }
+
+        @Test
+        void autoDetect_nonPhysicalFilelessBook_isIgnored() {
+            when(bookFilePersistenceService.findBookFileByLibraryPathSubPathAndFileName(anyLong(), anyString(), anyString()))
+                    .thenReturn(Optional.empty());
+            when(pendingDeletionPool.matchByHash(anyString())).thenReturn(Optional.empty());
+            when(bookRepository.findByCurrentHashIncludingRecentlyDeleted(anyString(), any())).thenReturn(Optional.empty());
+            when(bookRepository.findPhysicalFilelessBooksByLibraryId(1L)).thenReturn(List.of());
+            when(bookRepository.findAllByLibraryPathIdAndFileSubPath(anyLong(), anyString())).thenReturn(List.of());
+
+            handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
+
+            verify(libraryProcessingService).processLibraryFiles(anyList(), eq(library));
         }
     }
 

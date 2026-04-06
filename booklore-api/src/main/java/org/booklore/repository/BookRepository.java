@@ -210,6 +210,19 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE b.library.id = :libraryId AND (b.deleted IS NULL OR b.deleted = false)")
     long countByLibraryId(@Param("libraryId") Long libraryId);
 
+        @Query("""
+            SELECT DISTINCT b FROM BookEntity b
+            LEFT JOIN FETCH b.metadata m
+            LEFT JOIN FETCH m.authors
+            WHERE b.library.id = :libraryId
+            AND b.isPhysical = true
+            AND (b.deleted IS NULL OR b.deleted = false)
+            AND (b.libraryPath.id = :libraryPathId OR b.libraryPath IS NULL)
+            """)
+        List<BookEntity> findActivePhysicalBooksByLibraryIdAndLibraryPathId(
+            @Param("libraryId") Long libraryId,
+            @Param("libraryPathId") Long libraryPathId);
+
     @Query("""
             SELECT b FROM BookEntity b
             LEFT JOIN b.bookFiles bf
@@ -219,6 +232,17 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
             HAVING COUNT(bf) = 0
             """)
     List<BookEntity> findFilelessBooksByLibraryId(@Param("libraryId") Long libraryId);
+
+        @Query("""
+            SELECT b FROM BookEntity b
+            LEFT JOIN b.bookFiles bf
+            WHERE b.library.id = :libraryId
+            AND b.isPhysical = true
+            AND (b.deleted IS NULL OR b.deleted = false)
+            GROUP BY b
+            HAVING COUNT(bf) = 0
+            """)
+        List<BookEntity> findPhysicalFilelessBooksByLibraryId(@Param("libraryId") Long libraryId);
 
     @Query("SELECT b.id as id, m.coverUpdatedOn as coverUpdatedOn FROM BookEntity b LEFT JOIN b.metadata m WHERE b.id IN :bookIds")
     List<BookCoverUpdateProjection> findCoverUpdateInfoByIds(@Param("bookIds") Collection<Long> bookIds);

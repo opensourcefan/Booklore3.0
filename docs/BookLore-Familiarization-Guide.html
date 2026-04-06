@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.2 &mdash; April 4, 2026<br>
+    Version 1.1.16 &mdash; April 6, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -382,7 +382,7 @@
 </table>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter.
+  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter. BookLore also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -397,6 +397,7 @@
   <ul>
     <li><strong>Deleting a book with &ldquo;delete from disk&rdquo; enabled is permanent.</strong> The file is gone. There is no recycle bin.</li>
     <li><strong>Bulk deleting books</strong> is powerful &mdash; double-check your selection before confirming.</li>
+    <li><strong>If you delete the only readable format from a normal digital book,</strong> BookLore now removes that empty catalog shell instead of leaving behind a metadata-only entry. If you want a deliberate metadata-only placeholder, create a <strong>Physical Book</strong> instead.</li>
   </ul>
 </div>
 
@@ -1162,6 +1163,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-06</td><td>1.1.16</td><td>Documented same-directory physical placeholder duplicate prevention and clarified that deleting a digital book&rsquo;s last readable format now removes accidental empty shells instead of leaving a fileless non-physical entry behind</td></tr>
   <tr><td>2026-04-05</td><td>1.1.15</td><td>Documented that metadata editors can now cancel running bulk metadata fetches from the progress widget without needing full task-manager access</td></tr>
   <tr><td>2026-04-05</td><td>1.1.14</td><td>Documented that cancelling a throttled ComicVine bulk metadata fetch now breaks out of the provider wait immediately instead of waiting for the cooldown to finish</td></tr>
   <tr><td>2026-04-05</td><td>1.1.13</td><td>Clarified throttled ComicVine bulk metadata notifications to show an explicit time-left snapshot alongside the reset ETA</td></tr>
