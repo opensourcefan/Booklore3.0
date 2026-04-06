@@ -61,12 +61,24 @@
   font-weight: 600;
 }
 
-.filter-mode-select {
-  font-size: 0.75rem;
+.filter-mode-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-:host ::ng-deep .filter-mode-select .p-togglebutton-label {
-  font-size: 0.75rem;
+:host ::ng-deep .filter-mode-btn {
+  min-width: 2rem;
+  height: 1.75rem;
+  padding: 0 0.15rem !important;
+
+  .p-button-label {
+    font-size: 0.75rem;
+  }
+
+  &.filter-mode-btn-active {
+    box-shadow: inset 0 0 0 1px var(--p-primary-color);
+  }
 }
 
 .filter-content {

@@ -13,6 +13,16 @@ import {Filter, FILTER_CONFIGS, FILTER_EXTRACTORS, FilterType, FilterValue, NUME
 import {filterBooksByFilters} from '../filters/sidebar-filter';
 import {BookFilterMode} from '../../../../settings/user-management/user.service';
 
+export function getFacetSourceBooks(
+  books: Book[],
+  activeFilters: Record<string, unknown[]> | null,
+  mode: BookFilterMode,
+  filterType: FilterType
+): Book[] {
+  const excludeFilterType = mode === 'and' ? undefined : filterType;
+  return filterBooksByFilters(books, activeFilters, mode, excludeFilterType);
+}
+
 @Injectable({providedIn: 'root'})
 export class BookFilterService {
   private readonly bookService = inject(BookService);
@@ -121,7 +131,7 @@ export class BookFilterService {
   ): Observable<Filter[]> {
     return combineLatest([books$, activeFilters$, filterMode$, userSort$]).pipe(
       map(([books, activeFilters, mode, userSort]) => {
-        const filteredBooks = filterBooksByFilters(books, activeFilters, mode, filterType);
+        const filteredBooks = getFacetSourceBooks(books, activeFilters, mode, filterType);
         return this.buildAndSortFilters(filteredBooks, extractor, sortMode, userSort);
       }),
       shareReplay({bufferSize: 1, refCount: true})

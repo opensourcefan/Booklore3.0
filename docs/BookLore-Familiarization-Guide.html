@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.16 &mdash; April 6, 2026<br>
+    Version 1.1.17 &mdash; April 6, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -767,9 +767,14 @@
   <li>Combine multiple filters (e.g., &ldquo;Unread comics in my Comics library&rdquo;)</li>
   <li>Filter by real storage folders from the directory explorer while keeping your other filters active</li>
   <li>Use <strong>Media Type &rarr; Physical</strong> from the sidebar to see only physical placeholders, or mix it with other filters like library, shelf, and reading status</li>
+  <li>Hover the filter-mode buttons to see what each mode does: <strong>AND</strong> requires every selected filter to match, <strong>OR</strong> accepts any selected match, <strong>NOT</strong> hides matches, and <strong>1</strong> keeps only one active selection at a time</li>
   <li>Keep your filter sidebar visibility, filter sort mode, and expanded filter groups with your user account instead of one browser profile</li>
   <li>Clear all filters with one click</li>
 </ul>
+
+<div class="callout tip">
+  <strong>Good to Know:</strong> In <strong>AND</strong> mode, the tag and sidebar option lists now narrow themselves to combinations that can actually exist together. After you choose one tag, BookLore only offers additional tags that still leave at least one matching book in the current result set.
+</div>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
@@ -1163,6 +1168,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-06</td><td>1.1.17</td><td>Clarified sidebar filter mode behavior with tooltips and documented that AND mode now narrows same-filter options, such as tags, to combinations that still have matching books</td></tr>
   <tr><td>2026-04-06</td><td>1.1.16</td><td>Documented same-directory physical placeholder duplicate prevention and clarified that deleting a digital book&rsquo;s last readable format now removes accidental empty shells instead of leaving a fileless non-physical entry behind</td></tr>
   <tr><td>2026-04-05</td><td>1.1.15</td><td>Documented that metadata editors can now cancel running bulk metadata fetches from the progress widget without needing full task-manager access</td></tr>
   <tr><td>2026-04-05</td><td>1.1.14</td><td>Documented that cancelling a throttled ComicVine bulk metadata fetch now breaks out of the provider wait immediately instead of waiting for the cooldown to finish</td></tr>

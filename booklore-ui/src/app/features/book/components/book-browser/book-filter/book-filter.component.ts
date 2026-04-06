@@ -7,8 +7,8 @@ import {Accordion, AccordionContent, AccordionHeader, AccordionPanel} from 'prim
 import {AsyncPipe, NgClass} from '@angular/common';
 import {Badge} from 'primeng/badge';
 import {FormsModule} from '@angular/forms';
-import {SelectButton} from 'primeng/selectbutton';
 import {Button} from 'primeng/button';
+import {Tooltip} from 'primeng/tooltip';
 import {BookFilterMode, DEFAULT_VISIBLE_FILTERS, UserService, VisibleFilterType} from '../../../../settings/user-management/user.service';
 import {MagicShelf} from '../../../../magic-shelf/service/magic-shelf.service';
 import {Filter, FILTER_LABEL_KEYS, FilterType, UserFilterSort} from './book-filter.config';
@@ -16,7 +16,11 @@ import {BookFilterService} from './book-filter.service';
 import {filter} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
-interface FilterModeOption { label: string; value: BookFilterMode }
+interface FilterModeOption {
+  label: string;
+  value: BookFilterMode;
+  tooltip: string;
+}
 
 @Component({
   selector: 'app-book-filter',
@@ -26,7 +30,7 @@ interface FilterModeOption { label: string; value: BookFilterMode }
   standalone: true,
   imports: [
     Accordion, AccordionPanel, AccordionHeader, AccordionContent,
-    NgClass, Badge, AsyncPipe, FormsModule, SelectButton, Button,
+    NgClass, Badge, AsyncPipe, FormsModule, Button, Tooltip,
     TranslocoDirective
   ]
 })
@@ -69,12 +73,15 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     const key = this.filterLabelKeys[type];
     return key ? this.t.translate(key) : type;
   }
-  readonly filterModeOptions: FilterModeOption[] = [
-    {label: 'AND', value: 'and'},
-    {label: 'OR', value: 'or'},
-    {label: 'NOT', value: 'not'},
-    {label: '1', value: 'single'}
-  ];
+
+  get filterModeOptions(): FilterModeOption[] {
+    return [
+      {label: 'AND', value: 'and', tooltip: 'Keep only books that match every selected sidebar filter and every selected value within the same filter.'},
+      {label: 'OR', value: 'or', tooltip: 'Keep books that match any selected sidebar filter or any selected value within the same filter.'},
+      {label: 'NOT', value: 'not', tooltip: 'Hide books that match the selected sidebar filters.'},
+      {label: '1', value: 'single', tooltip: 'Allow only one active selection at a time when clicking sidebar filters.'}
+    ];
+  }
 
   get selectedFilterMode(): BookFilterMode {
     return this._selectedFilterMode;

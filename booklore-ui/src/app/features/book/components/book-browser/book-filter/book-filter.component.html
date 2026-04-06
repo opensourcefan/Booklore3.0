@@ -27,14 +27,18 @@
           title="Sort Z → A"
           (click)="setFilterSort('za')"/>
       </div>
-      <p-selectButton
-        [options]="filterModeOptions"
-        [(ngModel)]="selectedFilterMode"
-        optionLabel="label"
-        optionValue="value"
-        class="filter-mode-select"
-        [allowEmpty]="false"
-      ></p-selectButton>
+      <div class="filter-mode-buttons" role="group" aria-label="Filter mode">
+        @for (option of filterModeOptions; track option.value) {
+          <p-button
+            [label]="option.label"
+            size="small"
+            [text]="selectedFilterMode !== option.value"
+            [styleClass]="'filter-mode-btn' + (selectedFilterMode === option.value ? ' filter-mode-btn-active' : '')"
+            [pTooltip]="option.tooltip"
+            tooltipPosition="bottom"
+            (click)="selectedFilterMode = option.value" />
+        }
+      </div>
     </div>
   </div>
 
