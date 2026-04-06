@@ -102,6 +102,12 @@ export class SidecarService {
     );
   }
 
+  backupLibrarySidecars(libraryId: number): Observable<{message: string, exported: number}> {
+    return this.http.post<{message: string, exported: number}>(
+      `${this.apiUrl}/libraries/${libraryId}/sidecar/backup`, {}
+    );
+  }
+
   bulkImport(libraryId: number): Observable<{message: string, imported: number}> {
     return this.http.post<{message: string, imported: number}>(
       `${this.apiUrl}/libraries/${libraryId}/sidecar/import-all`, {}

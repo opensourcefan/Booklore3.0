@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.25 &mdash; April 6, 2026<br>
+    Version 1.1.26 &mdash; April 6, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -1016,6 +1016,7 @@
   <tr><td>Email</td><td>SMTP server for sending books via email</td></tr>
   <tr><td>File Naming Patterns</td><td>How imported files are named and organized</td></tr>
   <tr><td>Metadata</td><td>Default metadata providers and API keys</td></tr>
+  <tr><td>Metadata Persistence</td><td>Write metadata into files, manage automatic sidecars, and run a manual per-library sidecar backup even when automatic sidecars are disabled</td></tr>
   <tr><td>Library Metadata</td><td>Per-library metadata provider configuration</td></tr>
   <tr><td>Authentication</td><td>OIDC and forward auth configuration</td></tr>
   <tr><td>OPDS</td><td>E-reader feed configuration</td></tr>
@@ -1037,6 +1038,14 @@
   <ul>
     <li><strong>Changing authentication settings can lock you out.</strong> Test OIDC configuration before disabling local login.</li>
     <li><strong>Settings export/import includes sensitive data</strong> (email credentials, API keys). Store exported files securely.</li>
+  </ul>
+</div>
+
+<div class="callout info">
+  <strong>Good to Know:</strong>
+  <ul>
+    <li><strong>Automatic sidecars and manual sidecar backups are separate.</strong> You can keep automatic sidecar writing turned off and still run <strong>Back Up Sidecars per Library</strong> from Metadata Persistence when you want an on-demand metadata backup.</li>
+    <li><strong>Running the backup again refreshes existing backup sidecars.</strong> BookLore rewrites the selected library&rsquo;s sidecar files with the current database metadata instead of requiring you to delete old backups first.</li>
   </ul>
 </div>
 
@@ -1207,6 +1216,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-06</td><td>1.1.26</td><td>Documented the new manual per-library sidecar backup action in Metadata Persistence, including backups that run even when automatic sidecars are disabled and refresh existing backup sidecars in place</td></tr>
   <tr><td>2026-04-06</td><td>1.1.25</td><td>Documented immediate sidebar filter-mode button selection updates plus the new physical-book directory sidecars that preserve physical placeholders across rebuilds and let sidecar exports include physical books</td></tr>
   <tr><td>2026-04-06</td><td>1.1.24</td><td>Clarified that the duplicate-review dialog now shows stronger active selection states, follows the current theme more closely for its surfaces and comparison cards, and starts the Custom matching preset with all signals cleared</td></tr>
   <tr><td>2026-04-06</td><td>1.1.23</td><td>Documented the saved duplicate-plan snapshot view that exposes queued groups, preferred keeps, and saved scan context before a new scan runs</td></tr>

@@ -91,6 +91,21 @@ public class SidecarController {
         ));
     }
 
+    @Operation(summary = "Back up sidecar files for library", description = "Generate or refresh sidecar JSON backup files for all books in a library, even when automatic sidecars are disabled")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Library sidecar backup completed"),
+            @ApiResponse(responseCode = "404", description = "Library not found")
+    })
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    @PostMapping("/libraries/{libraryId}/sidecar/backup")
+    public ResponseEntity<Map<String, Object>> backupLibrarySidecars(@Parameter(description = "Library ID") @PathVariable Long libraryId) {
+        int exported = sidecarService.backupLibrarySidecars(libraryId);
+        return ResponseEntity.ok(Map.of(
+                "message", "Library sidecar backup completed",
+                "exported", exported
+        ));
+    }
+
     @Operation(summary = "Bulk import sidecar for library", description = "Import metadata from all sidecar JSON files in a library")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Bulk import completed"),

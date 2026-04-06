@@ -249,6 +249,42 @@
           <p class="setting-description" [innerHTML]="t('includeCoverDesc')"></p>
         </div>
       }
+
+      @if (!isNetworkStorage) {
+        <div class="setting-item sidecar-backup-setting">
+          <div class="setting-header-standalone">
+            <span class="setting-label">{{ t('sidecarBackupTitle') }}</span>
+          </div>
+          <p class="setting-description">{{ t('sidecarBackupDesc') }}</p>
+          <p class="setting-description sidecar-backup-note">{{ t('sidecarBackupHint') }}</p>
+
+          @if (libraries.length > 0) {
+            <div class="setting-options sidecar-backup-controls">
+              <p-select
+                size="small"
+                [options]="libraries"
+                [(ngModel)]="selectedBackupLibraryId"
+                optionLabel="name"
+                optionValue="id"
+                [placeholder]="t('sidecarBackupPlaceholder')"
+                [style]="{ width: '18rem' }"
+                appendTo="body">
+              </p-select>
+
+              <p-button
+                [label]="t('sidecarBackupBtn')"
+                icon="pi pi-save"
+                [loading]="isLibraryBackupRunning"
+                [disabled]="selectedBackupLibraryId === null || isLibraryBackupRunning"
+                (onClick)="backupLibrarySidecars()"
+                severity="secondary">
+              </p-button>
+            </div>
+          } @else {
+            <p class="setting-description">{{ t('sidecarBackupNoLibraries') }}</p>
+          }
+        </div>
+      }
     </div>
   </div>
 

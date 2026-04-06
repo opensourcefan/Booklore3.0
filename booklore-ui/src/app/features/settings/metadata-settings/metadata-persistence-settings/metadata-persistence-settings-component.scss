@@ -58,6 +58,11 @@
   @include settings.settings-options;
 }
 
+.setting-header-standalone {
+  display: flex;
+  align-items: center;
+}
+
 .filesize-input {
   @include settings.settings-filesize-input;
 }
@@ -77,6 +82,23 @@
   margin-left: 1.5rem;
   padding-left: 1rem;
   border-left: 2px solid var(--surface-border);
+}
+
+.sidecar-backup-setting {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--surface-border);
+}
+
+.sidecar-backup-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.sidecar-backup-note {
+  color: var(--text-color-secondary);
 }
 
 code {

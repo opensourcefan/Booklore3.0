@@ -98,14 +98,37 @@ public class SidecarService {
 
         for (BookEntity book : books) {
             try {
-                sidecarWriter.writeSidecarMetadata(book);
-                exported++;
+                if (sidecarWriter.writeSidecarMetadata(book, false)) {
+                    exported++;
+                }
             } catch (Exception e) {
                 log.warn("Failed to export sidecar for book ID {}: {}", book.getId(), e.getMessage());
             }
         }
 
         log.info("Bulk exported {} sidecar files for library {}", exported, library.getName());
+        return exported;
+    }
+
+    @Transactional
+    public int backupLibrarySidecars(Long libraryId) {
+        LibraryEntity library = libraryRepository.findById(libraryId)
+                .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
+
+        List<BookEntity> books = bookRepository.findAllByLibraryIdWithFiles(libraryId);
+        int exported = 0;
+
+        for (BookEntity book : books) {
+            try {
+                if (sidecarWriter.writeSidecarMetadata(book, true)) {
+                    exported++;
+                }
+            } catch (Exception e) {
+                log.warn("Failed to back up sidecar for book ID {}: {}", book.getId(), e.getMessage());
+            }
+        }
+
+        log.info("Backed up {} sidecar files for library {}", exported, library.getName());
         return exported;
     }
 

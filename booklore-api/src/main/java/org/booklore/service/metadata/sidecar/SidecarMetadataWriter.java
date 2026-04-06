@@ -43,33 +43,37 @@ public class SidecarMetadataWriter {
     }
 
     public void writeSidecarMetadata(BookEntity book) {
+        writeSidecarMetadata(book, false);
+    }
+
+    public boolean writeSidecarMetadata(BookEntity book, boolean forceWrite) {
         if (!appProperties.isLocalStorage()) {
-            return;
+            return false;
         }
         if (book == null || book.getMetadata() == null) {
             log.warn("Cannot write sidecar metadata: book or metadata is null");
-            return;
+            return false;
         }
 
         boolean physicalDirectorySidecar = sidecarPathResolver.isPhysicalDirectorySidecar(book);
         SidecarSettings settings = getSidecarSettings();
-        if (!physicalDirectorySidecar && (settings == null || !settings.isEnabled())) {
+        if (!forceWrite && !physicalDirectorySidecar && (settings == null || !settings.isEnabled())) {
             log.debug("Sidecar metadata is disabled");
-            return;
+            return false;
         }
 
         try {
             Path sidecarPath = sidecarPathResolver.resolveSidecarPath(book);
             if (sidecarPath == null) {
                 log.warn("Cannot write sidecar metadata: no sidecar target path available");
-                return;
+                return false;
             }
 
             if (!physicalDirectorySidecar) {
                 Path bookPath = book.getFullFilePath();
                 if (bookPath == null || !Files.exists(bookPath)) {
                     log.warn("Cannot write sidecar metadata: book file does not exist");
-                    return;
+                    return false;
                 }
             }
 
@@ -77,7 +81,7 @@ public class SidecarMetadataWriter {
             BookMetadataEntity metadata = book.getMetadata();
 
             String coverFileName = null;
-            if ((physicalDirectorySidecar || settings.isIncludeCoverFile())) {
+            if (physicalDirectorySidecar || (settings != null && settings.isIncludeCoverFile())) {
                 Path coverPath = sidecarPathResolver.resolveCoverPath(book);
                 if (coverPath != null) {
                     coverFileName = coverPath.getFileName().toString();
@@ -91,8 +95,10 @@ public class SidecarMetadataWriter {
             Files.writeString(sidecarPath, json);
 
             log.info("Wrote sidecar metadata to: {}", sidecarPath);
+            return true;
         } catch (IOException e) {
             log.error("Failed to write sidecar metadata for book ID {}: {}", book.getId(), e.getMessage());
+            return false;
         }
     }
 
