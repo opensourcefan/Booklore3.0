@@ -54,7 +54,7 @@ class SidecarServiceTest {
         secondBook.setId(11L);
 
         when(libraryRepository.findById(5L)).thenReturn(Optional.of(library));
-        when(bookRepository.findAllByLibraryIdWithFiles(5L)).thenReturn(List.of(firstBook, secondBook));
+        when(bookRepository.findAllForMetadataFlushByLibraryId(5L)).thenReturn(List.of(firstBook, secondBook));
         when(sidecarWriter.writeSidecarMetadata(firstBook, false)).thenReturn(true);
         when(sidecarWriter.writeSidecarMetadata(secondBook, false)).thenReturn(false);
 
@@ -77,7 +77,7 @@ class SidecarServiceTest {
         secondBook.setId(21L);
 
         when(libraryRepository.findById(7L)).thenReturn(Optional.of(library));
-        when(bookRepository.findAllByLibraryIdWithFiles(7L)).thenReturn(List.of(firstBook, secondBook));
+        when(bookRepository.findAllForMetadataFlushByLibraryId(7L)).thenReturn(List.of(firstBook, secondBook));
         when(sidecarWriter.writeSidecarMetadata(firstBook, true)).thenReturn(true);
         when(sidecarWriter.writeSidecarMetadata(secondBook, true)).thenReturn(true);
 
@@ -86,5 +86,24 @@ class SidecarServiceTest {
         assertEquals(2, exported);
         verify(sidecarWriter).writeSidecarMetadata(firstBook, true);
         verify(sidecarWriter).writeSidecarMetadata(secondBook, true);
+    }
+
+    @Test
+    void bulkImport_usesBooksWithResolvedLibraryPaths() {
+        LibraryEntity library = new LibraryEntity();
+        library.setId(8L);
+        library.setName("Import Library");
+
+        BookEntity book = new BookEntity();
+        book.setId(30L);
+
+        when(libraryRepository.findById(8L)).thenReturn(Optional.of(library));
+        when(bookRepository.findAllForMetadataFlushByLibraryId(8L)).thenReturn(List.of(book));
+        when(sidecarReader.readSidecarMetadata(book)).thenReturn(Optional.empty());
+
+        int imported = sidecarService.bulkImport(8L);
+
+        assertEquals(0, imported);
+        verify(bookRepository).findAllForMetadataFlushByLibraryId(8L);
     }
 }

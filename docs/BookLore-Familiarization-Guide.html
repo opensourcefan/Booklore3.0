@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.26 &mdash; April 6, 2026<br>
+    Version 1.1.27 &mdash; April 6, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -335,7 +335,7 @@
   <ul>
     <li><strong>Deleting a library can optionally delete the actual files from disk.</strong> If you only want to remove BookLore&rsquo;s catalog entry, make sure you uncheck &ldquo;delete files from disk.&rdquo;</li>
     <li><strong>Moving or renaming book files outside of BookLore</strong> will cause them to appear missing. Always let BookLore manage file movements.</li>
-    <li><strong>If your book folder is on a network drive,</strong> set <code>DISK_TYPE=NETWORK</code> in your environment configuration for better compatibility.</li>
+    <li><strong>If your book folder is on a network drive,</strong> set <code>DISK_TYPE=NETWORK</code> in your environment configuration for better compatibility. Automatic metadata writes stay disabled there, but you can still run manual sidecar backups when you want a portable metadata snapshot.</li>
   </ul>
 </div>
 
@@ -1045,6 +1045,7 @@
   <strong>Good to Know:</strong>
   <ul>
     <li><strong>Automatic sidecars and manual sidecar backups are separate.</strong> You can keep automatic sidecar writing turned off and still run <strong>Back Up Sidecars per Library</strong> from Metadata Persistence when you want an on-demand metadata backup.</li>
+    <li><strong>The backup action is available in both LOCAL and NETWORK disk modes.</strong> Network mode still blocks automatic rewrite and file reorganization, but the manual sidecar backup action remains available as an explicit exception.</li>
     <li><strong>Running the backup again refreshes existing backup sidecars.</strong> BookLore rewrites the selected library&rsquo;s sidecar files with the current database metadata instead of requiring you to delete old backups first.</li>
   </ul>
 </div>
@@ -1216,6 +1217,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-06</td><td>1.1.27</td><td>Documented that manual per-library sidecar backup works in both LOCAL and NETWORK disk modes and clarified that normal EPUB and PDF library backups now resolve book paths correctly instead of reporting zero exported books</td></tr>
   <tr><td>2026-04-06</td><td>1.1.26</td><td>Documented the new manual per-library sidecar backup action in Metadata Persistence, including backups that run even when automatic sidecars are disabled and refresh existing backup sidecars in place</td></tr>
   <tr><td>2026-04-06</td><td>1.1.25</td><td>Documented immediate sidebar filter-mode button selection updates plus the new physical-book directory sidecars that preserve physical placeholders across rebuilds and let sidecar exports include physical books</td></tr>
   <tr><td>2026-04-06</td><td>1.1.24</td><td>Clarified that the duplicate-review dialog now shows stronger active selection states, follows the current theme more closely for its surfaces and comparison cards, and starts the Custom matching preset with all signals cleared</td></tr>

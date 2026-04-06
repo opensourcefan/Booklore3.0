@@ -189,7 +189,7 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
   }
 
   backupLibrarySidecars(): void {
-    if (this.selectedBackupLibraryId === null || this.isLibraryBackupRunning || this.isNetworkStorage) {
+    if (this.selectedBackupLibraryId === null || this.isLibraryBackupRunning) {
       return;
     }
 

@@ -93,7 +93,7 @@ public class SidecarService {
         LibraryEntity library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
 
-        List<BookEntity> books = bookRepository.findAllByLibraryIdWithFiles(libraryId);
+        List<BookEntity> books = bookRepository.findAllForMetadataFlushByLibraryId(libraryId);
         int exported = 0;
 
         for (BookEntity book : books) {
@@ -115,7 +115,7 @@ public class SidecarService {
         LibraryEntity library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
 
-        List<BookEntity> books = bookRepository.findAllByLibraryIdWithFiles(libraryId);
+        List<BookEntity> books = bookRepository.findAllForMetadataFlushByLibraryId(libraryId);
         int exported = 0;
 
         for (BookEntity book : books) {
@@ -137,7 +137,7 @@ public class SidecarService {
         LibraryEntity library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
 
-        List<BookEntity> books = bookRepository.findAllByLibraryIdWithFiles(libraryId);
+        List<BookEntity> books = bookRepository.findAllForMetadataFlushByLibraryId(libraryId);
         int imported = 0;
 
         for (BookEntity book : books) {

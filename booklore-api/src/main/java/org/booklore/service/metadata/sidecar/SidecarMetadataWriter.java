@@ -47,7 +47,7 @@ public class SidecarMetadataWriter {
     }
 
     public boolean writeSidecarMetadata(BookEntity book, boolean forceWrite) {
-        if (!appProperties.isLocalStorage()) {
+        if (!forceWrite && !appProperties.isLocalStorage()) {
             return false;
         }
         if (book == null || book.getMetadata() == null) {
