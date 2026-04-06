@@ -3,7 +3,6 @@ package org.booklore.service.metadata;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.mapper.BookMapper;
 import org.booklore.model.dto.*;
-import org.booklore.model.dto.request.FetchMetadataRequest;
 import org.booklore.model.dto.request.MetadataRefreshOptions;
 import org.booklore.model.dto.request.MetadataRefreshRequest;
 import org.booklore.model.dto.settings.AppSettings;
@@ -11,9 +10,7 @@ import org.booklore.model.dto.settings.MetadataProviderSettings;
 import org.booklore.model.MetadataUpdateContext;
 import org.booklore.model.MetadataUpdateWrapper;
 import org.booklore.model.entity.BookEntity;
-import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.model.entity.LibraryEntity;
-import org.booklore.model.entity.MetadataFetchJobEntity;
 import org.booklore.model.enums.MetadataProvider;
 import org.booklore.model.enums.MetadataReplaceMode;
 import org.booklore.repository.BookRepository;
@@ -217,6 +214,57 @@ class MetadataRefreshServiceTest {
         assertThat(result).hasSize(2);
         assertThat(result.get(MetadataProvider.Amazon).getTitle()).isEqualTo("Amazon Title");
         assertThat(result.get(MetadataProvider.Google).getTitle()).isEqualTo("Google Title");
+    }
+
+    @Test
+    void fetchMetadataForBook_fallsBackToFullMetadataWhenTopMatchIsMissing() {
+        BookParser parser = mock(BookParser.class);
+        when(parserMap.get(MetadataProvider.GoodReads)).thenReturn(parser);
+
+        BookMetadata fallbackMeta = BookMetadata.builder()
+                .provider(MetadataProvider.GoodReads)
+                .title("Recovered Title")
+                .build();
+
+        when(parser.fetchTopMetadata(any(), any())).thenReturn(null);
+        when(parser.fetchMetadata(any(), any())).thenReturn(List.of(fallbackMeta));
+
+        Book book = Book.builder().id(1L).metadata(BookMetadata.builder().title("Test").build()).build();
+
+        Map<MetadataProvider, BookMetadata> result = service.fetchMetadataForBook(
+                List.of(MetadataProvider.GoodReads), book);
+
+        assertThat(result).containsOnlyKeys(MetadataProvider.GoodReads);
+        assertThat(result.get(MetadataProvider.GoodReads).getTitle()).isEqualTo("Recovered Title");
+        verify(parser).fetchTopMetadata(any(), any());
+        verify(parser).fetchMetadata(any(), any());
+    }
+
+    @Test
+    void fetchMetadataForBook_skipsFailingProviderAndContinuesWithOthers() {
+        BookParser failingParser = mock(BookParser.class);
+        BookParser healthyParser = mock(BookParser.class);
+
+        when(parserMap.get(MetadataProvider.Amazon)).thenReturn(failingParser);
+        when(parserMap.get(MetadataProvider.Google)).thenReturn(healthyParser);
+
+        when(failingParser.fetchTopMetadata(any(), any())).thenThrow(new RuntimeException("boom"));
+        when(failingParser.fetchMetadata(any(), any())).thenThrow(new RuntimeException("still boom"));
+
+        BookMetadata googleMeta = BookMetadata.builder()
+                .provider(MetadataProvider.Google)
+                .title("Google Title")
+                .build();
+        when(healthyParser.fetchTopMetadata(any(), any())).thenReturn(googleMeta);
+
+        Book book = Book.builder().id(1L).metadata(BookMetadata.builder().title("Test").build()).build();
+
+        Map<MetadataProvider, BookMetadata> result = service.fetchMetadataForBook(
+                List.of(MetadataProvider.Amazon, MetadataProvider.Google), book);
+
+        assertThat(result).containsOnlyKeys(MetadataProvider.Google);
+        assertThat(result.get(MetadataProvider.Google).getTitle()).isEqualTo("Google Title");
+        verify(healthyParser).fetchTopMetadata(any(), any());
     }
 
     @Test

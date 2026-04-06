@@ -137,6 +137,14 @@ public class MetadataRefreshService {
                             providers = prepareProviders(refreshOptions);
                         }
 
+                        if (refreshOptions == null) {
+                            log.warn("Skipping metadata refresh for book {} because no refresh options are configured.", getBookIdentifier(book));
+                            sendBatchProgressNotification(jobId, finalCompletedCount, totalBooks,
+                                    "Skipped: no metadata refresh options configured for " + book.getMetadata().getTitle(),
+                                    MetadataFetchTaskStatus.IN_PROGRESS, isReviewMode);
+                            return null;
+                        }
+
                         reportProgressIfNeeded(task, jobId, finalCompletedCount, totalBooks, book, isReviewMode);
                         Map<MetadataProvider, BookMetadata> metadataMap = fetchMetadataForBook(providers, book);
                         if (providers.contains(GoodReads)) {
@@ -219,8 +227,9 @@ public class MetadataRefreshService {
     }
 
     public Map<MetadataProvider, BookMetadata> fetchMetadataForBook(List<MetadataProvider> providers, Book book) {
+        FetchMetadataRequest request = buildFetchMetadataRequestFromBook(book);
         return providers.stream()
-                .map(provider -> fetchTopMetadataFromAProvider(provider, book))
+            .map(provider -> fetchMetadataFromProvider(provider, book, request))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(
                         BookMetadata::getProvider,
@@ -231,8 +240,9 @@ public class MetadataRefreshService {
 
     public Map<MetadataProvider, BookMetadata> fetchMetadataForBook(List<MetadataProvider> providers, BookEntity bookEntity) {
         Book book = bookMapper.toBook(bookEntity);
+        FetchMetadataRequest request = buildFetchMetadataRequestFromBook(book);
         return providers.stream()
-                .map(provider -> fetchTopMetadataFromAProvider(provider, book))
+            .map(provider -> fetchMetadataFromProvider(provider, book, request))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(
                         BookMetadata::getProvider,
@@ -252,6 +262,16 @@ public class MetadataRefreshService {
     private String getBookIdentifier(BookEntity book) {
         if (book.getPrimaryBookFile() != null && book.getPrimaryBookFile().getFileName() != null) {
             return book.getPrimaryBookFile().getFileName();
+        }
+        if (book.getMetadata() != null && book.getMetadata().getTitle() != null) {
+            return book.getMetadata().getTitle();
+        }
+        return "Book ID: " + book.getId();
+    }
+
+    private String getBookIdentifier(Book book) {
+        if (book.getPrimaryFile() != null && book.getPrimaryFile().getFileName() != null) {
+            return book.getPrimaryFile().getFileName();
         }
         if (book.getMetadata() != null && book.getMetadata().getTitle() != null) {
             return book.getMetadata().getTitle();
@@ -426,8 +446,36 @@ public class MetadataRefreshService {
         };
     }
 
+    private BookMetadata fetchMetadataFromProvider(MetadataProvider provider, Book book, FetchMetadataRequest request) {
+        BookParser parser = getParser(provider);
+
+        try {
+            BookMetadata topMetadata = parser.fetchTopMetadata(book, request);
+            if (topMetadata != null) {
+                return topMetadata;
+            }
+
+            log.debug("Metadata provider {} returned no top match for book {}. Falling back to full result scan.", provider, getBookIdentifier(book));
+        } catch (Exception e) {
+            log.warn("Metadata provider {} top-match fetch failed for book {}. Falling back to full result scan. Cause: {}",
+                    provider, getBookIdentifier(book), e.getMessage());
+        }
+
+        try {
+            List<BookMetadata> metadataList = parser.fetchMetadata(book, request);
+            if (metadataList == null || metadataList.isEmpty()) {
+                return null;
+            }
+            return metadataList.getFirst();
+        } catch (Exception e) {
+            log.warn("Metadata provider {} full result scan failed for book {}. Skipping provider. Cause: {}",
+                    provider, getBookIdentifier(book), e.getMessage());
+            return null;
+        }
+    }
+
     public BookMetadata fetchTopMetadataFromAProvider(MetadataProvider provider, Book book) {
-        return getParser(provider).fetchTopMetadata(book, buildFetchMetadataRequestFromBook(book));
+        return fetchMetadataFromProvider(provider, book, buildFetchMetadataRequestFromBook(book));
     }
 
     private BookParser getParser(MetadataProvider provider) {

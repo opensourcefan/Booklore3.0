@@ -728,12 +728,16 @@
   <li>Select multiple books for batch metadata operations</li>
   <li>Apply the same genre, category, or mood to many books at once</li>
   <li>Bulk-update reading status or media type</li>
-  <li>Bulk-fetch metadata for selected books</li>
+  <li>Bulk-fetch metadata for selected books, with better recovery when a provider&rsquo;s first match fails but later candidates still contain usable metadata</li>
   <li>Delete all metadata for selected books from the bulk selection action bar</li>
 </ul>
 
 <div class="callout warning">
   <strong>Be Careful:</strong> Bulk edits are immediate and cannot be reversed. Double-check your selection and changes before applying. Start with small batches to verify results. Bulk metadata deletion clears the selected books&rsquo; metadata in one step.
+</div>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> If one metadata source fails to return a usable first match during a bulk custom scan, BookLore now falls back more gracefully instead of abandoning that whole book as aggressively. For providers that temporarily throttle large jobs, BookLore also waits through the throttle window more cleanly instead of skipping the rest of the batch immediately.
 </div>
 
 <!-- ==================== SECTION 16 ==================== -->
@@ -1158,6 +1162,8 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-05</td><td>1.1.9</td><td>Documented that bulk metadata scans now wait through temporary provider throttling instead of skipping the remainder of the batch immediately</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.8</td><td>Documented the more resilient bulk custom metadata scan behavior when a provider&rsquo;s first candidate fails</td></tr>
   <tr><td>2026-04-05</td><td>1.1.7</td><td>Documented the Physical Books HOME view, library-directory-aware physical book creation, and Physical Media Type filtering</td></tr>
   <tr><td>2026-04-05</td><td>1.1.6</td><td>Documented sidebar-driven thumbnail warming for faster library switching and the new WebP thumbnail delivery path for supported browsers</td></tr>
   <tr><td>2026-04-05</td><td>1.1.5</td><td>Documented per-user Media Type and filter sidebar persistence plus filename-first browsing when selecting directories</td></tr>

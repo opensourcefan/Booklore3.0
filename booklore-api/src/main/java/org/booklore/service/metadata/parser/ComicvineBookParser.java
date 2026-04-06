@@ -438,9 +438,16 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         if (rateLimited.get()) {
             long currentTime = System.currentTimeMillis();
             if (currentTime < rateLimitResetTime.get()) {
-                log.warn("ComicVine API is currently rate limited. Skipping request. Rate limit resets at: {}",
-                        Instant.ofEpochMilli(rateLimitResetTime.get()));
-                return null;
+                long waitMs = rateLimitResetTime.get() - currentTime;
+                log.warn("ComicVine API is currently rate limited. Waiting {}ms before retrying request. Rate limit resets at: {}",
+                        waitMs, Instant.ofEpochMilli(rateLimitResetTime.get()));
+                try {
+                    Thread.sleep(waitMs);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                    return null;
+                }
+                rateLimited.compareAndSet(true, false);
             } else {
                 rateLimited.compareAndSet(true, false);
                 log.info("ComicVine rate limit period expired, resuming normal requests");
