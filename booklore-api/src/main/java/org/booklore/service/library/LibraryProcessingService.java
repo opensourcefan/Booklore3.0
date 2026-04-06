@@ -14,6 +14,7 @@ import org.booklore.repository.BookAdditionalFileRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
 import org.booklore.service.NotificationService;
+import org.booklore.service.book.PhysicalBookService;
 import org.booklore.service.file.FileFingerprint;
 import org.booklore.task.TaskStatus;
 import org.booklore.task.options.RescanLibraryContext;
@@ -51,6 +52,7 @@ public class LibraryProcessingService {
     private final LibraryFileHelper libraryFileHelper;
     private final BookGroupingService bookGroupingService;
     private final DirectoryTagService directoryTagService;
+    private final PhysicalBookService physicalBookService;
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -59,6 +61,7 @@ public class LibraryProcessingService {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Started processing library: " + libraryEntity.getName()));
         try {
+            physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
             List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity);
             importLibraryFiles(libraryEntity, libraryFiles);
 
@@ -84,6 +87,7 @@ public class LibraryProcessingService {
 
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Started processing new library path(s) for: " + libraryEntity.getName()));
         try {
+            physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, pathEntities);
             List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity, pathEntities);
             importLibraryFiles(libraryEntity, libraryFiles);
             notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished processing new library path(s) for: " + libraryEntity.getName()));
@@ -100,6 +104,7 @@ public class LibraryProcessingService {
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Started refreshing library: " + libraryEntity.getName()));
 
         validateLibraryPathsAccessible(libraryEntity);
+        physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
 
         List<LibraryFile> allLibraryFiles = libraryFileHelper.getAllLibraryFiles(libraryEntity);
         List<LibraryFile> filteredFiles = libraryFileHelper.filterByAllowedFormats(

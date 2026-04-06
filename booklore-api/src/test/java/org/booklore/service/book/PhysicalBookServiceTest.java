@@ -2,7 +2,9 @@ package org.booklore.service.book;
 
 import org.booklore.mapper.BookMapper;
 import org.booklore.model.dto.Book;
+import org.booklore.model.dto.BookMetadata;
 import org.booklore.model.dto.request.CreatePhysicalBookRequest;
+import org.booklore.model.dto.sidecar.SidecarMetadata;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.model.entity.LibraryEntity;
@@ -11,6 +13,10 @@ import org.booklore.repository.AuthorRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.CategoryRepository;
 import org.booklore.repository.LibraryRepository;
+import org.booklore.service.metadata.sidecar.SidecarMetadataMapper;
+import org.booklore.service.metadata.sidecar.SidecarMetadataReader;
+import org.booklore.service.metadata.sidecar.SidecarMetadataWriter;
+import org.booklore.service.metadata.sidecar.SidecarPathResolver;
 import org.booklore.util.FileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,10 +29,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.nio.file.Path;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +59,18 @@ class PhysicalBookServiceTest {
 
     @Mock
     private FileService fileService;
+
+    @Mock
+    private SidecarMetadataWriter sidecarMetadataWriter;
+
+    @Mock
+    private SidecarMetadataReader sidecarMetadataReader;
+
+    @Mock
+    private SidecarMetadataMapper sidecarMetadataMapper;
+
+    @Mock
+    private SidecarPathResolver sidecarPathResolver;
 
     @InjectMocks
     private PhysicalBookService physicalBookService;
@@ -96,6 +117,7 @@ class PhysicalBookServiceTest {
         verify(bookRepository).save(captor.capture());
         assertThat(captor.getValue().getLibraryPath()).isSameAs(secondaryPath);
         assertThat(captor.getValue().getIsPhysical()).isTrue();
+        verify(sidecarMetadataWriter).writeSidecarMetadata(any(BookEntity.class));
     }
 
     @Test
@@ -194,5 +216,37 @@ class PhysicalBookServiceTest {
         ArgumentCaptor<BookEntity> captor = ArgumentCaptor.forClass(BookEntity.class);
         verify(bookRepository).save(captor.capture());
         assertThat(captor.getValue().getLibraryPath()).isSameAs(secondaryPath);
+    }
+
+    @Test
+    void importPhysicalBooksFromSidecars_createsBooksFromDirectorySidecars(@org.junit.jupiter.api.io.TempDir Path tempDir) throws Exception {
+        Path sidecarFile = tempDir.resolve("my-physical-book.physical.metadata.json");
+        java.nio.file.Files.writeString(sidecarFile, "{}");
+
+        primaryPath.setPath(tempDir.toString());
+
+        when(sidecarPathResolver.isPhysicalSidecarFile(any(Path.class))).thenAnswer(invocation ->
+                ((Path) invocation.getArgument(0)).getFileName().toString().endsWith(".physical.metadata.json"));
+
+        SidecarMetadata sidecarMetadata = SidecarMetadata.builder().build();
+        when(sidecarMetadataReader.readSidecarMetadataFromFile(eq(sidecarFile))).thenReturn(Optional.of(sidecarMetadata));
+        when(sidecarMetadataMapper.toBookMetadata(sidecarMetadata)).thenReturn(BookMetadata.builder()
+                .title("Imported Physical Book")
+                .authors(List.of("Jane Doe"))
+                .categories(Set.of("History"))
+                .isbn13("9780134685991")
+                .build());
+        when(bookRepository.findActivePhysicalBooksByLibraryIdAndLibraryPathId(1L, 10L)).thenReturn(List.of());
+        when(bookRepository.save(any(BookEntity.class))).thenAnswer(invocation -> {
+            BookEntity saved = invocation.getArgument(0);
+            saved.setId(101L);
+            return saved;
+        });
+        when(bookMapper.toBook(any(BookEntity.class))).thenReturn(Book.builder().id(101L).build());
+
+        int imported = physicalBookService.importPhysicalBooksFromSidecars(library, List.of(primaryPath));
+
+        assertThat(imported).isEqualTo(1);
+        verify(sidecarMetadataWriter).writeSidecarMetadata(any(BookEntity.class));
     }
 }

@@ -444,6 +444,10 @@ public class BookService {
         List<Long> failedFileDeletions = new ArrayList<>();
         boolean actuallyDeleteFromDisk = deleteFromDisk && appSettingService.getAppSettings().isAllowFileDeletion();
         for (BookEntity book : books) {
+            if (Boolean.TRUE.equals(book.getIsPhysical()) && !book.hasFiles()) {
+                sidecarMetadataWriter.deleteSidecarFiles(book);
+            }
+
             for (BookFileEntity bookFile : book.getBookFiles()) {
                 Path fullFilePath = bookFile.getFullFilePath();
                 try {

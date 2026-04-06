@@ -440,7 +440,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.bookFilterComponents?.forEach(comp => {
       comp.setFilters?.(this.parsedFilters);
       comp.onFiltersChanged?.();
-      comp.selectedFilterMode = this.selectedFilterMode.getValue();
     });
     this.settingFiltersFromUrl = false;
 
@@ -607,9 +606,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!this.hasInitializedFilterMode || hasExplicitFilterMode) {
         if (parseResult.filterMode !== this.selectedFilterMode.getValue()) {
           this.selectedFilterMode.next(parseResult.filterMode);
-          this.bookFilterComponents?.forEach(comp => {
-            comp.selectedFilterMode = parseResult.filterMode;
-          });
         }
         this.hasInitializedFilterMode = true;
       }

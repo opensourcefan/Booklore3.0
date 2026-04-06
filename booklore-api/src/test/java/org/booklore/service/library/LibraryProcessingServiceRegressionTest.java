@@ -7,6 +7,7 @@ import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.repository.BookAdditionalFileRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
+import org.booklore.service.book.PhysicalBookService;
 import org.booklore.service.NotificationService;
 import org.booklore.task.options.RescanLibraryContext;
 import jakarta.persistence.EntityManager;
@@ -52,6 +53,8 @@ class LibraryProcessingServiceRegressionTest {
     @Mock
     private DirectoryTagService directoryTagService;
     @Mock
+    private PhysicalBookService physicalBookService;
+    @Mock
     private EntityManager entityManager;
 
     private LibraryProcessingService libraryProcessingService;
@@ -69,6 +72,7 @@ class LibraryProcessingServiceRegressionTest {
                 libraryFileHelper,
                 bookGroupingService,
                 directoryTagService,
+                physicalBookService,
                 entityManager
         );
     }
@@ -116,6 +120,7 @@ class LibraryProcessingServiceRegressionTest {
 
         libraryProcessingService.rescanLibrary(context);
 
+        verify(physicalBookService).importPhysicalBooksFromSidecars(libraryEntity, List.of(pathEntity));
         // Fileless books should NOT be marked as deleted - they are intentionally without files
         verify(bookDeletionService, never()).processDeletedLibraryFiles(any(), any());
         verify(bookDeletionService, never()).deleteRemovedBooks(any());

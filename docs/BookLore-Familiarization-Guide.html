@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.24 &mdash; April 6, 2026<br>
+    Version 1.1.25 &mdash; April 6, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -382,7 +382,11 @@
 </table>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter. BookLore also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there.
+  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter. BookLore also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there. Physical placeholders now also write a small directory sidecar in their chosen library folder, so a later rebuild or refresh can recreate them from disk-backed metadata instead of losing them.
+</div>
+
+<div class="callout tip">
+  <strong>Backup Friendly:</strong> The <strong>Sidecar</strong> tools for a physical placeholder now target its library directory instead of requiring a digital book file. This gives you a portable metadata backup for physical entries and lets library-wide sidecar exports include physical books too.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -778,6 +782,10 @@
 
 <div class="callout info">
   <strong>Mode Changes Reset Sidebar Selections:</strong> Switching between <strong>AND</strong>, <strong>OR</strong>, <strong>NOT</strong>, and <strong>1</strong> now clears the current sidebar filter selections first. This prevents an old selection set from being silently reinterpreted under a different mode.
+</div>
+
+<div class="callout tip">
+  <strong>What Changed:</strong> After you already have sidebar selections active, switching to a different filter mode now updates the highlighted mode button immediately on the first click instead of waiting for a second click to make the new mode look selected.
 </div>
 
 <h3>Duplicate Review</h3>
@@ -1199,6 +1207,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-06</td><td>1.1.25</td><td>Documented immediate sidebar filter-mode button selection updates plus the new physical-book directory sidecars that preserve physical placeholders across rebuilds and let sidecar exports include physical books</td></tr>
   <tr><td>2026-04-06</td><td>1.1.24</td><td>Clarified that the duplicate-review dialog now shows stronger active selection states, follows the current theme more closely for its surfaces and comparison cards, and starts the Custom matching preset with all signals cleared</td></tr>
   <tr><td>2026-04-06</td><td>1.1.23</td><td>Documented the saved duplicate-plan snapshot view that exposes queued groups, preferred keeps, and saved scan context before a new scan runs</td></tr>
   <tr><td>2026-04-06</td><td>1.1.22</td><td>Documented that duplicate-resolution plans are now saved to the user account so queued keep choices can be restored on a later review pass</td></tr>

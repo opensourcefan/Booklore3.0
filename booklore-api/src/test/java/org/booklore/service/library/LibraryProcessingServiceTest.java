@@ -9,7 +9,7 @@ import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.repository.BookAdditionalFileRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
-import org.booklore.service.library.DirectoryTagService;
+import org.booklore.service.book.PhysicalBookService;
 import org.booklore.service.NotificationService;
 import org.booklore.task.options.RescanLibraryContext;
 import jakarta.persistence.EntityManager;
@@ -54,6 +54,8 @@ class LibraryProcessingServiceTest {
     private BookGroupingService bookGroupingService;
     @Mock
     private DirectoryTagService directoryTagService;
+        @Mock
+        private PhysicalBookService physicalBookService;
     @Mock
     private EntityManager entityManager;
 
@@ -72,6 +74,7 @@ class LibraryProcessingServiceTest {
                 libraryFileHelper,
                 bookGroupingService,
                 directoryTagService,
+                                physicalBookService,
                 entityManager
         );
     }
@@ -129,7 +132,7 @@ class LibraryProcessingServiceTest {
 
         libraryProcessingService.processLibrary(libraryId);
 
-        ArgumentCaptor<List<LibraryFile>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<LibraryFile>> captor = libraryFileListCaptor();
         verify(bookGroupingService).groupForInitialScan(captor.capture(), eq(libraryEntity));
 
         List<LibraryFile> processedFiles = captor.getValue();
@@ -174,7 +177,7 @@ class LibraryProcessingServiceTest {
 
         libraryProcessingService.processLibrary(libraryId);
 
-        ArgumentCaptor<List<LibraryFile>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<LibraryFile>> captor = libraryFileListCaptor();
         verify(bookGroupingService).groupForInitialScan(captor.capture(), eq(libraryEntity));
 
         assertThat(captor.getValue()).isEmpty();
@@ -221,7 +224,7 @@ class LibraryProcessingServiceTest {
 
         libraryProcessingService.processLibrary(libraryId);
 
-        ArgumentCaptor<List<LibraryFile>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<LibraryFile>> captor = libraryFileListCaptor();
         verify(bookGroupingService).groupForInitialScan(captor.capture(), eq(libraryEntity));
 
         assertThat(captor.getValue()).hasSize(2);
@@ -262,7 +265,7 @@ class LibraryProcessingServiceTest {
 
         libraryProcessingService.processLibrary(libraryId);
 
-        ArgumentCaptor<List<LibraryFile>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<LibraryFile>> captor = libraryFileListCaptor();
         verify(bookGroupingService).groupForInitialScan(captor.capture(), eq(libraryEntity));
 
         List<LibraryFile> processedFiles = captor.getValue();
@@ -306,7 +309,7 @@ class LibraryProcessingServiceTest {
 
         libraryProcessingService.processLibrary(libraryId);
 
-        ArgumentCaptor<List<LibraryFile>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<LibraryFile>> captor = libraryFileListCaptor();
         verify(bookGroupingService).groupForInitialScan(captor.capture(), eq(libraryEntity));
 
         assertThat(captor.getValue()).isEmpty();
@@ -375,7 +378,7 @@ class LibraryProcessingServiceTest {
         libraryProcessingService.rescanLibrary(RescanLibraryContext.builder().libraryId(libraryId).build());
 
         // pdf (book format) should be deleted; image (non-book format) should NOT be deleted
-        ArgumentCaptor<List<Long>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<Long>> captor = longListCaptor();
         verify(bookDeletionService).deleteRemovedAdditionalFiles(captor.capture());
         assertThat(captor.getValue()).containsExactly(2L);
     }
@@ -579,4 +582,14 @@ class LibraryProcessingServiceTest {
 
         verify(bookGroupingService).groupForRescan(eq(Collections.emptyList()), any(LibraryEntity.class));
     }
+
+        @SuppressWarnings("unchecked")
+        private ArgumentCaptor<List<LibraryFile>> libraryFileListCaptor() {
+                return (ArgumentCaptor<List<LibraryFile>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(List.class);
+        }
+
+        @SuppressWarnings("unchecked")
+        private ArgumentCaptor<List<Long>> longListCaptor() {
+                return (ArgumentCaptor<List<Long>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(List.class);
+        }
 }

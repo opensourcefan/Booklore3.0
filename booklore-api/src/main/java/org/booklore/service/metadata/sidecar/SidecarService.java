@@ -17,8 +17,6 @@ import org.booklore.service.metadata.BookMetadataUpdater;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,12 +36,7 @@ public class SidecarService {
         BookEntity book = bookRepository.findByIdWithBookFiles(bookId)
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
 
-        Path bookPath = book.getFullFilePath();
-        if (bookPath == null) {
-            return Optional.empty();
-        }
-
-        return sidecarReader.readSidecarMetadata(bookPath);
+        return sidecarReader.readSidecarMetadata(book);
     }
 
     public SidecarSyncStatus getSyncStatus(Long bookId) {
@@ -66,12 +59,7 @@ public class SidecarService {
         BookEntity book = bookRepository.findByIdWithBookFiles(bookId)
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
 
-        Path bookPath = book.getFullFilePath();
-        if (bookPath == null) {
-            throw ApiError.FILE_NOT_FOUND.createException("Book has no file path");
-        }
-
-        Optional<SidecarMetadata> sidecarOpt = sidecarReader.readSidecarMetadata(bookPath);
+        Optional<SidecarMetadata> sidecarOpt = sidecarReader.readSidecarMetadata(book);
         if (sidecarOpt.isEmpty()) {
             throw ApiError.FILE_NOT_FOUND.createException("No sidecar file found for book");
         }
@@ -94,7 +82,7 @@ public class SidecarService {
             bookMetadataUpdater.setBookMetadata(context);
         }
 
-        byte[] coverBytes = sidecarReader.readSidecarCover(bookPath);
+        byte[] coverBytes = sidecarReader.readSidecarCover(book);
         if (coverBytes != null) {
             log.info("Sidecar cover found for book ID {} - cover import is a separate operation", bookId);
         }
@@ -131,12 +119,7 @@ public class SidecarService {
 
         for (BookEntity book : books) {
             try {
-                Path bookPath = book.getFullFilePath();
-                if (bookPath == null) {
-                    continue;
-                }
-
-                Optional<SidecarMetadata> sidecarOpt = sidecarReader.readSidecarMetadata(bookPath);
+                Optional<SidecarMetadata> sidecarOpt = sidecarReader.readSidecarMetadata(book);
                 if (sidecarOpt.isEmpty()) {
                     continue;
                 }

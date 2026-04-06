@@ -4,7 +4,9 @@ import org.booklore.exception.ApiError;
 import org.booklore.exception.APIException;
 import org.booklore.mapper.BookMapper;
 import org.booklore.model.dto.Book;
+import org.booklore.model.dto.BookMetadata;
 import org.booklore.model.dto.request.CreatePhysicalBookRequest;
+import org.booklore.model.dto.sidecar.SidecarMetadata;
 import org.booklore.model.entity.AuthorEntity;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookMetadataEntity;
@@ -15,6 +17,10 @@ import org.booklore.repository.AuthorRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.CategoryRepository;
 import org.booklore.repository.LibraryRepository;
+import org.booklore.service.metadata.sidecar.SidecarMetadataReader;
+import org.booklore.service.metadata.sidecar.SidecarMetadataMapper;
+import org.booklore.service.metadata.sidecar.SidecarMetadataWriter;
+import org.booklore.service.metadata.sidecar.SidecarPathResolver;
 import org.booklore.util.BookCoverUtils;
 import org.booklore.util.FileService;
 import lombok.AllArgsConstructor;
@@ -33,8 +39,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.io.IOException;
 
 @Slf4j
 @Service
@@ -47,6 +57,10 @@ public class PhysicalBookService {
     private final CategoryRepository categoryRepository;
     private final BookMapper bookMapper;
     private final FileService fileService;
+    private final SidecarMetadataWriter sidecarMetadataWriter;
+    private final SidecarMetadataReader sidecarMetadataReader;
+    private final SidecarMetadataMapper sidecarMetadataMapper;
+    private final SidecarPathResolver sidecarPathResolver;
 
     @Transactional
     public Book createPhysicalBook(CreatePhysicalBookRequest request) {
@@ -100,7 +114,60 @@ public class PhysicalBookService {
             }
         }
 
+        sidecarMetadataWriter.writeSidecarMetadata(savedBook);
+
         return bookMapper.toBook(savedBook);
+    }
+
+    @Transactional
+    public int importPhysicalBooksFromSidecars(LibraryEntity libraryEntity, List<LibraryPathEntity> libraryPaths) {
+        int imported = 0;
+
+        for (LibraryPathEntity libraryPath : libraryPaths) {
+            Path libraryDirectory = Path.of(libraryPath.getPath());
+            if (!Files.isDirectory(libraryDirectory)) {
+                continue;
+            }
+
+            try (var files = Files.list(libraryDirectory)) {
+                List<Path> physicalSidecars = files
+                        .filter(Files::isRegularFile)
+                        .filter(sidecarPathResolver::isPhysicalSidecarFile)
+                        .sorted()
+                        .toList();
+
+                for (Path sidecarPath : physicalSidecars) {
+                    Optional<SidecarMetadata> sidecar = sidecarMetadataReader.readSidecarMetadataFromFile(sidecarPath);
+                    if (sidecar.isEmpty()) {
+                        continue;
+                    }
+
+                    CreatePhysicalBookRequest request = toCreateRequest(libraryEntity.getId(), libraryPath.getId(), sidecar.get());
+                    if (request == null) {
+                        continue;
+                    }
+
+                    try {
+                        createPhysicalBook(request);
+                        imported++;
+                    } catch (APIException ex) {
+                        if (ex.getStatus() == HttpStatus.CONFLICT) {
+                            log.debug("Skipping already-imported physical sidecar {}", sidecarPath.getFileName());
+                            continue;
+                        }
+                        throw ex;
+                    }
+                }
+            } catch (IOException ex) {
+                log.warn("Failed to inspect physical sidecars for library path {}: {}", libraryDirectory, ex.getMessage());
+            }
+        }
+
+        if (imported > 0) {
+            log.info("Imported {} physical books from directory sidecars for library {}", imported, libraryEntity.getName());
+        }
+
+        return imported;
     }
 
     private void ensureNoConflictingPhysicalBook(LibraryEntity library, LibraryPathEntity libraryPath, CreatePhysicalBookRequest request) {
@@ -236,8 +303,39 @@ public class PhysicalBookService {
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
         book.setIsPhysical(physical);
         bookRepository.save(book);
+
+        if (!book.hasFiles()) {
+            if (physical) {
+                sidecarMetadataWriter.writeSidecarMetadata(book);
+            } else {
+                sidecarMetadataWriter.deleteSidecarFiles(book);
+            }
+        }
+
         log.info("Book {} physical flag set to {}", bookId, physical);
         return bookMapper.toBook(book);
+    }
+
+    private CreatePhysicalBookRequest toCreateRequest(Long libraryId, Long libraryPathId, SidecarMetadata sidecarMetadata) {
+        BookMetadata metadata = sidecarMetadataMapper.toBookMetadata(sidecarMetadata);
+        if (metadata == null || (metadata.getTitle() == null || metadata.getTitle().isBlank()) && (metadata.getIsbn13() == null || metadata.getIsbn13().isBlank())) {
+            return null;
+        }
+
+        String isbn = metadata.getIsbn13() != null ? metadata.getIsbn13() : metadata.getIsbn10();
+        return CreatePhysicalBookRequest.builder()
+                .libraryId(libraryId)
+                .libraryPathId(libraryPathId)
+                .isbn(isbn)
+                .title(metadata.getTitle())
+                .authors(metadata.getAuthors())
+                .description(metadata.getDescription())
+                .publisher(metadata.getPublisher())
+                .publishedDate(metadata.getPublishedDate() != null ? metadata.getPublishedDate().toString() : null)
+                .language(metadata.getLanguage())
+                .pageCount(metadata.getPageCount())
+                .categories(metadata.getCategories() != null ? new ArrayList<>(metadata.getCategories()) : null)
+                .build();
     }
 
     private String truncate(String input, int maxLength) {
