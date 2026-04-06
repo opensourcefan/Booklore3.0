@@ -112,17 +112,72 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
 
     @Override
     public BookMetadata fetchTopMetadata(Book book, FetchMetadataRequest fetchMetadataRequest) {
-        List<BookMetadata> metadataList = fetchMetadata(book, fetchMetadataRequest);
-        if (metadataList.isEmpty()) return null;
+        String isbn = ParserUtils.cleanIsbn(fetchMetadataRequest.getIsbn());
+        if (isbn != null && !isbn.isEmpty()) {
+            log.info("Comicvine: Searching top match by ISBN: {}", isbn);
+            BookMetadata isbnMatch = searchGeneralTop(isbn);
+            if (isbnMatch != null) {
+                return enrichTopMetadataIfNeeded(isbnMatch);
+            }
+            log.info("Comicvine: Top ISBN search returned no results, falling back to Title/Term.");
+        }
 
-        BookMetadata top = metadataList.getFirst();
+        String searchTerm = getSearchTerm(book, fetchMetadataRequest);
+        if (searchTerm == null) {
+            log.warn("No valid search term provided for top metadata fetch.");
+            return null;
+        }
+
+        BookMetadata top = searchTopMetadataByTerm(searchTerm);
+        if (top == null) {
+            return null;
+        }
+        return enrichTopMetadataIfNeeded(top);
+    }
+
+    private BookMetadata enrichTopMetadataIfNeeded(BookMetadata top) {
         if (top.getComicvineId() != null && (top.getComicMetadata() == null || !hasComicDetails(top.getComicMetadata()))) {
             BookMetadata detailed = fetchDetailedMetadata(top.getComicvineId());
-            if (detailed != null && detailed.getComicMetadata() != null) {
-                top.setComicMetadata(detailed.getComicMetadata());
+            if (detailed != null) {
+                return detailed;
             }
         }
         return top;
+    }
+
+    private BookMetadata searchTopMetadataByTerm(String term) {
+        SeriesAndIssue seriesAndIssue = extractSeriesAndIssue(term);
+
+        if (seriesAndIssue.issue() != null) {
+            log.info("Attempting structured top-match search for Series: '{}', Issue: '{}', Year: '{}', Type: '{}'",
+                    seriesAndIssue.series(), seriesAndIssue.issue(), seriesAndIssue.year(), seriesAndIssue.issueType());
+            BookMetadata preciseResult = searchTopVolumeAndIssue(seriesAndIssue.series(), seriesAndIssue.issue(), seriesAndIssue.year());
+            if (preciseResult != null) {
+                return preciseResult;
+            }
+            log.info("Structured top-match search yielded no results, trying alternative strategies.");
+
+            BookMetadata alternativeResult = tryAlternativeSeriesNamesForTopMatch(seriesAndIssue);
+            if (alternativeResult != null) {
+                return alternativeResult;
+            }
+        }
+
+        BookMetadata generalResult = searchGeneralTop(term);
+        if (generalResult != null) {
+            return generalResult;
+        }
+
+        if (seriesAndIssue.issue() != null && seriesAndIssue.remainder() != null && !seriesAndIssue.remainder().isBlank()) {
+            String modifiedTerm = seriesAndIssue.series() + " " + seriesAndIssue.remainder();
+            if (seriesAndIssue.year() != null) {
+                modifiedTerm += " " + seriesAndIssue.year();
+            }
+            log.info("Top-match general search failed, trying modified term: '{}'", modifiedTerm);
+            return searchGeneralTop(modifiedTerm);
+        }
+
+        return null;
     }
 
     public List<BookMetadata> getMetadataListByTerm(String term) {
@@ -199,6 +254,41 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         return Collections.emptyList();
     }
 
+    private BookMetadata tryAlternativeSeriesNamesForTopMatch(SeriesAndIssue original) {
+        String series = original.series();
+        List<String> alternatives = new ArrayList<>();
+
+        if (series.toLowerCase().startsWith("the ")) {
+            alternatives.add(series.substring(4));
+        }
+
+        if (!series.toLowerCase().startsWith("the ")) {
+            alternatives.add("The " + series);
+        }
+
+        if (series.contains(" - ")) {
+            alternatives.add(series.replace(" - ", ": "));
+        }
+        if (series.contains(": ")) {
+            alternatives.add(series.replace(": ", " - "));
+        }
+
+        String cleaned = VOLUME_SUFFIX_PATTERN.matcher(series).replaceAll("").trim();
+        if (!cleaned.equals(series)) {
+            alternatives.add(cleaned);
+        }
+
+        for (String altSeries : alternatives) {
+            log.debug("Trying alternative top-match series name: '{}'", altSeries);
+            BookMetadata result = searchTopVolumeAndIssue(altSeries, original.issue(), original.year());
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
     private List<BookMetadata> searchVolumesAndIssues(String seriesName, String issueNumber, Integer extractedYear) {
         String normalizedIssue = normalizeIssueNumber(issueNumber);
         
@@ -242,6 +332,40 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
             }
         }
         return results;
+    }
+
+    private BookMetadata searchTopVolumeAndIssue(String seriesName, String issueNumber, Integer extractedYear) {
+        String normalizedIssue = normalizeIssueNumber(issueNumber);
+
+        if (seriesName.endsWith(" " + issueNumber) || seriesName.endsWith(" " + normalizedIssue)) {
+            seriesName = seriesName.replaceAll("\\s+" + Pattern.quote(issueNumber) + "$", "")
+                    .replaceAll("\\s+" + Pattern.quote(normalizedIssue) + "$", "")
+                    .trim();
+            log.warn("Issue number found in series name for top-match search, corrected to: '{}'", seriesName);
+        }
+
+        final String finalSeriesName = seriesName;
+        List<Comic> volumes = searchVolumes(finalSeriesName);
+        if (volumes.isEmpty()) {
+            return null;
+        }
+
+        volumes.sort((v1, v2) -> {
+            int score1 = calculateVolumeScore(v1, finalSeriesName, normalizedIssue, extractedYear);
+            int score2 = calculateVolumeScore(v2, finalSeriesName, normalizedIssue, extractedYear);
+            return Integer.compare(score2, score1);
+        });
+
+        int limit = extractedYear != null ? Math.min(volumes.size(), 2) : 1;
+        for (int i = 0; i < limit; i++) {
+            Comic volume = volumes.get(i);
+            BookMetadata issue = searchTopIssueInVolume(volume, issueNumber);
+            if (issue != null) {
+                return issue;
+            }
+        }
+
+        return null;
     }
 
     private int calculateVolumeScore(Comic volume, String seriesName, String normalizedIssue, Integer extractedYear) {
@@ -393,6 +517,38 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         return Collections.emptyList();
     }
 
+    private BookMetadata searchTopIssueInVolume(Comic volume, String issueNumber) {
+        String apiToken = getApiToken();
+        if (apiToken == null) return null;
+
+        String normalizedIssue = normalizeIssueNumber(issueNumber);
+
+        URI uri = UriComponentsBuilder.fromUriString(COMICVINE_URL)
+                .path("/issues/")
+                .queryParam("api_key", apiToken)
+                .queryParam("format", "json")
+                .queryParam("filter", "volume:" + volume.getId() + ",issue_number:" + normalizedIssue)
+                .queryParam("field_list", ISSUE_LIST_FIELDS)
+                .queryParam("limit", 1)
+                .build()
+                .toUri();
+
+        ComicvineApiResponse response = sendRequest(uri, ComicvineApiResponse.class);
+        if (response == null || response.getResults() == null || response.getResults().isEmpty()) {
+            return null;
+        }
+
+        Comic firstIssue = response.getResults().getFirst();
+        String returnedIssue = normalizeIssueNumber(firstIssue.getIssueNumber());
+        if (!issueNumbersMatch(normalizedIssue, returnedIssue)) {
+            log.warn("Top-match issue number mismatch. Requested '{}', got '{}' from volume {}",
+                    normalizedIssue, returnedIssue, volume.getId());
+            return null;
+        }
+
+        return convertToBookMetadata(firstIssue, volume);
+    }
+
     @Override
     public BookMetadata fetchDetailedMetadata(String comicvineId) {
         return fetchIssueDetails(Integer.parseInt(comicvineId), null);
@@ -439,6 +595,29 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
                     .collect(Collectors.toList());
         }
         return Collections.emptyList();
+    }
+
+    private BookMetadata searchGeneralTop(String term) {
+        String apiToken = getApiToken();
+        if (apiToken == null) return null;
+
+        URI uri = UriComponentsBuilder.fromUriString(COMICVINE_URL)
+                .path("/search/")
+                .queryParam("api_key", apiToken)
+                .queryParam("format", "json")
+                .queryParam("resources", "volume,issue")
+                .queryParam("query", term)
+                .queryParam("limit", 1)
+                .queryParam("field_list", SEARCH_FIELDS)
+                .build()
+                .toUri();
+
+        ComicvineApiResponse response = sendRequest(uri, ComicvineApiResponse.class);
+        if (response == null || response.getResults() == null || response.getResults().isEmpty()) {
+            return null;
+        }
+
+        return convertToBookMetadata(response.getResults().getFirst(), null);
     }
 
     private <T> T sendRequest(URI uri, Class<T> responseType) {
@@ -608,9 +787,9 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         Duration remaining = Duration.ofMillis(Math.max(0, resetAt - System.currentTimeMillis()));
         String formattedResetTime = RATE_LIMIT_TIME_FORMATTER.format(Instant.ofEpochMilli(resetAt).atZone(ZoneId.systemDefault()));
         return String.format(
-                "Waiting for ComicVine rate limit reset until %s (%s remaining). Processed %d of %d books.",
-                formattedResetTime,
+                "Waiting for ComicVine rate limit reset. Time left: %s. Resets at %s. Processed %d of %d books.",
                 formatDuration(remaining),
+                formattedResetTime,
                 completed,
                 total
         );

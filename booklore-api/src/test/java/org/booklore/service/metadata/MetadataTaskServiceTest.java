@@ -252,7 +252,7 @@ class MetadataTaskServiceTest {
             MetadataFetchJobEntity task = MetadataFetchJobEntity.builder()
                     .taskId("ip")
                     .status(MetadataFetchTaskStatus.IN_PROGRESS)
-                    .statusMessage("Waiting for ComicVine rate limit reset until 6:45:00 PM (12m 10s remaining). Processed 66 of 100 books.")
+                    .statusMessage("Waiting for ComicVine rate limit reset. Time left: 12m 10s. Resets at 6:45:00 PM. Processed 66 of 100 books.")
                     .totalBooksCount(100)
                     .completedBooks(66)
                     .startedAt(Instant.now())

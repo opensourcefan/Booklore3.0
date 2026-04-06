@@ -737,7 +737,7 @@
 </div>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> If one metadata source fails to return a usable first match during a bulk custom scan, BookLore now falls back more gracefully instead of abandoning that whole book as aggressively. For providers that temporarily throttle large jobs, BookLore now retries the throttled request itself after the cooldown window, keeps the metadata task visible as still running, and shows a provider-wait message with an ETA instead of incorrectly reporting it as stalled after a short quiet period.
+  <strong>Good to Know:</strong> If one metadata source fails to return a usable first match during a bulk custom scan, BookLore now falls back more gracefully instead of abandoning that whole book as aggressively. For providers that temporarily throttle large jobs, BookLore now retries the throttled request itself after the cooldown window, keeps the metadata task visible as still running, shows a provider-wait message with both the reset ETA and the current time left, and uses a lighter top-match lookup path for ComicVine batch scans so large runs are less likely to exhaust the hourly request budget mid-batch.
 </div>
 
 <!-- ==================== SECTION 16 ==================== -->
@@ -1162,6 +1162,8 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-05</td><td>1.1.13</td><td>Clarified throttled ComicVine bulk metadata notifications to show an explicit time-left snapshot alongside the reset ETA</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.12</td><td>Documented the reduced-request ComicVine top-match path for bulk metadata scans to lower the chance of hitting hourly API limits mid-batch</td></tr>
   <tr><td>2026-04-05</td><td>1.1.11</td><td>Documented explicit wait-state messaging with ETA for throttled bulk metadata scans while the provider cooldown is in effect</td></tr>
   <tr><td>2026-04-05</td><td>1.1.10</td><td>Documented that throttled bulk metadata requests now retry after the provider cooldown and stay visible as active instead of being mislabeled as stalled</td></tr>
   <tr><td>2026-04-05</td><td>1.1.9</td><td>Documented that bulk metadata scans now wait through temporary provider throttling instead of skipping the remainder of the batch immediately</td></tr>
