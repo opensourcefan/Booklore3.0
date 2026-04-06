@@ -19,99 +19,111 @@
   </div>
 
   <div class="dialog-content">
-    <!-- Preset Mode Selector -->
-    <div class="preset-section">
-      <p-selectButton
-        [options]="presetOptions"
-        [(ngModel)]="presetMode"
-        (onChange)="onPresetChange()"
-        optionLabel="label"
-        optionValue="value"
-        [disabled]="isScanning || isMerging">
-      </p-selectButton>
-    </div>
-
-    <!-- Advanced Toggles -->
-    <div class="advanced-section">
-      <button class="advanced-toggle" (click)="showAdvanced = !showAdvanced">
-        <i class="pi" [class.pi-chevron-right]="!showAdvanced" [class.pi-chevron-down]="showAdvanced"></i>
-        {{ t('advanced') }}
-      </button>
-
-      @if (showAdvanced) {
-        <div class="signal-checkboxes">
-          <div class="signal-checkbox">
-            <p-checkbox [(ngModel)]="matchByIsbn" [binary]="true" inputId="isbn" (onChange)="onSignalToggle()" [disabled]="isScanning || isMerging"></p-checkbox>
-            <label for="isbn">{{ t('signalIsbn') }}</label>
-          </div>
-          <div class="signal-checkbox">
-            <p-checkbox [(ngModel)]="matchByExternalId" [binary]="true" inputId="externalId" (onChange)="onSignalToggle()" [disabled]="isScanning || isMerging"></p-checkbox>
-            <label for="externalId">{{ t('signalExternalId') }}</label>
-          </div>
-          <div class="signal-checkbox">
-            <p-checkbox [(ngModel)]="matchByTitleAuthor" [binary]="true" inputId="titleAuthor" (onChange)="onSignalToggle()" [disabled]="isScanning || isMerging"></p-checkbox>
-            <label for="titleAuthor">{{ t('signalTitleAuthor') }}</label>
-          </div>
-          <div class="signal-checkbox">
-            <p-checkbox [(ngModel)]="matchByDirectory" [binary]="true" inputId="directory" (onChange)="onSignalToggle()" [disabled]="isScanning || isMerging"></p-checkbox>
-            <label for="directory">{{ t('signalDirectory') }}</label>
-          </div>
-          <div class="signal-checkbox">
-            <p-checkbox [(ngModel)]="matchByFilename" [binary]="true" inputId="filename" (onChange)="onSignalToggle()" [disabled]="isScanning || isMerging"></p-checkbox>
-            <label for="filename">{{ t('signalFilename') }}</label>
-          </div>
-        </div>
-      }
-    </div>
-
-    <!-- Action Bar -->
-    <div class="action-bar">
-      <div class="action-bar-left">
-        <p-button
-          [label]="t('scan')"
-          icon="pi pi-search"
-          (click)="scan()"
-          [disabled]="!canScan"
-          [loading]="isScanning">
-        </p-button>
+    <section class="workflow-section">
+      <div class="section-heading">
+        <span class="section-eyebrow">{{ t('scopeEyebrow') }}</span>
+        <h3>{{ t('scopeTitle') }}</h3>
+        <p>{{ t('scopeDescription') }}</p>
       </div>
-      <div class="action-bar-right">
-        <div class="delete-option">
-          <p-checkbox
-            [(ngModel)]="moveFiles"
-            [binary]="true"
-            inputId="moveFiles"
-            [disabled]="isMerging">
-          </p-checkbox>
-          <label for="moveFiles">{{ 'book.fileAttacher.moveFilesLabel' | transloco }}</label>
-        </div>
-        @if (activeGroups.length > 0) {
-          <p-button
-            [label]="t('mergeAll', { count: activeGroups.length })"
-            icon="pi pi-check-circle"
-            severity="success"
-            (click)="mergeAll()"
-            [disabled]="isMerging"
-            [loading]="isMerging">
-          </p-button>
+
+      <div class="scope-grid">
+        @for (card of scopeCards; track card.value) {
+          <button
+            type="button"
+            class="scope-card"
+            [class.scope-card--active]="selectedScope === card.value"
+            [disabled]="card.disabled || isScanning"
+            (click)="selectScope(card.value)">
+            <div class="scope-card-header">
+              <span class="scope-card-title">{{ card.label }}</span>
+              <span class="scope-card-count">{{ card.countLabel }}</span>
+            </div>
+            <p>{{ card.description }}</p>
+          </button>
         }
       </div>
+    </section>
+
+    <section class="workflow-section">
+      <div class="section-heading">
+        <span class="section-eyebrow">{{ t('matchingEyebrow') }}</span>
+        <h3>{{ t('matchingTitle') }}</h3>
+        <p>{{ t('matchingDescription') }}</p>
+      </div>
+
+      <div class="preset-grid">
+        @for (preset of presetCards; track preset.value) {
+          <button
+            type="button"
+            class="preset-card"
+            [class.preset-card--active]="presetMode === preset.value"
+            [disabled]="isScanning"
+            (click)="selectPreset(preset.value)">
+            <span class="preset-card-title">{{ preset.label }}</span>
+            <p>{{ preset.description }}</p>
+          </button>
+        }
+      </div>
+
+      <div class="advanced-section">
+        <button type="button" class="advanced-toggle" (click)="showAdvanced = !showAdvanced">
+          <i class="pi" [class.pi-chevron-right]="!showAdvanced" [class.pi-chevron-down]="showAdvanced"></i>
+          {{ t('advanced') }}
+        </button>
+
+        @if (showAdvanced) {
+          <div class="signal-checkboxes">
+            <div class="signal-checkbox">
+              <p-checkbox [(ngModel)]="matchByIsbn" [binary]="true" inputId="isbn" (onChange)="onSignalToggle()" [disabled]="isScanning"></p-checkbox>
+              <label for="isbn">{{ t('signalIsbn') }}</label>
+            </div>
+            <div class="signal-checkbox">
+              <p-checkbox [(ngModel)]="matchByExternalId" [binary]="true" inputId="externalId" (onChange)="onSignalToggle()" [disabled]="isScanning"></p-checkbox>
+              <label for="externalId">{{ t('signalExternalId') }}</label>
+            </div>
+            <div class="signal-checkbox">
+              <p-checkbox [(ngModel)]="matchByTitleAuthor" [binary]="true" inputId="titleAuthor" (onChange)="onSignalToggle()" [disabled]="isScanning"></p-checkbox>
+              <label for="titleAuthor">{{ t('signalTitleAuthor') }}</label>
+            </div>
+            <div class="signal-checkbox">
+              <p-checkbox [(ngModel)]="matchByDirectory" [binary]="true" inputId="directory" (onChange)="onSignalToggle()" [disabled]="isScanning"></p-checkbox>
+              <label for="directory">{{ t('signalDirectory') }}</label>
+            </div>
+            <div class="signal-checkbox">
+              <p-checkbox [(ngModel)]="matchByFilename" [binary]="true" inputId="filename" (onChange)="onSignalToggle()" [disabled]="isScanning"></p-checkbox>
+              <label for="filename">{{ t('signalFilename') }}</label>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <div class="review-callout">
+      <i class="pi pi-shield"></i>
+      <div>
+        <strong>{{ t('reviewOnlyTitle') }}</strong>
+        <p>{{ t('reviewOnlyDescription') }}</p>
+      </div>
     </div>
 
-    <!-- Merge Progress -->
-    @if (isMerging) {
-      <p-progressBar [value]="mergeTotal > 0 ? (mergeProgress / mergeTotal) * 100 : 0" [showValue]="false"></p-progressBar>
-    }
-
-    <!-- Help Text -->
-    @if (hasScanned && activeGroups.length > 0) {
-      <div class="help-text">
-        <i class="pi pi-info-circle"></i>
-        <span>{{ t('helpText') }}</span>
+    <div class="action-bar">
+      <div class="action-summary">
+        <p-tag [value]="getSelectedScopeLabel()" severity="contrast"></p-tag>
+        <div class="action-summary-text">
+          <div class="action-summary-title">{{ t('scanSummaryTitle') }}</div>
+          <div class="action-summary-description">{{ getSelectedScopeDescription() }}</div>
+        </div>
       </div>
-    }
 
-    <!-- Results Area -->
+      <p-button
+        [label]="t('scan')"
+        icon="pi pi-search"
+        (click)="scan()"
+        [disabled]="!canScan"
+        [loading]="isScanning">
+      </p-button>
+    </div>
+
     <div class="results-area">
       @if (isScanning) {
         <div class="empty-state">
@@ -131,70 +143,96 @@
       } @else if (activeGroups.length === 0 && groups.length > 0) {
         <div class="empty-state">
           <i class="pi pi-check-circle"></i>
-          <p>{{ t('allMerged') }}</p>
+          <p>{{ t('allReviewed') }}</p>
         </div>
       } @else {
+        <div class="results-header">
+          <div>
+            <span class="section-eyebrow">{{ t('resultsEyebrow') }}</span>
+            <h3>{{ t('resultsTitle') }}</h3>
+            <p>{{ getResultSummary() }}</p>
+          </div>
+          <p-tag [value]="t('resultsReviewOnlyBadge')" severity="info"></p-tag>
+        </div>
+
+        <div class="resolution-workspace">
+          <div class="resolution-workspace-copy">
+            <span class="section-eyebrow">{{ t('planEyebrow') }}</span>
+            <h3>{{ t('planTitle') }}</h3>
+            <p>{{ getResolutionSummary() }}</p>
+          </div>
+          <div class="resolution-workspace-actions">
+            @if (plannedGroups.length > 0) {
+              <p-tag [value]="t('planQueuedBadge', { count: plannedGroups.length })" severity="success"></p-tag>
+            }
+            <p-button
+              [label]="t('copyPlan')"
+              icon="pi pi-copy"
+              size="small"
+              [outlined]="true"
+              [disabled]="plannedGroups.length === 0"
+              (click)="copyResolutionPlan()">
+            </p-button>
+            <p-button
+              [label]="t('downloadPlan')"
+              icon="pi pi-download"
+              size="small"
+              [outlined]="true"
+              [disabled]="plannedGroups.length === 0"
+              (click)="downloadResolutionPlan()">
+            </p-button>
+            <p-button
+              [label]="t('clearPlan')"
+              icon="pi pi-eraser"
+              size="small"
+              severity="secondary"
+              [text]="true"
+              [disabled]="plannedGroups.length === 0"
+              (click)="clearResolutionPlan()">
+            </p-button>
+          </div>
+        </div>
+
         <div class="groups-list">
           @for (group of pagedGroups; track group.suggestedTargetBookId) {
             <div class="duplicate-group">
               <div class="group-header">
-                <span class="group-label">{{ t('groupLabel', { index: pageFirst + $index + 1 }) }}</span>
-                <p-tag [value]="getMatchReasonLabel(group.matchReason)" [severity]="getMatchReasonSeverity(group.matchReason)"></p-tag>
-                @if (hasSameFormatConflict(group)) {
-                  <p-tag [value]="t('sameFormatWarning')" severity="warn" icon="pi pi-exclamation-triangle"></p-tag>
-                }
-                <div class="group-actions">
+                <div class="group-heading">
+                  <span class="group-label">{{ t('groupLabel', { index: pageFirst + $index + 1 }) }}</span>
+                  <h4>{{ getSuggestedTarget(group)?.metadata?.title || ('book.fileAttacher.unknownTitle' | transloco) }}</h4>
+                  <p>{{ t('groupSummary', { count: group.books.length }) }}</p>
+                </div>
+                <div class="group-badges">
+                  <p-tag [value]="getMatchReasonLabel(group.matchReason)" [severity]="getMatchReasonSeverity(group.matchReason)"></p-tag>
+                  @if (group.queuedForPlan) {
+                    <p-tag [value]="t('queuedForPlan')" severity="success" icon="pi pi-check"></p-tag>
+                  }
+                  @if (hasSameFormatConflict(group)) {
+                    <p-tag [value]="t('sameFormatWarning')" severity="warn" icon="pi pi-exclamation-triangle"></p-tag>
+                  }
                   <p-button
-                    [label]="t('merge')"
-                    icon="pi pi-check"
+                    [label]="group.queuedForPlan ? t('removeFromPlan') : t('addToPlan')"
+                    [icon]="group.queuedForPlan ? 'pi pi-check-circle' : 'pi pi-plus-circle'"
                     size="small"
                     severity="success"
-                    (click)="mergeGroup(group)"
-                    [disabled]="isMerging">
+                    [outlined]="!group.queuedForPlan"
+                    (click)="toggleGroupPlan(group)">
                   </p-button>
-                  @if (getDeleteSelectedCount(group) > 0) {
-                    <p-button
-                      [label]="t('removeFromLibrarySelected', { count: getDeleteSelectedCount(group) })"
-                      icon="pi pi-minus-circle"
-                      size="small"
-                      severity="warn"
-                      [outlined]="true"
-                      (click)="removeGroupFromLibrary(group)"
-                      [disabled]="isMerging">
-                    </p-button>
-                    <p-button
-                      [label]="t('deleteSelected', { count: getDeleteSelectedCount(group) })"
-                      icon="pi pi-trash"
-                      size="small"
-                      severity="danger"
-                      [outlined]="true"
-                      (click)="deleteGroup(group)"
-                      [disabled]="isMerging">
-                    </p-button>
-                  }
                   <p-button
                     [label]="t('dismiss')"
                     icon="pi pi-times"
                     size="small"
                     severity="secondary"
                     [outlined]="true"
-                    (click)="dismissGroup(group)"
-                    [disabled]="isMerging">
+                    (click)="dismissGroup(group)">
                   </p-button>
                 </div>
               </div>
               <div class="group-books">
-                @for (book of group.books; track book.id) {
-                  <div class="book-row" [class.selected-target]="book.id === group.selectedTargetBookId" [class.marked-for-deletion]="group.selectedForDeletion.has(book.id)">
-                    @if (book.id !== group.selectedTargetBookId) {
-                      <p-checkbox
-                        [binary]="true"
-                        [ngModel]="group.selectedForDeletion.has(book.id)"
-                        (onChange)="toggleDeleteSelection(group, book.id)"
-                        [disabled]="isMerging"
-                        class="delete-checkbox">
-                      </p-checkbox>
-                    }
+                @for (book of getSortedBooks(group); track book.id) {
+                  <div class="book-row"
+                       [class.selected-target]="book.id === group.suggestedTargetBookId"
+                       [class.book-row--inspecting]="book.id === group.inspectedBookId">
                     <img class="book-cover"
                          [src]="urlHelper.getThumbnailUrl(book.id, book.metadata?.coverUpdatedOn)"
                          [alt]="book.metadata?.title || ''"
@@ -226,20 +264,98 @@
                       }
                     </div>
                     <div class="book-select">
-                      <p-radioButton
-                        [name]="'target-' + group.suggestedTargetBookId"
-                        [value]="book.id"
-                        [(ngModel)]="group.selectedTargetBookId"
-                        (onClick)="onTargetChange(group)"
-                        [disabled]="isMerging">
-                      </p-radioButton>
-                      @if (book.id === group.selectedTargetBookId) {
-                        <span class="target-label">{{ t('target') }}</span>
+                      @if (book.id === group.preferredTargetBookId && book.id === group.suggestedTargetBookId) {
+                        <span class="target-label">{{ t('suggestedTarget') }}</span>
+                      } @else if (book.id === group.preferredTargetBookId) {
+                        <span class="target-label">{{ t('preferredKeep') }}</span>
+                      } @else if (book.id === group.suggestedTargetBookId) {
+                        <span class="secondary-label">{{ t('suggestedByScan') }}</span>
+                      } @else {
+                        <span class="secondary-label">{{ t('possibleDuplicate') }}</span>
+                      }
+                    </div>
+                    <div class="book-actions">
+                      <p-button
+                        [label]="book.id === group.preferredTargetBookId ? t('keepSelected') : t('chooseKeep')"
+                        icon="pi pi-star"
+                        size="small"
+                        severity="success"
+                        [outlined]="book.id !== group.preferredTargetBookId"
+                        (click)="setPreferredTarget(group, book.id)">
+                      </p-button>
+                      <p-button
+                        [label]="t('inspect')"
+                        icon="pi pi-sliders-h"
+                        size="small"
+                        [outlined]="book.id !== group.inspectedBookId"
+                        (click)="setInspectedBook(group, book.id)">
+                      </p-button>
+                      <p-button
+                        [label]="t('viewDetails')"
+                        icon="pi pi-external-link"
+                        size="small"
+                        [text]="true"
+                        (click)="openBookDetails(book.id)">
+                      </p-button>
+                      @if (canOpenBook(book)) {
+                        <p-button
+                          [label]="t('openBook')"
+                          icon="pi pi-book"
+                          size="small"
+                          [text]="true"
+                          (click)="openBook(book)">
+                        </p-button>
                       }
                     </div>
                   </div>
                 }
               </div>
+
+              @if (getPreferredTarget(group); as preferred) {
+                <div class="comparison-panel">
+                  <div class="comparison-header">
+                    <div>
+                      <span class="section-eyebrow">{{ t('compareEyebrow') }}</span>
+                      <h5>{{ t('compareTitle') }}</h5>
+                      <p>{{ t('compareDescription') }}</p>
+                    </div>
+                  </div>
+
+                  <div class="comparison-grid">
+                    <div class="comparison-card comparison-card--suggested">
+                      <div class="comparison-card-header">
+                        <span class="comparison-card-label">{{ t('preferredKeep') }}</span>
+                        <strong>{{ preferred.metadata?.title || ('book.fileAttacher.unknownTitle' | transloco) }}</strong>
+                      </div>
+                      <dl class="comparison-list">
+                        @for (field of getComparisonFields(preferred); track field.label) {
+                          <div class="comparison-row">
+                            <dt>{{ field.label }}</dt>
+                            <dd>{{ field.value }}</dd>
+                          </div>
+                        }
+                      </dl>
+                    </div>
+
+                    @if (getInspectedBook(group); as inspected) {
+                      <div class="comparison-card" [class.comparison-card--active]="inspected.id !== preferred.id">
+                        <div class="comparison-card-header">
+                          <span class="comparison-card-label">{{ inspected.id === preferred.id ? t('currentlySelected') : t('candidateUnderReview') }}</span>
+                          <strong>{{ inspected.metadata?.title || ('book.fileAttacher.unknownTitle' | transloco) }}</strong>
+                        </div>
+                        <dl class="comparison-list">
+                          @for (field of getComparisonFields(inspected); track field.label) {
+                            <div class="comparison-row">
+                              <dt>{{ field.label }}</dt>
+                              <dd>{{ field.value }}</dd>
+                            </div>
+                          }
+                        </dl>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
             </div>
           }
         </div>

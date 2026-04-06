@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.18 &mdash; April 6, 2026<br>
+    Version 1.1.21 &mdash; April 6, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -780,6 +780,21 @@
   <strong>Mode Changes Reset Sidebar Selections:</strong> Switching between <strong>AND</strong>, <strong>OR</strong>, <strong>NOT</strong>, and <strong>1</strong> now clears the current sidebar filter selections first. This prevents an old selection set from being silently reinterpreted under a different mode.
 </div>
 
+<h3>Duplicate Review</h3>
+<p>BookLore&rsquo;s duplicate finder is now designed as a <strong>scoped review tool</strong>. Open it from the book-browser toolbar or from a library menu, then choose whether to scan your <strong>current filtered view</strong>, the <strong>current library</strong>, or <strong>all libraries</strong>.</p>
+
+<div class="callout tip">
+  <strong>Good to Know:</strong> The duplicate review screen is intentionally non-destructive. It shows likely duplicate groups, highlights a suggested book to keep, lets you inspect another candidate side-by-side, and can open book details or launch a reader for digital files without deleting or merging anything.
+</div>
+
+<div class="callout info">
+  <strong>Why This Matters:</strong> Using the current filtered view lets you investigate duplicates only inside the slice you are already looking at, such as a single shelf, a search result, a folder, or a filtered library window, without scanning the rest of the collection.
+</div>
+
+<div class="callout tip">
+  <strong>Manual Resolution Plans:</strong> After reviewing a duplicate group, you can now mark your preferred book to keep, queue the group into a manual resolution list, and then copy or download that plan for follow-up. This gives you a safe handoff document without changing any book records.
+</div>
+
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
   <li>Search inside book contents (search only covers metadata)</li>
@@ -1172,6 +1187,9 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-06</td><td>1.1.21</td><td>Documented the new manual duplicate-resolution plan flow, including choosing a preferred keep and exporting a non-destructive follow-up list</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.20</td><td>Expanded the duplicate-review documentation to cover the new non-destructive inspection actions, including side-by-side candidate comparison plus quick links to book details and supported readers</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.19</td><td>Documented the redesigned duplicate-review workflow, including current-view, current-library, and all-library scan scopes plus the new non-destructive review-only behavior</td></tr>
   <tr><td>2026-04-06</td><td>1.1.18</td><td>Documented that changing sidebar filter modes now clears the active sidebar selections first, and clarified the filter-mode tooltips for the compact AND/OR/NOT/1 controls</td></tr>
   <tr><td>2026-04-06</td><td>1.1.17</td><td>Clarified sidebar filter mode behavior with tooltips and documented that AND mode now narrows same-filter options, such as tags, to combinations that still have matching books</td></tr>
   <tr><td>2026-04-06</td><td>1.1.16</td><td>Documented same-directory physical placeholder duplicate prevention and clarified that deleting a digital book&rsquo;s last readable format now removes accidental empty shells instead of leaving a fileless non-physical entry behind</td></tr>

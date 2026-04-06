@@ -121,7 +121,10 @@ export class LibraryShelfMenuService {
             label: this.t.translate('book.shelfMenuService.library.findDuplicates'),
             icon: 'pi pi-copy',
             command: () => {
-              this.bookDialogHelperService.openDuplicateMergerDialog(entity?.id as number);
+              this.bookDialogHelperService.openDuplicateMergerDialog({
+                libraryId: entity?.id as number,
+                libraryName: entity?.name,
+              });
             }
           },
           {

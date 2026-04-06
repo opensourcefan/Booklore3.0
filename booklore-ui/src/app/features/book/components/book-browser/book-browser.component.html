@@ -100,6 +100,21 @@
               </button>
             }
 
+            @if (userService.userState$ | async; as userState) {
+              @if (userState.user!.permissions.admin || userState.user!.permissions.canManageLibrary) {
+                <button
+                  type="button"
+                  class="topbar-items topbar-item"
+                  (click)="openDuplicateFinder()">
+                  <i
+                    class="pi pi-copy"
+                    [pTooltip]="t('tooltip.findDuplicates')"
+                    tooltipPosition="top">
+                  </i>
+                </button>
+              }
+            }
+
             @if (currentViewMode === 'table') {
               <div>
                 <button type="button" class="topbar-items topbar-item" (click)="columnPopover.toggle($event)">

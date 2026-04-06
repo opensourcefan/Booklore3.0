@@ -3,26 +3,51 @@ import {FormsModule} from '@angular/forms';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Button} from 'primeng/button';
 import {Checkbox} from 'primeng/checkbox';
-import {RadioButton} from 'primeng/radiobutton';
-import {SelectButton} from 'primeng/selectbutton';
-import {ProgressBar} from 'primeng/progressbar';
 import {Tag} from 'primeng/tag';
 import {Paginator} from 'primeng/paginator';
-import {filter, Subject, take, takeUntil} from 'rxjs';
+import {Subject, takeUntil} from 'rxjs';
 import {BookFileService} from '../../service/book-file.service';
-import {BookService} from '../../service/book.service';
-import {Book, DuplicateDetectionRequest, DuplicateGroup} from '../../model/book.model';
-import {ConfirmationService, MessageService} from 'primeng/api';
+import {Book, DuplicateDetectionRequest, DuplicateGroup, DuplicateScanScope} from '../../model/book.model';
+import {MessageService} from 'primeng/api';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
-import {AppSettingsService} from '../../../../shared/service/app-settings.service';
+import {BookStateService} from '../../service/book-state.service';
+import {BookDialogHelperService} from '../book-browser/book-dialog-helper.service';
+import {BookService} from '../../service/book.service';
 
 type PresetMode = 'strict' | 'balanced' | 'aggressive' | 'custom';
 
+interface ScanScopeCard {
+  value: DuplicateScanScope;
+  label: string;
+  description: string;
+  countLabel: string;
+  disabled?: boolean;
+}
+
 interface DisplayGroup extends DuplicateGroup {
-  selectedTargetBookId: number;
   dismissed: boolean;
-  selectedForDeletion: Set<number>;
+  inspectedBookId: number;
+  preferredTargetBookId: number;
+  queuedForPlan: boolean;
+}
+
+interface ResolutionPlanEntry {
+  groupIndex: number;
+  matchReason: string;
+  keepBookId: number;
+  keepTitle: string;
+  candidateBookIds: number[];
+  books: {
+    id: number;
+    title: string;
+    authors: string;
+    library: string;
+    formats: string;
+    path: string;
+    isPreferredKeep: boolean;
+    isSuggestedKeep: boolean;
+  }[];
 }
 
 @Component({
@@ -32,9 +57,6 @@ interface DisplayGroup extends DuplicateGroup {
     FormsModule,
     Button,
     Checkbox,
-    RadioButton,
-    SelectButton,
-    ProgressBar,
     Tag,
     Paginator,
     TranslocoDirective,
@@ -44,8 +66,10 @@ interface DisplayGroup extends DuplicateGroup {
   styleUrls: ['./duplicate-merger.component.scss']
 })
 export class DuplicateMergerComponent implements OnInit, OnDestroy {
-  libraryId!: number;
+  libraryId?: number;
+  libraryName?: string;
   presetMode: PresetMode = 'balanced';
+  selectedScope: DuplicateScanScope = 'ALL_LIBRARIES';
   showAdvanced = false;
 
   matchByIsbn = true;
@@ -55,46 +79,30 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
   matchByFilename = false;
 
   isScanning = false;
-  isMerging = false;
   hasScanned = false;
-  moveFiles = false;
-  mergeProgress = 0;
-  mergeTotal = 0;
 
   groups: DisplayGroup[] = [];
-  presetOptions: { label: string; value: PresetMode }[] = [];
+  currentViewBookIds: number[] = [];
 
   pageFirst = 0;
   pageSize = 20;
 
   private destroy$ = new Subject<void>();
   private readonly bookFileService = inject(BookFileService);
+  private readonly bookStateService = inject(BookStateService);
+  private readonly bookDialogHelperService = inject(BookDialogHelperService);
   private readonly bookService = inject(BookService);
   private readonly messageService = inject(MessageService);
-  private readonly confirmationService = inject(ConfirmationService);
   private readonly dialogRef = inject(DynamicDialogRef);
   private readonly config = inject(DynamicDialogConfig);
   private readonly t = inject(TranslocoService);
   readonly urlHelper = inject(UrlHelperService);
-  private readonly appSettingsService = inject(AppSettingsService);
 
   ngOnInit(): void {
     this.libraryId = this.config.data.libraryId;
-
-    this.appSettingsService.appSettings$.pipe(
-      filter(settings => !!settings),
-      take(1),
-      takeUntil(this.destroy$)
-    ).subscribe(settings => {
-      this.moveFiles = settings!.metadataPersistenceSettings?.moveFilesToLibraryPattern ?? false;
-    });
-
-    this.presetOptions = [
-      {label: this.t.translate('book.duplicateMerger.presetStrict'), value: 'strict'},
-      {label: this.t.translate('book.duplicateMerger.presetBalanced'), value: 'balanced'},
-      {label: this.t.translate('book.duplicateMerger.presetAggressive'), value: 'aggressive'},
-      {label: this.t.translate('book.duplicateMerger.presetCustom'), value: 'custom'},
-    ];
+    this.libraryName = this.config.data.libraryName;
+    this.currentViewBookIds = Array.from(new Set((this.bookStateService.getCurrentBookState().books ?? []).map(book => book.id)));
+    this.selectedScope = this.getDefaultScope();
     this.applyPreset('balanced');
   }
 
@@ -111,6 +119,23 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
 
   onSignalToggle(): void {
     this.presetMode = 'custom';
+  }
+
+  selectScope(scope: DuplicateScanScope): void {
+    if (this.isScanning || !this.isScopeAvailable(scope)) {
+      return;
+    }
+
+    this.selectedScope = scope;
+  }
+
+  selectPreset(mode: PresetMode): void {
+    if (this.isScanning) {
+      return;
+    }
+
+    this.presetMode = mode;
+    this.onPresetChange();
   }
 
   applyPreset(mode: PresetMode): void {
@@ -139,6 +164,58 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     }
   }
 
+  get scopeCards(): ScanScopeCard[] {
+    return [
+      {
+        value: 'BOOK_IDS',
+        label: this.t.translate('book.duplicateMerger.scope.currentViewTitle'),
+        description: this.t.translate('book.duplicateMerger.scope.currentViewDescription'),
+        countLabel: this.t.translate('book.duplicateMerger.scope.countLabel', {count: this.currentViewBookIds.length}),
+        disabled: this.currentViewBookIds.length < 2,
+      },
+      {
+        value: 'CURRENT_LIBRARY',
+        label: this.t.translate('book.duplicateMerger.scope.currentLibraryTitle'),
+        description: this.libraryName
+          ? this.t.translate('book.duplicateMerger.scope.currentLibraryDescriptionNamed', {name: this.libraryName})
+          : this.t.translate('book.duplicateMerger.scope.currentLibraryDescription'),
+        countLabel: this.libraryName ?? this.t.translate('book.duplicateMerger.scope.currentLibraryBadge'),
+        disabled: !this.libraryId,
+      },
+      {
+        value: 'ALL_LIBRARIES',
+        label: this.t.translate('book.duplicateMerger.scope.allLibrariesTitle'),
+        description: this.t.translate('book.duplicateMerger.scope.allLibrariesDescription'),
+        countLabel: this.t.translate('book.duplicateMerger.scope.allLibrariesBadge'),
+      },
+    ];
+  }
+
+  get presetCards(): { value: PresetMode; label: string; description: string }[] {
+    return [
+      {
+        value: 'strict',
+        label: this.t.translate('book.duplicateMerger.presetStrict'),
+        description: this.t.translate('book.duplicateMerger.presetStrictDescription'),
+      },
+      {
+        value: 'balanced',
+        label: this.t.translate('book.duplicateMerger.presetBalanced'),
+        description: this.t.translate('book.duplicateMerger.presetBalancedDescription'),
+      },
+      {
+        value: 'aggressive',
+        label: this.t.translate('book.duplicateMerger.presetAggressive'),
+        description: this.t.translate('book.duplicateMerger.presetAggressiveDescription'),
+      },
+      {
+        value: 'custom',
+        label: this.t.translate('book.duplicateMerger.presetCustom'),
+        description: this.t.translate('book.duplicateMerger.presetCustomDescription'),
+      },
+    ];
+  }
+
   scan(): void {
     this.isScanning = true;
     this.hasScanned = false;
@@ -146,7 +223,9 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     this.pageFirst = 0;
 
     const request: DuplicateDetectionRequest = {
-      libraryId: this.libraryId,
+      scope: this.selectedScope,
+      libraryId: this.selectedScope === 'CURRENT_LIBRARY' ? this.libraryId : undefined,
+      bookIds: this.selectedScope === 'BOOK_IDS' ? this.currentViewBookIds : undefined,
       matchByIsbn: this.matchByIsbn,
       matchByExternalId: this.matchByExternalId,
       matchByTitleAuthor: this.matchByTitleAuthor,
@@ -160,9 +239,10 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
       next: (groups) => {
         this.groups = groups.map(g => ({
           ...g,
-          selectedTargetBookId: g.suggestedTargetBookId,
           dismissed: false,
-          selectedForDeletion: new Set<number>(),
+          inspectedBookId: g.suggestedTargetBookId,
+          preferredTargetBookId: g.suggestedTargetBookId,
+          queuedForPlan: false,
         }));
         this.isScanning = false;
         this.hasScanned = true;
@@ -183,12 +263,16 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     return this.groups.filter(g => !g.dismissed);
   }
 
+  get plannedGroups(): DisplayGroup[] {
+    return this.activeGroups.filter(group => group.queuedForPlan);
+  }
+
   get pagedGroups(): DisplayGroup[] {
     return this.activeGroups.slice(this.pageFirst, this.pageFirst + this.pageSize);
   }
 
   get canScan(): boolean {
-    return !this.isScanning && !this.isMerging &&
+    return !this.isScanning && this.isScopeAvailable(this.selectedScope) &&
       (this.matchByIsbn || this.matchByExternalId || this.matchByTitleAuthor ||
         this.matchByDirectory || this.matchByFilename);
   }
@@ -265,22 +349,6 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     }
   }
 
-  onTargetChange(group: DisplayGroup): void {
-    group.selectedForDeletion.delete(group.selectedTargetBookId);
-  }
-
-  toggleDeleteSelection(group: DisplayGroup, bookId: number): void {
-    if (group.selectedForDeletion.has(bookId)) {
-      group.selectedForDeletion.delete(bookId);
-    } else {
-      group.selectedForDeletion.add(bookId);
-    }
-  }
-
-  getDeleteSelectedCount(group: DisplayGroup): number {
-    return group.selectedForDeletion.size;
-  }
-
   dismissGroup(group: DisplayGroup): void {
     group.dismissed = true;
     if (this.pagedGroups.length === 0 && this.pageFirst > 0) {
@@ -288,134 +356,323 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     }
   }
 
-  async mergeGroup(group: DisplayGroup): Promise<void> {
-    const targetId = group.selectedTargetBookId;
-    const sourceIds = group.books
-      .filter(b => b.id !== targetId)
-      .map(b => b.id);
+  getSuggestedTarget(group: DisplayGroup): Book | undefined {
+    return group.books.find(book => book.id === group.suggestedTargetBookId);
+  }
 
-    if (sourceIds.length === 0) return;
+  getPreferredTarget(group: DisplayGroup): Book | undefined {
+    return group.books.find(book => book.id === group.preferredTargetBookId) ?? this.getSuggestedTarget(group);
+  }
 
-    group.dismissed = true;
-    try {
-      await this.bookFileService.attachBookFiles(targetId, sourceIds, this.moveFiles)
-        .pipe(takeUntil(this.destroy$))
-        .toPromise();
-    } catch {
-      group.dismissed = false;
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('book.duplicateMerger.toast.mergeFailedSummary'),
-        detail: this.t.translate('book.duplicateMerger.toast.mergeFailedDetail'),
-      });
+  getInspectedBook(group: DisplayGroup): Book | undefined {
+    return group.books.find(book => book.id === group.inspectedBookId) ?? this.getSuggestedTarget(group);
+  }
+
+  getSortedBooks(group: DisplayGroup): Book[] {
+    return [...group.books].sort((left, right) => {
+      if (left.id === group.suggestedTargetBookId) {
+        return -1;
+      }
+      if (right.id === group.suggestedTargetBookId) {
+        return 1;
+      }
+      return (left.metadata?.title ?? '').localeCompare(right.metadata?.title ?? '');
+    });
+  }
+
+  setInspectedBook(group: DisplayGroup, bookId: number): void {
+    group.inspectedBookId = bookId;
+  }
+
+  setPreferredTarget(group: DisplayGroup, bookId: number): void {
+    group.preferredTargetBookId = bookId;
+    group.inspectedBookId = bookId;
+  }
+
+  toggleGroupPlan(group: DisplayGroup): void {
+    group.queuedForPlan = !group.queuedForPlan;
+  }
+
+  clearResolutionPlan(): void {
+    for (const group of this.groups) {
+      group.queuedForPlan = false;
     }
   }
 
-  async mergeAll(): Promise<void> {
-    const toMerge = this.activeGroups;
-    if (toMerge.length === 0) return;
+  canOpenBook(book: Book): boolean {
+    return !!book.primaryFile?.bookType;
+  }
 
-    this.isMerging = true;
-    this.mergeTotal = toMerge.length;
-    this.mergeProgress = 0;
+  openBookDetails(bookId: number): void {
+    this.bookDialogHelperService.openBookDetailsDialog(bookId);
+  }
 
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const group of toMerge) {
-      const targetId = group.selectedTargetBookId;
-      const sourceIds = group.books
-        .filter(b => b.id !== targetId)
-        .map(b => b.id);
-
-      if (sourceIds.length === 0) {
-        group.dismissed = true;
-        this.mergeProgress++;
-        continue;
-      }
-
-      try {
-        await this.bookFileService.attachBookFiles(targetId, sourceIds, this.moveFiles)
-          .pipe(takeUntil(this.destroy$))
-          .toPromise();
-        group.dismissed = true;
-        successCount++;
-      } catch {
-        failCount++;
-      }
-      this.mergeProgress++;
+  openBook(book: Book): void {
+    if (!this.canOpenBook(book)) {
+      return;
     }
 
-    this.isMerging = false;
+    this.bookService.readBook(book.id);
+  }
 
-    if (successCount > 0) {
+  getAuthorLabel(book: Book): string {
+    return book.metadata?.authors?.join(', ') || this.t.translate('book.duplicateMerger.unknownValue');
+  }
+
+  getSeriesLabel(book: Book): string {
+    const seriesName = book.metadata?.seriesName;
+    if (!seriesName) {
+      return this.t.translate('book.duplicateMerger.unknownValue');
+    }
+
+    const seriesNumber = book.metadata?.seriesNumber;
+    return seriesNumber !== null && seriesNumber !== undefined
+      ? this.t.translate('book.duplicateMerger.seriesLabel', {name: seriesName, number: seriesNumber})
+      : seriesName;
+  }
+
+  getIdentifierSummary(book: Book): string {
+    const values = [
+      book.metadata?.isbn13,
+      book.metadata?.isbn10,
+      book.metadata?.goodreadsId,
+      book.metadata?.hardcoverId,
+      book.metadata?.googleId,
+      book.metadata?.asin,
+      book.metadata?.comicvineId,
+      book.metadata?.audibleId,
+    ].filter((value): value is string => !!value && value.trim().length > 0);
+
+    return values.length > 0 ? values.join(' • ') : this.t.translate('book.duplicateMerger.unknownValue');
+  }
+
+  getFormatSummary(book: Book): string {
+    const formats = this.getBookFormats(book);
+    return formats.length > 0 ? formats.join(', ') : this.t.translate('book.duplicateMerger.unknownValue');
+  }
+
+  getComparisonFields(book: Book): { label: string; value: string }[] {
+    return [
+      {label: this.t.translate('book.duplicateMerger.compare.author'), value: this.getAuthorLabel(book)},
+      {label: this.t.translate('book.duplicateMerger.compare.library'), value: book.libraryName || this.t.translate('book.duplicateMerger.unknownValue')},
+      {label: this.t.translate('book.duplicateMerger.compare.series'), value: this.getSeriesLabel(book)},
+      {label: this.t.translate('book.duplicateMerger.compare.formats'), value: this.getFormatSummary(book)},
+      {label: this.t.translate('book.duplicateMerger.compare.path'), value: this.getBookFilePath(book) || this.t.translate('book.duplicateMerger.unknownValue')},
+      {label: this.t.translate('book.duplicateMerger.compare.identifiers'), value: this.getIdentifierSummary(book)},
+    ];
+  }
+
+  getResolutionSummary(): string {
+    return this.t.translate('book.duplicateMerger.planSummary', {
+      queued: this.plannedGroups.length,
+      total: this.activeGroups.length,
+    });
+  }
+
+  buildResolutionPlanPayload(): {
+    exportedAt: string;
+    scope: DuplicateScanScope;
+    scopeLabel: string;
+    scopeDescription: string;
+    matchingSignals: string[];
+    queuedGroupCount: number;
+    entries: ResolutionPlanEntry[];
+  } {
+    return {
+      exportedAt: new Date().toISOString(),
+      scope: this.selectedScope,
+      scopeLabel: this.getSelectedScopeLabel(),
+      scopeDescription: this.getSelectedScopeDescription(),
+      matchingSignals: this.getActiveSignalLabels(),
+      queuedGroupCount: this.plannedGroups.length,
+      entries: this.plannedGroups.map((group, index) => this.toResolutionPlanEntry(group, index)),
+    };
+  }
+
+  buildResolutionPlanMarkdown(): string {
+    const payload = this.buildResolutionPlanPayload();
+    const lines: string[] = [
+      '# BookLore Duplicate Resolution Plan',
+      '',
+      `Generated: ${payload.exportedAt}`,
+      `Scope: ${payload.scopeLabel}`,
+      `Signals: ${payload.matchingSignals.join(', ')}`,
+      `Queued groups: ${payload.queuedGroupCount}`,
+    ];
+
+    for (const entry of payload.entries) {
+      lines.push('', `## Group ${entry.groupIndex}`);
+      lines.push(`Reason: ${this.getMatchReasonLabel(entry.matchReason)}`);
+      lines.push(`Preferred keep: ${entry.keepTitle} (#${entry.keepBookId})`);
+      lines.push(`Other candidates: ${entry.candidateBookIds.length > 0 ? entry.candidateBookIds.join(', ') : 'None'}`);
+      lines.push('');
+
+      for (const book of entry.books) {
+        const flags = [book.isPreferredKeep ? 'preferred keep' : '', book.isSuggestedKeep ? 'scan suggestion' : '']
+          .filter(Boolean)
+          .join(', ');
+        lines.push(`- #${book.id} ${book.title}${flags ? ` [${flags}]` : ''}`);
+        lines.push(`  Library: ${book.library}`);
+        lines.push(`  Authors: ${book.authors}`);
+        lines.push(`  Formats: ${book.formats}`);
+        lines.push(`  Path: ${book.path}`);
+      }
+    }
+
+    return lines.join('\n');
+  }
+
+  async copyResolutionPlan(): Promise<void> {
+    if (this.plannedGroups.length === 0) {
+      return;
+    }
+
+    const text = this.buildResolutionPlanMarkdown();
+    if (!navigator.clipboard?.writeText) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.t.translate('book.duplicateMerger.toast.copyUnavailableSummary'),
+        detail: this.t.translate('book.duplicateMerger.toast.copyUnavailableDetail'),
+      });
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
       this.messageService.add({
         severity: 'success',
-        summary: this.t.translate('book.duplicateMerger.toast.mergeSuccessSummary'),
-        detail: this.t.translate('book.duplicateMerger.toast.mergeSuccessDetail', {count: successCount}),
+        summary: this.t.translate('book.duplicateMerger.toast.planCopiedSummary'),
+        detail: this.t.translate('book.duplicateMerger.toast.planCopiedDetail', {count: this.plannedGroups.length}),
       });
-    }
-    if (failCount > 0) {
+    } catch {
       this.messageService.add({
         severity: 'error',
-        summary: this.t.translate('book.duplicateMerger.toast.mergeFailedSummary'),
-        detail: this.t.translate('book.duplicateMerger.toast.mergePartialDetail', {success: successCount, failed: failCount}),
+        summary: this.t.translate('book.duplicateMerger.toast.copyFailedSummary'),
+        detail: this.t.translate('book.duplicateMerger.toast.copyFailedDetail'),
       });
     }
   }
 
-  deleteGroup(group: DisplayGroup): void {
-    const idsToDelete = Array.from(group.selectedForDeletion);
-    if (idsToDelete.length === 0) return;
+  downloadResolutionPlan(): void {
+    if (this.plannedGroups.length === 0) {
+      return;
+    }
 
-    this.confirmationService.confirm({
-      message: this.t.translate('book.duplicateMerger.confirm.deleteMessage', {count: idsToDelete.length}),
-      header: this.t.translate('book.duplicateMerger.confirm.deleteHeader'),
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: this.t.translate('common.yes'),
-      rejectLabel: this.t.translate('common.no'),
-      acceptButtonProps: {severity: 'danger'},
-      accept: () => {
-        this.bookService.deleteBooks(new Set(idsToDelete), true).pipe(
-          takeUntil(this.destroy$)
-        ).subscribe({
-          next: () => {
-            group.books = group.books.filter(b => !group.selectedForDeletion.has(b.id));
-            group.selectedForDeletion.clear();
-            if (group.books.length <= 1) {
-              group.dismissed = true;
-            }
-          }
-        });
-      }
+    const payload = this.buildResolutionPlanPayload();
+    this.downloadTextFile(
+      this.buildResolutionFilename('json'),
+      JSON.stringify(payload, null, 2),
+      'application/json'
+    );
+
+    this.messageService.add({
+      severity: 'success',
+      summary: this.t.translate('book.duplicateMerger.toast.planDownloadedSummary'),
+      detail: this.t.translate('book.duplicateMerger.toast.planDownloadedDetail', {count: this.plannedGroups.length}),
     });
   }
 
-  removeGroupFromLibrary(group: DisplayGroup): void {
-    const idsToRemove = Array.from(group.selectedForDeletion);
-    if (idsToRemove.length === 0) return;
-
-    this.confirmationService.confirm({
-      message: this.t.translate('book.duplicateMerger.confirm.removeFromLibraryMessage', {count: idsToRemove.length}),
-      header: this.t.translate('book.duplicateMerger.confirm.removeFromLibraryHeader'),
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: this.t.translate('common.yes'),
-      rejectLabel: this.t.translate('common.no'),
-      acceptButtonProps: {severity: 'warn'},
-      accept: () => {
-        this.bookService.deleteBooks(new Set(idsToRemove), false).pipe(
-          takeUntil(this.destroy$)
-        ).subscribe({
-          next: () => {
-            group.books = group.books.filter(b => !group.selectedForDeletion.has(b.id));
-            group.selectedForDeletion.clear();
-            if (group.books.length <= 1) {
-              group.dismissed = true;
-            }
-          }
+  getResultSummary(): string {
+    switch (this.selectedScope) {
+      case 'BOOK_IDS':
+        return this.t.translate('book.duplicateMerger.resultsSummaryCurrentView', {
+          groups: this.activeGroups.length,
+          books: this.currentViewBookIds.length,
         });
-      }
-    });
+      case 'CURRENT_LIBRARY':
+        return this.t.translate('book.duplicateMerger.resultsSummaryCurrentLibrary', {
+          groups: this.activeGroups.length,
+        });
+      case 'ALL_LIBRARIES':
+      default:
+        return this.t.translate('book.duplicateMerger.resultsSummaryAllLibraries', {
+          groups: this.activeGroups.length,
+        });
+    }
+  }
+
+  getSelectedScopeLabel(): string {
+    return this.scopeCards.find(card => card.value === this.selectedScope)?.label ?? '';
+  }
+
+  getSelectedScopeDescription(): string {
+    return this.scopeCards.find(card => card.value === this.selectedScope)?.description ?? '';
+  }
+
+  private getActiveSignalLabels(): string[] {
+    return [
+      this.matchByIsbn ? this.t.translate('book.duplicateMerger.signalIsbn') : null,
+      this.matchByExternalId ? this.t.translate('book.duplicateMerger.signalExternalId') : null,
+      this.matchByTitleAuthor ? this.t.translate('book.duplicateMerger.signalTitleAuthor') : null,
+      this.matchByDirectory ? this.t.translate('book.duplicateMerger.signalDirectory') : null,
+      this.matchByFilename ? this.t.translate('book.duplicateMerger.signalFilename') : null,
+    ].filter((value): value is string => !!value);
+  }
+
+  private toResolutionPlanEntry(group: DisplayGroup, index: number): ResolutionPlanEntry {
+    const preferredTarget = this.getPreferredTarget(group);
+    const keepBookId = preferredTarget?.id ?? group.preferredTargetBookId;
+
+    return {
+      groupIndex: this.groups.indexOf(group) + 1 || index + 1,
+      matchReason: group.matchReason,
+      keepBookId,
+      keepTitle: preferredTarget?.metadata?.title || this.t.translate('book.fileAttacher.unknownTitle'),
+      candidateBookIds: group.books
+        .filter(book => book.id !== keepBookId)
+        .map(book => book.id),
+      books: this.getSortedBooks(group).map(book => ({
+        id: book.id,
+        title: book.metadata?.title || this.t.translate('book.fileAttacher.unknownTitle'),
+        authors: this.getAuthorLabel(book),
+        library: book.libraryName || this.t.translate('book.duplicateMerger.unknownValue'),
+        formats: this.getFormatSummary(book),
+        path: this.getBookFilePath(book) || this.t.translate('book.duplicateMerger.unknownValue'),
+        isPreferredKeep: book.id === keepBookId,
+        isSuggestedKeep: book.id === group.suggestedTargetBookId,
+      })),
+    };
+  }
+
+  private downloadTextFile(filename: string, content: string, mimeType: string): void {
+    const blob = new Blob([content], {type: mimeType});
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
+
+  private buildResolutionFilename(extension: string): string {
+    const safeTime = new Date().toISOString().replace(/[:.]/g, '-');
+    return `booklore-duplicate-plan-${safeTime}.${extension}`;
+  }
+
+  private getDefaultScope(): DuplicateScanScope {
+    if (this.libraryId) {
+      return 'CURRENT_LIBRARY';
+    }
+
+    if (this.currentViewBookIds.length >= 2) {
+      return 'BOOK_IDS';
+    }
+
+    return 'ALL_LIBRARIES';
+  }
+
+  private isScopeAvailable(scope: DuplicateScanScope): boolean {
+    switch (scope) {
+      case 'CURRENT_LIBRARY':
+        return !!this.libraryId;
+      case 'BOOK_IDS':
+        return this.currentViewBookIds.length >= 2;
+      case 'ALL_LIBRARIES':
+        return true;
+    }
   }
 
   closeDialog(): void {

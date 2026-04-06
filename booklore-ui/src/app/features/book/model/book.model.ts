@@ -431,8 +431,12 @@ export interface PersonalRatingUpdateResponse {
   personalRating?: number;
 }
 
+export type DuplicateScanScope = 'CURRENT_LIBRARY' | 'ALL_LIBRARIES' | 'BOOK_IDS';
+
 export interface DuplicateDetectionRequest {
-  libraryId: number;
+  scope: DuplicateScanScope;
+  libraryId?: number;
+  bookIds?: number[];
   matchByIsbn: boolean;
   matchByExternalId: boolean;
   matchByTitleAuthor: boolean;

@@ -3,6 +3,7 @@ package org.booklore.service.book;
 import org.booklore.mapper.BookMapper;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.request.DuplicateDetectionRequest;
+import org.booklore.model.dto.request.DuplicateScanScope;
 import org.booklore.model.dto.response.DuplicateGroup;
 import org.booklore.model.entity.*;
 import org.booklore.model.enums.BookFileType;
@@ -92,31 +93,39 @@ class DuplicateDetectionServiceTest {
     }
 
     private DuplicateDetectionRequest allSignals() {
-        return new DuplicateDetectionRequest(LIBRARY_ID, true, true, true, true, true);
+        return new DuplicateDetectionRequest(DuplicateScanScope.CURRENT_LIBRARY, LIBRARY_ID, null, true, true, true, true, true);
     }
 
     private DuplicateDetectionRequest onlyIsbn() {
-        return new DuplicateDetectionRequest(LIBRARY_ID, true, false, false, false, false);
+        return new DuplicateDetectionRequest(DuplicateScanScope.CURRENT_LIBRARY, LIBRARY_ID, null, true, false, false, false, false);
     }
 
     private DuplicateDetectionRequest onlyExternalId() {
-        return new DuplicateDetectionRequest(LIBRARY_ID, false, true, false, false, false);
+        return new DuplicateDetectionRequest(DuplicateScanScope.CURRENT_LIBRARY, LIBRARY_ID, null, false, true, false, false, false);
     }
 
     private DuplicateDetectionRequest onlyTitleAuthor() {
-        return new DuplicateDetectionRequest(LIBRARY_ID, false, false, true, false, false);
+        return new DuplicateDetectionRequest(DuplicateScanScope.CURRENT_LIBRARY, LIBRARY_ID, null, false, false, true, false, false);
     }
 
     private DuplicateDetectionRequest onlyDirectory() {
-        return new DuplicateDetectionRequest(LIBRARY_ID, false, false, false, true, false);
+        return new DuplicateDetectionRequest(DuplicateScanScope.CURRENT_LIBRARY, LIBRARY_ID, null, false, false, false, true, false);
     }
 
     private DuplicateDetectionRequest onlyFilename() {
-        return new DuplicateDetectionRequest(LIBRARY_ID, false, false, false, false, true);
+        return new DuplicateDetectionRequest(DuplicateScanScope.CURRENT_LIBRARY, LIBRARY_ID, null, false, false, false, false, true);
     }
 
     private void stubBooks(BookEntity... books) {
         when(bookRepository.findAllForDuplicateDetection(LIBRARY_ID)).thenReturn(List.of(books));
+    }
+
+    private void stubBooksAcrossLibraries(BookEntity... books) {
+        when(bookRepository.findAllForDuplicateDetectionAcrossLibraries()).thenReturn(List.of(books));
+    }
+
+    private void stubBooksByIds(Set<Long> bookIds, BookEntity... books) {
+        when(bookRepository.findAllForDuplicateDetectionByBookIds(bookIds)).thenReturn(List.of(books));
     }
 
     // ── General tests ───────────────────────────────────────────
@@ -149,12 +158,57 @@ class DuplicateDetectionServiceTest {
             BookEntity book2 = createBookWithIsbn(BookFileType.MOBI, "Same", "Author", "9781234567890", null);
             stubBooks(book1, book2);
 
-            DuplicateDetectionRequest noSignals = new DuplicateDetectionRequest(LIBRARY_ID, false, false, false, false, false);
+            DuplicateDetectionRequest noSignals = new DuplicateDetectionRequest(DuplicateScanScope.CURRENT_LIBRARY, LIBRARY_ID, null, false, false, false, false, false);
             List<DuplicateGroup> result = service.findDuplicates(noSignals);
 
             assertThat(result).isEmpty();
         }
 
+
+    @Nested
+    class ScopeResolution {
+
+        @Test
+        void loadsBooksFromAllLibrariesScope() {
+            BookEntity book1 = createBookWithIsbn(BookFileType.EPUB, "Book", "Author", "9781234567890", null);
+            BookEntity book2 = createBookWithIsbn(BookFileType.MOBI, "Book", "Author", "9781234567890", null);
+            stubBooksAcrossLibraries(book1, book2);
+
+            List<DuplicateGroup> result = service.findDuplicates(new DuplicateDetectionRequest(
+                    DuplicateScanScope.ALL_LIBRARIES,
+                    null,
+                    null,
+                    true,
+                    false,
+                    false,
+                    false,
+                    false
+            ));
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        void loadsBooksFromExplicitBookIdsScope() {
+            BookEntity book1 = createBookWithIsbn(BookFileType.EPUB, "Book", "Author", "9781234567890", null);
+            BookEntity book2 = createBookWithIsbn(BookFileType.MOBI, "Book", "Author", "9781234567890", null);
+            Set<Long> bookIds = Set.of(book1.getId(), book2.getId());
+            stubBooksByIds(bookIds, book1, book2);
+
+            List<DuplicateGroup> result = service.findDuplicates(new DuplicateDetectionRequest(
+                    DuplicateScanScope.BOOK_IDS,
+                    null,
+                    bookIds,
+                    true,
+                    false,
+                    false,
+                    false,
+                    false
+            ));
+
+            assertThat(result).hasSize(1);
+        }
+    }
         @Test
         void returnsEmptyWhenNoDuplicatesExist() {
             BookEntity book1 = createBook(BookFileType.EPUB, "Book A", "Author X");

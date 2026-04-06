@@ -103,6 +103,27 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
             """)
     List<BookEntity> findAllForDuplicateDetection(@Param("libraryId") Long libraryId);
 
+            @Query("""
+                SELECT DISTINCT b FROM BookEntity b
+                LEFT JOIN FETCH b.metadata m
+                LEFT JOIN FETCH m.authors
+                LEFT JOIN FETCH b.bookFiles
+                LEFT JOIN FETCH b.libraryPath
+                WHERE b.id IN :bookIds
+                AND (b.deleted IS NULL OR b.deleted = false)
+                """)
+            List<BookEntity> findAllForDuplicateDetectionByBookIds(@Param("bookIds") Collection<Long> bookIds);
+
+            @Query("""
+                SELECT DISTINCT b FROM BookEntity b
+                LEFT JOIN FETCH b.metadata m
+                LEFT JOIN FETCH m.authors
+                LEFT JOIN FETCH b.bookFiles
+                LEFT JOIN FETCH b.libraryPath
+                WHERE (b.deleted IS NULL OR b.deleted = false)
+                """)
+            List<BookEntity> findAllForDuplicateDetectionAcrossLibraries();
+
     @EntityGraph(attributePaths = {"metadata", "metadata.comicMetadata", "metadata.tags", "shelves", "libraryPath", "bookFiles"})
     @Query("SELECT b FROM BookEntity b WHERE b.library.id IN :libraryIds AND (b.deleted IS NULL OR b.deleted = false)")
     List<BookEntity> findAllWithMetadataByLibraryIds(@Param("libraryIds") Collection<Long> libraryIds);

@@ -206,13 +206,11 @@ export class BookDialogHelperService {
     });
   }
 
-  openDuplicateMergerDialog(libraryId: number): DynamicDialogRef | null {
+  openDuplicateMergerDialog(data: { libraryId?: number; libraryName?: string } = {}): DynamicDialogRef | null {
     return this.openDialog(DuplicateMergerComponent, {
       showHeader: false,
       styleClass: `${DialogSize.XL} ${DialogStyle.MINIMAL}`,
-      data: {
-        libraryId: libraryId,
-      },
+      data,
     });
   }
 

@@ -3,6 +3,7 @@ package org.booklore.service.book;
 import org.booklore.mapper.BookMapper;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.request.DuplicateDetectionRequest;
+import org.booklore.model.dto.request.DuplicateScanScope;
 import org.booklore.model.dto.response.DuplicateGroup;
 import org.booklore.model.entity.AuthorEntity;
 import org.booklore.model.entity.BookEntity;
@@ -32,14 +33,12 @@ public class DuplicateDetectionService {
 
     @Transactional(readOnly = true)
     public List<DuplicateGroup> findDuplicates(DuplicateDetectionRequest request) {
-        List<BookEntity> books = bookRepository.findAllForDuplicateDetection(request.libraryId());
+        List<BookEntity> books = resolveBooks(request);
         if (books.size() < 2) {
             return List.of();
         }
 
-        List<BookFileType> formatPriority = books.getFirst().getLibrary() != null
-                ? books.getFirst().getLibrary().getFormatPriority()
-                : null;
+        List<BookFileType> formatPriority = inferFormatPriority(books, request.scope());
         if (formatPriority == null || formatPriority.isEmpty()) {
             formatPriority = DEFAULT_FORMAT_PRIORITY;
         }
@@ -64,6 +63,41 @@ public class DuplicateDetectionService {
         }
 
         return groups;
+    }
+
+    private List<BookEntity> resolveBooks(DuplicateDetectionRequest request) {
+        return switch (request.scope()) {
+            case CURRENT_LIBRARY -> bookRepository.findAllForDuplicateDetection(request.libraryId());
+            case ALL_LIBRARIES -> bookRepository.findAllForDuplicateDetectionAcrossLibraries();
+            case BOOK_IDS -> {
+                Set<Long> bookIds = request.bookIds();
+                if (bookIds == null || bookIds.isEmpty()) {
+                    yield List.of();
+                }
+                yield bookRepository.findAllForDuplicateDetectionByBookIds(bookIds);
+            }
+        };
+    }
+
+    private List<BookFileType> inferFormatPriority(List<BookEntity> books, DuplicateScanScope scope) {
+        if (scope == DuplicateScanScope.ALL_LIBRARIES) {
+            return DEFAULT_FORMAT_PRIORITY;
+        }
+
+        Set<Long> distinctLibraryIds = books.stream()
+                .map(BookEntity::getLibrary)
+                .filter(Objects::nonNull)
+            .map(library -> library.getId())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (distinctLibraryIds.size() != 1) {
+            return DEFAULT_FORMAT_PRIORITY;
+        }
+
+        return books.getFirst().getLibrary() != null
+                ? books.getFirst().getLibrary().getFormatPriority()
+                : DEFAULT_FORMAT_PRIORITY;
     }
 
     private List<DuplicateGroup> findByIsbn(List<BookEntity> books, Set<Long> alreadyGrouped, List<BookFileType> formatPriority) {
