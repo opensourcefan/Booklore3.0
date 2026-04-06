@@ -39,6 +39,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -112,12 +113,13 @@ public class MetadataRefreshService {
                 }
 
                 int finalCompletedCount = completedCount;
-                txTemplate.execute(status -> {
-                    BookEntity book = bookRepository.findAllWithMetadataByIds(Collections.singleton(bookId))
-                            .stream().findFirst()
-                            .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
-                    MetadataTaskContext.set(jobId, finalCompletedCount, totalBooks, isReviewMode);
-                    try {
+                try {
+                    txTemplate.execute(status -> {
+                        BookEntity book = bookRepository.findAllWithMetadataByIds(Collections.singleton(bookId))
+                                .stream().findFirst()
+                                .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+                        MetadataTaskContext.set(jobId, finalCompletedCount, totalBooks, isReviewMode);
+                        try {
                         if (book.getMetadata().areAllFieldsLocked()) {
                             log.info("Skipping locked book: {}", getBookIdentifier(book));
                             updateTaskSnapshot(task, finalCompletedCount, "Skipped locked book: " + book.getMetadata().getTitle());
@@ -178,7 +180,11 @@ public class MetadataRefreshService {
 
                         updateTaskSnapshot(task, finalCompletedCount + 1, "Processed: " + book.getMetadata().getTitle());
                         sendBatchProgressNotification(jobId, finalCompletedCount + 1, totalBooks, "Processed: " + book.getMetadata().getTitle(), MetadataFetchTaskStatus.IN_PROGRESS, bookReviewMode);
-                    } catch (Exception e) {
+                        } catch (CancellationException e) {
+                            log.info("Metadata refresh task {} cancelled while processing {}", jobId, getBookIdentifier(book));
+                            status.setRollbackOnly();
+                            throw e;
+                        } catch (Exception e) {
                         if (Thread.currentThread().isInterrupted()) {
                             log.info("Processing interrupted for book: {}", getBookIdentifier(book));
                             status.setRollbackOnly();
@@ -187,12 +193,18 @@ public class MetadataRefreshService {
                         log.error("Metadata update failed for book: {}", getBookIdentifier(book), e);
                         updateTaskSnapshot(task, finalCompletedCount, String.format("Failed to process: %s - %s", book.getMetadata().getTitle(), e.getMessage()));
                         sendBatchProgressNotification(jobId, finalCompletedCount, totalBooks, String.format("Failed to process: %s - %s", book.getMetadata().getTitle(), e.getMessage()), MetadataFetchTaskStatus.ERROR, isReviewMode);
-                    } finally {
-                        MetadataTaskContext.clear();
-                    }
-                    bookRepository.saveAndFlush(book);
-                    return null;
-                });
+                        } finally {
+                            MetadataTaskContext.clear();
+                        }
+                        bookRepository.saveAndFlush(book);
+                        return null;
+                    });
+                } catch (CancellationException e) {
+                    cancelTask(task);
+                    cancellationManager.clearCancellation(jobId);
+                    log.info("Metadata refresh task {} cancelled successfully", jobId);
+                    return;
+                }
                 completedCount++;
             }
 
@@ -473,6 +485,8 @@ public class MetadataRefreshService {
             }
 
             log.debug("Metadata provider {} returned no top match for book {}. Falling back to full result scan.", provider, getBookIdentifier(book));
+        } catch (CancellationException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Metadata provider {} top-match fetch failed for book {}. Falling back to full result scan. Cause: {}",
                     provider, getBookIdentifier(book), e.getMessage());
@@ -484,6 +498,8 @@ public class MetadataRefreshService {
                 return null;
             }
             return metadataList.getFirst();
+        } catch (CancellationException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Metadata provider {} full result scan failed for book {}. Skipping provider. Cause: {}",
                     provider, getBookIdentifier(book), e.getMessage());

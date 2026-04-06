@@ -17,6 +17,7 @@ import org.booklore.repository.MetadataFetchJobRepository;
 import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.service.metadata.MetadataTaskContext;
 import org.booklore.service.NotificationService;
+import org.booklore.task.TaskCancellationManager;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.ObjectMapper;
@@ -33,6 +34,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
@@ -70,6 +72,7 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     private final AppSettingService appSettingService;
     private final MetadataFetchJobRepository metadataFetchJobRepository;
     private final NotificationService notificationService;
+    private final TaskCancellationManager cancellationManager;
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     private final AtomicBoolean rateLimited = new AtomicBoolean(false);
@@ -625,6 +628,8 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     }
 
     private <T> T sendRequestWithRetry(URI uri, Class<T> responseType, int retriesLeft) {
+        throwIfTaskCancelled();
+
         if (!waitForRateLimitResetIfNeeded()) {
             return null;
         }
@@ -634,11 +639,7 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         if (timeSinceLastRequest < MIN_REQUEST_INTERVAL_MS) {
             long sleepTime = MIN_REQUEST_INTERVAL_MS - timeSinceLastRequest;
             log.debug("Rate limiting: sleeping {}ms before next request", sleepTime);
-            try {
-                Thread.sleep(sleepTime);
-            } catch (InterruptedException ignored) {
-                Thread.currentThread().interrupt();
-            }
+            sleepWithCancellationChecks(sleepTime);
         }
         lastRequestTime.set(System.currentTimeMillis());
         
@@ -668,9 +669,7 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
             } else if (response.statusCode() >= 500 && retriesLeft > 0) {
                 log.warn("ComicVine API returned status {}. Retrying... ({} retries left)", 
                          response.statusCode(), retriesLeft);
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException ignored) {}
+                sleepWithCancellationChecks(2000);
                 return sendRequestWithRetry(uri, responseType, retriesLeft - 1);
             } else {
                 log.error("Comicvine API returned status code {}. Body: {}", response.statusCode(), response.body());
@@ -678,9 +677,7 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         } catch (IOException e) {
             if (retriesLeft > 0) {
                 log.warn("IOException during ComicVine request. Retrying... ({} retries left)", retriesLeft, e);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ignored) {}
+                sleepWithCancellationChecks(1000);
                 return sendRequestWithRetry(uri, responseType, retriesLeft - 1);
             } else {
                 log.error("Error fetching data from Comicvine API after retries", e);
@@ -693,6 +690,8 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     }
 
     private boolean waitForRateLimitResetIfNeeded() {
+        throwIfTaskCancelled();
+
         if (!rateLimited.get()) {
             return true;
         }
@@ -717,14 +716,32 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         long effectiveWaitMs = Math.max(waitMs, MIN_REQUEST_INTERVAL_MS);
         log.warn("ComicVine API is currently rate limited. Waiting {}ms before retrying request. Rate limit resets at: {}",
                 effectiveWaitMs, Instant.ofEpochMilli(System.currentTimeMillis() + effectiveWaitMs));
-        try {
-            Thread.sleep(effectiveWaitMs);
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-            return false;
-        }
+        sleepWithCancellationChecks(effectiveWaitMs);
         rateLimited.set(false);
         return true;
+    }
+
+    private void throwIfTaskCancelled() {
+        MetadataTaskContext.TaskContext taskContext = MetadataTaskContext.get();
+        if (taskContext != null && cancellationManager.isTaskCancelled(taskContext.taskId())) {
+            throw new CancellationException("Metadata task cancelled");
+        }
+    }
+
+    private void sleepWithCancellationChecks(long durationMs) {
+        long remainingMs = Math.max(0, durationMs);
+        while (remainingMs > 0) {
+            throwIfTaskCancelled();
+            long sleepChunkMs = Math.min(remainingMs, 1000);
+            try {
+                Thread.sleep(sleepChunkMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new CancellationException("Metadata task interrupted");
+            }
+            remainingMs -= sleepChunkMs;
+        }
+        throwIfTaskCancelled();
     }
 
     private long handleRateLimit(HttpResponse<String> response) {

@@ -30,6 +30,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
+import java.util.concurrent.CancellationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -279,6 +280,20 @@ class MetadataRefreshServiceTest {
                 List.of(MetadataProvider.Amazon), book);
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void fetchMetadataForBook_propagatesCancellationFromProvider() {
+        BookParser parser = mock(BookParser.class);
+        when(parserMap.get(MetadataProvider.Comicvine)).thenReturn(parser);
+        when(parser.fetchTopMetadata(any(), any())).thenThrow(new CancellationException("Task cancelled"));
+
+        Book book = Book.builder().id(1L).metadata(BookMetadata.builder().title("Test").build()).build();
+
+        assertThatThrownBy(() -> service.fetchMetadataForBook(List.of(MetadataProvider.Comicvine), book))
+                .isInstanceOf(CancellationException.class);
+
+        verify(parser, never()).fetchMetadata(any(), any());
     }
 
     @Test
