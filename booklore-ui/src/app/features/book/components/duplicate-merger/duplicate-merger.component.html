@@ -32,10 +32,16 @@
             type="button"
             class="scope-card"
             [class.scope-card--active]="selectedScope === card.value"
+            [attr.aria-pressed]="selectedScope === card.value"
             [disabled]="card.disabled || isScanning"
             (click)="selectScope(card.value)">
             <div class="scope-card-header">
-              <span class="scope-card-title">{{ card.label }}</span>
+              <span class="scope-card-title">
+                @if (selectedScope === card.value) {
+                  <i class="pi pi-check-circle"></i>
+                }
+                {{ card.label }}
+              </span>
               <span class="scope-card-count">{{ card.countLabel }}</span>
             </div>
             <p>{{ card.description }}</p>
@@ -57,9 +63,15 @@
             type="button"
             class="preset-card"
             [class.preset-card--active]="presetMode === preset.value"
+            [attr.aria-pressed]="presetMode === preset.value"
             [disabled]="isScanning"
             (click)="selectPreset(preset.value)">
-            <span class="preset-card-title">{{ preset.label }}</span>
+            <span class="preset-card-title">
+              @if (presetMode === preset.value) {
+                <i class="pi pi-check-circle"></i>
+              }
+              {{ preset.label }}
+            </span>
             <p>{{ preset.description }}</p>
           </button>
         }

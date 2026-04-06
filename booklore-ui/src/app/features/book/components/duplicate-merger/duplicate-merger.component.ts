@@ -135,6 +135,12 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     }
 
     this.presetMode = mode;
+    if (mode === 'custom') {
+      this.resetSignals();
+      this.showAdvanced = true;
+      return;
+    }
+
     this.onPresetChange();
   }
 
@@ -160,6 +166,9 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
         this.matchByTitleAuthor = true;
         this.matchByDirectory = true;
         this.matchByFilename = true;
+        break;
+      case 'custom':
+        this.resetSignals();
         break;
     }
   }
@@ -660,6 +669,14 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
       matchByDirectory: this.matchByDirectory,
       matchByFilename: this.matchByFilename,
     };
+  }
+
+  private resetSignals(): void {
+    this.matchByIsbn = false;
+    this.matchByExternalId = false;
+    this.matchByTitleAuthor = false;
+    this.matchByDirectory = false;
+    this.matchByFilename = false;
   }
 
   private toResolutionPlanEntry(group: DisplayGroup, index: number): DuplicateResolutionPlanEntry {

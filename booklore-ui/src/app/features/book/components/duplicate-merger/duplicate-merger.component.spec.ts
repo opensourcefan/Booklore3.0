@@ -238,6 +238,19 @@ describe('DuplicateMergerComponent', () => {
     } satisfies DuplicateDetectionRequest);
   });
 
+  it('clears all matching signals when custom preset is selected', () => {
+    component.selectPreset('custom');
+
+    expect(component.presetMode).toBe('custom');
+    expect(component.showAdvanced).toBe(true);
+    expect(component.matchByIsbn).toBe(false);
+    expect(component.matchByExternalId).toBe(false);
+    expect(component.matchByTitleAuthor).toBe(false);
+    expect(component.matchByDirectory).toBe(false);
+    expect(component.matchByFilename).toBe(false);
+    expect(component.canScan).toBe(false);
+  });
+
   it('rehydrates a saved account plan onto matching scan results', () => {
     userStateSubject.next({
       user: {

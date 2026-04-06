@@ -1,9 +1,20 @@
 @use '../../../../shared/styles/panel-shared' as panel;
 
 .duplicate-merger-container {
+  --duplicate-dialog-surface: var(--card-background);
+  --duplicate-card-surface: var(--p-surface-0);
+  --duplicate-card-surface-strong: color-mix(in srgb, var(--p-primary-color) 10%, var(--duplicate-card-surface));
+  --duplicate-card-border-strong: color-mix(in srgb, var(--p-primary-color) 60%, var(--border-color));
+  --duplicate-card-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  --duplicate-contrast-text: var(--p-text-color);
+  --duplicate-muted-text: var(--p-text-muted-color);
+  --duplicate-selected-text: var(--p-primary-contrast-color, var(--p-primary-color-text, #ffffff));
+  --duplicate-selected-bg: var(--p-primary-color);
+  --duplicate-selected-muted: color-mix(in srgb, var(--duplicate-selected-text) 82%, transparent);
   display: flex;
   flex-direction: column;
   height: 100%;
+  color: var(--duplicate-contrast-text);
 }
 
 .panel-header {
@@ -16,7 +27,7 @@
   overflow-y: auto;
   min-height: 0;
   padding: 1.5rem;
-  background: var(--card-background);
+  background: var(--duplicate-dialog-surface);
   border: 1px solid var(--border-color);
   border-top: none;
   border-radius: 0 0 10px 10px;
@@ -75,8 +86,8 @@
   padding: 1rem;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--p-primary-color) 5%, transparent), transparent 60%),
-    var(--p-surface-0);
-  color: inherit;
+    var(--duplicate-card-surface);
+  color: var(--duplicate-contrast-text);
   text-align: left;
   cursor: pointer;
   transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
@@ -84,7 +95,7 @@
   &:hover:not(:disabled) {
     transform: translateY(-1px);
     border-color: color-mix(in srgb, var(--p-primary-color) 45%, var(--border-color));
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--duplicate-card-shadow);
   }
 
   &:disabled {
@@ -94,7 +105,7 @@
 
   p {
     margin: 0;
-    color: var(--p-text-muted-color);
+    color: var(--duplicate-muted-text);
     line-height: 1.45;
     font-size: 0.85rem;
   }
@@ -102,8 +113,21 @@
 
 .scope-card--active,
 .preset-card--active {
-  border-color: color-mix(in srgb, var(--p-primary-color) 65%, var(--border-color));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--p-primary-color) 20%, transparent);
+  border-color: var(--duplicate-card-border-strong);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--p-primary-color) 14%, transparent), transparent 70%),
+    var(--duplicate-card-surface-strong);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--p-primary-color) 18%, transparent), var(--duplicate-card-shadow);
+
+  .scope-card-title,
+  .preset-card-title {
+    color: var(--duplicate-contrast-text);
+  }
+
+  .scope-card-count,
+  p {
+    color: var(--duplicate-muted-text);
+  }
 }
 
 .scope-card-header {
@@ -115,13 +139,21 @@
 
 .scope-card-title,
 .preset-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-weight: 700;
   font-size: 0.95rem;
+
+  i {
+    color: var(--p-primary-color);
+    font-size: 0.88rem;
+  }
 }
 
 .scope-card-count {
   font-size: 0.73rem;
-  color: var(--p-text-muted-color);
+  color: var(--duplicate-muted-text);
   white-space: nowrap;
 }
 
@@ -132,14 +164,14 @@
     gap: 0.5rem;
     background: none;
     border: none;
-    color: var(--p-text-muted-color);
+    color: var(--duplicate-muted-text);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
     padding: 0.15rem 0;
 
     &:hover {
-      color: var(--p-text-color);
+      color: var(--duplicate-contrast-text);
     }
 
     i {
@@ -189,7 +221,7 @@
 
   p {
     margin: 0;
-    color: var(--p-text-muted-color);
+    color: var(--duplicate-muted-text);
     line-height: 1.5;
   }
 }
@@ -281,7 +313,7 @@
   padding: 0.9rem;
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: var(--p-surface-0);
+  background: var(--duplicate-card-surface);
 }
 
 .saved-plan-entry-header {
@@ -317,7 +349,7 @@
   margin: 0;
   font-size: 0.84rem;
   line-height: 1.5;
-  color: var(--p-text-color);
+  color: var(--duplicate-contrast-text);
 }
 
 .results-area {
@@ -406,6 +438,7 @@
   border-radius: 14px;
   overflow: hidden;
   background: linear-gradient(180deg, color-mix(in srgb, var(--p-primary-color) 4%, transparent), transparent 25%), var(--p-surface-0);
+  color: var(--duplicate-contrast-text);
 
   .group-header {
     display: flex;
@@ -614,8 +647,9 @@
 .comparison-card {
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: var(--p-surface-0);
+  background: var(--duplicate-card-surface);
   padding: 0.9rem;
+  color: var(--duplicate-contrast-text);
 }
 
 .comparison-card--suggested {
@@ -674,6 +708,7 @@
 
   dd {
     word-break: break-word;
+    color: var(--duplicate-contrast-text);
   }
 }
 
@@ -730,6 +765,30 @@
 }
 
 :host-context(.p-dark) {
+  .duplicate-merger-container {
+    --duplicate-dialog-surface: color-mix(in srgb, var(--p-surface-900, #121821) 86%, var(--card-background));
+    --duplicate-card-surface: color-mix(in srgb, var(--p-surface-800, #1b2430) 92%, transparent);
+    --duplicate-card-surface-strong: color-mix(in srgb, var(--p-primary-color) 22%, var(--duplicate-card-surface));
+    --duplicate-card-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+  }
+
+  .dialog-content,
+  .saved-plan-banner,
+  .saved-plan-snapshot,
+  .resolution-workspace,
+  .duplicate-group,
+  .comparison-panel,
+  .review-callout {
+    box-shadow: none;
+  }
+
+  .scope-card--active,
+  .preset-card--active {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--p-primary-color) 26%, transparent), transparent 72%),
+      var(--duplicate-card-surface-strong);
+  }
+
   .book-row .book-cover {
     background: var(--p-surface-700);
   }
@@ -737,6 +796,13 @@
   .book-row .book-formats .format-badge {
     background: rgba(var(--p-primary-500-rgb, 99, 102, 241), 0.15);
     color: var(--p-primary-400);
+  }
+
+  .comparison-card,
+  .saved-plan-entry,
+  .scope-card,
+  .preset-card {
+    color: var(--duplicate-contrast-text);
   }
 }
 
