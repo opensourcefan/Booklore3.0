@@ -14,5 +14,6 @@
         "html"
     ],
     "editor.formatOnSave": false,
-    "chat.agent.maxRequests": 100
+    "chat.agent.maxRequests": 100,
+    "java.debug.settings.onBuildFailureProceed": true
 }
