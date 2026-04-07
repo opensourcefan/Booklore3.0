@@ -51,7 +51,7 @@ public class LibraryProcessingService {
     private final BookDeletionService bookDeletionService;
     private final LibraryFileHelper libraryFileHelper;
     private final BookGroupingService bookGroupingService;
-    private final DirectoryTagService directoryTagService;
+    private final DirectoryTagTaskStarter directoryTagTaskStarter;
     private final PhysicalBookService physicalBookService;
     @PersistenceContext
     private final EntityManager entityManager;
@@ -164,13 +164,11 @@ public class LibraryProcessingService {
                 int pct = t > 0 ? (current * 100) / t : 100;
                 sendSyncProgress(taskId, pct, "Importing " + current + " of " + t, TaskStatus.IN_PROGRESS);
             });
-            sendSyncProgress(taskId, 100, "Imported " + total + " books", TaskStatus.COMPLETED);
+            sendSyncProgress(taskId, 100, buildImportCompletionMessage(total, libraryEntity.isTagByDirectory()), TaskStatus.COMPLETED);
         } else {
             fileAsBookProcessor.processLibraryFilesGrouped(newBookGroups, libraryEntity);
         }
-        if (libraryEntity.isTagByDirectory()) {
-            directoryTagService.applyMissingDirectoryTags(libraryEntity);
-        }
+        scheduleDirectoryTaggingIfEnabled(libraryEntity, total);
 
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished refreshing library: " + libraryEntity.getName()));
     }
@@ -191,13 +189,11 @@ public class LibraryProcessingService {
                 int pct = t > 0 ? (current * 100) / t : 100;
                 sendSyncProgress(taskId, pct, "Importing " + current + " of " + t, TaskStatus.IN_PROGRESS);
             });
-            sendSyncProgress(taskId, 100, "Imported " + total + " books", TaskStatus.COMPLETED);
+            sendSyncProgress(taskId, 100, buildImportCompletionMessage(total, libraryEntity.isTagByDirectory()), TaskStatus.COMPLETED);
         } else {
             fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity);
         }
-        if (libraryEntity.isTagByDirectory()) {
-            directoryTagService.applyMissingDirectoryTags(libraryEntity);
-        }
+        scheduleDirectoryTaggingIfEnabled(libraryEntity, total);
     }
 
     private void validateLibraryPathsAccessible(LibraryEntity libraryEntity) {
@@ -349,5 +345,21 @@ public class LibraryProcessingService {
         } catch (Exception e) {
             log.error("Failed to send sync progress notification: {}", e.getMessage(), e);
         }
+    }
+
+    private void scheduleDirectoryTaggingIfEnabled(LibraryEntity libraryEntity, int importedGroups) {
+        if (!libraryEntity.isTagByDirectory()) {
+            return;
+        }
+
+        directoryTagTaskStarter.scheduleLibrary(libraryEntity.getId());
+        log.info("Queued background directory tagging for library {}", libraryEntity.getId());
+    }
+
+    private String buildImportCompletionMessage(int importedGroups, boolean tagByDirectory) {
+        if (!tagByDirectory) {
+            return "Imported " + importedGroups + " books";
+        }
+        return "Imported " + importedGroups + " books. Directory tagging continues in the background.";
     }
 }

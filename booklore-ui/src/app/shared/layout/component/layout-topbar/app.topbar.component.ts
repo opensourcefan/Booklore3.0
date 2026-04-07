@@ -93,6 +93,7 @@ export class AppTopBarComponent implements OnDestroy {
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
   metadataFlushProgress: TaskProgressPayload | null = null;
   importScanProgress: TaskProgressPayload | null = null;
+  directoryTaggingProgress: TaskProgressPayload | null = null;
   metadataFetchProgress: TaskProgressPayload | null = null;
   writeProgress: WriteProgressPayload | null = null;
   isSidecarBackupRunning = false;
@@ -101,6 +102,7 @@ export class AppTopBarComponent implements OnDestroy {
   private eventTimer: number | undefined;
   private flushDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private importDismissTimer: ReturnType<typeof setTimeout> | undefined;
+  private directoryTagDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private metadataFetchDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private writeDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private destroy$ = new Subject<void>();
@@ -206,6 +208,27 @@ export class AppTopBarComponent implements OnDestroy {
 
     this.taskService.taskProgress$
       .pipe(
+        filter((p): p is TaskProgressPayload => !!p && p.taskType === TaskType.DIRECTORY_TAGGING),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(progress => {
+        this.directoryTaggingProgress = progress;
+        if (
+          progress.taskStatus === TaskStatus.COMPLETED ||
+          progress.taskStatus === TaskStatus.CANCELLED ||
+          progress.taskStatus === TaskStatus.FAILED
+        ) {
+          clearTimeout(this.directoryTagDismissTimer);
+          this.directoryTagDismissTimer = setTimeout(() => {
+            this.directoryTaggingProgress = null;
+          }, 5000);
+        } else if (progress.taskStatus === TaskStatus.IN_PROGRESS) {
+          clearTimeout(this.directoryTagDismissTimer);
+        }
+      });
+
+    this.taskService.taskProgress$
+      .pipe(
         filter((p): p is TaskProgressPayload =>
           !!p && (p.taskType === TaskType.REFRESH_LIBRARY_METADATA || p.taskType === TaskType.REFRESH_METADATA_MANUAL)),
         takeUntil(this.destroy$)
@@ -268,6 +291,7 @@ export class AppTopBarComponent implements OnDestroy {
     clearTimeout(this.eventTimer);
     clearTimeout(this.flushDismissTimer);
     clearTimeout(this.importDismissTimer);
+    clearTimeout(this.directoryTagDismissTimer);
     clearTimeout(this.metadataFetchDismissTimer);
     clearTimeout(this.writeDismissTimer);
     document.removeEventListener('fullscreenchange', this.onFullscreenChange);
@@ -343,6 +367,10 @@ export class AppTopBarComponent implements OnDestroy {
 
   navigateToMetadataManager() {
     this.router.navigate(['/metadata-manager']);
+  }
+
+  navigateToTaskManagement(): void {
+    this.router.navigate(['/settings'], {queryParams: {tab: 'task'}});
   }
 
   navigateToStats() {
@@ -519,6 +547,10 @@ export class AppTopBarComponent implements OnDestroy {
     return !!this.importScanProgress;
   }
 
+  get showDirectoryTaggingStatus(): boolean {
+    return !!this.directoryTaggingProgress;
+  }
+
   get showMetadataFetchStatus(): boolean {
     return !!this.metadataFetchProgress;
   }
@@ -564,6 +596,17 @@ export class AppTopBarComponent implements OnDestroy {
     if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.importScanCancelled');
     if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.importScanFailed');
     return this.importScanProgress.message;
+  }
+
+  get directoryTaggingSummary(): string {
+    if (!this.directoryTaggingProgress) return '';
+    const s = this.directoryTaggingProgress.taskStatus;
+    if (s === TaskStatus.COMPLETED) return this.translocoService.translate('layout.topbar.directoryTaggingCompleted');
+    if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.directoryTaggingCancelled');
+    if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.directoryTaggingFailed');
+    return this.directoryTaggingProgress.message || this.translocoService.translate('layout.topbar.directoryTaggingProgress', {
+      progress: this.directoryTaggingProgress.progress,
+    });
   }
 
   get metadataFetchSummary(): string {

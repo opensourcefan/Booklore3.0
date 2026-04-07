@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.booklore.model.enums.TaskType;
+import org.booklore.task.options.DirectoryTagTaskOptions;
 import org.booklore.task.options.LibraryRescanOptions;
 import org.booklore.task.options.MetadataFlushOptions;
 import tools.jackson.databind.ObjectMapper;
@@ -27,6 +28,7 @@ public class TaskCreateRequest {
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "taskType", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
     @JsonSubTypes({
             @JsonSubTypes.Type(value = LibraryRescanOptions.class, name = "REFRESH_LIBRARY_METADATA"),
+            @JsonSubTypes.Type(value = DirectoryTagTaskOptions.class, name = "DIRECTORY_TAGGING"),
             @JsonSubTypes.Type(value = MetadataRefreshRequest.class, name = "REFRESH_METADATA_MANUAL"),
             @JsonSubTypes.Type(value = MetadataFlushOptions.class, name = "FLUSH_METADATA_TO_FILES"),
     })

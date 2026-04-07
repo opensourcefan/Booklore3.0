@@ -35,6 +35,14 @@ public enum TaskType {
             "Sync Library Files",
             "Scans your library folders to detect new books and removes entries for files that no longer exist."
     ),
+    DIRECTORY_TAGGING(
+            false,
+            true,
+            false,
+            false,
+            "Directory Tagging",
+            "Applies and backfills directory-based tags for imported books so folder tags can finish in the background after imports complete."
+    ),
     BOOKDROP_PERIODIC_SCANNING(
             false,
             false,

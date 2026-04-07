@@ -1,0 +1,41 @@
+package org.booklore.service.library;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.booklore.exception.APIException;
+import org.booklore.model.dto.request.TaskCreateRequest;
+import org.booklore.model.enums.TaskType;
+import org.booklore.service.task.TaskService;
+import org.booklore.task.options.DirectoryTagTaskOptions;
+import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class DirectoryTagTaskStarter {
+
+    private final DirectoryTagQueueService directoryTagQueueService;
+    private final ObjectProvider<TaskService> taskServiceProvider;
+
+    public void scheduleLibrary(long libraryId) {
+        directoryTagQueueService.enqueueLibrary(libraryId);
+        startIfNeeded(DirectoryTagTaskOptions.builder().libraryId(libraryId).build());
+    }
+
+    private void startIfNeeded(DirectoryTagTaskOptions options) {
+        try {
+            taskServiceProvider.getObject().runAsUser(TaskCreateRequest.builder()
+                    .taskType(TaskType.DIRECTORY_TAGGING)
+                    .options(options)
+                    .build());
+        } catch (APIException e) {
+            if (e.getStatus() == HttpStatus.CONFLICT) {
+                log.debug("Directory tagging task already running; queued work will be picked up by the current task");
+                return;
+            }
+            throw e;
+        }
+    }
+}

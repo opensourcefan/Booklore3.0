@@ -53,7 +53,7 @@ class LibraryProcessingServiceTest {
     @Mock
     private BookGroupingService bookGroupingService;
     @Mock
-    private DirectoryTagService directoryTagService;
+        private DirectoryTagTaskStarter directoryTagTaskStarter;
         @Mock
         private PhysicalBookService physicalBookService;
     @Mock
@@ -73,7 +73,7 @@ class LibraryProcessingServiceTest {
                 bookDeletionService,
                 libraryFileHelper,
                 bookGroupingService,
-                directoryTagService,
+                                directoryTagTaskStarter,
                                 physicalBookService,
                 entityManager
         );

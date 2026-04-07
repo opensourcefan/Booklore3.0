@@ -72,6 +72,13 @@
         <span class="topbar-import-summary">{{ importScanSummary }}</span>
       </button>
     }
+    @if (showDirectoryTaggingStatus) {
+      <button type="button" class="topbar-directory-tagging-status" (click)="navigateToTaskManagement()">
+        <i class="pi pi-tag"></i>
+        <span class="topbar-directory-tagging-label">{{ t('directoryTagging') }}</span>
+        <span class="topbar-directory-tagging-summary">{{ directoryTaggingSummary }}</span>
+      </button>
+    }
     @if (showSidecarBackupStatus) {
       <button type="button" class="topbar-sidecar-backup-status" (click)="navigateToMetadataPersistenceSettings()">
         <i class="pi pi-box"></i>

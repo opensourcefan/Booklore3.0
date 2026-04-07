@@ -51,7 +51,7 @@ class LibraryProcessingServiceRegressionTest {
     @Mock
     private BookGroupingService bookGroupingService;
     @Mock
-    private DirectoryTagService directoryTagService;
+    private DirectoryTagTaskStarter directoryTagTaskStarter;
     @Mock
     private PhysicalBookService physicalBookService;
     @Mock
@@ -71,7 +71,7 @@ class LibraryProcessingServiceRegressionTest {
                 bookDeletionService,
                 libraryFileHelper,
                 bookGroupingService,
-                directoryTagService,
+                directoryTagTaskStarter,
                 physicalBookService,
                 entityManager
         );

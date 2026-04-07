@@ -154,6 +154,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.taskService.handleTaskProgress(progress);
         if (
           (progress.taskType === TaskType.SYNC_LIBRARY_FILES ||
+            progress.taskType === TaskType.DIRECTORY_TAGGING ||
             progress.taskType === TaskType.BOOKDROP_PERIODIC_SCANNING) &&
           progress.taskStatus === TaskStatus.COMPLETED
         ) {

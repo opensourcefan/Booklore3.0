@@ -177,6 +177,54 @@
   font-size: 0.82rem;
 }
 
+.topbar-directory-tagging-status {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 28rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1.5px solid #0f766e;
+  background: rgba(13, 148, 136, 0.08);
+  color: #0f766e;
+  cursor: pointer;
+  appearance: none;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+
+  @media (min-width: 768px) {
+    display: inline-flex;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(13, 148, 136, 0.16);
+    border-color: #115e59;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.topbar-directory-tagging-label {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.topbar-directory-tagging-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+
 .topbar-sidecar-backup-status {
   display: none;
   align-items: center;

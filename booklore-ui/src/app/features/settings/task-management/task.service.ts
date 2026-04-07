@@ -10,6 +10,7 @@ export enum TaskType {
   UPDATE_BOOK_RECOMMENDATIONS = 'UPDATE_BOOK_RECOMMENDATIONS',
   CLEANUP_DELETED_BOOKS = 'CLEANUP_DELETED_BOOKS',
   SYNC_LIBRARY_FILES = 'SYNC_LIBRARY_FILES',
+  DIRECTORY_TAGGING = 'DIRECTORY_TAGGING',
   BOOKDROP_PERIODIC_SCANNING = 'BOOKDROP_PERIODIC_SCANNING',
   CLEANUP_TEMP_METADATA = 'CLEANUP_TEMP_METADATA',
   REFRESH_METADATA_MANUAL = 'REFRESH_METADATA_MANUAL',
@@ -19,13 +20,14 @@ export enum TaskType {
 export const TASK_TYPE_CONFIG: Record<TaskType, { parallel: boolean; async: boolean; displayOrder: number }> = {
   [TaskType.REFRESH_LIBRARY_METADATA]: {parallel: false, async: true, displayOrder: 1},
   [TaskType.SYNC_LIBRARY_FILES]: {parallel: false, async: false, displayOrder: 2},
-  [TaskType.BOOKDROP_PERIODIC_SCANNING]: {parallel: false, async: false, displayOrder: 3},
-  [TaskType.UPDATE_BOOK_RECOMMENDATIONS]: {parallel: false, async: true, displayOrder: 4},
-  [TaskType.CLEANUP_DELETED_BOOKS]: {parallel: false, async: false, displayOrder: 5},
-  [TaskType.CLEANUP_TEMP_METADATA]: {parallel: false, async: false, displayOrder: 6},
-  [TaskType.REFRESH_METADATA_MANUAL]: {parallel: false, async: false, displayOrder: 7},
-  [TaskType.CLEAR_PDF_CACHE]: {parallel: false, async: false, displayOrder: 8},
-  [TaskType.FLUSH_METADATA_TO_FILES]: {parallel: false, async: true, displayOrder: 9},
+  [TaskType.DIRECTORY_TAGGING]: {parallel: false, async: true, displayOrder: 3},
+  [TaskType.BOOKDROP_PERIODIC_SCANNING]: {parallel: false, async: false, displayOrder: 4},
+  [TaskType.UPDATE_BOOK_RECOMMENDATIONS]: {parallel: false, async: true, displayOrder: 5},
+  [TaskType.CLEANUP_DELETED_BOOKS]: {parallel: false, async: false, displayOrder: 6},
+  [TaskType.CLEANUP_TEMP_METADATA]: {parallel: false, async: false, displayOrder: 7},
+  [TaskType.REFRESH_METADATA_MANUAL]: {parallel: false, async: false, displayOrder: 8},
+  [TaskType.CLEAR_PDF_CACHE]: {parallel: false, async: false, displayOrder: 9},
+  [TaskType.FLUSH_METADATA_TO_FILES]: {parallel: false, async: true, displayOrder: 10},
 };
 
 export enum MetadataReplaceMode {

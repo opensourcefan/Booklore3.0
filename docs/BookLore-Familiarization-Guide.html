@@ -432,6 +432,7 @@
   <tr><td>Choose destination</td><td>Pick which library and folder path to import into</td></tr>
   <tr><td>Discard files</td><td>Skip files you don&rsquo;t want to import</td></tr>
   <tr><td>Finalize import</td><td>Move files from BookDrop into your library</td></tr>
+  <tr><td>Watch follow-up directory tagging</td><td>If the destination library uses directory-based tags, a separate background task continues after import and shows live progress plus time remaining in the top bar and Task Management</td></tr>
 </table>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -446,6 +447,7 @@
     <li><strong>Files are moved, not copied,</strong> during import. After finalization, the original file in BookDrop is removed.</li>
     <li><strong>Pattern extraction is only as good as your filename.</strong> If filenames are messy, you may need to edit metadata manually.</li>
     <li><strong>Don&rsquo;t put files into BookDrop while a scan is actively running.</strong> Wait for the scan to complete first, then add files and rescan.</li>
+    <li><strong>Import complete may not mean directory tags are finished.</strong> When directory tagging is enabled, BookLore now treats tagging as a separate background phase, so wait for the <strong>Directory Tags</strong> task to finish before assuming all folder-based tags are in place.</li>
   </ul>
 </div>
 
@@ -1088,6 +1090,7 @@
   <li>Schedule tasks &mdash; Set up automatic timing</li>
   <li>Cancel running tasks</li>
   <li>View task history and results</li>
+  <li>Monitor long-running directory-tagging follow-up work after imports, including the live status message and estimated time remaining when enough progress has been measured</li>
 </ul>
 
 <div class="callout">
@@ -1233,6 +1236,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-07</td><td>1.1.38</td><td>Documented that large imports now hand directory-based tagging off to a separate visible background task with live progress, time-remaining messaging, and Task Management history</td></tr>
   <tr><td>2026-04-07</td><td>1.1.37</td><td>Documented that the folder explorer panel now keeps root folders and nested folders in alphabetical order while browsing by directory</td></tr>
   <tr><td>2026-04-07</td><td>1.1.36</td><td>Documented the new topbar fullscreen toggle, the light grey sidecar-backup working pill in Metadata Persistence, and the AI batch-scan pill clearing itself shortly after completion</td></tr>
   <tr><td>2026-04-07</td><td>1.1.35</td><td>Documented that physical-book directory sidecars now skip creating a new placeholder during library refresh when the library already contains the matching active book, preventing duplicate entries from sidecar-backed rebuilds</td></tr>
