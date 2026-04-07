@@ -383,7 +383,7 @@
 </table>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter. BookLore also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there. Physical placeholders now also write a small directory sidecar in their chosen library folder, so a later rebuild or refresh can recreate them from disk-backed metadata instead of losing them.
+  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter. BookLore also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there. Physical placeholders now also write a small directory sidecar in their chosen library folder, so a later rebuild or refresh can recreate them from disk-backed metadata instead of losing them, while skipping sidecar re-import if the library already contains the matching active book.
 </div>
 
 <div class="callout tip">
@@ -1229,6 +1229,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-07</td><td>1.1.35</td><td>Documented that physical-book directory sidecars now skip creating a new placeholder during library refresh when the library already contains the matching active book, preventing duplicate entries from sidecar-backed rebuilds</td></tr>
   <tr><td>2026-04-06</td><td>1.1.34</td><td>Documented the cached-route reattachment fix for the book browser so metadata-backed sidebar filters repopulate immediately for sidecar-backed libraries without requiring a browser refresh or a filter-sort toggle</td></tr>
   <tr><td>2026-04-06</td><td>1.1.33</td><td>Documented that library and shelf navigation now refreshes the cached book list so metadata-backed sidebar filters repopulate immediately without a manual browser refresh, even when sidecar-backed metadata is involved</td></tr>
   <tr><td>2026-04-06</td><td>1.1.32</td><td>Documented that the library edit directory picker now labels folders already imported into the current library so additional folders are easier to spot before saving</td></tr>

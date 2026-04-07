@@ -34,6 +34,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -92,7 +93,7 @@ class PhysicalBookServiceTest {
         primaryPath.setLibrary(library);
         secondaryPath.setLibrary(library);
 
-        when(libraryRepository.findById(1L)).thenReturn(Optional.of(library));
+        lenient().when(libraryRepository.findById(1L)).thenReturn(Optional.of(library));
     }
 
     @Test
@@ -248,5 +249,47 @@ class PhysicalBookServiceTest {
 
         assertThat(imported).isEqualTo(1);
         verify(sidecarMetadataWriter).writeSidecarMetadata(any(BookEntity.class));
+    }
+
+    @Test
+    void importPhysicalBooksFromSidecars_skipsWhenMatchingActiveBookAlreadyExistsInLibrary(@org.junit.jupiter.api.io.TempDir Path tempDir) throws Exception {
+    Path sidecarFile = tempDir.resolve("moby-dick.physical.metadata.json");
+    java.nio.file.Files.writeString(sidecarFile, "{}");
+
+    primaryPath.setPath(tempDir.toString());
+
+    when(sidecarPathResolver.isPhysicalSidecarFile(any(Path.class))).thenAnswer(invocation ->
+        ((Path) invocation.getArgument(0)).getFileName().toString().endsWith(".physical.metadata.json"));
+
+    SidecarMetadata sidecarMetadata = SidecarMetadata.builder().build();
+    when(sidecarMetadataReader.readSidecarMetadataFromFile(eq(sidecarFile))).thenReturn(Optional.of(sidecarMetadata));
+    when(sidecarMetadataMapper.toBookMetadata(sidecarMetadata)).thenReturn(BookMetadata.builder()
+        .title("Moby-Dick or, The Whale")
+        .authors(List.of("Herman Melville"))
+        .isbn13("9780142437247")
+        .build());
+
+    BookMetadataEntity metadata = BookMetadataEntity.builder()
+        .title("Moby-Dick or, The Whale")
+        .isbn13("9780142437247")
+        .build();
+    metadata.setAuthors(new ArrayList<>(List.of(org.booklore.model.entity.AuthorEntity.builder().name("Herman Melville").build())));
+
+    BookEntity existingBook = BookEntity.builder()
+        .id(77L)
+        .library(library)
+        .libraryPath(secondaryPath)
+        .isPhysical(false)
+        .metadata(metadata)
+        .bookFiles(new ArrayList<>())
+        .build();
+    metadata.setBook(existingBook);
+
+    when(bookRepository.findAllForDuplicateDetection(1L)).thenReturn(List.of(existingBook));
+
+    int imported = physicalBookService.importPhysicalBooksFromSidecars(library, List.of(primaryPath));
+
+    assertThat(imported).isEqualTo(0);
+    verify(bookRepository, org.mockito.Mockito.never()).save(any(BookEntity.class));
     }
 }

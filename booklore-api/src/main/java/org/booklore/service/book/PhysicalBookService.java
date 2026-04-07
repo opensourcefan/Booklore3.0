@@ -147,6 +147,12 @@ public class PhysicalBookService {
                         continue;
                     }
 
+                    if (libraryAlreadyContainsMatchingBook(libraryEntity.getId(), request)) {
+                        log.debug("Skipping physical sidecar {} because a matching active book already exists in library {}",
+                                sidecarPath.getFileName(), libraryEntity.getName());
+                        continue;
+                    }
+
                     try {
                         createPhysicalBook(request);
                         imported++;
@@ -168,6 +174,16 @@ public class PhysicalBookService {
         }
 
         return imported;
+    }
+
+    private boolean libraryAlreadyContainsMatchingBook(Long libraryId, CreatePhysicalBookRequest request) {
+        String requestIsbn13 = extractIsbn13(request.getIsbn());
+        String requestIsbn10 = extractIsbn10(request.getIsbn());
+        String requestTitle = normalizeText(request.getTitle());
+        Set<String> requestAuthors = normalizeAuthors(request.getAuthors());
+
+        return bookRepository.findAllForDuplicateDetection(libraryId).stream()
+                .anyMatch(book -> matchesPhysicalDuplicate(book, requestIsbn13, requestIsbn10, requestTitle, requestAuthors));
     }
 
     private void ensureNoConflictingPhysicalBook(LibraryEntity library, LibraryPathEntity libraryPath, CreatePhysicalBookRequest request) {
