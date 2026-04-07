@@ -9,11 +9,25 @@ import {AiPanelScanProgressPayload} from '../model/ai-panel-scan-progress.model'
 export class AiPanelScanProgressService {
   private readonly messageService = inject(MessageService);
   private readonly progressSubject = new BehaviorSubject<AiPanelScanProgressPayload | null>(null);
+  private clearTimer: ReturnType<typeof setTimeout> | undefined;
 
   readonly progress$ = this.progressSubject.asObservable();
 
   handleIncomingProgress(progress: AiPanelScanProgressPayload): void {
+    if (this.clearTimer) {
+      clearTimeout(this.clearTimer);
+      this.clearTimer = undefined;
+    }
+
     this.progressSubject.next(progress);
+
+    if (progress.mode === 'BATCH' && (progress.event === 'COMPLETED' || progress.event === 'FAILED')) {
+      this.clearTimer = setTimeout(() => {
+        if (this.progressSubject.value === progress) {
+          this.progressSubject.next(null);
+        }
+      }, 5000);
+    }
   }
 
   bookProgress$(bookId: number): Observable<AiPanelScanProgressPayload> {

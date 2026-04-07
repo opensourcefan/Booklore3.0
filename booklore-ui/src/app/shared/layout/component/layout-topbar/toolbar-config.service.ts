@@ -19,6 +19,7 @@ const DEFAULT_ITEMS: ToolbarItem[] = [
   {id: 'metadata', type: 'button', visible: true, label: 'Metadata', icon: 'pi pi-database'},
   {id: 'stats', type: 'button', visible: true, label: 'Stats', icon: 'pi pi-chart-bar'},
   {id: 'sep2', type: 'separator', visible: true},
+  {id: 'fullscreen', type: 'button', visible: true, label: 'Fullscreen', icon: 'pi pi-window-maximize'},
   {id: 'notifications', type: 'button', visible: true, label: 'Notifications', icon: 'pi pi-bell'},
   {id: 'theme', type: 'button', visible: true, label: 'Theme', icon: 'pi pi-palette'},
   {id: 'user', type: 'button', visible: true, label: 'User', icon: 'pi pi-user'},

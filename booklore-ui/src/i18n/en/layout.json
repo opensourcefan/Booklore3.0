@@ -34,7 +34,11 @@
     "metadataFetchCompleted": "Completed",
     "metadataFetchCancelled": "Cancelled",
     "metadataFetchFailed": "Failed",
-    "dirExplorer": "Directory Explorer"
+    "dirExplorer": "Directory Explorer",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit Fullscreen",
+    "sidecarBackup": "Sidecar Backup",
+    "sidecarBackupWorking": "Working"
   },
   "menu": {
     "home": "Home",

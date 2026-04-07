@@ -5,7 +5,7 @@ import {FormsModule} from '@angular/forms';
 import {AppSettingKey, AppSettings, MetadataPersistenceSettings, SaveToOriginalFileSettings, SidecarSettings} from '../../../../shared/model/app-settings.model';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 import {SettingsHelperService} from '../../../../shared/service/settings-helper.service';
-import {filter, take} from 'rxjs/operators';
+import {filter, finalize, take} from 'rxjs/operators';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {TaskService, TaskType} from '../../../settings/task-management/task.service';
@@ -13,6 +13,7 @@ import {Button} from 'primeng/button';
 import {LibraryService} from '../../../book/service/library.service';
 import {Library} from '../../../book/model/library.model';
 import {SidecarService} from '../../../metadata/service/sidecar.service';
+import {SidecarBackupProgressService} from '../../../../shared/service/sidecar-backup-progress.service';
 
 @Component({
   selector: 'app-metadata-persistence-settings-component',
@@ -69,6 +70,7 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
   private readonly taskService = inject(TaskService);
   private readonly libraryService = inject(LibraryService);
   private readonly sidecarService = inject(SidecarService);
+  private readonly sidecarBackupProgressService = inject(SidecarBackupProgressService);
   private t = inject(TranslocoService);
 
   private readonly appSettings$ = this.appSettingsService.appSettings$;
@@ -194,9 +196,15 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
     }
 
     this.isLibraryBackupRunning = true;
-    this.sidecarService.backupLibrarySidecars(this.selectedBackupLibraryId).subscribe({
-      next: (response) => {
+    this.sidecarBackupProgressService.start();
+
+    this.sidecarService.backupLibrarySidecars(this.selectedBackupLibraryId).pipe(
+      finalize(() => {
         this.isLibraryBackupRunning = false;
+        this.sidecarBackupProgressService.clear();
+      })
+    ).subscribe({
+      next: (response) => {
         if (response.failed > 0) {
           this.settingsHelper.showMessage(
             'error',
@@ -223,7 +231,6 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
         );
       },
       error: (error) => {
-        this.isLibraryBackupRunning = false;
         console.error('Failed to back up sidecars for library:', error);
         this.settingsHelper.showMessage(
           'error',

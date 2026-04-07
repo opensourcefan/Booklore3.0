@@ -72,6 +72,13 @@
         <span class="topbar-import-summary">{{ importScanSummary }}</span>
       </button>
     }
+    @if (showSidecarBackupStatus) {
+      <button type="button" class="topbar-sidecar-backup-status" (click)="navigateToMetadataPersistenceSettings()">
+        <i class="pi pi-box"></i>
+        <span class="topbar-sidecar-backup-label">{{ t('sidecarBackup') }}</span>
+        <span class="topbar-sidecar-backup-summary">{{ sidecarBackupSummary }}</span>
+      </button>
+    }
     @if (showMetadataFetchStatus) {
       <button type="button" class="topbar-metadata-fetch-status" (click)="navigateToMetadataManager()">
         <i class="pi pi-cloud-download"></i>
@@ -163,6 +170,13 @@
                 <p-popover #notificationPopover [dismissable]="true">
                   <app-unified-notification-popover-component></app-unified-notification-popover-component>
                 </p-popover>
+              </li>
+            }
+            @case ('fullscreen') {
+              <li>
+                <button type="button" class="topbar-item" (click)="toggleFullscreen()" [pTooltip]="fullscreenTooltip" tooltipPosition="bottom">
+                  <i [ngClass]="fullscreenIconClass"></i>
+                </button>
               </li>
             }
             @case ('theme') {
@@ -284,6 +298,15 @@
               </li>
             }
           }
+          <li>
+            <button
+              class="mobile-menu-item"
+              (click)="toggleFullscreen(); mobileMenu.hide()"
+            >
+              <i [ngClass]="fullscreenIconClass"></i>
+              {{ isFullscreen ? t('exitFullscreen') : t('fullscreen') }}
+            </button>
+          </li>
           <li>
             <button
               class="mobile-menu-item"

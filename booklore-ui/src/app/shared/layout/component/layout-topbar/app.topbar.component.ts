@@ -38,6 +38,7 @@ import {AiPanelScanProgressPayload} from '../../../model/ai-panel-scan-progress.
 import {AiPanelScanProgressService} from '../../../service/ai-panel-scan-progress.service';
 import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from '../../../../features/settings/task-management/task.service';
 import {WriteProgressPayload, WriteProgressService} from '../../../../shared/service/write-progress.service';
+import {SidecarBackupProgressService} from '../../../service/sidecar-backup-progress.service';
 
 @Component({
   selector: 'app-topbar',
@@ -94,6 +95,8 @@ export class AppTopBarComponent implements OnDestroy {
   importScanProgress: TaskProgressPayload | null = null;
   metadataFetchProgress: TaskProgressPayload | null = null;
   writeProgress: WriteProgressPayload | null = null;
+  isSidecarBackupRunning = false;
+  isFullscreen = false;
 
   private eventTimer: number | undefined;
   private flushDismissTimer: ReturnType<typeof setTimeout> | undefined;
@@ -124,9 +127,11 @@ export class AppTopBarComponent implements OnDestroy {
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private taskService = inject(TaskService);
   private writeProgressService = inject(WriteProgressService);
+  private sidecarBackupProgressService = inject(SidecarBackupProgressService);
 
   constructor() {
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
+    this.syncFullscreenState();
     this.activeLang = this.translocoService.getActiveLang();
     this.langMenuItems = AVAILABLE_LANGS.map(lang => ({
       label: LANG_LABELS[lang] || lang,
@@ -155,10 +160,16 @@ export class AppTopBarComponent implements OnDestroy {
         this.updateTaskVisibilityWithBookdrop();
       });
 
-    this.aiPanelScanProgressService.batchProgress$()
+    this.aiPanelScanProgressService.progress$
       .pipe(takeUntil(this.destroy$))
       .subscribe(progress => {
-        this.aiBatchProgress = progress;
+        this.aiBatchProgress = progress?.mode === 'BATCH' ? progress : null;
+      });
+
+    this.sidecarBackupProgressService.active$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(active => {
+        this.isSidecarBackupRunning = active;
       });
 
     this.taskService.taskProgress$
@@ -248,6 +259,8 @@ export class AppTopBarComponent implements OnDestroy {
         this.mobileSidebarPop?.hide();
         this.updateMobileBookFilterTriggerVisibility((event as NavigationStart).url);
       });
+
+    document.addEventListener('fullscreenchange', this.onFullscreenChange);
   }
 
   ngOnDestroy(): void {
@@ -257,6 +270,7 @@ export class AppTopBarComponent implements OnDestroy {
     clearTimeout(this.importDismissTimer);
     clearTimeout(this.metadataFetchDismissTimer);
     clearTimeout(this.writeDismissTimer);
+    document.removeEventListener('fullscreenchange', this.onFullscreenChange);
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -268,6 +282,15 @@ export class AppTopBarComponent implements OnDestroy {
 
   openMobileSearch(): void {
     this.mobileSearchVisible = true;
+  }
+
+  toggleFullscreen(): void {
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.().catch(() => undefined);
+      return;
+    }
+
+    document.documentElement.requestFullscreen?.().catch(() => undefined);
   }
 
   toggleMobileBookFilter(event: MouseEvent): void {
@@ -500,8 +523,24 @@ export class AppTopBarComponent implements OnDestroy {
     return !!this.metadataFetchProgress;
   }
 
+  get showSidecarBackupStatus(): boolean {
+    return this.isSidecarBackupRunning;
+  }
+
   get showWriteStatus(): boolean {
     return !!this.writeProgress;
+  }
+
+  get fullscreenTooltip(): string {
+    return this.translocoService.translate(this.isFullscreen ? 'layout.topbar.exitFullscreen' : 'layout.topbar.fullscreen');
+  }
+
+  get fullscreenIconClass(): string {
+    return this.isFullscreen ? 'pi pi-window-minimize' : 'pi pi-window-maximize';
+  }
+
+  get sidecarBackupSummary(): string {
+    return this.translocoService.translate('layout.topbar.sidecarBackupWorking');
   }
 
   get writeStatusSummary(): string {
@@ -598,6 +637,7 @@ export class AppTopBarComponent implements OnDestroy {
         return !!(user?.permissions?.canManageLibrary || user?.permissions?.admin);
       case 'stats':
         return this.hasStatsAccess;
+      case 'fullscreen':
       case 'notifications':
       case 'theme':
         return true;
@@ -637,5 +677,13 @@ export class AppTopBarComponent implements OnDestroy {
     const isBookBrowsing = /^\/(all-books|not-shelfed|library\/[^/]+\/books|shelf\/[^/]+\/books|magic-shelf\/[^/]+\/books)\/?$/.test(path);
     this.showMobileBookFilterTrigger = isBookBrowsing;
     this.showMobileDirTrigger = isBookBrowsing;
+  }
+
+  private readonly onFullscreenChange = (): void => {
+    this.syncFullscreenState();
+  };
+
+  private syncFullscreenState(): void {
+    this.isFullscreen = !!document.fullscreenElement;
   }
 }
