@@ -78,14 +78,40 @@ class SidecarServiceTest {
 
         when(libraryRepository.findById(7L)).thenReturn(Optional.of(library));
         when(bookRepository.findAllForMetadataFlushByLibraryId(7L)).thenReturn(List.of(firstBook, secondBook));
-        when(sidecarWriter.writeSidecarMetadata(firstBook, true)).thenReturn(true);
-        when(sidecarWriter.writeSidecarMetadata(secondBook, true)).thenReturn(true);
+        when(sidecarWriter.writeSidecarMetadataWithResult(firstBook, true)).thenReturn(SidecarMetadataWriter.SidecarWriteResult.succeeded());
+        when(sidecarWriter.writeSidecarMetadataWithResult(secondBook, true)).thenReturn(SidecarMetadataWriter.SidecarWriteResult.succeeded());
 
-        int exported = sidecarService.backupLibrarySidecars(7L);
+        SidecarService.SidecarBatchResult result = sidecarService.backupLibrarySidecars(7L);
 
-        assertEquals(2, exported);
-        verify(sidecarWriter).writeSidecarMetadata(firstBook, true);
-        verify(sidecarWriter).writeSidecarMetadata(secondBook, true);
+        assertEquals(2, result.exported());
+        assertEquals(2, result.attempted());
+        assertEquals(0, result.failed());
+        verify(sidecarWriter).writeSidecarMetadataWithResult(firstBook, true);
+        verify(sidecarWriter).writeSidecarMetadataWithResult(secondBook, true);
+    }
+
+    @Test
+    void backupLibrarySidecars_reportsFailedWrites() {
+        LibraryEntity library = new LibraryEntity();
+        library.setId(9L);
+        library.setName("Failure Library");
+
+        BookEntity firstBook = new BookEntity();
+        firstBook.setId(40L);
+        BookEntity secondBook = new BookEntity();
+        secondBook.setId(41L);
+
+        when(libraryRepository.findById(9L)).thenReturn(Optional.of(library));
+        when(bookRepository.findAllForMetadataFlushByLibraryId(9L)).thenReturn(List.of(firstBook, secondBook));
+        when(sidecarWriter.writeSidecarMetadataWithResult(firstBook, true)).thenReturn(SidecarMetadataWriter.SidecarWriteResult.failure("Permission denied while writing /library/book.metadata.json"));
+        when(sidecarWriter.writeSidecarMetadataWithResult(secondBook, true)).thenReturn(SidecarMetadataWriter.SidecarWriteResult.succeeded());
+
+        SidecarService.SidecarBatchResult result = sidecarService.backupLibrarySidecars(9L);
+
+        assertEquals(2, result.attempted());
+        assertEquals(1, result.exported());
+        assertEquals(1, result.failed());
+        assertEquals("Permission denied while writing /library/book.metadata.json", result.firstError());
     }
 
     @Test

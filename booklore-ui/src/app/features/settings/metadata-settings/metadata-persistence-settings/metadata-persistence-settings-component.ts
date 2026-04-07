@@ -197,6 +197,25 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
     this.sidecarService.backupLibrarySidecars(this.selectedBackupLibraryId).subscribe({
       next: (response) => {
         this.isLibraryBackupRunning = false;
+        if (response.failed > 0) {
+          this.settingsHelper.showMessage(
+            'error',
+            this.t.translate('common.error'),
+            this.t.translate(
+              response.exported > 0
+                ? 'settingsMeta.persistence.sidecarBackupPartial'
+                : 'settingsMeta.persistence.sidecarBackupFailureDetail',
+              {
+                count: response.exported,
+                attempted: response.attempted,
+                failed: response.failed,
+                error: response.firstError || this.t.translate('settingsMeta.persistence.sidecarBackupUnknownError')
+              }
+            )
+          );
+          return;
+        }
+
         this.settingsHelper.showMessage(
           'success',
           this.t.translate('common.success'),

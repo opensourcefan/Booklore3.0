@@ -15,6 +15,8 @@ import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -47,33 +49,38 @@ public class SidecarMetadataWriter {
     }
 
     public boolean writeSidecarMetadata(BookEntity book, boolean forceWrite) {
+        return writeSidecarMetadataWithResult(book, forceWrite).completed();
+    }
+
+    public SidecarWriteResult writeSidecarMetadataWithResult(BookEntity book, boolean forceWrite) {
         if (!forceWrite && !appProperties.isLocalStorage()) {
-            return false;
+            return SidecarWriteResult.failure("Local sidecar writes are disabled because DISK_TYPE is not LOCAL.");
         }
         if (book == null || book.getMetadata() == null) {
             log.warn("Cannot write sidecar metadata: book or metadata is null");
-            return false;
+            return SidecarWriteResult.failure("Book metadata is missing.");
         }
 
         boolean physicalDirectorySidecar = sidecarPathResolver.isPhysicalDirectorySidecar(book);
         SidecarSettings settings = getSidecarSettings();
         if (!forceWrite && !physicalDirectorySidecar && (settings == null || !settings.isEnabled())) {
             log.debug("Sidecar metadata is disabled");
-            return false;
+            return SidecarWriteResult.failure("Automatic sidecar writing is disabled.");
         }
 
+        Path sidecarPath = null;
         try {
-            Path sidecarPath = sidecarPathResolver.resolveSidecarPath(book);
+            sidecarPath = sidecarPathResolver.resolveSidecarPath(book);
             if (sidecarPath == null) {
                 log.warn("Cannot write sidecar metadata: no sidecar target path available");
-                return false;
+                return SidecarWriteResult.failure("No sidecar target path is available for this book.");
             }
 
             if (!physicalDirectorySidecar) {
                 Path bookPath = book.getFullFilePath();
                 if (bookPath == null || !Files.exists(bookPath)) {
                     log.warn("Cannot write sidecar metadata: book file does not exist");
-                    return false;
+                    return SidecarWriteResult.failure("The source book file does not exist on disk.");
                 }
             }
 
@@ -95,11 +102,32 @@ public class SidecarMetadataWriter {
             Files.writeString(sidecarPath, json);
 
             log.info("Wrote sidecar metadata to: {}", sidecarPath);
-            return true;
+            return SidecarWriteResult.succeeded();
         } catch (IOException e) {
-            log.error("Failed to write sidecar metadata for book ID {}: {}", book.getId(), e.getMessage());
-            return false;
+            String failureMessage = describeWriteFailure(sidecarPath, e);
+            log.error("Failed to write sidecar metadata for book ID {} to {}", book.getId(), sidecarPath, e);
+            return SidecarWriteResult.failure(failureMessage);
         }
+    }
+
+    private String describeWriteFailure(Path sidecarPath, IOException exception) {
+        if (exception instanceof AccessDeniedException) {
+            return "Permission denied while writing " + sidecarPath;
+        }
+
+        if (exception instanceof FileSystemException fileSystemException) {
+            String reason = fileSystemException.getReason();
+            if (reason != null && !reason.isBlank()) {
+                return "Failed to write " + sidecarPath + ": " + reason;
+            }
+        }
+
+        String message = exception.getMessage();
+        if (message != null && !message.isBlank()) {
+            return "Failed to write " + sidecarPath + ": " + message;
+        }
+
+        return "Failed to write " + sidecarPath + ".";
     }
 
     public void deleteSidecarFiles(Path bookPath) {
@@ -206,5 +234,15 @@ public class SidecarMetadataWriter {
     public boolean isWriteOnScanEnabled() {
         SidecarSettings settings = getSidecarSettings();
         return settings != null && settings.isEnabled() && settings.isWriteOnScan();
+    }
+
+    public record SidecarWriteResult(boolean completed, String errorMessage) {
+        public static SidecarWriteResult succeeded() {
+            return new SidecarWriteResult(true, null);
+        }
+
+        public static SidecarWriteResult failure(String errorMessage) {
+            return new SidecarWriteResult(false, errorMessage);
+        }
     }
 }

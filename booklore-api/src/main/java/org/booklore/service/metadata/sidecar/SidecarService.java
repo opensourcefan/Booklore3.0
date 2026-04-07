@@ -111,25 +111,37 @@ public class SidecarService {
     }
 
     @Transactional
-    public int backupLibrarySidecars(Long libraryId) {
+    public SidecarBatchResult backupLibrarySidecars(Long libraryId) {
         LibraryEntity library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
 
         List<BookEntity> books = bookRepository.findAllForMetadataFlushByLibraryId(libraryId);
         int exported = 0;
+        int failed = 0;
+        String firstError = null;
 
         for (BookEntity book : books) {
             try {
-                if (sidecarWriter.writeSidecarMetadata(book, true)) {
+                SidecarMetadataWriter.SidecarWriteResult result = sidecarWriter.writeSidecarMetadataWithResult(book, true);
+                if (result.completed()) {
                     exported++;
+                } else {
+                    failed++;
+                    if (firstError == null) {
+                        firstError = result.errorMessage();
+                    }
                 }
             } catch (Exception e) {
+                failed++;
+                if (firstError == null) {
+                    firstError = e.getMessage();
+                }
                 log.warn("Failed to back up sidecar for book ID {}: {}", book.getId(), e.getMessage());
             }
         }
 
-        log.info("Backed up {} sidecar files for library {}", exported, library.getName());
-        return exported;
+        log.info("Backed up {} sidecar files for library {} (attempted={}, failed={})", exported, library.getName(), books.size(), failed);
+        return new SidecarBatchResult(books.size(), exported, failed, firstError);
     }
 
     @Transactional
@@ -172,5 +184,8 @@ public class SidecarService {
 
         log.info("Bulk imported {} sidecar files for library {}", imported, library.getName());
         return imported;
+    }
+
+    public record SidecarBatchResult(int attempted, int exported, int failed, String firstError) {
     }
 }

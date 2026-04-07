@@ -99,10 +99,13 @@ public class SidecarController {
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
     @PostMapping("/libraries/{libraryId}/sidecar/backup")
     public ResponseEntity<Map<String, Object>> backupLibrarySidecars(@Parameter(description = "Library ID") @PathVariable Long libraryId) {
-        int exported = sidecarService.backupLibrarySidecars(libraryId);
+        SidecarService.SidecarBatchResult result = sidecarService.backupLibrarySidecars(libraryId);
         return ResponseEntity.ok(Map.of(
                 "message", "Library sidecar backup completed",
-                "exported", exported
+                "attempted", result.attempted(),
+                "exported", result.exported(),
+                "failed", result.failed(),
+                "firstError", result.firstError() == null ? "" : result.firstError()
         ));
     }
 

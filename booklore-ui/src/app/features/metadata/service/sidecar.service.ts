@@ -102,8 +102,8 @@ export class SidecarService {
     );
   }
 
-  backupLibrarySidecars(libraryId: number): Observable<{message: string, exported: number}> {
-    return this.http.post<{message: string, exported: number}>(
+  backupLibrarySidecars(libraryId: number): Observable<{message: string, attempted: number, exported: number, failed: number, firstError: string}> {
+    return this.http.post<{message: string, attempted: number, exported: number, failed: number, firstError: string}>(
       `${this.apiUrl}/libraries/${libraryId}/sidecar/backup`, {}
     );
   }
