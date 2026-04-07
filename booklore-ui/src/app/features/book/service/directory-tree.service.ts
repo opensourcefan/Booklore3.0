@@ -1,7 +1,7 @@
 import {Injectable, inject} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
-import {tap} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
 import {API_CONFIG} from '../../../core/config/api-config';
 
 export interface DirectoryNode {
@@ -24,19 +24,28 @@ export class DirectoryTreeService {
   private http = inject(HttpClient);
   private libraryCache = new Map<number, DirectoryRootNode[]>();
   private allCache: DirectoryRootNode[] | null = null;
+  private readonly collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
 
   getTreeForLibrary(libraryId: number): Observable<DirectoryRootNode[]> {
     const cached = this.libraryCache.get(libraryId);
     if (cached) return of(cached);
     return this.http.get<DirectoryRootNode[]>(`${API_CONFIG.BASE_URL}/api/v1/libraries/${libraryId}/directory-tree`).pipe(
-      tap(data => this.libraryCache.set(libraryId, this.sortRootNodes(data)))
+      map(data => {
+        const sorted = this.sortRootNodes(data);
+        this.libraryCache.set(libraryId, sorted);
+        return sorted;
+      })
     );
   }
 
   getAllLibrariesTree(): Observable<DirectoryRootNode[]> {
     if (this.allCache) return of(this.allCache);
     return this.http.get<DirectoryRootNode[]>(`${API_CONFIG.BASE_URL}/api/v1/libraries/directory-tree`).pipe(
-      tap(data => { this.allCache = this.sortRootNodes(data); })
+      map(data => {
+        const sorted = this.sortRootNodes(data);
+        this.allCache = sorted;
+        return sorted;
+      })
     );
   }
 
@@ -56,7 +65,7 @@ export class DirectoryTreeService {
         ...node,
         children: this.sortDirectoryNodes(node.children ?? []),
       }))
-      .sort((a, b) => a.rootPath.localeCompare(b.rootPath, undefined, {numeric: true, sensitivity: 'base'}));
+      .sort((a, b) => this.compareRootNodes(a, b));
   }
 
   private sortDirectoryNodes(nodes: DirectoryNode[]): DirectoryNode[] {
@@ -65,6 +74,26 @@ export class DirectoryTreeService {
         ...node,
         children: this.sortDirectoryNodes(node.children ?? []),
       }))
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
+      .sort((a, b) => this.collator.compare(a.name, b.name));
+  }
+
+  private compareRootNodes(a: DirectoryRootNode, b: DirectoryRootNode): number {
+    const nameComparison = this.collator.compare(this.getRootLabel(a.rootPath), this.getRootLabel(b.rootPath));
+    if (nameComparison !== 0) {
+      return nameComparison;
+    }
+
+    const libraryComparison = this.collator.compare(a.libraryName, b.libraryName);
+    if (libraryComparison !== 0) {
+      return libraryComparison;
+    }
+
+    return this.collator.compare(a.rootPath, b.rootPath);
+  }
+
+  private getRootLabel(rootPath: string): string {
+    const normalizedPath = rootPath.replace(/\\/g, '/');
+    const parts = normalizedPath.split('/').filter(Boolean);
+    return parts[parts.length - 1] ?? rootPath;
   }
 }
