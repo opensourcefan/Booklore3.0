@@ -629,7 +629,8 @@
 
       app-book-filter {
         flex: 1;
-        overflow-y: auto;
+        display: flex;
+        overflow: hidden;
         min-height: 0;
       }
     }
