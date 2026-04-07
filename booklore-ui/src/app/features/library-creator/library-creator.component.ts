@@ -209,7 +209,9 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   openDirectoryPicker(): void {
-    const ref = this.dialogLauncherService.openDirectoryPickerDialog();
+    const ref = this.dialogLauncherService.openDirectoryPickerDialog({
+      existingFolders: [...this.folders]
+    });
     ref?.onClose.subscribe((selectedFolders: string[] | null) => {
       if (selectedFolders && selectedFolders.length > 0) {
         selectedFolders.forEach(folder => {

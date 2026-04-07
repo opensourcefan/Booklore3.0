@@ -88,7 +88,10 @@
     "folderWillBeSelected": "{{ count }} folder will be selected",
     "foldersWillBeSelected": "{{ count }} folders will be selected",
     "selectDirectoriesBtn": "Select Directories",
-    "recentLabel": "Recent:"
+    "recentLabel": "Recent:",
+    "alreadyImported": "Already Imported",
+    "importedVisible": "{{ count }} already imported here",
+    "importedVisiblePlural": "{{ count }} already imported here"
   },
   "liveNotification": {
     "defaultMessage": "No recent notifications..."

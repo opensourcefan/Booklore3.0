@@ -318,6 +318,7 @@
   <li><strong>Create multiple libraries</strong> &mdash; For example, one for &ldquo;Fiction,&rdquo; one for &ldquo;Comics,&rdquo; one for &ldquo;Audiobooks&rdquo;</li>
   <li><strong>Scan libraries</strong> &mdash; Tell BookLore to look for new files in a library folder</li>
   <li><strong>Rescan libraries</strong> &mdash; Force BookLore to re-examine all files in a library</li>
+  <li><strong>See which folders are already part of a library while editing it</strong> &mdash; The <strong>Select Directories</strong> dialog now labels directories that are already imported so you can add only the missing ones</li>
   <li><strong>See preparation feedback for large imports</strong> &mdash; When creating a library with many files, the dialog now shows an in-between working state before the full progress overlay appears</li>
   <li><strong>Check library health</strong> &mdash; Verify the folder is accessible and working</li>
   <li><strong>Delete libraries</strong> &mdash; Remove a library from BookLore (optionally deleting its files too)</li>
@@ -773,6 +774,7 @@
   <li>Use <strong>Media Type &rarr; Physical</strong> from the sidebar to see only physical placeholders, or mix it with other filters like library, shelf, and reading status</li>
   <li>Hover the filter-mode buttons to see what each mode does: <strong>AND</strong> requires every selected filter to match, <strong>OR</strong> accepts any selected match, <strong>NOT</strong> hides matches, and <strong>1</strong> keeps only one active selection at a time</li>
   <li>Scroll the desktop filter sidebar as one continuous panel instead of fighting a second nested scrollbar inside long filter groups</li>
+  <li>Keep the desktop filter panel anchored flush to the right edge of its sidebar while you scroll and expand filter groups</li>
   <li>Keep your filter sidebar visibility, filter sort mode, and expanded filter groups with your user account instead of one browser profile</li>
   <li>Clear all filters with one click</li>
 </ul>
@@ -1226,6 +1228,8 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-06</td><td>1.1.32</td><td>Documented that the library edit directory picker now labels folders already imported into the current library so additional folders are easier to spot before saving</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.31</td><td>Documented the right filter sidebar anchoring fix so the desktop filter panel stays flush to the right edge after the single-scroll sidebar update</td></tr>
   <tr><td>2026-04-06</td><td>1.1.30</td><td>Documented the book-browser filter sidebar scroll fix so the desktop right sidebar now uses one continuous scrollbar instead of nested scroll areas inside long filter groups</td></tr>
   <tr><td>2026-04-06</td><td>1.1.29</td><td>Documented clearer manual sidecar backup failure reporting, including failed write counts and the first filesystem error when BookLore can read books but cannot create sidecar files in the library directory</td></tr>
   <tr><td>2026-04-06</td><td>1.1.28</td><td>Clarified that duplicate review is launched from library menus, removed the book-browser duplicate shortcut, and documented that manual sidecar backup now includes normal digital formats even when books also have non-book attachments</td></tr>

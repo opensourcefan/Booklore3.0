@@ -19,6 +19,12 @@
       <div class="path-value">
         {{ selectedProductName || '/' }}
       </div>
+      @if (isImported(selectedProductName || '/')) {
+        <span class="imported-chip imported-chip--path">
+          <i class="pi pi-check-circle"></i>
+          {{ t('alreadyImported') }}
+        </span>
+      }
     </div>
 
     @if (recentPaths.length > 0) {
@@ -143,6 +149,12 @@
             <i class="pi pi-folder"></i>
             {{ filteredPaths.length === 1 ? t('folderAvailable', { count: filteredPaths.length }) : t('foldersAvailable', { count: filteredPaths.length }) }}
           </span>
+          @if (getImportedFolderCountInView() > 0) {
+            <span class="imported-summary">
+              <i class="pi pi-check-circle"></i>
+              {{ getImportedFolderCountInView() === 1 ? t('importedVisible', { count: getImportedFolderCountInView() }) : t('importedVisiblePlural', { count: getImportedFolderCountInView() }) }}
+            </span>
+          }
         </div>
 
         <div class="directories-grid" [class.fade-in]="!isLoading && filteredPaths.length > 0">
@@ -150,6 +162,7 @@
             <div
               class="directory-item"
               [class.selected]="isFolderSelected(folder)"
+              [class.imported]="isImported(folder)"
             >
               <div class="directory-checkbox">
                 <p-checkbox
@@ -165,7 +178,15 @@
                   <i class="pi pi-folder directory-icon"></i>
                 </div>
                 <div class="directory-info">
-                  <span class="directory-name">{{ getFolderName(folder) }}</span>
+                  <span class="directory-name-row">
+                    <span class="directory-name">{{ getFolderName(folder) }}</span>
+                    @if (isImported(folder)) {
+                      <span class="imported-chip">
+                        <i class="pi pi-check-circle"></i>
+                        {{ t('alreadyImported') }}
+                      </span>
+                    }
+                  </span>
                   <span class="directory-path">{{ folder }}</span>
                 </div>
                 <i class="pi pi-chevron-right navigate-icon"></i>

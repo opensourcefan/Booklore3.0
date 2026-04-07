@@ -1,5 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {UtilityService} from './utility.service';
 import {TableModule} from 'primeng/table';
 import {InputText} from 'primeng/inputtext';
@@ -46,13 +46,21 @@ export class DirectoryPickerComponent implements OnInit {
   breadcrumbItems: MenuItem[] = [];
   home: MenuItem = {icon: 'pi pi-home', command: () => this.navigateToRoot()};
   recentPaths: string[] = [];
+  importedFolders: string[] = [];
+  importedFoldersMap: Record<string, boolean> = {};
 
   private readonly RECENT_DIRS_KEY = 'BOOKLORE_RECENT_DIRS';
   private readonly MAX_RECENT = 5;
   private utilityService = inject(UtilityService);
   private dynamicDialogRef = inject(DynamicDialogRef);
+  private dynamicDialogConfig = inject(DynamicDialogConfig);
 
   ngOnInit() {
+    this.importedFolders = (this.dynamicDialogConfig.data?.existingFolders ?? []).map((folder: string) => this.normalizePath(folder));
+    this.importedFoldersMap = this.importedFolders.reduce<Record<string, boolean>>((acc, folder) => {
+      acc[folder] = true;
+      return acc;
+    }, {});
     this.loadRecentPaths();
     const initialPath = '/';
     this.getFolders(initialPath);
@@ -212,5 +220,22 @@ export class DirectoryPickerComponent implements OnInit {
 
   getFolderName(path: string): string {
     return path.split('/').filter(p => p).pop() || path;
+  }
+
+  isImported(path: string): boolean {
+    return !!this.importedFoldersMap[this.normalizePath(path)];
+  }
+
+  getImportedFolderCountInView(): number {
+    return this.filteredPaths.filter(path => this.isImported(path)).length;
+  }
+
+  private normalizePath(path: string): string {
+    if (!path || path === '/') {
+      return '/';
+    }
+
+    const normalized = path.replace(/\/+/g, '/').replace(/\/+$|\/$/g, '');
+    return normalized || '/';
   }
 }
