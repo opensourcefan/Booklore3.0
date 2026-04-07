@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {BehaviorSubject, Observable, of, Subject, takeUntil} from 'rxjs';
 import {Library} from '../../../model/library.model';
 import {Shelf} from '../../../model/shelf.model';
@@ -56,6 +56,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   private readonly filterService = inject(BookFilterService);
   private readonly userService = inject(UserService);
   private readonly t = inject(TranslocoService);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
   private readonly activeFilters$ = new BehaviorSubject<Record<string, unknown[]> | null>(null);
@@ -114,6 +115,11 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  refreshAfterRouteAttach(): void {
+    this.initializeFilterStreams();
+    this.cdr.markForCheck();
   }
 
   handleFilterClick(filterType: string, value: unknown): void {

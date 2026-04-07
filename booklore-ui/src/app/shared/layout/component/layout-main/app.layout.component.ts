@@ -67,6 +67,14 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     document.documentElement.style.setProperty('--sidebar-width', width + 'px');
   }
 
+  onRouteAttach(component: unknown): void {
+    if (!this.isRouteReattachAware(component)) {
+      return;
+    }
+
+    queueMicrotask(() => component.onRouteReattached());
+  }
+
   isOutsideClicked(event: MouseEvent): boolean {
     const sidebarEl = document.querySelector('.layout-sidebar');
     const topbarEl = document.querySelector('.layout-menu-button');
@@ -120,6 +128,10 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       'layout-overlay-active': this.layoutService.state.overlayMenuActive,
       'layout-mobile-active': this.layoutService.state.staticMenuMobileActive
     }
+  }
+
+  private isRouteReattachAware(component: unknown): component is { onRouteReattached: () => void } {
+    return !!component && typeof (component as { onRouteReattached?: unknown }).onRouteReattached === 'function';
   }
 
   ngOnDestroy() {

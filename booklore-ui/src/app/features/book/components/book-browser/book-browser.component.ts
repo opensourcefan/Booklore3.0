@@ -461,6 +461,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  onRouteReattached(): void {
+    this.bookFilterComponents?.forEach(component => component.refreshAfterRouteAttach());
+    this.cdr.detectChanges();
+  }
+
   private clearHoverPreviewTimer(): void {
     if (!this.hoverPreviewTimer) {
       return;

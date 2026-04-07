@@ -5,7 +5,7 @@ import {NotificationEventService} from './shared/websocket/notification-event.se
 import {parseLogNotification} from './shared/websocket/model/log-notification.model';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {Toast} from 'primeng/toast';
-import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
+import {RouterOutlet} from '@angular/router';
 import {TranslocoDirective, TranslocoPipe} from '@jsverse/transloco';
 import {AuthInitializationService} from './core/security/auth-initialization-service';
 import {AppConfigService} from './shared/service/app-config.service';
@@ -17,7 +17,7 @@ import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from './features
 import {LibraryService} from './features/book/service/library.service';
 import {LibraryHealthService} from './features/book/service/library-health.service';
 import {LibraryLoadingService} from './features/library-creator/library-loading.service';
-import {distinctUntilChanged, filter, map, scan, withLatestFrom} from 'rxjs/operators';
+import {scan, withLatestFrom} from 'rxjs/operators';
 import {AuthService} from './shared/service/auth.service';
 import {AiPanelScanProgressPayload} from './shared/model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progress.service';
@@ -49,12 +49,10 @@ export class AppComponent implements OnInit, OnDestroy {
   private libraryLoadingService = inject(LibraryLoadingService);
   private authService = inject(AuthService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
-  private router = inject(Router);
 
   ngOnInit(): void {
     window.addEventListener('online', this.onOnline);
     window.addEventListener('offline', this.onOffline);
-    this.setupBookBrowserRefreshOnNavigation();
 
     this.authInit.initialized$.subscribe(ready => {
       this.loading = !ready;
@@ -84,31 +82,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   reload(): void {
     window.location.reload();
-  }
-
-  private setupBookBrowserRefreshOnNavigation(): void {
-    this.subscriptions.push(
-      this.router.events.pipe(
-        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-        map(event => event.urlAfterRedirects.split('?')[0].replace(/^\/+/, '')),
-        filter(path => this.isBookBrowserPath(path)),
-        distinctUntilChanged()
-      ).subscribe(() => {
-        if (!this.bookService.getCurrentBookState().loaded) {
-          return;
-        }
-
-        this.bookService.refreshBooks().subscribe();
-      })
-    );
-  }
-
-  private isBookBrowserPath(path: string): boolean {
-    return path === 'all-books'
-      || path === 'not-shelfed'
-      || /^library\/\d+\/books$/.test(path)
-      || /^shelf\/\d+\/books$/.test(path)
-      || /^magic-shelf\/\d+\/books$/.test(path);
   }
 
   private setupWebSocketSubscriptions(): void {
