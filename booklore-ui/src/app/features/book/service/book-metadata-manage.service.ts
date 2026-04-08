@@ -68,6 +68,14 @@ export class BookMetadataManageService {
     );
   }
 
+  restoreTitlesFromFilenames(bookIds: number[]): Observable<number> {
+    return this.http.post<number>(`${this.url}/metadata/restore-titles-from-filenames`, {bookIds}).pipe(
+      tap(() => {
+        this.bookService.refreshBooks();
+      })
+    );
+  }
+
   toggleAllLock(bookIds: Set<number>, lock: string): Observable<void> {
     const requestBody = {
       bookIds: Array.from(bookIds),

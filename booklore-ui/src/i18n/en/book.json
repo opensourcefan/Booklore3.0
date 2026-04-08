@@ -10,7 +10,9 @@
       "customCoverMessage": "Are you sure you want to generate custom covers for {{ count }} book(s)?",
       "customCoverHeader": "Confirm Custom Cover Generation",
       "wipeMetadataMessage": "Are you sure you want to delete all metadata for {{ count }} selected book(s)?\n\nThis clears fetched metadata fields and cannot be undone.",
-      "wipeMetadataHeader": "Delete Metadata"
+      "wipeMetadataHeader": "Delete Metadata",
+      "restoreTitlesFromFilenamesMessage": "Restore missing titles from the primary filename for {{ count }} selected book(s)?\n\nOnly books with a blank, unlocked title and an available primary filename will be updated.",
+      "restoreTitlesFromFilenamesHeader": "Restore Titles From Filenames"
     },
     "toast": {
       "sortSavedSummary": "Sort Saved",
@@ -27,6 +29,11 @@
       "unshelveFailedDetail": "Failed to update books shelves",
       "wipeMetadataSuccessDetail": "Metadata deleted for {{ count }} selected book(s).",
       "wipeMetadataFailedDetail": "Failed to delete metadata for the selected books.",
+      "restoreTitlesFromFilenamesSuccessSummary": "Titles Restored",
+      "restoreTitlesFromFilenamesSuccessDetail": "Restored titles for {{ updatedCount }} of {{ count }} selected book(s).",
+      "restoreTitlesFromFilenamesNoEligibleSummary": "No Titles Restored",
+      "restoreTitlesFromFilenamesNoEligibleDetail": "No selected books had a blank unlocked title with a filename available to restore from.",
+      "restoreTitlesFromFilenamesFailedDetail": "Failed to restore titles from filenames for the selected books.",
       "noEligibleBooksSummary": "No Eligible Books",
       "noEligibleBooksDetail": "Selected books must be single-file books (no alternative formats).",
       "multipleLibrariesSummary": "Multiple Libraries",
@@ -35,7 +42,8 @@
     "loading": {
       "deleting": "Deleting {{ count }} book(s)...",
       "unshelving": "Unshelving {{ count }} book(s)...",
-      "wipingMetadata": "Deleting metadata for {{ count }} book(s)..."
+      "wipingMetadata": "Deleting metadata for {{ count }} book(s)...",
+      "restoringTitlesFromFilenames": "Restoring titles from filenames for {{ count }} book(s)..."
     },
     "labels": {
       "allBooks": "All Books",
@@ -211,6 +219,7 @@
       "customFetchMetadata": "Custom Fetch Metadata",
       "bulkMetadataEditor": "Bulk Metadata Editor",
       "multiBookMetadataEditor": "Multi-Book Metadata Editor",
+      "restoreTitlesFromFilenames": "Restore Missing Titles from Filenames",
       "regenerateCovers": "Regenerate Covers",
       "generateCustomCovers": "Generate Custom Covers",
       "updateReadStatus": "Update Read Status",

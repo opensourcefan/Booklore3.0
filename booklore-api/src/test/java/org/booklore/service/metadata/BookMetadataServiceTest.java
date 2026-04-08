@@ -35,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 
 import java.util.*;
 
@@ -665,6 +666,87 @@ class BookMetadataServiceTest {
 
                         assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getClearFlags().isTitle()).isTrue();
                         assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getMetadata().getTitle()).isNull();
+                }
+
+                @Test
+                void restoreTitlesFromFilename_updatesOnlyBlankUnlockedTitles() {
+                        TransactionStatus txStatus = mock(TransactionStatus.class);
+                        when(transactionManager.getTransaction(any())).thenReturn(txStatus);
+
+                        BookMetadataEntity restorableMetadata = BookMetadataEntity.builder()
+                                        .bookId(1L)
+                                        .title(null)
+                                        .authors(new ArrayList<>())
+                                        .categories(new HashSet<>())
+                                        .moods(new HashSet<>())
+                                        .tags(new HashSet<>())
+                                        .build();
+                        BookMetadataEntity titledMetadata = BookMetadataEntity.builder()
+                                        .bookId(2L)
+                                        .title("Already set")
+                                        .authors(new ArrayList<>())
+                                        .categories(new HashSet<>())
+                                        .moods(new HashSet<>())
+                                        .tags(new HashSet<>())
+                                        .build();
+                        BookMetadataEntity lockedMetadata = BookMetadataEntity.builder()
+                                        .bookId(3L)
+                                        .title(null)
+                                        .titleLocked(true)
+                                        .authors(new ArrayList<>())
+                                        .categories(new HashSet<>())
+                                        .moods(new HashSet<>())
+                                        .tags(new HashSet<>())
+                                        .build();
+
+                        BookEntity restorableBook = BookEntity.builder()
+                                        .id(1L)
+                                        .metadata(restorableMetadata)
+                                        .bookFiles(new ArrayList<>(List.of(BookFileEntity.builder()
+                                                        .bookType(BookFileType.EPUB)
+                                                        .isBookFormat(true)
+                                                        .fileName("Dune.epub")
+                                                        .build())))
+                                        .build();
+                        restorableMetadata.setBook(restorableBook);
+                        restorableBook.getBookFiles().getFirst().setBook(restorableBook);
+
+                        BookEntity titledBook = BookEntity.builder()
+                                        .id(2L)
+                                        .metadata(titledMetadata)
+                                        .bookFiles(new ArrayList<>(List.of(BookFileEntity.builder()
+                                                        .bookType(BookFileType.EPUB)
+                                                        .isBookFormat(true)
+                                                        .fileName("Neuromancer.epub")
+                                                        .build())))
+                                        .build();
+                        titledMetadata.setBook(titledBook);
+                        titledBook.getBookFiles().getFirst().setBook(titledBook);
+
+                        BookEntity lockedBook = BookEntity.builder()
+                                        .id(3L)
+                                        .metadata(lockedMetadata)
+                                        .bookFiles(new ArrayList<>(List.of(BookFileEntity.builder()
+                                                        .bookType(BookFileType.EPUB)
+                                                        .isBookFormat(true)
+                                                        .fileName("Hyperion.epub")
+                                                        .build())))
+                                        .build();
+                        lockedMetadata.setBook(lockedBook);
+                        lockedBook.getBookFiles().getFirst().setBook(lockedBook);
+
+                        when(bookRepository.findByIdWithBookFiles(1L)).thenReturn(Optional.of(restorableBook));
+                        when(bookRepository.findByIdWithBookFiles(2L)).thenReturn(Optional.of(titledBook));
+                        when(bookRepository.findByIdWithBookFiles(3L)).thenReturn(Optional.of(lockedBook));
+                        when(bookMapper.toBookWithDescription(eq(restorableBook), eq(true))).thenReturn(Book.builder().id(1L).build());
+
+                        int restoredCount = service.restoreTitlesFromFilename(new HashSet<>(List.of(1L, 2L, 3L)));
+
+                        assertThat(restoredCount).isEqualTo(1);
+                        verify(bookMetadataUpdater).setBookMetadata(argThat(context ->
+                                "Dune".equals(context.getMetadataUpdateWrapper().getMetadata().getTitle())
+                        ));
+                        verify(notificationService, times(1)).sendMessage(eq(org.booklore.model.websocket.Topic.BOOK_UPDATE), any());
                 }
         }
 }

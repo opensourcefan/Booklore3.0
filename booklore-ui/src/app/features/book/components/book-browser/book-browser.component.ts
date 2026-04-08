@@ -555,6 +555,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           () => this.fetchMetadata(),
           () => this.bulkEditMetadata(),
           () => this.multiBookEditMetadata(),
+          () => this.restoreTitlesFromFilenamesForSelected(),
           () => this.regenerateCoversForSelected(),
           () => this.generateCustomCoversForSelected(),
           userState.user
@@ -1284,6 +1285,58 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
               severity: 'error',
               summary: this.t.translate('common.error'),
               detail: this.t.translate('book.browser.toast.wipeMetadataFailedDetail')
+            });
+          }
+        });
+      }
+    });
+  }
+
+  restoreTitlesFromFilenamesForSelected(): void {
+    if (!this.selectedBooks || this.selectedBooks.size === 0) return;
+
+    const count = this.selectedBooks.size;
+    this.confirmationService.confirm({
+      message: this.t.translate('book.browser.confirm.restoreTitlesFromFilenamesMessage', {count}),
+      header: this.t.translate('book.browser.confirm.restoreTitlesFromFilenamesHeader'),
+      icon: 'pi pi-file-edit',
+      acceptLabel: this.t.translate('common.yes'),
+      rejectLabel: this.t.translate('common.no'),
+      acceptButtonProps: {
+        label: this.t.translate('common.yes'),
+        severity: 'success'
+      },
+      rejectButtonProps: {
+        label: this.t.translate('common.no'),
+        severity: 'secondary'
+      },
+      accept: () => {
+        this.writeProgressService.show(this.t.translate('book.browser.loading.restoringTitlesFromFilenames', {count}));
+        this.bookMetadataManageService.restoreTitlesFromFilenames(Array.from(this.selectedBooks)).subscribe({
+          next: (updatedCount) => {
+            if (updatedCount > 0) {
+              this.writeProgressService.complete(this.t.translate('book.browser.toast.restoreTitlesFromFilenamesSuccessDetail', {updatedCount, count}));
+              this.messageService.add({
+                severity: 'success',
+                summary: this.t.translate('book.browser.toast.restoreTitlesFromFilenamesSuccessSummary'),
+                detail: this.t.translate('book.browser.toast.restoreTitlesFromFilenamesSuccessDetail', {updatedCount, count})
+              });
+            } else {
+              this.writeProgressService.complete(this.t.translate('book.browser.toast.restoreTitlesFromFilenamesNoEligibleDetail'));
+              this.messageService.add({
+                severity: 'info',
+                summary: this.t.translate('book.browser.toast.restoreTitlesFromFilenamesNoEligibleSummary'),
+                detail: this.t.translate('book.browser.toast.restoreTitlesFromFilenamesNoEligibleDetail')
+              });
+            }
+            this.bookSelectionService.deselectAll();
+          },
+          error: () => {
+            this.writeProgressService.fail(this.t.translate('book.browser.toast.restoreTitlesFromFilenamesFailedDetail'));
+            this.messageService.add({
+              severity: 'error',
+              summary: this.t.translate('common.error'),
+              detail: this.t.translate('book.browser.toast.restoreTitlesFromFilenamesFailedDetail')
             });
           }
         });

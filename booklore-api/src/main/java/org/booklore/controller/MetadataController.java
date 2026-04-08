@@ -121,6 +121,16 @@ public class MetadataController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Restore missing titles from filenames", description = "Restore blank book titles from each book's primary filename. Only books with blank unlocked titles and an available primary filename are updated.")
+    @ApiResponse(responseCode = "200", description = "Missing titles restored successfully")
+    @PostMapping("/metadata/restore-titles-from-filenames")
+    @PreAuthorize("@securityUtil.canBulkEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<Integer> restoreTitlesFromFilenames(@Parameter(description = "List of book IDs") @RequestBody BulkBookIdsRequest request) {
+        int restoredCount = bookMetadataService.restoreTitlesFromFilename(request.getBookIds());
+        auditService.log(AuditAction.METADATA_UPDATED, "Book", null, "Restored titles from filenames for " + restoredCount + " of " + request.getBookIds().size() + " books");
+        return ResponseEntity.ok(restoredCount);
+    }
+
     @Operation(summary = "Toggle all metadata locks", description = "Toggle all metadata locks for books. Requires metadata edit permission or admin.")
     @ApiResponse(responseCode = "200", description = "Metadata locks toggled successfully")
     @PutMapping("/metadata/toggle-all-lock")

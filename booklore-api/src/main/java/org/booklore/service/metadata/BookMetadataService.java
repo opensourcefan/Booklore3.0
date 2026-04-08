@@ -258,6 +258,20 @@ public class BookMetadataService {
         }
     }
 
+    public int restoreTitlesFromFilename(Set<Long> bookIds) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            return 0;
+        }
+
+        int restoredCount = 0;
+        for (Long bookId : bookIds) {
+            if (processSingleTitleRestore(bookId)) {
+                restoredCount++;
+            }
+        }
+        return restoredCount;
+    }
+
     private void processSingleBookUpdate(Long bookId, BookMetadata bookMetadata, MetadataClearFlags clearFlags, boolean mergeCategories, boolean mergeMoods, boolean mergeTags) {
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -300,6 +314,51 @@ public class BookMetadataService {
             notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(book, true));
             return null;
         });
+    }
+
+    private boolean processSingleTitleRestore(Long bookId) {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        Boolean restored = transactionTemplate.execute(status -> {
+            BookEntity book = bookRepository.findByIdWithBookFiles(bookId).orElse(null);
+            if (book == null) {
+                log.warn("Book not found for title restore: {}", bookId);
+                return false;
+            }
+
+            BookMetadataEntity metadata = book.getMetadata();
+            String fallbackTitle = resolveFilenameFallbackTitle(book);
+            if (metadata == null || fallbackTitle == null || fallbackTitle.isBlank()) {
+                return false;
+            }
+            if (Boolean.TRUE.equals(metadata.getTitleLocked())) {
+                return false;
+            }
+            if (metadata.getTitle() != null && !metadata.getTitle().isBlank()) {
+                return false;
+            }
+
+            MetadataUpdateContext context = MetadataUpdateContext.builder()
+                    .bookEntity(book)
+                    .metadataUpdateWrapper(MetadataUpdateWrapper.builder()
+                            .metadata(BookMetadata.builder()
+                                    .bookId(metadata.getBookId())
+                                    .title(fallbackTitle)
+                                    .build())
+                            .build())
+                    .updateThumbnail(false)
+                    .mergeCategories(false)
+                    .mergeMoods(false)
+                    .mergeTags(false)
+                    .replaceMode(org.booklore.model.enums.MetadataReplaceMode.REPLACE_WHEN_PROVIDED)
+                    .build();
+
+            bookMetadataUpdater.setBookMetadata(context);
+            notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(book, true));
+            return true;
+        });
+
+        return Boolean.TRUE.equals(restored);
     }
 
     private void wipeBookMetadata(BookEntity book) {

@@ -28,6 +28,7 @@ export class BookMenuService {
     fetchMetadata: () => void,
     bulkEditMetadata: () => void,
     multiBookEditMetadata: () => void,
+    restoreTitlesFromFilenames: () => void,
     regenerateCovers: () => void,
     generateCustomCovers: () => void,
     user: User | null): MenuItem[] {
@@ -61,6 +62,11 @@ export class BookMenuService {
         label: this.t.translate('book.menuService.menu.multiBookMetadataEditor'),
         icon: 'pi pi-clone',
         command: multiBookEditMetadata
+      });
+      items.push({
+        label: this.t.translate('book.menuService.menu.restoreTitlesFromFilenames'),
+        icon: 'pi pi-file-edit',
+        command: restoreTitlesFromFilenames
       });
     }
 

@@ -5,6 +5,7 @@ import org.booklore.mapper.BookMetadataMapper;
 import org.booklore.model.MetadataUpdateContext;
 import org.booklore.model.MetadataUpdateWrapper;
 import org.booklore.model.dto.BookMetadata;
+import org.booklore.model.dto.request.BulkBookIdsRequest;
 import org.booklore.model.dto.request.BulkMetadataWipeRequest;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookMetadataEntity;
@@ -103,5 +104,18 @@ class MetadataControllerTest {
         metadataController.wipeMetadataBulk(request);
 
         verify(bookMetadataService).wipeBookMetadata(request.getBookIds());
+    }
+
+    @Test
+    void restoreTitlesFromFilenames_shouldDelegateToService() {
+        BulkBookIdsRequest request = new BulkBookIdsRequest();
+        request.setBookIds(new java.util.HashSet<>(java.util.List.of(1L, 2L)));
+        when(bookMetadataService.restoreTitlesFromFilename(request.getBookIds())).thenReturn(1);
+
+        var response = metadataController.restoreTitlesFromFilenames(request);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(1, response.getBody());
+        verify(bookMetadataService).restoreTitlesFromFilename(request.getBookIds());
     }
 }
