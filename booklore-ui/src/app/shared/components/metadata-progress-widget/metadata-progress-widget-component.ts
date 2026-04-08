@@ -59,18 +59,13 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   cancelTask(taskId: string): void {
     this.metadataTaskService.cancelTask(taskId).subscribe({
       next: () => {
-        const task = this.activeTasks[taskId];
-        if (task) {
-          this.activeTasks[taskId] = {
-            ...task,
-            status: MetadataBatchStatus.CANCELLED,
-            message: this.t.translate('shared.metadataProgress.taskCancelled')
-          };
-          this.activeTasks = {...this.activeTasks};
-        }
+        this.metadataProgressService.markCancellationRequested(
+          taskId,
+          this.t.translate('shared.metadataProgress.taskCancellationRequested')
+        );
 
         this.messageService.add({
-          severity: 'success',
+          severity: 'info',
           summary: this.t.translate('shared.metadataProgress.cancellationScheduledSummary'),
           detail: this.t.translate('shared.metadataProgress.cancellationScheduledDetail')
         });
@@ -115,6 +110,10 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   getStatusLabel(status: MetadataBatchStatus): string {
     const key = this.statusLabelKeys[status];
     return key ? this.t.translate(key) : status;
+  }
+
+  isCancellationRequested(task: MetadataBatchProgressNotification): boolean {
+    return task.status === MetadataBatchStatus.IN_PROGRESS && !!task.cancellationRequested;
   }
 
   protected readonly Object = Object;

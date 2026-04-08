@@ -70,11 +70,12 @@
         } @else if (task.value.status === 'IN_PROGRESS') {
           <div class="action-buttons">
             <p-button
-              [label]="t('cancelBtn')"
+              [label]="isCancellationRequested(task.value) ? t('cancellingBtn') : t('cancelBtn')"
               icon="pi pi-stop"
               severity="danger"
               size="small"
-              [pTooltip]="t('cancelTooltip')"
+              [disabled]="isCancellationRequested(task.value)"
+              [pTooltip]="isCancellationRequested(task.value) ? t('cancellingTooltip') : t('cancelTooltip')"
               tooltipPosition="top"
               outlined
               (click)="cancelTask(task.key)">

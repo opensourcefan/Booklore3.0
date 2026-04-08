@@ -748,7 +748,7 @@
 </div>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> If one metadata source fails to return a usable first match during a bulk custom scan, BookLore now falls back more gracefully instead of abandoning that whole book as aggressively. For providers that temporarily throttle large jobs, BookLore now retries the throttled request itself after the cooldown window, keeps the metadata task visible as still running, shows a provider-wait message with both the reset ETA and the current time left, lets metadata editors cancel those metadata jobs directly from the progress widget even without broader task-manager access, interrupts long ComicVine cooldown waits promptly when you cancel the job, and uses a lighter top-match lookup path for ComicVine batch scans so large runs are less likely to exhaust the hourly request budget mid-batch.
+  <strong>Good to Know:</strong> If one metadata source fails to return a usable first match during a bulk custom scan, BookLore now falls back more gracefully instead of abandoning that whole book as aggressively. For providers that temporarily throttle large jobs, BookLore now retries the throttled request itself after the cooldown window, keeps the metadata task visible as still running, shows a provider-wait message with both the reset ETA and the current time left, lets metadata editors cancel those metadata jobs directly from the progress widget even without broader task-manager access, interrupts long ComicVine cooldown waits promptly when you cancel the job, shows a clear cancellation-requested state instead of falsely marking a task fully cancelled before it actually stops, removes stale finished metadata tasks that the backend no longer reports, and uses a lighter top-match lookup path for ComicVine batch scans so large runs are less likely to exhaust the hourly request budget mid-batch.
 </div>
 
 <!-- ==================== SECTION 16 ==================== -->
@@ -1238,6 +1238,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-07</td><td>1.1.42</td><td>Documented that metadata-task cancellation now stays in a cancellation-requested state until the current provider step stops and that stale finished metadata tasks no longer immediately reappear in the progress widget</td></tr>
   <tr><td>2026-04-07</td><td>1.1.41</td><td>Documented the renamed bulk restore-titles action and the metadata-fetch topbar pill now showing a paused resume time when ComicVine throttling temporarily delays a batch</td></tr>
   <tr><td>2026-04-07</td><td>1.1.40</td><td>Documented the bulk metadata action that restores blank titles from each selected book&rsquo;s primary filename without overwriting existing titles</td></tr>
   <tr><td>2026-04-07</td><td>1.1.39</td><td>Documented that metadata wipes now keep a filename-derived title when available and that blank titles can be restored from the primary filename inside the metadata editor</td></tr>

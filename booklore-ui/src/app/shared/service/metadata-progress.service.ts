@@ -44,14 +44,33 @@ export class MetadataProgressService implements OnDestroy {
 
   handleIncomingProgress(progress: MetadataBatchProgressNotification): void {
     const {taskId} = progress;
+    const existing = this.progressMap.get(taskId)?.getValue();
+    const mergedProgress = this.mergeTaskProgress(existing, progress);
 
     if (!this.progressMap.has(taskId)) {
-      this.progressMap.set(taskId, new BehaviorSubject(progress));
+      this.progressMap.set(taskId, new BehaviorSubject(mergedProgress));
     } else {
-      this.progressMap.get(taskId)!.next(progress);
+      this.progressMap.get(taskId)!.next(mergedProgress);
     }
 
-    this.progressUpdatesSubject.next(progress);
+    this.progressUpdatesSubject.next(mergedProgress);
+    this.activeTasksSubject.next(this.getActiveTasks());
+  }
+
+  markCancellationRequested(taskId: string, message: string): void {
+    const task = this.progressMap.get(taskId)?.getValue();
+    if (!task || task.status !== 'IN_PROGRESS') {
+      return;
+    }
+
+    const updatedTask: MetadataBatchProgressNotification = {
+      ...task,
+      cancellationRequested: true,
+      message,
+    };
+
+    this.progressMap.get(taskId)!.next(updatedTask);
+    this.progressUpdatesSubject.next(updatedTask);
     this.activeTasksSubject.next(this.getActiveTasks());
   }
 
@@ -73,15 +92,40 @@ export class MetadataProgressService implements OnDestroy {
   }
 
   private syncActiveTasks(tasks: MetadataBatchProgressNotification[]): void {
-    for (const task of tasks) {
-      if (!this.progressMap.has(task.taskId)) {
-        this.progressMap.set(task.taskId, new BehaviorSubject(task));
-      } else {
-        this.progressMap.get(task.taskId)!.next(task);
+    const incomingTaskIds = new Set(tasks.map(task => task.taskId));
+
+    for (const taskId of this.progressMap.keys()) {
+      if (!incomingTaskIds.has(taskId)) {
+        this.progressMap.delete(taskId);
       }
-      this.progressUpdatesSubject.next(task);
+    }
+
+    for (const task of tasks) {
+      const existing = this.progressMap.get(task.taskId)?.getValue();
+      const mergedTask = this.mergeTaskProgress(existing, task);
+
+      if (!this.progressMap.has(task.taskId)) {
+        this.progressMap.set(task.taskId, new BehaviorSubject(mergedTask));
+      } else {
+        this.progressMap.get(task.taskId)!.next(mergedTask);
+      }
+      this.progressUpdatesSubject.next(mergedTask);
     }
     this.activeTasksSubject.next(this.getActiveTasks());
+  }
+
+  private mergeTaskProgress(
+    existing: MetadataBatchProgressNotification | undefined,
+    incoming: MetadataBatchProgressNotification
+  ): MetadataBatchProgressNotification {
+    if (incoming.status !== 'IN_PROGRESS') {
+      return {...incoming, cancellationRequested: false};
+    }
+
+    return {
+      ...incoming,
+      cancellationRequested: existing?.cancellationRequested ?? false,
+    };
   }
 
   ngOnDestroy(): void {
