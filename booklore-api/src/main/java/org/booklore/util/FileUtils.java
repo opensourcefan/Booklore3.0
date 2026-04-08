@@ -51,6 +51,21 @@ public class FileUtils {
         return book.getPrimaryFile().getFilePath();
     }
 
+    public String deriveTitleFromFileName(String fileName, boolean folderBased) {
+        if (fileName == null || fileName.isBlank()) {
+            return null;
+        }
+
+        String trimmed = fileName.trim();
+        if (folderBased) {
+            return trimmed.isBlank() ? null : trimmed;
+        }
+
+        int lastDot = trimmed.lastIndexOf('.');
+        String baseName = lastDot > 0 ? trimmed.substring(0, lastDot) : trimmed;
+        return baseName.isBlank() ? null : baseName.trim();
+    }
+
     public String getRelativeSubPath(String basePath, Path fullFilePath) {
         return Optional.ofNullable(Path.of(basePath)
                         .relativize(fullFilePath)

@@ -242,6 +242,30 @@ class MetadataRefreshServiceTest {
     }
 
     @Test
+    void fetchMetadataForBook_usesFilenameDerivedTitleWhenMetadataTitleIsBlank() {
+        BookParser parser = mock(BookParser.class);
+        when(parserMap.get(MetadataProvider.Google)).thenReturn(parser);
+
+        BookMetadata providerMetadata = BookMetadata.builder()
+                .provider(MetadataProvider.Google)
+                .title("Recovered Title")
+                .build();
+        when(parser.fetchTopMetadata(any(), any())).thenReturn(providerMetadata);
+
+        Book book = Book.builder()
+                .id(1L)
+                .metadata(BookMetadata.builder().title(" ").build())
+                .primaryFile(BookFile.builder().fileName("The Left Hand of Darkness.epub").build())
+                .build();
+
+        service.fetchMetadataForBook(List.of(MetadataProvider.Google), book);
+
+        verify(parser).fetchTopMetadata(eq(book), argThat(request ->
+                "The Left Hand of Darkness".equals(request.getTitle())
+        ));
+    }
+
+    @Test
     void fetchMetadataForBook_skipsFailingProviderAndContinuesWithOthers() {
         BookParser failingParser = mock(BookParser.class);
         BookParser healthyParser = mock(BookParser.class);

@@ -171,6 +171,16 @@
               <label for="title">{{ t('title') }} @if (isEmbeddable('title', book)) { <i class="pi pi-file-export embeddable-indicator" [pTooltip]="t('writtenToFileTooltip')" tooltipPosition="top"></i> }</label>
               <div class="field-with-lock">
                 <input pInputText id="title" formControlName="title"/>
+                @if (canRestoreTitleFromFilename(book)) {
+                  <p-button
+                    icon="pi pi-file-edit"
+                    [outlined]="true"
+                    severity="secondary"
+                    [pTooltip]="t('restoreTitleFromFilenameTooltip')"
+                    tooltipPosition="top"
+                    (onClick)="restoreTitleFromFilename(book)">
+                  </p-button>
+                }
                 @if (!book.metadata!['titleLocked']) {
                   <p-button icon="pi pi-lock-open" [outlined]="true" (onClick)="toggleLock('title')" severity="success"></p-button>
                 }

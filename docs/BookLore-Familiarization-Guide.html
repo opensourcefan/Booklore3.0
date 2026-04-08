@@ -712,6 +712,7 @@
   <li>Upload a custom cover image</li>
   <li>Add or change genres, categories, and moods</li>
   <li>Set or update ISBN, publication date, and language</li>
+  <li>Restore an empty title from the primary filename with a dedicated metadata-editor button</li>
   <li>Delete all editable metadata directly beside the fetch actions when you want to clear a book and immediately refetch it</li>
   <li>Delete all editable metadata for a single book from the metadata editor when you want to start over cleanly</li>
   <li>Create custom media types (Magazines, Textbooks, etc.)</li>
@@ -742,7 +743,7 @@
 </ul>
 
 <div class="callout warning">
-  <strong>Be Careful:</strong> Bulk edits are immediate and cannot be reversed. Double-check your selection and changes before applying. Start with small batches to verify results. Bulk metadata deletion clears the selected books&rsquo; metadata in one step.
+  <strong>Be Careful:</strong> Bulk edits are immediate and cannot be reversed. Double-check your selection and changes before applying. Start with small batches to verify results. Bulk metadata deletion clears the selected books&rsquo; metadata in one step, but BookLore now keeps a filename-derived title when one is available so you can search again immediately.
 </div>
 
 <div class="callout info">
@@ -1236,6 +1237,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-07</td><td>1.1.39</td><td>Documented that metadata wipes now keep a filename-derived title when available and that blank titles can be restored from the primary filename inside the metadata editor</td></tr>
   <tr><td>2026-04-07</td><td>1.1.38</td><td>Documented that large imports now hand directory-based tagging off to a separate visible background task with live progress, time-remaining messaging, and Task Management history</td></tr>
   <tr><td>2026-04-07</td><td>1.1.37</td><td>Documented that the folder explorer panel now keeps root folders and nested folders in alphabetical order while browsing by directory</td></tr>
   <tr><td>2026-04-07</td><td>1.1.36</td><td>Documented the new topbar fullscreen toggle, the light grey sidecar-backup working pill in Metadata Persistence, and the AI batch-scan pill clearing itself shortly after completion</td></tr>

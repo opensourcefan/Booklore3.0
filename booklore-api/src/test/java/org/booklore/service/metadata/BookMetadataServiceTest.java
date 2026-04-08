@@ -1,7 +1,6 @@
 package org.booklore.service.metadata;
 
 import org.booklore.exception.APIException;
-import org.booklore.exception.ApiError;
 import org.booklore.mapper.BookMapper;
 import org.booklore.mapper.BookMetadataMapper;
 import org.booklore.mapper.MetadataClearFlagsMapper;
@@ -36,17 +35,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -595,7 +589,7 @@ class BookMetadataServiceTest {
         class WipeMetadata {
 
                 @Test
-                void wipeBookMetadata_unlocksAndBuildsFullClearRequest() {
+                void wipeBookMetadata_unlocksAndRestoresTitleFromPrimaryFilename() {
                         BookMetadataEntity metadataEntity = BookMetadataEntity.builder()
                                         .bookId(1L)
                                         .title("Title")
@@ -607,6 +601,51 @@ class BookMetadataServiceTest {
                                         .tags(new HashSet<>())
                                         .build();
                         metadataEntity.applyLockToAllFields(true);
+
+                        BookFileEntity primaryFile = BookFileEntity.builder()
+                                        .bookType(BookFileType.EPUB)
+                                        .isBookFormat(true)
+                                        .fileName("Moby-Dick or, The Whale.epub")
+                                        .build();
+
+                        BookEntity bookEntity = BookEntity.builder()
+                                        .id(1L)
+                                        .metadata(metadataEntity)
+                                        .bookFiles(new ArrayList<>(List.of(primaryFile)))
+                                        .build();
+                        metadataEntity.setBook(bookEntity);
+                        primaryFile.setBook(bookEntity);
+
+                        when(bookRepository.findByIdWithBookFiles(1L)).thenReturn(Optional.of(bookEntity));
+                        when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(Book.builder().build());
+                        when(bookMetadataMapper.toBookMetadata(metadataEntity, true)).thenReturn(BookMetadata.builder().bookId(1L).build());
+
+                        service.wipeBookMetadata(1L);
+
+                        var contextCaptor = org.mockito.ArgumentCaptor.forClass(org.booklore.model.MetadataUpdateContext.class);
+                        verify(bookMetadataUpdater).setBookMetadata(contextCaptor.capture());
+
+                        assertThat(metadataEntity.getTitleLocked()).isFalse();
+                        assertThat(metadataEntity.getReviewsLocked()).isFalse();
+                        assertThat(metadataEntity.getRating()).isNull();
+                        assertThat(metadataEntity.getReviewCount()).isNull();
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getClearFlags().isTitle()).isFalse();
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getMetadata().getTitle()).isEqualTo("Moby-Dick or, The Whale");
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getClearFlags().isReviews()).isTrue();
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getMetadata().getComicMetadata()).isNotNull();
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getMetadata().getComicMetadata().getCharacters()).isEmpty();
+                }
+
+                @Test
+                void wipeBookMetadata_clearsTitleWhenNoFilenameFallbackExists() {
+                        BookMetadataEntity metadataEntity = BookMetadataEntity.builder()
+                                        .bookId(1L)
+                                        .title("Title")
+                                        .authors(new ArrayList<>())
+                                        .categories(new HashSet<>())
+                                        .moods(new HashSet<>())
+                                        .tags(new HashSet<>())
+                                        .build();
 
                         BookEntity bookEntity = BookEntity.builder()
                                         .id(1L)
@@ -624,14 +663,8 @@ class BookMetadataServiceTest {
                         var contextCaptor = org.mockito.ArgumentCaptor.forClass(org.booklore.model.MetadataUpdateContext.class);
                         verify(bookMetadataUpdater).setBookMetadata(contextCaptor.capture());
 
-                        assertThat(metadataEntity.getTitleLocked()).isFalse();
-                        assertThat(metadataEntity.getReviewsLocked()).isFalse();
-                        assertThat(metadataEntity.getRating()).isNull();
-                        assertThat(metadataEntity.getReviewCount()).isNull();
                         assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getClearFlags().isTitle()).isTrue();
-                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getClearFlags().isReviews()).isTrue();
-                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getMetadata().getComicMetadata()).isNotNull();
-                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getMetadata().getComicMetadata().getCharacters()).isEmpty();
+                        assertThat(contextCaptor.getValue().getMetadataUpdateWrapper().getMetadata().getTitle()).isNull();
                 }
         }
 }

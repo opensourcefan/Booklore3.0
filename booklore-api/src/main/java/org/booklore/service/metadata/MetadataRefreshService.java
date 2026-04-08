@@ -272,7 +272,7 @@ public class MetadataRefreshService {
 
     private void reportProgressIfNeeded(MetadataFetchJobEntity task, String taskId, int completedCount, int total, BookEntity book, boolean isReviewMode) {
         if (task == null) return;
-        String message = String.format("Processing '%s'", book.getMetadata().getTitle());
+        String message = String.format("Processing '%s'", getBookDisplayTitle(book));
         updateTaskSnapshot(task, completedCount, message);
         sendBatchProgressNotification(taskId, completedCount, total, message, MetadataFetchTaskStatus.IN_PROGRESS, isReviewMode);
     }
@@ -287,23 +287,45 @@ public class MetadataRefreshService {
     }
 
     private String getBookIdentifier(BookEntity book) {
-        if (book.getPrimaryBookFile() != null && book.getPrimaryBookFile().getFileName() != null) {
-            return book.getPrimaryBookFile().getFileName();
-        }
-        if (book.getMetadata() != null && book.getMetadata().getTitle() != null) {
-            return book.getMetadata().getTitle();
+        String displayTitle = getBookDisplayTitle(book);
+        if (displayTitle != null) {
+            return displayTitle;
         }
         return "Book ID: " + book.getId();
     }
 
     private String getBookIdentifier(Book book) {
-        if (book.getPrimaryFile() != null && book.getPrimaryFile().getFileName() != null) {
-            return book.getPrimaryFile().getFileName();
-        }
-        if (book.getMetadata() != null && book.getMetadata().getTitle() != null) {
-            return book.getMetadata().getTitle();
+        String displayTitle = getBookDisplayTitle(book);
+        if (displayTitle != null) {
+            return displayTitle;
         }
         return "Book ID: " + book.getId();
+    }
+
+    private String getBookDisplayTitle(BookEntity book) {
+        if (book.getMetadata() != null && book.getMetadata().getTitle() != null && !book.getMetadata().getTitle().isBlank()) {
+            return book.getMetadata().getTitle();
+        }
+        if (book.getPrimaryBookFile() != null && book.getPrimaryBookFile().getFileName() != null) {
+            return org.booklore.util.FileUtils.deriveTitleFromFileName(
+                    book.getPrimaryBookFile().getFileName(),
+                    book.getPrimaryBookFile().isFolderBased()
+            );
+        }
+        return null;
+    }
+
+    private String getBookDisplayTitle(Book book) {
+        if (book.getMetadata() != null && book.getMetadata().getTitle() != null && !book.getMetadata().getTitle().isBlank()) {
+            return book.getMetadata().getTitle();
+        }
+        if (book.getPrimaryFile() != null && book.getPrimaryFile().getFileName() != null) {
+            return org.booklore.util.FileUtils.deriveTitleFromFileName(
+                    book.getPrimaryFile().getFileName(),
+                    book.getPrimaryFile().isFolderBased()
+            );
+        }
+        return null;
     }
 
     private void sendBatchProgressNotification(String taskId, int current, int total, String message, MetadataFetchTaskStatus status, boolean isReview) {
@@ -530,11 +552,15 @@ public class MetadataRefreshService {
         if (isbn == null || isbn.isBlank()) {
             isbn = metadata.getIsbn10();
         }
+        String title = metadata.getTitle();
+        if (title == null || title.isBlank()) {
+            title = getBookDisplayTitle(book);
+        }
         return FetchMetadataRequest.builder()
                 .isbn(isbn)
                 .asin(metadata.getAsin())
                 .author(metadata.getAuthors() != null ? String.join(", ", metadata.getAuthors()) : null)
-                .title(metadata.getTitle())
+                .title(title)
                 .bookId(book.getId())
                 .build();
     }

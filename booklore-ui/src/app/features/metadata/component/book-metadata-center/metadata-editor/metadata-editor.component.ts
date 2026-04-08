@@ -1268,6 +1268,37 @@ export class MetadataEditorComponent implements OnInit {
 
   protected readonly sample = sample;
 
+  getTitleFromPrimaryFile(book: Book): string | null {
+    const fileName = book.primaryFile?.fileName?.trim();
+    if (!fileName) {
+      return null;
+    }
+
+    if (book.primaryFile?.folderBased) {
+      return fileName || null;
+    }
+
+    const lastDot = fileName.lastIndexOf('.');
+    const baseName = lastDot > 0 ? fileName.slice(0, lastDot).trim() : fileName;
+    return baseName || null;
+  }
+
+  canRestoreTitleFromFilename(book: Book): boolean {
+    const currentTitle = `${this.metadataForm.get('title')?.value ?? ''}`.trim();
+    return !this.metadataForm.get('title')?.disabled && !currentTitle && !!this.getTitleFromPrimaryFile(book);
+  }
+
+  restoreTitleFromFilename(book: Book): void {
+    const fallbackTitle = this.getTitleFromPrimaryFile(book);
+    if (!fallbackTitle) {
+      return;
+    }
+
+    this.metadataForm.get('title')?.setValue(fallbackTitle);
+    this.metadataForm.get('title')?.markAsDirty();
+    this.metadataForm.markAsDirty();
+  }
+
   onFieldChange(): void {
     this.metadataForm.markAsDirty();
   }

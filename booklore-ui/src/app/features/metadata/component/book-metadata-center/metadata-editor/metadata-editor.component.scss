@@ -47,9 +47,17 @@
 }
 
 ::ng-deep .withbutton button,
-::ng-deep .field-with-lock button {
+::ng-deep .withbutton button:last-child,
+::ng-deep .field-with-lock button:last-child {
   border-color: var(--p-inputtext-border-color) !important;
   border-radius: 0 6px 6px 0 !important;
+  border-left: 0px !important;
+}
+
+::ng-deep .withbutton button:not(:last-child),
+::ng-deep .field-with-lock button:not(:last-child) {
+  border-color: var(--p-inputtext-border-color) !important;
+  border-radius: 0 !important;
   border-left: 0px !important;
 }
 

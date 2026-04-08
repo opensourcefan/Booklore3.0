@@ -308,6 +308,8 @@ public class BookMetadataService {
             return;
         }
 
+        String fallbackTitle = resolveFilenameFallbackTitle(book);
+
         metadata.applyLockToAllFields(false);
         metadata.setRating(null);
         metadata.setReviewCount(null);
@@ -316,7 +318,7 @@ public class BookMetadataService {
 
         MetadataUpdateContext context = MetadataUpdateContext.builder()
                 .bookEntity(book)
-                .metadataUpdateWrapper(buildMetadataWipeWrapper(metadata.getBookId()))
+                .metadataUpdateWrapper(buildMetadataWipeWrapper(metadata.getBookId(), fallbackTitle))
                 .updateThumbnail(false)
                 .mergeCategories(false)
                 .mergeMoods(false)
@@ -327,9 +329,18 @@ public class BookMetadataService {
         bookMetadataUpdater.setBookMetadata(context);
     }
 
-    private MetadataUpdateWrapper buildMetadataWipeWrapper(Long bookId) {
+    private String resolveFilenameFallbackTitle(BookEntity book) {
+        var primaryFile = book.getPrimaryBookFile();
+        if (primaryFile == null) {
+            return null;
+        }
+
+        return FileUtils.deriveTitleFromFileName(primaryFile.getFileName(), primaryFile.isFolderBased());
+    }
+
+    private MetadataUpdateWrapper buildMetadataWipeWrapper(Long bookId, String fallbackTitle) {
         MetadataClearFlags clearFlags = new MetadataClearFlags();
-        clearFlags.setTitle(true);
+        clearFlags.setTitle(fallbackTitle == null || fallbackTitle.isBlank());
         clearFlags.setSubtitle(true);
         clearFlags.setPublisher(true);
         clearFlags.setPublishedDate(true);
@@ -398,6 +409,7 @@ public class BookMetadataService {
 
         BookMetadata metadata = BookMetadata.builder()
                 .bookId(bookId)
+            .title(fallbackTitle)
                 .authors(Collections.emptyList())
                 .categories(Collections.emptySet())
                 .moods(Collections.emptySet())
