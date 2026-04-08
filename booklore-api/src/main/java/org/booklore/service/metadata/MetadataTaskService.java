@@ -184,8 +184,12 @@ public class MetadataTaskService {
                     List<MetadataFetchProposalEntity> remaining = proposals.stream()
                             .filter(p -> p.getStatus() != FetchedMetadataProposalStatus.REJECTED)
                             .toList();
-                    int pendingCount = getPendingBookIds(task).size();
-                    boolean resumable = isResumableStatus(task.getStatus()) && pendingCount > 0;
+                    int pendingCount = 0;
+                    boolean resumable = false;
+                    if (isResumableStatus(task.getStatus())) {
+                        pendingCount = getPendingBookIds(task).size();
+                        resumable = pendingCount > 0;
+                    }
 
                     int total;
                     long acceptedCount = remaining.stream()
