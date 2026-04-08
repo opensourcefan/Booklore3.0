@@ -172,6 +172,27 @@ export function doesBookMatchFilter(
         ? filterValues.some(val => allCreators.includes(val as string))
         : filterValues.every(val => allCreators.includes(val as string));
     }
+    case 'addedOn': {
+      if (!book.addedOn) return false;
+      const daysAgo = (Date.now() - new Date(book.addedOn).getTime()) / (1000 * 60 * 60 * 24);
+      let rangeId: number;
+      if (daysAgo < 1) rangeId = 0;
+      else if (daysAgo < 7) rangeId = 1;
+      else if (daysAgo < 30) rangeId = 2;
+      else if (daysAgo < 365) rangeId = 3;
+      else rangeId = 4;
+      return filterValues.some(val => {
+        const numVal = typeof val === 'string' ? Number(val) : val;
+        return numVal === rangeId;
+      });
+    }
+    case 'folderPath': {
+      const subPath = book.primaryFile?.fileSubPath;
+      if (!subPath || subPath.trim() === '') return false;
+      return effectiveMode === 'or'
+        ? filterValues.some(val => val === subPath)
+        : filterValues.every(val => val === subPath);
+    }
     default:
       return false;
   }
