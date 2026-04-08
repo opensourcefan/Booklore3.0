@@ -554,7 +554,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get showMetadataFetchStatus(): boolean {
-    return !!this.metadataFetchProgress;
+    return !!this.displayedMetadataFetchProgress;
   }
 
   get showSidecarBackupStatus(): boolean {
@@ -616,8 +616,10 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get metadataFetchSummary(): string {
-    if (!this.metadataFetchProgress) return '';
-    const s = this.metadataFetchProgress.taskStatus;
+    const progress = this.displayedMetadataFetchProgress;
+    if (!progress) return '';
+
+    const s = progress.taskStatus;
     if (s === TaskStatus.COMPLETED) return this.translocoService.translate('layout.topbar.metadataFetchCompleted');
     if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.metadataFetchCancelled');
     if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.metadataFetchFailed');
@@ -627,13 +629,13 @@ export class AppTopBarComponent implements OnDestroy {
       return this.translocoService.translate('layout.topbar.metadataFetchPausedUntil', {time: resumeAt});
     }
 
-    const currentStep = this.metadataFetchProgress.currentStep;
-    const totalSteps = this.metadataFetchProgress.totalSteps;
+    const currentStep = progress.currentStep;
+    const totalSteps = progress.totalSteps;
     if (currentStep != null && totalSteps != null && totalSteps > 0) {
       return `${currentStep}/${totalSteps}`;
     }
 
-    return this.translocoService.translate('layout.topbar.metadataFetchProgress', {progress: this.metadataFetchProgress.progress});
+    return this.translocoService.translate('layout.topbar.metadataFetchProgress', {progress: progress.progress});
   }
 
   get aiScanTone(): 'ok' | 'warning' | 'error' {
@@ -745,8 +747,40 @@ export class AppTopBarComponent implements OnDestroy {
     return !!this.getMetadataFetchResumeAt();
   }
 
+  private get displayedMetadataFetchProgress(): TaskProgressPayload | null {
+    if (this.metadataFetchProgress?.taskStatus === TaskStatus.IN_PROGRESS) {
+      return this.metadataFetchProgress;
+    }
+
+    return this.recoveredMetadataFetchProgress ?? this.metadataFetchProgress;
+  }
+
+  private get recoveredMetadataFetchProgress(): TaskProgressPayload | null {
+    const activeTask = Object.values(this.latestTasks)
+      .filter((task) => task.status === 'IN_PROGRESS')
+      .sort((left, right) => right.completed - left.completed)[0];
+
+    if (!activeTask) {
+      return null;
+    }
+
+    const progress = activeTask.total > 0
+      ? Math.min(100, Math.max(0, Math.round((activeTask.completed * 100) / activeTask.total)))
+      : 0;
+
+    return {
+      taskId: activeTask.taskId,
+      taskType: TaskType.REFRESH_METADATA_MANUAL,
+      message: activeTask.message,
+      progress,
+      currentStep: activeTask.completed,
+      totalSteps: activeTask.total,
+      taskStatus: TaskStatus.IN_PROGRESS,
+    };
+  }
+
   private getMetadataFetchResumeAt(): string | null {
-    const message = this.metadataFetchProgress?.message;
+    const message = this.displayedMetadataFetchProgress?.message;
     if (!message) {
       return null;
     }

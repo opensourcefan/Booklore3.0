@@ -1,5 +1,54 @@
 <ng-container *transloco="let t; prefix: 'metadata.fetchOptions'">
 <div class="metadata-fetch-options-container">
+  @if (latestResumableTask) {
+    <div class="resume-callout">
+      <div class="resume-copy">
+        <div class="resume-title">{{ t('resume.title') }}</div>
+        <div class="resume-detail">{{ t('resume.detail', { count: latestResumableTask.pendingBooksCount }) }}</div>
+      </div>
+      <p-button
+        [label]="t('resume.button')"
+        icon="pi pi-refresh"
+        severity="contrast"
+        outlined
+        size="small"
+        (onClick)="resumeLatestTask()">
+      </p-button>
+    </div>
+  }
+
+  <div class="targeting-panel">
+    <div class="targeting-copy">
+      <div class="targeting-label">{{ t('targetBooks.label') }}</div>
+      <div class="targeting-help">{{ t('targetBooks.help') }}</div>
+    </div>
+
+    <div class="targeting-controls">
+      <p-select
+        [options]="targetModeOptions"
+        [(ngModel)]="targetMode"
+        optionLabel="label"
+        optionValue="value"
+        appendTo="body"
+        [placeholder]="t('targetBooks.placeholder')"
+        class="target-select"
+        size="small">
+      </p-select>
+
+      @if (targetMode === 'OLDER_THAN_DAYS') {
+        <p-select
+          [options]="olderThanOptions"
+          [(ngModel)]="olderThanDays"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body"
+          class="target-select target-days-select"
+          size="small">
+        </p-select>
+      }
+    </div>
+  </div>
+
   <div class="dialog-content">
     <app-metadata-advanced-fetch-options
       (metadataOptionsSubmitted)="onMetadataSubmit($event)"

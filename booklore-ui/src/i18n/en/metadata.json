@@ -611,6 +611,25 @@
     }
   },
   "fetchOptions": {
-    "startRefresh": "Start Refresh"
+    "startRefresh": "Start Refresh",
+    "targetBooks": {
+      "label": "Target books",
+      "help": "Choose whether to refresh every selected book, only books that have never been fetched, or only books whose metadata is stale.",
+      "placeholder": "Select target books",
+      "all": "All selected books",
+      "neverFetched": "Only books never fetched",
+      "olderThan": "Only books older than...",
+      "days": "{{ count }} day",
+      "days_other": "{{ count }} days"
+    },
+    "resume": {
+      "title": "Resume last stopped metadata fetch",
+      "detail": "Continue the most recent interrupted metadata batch with {{ count }} remaining books instead of rebuilding the selection manually.",
+      "button": "Resume",
+      "toastSummary": "Metadata Resume Started",
+      "toastDetail": "BookLore resumed the remaining {{ count }} books from the last stopped metadata batch.",
+      "toastErrorSummary": "Resume Failed",
+      "toastErrorDetail": "BookLore could not resume the last stopped metadata batch. Please try again."
+    }
   }
 }

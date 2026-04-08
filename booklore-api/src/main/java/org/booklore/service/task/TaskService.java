@@ -213,6 +213,10 @@ public class TaskService {
                 .build();
     }
 
+    public boolean isTaskRunning(String taskId) {
+        return runningTasks.containsValue(taskId);
+    }
+
     private void executeAsyncTask(String taskId, TaskCreateRequest request, TaskType taskType) {
         try {
             taskHistoryService.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS, "Task execution started");

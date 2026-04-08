@@ -45,6 +45,17 @@
 
         @if (task.value.status === 'COMPLETED' || task.value.status === 'ERROR' || task.value.status === 'CANCELLED') {
           <div class="action-buttons">
+            @if (canResume(task.value)) {
+              <p-button
+                [label]="t('resumeBtn')"
+                severity="info"
+                icon="pi pi-refresh"
+                size="small"
+                outlined
+                (click)="resumeTask(task.key, task.value.pendingCount)">
+              </p-button>
+            }
+
             @if (task.value.review) {
               <p-button
                 [label]="t('reviewBtn')"

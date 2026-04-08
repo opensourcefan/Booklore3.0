@@ -81,6 +81,26 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
     });
   }
 
+  resumeTask(taskId: string, pendingCount: number | null | undefined): void {
+    this.metadataTaskService.resumeTask(taskId).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: this.t.translate('shared.metadataProgress.resumeStartedSummary'),
+          detail: this.t.translate('shared.metadataProgress.resumeStartedDetail', {count: pendingCount ?? 0})
+        });
+      },
+      error: (error) => {
+        console.error('Failed to resume task:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('shared.metadataProgress.resumeFailedSummary'),
+          detail: this.t.translate('shared.metadataProgress.resumeFailedDetail')
+        });
+      }
+    });
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -114,6 +134,10 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
 
   isCancellationRequested(task: MetadataBatchProgressNotification): boolean {
     return task.status === MetadataBatchStatus.IN_PROGRESS && !!task.cancellationRequested;
+  }
+
+  canResume(task: MetadataBatchProgressNotification): boolean {
+    return (task.status === MetadataBatchStatus.ERROR || task.status === MetadataBatchStatus.CANCELLED) && !!task.resumable;
   }
 
   protected readonly Object = Object;

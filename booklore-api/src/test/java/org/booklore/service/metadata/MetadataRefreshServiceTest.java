@@ -368,6 +368,39 @@ class MetadataRefreshServiceTest {
         assertThat(result).containsExactlyInAnyOrder(10L, 11L);
     }
 
+        @Test
+        void getBookEntities_filtersNeverFetchedBooks() {
+        MetadataRefreshRequest request = MetadataRefreshRequest.builder()
+            .refreshType(MetadataRefreshRequest.RefreshType.BOOKS)
+            .bookIds(Set.of(1L, 2L, 3L))
+            .targetMode(MetadataRefreshRequest.TargetMode.NEVER_FETCHED)
+            .build();
+
+        when(bookRepository.findBookIdsByIdInAndMetadataUpdatedAtIsNull(Set.of(1L, 2L, 3L)))
+            .thenReturn(Set.of(2L, 3L));
+
+        Set<Long> result = service.getBookEntities(request);
+
+        assertThat(result).containsExactlyInAnyOrder(2L, 3L);
+        }
+
+        @Test
+        void getBookEntities_filtersBooksOlderThanCutoff() {
+        MetadataRefreshRequest request = MetadataRefreshRequest.builder()
+            .refreshType(MetadataRefreshRequest.RefreshType.BOOKS)
+            .bookIds(Set.of(1L, 2L, 3L))
+            .targetMode(MetadataRefreshRequest.TargetMode.OLDER_THAN_DAYS)
+            .olderThanDays(30)
+            .build();
+
+        when(bookRepository.findBookIdsByIdInAndMetadataUpdatedAtBeforeOrNull(eq(Set.of(1L, 2L, 3L)), any()))
+            .thenReturn(Set.of(1L, 3L));
+
+        Set<Long> result = service.getBookEntities(request);
+
+        assertThat(result).containsExactlyInAnyOrder(1L, 3L);
+        }
+
     @Test
     void buildFetchMetadata_resolvesTitleFromPriorityProvider() {
         Map<MetadataProvider, BookMetadata> metadataMap = new HashMap<>();

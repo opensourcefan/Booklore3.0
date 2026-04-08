@@ -35,6 +35,15 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query("SELECT b.id FROM BookEntity b WHERE b.library.id = :libraryId AND (b.deleted IS NULL OR b.deleted = false)")
     Set<Long> findBookIdsByLibraryId(@Param("libraryId") long libraryId);
 
+    @Query("SELECT b.id FROM BookEntity b WHERE b.id IN :bookIds AND (b.deleted IS NULL OR b.deleted = false) AND b.metadataUpdatedAt IS NULL")
+    Set<Long> findBookIdsByIdInAndMetadataUpdatedAtIsNull(@Param("bookIds") Collection<Long> bookIds);
+
+    @Query("SELECT b.id FROM BookEntity b WHERE b.id IN :bookIds AND (b.deleted IS NULL OR b.deleted = false) AND (b.metadataUpdatedAt IS NULL OR b.metadataUpdatedAt < :cutoff)")
+    Set<Long> findBookIdsByIdInAndMetadataUpdatedAtBeforeOrNull(@Param("bookIds") Collection<Long> bookIds, @Param("cutoff") Instant cutoff);
+
+    @Query("SELECT b.id FROM BookEntity b WHERE b.id IN :bookIds AND (b.deleted IS NULL OR b.deleted = false) AND b.metadataUpdatedAt >= :cutoff")
+    Set<Long> findBookIdsByIdInAndMetadataUpdatedAtOnOrAfter(@Param("bookIds") Collection<Long> bookIds, @Param("cutoff") Instant cutoff);
+
     @Query("SELECT DISTINCT b FROM BookEntity b JOIN b.bookFiles bf WHERE b.libraryPath.id = :libraryPathId AND (bf.fileSubPath = :fileSubPathPrefix OR bf.fileSubPath LIKE CONCAT(:fileSubPathPrefix, '/%')) AND bf.isBookFormat = true AND (b.deleted IS NULL OR b.deleted = false)")
     List<BookEntity> findAllByLibraryPathIdAndFileSubPathStartingWith(@Param("libraryPathId") Long libraryPathId, @Param("fileSubPathPrefix") String fileSubPathPrefix);
 

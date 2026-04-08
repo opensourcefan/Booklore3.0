@@ -5,7 +5,11 @@ import org.booklore.mapper.FetchedProposalMapper;
 import org.booklore.model.dto.BookLoreUser;
 import org.booklore.model.dto.FetchedProposal;
 import org.booklore.model.dto.MetadataBatchProgressNotification;
+import org.booklore.model.dto.request.MetadataRefreshRequest;
+import org.booklore.model.dto.request.TaskCreateRequest;
+import org.booklore.model.dto.response.MetadataResumableTaskResponse;
 import org.booklore.model.dto.response.TaskCancelResponse;
+import org.booklore.model.dto.response.TaskCreateResponse;
 import org.booklore.model.dto.response.MetadataTaskDetailsResponse;
 import org.booklore.model.entity.MetadataFetchJobEntity;
 import org.booklore.model.entity.MetadataFetchProposalEntity;
@@ -13,20 +17,25 @@ import org.booklore.model.entity.TaskHistoryEntity;
 import org.booklore.model.enums.FetchedMetadataProposalStatus;
 import org.booklore.model.enums.MetadataFetchTaskStatus;
 import org.booklore.model.enums.TaskType;
+import org.booklore.repository.BookRepository;
 import org.booklore.repository.MetadataFetchJobRepository;
 import org.booklore.repository.MetadataFetchProposalRepository;
 import org.booklore.repository.TaskHistoryRepository;
 import org.booklore.service.task.TaskService;
+import org.booklore.task.TaskStatus;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +55,9 @@ class MetadataTaskServiceTest {
     private TaskHistoryRepository taskHistoryRepository;
 
     @Mock
+    private BookRepository bookRepository;
+
+    @Mock
     private FetchedProposalMapper fetchedProposalMapper;
 
     @Mock
@@ -53,6 +65,12 @@ class MetadataTaskServiceTest {
 
     @Mock
     private TaskService taskService;
+
+    @Mock
+    private MetadataRefreshService metadataRefreshService;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private MetadataTaskService service;
@@ -65,6 +83,7 @@ class MetadataTaskServiceTest {
                 .startedAt(Instant.now())
                 .totalBooksCount(10)
                 .completedBooks(5)
+                .requestedBookIds(List.of(100L, 101L, 102L, 103L, 104L, 105L, 106L, 107L, 108L, 109L))
                 .proposals(proposals)
                 .build();
     }
@@ -287,7 +306,7 @@ class MetadataTaskServiceTest {
     class GetActiveTasks {
 
         @Test
-        void filtersOutCancelledTasks() {
+        void includesCancelledTasksForResume() {
             MetadataFetchJobEntity inProgress = buildTask("ip", MetadataFetchTaskStatus.IN_PROGRESS, new ArrayList<>());
             MetadataFetchJobEntity cancelled = buildTask("ca", MetadataFetchTaskStatus.CANCELLED, new ArrayList<>());
             MetadataFetchJobEntity completed = buildTask("co", MetadataFetchTaskStatus.COMPLETED, List.of(
@@ -296,12 +315,13 @@ class MetadataTaskServiceTest {
 
             when(metadataFetchTaskRepository.findAllWithProposals())
                     .thenReturn(List.of(inProgress, cancelled, completed));
+            when(taskService.isTaskRunning("ip")).thenReturn(true);
 
             List<MetadataBatchProgressNotification> result = service.getActiveTasks();
 
-            assertThat(result).hasSize(2);
+            assertThat(result).hasSize(3);
             assertThat(result).extracting(MetadataBatchProgressNotification::getTaskId)
-                    .containsExactlyInAnyOrder("ip", "co");
+                .containsExactlyInAnyOrder("ip", "ca", "co");
         }
 
         @Test
@@ -317,6 +337,7 @@ class MetadataTaskServiceTest {
                     .build();
 
             when(metadataFetchTaskRepository.findAllWithProposals()).thenReturn(List.of(task));
+            when(taskService.isTaskRunning("ip")).thenReturn(true);
 
             List<MetadataBatchProgressNotification> result = service.getActiveTasks();
 
@@ -431,6 +452,104 @@ class MetadataTaskServiceTest {
             List<MetadataBatchProgressNotification> result = service.getActiveTasks();
 
             assertThat(result).allMatch(MetadataBatchProgressNotification::isReview);
+        }
+
+        @Test
+        void errorTaskIsMarkedResumableWhenPendingBooksRemain() {
+            MetadataFetchJobEntity task = buildTask("err", MetadataFetchTaskStatus.ERROR, new ArrayList<>());
+            task.setCompletedBookIds(List.of(100L, 101L, 102L));
+
+            when(metadataFetchTaskRepository.findAllWithProposals()).thenReturn(List.of(task));
+
+            List<MetadataBatchProgressNotification> result = service.getActiveTasks();
+
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().isResumable()).isTrue();
+            assertThat(result.getFirst().getPendingCount()).isEqualTo(7);
+        }
+
+        @Test
+        void staleInProgressTaskBecomesResumableError() {
+            MetadataFetchJobEntity task = buildTask("stale", MetadataFetchTaskStatus.IN_PROGRESS, new ArrayList<>());
+            task.setCompletedBookIds(List.of(100L, 101L));
+
+            TaskHistoryEntity history = TaskHistoryEntity.builder()
+                    .id("stale")
+                    .type(TaskType.REFRESH_METADATA_MANUAL)
+                    .status(TaskStatus.IN_PROGRESS)
+                    .createdAt(LocalDateTime.now().minusMinutes(5))
+                    .build();
+
+            when(metadataFetchTaskRepository.findAllWithProposals()).thenReturn(List.of(task));
+            when(taskService.isTaskRunning("stale")).thenReturn(false);
+            when(taskHistoryRepository.findById("stale")).thenReturn(Optional.of(history));
+
+            List<MetadataBatchProgressNotification> result = service.getActiveTasks();
+
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().getStatus()).isEqualTo("ERROR");
+            assertThat(result.getFirst().isResumable()).isTrue();
+            verify(metadataFetchTaskRepository).save(task);
+            verify(taskHistoryRepository).save(history);
+        }
+    }
+
+    @Nested
+    class ResumeMetadataTask {
+
+        @Test
+        void returnsLatestResumableTaskForCurrentUser() {
+            BookLoreUser user = BookLoreUser.builder().id(1L).build();
+            MetadataFetchJobEntity task = buildTask("resume-me", MetadataFetchTaskStatus.ERROR, new ArrayList<>());
+            task.setCompletedBookIds(List.of(100L, 101L, 102L, 103L));
+
+            when(authenticationService.getAuthenticatedUser()).thenReturn(user);
+            when(metadataFetchTaskRepository.findAllWithProposalsByUserIdOrderByStartedAtDesc(1L)).thenReturn(List.of(task));
+
+            Optional<MetadataResumableTaskResponse> result = service.getLatestResumableTask();
+
+            assertThat(result).isPresent();
+            assertThat(result.get().getTaskId()).isEqualTo("resume-me");
+            assertThat(result.get().getPendingBooksCount()).isEqualTo(6);
+        }
+
+        @Test
+        void resumesPendingBooksFromFailedTask() {
+            MetadataFetchJobEntity task = buildTask("resume-me", MetadataFetchTaskStatus.ERROR, new ArrayList<>());
+            task.setCompletedBookIds(List.of(100L, 101L, 102L));
+
+            TaskHistoryEntity history = TaskHistoryEntity.builder()
+                    .id("resume-me")
+                    .type(TaskType.REFRESH_METADATA_MANUAL)
+                    .taskOptions(Map.of())
+                    .build();
+
+            MetadataRefreshRequest originalRequest = MetadataRefreshRequest.builder()
+                    .refreshType(MetadataRefreshRequest.RefreshType.BOOKS)
+                    .bookIds(new java.util.LinkedHashSet<>(List.of(100L, 101L, 102L, 103L, 104L, 105L, 106L, 107L, 108L, 109L)))
+                    .build();
+
+            TaskCreateResponse resumedResponse = TaskCreateResponse.builder()
+                    .taskId("new-task")
+                    .taskType(TaskType.REFRESH_METADATA_MANUAL)
+                    .status(TaskStatus.ACCEPTED)
+                    .build();
+
+            when(metadataFetchTaskRepository.findByTaskIdWithProposals("resume-me")).thenReturn(Optional.of(task));
+            when(taskHistoryRepository.findById("resume-me")).thenReturn(Optional.of(history));
+            when(objectMapper.convertValue(history.getTaskOptions(), MetadataRefreshRequest.class)).thenReturn(originalRequest);
+            when(taskService.runAsUser(any(TaskCreateRequest.class))).thenReturn(resumedResponse);
+
+            Optional<TaskCreateResponse> result = service.resumeMetadataTask("resume-me");
+
+            assertThat(result).contains(resumedResponse);
+            verify(taskService).runAsUser(argThat(request -> {
+                MetadataRefreshRequest options = request.getOptionsAs(MetadataRefreshRequest.class);
+                return options.getRefreshType() == MetadataRefreshRequest.RefreshType.BOOKS
+                        && options.getBookIds().containsAll(List.of(103L, 104L, 105L, 106L, 107L, 108L, 109L))
+                        && options.getBookIds().size() == 7;
+            }));
+            assertThat(task.getStatusMessage()).contains("new-task");
         }
     }
 }

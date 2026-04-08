@@ -4,6 +4,7 @@ import {Observable, map} from 'rxjs';
 import {BookMetadata} from '../model/book.model';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {MetadataBatchProgressNotification} from '../../../shared/model/metadata-batch-progress.model';
+import {TaskCreateResponse} from '../../settings/task-management/task.service';
 
 export interface MetadataTaskCancelResponse {
   taskId: string;
@@ -41,6 +42,14 @@ export interface MetadataFetchTask {
   proposals: FetchedProposal[];
 }
 
+export interface MetadataResumableTask {
+  taskId: string;
+  status: string;
+  startedAt: string;
+  pendingBooksCount: number;
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -62,6 +71,16 @@ export class MetadataTaskService {
 
   cancelTask(taskId: string): Observable<MetadataTaskCancelResponse> {
     return this.http.delete<MetadataTaskCancelResponse>(`${this.url}/${taskId}/cancel`);
+  }
+
+  getLatestResumableTask(): Observable<MetadataResumableTask | null> {
+    return this.http.get<MetadataResumableTask>(`${this.url}/resumable/latest`, {observe: 'response'}).pipe(
+      map(response => response.body ?? null)
+    );
+  }
+
+  resumeTask(taskId: string): Observable<TaskCreateResponse> {
+    return this.http.post<TaskCreateResponse>(`${this.url}/${taskId}/resume`, null);
   }
 
   updateProposalStatus(taskId: string, proposalId: number, status: string): Observable<void> {

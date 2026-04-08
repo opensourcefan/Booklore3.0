@@ -18,8 +18,17 @@ public class MetadataRefreshRequest {
     private Long libraryId;
     private Set<Long> bookIds;
     private MetadataRefreshOptions refreshOptions;
+    @Builder.Default
+    private TargetMode targetMode = TargetMode.ALL;
+    private Integer olderThanDays;
 
     public enum RefreshType {
         BOOKS, LIBRARY
+    }
+
+    public enum TargetMode {
+        ALL,
+        NEVER_FETCHED,
+        OLDER_THAN_DAYS
     }
 }

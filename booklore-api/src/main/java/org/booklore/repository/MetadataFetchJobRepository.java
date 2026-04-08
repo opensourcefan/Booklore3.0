@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MetadataFetchJobRepository extends JpaRepository<MetadataFetchJobEntity, String> {
@@ -23,4 +24,10 @@ public interface MetadataFetchJobRepository extends JpaRepository<MetadataFetchJ
 
     @Query("SELECT DISTINCT t FROM MetadataFetchJobEntity t LEFT JOIN FETCH t.proposals")
     List<MetadataFetchJobEntity> findAllWithProposals();
+
+    @Query("SELECT DISTINCT t FROM MetadataFetchJobEntity t LEFT JOIN FETCH t.proposals WHERE t.userId = :userId ORDER BY t.startedAt DESC")
+    List<MetadataFetchJobEntity> findAllWithProposalsByUserIdOrderByStartedAtDesc(Long userId);
+
+    @Query("SELECT DISTINCT t FROM MetadataFetchJobEntity t LEFT JOIN FETCH t.proposals WHERE t.taskId = :taskId")
+    Optional<MetadataFetchJobEntity> findByTaskIdWithProposals(String taskId);
 }

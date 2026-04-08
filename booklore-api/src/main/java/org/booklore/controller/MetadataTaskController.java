@@ -1,8 +1,10 @@
 package org.booklore.controller;
 
 import org.booklore.model.dto.MetadataBatchProgressNotification;
+import org.booklore.model.dto.response.MetadataResumableTaskResponse;
 import org.booklore.model.dto.response.MetadataTaskDetailsResponse;
 import org.booklore.model.dto.response.TaskCancelResponse;
+import org.booklore.model.dto.response.TaskCreateResponse;
 import org.booklore.service.metadata.MetadataTaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,6 +44,16 @@ public class MetadataTaskController {
         return ResponseEntity.ok(metadataTaskService.getActiveTasks());
     }
 
+    @Operation(summary = "Get latest resumable metadata task", description = "Retrieve the newest failed or cancelled metadata task that can be resumed. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Resumable task returned successfully")
+    @GetMapping("/resumable/latest")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<MetadataResumableTaskResponse> getLatestResumableTask() {
+        return metadataTaskService.getLatestResumableTask()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
     @Operation(summary = "Delete a metadata task", description = "Delete a metadata task and its proposals by task ID. Requires metadata edit permission or admin.")
     @ApiResponse(responseCode = "204", description = "Task deleted successfully")
     @DeleteMapping("/{taskId}")
@@ -62,6 +74,17 @@ public class MetadataTaskController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+        @Operation(summary = "Resume a metadata task", description = "Resume the remaining books from a failed or cancelled metadata batch task. Requires metadata edit permission or admin.")
+        @ApiResponse(responseCode = "200", description = "Metadata task resumed successfully")
+        @PostMapping("/{taskId}/resume")
+        @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+        public ResponseEntity<TaskCreateResponse> resumeTask(
+            @Parameter(description = "Task ID") @PathVariable String taskId) {
+        return metadataTaskService.resumeMetadataTask(taskId)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+        }
 
     @Operation(summary = "Update proposal status", description = "Update the status of a proposal for a metadata task. Requires metadata edit permission or admin.")
     @ApiResponse(responseCode = "200", description = "Proposal status updated successfully")

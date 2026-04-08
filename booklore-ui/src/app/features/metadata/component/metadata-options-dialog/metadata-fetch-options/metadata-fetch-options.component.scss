@@ -3,8 +3,71 @@
 .metadata-fetch-options-container {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
 .panel-header {
   @include panel.panel-header;
+}
+
+.resume-callout,
+.targeting-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--surface-border);
+  background: color-mix(in srgb, var(--surface-card) 92%, var(--primary-color) 8%);
+}
+
+.resume-copy,
+.targeting-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.resume-title,
+.targeting-label {
+  font-weight: 600;
+}
+
+.resume-detail,
+.targeting-help {
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+}
+
+.targeting-controls {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.target-select {
+  min-width: 15rem;
+}
+
+.target-days-select {
+  min-width: 9rem;
+}
+
+@media (max-width: 720px) {
+  .resume-callout,
+  .targeting-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .targeting-controls {
+    justify-content: stretch;
+  }
+
+  .target-select,
+  .target-days-select {
+    min-width: 100%;
+  }
 }

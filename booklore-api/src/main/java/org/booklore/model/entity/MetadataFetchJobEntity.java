@@ -1,5 +1,6 @@
 package org.booklore.model.entity;
 
+import org.booklore.convertor.LongListJsonConverter;
 import org.booklore.model.enums.MetadataFetchTaskStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -42,6 +43,16 @@ public class MetadataFetchJobEntity {
 
     @Column(name = "completed_books")
     private Integer completedBooks;
+
+    @Convert(converter = LongListJsonConverter.class)
+    @Column(name = "requested_book_ids", columnDefinition = "LONGTEXT")
+    @Builder.Default
+    private List<Long> requestedBookIds = new ArrayList<>();
+
+    @Convert(converter = LongListJsonConverter.class)
+    @Column(name = "completed_book_ids", columnDefinition = "LONGTEXT")
+    @Builder.Default
+    private List<Long> completedBookIds = new ArrayList<>();
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
