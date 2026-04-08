@@ -3,6 +3,7 @@ package org.booklore.controller;
 import org.booklore.model.dto.MetadataBatchProgressNotification;
 import org.booklore.model.dto.response.MetadataResumableTaskResponse;
 import org.booklore.model.dto.response.MetadataTaskDetailsResponse;
+import org.booklore.model.dto.response.MetadataTaskLogResponse;
 import org.booklore.model.dto.response.TaskCancelResponse;
 import org.booklore.model.dto.response.TaskCreateResponse;
 import org.booklore.service.metadata.MetadataTaskService;
@@ -42,6 +43,17 @@ public class MetadataTaskController {
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
     public ResponseEntity<List<MetadataBatchProgressNotification>> getActiveTasks() {
         return ResponseEntity.ok(metadataTaskService.getActiveTasks());
+    }
+
+    @Operation(summary = "Get metadata task log", description = "Retrieve the current status plus fetched and remaining books for a metadata batch task. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Metadata task log returned successfully")
+    @GetMapping("/{taskId}/log")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<MetadataTaskLogResponse> getTaskLog(
+            @Parameter(description = "Task ID") @PathVariable String taskId) {
+        return metadataTaskService.getTaskLog(taskId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Get latest resumable metadata task", description = "Retrieve the newest failed or cancelled metadata task that can be resumed. Requires metadata edit permission or admin.")

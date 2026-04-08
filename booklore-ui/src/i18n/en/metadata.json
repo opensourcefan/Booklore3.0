@@ -614,11 +614,11 @@
     "startRefresh": "Start Refresh",
     "targetBooks": {
       "label": "Target books",
-      "help": "Choose whether to refresh every selected book, only books that have never been fetched, or only books whose metadata is stale.",
+      "help": "Choose whether to refresh every selected book, only books that have never had metadata fetched, or only books whose last successful metadata fetch is older than the selected age.",
       "placeholder": "Select target books",
       "all": "All selected books",
       "neverFetched": "Only books never fetched",
-      "olderThan": "Only books older than...",
+      "olderThan": "Only books with metadata fetched before...",
       "days": "{{ count }} day",
       "days_other": "{{ count }} days"
     },

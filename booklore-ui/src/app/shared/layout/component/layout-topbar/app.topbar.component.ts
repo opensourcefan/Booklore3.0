@@ -39,6 +39,7 @@ import {AiPanelScanProgressService} from '../../../service/ai-panel-scan-progres
 import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from '../../../../features/settings/task-management/task.service';
 import {WriteProgressPayload, WriteProgressService} from '../../../../shared/service/write-progress.service';
 import {SidecarBackupProgressService} from '../../../service/sidecar-backup-progress.service';
+import {MetadataTaskLog, MetadataTaskService} from '../../../../features/book/service/metadata-task';
 
 @Component({
   selector: 'app-topbar',
@@ -97,6 +98,10 @@ export class AppTopBarComponent implements OnDestroy {
   importScanProgress: TaskProgressPayload | null = null;
   directoryTaggingProgress: TaskProgressPayload | null = null;
   metadataFetchProgress: TaskProgressPayload | null = null;
+  metadataFetchLogVisible = false;
+  metadataFetchLogLoading = false;
+  metadataFetchLog: MetadataTaskLog | null = null;
+  metadataFetchLogError = '';
   writeProgress: WriteProgressPayload | null = null;
   isSidecarBackupRunning = false;
   isFullscreen = false;
@@ -132,6 +137,7 @@ export class AppTopBarComponent implements OnDestroy {
   private taskService = inject(TaskService);
   private writeProgressService = inject(WriteProgressService);
   private sidecarBackupProgressService = inject(SidecarBackupProgressService);
+  private metadataTaskService = inject(MetadataTaskService);
 
   constructor() {
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -371,6 +377,32 @@ export class AppTopBarComponent implements OnDestroy {
     this.router.navigate(['/metadata-manager']);
   }
 
+  openMetadataFetchLog(): void {
+    const taskId = this.displayedMetadataFetchProgress?.taskId;
+    if (!taskId) {
+      return;
+    }
+
+    this.metadataFetchLogVisible = true;
+    this.metadataFetchLogLoading = true;
+    this.metadataFetchLogError = '';
+    this.metadataTaskService.getTaskLog(taskId).subscribe({
+      next: (log) => {
+        this.metadataFetchLog = log;
+        this.metadataFetchLogLoading = false;
+      },
+      error: () => {
+        this.metadataFetchLog = null;
+        this.metadataFetchLogLoading = false;
+        this.metadataFetchLogError = this.translocoService.translate('layout.topbar.metadataFetchLogLoadFailed');
+      }
+    });
+  }
+
+  closeMetadataFetchLog(): void {
+    this.metadataFetchLogVisible = false;
+  }
+
   navigateToTaskManagement(): void {
     this.router.navigate(['/settings'], {queryParams: {tab: 'task'}});
   }
@@ -557,6 +589,16 @@ export class AppTopBarComponent implements OnDestroy {
     return !!this.displayedMetadataFetchProgress;
   }
 
+  get metadataFetchStatusClasses(): Record<string, boolean> {
+    const progress = this.displayedMetadataFetchProgress;
+    return {
+      'topbar-metadata-fetch-paused': this.isMetadataFetchPaused,
+      'topbar-metadata-fetch-complete': progress?.taskStatus === TaskStatus.COMPLETED,
+      'topbar-metadata-fetch-cancelled': progress?.taskStatus === TaskStatus.CANCELLED,
+      'topbar-metadata-fetch-failed': progress?.taskStatus === TaskStatus.FAILED,
+    };
+  }
+
   get showSidecarBackupStatus(): boolean {
     return this.isSidecarBackupRunning;
   }
@@ -636,6 +678,29 @@ export class AppTopBarComponent implements OnDestroy {
     }
 
     return this.translocoService.translate('layout.topbar.metadataFetchProgress', {progress: progress.progress});
+  }
+
+  get metadataFetchLogStatus(): string {
+    const task = this.metadataFetchLog;
+    if (!task) {
+      return '';
+    }
+
+    if (this.isMetadataFetchPausedMessage(task.message)) {
+      return this.translocoService.translate('layout.topbar.metadataFetchLogStatusPaused');
+    }
+
+    switch (task.status) {
+      case TaskStatus.COMPLETED:
+        return this.translocoService.translate('layout.topbar.metadataFetchLogStatusCompleted');
+      case TaskStatus.CANCELLED:
+        return this.translocoService.translate('layout.topbar.metadataFetchLogStatusCancelled');
+      case TaskStatus.FAILED:
+      case 'ERROR':
+        return this.translocoService.translate('layout.topbar.metadataFetchLogStatusFailed');
+      default:
+        return this.translocoService.translate('layout.topbar.metadataFetchLogStatusRunning');
+    }
   }
 
   get aiScanTone(): 'ok' | 'warning' | 'error' {
@@ -787,5 +852,9 @@ export class AppTopBarComponent implements OnDestroy {
 
     const match = message.match(AppTopBarComponent.METADATA_FETCH_RESUME_AT_PATTERN);
     return match?.[1]?.trim() || null;
+  }
+
+  private isMetadataFetchPausedMessage(message: string | null | undefined): boolean {
+    return !!message && AppTopBarComponent.METADATA_FETCH_RESUME_AT_PATTERN.test(message);
   }
 }

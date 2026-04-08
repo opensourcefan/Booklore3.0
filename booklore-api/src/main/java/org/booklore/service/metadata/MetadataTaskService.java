@@ -6,12 +6,16 @@ import org.booklore.model.dto.BookLoreUser;
 import org.booklore.model.dto.FetchedProposal;
 import org.booklore.model.dto.MetadataBatchProgressNotification;
 import org.booklore.model.dto.MetadataFetchTask;
+import org.booklore.model.dto.response.MetadataTaskLogBookResponse;
+import org.booklore.model.dto.response.MetadataTaskLogResponse;
 import org.booklore.model.dto.response.MetadataTaskDetailsResponse;
 import org.booklore.model.dto.response.MetadataResumableTaskResponse;
 import org.booklore.model.dto.response.TaskCancelResponse;
 import org.booklore.model.dto.response.TaskCreateResponse;
 import org.booklore.model.dto.request.MetadataRefreshRequest;
 import org.booklore.model.dto.request.TaskCreateRequest;
+import org.booklore.model.entity.BookEntity;
+import org.booklore.model.entity.BookFileEntity;
 import org.booklore.model.entity.MetadataFetchJobEntity;
 import org.booklore.model.entity.MetadataFetchProposalEntity;
 import org.booklore.model.entity.TaskHistoryEntity;
@@ -31,8 +35,10 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.booklore.task.TaskStatus.ACCEPTED;
@@ -73,6 +79,38 @@ public class MetadataTaskService {
                 .map(this::toResumableTaskResponse)
                 .flatMap(Optional::stream)
                 .findFirst();
+    }
+
+    public Optional<MetadataTaskLogResponse> getTaskLog(String taskId) {
+        Optional<MetadataFetchJobEntity> taskOptional = metadataFetchTaskRepository.findByTaskIdWithProposals(taskId);
+        if (taskOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        MetadataFetchJobEntity task = taskOptional.get();
+        reconcileOrphanedInProgressTasks(List.of(task));
+
+        List<Long> requestedBookIds = resolveRequestedBookIds(task);
+        LinkedHashSet<Long> completedBookIds = resolveCompletedBookIds(task, requestedBookIds);
+        LinkedHashSet<Long> remainingBookIds = new LinkedHashSet<>(requestedBookIds);
+        remainingBookIds.removeAll(completedBookIds);
+
+        LinkedHashSet<Long> orderedBookIds = new LinkedHashSet<>(requestedBookIds);
+        orderedBookIds.addAll(completedBookIds);
+        Map<Long, MetadataTaskLogBookResponse> entriesById = buildTaskLogEntries(orderedBookIds);
+
+        return Optional.of(MetadataTaskLogResponse.builder()
+                .taskId(task.getTaskId())
+                .status(task.getStatus())
+                .message(task.getStatusMessage())
+                .startedAt(task.getStartedAt())
+                .completedAt(task.getCompletedAt())
+                .completed(completedBookIds.size())
+                .total(requestedBookIds.size())
+                .pending(remainingBookIds.size())
+                .fetchedBooks(mapBookEntries(completedBookIds, entriesById))
+                .remainingBooks(mapBookEntries(remainingBookIds, entriesById))
+                .build());
     }
 
     public Optional<TaskCreateResponse> resumeMetadataTask(String taskId) {
@@ -307,6 +345,62 @@ public class MetadataTaskService {
         return resolveRequestedBookIds(task);
     }
 
+    private Map<Long, MetadataTaskLogBookResponse> buildTaskLogEntries(LinkedHashSet<Long> bookIds) {
+        if (bookIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<BookEntity> books = bookRepository.findAllWithMetadataByIds(new LinkedHashSet<>(bookIds));
+        Map<Long, BookEntity> booksById = books.stream()
+                .collect(java.util.stream.Collectors.toMap(BookEntity::getId, java.util.function.Function.identity()));
+
+        Map<Long, MetadataTaskLogBookResponse> entriesById = new LinkedHashMap<>();
+        for (Long bookId : bookIds) {
+            BookEntity book = booksById.get(bookId);
+            entriesById.put(bookId, MetadataTaskLogBookResponse.builder()
+                    .bookId(bookId)
+                    .title(resolveLogTitle(book, bookId))
+                    .fileName(resolvePrimaryFileName(book))
+                    .build());
+        }
+        return entriesById;
+    }
+
+    private List<MetadataTaskLogBookResponse> mapBookEntries(LinkedHashSet<Long> bookIds, Map<Long, MetadataTaskLogBookResponse> entriesById) {
+        return bookIds.stream()
+                .map(bookId -> entriesById.getOrDefault(bookId, MetadataTaskLogBookResponse.builder()
+                        .bookId(bookId)
+                        .title(String.format("Book %d", bookId))
+                        .fileName("Unknown file")
+                        .build()))
+                .toList();
+    }
+
+    private String resolveLogTitle(BookEntity book, Long bookId) {
+        if (book != null && book.getMetadata() != null && StringUtils.hasText(book.getMetadata().getTitle())) {
+            return book.getMetadata().getTitle();
+        }
+
+        String fileName = resolvePrimaryFileName(book);
+        if (StringUtils.hasText(fileName) && !"Unknown file".equals(fileName)) {
+            return org.booklore.util.FileUtils.deriveTitleFromFileName(fileName, isFolderBased(book));
+        }
+
+        return String.format("Book %d", bookId);
+    }
+
+    private String resolvePrimaryFileName(BookEntity book) {
+        BookFileEntity primaryBookFile = book != null ? book.getPrimaryBookFile() : null;
+        return primaryBookFile != null && StringUtils.hasText(primaryBookFile.getFileName())
+                ? primaryBookFile.getFileName()
+                : "Unknown file";
+    }
+
+    private boolean isFolderBased(BookEntity book) {
+        BookFileEntity primaryBookFile = book != null ? book.getPrimaryBookFile() : null;
+        return primaryBookFile != null && primaryBookFile.isFolderBased();
+    }
+
     private List<Long> resolveRequestedBookIds(MetadataFetchJobEntity task) {
         if (task.getRequestedBookIds() != null && !task.getRequestedBookIds().isEmpty()) {
             return task.getRequestedBookIds();
@@ -337,6 +431,6 @@ public class MetadataTaskService {
             return new LinkedHashSet<>();
         }
 
-        return new LinkedHashSet<>(bookRepository.findBookIdsByIdInAndMetadataUpdatedAtOnOrAfter(requestedBookIds, task.getStartedAt()));
+        return new LinkedHashSet<>(bookRepository.findBookIdsByIdInAndLastMetadataFetchAtOnOrAfter(requestedBookIds, task.getStartedAt()));
     }
 }

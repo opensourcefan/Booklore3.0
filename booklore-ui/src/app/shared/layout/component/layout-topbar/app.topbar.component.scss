@@ -304,6 +304,31 @@
     outline: 2px solid var(--p-primary-color);
     outline-offset: 2px;
   }
+
+  &.topbar-metadata-fetch-paused {
+    border-color: #6b7280;
+    background: rgba(107, 114, 128, 0.12);
+    color: #4b5563;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(107, 114, 128, 0.2);
+      border-color: #4b5563;
+    }
+  }
+
+  &.topbar-metadata-fetch-complete {
+    border-color: var(--p-green-700, #15803d);
+    background: rgba(21, 128, 61, 0.08);
+    color: var(--p-green-700, #15803d);
+  }
+
+  &.topbar-metadata-fetch-cancelled,
+  &.topbar-metadata-fetch-failed {
+    border-color: var(--p-red-700, #b91c1c);
+    background: rgba(185, 28, 28, 0.08);
+    color: var(--p-red-700, #b91c1c);
+  }
 }
 
 .topbar-metadata-fetch-label {
@@ -360,6 +385,105 @@
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+:host ::ng-deep .metadata-fetch-log-dialog .p-dialog-content {
+  padding-top: 0.5rem;
+}
+
+.metadata-fetch-log-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.metadata-fetch-log-stat {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.9rem;
+  background: rgba(248, 250, 252, 0.75);
+}
+
+.metadata-fetch-log-stat-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.metadata-fetch-log-stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.metadata-fetch-log-message {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(241, 245, 249, 0.9);
+  color: #334155;
+}
+
+.metadata-fetch-log-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.metadata-fetch-log-column h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.metadata-fetch-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 22rem;
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+.metadata-fetch-log-item {
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(203, 213, 225, 0.65);
+  border-radius: 0.85rem;
+  background: #fff;
+}
+
+.metadata-fetch-log-item-title {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.metadata-fetch-log-item-file {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: #64748b;
+  word-break: break-word;
+}
+
+.metadata-fetch-log-empty {
+  padding: 1rem;
+  border: 1px dashed rgba(148, 163, 184, 0.6);
+  border-radius: 0.9rem;
+  color: #64748b;
+  background: rgba(248, 250, 252, 0.75);
 }
 
 .topbar-write-summary {

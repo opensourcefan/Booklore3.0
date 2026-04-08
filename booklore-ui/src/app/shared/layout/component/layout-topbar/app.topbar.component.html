@@ -87,7 +87,7 @@
       </button>
     }
     @if (showMetadataFetchStatus) {
-      <button type="button" class="topbar-metadata-fetch-status" (click)="navigateToMetadataManager()">
+      <button type="button" class="topbar-metadata-fetch-status" [ngClass]="metadataFetchStatusClasses" (click)="openMetadataFetchLog()">
         <i [ngClass]="metadataFetchIconClass"></i>
         <span class="topbar-metadata-fetch-label">{{ t('metadataFetch') }}</span>
         <span class="topbar-metadata-fetch-summary">{{ metadataFetchSummary }}</span>
@@ -407,5 +407,73 @@
     </p-button>
   </div>
   <app-book-searcher></app-book-searcher>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="metadataFetchLogVisible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: 'min(52rem, 94vw)' }"
+  styleClass="metadata-fetch-log-dialog"
+  appendTo="body"
+  [header]="t('metadataFetchLogTitle')">
+  @if (metadataFetchLogLoading) {
+    <div class="metadata-fetch-log-empty">{{ t('metadataFetchLogLoading') }}</div>
+  } @else if (metadataFetchLogError) {
+    <div class="metadata-fetch-log-empty">{{ metadataFetchLogError }}</div>
+  } @else if (metadataFetchLog; as log) {
+    <div class="metadata-fetch-log-summary">
+      <div class="metadata-fetch-log-stat">
+        <span class="metadata-fetch-log-stat-label">{{ t('metadataFetchLogStatusLabel') }}</span>
+        <span class="metadata-fetch-log-stat-value">{{ metadataFetchLogStatus }}</span>
+      </div>
+      <div class="metadata-fetch-log-stat">
+        <span class="metadata-fetch-log-stat-label">{{ t('metadataFetchLogFetchedLabel') }}</span>
+        <span class="metadata-fetch-log-stat-value">{{ log.completed }}/{{ log.total }}</span>
+      </div>
+      <div class="metadata-fetch-log-stat">
+        <span class="metadata-fetch-log-stat-label">{{ t('metadataFetchLogRemainingLabel') }}</span>
+        <span class="metadata-fetch-log-stat-value">{{ log.pending }}</span>
+      </div>
+    </div>
+
+    <div class="metadata-fetch-log-message">{{ log.message }}</div>
+
+    <div class="metadata-fetch-log-columns">
+      <section class="metadata-fetch-log-column">
+        <h3>{{ t('metadataFetchLogFetchedTitle') }}</h3>
+        @if (log.fetchedBooks.length) {
+          <div class="metadata-fetch-log-list">
+            @for (book of log.fetchedBooks; track book.bookId) {
+              <div class="metadata-fetch-log-item">
+                <div class="metadata-fetch-log-item-title">{{ book.title }}</div>
+                <div class="metadata-fetch-log-item-file">{{ book.fileName }}</div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="metadata-fetch-log-empty">{{ t('metadataFetchLogFetchedEmpty') }}</div>
+        }
+      </section>
+
+      <section class="metadata-fetch-log-column">
+        <h3>{{ t('metadataFetchLogRemainingTitle') }}</h3>
+        @if (log.remainingBooks.length) {
+          <div class="metadata-fetch-log-list">
+            @for (book of log.remainingBooks; track book.bookId) {
+              <div class="metadata-fetch-log-item">
+                <div class="metadata-fetch-log-item-title">{{ book.title }}</div>
+                <div class="metadata-fetch-log-item-file">{{ book.fileName }}</div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="metadata-fetch-log-empty">{{ t('metadataFetchLogRemainingEmpty') }}</div>
+        }
+      </section>
+    </div>
+  }
 </p-dialog>
 </ng-container>

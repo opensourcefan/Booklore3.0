@@ -8,9 +8,13 @@ import org.booklore.model.dto.MetadataBatchProgressNotification;
 import org.booklore.model.dto.request.MetadataRefreshRequest;
 import org.booklore.model.dto.request.TaskCreateRequest;
 import org.booklore.model.dto.response.MetadataResumableTaskResponse;
+import org.booklore.model.dto.response.MetadataTaskLogResponse;
 import org.booklore.model.dto.response.TaskCancelResponse;
 import org.booklore.model.dto.response.TaskCreateResponse;
 import org.booklore.model.dto.response.MetadataTaskDetailsResponse;
+import org.booklore.model.entity.BookEntity;
+import org.booklore.model.entity.BookFileEntity;
+import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.model.entity.MetadataFetchJobEntity;
 import org.booklore.model.entity.MetadataFetchProposalEntity;
 import org.booklore.model.entity.TaskHistoryEntity;
@@ -96,6 +100,21 @@ class MetadataTaskServiceTest {
                 .status(status)
                 .build();
     }
+
+        private BookEntity buildBook(Long id, String title, String fileName) {
+        BookEntity book = BookEntity.builder()
+            .id(id)
+            .metadata(BookMetadataEntity.builder().bookId(id).title(title).build())
+            .build();
+        book.setBookFiles(List.of(BookFileEntity.builder()
+            .id(id)
+            .book(book)
+            .fileName(fileName)
+            .fileSubPath("")
+            .isBookFormat(true)
+            .build()));
+        return book;
+        }
 
     @Nested
     class GetTaskWithProposals {
@@ -550,6 +569,36 @@ class MetadataTaskServiceTest {
                         && options.getBookIds().size() == 7;
             }));
             assertThat(task.getStatusMessage()).contains("new-task");
+        }
+    }
+
+    @Nested
+    class GetTaskLog {
+
+        @Test
+        void returnsFetchedAndRemainingBooksWithTitlesAndFileNames() {
+            MetadataFetchJobEntity task = buildTask("log-task", MetadataFetchTaskStatus.IN_PROGRESS, new ArrayList<>());
+            task.setStatusMessage("Paused for ComicVine rate limit reset. Resets at 6:45:00 PM. Processed 2 of 10 books.");
+            task.setRequestedBookIds(List.of(100L, 101L, 102L));
+            task.setCompletedBookIds(List.of(100L, 102L));
+
+            when(metadataFetchTaskRepository.findByTaskIdWithProposals("log-task")).thenReturn(Optional.of(task));
+            when(taskService.isTaskRunning("log-task")).thenReturn(true);
+            when(bookRepository.findAllWithMetadataByIds(any())).thenReturn(List.of(
+                    buildBook(100L, "Fetched One", "fetched-one.cbz"),
+                    buildBook(101L, "Remaining One", "remaining-one.cbz"),
+                    buildBook(102L, "Fetched Two", "fetched-two.cbz")
+            ));
+
+            MetadataTaskLogResponse result = service.getTaskLog("log-task").orElseThrow();
+
+            assertThat(result.getStatus()).isEqualTo(MetadataFetchTaskStatus.IN_PROGRESS);
+            assertThat(result.getCompleted()).isEqualTo(2);
+            assertThat(result.getPending()).isEqualTo(1);
+            assertThat(result.getFetchedBooks()).extracting(book -> book.getTitle() + ":" + book.getFileName())
+                    .containsExactly("Fetched One:fetched-one.cbz", "Fetched Two:fetched-two.cbz");
+            assertThat(result.getRemainingBooks()).extracting(book -> book.getTitle() + ":" + book.getFileName())
+                    .containsExactly("Remaining One:remaining-one.cbz");
         }
     }
 }

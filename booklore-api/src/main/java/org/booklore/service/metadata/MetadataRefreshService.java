@@ -286,6 +286,8 @@ public class MetadataRefreshService {
                 updateBookMetadata(book, fetched, plan.refreshOptions().isRefreshCovers(), plan.refreshOptions().isMergeCategories(), replaceMode);
             }
 
+            book.setLastMetadataFetchAt(Instant.now());
+
             markBookCompleted(task, bookId);
 
             updateTaskSnapshot(task, completedCount + 1, "Processed: " + book.getMetadata().getTitle());
@@ -1023,13 +1025,13 @@ public class MetadataRefreshService {
 
         return switch (targetMode) {
             case ALL -> selectedBookIds;
-            case NEVER_FETCHED -> bookRepository.findBookIdsByIdInAndMetadataUpdatedAtIsNull(selectedBookIds);
+            case NEVER_FETCHED -> bookRepository.findBookIdsByIdInAndLastMetadataFetchAtIsNull(selectedBookIds);
             case OLDER_THAN_DAYS -> {
                 int olderThanDays = Optional.ofNullable(request.getOlderThanDays())
                         .filter(days -> days > 0)
                         .orElseThrow(() -> ApiError.INVALID_REFRESH_TYPE.createException());
                 Instant cutoff = Instant.now().minus(olderThanDays, ChronoUnit.DAYS);
-                yield bookRepository.findBookIdsByIdInAndMetadataUpdatedAtBeforeOrNull(selectedBookIds, cutoff);
+                yield bookRepository.findBookIdsByIdInAndLastMetadataFetchAtBeforeOrNull(selectedBookIds, cutoff);
             }
         };
     }

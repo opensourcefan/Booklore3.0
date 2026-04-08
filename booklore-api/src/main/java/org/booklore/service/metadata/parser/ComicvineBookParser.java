@@ -12,6 +12,8 @@ import org.booklore.model.dto.response.comicvineapi.ComicvineApiResponse;
 import org.booklore.model.dto.response.comicvineapi.ComicvineIssueResponse;
 import org.booklore.model.enums.MetadataFetchTaskStatus;
 import org.booklore.model.enums.MetadataProvider;
+import org.booklore.model.enums.TaskType;
+import org.booklore.model.websocket.TaskProgressPayload;
 import org.booklore.model.websocket.Topic;
 import org.booklore.repository.MetadataFetchJobRepository;
 import org.booklore.service.appsettings.AppSettingService;
@@ -27,7 +29,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -798,33 +799,30 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
                         taskContext.review()
                 )
         );
+                notificationService.sendMessage(
+                    Topic.TASK_PROGRESS,
+                    TaskProgressPayload.builder()
+                        .taskId(taskContext.taskId())
+                        .taskType(TaskType.REFRESH_METADATA_MANUAL)
+                        .message(message)
+                        .progress(taskContext.total() > 0
+                            ? Math.min(100, Math.max(0, (taskContext.completed() * 100) / taskContext.total()))
+                            : 0)
+                        .currentStep(taskContext.completed())
+                        .totalSteps(taskContext.total())
+                        .taskStatus(org.booklore.task.TaskStatus.IN_PROGRESS)
+                        .build()
+                );
     }
 
     private String formatRateLimitWaitMessage(long resetAt, int completed, int total) {
-        Duration remaining = Duration.ofMillis(Math.max(0, resetAt - System.currentTimeMillis()));
         String formattedResetTime = RATE_LIMIT_TIME_FORMATTER.format(Instant.ofEpochMilli(resetAt).atZone(ZoneId.systemDefault()));
         return String.format(
-                "Waiting for ComicVine rate limit reset. Time left: %s. Resets at %s. Processed %d of %d books.",
-                formatDuration(remaining),
+                    "Paused for ComicVine rate limit reset. Resets at %s. Processed %d of %d books.",
                 formattedResetTime,
                 completed,
                 total
         );
-    }
-
-    private String formatDuration(Duration duration) {
-        long totalSeconds = Math.max(0, duration.toSeconds());
-        long hours = totalSeconds / 3600;
-        long minutes = (totalSeconds % 3600) / 60;
-        long seconds = totalSeconds % 60;
-
-        if (hours > 0) {
-            return String.format("%dh %02dm %02ds", hours, minutes, seconds);
-        }
-        if (minutes > 0) {
-            return String.format("%dm %02ds", minutes, seconds);
-        }
-        return String.format("%ds", seconds);
     }
 
     private String extractEndpointFromUri(URI uri) {

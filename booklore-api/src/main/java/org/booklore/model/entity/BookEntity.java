@@ -35,6 +35,9 @@ public class BookEntity {
     @Column(name = "metadata_updated_at")
     private Instant metadataUpdatedAt;
 
+    @Column(name = "last_metadata_fetch_at")
+    private Instant lastMetadataFetchAt;
+
     @Column(name = "metadata_for_write_updated_at")
     private Instant metadataForWriteUpdatedAt;
 

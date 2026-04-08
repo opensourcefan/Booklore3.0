@@ -50,6 +50,25 @@ export interface MetadataResumableTask {
   message: string;
 }
 
+export interface MetadataTaskLogBook {
+  bookId: number;
+  title: string;
+  fileName: string;
+}
+
+export interface MetadataTaskLog {
+  taskId: string;
+  status: string;
+  message: string;
+  startedAt: string;
+  completedAt: string | null;
+  completed: number;
+  total: number;
+  pending: number;
+  fetchedBooks: MetadataTaskLogBook[];
+  remainingBooks: MetadataTaskLogBook[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -77,6 +96,10 @@ export class MetadataTaskService {
     return this.http.get<MetadataResumableTask>(`${this.url}/resumable/latest`, {observe: 'response'}).pipe(
       map(response => response.body ?? null)
     );
+  }
+
+  getTaskLog(taskId: string): Observable<MetadataTaskLog> {
+    return this.http.get<MetadataTaskLog>(`${this.url}/${taskId}/log`);
   }
 
   resumeTask(taskId: string): Observable<TaskCreateResponse> {

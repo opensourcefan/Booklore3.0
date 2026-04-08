@@ -376,7 +376,7 @@ class MetadataRefreshServiceTest {
             .targetMode(MetadataRefreshRequest.TargetMode.NEVER_FETCHED)
             .build();
 
-        when(bookRepository.findBookIdsByIdInAndMetadataUpdatedAtIsNull(Set.of(1L, 2L, 3L)))
+        when(bookRepository.findBookIdsByIdInAndLastMetadataFetchAtIsNull(Set.of(1L, 2L, 3L)))
             .thenReturn(Set.of(2L, 3L));
 
         Set<Long> result = service.getBookEntities(request);
@@ -393,7 +393,7 @@ class MetadataRefreshServiceTest {
             .olderThanDays(30)
             .build();
 
-        when(bookRepository.findBookIdsByIdInAndMetadataUpdatedAtBeforeOrNull(eq(Set.of(1L, 2L, 3L)), any()))
+        when(bookRepository.findBookIdsByIdInAndLastMetadataFetchAtBeforeOrNull(eq(Set.of(1L, 2L, 3L)), any()))
             .thenReturn(Set.of(1L, 3L));
 
         Set<Long> result = service.getBookEntities(request);
