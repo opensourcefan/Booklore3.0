@@ -69,8 +69,8 @@
                       <div
                         class="filter-row"
                         [ngClass]="{
-                          'active': activeFilters[filterType]?.includes(getFilterValueId(filter)),
-                          'active-not': activeFilters[filterType]?.includes(getFilterValueId(filter)) && selectedFilterMode === 'not'
+                          'active': isFilterActive(filterType, getFilterValueId(filter)),
+                          'active-not': isFilterActive(filterType, getFilterValueId(filter)) && selectedFilterMode === 'not'
                         }"
                         tabindex="0"
                         (keydown.enter)="handleFilterClick(filterType, getFilterValueId(filter))"

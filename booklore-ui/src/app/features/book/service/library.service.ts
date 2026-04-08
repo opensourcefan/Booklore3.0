@@ -104,7 +104,7 @@ export class LibraryService {
         const curr = this.libraryStateSubject.value;
         const list = curr.libraries?.map(l => (l.id === updated.id ? updated : l)) || [updated];
         this.libraryStateSubject.next({...curr, libraries: this.sortLibraries(list)});
-        this.bookService.refreshBooks();
+        void this.bookService.refreshBooks().subscribe();
         return updated;
       })
     );

@@ -183,6 +183,10 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     return String(value ?? '');
   }
 
+  isFilterActive(filterType: string, value: unknown): boolean {
+    return this.activeFilters[filterType]?.some(selected => this.valuesMatch(selected, value)) ?? false;
+  }
+
   private subscribeToUserSettings(): void {
     this.userService.userState$.pipe(
       filter(state => !!state?.user && state.loaded),

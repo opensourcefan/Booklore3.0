@@ -782,6 +782,7 @@
   <li>Scroll the desktop filter sidebar as one continuous panel instead of fighting a second nested scrollbar inside long filter groups</li>
   <li>Keep the desktop filter panel anchored flush to the right edge of its sidebar while you scroll and expand filter groups</li>
   <li>Switch between libraries and shelves, including cached views reopened from the left sidebar, without manually refreshing or toggling the filter sort to repopulate metadata-backed sidebar filters such as authors, tags, series, publishers, and languages</li>
+  <li>Apply tag and other metadata edits without needing repeated browser refreshes before the right sidebar selections and facet counts catch up</li>
   <li>Keep your filter sidebar visibility, filter sort mode, and expanded filter groups with your user account instead of one browser profile</li>
   <li>Clear all filters with one click</li>
 </ul>
@@ -796,6 +797,10 @@
 
 <div class="callout tip">
   <strong>What Changed:</strong> After you already have sidebar selections active, switching to a different filter mode now updates the highlighted mode button immediately on the first click instead of waiting for a second click to make the new mode look selected.
+</div>
+
+<div class="callout tip">
+  <strong>Sidebar Selections Stay Honest:</strong> After tag or other metadata changes, the right sidebar now refreshes its backing book list immediately so deselected items do not linger until a second manual refresh. Selection highlights also treat equivalent numeric and text ids as the same choice, which prevents a filter row from looking stuck when the underlying value format changes.
 </div>
 
 <h3>Duplicate Review</h3>
@@ -1239,6 +1244,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-08</td><td>1.1.47</td><td>Documented the right-sidebar filter refresh fix so tag and metadata edits repopulate sidebar facets immediately, and clarified that filter highlights no longer stick after deselection when ids change format</td></tr>
   <tr><td>2026-04-08</td><td>1.1.46</td><td>Clarified that the custom metadata age filter uses the last successful metadata fetch time, and documented the paused topbar metadata pill plus its new fetched-versus-remaining task log dialog</td></tr>
   <tr><td>2026-04-08</td><td>1.1.45</td><td>Documented the follow-up metadata-task history fix so completed metadata batches no longer perform unnecessary resume-state lookups while building the task activity list</td></tr>
   <tr><td>2026-04-08</td><td>1.1.44</td><td>Documented the custom metadata fetch target-book selector and the new ability to resume stopped metadata batches instead of rerunning the full selection</td></tr>

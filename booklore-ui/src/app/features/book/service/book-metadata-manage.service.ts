@@ -24,6 +24,10 @@ export class BookMetadataManageService {
   private bookService = inject(BookService);
   private readonly t = inject(TranslocoService);
 
+  private refreshBooksSnapshot(): void {
+    void this.bookService.refreshBooks().subscribe();
+  }
+
   updateBookMetadata(bookId: number | undefined, wrapper: MetadataUpdateWrapper, mergeCategories: boolean, replaceMode: 'REPLACE_ALL' | 'REPLACE_WHEN_PROVIDED' = 'REPLACE_ALL'): Observable<BookMetadata> {
     const params = new HttpParams().set('mergeCategories', mergeCategories.toString()).set('replaceMode', replaceMode);
     return this.http.put<BookMetadata>(`${this.url}/${bookId}/metadata`, wrapper, {params}).pipe(
@@ -33,7 +37,7 @@ export class BookMetadataManageService {
       }),
       tap(() => {
         // Keep sidebar/filter facets in sync across the app after edits.
-        this.bookService.refreshBooks();
+        this.refreshBooksSnapshot();
       })
     );
   }
@@ -41,7 +45,7 @@ export class BookMetadataManageService {
   updateBooksMetadata(request: BulkMetadataUpdateRequest): Observable<void> {
     return this.http.put(`${this.url}/bulk-edit-metadata`, request).pipe(
       tap(() => {
-        this.bookService.refreshBooks();
+        this.refreshBooksSnapshot();
       }),
       map(() => void 0)
     );
@@ -54,7 +58,7 @@ export class BookMetadataManageService {
         return updatedMetadata;
       }),
       tap(() => {
-        this.bookService.refreshBooks();
+        this.refreshBooksSnapshot();
       })
     );
   }
@@ -62,7 +66,7 @@ export class BookMetadataManageService {
   wipeBooksMetadata(bookIds: number[]): Observable<void> {
     return this.http.post<void>(`${this.url}/metadata/wipe`, {bookIds}).pipe(
       tap(() => {
-        this.bookService.refreshBooks();
+        this.refreshBooksSnapshot();
       }),
       map(() => void 0)
     );
@@ -71,7 +75,7 @@ export class BookMetadataManageService {
   restoreTitlesFromFilenames(bookIds: number[]): Observable<number> {
     return this.http.post<number>(`${this.url}/metadata/restore-titles-from-filenames`, {bookIds}).pipe(
       tap(() => {
-        this.bookService.refreshBooks();
+        this.refreshBooksSnapshot();
       })
     );
   }
@@ -142,7 +146,7 @@ export class BookMetadataManageService {
     const payload = {metadataType, targetValues, valuesToMerge};
     return this.http.post(`${this.url}/metadata/manage/consolidate`, payload).pipe(
       tap(() => {
-        this.bookService.refreshBooks();
+        this.refreshBooksSnapshot();
       })
     );
   }
@@ -151,7 +155,7 @@ export class BookMetadataManageService {
     const payload = {metadataType, valuesToDelete};
     return this.http.post(`${this.url}/metadata/manage/delete`, payload).pipe(
       tap(() => {
-        this.bookService.refreshBooks();
+        this.refreshBooksSnapshot();
       })
     );
   }
