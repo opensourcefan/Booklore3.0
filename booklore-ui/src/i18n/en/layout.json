@@ -36,6 +36,7 @@
     "directoryTaggingFailed": "Failed",
     "metadataFetch": "Metadata Fetch",
     "metadataFetchProgress": "{{ progress }}%",
+    "metadataFetchPausedUntil": "Paused, will resume at {{ time }}",
     "metadataFetchCompleted": "Completed",
     "metadataFetchCancelled": "Cancelled",
     "metadataFetchFailed": "Failed",

@@ -88,7 +88,7 @@
     }
     @if (showMetadataFetchStatus) {
       <button type="button" class="topbar-metadata-fetch-status" (click)="navigateToMetadataManager()">
-        <i class="pi pi-cloud-download"></i>
+        <i [ngClass]="metadataFetchIconClass"></i>
         <span class="topbar-metadata-fetch-label">{{ t('metadataFetch') }}</span>
         <span class="topbar-metadata-fetch-summary">{{ metadataFetchSummary }}</span>
       </button>

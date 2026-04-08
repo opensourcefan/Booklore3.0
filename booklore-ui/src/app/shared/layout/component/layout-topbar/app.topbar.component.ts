@@ -70,6 +70,8 @@ import {SidecarBackupProgressService} from '../../../service/sidecar-backup-prog
   ],
 })
 export class AppTopBarComponent implements OnDestroy {
+  private static readonly METADATA_FETCH_RESUME_AT_PATTERN = /resets at\s+([^.]+)\.?/i;
+
   items!: MenuItem[];
   ref?: DynamicDialogRef;
   statsMenuItems: MenuItem[] = [];
@@ -563,6 +565,10 @@ export class AppTopBarComponent implements OnDestroy {
     return !!this.writeProgress;
   }
 
+  get metadataFetchIconClass(): string {
+    return this.isMetadataFetchPaused ? 'pi pi-pause-circle' : 'pi pi-cloud-download';
+  }
+
   get fullscreenTooltip(): string {
     return this.translocoService.translate(this.isFullscreen ? 'layout.topbar.exitFullscreen' : 'layout.topbar.fullscreen');
   }
@@ -615,6 +621,11 @@ export class AppTopBarComponent implements OnDestroy {
     if (s === TaskStatus.COMPLETED) return this.translocoService.translate('layout.topbar.metadataFetchCompleted');
     if (s === TaskStatus.CANCELLED) return this.translocoService.translate('layout.topbar.metadataFetchCancelled');
     if (s === TaskStatus.FAILED) return this.translocoService.translate('layout.topbar.metadataFetchFailed');
+
+    const resumeAt = this.getMetadataFetchResumeAt();
+    if (resumeAt) {
+      return this.translocoService.translate('layout.topbar.metadataFetchPausedUntil', {time: resumeAt});
+    }
 
     const currentStep = this.metadataFetchProgress.currentStep;
     const totalSteps = this.metadataFetchProgress.totalSteps;
@@ -728,5 +739,19 @@ export class AppTopBarComponent implements OnDestroy {
 
   private syncFullscreenState(): void {
     this.isFullscreen = !!document.fullscreenElement;
+  }
+
+  private get isMetadataFetchPaused(): boolean {
+    return !!this.getMetadataFetchResumeAt();
+  }
+
+  private getMetadataFetchResumeAt(): string | null {
+    const message = this.metadataFetchProgress?.message;
+    if (!message) {
+      return null;
+    }
+
+    const match = message.match(AppTopBarComponent.METADATA_FETCH_RESUME_AT_PATTERN);
+    return match?.[1]?.trim() || null;
   }
 }

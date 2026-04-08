@@ -219,7 +219,7 @@
       "customFetchMetadata": "Custom Fetch Metadata",
       "bulkMetadataEditor": "Bulk Metadata Editor",
       "multiBookMetadataEditor": "Multi-Book Metadata Editor",
-      "restoreTitlesFromFilenames": "Restore Missing Titles from Filenames",
+      "restoreTitlesFromFilenames": "Restore Titles from Filenames",
       "regenerateCovers": "Regenerate Covers",
       "generateCustomCovers": "Generate Custom Covers",
       "updateReadStatus": "Update Read Status",
