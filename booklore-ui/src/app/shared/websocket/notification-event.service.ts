@@ -36,4 +36,14 @@ export class NotificationEventService {
       }
     }, 20000);
   }
+
+  clearNotification(): void {
+    if (this.highlightTimeout) {
+      clearTimeout(this.highlightTimeout);
+      this.highlightTimeout = undefined;
+    }
+
+    this.notificationHighlightSubject.next(false);
+    this.latestNotificationSubject.next(null);
+  }
 }

@@ -13,6 +13,10 @@ import {Tooltip} from 'primeng/tooltip';
 import {MetadataProgressService} from '../../../../shared/service/metadata-progress.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MetadataPickerComponent} from '../book-metadata-center/metadata-picker/metadata-picker.component';
+import {BookMetadataManageService} from '../../../book/service/book-metadata-manage.service';
+import {NotificationEventService} from '../../../../shared/websocket/notification-event.service';
+
+const METADATA_FOLLOW_UP_TAG = 'Metadata Follow-Up Req';
 
 @Component({
   selector: 'app-metadata-review-dialog-component',
@@ -30,14 +34,16 @@ export class MetadataReviewDialogComponent implements OnInit {
   private dialogRef = inject(DynamicDialogRef);
   private metadataTaskService = inject(MetadataTaskService);
   private bookService = inject(BookService);
+  private bookMetadataManageService = inject(BookMetadataManageService);
   private progressService = inject(MetadataProgressService);
+  private notificationEventService = inject(NotificationEventService);
   private destroyRef = inject(DestroyRef);
 
   proposals: FetchedProposal[] = [];
   currentBooks: Record<number, Book> = {};
   loading = true;
   currentIndex = 0;
-  processingAction: 'save' | 'quick' | null = null;
+  processingAction: 'save' | 'quick' | 'tag' | null = null;
   private initialized = false;
 
   private currentIndexSubject = new BehaviorSubject<number>(0);
@@ -93,12 +99,25 @@ export class MetadataReviewDialogComponent implements OnInit {
     return this.proposals[this.currentIndex] ?? null;
   }
 
+  get currentBook(): Book | null {
+    const currentProposal = this.currentProposal;
+    if (!currentProposal) {
+      return null;
+    }
+
+    return this.currentBooks[currentProposal.bookId] ?? null;
+  }
+
   get isBusy(): boolean {
     return this.processingAction !== null || this.pickerComponent?.isSaving === true;
   }
 
   get quickActionLabel(): string {
     return this.isLast ? 'Copy All, Save & Finish' : 'Copy All, Save & Next';
+  }
+
+  get tagActionLabel(): string {
+    return this.isLast ? 'Tag & Finish' : 'Tag & Next';
   }
 
   onSave(): void {
@@ -108,6 +127,52 @@ export class MetadataReviewDialogComponent implements OnInit {
   onCopyAllSaveAndAdvance(): void {
     this.pickerComponent?.copyAll();
     this.persistCurrentProposal('quick', true);
+  }
+
+  onTagAndAdvance(): void {
+    const currentBook = this.currentBook;
+    const currentProposal = this.currentProposal;
+    if (!currentBook || !currentProposal || this.isBusy) {
+      return;
+    }
+
+    const existingTags = currentBook.metadata?.tags ?? [];
+    const tags = existingTags.includes(METADATA_FOLLOW_UP_TAG)
+      ? existingTags
+      : [...existingTags, METADATA_FOLLOW_UP_TAG];
+
+    this.processingAction = 'tag';
+
+    const saveTag$ = existingTags.includes(METADATA_FOLLOW_UP_TAG)
+      ? of(void 0)
+      : this.bookMetadataManageService.updateBookMetadata(
+        currentBook.id,
+        {
+          metadata: {
+            bookId: currentBook.id,
+            tags,
+          },
+          clearFlags: {},
+        },
+        false,
+        'REPLACE_WHEN_PROVIDED'
+      ).pipe(map(() => void 0));
+
+    saveTag$.pipe(
+      switchMap(() => this.isLast ? this.completeReview(currentProposal.taskId) : of(void 0)),
+      finalize(() => {
+        this.processingAction = null;
+      })
+    ).subscribe({
+      next: () => {
+        if (this.isLast) {
+          this.close();
+          return;
+        }
+
+        this.onNext();
+      }
+    });
   }
 
   onSkip(): void {
@@ -142,20 +207,18 @@ export class MetadataReviewDialogComponent implements OnInit {
 
     this.pickerComponent.saveMetadata().pipe(
       switchMap(() => this.metadataTaskService.updateProposalStatus(currentProposal.taskId, currentProposal.proposalId, 'ACCEPTED')),
-      switchMap(() => shouldDeleteTask
-        ? this.metadataTaskService.deleteTask(currentProposal.taskId).pipe(
-          tap(() => {
-            this.progressService.clearTask(currentProposal.taskId);
-          })
-        )
-        : of(void 0)
-      ),
+      switchMap(() => shouldDeleteTask ? this.completeReview(currentProposal.taskId) : of(void 0)),
       finalize(() => {
         this.processingAction = null;
       })
     ).subscribe({
       next: () => {
-        if (advanceAfterSave || shouldDeleteTask) {
+        if (shouldDeleteTask) {
+          this.close();
+          return;
+        }
+
+        if (advanceAfterSave) {
           this.onNext();
         }
       },
@@ -167,13 +230,23 @@ export class MetadataReviewDialogComponent implements OnInit {
   }
 
   onNext(): void {
-    const nextIndex = this.currentIndex + 1;
-    if (nextIndex >= this.proposals.length) {
-      this.dialogRef.close();
-    } else {
-      this.currentIndex = nextIndex;
-      this.currentIndexSubject.next(nextIndex);
+    if (this.isLast) {
+      const currentProposal = this.currentProposal;
+      if (!currentProposal || this.isBusy) {
+        return;
+      }
+
+      this.completeReview(currentProposal.taskId).subscribe({
+        next: () => {
+          this.close();
+        }
+      });
+      return;
     }
+
+    const nextIndex = this.currentIndex + 1;
+    this.currentIndex = nextIndex;
+    this.currentIndexSubject.next(nextIndex);
   }
 
   lockAllMetadata(): void {
@@ -188,6 +261,15 @@ export class MetadataReviewDialogComponent implements OnInit {
 
   get isLast(): boolean {
     return this.currentIndex === this.proposals.length - 1;
+  }
+
+  private completeReview(taskId: string): Observable<void> {
+    return this.metadataTaskService.deleteTask(taskId).pipe(
+      tap(() => {
+        this.progressService.clearTask(taskId);
+        this.notificationEventService.clearNotification();
+      })
+    );
   }
 
   close(): void {

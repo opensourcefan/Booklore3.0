@@ -713,7 +713,9 @@
   <li>Use <strong>Skip</strong> to move the current proposal to the end of the current review queue and jump straight to the next proposal</li>
   <li>Use the orange <strong>Copy All, Save &amp; Next</strong> action in the top comparison header to run the common review routine in one step</li>
   <li><strong>Accept &amp; Save</strong> now waits for the metadata save itself to finish before the proposal is marked accepted, so the review queue and saved data stay in sync</li>
+  <li>Use <strong>Tag &amp; Next</strong> to add the <strong>Metadata Follow-Up Req</strong> tag to the current asset and advance without accepting the fetched proposal</li>
   <li><strong>Lock All</strong> and <strong>Unlock All</strong> now sit on the left edge of the bottom action bar for faster repeated review work</li>
+  <li><strong>Finish &amp; Close</strong> now clears the matching topbar notification/task state when the review session is complete</li>
 </ul>
 
 <h3>Editing Metadata Manually</h3>
@@ -1259,6 +1261,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-09</td><td>1.1.52</td><td>Added the Metadata Review <strong>Tag &amp; Next</strong> action to append the <strong>Metadata Follow-Up Req</strong> tag without accepting the current proposal, and clarified that <strong>Finish &amp; Close</strong> now clears the related topbar metadata notification/task state when the review session ends</td></tr>
   <tr><td>2026-04-09</td><td>1.1.51</td><td>Documented the Metadata Review dialog refresh: renamed the proposal screen, moved the copy-missing and copy-all buttons to the bottom action bar, added skip-to-end queueing, added the one-click Copy All, Save &amp; Next shortcut, and clarified that acceptance now waits for the underlying metadata save to finish before the review advances</td></tr>
   <tr><td>2026-04-08</td><td>1.1.50</td><td>Reworked sidebar filter-mode switching so the parent browser now clears the old filter state before activating the new AND/OR/NOT/1 mode, preventing the mode button from showing one state while the book list still filters with the previous mode; added regression tests for parent-owned mode changes and stale-selection suppression</td></tr>
   <tr><td>2026-04-08</td><td>1.1.49</td><td>Hardened filter-mode propagation so the AND/OR/NOT/1 value is normalised (trimmed, lowercased, validated) at every entry point—URL params, persisted user settings, component inputs, and the core filtering function—preventing a mode value that differs by case or whitespace from silently disabling the NOT exclusion logic; added SideBarFilter integration tests exercising the full observable chain</td></tr>

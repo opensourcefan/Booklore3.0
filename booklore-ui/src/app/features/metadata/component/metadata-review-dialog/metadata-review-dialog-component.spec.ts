@@ -10,6 +10,8 @@ import {MetadataTaskService, FetchedMetadataProposalStatus, FetchedProposal, Met
 import {BookService} from '../../../book/service/book.service';
 import {Book, BookMetadata} from '../../../book/model/book.model';
 import {MetadataProgressService} from '../../../../shared/service/metadata-progress.service';
+import {BookMetadataManageService} from '../../../book/service/book-metadata-manage.service';
+import {NotificationEventService} from '../../../../shared/websocket/notification-event.service';
 
 @Component({
   selector: 'app-metadata-picker',
@@ -84,6 +86,14 @@ describe('MetadataReviewDialogComponent', () => {
     clearTask: vi.fn(),
   };
 
+  const bookMetadataManageServiceMock = {
+    updateBookMetadata: vi.fn(() => of({bookId: 11} as BookMetadata)),
+  };
+
+  const notificationEventServiceMock = {
+    clearNotification: vi.fn(),
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
 
@@ -100,6 +110,8 @@ describe('MetadataReviewDialogComponent', () => {
           },
         },
         {provide: MetadataProgressService, useValue: progressServiceMock},
+        {provide: BookMetadataManageService, useValue: bookMetadataManageServiceMock},
+        {provide: NotificationEventService, useValue: notificationEventServiceMock},
       ]
     })
       .overrideComponent(MetadataReviewDialogComponent, {
@@ -181,6 +193,40 @@ describe('MetadataReviewDialogComponent', () => {
     expect(metadataTaskServiceMock.updateProposalStatus).toHaveBeenCalledWith('task-1', 3, 'ACCEPTED');
     expect(metadataTaskServiceMock.deleteTask).toHaveBeenCalledWith('task-1');
     expect(progressServiceMock.clearTask).toHaveBeenCalledWith('task-1');
+    expect(notificationEventServiceMock.clearNotification).toHaveBeenCalled();
+    expect(dialogRefMock.close).toHaveBeenCalled();
+  });
+
+  it('adds the metadata follow-up tag and advances to the next proposal', () => {
+    const {component} = createComponent();
+
+    component.onTagAndAdvance();
+
+    expect(bookMetadataManageServiceMock.updateBookMetadata).toHaveBeenCalledWith(
+      11,
+      {
+        metadata: {
+          bookId: 11,
+          tags: ['Metadata Follow-Up Req'],
+        },
+        clearFlags: {},
+      },
+      false,
+      'REPLACE_WHEN_PROVIDED'
+    );
+    expect(component.currentProposal?.proposalId).toBe(2);
+  });
+
+  it('clears metadata task state and live notification state when finish and close is pressed on the last proposal', () => {
+    const {component} = createComponent();
+
+    component.onNext();
+    component.onNext();
+    component.onNext();
+
+    expect(metadataTaskServiceMock.deleteTask).toHaveBeenCalledWith('task-1');
+    expect(progressServiceMock.clearTask).toHaveBeenCalledWith('task-1');
+    expect(notificationEventServiceMock.clearNotification).toHaveBeenCalled();
     expect(dialogRefMock.close).toHaveBeenCalled();
   });
 });
