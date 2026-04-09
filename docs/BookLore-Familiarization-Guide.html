@@ -797,6 +797,10 @@
 </div>
 
 <div class="callout tip">
+  <strong>Mode Changes Now Re-sync the Whole Browser:</strong> The filter-mode button is no longer allowed to get ahead of the actual book-list filtering logic. BookLore now clears the previous sidebar state first, then activates the new mode from one shared parent state so the button, sidebar facets, and filtered book list stay in sync without repeated browser refreshes.
+</div>
+
+<div class="callout tip">
   <strong>What Changed:</strong> After you already have sidebar selections active, switching to a different filter mode now updates the highlighted mode button immediately on the first click instead of waiting for a second click to make the new mode look selected.
 </div>
 
@@ -1245,6 +1249,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-08</td><td>1.1.50</td><td>Reworked sidebar filter-mode switching so the parent browser now clears the old filter state before activating the new AND/OR/NOT/1 mode, preventing the mode button from showing one state while the book list still filters with the previous mode; added regression tests for parent-owned mode changes and stale-selection suppression</td></tr>
   <tr><td>2026-04-08</td><td>1.1.49</td><td>Hardened filter-mode propagation so the AND/OR/NOT/1 value is normalised (trimmed, lowercased, validated) at every entry point—URL params, persisted user settings, component inputs, and the core filtering function—preventing a mode value that differs by case or whitespace from silently disabling the NOT exclusion logic; added SideBarFilter integration tests exercising the full observable chain</td></tr>
   <tr><td>2026-04-08</td><td>1.1.48</td><td>Fixed Date Added and Folder sidebar filters so they actually filter the book list under every mode (AND, OR, NOT, 1) instead of silently returning no results or doing nothing; added comprehensive regression tests for all four filter modes</td></tr>
   <tr><td>2026-04-08</td><td>1.1.47</td><td>Documented the right-sidebar filter refresh fix so tag and metadata edits repopulate sidebar facets immediately, and clarified that filter highlights no longer stick after deselection when ids change format</td></tr>

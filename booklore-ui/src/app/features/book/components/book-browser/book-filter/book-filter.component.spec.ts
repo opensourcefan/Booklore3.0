@@ -146,6 +146,7 @@ describe('BookFilterComponent', () => {
     // Switch to NOT mode
     component.changeFilterMode('not');
     expect(modeEmissions).toEqual(['not']);
+    component.filterMode = 'not';
 
     // Simulate parent clearing filters (as clearSidebarFiltersState would)
     component.clearActiveFilter();
@@ -158,6 +159,7 @@ describe('BookFilterComponent', () => {
 
     // Switch to single mode
     component.changeFilterMode('single');
+  component.filterMode = 'single';
     component.clearActiveFilter();
 
     // Click in single mode
@@ -177,6 +179,7 @@ describe('BookFilterComponent', () => {
 
     // Set NOT mode
     component.changeFilterMode('not');
+    component.filterMode = 'not';
     component.clearActiveFilter(); // parent would do this
 
     // Click two different filter types
@@ -187,5 +190,29 @@ describe('BookFilterComponent', () => {
     const last = filterEmissions[filterEmissions.length - 1] as Record<string, unknown[]>;
     expect(last['author']).toEqual(['John']);
     expect(last['tag']).toEqual(['fiction']);
+  });
+
+  it('mode changes do not emit stale filter selections before the parent resets state', () => {
+    const component = createComponent();
+    component.activeFilters = {author: ['John']};
+
+    const filterEmissions: unknown[] = [];
+    const modeEmissions: BookFilterMode[] = [];
+
+    component.filterSelected.subscribe(v => filterEmissions.push(v));
+    component.filterModeChanged.subscribe((m: BookFilterMode) => modeEmissions.push(m));
+
+    component.changeFilterMode('not');
+
+    expect(modeEmissions).toEqual(['not']);
+    expect(filterEmissions).toEqual([]);
+    expect(component.selectedFilterMode).toBe('and');
+    expect(component.activeFilters).toEqual({author: ['John']});
+
+    component.clearActiveFilter();
+    component.filterMode = 'not';
+
+    expect(component.activeFilters).toEqual({});
+    expect(component.selectedFilterMode).toBe('not');
   });
 });

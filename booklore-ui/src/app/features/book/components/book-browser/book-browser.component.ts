@@ -721,8 +721,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const safe = normalizeFilterMode(mode);
     if (this.settingFiltersFromUrl || safe === this.selectedFilterMode.getValue()) return;
 
-    this.selectedFilterMode.next(safe);
     this.clearSidebarFiltersState(true);
+    this.selectedFilterMode.next(safe);
     this.queryParamsService.updateFilterMode(safe, {}, true);
     this.persistFilterModePreference(safe);
   }

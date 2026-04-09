@@ -102,10 +102,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   changeFilterMode(mode: BookFilterMode): void {
     const safe = normalizeFilterMode(mode);
     if (safe === this._selectedFilterMode) return;
-    this._selectedFilterMode = safe;
-    this.filterMode$.next(safe);
     this.filterModeChanged.emit(safe);
-    this.emitFilters();
   }
 
   ngOnInit(): void {
