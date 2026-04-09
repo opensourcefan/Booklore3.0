@@ -6,13 +6,13 @@ import {Button} from 'primeng/button';
 import {FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
 import {AsyncPipe} from '@angular/common';
-import {forkJoin, Observable} from 'rxjs';
+import {EMPTY, forkJoin, Observable} from 'rxjs';
 import {Tooltip} from 'primeng/tooltip';
 import {UrlHelperService} from '../../../../../shared/service/url-helper.service';
 import {BookService} from '../../../../book/service/book.service';
 import {BookMetadataManageService} from '../../../../book/service/book-metadata-manage.service';
 import {Textarea} from 'primeng/textarea';
-import {filter, take} from 'rxjs/operators';
+import {filter, finalize, map, take, tap} from 'rxjs/operators';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {AutoComplete, AutoCompleteSelectEvent} from 'primeng/autocomplete';
 import {Image} from 'primeng/image';
@@ -66,7 +66,11 @@ export class MetadataPickerComponent implements OnInit {
   @Input() fetchedMetadata!: BookMetadata;
   @Input() book$!: Observable<Book | null>;
   @Input() detailLoading = false;
+  @Input() reviewQuickActionLabel: string | null = null;
+  @Input() reviewActionBusy = false;
+  @Input() reviewActionDisabled = false;
   @Output() goBack = new EventEmitter<boolean>();
+  @Output() reviewQuickAction = new EventEmitter<void>();
 
   currentBook: Book | null = null;
 
@@ -329,6 +333,14 @@ export class MetadataPickerComponent implements OnInit {
   }
 
   onSave(): void {
+    this.saveMetadata().subscribe();
+  }
+
+  saveMetadata(): Observable<void> {
+    if (this.isSaving) {
+      return EMPTY;
+    }
+
     this.isSaving = true;
     const updatedBookMetadata = this.buildMetadataWrapper(undefined);
 
@@ -344,21 +356,25 @@ export class MetadataPickerComponent implements OnInit {
       }
     }
 
-    forkJoin(requests).subscribe({
-      next: () => {
-        this.isSaving = false;
-        for (const field of Object.keys(this.copiedFields)) {
-          if (this.copiedFields[field]) {
-            this.savedFields[field] = true;
+    return forkJoin(requests).pipe(
+      tap({
+        next: () => {
+          for (const field of Object.keys(this.copiedFields)) {
+            if (this.copiedFields[field]) {
+              this.savedFields[field] = true;
+            }
           }
+          this.messageService.add({severity: 'info', summary: this.t.translate('metadata.picker.toast.successSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdated')});
+        },
+        error: () => {
+          this.messageService.add({severity: 'error', summary: this.t.translate('metadata.picker.toast.errorSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdateFailed')});
         }
-        this.messageService.add({severity: 'info', summary: this.t.translate('metadata.picker.toast.successSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdated')});
-      },
-      error: () => {
+      }),
+      map(() => void 0),
+      finalize(() => {
         this.isSaving = false;
-        this.messageService.add({severity: 'error', summary: this.t.translate('metadata.picker.toast.errorSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdateFailed')});
-      }
-    });
+      })
+    );
   }
 
   private buildMetadataWrapper(shouldLockAllFields: boolean | undefined): MetadataUpdateWrapper {

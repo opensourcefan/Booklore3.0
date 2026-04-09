@@ -4,11 +4,10 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {FetchedProposal, MetadataTaskService} from '../../../book/service/metadata-task';
 import {BookService} from '../../../book/service/book.service';
 import {Book} from '../../../book/model/book.model';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {BehaviorSubject, Observable, of} from 'rxjs';
+import {finalize, map, switchMap, tap} from 'rxjs/operators';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Button} from 'primeng/button';
-import {Divider} from 'primeng/divider';
 import {ProgressBar} from 'primeng/progressbar';
 import {Tooltip} from 'primeng/tooltip';
 import {MetadataProgressService} from '../../../../shared/service/metadata-progress.service';
@@ -20,7 +19,7 @@ import {MetadataPickerComponent} from '../book-metadata-center/metadata-picker/m
   standalone: true,
   templateUrl: './metadata-review-dialog-component.html',
   styleUrls: ['./metadata-review-dialog-component.scss'],
-  imports: [CommonModule, MetadataPickerComponent, ProgressSpinner, Button, Divider, ProgressBar, Tooltip],
+  imports: [CommonModule, MetadataPickerComponent, ProgressSpinner, Button, ProgressBar, Tooltip],
 })
 export class MetadataReviewDialogComponent implements OnInit {
 
@@ -38,6 +37,7 @@ export class MetadataReviewDialogComponent implements OnInit {
   currentBooks: Record<number, Book> = {};
   loading = true;
   currentIndex = 0;
+  processingAction: 'save' | 'quick' | null = null;
   private initialized = false;
 
   private currentIndexSubject = new BehaviorSubject<number>(0);
@@ -93,17 +93,75 @@ export class MetadataReviewDialogComponent implements OnInit {
     return this.proposals[this.currentIndex] ?? null;
   }
 
-  onSave(_updatedFields: Partial<FetchedProposal>): void {
+  get isBusy(): boolean {
+    return this.processingAction !== null || this.pickerComponent?.isSaving === true;
+  }
+
+  get quickActionLabel(): string {
+    return this.isLast ? 'Copy All, Save & Finish' : 'Copy All, Save & Next';
+  }
+
+  onSave(): void {
+    this.persistCurrentProposal('save', false);
+  }
+
+  onCopyAllSaveAndAdvance(): void {
+    this.pickerComponent?.copyAll();
+    this.persistCurrentProposal('quick', true);
+  }
+
+  onSkip(): void {
+    if (this.isBusy || !this.currentProposal) {
+      return;
+    }
+
+    if (this.currentIndex >= this.proposals.length - 1) {
+      this.close();
+      return;
+    }
+
+    const [skipped] = this.proposals.splice(this.currentIndex, 1);
+    this.proposals = [...this.proposals, skipped];
+    this.currentIndexSubject.next(this.currentIndex);
+  }
+
+  onCopyMissing(): void {
+    this.pickerComponent?.copyMissing();
+  }
+
+  onCopyAll(): void {
+    this.pickerComponent?.copyAll();
+  }
+
+  private persistCurrentProposal(action: 'save' | 'quick', advanceAfterSave: boolean): void {
     const currentProposal = this.currentProposal;
-    if (!currentProposal) return;
-    this.pickerComponent.onSave();
-    this.metadataTaskService.updateProposalStatus(currentProposal.taskId, currentProposal.proposalId, 'ACCEPTED').subscribe({
-      next: () => {
-        if (this.isLast) {
-          this.metadataTaskService.deleteTask(currentProposal.taskId).subscribe(() => {
+    if (!currentProposal || !this.pickerComponent || this.isBusy) return;
+
+    this.processingAction = action;
+    const shouldDeleteTask = this.isLast;
+
+    this.pickerComponent.saveMetadata().pipe(
+      switchMap(() => this.metadataTaskService.updateProposalStatus(currentProposal.taskId, currentProposal.proposalId, 'ACCEPTED')),
+      switchMap(() => shouldDeleteTask
+        ? this.metadataTaskService.deleteTask(currentProposal.taskId).pipe(
+          tap(() => {
             this.progressService.clearTask(currentProposal.taskId);
-          });
+          })
+        )
+        : of(void 0)
+      ),
+      finalize(() => {
+        this.processingAction = null;
+      })
+    ).subscribe({
+      next: () => {
+        if (advanceAfterSave || shouldDeleteTask) {
+          this.onNext();
         }
+      },
+      error: () => {
+        // The picker already reports save failures to the user. Keep the
+        // current proposal open so the review can be corrected and retried.
       }
     });
   }
@@ -119,10 +177,12 @@ export class MetadataReviewDialogComponent implements OnInit {
   }
 
   lockAllMetadata(): void {
+    if (this.isBusy) return;
     this.pickerComponent?.lockAll();
   }
 
   unlockAllMetadata(): void {
+    if (this.isBusy) return;
     this.pickerComponent?.unlockAll();
   }
 

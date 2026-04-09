@@ -139,6 +139,19 @@
     margin-left: 0.75rem;
     margin-right:  0.75rem;
   }
+
+  .review-quick-action {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 1rem;
+  }
+}
+
+::ng-deep .review-quick-action-btn.p-button {
+  padding-inline: 1rem;
+  min-width: auto;
 }
 
 // Sections
@@ -634,6 +647,18 @@
 
     .footer-transfer-actions {
       justify-content: center;
+    }
+  }
+
+  .column-headers {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    .review-quick-action {
+      width: 100%;
+      justify-content: center;
+      margin-left: 0;
+      padding-left: 0;
     }
   }
 

@@ -706,6 +706,16 @@
   <tr><td>Fetch author info</td><td>Download author biographies and photos</td></tr>
 </table>
 
+<h3>Metadata Review Queue</h3>
+<ul>
+  <li>The fetched-proposal dialog is now titled <strong>Metadata Review</strong></li>
+  <li>Use the bottom-right <strong>&lt;</strong> and <strong>&lt;&lt;</strong> buttons to copy missing fields or copy all fetched fields into the editable column</li>
+  <li>Use <strong>Skip</strong> to move the current proposal to the end of the current review queue and jump straight to the next proposal</li>
+  <li>Use the orange <strong>Copy All, Save &amp; Next</strong> action in the top comparison header to run the common review routine in one step</li>
+  <li><strong>Accept &amp; Save</strong> now waits for the metadata save itself to finish before the proposal is marked accepted, so the review queue and saved data stay in sync</li>
+  <li><strong>Lock All</strong> and <strong>Unlock All</strong> now sit on the left edge of the bottom action bar for faster repeated review work</li>
+</ul>
+
 <h3>Editing Metadata Manually</h3>
 <ul>
   <li>Edit title, author, description, and all other fields by hand</li>
@@ -1249,6 +1259,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-09</td><td>1.1.51</td><td>Documented the Metadata Review dialog refresh: renamed the proposal screen, moved the copy-missing and copy-all buttons to the bottom action bar, added skip-to-end queueing, added the one-click Copy All, Save &amp; Next shortcut, and clarified that acceptance now waits for the underlying metadata save to finish before the review advances</td></tr>
   <tr><td>2026-04-08</td><td>1.1.50</td><td>Reworked sidebar filter-mode switching so the parent browser now clears the old filter state before activating the new AND/OR/NOT/1 mode, preventing the mode button from showing one state while the book list still filters with the previous mode; added regression tests for parent-owned mode changes and stale-selection suppression</td></tr>
   <tr><td>2026-04-08</td><td>1.1.49</td><td>Hardened filter-mode propagation so the AND/OR/NOT/1 value is normalised (trimmed, lowercased, validated) at every entry point—URL params, persisted user settings, component inputs, and the core filtering function—preventing a mode value that differs by case or whitespace from silently disabling the NOT exclusion logic; added SideBarFilter integration tests exercising the full observable chain</td></tr>
   <tr><td>2026-04-08</td><td>1.1.48</td><td>Fixed Date Added and Folder sidebar filters so they actually filter the book list under every mode (AND, OR, NOT, 1) instead of silently returning no results or doing nothing; added comprehensive regression tests for all four filter modes</td></tr>

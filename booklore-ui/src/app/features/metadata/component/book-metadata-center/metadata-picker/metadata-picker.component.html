@@ -14,30 +14,44 @@
           <i class="pi pi-file-edit"></i>
           <span>{{ t('columnCurrent') }}</span>
         </div>
-        <div class="column-actions">
-          <p-button
-            icon="pi pi-angle-left"
-            [rounded]="true"
-            [outlined]="true"
-            severity="secondary"
-            [pTooltip]="t('copyMissingTooltip')"
-            tooltipPosition="bottom"
-            (onClick)="copyMissing()"
-          />
-          <p-button
-            icon="pi pi-angle-double-left"
-            [rounded]="true"
-            [outlined]="true"
-            severity="primary"
-            [pTooltip]="t('copyAllTooltip')"
-            tooltipPosition="bottom"
-            (onClick)="copyAll()"
-          />
-        </div>
+        @if (!reviewMode) {
+          <div class="column-actions">
+            <p-button
+              icon="pi pi-angle-left"
+              [rounded]="true"
+              [outlined]="true"
+              severity="secondary"
+              [pTooltip]="t('copyMissingTooltip')"
+              tooltipPosition="bottom"
+              (onClick)="copyMissing()"
+            />
+            <p-button
+              icon="pi pi-angle-double-left"
+              [rounded]="true"
+              [outlined]="true"
+              severity="primary"
+              [pTooltip]="t('copyAllTooltip')"
+              tooltipPosition="bottom"
+              (onClick)="copyAll()"
+            />
+          </div>
+        }
         <div class="column-label fetched">
           <i class="pi pi-cloud-download"></i>
           <span>{{ t('columnFetched') }}</span>
         </div>
+        @if (reviewMode && reviewQuickActionLabel) {
+          <div class="review-quick-action">
+            <p-button
+              [label]="reviewQuickActionLabel"
+              severity="warn"
+              styleClass="review-quick-action-btn"
+              [loading]="reviewActionBusy"
+              [disabled]="reviewActionDisabled"
+              (onClick)="reviewQuickAction.emit()"
+            />
+          </div>
+        }
       </div>
 
       <!-- Cover Image Section -->
