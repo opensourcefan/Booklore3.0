@@ -1245,6 +1245,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-08</td><td>1.1.49</td><td>Hardened filter-mode propagation so the AND/OR/NOT/1 value is normalised (trimmed, lowercased, validated) at every entry point—URL params, persisted user settings, component inputs, and the core filtering function—preventing a mode value that differs by case or whitespace from silently disabling the NOT exclusion logic; added SideBarFilter integration tests exercising the full observable chain</td></tr>
   <tr><td>2026-04-08</td><td>1.1.48</td><td>Fixed Date Added and Folder sidebar filters so they actually filter the book list under every mode (AND, OR, NOT, 1) instead of silently returning no results or doing nothing; added comprehensive regression tests for all four filter modes</td></tr>
   <tr><td>2026-04-08</td><td>1.1.47</td><td>Documented the right-sidebar filter refresh fix so tag and metadata edits repopulate sidebar facets immediately, and clarified that filter highlights no longer stick after deselection when ids change format</td></tr>
   <tr><td>2026-04-08</td><td>1.1.46</td><td>Clarified that the custom metadata age filter uses the last successful metadata fetch time, and documented the paused topbar metadata pill plus its new fetched-versus-remaining task log dialog</td></tr>

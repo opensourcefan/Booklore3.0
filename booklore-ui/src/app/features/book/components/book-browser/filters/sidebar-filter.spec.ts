@@ -1,7 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {Book} from '../../../model/book.model';
 import {getFacetSourceBooks} from '../book-filter/book-filter.service';
-import {doesBookMatchFilter, filterBooksByFilters} from './sidebar-filter';
+import {doesBookMatchFilter, filterBooksByFilters, normalizeFilterMode, SideBarFilter} from './sidebar-filter';
+import {BehaviorSubject, firstValueFrom} from 'rxjs';
+import {BookFilterMode} from '../../../../settings/user-management/user.service';
+import {BookState} from '../../../model/state/book-state.model';
 
 function createBook(overrides: Partial<Book>): Book {
   return {
@@ -250,5 +253,144 @@ describe('sidebar-filter folderPath matching', () => {
   it('excludes folderPath in NOT mode', () => {
     const result = filterBooksByFilters(books, {folderPath: ['comics/marvel']}, 'not');
     expect(result.map(b => b.id)).toEqual([2, 3, 4]);
+  });
+});
+
+describe('sidebar-filter NOT mode with tags (user scenario)', () => {
+  // Books with diverse, overlapping tags matching the user's scenario
+  const bookFantasy = createBook({id: 1, metadata: {tags: ['Fantasy', 'Adventure']} as Book['metadata']});
+  const bookHorror = createBook({id: 2, metadata: {tags: ['Horror', 'Thriller']} as Book['metadata']});
+  const bookSciFi = createBook({id: 3, metadata: {tags: ['Sci-Fi']} as Book['metadata']});
+  const bookBothGenres = createBook({id: 4, metadata: {tags: ['Fantasy', 'Horror']} as Book['metadata']});
+  const bookNoTags = createBook({id: 5, metadata: {} as Book['metadata']});
+  const bookNullMeta = createBook({id: 6});
+  const books = [bookFantasy, bookHorror, bookSciFi, bookBothGenres, bookNoTags, bookNullMeta];
+
+  it('NOT with 1 tag excludes ONLY books having that tag', () => {
+    const result = filterBooksByFilters(books, {tag: ['Fantasy']}, 'not');
+    // Fantasy is on books 1 and 4 → excluded; books 2,3,5,6 remain
+    expect(result.map(b => b.id)).toEqual([2, 3, 5, 6]);
+  });
+
+  it('NOT with 2 tags excludes books having EITHER tag', () => {
+    const result = filterBooksByFilters(books, {tag: ['Fantasy', 'Horror']}, 'not');
+    // Fantasy on 1,4; Horror on 2,4 → excluded: 1,2,4; remains: 3,5,6
+    expect(result.map(b => b.id)).toEqual([3, 5, 6]);
+  });
+
+  it('NOT with 1 tag differs from single/1 mode (single shows matches, NOT hides them)', () => {
+    const notResult = filterBooksByFilters(books, {tag: ['Fantasy']}, 'not');
+    const singleResult = filterBooksByFilters(books, {tag: ['Fantasy']}, 'single');
+    // NOT excludes Fantasy books, single includes them
+    expect(notResult.map(b => b.id)).toEqual([2, 3, 5, 6]);
+    expect(singleResult.map(b => b.id)).toEqual([1, 4]);
+    // They must produce disjoint (non-overlapping) results
+    const overlap = notResult.filter(b => singleResult.some(s => s.id === b.id));
+    expect(overlap).toEqual([]);
+  });
+
+  it('NOT with all popular tags can empty the results (correct behavior)', () => {
+    // Select all tags that cover every book → nothing survives
+    const result = filterBooksByFilters(books, {tag: ['Fantasy', 'Horror', 'Sci-Fi', 'Adventure', 'Thriller']}, 'not');
+    // Books 1-4 all have at least one matching tag → excluded
+    // Books 5,6 have no tags → doesBookMatchFilter returns false → !false = true → survive
+    expect(result.map(b => b.id)).toEqual([5, 6]);
+  });
+
+  it('NOT keeps books with no tags (no metadata match)', () => {
+    const result = filterBooksByFilters(books, {tag: ['Fantasy']}, 'not');
+    expect(result.map(b => b.id)).toContain(5); // empty metadata tags
+    expect(result.map(b => b.id)).toContain(6); // no metadata at all
+  });
+});
+
+describe('normalizeFilterMode', () => {
+  it('passes through valid lowercase modes unchanged', () => {
+    expect(normalizeFilterMode('and')).toBe('and');
+    expect(normalizeFilterMode('or')).toBe('or');
+    expect(normalizeFilterMode('not')).toBe('not');
+    expect(normalizeFilterMode('single')).toBe('single');
+  });
+
+  it('normalizes uppercase mode to lowercase', () => {
+    expect(normalizeFilterMode('NOT')).toBe('not');
+    expect(normalizeFilterMode('AND')).toBe('and');
+    expect(normalizeFilterMode('Or')).toBe('or');
+    expect(normalizeFilterMode('SINGLE')).toBe('single');
+  });
+
+  it('trims whitespace', () => {
+    expect(normalizeFilterMode(' not ')).toBe('not');
+    expect(normalizeFilterMode('  and')).toBe('and');
+  });
+
+  it('defaults to and for invalid values', () => {
+    expect(normalizeFilterMode('invalid')).toBe('and');
+    expect(normalizeFilterMode('')).toBe('and');
+    expect(normalizeFilterMode(null)).toBe('and');
+    expect(normalizeFilterMode(undefined)).toBe('and');
+  });
+
+  it('filterBooksByFilters applies NOT correctly even with uppercase mode', () => {
+    const books = [
+      createBook({id: 1, metadata: {tags: ['Fantasy']} as Book['metadata']}),
+      createBook({id: 2, metadata: {tags: ['Horror']} as Book['metadata']}),
+    ];
+    // Cast to bypass TypeScript — at runtime the mode could be uppercase
+    const result = filterBooksByFilters(books, {tag: ['Fantasy']}, 'NOT' as unknown as BookFilterMode);
+    expect(result.map(b => b.id)).toEqual([2]);
+  });
+});
+
+describe('SideBarFilter integration', () => {
+  it('applies NOT mode through the observable chain', async () => {
+    const books = [
+      createBook({id: 1, metadata: {tags: ['Fantasy']} as Book['metadata']}),
+      createBook({id: 2, metadata: {tags: ['Horror']} as Book['metadata']}),
+      createBook({id: 3, metadata: {tags: ['Sci-Fi']} as Book['metadata']}),
+    ];
+    const bookState: BookState = {books, loaded: true, error: null};
+
+    const selectedFilter$ = new BehaviorSubject<Record<string, string[]> | null>(null);
+    const selectedFilterMode$ = new BehaviorSubject<BookFilterMode>('and');
+    const sideBar = new SideBarFilter(selectedFilter$, selectedFilterMode$);
+
+    // Initially no filters → all books
+    let result = await firstValueFrom(sideBar.filter(bookState));
+    expect(result.books?.map(b => b.id)).toEqual([1, 2, 3]);
+
+    // Switch to NOT mode, then set filter
+    selectedFilterMode$.next('not');
+    selectedFilter$.next({tag: ['Fantasy']});
+    result = await firstValueFrom(sideBar.filter(bookState));
+    expect(result.books?.map(b => b.id)).toEqual([2, 3]);
+
+    // Add a second tag in NOT mode
+    selectedFilter$.next({tag: ['Fantasy', 'Horror']});
+    result = await firstValueFrom(sideBar.filter(bookState));
+    expect(result.books?.map(b => b.id)).toEqual([3]);
+  });
+
+  it('switches between NOT and single mode correctly', async () => {
+    const books = [
+      createBook({id: 1, metadata: {tags: ['Fantasy']} as Book['metadata']}),
+      createBook({id: 2, metadata: {tags: ['Horror']} as Book['metadata']}),
+      createBook({id: 3, metadata: {tags: ['Sci-Fi']} as Book['metadata']}),
+    ];
+    const bookState: BookState = {books, loaded: true, error: null};
+
+    const selectedFilter$ = new BehaviorSubject<Record<string, string[]> | null>(null);
+    const selectedFilterMode$ = new BehaviorSubject<BookFilterMode>('not');
+    const sideBar = new SideBarFilter(selectedFilter$, selectedFilterMode$);
+
+    // NOT mode: exclude Fantasy
+    selectedFilter$.next({tag: ['Fantasy']});
+    let result = await firstValueFrom(sideBar.filter(bookState));
+    expect(result.books?.map(b => b.id)).toEqual([2, 3]);
+
+    // Switch to single mode: Fantasy now included
+    selectedFilterMode$.next('single');
+    result = await firstValueFrom(sideBar.filter(bookState));
+    expect(result.books?.map(b => b.id)).toEqual([1]);
   });
 });

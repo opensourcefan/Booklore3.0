@@ -27,7 +27,7 @@ import {BookFilterComponent} from './book-filter/book-filter.component';
 import {Tooltip} from 'primeng/tooltip';
 import {BookFilterMode, DEFAULT_VISIBLE_SORT_FIELDS, EntityViewPreferences, SortCriterion, UserService} from '../../../settings/user-management/user.service';
 import {SeriesCollapseFilter} from './filters/SeriesCollapseFilter';
-import {SideBarFilter} from './filters/sidebar-filter';
+import {normalizeFilterMode, SideBarFilter} from './filters/sidebar-filter';
 import {HeaderFilter} from './filters/HeaderFilter';
 import {CoverScalePreferenceService} from './cover-scale-preference.service';
 import {BookSorter} from './sorting/BookSorter';
@@ -598,7 +598,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         entityInfo.entityType,
         entityInfo.entityId,
         this.bookSorter.sortOptions,
-        user.user?.userSettings?.filterMode ?? 'and'
+        normalizeFilterMode(user.user?.userSettings?.filterMode)
       );
 
       this.hasExplicitSortQuery = queryParamMap.has('sort');
@@ -718,12 +718,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onFilterModeChanged(mode: BookFilterMode): void {
-    if (this.settingFiltersFromUrl || mode === this.selectedFilterMode.getValue()) return;
+    const safe = normalizeFilterMode(mode);
+    if (this.settingFiltersFromUrl || safe === this.selectedFilterMode.getValue()) return;
 
-    this.selectedFilterMode.next(mode);
+    this.selectedFilterMode.next(safe);
     this.clearSidebarFiltersState(true);
-    this.queryParamsService.updateFilterMode(mode, {}, true);
-    this.persistFilterModePreference(mode);
+    this.queryParamsService.updateFilterMode(safe, {}, true);
+    this.persistFilterModePreference(safe);
   }
 
   private clearSidebarFiltersState(suppressFilterSelectionEvents = false): void {

@@ -3,6 +3,7 @@ import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {SortDirection, SortOption} from '../../model/sort.model';
 import {BookFilterMode, EntityViewPreference, EntityViewPreferences, SortCriterion} from '../../../settings/user-management/user.service';
 import {EntityType} from './book-browser.component';
+import {normalizeFilterMode} from './filters/sidebar-filter';
 
 export const QUERY_PARAMS = {
   VIEW: 'view',
@@ -61,7 +62,7 @@ export class BookBrowserQueryParamsService {
     const filterModeParam = queryParamMap.get(QUERY_PARAMS.FMODE);
     const fromParam = queryParamMap.get(QUERY_PARAMS.FROM);
 
-    const filterMode = (filterModeParam || defaultFilterMode) as BookFilterMode;
+    const filterMode = normalizeFilterMode(filterModeParam || defaultFilterMode);
 
     // Parse filters
     const filters = this.deserializeFilters(filterParams);

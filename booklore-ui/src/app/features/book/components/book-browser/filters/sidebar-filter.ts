@@ -199,6 +199,15 @@ export function doesBookMatchFilter(
 }
 
 const NAV_FILTER_TYPES = new Set(['customMediaType', 'customBookType']);
+const VALID_FILTER_MODES = new Set<string>(['and', 'or', 'not', 'single']);
+
+export function normalizeFilterMode(mode: unknown): BookFilterMode {
+  if (typeof mode === 'string') {
+    const normalized = mode.trim().toLowerCase();
+    if (VALID_FILTER_MODES.has(normalized)) return normalized as BookFilterMode;
+  }
+  return 'and';
+}
 
 export function filterBooksByFilters(
   books: Book[],
@@ -207,6 +216,8 @@ export function filterBooksByFilters(
   excludeFilterType?: string
 ): Book[] {
   if (!activeFilters) return books;
+
+  const safeMode = normalizeFilterMode(mode);
 
   // Navigation-level pre-filters (customMediaType / customBookType) always
   // act as mandatory AND constraints regardless of the active mode. They
@@ -227,10 +238,10 @@ export function filterBooksByFilters(
 
   return pool.filter(book => {
     const matches = filterEntries.map(([filterType, filterValues]) =>
-      doesBookMatchFilter(book, filterType, filterValues, mode)
+      doesBookMatchFilter(book, filterType, filterValues, safeMode)
     );
-    if (mode === 'not') return matches.every(m => !m);
-    return mode === 'or' ? matches.some(m => m) : matches.every(m => m);
+    if (safeMode === 'not') return matches.every(m => !m);
+    return safeMode === 'or' ? matches.some(m => m) : matches.every(m => m);
   });
 }
 
@@ -244,10 +255,11 @@ export class SideBarFilter implements BookFilter {
       map(([activeFilters, mode]) => {
         if (bookState.books == null) return bookState;
         if (!activeFilters) return bookState;
+        const safeMode = normalizeFilterMode(mode);
         const filteredBooks = filterBooksByFilters(
           bookState.books || [],
           activeFilters as Record<string, unknown[]>,
-          mode
+          safeMode
         );
         return {...bookState, books: filteredBooks};
       })

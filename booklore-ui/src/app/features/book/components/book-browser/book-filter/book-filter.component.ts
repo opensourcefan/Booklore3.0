@@ -15,6 +15,7 @@ import {Filter, FILTER_LABEL_KEYS, FilterType, UserFilterSort} from './book-filt
 import {BookFilterService} from './book-filter.service';
 import {filter} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {normalizeFilterMode} from '../filters/sidebar-filter';
 
 interface FilterModeOption {
   label: string;
@@ -42,12 +43,13 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   @Input() urlFilter$: Observable<Record<string, string[]> | null> | undefined;
   @Input()
   set filterMode(mode: BookFilterMode | null | undefined) {
-    if (!mode || mode === this._selectedFilterMode) {
+    const safe = normalizeFilterMode(mode);
+    if (safe === this._selectedFilterMode) {
       return;
     }
 
-    this._selectedFilterMode = mode;
-    this.filterMode$.next(mode);
+    this._selectedFilterMode = safe;
+    this.filterMode$.next(safe);
   }
 
   @Output() filterSelected = new EventEmitter<Record<string, string[]> | null>();
@@ -98,10 +100,11 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   changeFilterMode(mode: BookFilterMode): void {
-    if (mode === this._selectedFilterMode) return;
-    this._selectedFilterMode = mode;
-    this.filterMode$.next(mode);
-    this.filterModeChanged.emit(mode);
+    const safe = normalizeFilterMode(mode);
+    if (safe === this._selectedFilterMode) return;
+    this._selectedFilterMode = safe;
+    this.filterMode$.next(safe);
+    this.filterModeChanged.emit(safe);
     this.emitFilters();
   }
 
