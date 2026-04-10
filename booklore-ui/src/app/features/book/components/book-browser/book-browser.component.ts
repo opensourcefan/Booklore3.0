@@ -398,7 +398,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
       this.selectedCoverUrl = this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
-      this.selectedBookTitle = book.metadata?.title ?? book.fileName ?? '';
+      this.selectedBookTitle = this.getDisplayTitle(book);
       this.pendingPreviewBookId = null;
       this.hoverPreviewTimer = null;
     }, this.COVER_PREVIEW_HOVER_DELAY_MS);
@@ -957,6 +957,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   onShowSubtitlesChange(value: boolean): void {
     this.showSubtitles = !!value;
     this.localStorageService.set(this.SHOW_SUBTITLES_STORAGE_KEY, this.showSubtitles);
+
+    const previewBook = this.getPreviewBook();
+    if (previewBook) {
+      this.selectedBookTitle = this.getDisplayTitle(previewBook);
+    }
   }
 
   get canSaveSort(): boolean {
@@ -1599,6 +1604,32 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (typeof saved === 'boolean') {
       this.showSubtitles = saved;
     }
+  }
+
+  private getPreviewBook(): Book | undefined {
+    if (!this.selectedCoverUrl) {
+      return undefined;
+    }
+
+    return this.bookService.getCurrentBookState().books?.find(book =>
+      this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn) === this.selectedCoverUrl
+    );
+  }
+
+  private getDisplayTitle(book: Book): string {
+    const fileName = book.fileName?.trim() || book.primaryFile?.fileName?.trim() || '';
+    if (this.isDirectoryScopedView) {
+      return fileName;
+    }
+
+    const title = book.metadata?.title?.trim() || '';
+    const subtitle = book.metadata?.subtitle?.trim() || '';
+
+    if (this.showSubtitles && title && subtitle) {
+      return `${title}: ${subtitle}`;
+    }
+
+    return title || fileName;
   }
 
   private getMobileTitleBarHeight(): number {

@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {UserService} from './user-management/user.service';
-import {AsyncPipe} from '@angular/common';
+import {AsyncPipe, Location} from '@angular/common';
 import {GlobalPreferencesComponent} from './global-preferences/global-preferences.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
@@ -20,6 +20,7 @@ import {PageTitleService} from "../../shared/service/page-title.service";
 import {EmailV2Component} from './email-v2/email-v2.component';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {AiSettingsComponent} from './ai-settings/ai-settings.component';
+import {Button} from 'primeng/button';
 
 export enum SettingsTab {
   ReaderSettings = 'reader',
@@ -61,7 +62,8 @@ export enum SettingsTab {
     AuditLogsComponent,
     EmailV2Component,
     AiSettingsComponent,
-    TranslocoDirective
+    TranslocoDirective,
+    Button
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss'
@@ -72,6 +74,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private pageTitle = inject(PageTitleService);
+  private location = inject(Location);
 
   private routeSub!: Subscription;
 
@@ -115,5 +118,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routeSub.unsubscribe();
+  }
+
+  onReturn(): void {
+    if (typeof window !== 'undefined' && window.history.length > 2) {
+      this.location.back();
+      return;
+    }
+
+    this.router.navigate(['/dashboard']);
   }
 }

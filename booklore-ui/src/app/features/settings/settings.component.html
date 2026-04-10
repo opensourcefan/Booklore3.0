@@ -2,6 +2,18 @@
   @if (userService.userState$ | async; as userState) {
     @if (userState.user) {
       <div class="settings-container">
+        <div class="settings-toolbar">
+          <p-button
+            type="button"
+            icon="pi pi-arrow-left"
+            iconPos="left"
+            [label]="t('back')"
+            severity="secondary"
+            [outlined]="true"
+            styleClass="settings-return-button"
+            (onClick)="onReturn()"
+          ></p-button>
+        </div>
         <p-tabs [(value)]="activeTab" lazy scrollable>
           <p-tablist>
             <p-tab [value]="SettingsTab.ReaderSettings">

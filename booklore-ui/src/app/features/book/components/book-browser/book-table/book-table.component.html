@@ -67,7 +67,7 @@
                 [alt]="t('bookCoverAlt')"
                 class="tooltip-cover-image"
               />
-              <em class="tooltip-cover-title">{{ metadata.title }}</em>
+              <em class="tooltip-cover-title">{{ getCellClickableValue(metadata, book, 'title') }}</em>
             </div>
           </ng-template>
         </td>

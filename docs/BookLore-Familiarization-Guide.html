@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.27 &mdash; April 6, 2026<br>
+    Version 1.1.55 &mdash; April 10, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -348,7 +348,7 @@
 <ul>
   <li><strong>All Books</strong> &mdash; View every book in your collection, displayed as a grid of cover images</li>
   <li><strong>Untitled cards fall back to the filename</strong> &mdash; If a book has no stored metadata title yet, BookLore shows the asset filename on the card so the item remains identifiable</li>
-  <li><strong>Adjust browser display settings from the cog menu</strong> &mdash; Use the display-settings popover to change cover text rows, overlays, and whether subtitles appear after the main title as <strong>Title: Subtitle</strong>; the popover also includes a top-right return arrow so you can close it quickly</li>
+  <li><strong>Adjust browser display settings from the cog menu</strong> &mdash; Use the display-settings popover to change cover text rows, overlays, and whether subtitles appear after the main title as <strong>Title: Subtitle</strong>; that subtitle format now stays consistent across the main grid, table titles, cover-tooltips, and the cover preview panel, and the popover still includes a top-right return arrow for quick closing</li>
   <li><strong>Library switching can feel faster after the first hover</strong> &mdash; When you pause on a library in the sidebar, BookLore quietly warms a small set of that library&rsquo;s thumbnails so the next switch shows fewer blank covers while images stream in</li>
   <li><strong>Click any book cover</strong> to open its detail page with full information</li>
   <li><strong>Close book details cleanly</strong> &mdash; The back arrow in Book Details returns you to the page you opened from instead of walking backward through every detail view</li>
@@ -1051,6 +1051,8 @@
 
 <p>Access settings via the gear icon at the bottom of the sidebar.</p>
 
+<p>The main Settings page also includes a visible <strong>Back</strong> button with a left-arrow icon in the top-right corner so you can return to the previous screen without changing tabs first.</p>
+
 <table>
   <tr><th>Category</th><th>What You Can Configure</th></tr>
   <tr><td>Reader Settings</td><td>Default font size, zoom, reading mode preferences</td></tr>
@@ -1263,6 +1265,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-10</td><td>1.1.55</td><td>Corrected the Settings page documentation to reflect the real top-right Back button on the main tabbed settings screen, and clarified that subtitle display now stays consistent in browser cards, tables, cover tooltips, and the cover preview panel</td></tr>
   <tr><td>2026-04-10</td><td>1.1.54</td><td>Clarified the follow-up browser display-settings fix so the return arrow is visibly shown as a left-arrow button and subtitle toggles update already-rendered book cards immediately instead of only affecting later refreshes</td></tr>
   <tr><td>2026-04-10</td><td>1.1.53</td><td>Documented the book-browser display-settings return arrow and subtitle toggle, plus clarified that directory browsing now forces filename A&ndash;Z display until you clear the scoped folder view or re-click the active library or shelf</td></tr>
   <tr><td>2026-04-09</td><td>1.1.52</td><td>Added the Metadata Review <strong>Tag &amp; Next</strong> action to append the <strong>Metadata Follow-Up Req</strong> tag without accepting the current proposal, and clarified that <strong>Finish &amp; Close</strong> now clears the related topbar metadata notification/task state when the review session ends</td></tr>
