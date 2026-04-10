@@ -44,6 +44,8 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
   @Input() sortOption: SortOption | null = null;
   @Input() visibleColumns: { field: string; header: string }[] = [];
   @Input() preselectedBookIds = new Set<number>();
+  @Input() showSubtitle = false;
+  @Input() forceFileNameTitle = false;
 
   protected urlHelper = inject(UrlHelperService);
   private bookService = inject(BookService);
@@ -223,7 +225,7 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
         return [
           {
             url: this.urlHelper.getBookUrl(book),
-            anchor: metadata.title ?? book.fileName
+            anchor: this.getDisplayTitle(book)
           }
         ];
 
@@ -265,7 +267,7 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
         return this.readStatusHelper.getReadStatusTooltip(book?.readStatus);
 
       case 'title':
-        return metadata.title ?? '';
+        return this.getDisplayTitle(book);
 
       case 'authors':
         return this.getAuthorNames(metadata.authors!);
@@ -322,6 +324,22 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
       default:
         return '';
     }
+  }
+
+  private getDisplayTitle(book: Book): string {
+    const fileName = book.fileName?.trim() || book.primaryFile?.fileName?.trim() || '';
+    if (this.forceFileNameTitle) {
+      return fileName;
+    }
+
+    const title = book.metadata?.title?.trim() || '';
+    const subtitle = book.metadata?.subtitle?.trim() || '';
+
+    if (this.showSubtitle && title && subtitle) {
+      return `${title}: ${subtitle}`;
+    }
+
+    return title || fileName;
   }
 
   toggleMetadataLock(metadata: BookMetadata): void {

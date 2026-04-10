@@ -19,6 +19,7 @@ import {MenuItem} from 'primeng/api';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {ThumbnailPrefetchService} from '../../../../features/book/service/thumbnail-prefetch.service';
+import {DirectoryFilterService} from '../../../../features/book/service/directory-filter.service';
 
 export interface AppMenuItem extends MenuItem {
   type?: string;
@@ -110,6 +111,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   private bookDialogHelperService = inject(BookDialogHelperService);
   private localStorageService = inject(LocalStorageService);
   private thumbnailPrefetchService = inject(ThumbnailPrefetchService);
+  private directoryFilterService = inject(DirectoryFilterService);
 
   constructor() {
     this.userStateSubscription = this.userService.userState$.subscribe(userState => {
@@ -207,6 +209,9 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
       event.preventDefault();
       return;
     }
+
+    this.clearScopedDirectoryFilterIfReclickingActiveRoute();
+
     if (this.item.command) {
       this.item.command({originalEvent: event, item: this.item});
     }
@@ -309,6 +314,20 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
 
   private shouldSuppressTap(): boolean {
     return Date.now() < this.suppressTapUntil;
+  }
+
+  private clearScopedDirectoryFilterIfReclickingActiveRoute(): void {
+    const routerLink = Array.isArray(this.item.routerLink) ? this.item.routerLink[0] : this.item.routerLink;
+    if (!routerLink || this.item.items) {
+      return;
+    }
+
+    const currentPath = this.router.url.split('?')[0].split('#')[0];
+    if (currentPath !== routerLink) {
+      return;
+    }
+
+    this.directoryFilterService.clearScope(this.directoryFilterService.getScopeKeyFromUrl(currentPath));
   }
 
 }

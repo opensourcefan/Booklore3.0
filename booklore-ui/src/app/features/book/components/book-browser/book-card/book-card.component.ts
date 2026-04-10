@@ -57,6 +57,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Input() forceEbookMode = false;
   @Input() useSquareCovers = false;
   @Input() titleRows = 1;
+  @Input() showSubtitle = false;
+  @Input() forceFileNameTitle = false;
 
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
   @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
@@ -223,9 +225,18 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   private resolveDisplayTitle(): string {
+    const fileName = this.book.fileName?.trim() || this.book.primaryFile?.fileName?.trim() || '';
+    if (this.forceFileNameTitle) {
+      return fileName;
+    }
+
     const collapsedSeriesName = this.isSeriesCollapsed ? this.book.metadata?.seriesName?.trim() : '';
     const metadataTitle = this.book.metadata?.title?.trim() || '';
-    const fileName = this.book.fileName?.trim() || this.book.primaryFile?.fileName?.trim() || '';
+    const metadataSubtitle = this.book.metadata?.subtitle?.trim() || '';
+
+    if (!collapsedSeriesName && this.showSubtitle && metadataTitle && metadataSubtitle) {
+      return `${metadataTitle}: ${metadataSubtitle}`;
+    }
 
     return collapsedSeriesName || metadataTitle || fileName;
   }

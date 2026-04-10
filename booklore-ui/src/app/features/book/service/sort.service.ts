@@ -90,7 +90,7 @@ export class SortService {
     lastReadTime: (book) => book.lastReadTime ? new Date(book.lastReadTime).getTime() : null,
     addedOn: (book) => book.addedOn ? new Date(book.addedOn).getTime() : null,
     fileSizeKb: (book) => book.fileSizeKb || null,
-    fileName: (book) => book.fileName,
+    fileName: (book) => book.fileName?.toLowerCase() || book.primaryFile?.fileName?.toLowerCase() || null,
     filePath: (book) => book.filePath,
     random: (_book) => Math.random(),
     seriesName: (book) => book.metadata?.seriesName?.toLowerCase() || null,

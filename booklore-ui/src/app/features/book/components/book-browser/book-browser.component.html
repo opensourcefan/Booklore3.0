@@ -145,6 +145,18 @@
               </button>
               <p-popover #seriesCollapseOverlay [dismissable]="true" appendTo="body">
                 <div class="display-settings-popover">
+                  <div class="display-settings-header">
+                    <span class="display-settings-title">{{ t('labels.displaySettings') }}</span>
+                    <button
+                      type="button"
+                      class="display-settings-close-btn"
+                      (click)="seriesCollapseOverlay.hide()"
+                      [attr.aria-label]="t('labels.return')"
+                      [pTooltip]="t('labels.return')"
+                      tooltipPosition="top">
+                      <i class="pi pi-reply"></i>
+                    </button>
+                  </div>
                   <div class="display-settings-section">
                     <div class="display-settings-checkbox-row">
                       <p-checkbox
@@ -154,6 +166,17 @@
                         (onChange)="onSeriesCollapseCheckboxChange($event.checked)">
                       </p-checkbox>
                       <label for="collapse-series-checkbox" class="display-settings-label">{{ t('labels.collapseSeries') }}</label>
+                    </div>
+                  </div>
+                  <div class="display-settings-section">
+                    <div class="display-settings-checkbox-row">
+                      <p-checkbox
+                        inputId="show-subtitles-checkbox"
+                        [binary]="true"
+                        [ngModel]="showSubtitles"
+                        (onChange)="onShowSubtitlesChange($event.checked)">
+                      </p-checkbox>
+                      <label for="show-subtitles-checkbox" class="display-settings-label">{{ t('labels.showSubtitles') }}</label>
                     </div>
                   </div>
                   @if (isMobile) {
@@ -602,6 +625,8 @@
                   (selectedBooksChange)="onSelectedBooksChange($event)"
                   [sortOption]="this.bookSorter.selectedSort!"
                   [visibleColumns]="visibleColumns"
+                  [showSubtitle]="showSubtitles"
+                  [forceFileNameTitle]="isDirectoryScopedView"
                 ></app-book-table>
               }
               @if (currentViewMode === 'grid') {
@@ -621,20 +646,22 @@
                           [isCheckboxEnabled]="true"
                           [seriesViewEnabled]="seriesViewEnabled"
                           [onBookSelect]="handleBookSelect.bind(this)"
-                        [isSeriesCollapsed]="seriesCollapseFilter.isSeriesCollapsed"
-                        (checkboxClick)="onCheckboxClicked($event)"
-                        (bookClicked)="onBookClicked($event)"
-                        (bookHoverEnded)="onBookHoverEnded($event)"
-                        [isSelected]="selectedBooks.has(book.id)"
-                        [useSquareCovers]="isAudiobookOnlyLibrary"
-                        [overlayPreferenceService]="bookCardOverlayPreferenceService">
-                      </app-book-card>
-                    </div>
-                  }
-                </div>
-              </virtual-scroller>
+                          [isSeriesCollapsed]="seriesCollapseFilter.isSeriesCollapsed"
+                          [showSubtitle]="showSubtitles"
+                          [forceFileNameTitle]="isDirectoryScopedView"
+                          (checkboxClick)="onCheckboxClicked($event)"
+                          (bookClicked)="onBookClicked($event)"
+                          (bookHoverEnded)="onBookHoverEnded($event)"
+                          [isSelected]="selectedBooks.has(book.id)"
+                          [useSquareCovers]="isAudiobookOnlyLibrary"
+                          [overlayPreferenceService]="bookCardOverlayPreferenceService">
+                        </app-book-card>
+                      </div>
+                    }
+                  </div>
+                </virtual-scroller>
+              }
             }
-          }
           }
         </div>
       </div>

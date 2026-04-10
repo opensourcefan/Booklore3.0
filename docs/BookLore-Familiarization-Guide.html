@@ -348,6 +348,7 @@
 <ul>
   <li><strong>All Books</strong> &mdash; View every book in your collection, displayed as a grid of cover images</li>
   <li><strong>Untitled cards fall back to the filename</strong> &mdash; If a book has no stored metadata title yet, BookLore shows the asset filename on the card so the item remains identifiable</li>
+  <li><strong>Adjust browser display settings from the cog menu</strong> &mdash; Use the display-settings popover to change cover text rows, overlays, and whether subtitles appear after the main title as <strong>Title: Subtitle</strong>; the popover also includes a top-right return arrow so you can close it quickly</li>
   <li><strong>Library switching can feel faster after the first hover</strong> &mdash; When you pause on a library in the sidebar, BookLore quietly warms a small set of that library&rsquo;s thumbnails so the next switch shows fewer blank covers while images stream in</li>
   <li><strong>Click any book cover</strong> to open its detail page with full information</li>
   <li><strong>Close book details cleanly</strong> &mdash; The back arrow in Book Details returns you to the page you opened from instead of walking backward through every detail view</li>
@@ -361,9 +362,9 @@
   <tr><th>Action</th><th>What It Does</th></tr>
   <tr><td>Open the folder panel</td><td>Click the folder button while viewing <strong>All Books</strong> or a specific library</td></tr>
   <tr><td>Expand a folder branch</td><td>Click the <strong>+</strong> or <strong>&minus;</strong> toggle next to a top-level folder</td></tr>
-  <tr><td>Select a top-level folder</td><td>Click the folder row itself to show only books stored directly in that root folder, with root folders and nested folders listed in alphabetical order for easier browsing</td></tr>
-  <tr><td>Select a subfolder</td><td>Click a nested folder to show books inside that folder and its child folders, again keeping the visible folder tree in alphabetical order until you pick a different book sort</td></tr>
-  <tr><td>Clear a folder filter</td><td>Click the selected folder again, or use the normal filter clear action</td></tr>
+  <tr><td>Select a top-level folder</td><td>Click the folder row itself to show only books stored directly in that root folder, with root folders and nested folders listed in alphabetical order and the book list switching to filename-based A&ndash;Z browsing</td></tr>
+  <tr><td>Select a subfolder</td><td>Click a nested folder to show books inside that folder and its child folders; while a directory filter is active, BookLore shows filenames in the main list and keeps the active sort pinned to filename A&ndash;Z instead of metadata title order</td></tr>
+  <tr><td>Clear a folder filter</td><td>Click the selected folder again, use the normal filter clear action, or click the active library or shelf in the left sidebar to return to that collection&rsquo;s normal view</td></tr>
   <tr><td>Browse across libraries</td><td>In <strong>All Books</strong>, the panel shows each library root so you can filter across multiple libraries from one screen</td></tr>
 </table>
 
@@ -789,6 +790,7 @@
 <ul>
   <li>Combine multiple filters (e.g., &ldquo;Unread comics in my Comics library&rdquo;)</li>
   <li>Filter by real storage folders from the directory explorer while keeping your other filters active</li>
+  <li>Return from a folder-scoped browse by clicking the same library or shelf again in the left sidebar, which clears that directory selection and restores the collection&rsquo;s normal title-aware view</li>
   <li>Use <strong>Media Type &rarr; Physical</strong> from the sidebar to see only physical placeholders, or mix it with other filters like library, shelf, and reading status</li>
   <li>Hover the filter-mode buttons to see what each mode does: <strong>AND</strong> requires every selected filter to match, <strong>OR</strong> accepts any selected match, <strong>NOT</strong> hides matches, and <strong>1</strong> keeps only one active selection at a time</li>
   <li>Scroll the desktop filter sidebar as one continuous panel instead of fighting a second nested scrollbar inside long filter groups</li>
@@ -1261,6 +1263,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-10</td><td>1.1.53</td><td>Documented the book-browser display-settings return arrow and subtitle toggle, plus clarified that directory browsing now forces filename A&ndash;Z display until you clear the scoped folder view or re-click the active library or shelf</td></tr>
   <tr><td>2026-04-09</td><td>1.1.52</td><td>Added the Metadata Review <strong>Tag &amp; Next</strong> action to append the <strong>Metadata Follow-Up Req</strong> tag without accepting the current proposal, and clarified that <strong>Finish &amp; Close</strong> now clears the related topbar metadata notification/task state when the review session ends</td></tr>
   <tr><td>2026-04-09</td><td>1.1.51</td><td>Documented the Metadata Review dialog refresh: renamed the proposal screen, moved the copy-missing and copy-all buttons to the bottom action bar, added skip-to-end queueing, added the one-click Copy All, Save &amp; Next shortcut, and clarified that acceptance now waits for the underlying metadata save to finish before the review advances</td></tr>
   <tr><td>2026-04-08</td><td>1.1.50</td><td>Reworked sidebar filter-mode switching so the parent browser now clears the old filter state before activating the new AND/OR/NOT/1 mode, preventing the mode button from showing one state while the book list still filters with the previous mode; added regression tests for parent-owned mode changes and stale-selection suppression</td></tr>

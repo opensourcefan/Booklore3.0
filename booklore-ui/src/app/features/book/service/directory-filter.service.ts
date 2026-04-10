@@ -24,6 +24,17 @@ export class DirectoryFilterService {
     this.filterSubject.next(null);
   }
 
+  clearScope(scopeKey: string | null): void {
+    if (!scopeKey) {
+      return;
+    }
+
+    const current = this.filterSubject.value;
+    if (current?.scopeKey === scopeKey) {
+      this.filterSubject.next(null);
+    }
+  }
+
   getScopeKeyFromUrl(url: string): string | null {
     const cleanUrl = url.split('?')[0].split('#')[0];
 

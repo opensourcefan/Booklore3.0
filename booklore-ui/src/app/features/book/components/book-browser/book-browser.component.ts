@@ -186,6 +186,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly MOBILE_COLUMNS_STORAGE_KEY = 'mobileColumnsPreference';
   private readonly MOBILE_TITLE_ROWS_STORAGE_KEY = 'mobileTitleRowsPreference';
   private readonly DESKTOP_TITLE_ROWS_STORAGE_KEY = 'desktopTitleRowsPreference';
+  private readonly SHOW_SUBTITLES_STORAGE_KEY = 'bookBrowserShowSubtitlesPreference';
   private readonly COVER_PREVIEW_HOVER_DELAY_MS = 120;
 
   private settingFiltersFromUrl = false;
@@ -196,6 +197,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected metadataMenuItems: MenuItem[] | undefined;
   protected moreActionsMenuItems: MenuItem[] | undefined;
   mediaTypeActionsMenuItems: MenuItem[] = [];
+  showSubtitles = false;
 
   private sideBarFilter = new SideBarFilter(this.selectedFilter, this.selectedFilterMode);
   private headerFilter = new HeaderFilter(this.searchTerm$);
@@ -282,6 +284,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get isWaitingForDirectorySelection(): boolean {
     return this.canShowDirectoryExplorer && this.dirPanelService.isVisible && this.activeDirFilterPath === null;
+  }
+
+  get isDirectoryScopedView(): boolean {
+    return this.activeDirFilterPath !== null;
   }
 
   get canShowDirectoryExplorer(): boolean {
@@ -410,6 +416,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.coverScalePreferenceService.scaleChange$.pipe(debounceTime(1000)).subscribe();
     this.loadMobileColumnsPreference();
     this.loadTitleRowsPreference();
+    this.loadSubtitlePreference();
 
     this.directoryFilterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.syncActiveDirectoryFilter();
@@ -861,6 +868,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onMultiSortChange(sortCriteria: SortOption[]): void {
+    if (this.isDirectoryScopedView) {
+      this.applyEffectiveSortCriteria();
+      return;
+    }
+
+    this.baseSortCriteria = [...sortCriteria];
+    this.hasExplicitSortQuery = true;
     this.applySortCriteria(sortCriteria);
     this.queryParamsService.updateMultiSort(sortCriteria);
   }
@@ -931,8 +945,18 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSortCriteriaChange(criteria: SortOption[]): void {
+    if (this.isDirectoryScopedView) {
+      this.applyEffectiveSortCriteria();
+      return;
+    }
+
     this.bookSorter.setSortCriteria(criteria);
     this.onMultiSortChange(criteria);
+  }
+
+  onShowSubtitlesChange(value: boolean): void {
+    this.showSubtitles = !!value;
+    this.localStorageService.set(this.SHOW_SUBTITLES_STORAGE_KEY, this.showSubtitles);
   }
 
   get canSaveSort(): boolean {
@@ -1113,7 +1137,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getEffectiveSortCriteria(baseSortCriteria: SortOption[]): SortOption[] {
-    if (!this.activeDirFilterPath || this.hasExplicitSortQuery) {
+    if (!this.activeDirFilterPath) {
       return baseSortCriteria;
     }
 
@@ -1567,6 +1591,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const savedDesktopRows = this.localStorageService.get<number>(this.DESKTOP_TITLE_ROWS_STORAGE_KEY);
     if (savedDesktopRows !== null && [1, 2, 3, 4, 5].includes(savedDesktopRows)) {
       this.desktopTitleRows = savedDesktopRows;
+    }
+  }
+
+  private loadSubtitlePreference(): void {
+    const saved = this.localStorageService.get<boolean>(this.SHOW_SUBTITLES_STORAGE_KEY);
+    if (typeof saved === 'boolean') {
+      this.showSubtitles = saved;
     }
   }
 
