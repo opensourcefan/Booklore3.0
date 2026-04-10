@@ -142,7 +142,6 @@ public class BookQueryService {
             m.setDoubanId(null);
 
             // Strip unused detail fields
-            m.setSubtitle(null);
             m.setSeriesTotal(null);
             m.setAbridged(null);
             m.setExternalUrl(null);

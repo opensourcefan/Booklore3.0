@@ -1,16 +1,18 @@
 .settings-container {
+  position: relative;
   border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--p-content-border-color);
   background: var(--p-content-background);
 }
 
-.settings-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.75rem 0.75rem 0;
+.route-return-control {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  z-index: 2;
 }
 
-:host ::ng-deep .settings-return-button {
-  gap: 0.5rem;
+:host ::ng-deep p-tablist {
+  padding-right: 3.5rem;
 }

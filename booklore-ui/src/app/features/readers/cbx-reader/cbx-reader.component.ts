@@ -1801,7 +1801,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   }
 
   onOpenAiSettingsRequested(): void {
-    this.router.navigate(['/settings'], {queryParams: {tab: 'ai-settings'}});
+    this.router.navigate(['/settings'], {queryParams: {tab: 'ai-settings', returnTo: this.router.url}});
   }
 
   onPanelTravelFactorChange(value: number): void {

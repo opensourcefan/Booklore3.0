@@ -2,15 +2,13 @@
   @if (userService.userState$ | async; as userState) {
     @if (userState.user) {
       <div class="settings-container">
-        <div class="settings-toolbar">
+          <div class="route-return-control">
           <p-button
-            type="button"
             icon="pi pi-arrow-left"
-            iconPos="left"
-            [label]="t('back')"
+              [rounded]="true"
+              [text]="true"
             severity="secondary"
-            [outlined]="true"
-            styleClass="settings-return-button"
+              class="route-return-button"
             (onClick)="onReturn()"
           ></p-button>
         </div>

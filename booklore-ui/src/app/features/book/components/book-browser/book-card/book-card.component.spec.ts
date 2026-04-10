@@ -95,6 +95,6 @@ describe('BookCardComponent', () => {
       showSubtitle: new SimpleChange(false, true, false),
     });
 
-    expect(component.displayTitle).toBe('Main Title: Subtitle');
+    expect(component.displayTitle).toBe('Main Title : Subtitle');
   });
 });

@@ -60,7 +60,7 @@ describe('BookTableComponent', () => {
     });
     component.showSubtitle = true;
 
-    expect(component['getDisplayTitle'](book)).toBe('Main Title: Subtitle');
+    expect(component['getDisplayTitle'](book)).toBe('Main Title : Subtitle');
   });
 
   it('uses the filename in directory-scoped mode', () => {

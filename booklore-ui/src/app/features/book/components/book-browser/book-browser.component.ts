@@ -1626,7 +1626,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const subtitle = book.metadata?.subtitle?.trim() || '';
 
     if (this.showSubtitles && title && subtitle) {
-      return `${title}: ${subtitle}`;
+      return `${title} : ${subtitle}`;
     }
 
     return title || fileName;

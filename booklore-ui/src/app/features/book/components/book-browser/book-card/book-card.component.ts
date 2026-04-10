@@ -237,7 +237,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     const metadataSubtitle = this.book.metadata?.subtitle?.trim() || '';
 
     if (!collapsedSeriesName && this.showSubtitle && metadataTitle && metadataSubtitle) {
-      return `${metadataTitle}: ${metadataSubtitle}`;
+      return `${metadataTitle} : ${metadataSubtitle}`;
     }
 
     return collapsedSeriesName || metadataTitle || fileName;

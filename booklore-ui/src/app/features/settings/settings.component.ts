@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {UserService} from './user-management/user.service';
-import {AsyncPipe, Location} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 import {GlobalPreferencesComponent} from './global-preferences/global-preferences.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
@@ -74,9 +74,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private pageTitle = inject(PageTitleService);
-  private location = inject(Location);
 
   private routeSub!: Subscription;
+  private returnToUrl: string | null = null;
 
   SettingsTab = SettingsTab;
 
@@ -102,6 +102,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.routeSub = this.route.queryParams.subscribe(params => {
       const tabParam = params['tab'];
+      this.returnToUrl = params['returnTo'] ?? null;
+
       if (this.validTabs.includes(tabParam)) {
         this._activeTab = tabParam as SettingsTab;
       } else {
@@ -121,8 +123,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   onReturn(): void {
-    if (typeof window !== 'undefined' && window.history.length > 2) {
-      this.location.back();
+    if (this.returnToUrl && this.returnToUrl !== this.router.url) {
+      this.router.navigateByUrl(this.returnToUrl);
       return;
     }
 

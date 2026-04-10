@@ -9,11 +9,11 @@ import {SettingsComponent} from './settings.component';
 
 describe('SettingsComponent', () => {
   const routerNavigate = vi.fn(() => Promise.resolve(true));
-  const locationBack = vi.fn();
+  const routerNavigateByUrl = vi.fn(() => Promise.resolve(true));
 
   beforeEach(() => {
     routerNavigate.mockClear();
-    locationBack.mockClear();
+    routerNavigateByUrl.mockClear();
 
     TestBed.configureTestingModule({
       providers: [
@@ -33,10 +33,10 @@ describe('SettingsComponent', () => {
             }),
           },
         },
-        { provide: ActivatedRoute, useValue: { queryParams: of({ tab: 'reader' }) } },
-        { provide: Router, useValue: { navigate: routerNavigate } },
+        { provide: ActivatedRoute, useValue: { queryParams: of({ tab: 'reader', returnTo: '/all-books' }) } },
+        { provide: Router, useValue: { navigate: routerNavigate, navigateByUrl: routerNavigateByUrl, url: '/settings?tab=reader&returnTo=%2Fall-books' } },
         { provide: PageTitleService, useValue: { setPageTitle: vi.fn() } },
-        { provide: Location, useValue: { back: locationBack } },
+        { provide: Location, useValue: { back: vi.fn() } },
       ],
     });
   });
@@ -45,25 +45,48 @@ describe('SettingsComponent', () => {
     return TestBed.runInInjectionContext(() => new SettingsComponent());
   }
 
-  it('returns to browser history when a previous page exists', () => {
-    const historyLengthSpy = vi.spyOn(window.history, 'length', 'get').mockReturnValue(3);
+  it('returns to the explicit returnTo route when one is provided', () => {
     const component = createComponent();
+    component.ngOnInit();
 
     component.onReturn();
 
-    expect(locationBack).toHaveBeenCalledOnce();
+    expect(routerNavigateByUrl).toHaveBeenCalledWith('/all-books');
     expect(routerNavigate).not.toHaveBeenCalled();
-    historyLengthSpy.mockRestore();
   });
 
-  it('falls back to the dashboard when there is no meaningful browser history', () => {
-    const historyLengthSpy = vi.spyOn(window.history, 'length', 'get').mockReturnValue(1);
+  it('falls back to the dashboard when no explicit return route exists', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: UserService,
+          useValue: {
+            userState$: of({
+              loaded: true,
+              user: {
+                permissions: {
+                  admin: true,
+                  canManageMetadataConfig: true,
+                  canManageGlobalPreferences: true,
+                  canAccessTaskManager: true,
+                },
+              },
+            }),
+          },
+        },
+        { provide: ActivatedRoute, useValue: { queryParams: of({ tab: 'reader' }) } },
+        { provide: Router, useValue: { navigate: routerNavigate, navigateByUrl: routerNavigateByUrl, url: '/settings?tab=reader' } },
+        { provide: PageTitleService, useValue: { setPageTitle: vi.fn() } },
+        { provide: Location, useValue: { back: vi.fn() } },
+      ],
+    });
     const component = createComponent();
+    component.ngOnInit();
 
     component.onReturn();
 
-    expect(locationBack).not.toHaveBeenCalled();
+    expect(routerNavigateByUrl).not.toHaveBeenCalled();
     expect(routerNavigate).toHaveBeenCalledWith(['/dashboard']);
-    historyLengthSpy.mockRestore();
   });
 });
