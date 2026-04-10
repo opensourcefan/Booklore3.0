@@ -147,15 +147,16 @@
                 <div class="display-settings-popover">
                   <div class="display-settings-header">
                     <span class="display-settings-title">{{ t('labels.displaySettings') }}</span>
-                    <button
-                      type="button"
-                      class="display-settings-close-btn"
-                      (click)="seriesCollapseOverlay.hide()"
-                      [attr.aria-label]="t('labels.return')"
+                    <p-button
+                      icon="pi pi-arrow-left"
+                      [text]="true"
+                      [rounded]="true"
+                      styleClass="display-settings-close-btn"
+                      (onClick)="seriesCollapseOverlay.hide()"
+                      [ariaLabel]="t('labels.return')"
                       [pTooltip]="t('labels.return')"
                       tooltipPosition="top">
-                      <i class="pi pi-reply"></i>
-                    </button>
+                    </p-button>
                   </div>
                   <div class="display-settings-section">
                     <div class="display-settings-checkbox-row">
