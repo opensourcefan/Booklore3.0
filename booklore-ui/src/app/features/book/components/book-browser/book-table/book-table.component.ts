@@ -336,7 +336,7 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
     const subtitle = book.metadata?.subtitle?.trim() || '';
 
     if (this.showSubtitle && title && subtitle) {
-      return `${title}: ${subtitle}`;
+      return `${title} : ${subtitle}`;
     }
 
     return title || fileName;

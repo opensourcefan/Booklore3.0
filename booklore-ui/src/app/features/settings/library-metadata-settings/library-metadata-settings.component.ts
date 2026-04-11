@@ -212,7 +212,7 @@ export class LibraryMetadataSettingsComponent implements OnInit {
       libraryId: null,
       refreshCovers: false,
       mergeCategories: false,
-      reviewBeforeApply: false,
+      reviewBeforeApply: true,
       fieldOptions: {
         title: {p1: null, p2: null, p3: null, p4: null},
         subtitle: {p1: null, p2: null, p3: null, p4: null},

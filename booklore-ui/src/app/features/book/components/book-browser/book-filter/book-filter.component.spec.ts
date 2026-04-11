@@ -215,4 +215,14 @@ describe('BookFilterComponent', () => {
     expect(component.activeFilters).toEqual({});
     expect(component.selectedFilterMode).toBe('not');
   });
+
+  it('keeps accordion panels open when PrimeNG emits a single panel value', () => {
+    const component = createComponent();
+
+    component.onExpandedPanelsChange(2);
+    expect(component.expandedPanels).toEqual([2]);
+
+    component.onExpandedPanelsChange('3');
+    expect(component.expandedPanels).toEqual([3]);
+  });
 });

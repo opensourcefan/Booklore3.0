@@ -1,5 +1,18 @@
 .settings-container {
+  position: relative;
   border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--p-content-border-color);
+  background: var(--p-content-background);
+}
+
+.route-return-control {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  z-index: 2;
+}
+
+:host ::ng-deep p-tablist {
+  padding-right: 3.5rem;
 }

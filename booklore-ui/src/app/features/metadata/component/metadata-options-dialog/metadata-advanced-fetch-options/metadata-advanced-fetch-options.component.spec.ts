@@ -1,0 +1,66 @@
+import {SimpleChange} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {TranslocoService} from '@jsverse/transloco';
+import {MessageService} from 'primeng/api';
+
+import {MetadataAdvancedFetchOptionsComponent} from './metadata-advanced-fetch-options.component';
+import {MetadataRefreshOptions} from '../../../model/request/metadata-refresh-options.model';
+
+describe('MetadataAdvancedFetchOptionsComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [MetadataAdvancedFetchOptionsComponent],
+      providers: [
+        {
+          provide: MessageService,
+          useValue: {
+            add: vi.fn(),
+          },
+        },
+        {
+          provide: TranslocoService,
+          useValue: {
+            translate: vi.fn((key: string) => key),
+          },
+        },
+      ],
+    }).compileComponents();
+  });
+
+  function createComponent(): MetadataAdvancedFetchOptionsComponent {
+    const fixture = TestBed.createComponent(MetadataAdvancedFetchOptionsComponent);
+    return fixture.componentInstance;
+  }
+
+  it('defaults merge genres off and manual review on when settings omit those flags', () => {
+    const component = createComponent();
+    component.currentMetadataOptions = {
+      libraryId: null,
+      refreshCovers: false,
+      replaceMode: 'REPLACE_MISSING',
+      fieldOptions: undefined,
+      enabledFields: undefined,
+    } as MetadataRefreshOptions;
+
+    component.ngOnChanges({
+      currentMetadataOptions: new SimpleChange(null, component.currentMetadataOptions, true),
+    });
+
+    expect(component.mergeCategories).toBe(false);
+    expect(component.reviewBeforeApply).toBe(true);
+  });
+
+  it('reset restores merge genres off and manual review on', () => {
+    const component = createComponent();
+    component.mergeCategories = true;
+    component.reviewBeforeApply = false;
+    component.refreshCovers = true;
+
+    component.reset();
+
+    expect(component.mergeCategories).toBe(false);
+    expect(component.reviewBeforeApply).toBe(true);
+    expect(component.refreshCovers).toBe(false);
+  });
+});

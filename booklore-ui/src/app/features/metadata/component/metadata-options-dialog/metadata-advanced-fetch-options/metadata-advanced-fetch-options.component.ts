@@ -62,7 +62,7 @@ export class MetadataAdvancedFetchOptionsComponent implements OnChanges {
 
   refreshCovers = false;
   mergeCategories = false;
-  reviewBeforeApply = false;
+  reviewBeforeApply = true;
   replaceMode: MetadataReplaceMode = 'REPLACE_MISSING';
 
   get replaceModeOptions(): { label: string; value: MetadataReplaceMode }[] {
@@ -132,8 +132,8 @@ export class MetadataAdvancedFetchOptionsComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['currentMetadataOptions'] && this.currentMetadataOptions && !this.justSubmitted) {
       this.refreshCovers = this.currentMetadataOptions.refreshCovers || false;
-      this.mergeCategories = this.currentMetadataOptions.mergeCategories || false;
-      this.reviewBeforeApply = this.currentMetadataOptions.reviewBeforeApply || false;
+      this.mergeCategories = this.currentMetadataOptions.mergeCategories ?? false;
+      this.reviewBeforeApply = this.currentMetadataOptions.reviewBeforeApply ?? true;
       this.replaceMode = this.currentMetadataOptions.replaceMode || 'REPLACE_MISSING';
 
       const backendFieldOptions = this.deepCloneFieldOptions(this.currentMetadataOptions.fieldOptions as FieldOptions || {});
@@ -240,6 +240,9 @@ export class MetadataAdvancedFetchOptionsComponent implements OnChanges {
       };
     }
     this.enabledFields = this.initializeEnabledFields();
+    this.mergeCategories = false;
+    this.reviewBeforeApply = true;
+    this.refreshCovers = false;
     this.replaceMode = 'REPLACE_MISSING';
 
     // Reset bulk selectors

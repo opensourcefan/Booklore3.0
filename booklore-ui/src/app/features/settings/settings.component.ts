@@ -20,6 +20,7 @@ import {PageTitleService} from "../../shared/service/page-title.service";
 import {EmailV2Component} from './email-v2/email-v2.component';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {AiSettingsComponent} from './ai-settings/ai-settings.component';
+import {Button} from 'primeng/button';
 
 export enum SettingsTab {
   ReaderSettings = 'reader',
@@ -61,7 +62,8 @@ export enum SettingsTab {
     AuditLogsComponent,
     EmailV2Component,
     AiSettingsComponent,
-    TranslocoDirective
+    TranslocoDirective,
+    Button
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss'
@@ -74,6 +76,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private pageTitle = inject(PageTitleService);
 
   private routeSub!: Subscription;
+  private returnToUrl: string | null = null;
 
   SettingsTab = SettingsTab;
 
@@ -99,6 +102,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.routeSub = this.route.queryParams.subscribe(params => {
       const tabParam = params['tab'];
+      this.returnToUrl = params['returnTo'] ?? null;
+
       if (this.validTabs.includes(tabParam)) {
         this._activeTab = tabParam as SettingsTab;
       } else {
@@ -115,5 +120,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routeSub.unsubscribe();
+  }
+
+  onReturn(): void {
+    if (this.returnToUrl && this.returnToUrl !== this.router.url) {
+      this.router.navigateByUrl(this.returnToUrl);
+      return;
+    }
+
+    this.router.navigate(['/dashboard']);
   }
 }

@@ -358,15 +358,15 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   navigateToSettings() {
-    this.router.navigate(['/settings']);
+    this.router.navigate(['/settings'], {queryParams: {returnTo: this.router.url}});
   }
 
   navigateToAiSettings() {
-    this.router.navigate(['/settings'], {queryParams: {tab: 'ai-settings'}});
+    this.router.navigate(['/settings'], {queryParams: {tab: 'ai-settings', returnTo: this.router.url}});
   }
 
   navigateToMetadataPersistenceSettings(): void {
-    this.router.navigate(['/settings'], {queryParams: {tab: 'metadata'}});
+    this.router.navigate(['/settings'], {queryParams: {tab: 'metadata', returnTo: this.router.url}});
   }
 
   navigateToBookdrop() {
@@ -404,7 +404,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   navigateToTaskManagement(): void {
-    this.router.navigate(['/settings'], {queryParams: {tab: 'task'}});
+    this.router.navigate(['/settings'], {queryParams: {tab: 'task', returnTo: this.router.url}});
   }
 
   navigateToStats() {

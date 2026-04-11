@@ -157,18 +157,20 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['book'] || changes['forceEbookMode'] || changes['useSquareCovers']) {
+    if (
+      changes['book']
+      || changes['forceEbookMode']
+      || changes['useSquareCovers']
+      || changes['showSubtitle']
+      || changes['forceFileNameTitle']
+      || changes['seriesViewEnabled']
+      || changes['isSeriesCollapsed']
+    ) {
       this.computeAllMemoizedValues();
       if (changes['book'] && !changes['book'].firstChange && this.menuInitialized) {
         this.additionalFilesLoaded = false;
         this.initMenu();
       }
-    }
-
-    if (changes['seriesViewEnabled'] || changes['isSeriesCollapsed']) {
-      this._isSeriesViewActive = this.seriesViewEnabled && !!this.book.seriesCount && this.book.seriesCount >= 1;
-      this._displayTitle = this.resolveDisplayTitle();
-      this._titleTooltip = this.t.translate('book.card.alt.titleTooltip', { title: this._displayTitle });
     }
   }
 
@@ -235,7 +237,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     const metadataSubtitle = this.book.metadata?.subtitle?.trim() || '';
 
     if (!collapsedSeriesName && this.showSubtitle && metadataTitle && metadataSubtitle) {
-      return `${metadataTitle}: ${metadataSubtitle}`;
+      return `${metadataTitle} : ${metadataSubtitle}`;
     }
 
     return collapsedSeriesName || metadataTitle || fileName;

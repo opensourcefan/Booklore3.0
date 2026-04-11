@@ -473,7 +473,7 @@ export class AppMenuComponent implements OnInit {
   }
 
   navigateToSettings(): void {
-    this.router.navigate(['/settings']);
+    this.router.navigate(['/settings'], {queryParams: {returnTo: this.router.url}});
   }
 
   openAcknowledgementsDialog(): void {
