@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.57 &mdash; April 11, 2026<br>
+    Version 1.1.58 &mdash; April 11, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -830,6 +830,10 @@
   <strong>Switching Filter Groups No Longer Collapses Prematurely:</strong> When you already have tags or other sidebar filters active, opening a different filter group now keeps that group open instead of flashing half-open and snapping shut because the accordion state now preserves single-panel header changes correctly.
 </div>
 
+<div class="callout tip">
+  <strong>Sidebar Counts Now Line Up Consistently:</strong> The right-edge count badges in each filter section now anchor to the same padded edge instead of drifting between sections, so long filter names still truncate cleanly and the scrollbar no longer crowds the badge column.
+</div>
+
 <h3>Duplicate Review</h3>
 <p>BookLore&rsquo;s duplicate finder is now designed as a <strong>scoped review tool</strong>. Open it from a library menu, then choose whether to scan your <strong>current filtered view</strong>, the <strong>current library</strong>, or <strong>all libraries</strong>.</p>
 
@@ -1273,6 +1277,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-11</td><td>1.1.58</td><td>Documented the consistent right-edge alignment for sidebar filter badges, and noted that the broken grouped Dependabot frontend dependency PR was replaced with a curated compatible dependency refresh on develop instead of merging the failing update set</td></tr>
   <tr><td>2026-04-11</td><td>1.1.57</td><td>Documented the sidebar accordion fix so switching from active tag filters to other filter groups no longer half-opens and snaps shut, and clarified that advanced custom metadata fetch now defaults to Merge Genres off and Manual Review on</td></tr>
   <tr><td>2026-04-10</td><td>1.1.56</td><td>Corrected the Settings return control to use the same icon-only route-return pattern as other route-mode screens, and documented that browser card subtitles now depend on the list API preserving metadata.subtitle so titles can render as Title : Subtitle across cards, previews, and tooltips</td></tr>
   <tr><td>2026-04-10</td><td>1.1.54</td><td>Clarified the follow-up browser display-settings fix so the return arrow is visibly shown as a left-arrow button and subtitle toggles update already-rendered book cards immediately instead of only affecting later refreshes</td></tr>
