@@ -148,10 +148,12 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   onExpandedPanelsChange(value: string | number | string[] | number[] | null | undefined): void {
-    if (Array.isArray(value)) {
-      this.expandedPanels = value.map(Number);
-      this.persistFilterExpandedPanels();
-    }
+    const panels = value == null
+      ? []
+      : (Array.isArray(value) ? value : [value]);
+
+    this.expandedPanels = this.normalizeExpandedPanels(panels.map(Number));
+    this.persistFilterExpandedPanels();
   }
 
   onFiltersChanged(): void {

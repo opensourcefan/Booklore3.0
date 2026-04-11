@@ -390,18 +390,20 @@
             }
           </div>
 
-          <p-popover #mobileRightSidebarPop styleClass="mobile-right-sidebar-popover" [dismissable]="true" appendTo="body">
-            <app-book-filter
-              [showFilter]="true"
-              [entity$]="entity$"
-              [entityType$]="entityType$"
-              [filterMode]="selectedFilterMode | async"
-              [urlFilter$]="selectedFilter"
-              [resetFilter$]="resetFilterSubject"
-              (filterSelected)="onFilterSelected($event)"
-              (filterModeChanged)="onFilterModeChanged($event)">
-            </app-book-filter>
-          </p-popover>
+          @if (isMobile) {
+            <p-popover #mobileRightSidebarPop styleClass="mobile-right-sidebar-popover" [dismissable]="true" appendTo="body">
+              <app-book-filter
+                [showFilter]="true"
+                [entity$]="entity$"
+                [entityType$]="entityType$"
+                [filterMode]="selectedFilterMode | async"
+                [urlFilter$]="selectedFilter"
+                [resetFilter$]="resetFilterSubject"
+                (filterSelected)="onFilterSelected($event)"
+                (filterModeChanged)="onFilterModeChanged($event)">
+              </app-book-filter>
+            </p-popover>
+          }
           <div class="desktop-right-sidebar-trigger">
             <button type="button" class="topbar-items topbar-item" (click)="toggleSidebar()">
               <i

@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.56 &mdash; April 10, 2026<br>
+    Version 1.1.57 &mdash; April 11, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -765,6 +765,10 @@
   <strong>Good to Know:</strong> If one metadata source fails to return a usable first match during a bulk custom scan, BookLore now falls back more gracefully instead of abandoning that whole book as aggressively. For providers that temporarily throttle large jobs, BookLore now retries the throttled request itself after the cooldown window, keeps the metadata task visible as still running, restores the metadata-fetch topbar pill from the active task state after refreshes or reconnects, lets you start a new custom fetch against only books that have never been fetched or books whose last successful metadata fetch is older than a selected age window, marks zombie in-progress metadata tasks as resumable instead of leaving them hung forever after a stop or restart, offers resume actions for stopped metadata batches, shows a clearly paused topbar state with the reset ETA instead of a stale time-left snapshot, opens a simple fetched-versus-remaining asset log when you click the topbar metadata pill, lets metadata editors cancel those metadata jobs directly from the progress widget even without broader task-manager access, interrupts long ComicVine cooldown waits promptly when you cancel the job, shows a clear cancellation-requested state instead of falsely marking a task fully cancelled before it actually stops, removes stale finished metadata tasks that the backend no longer reports, avoids holding the database transaction open during long provider cooldown waits, and uses a lighter top-match lookup path for ComicVine batch scans so large runs are less likely to exhaust the hourly request budget mid-batch.
 </div>
 
+<div class="callout tip">
+  <strong>Custom Metadata Fetch Defaults:</strong> The advanced custom metadata fetch dialog now opens with <strong>Merge Genres</strong> off by default and <strong>Manual Review</strong> on by default, so a new batch starts in a safer review-first mode unless you intentionally change those toggles.
+</div>
+
 <!-- ==================== SECTION 16 ==================== -->
 <h2 id="sec16">16. Search and Filtering</h2>
 
@@ -820,6 +824,10 @@
 
 <div class="callout tip">
   <strong>Sidebar Selections Stay Honest:</strong> After tag or other metadata changes, the right sidebar now refreshes its backing book list immediately so deselected items do not linger until a second manual refresh. Selection highlights also treat equivalent numeric and text ids as the same choice, which prevents a filter row from looking stuck when the underlying value format changes.
+</div>
+
+<div class="callout tip">
+  <strong>Switching Filter Groups No Longer Collapses Prematurely:</strong> When you already have tags or other sidebar filters active, opening a different filter group now keeps that group open instead of flashing half-open and snapping shut because the accordion state now preserves single-panel header changes correctly.
 </div>
 
 <h3>Duplicate Review</h3>
@@ -1265,6 +1273,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-11</td><td>1.1.57</td><td>Documented the sidebar accordion fix so switching from active tag filters to other filter groups no longer half-opens and snaps shut, and clarified that advanced custom metadata fetch now defaults to Merge Genres off and Manual Review on</td></tr>
   <tr><td>2026-04-10</td><td>1.1.56</td><td>Corrected the Settings return control to use the same icon-only route-return pattern as other route-mode screens, and documented that browser card subtitles now depend on the list API preserving metadata.subtitle so titles can render as Title : Subtitle across cards, previews, and tooltips</td></tr>
   <tr><td>2026-04-10</td><td>1.1.54</td><td>Clarified the follow-up browser display-settings fix so the return arrow is visibly shown as a left-arrow button and subtitle toggles update already-rendered book cards immediately instead of only affecting later refreshes</td></tr>
   <tr><td>2026-04-10</td><td>1.1.53</td><td>Documented the book-browser display-settings return arrow and subtitle toggle, plus clarified that directory browsing now forces filename A&ndash;Z display until you clear the scoped folder view or re-click the active library or shelf</td></tr>
