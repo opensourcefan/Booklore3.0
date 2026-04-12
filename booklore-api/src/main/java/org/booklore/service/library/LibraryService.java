@@ -151,22 +151,7 @@ public class LibraryService {
             libraryWatchService.unregisterLibrary(libraryId);
         }
 
-        if (!newPaths.isEmpty()) {
-            SecurityContextVirtualThread.runWithSecurityContext(() -> {
-                if (!scanningLibraries.add(libraryId)) {
-                    log.warn("Library {} is already being scanned, skipping duplicate process request", libraryId);
-                    return;
-                }
-                try {
-                    libraryProcessingService.processLibraryPaths(libraryId, newPaths);
-                } catch (InvalidDataAccessApiUsageException e) {
-                    log.debug("InvalidDataAccessApiUsageException - Library id: {}", libraryId);
-                } finally {
-                    scanningLibraries.remove(libraryId);
-                }
-                log.info("Parsing task completed!");
-            });
-        } else if (savedLibrary.isTagByDirectory()) {
+        if (savedLibrary.isTagByDirectory() && newPaths.isEmpty()) {
             log.info("tag-by-directory enabled/updated for library {} — queueing background directory tagging", libraryId);
             SecurityContextVirtualThread.runWithSecurityContext(() -> directoryTagTaskStarter.scheduleLibrary(libraryId));
         }
@@ -275,6 +260,29 @@ public class LibraryService {
                 scanningLibraries.remove(libraryId);
             }
             log.info("New-file scan task completed!");
+        });
+    }
+
+    public void scanLibraryDirectoriesForNewFiles(long libraryId, Set<String> targetPaths) {
+        LibraryEntity lib = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
+        auditService.log(AuditAction.LIBRARY_SCANNED, "Library", libraryId,
+                "Scanned new files in specific directories for library: " + lib.getName());
+
+        SecurityContextVirtualThread.runWithSecurityContext(() -> {
+            if (!scanningLibraries.add(libraryId)) {
+                log.warn("Library {} is already being scanned, skipping duplicate directory scan request", libraryId);
+                return;
+            }
+            try {
+                libraryProcessingService.scanLibraryDirectoriesForNewFiles(libraryId, targetPaths);
+            } catch (InvalidDataAccessApiUsageException e) {
+                log.debug("InvalidDataAccessApiUsageException - Library id: {}", libraryId);
+            } catch (IOException e) {
+                log.error("Error while scanning library {} directories for new files", libraryId, e);
+            } finally {
+                scanningLibraries.remove(libraryId);
+            }
+            log.info("Directory-scoped new-file scan task completed!");
         });
     }
 

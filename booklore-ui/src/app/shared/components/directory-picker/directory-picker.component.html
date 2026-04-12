@@ -22,7 +22,7 @@
       @if (isImported(selectedProductName || '/')) {
         <span class="imported-chip imported-chip--path">
           <i class="pi pi-check-circle"></i>
-          {{ t('alreadyImported') }}
+          {{ t('importedBadge') }}
         </span>
       }
     </div>
@@ -183,7 +183,7 @@
                     @if (isImported(folder)) {
                       <span class="imported-chip">
                         <i class="pi pi-check-circle"></i>
-                        {{ t('alreadyImported') }}
+                        {{ t('importedBadge') }}
                       </span>
                     }
                   </span>

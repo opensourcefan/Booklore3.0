@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
 import {LibraryCreatorComponent} from './library-creator.component';
@@ -17,6 +17,7 @@ describe('LibraryCreatorComponent', () => {
     updateLibrary: ReturnType<typeof vi.fn>;
     refreshLibrary: ReturnType<typeof vi.fn>;
     scanLibraryPaths: ReturnType<typeof vi.fn>;
+    scanLibraryDirectoriesForNewFiles: ReturnType<typeof vi.fn>;
     createLibrary: ReturnType<typeof vi.fn>;
     doesLibraryExistByName: ReturnType<typeof vi.fn>;
     setLargeLibraryLoading: ReturnType<typeof vi.fn>;
@@ -27,10 +28,13 @@ describe('LibraryCreatorComponent', () => {
   let dialogRefMock: { close: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
+    vi.useFakeTimers();
+
     libraryServiceMock = {
       updateLibrary: vi.fn().mockReturnValue(of({})),
       refreshLibrary: vi.fn().mockReturnValue(of(void 0)),
       scanLibraryPaths: vi.fn().mockReturnValue(of(0)),
+      scanLibraryDirectoriesForNewFiles: vi.fn().mockReturnValue(of(void 0)),
       createLibrary: vi.fn().mockReturnValue(of({id: 1})),
       doesLibraryExistByName: vi.fn().mockReturnValue(false),
       setLargeLibraryLoading: vi.fn(),
@@ -65,6 +69,11 @@ describe('LibraryCreatorComponent', () => {
     };
     component.chosenLibraryName = 'Library';
     component.folders = ['/books'];
+    component.originalFolders = ['/books'];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   function submitLibrary(library: Library, selectedAllowedFormats: 'EPUB'[]): void {
@@ -92,6 +101,7 @@ describe('LibraryCreatorComponent', () => {
 
   it('allows directory management mode to submit without showing the settings sections', () => {
     component.mode = 'edit-directories';
+    component.folders = ['/books', '/new'];
 
     expect(component.showLibraryDetailsSection()).toBe(false);
     expect(component.showOptionsSection()).toBe(false);
@@ -106,5 +116,27 @@ describe('LibraryCreatorComponent', () => {
     component.createOrUpdateLibrary();
 
     expect(libraryServiceMock.updateLibrary).not.toHaveBeenCalled();
+  });
+
+  it('saves directory changes without scanning when using the plain save action', () => {
+    component.mode = 'edit-directories';
+    component.folders = ['/books', '/new'];
+
+    component.createOrUpdateLibrary();
+    vi.runAllTimers();
+
+    expect(libraryServiceMock.updateLibrary).toHaveBeenCalledWith(expect.any(Object), 5);
+    expect(libraryServiceMock.scanLibraryDirectoriesForNewFiles).not.toHaveBeenCalled();
+  });
+
+  it('saves and scans only newly added directories when requested', () => {
+    component.mode = 'edit-directories';
+    component.folders = ['/books', '/new', '/another'];
+
+    component.saveAndScanDirectories();
+    vi.runAllTimers();
+
+    expect(libraryServiceMock.updateLibrary).toHaveBeenCalledWith(expect.any(Object), 5);
+    expect(libraryServiceMock.scanLibraryDirectoriesForNewFiles).toHaveBeenCalledWith(5, ['/new', '/another']);
   });
 });

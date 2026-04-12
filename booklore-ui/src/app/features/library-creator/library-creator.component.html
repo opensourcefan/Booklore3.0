@@ -100,6 +100,19 @@
             <span [innerHTML]="t(getFoldersHintKey())"></span>
           </div>
 
+          @if (isDirectoryManagementMode()) {
+            <div class="directory-scan-note">
+              <i class="pi pi-info-circle"></i>
+              <span>
+                @if (getAddedDirectories().length > 0) {
+                  {{ t('directorySaveBehaviorWithPendingScan', { count: getAddedDirectories().length }) }}
+                } @else {
+                  {{ t('directorySaveBehavior') }}
+                }
+              </span>
+            </div>
+          }
+
           <button class="add-folder-trigger" (click)="openDirectoryPicker()" type="button" [disabled]="isSubmitting">
             <i class="pi pi-plus-circle"></i>
             <span>{{ t(getAddFolderKey()) }}</span>
@@ -342,6 +355,24 @@
           [disabled]="isSubmitting"
           (onClick)="closeDialog()"
         />
+        @if (isDirectoryManagementMode()) {
+          <p-button
+            [label]="t(getSubmitButtonLabelKey())"
+            icon="pi pi-save"
+            [loading]="isSubmitting && submissionState === 'updating'"
+            severity="secondary"
+            [disabled]="isSubmitting || !canSubmit()"
+            (onClick)="createOrUpdateLibrary()"
+          />
+          <p-button
+            [label]="t('buttonSaveAndScanDirectories')"
+            icon="pi pi-search"
+            [loading]="isSubmitting && submissionState === 'scanningDirectories'"
+            severity="primary"
+            [disabled]="isSubmitting || !canSaveAndScanDirectories()"
+            (onClick)="saveAndScanDirectories()"
+          />
+        } @else {
         <p-button
           [label]="t(getSubmitButtonLabelKey())"
           [icon]="getSubmitButtonIcon()"
@@ -350,6 +381,7 @@
           [disabled]="isSubmitting || !canSubmit()"
           (onClick)="createOrUpdateLibrary()"
         />
+        }
       </div>
     </footer>
   </div>

@@ -314,6 +314,25 @@
   }
 }
 
+.directory-scan-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 22%, var(--border-color));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-card));
+  color: var(--text-secondary-color);
+  font-size: 0.84rem;
+  line-height: 1.5;
+
+  i {
+    color: var(--primary-color);
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+  }
+}
+
 // Folders zone
 .folders-zone {
   display: flex;

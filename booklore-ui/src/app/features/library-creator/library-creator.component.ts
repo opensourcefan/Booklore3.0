@@ -34,6 +34,7 @@ export class LibraryCreatorComponent implements OnInit {
 
   chosenLibraryName = '';
   folders: string[] = [];
+  originalFolders: string[] = [];
   selectedIcon: IconSelection | null = null;
 
   mode: LibraryCreatorMode = 'create';
@@ -53,7 +54,7 @@ export class LibraryCreatorComponent implements OnInit {
   metadataSourceOptions: {label: string, value: string}[] = [];
   organizationModeOptions: {label: string, value: string}[] = [];
   isSubmitting = false;
-  submissionState: 'scanning' | 'creating' | 'updating' | 'handoff' | null = null;
+  submissionState: 'scanning' | 'creating' | 'updating' | 'scanningDirectories' | 'handoff' | null = null;
 
   readonly allBookFormats: {type: BookType, label: string}[] = [
     {type: 'EPUB', label: 'EPUB'},
@@ -151,6 +152,7 @@ export class LibraryCreatorComponent implements OnInit {
         });
 
         this.folders = paths.map(path => path.path);
+        this.originalFolders = [...this.folders];
       }
     }
   }
@@ -333,8 +335,13 @@ export class LibraryCreatorComponent implements OnInit {
   canSubmit(): boolean {
     const detailsValid = !this.requiresLibraryDetails() || this.isLibraryDetailsValid();
     const directoriesValid = !this.requiresDirectories() || this.isDirectorySelectionValid();
+    const modeValid = !this.isDirectoryManagementMode() || this.hasDirectoryChanges();
 
-    return detailsValid && directoriesValid;
+    return detailsValid && directoriesValid && modeValid;
+  }
+
+  canSaveAndScanDirectories(): boolean {
+    return this.isDirectoryManagementMode() && this.canSubmit() && this.getAddedDirectories().length > 0;
   }
 
   getValidationMessageKey(): string {
@@ -346,11 +353,24 @@ export class LibraryCreatorComponent implements OnInit {
       return this.isDirectoryManagementMode() ? 'validation.addDirectory' : 'validation.addFolder';
     }
 
+    if (this.isDirectoryManagementMode() && !this.hasDirectoryChanges()) {
+      return 'validation.noDirectoryChanges';
+    }
+
     return this.isCreateMode()
       ? 'validation.readyCreate'
       : this.isDirectoryManagementMode()
         ? 'validation.readyDirectories'
         : 'validation.readySettings';
+  }
+
+  hasDirectoryChanges(): boolean {
+    return this.normalizeFolderSet(this.folders) !== this.normalizeFolderSet(this.originalFolders);
+  }
+
+  getAddedDirectories(): string[] {
+    const original = new Set(this.originalFolders.map(folder => this.normalizeFolderPath(folder)));
+    return this.folders.filter(folder => !original.has(this.normalizeFolderPath(folder)));
   }
 
   private requiresLibraryDetails(): boolean {
@@ -369,6 +389,8 @@ export class LibraryCreatorComponent implements OnInit {
         return this.t.translate('libraryCreator.creator.submission.creating');
       case 'updating':
         return this.t.translate('libraryCreator.creator.submission.updating');
+      case 'scanningDirectories':
+        return this.t.translate('libraryCreator.creator.submission.scanningDirectories');
       case 'handoff':
         return this.t.translate('libraryCreator.creator.submission.handoff');
       default:
@@ -377,11 +399,19 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   createOrUpdateLibrary(): void {
+    this.submitCurrentLibrary(false);
+  }
+
+  saveAndScanDirectories(): void {
+    this.submitCurrentLibrary(true);
+  }
+
+  private submitCurrentLibrary(scanNewDirectories: boolean): void {
     if (this.isSubmitting) {
       return;
     }
 
-    if (!this.canSubmit()) {
+    if (scanNewDirectories ? !this.canSaveAndScanDirectories() : !this.canSubmit()) {
       return;
     }
 
@@ -417,16 +447,54 @@ export class LibraryCreatorComponent implements OnInit {
     };
 
     this.isSubmitting = true;
-    this.submissionState = this.mode === 'edit' ? 'updating' : 'scanning';
+    this.submissionState = this.isEditMode()
+      ? (scanNewDirectories ? 'scanningDirectories' : 'updating')
+      : 'scanning';
 
-    window.setTimeout(() => this.submitLibrary(library, selectedAllowedFormats), 0);
+    window.setTimeout(() => this.submitLibrary(library, selectedAllowedFormats, scanNewDirectories), 0);
   }
 
-  private submitLibrary(library: Library, selectedAllowedFormats: BookType[]): void {
+  private submitLibrary(library: Library, selectedAllowedFormats: BookType[], scanNewDirectories = false): void {
     if (this.isEditMode()) {
       const requiresReconcile = this.requiresReconcileAfterEdit(selectedAllowedFormats);
+      const addedDirectories = scanNewDirectories ? this.getAddedDirectories() : [];
       this.libraryService.updateLibrary(library, this.library?.id).subscribe({
         next: () => {
+          if (scanNewDirectories && addedDirectories.length > 0) {
+            this.libraryService.scanLibraryDirectoriesForNewFiles(this.library!.id as number, addedDirectories).subscribe({
+              complete: () => {
+                this.originalFolders = [...this.folders];
+                this.resetSubmissionState();
+                this.messageService.add({
+                  severity: 'success',
+                  summary: this.t.translate('libraryCreator.creator.toast.updatedSummary'),
+                  detail: this.t.translate('libraryCreator.creator.toast.updatedDirectoriesAndScanDetail', {count: addedDirectories.length})
+                });
+                if (requiresReconcile) {
+                  this.messageService.add({
+                    severity: 'info',
+                    summary: this.t.translate('libraryCreator.creator.toast.reconcileRecommendedSummary'),
+                    detail: this.t.translate('libraryCreator.creator.toast.reconcileRecommendedDetail')
+                  });
+                }
+                this.dynamicDialogRef.close();
+              },
+              error: (e) => {
+                this.originalFolders = [...this.folders];
+                this.resetSubmissionState();
+                this.messageService.add({
+                  severity: 'warn',
+                  summary: this.t.translate('libraryCreator.creator.toast.updatedSummary'),
+                  detail: this.t.translate('libraryCreator.creator.toast.updatedDirectoriesSavedButScanFailedDetail', {count: addedDirectories.length})
+                });
+                console.error(e);
+                this.dynamicDialogRef.close();
+              }
+            });
+            return;
+          }
+
+          this.originalFolders = [...this.folders];
           this.resetSubmissionState();
           this.messageService.add({
             severity: 'success',
@@ -524,5 +592,20 @@ export class LibraryCreatorComponent implements OnInit {
 
   private normalizeFormats(formats: BookType[]): string {
     return [...formats].sort().join('|');
+  }
+
+  private normalizeFolderSet(folders: string[]): string {
+    return [...folders]
+      .map(folder => this.normalizeFolderPath(folder))
+      .sort()
+      .join('|');
+  }
+
+  private normalizeFolderPath(folder: string): string {
+    if (!folder || folder === '/') {
+      return '/';
+    }
+
+    return folder.replace(/\/+$/, '') || '/';
   }
 }

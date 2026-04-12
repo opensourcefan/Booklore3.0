@@ -99,12 +99,38 @@ public class LibraryProcessingService {
     }
 
     @Transactional
+    public void scanLibraryDirectoriesForNewFiles(long libraryId, Set<String> targetPaths) throws IOException {
+        LibraryEntity libraryEntity = libraryRepository.findById(libraryId)
+                .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
+
+        List<LibraryPathEntity> pathEntities = libraryEntity.getLibraryPaths().stream()
+                .filter(pathEntity -> targetPaths.contains(pathEntity.getPath()))
+                .toList();
+
+        if (pathEntities.isEmpty()) {
+            log.info("No matching library paths found for explicit scan in library {}", libraryId);
+            return;
+        }
+
+        notificationService.sendMessage(Topic.LOG,
+                LogNotification.info("Started scanning selected library directories for new files: " + libraryEntity.getName()));
+        validateLibraryPathsAccessible(pathEntities);
+        physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, pathEntities);
+
+        List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity, pathEntities);
+        importLibraryFiles(libraryEntity, libraryFiles);
+
+        notificationService.sendMessage(Topic.LOG,
+                LogNotification.info("Finished scanning selected library directories for new files: " + libraryEntity.getName()));
+    }
+
+    @Transactional
     public void scanLibraryForNewFiles(long libraryId) throws IOException {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
 
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Started scanning library for new files: " + libraryEntity.getName()));
-        validateLibraryPathsAccessible(libraryEntity);
+        validateLibraryPathsAccessible(libraryEntity.getLibraryPaths());
         physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
 
         List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity);
@@ -118,7 +144,7 @@ public class LibraryProcessingService {
         LibraryEntity libraryEntity = libraryRepository.findById(context.getLibraryId()).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(context.getLibraryId()));
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Started refreshing library: " + libraryEntity.getName()));
 
-        validateLibraryPathsAccessible(libraryEntity);
+        validateLibraryPathsAccessible(libraryEntity.getLibraryPaths());
         physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
 
         List<LibraryFile> allLibraryFiles = libraryFileHelper.getAllLibraryFiles(libraryEntity);
@@ -211,8 +237,8 @@ public class LibraryProcessingService {
         scheduleDirectoryTaggingIfEnabled(libraryEntity, total);
     }
 
-    private void validateLibraryPathsAccessible(LibraryEntity libraryEntity) {
-        for (var pathEntity : libraryEntity.getLibraryPaths()) {
+    private void validateLibraryPathsAccessible(List<LibraryPathEntity> pathEntities) {
+        for (var pathEntity : pathEntities) {
             Path path = Path.of(pathEntity.getPath());
             if (!Files.exists(path) || !Files.isDirectory(path) || !Files.isReadable(path)) {
                 log.error("Library path not accessible: {}", path);

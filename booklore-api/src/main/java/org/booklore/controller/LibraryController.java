@@ -4,6 +4,7 @@ import org.booklore.config.security.annotation.CheckLibraryAccess;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.Library;
 import org.booklore.model.dto.request.CreateLibraryRequest;
+import org.booklore.model.dto.request.ScanLibraryDirectoriesRequest;
 import org.booklore.service.library.LibraryHealthService;
 import org.booklore.service.library.LibraryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -119,6 +120,18 @@ public class LibraryController {
     @PreAuthorize("@securityUtil.canManageLibrary() or @securityUtil.isAdmin()")
     public ResponseEntity<?> scanLibraryForNewFiles(@Parameter(description = "ID of the library") @PathVariable long libraryId) {
         libraryService.scanLibraryForNewFiles(libraryId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Scan specific library directories for new files", description = "Scan only the requested directories in an existing library and import only files that are not already known. Requires admin or manipulation permission.")
+    @ApiResponse(responseCode = "204", description = "Library directory scan scheduled successfully")
+    @PutMapping("/{libraryId}/scan-directories")
+    @CheckLibraryAccess(libraryIdParam = "libraryId")
+    @PreAuthorize("@securityUtil.canManageLibrary() or @securityUtil.isAdmin()")
+    public ResponseEntity<?> scanLibraryDirectoriesForNewFiles(
+            @Parameter(description = "ID of the library") @PathVariable long libraryId,
+            @Parameter(description = "Directory scan request") @Validated @RequestBody ScanLibraryDirectoriesRequest request) {
+        libraryService.scanLibraryDirectoriesForNewFiles(libraryId, request.getPaths());
         return ResponseEntity.noContent().build();
     }
 
