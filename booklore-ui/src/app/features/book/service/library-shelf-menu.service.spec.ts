@@ -24,7 +24,7 @@ describe('LibraryShelfMenuService', () => {
     deleteLibrary: ReturnType<typeof vi.fn>;
   };
   let messageServiceMock: { add: ReturnType<typeof vi.fn> };
-  let dialogLauncherMock: { openLibraryEditDialog: ReturnType<typeof vi.fn>; openShelfEditDialog: ReturnType<typeof vi.fn>; openMagicShelfEditDialog: ReturnType<typeof vi.fn>; openLibraryMetadataFetchDialog: ReturnType<typeof vi.fn>; openLibraryMaintenanceDialog: ReturnType<typeof vi.fn> };
+  let dialogLauncherMock: { openLibraryEditDialog: ReturnType<typeof vi.fn>; openLibrarySettingsDialog: ReturnType<typeof vi.fn>; openLibraryDirectoriesDialog: ReturnType<typeof vi.fn>; openShelfEditDialog: ReturnType<typeof vi.fn>; openMagicShelfEditDialog: ReturnType<typeof vi.fn>; openLibraryMetadataFetchDialog: ReturnType<typeof vi.fn>; openLibraryMaintenanceDialog: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     confirmationConfig = undefined;
@@ -36,6 +36,8 @@ describe('LibraryShelfMenuService', () => {
     messageServiceMock = {add: vi.fn()};
     dialogLauncherMock = {
       openLibraryEditDialog: vi.fn(),
+      openLibrarySettingsDialog: vi.fn(),
+      openLibraryDirectoriesDialog: vi.fn(),
       openShelfEditDialog: vi.fn(),
       openMagicShelfEditDialog: vi.fn(),
       openLibraryMetadataFetchDialog: vi.fn(),
@@ -84,13 +86,27 @@ describe('LibraryShelfMenuService', () => {
     confirmationConfig?.accept?.();
   }
 
-  it('includes separate scan and reconcile actions for libraries', () => {
+  it('includes separate settings, directories, scan, and maintenance actions for libraries', () => {
     const menu = service.initializeLibraryMenuItems(createLibrary());
     const labels = menu.filter(item => !item.separator).map(item => item.label);
 
+    expect(labels).toContain('book.shelfMenuService.library.librarySettings');
+    expect(labels).toContain('book.shelfMenuService.library.manageDirectories');
     expect(labels).toContain('book.shelfMenuService.library.scanNewFiles');
     expect(labels).toContain('book.shelfMenuService.library.libraryMaintenance');
-    expect(labels).not.toContain('book.shelfMenuService.library.reconcileLibrary');
+    expect(labels).not.toContain('book.shelfMenuService.library.editLibrary');
+  });
+
+  it('opens separate dialogs for library settings and directory management', () => {
+    const menu = service.initializeLibraryMenuItems(createLibrary());
+    const settingsItem = menu.find(item => item.label === 'book.shelfMenuService.library.librarySettings');
+    const directoriesItem = menu.find(item => item.label === 'book.shelfMenuService.library.manageDirectories');
+
+    settingsItem?.command?.(createMenuEvent(settingsItem));
+    directoriesItem?.command?.(createMenuEvent(directoriesItem));
+
+    expect(dialogLauncherMock.openLibrarySettingsDialog).toHaveBeenCalledWith(42);
+    expect(dialogLauncherMock.openLibraryDirectoriesDialog).toHaveBeenCalledWith(42);
   });
 
   it('runs scan-for-new-files through the dedicated library service method', () => {

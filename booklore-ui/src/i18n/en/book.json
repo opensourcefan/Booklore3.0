@@ -294,6 +294,8 @@
       "addPhysicalBook": "Add Physical Book",
       "bulkIsbnImport": "Import ISBNs from File",
       "editLibrary": "Edit Library",
+      "librarySettings": "Library Settings",
+      "manageDirectories": "Manage Directories",
       "scanNewFiles": "Scan for New Files",
       "libraryMaintenance": "Library Maintenance",
       "reconcileLibrary": "Reconcile Library",

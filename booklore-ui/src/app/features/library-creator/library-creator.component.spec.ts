@@ -54,15 +54,17 @@ describe('LibraryCreatorComponent', () => {
     });
 
     component = TestBed.runInInjectionContext(() => new LibraryCreatorComponent());
-    component.mode = 'edit';
+    component.mode = 'edit-settings';
     component.library = {
       id: 5,
       name: 'Library',
       watch: false,
-      paths: [],
+      paths: [{path: '/books'}],
       allowedFormats: ['EPUB'],
       organizationMode: 'BOOK_PER_FILE'
     };
+    component.chosenLibraryName = 'Library';
+    component.folders = ['/books'];
   });
 
   function submitLibrary(library: Library, selectedAllowedFormats: 'EPUB'[]): void {
@@ -86,5 +88,23 @@ describe('LibraryCreatorComponent', () => {
       summary: 'libraryCreator.creator.toast.reconcileRecommendedSummary'
     }));
     expect(libraryServiceMock.refreshLibrary).not.toHaveBeenCalled();
+  });
+
+  it('allows directory management mode to submit without showing the settings sections', () => {
+    component.mode = 'edit-directories';
+
+    expect(component.showLibraryDetailsSection()).toBe(false);
+    expect(component.showOptionsSection()).toBe(false);
+    expect(component.showFoldersSection()).toBe(true);
+    expect(component.canSubmit()).toBe(true);
+  });
+
+  it('does not submit directory changes when no directories remain', () => {
+    component.mode = 'edit-directories';
+    component.folders = [];
+
+    component.createOrUpdateLibrary();
+
+    expect(libraryServiceMock.updateLibrary).not.toHaveBeenCalled();
   });
 });

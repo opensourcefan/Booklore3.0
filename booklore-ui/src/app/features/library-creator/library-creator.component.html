@@ -6,8 +6,8 @@
           <i class="pi pi-book"></i>
         </div>
         <div class="header-text">
-          <h1>{{ mode === 'edit' ? t('titleEdit') : t('titleNew') }}</h1>
-          <p>{{ t('subtitle') }}</p>
+          <h1>{{ t(getDialogTitleKey()) }}</h1>
+          <p>{{ t(getDialogSubtitleKey()) }}</p>
         </div>
       </div>
       <p-button
@@ -28,6 +28,7 @@
         </div>
       }
 
+      @if (showLibraryDetailsSection()) {
       <section class="form-section">
         <div class="section-header">
           <i class="pi pi-info-circle"></i>
@@ -83,23 +84,25 @@
           </div>
         </div>
       </section>
+      }
 
+      @if (showFoldersSection()) {
       <section class="form-section">
         <div class="section-header">
           <i class="pi pi-folder-open"></i>
-          <span>{{ t('bookFolders') }}</span>
+          <span>{{ t(getFoldersTitleKey()) }}</span>
           <span class="section-badge">{{ folders.length }}</span>
         </div>
 
         <div class="folders-zone">
           <div class="folder-structure-hint">
             <i class="pi pi-exclamation-triangle"></i>
-            <span [innerHTML]="t('folderStructureHint')"></span>
+            <span [innerHTML]="t(getFoldersHintKey())"></span>
           </div>
 
           <button class="add-folder-trigger" (click)="openDirectoryPicker()" type="button" [disabled]="isSubmitting">
             <i class="pi pi-plus-circle"></i>
-            <span>{{ t('addFolder') }}</span>
+            <span>{{ t(getAddFolderKey()) }}</span>
           </button>
 
           @if (folders.length > 0) {
@@ -112,16 +115,33 @@
                       {{ folder }}
                     </span>
                   </div>
-                  <button class="folder-remove" (click)="removeFolder(i)" type="button" [disabled]="isSubmitting">
+                  <button
+                    class="folder-remove"
+                    [class.folder-remove--labeled]="isDirectoryManagementMode()"
+                    [attr.aria-label]="t(getRemoveFolderKey())"
+                    [attr.title]="t(getRemoveFolderKey())"
+                    (click)="removeFolder(i)"
+                    type="button"
+                    [disabled]="isSubmitting">
                     <i class="pi pi-times"></i>
+                    @if (isDirectoryManagementMode()) {
+                      <span>{{ t(getRemoveFolderKey()) }}</span>
+                    }
                   </button>
                 </div>
               }
             </div>
+          } @else {
+            <div class="empty-hint">
+              <i class="pi pi-folder-open"></i>
+              <span>{{ t(getEmptyFoldersHintKey()) }}</span>
+            </div>
           }
         </div>
       </section>
+      }
 
+      @if (showOptionsSection()) {
       <section class="form-section">
         <div class="section-header">
           <i class="pi pi-cog"></i>
@@ -297,27 +317,20 @@
           }
         </div>
       </section>
+      }
     </div>
 
     <footer class="dialog-footer">
       <div class="validation-status">
-        @if (!isLibraryDetailsValid() || !isDirectorySelectionValid()) {
+        @if (!canSubmit()) {
           <div class="status-message warning">
             <i class="pi pi-exclamation-circle"></i>
-            <span>
-              @if (!chosenLibraryName.trim()) {
-                {{ t('validation.enterName') }}
-              } @else if (!selectedIcon) {
-                {{ t('validation.selectIcon') }}
-              } @else {
-                {{ t('validation.addFolder') }}
-              }
-            </span>
+            <span>{{ t(getValidationMessageKey()) }}</span>
           </div>
         } @else {
           <div class="status-message ready">
             <i class="pi pi-check-circle"></i>
-            <span>{{ mode === 'edit' ? t('validation.readyUpdate') : t('validation.readyCreate') }}</span>
+            <span>{{ t(getValidationMessageKey()) }}</span>
           </div>
         }
       </div>
@@ -330,11 +343,11 @@
           (onClick)="closeDialog()"
         />
         <p-button
-          [label]="mode === 'edit' ? t('buttonUpdate') : t('buttonCreate')"
-          [icon]="isSubmitting ? 'pi pi-spin pi-spinner' : (mode === 'edit' ? 'pi pi-save' : 'pi pi-check')"
+          [label]="t(getSubmitButtonLabelKey())"
+          [icon]="getSubmitButtonIcon()"
           [loading]="isSubmitting"
           severity="primary"
-          [disabled]="isSubmitting || !isLibraryDetailsValid() || !isDirectorySelectionValid()"
+          [disabled]="isSubmitting || !canSubmit()"
           (onClick)="createOrUpdateLibrary()"
         />
       </div>

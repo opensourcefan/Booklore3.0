@@ -20,6 +20,8 @@ import {Checkbox} from 'primeng/checkbox';
 import {Select} from 'primeng/select';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 
+type LibraryCreatorMode = 'create' | 'edit' | 'edit-settings' | 'edit-directories';
+
 @Component({
   selector: 'app-library-creator',
   standalone: true,
@@ -34,7 +36,7 @@ export class LibraryCreatorComponent implements OnInit {
   folders: string[] = [];
   selectedIcon: IconSelection | null = null;
 
-  mode!: string;
+  mode: LibraryCreatorMode = 'create';
   library!: Library | undefined;
   editModeLibraryName = '';
   watch = false;
@@ -89,8 +91,9 @@ export class LibraryCreatorComponent implements OnInit {
     this.initializeOrganizationModeOptions();
 
     const data = this.dynamicDialogConfig?.data;
-    if (data?.mode === 'edit') {
-      this.mode = data.mode;
+    this.mode = (data?.mode as LibraryCreatorMode | undefined) ?? 'create';
+
+    if (this.isEditMode()) {
       this.library = this.libraryService.findLibraryById(data.libraryId);
       if (this.library) {
         const {name, icon, iconType, paths, watch, formatPriority, allowedFormats} = this.library;
@@ -251,6 +254,113 @@ export class LibraryCreatorComponent implements OnInit {
     return this.folders.length > 0;
   }
 
+  isCreateMode(): boolean {
+    return this.mode === 'create';
+  }
+
+  isEditMode(): boolean {
+    return !this.isCreateMode();
+  }
+
+  isDirectoryManagementMode(): boolean {
+    return this.mode === 'edit-directories';
+  }
+
+  showLibraryDetailsSection(): boolean {
+    return !this.isDirectoryManagementMode();
+  }
+
+  showFoldersSection(): boolean {
+    return this.isCreateMode() || this.isDirectoryManagementMode();
+  }
+
+  showOptionsSection(): boolean {
+    return !this.isDirectoryManagementMode();
+  }
+
+  getDialogTitleKey(): string {
+    if (this.isCreateMode()) {
+      return 'titleNew';
+    }
+
+    return this.isDirectoryManagementMode() ? 'titleDirectories' : 'titleSettings';
+  }
+
+  getDialogSubtitleKey(): string {
+    if (this.isCreateMode()) {
+      return 'subtitleNew';
+    }
+
+    return this.isDirectoryManagementMode() ? 'subtitleDirectories' : 'subtitleSettings';
+  }
+
+  getFoldersTitleKey(): string {
+    return this.isDirectoryManagementMode() ? 'directoriesTitle' : 'bookFolders';
+  }
+
+  getFoldersHintKey(): string {
+    return this.isDirectoryManagementMode() ? 'directoryManagementHint' : 'folderStructureHint';
+  }
+
+  getAddFolderKey(): string {
+    return this.isDirectoryManagementMode() ? 'addDirectory' : 'addFolder';
+  }
+
+  getEmptyFoldersHintKey(): string {
+    return this.isDirectoryManagementMode() ? 'emptyDirectoriesHint' : 'emptyFoldersHint';
+  }
+
+  getRemoveFolderKey(): string {
+    return this.isDirectoryManagementMode() ? 'removeDirectory' : 'removeFolder';
+  }
+
+  getSubmitButtonLabelKey(): string {
+    if (this.isCreateMode()) {
+      return 'buttonCreate';
+    }
+
+    return this.isDirectoryManagementMode() ? 'buttonSaveDirectories' : 'buttonSaveSettings';
+  }
+
+  getSubmitButtonIcon(): string {
+    if (this.isSubmitting) {
+      return 'pi pi-spin pi-spinner';
+    }
+
+    return this.isCreateMode() ? 'pi pi-check' : 'pi pi-save';
+  }
+
+  canSubmit(): boolean {
+    const detailsValid = !this.requiresLibraryDetails() || this.isLibraryDetailsValid();
+    const directoriesValid = !this.requiresDirectories() || this.isDirectorySelectionValid();
+
+    return detailsValid && directoriesValid;
+  }
+
+  getValidationMessageKey(): string {
+    if (this.requiresLibraryDetails() && !this.isLibraryDetailsValid()) {
+      return 'validation.enterName';
+    }
+
+    if (this.requiresDirectories() && !this.isDirectorySelectionValid()) {
+      return this.isDirectoryManagementMode() ? 'validation.addDirectory' : 'validation.addFolder';
+    }
+
+    return this.isCreateMode()
+      ? 'validation.readyCreate'
+      : this.isDirectoryManagementMode()
+        ? 'validation.readyDirectories'
+        : 'validation.readySettings';
+  }
+
+  private requiresLibraryDetails(): boolean {
+    return !this.isDirectoryManagementMode();
+  }
+
+  private requiresDirectories(): boolean {
+    return this.isCreateMode() || this.isDirectoryManagementMode();
+  }
+
   getSubmissionMessage(): string {
     switch (this.submissionState) {
       case 'scanning':
@@ -268,6 +378,10 @@ export class LibraryCreatorComponent implements OnInit {
 
   createOrUpdateLibrary(): void {
     if (this.isSubmitting) {
+      return;
+    }
+
+    if (!this.canSubmit()) {
       return;
     }
 
@@ -309,12 +423,18 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   private submitLibrary(library: Library, selectedAllowedFormats: BookType[]): void {
-    if (this.mode === 'edit') {
+    if (this.isEditMode()) {
       const requiresReconcile = this.requiresReconcileAfterEdit(selectedAllowedFormats);
       this.libraryService.updateLibrary(library, this.library?.id).subscribe({
         next: () => {
           this.resetSubmissionState();
-          this.messageService.add({severity: 'success', summary: this.t.translate('libraryCreator.creator.toast.updatedSummary'), detail: this.t.translate('libraryCreator.creator.toast.updatedDetail')});
+          this.messageService.add({
+            severity: 'success',
+            summary: this.t.translate('libraryCreator.creator.toast.updatedSummary'),
+            detail: this.t.translate(this.isDirectoryManagementMode()
+              ? 'libraryCreator.creator.toast.updatedDirectoriesDetail'
+              : 'libraryCreator.creator.toast.updatedSettingsDetail')
+          });
           if (requiresReconcile) {
             this.messageService.add({
               severity: 'info',
@@ -326,7 +446,13 @@ export class LibraryCreatorComponent implements OnInit {
         },
         error: (e) => {
           this.resetSubmissionState();
-          this.messageService.add({severity: 'error', summary: this.t.translate('libraryCreator.creator.toast.updateFailedSummary'), detail: this.t.translate('libraryCreator.creator.toast.updateFailedDetail')});
+          this.messageService.add({
+            severity: 'error',
+            summary: this.t.translate('libraryCreator.creator.toast.updateFailedSummary'),
+            detail: this.t.translate(this.isDirectoryManagementMode()
+              ? 'libraryCreator.creator.toast.updateDirectoriesFailedDetail'
+              : 'libraryCreator.creator.toast.updateSettingsFailedDetail')
+          });
           console.error(e);
         }
       });

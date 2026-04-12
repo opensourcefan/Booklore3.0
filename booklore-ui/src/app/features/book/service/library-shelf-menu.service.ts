@@ -52,10 +52,17 @@ export class LibraryShelfMenuService {
         separator: true
       },
       {
-        label: this.t.translate('book.shelfMenuService.library.editLibrary'),
-        icon: 'pi pi-pen-to-square',
+        label: this.t.translate('book.shelfMenuService.library.librarySettings'),
+        icon: 'pi pi-cog',
         command: () => {
-          this.dialogLauncherService.openLibraryEditDialog((entity?.id as number));
+          this.dialogLauncherService.openLibrarySettingsDialog((entity?.id as number));
+        }
+      },
+      {
+        label: this.t.translate('book.shelfMenuService.library.manageDirectories'),
+        icon: 'pi pi-folder-open',
+        command: () => {
+          this.dialogLauncherService.openLibraryDirectoriesDialog((entity?.id as number));
         }
       },
       {

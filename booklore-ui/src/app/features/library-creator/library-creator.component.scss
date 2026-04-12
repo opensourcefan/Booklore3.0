@@ -418,8 +418,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 0.35rem;
     width: 22px;
     height: 22px;
+    padding: 0;
     background: transparent;
     border: none;
     border-radius: 4px;
@@ -437,6 +439,19 @@
       opacity: 1;
       background: rgba(239, 68, 68, 0.15);
       color: var(--p-red-400);
+    }
+
+    &.folder-remove--labeled {
+      width: auto;
+      height: auto;
+      padding: 0.375rem 0.5rem;
+      border: 1px solid transparent;
+      opacity: 1;
+
+      span {
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
     }
 
     i {

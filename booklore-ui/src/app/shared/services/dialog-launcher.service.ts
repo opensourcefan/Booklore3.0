@@ -96,11 +96,26 @@ export class DialogLauncherService {
   }
 
   openLibraryEditDialog(libraryId: number): DynamicDialogRef | null {
+    return this.openLibrarySettingsDialog(libraryId);
+  }
+
+  openLibrarySettingsDialog(libraryId: number): DynamicDialogRef | null {
     return this.openDialog(LibraryCreatorComponent, {
       showHeader: false,
       styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
       data: {
-        mode: 'edit',
+        mode: 'edit-settings',
+        libraryId: libraryId
+      }
+    });
+  }
+
+  openLibraryDirectoriesDialog(libraryId: number): DynamicDialogRef | null {
+    return this.openDialog(LibraryCreatorComponent, {
+      showHeader: false,
+      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+      data: {
+        mode: 'edit-directories',
         libraryId: libraryId
       }
     });
