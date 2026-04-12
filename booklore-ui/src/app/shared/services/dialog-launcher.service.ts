@@ -19,6 +19,7 @@ import {MetadataFetchOptionsComponent} from '../../features/metadata/component/m
 import {ShelfEditDialogComponent} from '../../features/book/components/shelf-edit-dialog/shelf-edit-dialog.component';
 import {IconPickerComponent} from '../components/icon-picker/icon-picker-component';
 import {AcknowledgementsDialogComponent} from '../layout/component/layout-menu/acknowledgements-dialog/acknowledgements-dialog.component';
+import {LibraryMaintenanceDialogComponent} from '../../features/book/components/library-maintenance-dialog/library-maintenance-dialog.component';
 
 /**
  * Dialog size classes - use these to control dialog dimensions
@@ -112,6 +113,16 @@ export class DialogLauncherService {
       data: {
         libraryId: libraryId,
         metadataRefreshType: MetadataRefreshType.LIBRARY,
+      },
+    });
+  }
+
+  openLibraryMaintenanceDialog(libraryId: number): DynamicDialogRef | null {
+    return this.openDialog(LibraryMaintenanceDialogComponent, {
+      showHeader: false,
+      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+      data: {
+        libraryId,
       },
     });
   }

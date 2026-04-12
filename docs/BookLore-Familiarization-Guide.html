@@ -319,6 +319,7 @@
   <li><strong>Create multiple libraries</strong> &mdash; For example, one for &ldquo;Fiction,&rdquo; one for &ldquo;Comics,&rdquo; one for &ldquo;Audiobooks&rdquo;</li>
   <li><strong>Scan for new files</strong> &mdash; Tell BookLore to look for files that are not already known in a library</li>
   <li><strong>Reconcile libraries</strong> &mdash; Force BookLore to compare a library against disk and update library records to match</li>
+  <li><strong>Open Library Maintenance</strong> &mdash; Run high-impact library-wide actions from a dedicated maintenance dialog instead of mixing them with routine work</li>
   <li><strong>See which folders are already part of a library while editing it</strong> &mdash; The <strong>Select Directories</strong> dialog now labels directories that are already imported so you can add only the missing ones</li>
   <li><strong>Save library changes without an automatic reconcile</strong> &mdash; Editing settings or adding directories no longer silently triggers a full reconcile afterward</li>
   <li><strong>See preparation feedback for large imports</strong> &mdash; When creating a library with many files, the dialog now shows an in-between working state before the full progress overlay appears</li>
@@ -328,7 +329,7 @@
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> <strong>Scan for New Files</strong> is the safe discovery action for existing libraries. It imports only files that BookLore does not already know about. <strong>Reconcile Library</strong> is the heavier maintenance action that compares the library against disk and may remove missing-file entries or purge disallowed formats. Both actions are shown directly in the library action menus from the library page header and the left sidebar library menus.
+  <strong>Good to Know:</strong> <strong>Scan for New Files</strong> is the safe discovery action for existing libraries. It imports only files that BookLore does not already know about. <strong>Reconcile Library</strong> is the heavier maintenance action that compares the library against disk and may remove missing-file entries or purge disallowed formats. <strong>Scan for New Files</strong> stays in the normal library menu, while <strong>Reconcile Library</strong> and library-wide sidecar import/export/backup tools now live inside <strong>Library Maintenance</strong> from the library page header and the left sidebar library menus.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -1138,6 +1139,7 @@
   <li>Cancel running tasks</li>
   <li>View task history and results</li>
   <li>Use <strong>Scan for New Files</strong> for safe additive discovery without a full reconcile</li>
+  <li>Use <strong>Library Maintenance</strong> when you intentionally want to reconcile a library or run library-wide sidecar rewrite/import tools</li>
   <li>Monitor long-running directory-tagging follow-up work after imports, including the live status message and estimated time remaining when enough progress has been measured</li>
 </ul>
 
@@ -1285,6 +1287,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-12</td><td>1.1.63</td><td>Documented the new <strong>Library Maintenance</strong> boundary for high-impact library actions, moved <strong>Reconcile Library</strong> behind that dedicated dialog, and clarified that library-wide sidecar import/export/backup tools now live there while <strong>Scan for New Files</strong> remains the routine safe discovery action</td></tr>
   <tr><td>2026-04-12</td><td>1.1.62</td><td>Documented that <strong>Scan for New Files</strong> and <strong>Reconcile Library</strong> now appear directly in library action menus instead of being hidden inside a nested library options group</td></tr>
   <tr><td>2026-04-12</td><td>1.1.61</td><td>Recorded the 3.9.1 hotfix that repaired the new library shelf menu regression tests so the release pipeline can complete successfully without changing the documented library workflow</td></tr>
   <tr><td>2026-04-11</td><td>1.1.60</td><td>Documented the new safe <strong>Scan for New Files</strong> library action, clarified that the former library re-scan flow is now presented as <strong>Reconcile Library</strong>, and noted that saving library changes no longer silently triggers a full reconcile</td></tr>

@@ -1,0 +1,98 @@
+<ng-container *transloco="let t; prefix: 'book.libraryMaintenanceDialog'">
+<div class="maintenance-dialog">
+  <div class="panel-header">
+    <div class="header-icon-wrapper">
+      <i class="pi pi-wrench header-icon"></i>
+    </div>
+    <div class="header-text">
+      <h2 class="panel-title">{{ t('title') }}</h2>
+      <p class="panel-description">{{ t('description', {name: library?.name}) }}</p>
+    </div>
+    <p-button
+      icon="pi pi-times"
+      [text]="true"
+      [rounded]="true"
+      severity="secondary"
+      (onClick)="closeDialog()"
+      class="close-button">
+    </p-button>
+  </div>
+
+  <div class="maintenance-body">
+    <div class="maintenance-intro">
+      <p>{{ t('intro') }}</p>
+    </div>
+
+    <section class="maintenance-card maintenance-card--danger">
+      <div class="maintenance-copy">
+        <h3>{{ t('actions.reconcile.title') }}</h3>
+        <p>{{ t('actions.reconcile.impact') }}</p>
+      </div>
+      <p-button
+        [label]="t('actions.reconcile.button')"
+        icon="pi pi-refresh"
+        severity="warn"
+        [loading]="runningAction === 'reconcile'"
+        (onClick)="confirmReconcile()">
+      </p-button>
+    </section>
+
+    <section class="maintenance-card">
+      <div class="maintenance-copy">
+        <h3>{{ t('actions.sidecarExport.title') }}</h3>
+        <p>{{ t('actions.sidecarExport.impact') }}</p>
+      </div>
+      <p-button
+        [label]="t('actions.sidecarExport.button')"
+        icon="pi pi-upload"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="runningAction === 'sidecarExport'"
+        (onClick)="confirmSidecarExport()">
+      </p-button>
+    </section>
+
+    <section class="maintenance-card">
+      <div class="maintenance-copy">
+        <h3>{{ t('actions.sidecarBackup.title') }}</h3>
+        <p>{{ t('actions.sidecarBackup.impact') }}</p>
+      </div>
+      <p-button
+        [label]="t('actions.sidecarBackup.button')"
+        icon="pi pi-copy"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="runningAction === 'sidecarBackup'"
+        (onClick)="confirmSidecarBackup()">
+      </p-button>
+    </section>
+
+    <section class="maintenance-card maintenance-card--danger">
+      <div class="maintenance-copy">
+        <h3>{{ t('actions.sidecarImport.title') }}</h3>
+        <p>{{ t('actions.sidecarImport.impact') }}</p>
+      </div>
+      <p-button
+        [label]="t('actions.sidecarImport.button')"
+        icon="pi pi-download"
+        severity="warn"
+        [outlined]="true"
+        [loading]="runningAction === 'sidecarImport'"
+        (onClick)="confirmSidecarImport()">
+      </p-button>
+    </section>
+  </div>
+
+  <div class="dialog-footer">
+    <div></div>
+    <div class="footer-actions">
+      <p-button
+        [label]="t('closeButton')"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="closeDialog()">
+      </p-button>
+    </div>
+  </div>
+</div>
+</ng-container>

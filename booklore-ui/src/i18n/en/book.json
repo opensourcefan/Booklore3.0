@@ -295,6 +295,7 @@
       "bulkIsbnImport": "Import ISBNs from File",
       "editLibrary": "Edit Library",
       "scanNewFiles": "Scan for New Files",
+      "libraryMaintenance": "Library Maintenance",
       "reconcileLibrary": "Reconcile Library",
       "customFetchMetadata": "Custom Fetch Metadata",
       "autoFetchMetadata": "Auto Fetch Metadata",
@@ -340,6 +341,51 @@
     },
     "loading": {
       "deletingLibrary": "Deleting library '{{ name }}'..."
+    }
+  },
+  "libraryMaintenanceDialog": {
+    "title": "Library Maintenance",
+    "description": "High-impact maintenance tools for {{name}}.",
+    "intro": "Maintenance actions can reconcile your library with disk or rewrite sidecar metadata for the entire library. These tools may change existing items and are intended for deliberate repair or synchronization work, not routine discovery.",
+    "closeButton": "Close",
+    "confirm": {
+      "header": "Library Maintenance",
+      "sidecarExportMessage": "Rewrite sidecar metadata files for all books in library {{ name }}? This may replace existing sidecar JSON contents with current BookLore metadata.",
+      "sidecarBackupMessage": "Create or refresh backup sidecar files for all books in library {{ name }}? This writes backup sidecar files across the library.",
+      "sidecarImportMessage": "Import metadata from sidecar files for all books in library {{ name }}? This may overwrite current database metadata with sidecar values where they exist."
+    },
+    "actions": {
+      "reconcile": {
+        "title": "Reconcile Library",
+        "impact": "Compare the library against current disk contents and update BookLore records to match. This may remove missing-file entries, purge disallowed formats, restore matching items, attach newly discovered formats, and regenerate derived library data.",
+        "button": "Reconcile Library"
+      },
+      "sidecarExport": {
+        "title": "Export Sidecars",
+        "impact": "Rewrite .metadata.json files for all books in this library from the current BookLore metadata. Use this when the database should become the source of truth for sidecar files.",
+        "button": "Export Sidecars"
+      },
+      "sidecarBackup": {
+        "title": "Back Up Sidecars",
+        "impact": "Create or refresh backup sidecar files across the library even when automatic sidecar writing is disabled. This writes backup metadata files without turning on ongoing automatic rewrites.",
+        "button": "Back Up Sidecars"
+      },
+      "sidecarImport": {
+        "title": "Import Sidecars",
+        "impact": "Read existing .metadata.json files across the library and apply their metadata back into BookLore. Use this when the sidecar files should become the source of truth for the database.",
+        "button": "Import Sidecars"
+      }
+    },
+    "toast": {
+      "sidecarExportSuccessDetail": "Exported sidecars for {{count}} books.",
+      "sidecarExportFailedDetail": "Failed to export sidecars for this library.",
+      "sidecarBackupSuccessDetail": "Backed up sidecars for {{count}} books.",
+      "sidecarBackupPartialSummary": "Backup Partially Completed",
+      "sidecarBackupPartialDetail": "Backed up sidecars for {{count}} books, but {{failed}} of {{attempted}} writes failed. First error: {{error}}",
+      "sidecarBackupUnknownError": "No detailed filesystem error was returned.",
+      "sidecarBackupFailedDetail": "Failed to back up sidecars for this library.",
+      "sidecarImportSuccessDetail": "Imported sidecars for {{count}} books.",
+      "sidecarImportFailedDetail": "Failed to import sidecars for this library."
     }
   },
   "columnPref": {

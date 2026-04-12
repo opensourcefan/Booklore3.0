@@ -24,6 +24,7 @@ describe('LibraryShelfMenuService', () => {
     deleteLibrary: ReturnType<typeof vi.fn>;
   };
   let messageServiceMock: { add: ReturnType<typeof vi.fn> };
+  let dialogLauncherMock: { openLibraryEditDialog: ReturnType<typeof vi.fn>; openShelfEditDialog: ReturnType<typeof vi.fn>; openMagicShelfEditDialog: ReturnType<typeof vi.fn>; openLibraryMetadataFetchDialog: ReturnType<typeof vi.fn>; openLibraryMaintenanceDialog: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     confirmationConfig = undefined;
@@ -33,6 +34,13 @@ describe('LibraryShelfMenuService', () => {
       deleteLibrary: vi.fn().mockReturnValue(of(void 0))
     };
     messageServiceMock = {add: vi.fn()};
+    dialogLauncherMock = {
+      openLibraryEditDialog: vi.fn(),
+      openShelfEditDialog: vi.fn(),
+      openMagicShelfEditDialog: vi.fn(),
+      openLibraryMetadataFetchDialog: vi.fn(),
+      openLibraryMaintenanceDialog: vi.fn()
+    };
 
     TestBed.configureTestingModule({
       providers: [
@@ -43,7 +51,7 @@ describe('LibraryShelfMenuService', () => {
         {provide: ShelfService, useValue: {deleteShelf: vi.fn()}},
         {provide: TaskHelperService, useValue: {refreshMetadataTask: vi.fn().mockReturnValue(of(void 0))}},
         {provide: Router, useValue: {navigate: vi.fn()}},
-        {provide: DialogLauncherService, useValue: {openLibraryEditDialog: vi.fn(), openShelfEditDialog: vi.fn(), openMagicShelfEditDialog: vi.fn(), openLibraryMetadataFetchDialog: vi.fn()}},
+        {provide: DialogLauncherService, useValue: dialogLauncherMock},
         {provide: MagicShelfService, useValue: {deleteShelf: vi.fn()}},
         {provide: UserService, useValue: {getCurrentUser: vi.fn().mockReturnValue({id: 1, permissions: {admin: true}})}},
         {provide: WriteProgressService, useValue: {show: vi.fn(), complete: vi.fn(), fail: vi.fn()}},
@@ -81,7 +89,8 @@ describe('LibraryShelfMenuService', () => {
     const labels = menu.filter(item => !item.separator).map(item => item.label);
 
     expect(labels).toContain('book.shelfMenuService.library.scanNewFiles');
-    expect(labels).toContain('book.shelfMenuService.library.reconcileLibrary');
+    expect(labels).toContain('book.shelfMenuService.library.libraryMaintenance');
+    expect(labels).not.toContain('book.shelfMenuService.library.reconcileLibrary');
   });
 
   it('runs scan-for-new-files through the dedicated library service method', () => {
@@ -95,14 +104,14 @@ describe('LibraryShelfMenuService', () => {
     expect(libraryServiceMock.refreshLibrary).not.toHaveBeenCalled();
   });
 
-  it('runs reconcile through the existing refresh endpoint', () => {
+  it('opens the maintenance dialog for risky library-wide actions', () => {
     const menu = service.initializeLibraryMenuItems(createLibrary());
-    const reconcileItem = menu.find(item => item.label === 'book.shelfMenuService.library.reconcileLibrary');
+    const maintenanceItem = menu.find(item => item.label === 'book.shelfMenuService.library.libraryMaintenance');
 
-    reconcileItem?.command?.(createMenuEvent(reconcileItem));
-    acceptConfirmation();
+    maintenanceItem?.command?.(createMenuEvent(maintenanceItem));
 
-    expect(libraryServiceMock.refreshLibrary).toHaveBeenCalledWith(42);
+    expect(dialogLauncherMock.openLibraryMaintenanceDialog).toHaveBeenCalledWith(42);
+    expect(libraryServiceMock.refreshLibrary).not.toHaveBeenCalled();
   });
 
   it('shows an error toast when the new-file scan fails', () => {

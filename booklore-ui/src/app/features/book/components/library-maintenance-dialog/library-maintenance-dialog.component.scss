@@ -1,0 +1,83 @@
+@use '../../../../shared/styles/panel-shared' as panel;
+
+.maintenance-dialog {
+  width: 700px;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 760px) {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.panel-header {
+  @include panel.panel-header;
+  border-bottom: none;
+}
+
+.maintenance-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.maintenance-intro {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary-color) 7%, var(--surface-card));
+
+  p {
+    margin: 0;
+    line-height: 1.55;
+  }
+}
+
+.maintenance-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  background: var(--surface-card);
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.maintenance-card--danger {
+  border-color: color-mix(in srgb, var(--orange-500) 40%, var(--surface-border));
+  background: color-mix(in srgb, var(--orange-500) 6%, var(--surface-card));
+}
+
+.maintenance-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+    color: var(--text-color-secondary);
+  }
+}
+
+.dialog-footer {
+  @include panel.dialog-footer;
+  border-top: none;
+}
