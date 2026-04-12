@@ -78,7 +78,7 @@ describe('LibraryShelfMenuService', () => {
 
   it('includes separate scan and reconcile actions for libraries', () => {
     const menu = service.initializeLibraryMenuItems(createLibrary());
-    const labels = menu[0].items?.filter(item => !item.separator).map(item => item.label);
+    const labels = menu.filter(item => !item.separator).map(item => item.label);
 
     expect(labels).toContain('book.shelfMenuService.library.scanNewFiles');
     expect(labels).toContain('book.shelfMenuService.library.reconcileLibrary');
@@ -86,7 +86,7 @@ describe('LibraryShelfMenuService', () => {
 
   it('runs scan-for-new-files through the dedicated library service method', () => {
     const menu = service.initializeLibraryMenuItems(createLibrary());
-    const scanItem = menu[0].items?.find(item => item.label === 'book.shelfMenuService.library.scanNewFiles');
+    const scanItem = menu.find(item => item.label === 'book.shelfMenuService.library.scanNewFiles');
 
     scanItem?.command?.(createMenuEvent(scanItem));
     acceptConfirmation();
@@ -97,7 +97,7 @@ describe('LibraryShelfMenuService', () => {
 
   it('runs reconcile through the existing refresh endpoint', () => {
     const menu = service.initializeLibraryMenuItems(createLibrary());
-    const reconcileItem = menu[0].items?.find(item => item.label === 'book.shelfMenuService.library.reconcileLibrary');
+    const reconcileItem = menu.find(item => item.label === 'book.shelfMenuService.library.reconcileLibrary');
 
     reconcileItem?.command?.(createMenuEvent(reconcileItem));
     acceptConfirmation();
@@ -108,7 +108,7 @@ describe('LibraryShelfMenuService', () => {
   it('shows an error toast when the new-file scan fails', () => {
     libraryServiceMock.scanLibraryForNewFiles.mockReturnValue(throwError(() => new Error('failed')));
     const menu = service.initializeLibraryMenuItems(createLibrary());
-    const scanItem = menu[0].items?.find(item => item.label === 'book.shelfMenuService.library.scanNewFiles');
+    const scanItem = menu.find(item => item.label === 'book.shelfMenuService.library.scanNewFiles');
 
     scanItem?.command?.(createMenuEvent(scanItem));
     acceptConfirmation();
