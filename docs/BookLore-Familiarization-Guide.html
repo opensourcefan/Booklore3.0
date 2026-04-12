@@ -317,14 +317,19 @@
 <h3>What You Can Do</h3>
 <ul>
   <li><strong>Create multiple libraries</strong> &mdash; For example, one for &ldquo;Fiction,&rdquo; one for &ldquo;Comics,&rdquo; one for &ldquo;Audiobooks&rdquo;</li>
-  <li><strong>Scan libraries</strong> &mdash; Tell BookLore to look for new files in a library folder</li>
-  <li><strong>Rescan libraries</strong> &mdash; Force BookLore to re-examine all files in a library</li>
+  <li><strong>Scan for new files</strong> &mdash; Tell BookLore to look for files that are not already known in a library</li>
+  <li><strong>Reconcile libraries</strong> &mdash; Force BookLore to compare a library against disk and update library records to match</li>
   <li><strong>See which folders are already part of a library while editing it</strong> &mdash; The <strong>Select Directories</strong> dialog now labels directories that are already imported so you can add only the missing ones</li>
+  <li><strong>Save library changes without an automatic reconcile</strong> &mdash; Editing settings or adding directories no longer silently triggers a full reconcile afterward</li>
   <li><strong>See preparation feedback for large imports</strong> &mdash; When creating a library with many files, the dialog now shows an in-between working state before the full progress overlay appears</li>
   <li><strong>Check library health</strong> &mdash; Verify the folder is accessible and working</li>
   <li><strong>Delete libraries</strong> &mdash; Remove a library from BookLore (optionally deleting its files too)</li>
   <li><strong>Restrict library access</strong> &mdash; Control which users can see which libraries</li>
 </ul>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> <strong>Scan for New Files</strong> is the safe discovery action for existing libraries. It imports only files that BookLore does not already know about. <strong>Reconcile Library</strong> is the heavier maintenance action that compares the library against disk and may remove missing-file entries or purge disallowed formats.
+</div>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
@@ -337,6 +342,7 @@
   <ul>
     <li><strong>Deleting a library can optionally delete the actual files from disk.</strong> If you only want to remove BookLore&rsquo;s catalog entry, make sure you uncheck &ldquo;delete files from disk.&rdquo;</li>
     <li><strong>Moving or renaming book files outside of BookLore</strong> will cause them to appear missing. Always let BookLore manage file movements.</li>
+    <li><strong>Use Reconcile Library intentionally.</strong> It is not the same as a safe new-file scan and may change existing library records to match disk.</li>
     <li><strong>If your book folder is on a network drive,</strong> set <code>DISK_TYPE=NETWORK</code> in your environment configuration for better compatibility. Automatic metadata writes stay disabled there, but you can still run manual sidecar backups when you want a portable metadata snapshot.</li>
   </ul>
 </div>
@@ -1117,7 +1123,7 @@
 <table>
   <tr><th>Task</th><th>What It Does</th></tr>
   <tr><td>Library Scan</td><td>Detect newly added book files</td></tr>
-  <tr><td>Library Rescan</td><td>Full re-scan of all files in a library</td></tr>
+  <tr><td>Reconcile Library</td><td>Compare a library against disk and update library records to match</td></tr>
   <tr><td>Metadata Refresh</td><td>Re-fetch metadata from providers for existing books</td></tr>
   <tr><td>Deleted Books Cleanup</td><td>Remove catalog entries for files that no longer exist on disk</td></tr>
   <tr><td>Temp Metadata Cleanup</td><td>Clear old cached metadata from previous searches</td></tr>
@@ -1131,13 +1137,15 @@
   <li>Schedule tasks &mdash; Set up automatic timing</li>
   <li>Cancel running tasks</li>
   <li>View task history and results</li>
+  <li>Use <strong>Scan for New Files</strong> for safe additive discovery without a full reconcile</li>
   <li>Monitor long-running directory-tagging follow-up work after imports, including the live status message and estimated time remaining when enough progress has been measured</li>
 </ul>
 
 <div class="callout">
   <strong>Be Careful:</strong>
   <ul>
-    <li><strong>Library Rescan on a very large library</strong> can take a long time and use significant resources.</li>
+    <li><strong>Reconcile Library on a very large library</strong> can take a long time and use significant resources.</li>
+    <li><strong>Reconcile Library</strong> may remove missing-file entries and purge disallowed formats; use <strong>Scan for New Files</strong> when you only want to import newly added content.</li>
     <li><strong>Metadata Refresh</strong> makes network calls &mdash; running too frequently may cause rate limiting from providers.</li>
   </ul>
 </div>
@@ -1277,6 +1285,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-11</td><td>1.1.60</td><td>Documented the new safe <strong>Scan for New Files</strong> library action, clarified that the former library re-scan flow is now presented as <strong>Reconcile Library</strong>, and noted that saving library changes no longer silently triggers a full reconcile</td></tr>
   <tr><td>2026-04-11</td><td>1.1.59</td><td>Reduced the right-edge inset for sidebar filter count badges by half and aligned the badge column with the accordion chevrons so the filter rows track the same visual edge as their section headers</td></tr>
   <tr><td>2026-04-11</td><td>1.1.58</td><td>Documented the consistent right-edge alignment for sidebar filter badges, and noted that the broken grouped Dependabot frontend dependency PR was replaced with a curated compatible dependency refresh on develop instead of merging the failing update set</td></tr>
   <tr><td>2026-04-11</td><td>1.1.57</td><td>Documented the sidebar accordion fix so switching from active tag filters to other filter groups no longer half-opens and snaps shut, and clarified that advanced custom metadata fetch now defaults to Merge Genres off and Manual Review on</td></tr>

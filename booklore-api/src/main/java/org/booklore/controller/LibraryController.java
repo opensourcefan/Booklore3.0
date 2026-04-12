@@ -112,6 +112,16 @@ public class LibraryController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Scan a library for new files", description = "Scan an existing library and import only files that are not already known. Requires admin or manipulation permission.")
+    @ApiResponse(responseCode = "204", description = "Library new-file scan scheduled successfully")
+    @PutMapping("/{libraryId}/scan-new-files")
+    @CheckLibraryAccess(libraryIdParam = "libraryId")
+    @PreAuthorize("@securityUtil.canManageLibrary() or @securityUtil.isAdmin()")
+    public ResponseEntity<?> scanLibraryForNewFiles(@Parameter(description = "ID of the library") @PathVariable long libraryId) {
+        libraryService.scanLibraryForNewFiles(libraryId);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Set file naming pattern", description = "Set the file naming pattern for a library. Requires admin or manipulation permission.")
     @ApiResponse(responseCode = "200", description = "File naming pattern updated successfully")
     @PatchMapping("/{libraryId}/file-naming-pattern")

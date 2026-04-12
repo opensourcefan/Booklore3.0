@@ -48,7 +48,7 @@
       "selectIcon": "Select an icon",
       "addFolder": "Add at least one folder",
       "readyCreate": "Ready to create",
-      "readyUpdate": "Ready to update"
+      "readyUpdate": "Ready to save changes"
     },
     "submission": {
       "scanning": "Scanning selected folders so the import can start.",
@@ -57,12 +57,14 @@
       "handoff": "Large import detected. Handing off to the full-screen loading view."
     },
     "buttonCreate": "Create",
-    "buttonUpdate": "Update",
+    "buttonUpdate": "Save Changes",
     "toast": {
       "nameExistsSummary": "Library Name Exists",
       "nameExistsDetail": "This library name is already taken.",
       "updatedSummary": "Library Updated",
-      "updatedDetail": "The library was updated successfully.",
+      "updatedDetail": "The library changes were saved successfully.",
+      "reconcileRecommendedSummary": "Manual reconcile available",
+      "reconcileRecommendedDetail": "Organization mode or allowed format changes were saved. Use Reconcile Library if you want those changes applied to existing items.",
       "updateFailedSummary": "Update Failed",
       "updateFailedDetail": "An error occurred while updating the library. Please try again.",
       "createdSummary": "Library Created",

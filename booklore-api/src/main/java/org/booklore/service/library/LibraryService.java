@@ -233,7 +233,7 @@ public class LibraryService {
 
     public void rescanLibrary(long libraryId) {
         LibraryEntity lib = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
-        auditService.log(AuditAction.LIBRARY_SCANNED, "Library", libraryId, "Scanned library: " + lib.getName());
+        auditService.log(AuditAction.LIBRARY_SCANNED, "Library", libraryId, "Reconciled library: " + lib.getName());
 
         SecurityContextVirtualThread.runWithSecurityContext(() -> {
             if (!scanningLibraries.add(libraryId)) {
@@ -253,6 +253,28 @@ public class LibraryService {
                 scanningLibraries.remove(libraryId);
             }
             log.info("Parsing task completed!");
+        });
+    }
+
+    public void scanLibraryForNewFiles(long libraryId) {
+        LibraryEntity lib = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
+        auditService.log(AuditAction.LIBRARY_SCANNED, "Library", libraryId, "Scanned library for new files: " + lib.getName());
+
+        SecurityContextVirtualThread.runWithSecurityContext(() -> {
+            if (!scanningLibraries.add(libraryId)) {
+                log.warn("Library {} is already being scanned, skipping duplicate new-file scan request", libraryId);
+                return;
+            }
+            try {
+                libraryProcessingService.scanLibraryForNewFiles(libraryId);
+            } catch (InvalidDataAccessApiUsageException e) {
+                log.debug("InvalidDataAccessApiUsageException - Library id: {}", libraryId);
+            } catch (IOException e) {
+                log.error("Error while scanning library {} for new files", libraryId, e);
+            } finally {
+                scanningLibraries.remove(libraryId);
+            }
+            log.info("New-file scan task completed!");
         });
     }
 

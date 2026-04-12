@@ -230,6 +230,69 @@ class LibraryProcessingServiceTest {
         assertThat(captor.getValue()).hasSize(2);
     }
 
+        @Test
+        void scanLibraryForNewFiles_shouldImportOnlyNewFilesWithoutDeletionFlow(@TempDir Path tempDir) throws IOException {
+                long libraryId = 7L;
+
+                LibraryPathEntity pathEntity = new LibraryPathEntity();
+                pathEntity.setId(10L);
+                pathEntity.setPath(tempDir.toString());
+
+                LibraryEntity libraryEntity = new LibraryEntity();
+                libraryEntity.setId(libraryId);
+                libraryEntity.setName("Incremental Library");
+                libraryEntity.setLibraryPaths(List.of(pathEntity));
+                libraryEntity.setBookEntities(new ArrayList<>());
+
+                BookEntity existingBook = new BookEntity();
+                existingBook.setLibraryPath(pathEntity);
+                BookFileEntity existingBookFile = new BookFileEntity();
+                existingBookFile.setBook(existingBook);
+                existingBook.setBookFiles(List.of(existingBookFile));
+                existingBook.getPrimaryBookFile().setFileSubPath("");
+                existingBook.getPrimaryBookFile().setFileName("known.epub");
+
+                LibraryFile existingFile = LibraryFile.builder()
+                                .libraryEntity(libraryEntity)
+                                .libraryPathEntity(pathEntity)
+                                .fileSubPath("")
+                                .fileName("known.epub")
+                                .build();
+
+                LibraryFile newFile = LibraryFile.builder()
+                                .libraryEntity(libraryEntity)
+                                .libraryPathEntity(pathEntity)
+                                .fileSubPath("")
+                                .fileName("new.epub")
+                                .build();
+
+                when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
+                when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
+                when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
+                when(libraryFileHelper.getLibraryFiles(libraryEntity)).thenReturn(List.of(existingFile, newFile));
+                when(bookGroupingService.groupForInitialScan(anyList(), eq(libraryEntity)))
+                                .thenAnswer(invocation -> {
+                                        List<LibraryFile> files = invocation.getArgument(0);
+                                        Map<String, List<LibraryFile>> result = new LinkedHashMap<>();
+                                        for (LibraryFile file : files) {
+                                                result.put(file.getFileName(), List.of(file));
+                                        }
+                                        return result;
+                                });
+
+                libraryProcessingService.scanLibraryForNewFiles(libraryId);
+
+                ArgumentCaptor<List<LibraryFile>> captor = libraryFileListCaptor();
+                verify(bookGroupingService).groupForInitialScan(captor.capture(), eq(libraryEntity));
+                assertThat(captor.getValue()).containsExactly(newFile);
+
+                verify(bookDeletionService, never()).deleteRemovedAdditionalFiles(anyList());
+                verify(bookDeletionService, never()).processDeletedLibraryFiles(anyList(), anyList());
+                verify(bookDeletionService, never()).deleteRemovedBooks(anyList());
+                verify(bookDeletionService, never()).purgeDisallowedFormats(any(LibraryEntity.class));
+                verify(bookRestorationService, never()).restoreDeletedBooks(anyList());
+        }
+
     @Test
     void processLibrary_newFileInSubdirectory_shouldProcess() throws IOException {
         long libraryId = 1L;

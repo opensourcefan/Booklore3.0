@@ -62,14 +62,14 @@ export class LibraryShelfMenuService {
             }
           },
           {
-            label: this.t.translate('book.shelfMenuService.library.rescanLibrary'),
-            icon: 'pi pi-refresh',
+            label: this.t.translate('book.shelfMenuService.library.scanNewFiles'),
+            icon: 'pi pi-search',
             command: () => {
               this.confirmationService.confirm({
-                message: this.t.translate('book.shelfMenuService.confirm.rescanLibraryMessage', {name: entity?.name}),
+                message: this.t.translate('book.shelfMenuService.confirm.scanNewFilesMessage', {name: entity?.name}),
                 header: this.t.translate('book.shelfMenuService.confirm.header'),
                 icon: undefined,
-                acceptLabel: this.t.translate('book.shelfMenuService.confirm.rescanLabel'),
+                acceptLabel: this.t.translate('book.shelfMenuService.confirm.scanNewFilesLabel'),
                 rejectLabel: this.t.translate('common.cancel'),
                 acceptIcon: undefined,
                 rejectIcon: undefined,
@@ -80,19 +80,58 @@ export class LibraryShelfMenuService {
                   severity: 'secondary',
                 },
                 acceptButtonProps: {
-                  label: this.t.translate('book.shelfMenuService.confirm.rescanLabel'),
+                  label: this.t.translate('book.shelfMenuService.confirm.scanNewFilesLabel'),
                   severity: 'success',
                 },
                 accept: () => {
-                  this.libraryService.refreshLibrary(entity!.id as number).subscribe({
+                  this.libraryService.scanLibraryForNewFiles(entity!.id as number).subscribe({
                     complete: () => {
-                      this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.libraryRefreshSuccessDetail')});
+                      this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.scanNewFilesSuccessDetail')});
                     },
                     error: () => {
                       this.messageService.add({
                         severity: 'error',
                         summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-                        detail: this.t.translate('book.shelfMenuService.toast.libraryRefreshFailedDetail'),
+                        detail: this.t.translate('book.shelfMenuService.toast.scanNewFilesFailedDetail'),
+                      });
+                    }
+                  });
+                }
+              });
+            }
+          },
+          {
+            label: this.t.translate('book.shelfMenuService.library.reconcileLibrary'),
+            icon: 'pi pi-refresh',
+            command: () => {
+              this.confirmationService.confirm({
+                message: this.t.translate('book.shelfMenuService.confirm.reconcileLibraryMessage', {name: entity?.name}),
+                header: this.t.translate('book.shelfMenuService.confirm.header'),
+                icon: undefined,
+                acceptLabel: this.t.translate('book.shelfMenuService.confirm.reconcileLabel'),
+                rejectLabel: this.t.translate('common.cancel'),
+                acceptIcon: undefined,
+                rejectIcon: undefined,
+                acceptButtonStyleClass: undefined,
+                rejectButtonStyleClass: undefined,
+                rejectButtonProps: {
+                  label: this.t.translate('common.cancel'),
+                  severity: 'secondary',
+                },
+                acceptButtonProps: {
+                  label: this.t.translate('book.shelfMenuService.confirm.reconcileLabel'),
+                  severity: 'warn',
+                },
+                accept: () => {
+                  this.libraryService.refreshLibrary(entity!.id as number).subscribe({
+                    complete: () => {
+                      this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.reconcileLibrarySuccessDetail')});
+                    },
+                    error: () => {
+                      this.messageService.add({
+                        severity: 'error',
+                        summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
+                        detail: this.t.translate('book.shelfMenuService.toast.reconcileLibraryFailedDetail'),
                       });
                     }
                   });

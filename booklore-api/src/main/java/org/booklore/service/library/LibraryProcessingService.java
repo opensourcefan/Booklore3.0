@@ -99,6 +99,21 @@ public class LibraryProcessingService {
     }
 
     @Transactional
+    public void scanLibraryForNewFiles(long libraryId) throws IOException {
+        LibraryEntity libraryEntity = libraryRepository.findById(libraryId)
+                .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
+
+        notificationService.sendMessage(Topic.LOG, LogNotification.info("Started scanning library for new files: " + libraryEntity.getName()));
+        validateLibraryPathsAccessible(libraryEntity);
+        physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
+
+        List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity);
+        importLibraryFiles(libraryEntity, libraryFiles);
+
+        notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished scanning library for new files: " + libraryEntity.getName()));
+    }
+
+    @Transactional
     public void rescanLibrary(RescanLibraryContext context) throws IOException {
         LibraryEntity libraryEntity = libraryRepository.findById(context.getLibraryId()).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(context.getLibraryId()));
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Started refreshing library: " + libraryEntity.getName()));

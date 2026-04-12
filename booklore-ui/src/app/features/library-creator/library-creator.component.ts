@@ -14,7 +14,7 @@ import {Button} from 'primeng/button';
 import {IconDisplayComponent} from '../../shared/components/icon-display/icon-display.component';
 import {DialogLauncherService} from '../../shared/services/dialog-launcher.service';
 import {switchMap} from 'rxjs/operators';
-import {map, of} from 'rxjs';
+import {map} from 'rxjs';
 import {CdkDragDrop, DragDropModule, moveItemInArray} from '@angular/cdk/drag-drop';
 import {Checkbox} from 'primeng/checkbox';
 import {Select} from 'primeng/select';
@@ -310,13 +310,18 @@ export class LibraryCreatorComponent implements OnInit {
 
   private submitLibrary(library: Library, selectedAllowedFormats: BookType[]): void {
     if (this.mode === 'edit') {
-      const requiresFullRefresh = this.requiresFullRefreshAfterEdit(selectedAllowedFormats);
-      this.libraryService.updateLibrary(library, this.library?.id).pipe(
-        switchMap(() => requiresFullRefresh ? this.libraryService.refreshLibrary(this.library!.id!) : of(void 0))
-      ).subscribe({
+      const requiresReconcile = this.requiresReconcileAfterEdit(selectedAllowedFormats);
+      this.libraryService.updateLibrary(library, this.library?.id).subscribe({
         next: () => {
           this.resetSubmissionState();
           this.messageService.add({severity: 'success', summary: this.t.translate('libraryCreator.creator.toast.updatedSummary'), detail: this.t.translate('libraryCreator.creator.toast.updatedDetail')});
+          if (requiresReconcile) {
+            this.messageService.add({
+              severity: 'info',
+              summary: this.t.translate('libraryCreator.creator.toast.reconcileRecommendedSummary'),
+              detail: this.t.translate('libraryCreator.creator.toast.reconcileRecommendedDetail')
+            });
+          }
           this.dynamicDialogRef.close();
         },
         error: (e) => {
@@ -376,6 +381,10 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   private requiresFullRefreshAfterEdit(nextAllowedFormats: BookType[]): boolean {
+    return this.requiresReconcileAfterEdit(nextAllowedFormats);
+  }
+
+  private requiresReconcileAfterEdit(nextAllowedFormats: BookType[]): boolean {
     if (!this.library) {
       return false;
     }
