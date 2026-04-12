@@ -373,6 +373,11 @@ export class LibraryCreatorComponent implements OnInit {
     return this.folders.filter(folder => !original.has(this.normalizeFolderPath(folder)));
   }
 
+  isImportedDirectory(folder: string): boolean {
+    const normalizedFolder = this.normalizeFolderPath(folder);
+    return this.originalFolders.some(existingFolder => this.normalizeFolderPath(existingFolder) === normalizedFolder);
+  }
+
   private requiresLibraryDetails(): boolean {
     return !this.isDirectoryManagementMode();
   }

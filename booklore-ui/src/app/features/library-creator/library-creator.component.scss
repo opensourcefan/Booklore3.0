@@ -424,12 +424,41 @@
       transition: color 0.2s ease;
     }
 
+    .folder-name-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+      width: 100%;
+    }
+
     .folder-path {
+      flex: 1;
+      min-width: 0;
       font-size: 0.875rem;
       color: var(--text-color);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .folder-imported-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--green-500) 16%, var(--overlay-background));
+      color: var(--green-700);
+      border: 1px solid color-mix(in srgb, var(--green-500) 45%, transparent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+
+      i {
+        font-size: 0.72rem;
+      }
     }
   }
 

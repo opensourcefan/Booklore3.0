@@ -124,9 +124,17 @@
                 <div class="folder-item">
                   <div class="folder-info">
                     <i class="pi pi-folder"></i>
-                    <span class="folder-path" [pTooltip]="folder" tooltipPosition="top">
-                      {{ folder }}
-                    </span>
+                    <div class="folder-name-row">
+                      <span class="folder-path" [pTooltip]="folder" tooltipPosition="top">
+                        {{ folder }}
+                      </span>
+                      @if (isDirectoryManagementMode() && isImportedDirectory(folder)) {
+                        <span class="folder-imported-chip">
+                          <i class="pi pi-check-circle"></i>
+                          {{ t('importedDirectoryBadge') }}
+                        </span>
+                      }
+                    </div>
                   </div>
                   <button
                     class="folder-remove"

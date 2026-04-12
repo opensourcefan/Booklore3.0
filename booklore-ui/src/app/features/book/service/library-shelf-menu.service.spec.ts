@@ -97,6 +97,19 @@ describe('LibraryShelfMenuService', () => {
     expect(labels).not.toContain('book.shelfMenuService.library.editLibrary');
   });
 
+  it('keeps settings, directories, and maintenance grouped at the bottom above delete', () => {
+    const menu = service.initializeLibraryMenuItems(createLibrary());
+    const settingsIndex = menu.findIndex(item => item.label === 'book.shelfMenuService.library.librarySettings');
+    const directoriesIndex = menu.findIndex(item => item.label === 'book.shelfMenuService.library.manageDirectories');
+    const maintenanceIndex = menu.findIndex(item => item.label === 'book.shelfMenuService.library.libraryMaintenance');
+    const deleteIndex = menu.findIndex(item => item.label === 'book.shelfMenuService.library.deleteLibrary');
+
+    expect(menu[settingsIndex - 1]?.separator).toBe(true);
+    expect(settingsIndex).toBeLessThan(directoriesIndex);
+    expect(directoriesIndex).toBeLessThan(maintenanceIndex);
+    expect(maintenanceIndex).toBeLessThan(deleteIndex);
+  });
+
   it('opens separate dialogs for library settings and directory management', () => {
     const menu = service.initializeLibraryMenuItems(createLibrary());
     const settingsItem = menu.find(item => item.label === 'book.shelfMenuService.library.librarySettings');

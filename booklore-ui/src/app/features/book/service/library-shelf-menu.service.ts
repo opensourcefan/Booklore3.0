@@ -52,20 +52,6 @@ export class LibraryShelfMenuService {
         separator: true
       },
       {
-        label: this.t.translate('book.shelfMenuService.library.librarySettings'),
-        icon: 'pi pi-cog',
-        command: () => {
-          this.dialogLauncherService.openLibrarySettingsDialog((entity?.id as number));
-        }
-      },
-      {
-        label: this.t.translate('book.shelfMenuService.library.manageDirectories'),
-        icon: 'pi pi-folder-open',
-        command: () => {
-          this.dialogLauncherService.openLibraryDirectoriesDialog((entity?.id as number));
-        }
-      },
-      {
         label: this.t.translate('book.shelfMenuService.library.scanNewFiles'),
         icon: 'pi pi-search',
         command: () => {
@@ -105,13 +91,6 @@ export class LibraryShelfMenuService {
         }
       },
       {
-        label: this.t.translate('book.shelfMenuService.library.libraryMaintenance'),
-        icon: 'pi pi-wrench',
-        command: () => {
-          this.dialogLauncherService.openLibraryMaintenanceDialog(entity?.id as number);
-        }
-      },
-      {
         label: this.t.translate('book.shelfMenuService.library.customFetchMetadata'),
         icon: 'pi pi-sync',
         command: () => {
@@ -140,6 +119,27 @@ export class LibraryShelfMenuService {
       },
       {
         separator: true
+      },
+      {
+        label: this.t.translate('book.shelfMenuService.library.librarySettings'),
+        icon: 'pi pi-cog',
+        command: () => {
+          this.dialogLauncherService.openLibrarySettingsDialog((entity?.id as number));
+        }
+      },
+      {
+        label: this.t.translate('book.shelfMenuService.library.manageDirectories'),
+        icon: 'pi pi-folder-open',
+        command: () => {
+          this.dialogLauncherService.openLibraryDirectoriesDialog((entity?.id as number));
+        }
+      },
+      {
+        label: this.t.translate('book.shelfMenuService.library.libraryMaintenance'),
+        icon: 'pi pi-wrench',
+        command: () => {
+          this.dialogLauncherService.openLibraryMaintenanceDialog(entity?.id as number);
+        }
       },
       {
         label: this.t.translate('book.shelfMenuService.library.deleteLibrary'),
