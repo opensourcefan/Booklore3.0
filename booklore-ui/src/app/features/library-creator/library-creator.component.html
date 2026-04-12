@@ -104,6 +104,10 @@
             <div class="directory-scan-note">
               <i class="pi pi-info-circle"></i>
               <span>
+                <strong>{{ t('buttonSaveDirectories') }}</strong>
+                {{ ' ' + t('directorySaveBehaviorPathsOnly') + ' ' }}
+                <strong>{{ t('buttonSaveAndScanDirectories') }}</strong>
+                {{ ' ' }}
                 @if (getAddedDirectories().length > 0) {
                   {{ t('directorySaveBehaviorWithPendingScan', { count: getAddedDirectories().length }) }}
                 } @else {

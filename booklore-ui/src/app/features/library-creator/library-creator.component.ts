@@ -462,6 +462,7 @@ export class LibraryCreatorComponent implements OnInit {
   private submitLibrary(library: Library, selectedAllowedFormats: BookType[], scanNewDirectories = false): void {
     if (this.isEditMode()) {
       const requiresReconcile = this.requiresReconcileAfterEdit(selectedAllowedFormats);
+      const directoryTagBehaviorChanged = !this.isDirectoryManagementMode() && this.didDirectoryTagBehaviorChange();
       const addedDirectories = scanNewDirectories ? this.getAddedDirectories() : [];
       this.libraryService.updateLibrary(library, this.library?.id).subscribe({
         next: () => {
@@ -508,6 +509,13 @@ export class LibraryCreatorComponent implements OnInit {
               ? 'libraryCreator.creator.toast.updatedDirectoriesDetail'
               : 'libraryCreator.creator.toast.updatedSettingsDetail')
           });
+          if (directoryTagBehaviorChanged) {
+            this.messageService.add({
+              severity: 'info',
+              summary: this.t.translate('libraryCreator.creator.toast.directoryTagSettingsInfoSummary'),
+              detail: this.t.translate('libraryCreator.creator.toast.directoryTagSettingsInfoDetail')
+            });
+          }
           if (requiresReconcile) {
             this.messageService.add({
               severity: 'info',
@@ -593,6 +601,18 @@ export class LibraryCreatorComponent implements OnInit {
 
     return this.normalizeFormats(currentAllowedFormats) !== this.normalizeFormats(nextAllowedFormats)
       || currentOrganizationMode !== this.organizationMode;
+  }
+
+  private didDirectoryTagBehaviorChange(): boolean {
+    if (!this.library) {
+      return false;
+    }
+
+    const currentTagByDirectory = this.library.tagByDirectory ?? false;
+    const currentDirectoryTagDepth = this.library.directoryTagDepth ?? 'LAST_ONLY';
+
+    return currentTagByDirectory !== this.tagByDirectory
+      || (this.tagByDirectory && currentDirectoryTagDepth !== this.directoryTagDepth);
   }
 
   private normalizeFormats(formats: BookType[]): string {

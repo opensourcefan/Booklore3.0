@@ -75,7 +75,6 @@ public class LibraryService {
     private final AuthenticationService authenticationService;
     private final UserRepository userRepository;
     private final AuditService auditService;
-    private final DirectoryTagTaskStarter directoryTagTaskStarter;
 
     @Transactional
     @EventListener(ApplicationReadyEvent.class)
@@ -149,11 +148,6 @@ public class LibraryService {
             libraryWatchService.registerLibraries(List.of(libraryMapper.toLibrary(savedLibrary)));
         } else {
             libraryWatchService.unregisterLibrary(libraryId);
-        }
-
-        if (savedLibrary.isTagByDirectory() && newPaths.isEmpty()) {
-            log.info("tag-by-directory enabled/updated for library {} — queueing background directory tagging", libraryId);
-            SecurityContextVirtualThread.runWithSecurityContext(() -> directoryTagTaskStarter.scheduleLibrary(libraryId));
         }
 
         auditService.log(AuditAction.LIBRARY_UPDATED, "Library", libraryId, "Updated library: " + library.getName());

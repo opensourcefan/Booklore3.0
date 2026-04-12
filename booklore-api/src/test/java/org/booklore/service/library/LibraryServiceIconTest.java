@@ -9,6 +9,7 @@ import org.booklore.model.dto.LibraryPath;
 import org.booklore.model.dto.request.CreateLibraryRequest;
 import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.enums.IconType;
+import org.booklore.model.enums.DirectoryTagDepth;
 import org.booklore.repository.LibraryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -261,6 +262,34 @@ class LibraryServiceIconTest {
         libraryService.updateLibrary(request, 1L);
 
         verify(libraryProcessingService, never()).processLibraryPaths(anyLong(), anySet());
+    }
+
+    @Test
+    void updateLibrary_withDirectoryTagSettingChange_shouldNotQueueBackgroundRetagging() {
+        LibraryEntity existing = LibraryEntity.builder()
+                .id(1L)
+                .name("My Library")
+                .libraryPaths(new ArrayList<>())
+                .watch(false)
+                .tagByDirectory(false)
+                .directoryTagDepth(DirectoryTagDepth.LAST_ONLY)
+                .build();
+
+        CreateLibraryRequest request = CreateLibraryRequest.builder()
+                .name("My Library")
+                .paths(Collections.emptyList())
+                .watch(false)
+                .tagByDirectory(true)
+                .directoryTagDepth(DirectoryTagDepth.ALL_SEGMENTS)
+                .build();
+
+        when(libraryRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(libraryRepository.save(any(LibraryEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(libraryMapper.toLibrary(any(LibraryEntity.class))).thenReturn(Library.builder().name("My Library").build());
+
+        libraryService.updateLibrary(request, 1L);
+
+        verifyNoInteractions(directoryTagTaskStarter);
     }
 
     @Test

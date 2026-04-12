@@ -10,6 +10,7 @@ import {IconPickerService} from '../../shared/service/icon-picker.service';
 import {DialogLauncherService} from '../../shared/services/dialog-launcher.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {Library} from '../book/model/library.model';
+import libraryCreatorTranslations from '../../../i18n/en/library-creator.json';
 
 describe('LibraryCreatorComponent', () => {
   let component: LibraryCreatorComponent;
@@ -45,6 +46,7 @@ describe('LibraryCreatorComponent', () => {
     dialogRefMock = {close: vi.fn()};
 
     TestBed.configureTestingModule({
+      imports: [LibraryCreatorComponent],
       providers: [
         {provide: DynamicDialogRef, useValue: dialogRefMock},
         {provide: DynamicDialogConfig, useValue: {data: null}},
@@ -53,7 +55,15 @@ describe('LibraryCreatorComponent', () => {
         {provide: LibraryService, useValue: libraryServiceMock},
         {provide: IconPickerService, useValue: {open: vi.fn().mockReturnValue(of(null))}},
         {provide: DialogLauncherService, useValue: {openDirectoryPickerDialog: vi.fn()}},
-        {provide: TranslocoService, useValue: {translate: (key: string) => key}}
+        {
+          provide: TranslocoService,
+          useValue: {
+            translate: (key: string) => key,
+            langChanges$: of('en'),
+            getActiveLang: () => 'en',
+            config: {reRenderOnLangChange: false}
+          }
+        }
       ]
     });
 
@@ -138,5 +148,32 @@ describe('LibraryCreatorComponent', () => {
 
     expect(libraryServiceMock.updateLibrary).toHaveBeenCalledWith(expect.any(Object), 5);
     expect(libraryServiceMock.scanLibraryDirectoriesForNewFiles).toHaveBeenCalledWith(5, ['/new', '/another']);
+  });
+
+  it('keeps directory save guidance text free of embedded html markup', () => {
+    expect(libraryCreatorTranslations.creator.directorySaveBehaviorPathsOnly).not.toContain('<strong>');
+    expect(libraryCreatorTranslations.creator.directorySaveBehavior).not.toContain('<strong>');
+    expect(libraryCreatorTranslations.creator.directorySaveBehaviorWithPendingScan).not.toContain('<strong>');
+  });
+
+  it('shows an info toast when directory tag behavior changes', () => {
+    component.library = {
+      id: 5,
+      name: 'Library',
+      watch: false,
+      paths: [{path: '/books'}],
+      allowedFormats: ['EPUB'],
+      organizationMode: 'BOOK_PER_FILE',
+      tagByDirectory: false,
+      directoryTagDepth: 'LAST_ONLY'
+    };
+    component.tagByDirectory = true;
+
+    submitLibrary({name: 'Library', watch: false, paths: []}, ['EPUB']);
+
+    expect(messageServiceMock.add).toHaveBeenCalledWith(expect.objectContaining({
+      severity: 'info',
+      summary: 'libraryCreator.creator.toast.directoryTagSettingsInfoSummary'
+    }));
   });
 });
