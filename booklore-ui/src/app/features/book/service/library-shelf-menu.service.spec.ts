@@ -71,6 +71,11 @@ describe('LibraryShelfMenuService', () => {
     };
   }
 
+  function acceptConfirmation(): void {
+    expect(confirmationConfig?.accept).toBeTypeOf('function');
+    confirmationConfig?.accept?.();
+  }
+
   it('includes separate scan and reconcile actions for libraries', () => {
     const menu = service.initializeLibraryMenuItems(createLibrary());
     const labels = menu[0].items?.filter(item => !item.separator).map(item => item.label);
@@ -84,7 +89,7 @@ describe('LibraryShelfMenuService', () => {
     const scanItem = menu[0].items?.find(item => item.label === 'book.shelfMenuService.library.scanNewFiles');
 
     scanItem?.command?.(createMenuEvent(scanItem));
-    confirmationConfig.accept();
+    acceptConfirmation();
 
     expect(libraryServiceMock.scanLibraryForNewFiles).toHaveBeenCalledWith(42);
     expect(libraryServiceMock.refreshLibrary).not.toHaveBeenCalled();
@@ -95,7 +100,7 @@ describe('LibraryShelfMenuService', () => {
     const reconcileItem = menu[0].items?.find(item => item.label === 'book.shelfMenuService.library.reconcileLibrary');
 
     reconcileItem?.command?.(createMenuEvent(reconcileItem));
-    confirmationConfig.accept();
+    acceptConfirmation();
 
     expect(libraryServiceMock.refreshLibrary).toHaveBeenCalledWith(42);
   });
@@ -106,7 +111,7 @@ describe('LibraryShelfMenuService', () => {
     const scanItem = menu[0].items?.find(item => item.label === 'book.shelfMenuService.library.scanNewFiles');
 
     scanItem?.command?.(createMenuEvent(scanItem));
-    confirmationConfig.accept();
+    acceptConfirmation();
 
     expect(messageServiceMock.add).toHaveBeenCalledWith(expect.objectContaining({
       severity: 'error',
