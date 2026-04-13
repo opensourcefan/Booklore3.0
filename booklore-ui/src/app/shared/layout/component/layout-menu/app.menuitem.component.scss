@@ -29,6 +29,11 @@
   }
 }
 
+.reorder-control-disabled {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
 .root-item-with-dropdown {
   display: flex;
   align-items: center;
@@ -94,8 +99,24 @@
   }
 }
 
-.menu-item-container.draggable-child {
+:host-context(.reorder-mode-active) .layout-menuitem-root-text,
+:host-context(.reorder-mode-active) .menu-item-container {
+  border-radius: 0.8rem;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--p-primary-color), transparent 78%);
+  background: color-mix(in srgb, var(--p-primary-color), transparent 95%);
+}
+
+:host-context(.reorder-mode-active) .layout-menuitem-root-text,
+:host-context(.reorder-mode-active) .menu-item-container,
+:host-context(.reorder-mode-active) .menu-item-container.draggable-child {
   cursor: grab;
+}
+
+:host-context(.reorder-mode-active) .cdk-drag-dragging .layout-menuitem-root-text,
+:host-context(.reorder-mode-active) .menu-item-container.cdk-drag-dragging,
+:host-context(.reorder-mode-active) .child-drag-row:active,
+:host-context(.reorder-mode-active) .layout-menuitem-root-text:active {
+  cursor: grabbing;
 }
 
 :host-context(.mobile-sidebar-popover) .layout-menuitem-root-text,
@@ -118,11 +139,6 @@
 :host-context(.mobile-sidebar-popover) .cdk-drag-dragging,
 :host-context(.mobile-sidebar-popover) .cdk-drag-dragging * {
   touch-action: none;
-}
-
-.child-drag-row:active,
-.layout-menuitem-root-text:active {
-  cursor: grabbing;
 }
 
 .menu-item-container.active-route-container {

@@ -1,14 +1,26 @@
 <ng-container *transloco="let t; prefix: 'layout.menu'">
-<div class="menu-container">
+<div class="menu-container" [class.reorder-mode-active]="isReorderMode">
   <div class="menu-header-actions">
     <button
       class="section-visibility-btn"
       type="button"
       (click)="sectionVisibilityPop.toggle($event)"
-      pTooltip="Show / hide sidebar items"
+      [pTooltip]="t('showHideSidebarItems')"
       tooltipPosition="right"
-      aria-label="Show or hide sidebar items">
+      [attr.aria-label]="t('showHideSidebarItems')">
       <i class="pi pi-sliders-h"></i>
+    </button>
+    <button
+      class="sidebar-reorder-btn"
+      type="button"
+      [class.active]="isReorderMode"
+      (click)="toggleReorderMode()"
+      [pTooltip]="isReorderMode ? t('finishReorder') : t('reorderTooltip')"
+      tooltipPosition="right"
+      [attr.aria-pressed]="isReorderMode"
+      [attr.aria-label]="t('reorder')">
+      <i class="pi pi-sort-alt"></i>
+      <span>{{ t('reorder') }}</span>
     </button>
     <p-popover #sectionVisibilityPop [dismissable]="true" appendTo="body" styleClass="sidebar-section-selector-popover">
       <div class="section-selector-list">
@@ -42,10 +54,22 @@
     </p-popover>
   </div>
 
+  @if (isReorderMode) {
+    <div class="reorder-mode-banner" role="status" aria-live="polite">
+      <div class="reorder-mode-title">{{ t('reorderModeTitle') }}</div>
+      <p class="reorder-mode-copy">{{ t('reorderModeHint') }}</p>
+    </div>
+  }
+
   <div class="menu-scrollable">
-    <div class="menu-sections" cdkDropList [cdkDropListData]="visibleSectionOrder" (cdkDropListDropped)="onSectionDrop($event)">
+    <div
+      class="menu-sections"
+      cdkDropList
+      [cdkDropListData]="visibleSectionOrder"
+      [cdkDropListDisabled]="!isReorderMode"
+      (cdkDropListDropped)="onSectionDrop($event)">
       @for (section of visibleSectionOrder; track section) {
-        <div class="menu-section" cdkDrag [cdkDragStartDelay]="sectionDragStartDelay">
+        <div class="menu-section" cdkDrag [cdkDragDisabled]="!isReorderMode">
           @switch (section) {
             @case ('home') {
               <div class="home-menu-section">
@@ -53,7 +77,7 @@
                   @if (homeMenu$ | async; as homeMenu) {
                     @for (item of homeMenu; track item.label; let i = $index) {
                       @if (!item.separator) {
-                        <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="home"></li>
+                        <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="home" [reorderMode]="isReorderMode"></li>
                       }
                     }
                   }
@@ -65,7 +89,7 @@
                 @if (libraryMenu$ | async; as libraryMenu) {
                   @for (item of libraryMenu; track item.label; let i = $index) {
                     @if (!item.separator) {
-                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="library"></li>
+                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="library" [reorderMode]="isReorderMode"></li>
                     }
                   }
                 }
@@ -76,7 +100,7 @@
                 @if (shelfMenu$ | async; as shelfMenu) {
                   @for (item of shelfMenu; track item.label; let i = $index) {
                     @if (!item.separator) {
-                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="shelf"></li>
+                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="shelf" [reorderMode]="isReorderMode"></li>
                     }
                   }
                 }
@@ -87,7 +111,7 @@
                 @if (magicShelfMenu$ | async; as shelfMenu) {
                   @for (item of shelfMenu; track item.label; let i = $index) {
                     @if (!item.separator) {
-                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="magicShelf"></li>
+                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="magicShelf" [reorderMode]="isReorderMode"></li>
                     }
                   }
                 }
@@ -99,9 +123,10 @@
                   <div class="media-heading-label sidebar-heading-label">{{ getSectionHeading(section) }}</div>
                   <i
                     class="pi pi-plus plus-icon"
+                    [class.reorder-control-disabled]="isReorderMode"
                     pTooltip="Create Media Type"
                     tooltipPosition="right"
-                    tabindex="0"
+                    [attr.tabindex]="isReorderMode ? -1 : 0"
                     role="button"
                     (click)="openMediaTypeCreatorDialog(); $event.stopPropagation()"
                     (keydown.enter)="openMediaTypeCreatorDialog(); $event.stopPropagation()"
@@ -109,36 +134,39 @@
                 </div>
                 <i
                   class="expand-icon"
+                  [class.reorder-control-disabled]="isReorderMode"
                   [ngClass]="{
                     'pi': true,
                     'pi-angle-up': bookTypeSectionExpanded,
                     'pi-angle-down': !bookTypeSectionExpanded
                   }"
-                  tabindex="0"
+                  [attr.tabindex]="isReorderMode ? -1 : 0"
                   role="button"
                   (click)="toggleBookTypeSection(); $event.stopPropagation()"
                   (keydown.enter)="toggleBookTypeSection(); $event.stopPropagation()"
                 ></i>
               </div>
 
-              @if (bookTypeSectionExpanded) {
+              @if (bookTypeSectionExpanded || isReorderMode) {
                 @if (bookTypeMenu$ | async; as bookTypes) {
                   <ul
                     class="layout-menu book-type-submenu"
                     cdkDropList
                     [cdkDropListData]="bookTypes"
+                    [cdkDropListDisabled]="!isReorderMode"
                     (cdkDropListDropped)="onBookTypeDrop($event)">
                     @for (entry of bookTypes; track entry.label) {
                       <li
                         class="book-type-item"
+                        [class.reorder-row]="isReorderMode"
                         cdkDrag
-                        [cdkDragStartDelay]="sectionDragStartDelay"
+                        [cdkDragDisabled]="!isReorderMode"
                         (cdkDragStarted)="onBookTypeDragStart()"
                         [class.active]="isBookTypeFilterActive(entry.label)"
                         (touchstart)="onTouchStart($event)"
                         (touchend)="onTouchEnd($event)"
                         (touchcancel)="onTouchCancel()"
-                        tabindex="0"
+                        [attr.tabindex]="isReorderMode ? -1 : 0"
                         (keydown.enter)="selectBookTypeFilter(entry.label, $event)"
                         (click)="selectBookTypeFilter(entry.label, $event)">
                         <span class="book-type-main">

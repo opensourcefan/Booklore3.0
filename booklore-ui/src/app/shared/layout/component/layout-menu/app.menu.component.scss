@@ -17,6 +17,8 @@
 .menu-header-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 0.45rem;
   padding: 0.3rem 0.4rem 0.15rem;
 }
 
@@ -37,6 +39,65 @@
     color: var(--p-primary-color);
     background: var(--p-surface-700);
   }
+}
+
+.sidebar-reorder-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 1.9rem;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--p-primary-color), transparent 78%);
+  background: color-mix(in srgb, var(--p-primary-color), transparent 92%);
+  color: var(--text-color);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--p-primary-color), transparent 86%);
+    border-color: color-mix(in srgb, var(--p-primary-color), transparent 58%);
+  }
+
+  &.active {
+    background: color-mix(in srgb, var(--p-primary-color), transparent 72%);
+    border-color: color-mix(in srgb, var(--p-primary-color), transparent 32%);
+    color: var(--p-primary-50);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--p-primary-color), transparent 58%);
+  }
+
+  i {
+    font-size: 0.82rem;
+  }
+}
+
+.reorder-mode-banner {
+  margin: 0.2rem 0.5rem 0.55rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.9rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--p-primary-color), transparent 78%), transparent 70%),
+    color-mix(in srgb, var(--card-background), var(--p-primary-color) 10%);
+  border: 1px solid color-mix(in srgb, var(--p-primary-color), transparent 62%);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.reorder-mode-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--p-primary-100);
+}
+
+.reorder-mode-copy {
+  margin: 0.35rem 0 0;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--text-color), white 12%);
 }
 
 .section-selector-list {
@@ -132,6 +193,11 @@
   &:hover {
     color: var(--p-green-400);
   }
+}
+
+.reorder-control-disabled {
+  pointer-events: none;
+  opacity: 0.45;
 }
 
 .expand-icon {
@@ -310,6 +376,21 @@
 
 .menu-section {
   position: relative;
+}
+
+.menu-container.reorder-mode-active .menu-section {
+  border-radius: 0.95rem;
+  background: color-mix(in srgb, var(--p-primary-color), transparent 95%);
+}
+
+.menu-container.reorder-mode-active .menu-section,
+.menu-container.reorder-mode-active .book-type-item {
+  cursor: grab;
+}
+
+.menu-container.reorder-mode-active .menu-section.cdk-drag-dragging,
+.menu-container.reorder-mode-active .book-type-item.cdk-drag-dragging {
+  cursor: grabbing;
 }
 
 .cdk-drag-preview {

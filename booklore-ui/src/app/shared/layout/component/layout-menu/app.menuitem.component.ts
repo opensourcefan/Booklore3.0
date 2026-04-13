@@ -73,8 +73,8 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   @Input() @HostBinding('class.layout-root-menuitem') root!: boolean;
   @Input() parentKey!: string;
   @Input() menuKey!: string;
+  @Input() reorderMode = false;
   @ViewChild('linkRef') linkRef!: ElementRef<HTMLAnchorElement>;
-  readonly childDragStartDelay = {mouse: 220, touch: 350};
 
   hovered = false;
   active = false;
@@ -162,6 +162,10 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   toggleExpand(key: string) {
+    if (this.reorderMode) {
+      return;
+    }
+
     if (this.expandedItems.has(key)) {
       this.expandedItems.delete(key);
     } else {
@@ -170,11 +174,11 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   isExpanded(key: string): boolean {
-    return this.expandedItems.has(key);
+    return this.reorderMode || this.expandedItems.has(key);
   }
 
   onChildDrop(event: CdkDragDrop<AppMenuItem[]>): void {
-    if (!this.root || !this.item?.items || event.previousIndex === event.currentIndex) {
+    if (!this.reorderMode || !this.root || !this.item?.items || event.previousIndex === event.currentIndex) {
       return;
     }
 
@@ -183,7 +187,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   isChildSortable(): boolean {
-    return this.root && !!this.item?.items?.length;
+    return this.reorderMode && this.root && !!this.item?.items?.length;
   }
 
   updateActiveStateFromRoute() {
@@ -199,6 +203,12 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   itemClick(event: Event) {
+    if (this.reorderMode) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     if (this.shouldSuppressTap()) {
       event.preventDefault();
       event.stopPropagation();
@@ -224,6 +234,10 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   openDialog(item: AppMenuItem) {
+    if (this.reorderMode) {
+      return;
+    }
+
     if (item.type === 'library' && this.canManipulateLibrary) {
       this.dialogLauncher.openLibraryCreateDialog();
     }
@@ -236,6 +250,10 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   triggerLink() {
+    if (this.reorderMode) {
+      return;
+    }
+
     if (this.shouldSuppressTap()) {
       return;
     }

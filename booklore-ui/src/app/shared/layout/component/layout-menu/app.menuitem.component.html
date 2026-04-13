@@ -7,7 +7,8 @@
           @if (item.hasCreate) {
             <i
               class="pi pi-plus plus-icon"
-              tabindex="0"
+              [class.reorder-control-disabled]="reorderMode"
+              [attr.tabindex]="reorderMode ? -1 : 0"
               role="button"
               (click)="openDialog(item)"
               (keydown.enter)="openDialog(item)"
@@ -16,7 +17,8 @@
           }
         </div>
         <i
-          tabindex="0"
+          [class.reorder-control-disabled]="reorderMode"
+          [attr.tabindex]="reorderMode ? -1 : 0"
           role="button"
           (click)="toggleExpand(key)"
           (keydown.enter)="toggleExpand(key)"
@@ -40,6 +42,7 @@
     <div
       class="menu-item-container"
       cdkDragHandle
+      [class.reorder-row]="reorderMode"
       [class.drag-press-target]="!root"
       [class.draggable-child]="!root"
       [class.active-route-container]="isRouteActive"
@@ -49,7 +52,7 @@
       (touchstart)="onTouchStart($event)"
       (touchend)="onTouchEnd($event)"
       (touchcancel)="onTouchCancel()"
-      [attr.tabindex]="(item.routerLink && !item.items) ? '0' : '-1'"
+      [attr.tabindex]="(item.routerLink && !item.items && !reorderMode) ? '0' : '-1'"
       (keydown.enter)="triggerLink()"
       (click)="triggerLink()"
     >
@@ -114,6 +117,7 @@
           (mouseover)="hovered = true"
           (focus)="hovered = true"
           (mouseleave)="hovered = false"
+          [disabled]="reorderMode"
           [text]="true"
           [outlined]="false"
           [rounded]="true"
@@ -148,9 +152,9 @@
               [index]="i"
               [parentKey]="key"
               [menuKey]="menuKey"
+              [reorderMode]="reorderMode"
               [class]="child.badgeClass"
               cdkDrag
-              [cdkDragStartDelay]="childDragStartDelay"
               [cdkDragDisabled]="!isChildSortable()"></li>
           }
         </ul>

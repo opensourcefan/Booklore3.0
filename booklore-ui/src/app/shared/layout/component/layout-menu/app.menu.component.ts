@@ -46,7 +46,7 @@ export class AppMenuComponent implements OnInit {
   homeMenu$: Observable<AppMenuItem[]> | undefined;
   magicShelfMenu$: Observable<AppMenuItem[]> | undefined;
   bookTypeMenu$: Observable<{label: string; count: number}[]> | undefined;
-  readonly sectionDragStartDelay = {mouse: 220, touch: 350};
+  isReorderMode = false;
   bookTypeSectionExpanded = true;
   activeBookTypeFilter: string | null = null;
 
@@ -278,6 +278,10 @@ export class AppMenuComponent implements OnInit {
   }
 
   onBookTypeDrop(event: CdkDragDrop<{label: string; count: number}[]>): void {
+    if (!this.isReorderMode) {
+      return;
+    }
+
     if (event.previousIndex === event.currentIndex) {
       return;
     }
@@ -288,10 +292,18 @@ export class AppMenuComponent implements OnInit {
   }
 
   onBookTypeDragStart(): void {
+    if (!this.isReorderMode) {
+      return;
+    }
+
     this.suppressTapUntil = Date.now() + 300;
   }
 
   onSectionDrop(event: CdkDragDrop<string[]>): void {
+    if (!this.isReorderMode) {
+      return;
+    }
+
     if (event.previousIndex === event.currentIndex) {
       return;
     }
@@ -308,6 +320,10 @@ export class AppMenuComponent implements OnInit {
     });
 
     this.localStorageService.set(this.sectionOrderKey, this.sectionOrder);
+  }
+
+  toggleReorderMode(): void {
+    this.isReorderMode = !this.isReorderMode;
   }
 
   getSectionHeading(section: string): string {
@@ -328,10 +344,20 @@ export class AppMenuComponent implements OnInit {
   }
 
   toggleBookTypeSection(): void {
+    if (this.isReorderMode) {
+      return;
+    }
+
     this.bookTypeSectionExpanded = !this.bookTypeSectionExpanded;
   }
 
   selectBookTypeFilter(bookType: string, event?: Event): void {
+    if (this.isReorderMode) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      return;
+    }
+
     if (this.shouldSuppressTap()) {
       event?.preventDefault();
       event?.stopPropagation();
@@ -378,6 +404,10 @@ export class AppMenuComponent implements OnInit {
   }
 
   openMediaTypeCreatorDialog(): void {
+    if (this.isReorderMode) {
+      return;
+    }
+
     const dialogRef = this.bookDialogHelperService.openBookTypeCreatorDialog();
     dialogRef.onClose.subscribe((result: {created?: boolean; type?: string} | boolean) => {
       if (!result) {

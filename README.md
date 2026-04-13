@@ -58,7 +58,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 - **Adjustable Cover Preview Panel** — Toggle the right-side cover preview on or off in Settings.
 - **Customizable Upper Toolbar** — Add, remove, and reorder toolbar buttons; insert separators. Drag-and-drop support.
 - **Adjustable Side Panels** — Resizable left and right sidebars.
-- **Drag-and-Drop Sidebar Sorting** — Click, hold, and drag to reorder left sidebar elements.
+- **Drag-and-Drop Sidebar Sorting** — Turn on Re-order mode to drag left sidebar headings and rows on desktop or mobile without affecting normal sidebar navigation.
 - **Settings Backup & Restore** — Export and import your full application settings.
 - **User-Defined Media Types** — Create custom media types (Magazines, Catalogs, Textbooks, etc.) and filter by them.
 - **Title Row Controls** — Fine-grained tweaks for book card title display.
