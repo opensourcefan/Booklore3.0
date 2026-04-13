@@ -39,7 +39,7 @@
           (onClick)="confirmScanNewFiles()">
         </p-button>
         <p-button
-          [label]="t('book.shelfMenuService.library.librarySettings')"
+          [label]="'book.shelfMenuService.library.librarySettings' | transloco"
           icon="pi pi-cog"
           severity="secondary"
           [outlined]="true"
@@ -47,7 +47,7 @@
           (onClick)="openLibrarySettings()">
         </p-button>
         <p-button
-          [label]="t('book.shelfMenuService.library.manageDirectories')"
+          [label]="'book.shelfMenuService.library.manageDirectories' | transloco"
           icon="pi pi-folder-open"
           severity="secondary"
           [outlined]="true"

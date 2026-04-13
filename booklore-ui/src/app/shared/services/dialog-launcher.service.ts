@@ -69,7 +69,7 @@ export class DialogLauncherService {
   }
 
   private getDirectoryPickerDialogStyle(): string {
-    const size = this.isCompactViewport(768) ? DialogSize.FULL : DialogSize.MD;
+    const size = this.isCompactViewport(991) ? DialogSize.FULL : DialogSize.MD;
     return `${size} ${DialogStyle.MINIMAL}`;
   }
 

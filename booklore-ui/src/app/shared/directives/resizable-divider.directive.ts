@@ -198,17 +198,27 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
 
     if (this.isTouchHandleMode()) {
-      this.renderer.setStyle(this.handle, 'width', '24px');
+      this.renderer.setStyle(this.handle, 'width', '28px');
       this.renderer.setStyle(this.handle, 'cursor', 'grab');
       this.renderer.setStyle(this.handle, 'background', 'transparent');
       this.renderer.setStyle(this.handle, 'opacity', '1');
+      this.renderer.setStyle(this.handle, 'border-radius', '999px');
       this.renderer.setStyle(this.grip, 'opacity', '1');
+      this.renderer.setStyle(this.grip, 'width', '8px');
+      this.renderer.setStyle(this.grip, 'height', '84px');
+      this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, var(--primary-color) 82%, white 18%)');
+      this.renderer.setStyle(this.grip, 'box-shadow', '0 0 0 3px color-mix(in srgb, var(--surface-card, white) 88%, transparent), 0 6px 16px rgba(0, 0, 0, 0.22)');
     } else {
       this.renderer.setStyle(this.handle, 'width', '6px');
       this.renderer.setStyle(this.handle, 'cursor', 'col-resize');
       this.renderer.setStyle(this.handle, 'background', 'transparent');
       this.renderer.setStyle(this.handle, 'opacity', '1');
+      this.renderer.removeStyle(this.handle, 'border-radius');
       this.renderer.setStyle(this.grip, 'opacity', '0');
+      this.renderer.setStyle(this.grip, 'width', '4px');
+      this.renderer.setStyle(this.grip, 'height', '44px');
+      this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, var(--primary-color) 55%, transparent)');
+      this.renderer.removeStyle(this.grip, 'box-shadow');
     }
   }
 
@@ -265,10 +275,10 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     this.renderer.setStyle(this.handle, 'top', rect.top + 'px');
     this.renderer.setStyle(this.handle, 'height', rect.height + 'px');
     if (this.blResizable === 'right') {
-      const offset = this.isTouchHandleMode() ? 12 : 3;
+      const offset = this.isTouchHandleMode() ? 26 : 3;
       this.renderer.setStyle(this.handle, 'left', (rect.right - offset) + 'px');
     } else {
-      const offset = this.isTouchHandleMode() ? 12 : 3;
+      const offset = this.isTouchHandleMode() ? 2 : 3;
       this.renderer.setStyle(this.handle, 'left', (rect.left - offset) + 'px');
     }
   }

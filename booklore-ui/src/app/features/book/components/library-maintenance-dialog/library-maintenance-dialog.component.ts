@@ -7,7 +7,7 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Library} from '../../model/library.model';
 import {LibraryService} from '../../service/library.service';
 import {SidecarService} from '../../../metadata/service/sidecar.service';
-import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 
 type MaintenanceAction = 'scanNewFiles' | 'reconcile' | 'sidecarExport' | 'sidecarBackup' | 'sidecarImport';
@@ -17,7 +17,7 @@ type MaintenanceAction = 'scanNewFiles' | 'reconcile' | 'sidecarExport' | 'sidec
   standalone: true,
   templateUrl: './library-maintenance-dialog.component.html',
   styleUrl: './library-maintenance-dialog.component.scss',
-  imports: [FormsModule, Button, Checkbox, TranslocoDirective]
+  imports: [FormsModule, Button, Checkbox, TranslocoDirective, TranslocoPipe]
 })
 export class LibraryMaintenanceDialogComponent implements OnInit {
   private readonly dialogRef = inject(DynamicDialogRef);
