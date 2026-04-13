@@ -2,16 +2,7 @@
 <div class="menu-container" [class.reorder-mode-active]="isReorderMode">
   <div class="menu-header-actions">
     <button
-      class="section-visibility-btn"
-      type="button"
-      (click)="sectionVisibilityPop.toggle($event)"
-      [pTooltip]="t('showHideSidebarItems')"
-      tooltipPosition="right"
-      [attr.aria-label]="t('showHideSidebarItems')">
-      <i class="pi pi-sliders-h"></i>
-    </button>
-    <button
-      class="sidebar-reorder-btn"
+      class="section-visibility-btn sidebar-reorder-btn"
       type="button"
       [class.active]="isReorderMode"
       (click)="toggleReorderMode()"
@@ -20,7 +11,15 @@
       [attr.aria-pressed]="isReorderMode"
       [attr.aria-label]="t('reorder')">
       <i class="pi pi-sort-alt"></i>
-      <span>{{ t('reorder') }}</span>
+    </button>
+    <button
+      class="section-visibility-btn"
+      type="button"
+      (click)="sectionVisibilityPop.toggle($event)"
+      [pTooltip]="t('showHideSidebarItems')"
+      tooltipPosition="right"
+      [attr.aria-label]="t('showHideSidebarItems')">
+      <i class="pi pi-sliders-h"></i>
     </button>
     <p-popover #sectionVisibilityPop [dismissable]="true" appendTo="body" styleClass="sidebar-section-selector-popover">
       <div class="section-selector-list">
@@ -118,74 +117,15 @@
               </ul>
             }
             @case ('bookType') {
-              <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle>
-                <div class="root-item-label-container">
-                  <div class="media-heading-label sidebar-heading-label">{{ getSectionHeading(section) }}</div>
-                  <i
-                    class="pi pi-plus plus-icon"
-                    [class.reorder-control-disabled]="isReorderMode"
-                    pTooltip="Create Media Type"
-                    tooltipPosition="right"
-                    [attr.tabindex]="isReorderMode ? -1 : 0"
-                    role="button"
-                    (click)="openMediaTypeCreatorDialog(); $event.stopPropagation()"
-                    (keydown.enter)="openMediaTypeCreatorDialog(); $event.stopPropagation()"
-                  ></i>
-                </div>
-                <i
-                  class="expand-icon"
-                  [class.reorder-control-disabled]="isReorderMode"
-                  [ngClass]="{
-                    'pi': true,
-                    'pi-angle-up': bookTypeSectionExpanded,
-                    'pi-angle-down': !bookTypeSectionExpanded
-                  }"
-                  [attr.tabindex]="isReorderMode ? -1 : 0"
-                  role="button"
-                  (click)="toggleBookTypeSection(); $event.stopPropagation()"
-                  (keydown.enter)="toggleBookTypeSection(); $event.stopPropagation()"
-                ></i>
-              </div>
-
-              @if (bookTypeSectionExpanded || isReorderMode) {
-                @if (bookTypeMenu$ | async; as bookTypes) {
-                  <ul
-                    class="layout-menu book-type-submenu"
-                    cdkDropList
-                    [cdkDropListData]="bookTypes"
-                    [cdkDropListDisabled]="!isReorderMode"
-                    (cdkDropListDropped)="onBookTypeDrop($event)">
-                    @for (entry of bookTypes; track entry.label) {
-                      <li
-                        class="book-type-item"
-                        [class.reorder-row]="isReorderMode"
-                        cdkDrag
-                        [cdkDragDisabled]="!isReorderMode"
-                        (cdkDragStarted)="onBookTypeDragStart()"
-                        [class.active]="isBookTypeFilterActive(entry.label)"
-                        (touchstart)="onTouchStart($event)"
-                        (touchend)="onTouchEnd($event)"
-                        (touchcancel)="onTouchCancel()"
-                        [attr.tabindex]="isReorderMode ? -1 : 0"
-                        (keydown.enter)="selectBookTypeFilter(entry.label, $event)"
-                        (click)="selectBookTypeFilter(entry.label, $event)">
-                        <span class="book-type-main">
-                          <span class="sidebar-row-status-slot" aria-hidden="true"></span>
-                          <span class="book-type-icon-slot" aria-hidden="true">
-                            <i class="pi pi-file book-type-icon"></i>
-                          </span>
-                          <span class="book-type-label"
-                                [class.book-type-label-scroll]="entry.label.length > 20">
-                            <span class="book-type-label-inner"
-                                  [class.book-type-label-marquee]="entry.label.length > 20">{{ entry.label }}</span>
-                          </span>
-                        </span>
-                        <span class="book-type-count">{{ entry.count }}</span>
-                      </li>
+              <ul class="layout-menu">
+                @if (bookTypeMenu$ | async; as bookTypeMenu) {
+                  @for (item of bookTypeMenu; track item.label; let i = $index) {
+                    @if (!item.separator) {
+                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="bookType" [reorderMode]="isReorderMode"></li>
                     }
-                  </ul>
+                  }
                 }
-              }
+              </ul>
             }
           }
         </div>

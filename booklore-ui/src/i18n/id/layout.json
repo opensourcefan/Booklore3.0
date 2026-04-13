@@ -27,6 +27,7 @@
     "home": "",
     "homeItems": "Home Items",
     "headings": "Headings",
+    "mediaType": "Media Type",
     "showHideSidebarItems": "Show or hide sidebar items",
     "reorder": "Re-order",
     "reorderTooltip": "Turn on drag sorting for sidebar headings and rows",

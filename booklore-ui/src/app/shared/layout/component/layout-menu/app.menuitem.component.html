@@ -110,7 +110,7 @@
       }
 
       <span class="menu-item-end-content">
-    @if (item.type === 'Library' || item.type === 'Shelf' || item.type === 'magicShelfItem') {
+    @if (shouldShowEntityMenu()) {
       @if ((item.type !== 'Library' || (admin || canManipulateLibrary)) && item.label !== 'Unshelved' && item.label !== 'Kobo') {
         <p-button
           (click)="entitymenu.toggle($event); $event.stopPropagation()"
@@ -130,7 +130,7 @@
       <p-menu #entitymenu [model]="item.menu" [popup]="true" appendTo="body"></p-menu>
     }
 
-        @if (item.type === 'Library' && (!admin && !canManipulateLibrary) || item.type === 'All Books' || item.type === 'Physical Books' || item.type === 'Series' || item.type === 'Authors' || item.label === 'Unshelved' || item.label === 'Kobo') {
+        @if (shouldShowCount()) {
           <p class="book-count">
         {{ formatCount(item.bookCount$ | async) }}
       </p>

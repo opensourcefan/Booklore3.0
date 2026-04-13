@@ -34,6 +34,10 @@ export interface AppMenuItem extends MenuItem {
   unhealthy$?: Observable<boolean>;
   items?: AppMenuItem[];
   prefetchLibraryId?: number;
+  showBookCount?: boolean;
+  activeMatch?: (url: string, queryParams: Record<string, unknown>) => boolean;
+  onItemsReorder?: (items: AppMenuItem[]) => void;
+  onCreate?: () => void;
 }
 
 @Component({
@@ -87,6 +91,11 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   private suppressTapUntil = 0;
 
   get isRouteActive(): boolean {
+    const queryParams = this.router.parseUrl(this.router.url).queryParams as Record<string, unknown>;
+    if (this.item?.activeMatch) {
+      return this.item.activeMatch(this.router.url, queryParams);
+    }
+
     if (!this.item?.routerLink?.[0]) return false;
     if (this.router.url.split('?')[0] !== this.item.routerLink[0]) return false;
     // Don't highlight (e.g.) "All Books" when a Media Type filter is active —
@@ -139,7 +148,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
 
     this.routerSubscription = this.router.events.pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
-        if (this.item.routerLink) {
+        if (this.item.routerLink || this.item.activeMatch) {
           this.updateActiveStateFromRoute();
         }
       });
@@ -183,6 +192,11 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     }
 
     moveItemInArray(this.item.items, event.previousIndex, event.currentIndex);
+    if (this.item.onItemsReorder) {
+      this.item.onItemsReorder(this.item.items);
+      return;
+    }
+
     this.saveNestedOrder();
   }
 
@@ -191,6 +205,11 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   updateActiveStateFromRoute() {
+    if (this.item.activeMatch?.(this.router.url, this.router.parseUrl(this.router.url).queryParams as Record<string, unknown>)) {
+      this.menuService.onMenuStateChange({key: this.key, routeEvent: true});
+      return;
+    }
+
     const activeRoute = this.router.isActive(this.item.routerLink[0], {
       paths: 'exact',
       queryParams: 'ignored',
@@ -238,6 +257,11 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (item.onCreate) {
+      item.onCreate();
+      return;
+    }
+
     if (item.type === 'library' && this.canManipulateLibrary) {
       this.dialogLauncher.openLibraryCreateDialog();
     }
@@ -261,6 +285,24 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     if (this.item.routerLink && !this.item.items && this.linkRef) {
       this.linkRef.nativeElement.click();
     }
+  }
+
+  shouldShowEntityMenu(): boolean {
+    return this.item.type === 'Library' || this.item.type === 'Shelf' || this.item.type === 'magicShelfItem';
+  }
+
+  shouldShowCount(): boolean {
+    if (this.item.showBookCount) {
+      return true;
+    }
+
+    return (this.item.type === 'Library' && (!this.admin && !this.canManipulateLibrary))
+      || this.item.type === 'All Books'
+      || this.item.type === 'Physical Books'
+      || this.item.type === 'Series'
+      || this.item.type === 'Authors'
+      || this.item.label === 'Unshelved'
+      || this.item.label === 'Kobo';
   }
 
   onTouchStart(event: TouchEvent): void {

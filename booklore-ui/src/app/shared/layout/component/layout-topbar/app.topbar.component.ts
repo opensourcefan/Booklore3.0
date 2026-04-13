@@ -336,7 +336,7 @@ export class AppTopBarComponent implements OnDestroy {
     }
 
     // Close on row-level selections, but keep open for inline action controls.
-    const selectedRow = target.closest('.menu-item-container, .book-type-item, .sidebar-bottom-btn');
+    const selectedRow = target.closest('.menu-item-container, .sidebar-bottom-btn');
     const inlineAction = target.closest('.entity-menu-button, .expand-icon, .plus-icon, .section-visibility-btn, .sidebar-reorder-btn, .reorder-row');
 
     if (selectedRow && !inlineAction) {

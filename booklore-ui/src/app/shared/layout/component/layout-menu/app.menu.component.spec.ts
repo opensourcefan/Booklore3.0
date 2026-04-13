@@ -6,6 +6,7 @@ import {MessageService} from 'primeng/api';
 import {Router} from '@angular/router';
 import {TranslocoService} from '@jsverse/transloco';
 import {AppMenuComponent} from './app.menu.component';
+import {AppMenuItem} from './app.menuitem.component';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
 import {ShelfService} from '../../../../features/book/service/shelf.service';
@@ -41,7 +42,7 @@ describe('AppMenuComponent reorder mode', () => {
     };
     mediaTypePreferencesMock = {
       setSidebarOrder: vi.fn(),
-      settings$: of({customTypes: [], sidebarOrder: []})
+      settings$: of({customTypes: ['CBZ'], sidebarOrder: []})
     };
 
     TestBed.configureTestingModule({
@@ -106,30 +107,22 @@ describe('AppMenuComponent reorder mode', () => {
     expect(event.stopPropagation).toHaveBeenCalled();
   });
 
-  it('keeps book type expansion fixed while reorder mode is enabled', () => {
-    component.bookTypeSectionExpanded = false;
-    component.isReorderMode = true;
+  it('builds media type rows through the shared menu item model with reorder persistence', async () => {
+    component.ngOnInit();
 
-    component.toggleBookTypeSection();
+    const menu = await new Promise<AppMenuItem[]>((resolve) => {
+      component.bookTypeMenu$?.subscribe(resolve);
+    });
 
-    expect(component.bookTypeSectionExpanded).toBe(false);
-  });
+    expect(menu).toHaveLength(1);
+    expect(menu[0].type).toBe('mediaType');
+    expect(menu[0].items?.[0].type).toBe('MediaType');
+    expect(menu[0].items?.[0].showBookCount).toBe(true);
 
-  it('blocks media type ordering updates until reorder mode is enabled', () => {
-    component.onBookTypeDrop({
-      previousIndex: 0,
-      currentIndex: 1,
-      container: {data: [{label: 'CBZ', count: 1}, {label: 'PDF', count: 2}]}
-    } as never);
-
-    expect(mediaTypePreferencesMock.setSidebarOrder).not.toHaveBeenCalled();
-
-    component.isReorderMode = true;
-    component.onBookTypeDrop({
-      previousIndex: 0,
-      currentIndex: 1,
-      container: {data: [{label: 'CBZ', count: 1}, {label: 'PDF', count: 2}]}
-    } as never);
+    menu[0].onItemsReorder?.([
+      {label: 'PDF'} as AppMenuItem,
+      {label: 'CBZ'} as AppMenuItem
+    ]);
 
     expect(mediaTypePreferencesMock.setSidebarOrder).toHaveBeenCalledWith(['PDF', 'CBZ']);
   });

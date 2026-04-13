@@ -1,6 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {AppMenuitemComponent, AppMenuItem} from './app.menuitem.component';
-import {AsyncPipe, NgClass} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
@@ -27,7 +27,7 @@ import {FormsModule} from '@angular/forms';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {LocalStorageService} from '../../../service/local-storage.service';
-import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
+import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
 import {MediaTypePreferencesService} from '../../../../features/book/service/media-type-preferences.service';
 
@@ -36,7 +36,7 @@ type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'serie
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, NgClass, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, CdkDragHandle, Popover, CheckboxModule, FormsModule],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, Popover, CheckboxModule, FormsModule],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
@@ -45,9 +45,8 @@ export class AppMenuComponent implements OnInit {
   shelfMenu$: Observable<AppMenuItem[]> | undefined;
   homeMenu$: Observable<AppMenuItem[]> | undefined;
   magicShelfMenu$: Observable<AppMenuItem[]> | undefined;
-  bookTypeMenu$: Observable<{label: string; count: number}[]> | undefined;
+  bookTypeMenu$: Observable<AppMenuItem[]> | undefined;
   isReorderMode = false;
-  bookTypeSectionExpanded = true;
   activeBookTypeFilter: string | null = null;
 
   versionInfo: AppVersion | null = null;
@@ -112,7 +111,7 @@ export class AppMenuComponent implements OnInit {
     {key: 'library', label: 'layout.menu.libraries'},
     {key: 'shelf', label: 'layout.menu.shelves'},
     {key: 'magicShelf', label: 'layout.menu.magicShelves'},
-    {key: 'bookType', label: 'Media Type'},
+    {key: 'bookType', label: 'layout.menu.mediaType'},
   ];
   readonly homeItemOptions: {key: HomeItemVisibilityKey; label: string}[] = [
     {key: 'dashboard', label: 'layout.menu.dashboard'},
@@ -272,31 +271,20 @@ export class AppMenuComponent implements OnInit {
           .map(([label, count]) => ({label, count}))
           .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 
-        return this.applyBookTypeOrder(sortedBookTypes, mediaTypeSettings.sidebarOrder);
+        const orderedBookTypes = this.applyBookTypeOrder(sortedBookTypes, mediaTypeSettings.sidebarOrder);
+        return [
+          {
+            label: this.t.translate('layout.menu.mediaType'),
+            type: 'mediaType',
+            hasDropDown: true,
+            hasCreate: true,
+            onCreate: () => this.openMediaTypeCreatorDialog(),
+            onItemsReorder: (items: AppMenuItem[]) => this.mediaTypePreferences.setSidebarOrder(items.map(item => item.label ?? '')),
+            items: orderedBookTypes.map(entry => this.createMediaTypeMenuItem(entry.label, entry.count)),
+          }
+        ];
       })
     );
-  }
-
-  onBookTypeDrop(event: CdkDragDrop<{label: string; count: number}[]>): void {
-    if (!this.isReorderMode) {
-      return;
-    }
-
-    if (event.previousIndex === event.currentIndex) {
-      return;
-    }
-
-    const reordered = [...event.container.data];
-    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
-    this.mediaTypePreferences.setSidebarOrder(reordered.map(item => item.label));
-  }
-
-  onBookTypeDragStart(): void {
-    if (!this.isReorderMode) {
-      return;
-    }
-
-    this.suppressTapUntil = Date.now() + 300;
   }
 
   onSectionDrop(event: CdkDragDrop<string[]>): void {
@@ -337,18 +325,10 @@ export class AppMenuComponent implements OnInit {
       case 'magicShelf':
         return this.t.translate('layout.menu.magicShelves');
       case 'bookType':
-        return 'Media Type';
+        return this.t.translate('layout.menu.mediaType');
       default:
         return section;
     }
-  }
-
-  toggleBookTypeSection(): void {
-    if (this.isReorderMode) {
-      return;
-    }
-
-    this.bookTypeSectionExpanded = !this.bookTypeSectionExpanded;
   }
 
   selectBookTypeFilter(bookType: string, event?: Event): void {
@@ -460,9 +440,6 @@ export class AppMenuComponent implements OnInit {
   }
 
   getSectionOptionLabel(option: {key: string; label: string}): string {
-    if (option.key === 'bookType') {
-      return option.label;
-    }
     return this.t.translate(option.label);
   }
 
@@ -557,6 +534,21 @@ export class AppMenuComponent implements OnInit {
 
   private setStoredMediaTypes(types: string[]): void {
     this.mediaTypePreferences.setCustomTypes(types);
+  }
+
+  private createMediaTypeMenuItem(label: string, count: number): AppMenuItem {
+    return {
+      label,
+      type: 'MediaType',
+      icon: 'pi pi-file',
+      routerLink: ['/all-books'],
+      queryParams: {
+        filter: `customMediaType:${encodeURIComponent(label)}`,
+      },
+      activeMatch: () => this.isBookTypeFilterActive(label),
+      bookCount$: of(count),
+      showBookCount: true,
+    };
   }
 
   private editMediaType(mediaType: string): void {
