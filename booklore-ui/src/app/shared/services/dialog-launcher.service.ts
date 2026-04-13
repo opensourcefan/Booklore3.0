@@ -59,6 +59,20 @@ export class DialogLauncherService {
     maximizable: false,
   }
 
+  private isCompactViewport(maxWidth: number): boolean {
+    return typeof window !== 'undefined' && window.matchMedia(`(max-width: ${maxWidth}px)`).matches;
+  }
+
+  private getLibraryWorkflowDialogStyle(): string {
+    const size = this.isCompactViewport(768) ? DialogSize.FULL : DialogSize.MD;
+    return `${size} ${DialogStyle.MINIMAL}`;
+  }
+
+  private getDirectoryPickerDialogStyle(): string {
+    const size = this.isCompactViewport(768) ? DialogSize.FULL : DialogSize.MD;
+    return `${size} ${DialogStyle.MINIMAL}`;
+  }
+
   openDialog(component: unknown, options: object): DynamicDialogRef | null {
     return this.dialogService.open(component as Type<object>, {
       ...this.defaultDialogOptions,
@@ -83,14 +97,14 @@ export class DialogLauncherService {
   openLibraryCreateDialog(): DynamicDialogRef | null {
     return this.openDialog(LibraryCreatorComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+      styleClass: this.getLibraryWorkflowDialogStyle(),
     });
   }
 
   openDirectoryPickerDialog(data?: { existingFolders?: string[] }): DynamicDialogRef | null {
     return this.openDialog(DirectoryPickerComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+      styleClass: this.getDirectoryPickerDialogStyle(),
       data,
     });
   }
@@ -102,7 +116,7 @@ export class DialogLauncherService {
   openLibrarySettingsDialog(libraryId: number): DynamicDialogRef | null {
     return this.openDialog(LibraryCreatorComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+      styleClass: this.getLibraryWorkflowDialogStyle(),
       data: {
         mode: 'edit-settings',
         libraryId: libraryId
@@ -113,7 +127,7 @@ export class DialogLauncherService {
   openLibraryDirectoriesDialog(libraryId: number): DynamicDialogRef | null {
     return this.openDialog(LibraryCreatorComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+      styleClass: this.getLibraryWorkflowDialogStyle(),
       data: {
         mode: 'edit-directories',
         libraryId: libraryId
@@ -135,7 +149,7 @@ export class DialogLauncherService {
   openLibraryMaintenanceDialog(libraryId: number): DynamicDialogRef | null {
     return this.openDialog(LibraryMaintenanceDialogComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+      styleClass: this.getLibraryWorkflowDialogStyle(),
       data: {
         libraryId,
       },

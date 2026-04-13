@@ -2,11 +2,13 @@ package org.booklore.service;
 
 import org.booklore.mapper.AdditionalFileMapper;
 import org.booklore.model.dto.BookFile;
+import org.booklore.model.dto.settings.AppSettings;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookFileEntity;
 import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.repository.BookAdditionalFileRepository;
 import org.booklore.repository.BookRepository;
+import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.service.file.AdditionalFileService;
 import org.booklore.service.monitoring.MonitoringRegistrationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +49,9 @@ class AdditionalFileServiceTest {
     private AdditionalFileMapper additionalFileMapper;
 
     @Mock
+    private AppSettingService appSettingService;
+
+    @Mock
     private MonitoringRegistrationService monitoringRegistrationService;
 
     @InjectMocks
@@ -82,6 +87,8 @@ class AdditionalFileServiceTest {
         bookEntity.setBookFiles(new ArrayList<>(List.of(fileEntity)));
 
         additionalFile = mock(BookFile.class);
+
+        lenient().when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder().allowFileDeletion(true).build());
     }
 
     @Test
@@ -223,6 +230,24 @@ class AdditionalFileServiceTest {
             verify(monitoringRegistrationService).unregisterSpecificPath(parentPath);
             verify(bookRepository, never()).delete(bookEntity);
         }
+    }
+
+    @Test
+    void deleteAdditionalFile_WhenFileDeletionDisabled_ShouldKeepPhysicalFile() throws IOException {
+        Long fileId = 1L;
+        Path filePath = fileEntity.getFullFilePath();
+
+        when(additionalFileRepository.findById(fileId)).thenReturn(Optional.of(fileEntity));
+        when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder().allowFileDeletion(false).build());
+
+        assertTrue(Files.exists(filePath));
+
+        additionalFileService.deleteAdditionalFile(fileId);
+
+        verify(additionalFileRepository).delete(fileEntity);
+        verify(bookRepository).delete(bookEntity);
+        verify(monitoringRegistrationService, never()).unregisterSpecificPath(any());
+        assertTrue(Files.exists(filePath));
     }
 
     @Test

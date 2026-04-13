@@ -23,18 +23,64 @@
       <p>{{ t('intro') }}</p>
     </div>
 
+    <section class="maintenance-guidance">
+      <div class="maintenance-copy">
+        <h3>{{ t('guidance.title') }}</h3>
+        <p>{{ t('guidance.description') }}</p>
+      </div>
+      <div class="maintenance-guidance-actions">
+        <p-button
+          [label]="t('guidance.scanNewFilesButton')"
+          icon="pi pi-search"
+          severity="success"
+          [outlined]="true"
+          [loading]="runningAction === 'scanNewFiles'"
+          [disabled]="runningAction !== null"
+          (onClick)="confirmScanNewFiles()">
+        </p-button>
+        <p-button
+          [label]="t('book.shelfMenuService.library.librarySettings')"
+          icon="pi pi-cog"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="runningAction !== null"
+          (onClick)="openLibrarySettings()">
+        </p-button>
+        <p-button
+          [label]="t('book.shelfMenuService.library.manageDirectories')"
+          icon="pi pi-folder-open"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="runningAction !== null"
+          (onClick)="openManageDirectories()">
+        </p-button>
+      </div>
+    </section>
+
     <section class="maintenance-card maintenance-card--danger">
       <div class="maintenance-copy">
         <h3>{{ t('actions.reconcile.title') }}</h3>
         <p>{{ t('actions.reconcile.impact') }}</p>
       </div>
-      <p-button
-        [label]="t('actions.reconcile.button')"
-        icon="pi pi-refresh"
-        severity="warn"
-        [loading]="runningAction === 'reconcile'"
-        (onClick)="confirmReconcile()">
-      </p-button>
+      <div class="maintenance-action-group">
+        <div class="maintenance-acknowledgement">
+          <p-checkbox
+            [(ngModel)]="reconcileAcknowledged"
+            [binary]="true"
+            inputId="reconcileAcknowledged"
+            [disabled]="runningAction !== null"
+          />
+          <label for="reconcileAcknowledged">{{ t('actions.reconcile.acknowledge') }}</label>
+        </div>
+        <p-button
+          [label]="t('actions.reconcile.button')"
+          icon="pi pi-refresh"
+          severity="warn"
+          [loading]="runningAction === 'reconcile'"
+          [disabled]="!reconcileAcknowledged || (runningAction !== null && runningAction !== 'reconcile')"
+          (onClick)="confirmReconcile()">
+        </p-button>
+      </div>
     </section>
 
     <section class="maintenance-card">
@@ -48,6 +94,7 @@
         severity="secondary"
         [outlined]="true"
         [loading]="runningAction === 'sidecarExport'"
+        [disabled]="runningAction !== null && runningAction !== 'sidecarExport'"
         (onClick)="confirmSidecarExport()">
       </p-button>
     </section>
@@ -63,6 +110,7 @@
         severity="secondary"
         [outlined]="true"
         [loading]="runningAction === 'sidecarBackup'"
+        [disabled]="runningAction !== null && runningAction !== 'sidecarBackup'"
         (onClick)="confirmSidecarBackup()">
       </p-button>
     </section>
@@ -78,6 +126,7 @@
         severity="warn"
         [outlined]="true"
         [loading]="runningAction === 'sidecarImport'"
+        [disabled]="runningAction !== null && runningAction !== 'sidecarImport'"
         (onClick)="confirmSidecarImport()">
       </p-button>
     </section>

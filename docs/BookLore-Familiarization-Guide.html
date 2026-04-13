@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.67 &mdash; April 12, 2026<br>
+    Version 1.1.69 &mdash; April 13, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -324,14 +324,18 @@
   <li><strong>See which directories are already imported while managing directories</strong> &mdash; The <strong>Manage Directories</strong> list marks directories already in the library so you can tell imported paths from new additions at a glance</li>
   <li><strong>Choose whether new directories should scan immediately</strong> &mdash; <strong>Save</strong> updates directory membership only, while <strong>Save &amp; Scan New Directories</strong> imports only from the newly added paths</li>
   <li><strong>Save library changes without an automatic reconcile</strong> &mdash; Editing settings or adding directories no longer silently triggers a full reconcile afterward</li>
+  <li><strong>Move between library settings, directories, and maintenance from inside the dialogs</strong> &mdash; The library-management dialogs now link to one another so you can stay in one workflow instead of backing out to the menu each time</li>
+  <li><strong>Use a dedicated safe path before reconcile</strong> &mdash; The maintenance dialog now points routine discovery work back to <strong>Scan for New Files</strong> and requires an explicit acknowledgement before <strong>Reconcile Library</strong> can run</li>
+  <li><strong>Use a roomier mobile directory picker</strong> &mdash; On phones and other compact screens, the directory picker opens as a full-screen overlay with more space for browsing and selecting folders</li>
+  <li><strong>Use the mobile sidebar grab handle</strong> &mdash; The width bar now stays available on touch devices so you can drag horizontally to resize and vertically to help scroll long side panels</li>
   <li><strong>See preparation feedback for large imports</strong> &mdash; When creating a library with many files, the dialog now shows an in-between working state before the full progress overlay appears</li>
   <li><strong>Check library health</strong> &mdash; Verify the folder is accessible and working</li>
-  <li><strong>Delete libraries</strong> &mdash; Remove a library from BookLore (optionally deleting its files too)</li>
+  <li><strong>Delete libraries</strong> &mdash; Remove a library from BookLore without deleting the original source files on disk</li>
   <li><strong>Restrict library access</strong> &mdash; Control which users can see which libraries</li>
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> The normal library menu now keeps <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> grouped together near the bottom, above <strong>Delete Library</strong>. Use <strong>Library Settings</strong> for naming, icon, and scan behavior. Use <strong>Manage Directories</strong> when you intentionally want to add or remove library paths. Inside <strong>Manage Directories</strong>, <strong>Save</strong> updates paths only, while <strong>Save &amp; Scan New Directories</strong> imports only from newly added directories. <strong>Scan for New Files</strong> remains the library-wide safe additive discovery action, while <strong>Reconcile Library</strong> and library-wide sidecar import/export/backup tools stay inside <strong>Library Maintenance</strong>. Scheduled library scans now follow that same additive new-file-only behavior. Changing directory-tag rules no longer silently retags existing books during a settings save, and additive scans only queue follow-up directory tagging for the books they just imported.
+  <strong>Good to Know:</strong> The normal library menu keeps <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> grouped together near the bottom, above <strong>Delete Library</strong>, and the dialogs now cross-link to one another so you can move between them without reopening the menu. Use <strong>Library Settings</strong> for naming, icon, and scan behavior. Use <strong>Manage Directories</strong> when you intentionally want to add or remove library paths. Inside <strong>Manage Directories</strong>, <strong>Save</strong> updates paths only, while <strong>Save &amp; Scan New Directories</strong> imports only from newly added directories. <strong>Scan for New Files</strong> remains the library-wide safe additive discovery action, while <strong>Reconcile Library</strong> and library-wide sidecar import/export/backup tools stay inside <strong>Library Maintenance</strong>, where reconcile now requires an explicit acknowledgement before it can run. Scheduled library scans now follow that same additive new-file-only behavior. Changing directory-tag rules no longer silently retags existing books during a settings save, and additive scans only queue follow-up directory tagging for the books they just imported.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -343,7 +347,7 @@
 <div class="callout warning">
   <strong>Be Careful:</strong>
   <ul>
-    <li><strong>Deleting a library can optionally delete the actual files from disk.</strong> If you only want to remove BookLore&rsquo;s catalog entry, make sure you uncheck &ldquo;delete files from disk.&rdquo;</li>
+    <li><strong>Deleting a library removes the catalog entry, not the source files on disk.</strong> If you want to delete real book files, that happens through book-file deletion flows, not library removal.</li>
     <li><strong>Moving or renaming book files outside of BookLore</strong> will cause them to appear missing. Always let BookLore manage file movements.</li>
     <li><strong>Use Reconcile Library intentionally.</strong> It is not the same as a safe new-file scan and may change existing library records to match disk.</li>
     <li><strong>If your book folder is on a network drive,</strong> set <code>DISK_TYPE=NETWORK</code> in your environment configuration for better compatibility. Automatic metadata writes stay disabled there, but you can still run manual sidecar backups when you want a portable metadata snapshot.</li>
@@ -1083,6 +1087,7 @@
   <tr><td>File Naming Patterns</td><td>How imported files are named and organized</td></tr>
   <tr><td>Metadata</td><td>Default metadata providers and API keys</td></tr>
   <tr><td>Metadata Persistence</td><td>Write metadata into files, manage automatic sidecars, and run a manual per-library sidecar backup even when automatic sidecars are disabled</td></tr>
+  <tr><td>File Management</td><td>Control whether BookLore is allowed to delete real files from disk during book-file deletion actions</td></tr>
   <tr><td>Library Metadata</td><td>Per-library metadata provider configuration</td></tr>
   <tr><td>Authentication</td><td>OIDC and forward auth configuration</td></tr>
   <tr><td>OPDS</td><td>E-reader feed configuration</td></tr>
@@ -1105,12 +1110,14 @@
   <ul>
     <li><strong>Changing authentication settings can lock you out.</strong> Test OIDC configuration before disabling local login.</li>
     <li><strong>Settings export/import includes sensitive data</strong> (email credentials, API keys). Store exported files securely.</li>
+    <li><strong>Allow File Deletion is a hard safety gate.</strong> When it is off, BookLore should remove catalog associations only and should not delete physical files from disk.</li>
   </ul>
 </div>
 
 <div class="callout info">
   <strong>Good to Know:</strong>
   <ul>
+    <li><strong>The File Management toggle also protects additional attached files.</strong> When <strong>Allow File Deletion</strong> is disabled, deleting an attached file removes it from BookLore without overriding the global disk-deletion block.</li>
     <li><strong>Automatic sidecars and manual sidecar backups are separate.</strong> You can keep automatic sidecar writing turned off and still run <strong>Back Up Sidecars per Library</strong> from Metadata Persistence when you want an on-demand metadata backup.</li>
     <li><strong>The backup action is available in both LOCAL and NETWORK disk modes.</strong> Network mode still blocks automatic rewrite and file reorganization, but the manual sidecar backup action remains available as an explicit exception.</li>
     <li><strong>Running the backup again refreshes existing backup sidecars.</strong> BookLore rewrites the selected library&rsquo;s sidecar files with the current database metadata instead of requiring you to delete old backups first.</li>
@@ -1144,6 +1151,7 @@
   <li>Use <strong>Manage Directories</strong> to add or remove library paths with explicit directory-focused actions</li>
   <li>Use <strong>Save &amp; Scan New Directories</strong> when you want BookLore to import only from the directories you just added instead of rescanning the entire library</li>
   <li>Use <strong>Scan for New Files</strong> for safe additive discovery without a full reconcile</li>
+  <li>Expect the maintenance dialog to steer routine discovery back toward <strong>Scan for New Files</strong> and require an explicit acknowledgement before <strong>Reconcile Library</strong> runs</li>
   <li>Expect scheduled <strong>Library Scan</strong> jobs to use the same safe additive discovery path as the manual <strong>Scan for New Files</strong> action</li>
   <li>Use <strong>Library Maintenance</strong> when you intentionally want to reconcile a library or run library-wide sidecar rewrite/import tools</li>
   <li>Monitor long-running directory-tagging follow-up work after imports, including the live status message and estimated time remaining when enough progress has been measured; additive scans limit that follow-up to newly imported books, while manual reconcile can still tag the whole library</li>
@@ -1294,6 +1302,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-13</td><td>1.1.69</td><td>Documented the connected <strong>Library Settings</strong>/<strong>Manage Directories</strong>/<strong>Library Maintenance</strong> workflow, clarified that <strong>Reconcile Library</strong> now requires an explicit acknowledgement while the maintenance dialog points routine discovery back to <strong>Scan for New Files</strong>, noted the mobile full-screen directory picker and touch sidebar grab handle improvements, and recorded that <strong>Allow File Deletion</strong> also protects additional attached files instead of being bypassed there</td></tr>
   <tr><td>2026-04-13</td><td>1.1.68</td><td>Documented that scheduled <strong>Library Scan</strong> now follows the same additive new-file-only behavior as manual <strong>Scan for New Files</strong>, and clarified that additive scan routines queue background directory-tagging only for newly imported books while <strong>Reconcile Library</strong> remains the deliberate whole-library maintenance path</td></tr>
   <tr><td>2026-04-12</td><td>1.1.67</td><td>Fixed the <strong>Manage Directories</strong> save-note emphasis so the action labels render correctly, clarified that changing directory-tag rules does not silently retag existing books during a settings save, and aligned the guide with the safer future-import-only tagging boundary until an explicit retag tool exists</td></tr>
   <tr><td>2026-04-12</td><td>1.1.66</td><td>Clarified that the <strong>Manage Directories</strong> list itself now shows imported directories, tightened the save-versus-scan wording, grouped <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> near the bottom of the library menu, and fixed the in-app <strong>User Guide</strong> PDF delivery path so it opens the guide file instead of falling back into the app shell</td></tr>

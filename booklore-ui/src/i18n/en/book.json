@@ -350,6 +350,11 @@
     "description": "High-impact maintenance tools for {{name}}.",
     "intro": "Maintenance actions can reconcile your library with disk or rewrite sidecar metadata for the entire library. These tools may change existing items and are intended for deliberate repair or synchronization work, not routine discovery.",
     "closeButton": "Close",
+    "guidance": {
+      "title": "Choose the outcome you want",
+      "description": "Use the safe additive scan for routine discovery. Use Library Settings or Manage Directories for normal library changes. Come back to maintenance only when you deliberately want to repair or synchronize existing records.",
+      "scanNewFilesButton": "Scan for New Files"
+    },
     "confirm": {
       "header": "Library Maintenance",
       "sidecarExportMessage": "Rewrite sidecar metadata files for all books in library {{ name }}? This may replace existing sidecar JSON contents with current BookLore metadata.",
@@ -360,6 +365,7 @@
       "reconcile": {
         "title": "Reconcile Library",
         "impact": "Compare the library against current disk contents and update BookLore records to match. This may remove missing-file entries, purge disallowed formats, restore matching items, attach newly discovered formats, and regenerate derived library data.",
+        "acknowledge": "I understand this updates existing library records and is not the same as a new-file-only scan.",
         "button": "Reconcile Library"
       },
       "sidecarExport": {

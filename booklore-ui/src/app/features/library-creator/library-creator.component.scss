@@ -33,6 +33,23 @@
   }
 }
 
+.dialog-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0 1.5rem 1rem;
+  background: var(--overlay-background);
+  border-bottom: 1px solid var(--border-color);
+
+  @media (max-width: 520px) {
+    padding: 0 1rem 1rem;
+
+    ::ng-deep .p-button {
+      width: 100%;
+    }
+  }
+}
+
 // Header
 .dialog-header {
   display: flex;

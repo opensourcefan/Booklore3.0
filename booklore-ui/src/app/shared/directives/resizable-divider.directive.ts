@@ -16,9 +16,13 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   @Input() cssVar = '';
 
   private handle!: HTMLElement;
+  private grip!: HTMLElement;
   private dragging = false;
+  private activePointerId: number | null = null;
   private startX = 0;
+  private startY = 0;
   private startWidth = 0;
+  private startScrollTop = 0;
   private target!: HTMLElement;
   private unlisten: (() => void)[] = [];
   private rafId: number | null = null;
@@ -50,6 +54,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
     // Create handle and append to body — avoids any position context issues
     this.handle = this.renderer.createElement('div');
+    this.grip = this.renderer.createElement('div');
     this.renderer.addClass(this.handle, 'bl-resize-handle');
     this.renderer.addClass(this.handle, `bl-resize-handle--${this.blResizable}`);
     this.renderer.setStyle(this.handle, 'position', 'fixed');
@@ -58,6 +63,19 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     this.renderer.setStyle(this.handle, 'z-index', '960');
     this.renderer.setStyle(this.handle, 'background', 'transparent');
     this.renderer.setStyle(this.handle, 'transition', 'background 0.15s ease');
+    this.renderer.setStyle(this.handle, 'touch-action', 'none');
+    this.renderer.setAttribute(this.handle, 'aria-hidden', 'true');
+    this.renderer.setStyle(this.grip, 'position', 'absolute');
+    this.renderer.setStyle(this.grip, 'top', '50%');
+    this.renderer.setStyle(this.grip, 'left', '50%');
+    this.renderer.setStyle(this.grip, 'transform', 'translate(-50%, -50%)');
+    this.renderer.setStyle(this.grip, 'width', '4px');
+    this.renderer.setStyle(this.grip, 'height', '44px');
+    this.renderer.setStyle(this.grip, 'border-radius', '999px');
+    this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, var(--primary-color) 55%, transparent)');
+    this.renderer.setStyle(this.grip, 'opacity', '0');
+    this.renderer.setStyle(this.grip, 'transition', 'opacity 0.15s ease, background 0.15s ease');
+    this.renderer.appendChild(this.handle, this.grip);
     this.renderer.appendChild(document.body, this.handle);
 
     // Position handle over the correct edge of the target
@@ -93,28 +111,36 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
     // Hover styles
     this.handle.addEventListener('mouseenter', () => {
+      if (this.isTouchHandleMode()) {
+        return;
+      }
       this.renderer.setStyle(this.handle, 'background', 'var(--p-primary-color, #818cf8)');
       this.renderer.setStyle(this.handle, 'opacity', '0.5');
       this.renderer.setStyle(this.handle, 'border-radius', '3px');
     });
     this.handle.addEventListener('mouseleave', () => {
       if (!this.dragging) {
-        this.renderer.setStyle(this.handle, 'background', 'transparent');
-        this.renderer.setStyle(this.handle, 'opacity', '1');
+        this.applyHandlePresentation();
       }
     });
 
-    const onMouseDown = (e: MouseEvent) => {
+    const onPointerDown = (e: PointerEvent) => {
       this.dragging = true;
+      this.activePointerId = e.pointerId;
       this.startX = e.clientX;
+      this.startY = e.clientY;
       this.startWidth = this.target.offsetWidth;
+      this.startScrollTop = this.getScrollContainer()?.scrollTop ?? 0;
       this.renderer.addClass(document.body, 'bl-resizing');
+      this.handle.setPointerCapture?.(e.pointerId);
       e.preventDefault();
       e.stopPropagation();
     };
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (!this.dragging) return;
+    const onPointerMove = (e: PointerEvent) => {
+      if (!this.dragging || (this.activePointerId !== null && e.pointerId !== this.activePointerId)) {
+        return;
+      }
       if (this.rafId) cancelAnimationFrame(this.rafId);
       this.rafId = requestAnimationFrame(() => {
         const delta = this.blResizable === 'right'
@@ -130,24 +156,73 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
         } else if (this.storageKey === 'bl-sidebar-width') {
           document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
         }
+
+        const scrollContainer = this.getScrollContainer();
+        if (scrollContainer) {
+          const deltaY = e.clientY - this.startY;
+          scrollContainer.scrollTop = this.startScrollTop + deltaY;
+        }
+
         this.scheduleUpdateHandlePosition();
       });
+      e.preventDefault();
     };
 
-    const onMouseUp = () => {
+    const onPointerUp = (e?: PointerEvent) => {
       if (this.dragging) {
         this.dragging = false;
+        if (e && this.activePointerId !== null && e.pointerId === this.activePointerId) {
+          this.handle.releasePointerCapture?.(e.pointerId);
+        }
+        this.activePointerId = null;
         this.renderer.removeClass(document.body, 'bl-resizing');
-        this.renderer.setStyle(this.handle, 'background', 'transparent');
-        this.renderer.setStyle(this.handle, 'opacity', '1');
+        this.applyHandlePresentation();
       }
     };
 
     this.unlisten.push(
-      this.renderer.listen(this.handle, 'mousedown', onMouseDown),
-      this.renderer.listen(document, 'mousemove', onMouseMove),
-      this.renderer.listen(document, 'mouseup', onMouseUp),
+      this.renderer.listen(this.handle, 'pointerdown', onPointerDown),
+      this.renderer.listen(document, 'pointermove', onPointerMove),
+      this.renderer.listen(document, 'pointerup', onPointerUp),
+      this.renderer.listen(document, 'pointercancel', onPointerUp),
     );
+  }
+
+  private isTouchHandleMode(): boolean {
+    return window.innerWidth <= 991;
+  }
+
+  private applyHandlePresentation(): void {
+    if (!this.handle) {
+      return;
+    }
+
+    if (this.isTouchHandleMode()) {
+      this.renderer.setStyle(this.handle, 'width', '24px');
+      this.renderer.setStyle(this.handle, 'cursor', 'grab');
+      this.renderer.setStyle(this.handle, 'background', 'transparent');
+      this.renderer.setStyle(this.handle, 'opacity', '1');
+      this.renderer.setStyle(this.grip, 'opacity', '1');
+    } else {
+      this.renderer.setStyle(this.handle, 'width', '6px');
+      this.renderer.setStyle(this.handle, 'cursor', 'col-resize');
+      this.renderer.setStyle(this.handle, 'background', 'transparent');
+      this.renderer.setStyle(this.handle, 'opacity', '1');
+      this.renderer.setStyle(this.grip, 'opacity', '0');
+    }
+  }
+
+  private getScrollContainer(): HTMLElement | null {
+    const candidates = [
+      this.target,
+      ...Array.from(this.target.querySelectorAll<HTMLElement>('*')),
+    ];
+
+    return candidates.find(element => {
+      const style = getComputedStyle(element);
+      const allowsScroll = /(auto|scroll|overlay)/.test(style.overflowY);
+      return allowsScroll && element.scrollHeight > element.clientHeight + 8;
+    }) ?? null;
   }
 
   private scheduleUpdateHandlePosition(): void {
@@ -163,11 +238,6 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
   private updateHandlePosition(): void {
     if (!this.handle || !this.target) return;
-
-    if (window.innerWidth <= 991) {
-      this.renderer.setStyle(this.handle, 'display', 'none');
-      return;
-    }
 
     if (!this.dragging && this.hasVisibleBlockingOverlay()) {
       this.renderer.setStyle(this.handle, 'display', 'none');
@@ -191,12 +261,15 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
 
     this.renderer.removeStyle(this.handle, 'display');
+    this.applyHandlePresentation();
     this.renderer.setStyle(this.handle, 'top', rect.top + 'px');
     this.renderer.setStyle(this.handle, 'height', rect.height + 'px');
     if (this.blResizable === 'right') {
-      this.renderer.setStyle(this.handle, 'left', (rect.right - 3) + 'px');
+      const offset = this.isTouchHandleMode() ? 12 : 3;
+      this.renderer.setStyle(this.handle, 'left', (rect.right - offset) + 'px');
     } else {
-      this.renderer.setStyle(this.handle, 'left', (rect.left - 3) + 'px');
+      const offset = this.isTouchHandleMode() ? 12 : 3;
+      this.renderer.setStyle(this.handle, 'left', (rect.left - offset) + 'px');
     }
   }
 

@@ -1,20 +1,23 @@
 import {Component, inject, OnInit} from '@angular/core';
+import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
+import {Checkbox} from 'primeng/checkbox';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Library} from '../../model/library.model';
 import {LibraryService} from '../../service/library.service';
 import {SidecarService} from '../../../metadata/service/sidecar.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 
-type MaintenanceAction = 'reconcile' | 'sidecarExport' | 'sidecarBackup' | 'sidecarImport';
+type MaintenanceAction = 'scanNewFiles' | 'reconcile' | 'sidecarExport' | 'sidecarBackup' | 'sidecarImport';
 
 @Component({
   selector: 'app-library-maintenance-dialog',
   standalone: true,
   templateUrl: './library-maintenance-dialog.component.html',
   styleUrl: './library-maintenance-dialog.component.scss',
-  imports: [Button, TranslocoDirective]
+  imports: [FormsModule, Button, Checkbox, TranslocoDirective]
 })
 export class LibraryMaintenanceDialogComponent implements OnInit {
   private readonly dialogRef = inject(DynamicDialogRef);
@@ -23,10 +26,12 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly libraryService = inject(LibraryService);
   private readonly sidecarService = inject(SidecarService);
+  private readonly dialogLauncherService = inject(DialogLauncherService);
   private readonly t = inject(TranslocoService);
 
   library: Library | undefined;
   runningAction: MaintenanceAction | null = null;
+  reconcileAcknowledged = false;
 
   ngOnInit(): void {
     const libraryId = this.dialogConfig.data?.libraryId as number | undefined;
@@ -39,9 +44,61 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  confirmReconcile(): void {
+  confirmScanNewFiles(): void {
+    if (!this.library) {
+      return;
+    }
+
+    const libraryId = this.library.id as number;
+    const libraryName = this.library.name;
+
     this.confirmationService.confirm({
-      message: this.t.translate('book.shelfMenuService.confirm.reconcileLibraryMessage', {name: this.library?.name}),
+      message: this.t.translate('book.shelfMenuService.confirm.scanNewFilesMessage', {name: libraryName}),
+      header: this.t.translate('book.libraryMaintenanceDialog.confirm.header'),
+      acceptLabel: this.t.translate('book.shelfMenuService.confirm.scanNewFilesLabel'),
+      rejectLabel: this.t.translate('common.cancel'),
+      rejectButtonProps: {
+        label: this.t.translate('common.cancel'),
+        severity: 'secondary'
+      },
+      acceptButtonProps: {
+        label: this.t.translate('book.shelfMenuService.confirm.scanNewFilesLabel'),
+        severity: 'success'
+      },
+      accept: () => {
+        this.runningAction = 'scanNewFiles';
+        this.libraryService.scanLibraryForNewFiles(libraryId).subscribe({
+          complete: () => {
+            this.runningAction = null;
+            this.messageService.add({
+              severity: 'success',
+              summary: this.t.translate('common.success'),
+              detail: this.t.translate('book.shelfMenuService.toast.scanNewFilesSuccessDetail')
+            });
+          },
+          error: () => {
+            this.runningAction = null;
+            this.messageService.add({
+              severity: 'error',
+              summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
+              detail: this.t.translate('book.shelfMenuService.toast.scanNewFilesFailedDetail')
+            });
+          }
+        });
+      }
+    });
+  }
+
+  confirmReconcile(): void {
+    if (!this.library || !this.reconcileAcknowledged) {
+      return;
+    }
+
+    const libraryId = this.library.id as number;
+    const libraryName = this.library.name;
+
+    this.confirmationService.confirm({
+      message: this.t.translate('book.shelfMenuService.confirm.reconcileLibraryMessage', {name: libraryName}),
       header: this.t.translate('book.libraryMaintenanceDialog.confirm.header'),
       acceptLabel: this.t.translate('book.shelfMenuService.confirm.reconcileLabel'),
       rejectLabel: this.t.translate('common.cancel'),
@@ -55,7 +112,7 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
       },
       accept: () => {
         this.runningAction = 'reconcile';
-        this.libraryService.refreshLibrary(this.library!.id as number).subscribe({
+        this.libraryService.refreshLibrary(libraryId).subscribe({
           complete: () => {
             this.runningAction = null;
             this.messageService.add({
@@ -75,6 +132,24 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
         });
       }
     });
+  }
+
+  openLibrarySettings(): void {
+    if (!this.library || this.runningAction) {
+      return;
+    }
+
+    this.dialogLauncherService.openLibrarySettingsDialog(this.library.id as number);
+    this.closeDialog();
+  }
+
+  openManageDirectories(): void {
+    if (!this.library || this.runningAction) {
+      return;
+    }
+
+    this.dialogLauncherService.openLibraryDirectoriesDialog(this.library.id as number);
+    this.closeDialog();
   }
 
   confirmSidecarExport(): void {

@@ -20,6 +20,35 @@
       />
     </header>
 
+    @if (isEditMode()) {
+      <div class="dialog-nav">
+        <p-button
+          [label]="t('titleSettings')"
+          icon="pi pi-cog"
+          [severity]="isSettingsMode() ? 'primary' : 'secondary'"
+          [outlined]="!isSettingsMode()"
+          [disabled]="isSubmitting || isSettingsMode()"
+          (onClick)="openLibrarySettingsView()"
+        />
+        <p-button
+          [label]="t('titleDirectories')"
+          icon="pi pi-folder-open"
+          [severity]="isDirectoryManagementMode() ? 'primary' : 'secondary'"
+          [outlined]="!isDirectoryManagementMode()"
+          [disabled]="isSubmitting || isDirectoryManagementMode()"
+          (onClick)="openLibraryDirectoriesView()"
+        />
+        <p-button
+          [label]="'book.libraryMaintenanceDialog.title' | transloco"
+          icon="pi pi-wrench"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="isSubmitting"
+          (onClick)="openLibraryMaintenanceView()"
+        />
+      </div>
+    }
+
     <div class="dialog-body">
       @if (isSubmitting) {
         <div class="submission-banner" aria-live="polite">

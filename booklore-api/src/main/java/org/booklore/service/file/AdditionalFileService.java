@@ -6,6 +6,7 @@ import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookFileEntity;
 import org.booklore.repository.BookAdditionalFileRepository;
 import org.booklore.repository.BookRepository;
+import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.service.monitoring.MonitoringRegistrationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ public class AdditionalFileService {
     private final BookAdditionalFileRepository additionalFileRepository;
     private final BookRepository bookRepository;
     private final AdditionalFileMapper additionalFileMapper;
+    private final AppSettingService appSettingService;
     private final MonitoringRegistrationService monitoringRegistrationService;
 
     public List<BookFile> getAdditionalFilesByBookId(Long bookId) {
@@ -62,17 +64,22 @@ public class AdditionalFileService {
 
         BookFileEntity file = fileOpt.get();
         BookEntity book = file.getBook();
+        boolean allowPhysicalDeletion = appSettingService.getAppSettings().isAllowFileDeletion();
 
         try {
-            monitoringRegistrationService.unregisterSpecificPath(file.getFullFilePath().getParent());
-
             Path filePath = file.getFullFilePath();
-            if (file.isFolderBased() && Files.isDirectory(filePath)) {
-                deleteDirectoryRecursively(filePath);
-                log.info("Deleted folder-based audiobook: {}", filePath);
+            if (allowPhysicalDeletion) {
+                monitoringRegistrationService.unregisterSpecificPath(filePath.getParent());
+
+                if (file.isFolderBased() && Files.isDirectory(filePath)) {
+                    deleteDirectoryRecursively(filePath);
+                    log.info("Deleted folder-based audiobook: {}", filePath);
+                } else {
+                    Files.deleteIfExists(filePath);
+                    log.info("Deleted additional file: {}", filePath);
+                }
             } else {
-                Files.deleteIfExists(filePath);
-                log.info("Deleted additional file: {}", filePath);
+                log.info("Allow File Deletion is disabled; removing additional file {} from BookLore only", filePath);
             }
 
             additionalFileRepository.delete(file);

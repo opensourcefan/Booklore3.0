@@ -7,12 +7,14 @@ import {LibraryMaintenanceDialogComponent} from './library-maintenance-dialog.co
 import {LibraryService} from '../../service/library.service';
 import {SidecarService} from '../../../metadata/service/sidecar.service';
 import {TranslocoService} from '@jsverse/transloco';
+import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 
 describe('LibraryMaintenanceDialogComponent', () => {
   let component: LibraryMaintenanceDialogComponent;
   let confirmationConfig: Parameters<ConfirmationService['confirm']>[0] | undefined;
   let libraryServiceMock: {
     findLibraryById: ReturnType<typeof vi.fn>;
+    scanLibraryForNewFiles: ReturnType<typeof vi.fn>;
     refreshLibrary: ReturnType<typeof vi.fn>;
   };
   let sidecarServiceMock: {
@@ -21,11 +23,16 @@ describe('LibraryMaintenanceDialogComponent', () => {
     bulkImport: ReturnType<typeof vi.fn>;
   };
   let messageServiceMock: {add: ReturnType<typeof vi.fn>};
+  let dialogLauncherServiceMock: {
+    openLibrarySettingsDialog: ReturnType<typeof vi.fn>;
+    openLibraryDirectoriesDialog: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     confirmationConfig = undefined;
     libraryServiceMock = {
       findLibraryById: vi.fn().mockReturnValue({id: 42, name: 'Main Library'}),
+      scanLibraryForNewFiles: vi.fn().mockReturnValue(of(void 0)),
       refreshLibrary: vi.fn().mockReturnValue(of(void 0))
     };
     sidecarServiceMock = {
@@ -34,6 +41,10 @@ describe('LibraryMaintenanceDialogComponent', () => {
       bulkImport: vi.fn().mockReturnValue(of({message: 'ok', imported: 4}))
     };
     messageServiceMock = {add: vi.fn()};
+    dialogLauncherServiceMock = {
+      openLibrarySettingsDialog: vi.fn(),
+      openLibraryDirectoriesDialog: vi.fn()
+    };
 
     TestBed.configureTestingModule({
       providers: [
@@ -43,6 +54,7 @@ describe('LibraryMaintenanceDialogComponent', () => {
         {provide: MessageService, useValue: messageServiceMock},
         {provide: LibraryService, useValue: libraryServiceMock},
         {provide: SidecarService, useValue: sidecarServiceMock},
+        {provide: DialogLauncherService, useValue: dialogLauncherServiceMock},
         {provide: TranslocoService, useValue: {translate: (key: string, params?: Record<string, unknown>) => params ? `${key}${JSON.stringify(params)}` : key}}
       ]
     });
@@ -61,11 +73,26 @@ describe('LibraryMaintenanceDialogComponent', () => {
     expect(component.library?.name).toBe('Main Library');
   });
 
+  it('does not prompt reconcile until acknowledged', () => {
+    component.confirmReconcile();
+
+    expect(confirmationConfig).toBeUndefined();
+    expect(libraryServiceMock.refreshLibrary).not.toHaveBeenCalled();
+  });
+
   it('reconciles the library from the maintenance dialog', () => {
+    component.reconcileAcknowledged = true;
     component.confirmReconcile();
     acceptConfirmation();
 
     expect(libraryServiceMock.refreshLibrary).toHaveBeenCalledWith(42);
+  });
+
+  it('scans for new files from the maintenance dialog', () => {
+    component.confirmScanNewFiles();
+    acceptConfirmation();
+
+    expect(libraryServiceMock.scanLibraryForNewFiles).toHaveBeenCalledWith(42);
   });
 
   it('exports sidecars from the maintenance dialog', () => {

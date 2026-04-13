@@ -268,6 +268,10 @@ export class LibraryCreatorComponent implements OnInit {
     return this.mode === 'edit-directories';
   }
 
+  isSettingsMode(): boolean {
+    return this.mode === 'edit-settings';
+  }
+
   showLibraryDetailsSection(): boolean {
     return !this.isDirectoryManagementMode();
   }
@@ -278,6 +282,33 @@ export class LibraryCreatorComponent implements OnInit {
 
   showOptionsSection(): boolean {
     return !this.isDirectoryManagementMode();
+  }
+
+  openLibrarySettingsView(): void {
+    if (!this.library?.id || this.isSubmitting || this.isSettingsMode()) {
+      return;
+    }
+
+    this.dialogLauncherService.openLibrarySettingsDialog(this.library.id);
+    this.dynamicDialogRef.close();
+  }
+
+  openLibraryDirectoriesView(): void {
+    if (!this.library?.id || this.isSubmitting || this.isDirectoryManagementMode()) {
+      return;
+    }
+
+    this.dialogLauncherService.openLibraryDirectoriesDialog(this.library.id);
+    this.dynamicDialogRef.close();
+  }
+
+  openLibraryMaintenanceView(): void {
+    if (!this.library?.id || this.isSubmitting) {
+      return;
+    }
+
+    this.dialogLauncherService.openLibraryMaintenanceDialog(this.library.id);
+    this.dynamicDialogRef.close();
   }
 
   getDialogTitleKey(): string {
