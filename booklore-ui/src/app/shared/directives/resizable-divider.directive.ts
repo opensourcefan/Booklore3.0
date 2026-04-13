@@ -199,21 +199,25 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
     if (this.isTouchHandleMode()) {
       this.renderer.setStyle(this.handle, 'width', '28px');
+      this.renderer.setStyle(this.handle, 'height', '56px');
       this.renderer.setStyle(this.handle, 'cursor', 'grab');
-      this.renderer.setStyle(this.handle, 'background', 'transparent');
+      this.renderer.setStyle(this.handle, 'background', 'color-mix(in srgb, var(--primary-color) 82%, white 18%)');
       this.renderer.setStyle(this.handle, 'opacity', '1');
       this.renderer.setStyle(this.handle, 'border-radius', '999px');
+      this.renderer.setStyle(this.handle, 'box-shadow', '0 0 0 3px color-mix(in srgb, var(--surface-card, white) 88%, transparent), 0 6px 16px rgba(0, 0, 0, 0.22)');
       this.renderer.setStyle(this.grip, 'opacity', '1');
-      this.renderer.setStyle(this.grip, 'width', '8px');
-      this.renderer.setStyle(this.grip, 'height', '84px');
-      this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, var(--primary-color) 82%, white 18%)');
-      this.renderer.setStyle(this.grip, 'box-shadow', '0 0 0 3px color-mix(in srgb, var(--surface-card, white) 88%, transparent), 0 6px 16px rgba(0, 0, 0, 0.22)');
+      this.renderer.setStyle(this.grip, 'width', '6px');
+      this.renderer.setStyle(this.grip, 'height', '26px');
+      this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, white 78%, var(--primary-color) 22%)');
+      this.renderer.removeStyle(this.grip, 'box-shadow');
     } else {
       this.renderer.setStyle(this.handle, 'width', '6px');
+      this.renderer.setStyle(this.handle, 'height', '100%');
       this.renderer.setStyle(this.handle, 'cursor', 'col-resize');
       this.renderer.setStyle(this.handle, 'background', 'transparent');
       this.renderer.setStyle(this.handle, 'opacity', '1');
       this.renderer.removeStyle(this.handle, 'border-radius');
+      this.renderer.removeStyle(this.handle, 'box-shadow');
       this.renderer.setStyle(this.grip, 'opacity', '0');
       this.renderer.setStyle(this.grip, 'width', '4px');
       this.renderer.setStyle(this.grip, 'height', '44px');
@@ -272,13 +276,21 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
     this.renderer.removeStyle(this.handle, 'display');
     this.applyHandlePresentation();
-    this.renderer.setStyle(this.handle, 'top', rect.top + 'px');
-    this.renderer.setStyle(this.handle, 'height', rect.height + 'px');
+    if (this.isTouchHandleMode()) {
+      const touchHandleHeight = 56;
+      const top = rect.top + Math.max(12, (rect.height - touchHandleHeight) / 2);
+      this.renderer.setStyle(this.handle, 'top', top + 'px');
+      this.renderer.setStyle(this.handle, 'height', touchHandleHeight + 'px');
+    } else {
+      this.renderer.setStyle(this.handle, 'top', rect.top + 'px');
+      this.renderer.setStyle(this.handle, 'height', rect.height + 'px');
+    }
+
     if (this.blResizable === 'right') {
-      const offset = this.isTouchHandleMode() ? 26 : 3;
+      const offset = this.isTouchHandleMode() ? 18 : 3;
       this.renderer.setStyle(this.handle, 'left', (rect.right - offset) + 'px');
     } else {
-      const offset = this.isTouchHandleMode() ? 2 : 3;
+      const offset = this.isTouchHandleMode() ? 10 : 3;
       this.renderer.setStyle(this.handle, 'left', (rect.left - offset) + 'px');
     }
   }

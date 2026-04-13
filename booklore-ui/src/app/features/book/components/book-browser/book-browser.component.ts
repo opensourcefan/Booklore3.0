@@ -217,10 +217,30 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   virtualScroller: VirtualScrollerComponent | undefined;
   @ViewChild('mobileRightSidebarPop')
   mobileRightSidebarPop: Popover | undefined;
+  private isMobileRightSidebarOpen = false;
+  private mobileRightSidebarHistoryArmed = false;
+  private mobileRightSidebarClosingFromPopstate = false;
+  private ignoreNextMobileSidebarPopstate = false;
 
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
+  }
+
+  @HostListener('window:popstate')
+  onWindowPopState(): void {
+    if (this.ignoreNextMobileSidebarPopstate) {
+      this.ignoreNextMobileSidebarPopstate = false;
+      return;
+    }
+
+    if (!this.isMobileRightSidebarOpen && !this.mobileRightSidebarHistoryArmed) {
+      return;
+    }
+
+    this.mobileRightSidebarClosingFromPopstate = true;
+    this.mobileRightSidebarHistoryArmed = false;
+    this.mobileRightSidebarPop?.hide();
   }
 
   get isMobile(): boolean {
@@ -440,7 +460,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.isMobile) {
           return;
         }
-        this.mobileRightSidebarPop?.toggle(event);
+        this.toggleMobileRightSidebar(event);
       });
 
     this.settingFiltersFromUrl = true;
@@ -463,6 +483,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.forceCloseMobileRightSidebar(false);
     this.clearHoverPreviewTimer();
     this.destroy$.next();
     this.destroy$.complete();
@@ -490,9 +511,27 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.events.pipe(
       filter(event => event instanceof NavigationStart),
       takeUntil(this.destroy$)
-    ).subscribe(() => {
+    ).subscribe((event) => {
+      this.handleNavigationStart(event as NavigationStart);
       this.saveScrollPosition();
     });
+  }
+
+  private handleNavigationStart(event: NavigationStart): void {
+    if (!this.isMobile) {
+      return;
+    }
+
+    if (event.navigationTrigger === 'popstate' && (this.isMobileRightSidebarOpen || this.mobileRightSidebarHistoryArmed)) {
+      this.mobileRightSidebarClosingFromPopstate = true;
+      this.mobileRightSidebarHistoryArmed = false;
+      this.mobileRightSidebarPop?.hide();
+      return;
+    }
+
+    if (this.isMobileRightSidebarOpen || this.mobileRightSidebarHistoryArmed) {
+      this.forceCloseMobileRightSidebar(false);
+    }
   }
 
   private saveScrollPosition(): void {
@@ -768,6 +807,69 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   toggleSidebar(): void {
     this.showFilter = !this.showFilter;
     this.sidebarFilterTogglePrefService.selectedShowFilter = this.showFilter;
+  }
+
+  onMobileRightSidebarShow(): void {
+    this.isMobileRightSidebarOpen = true;
+    if (!this.isMobile || this.mobileRightSidebarHistoryArmed) {
+      return;
+    }
+
+    window.history.pushState(
+      {...window.history.state, bookBrowserMobileSidebar: true},
+      '',
+      this.router.url
+    );
+    this.mobileRightSidebarHistoryArmed = true;
+  }
+
+  onMobileRightSidebarHide(): void {
+    this.isMobileRightSidebarOpen = false;
+
+    if (this.mobileRightSidebarClosingFromPopstate) {
+      this.mobileRightSidebarClosingFromPopstate = false;
+      return;
+    }
+
+    this.disarmMobileRightSidebarHistory(true);
+  }
+
+  private toggleMobileRightSidebar(event: MouseEvent): void {
+    if (!this.mobileRightSidebarPop) {
+      return;
+    }
+
+    this.mobileRightSidebarPop.toggle(event);
+  }
+
+  private forceCloseMobileRightSidebar(removeHistoryEntry: boolean): void {
+    if (this.isMobileRightSidebarOpen) {
+      this.mobileRightSidebarPop?.hide();
+    }
+
+    this.disarmMobileRightSidebarHistory(removeHistoryEntry);
+    this.isMobileRightSidebarOpen = false;
+    this.mobileRightSidebarClosingFromPopstate = false;
+  }
+
+  private disarmMobileRightSidebarHistory(removeHistoryEntry: boolean): void {
+    if (!this.mobileRightSidebarHistoryArmed) {
+      return;
+    }
+
+    this.mobileRightSidebarHistoryArmed = false;
+
+    if (removeHistoryEntry) {
+      this.ignoreNextMobileSidebarPopstate = true;
+      window.history.back();
+      return;
+    }
+
+    const currentState = window.history.state;
+    if (currentState && currentState.bookBrowserMobileSidebar) {
+      const {bookBrowserMobileSidebar, ...rest} = currentState;
+      window.history.replaceState(rest, '', this.router.url);
+    }
   }
 
   updateScale(): void {

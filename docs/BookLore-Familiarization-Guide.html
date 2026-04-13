@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.70 &mdash; April 13, 2026<br>
+    Version 1.1.71 &mdash; April 13, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -326,8 +326,9 @@
   <li><strong>Save library changes without an automatic reconcile</strong> &mdash; Editing settings or adding directories no longer silently triggers a full reconcile afterward</li>
   <li><strong>Move between library settings, directories, and maintenance from inside the dialogs</strong> &mdash; The library-management dialogs now link to one another so you can stay in one workflow instead of backing out to the menu each time</li>
   <li><strong>Use a dedicated safe path before reconcile</strong> &mdash; The maintenance dialog now points routine discovery work back to <strong>Scan for New Files</strong> and requires an explicit acknowledgement before <strong>Reconcile Library</strong> can run</li>
-  <li><strong>Use a roomier mobile directory picker</strong> &mdash; On phones and other compact screens, the directory picker opens as a full-screen overlay, keeps search and selection controls in compact rows, and leaves more vertical space for the actual folder list</li>
-  <li><strong>Use the mobile sidebar grab handles</strong> &mdash; The left and right sidebar width bars now stay visibly available on touch devices so you can drag horizontally to resize and vertically to help scroll long side panels</li>
+  <li><strong>Use a roomier mobile directory picker</strong> &mdash; On phones and other compact screens, the directory picker now fits the dialog width correctly without slight sideways overflow, keeps search and selection controls in compact rows, and leaves more vertical space for the actual folder list</li>
+  <li><strong>Use the mobile sidebar grab handles</strong> &mdash; The left and right sidebar width bars now stay visibly available on touch devices as always-on touch handles so you can see where to grab, drag horizontally to resize, and drag vertically to help scroll long side panels</li>
+  <li><strong>Use the phone back gesture to close the mobile filter sidebar first</strong> &mdash; When the book-browser filter sidebar is open on mobile, the first back gesture now closes that sidebar before the app navigates away underneath it</li>
   <li><strong>See preparation feedback for large imports</strong> &mdash; When creating a library with many files, the dialog now shows an in-between working state before the full progress overlay appears</li>
   <li><strong>Check library health</strong> &mdash; Verify the folder is accessible and working</li>
   <li><strong>Delete libraries</strong> &mdash; Remove a library from BookLore without deleting the original source files on disk</li>
@@ -1302,6 +1303,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-13</td><td>1.1.71</td><td>Corrected the mobile full-screen <strong>Manage Directories</strong> picker sizing so it no longer causes a slight sideways scroll, clarified that the left and right mobile side-panel grab handles stay visibly present as touch targets instead of appearing only during interaction, and documented that a phone back gesture now closes the mobile book-browser filter sidebar before navigating the underlying page</td></tr>
   <tr><td>2026-04-13</td><td>1.1.70</td><td>Documented the denser mobile <strong>Manage Directories</strong> picker layout so search and selection controls stay compact while the folder list keeps more vertical space, and clarified that the visible touch grab handles now stay on both the left and right side panels on mobile</td></tr>
   <tr><td>2026-04-13</td><td>1.1.69</td><td>Documented the connected <strong>Library Settings</strong>/<strong>Manage Directories</strong>/<strong>Library Maintenance</strong> workflow, clarified that <strong>Reconcile Library</strong> now requires an explicit acknowledgement while the maintenance dialog points routine discovery back to <strong>Scan for New Files</strong>, noted the mobile full-screen directory picker and touch sidebar grab handle improvements, and recorded that <strong>Allow File Deletion</strong> also protects additional attached files instead of being bypassed there</td></tr>
   <tr><td>2026-04-13</td><td>1.1.68</td><td>Documented that scheduled <strong>Library Scan</strong> now follows the same additive new-file-only behavior as manual <strong>Scan for New Files</strong>, and clarified that additive scan routines queue background directory-tagging only for newly imported books while <strong>Reconcile Library</strong> remains the deliberate whole-library maintenance path</td></tr>

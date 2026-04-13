@@ -391,7 +391,13 @@
           </div>
 
           @if (isMobile) {
-            <p-popover #mobileRightSidebarPop styleClass="mobile-right-sidebar-popover" [dismissable]="true" appendTo="body">
+            <p-popover
+              #mobileRightSidebarPop
+              styleClass="mobile-right-sidebar-popover"
+              [dismissable]="true"
+              appendTo="body"
+              (onShow)="onMobileRightSidebarShow()"
+              (onHide)="onMobileRightSidebarHide()">
               <app-book-filter
                 [showFilter]="true"
                 [entity$]="entity$"
