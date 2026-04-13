@@ -31,6 +31,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -209,7 +210,7 @@ public class LibraryProcessingService {
         } else {
             fileAsBookProcessor.processLibraryFilesGrouped(newBookGroups, libraryEntity);
         }
-        scheduleDirectoryTaggingIfEnabled(libraryEntity, total);
+        scheduleLibraryDirectoryTaggingIfEnabled(libraryEntity);
 
         notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished refreshing library: " + libraryEntity.getName()));
     }
@@ -234,7 +235,7 @@ public class LibraryProcessingService {
         } else {
             fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity);
         }
-        scheduleDirectoryTaggingIfEnabled(libraryEntity, total);
+        scheduleImportedBookTaggingIfEnabled(libraryEntity, newFiles);
     }
 
     private void validateLibraryPathsAccessible(List<LibraryPathEntity> pathEntities) {
@@ -388,13 +389,43 @@ public class LibraryProcessingService {
         }
     }
 
-    private void scheduleDirectoryTaggingIfEnabled(LibraryEntity libraryEntity, int importedGroups) {
+    private void scheduleImportedBookTaggingIfEnabled(LibraryEntity libraryEntity, List<LibraryFile> importedFiles) {
+        if (!libraryEntity.isTagByDirectory()) {
+            return;
+        }
+
+        Set<Long> importedBookIds = findImportedBookIds(libraryEntity, importedFiles);
+        if (importedBookIds.isEmpty()) {
+            return;
+        }
+
+        directoryTagTaskStarter.scheduleBooks(libraryEntity.getId(), importedBookIds);
+        log.info("Queued background directory tagging for {} imported books in library {}", importedBookIds.size(), libraryEntity.getId());
+    }
+
+    private void scheduleLibraryDirectoryTaggingIfEnabled(LibraryEntity libraryEntity) {
         if (!libraryEntity.isTagByDirectory()) {
             return;
         }
 
         directoryTagTaskStarter.scheduleLibrary(libraryEntity.getId());
         log.info("Queued background directory tagging for library {}", libraryEntity.getId());
+    }
+
+    private Set<Long> findImportedBookIds(LibraryEntity libraryEntity, List<LibraryFile> importedFiles) {
+        if (importedFiles == null || importedFiles.isEmpty()) {
+            return Set.of();
+        }
+
+        Set<String> importedKeys = importedFiles.stream()
+                .map(this::generateUniqueKey)
+                .collect(Collectors.toSet());
+
+        return bookRepository.findAllByLibraryIdWithFilesAndPath(libraryEntity.getId()).stream()
+                .filter(book -> book.getPrimaryBookFile() != null)
+                .filter(book -> importedKeys.contains(generateUniqueKey(book)))
+                .map(BookEntity::getId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private String buildImportCompletionMessage(int importedGroups, boolean tagByDirectory) {

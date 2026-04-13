@@ -64,16 +64,17 @@ public class DirectoryTagService {
      */
     @Transactional
     public void applyMissingDirectoryTags(LibraryEntity library) {
-        applyMissingDirectoryTags(library, null, null);
+        applyMissingDirectoryTags(library, null, null, null);
         }
 
         @Transactional
         public DirectoryTagRunResult applyMissingDirectoryTags(
             LibraryEntity library,
+            Set<Long> bookIds,
             Consumer<DirectoryTagProgressSnapshot> progressCallback,
             BooleanSupplier cancellationCheck
         ) {
-        List<BookEntity> books = bookRepository.findAllByLibraryIdWithFiles(library.getId());
+        List<BookEntity> books = loadBooksForTagging(library.getId(), bookIds);
         DirectoryTagDepth depth = library.getDirectoryTagDepth() != null
                 ? library.getDirectoryTagDepth()
                 : DirectoryTagDepth.LAST_ONLY;
@@ -119,6 +120,15 @@ public class DirectoryTagService {
         return new DirectoryTagRunResult(books.size(), books.size(), updatedBooks, false);
     }
 
+    @Transactional
+    public DirectoryTagRunResult applyMissingDirectoryTags(
+            LibraryEntity library,
+            Consumer<DirectoryTagProgressSnapshot> progressCallback,
+            BooleanSupplier cancellationCheck
+    ) {
+        return applyMissingDirectoryTags(library, null, progressCallback, cancellationCheck);
+    }
+
     /**
      * Extracts the set of tag strings from a {@code fileSubPath} according to the given depth setting.
      */
@@ -137,6 +147,13 @@ public class DirectoryTagService {
             }
         }
         return tags;
+    }
+
+    private List<BookEntity> loadBooksForTagging(Long libraryId, Set<Long> bookIds) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            return bookRepository.findAllByLibraryIdWithFiles(libraryId);
+        }
+        return bookRepository.findAllWithMetadataByLibraryIdAndIds(libraryId, bookIds);
     }
 
     private int applyChunk(List<BookEntity> chunk, Map<Long, String> rootFolderNames, DirectoryTagDepth depth) {

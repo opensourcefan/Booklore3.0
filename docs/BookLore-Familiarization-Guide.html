@@ -331,7 +331,7 @@
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> The normal library menu now keeps <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> grouped together near the bottom, above <strong>Delete Library</strong>. Use <strong>Library Settings</strong> for naming, icon, and scan behavior. Use <strong>Manage Directories</strong> when you intentionally want to add or remove library paths. Inside <strong>Manage Directories</strong>, <strong>Save</strong> updates paths only, while <strong>Save &amp; Scan New Directories</strong> imports only from newly added directories. <strong>Scan for New Files</strong> remains the library-wide safe additive discovery action, while <strong>Reconcile Library</strong> and library-wide sidecar import/export/backup tools stay inside <strong>Library Maintenance</strong>. Changing directory-tag rules no longer silently retags existing books during a settings save; those rules apply to future imports and follow-up tagging for newly imported books.
+  <strong>Good to Know:</strong> The normal library menu now keeps <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> grouped together near the bottom, above <strong>Delete Library</strong>. Use <strong>Library Settings</strong> for naming, icon, and scan behavior. Use <strong>Manage Directories</strong> when you intentionally want to add or remove library paths. Inside <strong>Manage Directories</strong>, <strong>Save</strong> updates paths only, while <strong>Save &amp; Scan New Directories</strong> imports only from newly added directories. <strong>Scan for New Files</strong> remains the library-wide safe additive discovery action, while <strong>Reconcile Library</strong> and library-wide sidecar import/export/backup tools stay inside <strong>Library Maintenance</strong>. Scheduled library scans now follow that same additive new-file-only behavior. Changing directory-tag rules no longer silently retags existing books during a settings save, and additive scans only queue follow-up directory tagging for the books they just imported.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -1144,8 +1144,9 @@
   <li>Use <strong>Manage Directories</strong> to add or remove library paths with explicit directory-focused actions</li>
   <li>Use <strong>Save &amp; Scan New Directories</strong> when you want BookLore to import only from the directories you just added instead of rescanning the entire library</li>
   <li>Use <strong>Scan for New Files</strong> for safe additive discovery without a full reconcile</li>
+  <li>Expect scheduled <strong>Library Scan</strong> jobs to use the same safe additive discovery path as the manual <strong>Scan for New Files</strong> action</li>
   <li>Use <strong>Library Maintenance</strong> when you intentionally want to reconcile a library or run library-wide sidecar rewrite/import tools</li>
-  <li>Monitor long-running directory-tagging follow-up work after imports, including the live status message and estimated time remaining when enough progress has been measured</li>
+  <li>Monitor long-running directory-tagging follow-up work after imports, including the live status message and estimated time remaining when enough progress has been measured; additive scans limit that follow-up to newly imported books, while manual reconcile can still tag the whole library</li>
   <li>Expect directory-tag rule changes to affect future imports only; BookLore does not silently retag every existing book when you save those settings</li>
 </ul>
 
@@ -1293,6 +1294,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-13</td><td>1.1.68</td><td>Documented that scheduled <strong>Library Scan</strong> now follows the same additive new-file-only behavior as manual <strong>Scan for New Files</strong>, and clarified that additive scan routines queue background directory-tagging only for newly imported books while <strong>Reconcile Library</strong> remains the deliberate whole-library maintenance path</td></tr>
   <tr><td>2026-04-12</td><td>1.1.67</td><td>Fixed the <strong>Manage Directories</strong> save-note emphasis so the action labels render correctly, clarified that changing directory-tag rules does not silently retag existing books during a settings save, and aligned the guide with the safer future-import-only tagging boundary until an explicit retag tool exists</td></tr>
   <tr><td>2026-04-12</td><td>1.1.66</td><td>Clarified that the <strong>Manage Directories</strong> list itself now shows imported directories, tightened the save-versus-scan wording, grouped <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> near the bottom of the library menu, and fixed the in-app <strong>User Guide</strong> PDF delivery path so it opens the guide file instead of falling back into the app shell</td></tr>
   <tr><td>2026-04-12</td><td>1.1.65</td><td>Documented the new Phase 5 per-directory precision flow so <strong>Manage Directories</strong> now offers a plain <strong>Save</strong> and an explicit <strong>Save &amp; Scan New Directories</strong> action, clarified that only newly added directories are scanned, and noted the clearer green <strong>Imported</strong> badges in the directory picker</td></tr>

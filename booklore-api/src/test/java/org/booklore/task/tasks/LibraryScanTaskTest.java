@@ -62,8 +62,8 @@ class LibraryScanTaskTest {
 
         assertEquals(TaskType.SYNC_LIBRARY_FILES, response.getTaskType());
         assertEquals(TaskStatus.COMPLETED, response.getStatus());
-        verify(libraryService).rescanLibrary(1L);
-        verify(libraryService).rescanLibrary(2L);
+        verify(libraryService).scanLibraryForNewFiles(1L);
+        verify(libraryService).scanLibraryForNewFiles(2L);
     }
 
     @Test
@@ -72,13 +72,13 @@ class LibraryScanTaskTest {
         Library lib2 = Library.builder().id(2L).name("Lib2").build();
         when(libraryService.getAllLibraries()).thenReturn(List.of(lib1, lib2));
         
-        doThrow(new RuntimeException("Scan failed")).when(libraryService).rescanLibrary(1L);
+        doThrow(new RuntimeException("Scan failed")).when(libraryService).scanLibraryForNewFiles(1L);
 
         TaskCreateResponse response = libraryScanTask.execute(request);
 
         assertEquals(TaskStatus.COMPLETED, response.getStatus());
-        verify(libraryService).rescanLibrary(1L);
-        verify(libraryService).rescanLibrary(2L);
+        verify(libraryService).scanLibraryForNewFiles(1L);
+        verify(libraryService).scanLibraryForNewFiles(2L);
     }
 
     @Test

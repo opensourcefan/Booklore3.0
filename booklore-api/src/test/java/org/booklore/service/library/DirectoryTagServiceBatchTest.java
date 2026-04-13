@@ -19,10 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,5 +92,43 @@ class DirectoryTagServiceBatchTest {
             items.forEach(captured::add);
             return captured.equals(List.of(metadata));
         }));
+    }
+
+    @Test
+    void applyMissingDirectoryTags_shouldLoadOnlyScopedBooksWhenIdsProvided() {
+        LibraryEntity library = new LibraryEntity();
+        library.setId(1L);
+        library.setName("AI");
+        library.setDirectoryTagDepth(DirectoryTagDepth.LAST_ONLY);
+
+        LibraryPathEntity libraryPath = new LibraryPathEntity();
+        libraryPath.setId(10L);
+        libraryPath.setPath("/books/AI");
+        library.setLibraryPaths(List.of(libraryPath));
+
+        BookEntity scopedBook = new BookEntity();
+        scopedBook.setId(100L);
+        scopedBook.setLibraryPath(libraryPath);
+        BookMetadataEntity metadata = BookMetadataEntity.builder()
+                .bookId(100L)
+                .title("Example")
+                .tags(new HashSet<>())
+                .build();
+        scopedBook.setMetadata(metadata);
+        BookFileEntity file = new BookFileEntity();
+        file.setBook(scopedBook);
+        file.setFileSubPath("Series");
+        file.setFileName("Example.cbz");
+        scopedBook.setBookFiles(new ArrayList<>(List.of(file)));
+
+        when(bookRepository.findAllWithMetadataByLibraryIdAndIds(1L, Set.of(100L))).thenReturn(List.of(scopedBook));
+        when(tagRepository.findAllByNormalizedNames(any())).thenReturn(List.of());
+        when(tagRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DirectoryTagService.DirectoryTagRunResult result = directoryTagService.applyMissingDirectoryTags(library, Set.of(100L), null, null);
+
+        assertThat(result.totalBooks()).isEqualTo(1);
+        verify(bookRepository).findAllWithMetadataByLibraryIdAndIds(1L, Set.of(100L));
+        verify(bookRepository, never()).findAllByLibraryIdWithFiles(1L);
     }
 }

@@ -230,6 +230,66 @@ class LibraryProcessingServiceTest {
         assertThat(captor.getValue()).hasSize(2);
     }
 
+    @Test
+    void processLibrary_shouldQueueScopedDirectoryTaggingForImportedBooks() throws IOException {
+        long libraryId = 1L;
+
+        LibraryEntity libraryEntity = new LibraryEntity();
+        libraryEntity.setId(libraryId);
+        libraryEntity.setName("Tagged Library");
+        libraryEntity.setTagByDirectory(true);
+
+        LibraryPathEntity pathEntity = new LibraryPathEntity();
+        pathEntity.setId(10L);
+        pathEntity.setPath("/library");
+        libraryEntity.setLibraryPaths(List.of(pathEntity));
+
+        BookEntity existingBook = new BookEntity();
+        existingBook.setId(11L);
+        existingBook.setLibraryPath(pathEntity);
+        BookFileEntity existingBookFile = new BookFileEntity();
+        existingBookFile.setBook(existingBook);
+        existingBook.setBookFiles(List.of(existingBookFile));
+        existingBook.getPrimaryBookFile().setFileSubPath("");
+        existingBook.getPrimaryBookFile().setFileName("known.epub");
+
+        BookEntity importedBook = new BookEntity();
+        importedBook.setId(99L);
+        importedBook.setLibraryPath(pathEntity);
+        BookFileEntity importedBookFile = new BookFileEntity();
+        importedBookFile.setBook(importedBook);
+        importedBook.setBookFiles(List.of(importedBookFile));
+        importedBook.getPrimaryBookFile().setFileSubPath("incoming");
+        importedBook.getPrimaryBookFile().setFileName("new.epub");
+
+        LibraryFile existingFile = LibraryFile.builder()
+                .libraryEntity(libraryEntity)
+                .libraryPathEntity(pathEntity)
+                .fileSubPath("")
+                .fileName("known.epub")
+                .build();
+        LibraryFile newFile = LibraryFile.builder()
+                .libraryEntity(libraryEntity)
+                .libraryPathEntity(pathEntity)
+                .fileSubPath("incoming")
+                .fileName("new.epub")
+                .build();
+
+        when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
+        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId))
+                .thenReturn(List.of(existingBook))
+                .thenReturn(List.of(existingBook, importedBook));
+        when(libraryFileHelper.getLibraryFiles(libraryEntity)).thenReturn(List.of(existingFile, newFile));
+        when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
+        when(bookGroupingService.groupForInitialScan(anyList(), eq(libraryEntity)))
+                .thenReturn(Map.of("new.epub", List.of(newFile)));
+
+        libraryProcessingService.processLibrary(libraryId);
+
+        verify(directoryTagTaskStarter).scheduleBooks(libraryId, Set.of(99L));
+        verify(directoryTagTaskStarter, never()).scheduleLibrary(libraryId);
+    }
+
         @Test
         void scanLibraryForNewFiles_shouldImportOnlyNewFilesWithoutDeletionFlow(@TempDir Path tempDir) throws IOException {
                 long libraryId = 7L;
@@ -291,6 +351,48 @@ class LibraryProcessingServiceTest {
                 verify(bookDeletionService, never()).deleteRemovedBooks(anyList());
                 verify(bookDeletionService, never()).purgeDisallowedFormats(any(LibraryEntity.class));
                 verify(bookRestorationService, never()).restoreDeletedBooks(anyList());
+        }
+
+        @Test
+        void scanLibraryForNewFiles_shouldSkipDirectoryTagTaskWhenNothingImported(@TempDir Path tempDir) throws IOException {
+                long libraryId = 8L;
+
+                LibraryPathEntity pathEntity = new LibraryPathEntity();
+                pathEntity.setId(20L);
+                pathEntity.setPath(tempDir.toString());
+
+                LibraryEntity libraryEntity = new LibraryEntity();
+                libraryEntity.setId(libraryId);
+                libraryEntity.setName("Already Synced");
+                libraryEntity.setTagByDirectory(true);
+                libraryEntity.setLibraryPaths(List.of(pathEntity));
+
+                BookEntity existingBook = new BookEntity();
+                existingBook.setId(12L);
+                existingBook.setLibraryPath(pathEntity);
+                BookFileEntity existingBookFile = new BookFileEntity();
+                existingBookFile.setBook(existingBook);
+                existingBook.setBookFiles(List.of(existingBookFile));
+                existingBook.getPrimaryBookFile().setFileSubPath("");
+                existingBook.getPrimaryBookFile().setFileName("known.epub");
+
+                LibraryFile existingFile = LibraryFile.builder()
+                                .libraryEntity(libraryEntity)
+                                .libraryPathEntity(pathEntity)
+                                .fileSubPath("")
+                                .fileName("known.epub")
+                                .build();
+
+                when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
+                when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
+                when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
+                when(libraryFileHelper.getLibraryFiles(libraryEntity)).thenReturn(List.of(existingFile));
+                when(bookGroupingService.groupForInitialScan(anyList(), eq(libraryEntity))).thenReturn(Collections.emptyMap());
+
+                libraryProcessingService.scanLibraryForNewFiles(libraryId);
+
+                verify(directoryTagTaskStarter, never()).scheduleBooks(anyLong(), anySet());
+                verify(directoryTagTaskStarter, never()).scheduleLibrary(anyLong());
         }
 
     @Test

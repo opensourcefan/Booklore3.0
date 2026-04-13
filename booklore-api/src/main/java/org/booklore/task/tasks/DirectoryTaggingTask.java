@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,7 +53,11 @@ public class DirectoryTaggingTask implements Task {
         String taskId = request.getTaskId() != null ? request.getTaskId() : UUID.randomUUID().toString();
         DirectoryTagTaskOptions options = request.getOptionsAs(DirectoryTagTaskOptions.class);
         if (options != null && options.getLibraryId() != null) {
-            directoryTagQueueService.enqueueLibrary(options.getLibraryId());
+            if (options.hasScopedBooks()) {
+                directoryTagQueueService.enqueueBooks(options.getLibraryId(), options.getBookIds());
+            } else {
+                directoryTagQueueService.enqueueLibrary(options.getLibraryId());
+            }
         } else {
             directoryTagQueueService.enqueueLibraries(findDirectoryTagLibraryIds());
         }
@@ -73,12 +78,15 @@ public class DirectoryTaggingTask implements Task {
                         .build();
             }
 
-            Set<Long> pendingLibraryIds = directoryTagQueueService.drainPendingLibraries();
-            if (pendingLibraryIds.isEmpty()) {
+            List<DirectoryTagQueueService.PendingLibraryWork> pendingWork = directoryTagQueueService.drainPendingWork();
+            if (pendingWork.isEmpty()) {
                 break;
             }
 
-            List<LibraryEntity> libraries = libraryRepository.findByIdIn(new ArrayList<>(pendingLibraryIds)).stream()
+            Map<Long, DirectoryTagQueueService.PendingLibraryWork> workByLibraryId = pendingWork.stream()
+                    .collect(Collectors.toMap(DirectoryTagQueueService.PendingLibraryWork::libraryId, work -> work));
+
+            List<LibraryEntity> libraries = libraryRepository.findByIdIn(new ArrayList<>(workByLibraryId.keySet())).stream()
                     .filter(LibraryEntity::isTagByDirectory)
                     .sorted(Comparator.comparing(LibraryEntity::getName, String.CASE_INSENSITIVE_ORDER))
                     .toList();
@@ -86,7 +94,7 @@ public class DirectoryTaggingTask implements Task {
                 continue;
             }
 
-                totalLibrariesSeen.addAndGet(libraries.size());
+            totalLibrariesSeen.addAndGet(libraries.size());
             for (LibraryEntity library : libraries) {
                 if (cancellationManager.isTaskCancelled(taskId)) {
                     sendProgress(taskId, lastProgress.get(), "Directory tagging cancelled", TaskStatus.CANCELLED, null, null);
@@ -97,8 +105,12 @@ public class DirectoryTaggingTask implements Task {
                             .build();
                 }
 
+                DirectoryTagQueueService.PendingLibraryWork work = workByLibraryId.get(library.getId());
+                Set<Long> scopedBookIds = work != null && !work.fullLibrary() ? work.bookIds() : null;
+
                 DirectoryTagService.DirectoryTagRunResult result = directoryTagService.applyMissingDirectoryTags(
                         library,
+                    scopedBookIds,
                         snapshot -> {
                             int computedProgress = computeOverallProgress(snapshot, librariesCompleted.get(), totalLibrariesSeen.get());
                             int nextProgress = Math.max(lastProgress.get(), computedProgress);

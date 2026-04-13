@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -22,6 +25,19 @@ public class DirectoryTagTaskStarter {
     public void scheduleLibrary(long libraryId) {
         directoryTagQueueService.enqueueLibrary(libraryId);
         startIfNeeded(DirectoryTagTaskOptions.builder().libraryId(libraryId).build());
+    }
+
+    public void scheduleBooks(long libraryId, Set<Long> bookIds) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            return;
+        }
+
+        Set<Long> normalizedBookIds = new TreeSet<>(bookIds);
+        directoryTagQueueService.enqueueBooks(libraryId, normalizedBookIds);
+        startIfNeeded(DirectoryTagTaskOptions.builder()
+                .libraryId(libraryId)
+                .bookIds(normalizedBookIds)
+                .build());
     }
 
     private void startIfNeeded(DirectoryTagTaskOptions options) {

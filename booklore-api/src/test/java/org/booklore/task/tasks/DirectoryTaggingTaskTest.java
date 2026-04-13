@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.atLeastOnce;
@@ -97,14 +98,16 @@ class DirectoryTaggingTaskTest {
         library.setName("AI");
         library.setTagByDirectory(true);
 
-        doReturn(Set.of(1L)).doReturn(Set.of()).when(directoryTagQueueService).drainPendingLibraries();
+        doReturn(List.of(new DirectoryTagQueueService.PendingLibraryWork(1L, true, Set.of())))
+                .doReturn(List.of())
+                .when(directoryTagQueueService).drainPendingWork();
         when(libraryRepository.findByIdIn(List.of(1L))).thenReturn(List.of(library));
         when(cancellationManager.isTaskCancelled("task-123")).thenReturn(false);
         doAnswer(invocation -> {
-            Consumer<DirectoryTagService.DirectoryTagProgressSnapshot> progressCallback = invocation.getArgument(1);
+            Consumer<DirectoryTagService.DirectoryTagProgressSnapshot> progressCallback = invocation.getArgument(2);
             progressCallback.accept(new DirectoryTagService.DirectoryTagProgressSnapshot(1L, "AI", 50, 100, 20, 60_000L));
             return new DirectoryTagService.DirectoryTagRunResult(100, 100, 40, false);
-        }).when(directoryTagService).applyMissingDirectoryTags(eq(library), any(), any(BooleanSupplier.class));
+        }).when(directoryTagService).applyMissingDirectoryTags(eq(library), isNull(), any(), any(BooleanSupplier.class));
 
         TaskCreateResponse response = directoryTaggingTask.execute(request);
 
@@ -115,12 +118,40 @@ class DirectoryTaggingTaskTest {
     }
 
     @Test
+    void execute_shouldProcessScopedBooksWhenRequested() {
+        LibraryEntity library = new LibraryEntity();
+        library.setId(1L);
+        library.setName("AI");
+        library.setTagByDirectory(true);
+
+        request = TaskCreateRequest.builder()
+                .taskId("task-123")
+                .taskType(TaskType.DIRECTORY_TAGGING)
+                .options(DirectoryTagTaskOptions.builder().libraryId(1L).bookIds(Set.of(7L, 8L)).build())
+                .build();
+
+        doReturn(List.of(new DirectoryTagQueueService.PendingLibraryWork(1L, false, Set.of(7L, 8L))))
+                .doReturn(List.of())
+                .when(directoryTagQueueService).drainPendingWork();
+        when(libraryRepository.findByIdIn(List.of(1L))).thenReturn(List.of(library));
+        when(cancellationManager.isTaskCancelled("task-123")).thenReturn(false);
+        doReturn(new DirectoryTagService.DirectoryTagRunResult(2, 2, 2, false))
+                .when(directoryTagService)
+                .applyMissingDirectoryTags(eq(library), eq(Set.of(7L, 8L)), any(), any(BooleanSupplier.class));
+
+        TaskCreateResponse response = directoryTaggingTask.execute(request);
+
+        assertEquals(TaskStatus.COMPLETED, response.getStatus());
+        verify(directoryTagQueueService).enqueueBooks(1L, Set.of(7L, 8L));
+    }
+
+    @Test
     void execute_shouldReturnCancelled_whenTaskIsCancelledBeforeProcessing() {
         when(cancellationManager.isTaskCancelled("task-123")).thenReturn(true);
 
         TaskCreateResponse response = directoryTaggingTask.execute(request);
 
         assertEquals(TaskStatus.CANCELLED, response.getStatus());
-        verify(directoryTagQueueService, never()).drainPendingLibraries();
+        verify(directoryTagQueueService, never()).drainPendingWork();
     }
 }

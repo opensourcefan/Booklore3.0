@@ -41,10 +41,10 @@ public class LibraryScanTask implements Task {
         try {
             for (Library library : libraryService.getAllLibraries()) {
                 try {
-                    libraryService.rescanLibrary(library.getId());
-                    log.info("{}: Rescanned library '{}'", getTaskType(), library.getName());
+                    libraryService.scanLibraryForNewFiles(library.getId());
+                    log.info("{}: Scanned library '{}' for new files", getTaskType(), library.getName());
                 } catch (Exception e) {
-                    log.error("{}: Failed to rescan library '{}': {}", getTaskType(), library.getName(), e.getMessage(), e);
+                    log.error("{}: Failed to scan library '{}' for new files: {}", getTaskType(), library.getName(), e.getMessage(), e);
                 }
             }
 
