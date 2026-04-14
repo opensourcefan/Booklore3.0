@@ -12,15 +12,16 @@ import {TagColor, TagComponent} from '../../../shared/components/tag/tag.compone
 
 const ACTION_COLOR_GROUPS: [TagColor, string[]][] = [
   ['red', ['USER_DELETED', 'LIBRARY_DELETED', 'BOOK_DELETED', 'SHELF_DELETED', 'MAGIC_SHELF_DELETED', 'EMAIL_PROVIDER_DELETED', 'OPDS_USER_DELETED', 'AUTHOR_DELETED']],
-  ['green', ['USER_CREATED', 'LIBRARY_CREATED', 'BOOK_UPLOADED', 'SHELF_CREATED', 'MAGIC_SHELF_CREATED', 'EMAIL_PROVIDER_CREATED', 'OPDS_USER_CREATED', 'LOGIN_SUCCESS']],
+  ['green', ['USER_CREATED', 'LIBRARY_CREATED', 'BOOK_UPLOADED', 'SHELF_CREATED', 'MAGIC_SHELF_CREATED', 'EMAIL_PROVIDER_CREATED', 'OPDS_USER_CREATED', 'LOGIN_SUCCESS', 'SETTINGS_EXPORTED', 'SETTINGS_IMPORTED', 'SIDECAR_BACKUP_COMPLETED', 'DATABASE_RESTORE_COMMAND_COPIED']],
   ['blue', ['USER_UPDATED', 'LIBRARY_UPDATED', 'SHELF_UPDATED', 'MAGIC_SHELF_UPDATED', 'EMAIL_PROVIDER_UPDATED', 'OPDS_USER_UPDATED']],
-  ['purple', ['METADATA_UPDATED', 'AUTHOR_METADATA_UPDATED']],
+  ['purple', ['METADATA_UPDATED', 'AUTHOR_METADATA_UPDATED', 'SIDECAR_BACKUP_PARTIAL', 'DATABASE_RESTORE_PREFLIGHT_PASSED']],
   ['orange', ['SETTINGS_UPDATED', 'OIDC_CONFIG_CHANGED', 'NAMING_PATTERN_CHANGED']],
   ['amber', ['PASSWORD_CHANGED', 'PERMISSIONS_CHANGED']],
   ['fuchsia', ['LOGIN_FAILED']],
   ['pink', ['LOGIN_RATE_LIMITED', 'REFRESH_RATE_LIMITED']],
-  ['teal', ['LIBRARY_SCANNED', 'BOOK_SENT', 'BOOK_FILE_DETACHED', 'DUPLICATE_BOOKS_MERGED']],
+  ['teal', ['LIBRARY_SCANNED', 'BOOK_SENT', 'BOOK_FILE_DETACHED', 'DUPLICATE_BOOKS_MERGED', 'DATABASE_BACKUP_COMMAND_COPIED']],
   ['indigo', ['TASK_EXECUTED']],
+  ['red', ['SIDECAR_BACKUP_FAILED', 'DATABASE_RESTORE_PREFLIGHT_BLOCKED']],
 ];
 
 const ACTION_COLOR_MAP = new Map<string, TagColor>(
@@ -79,8 +80,17 @@ export class AuditLogsComponent implements OnInit, OnDestroy {
     {label: 'Permissions Changed', value: 'PERMISSIONS_CHANGED'},
     {label: 'Metadata Updated', value: 'METADATA_UPDATED'},
     {label: 'Settings Updated', value: 'SETTINGS_UPDATED'},
+    {label: 'Settings Exported', value: 'SETTINGS_EXPORTED'},
+    {label: 'Settings Imported', value: 'SETTINGS_IMPORTED'},
     {label: 'OIDC Config Changed', value: 'OIDC_CONFIG_CHANGED'},
     {label: 'Task Executed', value: 'TASK_EXECUTED'},
+    {label: 'Sidecar Backup Completed', value: 'SIDECAR_BACKUP_COMPLETED'},
+    {label: 'Sidecar Backup Partial', value: 'SIDECAR_BACKUP_PARTIAL'},
+    {label: 'Sidecar Backup Failed', value: 'SIDECAR_BACKUP_FAILED'},
+    {label: 'Database Backup Command Copied', value: 'DATABASE_BACKUP_COMMAND_COPIED'},
+    {label: 'Database Restore Pre-Flight Passed', value: 'DATABASE_RESTORE_PREFLIGHT_PASSED'},
+    {label: 'Database Restore Pre-Flight Blocked', value: 'DATABASE_RESTORE_PREFLIGHT_BLOCKED'},
+    {label: 'Database Restore Command Copied', value: 'DATABASE_RESTORE_COMMAND_COPIED'},
     {label: 'Book Sent', value: 'BOOK_SENT'},
     {label: 'Shelf Created', value: 'SHELF_CREATED'},
     {label: 'Shelf Updated', value: 'SHELF_UPDATED'},

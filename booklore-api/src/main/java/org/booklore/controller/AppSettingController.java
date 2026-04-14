@@ -58,7 +58,12 @@ public class AppSettingController {
     @ApiResponse(responseCode = "200", description = "Application settings export created successfully")
     @GetMapping("/export")
     public AppSettingsTransferFile exportSettings() {
-        return appSettingService.exportSettings();
+        AppSettingsTransferFile transferFile = appSettingService.exportSettings();
+        auditService.log(
+                AuditAction.SETTINGS_EXPORTED,
+                "Exported " + transferFile.getSettings().size() + " application setting(s)"
+        );
+        return transferFile;
     }
 
     @Operation(summary = "Import application settings", description = "Import a previously exported application settings file.")
@@ -69,6 +74,11 @@ public class AppSettingController {
     @PostMapping("/import")
     public void importSettings(@RequestBody AppSettingsTransferFile transferFile) throws JacksonException {
         appSettingService.importSettings(transferFile);
+        int importedCount = transferFile == null || transferFile.getSettings() == null ? 0 : transferFile.getSettings().size();
+        auditService.log(
+                AuditAction.SETTINGS_IMPORTED,
+                "Imported " + importedCount + " application setting(s) from a settings transfer file"
+        );
     }
 
     @PostMapping("/oidc/test")

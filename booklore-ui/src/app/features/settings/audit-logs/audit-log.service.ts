@@ -3,6 +3,17 @@ import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {API_CONFIG} from '../../../core/config/api-config';
 
+export type DatabaseHelperAuditAction =
+  | 'DATABASE_BACKUP_COMMAND_COPIED'
+  | 'DATABASE_RESTORE_PREFLIGHT_PASSED'
+  | 'DATABASE_RESTORE_PREFLIGHT_BLOCKED'
+  | 'DATABASE_RESTORE_COMMAND_COPIED';
+
+interface BackupAuditEventRequest {
+  action: DatabaseHelperAuditAction;
+  description: string;
+}
+
 export interface AuditLog {
   id: number;
   userId: number | null;
@@ -56,5 +67,10 @@ export class AuditLogService {
 
   getDistinctUsernames(): Observable<string[]> {
     return this.http.get<string[]>(`${this.url}/usernames`);
+  }
+
+  recordDatabaseHelperAction(action: DatabaseHelperAuditAction, description: string): Observable<void> {
+    const payload: BackupAuditEventRequest = {action, description};
+    return this.http.post<void>(`${this.url}/backups/database-helper`, payload);
   }
 }

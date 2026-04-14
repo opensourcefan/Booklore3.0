@@ -17,7 +17,7 @@ export interface SidecarBackupActivity {
 }
 
 export interface DatabaseBackupActivity {
-  action: 'export' | 'restore-command';
+  action: 'export' | 'restore-command' | 'restore-preflight-passed' | 'restore-preflight-blocked';
   outputPath: string;
   timestamp: string;
 }

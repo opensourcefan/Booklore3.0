@@ -2,8 +2,10 @@ package org.booklore.service.metadata.sidecar;
 
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.LibraryEntity;
+import org.booklore.model.enums.AuditAction;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
+import org.booklore.service.audit.AuditService;
 import org.booklore.service.metadata.BookMetadataUpdater;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +40,9 @@ class SidecarServiceTest {
 
     @Mock
     private BookMetadataUpdater bookMetadataUpdater;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private SidecarService sidecarService;
@@ -88,6 +93,12 @@ class SidecarServiceTest {
         assertEquals(0, result.failed());
         verify(sidecarWriter).writeSidecarMetadataWithResult(firstBook, true);
         verify(sidecarWriter).writeSidecarMetadataWithResult(secondBook, true);
+        verify(auditService).log(
+            AuditAction.SIDECAR_BACKUP_COMPLETED,
+            "Library",
+            7L,
+            "Sidecar backup for library 'Backup Library' (attempted=2, exported=2, failed=0)"
+        );
     }
 
     @Test
@@ -112,6 +123,12 @@ class SidecarServiceTest {
         assertEquals(1, result.exported());
         assertEquals(1, result.failed());
         assertEquals("Permission denied while writing /library/book.metadata.json", result.firstError());
+        verify(auditService).log(
+            AuditAction.SIDECAR_BACKUP_PARTIAL,
+            "Library",
+            9L,
+            "Sidecar backup for library 'Failure Library' (attempted=2, exported=1, failed=1). First error: Permission denied while writing /library/book.metadata.json"
+        );
     }
 
     @Test

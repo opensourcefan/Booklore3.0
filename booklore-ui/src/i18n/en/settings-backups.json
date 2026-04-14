@@ -1,6 +1,6 @@
 {
   "title": "Backups",
-  "description": "Centralize settings transfer, manual sidecar backup, and the current logical database backup workflow in one place.",
+  "description": "Centralize settings transfer, manual sidecar backup, and logical database backup.",
   "tabs": {
     "status": "Status",
     "appSettings": "App Settings",
@@ -18,6 +18,7 @@
     "idle": "Idle",
     "done": "Done",
     "partial": "Partial",
+    "failed": "Failed",
     "pass": "Pass",
     "fail": "Fail",
     "labels": {
@@ -40,7 +41,9 @@
       "title": "Database",
       "description": "Logical database backup and restore preparation.",
       "exportPrepared": "Export command copied",
-      "restorePrepared": "Restore command copied"
+      "restorePrepared": "Restore command copied",
+      "preflightPassed": "Restore pre-flight passed",
+      "preflightBlocked": "Restore pre-flight blocked"
     }
   },
   "appSettings": {
@@ -75,9 +78,11 @@
     "missingSqlPath": "Select the SQL dump that will be restored.",
     "missingAppDataPath": "Enter the mounted BookLore app-data path.",
     "missingComposePath": "Enter the compose or deployment config path.",
+    "missingFreeSpace": "Enter the available free space on the target host before running pre-flight.",
     "preflightBlocked": "Pre-flight blocked",
     "preflightPassedDetail": "All required restore checks passed. The restore command can now be copied.",
     "preflightBlockedDetail": "Resolve the failed checks before using the restore command.",
+    "helpLabel": "Explain {task}",
     "confirmations": {
       "packageFiles": "SQL dump and manifest or notes are present",
       "mediaCopied": "Media files are already available on the target host",
@@ -94,6 +99,14 @@
       "version": "Version compatibility confirmed",
       "maintenance": "Maintenance mode ready",
       "freeSpace": "Sufficient free disk space"
+    },
+    "help": {
+      "packageFiles": "Confirm that the SQL dump you plan to restore is present and that you also have the manifest, release notes, or operator notes that explain what was backed up. Without those files, you can restore the database but still lose context about paths, versions, or missing companion data.",
+      "mediaCopied": "The SQL restore only recreates BookLore records. It does not bring your EPUB, PDF, CBZ, CBR, or audiobook files onto the new host. Check this only after the target machine already has the full library media in the correct folders.",
+      "appDataReady": "BookLore also depends on mounted app-data such as generated images, thumbnails, and runtime files. Confirm that the destination app-data folder exists, is mounted into the container, and matches the path you entered above.",
+      "composeReady": "You need the compose file, container config, or deployment notes that describe the MariaDB service name, volume mounts, and BookLore paths. This is what lets you rebuild the environment in the same shape before importing the SQL dump.",
+      "versionReady": "Make sure the destination BookLore and MariaDB versions can safely consume this backup. If the target is older, newer in an incompatible way, or missing required migrations, the import can succeed technically but still leave the app unstable.",
+      "maintenanceReady": "The restore should happen while writes are paused. Confirm you can stop scans, uploads, metadata edits, and any other background jobs so the database is not changing while the import is running."
     },
     "details": {
       "mediaReady": "Media is present for restored records.",

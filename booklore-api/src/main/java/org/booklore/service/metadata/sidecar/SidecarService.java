@@ -9,10 +9,12 @@ import org.booklore.model.dto.BookMetadata;
 import org.booklore.model.dto.sidecar.SidecarMetadata;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.LibraryEntity;
+import org.booklore.model.enums.AuditAction;
 import org.booklore.model.enums.MetadataReplaceMode;
 import org.booklore.model.enums.SidecarSyncStatus;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
+import org.booklore.service.audit.AuditService;
 import org.booklore.service.metadata.BookMetadataUpdater;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class SidecarService {
     private final SidecarMetadataWriter sidecarWriter;
     private final SidecarMetadataMapper sidecarMapper;
     private final BookMetadataUpdater bookMetadataUpdater;
+    private final AuditService auditService;
 
     public Optional<SidecarMetadata> getSidecarContent(Long bookId) {
         BookEntity book = bookRepository.findByIdWithBookFiles(bookId)
@@ -141,7 +144,30 @@ public class SidecarService {
         }
 
         log.info("Backed up {} sidecar files for library {} (attempted={}, failed={})", exported, library.getName(), books.size(), failed);
+        auditService.log(resolveBackupAuditAction(exported, failed), "Library", libraryId,
+                buildBackupAuditDescription(library.getName(), books.size(), exported, failed, firstError));
         return new SidecarBatchResult(books.size(), exported, failed, firstError);
+    }
+
+    private AuditAction resolveBackupAuditAction(int exported, int failed) {
+        if (failed == 0) {
+            return AuditAction.SIDECAR_BACKUP_COMPLETED;
+        }
+
+        if (exported == 0) {
+            return AuditAction.SIDECAR_BACKUP_FAILED;
+        }
+
+        return AuditAction.SIDECAR_BACKUP_PARTIAL;
+    }
+
+    private String buildBackupAuditDescription(String libraryName, int attempted, int exported, int failed, String firstError) {
+        String description = "Sidecar backup for library '" + libraryName + "' (attempted=" + attempted + ", exported=" + exported + ", failed=" + failed + ")";
+        if (firstError == null || firstError.isBlank()) {
+            return description;
+        }
+
+        return description + ". First error: " + firstError;
     }
 
     @Transactional

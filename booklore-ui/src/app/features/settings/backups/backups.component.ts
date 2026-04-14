@@ -5,6 +5,7 @@ import {ConfirmationService, MessageService} from 'primeng/api';
 import {Button} from 'primeng/button';
 import {Select} from 'primeng/select';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
+import {Tooltip} from 'primeng/tooltip';
 import {filter, finalize, take} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Library} from '../../book/model/library.model';
@@ -13,6 +14,7 @@ import {SidecarService} from '../../metadata/service/sidecar.service';
 import {AppSettingsService, AppSettingsTransferFile} from '../../../shared/service/app-settings.service';
 import {SidecarBackupProgressService} from '../../../shared/service/sidecar-backup-progress.service';
 import {UserService} from '../user-management/user.service';
+import {AuditLogService, DatabaseHelperAuditAction} from '../audit-logs/audit-log.service';
 import {
   AppSettingsBackupActivity,
   BackupsActivityService,
@@ -21,6 +23,7 @@ import {
 } from './backups-activity.service';
 
 type BackupsTab = 'status' | 'app-settings' | 'sidecar' | 'database-export' | 'database-restore';
+type StatusTone = 'done' | 'partial' | 'fail' | '';
 
 interface BackupAccessUser {
   permissions: {
@@ -49,6 +52,7 @@ interface RestoreCheck {
     TabPanel,
     Button,
     Select,
+    Tooltip,
     TranslocoDirective
   ],
   templateUrl: './backups.component.html',
@@ -65,6 +69,7 @@ export class BackupsComponent implements OnInit {
   private readonly sidecarService = inject(SidecarService);
   private readonly sidecarBackupProgressService = inject(SidecarBackupProgressService);
   private readonly backupsActivityService = inject(BackupsActivityService);
+  private readonly auditLogService = inject(AuditLogService);
 
   activeTab: BackupsTab = 'status';
 
@@ -82,7 +87,7 @@ export class BackupsComponent implements OnInit {
   restoreSqlPath = '$HOME/booklore-backups/booklore_backup_20260414_020000.sql';
   restoreAppDataPath = '/srv/booklore/data';
   restoreComposePath = '/opt/booklore/docker-compose.yml';
-  availableSpaceGb = 0;
+  availableSpaceGb: number | null = null;
   packageFilesConfirmed = false;
   libraryMediaCopied = false;
   appDataConfirmed = false;
@@ -126,11 +131,11 @@ export class BackupsComponent implements OnInit {
   }
 
   getDatabaseOutputPath(): string {
-    return `${this.backupDirectory.replace(/\/$/, '')}/${this.backupFileName}`;
+    return `${this.getNormalizedBackupDirectory()}/${this.backupFileName}`;
   }
 
   getDatabaseExportCommand(): string {
-    return `docker exec mariadb mariadb-dump --single-transaction --quick --no-tablespaces -u booklore -p booklore > "${this.getDatabaseOutputPath()}"`;
+    return `mkdir -p "${this.getNormalizedBackupDirectory()}" && docker exec mariadb mariadb-dump --single-transaction --quick --no-tablespaces -u booklore -p booklore > "${this.getDatabaseOutputPath()}"`;
   }
 
   getDatabaseRestoreCommand(): string {
@@ -139,6 +144,70 @@ export class BackupsComponent implements OnInit {
 
   regenerateBackupFileName(): void {
     this.backupFileName = this.buildDefaultBackupFileName();
+  }
+
+  getAppSettingsStatusTone(): StatusTone {
+    return this.appSettingsActivity ? 'done' : '';
+  }
+
+  getAppSettingsStatusLabelKey(): string {
+    return this.getStatusLabelKey(this.getAppSettingsStatusTone());
+  }
+
+  getSidecarStatusTone(): StatusTone {
+    if (!this.sidecarActivity) {
+      return '';
+    }
+
+    if (this.sidecarActivity.failed > 0 && this.sidecarActivity.exported === 0) {
+      return 'fail';
+    }
+
+    if (this.sidecarActivity.failed > 0) {
+      return 'partial';
+    }
+
+    return 'done';
+  }
+
+  getSidecarStatusLabelKey(): string {
+    return this.getStatusLabelKey(this.getSidecarStatusTone());
+  }
+
+  getDatabaseStatusTone(): StatusTone {
+    if (!this.databaseActivity) {
+      return '';
+    }
+
+    switch (this.databaseActivity.action) {
+      case 'restore-preflight-passed':
+        return 'partial';
+      case 'restore-preflight-blocked':
+        return 'fail';
+      default:
+        return 'done';
+    }
+  }
+
+  getDatabaseStatusLabelKey(): string {
+    return this.getStatusLabelKey(this.getDatabaseStatusTone());
+  }
+
+  getDatabaseActivityLabelKey(): string {
+    if (!this.databaseActivity) {
+      return 'settingsBackups.common.none';
+    }
+
+    switch (this.databaseActivity.action) {
+      case 'restore-command':
+        return 'settingsBackups.status.database.restorePrepared';
+      case 'restore-preflight-passed':
+        return 'settingsBackups.status.database.preflightPassed';
+      case 'restore-preflight-blocked':
+        return 'settingsBackups.status.database.preflightBlocked';
+      default:
+        return 'settingsBackups.status.database.exportPrepared';
+    }
   }
 
   exportSettings(): void {
@@ -225,17 +294,15 @@ export class BackupsComponent implements OnInit {
       })
     ).subscribe({
       next: (response) => {
-        if (response.exported > 0) {
-          this.backupsActivityService.setSidecarActivity({
-            libraryId: this.selectedBackupLibraryId ?? selectedLibrary.id ?? 0,
-            libraryName: selectedLibrary.name,
-            attempted: response.attempted,
-            exported: response.exported,
-            failed: response.failed,
-            timestamp: new Date().toISOString()
-          });
-          this.refreshActivitySnapshots();
-        }
+        this.backupsActivityService.setSidecarActivity({
+          libraryId: this.selectedBackupLibraryId ?? selectedLibrary.id ?? 0,
+          libraryName: selectedLibrary.name,
+          attempted: response.attempted,
+          exported: response.exported,
+          failed: response.failed,
+          timestamp: new Date().toISOString()
+        });
+        this.refreshActivitySnapshots();
 
         if (response.failed > 0) {
           this.messageService.add({
@@ -281,6 +348,10 @@ export class BackupsComponent implements OnInit {
       timestamp: new Date().toISOString()
     });
     this.refreshActivitySnapshots();
+    this.recordDatabaseHelperAction(
+      'DATABASE_BACKUP_COMMAND_COPIED',
+      `Prepared database backup command for ${this.getDatabaseOutputPath()}. The command creates the target folder before writing the SQL dump.`
+    );
     this.showMessage('success', 'settingsBackups.messages.exportCommandCopied', 'settingsBackups.messages.exportCommandCopiedDetail');
   }
 
@@ -336,14 +407,27 @@ export class BackupsComponent implements OnInit {
       },
       {
         labelKey: 'settingsBackups.databaseRestore.checks.freeSpace',
-        detail: this.translocoService.translate('settingsBackups.databaseRestore.details.freeSpace', {
-          value: this.availableSpaceGb
-        }),
-        passed: this.availableSpaceGb >= 15
+        detail: this.availableSpaceGb === null
+          ? this.translocoService.translate('settingsBackups.databaseRestore.missingFreeSpace')
+          : this.translocoService.translate('settingsBackups.databaseRestore.details.freeSpace', {
+            value: this.availableSpaceGb
+          }),
+        passed: this.availableSpaceGb !== null && this.availableSpaceGb >= 15
       }
     ];
 
     this.restoreReady = this.restoreChecks.every((check) => check.passed);
+
+    this.backupsActivityService.setDatabaseActivity({
+      action: this.restoreReady ? 'restore-preflight-passed' : 'restore-preflight-blocked',
+      outputPath: this.restoreSqlPath.trim() || this.translocoService.translate('settingsBackups.common.notRecorded'),
+      timestamp: new Date().toISOString()
+    });
+    this.refreshActivitySnapshots();
+    this.recordDatabaseHelperAction(
+      this.restoreReady ? 'DATABASE_RESTORE_PREFLIGHT_PASSED' : 'DATABASE_RESTORE_PREFLIGHT_BLOCKED',
+      this.buildRestorePreflightAuditDescription(this.restoreReady)
+    );
 
     this.messageService.add({
       severity: this.restoreReady ? 'success' : 'warn',
@@ -384,6 +468,10 @@ export class BackupsComponent implements OnInit {
       timestamp: new Date().toISOString()
     });
     this.refreshActivitySnapshots();
+    this.recordDatabaseHelperAction(
+      'DATABASE_RESTORE_COMMAND_COPIED',
+      `Prepared database restore command for ${this.restoreSqlPath.trim() || this.translocoService.translate('settingsBackups.common.notRecorded')}.`
+    );
     this.showMessage('success', 'settingsBackups.messages.restoreCommandCopied', 'settingsBackups.messages.restoreCommandCopiedDetail');
   }
 
@@ -419,6 +507,37 @@ export class BackupsComponent implements OnInit {
     return `booklore_backup_${year}${month}${day}_${hours}${minutes}${seconds}.sql`;
   }
 
+  private getNormalizedBackupDirectory(): string {
+    const trimmedDirectory = this.backupDirectory.trim();
+    return (trimmedDirectory || '$HOME/booklore-backups').replace(/\/$/, '');
+  }
+
+  private getStatusLabelKey(tone: StatusTone): string {
+    switch (tone) {
+      case 'done':
+        return 'settingsBackups.status.done';
+      case 'partial':
+        return 'settingsBackups.status.partial';
+      case 'fail':
+        return 'settingsBackups.status.failed';
+      default:
+        return 'settingsBackups.status.idle';
+    }
+  }
+
+  private buildRestorePreflightAuditDescription(passed: boolean): string {
+    const sqlPath = this.restoreSqlPath.trim() || this.translocoService.translate('settingsBackups.common.notRecorded');
+    const blockedChecks = this.restoreChecks
+      .filter((check) => !check.passed)
+      .map((check) => this.translocoService.translate(check.labelKey));
+
+    if (passed) {
+      return `Database restore pre-flight passed for ${sqlPath}. App data path: ${this.restoreAppDataPath.trim() || this.translocoService.translate('settingsBackups.common.notRecorded')}. Deployment config: ${this.restoreComposePath.trim() || this.translocoService.translate('settingsBackups.common.notRecorded')}. Free space: ${this.availableSpaceGb ?? this.translocoService.translate('settingsBackups.common.notRecorded')} GB.`;
+    }
+
+    return `Database restore pre-flight blocked for ${sqlPath}. Blocked checks: ${blockedChecks.join(', ')}.`;
+  }
+
   private showMessage(severity: 'success' | 'error', summaryKey: string, detailKey: string): void {
     this.messageService.add({
       severity,
@@ -440,5 +559,11 @@ export class BackupsComponent implements OnInit {
       this.showMessage('error', 'common.error', 'settingsBackups.messages.clipboardUnavailable');
       return false;
     }
+  }
+
+  private recordDatabaseHelperAction(action: DatabaseHelperAuditAction, description: string): void {
+    this.auditLogService.recordDatabaseHelperAction(action, description).subscribe({
+      error: () => undefined
+    });
   }
 }

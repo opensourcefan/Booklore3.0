@@ -51,8 +51,8 @@
                       <article class="status-card">
                         <div class="status-card-header">
                           <h3>{{ t('settingsBackups.status.appSettings.title') }}</h3>
-                          <span class="status-chip" [class.pass]="!!appSettingsActivity">
-                            {{ appSettingsActivity ? t('settingsBackups.status.done') : t('settingsBackups.status.idle') }}
+                          <span class="status-chip" [class.done]="getAppSettingsStatusTone() === 'done'">
+                            {{ t(getAppSettingsStatusLabelKey()) }}
                           </span>
                         </div>
                         <p>{{ t('settingsBackups.status.appSettings.description') }}</p>
@@ -77,8 +77,12 @@
                       <article class="status-card">
                         <div class="status-card-header">
                           <h3>{{ t('settingsBackups.status.sidecar.title') }}</h3>
-                          <span class="status-chip" [class.pass]="!!sidecarActivity" [class.warn]="!!sidecarActivity && sidecarActivity.failed > 0">
-                            {{ sidecarActivity ? t(sidecarActivity.failed > 0 ? 'settingsBackups.status.partial' : 'settingsBackups.status.done') : t('settingsBackups.status.idle') }}
+                          <span
+                            class="status-chip"
+                            [class.done]="getSidecarStatusTone() === 'done'"
+                            [class.partial]="getSidecarStatusTone() === 'partial'"
+                            [class.fail]="getSidecarStatusTone() === 'fail'">
+                            {{ t(getSidecarStatusLabelKey()) }}
                           </span>
                         </div>
                         <p>{{ t('settingsBackups.status.sidecar.description') }}</p>
@@ -109,21 +113,19 @@
                       <article class="status-card">
                         <div class="status-card-header">
                           <h3>{{ t('settingsBackups.status.database.title') }}</h3>
-                          <span class="status-chip" [class.pass]="!!databaseActivity">
-                            {{ databaseActivity ? t('settingsBackups.status.done') : t('settingsBackups.status.idle') }}
+                          <span
+                            class="status-chip"
+                            [class.done]="getDatabaseStatusTone() === 'done'"
+                            [class.partial]="getDatabaseStatusTone() === 'partial'"
+                            [class.fail]="getDatabaseStatusTone() === 'fail'">
+                            {{ t(getDatabaseStatusLabelKey()) }}
                           </span>
                         </div>
                         <p>{{ t('settingsBackups.status.database.description') }}</p>
                         <dl>
                           <div>
                             <dt>{{ t('settingsBackups.status.labels.action') }}</dt>
-                            <dd>
-                              @if (databaseActivity) {
-                                {{ t(databaseActivity.action === 'restore-command' ? 'settingsBackups.status.database.restorePrepared' : 'settingsBackups.status.database.exportPrepared') }}
-                              } @else {
-                                {{ t('settingsBackups.common.none') }}
-                              }
-                            </dd>
+                            <dd>{{ t(getDatabaseActivityLabelKey()) }}</dd>
                           </div>
                           <div>
                             <dt>{{ t('settingsBackups.status.labels.target') }}</dt>
@@ -362,35 +364,83 @@
                         </label>
                         <label>
                           <span>{{ t('settingsBackups.databaseRestore.freeSpace') }}</span>
-                          <input [(ngModel)]="availableSpaceGb" type="number" min="0">
+                          <input [(ngModel)]="availableSpaceGb" type="number" min="0" placeholder="15">
                         </label>
                       </div>
 
                       <div class="checklist-grid">
-                        <label class="check-item">
-                          <input [(ngModel)]="packageFilesConfirmed" type="checkbox">
-                          <span>{{ t('settingsBackups.databaseRestore.confirmations.packageFiles') }}</span>
-                        </label>
-                        <label class="check-item">
-                          <input [(ngModel)]="libraryMediaCopied" type="checkbox">
-                          <span>{{ t('settingsBackups.databaseRestore.confirmations.mediaCopied') }}</span>
-                        </label>
-                        <label class="check-item">
-                          <input [(ngModel)]="appDataConfirmed" type="checkbox">
-                          <span>{{ t('settingsBackups.databaseRestore.confirmations.appDataReady') }}</span>
-                        </label>
-                        <label class="check-item">
-                          <input [(ngModel)]="deploymentConfigConfirmed" type="checkbox">
-                          <span>{{ t('settingsBackups.databaseRestore.confirmations.composeReady') }}</span>
-                        </label>
-                        <label class="check-item">
-                          <input [(ngModel)]="versionConfirmed" type="checkbox">
-                          <span>{{ t('settingsBackups.databaseRestore.confirmations.versionReady') }}</span>
-                        </label>
-                        <label class="check-item">
-                          <input [(ngModel)]="maintenanceReady" type="checkbox">
-                          <span>{{ t('settingsBackups.databaseRestore.confirmations.maintenanceReady') }}</span>
-                        </label>
+                        <div class="check-item">
+                          <input id="packageFilesConfirmed" [(ngModel)]="packageFilesConfirmed" type="checkbox">
+                          <label for="packageFilesConfirmed">{{ t('settingsBackups.databaseRestore.confirmations.packageFiles') }}</label>
+                          <button
+                            type="button"
+                            class="help-button"
+                            [pTooltip]="t('settingsBackups.databaseRestore.help.packageFiles')"
+                            tooltipPosition="top"
+                            [attr.aria-label]="t('settingsBackups.databaseRestore.helpLabel', {task: t('settingsBackups.databaseRestore.confirmations.packageFiles')})">
+                            <i class="pi pi-question-circle"></i>
+                          </button>
+                        </div>
+                        <div class="check-item">
+                          <input id="libraryMediaCopied" [(ngModel)]="libraryMediaCopied" type="checkbox">
+                          <label for="libraryMediaCopied">{{ t('settingsBackups.databaseRestore.confirmations.mediaCopied') }}</label>
+                          <button
+                            type="button"
+                            class="help-button"
+                            [pTooltip]="t('settingsBackups.databaseRestore.help.mediaCopied')"
+                            tooltipPosition="top"
+                            [attr.aria-label]="t('settingsBackups.databaseRestore.helpLabel', {task: t('settingsBackups.databaseRestore.confirmations.mediaCopied')})">
+                            <i class="pi pi-question-circle"></i>
+                          </button>
+                        </div>
+                        <div class="check-item">
+                          <input id="appDataConfirmed" [(ngModel)]="appDataConfirmed" type="checkbox">
+                          <label for="appDataConfirmed">{{ t('settingsBackups.databaseRestore.confirmations.appDataReady') }}</label>
+                          <button
+                            type="button"
+                            class="help-button"
+                            [pTooltip]="t('settingsBackups.databaseRestore.help.appDataReady')"
+                            tooltipPosition="top"
+                            [attr.aria-label]="t('settingsBackups.databaseRestore.helpLabel', {task: t('settingsBackups.databaseRestore.confirmations.appDataReady')})">
+                            <i class="pi pi-question-circle"></i>
+                          </button>
+                        </div>
+                        <div class="check-item">
+                          <input id="deploymentConfigConfirmed" [(ngModel)]="deploymentConfigConfirmed" type="checkbox">
+                          <label for="deploymentConfigConfirmed">{{ t('settingsBackups.databaseRestore.confirmations.composeReady') }}</label>
+                          <button
+                            type="button"
+                            class="help-button"
+                            [pTooltip]="t('settingsBackups.databaseRestore.help.composeReady')"
+                            tooltipPosition="top"
+                            [attr.aria-label]="t('settingsBackups.databaseRestore.helpLabel', {task: t('settingsBackups.databaseRestore.confirmations.composeReady')})">
+                            <i class="pi pi-question-circle"></i>
+                          </button>
+                        </div>
+                        <div class="check-item">
+                          <input id="versionConfirmed" [(ngModel)]="versionConfirmed" type="checkbox">
+                          <label for="versionConfirmed">{{ t('settingsBackups.databaseRestore.confirmations.versionReady') }}</label>
+                          <button
+                            type="button"
+                            class="help-button"
+                            [pTooltip]="t('settingsBackups.databaseRestore.help.versionReady')"
+                            tooltipPosition="top"
+                            [attr.aria-label]="t('settingsBackups.databaseRestore.helpLabel', {task: t('settingsBackups.databaseRestore.confirmations.versionReady')})">
+                            <i class="pi pi-question-circle"></i>
+                          </button>
+                        </div>
+                        <div class="check-item">
+                          <input id="maintenanceReady" [(ngModel)]="maintenanceReady" type="checkbox">
+                          <label for="maintenanceReady">{{ t('settingsBackups.databaseRestore.confirmations.maintenanceReady') }}</label>
+                          <button
+                            type="button"
+                            class="help-button"
+                            [pTooltip]="t('settingsBackups.databaseRestore.help.maintenanceReady')"
+                            tooltipPosition="top"
+                            [attr.aria-label]="t('settingsBackups.databaseRestore.helpLabel', {task: t('settingsBackups.databaseRestore.confirmations.maintenanceReady')})">
+                            <i class="pi pi-question-circle"></i>
+                          </button>
+                        </div>
                       </div>
 
                       <div class="action-row">
@@ -424,7 +474,7 @@
                                 <span class="result-value">{{ t(check.labelKey) }}</span>
                                 <p class="setting-description">{{ check.detail }}</p>
                               </div>
-                              <span class="status-chip" [class.pass]="check.passed" [class.fail]="!check.passed">
+                              <span class="status-chip" [class.done]="check.passed" [class.fail]="!check.passed">
                                 {{ t(check.passed ? 'settingsBackups.status.pass' : 'settingsBackups.status.fail') }}
                               </span>
                             </div>

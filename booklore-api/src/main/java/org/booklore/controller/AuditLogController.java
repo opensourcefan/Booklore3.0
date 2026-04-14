@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
+import org.booklore.model.dto.request.BackupAuditEventRequest;
 import org.booklore.model.dto.response.AuditLogDto;
 import org.booklore.model.enums.AuditAction;
 import org.booklore.service.audit.AuditService;
@@ -16,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 
 @AllArgsConstructor
@@ -23,6 +25,13 @@ import java.util.List;
 @RequestMapping("/api/v1/audit-logs")
 @Tag(name = "Audit Logs", description = "Endpoints for viewing audit logs")
 public class AuditLogController {
+
+    private static final EnumSet<AuditAction> DATABASE_HELPER_ACTIONS = EnumSet.of(
+            AuditAction.DATABASE_BACKUP_COMMAND_COPIED,
+            AuditAction.DATABASE_RESTORE_PREFLIGHT_PASSED,
+            AuditAction.DATABASE_RESTORE_PREFLIGHT_BLOCKED,
+            AuditAction.DATABASE_RESTORE_COMMAND_COPIED
+    );
 
     private final AuditService auditService;
 
@@ -53,5 +62,21 @@ public class AuditLogController {
     @PreAuthorize("@securityUtil.isAdmin()")
     public ResponseEntity<List<String>> getDistinctUsernames() {
         return ResponseEntity.ok(auditService.getDistinctUsernames());
+    }
+
+    @Operation(summary = "Record database helper audit log", description = "Record an admin database backup helper action from the settings UI.")
+    @PostMapping("/backups/database-helper")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public ResponseEntity<Void> recordDatabaseHelperAuditEvent(@RequestBody BackupAuditEventRequest request) {
+        if (request == null || request.action() == null || request.description() == null || request.description().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (!DATABASE_HELPER_ACTIONS.contains(request.action())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        auditService.log(request.action(), request.description().trim());
+        return ResponseEntity.ok().build();
     }
 }

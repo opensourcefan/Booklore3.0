@@ -3,6 +3,7 @@ package org.booklore.controller;
 import org.booklore.model.dto.settings.AppSettingsTransferFile;
 import org.booklore.model.dto.settings.OidcProviderDetails;
 import org.booklore.model.dto.settings.SettingRequest;
+import org.booklore.model.enums.AuditAction;
 import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.service.audit.AuditService;
 import org.booklore.service.oidc.OidcDiagnosticService;
@@ -46,6 +47,7 @@ class AppSettingControllerTest {
         AppSettingsTransferFile result = controller.exportSettings();
 
         assertThat(result).isSameAs(expected);
+        verify(auditService).log(AuditAction.SETTINGS_EXPORTED, "Exported 0 application setting(s)");
     }
 
     @Test
@@ -59,6 +61,7 @@ class AppSettingControllerTest {
         controller.importSettings(file);
 
         verify(appSettingService).importSettings(file);
+        verify(auditService).log(AuditAction.SETTINGS_IMPORTED, "Imported 0 application setting(s) from a settings transfer file");
     }
 
     @Test

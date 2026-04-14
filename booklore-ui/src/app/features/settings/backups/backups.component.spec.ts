@@ -9,6 +9,7 @@ import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {LocalStorageService} from '../../../shared/service/local-storage.service';
 import {SidecarBackupProgressService} from '../../../shared/service/sidecar-backup-progress.service';
 import {UserService} from '../user-management/user.service';
+import {AuditLogService} from '../audit-logs/audit-log.service';
 import {BackupsComponent} from './backups.component';
 
 describe('BackupsComponent', () => {
@@ -17,6 +18,7 @@ describe('BackupsComponent', () => {
   let storage: Record<string, unknown>;
   let appSettingsServiceMock: {exportSettings: ReturnType<typeof vi.fn>; importSettings: ReturnType<typeof vi.fn>};
   let sidecarServiceMock: {backupLibrarySidecars: ReturnType<typeof vi.fn>};
+  let auditLogServiceMock: {recordDatabaseHelperAction: ReturnType<typeof vi.fn>};
   let clipboardWriteText: ReturnType<typeof vi.fn>;
   let messageServiceAdd: ReturnType<typeof vi.fn>;
 
@@ -61,6 +63,10 @@ describe('BackupsComponent', () => {
       }))
     };
 
+    auditLogServiceMock = {
+      recordDatabaseHelperAction: vi.fn(() => of(void 0))
+    };
+
     TestBed.configureTestingModule({
       imports: [
         BackupsComponent,
@@ -93,6 +99,7 @@ describe('BackupsComponent', () => {
           }
         },
         {provide: SidecarService, useValue: sidecarServiceMock},
+        {provide: AuditLogService, useValue: auditLogServiceMock},
         {
           provide: LocalStorageService,
           useValue: {
@@ -155,6 +162,35 @@ describe('BackupsComponent', () => {
     });
   });
 
+  it('records a failed sidecar backup when no files were exported', () => {
+    sidecarServiceMock.backupLibrarySidecars.mockReturnValueOnce(of({
+      message: 'failed',
+      attempted: 5,
+      exported: 0,
+      failed: 5,
+      firstError: 'Disk full'
+    }));
+    component.selectedBackupLibraryId = 1;
+
+    component.backupLibrarySidecars();
+
+    expect(storage['settingsBackupsSidecarActivity']).toMatchObject({
+      libraryId: 1,
+      libraryName: 'Main Library',
+      exported: 0,
+      failed: 5
+    });
+  });
+
+  it('builds the export command with mkdir -p for the destination folder', () => {
+    component.backupDirectory = '/srv/booklore/backups';
+    component.backupFileName = 'booklore_backup.sql';
+
+    expect(component.getDatabaseExportCommand()).toBe(
+      'mkdir -p "/srv/booklore/backups" && docker exec mariadb mariadb-dump --single-transaction --quick --no-tablespaces -u booklore -p booklore > "/srv/booklore/backups/booklore_backup.sql"'
+    );
+  });
+
   it('copies the restore command only after a successful pre-flight', async () => {
     component.restoreSqlPath = '/tmp/booklore_backup.sql';
     component.restoreAppDataPath = '/srv/booklore/data';
@@ -173,6 +209,14 @@ describe('BackupsComponent', () => {
     expect(component.restoreReady).toBe(true);
     expect(clipboardWriteText).toHaveBeenCalledWith(
       'docker exec -i mariadb mariadb -u booklore -p booklore < "/tmp/booklore_backup.sql"'
+    );
+    expect(auditLogServiceMock.recordDatabaseHelperAction).toHaveBeenCalledWith(
+      'DATABASE_RESTORE_PREFLIGHT_PASSED',
+      expect.stringContaining('/tmp/booklore_backup.sql')
+    );
+    expect(auditLogServiceMock.recordDatabaseHelperAction).toHaveBeenCalledWith(
+      'DATABASE_RESTORE_COMMAND_COPIED',
+      'Prepared database restore command for /tmp/booklore_backup.sql.'
     );
     expect(storage['settingsBackupsDatabaseActivity']).toMatchObject({
       action: 'restore-command',
