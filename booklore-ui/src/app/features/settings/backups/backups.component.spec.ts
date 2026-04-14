@@ -20,11 +20,13 @@ describe('BackupsComponent', () => {
   let sidecarServiceMock: {backupLibrarySidecars: ReturnType<typeof vi.fn>};
   let auditLogServiceMock: {recordDatabaseHelperAction: ReturnType<typeof vi.fn>};
   let clipboardWriteText: ReturnType<typeof vi.fn>;
+  let execCommandMock: ReturnType<typeof vi.fn>;
   let messageServiceAdd: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     storage = {};
     clipboardWriteText = vi.fn().mockResolvedValue(undefined);
+    execCommandMock = vi.fn(() => true);
     messageServiceAdd = vi.fn();
 
     Object.defineProperty(globalThis, 'ResizeObserver', {
@@ -46,6 +48,11 @@ describe('BackupsComponent', () => {
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: {writeText: clipboardWriteText}
+    });
+
+    Object.defineProperty(document, 'execCommand', {
+      configurable: true,
+      value: execCommandMock
     });
 
     appSettingsServiceMock = {
@@ -229,6 +236,27 @@ describe('BackupsComponent', () => {
     expect(storage['settingsBackupsDatabaseActivity']).toMatchObject({
       action: 'restore-command',
       outputPath: '/tmp/booklore_backup.sql'
+    });
+  });
+
+  it('falls back to document copy when the async clipboard API is unavailable', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: undefined
+    });
+    component.backupDirectory = '/srv/booklore/backups';
+    component.backupFileName = 'booklore_backup.sql';
+
+    await component.copyDatabaseExportCommand();
+
+    expect(execCommandMock).toHaveBeenCalledWith('copy');
+    expect(auditLogServiceMock.recordDatabaseHelperAction).toHaveBeenCalledWith(
+      'DATABASE_BACKUP_COMMAND_COPIED',
+      expect.stringContaining('/srv/booklore/backups/booklore_backup.sql')
+    );
+    expect(storage['settingsBackupsDatabaseActivity']).toMatchObject({
+      action: 'export',
+      outputPath: '/srv/booklore/backups/booklore_backup.sql'
     });
   });
 });

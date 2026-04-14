@@ -43,7 +43,7 @@
     "publicationTrend": "Publication Trend"
   },
   "aiPanelStats": {
-    "title": "AI Panel Statistics",
+    "title": "AI Panel Detection",
     "description": "A portrait comic-page view of the saved AI scan coverage for the selected library.",
     "empty": "No AI panel scan data is available for this library yet.",
     "noLeaders": "No scanned comic has enough saved panel data to rank here yet.",

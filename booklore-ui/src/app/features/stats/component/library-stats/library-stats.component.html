@@ -235,6 +235,12 @@
               <span class="ai-panel-label">{{ t('aiPanelStats.labels.totalPanels') }}</span>
             </article>
 
+            <article class="ai-panel ai-panel-storage">
+              <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.storage') }}</span>
+              <span class="ai-panel-value">{{ totalAiStorage$ | async }}</span>
+              <span class="ai-panel-label">{{ t('aiPanelStats.labels.diskUsage') }}</span>
+            </article>
+
             <article class="ai-panel ai-panel-feature">
               <span class="ai-panel-kicker">{{ t('aiPanelStats.labels.mostPages') }}</span>
               @if (aiStats.comicWithMostPagesScanned; as leader) {
@@ -263,12 +269,6 @@
               } @else {
                 <p>{{ t('aiPanelStats.noLeaders') }}</p>
               }
-            </article>
-
-            <article class="ai-panel ai-panel-footer">
-              <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.storage') }}</span>
-              <span class="ai-panel-value">{{ totalAiStorage$ | async }}</span>
-              <span class="ai-panel-label">{{ t('aiPanelStats.labels.diskUsage') }}</span>
             </article>
           </div>
         } @else {

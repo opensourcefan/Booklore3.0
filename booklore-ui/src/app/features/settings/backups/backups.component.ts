@@ -557,17 +557,46 @@ export class BackupsComponent implements OnInit {
   }
 
   private async copyText(text: string): Promise<boolean> {
-    if (!navigator.clipboard?.writeText) {
-      this.showMessage('error', 'common.error', 'settingsBackups.messages.clipboardUnavailable');
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        // Fall through to the document command fallback for browsers that block async clipboard writes.
+      }
+    }
+
+    if (this.copyTextWithDocumentCommand(text)) {
+      return true;
+    }
+
+    this.showMessage('error', 'common.error', 'settingsBackups.messages.clipboardUnavailable');
+    return false;
+  }
+
+  private copyTextWithDocumentCommand(text: string): boolean {
+    if (typeof document === 'undefined' || typeof document.execCommand !== 'function') {
       return false;
     }
 
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.setAttribute('readonly', 'true');
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    textArea.style.pointerEvents = 'none';
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    textArea.setSelectionRange(0, textArea.value.length);
+
     try {
-      await navigator.clipboard.writeText(text);
-      return true;
+      return document.execCommand('copy');
     } catch {
-      this.showMessage('error', 'common.error', 'settingsBackups.messages.clipboardUnavailable');
       return false;
+    } finally {
+      document.body.removeChild(textArea);
     }
   }
 

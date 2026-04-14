@@ -432,9 +432,14 @@
 }
 
 .ai-stats-section {
+  width: min(100%, 44rem);
+  margin: 0 auto 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.85rem;
+  padding: 0.9rem;
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--p-content-border-color) 80%, rgba(128, 189, 255, 0.12));
 }
 
 .ai-stats-header {
@@ -444,13 +449,7 @@
     gap: 0.75rem;
     margin: 0;
     color: var(--text-color, #ffffff);
-    font-size: 1.25rem;
-  }
-
-  p {
-    margin: 0.5rem 0 0;
-    color: var(--text-secondary-color);
-    line-height: 1.5;
+    font-size: 1.05rem;
   }
 
   .pi {
@@ -459,68 +458,79 @@
 }
 
 .ai-comic-page {
-  width: min(100%, 52rem);
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+  padding: 0.7rem;
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--p-content-border-color) 82%, rgba(128, 189, 255, 0.14));
+  background: color-mix(in srgb, var(--primary-color, #80bdff) 4%, transparent);
 }
 
 .ai-panel {
+  --ai-panel-tint: color-mix(in srgb, var(--primary-color, #80bdff) 8%, transparent);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 0.5rem;
-  min-height: 10rem;
-  padding: 1.25rem;
-  border-radius: 1rem;
-  border: 2px solid color-mix(in srgb, var(--p-content-border-color) 82%, rgba(255, 255, 255, 0.18));
+  gap: 0.35rem;
+  min-height: 5.75rem;
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--p-content-border-color) 82%, rgba(255, 255, 255, 0.12));
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01)),
+    linear-gradient(180deg, var(--ai-panel-tint), rgba(255, 255, 255, 0.015)),
     var(--card-background);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
-}
-
-.ai-panel-splash,
-.ai-panel-feature,
-.ai-panel-footer {
-  grid-column: 1 / -1;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
 .ai-panel-splash {
-  min-height: 16rem;
+  --ai-panel-tint: color-mix(in srgb, var(--primary-color, #80bdff) 10%, transparent);
+  grid-column: 1 / span 3;
+  grid-row: 1;
+  min-height: 7.5rem;
+}
+
+.ai-panel-stat {
+  grid-column: span 2;
+  min-height: 5rem;
 }
 
 .ai-panel-feature {
-  min-height: 12rem;
+  --ai-panel-tint: color-mix(in srgb, var(--primary-color, #80bdff) 6%, transparent);
+  grid-column: span 2;
+  min-height: 7rem;
 }
 
 .ai-panel-feature-accent {
-  background:
-    linear-gradient(180deg, rgba(128, 189, 255, 0.12), rgba(128, 189, 255, 0.03)),
-    var(--card-background);
+  --ai-panel-tint: color-mix(in srgb, var(--primary-color, #80bdff) 12%, transparent);
+  grid-column: 1 / -1;
 }
 
-.ai-panel-footer {
-  min-height: 8rem;
+.ai-panel-storage {
+  --ai-panel-tint: color-mix(in srgb, var(--primary-color, #80bdff) 9%, transparent);
+  grid-column: 4;
+  grid-row: 1;
+  min-height: 7.5rem;
 }
 
 .ai-panel-kicker {
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-secondary-color);
 }
 
 .ai-panel-value {
-  font-size: clamp(2rem, 4vw, 3.6rem);
+  font-size: clamp(1.2rem, 2.4vw, 2.15rem);
   line-height: 1;
   font-weight: 700;
   color: var(--text-color, #ffffff);
 }
 
 .ai-panel-label {
-  font-size: 1rem;
+  font-size: 0.84rem;
   font-weight: 600;
   color: var(--text-color, #ffffff);
 }
@@ -528,12 +538,13 @@
 .ai-panel p {
   margin: 0;
   color: var(--text-secondary-color);
-  line-height: 1.45;
+  line-height: 1.35;
+  font-size: 0.83rem;
 }
 
 .ai-comic-link {
   color: var(--text-color, #ffffff);
-  font-size: 1.35rem;
+  font-size: 0.98rem;
   font-weight: 700;
   line-height: 1.25;
   text-decoration: none;
@@ -714,13 +725,20 @@
   .ai-comic-page {
     width: 100%;
     grid-template-columns: 1fr;
+    padding: 0.55rem;
+    gap: 0.55rem;
   }
 
   .ai-panel,
   .ai-panel-splash,
   .ai-panel-feature,
-  .ai-panel-footer {
+  .ai-panel-stat,
+  .ai-panel-storage {
     grid-column: 1;
+  }
+
+  .ai-stats-section {
+    width: 100%;
   }
 }
 
