@@ -134,7 +134,7 @@ describe('BackupsComponent', () => {
     component.exportSettings();
 
     expect(appSettingsServiceMock.exportSettings).toHaveBeenCalledOnce();
-    expect(storage.settingsBackupsAppSettingsActivity).toMatchObject({
+    expect(storage['settingsBackupsAppSettingsActivity']).toMatchObject({
       action: 'export',
       fileName: 'booklore-settings-2026-04-14T12-00-00-000Z.json'
     });
@@ -147,7 +147,7 @@ describe('BackupsComponent', () => {
     component.backupLibrarySidecars();
 
     expect(sidecarServiceMock.backupLibrarySidecars).toHaveBeenCalledWith(1);
-    expect(storage.settingsBackupsSidecarActivity).toMatchObject({
+    expect(storage['settingsBackupsSidecarActivity']).toMatchObject({
       libraryId: 1,
       libraryName: 'Main Library',
       exported: 12,
@@ -174,7 +174,7 @@ describe('BackupsComponent', () => {
     expect(clipboardWriteText).toHaveBeenCalledWith(
       'docker exec -i mariadb mariadb -u booklore -p booklore < "/tmp/booklore_backup.sql"'
     );
-    expect(storage.settingsBackupsDatabaseActivity).toMatchObject({
+    expect(storage['settingsBackupsDatabaseActivity']).toMatchObject({
       action: 'restore-command',
       outputPath: '/tmp/booklore_backup.sql'
     });
