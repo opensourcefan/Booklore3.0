@@ -124,20 +124,22 @@ export class AppSettingsService {
     return this.http.post<{triggered: boolean; reason: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/reload`, {});
   }
 
-  exportSettings(): Observable<void> {
+  exportSettings(): Observable<string> {
     return this.http.get<AppSettingsTransferFile>(`${this.apiUrl}/export`).pipe(
       map(payload => {
         const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
         const safeTime = new Date().toISOString().replace(/[:.]/g, '-');
+        const fileName = `booklore-settings-${safeTime}.json`;
 
         anchor.href = url;
-        anchor.download = `booklore-settings-${safeTime}.json`;
+        anchor.download = fileName;
         document.body.appendChild(anchor);
         anchor.click();
         document.body.removeChild(anchor);
         URL.revokeObjectURL(url);
+        return fileName;
       }),
       catchError(err => {
         console.error('Error exporting settings:', err);

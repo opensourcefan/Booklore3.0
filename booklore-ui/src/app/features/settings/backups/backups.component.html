@@ -1,0 +1,449 @@
+<ng-container *transloco="let t">
+  @if (userService.userState$ | async; as userState) {
+    @if (userState.user; as user) {
+      <div class="main-container">
+        <div class="settings-header">
+          <h2 class="settings-title">
+            <i class="pi pi-save"></i>
+            {{ t('settingsBackups.title') }}
+          </h2>
+          <p class="settings-description">
+            {{ t('settingsBackups.description') }}
+          </p>
+        </div>
+
+        <p-tabs [(value)]="activeTab" lazy>
+          <p-tablist>
+            <p-tab value="status">
+              <i class="pi pi-chart-bar"></i> {{ t('settingsBackups.tabs.status') }}
+            </p-tab>
+            @if (canManageAppSettings(user)) {
+              <p-tab value="app-settings">
+                <i class="pi pi-cog"></i> {{ t('settingsBackups.tabs.appSettings') }}
+              </p-tab>
+            }
+            @if (canManageSidecar(user)) {
+              <p-tab value="sidecar">
+                <i class="pi pi-folder-open"></i> {{ t('settingsBackups.tabs.sidecar') }}
+              </p-tab>
+            }
+            @if (canManageDatabase(user)) {
+              <p-tab value="database-export">
+                <i class="pi pi-download"></i> {{ t('settingsBackups.tabs.databaseExport') }}
+              </p-tab>
+              <p-tab value="database-restore">
+                <i class="pi pi-upload"></i> {{ t('settingsBackups.tabs.databaseRestore') }}
+              </p-tab>
+            }
+          </p-tablist>
+
+          <p-tabpanels>
+            <p-tabpanel value="status">
+              <ng-template #content>
+                <div class="panel-stack">
+                  <div class="info-notice">
+                    <i class="pi pi-info-circle"></i>
+                    <div>{{ t('settingsBackups.status.notice') }}</div>
+                  </div>
+
+                  <div class="status-grid" [class.status-grid-three]="canManageDatabase(user)">
+                    @if (canManageAppSettings(user)) {
+                      <article class="status-card">
+                        <div class="status-card-header">
+                          <h3>{{ t('settingsBackups.status.appSettings.title') }}</h3>
+                          <span class="status-chip" [class.pass]="!!appSettingsActivity">
+                            {{ appSettingsActivity ? t('settingsBackups.status.done') : t('settingsBackups.status.idle') }}
+                          </span>
+                        </div>
+                        <p>{{ t('settingsBackups.status.appSettings.description') }}</p>
+                        <dl>
+                          <div>
+                            <dt>{{ t('settingsBackups.status.labels.action') }}</dt>
+                            <dd>{{ appSettingsActivity ? t(appSettingsActivity.action === 'import' ? 'settingsBackups.status.appSettings.imported' : 'settingsBackups.status.appSettings.exported') : t('settingsBackups.common.none') }}</dd>
+                          </div>
+                          <div>
+                            <dt>{{ t('settingsBackups.status.labels.target') }}</dt>
+                            <dd>{{ appSettingsActivity?.fileName || t('settingsBackups.common.notRecorded') }}</dd>
+                          </div>
+                          <div>
+                            <dt>{{ t('settingsBackups.status.labels.updated') }}</dt>
+                            <dd>{{ formatDateTime(appSettingsActivity?.timestamp) }}</dd>
+                          </div>
+                        </dl>
+                      </article>
+                    }
+
+                    @if (canManageSidecar(user)) {
+                      <article class="status-card">
+                        <div class="status-card-header">
+                          <h3>{{ t('settingsBackups.status.sidecar.title') }}</h3>
+                          <span class="status-chip" [class.pass]="!!sidecarActivity" [class.warn]="!!sidecarActivity && sidecarActivity.failed > 0">
+                            {{ sidecarActivity ? t(sidecarActivity.failed > 0 ? 'settingsBackups.status.partial' : 'settingsBackups.status.done') : t('settingsBackups.status.idle') }}
+                          </span>
+                        </div>
+                        <p>{{ t('settingsBackups.status.sidecar.description') }}</p>
+                        <dl>
+                          <div>
+                            <dt>{{ t('settingsBackups.status.labels.action') }}</dt>
+                            <dd>
+                              @if (sidecarActivity) {
+                                {{ t('settingsBackups.status.sidecar.summary', {count: sidecarActivity.exported}) }}
+                              } @else {
+                                {{ t('settingsBackups.common.none') }}
+                              }
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>{{ t('settingsBackups.status.labels.target') }}</dt>
+                            <dd>{{ sidecarActivity?.libraryName || t('settingsBackups.common.notRecorded') }}</dd>
+                          </div>
+                          <div>
+                            <dt>{{ t('settingsBackups.status.labels.updated') }}</dt>
+                            <dd>{{ formatDateTime(sidecarActivity?.timestamp) }}</dd>
+                          </div>
+                        </dl>
+                      </article>
+                    }
+
+                    @if (canManageDatabase(user)) {
+                      <article class="status-card">
+                        <div class="status-card-header">
+                          <h3>{{ t('settingsBackups.status.database.title') }}</h3>
+                          <span class="status-chip" [class.pass]="!!databaseActivity">
+                            {{ databaseActivity ? t('settingsBackups.status.done') : t('settingsBackups.status.idle') }}
+                          </span>
+                        </div>
+                        <p>{{ t('settingsBackups.status.database.description') }}</p>
+                        <dl>
+                          <div>
+                            <dt>{{ t('settingsBackups.status.labels.action') }}</dt>
+                            <dd>
+                              @if (databaseActivity) {
+                                {{ t(databaseActivity.action === 'restore-command' ? 'settingsBackups.status.database.restorePrepared' : 'settingsBackups.status.database.exportPrepared') }}
+                              } @else {
+                                {{ t('settingsBackups.common.none') }}
+                              }
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>{{ t('settingsBackups.status.labels.target') }}</dt>
+                            <dd>{{ databaseActivity?.outputPath || t('settingsBackups.common.notRecorded') }}</dd>
+                          </div>
+                          <div>
+                            <dt>{{ t('settingsBackups.status.labels.updated') }}</dt>
+                            <dd>{{ formatDateTime(databaseActivity?.timestamp) }}</dd>
+                          </div>
+                        </dl>
+                      </article>
+                    }
+                  </div>
+                </div>
+              </ng-template>
+            </p-tabpanel>
+
+            @if (canManageAppSettings(user)) {
+              <p-tabpanel value="app-settings">
+                <ng-template #content>
+                  <div class="settings-card panel-stack">
+                    <div class="section-header">
+                      <h3 class="section-title">
+                        <i class="pi pi-download"></i>
+                        {{ t('settingsApp.transfer.sectionTitle') }}
+                      </h3>
+                      <p class="section-description">{{ t('settingsBackups.appSettings.description') }}</p>
+                    </div>
+
+                    <div class="setting-item">
+                      <div class="setting-label-row">
+                        <span class="setting-label">{{ t('settingsApp.transfer.title') }}</span>
+                        <div class="action-row">
+                          <p-button
+                            [label]="t('settingsApp.transfer.exportBtn')"
+                            icon="pi pi-download"
+                            outlined
+                            severity="info"
+                            (onClick)="exportSettings()">
+                          </p-button>
+                          <p-button
+                            [label]="t('settingsApp.transfer.importBtn')"
+                            icon="pi pi-upload"
+                            outlined
+                            severity="contrast"
+                            (onClick)="settingsImportInput.click()">
+                          </p-button>
+                          <input
+                            #settingsImportInput
+                            class="visually-hidden"
+                            type="file"
+                            accept="application/json,.json"
+                            (change)="onImportFileSelected($event)">
+                        </div>
+                      </div>
+                      <p class="setting-description">{{ t('settingsApp.transfer.description') }}</p>
+                    </div>
+
+                    <div class="result-grid two-column">
+                      <div class="result-card">
+                        <span class="result-label">{{ t('settingsBackups.status.labels.action') }}</span>
+                        <span class="result-value">{{ appSettingsActivity ? t(appSettingsActivity.action === 'import' ? 'settingsBackups.status.appSettings.imported' : 'settingsBackups.status.appSettings.exported') : t('settingsBackups.common.none') }}</span>
+                      </div>
+                      <div class="result-card">
+                        <span class="result-label">{{ t('settingsBackups.status.labels.target') }}</span>
+                        <span class="result-value">{{ appSettingsActivity?.fileName || t('settingsBackups.common.notRecorded') }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </ng-template>
+              </p-tabpanel>
+            }
+
+            @if (canManageSidecar(user)) {
+              <p-tabpanel value="sidecar">
+                <ng-template #content>
+                  <div class="panel-stack">
+                    <div class="info-notice">
+                      <i class="pi pi-info-circle"></i>
+                      <div>{{ t('settingsBackups.sidecar.notice') }}</div>
+                    </div>
+
+                    <div class="settings-card">
+                      <div class="section-header">
+                        <h3 class="section-title">
+                          <i class="pi pi-folder"></i>
+                          {{ t('settingsMeta.persistence.sidecarBackupTitle') }}
+                        </h3>
+                        <p class="section-description">{{ t('settingsMeta.persistence.sidecarBackupDesc') }}</p>
+                      </div>
+
+                      <div class="setting-item">
+                        <p class="setting-description">{{ t('settingsMeta.persistence.sidecarBackupHint') }}</p>
+
+                        @if (libraries.length > 0) {
+                          <div class="action-row top-gap">
+                            <p-select
+                              size="small"
+                              [options]="libraries"
+                              [(ngModel)]="selectedBackupLibraryId"
+                              optionLabel="name"
+                              optionValue="id"
+                              [placeholder]="t('settingsMeta.persistence.sidecarBackupPlaceholder')"
+                              [style]="{ width: '18rem' }"
+                              appendTo="body">
+                            </p-select>
+
+                            <p-button
+                              [label]="t('settingsMeta.persistence.sidecarBackupBtn')"
+                              icon="pi pi-save"
+                              [loading]="isSidecarBackupRunning"
+                              [disabled]="selectedBackupLibraryId === null || isSidecarBackupRunning"
+                              (onClick)="backupLibrarySidecars()"
+                              severity="secondary">
+                            </p-button>
+                          </div>
+                        } @else {
+                          <p class="setting-description top-gap">{{ t('settingsMeta.persistence.sidecarBackupNoLibraries') }}</p>
+                        }
+                      </div>
+
+                      <div class="result-grid three-column">
+                        <div class="result-card">
+                          <span class="result-label">{{ t('settingsBackups.status.labels.target') }}</span>
+                          <span class="result-value">{{ sidecarActivity?.libraryName || t('settingsBackups.common.notRecorded') }}</span>
+                        </div>
+                        <div class="result-card">
+                          <span class="result-label">{{ t('settingsBackups.sidecar.exported') }}</span>
+                          <span class="result-value">{{ sidecarActivity?.exported ?? 0 }}</span>
+                        </div>
+                        <div class="result-card">
+                          <span class="result-label">{{ t('settingsBackups.status.labels.updated') }}</span>
+                          <span class="result-value">{{ formatDateTime(sidecarActivity?.timestamp) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ng-template>
+              </p-tabpanel>
+            }
+
+            @if (canManageDatabase(user)) {
+              <p-tabpanel value="database-export">
+                <ng-template #content>
+                  <div class="panel-stack">
+                    <div class="warning-notice">
+                      <i class="pi pi-exclamation-triangle"></i>
+                      <div>{{ t('settingsBackups.databaseExport.warning') }}</div>
+                    </div>
+
+                    <div class="settings-card">
+                      <div class="section-header">
+                        <h3 class="section-title">
+                          <i class="pi pi-database"></i>
+                          {{ t('settingsBackups.databaseExport.title') }}
+                        </h3>
+                        <p class="section-description">{{ t('settingsBackups.databaseExport.description') }}</p>
+                      </div>
+
+                      <div class="field-grid">
+                        <label>
+                          <span>{{ t('settingsBackups.databaseExport.directory') }}</span>
+                          <input [(ngModel)]="backupDirectory" type="text">
+                        </label>
+                        <label>
+                          <span>{{ t('settingsBackups.databaseExport.fileName') }}</span>
+                          <input [(ngModel)]="backupFileName" type="text">
+                        </label>
+                      </div>
+
+                      <div class="action-row">
+                        <p-button
+                          [label]="t('settingsBackups.databaseExport.regenerate')"
+                          icon="pi pi-refresh"
+                          outlined
+                          severity="secondary"
+                          (onClick)="regenerateBackupFileName()">
+                        </p-button>
+                        <p-button
+                          [label]="t('settingsBackups.databaseExport.copyCommand')"
+                          icon="pi pi-copy"
+                          severity="info"
+                          (onClick)="copyDatabaseExportCommand()">
+                        </p-button>
+                      </div>
+
+                      <div class="command-block">
+                        <span class="result-label">{{ t('settingsBackups.databaseExport.command') }}</span>
+                        <pre>{{ getDatabaseExportCommand() }}</pre>
+                      </div>
+
+                      <div class="result-grid two-column">
+                        <div class="result-card">
+                          <span class="result-label">{{ t('settingsBackups.status.labels.target') }}</span>
+                          <span class="result-value">{{ getDatabaseOutputPath() }}</span>
+                        </div>
+                        <div class="result-card">
+                          <span class="result-label">{{ t('settingsBackups.status.labels.updated') }}</span>
+                          <span class="result-value">{{ formatDateTime(databaseActivity?.action === 'export' ? databaseActivity?.timestamp : null) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ng-template>
+              </p-tabpanel>
+
+              <p-tabpanel value="database-restore">
+                <ng-template #content>
+                  <div class="panel-stack">
+                    <div class="warning-notice">
+                      <i class="pi pi-exclamation-triangle"></i>
+                      <div>{{ t('settingsBackups.databaseRestore.warning') }}</div>
+                    </div>
+
+                    <div class="settings-card">
+                      <div class="section-header">
+                        <h3 class="section-title">
+                          <i class="pi pi-upload"></i>
+                          {{ t('settingsBackups.databaseRestore.title') }}
+                        </h3>
+                        <p class="section-description">{{ t('settingsBackups.databaseRestore.description') }}</p>
+                      </div>
+
+                      <div class="field-grid">
+                        <label>
+                          <span>{{ t('settingsBackups.databaseRestore.sqlPath') }}</span>
+                          <input [(ngModel)]="restoreSqlPath" type="text">
+                        </label>
+                        <label>
+                          <span>{{ t('settingsBackups.databaseRestore.appDataPath') }}</span>
+                          <input [(ngModel)]="restoreAppDataPath" type="text">
+                        </label>
+                        <label>
+                          <span>{{ t('settingsBackups.databaseRestore.composePath') }}</span>
+                          <input [(ngModel)]="restoreComposePath" type="text">
+                        </label>
+                        <label>
+                          <span>{{ t('settingsBackups.databaseRestore.freeSpace') }}</span>
+                          <input [(ngModel)]="availableSpaceGb" type="number" min="0">
+                        </label>
+                      </div>
+
+                      <div class="checklist-grid">
+                        <label class="check-item">
+                          <input [(ngModel)]="packageFilesConfirmed" type="checkbox">
+                          <span>{{ t('settingsBackups.databaseRestore.confirmations.packageFiles') }}</span>
+                        </label>
+                        <label class="check-item">
+                          <input [(ngModel)]="libraryMediaCopied" type="checkbox">
+                          <span>{{ t('settingsBackups.databaseRestore.confirmations.mediaCopied') }}</span>
+                        </label>
+                        <label class="check-item">
+                          <input [(ngModel)]="appDataConfirmed" type="checkbox">
+                          <span>{{ t('settingsBackups.databaseRestore.confirmations.appDataReady') }}</span>
+                        </label>
+                        <label class="check-item">
+                          <input [(ngModel)]="deploymentConfigConfirmed" type="checkbox">
+                          <span>{{ t('settingsBackups.databaseRestore.confirmations.composeReady') }}</span>
+                        </label>
+                        <label class="check-item">
+                          <input [(ngModel)]="versionConfirmed" type="checkbox">
+                          <span>{{ t('settingsBackups.databaseRestore.confirmations.versionReady') }}</span>
+                        </label>
+                        <label class="check-item">
+                          <input [(ngModel)]="maintenanceReady" type="checkbox">
+                          <span>{{ t('settingsBackups.databaseRestore.confirmations.maintenanceReady') }}</span>
+                        </label>
+                      </div>
+
+                      <div class="action-row">
+                        <p-button
+                          [label]="t('settingsBackups.databaseRestore.runPreflight')"
+                          icon="pi pi-check-square"
+                          severity="info"
+                          (onClick)="runRestorePreflight()">
+                        </p-button>
+                        <p-button
+                          [label]="t('settingsBackups.databaseRestore.reset')"
+                          icon="pi pi-refresh"
+                          outlined
+                          severity="secondary"
+                          (onClick)="resetRestorePreflight()">
+                        </p-button>
+                        <p-button
+                          [label]="t('settingsBackups.databaseRestore.copyCommand')"
+                          icon="pi pi-copy"
+                          [disabled]="!restoreReady"
+                          severity="secondary"
+                          (onClick)="copyDatabaseRestoreCommand()">
+                        </p-button>
+                      </div>
+
+                      @if (restoreChecks.length > 0) {
+                        <div class="result-list">
+                          @for (check of restoreChecks; track check.labelKey) {
+                            <div class="result-row">
+                              <div>
+                                <span class="result-value">{{ t(check.labelKey) }}</span>
+                                <p class="setting-description">{{ check.detail }}</p>
+                              </div>
+                              <span class="status-chip" [class.pass]="check.passed" [class.fail]="!check.passed">
+                                {{ t(check.passed ? 'settingsBackups.status.pass' : 'settingsBackups.status.fail') }}
+                              </span>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      <div class="command-block">
+                        <span class="result-label">{{ t('settingsBackups.databaseRestore.command') }}</span>
+                        <pre>{{ getDatabaseRestoreCommand() }}</pre>
+                      </div>
+                    </div>
+                  </div>
+                </ng-template>
+              </p-tabpanel>
+            }
+          </p-tabpanels>
+        </p-tabs>
+      </div>
+    }
+  }
+</ng-container>

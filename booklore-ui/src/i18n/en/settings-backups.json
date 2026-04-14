@@ -1,0 +1,116 @@
+{
+  "title": "Backups",
+  "description": "Centralize settings transfer, manual sidecar backup, and the current logical database backup workflow in one place.",
+  "tabs": {
+    "status": "Status",
+    "appSettings": "App Settings",
+    "sidecar": "Sidecar",
+    "databaseExport": "Database Export",
+    "databaseRestore": "Database Restore"
+  },
+  "common": {
+    "never": "Never",
+    "none": "None",
+    "notRecorded": "Not recorded"
+  },
+  "status": {
+    "notice": "Status shows the last known action for each backup surface available to your account.",
+    "idle": "Idle",
+    "done": "Done",
+    "partial": "Partial",
+    "pass": "Pass",
+    "fail": "Fail",
+    "labels": {
+      "action": "Last action",
+      "target": "Target",
+      "updated": "Updated"
+    },
+    "appSettings": {
+      "title": "App Settings",
+      "description": "Export or import BookLore application settings.",
+      "exported": "Settings exported",
+      "imported": "Settings imported"
+    },
+    "sidecar": {
+      "title": "Sidecar",
+      "description": "Manual sidecar backup for a selected library.",
+      "summary": "Backed up {count} sidecars"
+    },
+    "database": {
+      "title": "Database",
+      "description": "Logical database backup and restore preparation.",
+      "exportPrepared": "Export command copied",
+      "restorePrepared": "Restore command copied"
+    }
+  },
+  "appSettings": {
+    "description": "Reuse the live application settings export and import flow here so backup activity stays in the dedicated Backups area."
+  },
+  "sidecar": {
+    "notice": "Automatic sidecar writes stay in Metadata settings. This tab only keeps the manual per-library backup routine.",
+    "exported": "Exported"
+  },
+  "databaseExport": {
+    "title": "Logical Database Backup",
+    "description": "BookLore does not run database backup inside the app yet. This helper generates the supported MariaDB export command from the current docs.",
+    "warning": "A full recovery still requires both the SQL dump and copies of your media files and app data directory.",
+    "directory": "Backup directory",
+    "fileName": "Backup file name",
+    "regenerate": "Regenerate file name",
+    "copyCommand": "Copy export command",
+    "command": "Export command"
+  },
+  "databaseRestore": {
+    "title": "Logical Database Restore",
+    "description": "Use the current documented restore flow for an existing schema. Pre-flight stays blocked until the required operator checks are confirmed.",
+    "warning": "Restore to a new temporary schema is not supported with the current database grants. Restore only into the existing booklore schema.",
+    "sqlPath": "SQL backup path",
+    "appDataPath": "Mounted app data path",
+    "composePath": "Deployment config path",
+    "freeSpace": "Available free space (GB)",
+    "runPreflight": "Run pre-flight",
+    "reset": "Reset",
+    "copyCommand": "Copy restore command",
+    "command": "Restore command",
+    "missingSqlPath": "Select the SQL dump that will be restored.",
+    "missingAppDataPath": "Enter the mounted BookLore app-data path.",
+    "missingComposePath": "Enter the compose or deployment config path.",
+    "preflightBlocked": "Pre-flight blocked",
+    "preflightPassedDetail": "All required restore checks passed. The restore command can now be copied.",
+    "preflightBlockedDetail": "Resolve the failed checks before using the restore command.",
+    "confirmations": {
+      "packageFiles": "SQL dump and manifest or notes are present",
+      "mediaCopied": "Media files are already available on the target host",
+      "appDataReady": "Mounted app-data directory exists and is ready",
+      "composeReady": "Deployment config and path mapping details are available",
+      "versionReady": "Version compatibility has been confirmed",
+      "maintenanceReady": "Maintenance mode or an equivalent pause plan is ready"
+    },
+    "checks": {
+      "sqlPath": "SQL backup selected",
+      "media": "Media copied",
+      "appData": "App data ready",
+      "compose": "Deployment config available",
+      "version": "Version compatibility confirmed",
+      "maintenance": "Maintenance mode ready",
+      "freeSpace": "Sufficient free disk space"
+    },
+    "details": {
+      "mediaReady": "Media is present for restored records.",
+      "mediaMissing": "Database restore will not restore the actual media files.",
+      "versionReady": "Target version has been confirmed compatible.",
+      "versionBlocked": "Confirm version compatibility before restore.",
+      "maintenanceReady": "Writes can be paused during restore.",
+      "maintenanceBlocked": "Prepare maintenance mode before restore.",
+      "freeSpace": "{value} GB available. At least 15 GB is required."
+    }
+  },
+  "messages": {
+    "exportRecorded": "Backup activity updated",
+    "exportCommandCopied": "Export command copied",
+    "exportCommandCopiedDetail": "The logical database export command was copied and recorded in Backups status.",
+    "restoreCommandCopied": "Restore command copied",
+    "restoreCommandCopiedDetail": "The logical database restore command was copied and recorded in Backups status.",
+    "clipboardUnavailable": "Clipboard access is not available in this browser context."
+  }
+}

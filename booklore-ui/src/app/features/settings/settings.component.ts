@@ -21,6 +21,7 @@ import {EmailV2Component} from './email-v2/email-v2.component';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {AiSettingsComponent} from './ai-settings/ai-settings.component';
 import {Button} from 'primeng/button';
+import {BackupsComponent} from './backups/backups.component';
 
 export enum SettingsTab {
   ReaderSettings = 'reader',
@@ -32,6 +33,7 @@ export enum SettingsTab {
   MetadataSettings = 'metadata',
   LibraryMetadataSettings = 'metadata-library',
   ApplicationSettings = 'application',
+  Backups = 'backups',
   AuthenticationSettings = 'authentication',
   OpdsV2 = 'opds',
   Tasks = 'task',
@@ -49,6 +51,7 @@ export enum SettingsTab {
     TabPanel,
     AsyncPipe,
     GlobalPreferencesComponent,
+    BackupsComponent,
     UserManagementComponent,
     AuthenticationSettingsComponent,
     ViewPreferencesParentComponent,

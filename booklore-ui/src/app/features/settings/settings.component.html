@@ -32,6 +32,13 @@
               <p-tab [value]="SettingsTab.ApplicationSettings">
                 <i class="pi pi-cog"></i> {{ t('application') }}
               </p-tab>
+            }
+            @if (userState.user.permissions.admin || userState.user.permissions.canManageGlobalPreferences || userState.user.permissions.canManageMetadataConfig) {
+              <p-tab [value]="SettingsTab.Backups">
+                <i class="pi pi-save"></i> {{ t('backups') }}
+              </p-tab>
+            }
+            @if (userState.user.permissions.admin || userState.user.permissions.canManageGlobalPreferences) {
               <p-tab [value]="SettingsTab.AiSettings">
                 <i class="pi pi-sparkles"></i> {{ t('ai') }}
               </p-tab>
@@ -100,6 +107,15 @@
                   <app-global-preferences></app-global-preferences>
                 </ng-template>
               </p-tabpanel>
+            }
+            @if (userState.user.permissions.admin || userState.user.permissions.canManageGlobalPreferences || userState.user.permissions.canManageMetadataConfig) {
+              <p-tabpanel [value]="SettingsTab.Backups">
+                <ng-template #content>
+                  <app-backups></app-backups>
+                </ng-template>
+              </p-tabpanel>
+            }
+            @if (userState.user.permissions.admin || userState.user.permissions.canManageGlobalPreferences) {
               <p-tabpanel [value]="SettingsTab.AiSettings">
                 <ng-template #content>
                   <app-ai-settings></app-ai-settings>

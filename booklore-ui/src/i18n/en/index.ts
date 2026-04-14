@@ -10,6 +10,7 @@ import settingsView from './settings-view.json';
 import settingsMeta from './settings-metadata.json';
 import settingsLibMeta from './settings-library-metadata.json';
 import settingsApp from './settings-application.json';
+import settingsBackups from './settings-backups.json';
 import settingsAi from './settings-ai.json';
 import settingsUsers from './settings-users.json';
 import settingsNaming from './settings-naming.json';
@@ -39,5 +40,5 @@ import authorBrowser from './author-browser.json';
 
 // To add a new domain: create the JSON file and add it here.
 // Settings tabs each get their own file: settings-email, settings-reader, settings-view, etc.
-const translations: Translation = {common, auth, nav, dashboard, settings, settingsEmail, settingsReader, settingsView, settingsMeta, settingsLibMeta, settingsApp, settingsAi, settingsUsers, settingsNaming, settingsOpds, settingsTasks, settingsAuditLogs, settingsAuth, settingsDevice, settingsProfile, app, shared, layout, libraryCreator, bookdrop, metadata, notebook, book, readerAudiobook, readerCbx, readerEbook, readerPdf, statsLibrary, statsUser, magicShelf, seriesBrowser, authorBrowser};
+const translations: Translation = {common, auth, nav, dashboard, settings, settingsEmail, settingsReader, settingsView, settingsMeta, settingsLibMeta, settingsApp, settingsBackups, settingsAi, settingsUsers, settingsNaming, settingsOpds, settingsTasks, settingsAuditLogs, settingsAuth, settingsDevice, settingsProfile, app, shared, layout, libraryCreator, bookdrop, metadata, notebook, book, readerAudiobook, readerCbx, readerEbook, readerPdf, statsLibrary, statsUser, magicShelf, seriesBrowser, authorBrowser};
 export default translations;
