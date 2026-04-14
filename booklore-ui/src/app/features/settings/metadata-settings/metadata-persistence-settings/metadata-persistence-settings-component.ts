@@ -1,25 +1,19 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {ToggleSwitch} from 'primeng/toggleswitch';
-import {Select} from 'primeng/select';
 import {FormsModule} from '@angular/forms';
 import {AppSettingKey, AppSettings, MetadataPersistenceSettings, SaveToOriginalFileSettings, SidecarSettings} from '../../../../shared/model/app-settings.model';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 import {SettingsHelperService} from '../../../../shared/service/settings-helper.service';
-import {filter, finalize, take} from 'rxjs/operators';
+import {filter, take} from 'rxjs/operators';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {TaskService, TaskType} from '../../../settings/task-management/task.service';
 import {Button} from 'primeng/button';
-import {LibraryService} from '../../../book/service/library.service';
-import {Library} from '../../../book/model/library.model';
-import {SidecarService} from '../../../metadata/service/sidecar.service';
-import {SidecarBackupProgressService} from '../../../../shared/service/sidecar-backup-progress.service';
 
 @Component({
   selector: 'app-metadata-persistence-settings-component',
   imports: [
     ToggleSwitch,
-    Select,
     FormsModule,
     Tooltip,
     TranslocoDirective,
@@ -61,23 +55,16 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
 
   isNetworkStorage = false;
   isFlushRunning = false;
-  isLibraryBackupRunning = false;
-  libraries: Library[] = [];
-  selectedBackupLibraryId: number | null = null;
 
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly settingsHelper = inject(SettingsHelperService);
   private readonly taskService = inject(TaskService);
-  private readonly libraryService = inject(LibraryService);
-  private readonly sidecarService = inject(SidecarService);
-  private readonly sidecarBackupProgressService = inject(SidecarBackupProgressService);
   private t = inject(TranslocoService);
 
   private readonly appSettings$ = this.appSettingsService.appSettings$;
 
   ngOnInit(): void {
     this.loadSettings();
-    this.loadLibraries();
   }
 
   onPersistenceToggle(key: keyof MetadataPersistenceSettings): void {
@@ -113,23 +100,6 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
       error: (error) => {
         console.error('Failed to load settings:', error);
         this.settingsHelper.showMessage('error', this.t.translate('common.error'), this.t.translate('settingsMeta.persistence.loadError'));
-      }
-    });
-  }
-
-  private loadLibraries(): void {
-    this.libraryService.libraryState$.pipe(
-      filter(state => state.loaded),
-      take(1)
-    ).subscribe({
-      next: (state) => {
-        this.libraries = state.libraries ?? [];
-        if (this.selectedBackupLibraryId === null && this.libraries.length > 0) {
-          this.selectedBackupLibraryId = this.libraries[0].id ?? null;
-        }
-      },
-      error: (error) => {
-        console.error('Failed to load libraries for sidecar backup:', error);
       }
     });
   }
@@ -186,57 +156,6 @@ export class MetadataPersistenceSettingsComponent implements OnInit {
         this.settingsHelper.showMessage('error',
           this.t.translate('common.error'),
           this.t.translate('settingsMeta.persistence.flushError'));
-      }
-    });
-  }
-
-  backupLibrarySidecars(): void {
-    if (this.selectedBackupLibraryId === null || this.isLibraryBackupRunning) {
-      return;
-    }
-
-    this.isLibraryBackupRunning = true;
-    this.sidecarBackupProgressService.start();
-
-    this.sidecarService.backupLibrarySidecars(this.selectedBackupLibraryId).pipe(
-      finalize(() => {
-        this.isLibraryBackupRunning = false;
-        this.sidecarBackupProgressService.clear();
-      })
-    ).subscribe({
-      next: (response) => {
-        if (response.failed > 0) {
-          this.settingsHelper.showMessage(
-            'error',
-            this.t.translate('common.error'),
-            this.t.translate(
-              response.exported > 0
-                ? 'settingsMeta.persistence.sidecarBackupPartial'
-                : 'settingsMeta.persistence.sidecarBackupFailureDetail',
-              {
-                count: response.exported,
-                attempted: response.attempted,
-                failed: response.failed,
-                error: response.firstError || this.t.translate('settingsMeta.persistence.sidecarBackupUnknownError')
-              }
-            )
-          );
-          return;
-        }
-
-        this.settingsHelper.showMessage(
-          'success',
-          this.t.translate('common.success'),
-          this.t.translate('settingsMeta.persistence.sidecarBackupSuccess', {count: response.exported})
-        );
-      },
-      error: (error) => {
-        console.error('Failed to back up sidecars for library:', error);
-        this.settingsHelper.showMessage(
-          'error',
-          this.t.translate('common.error'),
-          this.t.translate('settingsMeta.persistence.sidecarBackupError')
-        );
       }
     });
   }
