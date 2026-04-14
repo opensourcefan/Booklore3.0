@@ -4,6 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {of, Subject} from 'rxjs';
 import {catchError, map, shareReplay, startWith, takeUntil} from 'rxjs/operators';
 import {CdkDragDrop, DragDropModule, moveItemInArray} from '@angular/cdk/drag-drop';
+import {RouterLink} from '@angular/router';
 import {Select} from 'primeng/select';
 import {Button} from 'primeng/button';
 import {LanguageChartComponent} from './charts/language-chart/language-chart.component';
@@ -18,6 +19,7 @@ import {ReadingJourneyChartComponent} from './charts/reading-journey-chart/readi
 import {LibrariesSummaryService} from './service/libraries-summary.service';
 import {LibraryFilterService, LibraryOption} from './service/library-filter.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {AiPanelFlowBookHighlight, AiPanelFlowStats} from '../../../../shared/model/app-settings.model';
 
 interface ChartConfig {
   id: string;
@@ -34,6 +36,7 @@ interface ChartConfig {
     FormsModule,
     Select,
     DragDropModule,
+    RouterLink,
     Button,
     BookFormatsChartComponent,
     LanguageChartComponent,
@@ -78,11 +81,38 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
   public readonly totalPublishers$ = this.booksSummary$.pipe(map(summary => summary.totalPublishers));
   public readonly totalSize$ = this.librariesSummaryService.getFormattedSize().pipe(catchError(() => of('0 KB')));
   public readonly aiPanelFlowStats$ = this.librariesSummaryService.getAiPanelFlowStats().pipe(
-    catchError(() => of({scannedComicCount: 0, storedBytes: 0})),
+    catchError(() => of(this.createEmptyAiPanelFlowStats())),
     shareReplay(1)
   );
   public readonly totalAiScannedComics$ = this.aiPanelFlowStats$.pipe(map(stats => stats.scannedComicCount));
   public readonly totalAiStorage$ = this.librariesSummaryService.getFormattedAiStorage().pipe(catchError(() => of('0 B')));
+
+  public hasAiPanelFlowData(stats: AiPanelFlowStats | null | undefined): boolean {
+    return !!stats && stats.scannedComicCount > 0;
+  }
+
+  public getBookReturnQueryParams(): {tab: string; returnTo: string} {
+    return {tab: 'view', returnTo: '/library-stats'};
+  }
+
+  public getAiLeaderSubtitleKey(kind: 'pages' | 'panels' | 'density'): string {
+    switch (kind) {
+      case 'pages':
+        return 'aiPanelStats.leaderPagesSubtitle';
+      case 'panels':
+        return 'aiPanelStats.leaderPanelsSubtitle';
+      default:
+        return 'aiPanelStats.leaderDensitySubtitle';
+    }
+  }
+
+  public getAiLeaderSubtitleParams(leader: AiPanelFlowBookHighlight): Record<string, number> {
+    return {
+      pages: leader.pageCount,
+      panels: leader.panelCount,
+      ratio: leader.panelsPerPage
+    };
+  }
 
   ngOnInit(): void {
     this.loadLibraryOptions();
@@ -198,5 +228,17 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
       {id: 'authorUniverse', name: this.t.translate('statsLibrary.chartNames.authorUniverse'), enabled: true, category: 'large'},
       {id: 'publicationTrend', name: this.t.translate('statsLibrary.chartNames.publicationTrend'), enabled: true, category: 'xlarge'}
     ];
+  }
+
+  private createEmptyAiPanelFlowStats(): AiPanelFlowStats {
+    return {
+      scannedComicCount: 0,
+      totalPagesScanned: 0,
+      totalPanelsMapped: 0,
+      storedBytes: 0,
+      comicWithMostPagesScanned: null,
+      comicWithMostPanelsMapped: null,
+      comicWithHighestPanelsPerPage: null
+    };
   }
 }

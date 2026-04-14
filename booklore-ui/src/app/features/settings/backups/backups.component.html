@@ -364,7 +364,7 @@
                         </label>
                         <label>
                           <span>{{ t('settingsBackups.databaseRestore.freeSpace') }}</span>
-                          <input [(ngModel)]="availableSpaceGb" type="number" min="0" placeholder="15">
+                          <input [ngModel]="availableSpaceGb ?? ''" (ngModelChange)="onAvailableSpaceChange($event)" type="number" min="0" placeholder="15">
                         </label>
                       </div>
 

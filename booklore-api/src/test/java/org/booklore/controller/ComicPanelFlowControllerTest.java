@@ -115,6 +115,8 @@ class ComicPanelFlowControllerTest {
     void passesOptionalLibraryIdToStatsQuery() {
         AiPanelFlowStatsResponse stats = AiPanelFlowStatsResponse.builder()
                 .scannedComicCount(5)
+            .totalPagesScanned(240)
+            .totalPanelsMapped(1360)
                 .storedBytes(2048)
                 .build();
 

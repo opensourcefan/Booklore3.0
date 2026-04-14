@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.model.dto.ai.AiBulkScanResponse;
+import org.booklore.model.dto.ai.AiPanelFlowBookHighlightResponse;
 import org.booklore.model.dto.ai.AiPanelFlowStatsResponse;
 import org.booklore.model.dto.ai.AiPanelScanProgressPayload;
 import org.booklore.model.dto.BookLoreUser;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -41,6 +44,7 @@ public class ComicPanelFlowService {
     private final AiPanelDetectionService aiPanelDetectionService;
     private final PlatformTransactionManager transactionManager;
     private final NotificationService notificationService;
+    private final ObjectMapper objectMapper;
 
     private volatile boolean stopRequested = false;
 
@@ -105,9 +109,49 @@ public class ComicPanelFlowService {
         ComicPanelFlowRepository.AiPanelFlowStatsProjection stats = libraryId == null
                 ? comicPanelFlowRepository.findStatsByUserId(userId)
                 : comicPanelFlowRepository.findStatsByUserIdAndLibraryId(userId, libraryId);
+
+        List<ComicPanelFlowEntity> detailedStats = libraryId == null
+                ? comicPanelFlowRepository.findAllByUserId(userId)
+                : comicPanelFlowRepository.findAllByUserIdAndBookLibraryId(userId, libraryId);
+
+        long totalPagesScanned = 0;
+        long totalPanelsMapped = 0;
+        AiPanelFlowBookHighlightResponse mostPagesScanned = null;
+        AiPanelFlowBookHighlightResponse mostPanelsMapped = null;
+        AiPanelFlowBookHighlightResponse highestPanelsPerPage = null;
+
+        for (ComicPanelFlowEntity flow : detailedStats) {
+            FlowCounts counts = summarizePanelFlow(flow.getFlowData());
+            totalPagesScanned += counts.pageCount();
+            totalPanelsMapped += counts.panelCount();
+
+            AiPanelFlowBookHighlightResponse candidate = AiPanelFlowBookHighlightResponse.builder()
+                    .bookId(flow.getBookId())
+                    .title(getBookTitle(flow.getBook()))
+                    .pageCount(counts.pageCount())
+                    .panelCount(counts.panelCount())
+                    .panelsPerPage(counts.panelsPerPage())
+                    .build();
+
+            if (isBetterPageLeader(candidate, mostPagesScanned)) {
+                mostPagesScanned = candidate;
+            }
+            if (isBetterPanelLeader(candidate, mostPanelsMapped)) {
+                mostPanelsMapped = candidate;
+            }
+            if (isBetterDensityLeader(candidate, highestPanelsPerPage)) {
+                highestPanelsPerPage = candidate;
+            }
+        }
+
         return AiPanelFlowStatsResponse.builder()
                 .scannedComicCount(stats != null ? stats.getScannedComicCount() : 0)
+                .totalPagesScanned(totalPagesScanned)
+                .totalPanelsMapped(totalPanelsMapped)
                 .storedBytes(stats != null && stats.getStoredBytes() != null ? stats.getStoredBytes() : 0)
+                .comicWithMostPagesScanned(mostPagesScanned)
+                .comicWithMostPanelsMapped(mostPanelsMapped)
+                .comicWithHighestPanelsPerPage(highestPanelsPerPage)
                 .build();
     }
 
@@ -370,6 +414,86 @@ public class ComicPanelFlowService {
             return book.getPrimaryBookFile().getFileName();
         }
         return "Unknown Comic";
+    }
+
+    private FlowCounts summarizePanelFlow(String flowData) {
+        if (flowData == null || flowData.isBlank()) {
+            return FlowCounts.EMPTY;
+        }
+
+        try {
+            JsonNode pages = objectMapper.readTree(flowData).path("pages");
+            if (!pages.isArray()) {
+                return FlowCounts.EMPTY;
+            }
+
+            long pageCount = 0;
+            long panelCount = 0;
+            for (JsonNode page : pages) {
+                pageCount++;
+                JsonNode panels = page.path("panels");
+                if (panels.isArray()) {
+                    panelCount += panels.size();
+                }
+            }
+
+            return new FlowCounts(pageCount, panelCount);
+        } catch (Exception ex) {
+            log.warn("Failed to parse AI panel-flow stats payload", ex);
+            return FlowCounts.EMPTY;
+        }
+    }
+
+    private boolean isBetterPageLeader(AiPanelFlowBookHighlightResponse candidate, AiPanelFlowBookHighlightResponse current) {
+        if (current == null) {
+            return true;
+        }
+        if (candidate.getPageCount() != current.getPageCount()) {
+            return candidate.getPageCount() > current.getPageCount();
+        }
+        if (candidate.getPanelCount() != current.getPanelCount()) {
+            return candidate.getPanelCount() > current.getPanelCount();
+        }
+        return candidate.getTitle().compareToIgnoreCase(current.getTitle()) < 0;
+    }
+
+    private boolean isBetterPanelLeader(AiPanelFlowBookHighlightResponse candidate, AiPanelFlowBookHighlightResponse current) {
+        if (current == null) {
+            return true;
+        }
+        if (candidate.getPanelCount() != current.getPanelCount()) {
+            return candidate.getPanelCount() > current.getPanelCount();
+        }
+        if (candidate.getPageCount() != current.getPageCount()) {
+            return candidate.getPageCount() > current.getPageCount();
+        }
+        return candidate.getTitle().compareToIgnoreCase(current.getTitle()) < 0;
+    }
+
+    private boolean isBetterDensityLeader(AiPanelFlowBookHighlightResponse candidate, AiPanelFlowBookHighlightResponse current) {
+        if (candidate.getPageCount() <= 0) {
+            return false;
+        }
+        if (current == null) {
+            return true;
+        }
+
+        int densityComparison = Double.compare(candidate.getPanelsPerPage(), current.getPanelsPerPage());
+        if (densityComparison != 0) {
+            return densityComparison > 0;
+        }
+        if (candidate.getPanelCount() != current.getPanelCount()) {
+            return candidate.getPanelCount() > current.getPanelCount();
+        }
+        return candidate.getTitle().compareToIgnoreCase(current.getTitle()) < 0;
+    }
+
+    private record FlowCounts(long pageCount, long panelCount) {
+        private static final FlowCounts EMPTY = new FlowCounts(0, 0);
+
+        private double panelsPerPage() {
+            return pageCount > 0 ? (double) panelCount / pageCount : 0;
+        }
     }
 
     private class SingleBookProgressListener implements AiPanelDetectionService.AiPanelDetectionProgressListener {

@@ -2,6 +2,7 @@ package org.booklore.service.ai;
 
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.model.dto.BookLoreUser;
+import org.booklore.model.dto.ai.AiPanelFlowBookHighlightResponse;
 import org.booklore.model.dto.ai.AiPanelFlowStatsResponse;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookMetadataEntity;
@@ -18,7 +19,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,7 +70,8 @@ class ComicPanelFlowServiceTest {
                 authenticationService,
                 aiPanelDetectionService,
                 transactionManager,
-                notificationService
+                notificationService,
+                new ObjectMapper()
         );
     }
 
@@ -123,12 +127,53 @@ class ComicPanelFlowServiceTest {
 
         when(authenticationService.getAuthenticatedUser()).thenReturn(currentUser);
         when(comicPanelFlowRepository.findStatsByUserId(7L)).thenReturn(stats);
+        when(comicPanelFlowRepository.findAllByUserId(7L)).thenReturn(List.of(
+            ComicPanelFlowEntity.builder()
+                .bookId(101L)
+                .book(BookEntity.builder()
+                    .id(101L)
+                    .metadata(BookMetadataEntity.builder().bookId(101L).title("Long Runner").build())
+                    .build())
+                .flowData("""
+                    {"pages":[
+                      {"pageNumber":1,"panels":[{"x":0.1},{"x":0.2}]},
+                      {"pageNumber":2,"panels":[{"x":0.1}]},
+                      {"pageNumber":3,"panels":[{"x":0.1},{"x":0.2},{"x":0.3}]}
+                    ]}
+                    """)
+                .build(),
+            ComicPanelFlowEntity.builder()
+                .bookId(202L)
+                .book(BookEntity.builder()
+                    .id(202L)
+                    .metadata(BookMetadataEntity.builder().bookId(202L).title("Dense Layout").build())
+                    .build())
+                .flowData("""
+                    {"pages":[
+                      {"pageNumber":1,"panels":[{"x":0.1},{"x":0.2},{"x":0.3},{"x":0.4}]},
+                      {"pageNumber":2,"panels":[{"x":0.1},{"x":0.2},{"x":0.3},{"x":0.4},{"x":0.5}]}
+                    ]}
+                    """)
+                .build()
+        ));
 
         AiPanelFlowStatsResponse result = service.getPanelFlowStatsForCurrentUser();
 
         assertThat(result.getScannedComicCount()).isEqualTo(12);
+        assertThat(result.getTotalPagesScanned()).isEqualTo(5);
+        assertThat(result.getTotalPanelsMapped()).isEqualTo(15);
         assertThat(result.getStoredBytes()).isEqualTo(4096L);
+        assertThat(result.getComicWithMostPagesScanned())
+            .extracting(AiPanelFlowBookHighlightResponse::getBookId, AiPanelFlowBookHighlightResponse::getPageCount)
+            .containsExactly(101L, 3L);
+        assertThat(result.getComicWithMostPanelsMapped())
+            .extracting(AiPanelFlowBookHighlightResponse::getBookId, AiPanelFlowBookHighlightResponse::getPanelCount)
+            .containsExactly(202L, 9L);
+        assertThat(result.getComicWithHighestPanelsPerPage())
+            .extracting(AiPanelFlowBookHighlightResponse::getBookId, AiPanelFlowBookHighlightResponse::getPanelsPerPage)
+            .containsExactly(202L, 4.5d);
         verify(comicPanelFlowRepository).findStatsByUserId(7L);
+        verify(comicPanelFlowRepository).findAllByUserId(7L);
     }
 
     @Test
@@ -152,11 +197,28 @@ class ComicPanelFlowServiceTest {
 
         when(authenticationService.getAuthenticatedUser()).thenReturn(currentUser);
         when(comicPanelFlowRepository.findStatsByUserIdAndLibraryId(7L, 99L)).thenReturn(stats);
+        when(comicPanelFlowRepository.findAllByUserIdAndBookLibraryId(7L, 99L)).thenReturn(List.of(
+            ComicPanelFlowEntity.builder()
+                .bookId(303L)
+                .book(BookEntity.builder()
+                    .id(303L)
+                    .metadata(BookMetadataEntity.builder().bookId(303L).title("Library Filtered Comic").build())
+                    .build())
+                .flowData("""
+                    {"pages":[
+                      {"pageNumber":1,"panels":[{"x":0.1},{"x":0.2}]}
+                    ]}
+                    """)
+                .build()
+        ));
 
         AiPanelFlowStatsResponse result = service.getPanelFlowStatsForCurrentUser(99L);
 
         assertThat(result.getScannedComicCount()).isEqualTo(3);
+        assertThat(result.getTotalPagesScanned()).isEqualTo(1);
+        assertThat(result.getTotalPanelsMapped()).isEqualTo(2);
         assertThat(result.getStoredBytes()).isEqualTo(1024L);
         verify(comicPanelFlowRepository).findStatsByUserIdAndLibraryId(7L, 99L);
+        verify(comicPanelFlowRepository).findAllByUserIdAndBookLibraryId(7L, 99L);
     }
 }

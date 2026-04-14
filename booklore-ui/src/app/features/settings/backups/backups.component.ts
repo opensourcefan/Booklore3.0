@@ -142,6 +142,16 @@ export class BackupsComponent implements OnInit {
     return `docker exec -i mariadb mariadb -u booklore -p booklore < "${this.restoreSqlPath}"`;
   }
 
+  onAvailableSpaceChange(value: string | number | null): void {
+    if (value === null || value === '') {
+      this.availableSpaceGb = null;
+      return;
+    }
+
+    const parsedValue = typeof value === 'number' ? value : Number(value);
+    this.availableSpaceGb = Number.isFinite(parsedValue) ? parsedValue : null;
+  }
+
   regenerateBackupFileName(): void {
     this.backupFileName = this.buildDefaultBackupFileName();
   }

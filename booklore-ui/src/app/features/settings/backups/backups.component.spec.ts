@@ -191,6 +191,14 @@ describe('BackupsComponent', () => {
     );
   });
 
+  it('keeps available free space empty until a real number is entered', () => {
+    component.onAvailableSpaceChange('');
+    expect(component.availableSpaceGb).toBeNull();
+
+    component.onAvailableSpaceChange('16');
+    expect(component.availableSpaceGb).toBe(16);
+  });
+
   it('copies the restore command only after a successful pre-flight', async () => {
     component.restoreSqlPath = '/tmp/booklore_backup.sql';
     component.restoreAppDataPath = '/srv/booklore/data';

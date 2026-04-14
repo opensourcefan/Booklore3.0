@@ -266,7 +266,20 @@ export interface AiServiceStatus {
   modelPath: string | null;
 }
 
+export interface AiPanelFlowBookHighlight {
+  bookId: number;
+  title: string;
+  pageCount: number;
+  panelCount: number;
+  panelsPerPage: number;
+}
+
 export interface AiPanelFlowStats {
   scannedComicCount: number;
+  totalPagesScanned: number;
+  totalPanelsMapped: number;
   storedBytes: number;
+  comicWithMostPagesScanned: AiPanelFlowBookHighlight | null;
+  comicWithMostPanelsMapped: AiPanelFlowBookHighlight | null;
+  comicWithHighestPanelsPerPage: AiPanelFlowBookHighlight | null;
 }

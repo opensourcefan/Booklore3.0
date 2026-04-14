@@ -81,7 +81,7 @@ export class LibrariesSummaryService {
 
   getAiPanelFlowStats(): Observable<AiPanelFlowStats> {
     return this.aiPanelFlowStats$.pipe(
-      map(stats => stats ?? {scannedComicCount: 0, storedBytes: 0})
+      map(stats => stats ?? this.createEmptyAiPanelFlowStats())
     );
   }
 
@@ -89,6 +89,18 @@ export class LibrariesSummaryService {
     return this.aiPanelFlowStats$.pipe(
       map(stats => this.formatBytes(stats?.storedBytes ?? 0))
     );
+  }
+
+  private createEmptyAiPanelFlowStats(): AiPanelFlowStats {
+    return {
+      scannedComicCount: 0,
+      totalPagesScanned: 0,
+      totalPanelsMapped: 0,
+      storedBytes: 0,
+      comicWithMostPagesScanned: null,
+      comicWithMostPanelsMapped: null,
+      comicWithHighestPanelsPerPage: null
+    };
   }
 
   private formatSizeKb(kb: number): string {

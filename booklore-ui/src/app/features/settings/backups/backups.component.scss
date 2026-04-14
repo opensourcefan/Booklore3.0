@@ -166,21 +166,21 @@
 }
 
 .status-chip.done {
-  color: var(--green-400);
-  border-color: color-mix(in srgb, var(--green-400) 35%, transparent);
-  background: color-mix(in srgb, var(--green-400) 12%, transparent);
+  color: #86efac !important;
+  border-color: rgba(34, 197, 94, 0.45) !important;
+  background: rgba(34, 197, 94, 0.14) !important;
 }
 
 .status-chip.partial {
-  color: #c4b5fd;
-  border-color: color-mix(in srgb, #8b5cf6 45%, transparent);
-  background: color-mix(in srgb, #8b5cf6 14%, transparent);
+  color: #d8b4fe !important;
+  border-color: rgba(168, 85, 247, 0.45) !important;
+  background: rgba(168, 85, 247, 0.14) !important;
 }
 
 .status-chip.fail {
-  color: var(--red-300);
-  border-color: color-mix(in srgb, var(--red-300) 35%, transparent);
-  background: color-mix(in srgb, var(--red-300) 12%, transparent);
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.45) !important;
+  background: rgba(239, 68, 68, 0.14) !important;
 }
 
 .action-row {
