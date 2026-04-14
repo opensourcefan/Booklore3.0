@@ -5,7 +5,7 @@ import {of} from 'rxjs';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {PageTitleService} from '../../shared/service/page-title.service';
 import {UserService} from './user-management/user.service';
-import {SettingsComponent} from './settings.component';
+import {SettingsComponent, SettingsTab} from './settings.component';
 
 describe('SettingsComponent', () => {
   const routerNavigate = vi.fn(() => Promise.resolve(true));
@@ -88,5 +88,38 @@ describe('SettingsComponent', () => {
 
     expect(routerNavigateByUrl).not.toHaveBeenCalled();
     expect(routerNavigate).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  it('accepts the backups tab from query params', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: UserService,
+          useValue: {
+            userState$: of({
+              loaded: true,
+              user: {
+                permissions: {
+                  admin: true,
+                  canManageMetadataConfig: true,
+                  canManageGlobalPreferences: true,
+                  canAccessTaskManager: true,
+                },
+              },
+            }),
+          },
+        },
+        { provide: ActivatedRoute, useValue: { queryParams: of({ tab: 'backups' }) } },
+        { provide: Router, useValue: { navigate: routerNavigate, navigateByUrl: routerNavigateByUrl, url: '/settings?tab=backups' } },
+        { provide: PageTitleService, useValue: { setPageTitle: vi.fn() } },
+        { provide: Location, useValue: { back: vi.fn() } },
+      ],
+    });
+    const component = createComponent();
+
+    component.ngOnInit();
+
+    expect(component.activeTab).toBe(SettingsTab.Backups);
   });
 });
