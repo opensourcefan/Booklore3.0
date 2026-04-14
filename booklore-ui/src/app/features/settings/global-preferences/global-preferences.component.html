@@ -14,53 +14,6 @@
     <div class="preferences-section">
       <div class="section-header">
         <h3 class="section-title">
-          <i class="pi pi-download"></i>
-          {{ t('transfer.sectionTitle') }}
-        </h3>
-      </div>
-
-      <div class="settings-card">
-        <div class="setting-item">
-          <div class="setting-info">
-            <div class="setting-label-row">
-              <span class="setting-label">{{ t('transfer.title') }}</span>
-              <div class="input-group">
-                <p-button
-                  [label]="t('transfer.exportBtn')"
-                  icon="pi pi-download"
-                  outlined
-                  severity="info"
-                  (onClick)="exportSettings()">
-                </p-button>
-
-                <p-button
-                  [label]="t('transfer.importBtn')"
-                  icon="pi pi-upload"
-                  outlined
-                  severity="contrast"
-                  (onClick)="settingsImportInput.click()">
-                </p-button>
-
-                <input
-                  #settingsImportInput
-                  class="visually-hidden"
-                  type="file"
-                  accept="application/json,.json"
-                  (change)="onImportFileSelected($event)">
-              </div>
-            </div>
-            <p class="setting-description">
-              <i class="pi pi-info-circle"></i>
-              {{ t('transfer.description') }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="preferences-section">
-      <div class="section-header">
-        <h3 class="section-title">
           <i class="pi pi-image"></i>
           {{ t('covers.sectionTitle') }}
         </h3>
