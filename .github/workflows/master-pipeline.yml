@@ -230,7 +230,7 @@ jobs:
             patch) patch=$((patch+1)) ;;
           esac
 
-          next_version="${major}.${minor}.${patch}"
+          next_version="v${major}.${minor}.${patch}"
           echo "Version bump type: $bump"
           echo "Next version: $next_version"
 

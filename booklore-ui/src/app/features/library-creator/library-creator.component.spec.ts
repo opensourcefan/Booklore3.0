@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {of} from 'rxjs';
+import {of, Subject} from 'rxjs';
 import {LibraryCreatorComponent} from './library-creator.component';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MessageService} from 'primeng/api';
@@ -26,7 +26,8 @@ describe('LibraryCreatorComponent', () => {
     getBookCountsByFormat: ReturnType<typeof vi.fn>;
   };
   let messageServiceMock: { add: ReturnType<typeof vi.fn> };
-  let dialogRefMock: { close: ReturnType<typeof vi.fn> };
+  let dialogClose$: Subject<void>;
+  let dialogRefMock: { close: ReturnType<typeof vi.fn>; onClose: Subject<void> };
   let dialogLauncherMock: {
     openDirectoryPickerDialog: ReturnType<typeof vi.fn>;
     openLibrarySettingsDialog: ReturnType<typeof vi.fn>;
@@ -49,7 +50,11 @@ describe('LibraryCreatorComponent', () => {
       getBookCountsByFormat: vi.fn().mockReturnValue(of({}))
     };
     messageServiceMock = {add: vi.fn()};
-    dialogRefMock = {close: vi.fn()};
+    dialogClose$ = new Subject<void>();
+    dialogRefMock = {
+      close: vi.fn(() => dialogClose$.next()),
+      onClose: dialogClose$
+    };
     dialogLauncherMock = {
       openDirectoryPickerDialog: vi.fn(),
       openLibrarySettingsDialog: vi.fn(),
@@ -195,9 +200,6 @@ describe('LibraryCreatorComponent', () => {
     component.openLibrarySettingsView();
 
     expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
-    expect(dialogLauncherMock.openLibrarySettingsDialog).not.toHaveBeenCalled();
-
-    vi.runAllTimers();
 
     expect(dialogLauncherMock.openLibrarySettingsDialog).toHaveBeenCalledWith(5);
   });
@@ -208,9 +210,6 @@ describe('LibraryCreatorComponent', () => {
     component.openLibraryDirectoriesView();
 
     expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
-    expect(dialogLauncherMock.openLibraryDirectoriesDialog).not.toHaveBeenCalled();
-
-    vi.runAllTimers();
 
     expect(dialogLauncherMock.openLibraryDirectoriesDialog).toHaveBeenCalledWith(5);
   });
@@ -219,9 +218,6 @@ describe('LibraryCreatorComponent', () => {
     component.openLibraryMaintenanceView();
 
     expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
-    expect(dialogLauncherMock.openLibraryMaintenanceDialog).not.toHaveBeenCalled();
-
-    vi.runAllTimers();
 
     expect(dialogLauncherMock.openLibraryMaintenanceDialog).toHaveBeenCalledWith(5);
   });

@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {of} from 'rxjs';
+import {of, Subject} from 'rxjs';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {LibraryMaintenanceDialogComponent} from './library-maintenance-dialog.component';
@@ -23,7 +23,8 @@ describe('LibraryMaintenanceDialogComponent', () => {
     bulkImport: ReturnType<typeof vi.fn>;
   };
   let messageServiceMock: {add: ReturnType<typeof vi.fn>};
-  let dialogRefMock: {close: ReturnType<typeof vi.fn>};
+  let dialogClose$: Subject<void>;
+  let dialogRefMock: {close: ReturnType<typeof vi.fn>; onClose: Subject<void>};
   let dialogLauncherServiceMock: {
     openLibrarySettingsDialog: ReturnType<typeof vi.fn>;
     openLibraryDirectoriesDialog: ReturnType<typeof vi.fn>;
@@ -43,7 +44,11 @@ describe('LibraryMaintenanceDialogComponent', () => {
       bulkImport: vi.fn().mockReturnValue(of({message: 'ok', imported: 4}))
     };
     messageServiceMock = {add: vi.fn()};
-    dialogRefMock = {close: vi.fn()};
+    dialogClose$ = new Subject<void>();
+    dialogRefMock = {
+      close: vi.fn(() => dialogClose$.next()),
+      onClose: dialogClose$
+    };
     dialogLauncherServiceMock = {
       openLibrarySettingsDialog: vi.fn(),
       openLibraryDirectoriesDialog: vi.fn()
@@ -120,9 +125,6 @@ describe('LibraryMaintenanceDialogComponent', () => {
     component.openLibrarySettings();
 
     expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
-    expect(dialogLauncherServiceMock.openLibrarySettingsDialog).not.toHaveBeenCalled();
-
-    vi.runAllTimers();
 
     expect(dialogLauncherServiceMock.openLibrarySettingsDialog).toHaveBeenCalledWith(42);
   });
@@ -131,9 +133,6 @@ describe('LibraryMaintenanceDialogComponent', () => {
     component.openManageDirectories();
 
     expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
-    expect(dialogLauncherServiceMock.openLibraryDirectoriesDialog).not.toHaveBeenCalled();
-
-    vi.runAllTimers();
 
     expect(dialogLauncherServiceMock.openLibraryDirectoriesDialog).toHaveBeenCalledWith(42);
   });

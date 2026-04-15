@@ -9,6 +9,7 @@ import {LibraryService} from '../../service/library.service';
 import {SidecarService} from '../../../metadata/service/sidecar.service';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
+import {take} from 'rxjs';
 
 type MaintenanceAction = 'scanNewFiles' | 'reconcile' | 'sidecarExport' | 'sidecarBackup' | 'sidecarImport';
 
@@ -45,8 +46,8 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
   }
 
   private switchWorkflowDialog(openNext: () => void): void {
+    this.dialogRef.onClose.pipe(take(1)).subscribe(() => openNext());
     this.closeDialog();
-    window.setTimeout(() => openNext(), 0);
   }
 
   confirmScanNewFiles(): void {

@@ -14,7 +14,7 @@ import {Button} from 'primeng/button';
 import {IconDisplayComponent} from '../../shared/components/icon-display/icon-display.component';
 import {DialogLauncherService} from '../../shared/services/dialog-launcher.service';
 import {switchMap} from 'rxjs/operators';
-import {map} from 'rxjs';
+import {map, take} from 'rxjs';
 import {CdkDragDrop, DragDropModule, moveItemInArray} from '@angular/cdk/drag-drop';
 import {Checkbox} from 'primeng/checkbox';
 import {Select} from 'primeng/select';
@@ -285,8 +285,8 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   private switchWorkflowDialog(openNext: () => void): void {
+    this.dynamicDialogRef.onClose.pipe(take(1)).subscribe(() => openNext());
     this.dynamicDialogRef.close();
-    window.setTimeout(() => openNext(), 0);
   }
 
   openLibrarySettingsView(): void {
