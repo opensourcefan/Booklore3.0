@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
 import {TableModule} from 'primeng/table';
 import {DatePipe, NgClass} from '@angular/common';
 import {Rating} from 'primeng/rating';
@@ -8,7 +8,6 @@ import {Book, BookMetadata, ReadStatus} from '../../../model/book.model';
 import {SortOption} from '../../../model/sort.model';
 import {UrlHelperService} from '../../../../../shared/service/url-helper.service';
 import {Button} from 'primeng/button';
-import {BookService} from '../../../service/book.service';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
 import {MessageService} from 'primeng/api';
 import {RouterLink} from '@angular/router';
@@ -48,7 +47,6 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
   @Input() forceFileNameTitle = false;
 
   protected urlHelper = inject(UrlHelperService);
-  private bookService = inject(BookService);
   private bookMetadataManageService = inject(BookMetadataManageService);
   private messageService = inject(MessageService);
   private userService = inject(UserService);
@@ -98,8 +96,7 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
         this.metadataCenterViewMode = userState?.user?.userSettings.metadataCenterViewMode ?? 'route';
       });
 
-    this.selectedBookIds = this.preselectedBookIds;
-    this.selectedBooks = this.bookService.getBooksByIdsFromState([...this.selectedBookIds]);
+    this.syncSelectionFromInputs();
     this.setScrollHeight();
     window.addEventListener('resize', this.onResize);
   }
@@ -111,36 +108,40 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
       : 'calc(100dvh - 150px)';
   }
 
-  ngOnChanges() {
+  ngOnChanges(changes: SimpleChanges): void {
     const wrapperElements: HTMLCollection = document.getElementsByClassName('p-virtualscroller');
     Array.prototype.forEach.call(wrapperElements, function (wrapperElement) {
       wrapperElement.style["height"] = 'calc(100dvh - 160px)';
     });
+
+    if (changes['books'] || changes['preselectedBookIds']) {
+      this.syncSelectionFromInputs();
+    }
   }
 
   selectAllBooks(): void {
     this.selectedBookIds = new Set(this.books.map(book => book.id));
     this.selectedBooks = [...this.books];
-    this.selectedBooksChange.emit(this.selectedBookIds);
+    this.selectedBooksChange.emit(new Set(this.selectedBookIds));
   }
 
   clearSelectedBooks(): void {
-    this.selectedBookIds.clear();
+    this.selectedBookIds = new Set();
     this.selectedBooks = [];
-    this.selectedBooksChange.emit(this.selectedBookIds);
+    this.selectedBooksChange.emit(new Set(this.selectedBookIds));
   }
 
   onRowSelect(event: { data?: Book | Book[] }): void {
     if (event.data && !Array.isArray(event.data)) {
       this.selectedBookIds.add(event.data.id);
-      this.selectedBooksChange.emit(this.selectedBookIds);
+      this.selectedBooksChange.emit(new Set(this.selectedBookIds));
     }
   }
 
   onRowUnselect(event: { data?: Book | Book[] }): void {
     if (event.data && !Array.isArray(event.data)) {
       this.selectedBookIds.delete(event.data.id);
-      this.selectedBooksChange.emit(this.selectedBookIds);
+      this.selectedBooksChange.emit(new Set(this.selectedBookIds));
     }
   }
 
@@ -149,9 +150,15 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
       this.selectedBooks = [...this.books];
       this.selectedBookIds = new Set(this.books.map(book => book.id));
     } else {
-      this.clearSelectedBooks();
+      this.selectedBookIds = new Set();
+      this.selectedBooks = [];
     }
-    this.selectedBooksChange.emit(this.selectedBookIds);
+    this.selectedBooksChange.emit(new Set(this.selectedBookIds));
+  }
+
+  private syncSelectionFromInputs(): void {
+    this.selectedBookIds = new Set(this.preselectedBookIds);
+    this.selectedBooks = this.books.filter(book => this.selectedBookIds.has(book.id));
   }
 
   getStarColor(rating: number): string {

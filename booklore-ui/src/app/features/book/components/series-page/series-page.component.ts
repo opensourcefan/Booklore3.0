@@ -593,21 +593,25 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
   }
 
   handleBookSelection(book: Book, selected: boolean) {
+    const nextSelection = new Set(this.selectedBooks);
+
     if (selected) {
       if (book.seriesBooks) {
-        this.selectedBooks = new Set([...this.selectedBooks, ...book.seriesBooks.map(book => book.id)]);
+        book.seriesBooks.forEach(seriesBook => nextSelection.add(seriesBook.id));
       } else {
-        this.selectedBooks.add(book.id);
+        nextSelection.add(book.id);
       }
     } else {
       if (book.seriesBooks) {
-        book.seriesBooks.forEach(book => {
-          this.selectedBooks.delete(book.id);
+        book.seriesBooks.forEach(seriesBook => {
+          nextSelection.delete(seriesBook.id);
         });
       } else {
-        this.selectedBooks.delete(book.id);
+        nextSelection.delete(book.id);
       }
     }
+
+    this.selectedBooks = nextSelection;
   }
 
   onCheckboxClicked(event: { index: number; book: Book; selected: boolean; shiftKey: boolean }) {
@@ -628,21 +632,14 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
   }
 
-  handleBookSelect(book: Book, selected: boolean): void {
-    this.handleBookSelection(book, selected);
-    this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
-  }
-
   selectAllBooks(): void {
     if (!this.currentBooks) return;
-    for (const book of this.currentBooks) {
-      this.selectedBooks.add(book.id);
-    }
+    this.selectedBooks = new Set(this.currentBooks.map(book => book.id));
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
   }
 
   deselectAllBooks(): void {
-    this.selectedBooks.clear();
+    this.selectedBooks = new Set();
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
   }
 
@@ -664,7 +661,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
         this.bookService.deleteBooks(this.selectedBooks, true)
           .subscribe(() => {
             this.writeProgressService.complete(`Deleted ${count} book${count === 1 ? '' : 's'}`);
-            this.selectedBooks.clear();
+            this.deselectAllBooks();
           });
       },
       reject: () => {
@@ -691,7 +688,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
         this.bookService.deleteBooks(this.selectedBooks, false)
           .subscribe(() => {
             this.writeProgressService.complete(`Removed ${count} book${count === 1 ? '' : 's'} from library`);
-            this.selectedBooks.clear();
+            this.deselectAllBooks();
           });
       }
     });
@@ -702,7 +699,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
     if (this.dialogRef) {
       this.dialogRef.onClose.subscribe(result => {
         if (result.assigned) {
-          this.selectedBooks.clear();
+          this.deselectAllBooks();
         }
       });
     }
@@ -713,7 +710,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
     if (this.dialogRef) {
       this.dialogRef.onClose.subscribe(result => {
         if (result.assigned) {
-          this.selectedBooks.clear();
+          this.deselectAllBooks();
         }
       });
     }
@@ -733,7 +730,11 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
     this.taskHelperService.refreshMetadataTask({
       refreshType: MetadataRefreshType.BOOKS,
       bookIds: Array.from(this.selectedBooks),
-    }).subscribe();
+    }).subscribe(result => {
+      if (result.success) {
+        this.deselectAllBooks();
+      }
+    });
   }
 
   fetchMetadata(): void {
@@ -836,6 +837,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
               detail: this.t.translate('book.browser.toast.regenCoverStartedDetail', {count}),
               life: 3000
             });
+            this.deselectAllBooks();
           },
           error: () => {
             this.messageService.add({
@@ -876,6 +878,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
               detail: this.t.translate('book.browser.toast.customCoverStartedDetail', {count}),
               life: 3000
             });
+            this.deselectAllBooks();
           },
           error: () => {
             this.messageService.add({

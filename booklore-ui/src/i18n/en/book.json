@@ -54,6 +54,7 @@
       "item": "item",
       "items": "items",
       "selected": "selected",
+      "hiddenSelectionHint": "{{ count }} selected outside the current view",
       "setAsDefault": "Set as default?",
       "save": "Save",
       "displaySettings": "Display settings",

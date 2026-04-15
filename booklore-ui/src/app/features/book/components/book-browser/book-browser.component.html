@@ -87,6 +87,11 @@
               [class.selection-panel-toggle--active]="isSelectionActionPanelOpen"
               (click)="toggleSelectionActionPanel()">
               <i class="pi pi-check-square"></i>
+              @if (selectedCount > 0) {
+                <span class="selection-toggle-count" [class.selection-toggle-count--warning]="hasHiddenSelections">
+                  {{ selectedCount }}
+                </span>
+              }
               <i class="pi selection-toggle-chevron" [ngClass]="isSelectionActionPanelOpen ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
             </button>
 
@@ -431,6 +436,12 @@
                 <span class="selected-count">{{ selectedCount }}</span>
                 <span class="selected-label">{{ t('labels.selected') }}</span>
               </div>
+              @if (hasHiddenSelections) {
+                <div class="selection-visibility-hint">
+                  <i class="pi pi-eye-slash"></i>
+                  <span>{{ t('labels.hiddenSelectionHint', { count: hiddenSelectedCount }) }}</span>
+                </div>
+              }
             </div>
             <div class="selection-panel-center">
               @if (entityType$ | async; as entityType) {
@@ -654,7 +665,6 @@
                           [titleRows]="isMobile ? mobileTitleRows : desktopTitleRows"
                           [isCheckboxEnabled]="true"
                           [seriesViewEnabled]="seriesViewEnabled"
-                          [onBookSelect]="handleBookSelect.bind(this)"
                           [isSeriesCollapsed]="seriesCollapseFilter.isSeriesCollapsed"
                           [showSubtitle]="showSubtitles"
                           [forceFileNameTitle]="isDirectoryScopedView"

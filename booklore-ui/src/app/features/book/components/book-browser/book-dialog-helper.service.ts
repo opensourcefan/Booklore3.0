@@ -46,7 +46,7 @@ export class BookDialogHelperService {
     const data: { isMultiBooks: boolean; book?: Book; bookIds?: Set<number> } = book !== null
       ? { isMultiBooks: false, book }
       : bookIds !== null
-        ? { isMultiBooks: true, bookIds }
+        ? { isMultiBooks: true, bookIds: new Set(bookIds) }
         : null as never;
     if (book === null && bookIds === null) return null;
     return this.openDialog(ShelfAssignerComponent, {
@@ -60,7 +60,7 @@ export class BookDialogHelperService {
     const data: { isMultiBooks: boolean; book?: Book; bookIds?: Set<number> } = book !== null
       ? { isMultiBooks: false, book }
       : bookIds !== null
-        ? { isMultiBooks: true, bookIds }
+        ? { isMultiBooks: true, bookIds: new Set(bookIds) }
         : null as never;
     if (book === null && bookIds === null) return null;
 

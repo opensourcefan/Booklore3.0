@@ -97,4 +97,24 @@ describe('BookCardComponent', () => {
 
     expect(component.displayTitle).toBe('Main Title : Subtitle');
   });
+
+  it('emits a single checkbox selection event when toggled', () => {
+    const component = createComponent();
+    const emitted = vi.fn();
+
+    component.book = createBook({ id: 12 });
+    component.index = 4;
+    component.isCheckboxEnabled = true;
+    component.checkboxClick.subscribe(emitted);
+
+    component.toggleCardSelection(true);
+
+    expect(emitted).toHaveBeenCalledOnce();
+    expect(emitted).toHaveBeenCalledWith({
+      index: 4,
+      book: component.book,
+      selected: true,
+      shiftKey: false,
+    });
+  });
 });

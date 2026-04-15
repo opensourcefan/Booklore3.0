@@ -18,7 +18,7 @@ export class BookSelectionService {
   selectedBooks$: Observable<Set<number>> = this.selectedBooksSubject.asObservable();
 
   get selectedBooks(): Set<number> {
-    return this.selectedBooksSubject.value;
+    return new Set(this.selectedBooksSubject.value);
   }
 
   get selectedCount(): number {

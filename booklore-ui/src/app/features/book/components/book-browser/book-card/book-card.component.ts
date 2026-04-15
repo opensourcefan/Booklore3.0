@@ -48,7 +48,6 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Input() index!: number;
   @Input() book!: Book;
   @Input() isCheckboxEnabled = false;
-  @Input() onBookSelect?: (book: Book, selected: boolean) => void;
   @Input() isSelected = false;
   @Input() bottomBarHidden = false;
   @Input() seriesViewEnabled = false;
@@ -1045,10 +1044,6 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       selected: selected,
       shiftKey: shiftKey,
     });
-
-    if (this.onBookSelect) {
-      this.onBookSelect(this.book, selected);
-    }
 
     this.lastMouseEvent = null;
   }

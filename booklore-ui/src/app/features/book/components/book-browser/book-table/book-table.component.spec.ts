@@ -7,10 +7,10 @@ import {TranslocoService} from '@jsverse/transloco';
 import {Book} from '../../../model/book.model';
 import {ReadStatusHelper} from '../../../helpers/read-status.helper';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
-import {BookService} from '../../../service/book.service';
 import {UrlHelperService} from '../../../../../shared/service/url-helper.service';
 import {UserService} from '../../../../settings/user-management/user.service';
 import {BookTableComponent} from './book-table.component';
+import {SimpleChange} from '@angular/core';
 
 function createBook(overrides: Partial<Book>): Book {
   return {
@@ -27,7 +27,6 @@ describe('BookTableComponent', () => {
       providers: [
         DatePipe,
         { provide: UrlHelperService, useValue: {} },
-        { provide: BookService, useValue: { getBooksByIdsFromState: vi.fn(() => []) } },
         { provide: BookMetadataManageService, useValue: {} },
         { provide: MessageService, useValue: { add: vi.fn() } },
         { provide: UserService, useValue: { userState$: of({ loaded: true, user: { userSettings: {} } }) } },
@@ -77,5 +76,39 @@ describe('BookTableComponent', () => {
     component.forceFileNameTitle = true;
 
     expect(component['getDisplayTitle'](book)).toBe('folder-title.cbz');
+  });
+
+  it('syncs selected rows from the preselected ids without aliasing the input set', () => {
+    const component = createComponent();
+    const firstBook = createBook({ id: 1 });
+    const secondBook = createBook({ id: 2 });
+    const preselected = new Set([1]);
+
+    component.books = [firstBook, secondBook];
+    component.preselectedBookIds = preselected;
+    component.ngOnInit();
+
+    expect(component.selectedBookIds).not.toBe(preselected);
+    expect(component.selectedBookIds.has(1)).toBe(true);
+    expect(component.selectedBooks).toEqual([firstBook]);
+  });
+
+  it('resyncs visible selected rows when the parent selection changes', () => {
+    const component = createComponent();
+    const firstBook = createBook({ id: 1 });
+    const secondBook = createBook({ id: 2 });
+
+    component.books = [firstBook, secondBook];
+    component.preselectedBookIds = new Set([1]);
+    component.ngOnInit();
+
+    component.preselectedBookIds = new Set([2]);
+    component.ngOnChanges({
+      preselectedBookIds: new SimpleChange(new Set([1]), new Set([2]), false),
+    });
+
+    expect(component.selectedBookIds.has(1)).toBe(false);
+    expect(component.selectedBookIds.has(2)).toBe(true);
+    expect(component.selectedBooks).toEqual([secondBook]);
   });
 });

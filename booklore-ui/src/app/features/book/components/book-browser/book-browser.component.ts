@@ -169,6 +169,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   mobileTitleRows = 2;
   desktopTitleRows = 2;
   selectedCount = 0;
+  selectedBookIds = new Set<number>();
+  hiddenSelectedCount = 0;
   allowFileDeletion = false;
   isSelectionActionPanelOpen = false;
 
@@ -258,7 +260,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get selectedBooks(): Set<number> {
-    return this.bookSelectionService.selectedBooks;
+    return this.selectedBookIds;
+  }
+
+  get hasHiddenSelections(): boolean {
+    return this.hiddenSelectedCount > 0;
   }
 
   get currentCardSize() {
@@ -491,6 +497,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onRouteReattached(): void {
     this.bookFilterComponents?.forEach(component => component.refreshAfterRouteAttach());
+    this.syncSelectionState(this.bookSelectionService.selectedBooks);
     this.cdr.detectChanges();
   }
 
@@ -742,9 +749,35 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         this.previousSelectedCount = nextSelectedCount;
-        this.selectedCount = nextSelectedCount;
+        this.syncSelectionState(selectedBooks);
         this.cdr.detectChanges();
       });
+  }
+
+  private syncSelectionState(selectedBooks: Set<number>): void {
+    this.selectedBookIds = new Set(selectedBooks);
+    this.selectedCount = this.selectedBookIds.size;
+    this.isDrawerVisible = this.selectedCount > 0;
+    this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBookIds, this.user());
+    this.updateSelectionVisibility();
+  }
+
+  private updateSelectionVisibility(): void {
+    if (this.selectedBookIds.size === 0) {
+      this.hiddenSelectedCount = 0;
+      return;
+    }
+
+    const visibleBookIds = new Set(this.bookSelectionService.getCurrentBooks().map(book => book.id));
+    let visibleSelectedCount = 0;
+
+    this.selectedBookIds.forEach(bookId => {
+      if (visibleBookIds.has(bookId)) {
+        visibleSelectedCount += 1;
+      }
+    });
+
+    this.hiddenSelectedCount = Math.max(this.selectedBookIds.size - visibleSelectedCount, 0);
   }
 
   toggleSelectionActionPanel(): void {
@@ -885,36 +918,18 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onCheckboxClicked(event: CheckboxClickEvent): void {
     this.bookSelectionService.handleCheckboxClick(event);
-    this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
-  }
-
-  handleBookSelect(book: Book, selected: boolean): void {
-    this.bookSelectionService.handleBookSelection(book, selected);
-    this.isDrawerVisible = this.bookSelectionService.hasSelection();
-    this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
   }
 
   onSelectedBooksChange(selectedBookIds: Set<number>): void {
     this.bookSelectionService.setSelectedBooks(selectedBookIds);
-    this.isDrawerVisible = this.bookSelectionService.hasSelection();
-    this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
   }
 
   selectAllBooks(): void {
     this.bookSelectionService.selectAll();
-    if (this.bookTableComponent) {
-      this.bookTableComponent.selectAllBooks();
-    }
-    this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
   }
 
   deselectAllBooks(): void {
     this.bookSelectionService.deselectAll();
-    this.isDrawerVisible = false;
-    if (this.bookTableComponent) {
-      this.bookTableComponent.clearSelectedBooks();
-    }
-    this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
   }
 
   confirmDeleteBooks(): void {
@@ -1022,6 +1037,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe(books => {
         this.bookSelectionService.setCurrentBooks(books);
         this.bookNavigationService.setAvailableBookIds(books.map(book => book.id));
+        this.updateSelectionVisibility();
+        this.cdr.markForCheck();
       });
   }
 
@@ -1356,7 +1373,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.taskHelperService.refreshMetadataTask({
       refreshType: MetadataRefreshType.BOOKS,
       bookIds: Array.from(this.selectedBooks),
-    }).subscribe();
+    }).subscribe(result => {
+      if (result.success) {
+        this.deselectAllBooks();
+      }
+    });
   }
 
   fetchMetadata(): void {
@@ -1502,6 +1523,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
               detail: this.t.translate('book.browser.toast.regenCoverStartedDetail', {count}),
               life: 3000
             });
+            this.deselectAllBooks();
           },
           error: () => {
             this.messageService.add({
@@ -1542,6 +1564,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
               detail: this.t.translate('book.browser.toast.customCoverStartedDetail', {count}),
               life: 3000
             });
+            this.deselectAllBooks();
           },
           error: () => {
             this.messageService.add({

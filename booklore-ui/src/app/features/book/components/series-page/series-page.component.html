@@ -253,7 +253,6 @@
                           [isCheckboxEnabled]="true"
                           [isSelected]="selectedBooks.has(book.id)"
                           (checkboxClick)="onCheckboxClicked($event)"
-                          [onBookSelect]="handleBookSelect.bind(this)"
                           [isSeriesCollapsed]="false"
                           [overlayPreferenceService]="bookCardOverlayPreferenceService">
                       </app-book-card>
