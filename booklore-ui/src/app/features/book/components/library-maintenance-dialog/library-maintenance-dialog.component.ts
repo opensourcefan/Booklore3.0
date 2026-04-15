@@ -46,7 +46,7 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
   }
 
   private switchWorkflowDialog(openNext: () => void): void {
-    this.dialogRef.onClose.pipe(take(1)).subscribe(() => openNext());
+    this.dialogRef.onDestroy.pipe(take(1)).subscribe(() => openNext());
     this.closeDialog();
   }
 

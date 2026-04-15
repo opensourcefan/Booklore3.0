@@ -24,7 +24,8 @@ describe('LibraryMaintenanceDialogComponent', () => {
   };
   let messageServiceMock: {add: ReturnType<typeof vi.fn>};
   let dialogClose$: Subject<void>;
-  let dialogRefMock: {close: ReturnType<typeof vi.fn>; onClose: Subject<void>};
+  let dialogDestroy$: Subject<void>;
+  let dialogRefMock: {close: ReturnType<typeof vi.fn>; onClose: Subject<void>; onDestroy: Subject<void>};
   let dialogLauncherServiceMock: {
     openLibrarySettingsDialog: ReturnType<typeof vi.fn>;
     openLibraryDirectoriesDialog: ReturnType<typeof vi.fn>;
@@ -45,9 +46,11 @@ describe('LibraryMaintenanceDialogComponent', () => {
     };
     messageServiceMock = {add: vi.fn()};
     dialogClose$ = new Subject<void>();
+    dialogDestroy$ = new Subject<void>();
     dialogRefMock = {
       close: vi.fn(() => dialogClose$.next()),
-      onClose: dialogClose$
+      onClose: dialogClose$,
+      onDestroy: dialogDestroy$
     };
     dialogLauncherServiceMock = {
       openLibrarySettingsDialog: vi.fn(),
@@ -125,6 +128,13 @@ describe('LibraryMaintenanceDialogComponent', () => {
     component.openLibrarySettings();
 
     expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
+    expect(dialogLauncherServiceMock.openLibrarySettingsDialog).not.toHaveBeenCalled();
+
+    dialogClose$.next();
+
+    expect(dialogLauncherServiceMock.openLibrarySettingsDialog).not.toHaveBeenCalled();
+
+    dialogDestroy$.next();
 
     expect(dialogLauncherServiceMock.openLibrarySettingsDialog).toHaveBeenCalledWith(42);
   });
@@ -133,6 +143,13 @@ describe('LibraryMaintenanceDialogComponent', () => {
     component.openManageDirectories();
 
     expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
+    expect(dialogLauncherServiceMock.openLibraryDirectoriesDialog).not.toHaveBeenCalled();
+
+    dialogClose$.next();
+
+    expect(dialogLauncherServiceMock.openLibraryDirectoriesDialog).not.toHaveBeenCalled();
+
+    dialogDestroy$.next();
 
     expect(dialogLauncherServiceMock.openLibraryDirectoriesDialog).toHaveBeenCalledWith(42);
   });

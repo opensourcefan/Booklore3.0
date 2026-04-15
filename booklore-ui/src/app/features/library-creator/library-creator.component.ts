@@ -285,7 +285,7 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   private switchWorkflowDialog(openNext: () => void): void {
-    this.dynamicDialogRef.onClose.pipe(take(1)).subscribe(() => openNext());
+    this.dynamicDialogRef.onDestroy.pipe(take(1)).subscribe(() => openNext());
     this.dynamicDialogRef.close();
   }
 
