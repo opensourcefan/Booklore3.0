@@ -72,7 +72,7 @@
                       cdkDrag
                       [cdkDragDisabled]="config.layoutLocked"
                       [style.grid-column]="'span ' + getScrollerColumnSpan(scroller)"
-                      [style.width.px]="getScrollerPanelWidth(scroller)">
+                        [style.max-width.px]="getScrollerPanelWidth(scroller)">
                       @if (!config.layoutLocked) {
                         <div class="dashboard-panel-handle" cdkDragHandle [attr.aria-label]="t('dragPanel')">
                           <i class="pi pi-arrows-alt"></i>

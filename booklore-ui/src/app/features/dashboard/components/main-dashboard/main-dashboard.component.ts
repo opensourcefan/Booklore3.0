@@ -25,9 +25,11 @@ import {SortDirection, SortOption} from '../../../book/model/sort.model';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 const DASHBOARD_GRID_GAP_PX = 20;
-const DASHBOARD_PANEL_HORIZONTAL_PADDING_PX = 80;
+const DASHBOARD_PANEL_HORIZONTAL_PADDING_PX = 64;
 const DASHBOARD_BOOK_CARD_WIDTH_PX = 124;
 const DASHBOARD_SQUARE_CARD_WIDTH_PX = 160;
+const DASHBOARD_BOOK_CARD_WIDTH_MOBILE_PX = 108;
+const DASHBOARD_SQUARE_CARD_WIDTH_MOBILE_PX = 150;
 const DASHBOARD_CARD_GAP_PX = 32;
 
 @Component({
@@ -348,9 +350,11 @@ export class MainDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private getScrollerCardWidth(config: ScrollerConfig): number {
+    const isCompactLayout = this.workspaceWidth < 768;
+
     return config.type === ScrollerType.LAST_LISTENED
-      ? DASHBOARD_SQUARE_CARD_WIDTH_PX
-      : DASHBOARD_BOOK_CARD_WIDTH_PX;
+      ? (isCompactLayout ? DASHBOARD_SQUARE_CARD_WIDTH_MOBILE_PX : DASHBOARD_SQUARE_CARD_WIDTH_PX)
+      : (isCompactLayout ? DASHBOARD_BOOK_CARD_WIDTH_MOBILE_PX : DASHBOARD_BOOK_CARD_WIDTH_PX);
   }
 
   onDashboardDrop(event: CdkDragDrop<ScrollerConfig[]>, config: DashboardConfig): void {

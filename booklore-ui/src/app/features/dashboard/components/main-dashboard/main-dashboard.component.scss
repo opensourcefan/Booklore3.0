@@ -1,5 +1,5 @@
 .dashboard-container {
-  --dashboard-scrollbar-size: 8px;
+  --dashboard-scrollbar-size: 6px;
   height: calc(100dvh - 6.7rem);
   overflow-y: auto;
   position: relative;
@@ -31,7 +31,7 @@
 
 @media (max-width: 768px) {
   .dashboard-container {
-    --dashboard-scrollbar-size: 6px;
+    --dashboard-scrollbar-size: 5px;
     height: calc(100dvh - 5rem);
     padding: 0 0.75rem 1.5rem;
 
@@ -111,10 +111,10 @@
 }
 
 .dashboard-toolbar {
-  position: absolute;
-  top: -0.65rem;
-  right: calc(var(--dashboard-scrollbar-size) * -1 - 0.2rem);
-  z-index: 30;
+  position: fixed;
+  top: 4.75rem;
+  right: 0.15rem;
+  z-index: 60;
   display: flex;
   justify-content: flex-end;
   pointer-events: none;
@@ -137,6 +137,7 @@
 .dashboard-panel {
   min-width: 0;
   position: relative;
+  width: 100%;
   max-width: 100%;
   justify-self: start;
   display: flex;
@@ -148,25 +149,17 @@
 
 .dashboard-panel-handle {
   position: absolute;
-  top: 0.9rem;
-  right: 1rem;
+  top: 1.25rem;
+  right: 1.25rem;
   z-index: 5;
-  display: grid;
-  place-items: center;
-  align-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--p-surface-900), transparent 18%);
-  border: 1px solid color-mix(in srgb, var(--p-content-border-color), transparent 20%);
+  display: block;
   color: var(--text-color-secondary);
   cursor: move;
   user-select: none;
-  backdrop-filter: blur(8px);
-  font-size: 0.75rem;
+  line-height: 1;
 
   i {
-    font-size: 0.75rem;
+    font-size: 0.95rem;
   }
 }
 
@@ -192,8 +185,8 @@
 
 @media (max-width: 768px) {
   .dashboard-toolbar {
-    top: -0.45rem;
-    right: calc(var(--dashboard-scrollbar-size) * -1 - 0.1rem);
+    top: 4.15rem;
+    right: 0.1rem;
   }
 
   .dashboard-grid {
@@ -201,8 +194,8 @@
   }
 
   .dashboard-panel-handle {
-    top: 0.75rem;
-    right: 0.75rem;
+    top: 1rem;
+    right: 1rem;
   }
 
   .dashboard-settings-button {

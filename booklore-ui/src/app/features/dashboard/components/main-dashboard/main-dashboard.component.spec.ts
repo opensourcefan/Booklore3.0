@@ -120,7 +120,23 @@ describe('MainDashboardComponent', () => {
       maxItems: 10,
       libraryId: null,
       columnSpan: 3
-    })).toBe(516);
+    })).toBe(500);
+  });
+
+  it('computes auto panel width using card spacing and padding', () => {
+    const {component} = createComponent();
+    component.workspaceWidth = 2400;
+
+    expect(component.getScrollerPanelWidth({
+      id: 'auto-width',
+      type: ScrollerType.RANDOM,
+      title: 'dashboard.scroller.discoverNew',
+      enabled: true,
+      order: 1,
+      maxItems: 3,
+      libraryId: null,
+      columnSpan: null
+    })).toBe(500);
   });
 
   it('persists grid reorder changes when the layout is unlocked', () => {
