@@ -319,34 +319,51 @@ export class MainDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   getScrollerColumnSpan(config: ScrollerConfig): number {
-    const panelWidth = this.getScrollerPanelWidth(config);
-    const cellWidth = this.getGridCellWidth();
-    const span = Math.ceil(panelWidth / Math.max(cellWidth, 1));
+    const activeGridColumns = this.getActiveGridColumns();
 
-    return Math.max(1, Math.min(span, this.gridColumns));
+    if (config.columnSpan != null) {
+      return Math.max(1, Math.min(config.columnSpan, activeGridColumns));
+    }
+
+    return this.getAutomaticScrollerColumnSpan(config);
   }
 
   getScrollerPanelWidth(config: ScrollerConfig): number {
-    const visibleItems = this.getScrollerVisibleCardCount(config);
+    return this.getGridSpanWidth(this.getScrollerColumnSpan(config));
+  }
+
+  private getAutomaticScrollerColumnSpan(config: ScrollerConfig): number {
+    const contentWidth = this.getAutomaticScrollerContentWidth(config);
+    const cellWidth = this.getGridCellWidth();
+    const span = Math.ceil(contentWidth / Math.max(cellWidth, 1));
+
+    return Math.max(2, Math.min(span, this.getActiveGridColumns()));
+  }
+
+  private getAutomaticScrollerContentWidth(config: ScrollerConfig): number {
+    const visibleItems = Math.max(1, Math.min(config.maxItems || DEFAULT_MAX_ITEMS, 8));
     const cardWidth = this.getScrollerCardWidth(config);
-    const contentWidth = (visibleItems * cardWidth)
+
+    return (visibleItems * cardWidth)
       + (Math.max(visibleItems - 1, 0) * DASHBOARD_CARD_GAP_PX)
       + DASHBOARD_PANEL_HORIZONTAL_PADDING_PX;
+  }
 
-    return Math.min(contentWidth, Math.max(this.workspaceWidth, cardWidth + DASHBOARD_PANEL_HORIZONTAL_PADDING_PX));
+  private getGridSpanWidth(span: number): number {
+    const safeSpan = Math.max(1, Math.min(span, this.getActiveGridColumns()));
+
+    return (safeSpan * this.getGridCellWidth()) + (Math.max(safeSpan - 1, 0) * DASHBOARD_GRID_GAP_PX);
   }
 
   private getGridCellWidth(): number {
     const availableWidth = Math.max(this.workspaceWidth, 640);
-    return (availableWidth - (Math.max(this.gridColumns - 1, 0) * DASHBOARD_GRID_GAP_PX)) / this.gridColumns;
+    const activeGridColumns = this.getActiveGridColumns();
+
+    return (availableWidth - (Math.max(activeGridColumns - 1, 0) * DASHBOARD_GRID_GAP_PX)) / activeGridColumns;
   }
 
-  private getScrollerVisibleCardCount(config: ScrollerConfig): number {
-    if (config.columnSpan != null) {
-      return Math.max(1, config.columnSpan);
-    }
-
-    return Math.max(1, Math.min(config.maxItems || DEFAULT_MAX_ITEMS, 8));
+  private getActiveGridColumns(): number {
+    return Math.max(this.gridColumns || MAX_DASHBOARD_GRID_COLUMNS, 1);
   }
 
   private getScrollerCardWidth(config: ScrollerConfig): number {

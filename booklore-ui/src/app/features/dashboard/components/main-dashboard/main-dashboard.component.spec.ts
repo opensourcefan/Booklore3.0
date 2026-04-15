@@ -107,11 +107,11 @@ describe('MainDashboardComponent', () => {
     expect(books.map(book => book.id)).toEqual([2, 3]);
   });
 
-  it('computes manual panel width using card spacing and padding', () => {
+  it('uses explicit width selection as the dashboard grid span', () => {
     const {component} = createComponent();
     component.workspaceWidth = 2400;
 
-    expect(component.getScrollerPanelWidth({
+    const config = {
       id: 'manual-width',
       type: ScrollerType.RANDOM,
       title: 'dashboard.scroller.discoverNew',
@@ -120,14 +120,42 @@ describe('MainDashboardComponent', () => {
       maxItems: 10,
       libraryId: null,
       columnSpan: 3
-    })).toBe(500);
+    };
+
+    expect(component.getScrollerColumnSpan(config)).toBe(3);
+    expect(component.getScrollerPanelWidth(config)).toBeCloseTo(585, 0);
   });
 
-  it('computes auto panel width using card spacing and padding', () => {
+  it('keeps manual width independent from max items so overflow stays inside the scroller', () => {
     const {component} = createComponent();
     component.workspaceWidth = 2400;
 
-    expect(component.getScrollerPanelWidth({
+    const narrowConfig = {
+      id: 'manual-width-5',
+      type: ScrollerType.RANDOM,
+      title: 'dashboard.scroller.discoverNew',
+      enabled: true,
+      order: 1,
+      maxItems: 5,
+      libraryId: null,
+      columnSpan: 5
+    };
+
+    const wideDataConfig = {
+      ...narrowConfig,
+      maxItems: 10
+    };
+
+    expect(component.getScrollerColumnSpan(narrowConfig)).toBe(5);
+    expect(component.getScrollerColumnSpan(wideDataConfig)).toBe(5);
+    expect(component.getScrollerPanelWidth(narrowConfig)).toBeCloseTo(component.getScrollerPanelWidth(wideDataConfig), 5);
+  });
+
+  it('computes auto width from content and converts it to a grid span', () => {
+    const {component} = createComponent();
+    component.workspaceWidth = 2400;
+
+    const config = {
       id: 'auto-width',
       type: ScrollerType.RANDOM,
       title: 'dashboard.scroller.discoverNew',
@@ -136,7 +164,10 @@ describe('MainDashboardComponent', () => {
       maxItems: 3,
       libraryId: null,
       columnSpan: null
-    })).toBe(500);
+    };
+
+    expect(component.getScrollerColumnSpan(config)).toBe(3);
+    expect(component.getScrollerPanelWidth(config)).toBeCloseTo(585, 0);
   });
 
   it('persists grid reorder changes when the layout is unlocked', () => {
