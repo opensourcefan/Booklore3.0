@@ -4,7 +4,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {DashboardConfigService} from './dashboard-config.service';
 import {UserService} from '../../settings/user-management/user.service';
 import {MagicShelfService} from '../../magic-shelf/service/magic-shelf.service';
-import {ScrollerType} from '../models/dashboard-config.model';
+import {DashboardConfig, ScrollerType} from '../models/dashboard-config.model';
 
 describe('DashboardConfigService', () => {
   it('normalizes legacy dashboard configs from user settings', () => {
@@ -50,17 +50,18 @@ describe('DashboardConfigService', () => {
     });
 
     const service = TestBed.inject(DashboardConfigService);
-    let currentConfig;
+    let currentConfig: DashboardConfig | undefined;
 
     service.config$.subscribe(config => {
       currentConfig = config;
     });
 
-    expect(currentConfig.layoutLocked).toBe(false);
-    expect(currentConfig.scrollers).toHaveLength(1);
-    expect(currentConfig.scrollers[0].maxItems).toBe(1);
-    expect(currentConfig.scrollers[0].order).toBe(1);
-    expect(currentConfig.scrollers[0].libraryId).toBeNull();
-    expect(currentConfig.scrollers[0].columnSpan).toBeNull();
+    expect(currentConfig).toBeDefined();
+    expect(currentConfig?.layoutLocked).toBe(false);
+    expect(currentConfig?.scrollers).toHaveLength(1);
+    expect(currentConfig?.scrollers[0].maxItems).toBe(1);
+    expect(currentConfig?.scrollers[0].order).toBe(1);
+    expect(currentConfig?.scrollers[0].libraryId).toBeNull();
+    expect(currentConfig?.scrollers[0].columnSpan).toBeNull();
   });
 });
