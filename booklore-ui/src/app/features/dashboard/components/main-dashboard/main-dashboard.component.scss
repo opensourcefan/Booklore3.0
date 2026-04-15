@@ -1,4 +1,5 @@
 .dashboard-container {
+  --dashboard-scrollbar-size: 8px;
   height: calc(100dvh - 6.7rem);
   overflow-y: auto;
   position: relative;
@@ -16,7 +17,7 @@
   }
 
   &::-webkit-scrollbar {
-    width: 12px;
+    width: var(--dashboard-scrollbar-size);
   }
 
   &::-webkit-scrollbar-track {
@@ -30,11 +31,12 @@
 
 @media (max-width: 768px) {
   .dashboard-container {
+    --dashboard-scrollbar-size: 6px;
     height: calc(100dvh - 5rem);
     padding: 0 0.75rem 1.5rem;
 
     &::-webkit-scrollbar {
-      width: 8px;
+      width: var(--dashboard-scrollbar-size);
     }
   }
 }
@@ -58,8 +60,11 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   min-height: 100%;
+}
+
+.dashboard-workspace {
+  position: relative;
 }
 
 .welcome-description {
@@ -106,8 +111,9 @@
 }
 
 .dashboard-toolbar {
-  position: sticky;
-  top: 0.75rem;
+  position: absolute;
+  top: -0.65rem;
+  right: calc(var(--dashboard-scrollbar-size) * -1 - 0.2rem);
   z-index: 30;
   display: flex;
   justify-content: flex-end;
@@ -120,6 +126,7 @@
   grid-template-columns: repeat(var(--dashboard-columns, 12), minmax(0, 1fr));
   gap: var(--dashboard-gap);
   align-items: start;
+  padding-top: 0;
   padding-bottom: 1rem;
 
   &.dashboard-grid--unlocked {
@@ -130,6 +137,9 @@
 .dashboard-panel {
   min-width: 0;
   position: relative;
+  max-width: 100%;
+  justify-self: start;
+  display: flex;
 
   &.cdk-drag-preview {
     z-index: 1000;
@@ -141,10 +151,11 @@
   top: 0.9rem;
   right: 1rem;
   z-index: 5;
-  display: inline-flex;
+  display: grid;
+  place-items: center;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.6rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--p-surface-900), transparent 18%);
   border: 1px solid color-mix(in srgb, var(--p-content-border-color), transparent 20%);
@@ -164,6 +175,8 @@
   position: relative;
 
   ::ng-deep .p-button {
+    width: 2.35rem;
+    height: 2.35rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
     background: rgba(var(--p-surface-900-rgb), 0.8);
@@ -178,6 +191,11 @@
 }
 
 @media (max-width: 768px) {
+  .dashboard-toolbar {
+    top: -0.45rem;
+    right: calc(var(--dashboard-scrollbar-size) * -1 - 0.1rem);
+  }
+
   .dashboard-grid {
     --dashboard-gap: 0.9rem;
   }
@@ -185,10 +203,6 @@
   .dashboard-panel-handle {
     top: 0.75rem;
     right: 0.75rem;
-
-    span {
-      display: none;
-    }
   }
 
   .dashboard-settings-button {

@@ -107,6 +107,22 @@ describe('MainDashboardComponent', () => {
     expect(books.map(book => book.id)).toEqual([2, 3]);
   });
 
+  it('computes manual panel width using card spacing and padding', () => {
+    const {component} = createComponent();
+    component.workspaceWidth = 2400;
+
+    expect(component.getScrollerPanelWidth({
+      id: 'manual-width',
+      type: ScrollerType.RANDOM,
+      title: 'dashboard.scroller.discoverNew',
+      enabled: true,
+      order: 1,
+      maxItems: 10,
+      libraryId: null,
+      columnSpan: 3
+    })).toBe(516);
+  });
+
   it('persists grid reorder changes when the layout is unlocked', () => {
     const {component, saveConfig} = createComponent();
     const config = {

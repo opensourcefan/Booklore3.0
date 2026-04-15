@@ -24,6 +24,12 @@ import {PageTitleService} from "../../../../shared/service/page-title.service";
 import {SortDirection, SortOption} from '../../../book/model/sort.model';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
+const DASHBOARD_GRID_GAP_PX = 20;
+const DASHBOARD_PANEL_HORIZONTAL_PADDING_PX = 80;
+const DASHBOARD_BOOK_CARD_WIDTH_PX = 124;
+const DASHBOARD_SQUARE_CARD_WIDTH_PX = 160;
+const DASHBOARD_CARD_GAP_PX = 32;
+
 @Component({
   selector: 'app-main-dashboard',
   templateUrl: './main-dashboard.component.html',
@@ -311,25 +317,40 @@ export class MainDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   getScrollerColumnSpan(config: ScrollerConfig): number {
-    if (config.columnSpan != null) {
-      return Math.max(1, Math.min(config.columnSpan, this.gridColumns));
-    }
+    const panelWidth = this.getScrollerPanelWidth(config);
+    const cellWidth = this.getGridCellWidth();
+    const span = Math.ceil(panelWidth / Math.max(cellWidth, 1));
 
-    return this.getAutomaticScrollerColumnSpan(config);
+    return Math.max(1, Math.min(span, this.gridColumns));
   }
 
-  private getAutomaticScrollerColumnSpan(config: ScrollerConfig): number {
-    const visibleItems = Math.max(1, Math.min(config.maxItems || DEFAULT_MAX_ITEMS, 8));
-    const cardWidth = config.type === ScrollerType.LAST_LISTENED ? 160 : 124;
-    const cardGap = 32;
-    const panelPadding = 88;
-    const contentWidth = (visibleItems * cardWidth) + (Math.max(visibleItems - 1, 0) * cardGap) + panelPadding;
-    const availableWidth = Math.max(this.workspaceWidth, 640);
-    const gapWidth = 20;
-    const cellWidth = (availableWidth - (Math.max(this.gridColumns - 1, 0) * gapWidth)) / this.gridColumns;
-    const span = Math.ceil(contentWidth / Math.max(cellWidth, 1));
+  getScrollerPanelWidth(config: ScrollerConfig): number {
+    const visibleItems = this.getScrollerVisibleCardCount(config);
+    const cardWidth = this.getScrollerCardWidth(config);
+    const contentWidth = (visibleItems * cardWidth)
+      + (Math.max(visibleItems - 1, 0) * DASHBOARD_CARD_GAP_PX)
+      + DASHBOARD_PANEL_HORIZONTAL_PADDING_PX;
 
-    return Math.max(2, Math.min(span, this.gridColumns));
+    return Math.min(contentWidth, Math.max(this.workspaceWidth, cardWidth + DASHBOARD_PANEL_HORIZONTAL_PADDING_PX));
+  }
+
+  private getGridCellWidth(): number {
+    const availableWidth = Math.max(this.workspaceWidth, 640);
+    return (availableWidth - (Math.max(this.gridColumns - 1, 0) * DASHBOARD_GRID_GAP_PX)) / this.gridColumns;
+  }
+
+  private getScrollerVisibleCardCount(config: ScrollerConfig): number {
+    if (config.columnSpan != null) {
+      return Math.max(1, config.columnSpan);
+    }
+
+    return Math.max(1, Math.min(config.maxItems || DEFAULT_MAX_ITEMS, 8));
+  }
+
+  private getScrollerCardWidth(config: ScrollerConfig): number {
+    return config.type === ScrollerType.LAST_LISTENED
+      ? DASHBOARD_SQUARE_CARD_WIDTH_PX
+      : DASHBOARD_BOOK_CARD_WIDTH_PX;
   }
 
   onDashboardDrop(event: CdkDragDrop<ScrollerConfig[]>, config: DashboardConfig): void {

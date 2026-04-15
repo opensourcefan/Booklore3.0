@@ -39,54 +39,56 @@
               }
             </div>
           } @else {
-            <div class="dashboard-toolbar">
-              <div class="dashboard-settings-button">
-                <p-button
-                  icon="pi pi-cog"
-                  severity="info"
-                  rounded
-                  text
-                  [pTooltip]="t('customizeDashboard')"
-                  tooltipPosition="left"
-                  (click)="openDashboardSettings()">
-                </p-button>
-              </div>
-            </div>
-
             @if (dashboardConfig$ | async; as config) {
-              @let enabledScrollers = getEnabledScrollers(config);
-              <div
-                #dashboardGrid
-                class="dashboard-grid"
-                [class.dashboard-grid--unlocked]="!config.layoutLocked"
-                [style.--dashboard-columns]="gridColumns"
-                cdkDropList
-                cdkDropListOrientation="mixed"
-                [cdkDropListData]="enabledScrollers"
-                [cdkDropListDisabled]="config.layoutLocked"
-                (cdkDropListDropped)="onDashboardDrop($event, config)">
-                @for (scroller of enabledScrollers; track scroller.id) {
-                  <div
-                    class="dashboard-panel"
-                    cdkDrag
-                    [cdkDragDisabled]="config.layoutLocked"
-                    [style.grid-column]="'span ' + getScrollerColumnSpan(scroller)">
-                    @if (!config.layoutLocked) {
-                      <div class="dashboard-panel-handle" cdkDragHandle>
-                        <i class="pi pi-arrows-alt"></i>
-                        <span>{{ t('dragPanel') }}</span>
-                      </div>
-                    }
-
-                    <app-dashboard-scroller
-                      [bookListType]="scroller.type"
-                      [title]="getScrollerDisplayTitle(scroller)"
-                      [isMagicShelf]="scroller.type === ScrollerType.MAGIC_SHELF"
-                      [useSquareCovers]="scroller.type === ScrollerType.LAST_LISTENED"
-                      [books]="getBooksForScroller(scroller) | async">
-                    </app-dashboard-scroller>
+              <div class="dashboard-workspace">
+                <div class="dashboard-toolbar">
+                  <div class="dashboard-settings-button">
+                    <p-button
+                      icon="pi pi-cog"
+                      severity="info"
+                      rounded
+                      text
+                      [pTooltip]="t('customizeDashboard')"
+                      tooltipPosition="left"
+                      (click)="openDashboardSettings()">
+                    </p-button>
                   </div>
-                }
+                </div>
+
+                @let enabledScrollers = getEnabledScrollers(config);
+                <div
+                  #dashboardGrid
+                  class="dashboard-grid"
+                  [class.dashboard-grid--unlocked]="!config.layoutLocked"
+                  [style.--dashboard-columns]="gridColumns"
+                  cdkDropList
+                  cdkDropListOrientation="mixed"
+                  [cdkDropListData]="enabledScrollers"
+                  [cdkDropListDisabled]="config.layoutLocked"
+                  (cdkDropListDropped)="onDashboardDrop($event, config)">
+                  @for (scroller of enabledScrollers; track scroller.id) {
+                    <div
+                      class="dashboard-panel"
+                      cdkDrag
+                      [cdkDragDisabled]="config.layoutLocked"
+                      [style.grid-column]="'span ' + getScrollerColumnSpan(scroller)"
+                      [style.width.px]="getScrollerPanelWidth(scroller)">
+                      @if (!config.layoutLocked) {
+                        <div class="dashboard-panel-handle" cdkDragHandle [attr.aria-label]="t('dragPanel')">
+                          <i class="pi pi-arrows-alt"></i>
+                        </div>
+                      }
+
+                      <app-dashboard-scroller
+                        [bookListType]="scroller.type"
+                        [title]="getScrollerDisplayTitle(scroller)"
+                        [isMagicShelf]="scroller.type === ScrollerType.MAGIC_SHELF"
+                        [useSquareCovers]="scroller.type === ScrollerType.LAST_LISTENED"
+                        [books]="getBooksForScroller(scroller) | async">
+                      </app-dashboard-scroller>
+                    </div>
+                  }
+                </div>
               </div>
             }
           }
