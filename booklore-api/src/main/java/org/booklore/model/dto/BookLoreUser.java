@@ -337,7 +337,9 @@ public class BookLoreUser {
         @Builder
         @AllArgsConstructor
         @NoArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public static class DashboardConfig {
+            private Boolean layoutLocked;
             private List<ScrollerConfig> scrollers;
         }
 
@@ -345,6 +347,7 @@ public class BookLoreUser {
         @Builder
         @AllArgsConstructor
         @NoArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public static class ScrollerConfig {
             private String id;
             private String type;
@@ -355,6 +358,8 @@ public class BookLoreUser {
             private Long magicShelfId;
             private String sortField;
             private String sortDirection;
+            private Long libraryId;
+            private Integer columnSpan;
         }
     }
 }

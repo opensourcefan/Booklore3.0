@@ -12,9 +12,50 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 class BookLoreUserTransformerTest {
+
+    @Test
+    void mapsDashboardConfigSettingIntoUserSettings() {
+        BookLoreUserEntity userEntity = new BookLoreUserEntity();
+        userEntity.setId(8L);
+        userEntity.setUsername("dashboard-user");
+        userEntity.setName("Dashboard User");
+        userEntity.setEmail("dashboard@example.com");
+        userEntity.setPermissions(new UserPermissionsEntity());
+        userEntity.setSettings(Set.of(UserSettingEntity.builder()
+                .settingKey("dashboardConfig")
+                .settingValue("""
+                        {
+                          \"layoutLocked\": true,
+                          \"scrollers\": [
+                            {
+                              \"id\": \"scroller-1\",
+                              \"type\": \"random\",
+                              \"title\": \"dashboard.scroller.discoverNew\",
+                              \"enabled\": true,
+                              \"order\": 1,
+                              \"maxItems\": 10,
+                              \"libraryId\": 3,
+                              \"columnSpan\": 4
+                            }
+                          ]
+                        }
+                        """)
+                .build()));
+
+        BookLoreUserTransformer transformer = new BookLoreUserTransformer(new ObjectMapper(), mock(LibraryMapper.class));
+
+        BookLoreUser dto = transformer.toDTO(userEntity);
+
+        assertNotNull(dto.getUserSettings().getDashboardConfig());
+        assertTrue(Boolean.TRUE.equals(dto.getUserSettings().getDashboardConfig().getLayoutLocked()));
+        assertEquals(1, dto.getUserSettings().getDashboardConfig().getScrollers().size());
+        assertEquals(3L, dto.getUserSettings().getDashboardConfig().getScrollers().getFirst().getLibraryId());
+        assertEquals(4, dto.getUserSettings().getDashboardConfig().getScrollers().getFirst().getColumnSpan());
+    }
 
     @Test
     void mapsDuplicateResolutionPlanSettingIntoUserSettings() {

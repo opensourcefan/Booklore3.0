@@ -7,13 +7,14 @@ import {MagicShelfService} from '../../magic-shelf/service/magic-shelf.service';
 import {DashboardConfig, ScrollerType} from '../models/dashboard-config.model';
 
 describe('DashboardConfigService', () => {
-  it('normalizes legacy dashboard configs from user settings', () => {
+  it('normalizes dashboard configs from user settings while preserving persisted layout fields', () => {
     const userState$ = new BehaviorSubject({
       loaded: true,
       user: {
         id: 7,
         userSettings: {
           dashboardConfig: {
+            layoutLocked: true,
             scrollers: [
               {
                 id: 'legacy-1',
@@ -21,7 +22,9 @@ describe('DashboardConfigService', () => {
                 title: 'dashboard.scroller.discoverNew',
                 enabled: true,
                 order: 5,
-                maxItems: 0
+                maxItems: 0,
+                libraryId: 4,
+                columnSpan: 3
               }
             ]
           }
@@ -57,11 +60,11 @@ describe('DashboardConfigService', () => {
     });
 
     expect(currentConfig).toBeDefined();
-    expect(currentConfig?.layoutLocked).toBe(false);
+    expect(currentConfig?.layoutLocked).toBe(true);
     expect(currentConfig?.scrollers).toHaveLength(1);
     expect(currentConfig?.scrollers[0].maxItems).toBe(1);
     expect(currentConfig?.scrollers[0].order).toBe(1);
-    expect(currentConfig?.scrollers[0].libraryId).toBeNull();
-    expect(currentConfig?.scrollers[0].columnSpan).toBeNull();
+    expect(currentConfig?.scrollers[0].libraryId).toBe(4);
+    expect(currentConfig?.scrollers[0].columnSpan).toBe(3);
   });
 });
