@@ -137,13 +137,18 @@
 .dashboard-panel {
   min-width: 0;
   position: relative;
-  width: 100%;
   max-width: 100%;
   justify-self: start;
   display: flex;
 
   &.cdk-drag-preview {
     z-index: 1000;
+  }
+
+  > app-dashboard-scroller {
+    width: 100%;
+    min-width: 0;
+    display: block;
   }
 }
 
