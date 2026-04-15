@@ -462,6 +462,40 @@ class BookServiceTest {
     }
 
     @Test
+    void deleteBooks_whenFileDeletionDisabled_throwsException() {
+        BookEntity entity = new BookEntity();
+        entity.setId(17L);
+
+        when(bookQueryService.findAllWithMetadataByIds(Set.of(17L))).thenReturn(List.of(entity));
+        when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
+        when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder().allowFileDeletion(false).build());
+
+        APIException exception = assertThrows(APIException.class, () -> bookService.deleteBooks(Set.of(17L), true));
+
+        assertEquals("File deletion is disabled", exception.getMessage());
+        verify(bookRepository, never()).deleteAllInBatch(anyList());
+    }
+
+    @Test
+    void deleteBooks_libraryOnly_marksBookRemovedFromLibrary() {
+        BookEntity entity = new BookEntity();
+        entity.setId(19L);
+
+        when(bookQueryService.findAllWithMetadataByIds(Set.of(19L))).thenReturn(List.of(entity));
+        when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
+
+        BookDeletionResponse response = bookService.deleteBooks(Set.of(19L), false).getBody();
+
+        assertNotNull(response);
+        assertEquals(Set.of(19L), response.getDeleted());
+        assertTrue(entity.getDeleted());
+        assertTrue(entity.getRemovedFromLibrary());
+        assertNotNull(entity.getDeletedAt());
+        verify(bookRepository).saveAll(List.of(entity));
+        verify(bookRepository, never()).deleteAllInBatch(anyList());
+    }
+
+    @Test
     void deleteEmptyParentDirsUpToLibraryFolders_deletesEmptyDirs() throws Exception {
         Path root = Files.createTempDirectory("libroot");
         Path subdir = Files.createDirectory(root.resolve("subdir"));

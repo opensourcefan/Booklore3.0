@@ -27,7 +27,7 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query("SELECT b FROM BookEntity b JOIN b.bookFiles bf WHERE bf.currentHash = :currentHash AND bf.isBookFormat = true AND (b.deleted IS NULL OR b.deleted = false)")
     Optional<BookEntity> findByCurrentHash(@Param("currentHash") String currentHash);
 
-    @Query("SELECT b FROM BookEntity b JOIN FETCH b.bookFiles bf WHERE bf.currentHash = :currentHash AND bf.isBookFormat = true AND (b.deleted IS NULL OR b.deleted = false OR b.deletedAt > :cutoff)")
+    @Query("SELECT b FROM BookEntity b JOIN FETCH b.bookFiles bf WHERE bf.currentHash = :currentHash AND bf.isBookFormat = true AND (b.deleted IS NULL OR b.deleted = false OR b.deletedAt > :cutoff OR b.removedFromLibrary = true)")
     Optional<BookEntity> findByCurrentHashIncludingRecentlyDeleted(@Param("currentHash") String currentHash, @Param("cutoff") Instant cutoff);
 
     Optional<BookEntity> findByBookCoverHash(String bookCoverHash);
@@ -105,6 +105,10 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query("SELECT b FROM BookEntity b WHERE b.library.id = :libraryId AND (b.deleted IS NULL OR b.deleted = false)")
     List<BookEntity> findAllByLibraryIdWithFilesAndPath(@Param("libraryId") Long libraryId);
 
+    @EntityGraph(attributePaths = {"bookFiles", "libraryPath"})
+    @Query("SELECT b FROM BookEntity b WHERE b.library.id = :libraryId AND ((b.deleted IS NULL OR b.deleted = false) OR b.removedFromLibrary = true)")
+    List<BookEntity> findAllByLibraryIdWithFilesAndPathIncludingRemoved(@Param("libraryId") Long libraryId);
+
     @Query("""
             SELECT DISTINCT b FROM BookEntity b
             LEFT JOIN FETCH b.metadata m
@@ -178,15 +182,15 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM BookEntity b WHERE b.deleted IS TRUE")
+    @Query("DELETE FROM BookEntity b WHERE b.deleted IS TRUE AND (b.removedFromLibrary IS NULL OR b.removedFromLibrary = false)")
     int deleteAllSoftDeleted();
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM BookEntity b WHERE b.deleted IS TRUE AND b.deletedAt < :cutoffDate")
+    @Query("DELETE FROM BookEntity b WHERE b.deleted IS TRUE AND b.deletedAt < :cutoffDate AND (b.removedFromLibrary IS NULL OR b.removedFromLibrary = false)")
     int deleteSoftDeletedBefore(@Param("cutoffDate") Instant cutoffDate);
 
-    @Query("SELECT COUNT(b) FROM BookEntity b WHERE b.deleted = TRUE")
+    @Query("SELECT COUNT(b) FROM BookEntity b WHERE b.deleted = TRUE AND (b.removedFromLibrary IS NULL OR b.removedFromLibrary = false)")
     long countAllSoftDeleted();
 
     @Query("""

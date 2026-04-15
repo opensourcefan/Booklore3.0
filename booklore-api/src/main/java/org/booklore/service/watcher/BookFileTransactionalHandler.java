@@ -38,6 +38,7 @@ import static org.booklore.model.enums.PermissionType.MANAGE_LIBRARY;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("deprecation")
 public class BookFileTransactionalHandler {
 
     private static final double FILELESS_MATCH_THRESHOLD = 0.85;
@@ -69,13 +70,26 @@ public class BookFileTransactionalHandler {
             BookFileEntity existing = existingAtPath.get();
             BookEntity existingBook = existing.getBook();
             boolean wasDeleted = Boolean.TRUE.equals(existingBook.getDeleted());
+            boolean removedFromLibrary = Boolean.TRUE.equals(existingBook.getRemovedFromLibrary());
             String existingHash = existing.getCurrentHash();
             String currentHash = FileFingerprint.generateHash(path);
 
             if (wasDeleted) {
+                if (removedFromLibrary) {
+                    pendingDeletionPool.cancelByPath(path);
+                    if (!currentHash.equals(existingHash)) {
+                        existing.setCurrentHash(currentHash);
+                        bookFilePersistenceService.save(existingBook);
+                    }
+                    log.info("[CREATE] File '{}' belongs to removed-from-library book id={}, keeping it hidden", filePath, existingBook.getId());
+                    notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Finished processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
+                    return;
+                }
+
                 pendingDeletionPool.matchByHash(existingHash);
                 existingBook.setDeleted(false);
                 existingBook.setDeletedAt(null);
+                existingBook.setRemovedFromLibrary(false);
                 existing.setCurrentHash(currentHash);
                 bookFilePersistenceService.save(existingBook);
                 log.info("[CREATE] File '{}' restored deleted book id={}", filePath, existingBook.getId());

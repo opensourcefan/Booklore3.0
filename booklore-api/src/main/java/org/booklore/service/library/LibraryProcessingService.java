@@ -267,7 +267,7 @@ public class LibraryProcessingService {
     }
 
     protected List<LibraryFile> detectNewBookPaths(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
-        Set<String> existingKeys = bookRepository.findAllByLibraryIdWithFilesAndPath(libraryEntity.getId()).stream()
+        Set<String> existingKeys = bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryEntity.getId()).stream()
                 .filter(book -> book.getBookFiles() != null && !book.getBookFiles().isEmpty())
                 .map(this::generateUniqueKey)
                 .collect(Collectors.toSet());
@@ -421,7 +421,7 @@ public class LibraryProcessingService {
                 .map(this::generateUniqueKey)
                 .collect(Collectors.toSet());
 
-        return bookRepository.findAllByLibraryIdWithFilesAndPath(libraryEntity.getId()).stream()
+        return bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryEntity.getId()).stream()
                 .filter(book -> book.getPrimaryBookFile() != null)
                 .filter(book -> importedKeys.contains(generateUniqueKey(book)))
                 .map(BookEntity::getId)

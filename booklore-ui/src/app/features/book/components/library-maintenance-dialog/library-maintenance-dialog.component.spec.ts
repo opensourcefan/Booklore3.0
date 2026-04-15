@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {of} from 'rxjs';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
@@ -23,12 +23,14 @@ describe('LibraryMaintenanceDialogComponent', () => {
     bulkImport: ReturnType<typeof vi.fn>;
   };
   let messageServiceMock: {add: ReturnType<typeof vi.fn>};
+  let dialogRefMock: {close: ReturnType<typeof vi.fn>};
   let dialogLauncherServiceMock: {
     openLibrarySettingsDialog: ReturnType<typeof vi.fn>;
     openLibraryDirectoriesDialog: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
+    vi.useFakeTimers();
     confirmationConfig = undefined;
     libraryServiceMock = {
       findLibraryById: vi.fn().mockReturnValue({id: 42, name: 'Main Library'}),
@@ -41,6 +43,7 @@ describe('LibraryMaintenanceDialogComponent', () => {
       bulkImport: vi.fn().mockReturnValue(of({message: 'ok', imported: 4}))
     };
     messageServiceMock = {add: vi.fn()};
+    dialogRefMock = {close: vi.fn()};
     dialogLauncherServiceMock = {
       openLibrarySettingsDialog: vi.fn(),
       openLibraryDirectoriesDialog: vi.fn()
@@ -48,7 +51,7 @@ describe('LibraryMaintenanceDialogComponent', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        {provide: DynamicDialogRef, useValue: {close: vi.fn()}},
+        {provide: DynamicDialogRef, useValue: dialogRefMock},
         {provide: DynamicDialogConfig, useValue: {data: {libraryId: 42}}},
         {provide: ConfirmationService, useValue: {confirm: vi.fn((config: Parameters<ConfirmationService['confirm']>[0]) => { confirmationConfig = config; })}},
         {provide: MessageService, useValue: messageServiceMock},
@@ -61,6 +64,10 @@ describe('LibraryMaintenanceDialogComponent', () => {
 
     component = TestBed.runInInjectionContext(() => new LibraryMaintenanceDialogComponent());
     component.ngOnInit();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   function acceptConfirmation(): void {
@@ -107,5 +114,27 @@ describe('LibraryMaintenanceDialogComponent', () => {
     acceptConfirmation();
 
     expect(sidecarServiceMock.bulkImport).toHaveBeenCalledWith(42);
+  });
+
+  it('closes before opening library settings', () => {
+    component.openLibrarySettings();
+
+    expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
+    expect(dialogLauncherServiceMock.openLibrarySettingsDialog).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+
+    expect(dialogLauncherServiceMock.openLibrarySettingsDialog).toHaveBeenCalledWith(42);
+  });
+
+  it('closes before opening manage directories', () => {
+    component.openManageDirectories();
+
+    expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
+    expect(dialogLauncherServiceMock.openLibraryDirectoriesDialog).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+
+    expect(dialogLauncherServiceMock.openLibraryDirectoriesDialog).toHaveBeenCalledWith(42);
   });
 });

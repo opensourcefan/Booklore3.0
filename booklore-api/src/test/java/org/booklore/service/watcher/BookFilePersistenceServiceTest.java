@@ -236,6 +236,26 @@ class BookFilePersistenceServiceTest {
 
             verify(notificationService).sendMessageToPermissions(any(), any(), any());
         }
+
+        @Test
+        void removedFromLibraryBook_updatesPathWithoutUndeletingOrNotifying() {
+            BookEntity book = buildBook(10L);
+            book.setDeleted(true);
+            book.setRemovedFromLibrary(true);
+            BookFileEntity bookFile = buildBookFile(100L, book, "test.epub", "hash123");
+            book.setBookFiles(new ArrayList<>(List.of(bookFile)));
+
+            when(entityManager.merge(any(LibraryPathEntity.class))).thenReturn(libraryPath);
+            fileUtilsMock.when(() -> FileUtils.getRelativeSubPath(anyString(), any(Path.class))).thenReturn("newsub");
+
+            service.updatePathIfChanged(book, library, Path.of("/library/newsub/test.epub"), "hash123");
+
+            verify(bookRepository).save(book);
+            verify(notificationService, never()).sendMessageToPermissions(any(), any(), any());
+            assertThat(book.getDeleted()).isTrue();
+            assertThat(book.getRemovedFromLibrary()).isTrue();
+            assertThat(bookFile.getFileSubPath()).isEqualTo("newsub");
+        }
     }
 
     @Nested

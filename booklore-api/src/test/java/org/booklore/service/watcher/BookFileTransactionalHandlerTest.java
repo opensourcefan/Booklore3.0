@@ -30,6 +30,7 @@ import java.util.concurrent.ScheduledFuture;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("deprecation")
 class BookFileTransactionalHandlerTest {
 
     @Mock private BookFilePersistenceService bookFilePersistenceService;
@@ -157,6 +158,24 @@ class BookFileTransactionalHandlerTest {
             verify(bookFilePersistenceService).save(book);
             org.assertj.core.api.Assertions.assertThat(book.getDeleted()).isFalse();
             org.assertj.core.api.Assertions.assertThat(book.getDeletedAt()).isNull();
+        }
+
+        @Test
+        void existingAtPath_removedFromLibraryBook_staysHidden() {
+            BookEntity book = buildBook(10L, true);
+            book.setRemovedFromLibrary(true);
+            BookFileEntity bookFile = buildBookFile(100L, book, "test.epub", "oldhash");
+            book.setBookFiles(List.of(bookFile));
+
+            when(bookFilePersistenceService.findBookFileByLibraryPathSubPathAndFileName(1L, "sub", "test.epub"))
+                    .thenReturn(Optional.of(bookFile));
+
+            handler.handleNewBookFile(1L, Path.of("/library/sub/test.epub"));
+
+                verify(bookFilePersistenceService).save(book);
+            org.assertj.core.api.Assertions.assertThat(book.getDeleted()).isTrue();
+            org.assertj.core.api.Assertions.assertThat(book.getRemovedFromLibrary()).isTrue();
+                org.assertj.core.api.Assertions.assertThat(bookFile.getCurrentHash()).isEqualTo("hash123");
         }
 
         @Test

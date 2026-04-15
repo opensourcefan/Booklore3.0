@@ -177,8 +177,8 @@ jobs:
       - name: Retrieve Latest Master Version Tag
         id: get_version
         run: |
-          latest_tag=$(git tag --list "v*" --sort=-v:refname | head -n 1)
-          latest_tag=${latest_tag:-"v0.0.0"}
+          latest_tag=$(git tag --list --sort=-v:refname | grep -E '^[v]?[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          latest_tag=${latest_tag:-"0.0.0"}
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
           echo "Latest master tag: $latest_tag"
 
@@ -230,7 +230,7 @@ jobs:
             patch) patch=$((patch+1)) ;;
           esac
 
-          next_version="v${major}.${minor}.${patch}"
+          next_version="${major}.${minor}.${patch}"
           echo "Version bump type: $bump"
           echo "Next version: $next_version"
 

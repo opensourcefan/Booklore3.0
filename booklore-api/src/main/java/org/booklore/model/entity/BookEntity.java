@@ -72,6 +72,10 @@ public class BookEntity {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    @Column(name = "removed_from_library")
+    @Builder.Default
+    private Boolean removedFromLibrary = Boolean.FALSE;
+
     @Column(name = "file_type", length = 120)
     private String fileType;
 

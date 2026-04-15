@@ -44,6 +44,11 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
+  private switchWorkflowDialog(openNext: () => void): void {
+    this.closeDialog();
+    window.setTimeout(() => openNext(), 0);
+  }
+
   confirmScanNewFiles(): void {
     if (!this.library) {
       return;
@@ -139,8 +144,7 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
       return;
     }
 
-    this.dialogLauncherService.openLibrarySettingsDialog(this.library.id as number);
-    this.closeDialog();
+    this.switchWorkflowDialog(() => this.dialogLauncherService.openLibrarySettingsDialog(this.library!.id as number));
   }
 
   openManageDirectories(): void {
@@ -148,8 +152,7 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
       return;
     }
 
-    this.dialogLauncherService.openLibraryDirectoriesDialog(this.library.id as number);
-    this.closeDialog();
+    this.switchWorkflowDialog(() => this.dialogLauncherService.openLibraryDirectoriesDialog(this.library!.id as number));
   }
 
   confirmSidecarExport(): void {

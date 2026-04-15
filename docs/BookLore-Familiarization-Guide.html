@@ -417,6 +417,7 @@
   <strong>Be Careful:</strong>
   <ul>
     <li><strong>Deleting a book with &ldquo;delete from disk&rdquo; enabled is permanent.</strong> The file is gone. There is no recycle bin.</li>
+    <li><strong>When Allow File Deletion is turned off, BookLore hides the &ldquo;Delete from Disk&rdquo; choice.</strong> You can still use <strong>Remove from Library</strong> to hide the catalog entry while leaving the file on disk, and routine scans/watchers should not bring that removed book back on their own.</li>
     <li><strong>Bulk deleting books</strong> is powerful &mdash; double-check your selection before confirming.</li>
     <li><strong>If you delete the only readable format from a normal digital book,</strong> BookLore now removes that empty catalog shell instead of leaving behind a metadata-only entry. If you want a deliberate metadata-only placeholder, create a <strong>Physical Book</strong> instead.</li>
   </ul>
@@ -1111,7 +1112,7 @@
   <ul>
     <li><strong>Changing authentication settings can lock you out.</strong> Test OIDC configuration before disabling local login.</li>
     <li><strong>Settings export/import includes sensitive data</strong> (email credentials, API keys). Store exported files securely.</li>
-    <li><strong>Allow File Deletion is a hard safety gate.</strong> When it is off, BookLore should remove catalog associations only and should not delete physical files from disk.</li>
+    <li><strong>Allow File Deletion is a hard safety gate.</strong> When it is off, BookLore hides the <strong>Delete from Disk</strong> action, removes catalog associations only, and should not delete physical files from disk.</li>
   </ul>
 </div>
 
@@ -1119,6 +1120,7 @@
   <strong>Good to Know:</strong>
   <ul>
     <li><strong>The File Management toggle also protects additional attached files.</strong> When <strong>Allow File Deletion</strong> is disabled, deleting an attached file removes it from BookLore without overriding the global disk-deletion block.</li>
+    <li><strong>Remove from Library is now a durable hide action.</strong> When you remove a book without deleting its file, BookLore keeps the file on disk but suppresses automatic re-import during later scans and watcher events.</li>
     <li><strong>Automatic sidecars and manual sidecar backups are separate.</strong> You can keep automatic sidecar writing turned off and still run <strong>Back Up Sidecars per Library</strong> from Metadata Persistence when you want an on-demand metadata backup.</li>
     <li><strong>The backup action is available in both LOCAL and NETWORK disk modes.</strong> Network mode still blocks automatic rewrite and file reorganization, but the manual sidecar backup action remains available as an explicit exception.</li>
     <li><strong>Running the backup again refreshes existing backup sidecars.</strong> BookLore rewrites the selected library&rsquo;s sidecar files with the current database metadata instead of requiring you to delete old backups first.</li>
@@ -1303,6 +1305,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-15</td><td>1.1.75</td><td>Clarified that the linked <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> dialogs now hand off cleanly between each other, documented that <strong>Delete from Disk</strong> is hidden whenever <strong>Allow File Deletion</strong> is disabled, and recorded that <strong>Remove from Library</strong> now stays hidden across later scans and watcher activity while the underlying file remains on disk</td></tr>
   <tr><td>2026-04-15</td><td>1.1.74</td><td>Documented the book-browser filter routing repair so switching between <strong>AND</strong>, <strong>OR</strong>, <strong>NOT</strong>, and <strong>1</strong> no longer reuses a stale prior route context, preventing selector changes in one library from snapping the view back to an earlier <strong>Not Shelfed</strong> session or falsely showing an empty result set</td></tr>
   <tr><td>2026-04-15</td><td>1.1.73</td><td>Documented the safer browser and series multi-select behavior so bulk selections now resync cleanly between grid and table views, accepted background jobs clear the prior selection instead of leaving hidden books armed, and the browser header explicitly warns when some selected books are outside the current filtered view</td></tr>
   <tr><td>2026-04-13</td><td>1.1.72</td><td>Documented the dedicated <strong>Re-order</strong> sidebar mode so drag sorting only activates when explicitly toggled on, clarified that headings and sidebar rows can now be reordered directly with mouse or touch while the mode is active, and noted that the normal mobile and desktop sidebar overlay returns to plain navigation behavior when sorting is off</td></tr>

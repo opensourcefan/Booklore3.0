@@ -112,7 +112,7 @@ class LibraryProcessingServiceRegressionTest {
         when(libraryFileHelper.filterByAllowedFormats(anyList(), any())).thenAnswer(inv -> inv.getArgument(0));
         when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
         when(bookRepository.findFilelessBooksByLibraryId(libraryId)).thenReturn(List.of(filelessBook));
-        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(Collections.emptyList());
+        when(bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryId)).thenReturn(Collections.emptyList());
         when(bookGroupingService.groupForRescan(anyList(), any(LibraryEntity.class)))
                 .thenReturn(new BookGroupingService.GroupingResult(Collections.emptyMap(), Collections.emptyMap()));
 
@@ -153,7 +153,7 @@ class LibraryProcessingServiceRegressionTest {
         when(libraryFileHelper.filterByAllowedFormats(anyList(), any())).thenAnswer(inv -> inv.getArgument(0));
         when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
         when(bookRepository.findFilelessBooksByLibraryId(libraryId)).thenReturn(List.of(accidentalShell));
-        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(Collections.emptyList());
+        when(bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryId)).thenReturn(Collections.emptyList());
         when(bookGroupingService.groupForRescan(anyList(), any(LibraryEntity.class)))
                 .thenReturn(new BookGroupingService.GroupingResult(Collections.emptyMap(), Map.of()));
 

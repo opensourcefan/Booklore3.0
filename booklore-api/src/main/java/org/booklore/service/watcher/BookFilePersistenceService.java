@@ -41,6 +41,7 @@ public class BookFilePersistenceService {
     public void updatePathIfChanged(BookEntity book, LibraryEntity libraryEntity, Path path, String currentHash) {
         LibraryPathEntity newLibraryPath = getLibraryPathEntityForFile(libraryEntity, path.toString());
         newLibraryPath = entityManager.merge(newLibraryPath);
+        boolean removedFromLibrary = Boolean.TRUE.equals(book.getRemovedFromLibrary());
 
         String newSubPath = FileUtils.getRelativeSubPath(newLibraryPath.getPath(), path);
         String newFileName = path.getFileName().toString();
@@ -59,14 +60,19 @@ public class BookFilePersistenceService {
             book.setLibraryPath(newLibraryPath);
             matchedFile.setFileSubPath(newSubPath);
             matchedFile.setFileName(newFileName);
-            book.setDeleted(Boolean.FALSE);
-            book.setDeletedAt(null);
+            if (!removedFromLibrary) {
+                book.setDeleted(Boolean.FALSE);
+                book.setDeletedAt(null);
+            }
             bookRepository.save(book);
-            log.info("[FILE_CREATE] Updated path / undeleted existing book with hash '{}': '{}'", currentHash, path);
+            log.info("[FILE_CREATE] Updated path for existing book with hash '{}': '{}'", currentHash, path);
         } else {
             log.info("[FILE_CREATE] Book with hash '{}' already exists at same path. Skipping update.", currentHash);
         }
-        notificationService.sendMessageToPermissions(Topic.BOOK_ADD, bookMapper.toBookWithDescription(book, false), Set.of(ADMIN, MANAGE_LIBRARY));
+
+        if (!removedFromLibrary) {
+            notificationService.sendMessageToPermissions(Topic.BOOK_ADD, bookMapper.toBookWithDescription(book, false), Set.of(ADMIN, MANAGE_LIBRARY));
+        }
     }
 
     String findMatchingLibraryPath(LibraryEntity libraryEntity, Path filePath) {

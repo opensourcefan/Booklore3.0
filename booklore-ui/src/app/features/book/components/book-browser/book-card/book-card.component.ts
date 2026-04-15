@@ -107,6 +107,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   protected readStatusHelper = inject(ReadStatusHelper);
   private user: User | null = null;
   private diskType = 'LOCAL';
+  private allowFileDeletion = false;
   private menuInitialized = false;
 
   showBookTypePill = true;
@@ -136,6 +137,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       )
       .subscribe(settings => {
         this.diskType = settings?.diskType ?? 'LOCAL';
+        this.allowFileDeletion = settings?.allowFileDeletion ?? false;
       });
 
     if (this.overlayPreferenceService) {
@@ -456,17 +458,19 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
       if (hasAdditionalFiles) {
         const deleteItems = this.getDeleteMenuItems();
-        items.push({
-          label: this.t.translate('book.card.menu.delete'),
-          icon: 'pi pi-trash',
-          items: deleteItems
-        });
+        if (deleteItems.length > 0) {
+          items.push({
+            label: this.t.translate('book.card.menu.delete'),
+            icon: 'pi pi-trash',
+            items: deleteItems
+          });
+        }
       } else if (this.additionalFilesLoaded) {
         items.push({
           label: this.t.translate('book.card.menu.delete'),
           icon: 'pi pi-trash',
           items: [
-            {
+            ...(!this.allowFileDeletion ? [] : [{
               label: this.t.translate('book.card.menu.deleteFromDisk'),
               icon: 'pi pi-trash',
               command: () => {
@@ -485,7 +489,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
                   }
                 });
               }
-            },
+            }]),
             {
               label: this.t.translate('book.card.menu.removeFromLibrary'),
               icon: 'pi pi-minus-circle',
@@ -831,26 +835,28 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private getDeleteMenuItems(): MenuItem[] {
     const items: MenuItem[] = [];
 
-    items.push({
-      label: this.t.translate('book.card.menu.deleteFromDisk'),
-      icon: 'pi pi-trash',
-      command: () => {
-        this.confirmationService.confirm({
-          message: this.t.translate('book.card.confirm.deleteBookMessage', {title: this.book.metadata?.title}),
-          header: this.t.translate('book.card.confirm.deleteBookHeader'),
-          icon: 'pi pi-exclamation-triangle',
-          acceptIcon: 'pi pi-trash',
-          rejectIcon: 'pi pi-times',
-          acceptLabel: this.t.translate('common.delete'),
-          rejectLabel: this.t.translate('common.cancel'),
-          acceptButtonStyleClass: 'p-button-danger',
-          rejectButtonStyleClass: 'p-button-outlined',
-          accept: () => {
-            this.bookService.deleteBooks(new Set([this.book.id]), true).subscribe();
-          }
-        });
-      }
-    });
+    if (this.allowFileDeletion) {
+      items.push({
+        label: this.t.translate('book.card.menu.deleteFromDisk'),
+        icon: 'pi pi-trash',
+        command: () => {
+          this.confirmationService.confirm({
+            message: this.t.translate('book.card.confirm.deleteBookMessage', {title: this.book.metadata?.title}),
+            header: this.t.translate('book.card.confirm.deleteBookHeader'),
+            icon: 'pi pi-exclamation-triangle',
+            acceptIcon: 'pi pi-trash',
+            rejectIcon: 'pi pi-times',
+            acceptLabel: this.t.translate('common.delete'),
+            rejectLabel: this.t.translate('common.cancel'),
+            acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-outlined',
+            accept: () => {
+              this.bookService.deleteBooks(new Set([this.book.id]), true).subscribe();
+            }
+          });
+        }
+      });
+    }
 
     items.push({
       label: this.t.translate('book.card.menu.removeFromLibrary'),
@@ -873,7 +879,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       }
     });
 
-    if (this.hasAdditionalFiles()) {
+    if (items.length > 0 && this.hasAdditionalFiles()) {
       items.push({separator: true});
     }
 

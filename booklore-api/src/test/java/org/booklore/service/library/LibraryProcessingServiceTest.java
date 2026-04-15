@@ -100,7 +100,7 @@ class LibraryProcessingServiceTest {
         libraryEntity.setBookEntities(List.of(existingBook));
 
         when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
-        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
+        when(bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryId)).thenReturn(List.of(existingBook));
 
         LibraryFile existingFile = LibraryFile.builder()
                 .libraryEntity(libraryEntity)
@@ -162,7 +162,7 @@ class LibraryProcessingServiceTest {
         libraryEntity.setBookEntities(List.of(existingBook));
 
         when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
-        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
+        when(bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryId)).thenReturn(List.of(existingBook));
 
         LibraryFile existingFile = LibraryFile.builder()
                 .libraryEntity(libraryEntity)
@@ -276,7 +276,7 @@ class LibraryProcessingServiceTest {
                 .build();
 
         when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
-        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId))
+        when(bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryId))
                 .thenReturn(List.of(existingBook))
                 .thenReturn(List.of(existingBook, importedBook));
         when(libraryFileHelper.getLibraryFiles(libraryEntity)).thenReturn(List.of(existingFile, newFile));
@@ -327,7 +327,7 @@ class LibraryProcessingServiceTest {
                                 .build();
 
                 when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
-                when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
+                when(bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryId)).thenReturn(List.of(existingBook));
                 when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
                 when(libraryFileHelper.getLibraryFiles(libraryEntity)).thenReturn(List.of(existingFile, newFile));
                 when(bookGroupingService.groupForInitialScan(anyList(), eq(libraryEntity)))
@@ -384,7 +384,7 @@ class LibraryProcessingServiceTest {
                                 .build();
 
                 when(libraryRepository.findById(libraryId)).thenReturn(Optional.of(libraryEntity));
-                when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
+                when(bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryId)).thenReturn(List.of(existingBook));
                 when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());
                 when(libraryFileHelper.getLibraryFiles(libraryEntity)).thenReturn(List.of(existingFile));
                 when(bookGroupingService.groupForInitialScan(anyList(), eq(libraryEntity))).thenReturn(Collections.emptyMap());
@@ -732,7 +732,7 @@ class LibraryProcessingServiceTest {
         when(libraryRepository.findById(libraryId))
                 .thenReturn(Optional.of(libraryEntity))
                 .thenReturn(Optional.of(freshLibraryEntity)); // Second call returns fresh entity
-        when(bookRepository.findAllByLibraryIdWithFilesAndPath(libraryId)).thenReturn(List.of(existingBook));
+        when(bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryId)).thenReturn(List.of(existingBook));
         when(libraryFileHelper.getAllLibraryFiles(any(LibraryEntity.class))).thenReturn(List.of(fileOnDisk));
         when(libraryFileHelper.filterByAllowedFormats(anyList(), any())).thenAnswer(inv -> inv.getArgument(0));
         when(bookAdditionalFileRepository.findByLibraryId(libraryId)).thenReturn(Collections.emptyList());

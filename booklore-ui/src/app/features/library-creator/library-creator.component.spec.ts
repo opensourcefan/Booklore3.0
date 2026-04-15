@@ -27,6 +27,12 @@ describe('LibraryCreatorComponent', () => {
   };
   let messageServiceMock: { add: ReturnType<typeof vi.fn> };
   let dialogRefMock: { close: ReturnType<typeof vi.fn> };
+  let dialogLauncherMock: {
+    openDirectoryPickerDialog: ReturnType<typeof vi.fn>;
+    openLibrarySettingsDialog: ReturnType<typeof vi.fn>;
+    openLibraryDirectoriesDialog: ReturnType<typeof vi.fn>;
+    openLibraryMaintenanceDialog: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -44,6 +50,12 @@ describe('LibraryCreatorComponent', () => {
     };
     messageServiceMock = {add: vi.fn()};
     dialogRefMock = {close: vi.fn()};
+    dialogLauncherMock = {
+      openDirectoryPickerDialog: vi.fn(),
+      openLibrarySettingsDialog: vi.fn(),
+      openLibraryDirectoriesDialog: vi.fn(),
+      openLibraryMaintenanceDialog: vi.fn()
+    };
 
     TestBed.configureTestingModule({
       imports: [LibraryCreatorComponent],
@@ -54,7 +66,7 @@ describe('LibraryCreatorComponent', () => {
         {provide: Router, useValue: {navigate: vi.fn()}},
         {provide: LibraryService, useValue: libraryServiceMock},
         {provide: IconPickerService, useValue: {open: vi.fn().mockReturnValue(of(null))}},
-        {provide: DialogLauncherService, useValue: {openDirectoryPickerDialog: vi.fn()}},
+        {provide: DialogLauncherService, useValue: dialogLauncherMock},
         {
           provide: TranslocoService,
           useValue: {
@@ -175,5 +187,42 @@ describe('LibraryCreatorComponent', () => {
       severity: 'info',
       summary: 'libraryCreator.creator.toast.directoryTagSettingsInfoSummary'
     }));
+  });
+
+  it('closes before opening the settings dialog', () => {
+    component.mode = 'edit-directories';
+
+    component.openLibrarySettingsView();
+
+    expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
+    expect(dialogLauncherMock.openLibrarySettingsDialog).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+
+    expect(dialogLauncherMock.openLibrarySettingsDialog).toHaveBeenCalledWith(5);
+  });
+
+  it('closes before opening the directories dialog', () => {
+    component.mode = 'edit-settings';
+
+    component.openLibraryDirectoriesView();
+
+    expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
+    expect(dialogLauncherMock.openLibraryDirectoriesDialog).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+
+    expect(dialogLauncherMock.openLibraryDirectoriesDialog).toHaveBeenCalledWith(5);
+  });
+
+  it('closes before opening the maintenance dialog', () => {
+    component.openLibraryMaintenanceView();
+
+    expect(dialogRefMock.close).toHaveBeenCalledTimes(1);
+    expect(dialogLauncherMock.openLibraryMaintenanceDialog).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+
+    expect(dialogLauncherMock.openLibraryMaintenanceDialog).toHaveBeenCalledWith(5);
   });
 });

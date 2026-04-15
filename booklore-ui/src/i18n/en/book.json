@@ -194,6 +194,8 @@
       "someFilesNotDeletedDetail": "Books: {{ fileNames }}",
       "booksDeletedSummary": "Books Deleted",
       "booksDeletedDetail": "{{ count }} book(s) deleted successfully.",
+      "booksRemovedSummary": "Books Removed From Library",
+      "booksRemovedDetail": "{{ count }} book(s) removed from the library.",
       "deleteFailedSummary": "Delete Failed",
       "deleteFailedDetail": "An error occurred while deleting books.",
       "physicalBookCreatedSummary": "Physical Book Created",

@@ -42,6 +42,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.booklore.model.enums.AuditAction;
@@ -441,8 +442,28 @@ public class BookService {
                     .filter(book -> userLibraryIds.contains(book.getLibrary().getId()))
                     .toList();
         }
+
+        if (deleteFromDisk && !appSettingService.getAppSettings().isAllowFileDeletion()) {
+            throw ApiError.FILE_DELETION_DISABLED.createException();
+        }
+
+        Set<Long> affectedIds = books.stream()
+                .map(BookEntity::getId)
+                .collect(Collectors.toSet());
+
+        if (!deleteFromDisk) {
+            Instant removedAt = Instant.now();
+            books.forEach(book -> {
+                book.setDeleted(true);
+                book.setDeletedAt(removedAt);
+                book.setRemovedFromLibrary(true);
+            });
+            bookRepository.saveAll(books);
+            auditService.log(AuditAction.BOOK_DELETED, "Removed " + affectedIds.size() + " book(s) from library");
+            return ResponseEntity.ok(new BookDeletionResponse(affectedIds, List.of()));
+        }
+
         List<Long> failedFileDeletions = new ArrayList<>();
-        boolean actuallyDeleteFromDisk = deleteFromDisk && appSettingService.getAppSettings().isAllowFileDeletion();
         for (BookEntity book : books) {
             if (Boolean.TRUE.equals(book.getIsPhysical()) && !book.hasFiles()) {
                 sidecarMetadataWriter.deleteSidecarFiles(book);
@@ -451,7 +472,7 @@ public class BookService {
             for (BookFileEntity bookFile : book.getBookFiles()) {
                 Path fullFilePath = bookFile.getFullFilePath();
                 try {
-                    if (actuallyDeleteFromDisk && Files.exists(fullFilePath)) {
+                    if (Files.exists(fullFilePath)) {
                         try {
                             monitoringRegistrationService.unregisterSpecificPath(fullFilePath.getParent());
                         } catch (Exception ex) {
@@ -491,8 +512,8 @@ public class BookService {
         }
 
         bookRepository.deleteAllInBatch(books);
-        auditService.log(AuditAction.BOOK_DELETED, "Deleted " + ids.size() + " book(s)");
-        BookDeletionResponse response = new BookDeletionResponse(ids, failedFileDeletions);
+            auditService.log(AuditAction.BOOK_DELETED, "Deleted " + affectedIds.size() + " book(s)");
+            BookDeletionResponse response = new BookDeletionResponse(affectedIds, failedFileDeletions);
         return failedFileDeletions.isEmpty()
                 ? ResponseEntity.ok(response)
                 : ResponseEntity.status(HttpStatus.MULTI_STATUS).body(response);

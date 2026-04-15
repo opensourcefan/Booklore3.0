@@ -186,9 +186,10 @@ export class BookService {
 
     return this.http.delete<BookDeletionResponse>(this.url, {params}).pipe(
       tap(response => {
+        const deletedIds = new Set((response.deleted || []).map(id => Number(id)));
         const currentState = this.bookStateService.getCurrentBookState();
         const remainingBooks = (currentState.books || []).filter(
-          book => !ids.has(book.id)
+          book => !deletedIds.has(book.id)
         );
 
         this.bookStateService.updateBookState({
@@ -197,17 +198,23 @@ export class BookService {
           error: null,
         });
 
-        if (response.failedFileDeletions?.length > 0) {
+        if (deleteFromDisk && response.failedFileDeletions?.length > 0) {
           this.messageService.add({
             severity: 'warn',
             summary: this.t.translate('book.bookService.toast.someFilesNotDeletedSummary'),
             detail: this.t.translate('book.bookService.toast.someFilesNotDeletedDetail', {fileNames: response.failedFileDeletions.join(', ')}),
           });
-        } else {
+        } else if (deleteFromDisk) {
           this.messageService.add({
             severity: 'success',
             summary: this.t.translate('book.bookService.toast.booksDeletedSummary'),
-            detail: this.t.translate('book.bookService.toast.booksDeletedDetail', {count: idList.length}),
+            detail: this.t.translate('book.bookService.toast.booksDeletedDetail', {count: deletedIds.size}),
+          });
+        } else {
+          this.messageService.add({
+            severity: 'success',
+            summary: this.t.translate('book.bookService.toast.booksRemovedSummary'),
+            detail: this.t.translate('book.bookService.toast.booksRemovedDetail', {count: deletedIds.size}),
           });
         }
       }),

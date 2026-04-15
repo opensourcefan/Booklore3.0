@@ -284,13 +284,17 @@ export class LibraryCreatorComponent implements OnInit {
     return !this.isDirectoryManagementMode();
   }
 
+  private switchWorkflowDialog(openNext: () => void): void {
+    this.dynamicDialogRef.close();
+    window.setTimeout(() => openNext(), 0);
+  }
+
   openLibrarySettingsView(): void {
     if (!this.library?.id || this.isSubmitting || this.isSettingsMode()) {
       return;
     }
 
-    this.dialogLauncherService.openLibrarySettingsDialog(this.library.id);
-    this.dynamicDialogRef.close();
+    this.switchWorkflowDialog(() => this.dialogLauncherService.openLibrarySettingsDialog(this.library!.id!));
   }
 
   openLibraryDirectoriesView(): void {
@@ -298,8 +302,7 @@ export class LibraryCreatorComponent implements OnInit {
       return;
     }
 
-    this.dialogLauncherService.openLibraryDirectoriesDialog(this.library.id);
-    this.dynamicDialogRef.close();
+    this.switchWorkflowDialog(() => this.dialogLauncherService.openLibraryDirectoriesDialog(this.library!.id!));
   }
 
   openLibraryMaintenanceView(): void {
@@ -307,8 +310,7 @@ export class LibraryCreatorComponent implements OnInit {
       return;
     }
 
-    this.dialogLauncherService.openLibraryMaintenanceDialog(this.library.id);
-    this.dynamicDialogRef.close();
+    this.switchWorkflowDialog(() => this.dialogLauncherService.openLibraryMaintenanceDialog(this.library!.id!));
   }
 
   getDialogTitleKey(): string {

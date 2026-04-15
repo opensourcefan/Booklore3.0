@@ -108,6 +108,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
   private metadataHostService = inject(BookMetadataHostService);
   private appSettingsService = inject(AppSettingsService);
   private appSettings$ = this.appSettingsService.appSettings$;
+  allowFileDeletion = false;
   amazonDomain = 'com';
   navigationState$ = this.bookNavigationService.getNavigationState();
 
@@ -396,7 +397,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
                 label: deleteLabel,
                 icon: 'pi pi-trash',
                 items: [
-                  {
+                  ...((isPhysical || this.allowFileDeletion) ? [{
                     label: isPhysical ? deleteLabel : this.t.translate('metadata.viewer.menuDeleteFromDisk'),
                     icon: 'pi pi-trash',
                     command: () => {
@@ -424,7 +425,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
                         }
                       });
                     }
-                  },
+                  }] : []),
                   ...(!isPhysical ? [{
                     label: this.t.translate('metadata.viewer.menuRemoveFromLibrary'),
                     icon: 'pi pi-minus-circle',
@@ -491,6 +492,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
       )
       .subscribe(settings => {
         this.amazonDomain = settings?.metadataProviderSettings?.amazon?.domain ?? 'com';
+        this.allowFileDeletion = settings?.allowFileDeletion ?? false;
       });
   }
 
