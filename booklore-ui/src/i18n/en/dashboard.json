@@ -5,7 +5,8 @@
     "welcomeSubtitle": "Let's create your first library",
     "welcomeDescription": "A library is where all your books live. Start building your digital collection today!",
     "createLibrary": "Create Your Library",
-    "customizeDashboard": "Customize Dashboard"
+    "customizeDashboard": "Customize Dashboard",
+    "dragPanel": "Drag panel"
   },
   "scroller": {
     "noBooksFound": "No books found for this scroller.",
@@ -24,6 +25,12 @@
     "selectType": "Select type",
     "magicShelf": "Magic Shelf",
     "selectMagicShelf": "Select magic shelf",
+    "library": "Library",
+    "selectLibrary": "Select library",
+    "width": "Width",
+    "selectWidth": "Select width",
+    "layoutLockTitle": "Lock dashboard layout",
+    "layoutLockDescription": "When locked, dashboard panels stay in place and drag reordering is disabled.",
     "sortField": "Sort Field",
     "selectField": "Select field",
     "direction": "Direction",
@@ -31,6 +38,9 @@
     "maxItems": "Max Items",
     "addScroller": "Add Scroller",
     "resetToDefault": "Reset to Default",
+    "widthOptions": {
+      "auto": "Auto"
+    },
     "scrollerTypes": {
       "lastRead": "Continue Reading",
       "lastListened": "Continue Listening",

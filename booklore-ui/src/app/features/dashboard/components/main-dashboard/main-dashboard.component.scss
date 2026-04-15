@@ -2,6 +2,7 @@
   height: calc(100dvh - 6.7rem);
   overflow-y: auto;
   position: relative;
+  padding: 0 1.5rem 2rem;
 
   &::before {
     content: '';
@@ -30,6 +31,7 @@
 @media (max-width: 768px) {
   .dashboard-container {
     height: calc(100dvh - 5rem);
+    padding: 0 0.75rem 1.5rem;
 
     &::-webkit-scrollbar {
       width: 8px;
@@ -38,12 +40,11 @@
 }
 
 .dashboard {
+  display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
   position: relative;
   z-index: 1;
+  min-height: 100%;
 }
 
 .loading-state {
@@ -55,6 +56,10 @@
 
 .dashboard-inner {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 100%;
 }
 
 .welcome-description {
@@ -85,6 +90,7 @@
   backdrop-filter: blur(20px);
   position: relative;
   overflow: hidden;
+  text-align: center;
 }
 
 .dashboard .p-dialog {
@@ -99,11 +105,63 @@
   backdrop-filter: blur(3px);
 }
 
+.dashboard-toolbar {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.dashboard-grid {
+  --dashboard-gap: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(var(--dashboard-columns, 12), minmax(0, 1fr));
+  gap: var(--dashboard-gap);
+  align-items: start;
+  padding-bottom: 1rem;
+
+  &.dashboard-grid--unlocked {
+    position: relative;
+  }
+}
+
+.dashboard-panel {
+  min-width: 0;
+  position: relative;
+
+  &.cdk-drag-preview {
+    z-index: 1000;
+  }
+}
+
+.dashboard-panel-handle {
+  position: absolute;
+  top: 0.9rem;
+  right: 1rem;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--p-surface-900), transparent 18%);
+  border: 1px solid color-mix(in srgb, var(--p-content-border-color), transparent 20%);
+  color: var(--text-color-secondary);
+  cursor: move;
+  user-select: none;
+  backdrop-filter: blur(8px);
+  font-size: 0.75rem;
+
+  i {
+    font-size: 0.75rem;
+  }
+}
+
 .dashboard-settings-button {
-  position: fixed;
-  top: 6rem;
-  right: 2rem;
-  z-index: 100;
+  pointer-events: auto;
+  position: relative;
 
   ::ng-deep .p-button {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -120,10 +178,20 @@
 }
 
 @media (max-width: 768px) {
-  .dashboard-settings-button {
-    top: 5rem;
-    right: 1rem;
+  .dashboard-grid {
+    --dashboard-gap: 0.9rem;
+  }
 
+  .dashboard-panel-handle {
+    top: 0.75rem;
+    right: 0.75rem;
+
+    span {
+      display: none;
+    }
+  }
+
+  .dashboard-settings-button {
     ::ng-deep .p-button {
       width: 2.5rem;
       height: 2.5rem;

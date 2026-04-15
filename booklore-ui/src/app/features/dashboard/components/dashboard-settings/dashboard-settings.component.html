@@ -18,6 +18,16 @@
       />
     </div>
 
+    <div class="settings-controls">
+      <div class="settings-lock-row">
+        <div class="settings-lock-copy">
+          <h3>{{ t('layoutLockTitle') }}</h3>
+          <p>{{ t('layoutLockDescription') }}</p>
+        </div>
+        <p-toggleswitch [(ngModel)]="config.layoutLocked"></p-toggleswitch>
+      </div>
+    </div>
+
     <div class="scrollers-container">
       @for (scroller of config.scrollers; track scroller.id; let i = $index) {
         <div class="scroller-item">
@@ -35,6 +45,28 @@
                   [(ngModel)]="scroller.type"
                   (onChange)="onScrollerTypeChange(scroller)"
                   [placeholder]="t('selectType')"
+                  appendTo="body">
+                </p-select>
+              </div>
+
+              <div class="scroller-field">
+                <span>{{ t('library') }}</span>
+                <p-select
+                  fluid
+                  [options]="(libraryOptions$ | async) ?? []"
+                  [(ngModel)]="scroller.libraryId"
+                  [placeholder]="t('selectLibrary')"
+                  appendTo="body">
+                </p-select>
+              </div>
+
+              <div class="scroller-field">
+                <span>{{ t('width') }}</span>
+                <p-select
+                  fluid
+                  [options]="columnSpanOptions"
+                  [(ngModel)]="scroller.columnSpan"
+                  [placeholder]="t('selectWidth')"
                   appendTo="body">
                 </p-select>
               </div>
@@ -76,10 +108,10 @@
             </div>
 
             <div class="scroller-field max-items-field">
-              <label for="dashboard-max-items">{{ t('maxItems') }}</label>
+              <label [for]="'dashboard-max-items-' + scroller.id">{{ t('maxItems') }}</label>
               <p-inputNumber
                 fluid
-                inputId="dashboard-max-items"
+                [inputId]="'dashboard-max-items-' + scroller.id"
                 [(ngModel)]="scroller.maxItems"
                 [min]="MIN_ITEMS"
                 [max]="MAX_ITEMS"

@@ -1,6 +1,6 @@
 import {Injectable, inject} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {DashboardConfig, DEFAULT_DASHBOARD_CONFIG, ScrollerType} from '../models/dashboard-config.model';
+import {cloneDashboardConfig, DashboardConfig, DEFAULT_DASHBOARD_CONFIG, normalizeDashboardConfig, ScrollerType} from '../models/dashboard-config.model';
 import {UserService} from '../../settings/user-management/user.service';
 import {filter, take} from 'rxjs/operators';
 import {MagicShelfService} from '../../magic-shelf/service/magic-shelf.service';
@@ -9,7 +9,7 @@ import {MagicShelfService} from '../../magic-shelf/service/magic-shelf.service';
   providedIn: 'root'
 })
 export class DashboardConfigService {
-  private configSubject = new BehaviorSubject<DashboardConfig>(DEFAULT_DASHBOARD_CONFIG);
+  private configSubject = new BehaviorSubject<DashboardConfig>(cloneDashboardConfig(DEFAULT_DASHBOARD_CONFIG));
 
   public config$: Observable<DashboardConfig> = this.configSubject.asObservable();
 
@@ -23,14 +23,14 @@ export class DashboardConfigService {
         take(1)
       )
       .subscribe(userState => {
-        const dashboardConfig = userState.user?.userSettings?.dashboardConfig as DashboardConfig;
+        const dashboardConfig = userState.user?.userSettings?.dashboardConfig as DashboardConfig | undefined;
         if (dashboardConfig) {
-          this.configSubject.next(dashboardConfig);
+          this.configSubject.next(normalizeDashboardConfig(dashboardConfig));
         }
       });
 
     this.magicShelfService.shelvesState$.subscribe(state => {
-      const currentConfig = this.configSubject.value;
+      const currentConfig = cloneDashboardConfig(this.configSubject.value);
       let updated = false;
 
       currentConfig.scrollers.forEach(scroller => {
@@ -44,7 +44,7 @@ export class DashboardConfigService {
       });
 
       if (updated) {
-        this.configSubject.next({...currentConfig});
+        this.configSubject.next(normalizeDashboardConfig(currentConfig));
         const user = this.userService.getCurrentUser();
         if (user) {
           this.userService.updateUserSetting(user.id, 'dashboardConfig', currentConfig);
@@ -54,15 +54,16 @@ export class DashboardConfigService {
   }
 
   saveConfig(config: DashboardConfig): void {
-    this.configSubject.next(config);
+    const normalizedConfig = normalizeDashboardConfig(config);
+    this.configSubject.next(cloneDashboardConfig(normalizedConfig));
 
     const user = this.userService.getCurrentUser();
     if (user) {
-      this.userService.updateUserSetting(user.id, 'dashboardConfig', config);
+      this.userService.updateUserSetting(user.id, 'dashboardConfig', normalizedConfig);
     }
   }
 
   resetToDefault(): void {
-    this.saveConfig(DEFAULT_DASHBOARD_CONFIG);
+    this.saveConfig(cloneDashboardConfig(DEFAULT_DASHBOARD_CONFIG));
   }
 }

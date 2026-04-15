@@ -8,16 +8,15 @@ import {CheckboxModule} from 'primeng/checkbox';
 import {InputTextModule} from 'primeng/inputtext';
 import {SelectModule} from 'primeng/select';
 import {InputNumberModule} from 'primeng/inputnumber';
-import {DashboardConfig, ScrollerConfig, ScrollerType} from '../../models/dashboard-config.model';
+import {ToggleSwitch} from 'primeng/toggleswitch';
+import {combineLatest, map, startWith} from 'rxjs';
+import {cloneDashboardConfig, DashboardConfig, DEFAULT_MAX_ITEMS, getDefaultScrollerTitleKey, MAX_DASHBOARD_GRID_COLUMNS, MAX_ITEMS, MIN_ITEMS, ScrollerConfig, ScrollerType} from '../../models/dashboard-config.model';
 import {DashboardConfigService} from '../../services/dashboard-config.service';
 import {MagicShelfService} from '../../../magic-shelf/service/magic-shelf.service';
-import {map} from 'rxjs/operators';
+import {LibraryService} from '../../../book/service/library.service';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 
 export const MAX_SCROLLERS = 5;
-export const DEFAULT_MAX_ITEMS = 20;
-export const MIN_ITEMS = 10;
-export const MAX_ITEMS = 20;
 
 @Component({
   selector: 'app-dashboard-settings',
@@ -30,6 +29,7 @@ export const MAX_ITEMS = 20;
     InputTextModule,
     SelectModule,
     InputNumberModule,
+    ToggleSwitch,
     TranslocoDirective,
     TranslocoPipe
   ],
@@ -40,6 +40,7 @@ export class DashboardSettingsComponent implements OnInit {
   private configService = inject(DashboardConfigService);
   private dialogRef = inject(DynamicDialogRef);
   private magicShelfService = inject(MagicShelfService);
+  private libraryService = inject(LibraryService);
   private translocoService = inject(TranslocoService);
   private destroyRef = inject(DestroyRef);
 
@@ -48,6 +49,7 @@ export class DashboardSettingsComponent implements OnInit {
   availableScrollerTypes: {label: string; value: ScrollerType}[] = [];
   sortFieldOptions: {label: string; value: string}[] = [];
   sortDirectionOptions: {label: string; value: string}[] = [];
+  columnSpanOptions: {label: string; value: number | null}[] = [];
 
   magicShelves$ = this.magicShelfService.shelvesState$.pipe(
     map(state => (state.shelves || []).map(shelf => ({
@@ -56,10 +58,30 @@ export class DashboardSettingsComponent implements OnInit {
     })))
   );
 
+  libraryOptions$ = combineLatest([
+    this.libraryService.libraryState$,
+    this.translocoService.langChanges$.pipe(startWith(this.translocoService.getActiveLang()))
+  ]).pipe(
+    map(([state]) => {
+      const options: {label: string; value: number | null}[] = [{
+        label: this.translocoService.translate('statsLibrary.libraryFilter.allLibraries'),
+        value: null
+      }];
+
+      const libraries = [...(state.libraries || [])].sort((a, b) => a.name.localeCompare(b.name));
+      libraries.forEach(library => {
+        options.push({label: library.name, value: library.id ?? null});
+      });
+
+      return options;
+    })
+  );
+
   private magicShelvesMap = new Map<number, string>();
 
   readonly MIN_ITEMS = MIN_ITEMS;
   readonly MAX_ITEMS = MAX_ITEMS;
+  readonly maxGridColumns = MAX_DASHBOARD_GRID_COLUMNS;
 
   ngOnInit(): void {
     this.translocoService.langChanges$
@@ -67,7 +89,7 @@ export class DashboardSettingsComponent implements OnInit {
       .subscribe(() => this.buildTranslatedOptions());
 
     this.configService.config$.subscribe(config => {
-      this.config = JSON.parse(JSON.stringify(config));
+      this.config = cloneDashboardConfig(config);
     });
 
     this.magicShelfService.shelvesState$.subscribe(state => {
@@ -115,6 +137,14 @@ export class DashboardSettingsComponent implements OnInit {
       {label: t('sortDirections.asc'), value: 'asc'},
       {label: t('sortDirections.desc'), value: 'desc'}
     ];
+
+    this.columnSpanOptions = [
+      {label: t('widthOptions.auto'), value: null},
+      ...Array.from({length: MAX_DASHBOARD_GRID_COLUMNS}, (_, index) => ({
+        label: `${index + 1}`,
+        value: index + 1
+      }))
+    ];
   }
 
   getScrollerTitle(scroller: ScrollerConfig): string {
@@ -122,18 +152,7 @@ export class DashboardSettingsComponent implements OnInit {
       return this.magicShelvesMap.get(scroller.magicShelfId) || 'dashboard.scroller.magicShelf';
     }
 
-    switch (scroller.type) {
-      case ScrollerType.LAST_READ:
-        return 'dashboard.scroller.continueReading';
-      case ScrollerType.LAST_LISTENED:
-        return 'dashboard.scroller.continueListening';
-      case ScrollerType.LATEST_ADDED:
-        return 'dashboard.scroller.recentlyAdded';
-      case ScrollerType.RANDOM:
-        return 'dashboard.scroller.discoverNew';
-      default:
-        return 'dashboard.scroller.default';
-    }
+    return getDefaultScrollerTitleKey(scroller.type);
   }
 
   addScroller(): void {
@@ -147,7 +166,9 @@ export class DashboardSettingsComponent implements OnInit {
       title: '',
       enabled: true,
       order: this.config.scrollers.length + 1,
-      maxItems: DEFAULT_MAX_ITEMS
+      maxItems: DEFAULT_MAX_ITEMS,
+      libraryId: null,
+      columnSpan: null
     });
   }
 
@@ -164,6 +185,8 @@ export class DashboardSettingsComponent implements OnInit {
       scroller.magicShelfId = undefined;
     } else {
       delete scroller.magicShelfId;
+      delete scroller.sortField;
+      delete scroller.sortDirection;
     }
   }
 
@@ -190,6 +213,7 @@ export class DashboardSettingsComponent implements OnInit {
   }
 
   save(): void {
+    this.updateOrder();
     this.config.scrollers.forEach(scroller => {
       scroller.title = this.getScrollerTitle(scroller);
     });

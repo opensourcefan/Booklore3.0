@@ -7,7 +7,7 @@ import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {Book} from '../../../book/model/book.model';
 import {ScrollerType} from '../../models/dashboard-config.model';
 import { BookCardOverlayPreferenceService } from '../../../book/components/book-browser/book-card-overlay-preference.service';
-import {TranslocoDirective, TranslocoPipe} from '@jsverse/transloco';
+import {TranslocoDirective} from '@jsverse/transloco';
 import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 
 @Component({
@@ -19,8 +19,7 @@ import {LocalStorageService} from '../../../../shared/service/local-storage.serv
     BookCardComponent,
     ProgressSpinnerModule,
     NgClass,
-    TranslocoDirective,
-    TranslocoPipe
+    TranslocoDirective
   ],
   standalone: true
 })
