@@ -723,6 +723,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
       this.queryParamsService.syncQueryParams(
+        this.activatedRoute,
         this.currentViewMode!,
         this.selectedFilterMode.getValue(),
         this.parsedFilters
@@ -793,7 +794,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const hasSidebarFilters = !!filters && Object.keys(filters).length > 0;
     this.currentFilterLabel = hasSidebarFilters ? this.computedFilterLabel : this.t.translate('book.browser.labels.allBooks');
 
-    this.queryParamsService.updateFilters(filters);
+    this.queryParamsService.updateFilters(this.activatedRoute, filters);
   }
 
   onFilterModeChanged(mode: BookFilterMode): void {
@@ -802,7 +803,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.clearSidebarFiltersState(true);
     this.selectedFilterMode.next(safe);
-    this.queryParamsService.updateFilterMode(safe, {}, true);
+    this.queryParamsService.updateFilterMode(this.activatedRoute, safe, {}, true);
     this.persistFilterModePreference(safe);
   }
 
@@ -993,7 +994,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.baseSortCriteria = [...sortCriteria];
     this.hasExplicitSortQuery = true;
     this.applySortCriteria(sortCriteria);
-    this.queryParamsService.updateMultiSort(sortCriteria);
+    this.queryParamsService.updateMultiSort(this.activatedRoute, sortCriteria);
   }
 
   onManualSortChange(sortOption: SortOption): void {
@@ -1197,7 +1198,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         .find(rename => rename.from.toLowerCase() === active.toLowerCase());
 
       if (renamedMatch) {
-        this.queryParamsService.updateFilters({customMediaType: [renamedMatch.to]});
+        this.queryParamsService.updateFilters(this.activatedRoute, {customMediaType: [renamedMatch.to]});
         return;
       }
 
@@ -1314,7 +1315,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleTableGrid(): void {
     this.currentViewMode = this.currentViewMode === VIEW_MODES.GRID ? VIEW_MODES.TABLE : VIEW_MODES.GRID;
-    this.queryParamsService.updateViewMode(this.currentViewMode as 'grid' | 'table');
+    this.queryParamsService.updateViewMode(this.activatedRoute, this.currentViewMode as 'grid' | 'table');
   }
 
   unshelfBooks(): void {

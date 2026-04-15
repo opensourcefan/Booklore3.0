@@ -45,7 +45,6 @@ export interface QueryParseResult {
 @Injectable({providedIn: 'root'})
 export class BookBrowserQueryParamsService {
   private router = inject(Router);
-  private activatedRoute = inject(ActivatedRoute);
 
   parseQueryParams(
     queryParamMap: ParamMap,
@@ -161,8 +160,9 @@ export class BookBrowserQueryParamsService {
     };
   }
 
-  updateViewMode(mode: 'grid' | 'table'): void {
+  updateViewMode(route: ActivatedRoute, mode: 'grid' | 'table'): void {
     this.router.navigate([], {
+      relativeTo: route,
       queryParams: {
         [QUERY_PARAMS.VIEW]: mode,
         [QUERY_PARAMS.FROM]: 'toggle'
@@ -172,12 +172,12 @@ export class BookBrowserQueryParamsService {
     });
   }
 
-  updateSort(sortOption: SortOption): void {
-    this.updateMultiSort([sortOption]);
+  updateSort(route: ActivatedRoute, sortOption: SortOption): void {
+    this.updateMultiSort(route, [sortOption]);
   }
 
-  updateMultiSort(sortCriteria: SortOption[]): void {
-    const currentParams = this.activatedRoute.snapshot.queryParams;
+  updateMultiSort(route: ActivatedRoute, sortCriteria: SortOption[]): void {
+    const currentParams = route.snapshot.queryParams;
     const newParams = {
       ...currentParams,
       [QUERY_PARAMS.SORT]: this.serializeSort(sortCriteria),
@@ -185,6 +185,7 @@ export class BookBrowserQueryParamsService {
     };
 
     this.router.navigate([], {
+      relativeTo: route,
       queryParams: newParams,
       replaceUrl: true
     });
@@ -216,14 +217,14 @@ export class BookBrowserQueryParamsService {
     return criteria;
   }
 
-  updateFilters(filters: Record<string, string[]> | null): void {
+  updateFilters(route: ActivatedRoute, filters: Record<string, string[]> | null): void {
     const queryParam = filters && Object.keys(filters).length > 0
       ? this.serializeFilters(filters)
       : null;
 
-    if (queryParam !== this.activatedRoute.snapshot.queryParamMap.get(QUERY_PARAMS.FILTER)) {
+    if (queryParam !== route.snapshot.queryParamMap.get(QUERY_PARAMS.FILTER)) {
       this.router.navigate([], {
-        relativeTo: this.activatedRoute,
+        relativeTo: route,
         queryParams: {[QUERY_PARAMS.FILTER]: queryParam},
         queryParamsHandling: 'merge',
         replaceUrl: false
@@ -231,7 +232,7 @@ export class BookBrowserQueryParamsService {
     }
   }
 
-  updateFilterMode(mode: BookFilterMode, currentFilters: Record<string, string[]>, clearFilters = false): void {
+  updateFilterMode(route: ActivatedRoute, mode: BookFilterMode, currentFilters: Record<string, string[]>, clearFilters = false): void {
     const params: Record<string, string | null> = {[QUERY_PARAMS.FMODE]: mode};
 
     // Clear filters if switching modes in a context that requires a clean slate,
@@ -244,7 +245,7 @@ export class BookBrowserQueryParamsService {
     }
 
     this.router.navigate([], {
-      relativeTo: this.activatedRoute,
+      relativeTo: route,
       queryParams: params,
       queryParamsHandling: 'merge',
       replaceUrl: false
@@ -274,6 +275,7 @@ export class BookBrowserQueryParamsService {
   }
 
   syncQueryParams(
+    route: ActivatedRoute,
     viewMode: string,
     filterMode: BookFilterMode,
     filters: Record<string, string[]>
@@ -287,12 +289,13 @@ export class BookBrowserQueryParamsService {
       queryParams[QUERY_PARAMS.FILTER] = this.serializeFilters(filters);
     }
 
-    const currentParams = this.activatedRoute.snapshot.queryParams;
+    const currentParams = route.snapshot.queryParams;
     const changed = Object.keys(queryParams).some(k => (queryParams[k] ?? undefined) !== (currentParams[k] ?? undefined));
 
     if (changed) {
       const mergedParams = {...currentParams, ...queryParams};
       this.router.navigate([], {
+        relativeTo: route,
         queryParams: mergedParams,
         replaceUrl: true
       });
