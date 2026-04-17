@@ -19,7 +19,7 @@
     },
     "settings": {
         "title": "Dashboard-Konfiguration",
-        "description": "Fügen Sie bis zu 5 Scroller aus verschiedenen Buchsammlungen hinzu und passen Sie deren Verhalten an",
+        "description": "Fügen Sie bis zu {{ max }} Scroller aus verschiedenen Buchsammlungen hinzu und passen Sie deren Verhalten an",
         "type": "Typ",
         "selectType": "Typ auswählen",
         "magicShelf": "Magisches Regal",

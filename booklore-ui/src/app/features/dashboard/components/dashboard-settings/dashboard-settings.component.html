@@ -6,7 +6,7 @@
       </div>
       <div class="header-text">
         <h2 class="panel-title">{{ t('title') }}</h2>
-        <p class="panel-description">{{ t('description') }}</p>
+        <p class="panel-description">{{ t('description', { max: MAX_SCROLLERS }) }}</p>
       </div>
       <p-button
         icon="pi pi-times"
@@ -160,7 +160,7 @@
           icon="pi pi-plus"
           severity="primary"
           (click)="addScroller()"
-          [disabled]="config.scrollers.length >= 5">
+          [disabled]="config.scrollers.length >= MAX_SCROLLERS">
         </p-button>
         <p-button
           [label]="t('resetToDefault')"

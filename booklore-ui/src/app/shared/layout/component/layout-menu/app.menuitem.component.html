@@ -121,8 +121,8 @@
           [text]="true"
           [outlined]="false"
           [rounded]="true"
-          [label]="hovered ? '' : (item.bookCount$ | async)?.toString() || ''"
-          [icon]="hovered ? 'pi pi-ellipsis-v' : ''"
+          [label]="shouldShowInlineEntityCount() && !hovered ? formatCount(item.bookCount$ | async) : ''"
+          [icon]="shouldShowInlineEntityCount() && !hovered ? '' : 'pi pi-ellipsis-v'"
           class="entity-menu-button"
           [tabindex]="-1"
         ></p-button>

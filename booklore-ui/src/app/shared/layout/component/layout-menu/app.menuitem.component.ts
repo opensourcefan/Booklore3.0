@@ -312,6 +312,10 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
       || this.item.label === 'Kobo';
   }
 
+  shouldShowInlineEntityCount(): boolean {
+    return this.shouldShowEntityMenu() && !this.shouldShowCount();
+  }
+
   onTouchStart(event: TouchEvent): void {
     this.prefetchItemThumbnails();
 

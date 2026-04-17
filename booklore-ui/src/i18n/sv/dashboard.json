@@ -19,7 +19,7 @@
     },
     "settings": {
         "title": "Konfiguration av översikt",
-        "description": "Lägg till upp till 5 scrollers från olika boksamlingar och anpassa deras beteende",
+        "description": "Lägg till upp till {{ max }} scrollers från olika boksamlingar och anpassa deras beteende",
         "type": "Typ",
         "selectType": "Välj typ",
         "magicShelf": "Magisk hylla",

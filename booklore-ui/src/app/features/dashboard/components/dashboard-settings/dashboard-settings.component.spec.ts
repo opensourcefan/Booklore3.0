@@ -2,7 +2,7 @@ import {BehaviorSubject, firstValueFrom, of} from 'rxjs';
 import {TestBed} from '@angular/core/testing';
 import {describe, expect, it, vi} from 'vitest';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
-import {DashboardSettingsComponent} from './dashboard-settings.component';
+import {DashboardSettingsComponent, MAX_SCROLLERS} from './dashboard-settings.component';
 import {DashboardConfigService} from '../../services/dashboard-config.service';
 import {MagicShelfService} from '../../../magic-shelf/service/magic-shelf.service';
 import {LibraryService} from '../../../book/service/library.service';
@@ -56,6 +56,47 @@ describe('DashboardSettingsComponent', () => {
     expect(addedScroller?.libraryId).toBeNull();
     expect(addedScroller?.columnSpan).toBeNull();
     expect(addedScroller?.maxItems).toBe(20);
+  });
+
+  it('allows adding scrollers until the configured max limit', () => {
+    const config$ = new BehaviorSubject({
+      layoutLocked: false,
+      scrollers: Array.from({length: MAX_SCROLLERS - 1}, (_, index) => ({
+        id: `${index + 1}`,
+        type: ScrollerType.RANDOM,
+        title: 'dashboard.scroller.discoverNew',
+        enabled: true,
+        order: index + 1,
+        maxItems: 5,
+        libraryId: null,
+        columnSpan: null
+      }))
+    });
+
+    TestBed.configureTestingModule({
+      providers: [
+        {provide: DynamicDialogRef, useValue: {close: vi.fn()}},
+        {provide: DashboardConfigService, useValue: {config$, saveConfig: vi.fn(), resetToDefault: vi.fn()}},
+        {provide: MagicShelfService, useValue: {shelvesState$: new BehaviorSubject({shelves: []})}},
+        {provide: LibraryService, useValue: {libraryState$: new BehaviorSubject({libraries: [], loaded: true, error: null})}},
+        {
+          provide: TranslocoService,
+          useValue: {
+            translate: (key: string) => key,
+            langChanges$: of('en'),
+            getActiveLang: () => 'en'
+          }
+        }
+      ]
+    });
+
+    const component = TestBed.runInInjectionContext(() => new DashboardSettingsComponent());
+    component.ngOnInit();
+
+    component.addScroller();
+    component.addScroller();
+
+    expect(component.config.scrollers).toHaveLength(MAX_SCROLLERS);
   });
 
   it('saves layout lock and library-specific scroller settings', async () => {

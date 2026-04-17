@@ -19,7 +19,7 @@
     },
     "settings": {
         "title": "Dashboardconfiguratie",
-        "description": "Voeg maximaal 5 scrollers toe uit verschillende boekcollecties en pas hun gedrag aan",
+        "description": "Voeg maximaal {{ max }} scrollers toe uit verschillende boekcollecties en pas hun gedrag aan",
         "type": "Type",
         "selectType": "Selecteer type",
         "magicShelf": "",

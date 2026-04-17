@@ -19,7 +19,7 @@
     },
     "settings": {
         "title": "Configurazione pannello di controllo",
-        "description": "Aggiungi fino a 5 scroller da diverse collezioni di libri e personalizza il loro comportamento",
+        "description": "Aggiungi fino a {{ max }} scroller da diverse collezioni di libri e personalizza il loro comportamento",
         "type": "Tipo",
         "selectType": "Seleziona tipo",
         "magicShelf": "Scaffale magico",
