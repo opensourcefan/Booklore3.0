@@ -61,6 +61,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
   @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
+  @ViewChild('menuTrigger', {read: ElementRef}) private menuTriggerRef?: ElementRef<HTMLElement>;
+  @ViewChild('readStatusTrigger', {read: ElementRef}) private readStatusTriggerRef?: ElementRef<HTMLElement>;
 
   items: MenuItem[] | undefined;
   readStatusMenuItems: MenuItem[] = [];
@@ -311,7 +313,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (this.readStatusMenuItems.length === 0) {
       this.buildReadStatusMenuItems();
     }
-    menu.toggle(event);
+    menu.toggle(this.getPopupAnchorEvent(event, this.readStatusTriggerRef?.nativeElement));
   }
 
   ngAfterViewInit(): void {
@@ -357,13 +359,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onMenuToggle(event: Event, menu: TieredMenu): void {
+    event.stopPropagation();
     if (!this.menuInitialized) {
       this.menuInitialized = true;
       this.initMenu();
       this.cdr.markForCheck();
     }
 
-    menu.toggle(event);
+    menu.toggle(this.getPopupAnchorEvent(event, this.menuTriggerRef?.nativeElement));
 
     if (!this.additionalFilesLoaded && !this.isSubMenuLoading && this.needsAdditionalFilesData()) {
       this.isSubMenuLoading = true;
@@ -393,6 +396,23 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     const canDownload = !!this.user?.permissions.canDownload;
     const canDeleteBook = !!this.user?.permissions.canDeleteBook;
     return (canDownload || canDeleteBook) && hasNoAlternativeFormats && hasNoSupplementaryFiles;
+  }
+
+  private getPopupAnchorEvent(event: Event, preferredTarget?: HTMLElement): Event {
+    const anchor = preferredTarget
+      ?? (event.currentTarget instanceof HTMLElement ? event.currentTarget : null)
+      ?? (event.target instanceof HTMLElement ? event.target : null);
+
+    if (!anchor) {
+      return event;
+    }
+
+    return {
+      currentTarget: anchor,
+      target: anchor,
+      preventDefault: () => event.preventDefault(),
+      stopPropagation: () => event.stopPropagation(),
+    } as unknown as Event;
   }
 
   private initMenu() {

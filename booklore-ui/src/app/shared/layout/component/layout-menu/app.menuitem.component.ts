@@ -288,7 +288,14 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   shouldShowEntityMenu(): boolean {
-    return this.item.type === 'Library' || this.item.type === 'Shelf' || this.item.type === 'magicShelfItem';
+    if (!this.item.menu?.length) {
+      return false;
+    }
+
+    return this.item.type === 'Library'
+      || this.item.type === 'Shelf'
+      || this.item.type === 'magicShelfItem'
+      || this.item.type === 'MediaType';
   }
 
   shouldShowCount(): boolean {

@@ -36,7 +36,7 @@
                     {{ entityType }}: {{ (entity$ | async)?.name }}{{ (isFilterActive || hasSearchTerm) ? ' ' + t('labels.filteredSuffix') : '' }}
                   }
                 </p>
-                @if (activeMediaTypeFilter && activeMediaTypeFilter !== 'PHYSICAL') {
+                @if (activeMediaTypeFilter) {
                   <div class="entity-menu-wrapper media-type-menu-wrapper">
                     <p-button
                       icon="pi pi-ellipsis-v"

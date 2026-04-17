@@ -117,6 +117,7 @@ describe('AppMenuComponent reorder mode', () => {
     expect(menu).toHaveLength(1);
     expect(menu[0].type).toBe('mediaType');
     expect(menu[0].items?.[0].type).toBe('MediaType');
+    expect(menu[0].items?.[0].menu?.length).toBeGreaterThan(0);
     expect(menu[0].items?.[0].showBookCount).toBe(true);
 
     menu[0].onItemsReorder?.([

@@ -66,6 +66,7 @@
 
     <div class="cover-corner-controls">
       <div class="read-status-indicator cover-corner-control-left"
+         #readStatusTrigger
            [ngClass]="_readStatusClass"
            [pTooltip]="readStatusTooltip"
            tooltipPosition="bottom"
@@ -77,6 +78,7 @@
         <i [class]="_readStatusIcon" style="font-size: 0.9rem"></i>
       </div>
       <p-button
+        #menuTrigger
         class="custom-button-padding cover-corner-control-right"
         size="small"
         [text]="true"

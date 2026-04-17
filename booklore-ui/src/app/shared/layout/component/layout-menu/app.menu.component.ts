@@ -254,7 +254,7 @@ export class AppMenuComponent implements OnInit {
       map(([bookState, mediaTypeSettings]) => {
         const counts = new Map<string, number>();
         for (const book of bookState.books ?? []) {
-          const type = book.isPhysical ? 'PHYSICAL' : (book.fileType ?? '').trim();
+          const type = this.getNavigationMediaType(book);
           if (!type) {
             continue;
           }
@@ -541,6 +541,15 @@ export class AppMenuComponent implements OnInit {
       label,
       type: 'MediaType',
       icon: 'pi pi-file',
+      menu: label === 'PHYSICAL'
+        ? [
+          {
+            label: 'Manage Media Types',
+            icon: 'pi pi-pencil',
+            command: () => this.openMediaTypeManagerDialog()
+          }
+        ]
+        : this.getMediaTypeMenuItems(label),
       routerLink: ['/all-books'],
       queryParams: {
         filter: `customMediaType:${encodeURIComponent(label)}`,
@@ -549,6 +558,19 @@ export class AppMenuComponent implements OnInit {
       bookCount$: of(count),
       showBookCount: true,
     };
+  }
+
+  private getNavigationMediaType(book: { fileType?: string | null; isPhysical?: boolean }): string | null {
+    const fileType = (book.fileType ?? '').trim();
+    if (fileType) {
+      return fileType;
+    }
+
+    return book.isPhysical ? 'PHYSICAL' : null;
+  }
+
+  private openMediaTypeManagerDialog(): void {
+    this.bookDialogHelperService.openMediaTypeManagerDialog();
   }
 
   private editMediaType(mediaType: string): void {

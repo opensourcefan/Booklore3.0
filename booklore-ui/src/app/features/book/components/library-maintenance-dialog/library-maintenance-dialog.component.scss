@@ -5,14 +5,14 @@
   max-width: 700px;
   display: flex;
   flex-direction: column;
-  max-height: min(100dvh - 1rem, 900px);
+  max-height: min(100svh - 1rem, 900px);
   min-height: 0;
   overflow: hidden;
 
   @media (max-width: 760px) {
     width: 100%;
     max-width: 100%;
-    max-height: 100dvh;
+    max-height: 100svh;
   }
 }
 

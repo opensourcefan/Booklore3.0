@@ -79,7 +79,7 @@ export function doesBookMatchFilter(
       return book.isPhysical ? filterValues.includes('PHYSICAL') : filterValues.includes(book.primaryFile?.bookType);
     case 'customMediaType':
     case 'customBookType':
-      return filterValues.includes(book.isPhysical ? 'PHYSICAL' : book.fileType);
+      return filterValues.includes((book.fileType ?? '').trim() || (book.isPhysical ? 'PHYSICAL' : undefined));
     case 'readStatus':
       return doesBookMatchReadStatus(book, filterValues);
     case 'personalRating':

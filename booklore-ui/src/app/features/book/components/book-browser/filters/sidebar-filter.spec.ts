@@ -16,6 +16,17 @@ function createBook(overrides: Partial<Book>): Book {
 }
 
 describe('sidebar-filter physical media type handling', () => {
+  it('matches assigned custom media types on physical books before falling back to PHYSICAL', () => {
+    const physicalBook = createBook({
+      id: 10,
+      isPhysical: true,
+      fileType: 'Magazine',
+    });
+
+    expect(doesBookMatchFilter(physicalBook, 'customMediaType', ['Magazine'], 'and')).toBe(true);
+    expect(doesBookMatchFilter(physicalBook, 'customMediaType', ['PHYSICAL'], 'and')).toBe(false);
+  });
+
   it('matches physical placeholders for navigation-level media type filters', () => {
     const physicalBook = createBook({
       id: 10,

@@ -13,7 +13,7 @@
   @media (max-width: 768px) {
     width: 100%;
     max-width: 100%;
-    max-height: 100dvh;
+    max-height: 100svh;
     border-radius: 0;
     border-inline: none;
   }
@@ -801,6 +801,10 @@
   padding: 1rem 1.5rem;
   background: var(--overlay-background);
   border-top: 1px solid var(--border-color);
+
+  @media (max-width: 640px) {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px) + 0.75rem);
+  }
 }
 
 .validation-status {
@@ -840,7 +844,7 @@
     width: 100%;
     max-width: 100%;
     border-radius: 0;
-    max-height: 100vh;
+    max-height: 100svh;
   }
 
   .dialog-header {

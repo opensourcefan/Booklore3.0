@@ -117,4 +117,36 @@ describe('BookCardComponent', () => {
       shiftKey: false,
     });
   });
+
+  it('anchors the popup menu to the trigger element rather than the nested icon target', () => {
+    const component = createComponent();
+    component.book = createBook({ id: 12, primaryFile: { id: 1, bookId: 12, bookType: 'CBX' } });
+    component.ngOnInit();
+    (component as unknown as { user: { permissions: { canDownload: boolean; canDeleteBook: boolean } } }).user = {
+      permissions: {
+        canDownload: false,
+        canDeleteBook: false,
+      },
+    };
+
+    const trigger = document.createElement('button');
+    const nestedTarget = document.createElement('span');
+    trigger.appendChild(nestedTarget);
+    (component as unknown as { menuTriggerRef?: { nativeElement: HTMLElement } }).menuTriggerRef = { nativeElement: trigger };
+
+    const toggle = vi.fn();
+    const stopPropagation = vi.fn();
+
+    component.onMenuToggle({
+      target: nestedTarget,
+      currentTarget: nestedTarget,
+      stopPropagation,
+    } as unknown as Event, { toggle } as unknown as never);
+
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(toggle).toHaveBeenCalledWith(expect.objectContaining({
+      currentTarget: trigger,
+      target: trigger,
+    }));
+  });
 });
