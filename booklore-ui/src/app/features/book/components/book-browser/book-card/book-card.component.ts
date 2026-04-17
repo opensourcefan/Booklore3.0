@@ -260,10 +260,6 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return this._titleTooltip;
   }
 
-  get activeTitleTooltip(): string | undefined {
-    return this.titleAreaInteractive ? undefined : this._titleTooltip;
-  }
-
   get readStatusTooltip(): string {
     return this._readStatusTooltip;
   }

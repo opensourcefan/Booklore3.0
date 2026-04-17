@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {SimpleChange} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
@@ -145,42 +147,39 @@ describe('BookCardComponent', () => {
   });
 
   it('emits the book when the interactive title area is activated', () => {
-    const component = createComponent();
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
     const emitted = vi.fn();
 
-    component.book = createBook({ id: 22 });
+    component.book = createBook({
+      id: 22,
+      metadata: { title: 'Interactive Mobile Title' } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 22, fileName: 'interactive-mobile-title.cbz', bookType: 'CBX' },
+    });
     component.titleAreaInteractive = true;
     component.titleAreaActivated.subscribe(emitted);
 
-    const preventDefault = vi.fn();
-    const stopPropagation = vi.fn();
-    component.onTitleAreaActivate({ preventDefault, stopPropagation } as unknown as MouseEvent);
+    fixture.detectChanges();
 
-    expect(preventDefault).toHaveBeenCalled();
-    expect(stopPropagation).toHaveBeenCalled();
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
     expect(emitted).toHaveBeenCalledOnce();
     expect(emitted).toHaveBeenCalledWith(component.book);
   });
 
-  it('disables the title tooltip when the title area is interactive', () => {
-    const component = createComponent();
+  it('renders the interactive title branch without a tooltip directive and keeps the passive tooltip branch', () => {
+    const templatePath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.html');
+    const template = readFileSync(templatePath, 'utf8');
+    const titleContainerBlock = template.match(/<div class="book-title-container"[\s\S]*?<\/div>\n\s{2}\}/);
 
-    component.book = createBook({ id: 24, metadata: { title: 'Interactive Title' } as Book['metadata'] });
-    component.titleAreaInteractive = true;
-    component.ngOnChanges({
-      book: {
-        currentValue: component.book,
-        previousValue: undefined,
-        firstChange: true,
-        isFirstChange: () => true,
-      },
-    });
+    expect(titleContainerBlock?.[0]).toContain('@if (titleAreaInteractive) {');
+    expect(titleContainerBlock?.[0]).toMatch(/@if \(titleAreaInteractive\) \{[\s\S]*?<h4 class="book-title"[\s\S]*?\{\{ displayTitle \}\}[\s\S]*?<\/h4>[\s\S]*?\} @else \{/);
+    expect(titleContainerBlock?.[0]).toMatch(/\} @else \{[\s\S]*?\[pTooltip\]="titleTooltip"/);
 
-    expect(component.activeTitleTooltip).toBeUndefined();
-
-    component.titleAreaInteractive = false;
-
-    expect(component.activeTitleTooltip).toContain('Interactive Title');
+    const interactiveOnly = titleContainerBlock?.[0].split('} @else {')[0] ?? '';
+    expect(interactiveOnly).not.toContain('[pTooltip]');
   });
 
   it('renders title area bindings as attributes instead of leaking them into title text', () => {

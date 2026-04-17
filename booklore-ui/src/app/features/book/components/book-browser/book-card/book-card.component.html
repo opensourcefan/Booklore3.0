@@ -130,12 +130,19 @@
          [attr.tabindex]="titleAreaInteractive ? '0' : null"
          (click)="onTitleAreaActivate($event)"
          (keydown.enter)="onTitleAreaActivate($event)">
-      <h4 class="book-title"
-          [style.--title-rows]="normalizedTitleRows"
-          tooltipPosition="bottom"
-          [pTooltip]="activeTitleTooltip">
-        {{ displayTitle }}
-      </h4>
+      @if (titleAreaInteractive) {
+        <h4 class="book-title"
+            [style.--title-rows]="normalizedTitleRows">
+          {{ displayTitle }}
+        </h4>
+      } @else {
+        <h4 class="book-title"
+            [style.--title-rows]="normalizedTitleRows"
+            tooltipPosition="bottom"
+            [pTooltip]="titleTooltip">
+          {{ displayTitle }}
+        </h4>
+      }
     </div>
   }
 </div>
