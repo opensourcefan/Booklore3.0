@@ -296,12 +296,12 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return shortEdge < this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
   }
 
-  get shouldAutoPhysicalTitlePreview(): boolean {
-    return this.book?.isPhysical === true && this.isMobileInteractionMode;
+  get shouldAutoMobileTitlePreview(): boolean {
+    return this.isMobileInteractionMode;
   }
 
   get isTitleAreaInteractive(): boolean {
-    return this.titleAreaInteractive || this.shouldAutoPhysicalTitlePreview;
+    return this.titleAreaInteractive || this.shouldAutoMobileTitlePreview;
   }
 
   get inlinePreviewTitle(): string {
@@ -1162,13 +1162,13 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return;
     }
 
-    if (this.shouldAutoPhysicalTitlePreview) {
+    if (this.shouldAutoMobileTitlePreview) {
       this.openInlineMobilePreview();
     }
   }
 
   openInlineMobilePreview(): void {
-    if (!this.shouldAutoPhysicalTitlePreview) {
+    if (!this.shouldAutoMobileTitlePreview) {
       return;
     }
 

@@ -170,18 +170,17 @@ describe('BookCardComponent', () => {
     expect(component.isInlineMobilePreviewOpen).toBe(false);
   });
 
-  it('opens the inline mobile preview for physical assets when no external title handler is attached', () => {
+  it('opens the inline mobile preview on mobile when no external title handler is attached', () => {
     const fixture = createFixture();
     const component = fixture.componentInstance;
 
     component.book = createBook({
       id: 24,
-      isPhysical: true,
       metadata: {
-        title: 'Landscape Physical Title',
+        title: 'Landscape Mobile Title',
         subtitle: 'Issue One',
       } as Book['metadata'],
-      primaryFile: { id: 1, bookId: 24, fileName: 'landscape-physical-title.cbz', bookType: 'CBX' },
+      primaryFile: { id: 1, bookId: 24, fileName: 'landscape-mobile-title.cbz', bookType: 'CBX' },
     });
     component.screenWidth = 915;
     component.screenHeight = 412;
@@ -195,13 +194,38 @@ describe('BookCardComponent', () => {
 
     const preview = fixture.nativeElement.querySelector('.book-card-mobile-preview') as HTMLElement;
     expect(preview).toBeTruthy();
-    expect(preview.textContent).toContain('Landscape Physical Title');
+    expect(preview.textContent).toContain('Landscape Mobile Title');
     expect(preview.textContent).toContain('Issue One');
 
     const closeButton = fixture.nativeElement.querySelector('.book-card-mobile-preview-close') as HTMLButtonElement;
     closeButton.click();
     fixture.detectChanges();
 
+    expect(fixture.nativeElement.querySelector('.book-card-mobile-preview')).toBeNull();
+  });
+
+  it('does not open the inline mobile preview outside mobile interaction mode', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+
+    component.book = createBook({
+      id: 25,
+      metadata: {
+        title: 'Desktop Title',
+      } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 25, fileName: 'desktop-title.cbz', bookType: 'CBX' },
+    });
+    component.screenWidth = 1400;
+    component.screenHeight = 900;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    expect(titleContainer.getAttribute('role')).toBeNull();
+
+    titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    expect(component.isInlineMobilePreviewOpen).toBe(false);
     expect(fixture.nativeElement.querySelector('.book-card-mobile-preview')).toBeNull();
   });
 
