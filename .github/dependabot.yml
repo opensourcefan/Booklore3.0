@@ -33,10 +33,6 @@ updates:
       - "frontend"
     commit-message:
       prefix: "chore(deps)"
-    groups:
-      npm-dependencies:
-        patterns:
-          - "*"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"

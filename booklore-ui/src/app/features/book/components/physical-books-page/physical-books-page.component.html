@@ -59,7 +59,9 @@
                             [book]="book"
                             [isCheckboxEnabled]="false"
                             [titleRows]="titleRowsForViewport"
+                            [titleAreaInteractive]="screenWidth < mobileBreakpoint"
                             [overlayPreferenceService]="bookCardOverlayPreferenceService">
+                            (titleAreaActivated)="toggleMobileBookViewer(vm.groups, $event)"
                           </app-book-card>
                         </div>
                       }
@@ -69,6 +71,66 @@
               </div>
             </section>
           }
+        </div>
+      }
+
+      @if (activeMobileViewerBook; as viewerBook) {
+        <div class="physical-mobile-viewer-backdrop">
+          <section class="physical-mobile-viewer"
+                   role="dialog"
+                   aria-modal="false"
+                   [attr.aria-label]="getViewerTitle(viewerBook)"
+                   (touchstart)="onViewerTouchStart($event)"
+                   (touchmove)="onViewerTouchMove($event)"
+                   (touchend)="onViewerTouchEnd($event)"
+                   (touchcancel)="onViewerTouchCancel()">
+            <div class="physical-mobile-viewer-cover-shell">
+              <img class="physical-mobile-viewer-cover"
+                   [src]="getViewerCoverUrl(viewerBook)"
+                   [alt]="getViewerTitle(viewerBook)" />
+
+              <div class="physical-mobile-viewer-badges">
+                <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--primary">
+                  {{ getViewerDisplayFormat(viewerBook) }}
+                </div>
+
+                @if (viewerBook.hasAiPanelData) {
+                  <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--secondary">AI</div>
+                }
+
+                @if (getViewerIssueNumber(viewerBook); as issueNumber) {
+                  <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--secondary">
+                    {{ issueNumber }}
+                  </div>
+                }
+
+                @if (viewerBook.seriesCount && viewerBook.seriesCount >= 1) {
+                  <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--secondary">
+                    <i class="pi pi-book"></i>{{ viewerBook.seriesCount }}
+                  </div>
+                }
+              </div>
+
+              @if (shouldShowViewerStatus(viewerBook)) {
+                <div class="physical-mobile-viewer-status" [class]="'physical-mobile-viewer-status ' + getViewerReadStatusClass(viewerBook)">
+                  <i [class]="getViewerReadStatusIcon(viewerBook)"></i>
+                </div>
+              }
+            </div>
+
+            <button type="button"
+                    class="physical-mobile-viewer-title-toggle"
+                    (click)="toggleMobileBookViewer(vm.groups, viewerBook)">
+              <span class="physical-mobile-viewer-title">{{ getViewerTitle(viewerBook) }}</span>
+              @if (getViewerSubtitle(viewerBook); as subtitle) {
+                <span class="physical-mobile-viewer-subtitle">{{ subtitle }}</span>
+              }
+            </button>
+
+            <div class="physical-mobile-viewer-position">
+              {{ mobileViewerIndex + 1 }} / {{ mobileViewerBooks.length }}
+            </div>
+          </section>
         </div>
       }
     }

@@ -118,6 +118,10 @@
   }
 }
 
+.book-title-container.book-title-container-interactive {
+  cursor: pointer;
+}
+
 .book-title-container.book-title-container-physical {
   background:
     linear-gradient(180deg,

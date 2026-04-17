@@ -11,6 +11,8 @@ import {BookService} from '../../service/book.service';
 import {LibraryService} from '../../service/library.service';
 import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
+import {UrlHelperService} from '../../../../shared/service/url-helper.service';
+import {ReadStatusHelper} from '../../helpers/read-status.helper';
 
 interface PhysicalBookGroup {
   key: string;
@@ -40,11 +42,14 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   private readonly MOBILE_CARD_WIDTH_PX = 104;
   private readonly MOBILE_CARD_GAP_PX = 14;
   private readonly MOBILE_HORIZONTAL_CHROME_PX = 60;
+  private readonly VIEWER_SWIPE_THRESHOLD_PX = 48;
   private readonly bookService = inject(BookService);
   private readonly libraryService = inject(LibraryService);
   private readonly localStorageService = inject(LocalStorageService);
   private readonly pageTitle = inject(PageTitleService);
   private readonly t = inject(TranslocoService);
+  private readonly urlHelper = inject(UrlHelperService);
+  private readonly readStatusHelper = inject(ReadStatusHelper);
   private readonly destroy$ = new Subject<void>();
 
   readonly bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
@@ -52,6 +57,12 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
   mobileTitleRows = 2;
   desktopTitleRows = 2;
+  mobileViewerBooks: Book[] = [];
+  mobileViewerIndex = -1;
+
+  private viewerTouchStartX = 0;
+  private viewerTouchStartY = 0;
+  private viewerTouchMoved = false;
 
   readonly vm$: Observable<PhysicalBooksViewModel> = combineLatest([
     this.bookService.bookState$,
@@ -121,6 +132,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   private readonly MOBILE_BREAKPOINT = 768;
   private readonly MOBILE_TITLE_ROWS_STORAGE_KEY = 'mobileTitleRowsPreference';
   private readonly DESKTOP_TITLE_ROWS_STORAGE_KEY = 'desktopTitleRowsPreference';
+  readonly mobileBreakpoint = this.MOBILE_BREAKPOINT;
 
   ngOnInit(): void {
     this.loadTitleRowsPreference();
@@ -139,10 +151,25 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
+    if (this.screenWidth >= this.MOBILE_BREAKPOINT && this.isMobileViewerOpen) {
+      this.closeMobileBookViewer();
+    }
   }
 
   get titleRowsForViewport(): number {
     return this.screenWidth < this.MOBILE_BREAKPOINT ? this.mobileTitleRows : this.desktopTitleRows;
+  }
+
+  get activeMobileViewerBook(): Book | null {
+    if (this.mobileViewerIndex < 0 || this.mobileViewerIndex >= this.mobileViewerBooks.length) {
+      return null;
+    }
+
+    return this.mobileViewerBooks[this.mobileViewerIndex] ?? null;
+  }
+
+  get isMobileViewerOpen(): boolean {
+    return this.activeMobileViewerBook !== null;
   }
 
   getShelfRows(books: Book[]): Book[][] {
@@ -174,6 +201,172 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
     if (savedDesktopRows !== null) {
       this.desktopTitleRows = Math.min(5, Math.max(1, savedDesktopRows));
     }
+  }
+
+  toggleMobileBookViewer(groups: PhysicalBookGroup[], book: Book): void {
+    if (this.screenWidth >= this.MOBILE_BREAKPOINT) {
+      return;
+    }
+
+    if (this.activeMobileViewerBook?.id === book.id) {
+      this.closeMobileBookViewer();
+      return;
+    }
+
+    const orderedBooks = groups.flatMap(group => group.books);
+    const nextIndex = orderedBooks.findIndex(candidate => candidate.id === book.id);
+
+    if (nextIndex === -1) {
+      return;
+    }
+
+    this.mobileViewerBooks = orderedBooks;
+    this.mobileViewerIndex = nextIndex;
+    this.resetViewerTouch();
+  }
+
+  closeMobileBookViewer(): void {
+    this.mobileViewerBooks = [];
+    this.mobileViewerIndex = -1;
+    this.resetViewerTouch();
+  }
+
+  onViewerTouchStart(event: TouchEvent): void {
+    if (event.touches.length !== 1) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    this.viewerTouchStartX = touch.clientX;
+    this.viewerTouchStartY = touch.clientY;
+    this.viewerTouchMoved = false;
+  }
+
+  onViewerTouchMove(event: TouchEvent): void {
+    if (event.touches.length !== 1) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    if (Math.abs(touch.clientX - this.viewerTouchStartX) > 8 || Math.abs(touch.clientY - this.viewerTouchStartY) > 8) {
+      this.viewerTouchMoved = true;
+    }
+  }
+
+  onViewerTouchEnd(event: TouchEvent): void {
+    if (!this.viewerTouchMoved || event.changedTouches.length !== 1) {
+      this.resetViewerTouch();
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - this.viewerTouchStartX;
+    const deltaY = Math.abs(touch.clientY - this.viewerTouchStartY);
+
+    if (Math.abs(deltaX) >= this.VIEWER_SWIPE_THRESHOLD_PX && Math.abs(deltaX) > deltaY) {
+      if (deltaX < 0) {
+        this.showNextMobileBook();
+      } else {
+        this.showPreviousMobileBook();
+      }
+    }
+
+    this.resetViewerTouch();
+  }
+
+  onViewerTouchCancel(): void {
+    this.resetViewerTouch();
+  }
+
+  getViewerCoverUrl(book: Book): string {
+    return book.primaryFile?.bookType === 'AUDIOBOOK'
+      ? this.urlHelper.getAudiobookThumbnailUrl(book.id, book.metadata?.audiobookCoverUpdatedOn)
+      : this.urlHelper.getThumbnailUrl(book.id, book.metadata?.coverUpdatedOn);
+  }
+
+  getViewerTitle(book: Book): string {
+    return book.metadata?.title?.trim()
+      || book.fileName?.trim()
+      || book.primaryFile?.fileName?.trim()
+      || 'Untitled';
+  }
+
+  getViewerSubtitle(book: Book): string | null {
+    const subtitle = book.metadata?.subtitle?.trim();
+    return subtitle ? subtitle : null;
+  }
+
+  getViewerDisplayFormat(book: Book): string {
+    if (!book.primaryFile) {
+      return 'PHY';
+    }
+
+    const extension = book.primaryFile.extension?.trim();
+    if (extension) {
+      return extension.toUpperCase();
+    }
+
+    return this.getFileExtension(book.primaryFile.filePath) ?? 'PHY';
+  }
+
+  getViewerIssueNumber(book: Book): string | null {
+    const comicIssueNumber = book.metadata?.comicMetadata?.issueNumber?.trim();
+    if (comicIssueNumber) {
+      return comicIssueNumber.startsWith('#') ? comicIssueNumber : `#${comicIssueNumber}`;
+    }
+
+    if (!book.seriesCount && book.metadata?.seriesNumber != null) {
+      return `#${book.metadata.seriesNumber}`;
+    }
+
+    return null;
+  }
+
+  getViewerReadStatusIcon(book: Book): string {
+    return this.readStatusHelper.getReadStatusIcon(book.readStatus);
+  }
+
+  getViewerReadStatusClass(book: Book): string {
+    return this.readStatusHelper.getReadStatusClass(book.readStatus);
+  }
+
+  shouldShowViewerStatus(book: Book): boolean {
+    return this.readStatusHelper.shouldShowStatusIcon(book.readStatus);
+  }
+
+  private showPreviousMobileBook(): void {
+    if (this.mobileViewerIndex <= 0) {
+      return;
+    }
+
+    this.mobileViewerIndex -= 1;
+  }
+
+  private showNextMobileBook(): void {
+    if (this.mobileViewerIndex >= this.mobileViewerBooks.length - 1) {
+      return;
+    }
+
+    this.mobileViewerIndex += 1;
+  }
+
+  private resetViewerTouch(): void {
+    this.viewerTouchStartX = 0;
+    this.viewerTouchStartY = 0;
+    this.viewerTouchMoved = false;
+  }
+
+  private getFileExtension(filePath?: string): string | null {
+    if (!filePath) {
+      return null;
+    }
+
+    const segments = filePath.split('.');
+    if (segments.length < 2) {
+      return null;
+    }
+
+    return segments.pop()?.toUpperCase() ?? null;
   }
 
   private getCardsPerRow(): number {

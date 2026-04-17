@@ -730,6 +730,7 @@ export class AppMenuComponent implements OnInit {
           iconType: 'PRIME_NG' as 'PRIME_NG' | 'CUSTOM_SVG',
           routerLink: ['/not-shelfed'],
           bookCount$: this.shelfService.getUnshelvedBookCount?.() ?? of(0),
+          showBookCount: true,
         };
 
           const items: AppMenuItem[] = [notShelfedItem];

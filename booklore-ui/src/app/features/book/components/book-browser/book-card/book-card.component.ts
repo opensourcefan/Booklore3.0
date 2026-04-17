@@ -44,6 +44,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Output() bookHoverEnded = new EventEmitter<number>();
   @Output() checkboxClick = new EventEmitter<{ index: number; book: Book; selected: boolean; shiftKey: boolean }>();
   @Output() menuToggled = new EventEmitter<boolean>();
+  @Output() titleAreaActivated = new EventEmitter<Book>();
 
   @Input() index!: number;
   @Input() book!: Book;
@@ -58,6 +59,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Input() titleRows = 1;
   @Input() showSubtitle = false;
   @Input() forceFileNameTitle = false;
+  @Input() titleAreaInteractive = false;
 
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
   @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
@@ -1104,6 +1106,15 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   toggleSelection(event: CheckboxChangeEvent): void {
     this.toggleCardSelection(event.checked);
+  }
+
+  onTitleAreaActivate(event: MouseEvent | KeyboardEvent): void {
+    if (!this.titleAreaInteractive) {
+      return;
+    }
+
+    event.stopPropagation();
+    this.titleAreaActivated.emit(this.book);
   }
 
   ngOnDestroy(): void {

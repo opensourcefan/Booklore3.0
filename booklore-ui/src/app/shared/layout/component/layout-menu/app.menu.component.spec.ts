@@ -27,6 +27,9 @@ describe('AppMenuComponent reorder mode', () => {
   let routerMock: {navigate: ReturnType<typeof vi.fn>; url: string; events: typeof NEVER; parseUrl: ReturnType<typeof vi.fn>};
   let localStorageMock: {get: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; keyChanges$: typeof NEVER};
   let mediaTypePreferencesMock: {setSidebarOrder: ReturnType<typeof vi.fn>; settings$: Observable<{customTypes: string[]; sidebarOrder: string[]}>};
+  let libraryServiceMock: {libraryState$: Observable<{libraries: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
+  let magicShelfServiceMock: {shelvesState$: Observable<{shelves: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
+  let shelfServiceMock: {shelfState$: Observable<{shelves: never[]}>; getUnshelvedBookCount: ReturnType<typeof vi.fn>; getBookCount: ReturnType<typeof vi.fn>};
 
   beforeEach(() => {
     routerMock = {
@@ -44,22 +47,35 @@ describe('AppMenuComponent reorder mode', () => {
       setSidebarOrder: vi.fn(),
       settings$: of({customTypes: ['CBZ', 'PHYSICAL'], sidebarOrder: []})
     };
+    libraryServiceMock = {
+      libraryState$: of({libraries: []}),
+      getBookCount: vi.fn(() => of(0))
+    };
+    magicShelfServiceMock = {
+      shelvesState$: of({shelves: []}),
+      getBookCount: vi.fn(() => of(0))
+    };
+    shelfServiceMock = {
+      shelfState$: of({shelves: []}),
+      getUnshelvedBookCount: vi.fn(() => of(7)),
+      getBookCount: vi.fn(() => of(0))
+    };
 
     TestBed.configureTestingModule({
       providers: [
         {provide: Router, useValue: routerMock},
-        {provide: LibraryService, useValue: {}},
+        {provide: LibraryService, useValue: libraryServiceMock},
         {provide: LibraryHealthService, useValue: {}},
-        {provide: ShelfService, useValue: {}},
+        {provide: ShelfService, useValue: shelfServiceMock},
         {provide: BookService, useValue: {bookState$: of({books: []})}},
         {provide: VersionService, useValue: {getVersion: vi.fn().mockReturnValue(of({current: '3.9.7', latest: '3.9.7'}))}},
         {provide: LibraryShelfMenuService, useValue: {}},
         {provide: DialogLauncherService, useValue: {openAcknowledgementsDialog: vi.fn()}},
         {provide: UserService, useValue: {userState$: NEVER}},
-        {provide: MagicShelfService, useValue: {}},
+        {provide: MagicShelfService, useValue: magicShelfServiceMock},
         {provide: SeriesDataService, useValue: {allSeries$: of([])}},
         {provide: AuthorService, useValue: {getAllAuthors: vi.fn().mockReturnValue(of([])), allAuthors$: of([])}},
-        {provide: TranslocoService, useValue: {translate: (key: string) => key, getActiveLang: () => 'en', langChanges$: NEVER, load: vi.fn().mockReturnValue(of(void 0)), setActiveLang: vi.fn()}},
+        {provide: TranslocoService, useValue: {translate: (key: string) => key, getActiveLang: () => 'en', langChanges$: of('en'), load: vi.fn().mockReturnValue(of(void 0)), setActiveLang: vi.fn()}},
         {provide: LocalStorageService, useValue: localStorageMock},
         {provide: BookDialogHelperService, useValue: {openBookTypeCreatorDialog: vi.fn().mockReturnValue({onClose: of(false)})}},
         {provide: MessageService, useValue: {add: vi.fn()}},
@@ -135,5 +151,17 @@ describe('AppMenuComponent reorder mode', () => {
     }).getNavigationMediaType({ isPhysical: true, fileType: null });
 
     expect(navigationType).toBeNull();
+  });
+
+  it('marks the Not Shelfed row to always show its count badge', async () => {
+    (component as unknown as { initMenus: () => void }).initMenus();
+
+    const menu = await new Promise<AppMenuItem[]>((resolve) => {
+      component.shelfMenu$?.subscribe(resolve);
+    });
+
+    expect(menu).toHaveLength(1);
+    expect(menu[0].items?.[0].routerLink).toEqual(['/not-shelfed']);
+    expect(menu[0].items?.[0].showBookCount).toBe(true);
   });
 });

@@ -124,7 +124,12 @@
   @if (!bottomBarHidden) {
     <div class="book-title-container"
          [class.book-title-container-physical]="book.isPhysical"
+         [class.book-title-container-interactive]="titleAreaInteractive"
          [style.--title-rows]="normalizedTitleRows">
+         [attr.role]="titleAreaInteractive ? 'button' : null"
+         [attr.tabindex]="titleAreaInteractive ? '0' : null"
+         (click)="onTitleAreaActivate($event)"
+         (keydown.enter)="onTitleAreaActivate($event)">
       <h4 class="book-title"
           [style.--title-rows]="normalizedTitleRows"
           tooltipPosition="bottom"

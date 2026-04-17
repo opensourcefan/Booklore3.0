@@ -118,6 +118,22 @@ describe('BookCardComponent', () => {
     });
   });
 
+  it('emits the book when the interactive title area is activated', () => {
+    const component = createComponent();
+    const emitted = vi.fn();
+
+    component.book = createBook({ id: 22 });
+    component.titleAreaInteractive = true;
+    component.titleAreaActivated.subscribe(emitted);
+
+    const stopPropagation = vi.fn();
+    component.onTitleAreaActivate({ stopPropagation } as unknown as MouseEvent);
+
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(emitted).toHaveBeenCalledOnce();
+    expect(emitted).toHaveBeenCalledWith(component.book);
+  });
+
   it('anchors the popup menu to the inner button element rather than the button host wrapper', () => {
     const component = createComponent();
     component.book = createBook({ id: 12, primaryFile: { id: 1, bookId: 12, bookType: 'CBX' } });

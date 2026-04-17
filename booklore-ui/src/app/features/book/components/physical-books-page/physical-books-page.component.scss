@@ -1,8 +1,20 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
 .physical-books-page {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .physical-books-header {
@@ -179,9 +191,171 @@
   max-width: 30rem;
 }
 
+.physical-mobile-viewer-backdrop {
+  position: fixed;
+  inset: 4.75rem 0 0;
+  z-index: 1200;
+  background: rgba(5, 10, 18, 0.52);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0.8rem 0.8rem calc(env(safe-area-inset-bottom, 0px) + 0.8rem);
+}
+
+.physical-mobile-viewer {
+  width: min(100%, 34rem);
+  height: min(100%, calc(100dvh - 6rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.85rem;
+  border-radius: 24px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--p-surface-800), transparent 4%), color-mix(in srgb, var(--p-surface-900), transparent 2%));
+  border: 1px solid color-mix(in srgb, var(--p-surface-100), transparent 86%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+}
+
+.physical-mobile-viewer-cover-shell {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--p-primary-300), transparent 82%), transparent 48%),
+    linear-gradient(180deg, color-mix(in srgb, var(--p-surface-700), transparent 10%), color-mix(in srgb, var(--p-surface-900), transparent 6%));
+}
+
+.physical-mobile-viewer-cover {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.physical-mobile-viewer-badges {
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.physical-mobile-viewer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+}
+
+.physical-mobile-viewer-badge--primary {
+  background: var(--p-primary-color);
+  color: var(--primary-text-color-dark);
+}
+
+.physical-mobile-viewer-badge--secondary {
+  background: rgba(15, 23, 42, 0.82);
+  color: #f8fafc;
+}
+
+.physical-mobile-viewer-status {
+  position: absolute;
+  left: 0.8rem;
+  bottom: 0.8rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 12, 20, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+}
+
+.physical-mobile-viewer-status.status-read {
+  color: #22c55e;
+}
+
+.physical-mobile-viewer-status.status-reading {
+  color: #3b82f6;
+}
+
+.physical-mobile-viewer-status.status-re-reading {
+  color: #06b6d4;
+}
+
+.physical-mobile-viewer-status.status-partially-read {
+  color: #f59e0b;
+}
+
+.physical-mobile-viewer-status.status-paused {
+  color: #eab308;
+}
+
+.physical-mobile-viewer-status.status-abandoned {
+  color: #ef4444;
+}
+
+.physical-mobile-viewer-status.status-wont-read {
+  color: #ec4899;
+}
+
+.physical-mobile-viewer-status.status-unset {
+  color: var(--text-color-secondary);
+}
+
+.physical-mobile-viewer-title-toggle {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.15rem 0.2rem 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: center;
+}
+
+.physical-mobile-viewer-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.physical-mobile-viewer-subtitle {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-color-secondary);
+}
+
+.physical-mobile-viewer-position {
+  align-self: center;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--text-color-secondary);
+  background: color-mix(in srgb, var(--p-surface-0), transparent 92%);
+}
+
 @media (max-width: 767px) {
   .physical-books-page {
     padding: 1rem;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
   }
 
   .physical-books-header {
@@ -208,5 +382,15 @@
 
   .physical-shelf-card {
     width: 104px;
+  }
+
+  .physical-mobile-viewer-backdrop {
+    inset: 4.25rem 0 0;
+    padding: 0.65rem 0.65rem calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
+  }
+
+  .physical-mobile-viewer {
+    height: min(100%, calc(100dvh - 5.35rem));
+    border-radius: 22px;
   }
 }
