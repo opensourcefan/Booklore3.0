@@ -72,6 +72,19 @@ export interface SidecarMetadata {
 
 export type SidecarSyncStatus = 'IN_SYNC' | 'OUTDATED' | 'MISSING' | 'CONFLICT' | 'NOT_APPLICABLE';
 
+export type SidecarBackupHistoryStatus = 'COMPLETED' | 'PARTIAL' | 'FAILED';
+
+export interface SidecarBackupHistoryEntry {
+  status: SidecarBackupHistoryStatus;
+  attempted: number;
+  exported: number;
+  failed: number;
+  firstError: string | null;
+  description: string;
+  username: string | null;
+  createdAt: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -105,6 +118,17 @@ export class SidecarService {
   backupLibrarySidecars(libraryId: number): Observable<{message: string, attempted: number, exported: number, failed: number, firstError: string}> {
     return this.http.post<{message: string, attempted: number, exported: number, failed: number, firstError: string}>(
       `${this.apiUrl}/libraries/${libraryId}/sidecar/backup`, {}
+    );
+  }
+
+  getBackupHistory(libraryId: number, limit = 10): Observable<SidecarBackupHistoryEntry[]> {
+    return this.http.get<SidecarBackupHistoryEntry[]>(
+      `${this.apiUrl}/libraries/${libraryId}/sidecar/backup-history`,
+      {
+        params: {
+          limit
+        }
+      }
     );
   }
 

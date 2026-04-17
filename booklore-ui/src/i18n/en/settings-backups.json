@@ -35,7 +35,7 @@
     "sidecar": {
       "title": "Sidecar",
       "description": "Manual sidecar backup for a selected library.",
-      "summary": "Backed up {count} sidecars"
+      "summary": "Backed up {count} of {attempted} sidecars"
     },
     "database": {
       "title": "Database",
@@ -51,7 +51,15 @@
   },
   "sidecar": {
     "notice": "Automatic sidecar writes stay in Metadata settings. This tab only keeps the manual per-library backup routine.",
-    "exported": "Exported"
+    "attempted": "Attempted",
+    "exported": "Exported",
+    "failed": "Failed",
+    "user": "Triggered by",
+    "historyTitle": "Recent runs",
+    "historyDescription": "The last 10 sidecar backup runs recorded for the selected library.",
+    "loading": "Loading recent sidecar backup runs.",
+    "loadFailed": "Could not load recent sidecar backup runs.",
+    "empty": "No sidecar backup runs have been recorded for this library yet."
   },
   "databaseExport": {
     "title": "Logical Database Backup",

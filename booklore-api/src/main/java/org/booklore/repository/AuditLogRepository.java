@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -36,4 +37,17 @@ public interface AuditLogRepository extends JpaRepository<AuditLogEntity, Long> 
 
     @Query("SELECT DISTINCT a.username FROM AuditLogEntity a ORDER BY a.username")
     List<String> findDistinctUsernames();
+
+    @Query("""
+            SELECT a FROM AuditLogEntity a
+            WHERE a.entityType = :entityType
+            AND a.entityId = :entityId
+            AND a.action IN :actions
+            ORDER BY a.createdAt DESC
+            """)
+    List<AuditLogEntity> findByEntityTypeAndEntityIdAndActionInOrderByCreatedAtDesc(
+            @Param("entityType") String entityType,
+            @Param("entityId") Long entityId,
+            @Param("actions") Collection<AuditAction> actions,
+            Pageable pageable);
 }

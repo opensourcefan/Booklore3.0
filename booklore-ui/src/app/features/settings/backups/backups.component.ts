@@ -10,7 +10,7 @@ import {filter, finalize, take} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Library} from '../../book/model/library.model';
 import {LibraryService} from '../../book/service/library.service';
-import {SidecarService} from '../../metadata/service/sidecar.service';
+import {SidecarBackupHistoryEntry, SidecarService} from '../../metadata/service/sidecar.service';
 import {AppSettingsService, AppSettingsTransferFile} from '../../../shared/service/app-settings.service';
 import {SidecarBackupProgressService} from '../../../shared/service/sidecar-backup-progress.service';
 import {UserService} from '../user-management/user.service';
@@ -18,8 +18,7 @@ import {AuditLogService, DatabaseHelperAuditAction} from '../audit-logs/audit-lo
 import {
   AppSettingsBackupActivity,
   BackupsActivityService,
-  DatabaseBackupActivity,
-  SidecarBackupActivity
+  DatabaseBackupActivity
 } from './backups-activity.service';
 
 type BackupsTab = 'status' | 'app-settings' | 'sidecar' | 'database-export' | 'database-restore';
@@ -76,9 +75,12 @@ export class BackupsComponent implements OnInit {
   libraries: Library[] = [];
   selectedBackupLibraryId: number | null = null;
   isSidecarBackupRunning = false;
+  isSidecarHistoryLoading = false;
+  sidecarHistory: SidecarBackupHistoryEntry[] = [];
+  sidecarHistoryLoadFailed = false;
+  private canLoadSidecarHistory = false;
 
   appSettingsActivity: AppSettingsBackupActivity | null = null;
-  sidecarActivity: SidecarBackupActivity | null = null;
   databaseActivity: DatabaseBackupActivity | null = null;
 
   backupDirectory = '$HOME/booklore-backups';
@@ -102,6 +104,18 @@ export class BackupsComponent implements OnInit {
     this.backupFileName = this.buildDefaultBackupFileName();
     this.refreshActivitySnapshots();
     this.loadLibraries();
+
+    this.userService.userState$.pipe(
+      filter((state) => state.loaded),
+      take(1)
+    ).subscribe({
+      next: (state) => {
+        this.canLoadSidecarHistory = this.canManageSidecar(state.user);
+        if (this.canLoadSidecarHistory && this.selectedBackupLibraryId !== null) {
+          this.loadSidecarHistory(this.selectedBackupLibraryId);
+        }
+      }
+    });
   }
 
   canManageAppSettings(user: BackupAccessUser | null | undefined): boolean {
@@ -165,15 +179,16 @@ export class BackupsComponent implements OnInit {
   }
 
   getSidecarStatusTone(): StatusTone {
-    if (!this.sidecarActivity) {
+    const latestBackup = this.getLatestSidecarHistoryEntry();
+    if (!latestBackup) {
       return '';
     }
 
-    if (this.sidecarActivity.failed > 0 && this.sidecarActivity.exported === 0) {
+    if (latestBackup.status === 'FAILED' || (latestBackup.failed > 0 && latestBackup.exported === 0)) {
       return 'fail';
     }
 
-    if (this.sidecarActivity.failed > 0) {
+    if (latestBackup.status === 'PARTIAL' || latestBackup.failed > 0) {
       return 'partial';
     }
 
@@ -304,15 +319,7 @@ export class BackupsComponent implements OnInit {
       })
     ).subscribe({
       next: (response) => {
-        this.backupsActivityService.setSidecarActivity({
-          libraryId: this.selectedBackupLibraryId ?? selectedLibrary.id ?? 0,
-          libraryName: selectedLibrary.name,
-          attempted: response.attempted,
-          exported: response.exported,
-          failed: response.failed,
-          timestamp: new Date().toISOString()
-        });
-        this.refreshActivitySnapshots();
+        this.loadSidecarHistory(this.selectedBackupLibraryId ?? selectedLibrary.id ?? null);
 
         if (response.failed > 0) {
           this.messageService.add({
@@ -487,7 +494,6 @@ export class BackupsComponent implements OnInit {
 
   private refreshActivitySnapshots(): void {
     this.appSettingsActivity = this.backupsActivityService.getAppSettingsActivity();
-    this.sidecarActivity = this.backupsActivityService.getSidecarActivity();
     this.databaseActivity = this.backupsActivityService.getDatabaseActivity();
   }
 
@@ -501,6 +507,65 @@ export class BackupsComponent implements OnInit {
         if (this.selectedBackupLibraryId === null && this.libraries.length > 0) {
           this.selectedBackupLibraryId = this.libraries[0].id ?? null;
         }
+        if (this.canLoadSidecarHistory) {
+          this.loadSidecarHistory(this.selectedBackupLibraryId);
+        }
+      }
+    });
+  }
+
+  onSelectedBackupLibraryChange(libraryId: number | null): void {
+    this.selectedBackupLibraryId = libraryId;
+    this.loadSidecarHistory(libraryId);
+  }
+
+  getLatestSidecarHistoryEntry(): SidecarBackupHistoryEntry | null {
+    return this.sidecarHistory[0] ?? null;
+  }
+
+  getSelectedBackupLibraryName(): string {
+    return this.libraries.find((library) => library.id === this.selectedBackupLibraryId)?.name
+      ?? this.translocoService.translate('settingsBackups.common.notRecorded');
+  }
+
+  getSidecarHistoryStatusLabelKey(entry: SidecarBackupHistoryEntry): string {
+    switch (entry.status) {
+      case 'FAILED':
+        return 'settingsBackups.status.failed';
+      case 'PARTIAL':
+        return 'settingsBackups.status.partial';
+      default:
+        return 'settingsBackups.status.done';
+    }
+  }
+
+  private loadSidecarHistory(libraryId: number | null): void {
+    if (!this.canLoadSidecarHistory) {
+      this.sidecarHistory = [];
+      this.sidecarHistoryLoadFailed = false;
+      this.isSidecarHistoryLoading = false;
+      return;
+    }
+
+    if (libraryId === null) {
+      this.sidecarHistory = [];
+      this.sidecarHistoryLoadFailed = false;
+      this.isSidecarHistoryLoading = false;
+      return;
+    }
+
+    this.isSidecarHistoryLoading = true;
+    this.sidecarHistoryLoadFailed = false;
+
+    this.sidecarService.getBackupHistory(libraryId, 10).subscribe({
+      next: (history) => {
+        this.sidecarHistory = history;
+        this.isSidecarHistoryLoading = false;
+      },
+      error: () => {
+        this.sidecarHistory = [];
+        this.sidecarHistoryLoadFailed = true;
+        this.isSidecarHistoryLoading = false;
       }
     });
   }

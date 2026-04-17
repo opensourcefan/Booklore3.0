@@ -2,7 +2,9 @@ package org.booklore.service.metadata.sidecar;
 
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.LibraryEntity;
+import org.booklore.model.entity.AuditLogEntity;
 import org.booklore.model.enums.AuditAction;
+import org.booklore.repository.AuditLogRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
 import org.booklore.service.audit.AuditService;
@@ -15,8 +17,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +33,9 @@ class SidecarServiceTest {
 
     @Mock
     private LibraryRepository libraryRepository;
+
+    @Mock
+    private AuditLogRepository auditLogRepository;
 
     @Mock
     private SidecarMetadataReader sidecarReader;
@@ -129,6 +137,51 @@ class SidecarServiceTest {
             9L,
             "Sidecar backup for library 'Failure Library' (attempted=2, exported=1, failed=1). First error: Permission denied while writing /library/book.metadata.json"
         );
+    }
+
+    @Test
+    void getBackupHistory_mapsRecentAuditEntries() {
+        LibraryEntity library = new LibraryEntity();
+        library.setId(12L);
+        library.setName("History Library");
+
+        AuditLogEntity partialRun = AuditLogEntity.builder()
+            .action(AuditAction.SIDECAR_BACKUP_PARTIAL)
+            .entityType("Library")
+            .entityId(12L)
+            .description("Sidecar backup for library 'History Library' (attempted=5, exported=4, failed=1). First error: Disk full")
+            .username("admin")
+            .createdAt(LocalDateTime.of(2026, 4, 15, 12, 30))
+            .build();
+
+        AuditLogEntity completedRun = AuditLogEntity.builder()
+            .action(AuditAction.SIDECAR_BACKUP_COMPLETED)
+            .entityType("Library")
+            .entityId(12L)
+            .description("Sidecar backup for library 'History Library' (attempted=3, exported=3, failed=0)")
+            .username("operator")
+            .createdAt(LocalDateTime.of(2026, 4, 14, 9, 0))
+            .build();
+
+        when(libraryRepository.findById(12L)).thenReturn(Optional.of(library));
+        when(auditLogRepository.findByEntityTypeAndEntityIdAndActionInOrderByCreatedAtDesc(any(), any(), any(), any()))
+            .thenReturn(List.of(partialRun, completedRun));
+
+        var history = sidecarService.getBackupHistory(12L, 10);
+
+        assertEquals(2, history.size());
+        assertEquals("PARTIAL", history.get(0).status());
+        assertEquals(5, history.get(0).attempted());
+        assertEquals(4, history.get(0).exported());
+        assertEquals(1, history.get(0).failed());
+        assertEquals("Disk full", history.get(0).firstError());
+        assertEquals("admin", history.get(0).username());
+        assertEquals(LocalDateTime.of(2026, 4, 15, 12, 30), history.get(0).createdAt());
+        assertEquals("COMPLETED", history.get(1).status());
+        assertEquals(3, history.get(1).attempted());
+        assertEquals(3, history.get(1).exported());
+        assertEquals(0, history.get(1).failed());
+        assertNull(history.get(1).firstError());
     }
 
     @Test

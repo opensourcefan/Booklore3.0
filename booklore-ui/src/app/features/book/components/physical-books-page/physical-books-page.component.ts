@@ -34,6 +34,12 @@ interface PhysicalBooksViewModel {
   styleUrl: './physical-books-page.component.scss',
 })
 export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
+  private readonly DESKTOP_CARD_WIDTH_PX = 116;
+  private readonly DESKTOP_CARD_GAP_PX = 16;
+  private readonly DESKTOP_HORIZONTAL_CHROME_PX = 80;
+  private readonly MOBILE_CARD_WIDTH_PX = 104;
+  private readonly MOBILE_CARD_GAP_PX = 14;
+  private readonly MOBILE_HORIZONTAL_CHROME_PX = 60;
   private readonly bookService = inject(BookService);
   private readonly libraryService = inject(LibraryService);
   private readonly localStorageService = inject(LocalStorageService);
@@ -139,6 +145,17 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
     return this.screenWidth < this.MOBILE_BREAKPOINT ? this.mobileTitleRows : this.desktopTitleRows;
   }
 
+  getShelfRows(books: Book[]): Book[][] {
+    const cardsPerRow = this.getCardsPerRow();
+    const rows: Book[][] = [];
+
+    for (let index = 0; index < books.length; index += cardsPerRow) {
+      rows.push(books.slice(index, index + cardsPerRow));
+    }
+
+    return rows;
+  }
+
   private sortBooks(books: Book[]): Book[] {
     return [...books].sort((left, right) => {
       const leftTitle = (left.metadata?.title ?? left.fileName ?? '').trim();
@@ -157,5 +174,15 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
     if (savedDesktopRows !== null) {
       this.desktopTitleRows = Math.min(5, Math.max(1, savedDesktopRows));
     }
+  }
+
+  private getCardsPerRow(): number {
+    const isMobileLayout = this.screenWidth < this.MOBILE_BREAKPOINT;
+    const cardWidth = isMobileLayout ? this.MOBILE_CARD_WIDTH_PX : this.DESKTOP_CARD_WIDTH_PX;
+    const cardGap = isMobileLayout ? this.MOBILE_CARD_GAP_PX : this.DESKTOP_CARD_GAP_PX;
+    const horizontalChrome = isMobileLayout ? this.MOBILE_HORIZONTAL_CHROME_PX : this.DESKTOP_HORIZONTAL_CHROME_PX;
+    const usableWidth = Math.max(this.screenWidth - horizontalChrome, cardWidth);
+
+    return Math.max(1, Math.floor((usableWidth + cardGap) / (cardWidth + cardGap)));
   }
 }

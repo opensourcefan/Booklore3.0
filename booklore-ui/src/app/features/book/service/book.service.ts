@@ -252,12 +252,7 @@ export class BookService {
   createPhysicalBook(request: CreatePhysicalBookRequest): Observable<Book> {
     return this.http.post<Book>(`${this.url}/physical`, request).pipe(
       tap(newBook => {
-        const currentState = this.bookStateService.getCurrentBookState();
-        const updatedBooks = [...(currentState.books || []), newBook];
-        this.bookStateService.updateBookState({
-          ...currentState,
-          books: updatedBooks
-        });
+        this.bookSocketService.handleNewlyCreatedBook(newBook);
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('book.bookService.toast.physicalBookCreatedSummary'),

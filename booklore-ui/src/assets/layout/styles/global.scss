@@ -59,6 +59,7 @@
   max-height: 95dvh;
 
   .p-dialog-content {
+    min-height: 0;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -72,6 +73,10 @@
     max-height: 100dvh;
     margin: 0;
     border-radius: 0;
+
+    .p-dialog-content {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
   }
 }
 

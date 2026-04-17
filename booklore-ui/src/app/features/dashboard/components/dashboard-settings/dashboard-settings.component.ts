@@ -16,7 +16,7 @@ import {MagicShelfService} from '../../../magic-shelf/service/magic-shelf.servic
 import {LibraryService} from '../../../book/service/library.service';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 
-export const MAX_SCROLLERS = 5;
+export const MAX_SCROLLERS = 20;
 
 @Component({
   selector: 'app-dashboard-settings',

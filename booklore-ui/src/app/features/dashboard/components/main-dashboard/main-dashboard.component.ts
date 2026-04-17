@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
+import {Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {LibraryService} from '../../../book/service/library.service';
 import {Observable} from 'rxjs';
 import {map, shareReplay, switchMap} from 'rxjs/operators';
@@ -49,9 +49,12 @@ const DASHBOARD_CARD_GAP_PX = 32;
   ],
   standalone: true
 })
-export class MainDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MainDashboardComponent implements OnInit, OnDestroy {
 
-  @ViewChild('dashboardGrid') dashboardGrid?: ElementRef<HTMLElement>;
+  @ViewChild('dashboardGrid')
+  set dashboardGridRef(ref: ElementRef<HTMLElement> | undefined) {
+    this.attachDashboardGrid(ref?.nativeElement);
+  }
 
   private bookService = inject(BookService);
   private dialogLauncher = inject(DialogLauncherService);
@@ -71,6 +74,7 @@ export class MainDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
   private scrollerBooksCache = new Map<string, Observable<Book[]>>();
   private resizeObserver?: ResizeObserver;
   private currentConfig = cloneDashboardConfig(DEFAULT_DASHBOARD_CONFIG);
+  private dashboardGridElement?: HTMLElement;
 
   workspaceWidth = 1200;
   gridColumns = MAX_DASHBOARD_GRID_COLUMNS;
@@ -98,12 +102,33 @@ export class MainDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
       });
   }
 
-  ngAfterViewInit(): void {
-    if (!this.dashboardGrid?.nativeElement || typeof ResizeObserver === 'undefined') {
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
+
+  private attachDashboardGrid(element?: HTMLElement): void {
+    this.dashboardGridElement = element;
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = undefined;
+
+    if (!element) {
       return;
     }
 
-    this.updateWorkspaceMetrics(this.dashboardGrid.nativeElement.clientWidth);
+    this.refreshWorkspaceMetrics();
+
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => {
+        if (this.dashboardGridElement === element) {
+          this.refreshWorkspaceMetrics();
+        }
+      });
+    }
+
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
     this.resizeObserver = new ResizeObserver(entries => {
       const entry = entries[0];
       if (!entry) {
@@ -112,11 +137,15 @@ export class MainDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
 
       this.updateWorkspaceMetrics(entry.contentRect.width);
     });
-    this.resizeObserver.observe(this.dashboardGrid.nativeElement);
+    this.resizeObserver.observe(element);
   }
 
-  ngOnDestroy(): void {
-    this.resizeObserver?.disconnect();
+  private refreshWorkspaceMetrics(): void {
+    if (!this.dashboardGridElement) {
+      return;
+    }
+
+    this.updateWorkspaceMetrics(this.dashboardGridElement.clientWidth);
   }
 
   private updateWorkspaceMetrics(width: number): void {

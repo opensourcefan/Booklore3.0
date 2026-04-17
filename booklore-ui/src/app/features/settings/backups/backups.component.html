@@ -90,8 +90,8 @@
                           <div>
                             <dt>{{ t('settingsBackups.status.labels.action') }}</dt>
                             <dd>
-                              @if (sidecarActivity) {
-                                {{ t('settingsBackups.status.sidecar.summary', {count: sidecarActivity.exported}) }}
+                              @if (getLatestSidecarHistoryEntry(); as latestSidecarBackup) {
+                                {{ t('settingsBackups.status.sidecar.summary', {count: latestSidecarBackup.exported, attempted: latestSidecarBackup.attempted}) }}
                               } @else {
                                 {{ t('settingsBackups.common.none') }}
                               }
@@ -99,11 +99,11 @@
                           </div>
                           <div>
                             <dt>{{ t('settingsBackups.status.labels.target') }}</dt>
-                            <dd>{{ sidecarActivity?.libraryName || t('settingsBackups.common.notRecorded') }}</dd>
+                            <dd>{{ getSelectedBackupLibraryName() }}</dd>
                           </div>
                           <div>
                             <dt>{{ t('settingsBackups.status.labels.updated') }}</dt>
-                            <dd>{{ formatDateTime(sidecarActivity?.timestamp) }}</dd>
+                            <dd>{{ formatDateTime(getLatestSidecarHistoryEntry()?.createdAt) }}</dd>
                           </div>
                         </dl>
                       </article>
@@ -226,6 +226,7 @@
                               size="small"
                               [options]="libraries"
                               [(ngModel)]="selectedBackupLibraryId"
+                              (ngModelChange)="onSelectedBackupLibraryChange($event)"
                               optionLabel="name"
                               optionValue="id"
                               [placeholder]="t('settingsMeta.persistence.sidecarBackupPlaceholder')"
@@ -247,19 +248,93 @@
                         }
                       </div>
 
-                      <div class="result-grid three-column">
+                      <div class="result-grid four-column">
                         <div class="result-card">
                           <span class="result-label">{{ t('settingsBackups.status.labels.target') }}</span>
-                          <span class="result-value">{{ sidecarActivity?.libraryName || t('settingsBackups.common.notRecorded') }}</span>
+                          <span class="result-value">{{ getSelectedBackupLibraryName() }}</span>
+                        </div>
+                        <div class="result-card">
+                          <span class="result-label">{{ t('settingsBackups.sidecar.attempted') }}</span>
+                          <span class="result-value">{{ getLatestSidecarHistoryEntry()?.attempted ?? 0 }}</span>
                         </div>
                         <div class="result-card">
                           <span class="result-label">{{ t('settingsBackups.sidecar.exported') }}</span>
-                          <span class="result-value">{{ sidecarActivity?.exported ?? 0 }}</span>
+                          <span class="result-value">{{ getLatestSidecarHistoryEntry()?.exported ?? 0 }}</span>
+                        </div>
+                        <div class="result-card">
+                          <span class="result-label">{{ t('settingsBackups.sidecar.failed') }}</span>
+                          <span class="result-value">{{ getLatestSidecarHistoryEntry()?.failed ?? 0 }}</span>
                         </div>
                         <div class="result-card">
                           <span class="result-label">{{ t('settingsBackups.status.labels.updated') }}</span>
-                          <span class="result-value">{{ formatDateTime(sidecarActivity?.timestamp) }}</span>
+                          <span class="result-value">{{ formatDateTime(getLatestSidecarHistoryEntry()?.createdAt) }}</span>
                         </div>
+                      </div>
+
+                      <div class="history-section">
+                        <div class="section-header compact">
+                          <h4 class="history-title">{{ t('settingsBackups.sidecar.historyTitle') }}</h4>
+                          <p class="section-description">{{ t('settingsBackups.sidecar.historyDescription') }}</p>
+                        </div>
+
+                        @if (isSidecarHistoryLoading) {
+                          <div class="result-card">
+                            <span class="result-value">{{ t('settingsBackups.sidecar.loading') }}</span>
+                          </div>
+                        } @else if (sidecarHistoryLoadFailed) {
+                          <div class="result-card">
+                            <span class="result-value">{{ t('settingsBackups.sidecar.loadFailed') }}</span>
+                          </div>
+                        } @else if (sidecarHistory.length === 0) {
+                          <div class="result-card">
+                            <span class="result-value">{{ t('settingsBackups.sidecar.empty') }}</span>
+                          </div>
+                        } @else {
+                          <div class="result-list history-list">
+                            @for (entry of sidecarHistory; track entry.createdAt) {
+                              <article class="history-card">
+                                <div class="history-card-header">
+                                  <div>
+                                    <div class="history-meta">{{ formatDateTime(entry.createdAt) }}</div>
+                                    <div class="history-summary">
+                                      {{ t('settingsBackups.status.sidecar.summary', {count: entry.exported, attempted: entry.attempted}) }}
+                                    </div>
+                                  </div>
+                                  <span
+                                    class="status-chip"
+                                    [class.done]="entry.status === 'COMPLETED'"
+                                    [class.partial]="entry.status === 'PARTIAL'"
+                                    [class.fail]="entry.status === 'FAILED'">
+                                    {{ t(getSidecarHistoryStatusLabelKey(entry)) }}
+                                  </span>
+                                </div>
+
+                                <div class="history-stats">
+                                  <div>
+                                    <span class="result-label">{{ t('settingsBackups.sidecar.attempted') }}</span>
+                                    <span class="result-value">{{ entry.attempted }}</span>
+                                  </div>
+                                  <div>
+                                    <span class="result-label">{{ t('settingsBackups.sidecar.exported') }}</span>
+                                    <span class="result-value">{{ entry.exported }}</span>
+                                  </div>
+                                  <div>
+                                    <span class="result-label">{{ t('settingsBackups.sidecar.failed') }}</span>
+                                    <span class="result-value">{{ entry.failed }}</span>
+                                  </div>
+                                  <div>
+                                    <span class="result-label">{{ t('settingsBackups.sidecar.user') }}</span>
+                                    <span class="result-value">{{ entry.username || t('settingsBackups.common.notRecorded') }}</span>
+                                  </div>
+                                </div>
+
+                                @if (entry.firstError) {
+                                  <div class="history-error">{{ entry.firstError }}</div>
+                                }
+                              </article>
+                            }
+                          </div>
+                        }
                       </div>
                     </div>
                   </div>

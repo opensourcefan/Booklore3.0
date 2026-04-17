@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.booklore.config.security.annotation.CheckBookAccess;
+import org.booklore.model.dto.response.SidecarBackupHistoryEntry;
 import org.booklore.model.dto.sidecar.SidecarMetadata;
 import org.booklore.model.enums.SidecarSyncStatus;
 import org.booklore.service.metadata.sidecar.SidecarService;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -108,6 +110,19 @@ public class SidecarController {
                 "firstError", result.firstError() == null ? "" : result.firstError()
         ));
     }
+
+        @Operation(summary = "Get sidecar backup history for library", description = "Return the most recent sidecar backup runs recorded for a library")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Library sidecar backup history returned"),
+                        @ApiResponse(responseCode = "404", description = "Library not found")
+        })
+        @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+        @GetMapping("/libraries/{libraryId}/sidecar/backup-history")
+        public ResponseEntity<List<SidecarBackupHistoryEntry>> getSidecarBackupHistory(
+                        @Parameter(description = "Library ID") @PathVariable Long libraryId,
+                        @Parameter(description = "Maximum number of runs to return") @RequestParam(defaultValue = "10") int limit) {
+                return ResponseEntity.ok(sidecarService.getBackupHistory(libraryId, limit));
+        }
 
     @Operation(summary = "Bulk import sidecar for library", description = "Import metadata from all sidecar JSON files in a library")
     @ApiResponses({

@@ -119,8 +119,15 @@
     .footer-actions,
     .footer-right {
       width: 100%;
-      justify-content: flex-end;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+      justify-content: stretch;
       gap: 0.5rem;
+
+      ::ng-deep .p-button {
+        width: 100%;
+        min-height: 2.75rem;
+      }
     }
   }
 }

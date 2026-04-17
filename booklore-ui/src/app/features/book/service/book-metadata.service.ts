@@ -10,7 +10,8 @@ import {filter, map} from 'rxjs/operators';
 
 @Injectable({providedIn: 'root'})
 export class BookMetadataService {
-  private readonly url = `${API_CONFIG.BASE_URL}/api/v1/books`;
+  private readonly booksUrl = `${API_CONFIG.BASE_URL}/api/v1/books`;
+  private readonly metadataUrl = `${API_CONFIG.BASE_URL}/api/v1/metadata`;
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private sseClient = inject(SseClient);
@@ -27,7 +28,7 @@ export class BookMetadataService {
       .set('Authorization', `Bearer ${token}`);
 
     return this.sseClient.stream(
-      `${this.url}/${bookId}/metadata/prospective`,
+      `${this.booksUrl}/${bookId}/metadata/prospective`,
       {
         keepAlive: false,
         reconnectionDelay: 1000,
@@ -49,10 +50,10 @@ export class BookMetadataService {
   }
 
   fetchMetadataDetail(provider: string, providerItemId: string): Observable<BookMetadata> {
-    return this.http.get<BookMetadata>(`${this.url}/metadata/detail/${provider}/${providerItemId}`);
+    return this.http.get<BookMetadata>(`${this.metadataUrl}/detail/${provider}/${providerItemId}`);
   }
 
   lookupByIsbn(isbn: string): Observable<BookMetadata> {
-    return this.http.post<BookMetadata>(`${this.url}/metadata/isbn-lookup`, {isbn});
+    return this.http.post<BookMetadata>(`${this.metadataUrl}/isbn-lookup`, {isbn});
   }
 }

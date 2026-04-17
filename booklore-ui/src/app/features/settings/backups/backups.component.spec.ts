@@ -17,7 +17,7 @@ describe('BackupsComponent', () => {
   let component: BackupsComponent;
   let storage: Record<string, unknown>;
   let appSettingsServiceMock: {exportSettings: ReturnType<typeof vi.fn>; importSettings: ReturnType<typeof vi.fn>};
-  let sidecarServiceMock: {backupLibrarySidecars: ReturnType<typeof vi.fn>};
+  let sidecarServiceMock: {backupLibrarySidecars: ReturnType<typeof vi.fn>; getBackupHistory: ReturnType<typeof vi.fn>};
   let auditLogServiceMock: {recordDatabaseHelperAction: ReturnType<typeof vi.fn>};
   let clipboardWriteText: ReturnType<typeof vi.fn>;
   let execCommandMock: ReturnType<typeof vi.fn>;
@@ -67,7 +67,17 @@ describe('BackupsComponent', () => {
         exported: 12,
         failed: 0,
         firstError: ''
-      }))
+      })),
+      getBackupHistory: vi.fn(() => of([{
+        status: 'COMPLETED',
+        attempted: 12,
+        exported: 12,
+        failed: 0,
+        firstError: null,
+        description: 'Backed up 12 sidecars.',
+        username: 'admin',
+        createdAt: '2026-04-14T12:00:00'
+      }]))
     };
 
     auditLogServiceMock = {
@@ -161,9 +171,8 @@ describe('BackupsComponent', () => {
     component.backupLibrarySidecars();
 
     expect(sidecarServiceMock.backupLibrarySidecars).toHaveBeenCalledWith(1);
-    expect(storage['settingsBackupsSidecarActivity']).toMatchObject({
-      libraryId: 1,
-      libraryName: 'Main Library',
+    expect(sidecarServiceMock.getBackupHistory).toHaveBeenCalledWith(1, 10);
+    expect(component.sidecarHistory[0]).toMatchObject({
       exported: 12,
       failed: 0
     });
@@ -177,16 +186,25 @@ describe('BackupsComponent', () => {
       failed: 5,
       firstError: 'Disk full'
     }));
+    sidecarServiceMock.getBackupHistory.mockReturnValueOnce(of([{
+      status: 'FAILED',
+      attempted: 5,
+      exported: 0,
+      failed: 5,
+      firstError: 'Disk full',
+      description: 'Backup failed.',
+      username: 'admin',
+      createdAt: '2026-04-14T12:05:00'
+    }]));
     component.selectedBackupLibraryId = 1;
 
     component.backupLibrarySidecars();
 
-    expect(storage['settingsBackupsSidecarActivity']).toMatchObject({
-      libraryId: 1,
-      libraryName: 'Main Library',
+    expect(component.sidecarHistory[0]).toMatchObject({
       exported: 0,
       failed: 5
     });
+    expect(component.getSidecarStatusTone()).toBe('fail');
   });
 
   it('builds the export command with mkdir -p for the destination folder', () => {

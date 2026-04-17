@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.71 &mdash; April 13, 2026<br>
+    Version 1.1.78 &mdash; April 15, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -264,12 +264,14 @@
 <ul>
   <li>See library statistics at a glance (total books, reading status, etc.)</li>
   <li>Access recently added books</li>
+  <li>Configure dashboard sections from <strong>Dashboard Settings</strong>, including adding up to <strong>20</strong> scrolling panels for libraries, shelves, series, authors, or other supported dashboard content</li>
+  <li>Refresh the page on mobile without the dashboard cards stretching into tall broken columns; the dashboard now recalculates its grid width after the page finishes loading</li>
   <li>Jump to any section using the sidebar navigation</li>
 </ul>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
-  <li>Customize which statistics appear on the dashboard (the layout is fixed)</li>
+  <li>Place dashboard panels at arbitrary pixel positions outside the grid system</li>
 </ul>
 
 <!-- ==================== SECTION 4 ==================== -->
@@ -399,7 +401,11 @@
 </table>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter. BookLore also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there. Physical placeholders now also write a small directory sidecar in their chosen library folder, so a later rebuild or refresh can recreate them from disk-backed metadata instead of losing them, while skipping sidecar re-import if the library already contains the matching active book.
+  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter. The <strong>Add Physical Book</strong> dialog can now fetch metadata from ISBN correctly before you save, so title, author, and cover details can be filled in from the lookup result instead of being typed manually every time. BookLore also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there. Physical placeholders now also write a small directory sidecar in their chosen library folder, so a later rebuild or refresh can recreate them from disk-backed metadata instead of losing them, while skipping sidecar re-import if the library already contains the matching active book.
+</div>
+
+<div class="callout tip">
+  <strong>Physical Shelf View:</strong> The <strong>Physical Books</strong> HOME page now draws a shelf rail for each visual row inside a library section, so larger collections keep the shelf effect as the grid wraps onto additional rows instead of only showing one shelf bar at the bottom.
 </div>
 
 <div class="callout tip">
@@ -1206,6 +1212,7 @@
     <li><strong>Settings export does NOT include reading progress, annotations, or book files.</strong> For full protection, do a database dump AND file backup.</li>
     <li><strong>Store backups in a separate location</strong> from your BookLore server.</li>
     <li><strong>Test your backups periodically.</strong> A backup you&rsquo;ve never tested is a backup you can&rsquo;t trust.</li>
+    <li><strong>The Settings &rarr; Backups &rarr; Sidecar view now keeps a recent run history for the selected library.</strong> You can review up to the last <strong>10</strong> manual sidecar backup runs there, including attempted, exported, failed, and the user who triggered the run, instead of only seeing one overwritten &ldquo;last backup&rdquo; record.</li>
   </ul>
 </div>
 
@@ -1305,6 +1312,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-15</td><td>1.1.78</td><td>Documented the dashboard expansion to 20 panels, the mobile dashboard refresh layout repair, the restored ISBN metadata lookup and duplicate protection for physical-book creation, the multi-row physical shelf view, the new sidecar backup run history list in <strong>Settings &rarr; Backups</strong>, and the broader mobile dialog sizing improvements for library-management workflows</td></tr>
   <tr><td>2026-04-15</td><td>1.1.77</td><td>Recorded the deeper library-dialog handoff repair after reverse engineering the underlying dialog framework: switching between <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> now waits for the old dialog instance to be fully destroyed before opening the next one, which fixes same-dialog workflow links that could still disappear during the close animation window</td></tr>
   <tr><td>2026-04-15</td><td>1.1.76</td><td>Recorded the follow-up repair for the linked <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> dialogs so switching between them now waits for the current dialog to fully close before the next one opens, preventing the workflow buttons from dismissing the current dialog without showing the target view</td></tr>
   <tr><td>2026-04-15</td><td>1.1.75</td><td>Clarified that the linked <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> dialogs now hand off cleanly between each other, documented that <strong>Delete from Disk</strong> is hidden whenever <strong>Allow File Deletion</strong> is disabled, and recorded that <strong>Remove from Library</strong> now stays hidden across later scans and watcher activity while the underlying file remains on disk</td></tr>

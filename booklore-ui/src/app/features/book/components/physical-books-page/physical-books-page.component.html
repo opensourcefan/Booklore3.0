@@ -49,15 +49,21 @@
                 <span class="physical-shelf-count">{{ group.books.length }}</span>
               </div>
 
-              <div class="physical-shelf-grid">
-                @for (book of group.books; track book.id) {
-                  <div class="physical-shelf-card">
-                    <app-book-card
-                      [book]="book"
-                      [isCheckboxEnabled]="false"
-                      [titleRows]="titleRowsForViewport"
-                      [overlayPreferenceService]="bookCardOverlayPreferenceService">
-                    </app-book-card>
+              <div class="physical-shelf-rows">
+                @for (row of getShelfRows(group.books); track $index) {
+                  <div class="physical-shelf-row">
+                    <div class="physical-shelf-grid">
+                      @for (book of row; track book.id) {
+                        <div class="physical-shelf-card">
+                          <app-book-card
+                            [book]="book"
+                            [isCheckboxEnabled]="false"
+                            [titleRows]="titleRowsForViewport"
+                            [overlayPreferenceService]="bookCardOverlayPreferenceService">
+                          </app-book-card>
+                        </div>
+                      }
+                    </div>
                   </div>
                 }
               </div>
