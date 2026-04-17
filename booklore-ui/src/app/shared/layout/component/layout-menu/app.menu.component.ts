@@ -554,7 +554,6 @@ export class AppMenuComponent implements OnInit {
       },
       activeMatch: () => this.isBookTypeFilterActive(label),
       bookCount$: of(count),
-      showBookCount: true,
     };
   }
 

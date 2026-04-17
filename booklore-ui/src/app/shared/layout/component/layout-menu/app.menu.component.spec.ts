@@ -119,7 +119,7 @@ describe('AppMenuComponent reorder mode', () => {
     expect(menu[0].items?.map(item => item.label)).not.toContain('PHYSICAL');
     expect(menu[0].items?.[0].type).toBe('MediaType');
     expect(menu[0].items?.[0].menu?.length).toBeGreaterThan(0);
-    expect(menu[0].items?.[0].showBookCount).toBe(true);
+    expect(menu[0].items?.[0].showBookCount).toBeUndefined();
 
     menu[0].onItemsReorder?.([
       {label: 'PDF'} as AppMenuItem,
