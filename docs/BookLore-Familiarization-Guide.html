@@ -401,7 +401,7 @@
 </table>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME, from library and shelf views, and from the <strong>Media Type &rarr; Physical</strong> filter. The <strong>Add Physical Book</strong> dialog can now fetch metadata from ISBN correctly before you save, so title, author, and cover details can be filled in from the lookup result instead of being typed manually every time. BookLore also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there. Physical placeholders now also write a small directory sidecar in their chosen library folder, so a later rebuild or refresh can recreate them from disk-backed metadata instead of losing them, while skipping sidecar re-import if the library already contains the matching active book.
+  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME and from normal library and shelf views without creating a synthetic custom media type. The <strong>Add Physical Book</strong> dialog can now fetch metadata from ISBN correctly before you save, so title, author, and cover details can be filled in from the lookup result instead of being typed manually every time. BookLore also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there. Physical placeholders now also write a small directory sidecar in their chosen library folder, so a later rebuild or refresh can recreate them from disk-backed metadata instead of losing them, while skipping sidecar re-import if the library already contains the matching active book.
 </div>
 
 <div class="callout tip">
@@ -816,7 +816,7 @@
   <li>Combine multiple filters (e.g., &ldquo;Unread comics in my Comics library&rdquo;)</li>
   <li>Filter by real storage folders from the directory explorer while keeping your other filters active</li>
   <li>Return from a folder-scoped browse by clicking the same library or shelf again in the left sidebar, which clears that directory selection and restores the collection&rsquo;s normal title-aware view</li>
-  <li>Use <strong>Media Type &rarr; Physical</strong> from the sidebar to see only physical placeholders, or mix it with other filters like library, shelf, and reading status</li>
+  <li>Use <strong>Physical Books</strong> under HOME to jump straight to physical placeholders, then mix that view with other filters like library, shelf, and reading status as needed</li>
   <li>Hover the filter-mode buttons to see what each mode does: <strong>AND</strong> requires every selected filter to match, <strong>OR</strong> accepts any selected match, <strong>NOT</strong> hides matches, and <strong>1</strong> keeps only one active selection at a time</li>
   <li>Scroll the desktop filter sidebar as one continuous panel instead of fighting a second nested scrollbar inside long filter groups</li>
   <li>Keep the desktop filter panel anchored flush to the right edge of its sidebar while you scroll and expand filter groups</li>
@@ -1298,7 +1298,7 @@
   <tr><td><strong>SMTP</strong></td><td>Simple Mail Transfer Protocol &mdash; the standard for sending email</td></tr>
   <tr><td><strong>Annotation</strong></td><td>A highlight, underline, or note you create while reading</td></tr>
   <tr><td><strong>Bookmark</strong></td><td>A saved position marker in a book</td></tr>
-  <tr><td><strong>Media Type</strong></td><td>A category for your books (e-book, PDF, comic, audiobook, physical, or custom)</td></tr>
+  <tr><td><strong>Media Type</strong></td><td>A category for your books (e-book, PDF, comic, audiobook, or custom); physical placeholders remain a separate dedicated browsing path under <strong>Physical Books</strong></td></tr>
   <tr><td><strong>Audit Log</strong></td><td>A record of actions taken by users in the application</td></tr>
   <tr><td><strong>Reverse Proxy</strong></td><td>A server that sits between the internet and BookLore, handling security and routing</td></tr>
 </table>
@@ -1312,6 +1312,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-17</td><td>1.1.80</td><td>Documented the deeper follow-up regression fix: book-card action menus now anchor to the real inner button element so popup alignment stays stable across the grid, the dedicated <strong>Physical Books</strong> route once again owns physical-only browsing instead of surfacing a synthetic <strong>PHYSICAL</strong> media type, and fullscreen library-management dialogs now keep their lower actions reachable on smaller mobile screens by letting the dialog shell own height while the component footers own the safe-area padding</td></tr>
   <tr><td>2026-04-17</td><td>1.1.79</td><td>Recorded the regression hotfix that re-anchors book-card action overlays to their actual trigger buttons, restores <strong>Media Type</strong> management menus for physical-book views and physical rows assigned to custom media types, and adds safer mobile viewport padding so the lower actions in <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> stay reachable above browser chrome</td></tr>
   <tr><td>2026-04-15</td><td>1.1.78</td><td>Documented the dashboard expansion to 20 panels, the mobile dashboard refresh layout repair, the restored ISBN metadata lookup and duplicate protection for physical-book creation, the multi-row physical shelf view, the new sidecar backup run history list in <strong>Settings &rarr; Backups</strong>, and the broader mobile dialog sizing improvements for library-management workflows</td></tr>
   <tr><td>2026-04-15</td><td>1.1.77</td><td>Recorded the deeper library-dialog handoff repair after reverse engineering the underlying dialog framework: switching between <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> now waits for the old dialog instance to be fully destroyed before opening the next one, which fixes same-dialog workflow links that could still disappear during the close animation window</td></tr>

@@ -338,6 +338,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (filterEntries.length === 1) {
       const [filterType, values] = filterEntries[0];
       if ((filterType === 'customMediaType' || filterType === 'customBookType') && values.length === 1) {
+        if (values[0] === 'PHYSICAL') {
+          return this.t.translate('layout.menu.physicalBooks');
+        }
         return `Media: ${values[0]}`;
       }
       const filterName = FilterLabelHelper.getFilterTypeName(filterType);
@@ -370,7 +373,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return null;
     }
 
-    return mediaTypes[0] ?? null;
+    const mediaType = mediaTypes[0] ?? null;
+    return mediaType === 'PHYSICAL' ? null : mediaType;
   }
 
   openMediaTypeActionsMenu(event: Event, menu: Menu): void {
@@ -380,26 +384,18 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    this.mediaTypeActionsMenuItems = mediaType === 'PHYSICAL'
-      ? [
-        {
-          label: 'Manage Media Types',
-          icon: 'pi pi-pencil',
-          command: () => this.openMediaTypeManagerDialog()
-        }
-      ]
-      : [
-        {
-          label: 'Edit Media Type',
-          icon: 'pi pi-pencil',
-          command: () => this.openMediaTypeManagerDialog()
-        },
-        {
-          label: 'Delete Media Type',
-          icon: 'pi pi-trash',
-          command: () => this.openMediaTypeDeleteDialog(mediaType)
-        }
-      ];
+    this.mediaTypeActionsMenuItems = [
+      {
+        label: 'Edit Media Type',
+        icon: 'pi pi-pencil',
+        command: () => this.openMediaTypeManagerDialog()
+      },
+      {
+        label: 'Delete Media Type',
+        icon: 'pi pi-trash',
+        command: () => this.openMediaTypeDeleteDialog(mediaType)
+      }
+    ];
 
     menu.toggle(event);
   }

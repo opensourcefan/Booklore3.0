@@ -118,7 +118,7 @@ describe('BookCardComponent', () => {
     });
   });
 
-  it('anchors the popup menu to the trigger element rather than the nested icon target', () => {
+  it('anchors the popup menu to the inner button element rather than the button host wrapper', () => {
     const component = createComponent();
     component.book = createBook({ id: 12, primaryFile: { id: 1, bookId: 12, bookType: 'CBX' } });
     component.ngOnInit();
@@ -129,10 +129,12 @@ describe('BookCardComponent', () => {
       },
     };
 
+    const triggerHost = document.createElement('span');
     const trigger = document.createElement('button');
     const nestedTarget = document.createElement('span');
+    triggerHost.appendChild(trigger);
     trigger.appendChild(nestedTarget);
-    (component as unknown as { menuTriggerRef?: { nativeElement: HTMLElement } }).menuTriggerRef = { nativeElement: trigger };
+    (component as unknown as { menuTriggerRef?: { nativeElement: HTMLElement } }).menuTriggerRef = { nativeElement: triggerHost };
 
     const toggle = vi.fn();
     const stopPropagation = vi.fn();

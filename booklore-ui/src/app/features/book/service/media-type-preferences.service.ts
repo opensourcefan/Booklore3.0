@@ -12,6 +12,7 @@ export interface ResolvedMediaTypeSettings {
 
 @Injectable({providedIn: 'root'})
 export class MediaTypePreferencesService {
+  private static readonly reservedTypes = new Set(['PHYSICAL']);
   private readonly customMediaTypesKey = 'customMediaTypes';
   private readonly legacyBookTypesKey = 'customBookTypes';
   private readonly recentMediaTypesKey = 'BOOKLORE_RECENT_MEDIA_TYPES';
@@ -121,7 +122,7 @@ export class MediaTypePreferencesService {
     const normalized: string[] = [];
     for (const rawValue of values) {
       const value = rawValue.trim();
-      if (!value) {
+      if (!value || MediaTypePreferencesService.reservedTypes.has(value.toUpperCase())) {
         continue;
       }
       if (!normalized.some(existing => existing.toLowerCase() === value.toLowerCase())) {

@@ -262,8 +262,13 @@ export class AppMenuComponent implements OnInit {
         }
 
         for (const savedType of mediaTypeSettings.customTypes) {
-          if (!counts.has(savedType)) {
-            counts.set(savedType, 0);
+          const normalizedSavedType = savedType.trim();
+          if (!normalizedSavedType || normalizedSavedType.toUpperCase() === 'PHYSICAL') {
+            continue;
+          }
+
+          if (!counts.has(normalizedSavedType)) {
+            counts.set(normalizedSavedType, 0);
           }
         }
 
@@ -525,7 +530,8 @@ export class AppMenuComponent implements OnInit {
       ? 'customMediaType:'.length
       : 'customBookType:'.length;
     const rawValue = customTypeEntry.substring(keyLength).split('|')[0]?.trim();
-    this.activeBookTypeFilter = rawValue ? decodeURIComponent(rawValue) : null;
+    const decodedValue = rawValue ? decodeURIComponent(rawValue) : null;
+    this.activeBookTypeFilter = decodedValue === 'PHYSICAL' ? null : decodedValue;
   }
 
   private getStoredCustomBookTypes(): string[] {
@@ -541,15 +547,7 @@ export class AppMenuComponent implements OnInit {
       label,
       type: 'MediaType',
       icon: 'pi pi-file',
-      menu: label === 'PHYSICAL'
-        ? [
-          {
-            label: 'Manage Media Types',
-            icon: 'pi pi-pencil',
-            command: () => this.openMediaTypeManagerDialog()
-          }
-        ]
-        : this.getMediaTypeMenuItems(label),
+      menu: this.getMediaTypeMenuItems(label),
       routerLink: ['/all-books'],
       queryParams: {
         filter: `customMediaType:${encodeURIComponent(label)}`,
@@ -562,11 +560,11 @@ export class AppMenuComponent implements OnInit {
 
   private getNavigationMediaType(book: { fileType?: string | null; isPhysical?: boolean }): string | null {
     const fileType = (book.fileType ?? '').trim();
-    if (fileType) {
-      return fileType;
+    if (!fileType || fileType.toUpperCase() === 'PHYSICAL') {
+      return null;
     }
 
-    return book.isPhysical ? 'PHYSICAL' : null;
+    return fileType;
   }
 
   private openMediaTypeManagerDialog(): void {

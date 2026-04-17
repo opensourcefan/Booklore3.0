@@ -42,7 +42,7 @@ describe('AppMenuComponent reorder mode', () => {
     };
     mediaTypePreferencesMock = {
       setSidebarOrder: vi.fn(),
-      settings$: of({customTypes: ['CBZ'], sidebarOrder: []})
+      settings$: of({customTypes: ['CBZ', 'PHYSICAL'], sidebarOrder: []})
     };
 
     TestBed.configureTestingModule({
@@ -116,6 +116,7 @@ describe('AppMenuComponent reorder mode', () => {
 
     expect(menu).toHaveLength(1);
     expect(menu[0].type).toBe('mediaType');
+    expect(menu[0].items?.map(item => item.label)).not.toContain('PHYSICAL');
     expect(menu[0].items?.[0].type).toBe('MediaType');
     expect(menu[0].items?.[0].menu?.length).toBeGreaterThan(0);
     expect(menu[0].items?.[0].showBookCount).toBe(true);
@@ -126,5 +127,13 @@ describe('AppMenuComponent reorder mode', () => {
     ]);
 
     expect(mediaTypePreferencesMock.setSidebarOrder).toHaveBeenCalledWith(['PDF', 'CBZ']);
+  });
+
+  it('does not treat physical books without file types as media type entries', () => {
+    const navigationType = (component as unknown as {
+      getNavigationMediaType: (book: { fileType?: string | null; isPhysical?: boolean }) => string | null;
+    }).getNavigationMediaType({ isPhysical: true, fileType: null });
+
+    expect(navigationType).toBeNull();
   });
 });

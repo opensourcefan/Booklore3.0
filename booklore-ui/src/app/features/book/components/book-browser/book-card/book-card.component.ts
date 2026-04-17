@@ -399,9 +399,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   private getPopupAnchorEvent(event: Event, preferredTarget?: HTMLElement): Event {
-    const anchor = preferredTarget
-      ?? (event.currentTarget instanceof HTMLElement ? event.currentTarget : null)
-      ?? (event.target instanceof HTMLElement ? event.target : null);
+    const anchor = this.resolvePopupAnchorElement(preferredTarget)
+      ?? this.resolvePopupAnchorElement(event.currentTarget)
+      ?? this.resolvePopupAnchorElement(event.target)
+      ?? this.resolvePopupAnchorFromPath(event);
 
     if (!anchor) {
       return event;
@@ -413,6 +414,33 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       preventDefault: () => event.preventDefault(),
       stopPropagation: () => event.stopPropagation(),
     } as unknown as Event;
+  }
+
+  private resolvePopupAnchorElement(candidate: EventTarget | null | undefined): HTMLElement | null {
+    if (!(candidate instanceof HTMLElement)) {
+      return null;
+    }
+
+    if (candidate.matches('button, a, [role="button"], .p-button')) {
+      return candidate;
+    }
+
+    return candidate.querySelector<HTMLElement>('button, a, [role="button"], .p-button');
+  }
+
+  private resolvePopupAnchorFromPath(event: Event): HTMLElement | null {
+    if (typeof event.composedPath !== 'function') {
+      return null;
+    }
+
+    for (const entry of event.composedPath()) {
+      const anchor = this.resolvePopupAnchorElement(entry);
+      if (anchor) {
+        return anchor;
+      }
+    }
+
+    return null;
   }
 
   private initMenu() {
