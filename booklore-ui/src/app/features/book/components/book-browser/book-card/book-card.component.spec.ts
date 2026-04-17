@@ -1,9 +1,9 @@
 import {SimpleChange} from '@angular/core';
-import {TestBed} from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {ConfirmationService, MessageService} from 'primeng/api';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookCardComponent} from './book-card.component';
 import {Book} from '../../../model/book.model';
@@ -30,6 +30,20 @@ function createBook(overrides: Partial<Book>): Book {
 
 describe('BookCardComponent', () => {
   beforeEach(async () => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation(() => ({
+        matches: false,
+        media: '',
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
+
     await TestBed.configureTestingModule({
       imports: [BookCardComponent],
       providers: [
@@ -41,10 +55,12 @@ describe('BookCardComponent', () => {
         { provide: EmailService, useValue: {} },
         { provide: MessageService, useValue: { add: vi.fn() } },
         { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: ActivatedRoute, useValue: {} },
         {
           provide: UrlHelperService,
           useValue: {
             getThumbnailUrl: vi.fn(() => 'thumb'),
+            getBookPrimaryReadingUrl: vi.fn(() => '/book/1/read'),
             getAudiobookThumbnailUrl: vi.fn(() => 'audio-thumb'),
           },
         },
@@ -56,6 +72,12 @@ describe('BookCardComponent', () => {
           provide: TranslocoService,
           useValue: {
             translate: vi.fn((key: string, params?: Record<string, unknown>) => params?.['title'] ? `${key}:${params['title']}` : key),
+            getActiveLang: vi.fn(() => 'en'),
+            langChanges$: of('en'),
+            _loadDependencies: vi.fn(() => of({})),
+            config: {
+              reRenderOnLangChange: false,
+            },
           },
         },
         {
@@ -74,6 +96,10 @@ describe('BookCardComponent', () => {
   function createComponent(): BookCardComponent {
     const fixture = TestBed.createComponent(BookCardComponent);
     return fixture.componentInstance;
+  }
+
+  function createFixture(): ComponentFixture<BookCardComponent> {
+    return TestBed.createComponent(BookCardComponent);
   }
 
   it('recomputes the displayed title when showSubtitle changes', () => {
@@ -132,6 +158,28 @@ describe('BookCardComponent', () => {
     expect(stopPropagation).toHaveBeenCalled();
     expect(emitted).toHaveBeenCalledOnce();
     expect(emitted).toHaveBeenCalledWith(component.book);
+  });
+
+  it('renders title area bindings as attributes instead of leaking them into title text', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+
+    component.book = createBook({
+      id: 30,
+      metadata: {
+        title: 'Mobile Viewer Title',
+      } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 30, fileName: 'mobile-viewer-title.cbz', bookType: 'CBX' },
+    });
+    component.titleAreaInteractive = true;
+
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLElement;
+    expect(titleContainer?.getAttribute('role')).toBe('button');
+    expect(titleContainer?.getAttribute('tabindex')).toBe('0');
+    expect(titleContainer?.textContent).not.toContain('[attr.role]');
+    expect(titleContainer?.textContent).toContain('Mobile Viewer Title');
   });
 
   it('anchors the popup menu to the inner button element rather than the button host wrapper', () => {

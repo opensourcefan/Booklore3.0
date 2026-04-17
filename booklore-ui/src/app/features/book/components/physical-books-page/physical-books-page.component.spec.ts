@@ -1,0 +1,126 @@
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {TestBed} from '@angular/core/testing';
+import {BehaviorSubject, of} from 'rxjs';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {TranslocoService} from '@jsverse/transloco';
+import {BookService} from '../../service/book.service';
+import {LibraryService} from '../../service/library.service';
+import {LocalStorageService} from '../../../../shared/service/local-storage.service';
+import {PageTitleService} from '../../../../shared/service/page-title.service';
+import {UrlHelperService} from '../../../../shared/service/url-helper.service';
+import {ReadStatusHelper} from '../../helpers/read-status.helper';
+import {BookCardOverlayPreferenceService} from '../book-browser/book-card-overlay-preference.service';
+import {PhysicalBooksPageComponent} from './physical-books-page.component';
+import {Book} from '../../model/book.model';
+
+function createBook(overrides: Partial<Book>): Book {
+  return {
+    id: overrides.id ?? 1,
+    libraryId: overrides.libraryId ?? 1,
+    libraryName: overrides.libraryName ?? 'Library',
+    isPhysical: overrides.isPhysical ?? true,
+    metadata: overrides.metadata ?? ({ bookId: overrides.id ?? 1, title: 'Physical Title' } as Book['metadata']),
+    primaryFile: overrides.primaryFile ?? { id: 1, bookId: overrides.id ?? 1, fileName: 'physical-title.cbz', bookType: 'CBX' },
+    ...overrides,
+  } as Book;
+}
+
+describe('PhysicalBooksPageComponent', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: BookService,
+          useValue: {
+            bookState$: new BehaviorSubject({ loaded: true, error: null, books: [] }),
+          },
+        },
+        {
+          provide: LibraryService,
+          useValue: {
+            libraryState$: new BehaviorSubject({ loaded: true, error: null, libraries: [] }),
+          },
+        },
+        { provide: LocalStorageService, useValue: { get: vi.fn(() => null) } },
+        { provide: PageTitleService, useValue: { setPageTitle: vi.fn() } },
+        {
+          provide: TranslocoService,
+          useValue: {
+            translate: vi.fn((key: string) => key),
+            getActiveLang: vi.fn(() => 'en'),
+            langChanges$: of('en'),
+          },
+        },
+        {
+          provide: UrlHelperService,
+          useValue: {
+            getThumbnailUrl: vi.fn(() => 'thumb'),
+            getAudiobookThumbnailUrl: vi.fn(() => 'audio-thumb'),
+          },
+        },
+        {
+          provide: ReadStatusHelper,
+          useValue: {
+            getReadStatusIcon: vi.fn(() => ''),
+            getReadStatusClass: vi.fn(() => 'status-unset'),
+            shouldShowStatusIcon: vi.fn(() => false),
+          },
+        },
+        {
+          provide: BookCardOverlayPreferenceService,
+          useValue: {
+            showBookTypePill$: of(true),
+            showAiPanelData$: of(true),
+            showIssueNumber$: of(true),
+          },
+        },
+      ],
+    });
+  });
+
+  function createComponent(): PhysicalBooksPageComponent {
+    return TestBed.runInInjectionContext(() => new PhysicalBooksPageComponent());
+  }
+
+  it('opens and closes the mobile viewer when the same title is activated twice', () => {
+    const component = createComponent();
+    const first = createBook({ id: 11, metadata: { bookId: 11, title: 'Alpha' } as Book['metadata'] });
+    const second = createBook({ id: 22, metadata: { bookId: 22, title: 'Beta' } as Book['metadata'] });
+
+    component.screenWidth = 390;
+
+    component.toggleMobileBookViewer([
+      { key: 'library:1', libraryId: 1, libraryName: 'Main', books: [first, second] },
+    ], first);
+
+    expect(component.isMobileViewerOpen).toBe(true);
+    expect(component.activeMobileViewerBook?.id).toBe(11);
+    expect(component.mobileViewerBooks.map(book => book.id)).toEqual([11, 22]);
+
+    component.toggleMobileBookViewer([
+      { key: 'library:1', libraryId: 1, libraryName: 'Main', books: [first, second] },
+    ], first);
+
+    expect(component.isMobileViewerOpen).toBe(false);
+    expect(component.activeMobileViewerBook).toBeNull();
+  });
+
+  it('computes a dedicated mobile viewport height for the scroll shell', () => {
+    const component = createComponent();
+
+    component.screenWidth = 390;
+    expect(component.pageViewportHeight).toBe('calc(100dvh - 4.4rem)');
+
+    component.screenWidth = 1280;
+    expect(component.pageViewportHeight).toBe('calc(100dvh - 6.25rem)');
+  });
+
+  it('keeps the title activation output inside the book card tag in the template', () => {
+    const templatePath = join(process.cwd(), 'src/app/features/book/components/physical-books-page/physical-books-page.component.html');
+    const template = readFileSync(templatePath, 'utf8');
+
+    expect(template).toMatch(/<app-book-card[\s\S]*\(titleAreaActivated\)="toggleMobileBookViewer\(vm\.groups, \$event\)"[\s\S]*>\s*<\/app-book-card>/);
+    expect(template).not.toMatch(/<app-book-card[\s\S]*>\s*\(titleAreaActivated\)="toggleMobileBookViewer\(vm\.groups, \$event\)"/);
+  });
+});

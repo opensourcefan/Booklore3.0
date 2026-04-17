@@ -1,5 +1,7 @@
 <ng-container *transloco="let t; prefix: 'book.physicalBooksPage'">
-  <div class="physical-books-page">
+  <div class="physical-books-page"
+       [style.height]="pageViewportHeight"
+       [style.max-height]="pageViewportHeight">
     @if (vm$ | async; as vm) {
       <header class="physical-books-header">
         <div class="physical-books-header-copy">
@@ -60,8 +62,8 @@
                             [isCheckboxEnabled]="false"
                             [titleRows]="titleRowsForViewport"
                             [titleAreaInteractive]="screenWidth < mobileBreakpoint"
-                            [overlayPreferenceService]="bookCardOverlayPreferenceService">
-                            (titleAreaActivated)="toggleMobileBookViewer(vm.groups, $event)"
+                            [overlayPreferenceService]="bookCardOverlayPreferenceService"
+                            (titleAreaActivated)="toggleMobileBookViewer(vm.groups, $event)">
                           </app-book-card>
                         </div>
                       }

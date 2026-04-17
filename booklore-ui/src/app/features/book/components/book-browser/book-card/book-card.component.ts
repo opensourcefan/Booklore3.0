@@ -1108,7 +1108,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.toggleCardSelection(event.checked);
   }
 
-  onTitleAreaActivate(event: MouseEvent | KeyboardEvent): void {
+  onTitleAreaActivate(event: Event): void {
     if (!this.titleAreaInteractive) {
       return;
     }

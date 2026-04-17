@@ -33,6 +33,10 @@ updates:
       - "frontend"
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      - dependency-name: "ngx-extended-pdf-viewer"
+        versions:
+          - ">=26"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
