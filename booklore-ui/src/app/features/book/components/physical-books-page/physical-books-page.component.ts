@@ -172,6 +172,12 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
     return this.activeMobileViewerBook !== null;
   }
 
+  get pageViewportHeight(): string {
+    return this.screenWidth < this.MOBILE_BREAKPOINT
+      ? 'calc(100dvh - 4.4rem)'
+      : 'calc(100dvh - 6.25rem)';
+  }
+
   getShelfRows(books: Book[]): Book[][] {
     const cardsPerRow = this.getCardsPerRow();
     const rows: Book[][] = [];
