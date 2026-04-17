@@ -260,6 +260,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return this._titleTooltip;
   }
 
+  get activeTitleTooltip(): string | undefined {
+    return this.titleAreaInteractive ? undefined : this._titleTooltip;
+  }
+
   get readStatusTooltip(): string {
     return this._readStatusTooltip;
   }
@@ -1113,6 +1117,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return;
     }
 
+    event.preventDefault();
     event.stopPropagation();
     this.titleAreaActivated.emit(this.book);
   }

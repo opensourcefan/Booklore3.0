@@ -152,12 +152,35 @@ describe('BookCardComponent', () => {
     component.titleAreaInteractive = true;
     component.titleAreaActivated.subscribe(emitted);
 
+    const preventDefault = vi.fn();
     const stopPropagation = vi.fn();
-    component.onTitleAreaActivate({ stopPropagation } as unknown as MouseEvent);
+    component.onTitleAreaActivate({ preventDefault, stopPropagation } as unknown as MouseEvent);
 
+    expect(preventDefault).toHaveBeenCalled();
     expect(stopPropagation).toHaveBeenCalled();
     expect(emitted).toHaveBeenCalledOnce();
     expect(emitted).toHaveBeenCalledWith(component.book);
+  });
+
+  it('disables the title tooltip when the title area is interactive', () => {
+    const component = createComponent();
+
+    component.book = createBook({ id: 24, metadata: { title: 'Interactive Title' } as Book['metadata'] });
+    component.titleAreaInteractive = true;
+    component.ngOnChanges({
+      book: {
+        currentValue: component.book,
+        previousValue: undefined,
+        firstChange: true,
+        isFirstChange: () => true,
+      },
+    });
+
+    expect(component.activeTitleTooltip).toBeUndefined();
+
+    component.titleAreaInteractive = false;
+
+    expect(component.activeTitleTooltip).toContain('Interactive Title');
   });
 
   it('renders title area bindings as attributes instead of leaking them into title text', () => {
