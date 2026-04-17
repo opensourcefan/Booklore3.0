@@ -8,19 +8,17 @@ import {UserService} from '../../settings/user-management/user.service';
 describe('MediaTypePreferencesService', () => {
   let service: MediaTypePreferencesService;
   let localStorageMock: { get: ReturnType<typeof vi.fn>; remove: ReturnType<typeof vi.fn> };
-  let userServiceMock: {
-    userState$: BehaviorSubject<unknown>;
-    getCurrentUser: ReturnType<typeof vi.fn>;
-    updateUserSetting: ReturnType<typeof vi.fn>;
-  };
+  let userState$: BehaviorSubject<{loaded: boolean; user: null}>;
+  let userServiceMock: { getCurrentUser: ReturnType<typeof vi.fn>; updateUserSetting: ReturnType<typeof vi.fn>; userState$: typeof userState$ };
 
   beforeEach(() => {
     localStorageMock = {
       get: vi.fn().mockReturnValue(undefined),
       remove: vi.fn(),
     };
+    userState$ = new BehaviorSubject<{loaded: boolean; user: null}>({loaded: false, user: null});
     userServiceMock = {
-      userState$: new BehaviorSubject({loaded: false, user: null}),
+      userState$,
       getCurrentUser: vi.fn().mockReturnValue(null),
       updateUserSetting: vi.fn(),
     };
