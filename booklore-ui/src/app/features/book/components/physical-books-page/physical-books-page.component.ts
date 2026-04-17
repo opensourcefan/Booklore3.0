@@ -43,6 +43,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   private readonly MOBILE_CARD_GAP_PX = 14;
   private readonly MOBILE_HORIZONTAL_CHROME_PX = 60;
   private readonly VIEWER_SWIPE_THRESHOLD_PX = 48;
+  private readonly MOBILE_LONG_EDGE_MAX_PX = 1200;
   private readonly bookService = inject(BookService);
   private readonly libraryService = inject(LibraryService);
   private readonly localStorageService = inject(LocalStorageService);
@@ -55,6 +56,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   readonly bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
 
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  screenHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
   mobileTitleRows = 2;
   desktopTitleRows = 2;
   mobileViewerBooks: Book[] = [];
@@ -132,7 +134,6 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   private readonly MOBILE_BREAKPOINT = 768;
   private readonly MOBILE_TITLE_ROWS_STORAGE_KEY = 'mobileTitleRowsPreference';
   private readonly DESKTOP_TITLE_ROWS_STORAGE_KEY = 'desktopTitleRowsPreference';
-  readonly mobileBreakpoint = this.MOBILE_BREAKPOINT;
 
   ngOnInit(): void {
     this.loadTitleRowsPreference();
@@ -151,13 +152,20 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
-    if (this.screenWidth >= this.MOBILE_BREAKPOINT && this.isMobileViewerOpen) {
+    this.screenHeight = window.innerHeight;
+    if (!this.isMobileInteractionMode && this.isMobileViewerOpen) {
       this.closeMobileBookViewer();
     }
   }
 
+  get isMobileInteractionMode(): boolean {
+    const shortEdge = Math.min(this.screenWidth, this.screenHeight);
+    const longEdge = Math.max(this.screenWidth, this.screenHeight);
+    return shortEdge < this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
+  }
+
   get titleRowsForViewport(): number {
-    return this.screenWidth < this.MOBILE_BREAKPOINT ? this.mobileTitleRows : this.desktopTitleRows;
+    return this.isMobileInteractionMode ? this.mobileTitleRows : this.desktopTitleRows;
   }
 
   get activeMobileViewerBook(): Book | null {
@@ -173,7 +181,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   }
 
   get pageViewportHeight(): string {
-    return this.screenWidth < this.MOBILE_BREAKPOINT
+    return this.isMobileInteractionMode
       ? 'calc(100dvh - 4.4rem)'
       : 'calc(100dvh - 6.25rem)';
   }
@@ -210,7 +218,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   }
 
   toggleMobileBookViewer(groups: PhysicalBookGroup[], book: Book): void {
-    if (this.screenWidth >= this.MOBILE_BREAKPOINT) {
+    if (!this.isMobileInteractionMode) {
       return;
     }
 
@@ -376,7 +384,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   }
 
   private getCardsPerRow(): number {
-    const isMobileLayout = this.screenWidth < this.MOBILE_BREAKPOINT;
+    const isMobileLayout = this.isMobileInteractionMode;
     const cardWidth = isMobileLayout ? this.MOBILE_CARD_WIDTH_PX : this.DESKTOP_CARD_WIDTH_PX;
     const cardGap = isMobileLayout ? this.MOBILE_CARD_GAP_PX : this.DESKTOP_CARD_GAP_PX;
     const horizontalChrome = isMobileLayout ? this.MOBILE_HORIZONTAL_CHROME_PX : this.DESKTOP_HORIZONTAL_CHROME_PX;

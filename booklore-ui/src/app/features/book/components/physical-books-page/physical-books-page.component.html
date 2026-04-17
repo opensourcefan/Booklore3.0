@@ -61,7 +61,7 @@
                             [book]="book"
                             [isCheckboxEnabled]="false"
                             [titleRows]="titleRowsForViewport"
-                            [titleAreaInteractive]="screenWidth < mobileBreakpoint"
+                            [titleAreaInteractive]="isMobileInteractionMode"
                             [overlayPreferenceService]="bookCardOverlayPreferenceService"
                             (titleAreaActivated)="toggleMobileBookViewer(vm.groups, $event)">
                           </app-book-card>

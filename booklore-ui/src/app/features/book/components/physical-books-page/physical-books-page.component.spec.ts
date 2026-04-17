@@ -106,13 +106,51 @@ describe('PhysicalBooksPageComponent', () => {
     expect(component.activeMobileViewerBook).toBeNull();
   });
 
+  it('opens the mobile viewer on compact landscape phone-sized viewports', () => {
+    const component = createComponent();
+    const first = createBook({ id: 33, metadata: { bookId: 33, title: 'Landscape Phone Asset' } as Book['metadata'] });
+
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+
+    component.toggleMobileBookViewer([
+      { key: 'library:1', libraryId: 1, libraryName: 'Main', books: [first] },
+    ], first);
+
+    expect(component.isMobileInteractionMode).toBe(true);
+    expect(component.isMobileViewerOpen).toBe(true);
+    expect(component.activeMobileViewerBook?.id).toBe(33);
+  });
+
+  it('does not open the mobile viewer on wide desktop-like viewports', () => {
+    const component = createComponent();
+    const first = createBook({ id: 44, metadata: { bookId: 44, title: 'Desktop Asset' } as Book['metadata'] });
+
+    component.screenWidth = 1280;
+    component.screenHeight = 720;
+
+    component.toggleMobileBookViewer([
+      { key: 'library:1', libraryId: 1, libraryName: 'Main', books: [first] },
+    ], first);
+
+    expect(component.isMobileInteractionMode).toBe(false);
+    expect(component.isMobileViewerOpen).toBe(false);
+    expect(component.activeMobileViewerBook).toBeNull();
+  });
+
   it('computes a dedicated mobile viewport height for the scroll shell', () => {
     const component = createComponent();
 
     component.screenWidth = 390;
+    component.screenHeight = 844;
+    expect(component.pageViewportHeight).toBe('calc(100dvh - 4.4rem)');
+
+    component.screenWidth = 915;
+    component.screenHeight = 412;
     expect(component.pageViewportHeight).toBe('calc(100dvh - 4.4rem)');
 
     component.screenWidth = 1280;
+    component.screenHeight = 800;
     expect(component.pageViewportHeight).toBe('calc(100dvh - 6.25rem)');
   });
 
@@ -122,5 +160,7 @@ describe('PhysicalBooksPageComponent', () => {
 
     expect(template).toMatch(/<app-book-card[\s\S]*\(titleAreaActivated\)="toggleMobileBookViewer\(vm\.groups, \$event\)"[\s\S]*>\s*<\/app-book-card>/);
     expect(template).not.toMatch(/<app-book-card[\s\S]*>\s*\(titleAreaActivated\)="toggleMobileBookViewer\(vm\.groups, \$event\)"/);
+    expect(template).toContain('[titleAreaInteractive]="isMobileInteractionMode"');
+    expect(template).not.toContain('[titleAreaInteractive]="screenWidth < mobileBreakpoint"');
   });
 });
