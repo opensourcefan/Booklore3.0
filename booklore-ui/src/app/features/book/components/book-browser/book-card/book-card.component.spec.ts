@@ -167,6 +167,42 @@ describe('BookCardComponent', () => {
 
     expect(emitted).toHaveBeenCalledOnce();
     expect(emitted).toHaveBeenCalledWith(component.book);
+    expect(component.isInlineMobilePreviewOpen).toBe(false);
+  });
+
+  it('opens the inline mobile preview for physical assets when no external title handler is attached', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+
+    component.book = createBook({
+      id: 24,
+      isPhysical: true,
+      metadata: {
+        title: 'Landscape Physical Title',
+        subtitle: 'Issue One',
+      } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 24, fileName: 'landscape-physical-title.cbz', bookType: 'CBX' },
+    });
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    expect(titleContainer.getAttribute('role')).toBe('button');
+
+    titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    const preview = fixture.nativeElement.querySelector('.book-card-mobile-preview') as HTMLElement;
+    expect(preview).toBeTruthy();
+    expect(preview.textContent).toContain('Landscape Physical Title');
+    expect(preview.textContent).toContain('Issue One');
+
+    const closeButton = fixture.nativeElement.querySelector('.book-card-mobile-preview-close') as HTMLButtonElement;
+    closeButton.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.book-card-mobile-preview')).toBeNull();
   });
 
   it('renders the interactive title branch without a tooltip directive and keeps the passive tooltip branch', () => {
@@ -174,8 +210,8 @@ describe('BookCardComponent', () => {
     const template = readFileSync(templatePath, 'utf8');
     const titleContainerBlock = template.match(/<div class="book-title-container"[\s\S]*?<\/div>\n\s{2}\}/);
 
-    expect(titleContainerBlock?.[0]).toContain('@if (titleAreaInteractive) {');
-    expect(titleContainerBlock?.[0]).toMatch(/@if \(titleAreaInteractive\) \{[\s\S]*?<h4 class="book-title"[\s\S]*?\{\{ displayTitle \}\}[\s\S]*?<\/h4>[\s\S]*?\} @else \{/);
+    expect(titleContainerBlock?.[0]).toContain('@if (isTitleAreaInteractive) {');
+    expect(titleContainerBlock?.[0]).toMatch(/@if \(isTitleAreaInteractive\) \{[\s\S]*?<h4 class="book-title"[\s\S]*?\{\{ displayTitle \}\}[\s\S]*?<\/h4>[\s\S]*?\} @else \{/);
     expect(titleContainerBlock?.[0]).toMatch(/\} @else \{[\s\S]*?\[pTooltip\]="titleTooltip"/);
 
     const interactiveOnly = titleContainerBlock?.[0].split('} @else {')[0] ?? '';

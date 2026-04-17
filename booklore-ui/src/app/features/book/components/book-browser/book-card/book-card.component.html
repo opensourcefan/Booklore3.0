@@ -124,13 +124,13 @@
   @if (!bottomBarHidden) {
     <div class="book-title-container"
          [class.book-title-container-physical]="book.isPhysical"
-         [class.book-title-container-interactive]="titleAreaInteractive"
+         [class.book-title-container-interactive]="isTitleAreaInteractive"
          [style.--title-rows]="normalizedTitleRows"
-         [attr.role]="titleAreaInteractive ? 'button' : null"
-         [attr.tabindex]="titleAreaInteractive ? '0' : null"
+         [attr.role]="isTitleAreaInteractive ? 'button' : null"
+         [attr.tabindex]="isTitleAreaInteractive ? '0' : null"
          (click)="onTitleAreaActivate($event)"
          (keydown.enter)="onTitleAreaActivate($event)">
-      @if (titleAreaInteractive) {
+      @if (isTitleAreaInteractive) {
         <h4 class="book-title"
             [style.--title-rows]="normalizedTitleRows">
           {{ displayTitle }}
@@ -146,3 +146,36 @@
     </div>
   }
 </div>
+
+@if (isInlineMobilePreviewOpen) {
+  <div class="book-card-mobile-preview-backdrop">
+    <button type="button"
+            class="book-card-mobile-preview-dismiss-layer"
+            (click)="closeInlineMobilePreview()"
+            aria-label="Dismiss preview overlay"></button>
+    <section class="book-card-mobile-preview"
+             role="dialog"
+             aria-modal="false"
+             [attr.aria-label]="inlinePreviewTitle">
+      <button type="button"
+              class="book-card-mobile-preview-close"
+              (click)="closeInlineMobilePreview()"
+              aria-label="Close preview">
+        <i class="pi pi-times"></i>
+      </button>
+
+      <div class="book-card-mobile-preview-cover-shell">
+        <img class="book-card-mobile-preview-cover"
+             [src]="coverImageUrl"
+             [alt]="inlinePreviewTitle" />
+      </div>
+
+      <div class="book-card-mobile-preview-meta">
+        <h3 class="book-card-mobile-preview-title">{{ inlinePreviewTitle }}</h3>
+        @if (inlinePreviewSubtitle; as subtitle) {
+          <p class="book-card-mobile-preview-subtitle">{{ subtitle }}</p>
+        }
+      </div>
+    </section>
+  </div>
+}

@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {TooltipModule} from "primeng/tooltip";
 import {AdditionalFile, Book, BookType, ReadStatus} from '../../../model/book.model';
 import {Button} from 'primeng/button';
@@ -39,6 +39,8 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+  private readonly MOBILE_BREAKPOINT = 768;
+  private readonly MOBILE_LONG_EDGE_MAX_PX = 1200;
 
   @Output() bookClicked = new EventEmitter<Book>();
   @Output() bookHoverEnded = new EventEmitter<number>();
@@ -60,6 +62,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Input() showSubtitle = false;
   @Input() forceFileNameTitle = false;
   @Input() titleAreaInteractive = false;
+
+  screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  screenHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+  isInlineMobilePreviewOpen = false;
 
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
   @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
@@ -282,6 +288,41 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   get normalizedTitleRows(): number {
     return Math.min(5, Math.max(1, this.titleRows || 1));
+  }
+
+  get isMobileInteractionMode(): boolean {
+    const shortEdge = Math.min(this.screenWidth, this.screenHeight);
+    const longEdge = Math.max(this.screenWidth, this.screenHeight);
+    return shortEdge < this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
+  }
+
+  get shouldAutoPhysicalTitlePreview(): boolean {
+    return this.book?.isPhysical === true && this.isMobileInteractionMode;
+  }
+
+  get isTitleAreaInteractive(): boolean {
+    return this.titleAreaInteractive || this.shouldAutoPhysicalTitlePreview;
+  }
+
+  get inlinePreviewTitle(): string {
+    return this.displayTitle?.trim()
+      || this.book?.fileName?.trim()
+      || this.book?.primaryFile?.fileName?.trim()
+      || 'Untitled';
+  }
+
+  get inlinePreviewSubtitle(): string | null {
+    const subtitle = this.book?.metadata?.subtitle?.trim();
+    return subtitle ? subtitle : null;
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.screenWidth = window.innerWidth;
+    this.screenHeight = window.innerHeight;
+    if (!this.isMobileInteractionMode && this.isInlineMobilePreviewOpen) {
+      this.closeInlineMobilePreview();
+    }
   }
 
   private buildReadStatusMenuItems(): void {
@@ -1109,13 +1150,39 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onTitleAreaActivate(event: Event): void {
-    if (!this.titleAreaInteractive) {
+    if (!this.isTitleAreaInteractive) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
-    this.titleAreaActivated.emit(this.book);
+
+    if (this.titleAreaActivated.observed) {
+      this.titleAreaActivated.emit(this.book);
+      return;
+    }
+
+    if (this.shouldAutoPhysicalTitlePreview) {
+      this.openInlineMobilePreview();
+    }
+  }
+
+  openInlineMobilePreview(): void {
+    if (!this.shouldAutoPhysicalTitlePreview) {
+      return;
+    }
+
+    this.isInlineMobilePreviewOpen = true;
+    this.cdr.markForCheck();
+  }
+
+  closeInlineMobilePreview(): void {
+    if (!this.isInlineMobilePreviewOpen) {
+      return;
+    }
+
+    this.isInlineMobilePreviewOpen = false;
+    this.cdr.markForCheck();
   }
 
   ngOnDestroy(): void {
