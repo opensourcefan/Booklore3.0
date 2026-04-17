@@ -41,6 +41,9 @@ updates:
       - dependency-name: "ngx-extended-pdf-viewer"
         versions:
           - ">=26"
+      - dependency-name: "typescript"
+        versions:
+          - ">=6"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
