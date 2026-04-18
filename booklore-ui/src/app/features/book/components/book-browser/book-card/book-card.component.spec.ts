@@ -32,6 +32,11 @@ function createBook(overrides: Partial<Book>): Book {
 
 describe('BookCardComponent', () => {
   beforeEach(async () => {
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    document.documentElement.style.overflow = '';
+    document.documentElement.style.touchAction = '';
+
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: vi.fn().mockImplementation(() => ({
@@ -205,12 +210,19 @@ describe('BookCardComponent', () => {
     expect(preview.textContent).toContain('Landscape Mobile Title');
     expect(preview.textContent).toContain('Issue One');
     expect(preview.textContent).toContain('1 / 1');
+    expect(document.body.style.overflow).toBe('hidden');
+    expect(document.documentElement.style.overflow).toBe('hidden');
+
+    const overlayMenuButton = fixture.nativeElement.querySelector('.book-card-mobile-preview-menu') as HTMLElement;
+    expect(overlayMenuButton).toBeTruthy();
 
     const titleToggle = fixture.nativeElement.querySelector('.book-card-mobile-preview-title-toggle') as HTMLButtonElement;
     titleToggle.click();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.book-card-mobile-preview')).toBeNull();
+    expect(document.body.style.overflow).toBe('');
+    expect(document.documentElement.style.overflow).toBe('');
   });
 
   it('supports horizontal swipe navigation inside the inline mobile preview', () => {

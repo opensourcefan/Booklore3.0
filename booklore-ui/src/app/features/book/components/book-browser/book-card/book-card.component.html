@@ -162,6 +162,15 @@
              [src]="getInlineViewerCoverUrl(viewerBook)"
              [alt]="getInlineViewerTitle(viewerBook)" />
 
+        <p-button
+          class="book-card-mobile-preview-menu"
+          size="small"
+          [text]="true"
+          (click)="onMenuToggle($event, menu)"
+          icon="pi pi-ellipsis-v"
+          [ariaLabel]="'book.card.alt.bookMenu' | transloco">
+        </p-button>
+
         <div class="book-card-mobile-preview-badges">
           <div class="book-card-mobile-preview-badge book-card-mobile-preview-badge--primary">
             {{ getInlineViewerDisplayFormat(viewerBook) }}

@@ -42,6 +42,12 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private readonly MOBILE_BREAKPOINT = 768;
   private readonly MOBILE_LONG_EDGE_MAX_PX = 1200;
   private readonly VIEWER_SWIPE_THRESHOLD_PX = 48;
+  private bodyScrollLockState: {
+    bodyOverflow: string;
+    bodyTouchAction: string;
+    htmlOverflow: string;
+    htmlTouchAction: string;
+  } | null = null;
 
   @Output() bookClicked = new EventEmitter<Book>();
   @Output() bookHoverEnded = new EventEmitter<number>();
@@ -1198,6 +1204,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.inlineMobileViewerBooks = orderedBooks;
     this.inlineMobileViewerIndex = nextIndex;
     this.resetInlineViewerTouch();
+    this.lockBackgroundScroll();
     this.cdr.markForCheck();
   }
 
@@ -1209,6 +1216,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.inlineMobileViewerBooks = [];
     this.inlineMobileViewerIndex = -1;
     this.resetInlineViewerTouch();
+    this.unlockBackgroundScroll();
     this.cdr.markForCheck();
   }
 
@@ -1351,7 +1359,38 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return [this.book];
   }
 
+  private lockBackgroundScroll(): void {
+    if (this.bodyScrollLockState || typeof document === 'undefined') {
+      return;
+    }
+
+    this.bodyScrollLockState = {
+      bodyOverflow: document.body.style.overflow,
+      bodyTouchAction: document.body.style.touchAction,
+      htmlOverflow: document.documentElement.style.overflow,
+      htmlTouchAction: document.documentElement.style.touchAction,
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.touchAction = 'none';
+  }
+
+  private unlockBackgroundScroll(): void {
+    if (!this.bodyScrollLockState || typeof document === 'undefined') {
+      return;
+    }
+
+    document.body.style.overflow = this.bodyScrollLockState.bodyOverflow;
+    document.body.style.touchAction = this.bodyScrollLockState.bodyTouchAction;
+    document.documentElement.style.overflow = this.bodyScrollLockState.htmlOverflow;
+    document.documentElement.style.touchAction = this.bodyScrollLockState.htmlTouchAction;
+    this.bodyScrollLockState = null;
+  }
+
   ngOnDestroy(): void {
+    this.unlockBackgroundScroll();
     this.destroy$.next();
     this.destroy$.complete();
     if (this.overlayPrefSub) {

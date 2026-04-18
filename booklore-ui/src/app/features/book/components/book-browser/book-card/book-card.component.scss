@@ -574,28 +574,40 @@
 }
 
 .book-card-mobile-preview-backdrop {
+  --mobile-preview-top-inset: 4.75rem;
+  --mobile-preview-horizontal-padding: 0.7rem;
+  --mobile-preview-top-padding: 0.15rem;
+  --mobile-preview-bottom-padding: calc(env(safe-area-inset-bottom, 0px) + 0.4rem);
   position: fixed;
-  inset: 4.75rem 0 0;
+  inset: var(--mobile-preview-top-inset) 0 0;
   z-index: 1200;
-  background: rgba(5, 10, 18, 0.52);
-  backdrop-filter: blur(8px);
+  background:
+    linear-gradient(180deg, rgba(2, 6, 12, 0.84), rgba(2, 6, 12, 0.9)),
+    rgba(5, 10, 18, 0.72);
+  backdrop-filter: blur(12px);
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: center;
-  padding: 0.8rem 0.8rem calc(env(safe-area-inset-bottom, 0px) + 0.8rem);
+  padding: var(--mobile-preview-top-padding) var(--mobile-preview-horizontal-padding) var(--mobile-preview-bottom-padding);
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .book-card-mobile-preview {
-  width: min(100%, 34rem);
-  height: min(100%, calc(100dvh - 6rem));
+  width: min(100%, 36rem);
+  height: calc(100dvh - var(--mobile-preview-top-inset) - var(--mobile-preview-top-padding) - var(--mobile-preview-bottom-padding));
+  max-height: none;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding: 0.85rem;
+  gap: 0.6rem;
+  padding: 0.6rem;
   border-radius: 24px;
   background: linear-gradient(180deg, color-mix(in srgb, var(--p-surface-800), transparent 4%), color-mix(in srgb, var(--p-surface-900), transparent 2%));
   border: 1px solid color-mix(in srgb, var(--p-surface-100), transparent 86%);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: pan-x;
 }
 
 .book-card-mobile-preview-cover-shell {
@@ -610,6 +622,7 @@
   background:
     radial-gradient(circle at top left, color-mix(in srgb, var(--p-primary-300), transparent 82%), transparent 48%),
     linear-gradient(180deg, color-mix(in srgb, var(--p-surface-700), transparent 10%), color-mix(in srgb, var(--p-surface-900), transparent 6%));
+  touch-action: pan-x;
 }
 
 .book-card-mobile-preview-cover {
@@ -652,6 +665,23 @@
 .book-card-mobile-preview-badge--secondary {
   background: rgba(15, 23, 42, 0.82);
   color: #f8fafc;
+}
+
+.book-card-mobile-preview-menu {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 2;
+}
+
+::ng-deep .book-card-mobile-preview-menu .p-button {
+  background: rgba(8, 12, 20, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  color: #f8fafc;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
 }
 
 .book-card-mobile-preview-status {
@@ -738,12 +768,13 @@
 
 @media (max-width: 767px) {
   .book-card-mobile-preview-backdrop {
-    inset: 4.25rem 0 0;
-    padding: 0.65rem 0.65rem calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
+    --mobile-preview-top-inset: 4.25rem;
+    --mobile-preview-horizontal-padding: 0.45rem;
+    --mobile-preview-top-padding: 0;
+    --mobile-preview-bottom-padding: calc(env(safe-area-inset-bottom, 0px) + 0.35rem);
   }
 
   .book-card-mobile-preview {
-    height: min(100%, calc(100dvh - 5.35rem));
     border-radius: 22px;
   }
 }
