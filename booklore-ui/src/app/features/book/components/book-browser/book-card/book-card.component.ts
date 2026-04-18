@@ -86,8 +86,6 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
   @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
   @ViewChild('menuTrigger', {read: ElementRef}) private menuTriggerRef?: ElementRef<HTMLElement>;
-  @ViewChild('mobilePreviewReadStatusTrigger', {read: ElementRef}) private mobilePreviewReadStatusTriggerRef?: ElementRef<HTMLElement>;
-  @ViewChild('mobilePreviewMenuTrigger', {read: ElementRef}) private mobilePreviewMenuTriggerRef?: ElementRef<HTMLElement>;
   @ViewChild('readStatusTrigger', {read: ElementRef}) private readStatusTriggerRef?: ElementRef<HTMLElement>;
   @ViewChild(CdkPortal) private previewPortal?: CdkPortal;
 
@@ -140,6 +138,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private diskType = 'LOCAL';
   private allowFileDeletion = false;
   private menuInitialized = false;
+  private menuContextBook: Book | null = null;
 
   showBookTypePill = true;
   showAiPanelDataOverlay = true;
@@ -199,9 +198,12 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       || changes['isSeriesCollapsed']
     ) {
       this.computeAllMemoizedValues();
+      if (this.menuContextBook?.id === this.book.id) {
+        this.menuContextBook = this.book;
+      }
       if (changes['book'] && !changes['book'].firstChange && this.menuInitialized) {
         this.additionalFilesLoaded = false;
-        this.initMenu();
+        this.initMenu(this.getMenuContextBook());
       }
     }
   }
@@ -346,11 +348,11 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
   }
 
-  private buildReadStatusMenuItems(): void {
+  private buildReadStatusMenuItems(book: Book = this.getMenuContextBook()): void {
     this.readStatusMenuItems = Object.entries(readStatusLabels).map(([status, label]) => ({
       label,
       command: () => {
-        this.bookService.updateBookReadStatus(this.book.id, status as ReadStatus).subscribe({
+        this.bookService.updateBookReadStatus(book.id, status as ReadStatus).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
@@ -374,8 +376,9 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   toggleReadStatusMenu(event: Event, menu: TieredMenu): void {
     event.stopPropagation();
+    const menuBook = this.setMenuContextBook(this.book);
     if (this.readStatusMenuItems.length === 0) {
-      this.buildReadStatusMenuItems();
+      this.buildReadStatusMenuItems(menuBook);
     }
     menu.toggle(this.getPopupAnchorEvent(event, this.readStatusTriggerRef?.nativeElement));
   }
@@ -424,23 +427,27 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   onMenuToggle(event: Event, menu: TieredMenu): void {
     event.stopPropagation();
+    const menuBook = this.setMenuContextBook(this.book);
     if (!this.menuInitialized) {
       this.menuInitialized = true;
-      this.initMenu();
+      this.initMenu(menuBook);
       this.cdr.markForCheck();
     }
 
     menu.toggle(this.getPopupAnchorEvent(event, this.menuTriggerRef?.nativeElement));
 
-    if (!this.additionalFilesLoaded && !this.isSubMenuLoading && this.needsAdditionalFilesData()) {
+    if (!this.additionalFilesLoaded && !this.isSubMenuLoading && this.needsAdditionalFilesData(menuBook)) {
       this.isSubMenuLoading = true;
       this.cdr.markForCheck();
-      this.bookService.getBookByIdFromAPI(this.book.id, true).subscribe({
+      this.bookService.getBookByIdFromAPI(menuBook.id, true).subscribe({
         next: (book) => {
-          this.book = book;
+          if (this.menuContextBook?.id !== menuBook.id) {
+            return;
+          }
+          this.menuContextBook = book;
           this.additionalFilesLoaded = true;
           this.isSubMenuLoading = false;
-          this.initMenu();
+          this.initMenu(book);
           this.cdr.markForCheck();
         },
         error: () => {
@@ -451,25 +458,29 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
   }
 
-  onInlineViewerMenuToggle(event: Event, menu: TieredMenu): void {
+  onInlineViewerMenuToggle(event: Event, menu: TieredMenu, book: Book): void {
     event.stopPropagation();
+    const menuBook = this.setMenuContextBook(book);
     if (!this.menuInitialized) {
       this.menuInitialized = true;
-      this.initMenu();
+      this.initMenu(menuBook);
       this.cdr.markForCheck();
     }
 
-    menu.toggle(this.getPopupAnchorEvent(event, this.mobilePreviewMenuTriggerRef?.nativeElement));
+    menu.toggle(event);
 
-    if (!this.additionalFilesLoaded && !this.isSubMenuLoading && this.needsAdditionalFilesData()) {
+    if (!this.additionalFilesLoaded && !this.isSubMenuLoading && this.needsAdditionalFilesData(menuBook)) {
       this.isSubMenuLoading = true;
       this.cdr.markForCheck();
-      this.bookService.getBookByIdFromAPI(this.book.id, true).subscribe({
-        next: (book) => {
-          this.book = book;
+      this.bookService.getBookByIdFromAPI(menuBook.id, true).subscribe({
+        next: (loadedBook) => {
+          if (this.menuContextBook?.id !== menuBook.id) {
+            return;
+          }
+          this.menuContextBook = loadedBook;
           this.additionalFilesLoaded = true;
           this.isSubMenuLoading = false;
-          this.initMenu();
+          this.initMenu(loadedBook);
           this.cdr.markForCheck();
         },
         error: () => {
@@ -480,23 +491,41 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
   }
 
-  toggleInlineViewerReadStatusMenu(event: Event, menu: TieredMenu): void {
+  toggleInlineViewerReadStatusMenu(event: Event, menu: TieredMenu, book: Book): void {
     event.stopPropagation();
+    const menuBook = this.setMenuContextBook(book);
     if (this.readStatusMenuItems.length === 0) {
-      this.buildReadStatusMenuItems();
+      this.buildReadStatusMenuItems(menuBook);
     }
-    menu.toggle(this.getPopupAnchorEvent(event, this.mobilePreviewReadStatusTriggerRef?.nativeElement));
+    menu.toggle(event);
   }
 
-  private needsAdditionalFilesData(): boolean {
+  private needsAdditionalFilesData(book: Book): boolean {
     if (this.additionalFilesLoaded) {
       return false;
     }
-    const hasNoAlternativeFormats = !this.book.alternativeFormats || this.book.alternativeFormats.length === 0;
-    const hasNoSupplementaryFiles = !this.book.supplementaryFiles || this.book.supplementaryFiles.length === 0;
+    const hasNoAlternativeFormats = !book.alternativeFormats || book.alternativeFormats.length === 0;
+    const hasNoSupplementaryFiles = !book.supplementaryFiles || book.supplementaryFiles.length === 0;
     const canDownload = !!this.user?.permissions.canDownload;
     const canDeleteBook = !!this.user?.permissions.canDeleteBook;
     return (canDownload || canDeleteBook) && hasNoAlternativeFormats && hasNoSupplementaryFiles;
+  }
+
+  private setMenuContextBook(book: Book): Book {
+    if (this.menuContextBook?.id !== book.id) {
+      this.additionalFilesLoaded = false;
+      this.isSubMenuLoading = false;
+      this.menuInitialized = false;
+      this.items = undefined;
+      this.readStatusMenuItems = [];
+    }
+
+    this.menuContextBook = book;
+    return this.menuContextBook;
+  }
+
+  private getMenuContextBook(): Book {
+    return this.menuContextBook ?? this.book;
   }
 
   private getPopupAnchorEvent(event: Event, preferredTarget?: HTMLElement): Event {
@@ -544,41 +573,41 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return null;
   }
 
-  private initMenu() {
+  private initMenu(book: Book = this.getMenuContextBook()) {
     this.items = [
       {
         label: this.t.translate('book.card.menu.assignShelf'),
         icon: 'pi pi-folder',
-        command: () => this.openShelfDialog()
+        command: () => this.openShelfDialog(book)
       },
       {
         label: 'Assign Media Type',
         icon: 'pi pi-file',
-        command: () => this.openBookTypeDialog()
+        command: () => this.openBookTypeDialog(book)
       },
       {
         label: this.t.translate('book.card.menu.viewDetails'),
         icon: 'pi pi-info-circle',
         command: () => {
           setTimeout(() => {
-            this.openBookInfo(this.book);
+            this.openBookInfo(book);
           }, 150);
         },
       },
-      ...this.getPermissionBasedMenuItems(),
-      ...this.moreMenuItems(),
+      ...this.getPermissionBasedMenuItems(book),
+      ...this.moreMenuItems(book),
     ];
   }
 
-  private getPermissionBasedMenuItems(): MenuItem[] {
+  private getPermissionBasedMenuItems(book: Book): MenuItem[] {
     const items: MenuItem[] = [];
 
     if (this.user?.permissions.canDownload) {
-      const hasAdditionalFiles = (this.book.alternativeFormats && this.book.alternativeFormats.length > 0) ||
-        (this.book.supplementaryFiles && this.book.supplementaryFiles.length > 0);
+      const hasAdditionalFiles = (book.alternativeFormats && book.alternativeFormats.length > 0) ||
+        (book.supplementaryFiles && book.supplementaryFiles.length > 0);
 
       if (hasAdditionalFiles) {
-        const downloadItems = this.getDownloadMenuItems();
+        const downloadItems = this.getDownloadMenuItems(book);
         items.push({
           label: this.t.translate('book.card.menu.download'),
           icon: 'pi pi-download',
@@ -589,7 +618,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
           label: this.t.translate('book.card.menu.download'),
           icon: 'pi pi-download',
           command: () => {
-            this.bookFileService.downloadFile(this.book);
+            this.bookFileService.downloadFile(book);
           }
         });
       } else {
@@ -602,11 +631,11 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
 
     if (this.user?.permissions.canDeleteBook) {
-      const hasAdditionalFiles = (this.book.alternativeFormats && this.book.alternativeFormats.length > 0) ||
-        (this.book.supplementaryFiles && this.book.supplementaryFiles.length > 0);
+      const hasAdditionalFiles = (book.alternativeFormats && book.alternativeFormats.length > 0) ||
+        (book.supplementaryFiles && book.supplementaryFiles.length > 0);
 
       if (hasAdditionalFiles) {
-        const deleteItems = this.getDeleteMenuItems();
+        const deleteItems = this.getDeleteMenuItems(book);
         if (deleteItems.length > 0) {
           items.push({
             label: this.t.translate('book.card.menu.delete'),
@@ -624,7 +653,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
               icon: 'pi pi-trash',
               command: () => {
                 this.confirmationService.confirm({
-                  message: this.t.translate('book.card.confirm.deleteBookMessage', {title: this.book.metadata?.title}),
+                  message: this.t.translate('book.card.confirm.deleteBookMessage', {title: book.metadata?.title}),
                   header: this.t.translate('book.card.confirm.deleteBookHeader'),
                   icon: 'pi pi-exclamation-triangle',
                   acceptIcon: 'pi pi-trash',
@@ -634,7 +663,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
                   acceptButtonStyleClass: 'p-button-danger',
                   rejectButtonStyleClass: 'p-button-outlined',
                   accept: () => {
-                    this.bookService.deleteBooks(new Set([this.book.id]), true).subscribe();
+                    this.bookService.deleteBooks(new Set([book.id]), true).subscribe();
                   }
                 });
               }
@@ -644,7 +673,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
               icon: 'pi pi-minus-circle',
               command: () => {
                 this.confirmationService.confirm({
-                  message: this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: this.book.metadata?.title}),
+                  message: this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: book.metadata?.title}),
                   header: this.t.translate('book.card.confirm.removeFromLibraryHeader'),
                   icon: 'pi pi-exclamation-triangle',
                   acceptIcon: 'pi pi-minus-circle',
@@ -654,7 +683,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
                   acceptButtonStyleClass: 'p-button-warning',
                   rejectButtonStyleClass: 'p-button-outlined',
                   accept: () => {
-                    this.bookService.deleteBooks(new Set([this.book.id]), false).subscribe();
+                    this.bookService.deleteBooks(new Set([book.id]), false).subscribe();
                   }
                 });
               }
@@ -680,7 +709,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             icon: 'pi pi-envelope',
             command: () => {
               const doSend = () => {
-                this.emailService.emailBookQuick(this.book.id).subscribe({
+                this.emailService.emailBookQuick(book.id).subscribe({
                   next: () => {
                     this.messageService.add({
                       severity: 'info',
@@ -699,7 +728,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
                 });
               };
 
-              if (this.book.primaryFile?.fileSizeKb && this.book.primaryFile.fileSizeKb > 25 * 1024) {
+              if (book.primaryFile?.fileSizeKb && book.primaryFile.fileSizeKb > 25 * 1024) {
                 this.confirmationService.confirm({
                   message: this.t.translate('book.card.confirm.largeFileMessage'),
                   header: this.t.translate('book.card.confirm.largeFileHeader'),
@@ -719,7 +748,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
               label: this.t.translate('book.card.menu.customSend'),
               icon: 'pi pi-envelope',
               command: () => {
-                this.bookDialogHelperService.openCustomSendDialog(this.book);
+                this.bookDialogHelperService.openCustomSendDialog(book);
               }
             }
           ]
@@ -736,7 +765,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             icon: 'pi pi-sparkles',
             command: () => {
               setTimeout(() => {
-                this.router.navigate(['/book', this.book.id], {
+                this.router.navigate(['/book', book.id], {
                   queryParams: {tab: 'match', returnTo: this.router.url}
                 })
               }, 150);
@@ -748,7 +777,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             command: () => {
               this.taskHelperService.refreshMetadataTask({
                 refreshType: MetadataRefreshType.BOOKS,
-                bookIds: [this.book.id],
+                bookIds: [book.id],
               }).subscribe();
             }
           },
@@ -756,14 +785,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             label: this.t.translate('book.card.menu.customFetch'),
             icon: 'pi pi-sync',
             command: () => {
-              this.bookDialogHelperService.openMetadataRefreshDialog(new Set([this.book!.id]))
+              this.bookDialogHelperService.openMetadataRefreshDialog(new Set([book.id]))
             },
           },
           {
             label: this.t.translate('book.card.menu.regenerateCover'),
             icon: 'pi pi-image',
             command: () => {
-              this.bookMetadataManageService.regenerateCover(this.book.id).subscribe({
+              this.bookMetadataManageService.regenerateCover(book.id).subscribe({
                 next: () => this.messageService.add({
                   severity: 'success',
                   summary: this.t.translate('common.success'),
@@ -781,7 +810,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             label: this.t.translate('book.card.menu.generateCustomCover'),
             icon: 'pi pi-palette',
             command: () => {
-              this.bookMetadataManageService.generateCustomCover(this.book.id).subscribe({
+              this.bookMetadataManageService.generateCustomCover(book.id).subscribe({
                 next: () => this.messageService.add({
                   severity: 'success',
                   summary: this.t.translate('common.success'),
@@ -802,7 +831,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return items;
   }
 
-  private moreMenuItems(): MenuItem[] {
+  private moreMenuItems(book: Book): MenuItem[] {
     const items: MenuItem[] = [];
     const moreActions: MenuItem[] = [];
 
@@ -811,7 +840,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         label: this.t.translate('book.card.menu.organizeFile'),
         icon: 'pi pi-arrows-h',
         command: () => {
-          this.bookDialogHelperService.openFileMoverDialog(new Set([this.book.id]));
+          this.bookDialogHelperService.openFileMoverDialog(new Set([book.id]));
         }
       });
     }
@@ -822,33 +851,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         icon: 'pi pi-book',
         items: Object.entries(readStatusLabels).map(([status, label]) => ({
           label,
-          command: () => {
-            this.bookService.updateBookReadStatus(this.book.id, status as ReadStatus).subscribe({
-              next: () => {
-                this.messageService.add({
-                  severity: 'success',
-                  summary: this.t.translate('book.card.toast.readStatusUpdatedSummary'),
-                  detail: this.t.translate('book.card.toast.readStatusUpdatedDetail', {label}),
-                  life: 2000
-                });
-              },
-              error: () => {
-                this.messageService.add({
-                  severity: 'error',
-                  summary: this.t.translate('book.card.toast.readStatusFailedSummary'),
-                  detail: this.t.translate('book.card.toast.readStatusFailedDetail'),
-                  life: 3000
-                });
-              }
-            });
-          }
+          command: () => this.updateReadStatus(book, status as ReadStatus, label)
         }))
       },
       {
         label: this.t.translate('book.card.menu.resetBookloreProgress'),
         icon: 'pi pi-undo',
         command: () => {
-          this.bookService.resetProgress(this.book.id, ResetProgressTypes.BOOKLORE).subscribe({
+          this.bookService.resetProgress(book.id, ResetProgressTypes.BOOKLORE).subscribe({
             next: () => {
               this.messageService.add({
                 severity: 'success',
@@ -872,7 +882,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         label: this.t.translate('book.card.menu.resetKOReaderProgress'),
         icon: 'pi pi-undo',
         command: () => {
-          this.bookService.resetProgress(this.book.id, ResetProgressTypes.KOREADER).subscribe({
+          this.bookService.resetProgress(book.id, ResetProgressTypes.KOREADER).subscribe({
             next: () => {
               this.messageService.add({
                 severity: 'success',
@@ -903,12 +913,33 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return items;
   }
 
-  private openShelfDialog(): void {
-    this.bookDialogHelperService.openShelfAssignerDialog(this.book, null);
+  private updateReadStatus(book: Book, status: ReadStatus, label: string): void {
+    this.bookService.updateBookReadStatus(book.id, status).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: this.t.translate('book.card.toast.readStatusUpdatedSummary'),
+          detail: this.t.translate('book.card.toast.readStatusUpdatedDetail', {label}),
+          life: 2000
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('book.card.toast.readStatusFailedSummary'),
+          detail: this.t.translate('book.card.toast.readStatusFailedDetail'),
+          life: 3000
+        });
+      }
+    });
   }
 
-  private openBookTypeDialog(): void {
-    this.bookDialogHelperService.openBookTypeAssignerDialog(this.book, null);
+  private openShelfDialog(book: Book): void {
+    this.bookDialogHelperService.openShelfAssignerDialog(book, null);
+  }
+
+  private openBookTypeDialog(book: Book): void {
+    this.bookDialogHelperService.openBookTypeAssignerDialog(book, null);
   }
 
   openSeriesInfo(): void {
@@ -936,44 +967,44 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
   }
 
-  private getDownloadMenuItems(): MenuItem[] {
+  private getDownloadMenuItems(book: Book): MenuItem[] {
     const items: MenuItem[] = [];
 
     items.push({
-      label: `${this.book.fileName || 'Book File'}`,
+      label: `${book.fileName || 'Book File'}`,
       icon: 'pi pi-file',
       command: () => {
-        this.bookFileService.downloadFile(this.book);
+        this.bookFileService.downloadFile(book);
       }
     });
 
-    if (this.hasAdditionalFiles()) {
+    if (this.hasAdditionalFiles(book)) {
       items.push({separator: true});
     }
 
-    if (this.book.alternativeFormats && this.book.alternativeFormats.length > 0) {
-      this.book.alternativeFormats.forEach(format => {
+    if (book.alternativeFormats && book.alternativeFormats.length > 0) {
+      book.alternativeFormats.forEach(format => {
         const extension = this.getFileExtension(format.filePath);
         items.push({
           label: `${format.fileName} (${this.getFileSizeInMB(format)})`,
           icon: this.getFileIcon(extension),
-          command: () => this.downloadAdditionalFile(this.book, format.id)
+          command: () => this.downloadAdditionalFile(book, format.id)
         });
       });
     }
 
-    if (this.book.alternativeFormats && this.book.alternativeFormats.length > 0 &&
-      this.book.supplementaryFiles && this.book.supplementaryFiles.length > 0) {
+    if (book.alternativeFormats && book.alternativeFormats.length > 0 &&
+      book.supplementaryFiles && book.supplementaryFiles.length > 0) {
       items.push({separator: true});
     }
 
-    if (this.book.supplementaryFiles && this.book.supplementaryFiles.length > 0) {
-      this.book.supplementaryFiles.forEach(file => {
+    if (book.supplementaryFiles && book.supplementaryFiles.length > 0) {
+      book.supplementaryFiles.forEach(file => {
         const extension = this.getFileExtension(file.filePath);
         items.push({
           label: `${file.fileName} (${this.getFileSizeInMB(file)})`,
           icon: this.getFileIcon(extension),
-          command: () => this.downloadAdditionalFile(this.book, file.id)
+          command: () => this.downloadAdditionalFile(book, file.id)
         });
       });
     }
@@ -981,7 +1012,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return items;
   }
 
-  private getDeleteMenuItems(): MenuItem[] {
+  private getDeleteMenuItems(book: Book): MenuItem[] {
     const items: MenuItem[] = [];
 
     if (this.allowFileDeletion) {
@@ -990,7 +1021,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         icon: 'pi pi-trash',
         command: () => {
           this.confirmationService.confirm({
-            message: this.t.translate('book.card.confirm.deleteBookMessage', {title: this.book.metadata?.title}),
+            message: this.t.translate('book.card.confirm.deleteBookMessage', {title: book.metadata?.title}),
             header: this.t.translate('book.card.confirm.deleteBookHeader'),
             icon: 'pi pi-exclamation-triangle',
             acceptIcon: 'pi pi-trash',
@@ -1000,7 +1031,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             acceptButtonStyleClass: 'p-button-danger',
             rejectButtonStyleClass: 'p-button-outlined',
             accept: () => {
-              this.bookService.deleteBooks(new Set([this.book.id]), true).subscribe();
+              this.bookService.deleteBooks(new Set([book.id]), true).subscribe();
             }
           });
         }
@@ -1012,7 +1043,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       icon: 'pi pi-minus-circle',
       command: () => {
         this.confirmationService.confirm({
-          message: this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: this.book.metadata?.title}),
+          message: this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: book.metadata?.title}),
           header: this.t.translate('book.card.confirm.removeFromLibraryHeader'),
           icon: 'pi pi-exclamation-triangle',
           acceptIcon: 'pi pi-minus-circle',
@@ -1022,39 +1053,39 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
           acceptButtonStyleClass: 'p-button-warning',
           rejectButtonStyleClass: 'p-button-outlined',
           accept: () => {
-            this.bookService.deleteBooks(new Set([this.book.id]), false).subscribe();
+            this.bookService.deleteBooks(new Set([book.id]), false).subscribe();
           }
         });
       }
     });
 
-    if (items.length > 0 && this.hasAdditionalFiles()) {
+    if (items.length > 0 && this.hasAdditionalFiles(book)) {
       items.push({separator: true});
     }
 
-    if (this.book.alternativeFormats && this.book.alternativeFormats.length > 0) {
-      this.book.alternativeFormats.forEach(format => {
+    if (book.alternativeFormats && book.alternativeFormats.length > 0) {
+      book.alternativeFormats.forEach(format => {
         const extension = this.getFileExtension(format.filePath);
         items.push({
           label: `${format.fileName} (${this.getFileSizeInMB(format)})`,
           icon: this.getFileIcon(extension),
-          command: () => this.deleteAdditionalFile(this.book.id, format.id, format.fileName || 'file')
+          command: () => this.deleteAdditionalFile(book.id, format.id, format.fileName || 'file')
         });
       });
     }
 
-    if (this.book.alternativeFormats && this.book.alternativeFormats.length > 0 &&
-      this.book.supplementaryFiles && this.book.supplementaryFiles.length > 0) {
+    if (book.alternativeFormats && book.alternativeFormats.length > 0 &&
+      book.supplementaryFiles && book.supplementaryFiles.length > 0) {
       items.push({separator: true});
     }
 
-    if (this.book.supplementaryFiles && this.book.supplementaryFiles.length > 0) {
-      this.book.supplementaryFiles.forEach(file => {
+    if (book.supplementaryFiles && book.supplementaryFiles.length > 0) {
+      book.supplementaryFiles.forEach(file => {
         const extension = this.getFileExtension(file.filePath);
         items.push({
           label: `${file.fileName} (${this.getFileSizeInMB(file)})`,
           icon: this.getFileIcon(extension),
-          command: () => this.deleteAdditionalFile(this.book.id, file.id, file.fileName || 'file')
+          command: () => this.deleteAdditionalFile(book.id, file.id, file.fileName || 'file')
         });
       });
     }
@@ -1062,9 +1093,9 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return items;
   }
 
-  private hasAdditionalFiles(): boolean {
-    return !!(this.book.alternativeFormats && this.book.alternativeFormats.length > 0) ||
-      !!(this.book.supplementaryFiles && this.book.supplementaryFiles.length > 0);
+  private hasAdditionalFiles(book: Book): boolean {
+    return !!(book.alternativeFormats && book.alternativeFormats.length > 0) ||
+      !!(book.supplementaryFiles && book.supplementaryFiles.length > 0);
   }
 
   private downloadAdditionalFile(book: Book, fileId: number): void {

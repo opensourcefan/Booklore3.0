@@ -189,19 +189,17 @@
           <div class="book-card-mobile-preview-cover-controls">
             @if (shouldShowInlineViewerStatus(viewerBook)) {
               <button type="button"
-                      #mobilePreviewReadStatusTrigger
                       class="book-card-mobile-preview-status-button"
                       [class]="'book-card-mobile-preview-status-button ' + getInlineViewerReadStatusClass(viewerBook)"
-                      (click)="toggleInlineViewerReadStatusMenu($event, readStatusMenu)"
+                      (click)="toggleInlineViewerReadStatusMenu($event, mobileReadStatusMenu, viewerBook)"
                       [attr.aria-label]="'book.card.alt.readStatusMenu' | transloco">
                 <i [class]="getInlineViewerReadStatusIcon(viewerBook)"></i>
               </button>
             }
 
             <button type="button"
-              #mobilePreviewMenuTrigger
               class="book-card-mobile-preview-menu-button"
-              (click)="onInlineViewerMenuToggle($event, menu)"
+              (click)="onInlineViewerMenuToggle($event, mobileMenu, viewerBook)"
               [attr.aria-label]="'book.card.alt.bookMenu' | transloco">
               <i class="pi pi-ellipsis-v"></i>
             </button>
@@ -220,6 +218,9 @@
         <div class="book-card-mobile-preview-position">
           {{ inlineMobileViewerIndex + 1 }} / {{ inlineMobileViewerBooks.length }}
         </div>
+
+        <p-tieredmenu #mobileReadStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body"></p-tieredmenu>
+        <p-tieredmenu #mobileMenu [model]="items" [popup]="true" appendTo="body" (onShow)="onMenuShow()" (onHide)="onMenuHide()"></p-tieredmenu>
       </section>
     </div>
   }

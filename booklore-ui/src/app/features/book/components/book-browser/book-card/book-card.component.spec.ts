@@ -31,6 +31,21 @@ function createBook(overrides: Partial<Book>): Book {
 }
 
 describe('BookCardComponent', () => {
+  let bookServiceMock: {
+    updateBookReadStatus: ReturnType<typeof vi.fn>;
+    readBook: ReturnType<typeof vi.fn>;
+    getBookByIdFromAPI: ReturnType<typeof vi.fn>;
+    resetProgress: ReturnType<typeof vi.fn>;
+  };
+  let bookDialogHelperMock: {
+    openShelfAssignerDialog: ReturnType<typeof vi.fn>;
+    openBookTypeAssignerDialog: ReturnType<typeof vi.fn>;
+    openCustomSendDialog: ReturnType<typeof vi.fn>;
+    openMetadataRefreshDialog: ReturnType<typeof vi.fn>;
+    openBookDetailsDialog: ReturnType<typeof vi.fn>;
+    openFileMoverDialog: ReturnType<typeof vi.fn>;
+  };
+
   afterEach(() => {
     document.querySelectorAll('.book-card-mobile-preview-portal-host').forEach(host => host.remove());
     document.body.style.overflow = '';
@@ -44,6 +59,21 @@ describe('BookCardComponent', () => {
     document.body.style.touchAction = '';
     document.documentElement.style.overflow = '';
     document.documentElement.style.touchAction = '';
+
+    bookServiceMock = {
+      updateBookReadStatus: vi.fn(() => of(null)),
+      readBook: vi.fn(),
+      getBookByIdFromAPI: vi.fn(() => of(null)),
+      resetProgress: vi.fn(() => of(null)),
+    };
+    bookDialogHelperMock = {
+      openShelfAssignerDialog: vi.fn(),
+      openBookTypeAssignerDialog: vi.fn(),
+      openCustomSendDialog: vi.fn(),
+      openMetadataRefreshDialog: vi.fn(),
+      openBookDetailsDialog: vi.fn(),
+      openFileMoverDialog: vi.fn(),
+    };
 
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
@@ -62,7 +92,7 @@ describe('BookCardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [BookCardComponent],
       providers: [
-        { provide: BookService, useValue: { updateBookReadStatus: vi.fn(() => of(null)), readBook: vi.fn() } },
+        { provide: BookService, useValue: bookServiceMock },
         { provide: BookFileService, useValue: {} },
         { provide: BookMetadataManageService, useValue: {} },
         { provide: TaskHelperService, useValue: {} },
@@ -96,7 +126,7 @@ describe('BookCardComponent', () => {
           },
         },
         { provide: ConfirmationService, useValue: { confirm: vi.fn() } },
-        { provide: BookDialogHelperService, useValue: {} },
+        { provide: BookDialogHelperService, useValue: bookDialogHelperMock },
         { provide: BookNavigationService, useValue: {} },
         { provide: AppSettingsService, useValue: { appSettings$: of({ diskType: 'LOCAL' }) } },
         {
@@ -382,6 +412,45 @@ describe('BookCardComponent', () => {
     expect(menuSpy).toHaveBeenCalledOnce();
   });
 
+  it('builds inline mobile preview menu actions for the active swiped book', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+
+    const firstBook = createBook({
+      id: 36,
+      metadata: { title: 'First Menu Context Title' } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 36, fileName: 'first-menu-context-title.cbz', bookType: 'CBX' },
+    });
+    const secondBook = createBook({
+      id: 37,
+      metadata: { title: 'Second Menu Context Title' } as Book['metadata'],
+      primaryFile: { id: 2, bookId: 37, fileName: 'second-menu-context-title.cbz', bookType: 'CBX' },
+    });
+
+    component.book = firstBook;
+    component.mobileViewerBooksContext = [firstBook, secondBook];
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    component.onInlineViewerTouchStart(createTouchEvent(320, 220));
+    component.onInlineViewerTouchMove(createTouchEvent(240, 220));
+    component.onInlineViewerTouchEnd(createTouchEvent(240, 220));
+    fixture.detectChanges();
+
+    const menuButton = document.body.querySelector('.book-card-mobile-preview-menu-button') as HTMLButtonElement;
+    menuButton.click();
+    fixture.detectChanges();
+
+    component.items?.[0].command?.({} as never);
+
+    expect(bookDialogHelperMock.openShelfAssignerDialog).toHaveBeenCalledWith(secondBook, null);
+  });
+
   it('binds the inline mobile preview read status button click from the DOM', () => {
     const fixture = createFixture();
     const component = fixture.componentInstance;
@@ -404,6 +473,45 @@ describe('BookCardComponent', () => {
     statusButton.click();
 
     expect(statusSpy).toHaveBeenCalledOnce();
+  });
+
+  it('builds inline mobile preview read status actions for the active swiped book', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+
+    const firstBook = createBook({
+      id: 38,
+      metadata: { title: 'First Status Context Title' } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 38, fileName: 'first-status-context-title.cbz', bookType: 'CBX' },
+    });
+    const secondBook = createBook({
+      id: 39,
+      metadata: { title: 'Second Status Context Title' } as Book['metadata'],
+      primaryFile: { id: 2, bookId: 39, fileName: 'second-status-context-title.cbz', bookType: 'CBX' },
+    });
+
+    component.book = firstBook;
+    component.mobileViewerBooksContext = [firstBook, secondBook];
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    component.onInlineViewerTouchStart(createTouchEvent(320, 220));
+    component.onInlineViewerTouchMove(createTouchEvent(240, 220));
+    component.onInlineViewerTouchEnd(createTouchEvent(240, 220));
+    fixture.detectChanges();
+
+    const statusButton = document.body.querySelector('.book-card-mobile-preview-status-button') as HTMLButtonElement;
+    statusButton.click();
+    fixture.detectChanges();
+
+    component.readStatusMenuItems[0].command?.({} as never);
+
+    expect(bookServiceMock.updateBookReadStatus).toHaveBeenCalledWith(39, expect.any(String));
   });
 
   it('renders the interactive title branch without a tooltip directive and keeps the passive tooltip branch', () => {
@@ -475,69 +583,4 @@ describe('BookCardComponent', () => {
     }));
   });
 
-  it('anchors the inline mobile preview menu to the popup trigger button', () => {
-    const component = createComponent();
-    component.book = createBook({ id: 32, primaryFile: { id: 1, bookId: 32, bookType: 'CBX' } });
-    component.ngOnInit();
-    (component as unknown as { user: { permissions: { canDownload: boolean; canDeleteBook: boolean } } }).user = {
-      permissions: {
-        canDownload: false,
-        canDeleteBook: false,
-      },
-    };
-
-    const triggerHost = document.createElement('span');
-    const trigger = document.createElement('button');
-    const nestedTarget = document.createElement('span');
-    triggerHost.appendChild(trigger);
-    trigger.appendChild(nestedTarget);
-    (component as unknown as { mobilePreviewMenuTriggerRef?: { nativeElement: HTMLElement } }).mobilePreviewMenuTriggerRef = {
-      nativeElement: triggerHost,
-    };
-
-    const toggle = vi.fn();
-    const stopPropagation = vi.fn();
-
-    component.onInlineViewerMenuToggle({
-      target: nestedTarget,
-      currentTarget: nestedTarget,
-      stopPropagation,
-    } as unknown as Event, { toggle } as unknown as never);
-
-    expect(stopPropagation).toHaveBeenCalled();
-    expect(toggle).toHaveBeenCalledWith(expect.objectContaining({
-      currentTarget: trigger,
-      target: trigger,
-    }));
-  });
-
-  it('anchors the inline mobile preview read status menu to the popup trigger button', () => {
-    const component = createComponent();
-    component.book = createBook({ id: 35, primaryFile: { id: 1, bookId: 35, bookType: 'CBX' } });
-    component.ngOnInit();
-
-    const triggerHost = document.createElement('span');
-    const trigger = document.createElement('button');
-    const nestedTarget = document.createElement('span');
-    triggerHost.appendChild(trigger);
-    trigger.appendChild(nestedTarget);
-    (component as unknown as { mobilePreviewReadStatusTriggerRef?: { nativeElement: HTMLElement } }).mobilePreviewReadStatusTriggerRef = {
-      nativeElement: triggerHost,
-    };
-
-    const toggle = vi.fn();
-    const stopPropagation = vi.fn();
-
-    component.toggleInlineViewerReadStatusMenu({
-      target: nestedTarget,
-      currentTarget: nestedTarget,
-      stopPropagation,
-    } as unknown as Event, { toggle } as unknown as never);
-
-    expect(stopPropagation).toHaveBeenCalled();
-    expect(toggle).toHaveBeenCalledWith(expect.objectContaining({
-      currentTarget: trigger,
-      target: trigger,
-    }));
-  });
 });

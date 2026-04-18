@@ -178,4 +178,13 @@ describe('PhysicalBooksPageComponent', () => {
     expect(component.getViewerCoverUrl(regularBook)).toBe('cover');
     expect(component.getViewerCoverUrl(audiobook)).toBe('audio-cover');
   });
+
+  it('top-aligns shelf cards so cover rows stay level when titles wrap', () => {
+    const stylesPath = join(process.cwd(), 'src/app/features/book/components/physical-books-page/physical-books-page.component.scss');
+    const styles = readFileSync(stylesPath, 'utf8');
+    const shelfGridBlock = styles.match(/\.physical-shelf-grid\s*\{[\s\S]*?\}/);
+
+    expect(shelfGridBlock?.[0]).toContain('align-items: start;');
+    expect(shelfGridBlock?.[0]).not.toContain('align-items: end;');
+  });
 });
