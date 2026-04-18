@@ -147,34 +147,62 @@
   }
 </div>
 
-@if (isInlineMobilePreviewOpen) {
+@if (activeInlineMobileViewerBook; as viewerBook) {
   <div class="book-card-mobile-preview-backdrop">
-    <button type="button"
-            class="book-card-mobile-preview-dismiss-layer"
-            (click)="closeInlineMobilePreview()"
-            aria-label="Dismiss preview overlay"></button>
     <section class="book-card-mobile-preview"
              role="dialog"
              aria-modal="false"
-             [attr.aria-label]="inlinePreviewTitle">
-      <button type="button"
-              class="book-card-mobile-preview-close"
-              (click)="closeInlineMobilePreview()"
-              aria-label="Close preview">
-        <i class="pi pi-times"></i>
-      </button>
-
+             [attr.aria-label]="getInlineViewerTitle(viewerBook)"
+             (touchstart)="onInlineViewerTouchStart($event)"
+             (touchmove)="onInlineViewerTouchMove($event)"
+             (touchend)="onInlineViewerTouchEnd($event)"
+             (touchcancel)="onInlineViewerTouchCancel()">
       <div class="book-card-mobile-preview-cover-shell">
         <img class="book-card-mobile-preview-cover"
-             [src]="coverImageUrl"
-             [alt]="inlinePreviewTitle" />
+             [src]="getInlineViewerCoverUrl(viewerBook)"
+             [alt]="getInlineViewerTitle(viewerBook)" />
+
+        <div class="book-card-mobile-preview-badges">
+          <div class="book-card-mobile-preview-badge book-card-mobile-preview-badge--primary">
+            {{ getInlineViewerDisplayFormat(viewerBook) }}
+          </div>
+
+          @if (viewerBook.hasAiPanelData) {
+            <div class="book-card-mobile-preview-badge book-card-mobile-preview-badge--secondary">AI</div>
+          }
+
+          @if (getInlineViewerIssueNumber(viewerBook); as issueNumber) {
+            <div class="book-card-mobile-preview-badge book-card-mobile-preview-badge--secondary">
+              {{ issueNumber }}
+            </div>
+          }
+
+          @if (viewerBook.seriesCount && viewerBook.seriesCount >= 1) {
+            <div class="book-card-mobile-preview-badge book-card-mobile-preview-badge--secondary">
+              <i class="pi pi-book"></i>{{ viewerBook.seriesCount }}
+            </div>
+          }
+        </div>
+
+        @if (shouldShowInlineViewerStatus(viewerBook)) {
+          <div class="book-card-mobile-preview-status"
+               [class]="'book-card-mobile-preview-status ' + getInlineViewerReadStatusClass(viewerBook)">
+            <i [class]="getInlineViewerReadStatusIcon(viewerBook)"></i>
+          </div>
+        }
       </div>
 
-      <div class="book-card-mobile-preview-meta">
-        <h3 class="book-card-mobile-preview-title">{{ inlinePreviewTitle }}</h3>
-        @if (inlinePreviewSubtitle; as subtitle) {
-          <p class="book-card-mobile-preview-subtitle">{{ subtitle }}</p>
+      <button type="button"
+              class="book-card-mobile-preview-title-toggle"
+              (click)="toggleInlineMobilePreview(viewerBook)">
+        <span class="book-card-mobile-preview-title">{{ getInlineViewerTitle(viewerBook) }}</span>
+        @if (getInlineViewerSubtitle(viewerBook); as subtitle) {
+          <span class="book-card-mobile-preview-subtitle">{{ subtitle }}</span>
         }
+      </button>
+
+      <div class="book-card-mobile-preview-position">
+        {{ inlineMobileViewerIndex + 1 }} / {{ inlineMobileViewerBooks.length }}
       </div>
     </section>
   </div>

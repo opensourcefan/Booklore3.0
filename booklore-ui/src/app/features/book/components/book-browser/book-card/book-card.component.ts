@@ -41,6 +41,7 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   private readonly MOBILE_BREAKPOINT = 768;
   private readonly MOBILE_LONG_EDGE_MAX_PX = 1200;
+  private readonly VIEWER_SWIPE_THRESHOLD_PX = 48;
 
   @Output() bookClicked = new EventEmitter<Book>();
   @Output() bookHoverEnded = new EventEmitter<number>();
@@ -62,10 +63,16 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @Input() showSubtitle = false;
   @Input() forceFileNameTitle = false;
   @Input() titleAreaInteractive = false;
+  @Input() mobileViewerBooksContext: Book[] | null = null;
 
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
   screenHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
-  isInlineMobilePreviewOpen = false;
+  inlineMobileViewerBooks: Book[] = [];
+  inlineMobileViewerIndex = -1;
+
+  private inlineViewerTouchStartX = 0;
+  private inlineViewerTouchStartY = 0;
+  private inlineViewerTouchMoved = false;
 
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
   @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
@@ -304,16 +311,16 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     return this.titleAreaInteractive || this.shouldAutoMobileTitlePreview;
   }
 
-  get inlinePreviewTitle(): string {
-    return this.displayTitle?.trim()
-      || this.book?.fileName?.trim()
-      || this.book?.primaryFile?.fileName?.trim()
-      || 'Untitled';
+  get activeInlineMobileViewerBook(): Book | null {
+    if (this.inlineMobileViewerIndex < 0 || this.inlineMobileViewerIndex >= this.inlineMobileViewerBooks.length) {
+      return null;
+    }
+
+    return this.inlineMobileViewerBooks[this.inlineMobileViewerIndex] ?? null;
   }
 
-  get inlinePreviewSubtitle(): string | null {
-    const subtitle = this.book?.metadata?.subtitle?.trim();
-    return subtitle ? subtitle : null;
+  get isInlineMobilePreviewOpen(): boolean {
+    return this.activeInlineMobileViewerBook !== null;
   }
 
   @HostListener('window:resize')
@@ -1163,16 +1170,34 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
 
     if (this.shouldAutoMobileTitlePreview) {
-      this.openInlineMobilePreview();
+      this.toggleInlineMobilePreview(this.book);
     }
   }
 
   openInlineMobilePreview(): void {
+    this.toggleInlineMobilePreview(this.book);
+  }
+
+  toggleInlineMobilePreview(book: Book): void {
     if (!this.shouldAutoMobileTitlePreview) {
       return;
     }
 
-    this.isInlineMobilePreviewOpen = true;
+    if (this.activeInlineMobileViewerBook?.id === book.id) {
+      this.closeInlineMobilePreview();
+      return;
+    }
+
+    const orderedBooks = this.resolveInlineViewerBooks();
+    const nextIndex = orderedBooks.findIndex(candidate => candidate.id === book.id);
+
+    if (nextIndex === -1) {
+      return;
+    }
+
+    this.inlineMobileViewerBooks = orderedBooks;
+    this.inlineMobileViewerIndex = nextIndex;
+    this.resetInlineViewerTouch();
     this.cdr.markForCheck();
   }
 
@@ -1181,8 +1206,149 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return;
     }
 
-    this.isInlineMobilePreviewOpen = false;
+    this.inlineMobileViewerBooks = [];
+    this.inlineMobileViewerIndex = -1;
+    this.resetInlineViewerTouch();
     this.cdr.markForCheck();
+  }
+
+  onInlineViewerTouchStart(event: TouchEvent): void {
+    if (event.touches.length !== 1) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    this.inlineViewerTouchStartX = touch.clientX;
+    this.inlineViewerTouchStartY = touch.clientY;
+    this.inlineViewerTouchMoved = false;
+  }
+
+  onInlineViewerTouchMove(event: TouchEvent): void {
+    if (event.touches.length !== 1) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    if (Math.abs(touch.clientX - this.inlineViewerTouchStartX) > 8 || Math.abs(touch.clientY - this.inlineViewerTouchStartY) > 8) {
+      this.inlineViewerTouchMoved = true;
+    }
+  }
+
+  onInlineViewerTouchEnd(event: TouchEvent): void {
+    if (!this.inlineViewerTouchMoved || event.changedTouches.length !== 1) {
+      this.resetInlineViewerTouch();
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - this.inlineViewerTouchStartX;
+    const deltaY = Math.abs(touch.clientY - this.inlineViewerTouchStartY);
+
+    if (Math.abs(deltaX) >= this.VIEWER_SWIPE_THRESHOLD_PX && Math.abs(deltaX) > deltaY) {
+      if (deltaX < 0) {
+        this.showNextInlineViewerBook();
+      } else {
+        this.showPreviousInlineViewerBook();
+      }
+    }
+
+    this.resetInlineViewerTouch();
+  }
+
+  onInlineViewerTouchCancel(): void {
+    this.resetInlineViewerTouch();
+  }
+
+  getInlineViewerCoverUrl(book: Book): string {
+    return book.primaryFile?.bookType === 'AUDIOBOOK'
+      ? this.urlHelper.getAudiobookThumbnailUrl(book.id, book.metadata?.audiobookCoverUpdatedOn)
+      : this.urlHelper.getThumbnailUrl(book.id, book.metadata?.coverUpdatedOn);
+  }
+
+  getInlineViewerTitle(book: Book): string {
+    return book.metadata?.title?.trim()
+      || book.fileName?.trim()
+      || book.primaryFile?.fileName?.trim()
+      || 'Untitled';
+  }
+
+  getInlineViewerSubtitle(book: Book): string | null {
+    const subtitle = book.metadata?.subtitle?.trim();
+    return subtitle ? subtitle : null;
+  }
+
+  getInlineViewerDisplayFormat(book: Book): string {
+    if (!book.primaryFile) {
+      return 'PHY';
+    }
+
+    const extension = book.primaryFile.extension?.trim();
+    if (extension) {
+      return extension.toUpperCase();
+    }
+
+    return this.getFileExtension(book.primaryFile.filePath) ?? 'PHY';
+  }
+
+  getInlineViewerIssueNumber(book: Book): string | null {
+    const comicIssueNumber = book.metadata?.comicMetadata?.issueNumber?.trim();
+    if (comicIssueNumber) {
+      return comicIssueNumber.startsWith('#') ? comicIssueNumber : `#${comicIssueNumber}`;
+    }
+
+    if (!book.seriesCount && book.metadata?.seriesNumber != null) {
+      return `#${book.metadata.seriesNumber}`;
+    }
+
+    return null;
+  }
+
+  getInlineViewerReadStatusIcon(book: Book): string {
+    return this.readStatusHelper.getReadStatusIcon(book.readStatus);
+  }
+
+  getInlineViewerReadStatusClass(book: Book): string {
+    return this.readStatusHelper.getReadStatusClass(book.readStatus);
+  }
+
+  shouldShowInlineViewerStatus(book: Book): boolean {
+    return this.readStatusHelper.shouldShowStatusIcon(book.readStatus);
+  }
+
+  private showPreviousInlineViewerBook(): void {
+    if (this.inlineMobileViewerIndex <= 0) {
+      return;
+    }
+
+    this.inlineMobileViewerIndex -= 1;
+    this.cdr.markForCheck();
+  }
+
+  private showNextInlineViewerBook(): void {
+    if (this.inlineMobileViewerIndex >= this.inlineMobileViewerBooks.length - 1) {
+      return;
+    }
+
+    this.inlineMobileViewerIndex += 1;
+    this.cdr.markForCheck();
+  }
+
+  private resetInlineViewerTouch(): void {
+    this.inlineViewerTouchStartX = 0;
+    this.inlineViewerTouchStartY = 0;
+    this.inlineViewerTouchMoved = false;
+  }
+
+  private resolveInlineViewerBooks(): Book[] {
+    const contextBooks = (this.mobileViewerBooksContext ?? []).filter(
+      (candidate): candidate is Book => !!candidate && candidate.id != null
+    );
+
+    if (contextBooks.length) {
+      return contextBooks;
+    }
+
+    return [this.book];
   }
 
   ngOnDestroy(): void {

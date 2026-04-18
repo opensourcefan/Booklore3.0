@@ -104,6 +104,14 @@ describe('BookCardComponent', () => {
     return TestBed.createComponent(BookCardComponent);
   }
 
+  function createTouchEvent(x: number, y: number): TouchEvent {
+    const touchPoint = [{ clientX: x, clientY: y }] as unknown as TouchList;
+    return {
+      touches: touchPoint,
+      changedTouches: touchPoint,
+    } as unknown as TouchEvent;
+  }
+
   it('recomputes the displayed title when showSubtitle changes', () => {
     const component = createComponent();
     component.book = createBook({
@@ -196,12 +204,63 @@ describe('BookCardComponent', () => {
     expect(preview).toBeTruthy();
     expect(preview.textContent).toContain('Landscape Mobile Title');
     expect(preview.textContent).toContain('Issue One');
+    expect(preview.textContent).toContain('1 / 1');
 
-    const closeButton = fixture.nativeElement.querySelector('.book-card-mobile-preview-close') as HTMLButtonElement;
-    closeButton.click();
+    const titleToggle = fixture.nativeElement.querySelector('.book-card-mobile-preview-title-toggle') as HTMLButtonElement;
+    titleToggle.click();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.book-card-mobile-preview')).toBeNull();
+  });
+
+  it('supports horizontal swipe navigation inside the inline mobile preview', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+
+    const firstBook = createBook({
+      id: 26,
+      metadata: {
+        title: 'First Swipe Title',
+      } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 26, fileName: 'first-swipe-title.cbz', bookType: 'CBX' },
+    });
+
+    const secondBook = createBook({
+      id: 27,
+      metadata: {
+        title: 'Second Swipe Title',
+      } as Book['metadata'],
+      primaryFile: { id: 2, bookId: 27, fileName: 'second-swipe-title.cbz', bookType: 'CBX' },
+    });
+
+    component.book = firstBook;
+    component.mobileViewerBooksContext = [firstBook, secondBook];
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    expect(component.inlineMobileViewerIndex).toBe(0);
+    expect((fixture.nativeElement.querySelector('.book-card-mobile-preview') as HTMLElement).textContent).toContain('First Swipe Title');
+
+    component.onInlineViewerTouchStart(createTouchEvent(320, 220));
+    component.onInlineViewerTouchMove(createTouchEvent(240, 220));
+    component.onInlineViewerTouchEnd(createTouchEvent(240, 220));
+    fixture.detectChanges();
+
+    expect(component.inlineMobileViewerIndex).toBe(1);
+    expect((fixture.nativeElement.querySelector('.book-card-mobile-preview') as HTMLElement).textContent).toContain('Second Swipe Title');
+
+    component.onInlineViewerTouchStart(createTouchEvent(220, 220));
+    component.onInlineViewerTouchMove(createTouchEvent(320, 220));
+    component.onInlineViewerTouchEnd(createTouchEvent(320, 220));
+    fixture.detectChanges();
+
+    expect(component.inlineMobileViewerIndex).toBe(0);
+    expect((fixture.nativeElement.querySelector('.book-card-mobile-preview') as HTMLElement).textContent).toContain('First Swipe Title');
   });
 
   it('does not open the inline mobile preview outside mobile interaction mode', () => {

@@ -250,6 +250,7 @@
                       <app-book-card
                           [index]="i"
                           [book]="book"
+                          [mobileViewerBooksContext]="books"
                           [isCheckboxEnabled]="true"
                           [isSelected]="selectedBooks.has(book.id)"
                           (checkboxClick)="onCheckboxClicked($event)"
