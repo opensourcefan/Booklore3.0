@@ -57,6 +57,8 @@ describe('PhysicalBooksPageComponent', () => {
           useValue: {
             getThumbnailUrl: vi.fn(() => 'thumb'),
             getAudiobookThumbnailUrl: vi.fn(() => 'audio-thumb'),
+            getCoverUrl: vi.fn(() => 'cover'),
+            getAudiobookCoverUrl: vi.fn(() => 'audio-cover'),
           },
         },
         {
@@ -162,5 +164,18 @@ describe('PhysicalBooksPageComponent', () => {
     expect(template).not.toMatch(/<app-book-card[\s\S]*>\s*\(titleAreaActivated\)="toggleMobileBookViewer\(vm\.groups, \$event\)"/);
     expect(template).toContain('[titleAreaInteractive]="isMobileInteractionMode"');
     expect(template).not.toContain('[titleAreaInteractive]="screenWidth < mobileBreakpoint"');
+  });
+
+  it('uses the full cover endpoint for enlarged mobile viewer images', () => {
+    const component = createComponent();
+    const regularBook = createBook({ id: 55, metadata: { bookId: 55, title: 'Regular Viewer' } as Book['metadata'] });
+    const audiobook = createBook({
+      id: 56,
+      metadata: { bookId: 56, title: 'Audio Viewer' } as Book['metadata'],
+      primaryFile: { id: 2, bookId: 56, fileName: 'audio-viewer.m4b', bookType: 'AUDIOBOOK' },
+    });
+
+    expect(component.getViewerCoverUrl(regularBook)).toBe('cover');
+    expect(component.getViewerCoverUrl(audiobook)).toBe('audio-cover');
   });
 });

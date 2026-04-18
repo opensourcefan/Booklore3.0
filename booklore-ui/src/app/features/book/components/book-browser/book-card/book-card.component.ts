@@ -86,6 +86,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
   @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
   @ViewChild('menuTrigger', {read: ElementRef}) private menuTriggerRef?: ElementRef<HTMLElement>;
+  @ViewChild('mobilePreviewReadStatusTrigger', {read: ElementRef}) private mobilePreviewReadStatusTriggerRef?: ElementRef<HTMLElement>;
   @ViewChild('mobilePreviewMenuTrigger', {read: ElementRef}) private mobilePreviewMenuTriggerRef?: ElementRef<HTMLElement>;
   @ViewChild('readStatusTrigger', {read: ElementRef}) private readStatusTriggerRef?: ElementRef<HTMLElement>;
   @ViewChild(CdkPortal) private previewPortal?: CdkPortal;
@@ -477,6 +478,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         }
       });
     }
+  }
+
+  toggleInlineViewerReadStatusMenu(event: Event, menu: TieredMenu): void {
+    event.stopPropagation();
+    if (this.readStatusMenuItems.length === 0) {
+      this.buildReadStatusMenuItems();
+    }
+    menu.toggle(this.getPopupAnchorEvent(event, this.mobilePreviewReadStatusTriggerRef?.nativeElement));
   }
 
   private needsAdditionalFilesData(): boolean {
@@ -1307,8 +1316,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   getInlineViewerCoverUrl(book: Book): string {
     return book.primaryFile?.bookType === 'AUDIOBOOK'
-      ? this.urlHelper.getAudiobookThumbnailUrl(book.id, book.metadata?.audiobookCoverUpdatedOn)
-      : this.urlHelper.getThumbnailUrl(book.id, book.metadata?.coverUpdatedOn);
+      ? this.urlHelper.getAudiobookCoverUrl(book.id, book.metadata?.audiobookCoverUpdatedOn)
+      : this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
   }
 
   getInlineViewerTitle(book: Book): string {

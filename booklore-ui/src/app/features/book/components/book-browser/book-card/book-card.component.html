@@ -188,21 +188,23 @@
 
           <div class="book-card-mobile-preview-cover-controls">
             @if (shouldShowInlineViewerStatus(viewerBook)) {
-              <div class="book-card-mobile-preview-status"
-                   [class]="'book-card-mobile-preview-status ' + getInlineViewerReadStatusClass(viewerBook)">
+              <button type="button"
+                      #mobilePreviewReadStatusTrigger
+                      class="book-card-mobile-preview-status-button"
+                      [class]="'book-card-mobile-preview-status-button ' + getInlineViewerReadStatusClass(viewerBook)"
+                      (click)="toggleInlineViewerReadStatusMenu($event, readStatusMenu)"
+                      [attr.aria-label]="'book.card.alt.readStatusMenu' | transloco">
                 <i [class]="getInlineViewerReadStatusIcon(viewerBook)"></i>
-              </div>
+              </button>
             }
 
-            <p-button
+            <button type="button"
               #mobilePreviewMenuTrigger
-              class="book-card-mobile-preview-menu"
-              size="small"
-              [text]="true"
+              class="book-card-mobile-preview-menu-button"
               (click)="onInlineViewerMenuToggle($event, menu)"
-              icon="pi pi-ellipsis-v"
-              [ariaLabel]="'book.card.alt.bookMenu' | transloco">
-            </p-button>
+              [attr.aria-label]="'book.card.alt.bookMenu' | transloco">
+              <i class="pi pi-ellipsis-v"></i>
+            </button>
           </div>
         </div>
 

@@ -66,7 +66,21 @@ describe('BookCardComponent', () => {
         { provide: BookFileService, useValue: {} },
         { provide: BookMetadataManageService, useValue: {} },
         { provide: TaskHelperService, useValue: {} },
-        { provide: UserService, useValue: { userState$: of({ loaded: true, user: { userSettings: {} } }) } },
+        {
+          provide: UserService,
+          useValue: {
+            userState$: of({
+              loaded: true,
+              user: {
+                userSettings: {},
+                permissions: {
+                  canDownload: false,
+                  canDeleteBook: false,
+                },
+              },
+            }),
+          },
+        },
         { provide: EmailService, useValue: {} },
         { provide: MessageService, useValue: { add: vi.fn() } },
         { provide: Router, useValue: { navigate: vi.fn() } },
@@ -77,6 +91,8 @@ describe('BookCardComponent', () => {
             getThumbnailUrl: vi.fn(() => 'thumb'),
             getBookPrimaryReadingUrl: vi.fn(() => '/book/1/read'),
             getAudiobookThumbnailUrl: vi.fn(() => 'audio-thumb'),
+            getCoverUrl: vi.fn(() => 'cover'),
+            getAudiobookCoverUrl: vi.fn(() => 'audio-cover'),
           },
         },
         { provide: ConfirmationService, useValue: { confirm: vi.fn() } },
@@ -101,7 +117,7 @@ describe('BookCardComponent', () => {
             getReadStatusIcon: vi.fn(() => ''),
             getReadStatusClass: vi.fn(() => ''),
             getReadStatusTooltip: vi.fn(() => ''),
-            shouldShowStatusIcon: vi.fn(() => false),
+            shouldShowStatusIcon: vi.fn(() => true),
           },
         },
       ],
@@ -219,12 +235,14 @@ describe('BookCardComponent', () => {
     expect(preview.textContent).toContain('Issue One');
     expect(preview.textContent).toContain('1 / 1');
     expect(fixture.nativeElement.querySelector('.book-card-mobile-preview')).toBeNull();
+    expect((preview.querySelector('.book-card-mobile-preview-cover') as HTMLImageElement).getAttribute('src')).toBe('cover');
     expect(document.body.style.overflow).toBe('hidden');
     expect(document.documentElement.style.overflow).toBe('hidden');
 
-    const overlayMenuButton = document.body.querySelector('.book-card-mobile-preview-menu') as HTMLElement;
+    const overlayMenuButton = document.body.querySelector('.book-card-mobile-preview-menu-button') as HTMLElement;
     expect(overlayMenuButton).toBeTruthy();
-    expect(document.body.querySelector('.book-card-mobile-preview-cover-controls .book-card-mobile-preview-menu')).toBeTruthy();
+    expect(document.body.querySelector('.book-card-mobile-preview-cover-controls .book-card-mobile-preview-menu-button')).toBeTruthy();
+    expect(document.body.querySelector('.book-card-mobile-preview-status-button')).toBeTruthy();
 
     const titleToggle = document.body.querySelector('.book-card-mobile-preview-title-toggle') as HTMLButtonElement;
     titleToggle.click();
@@ -340,6 +358,54 @@ describe('BookCardComponent', () => {
     expect(preview.querySelector('.book-card-mobile-preview-badge--primary')).toBeNull();
   });
 
+  it('binds the inline mobile preview menu button click from the DOM', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    const menuSpy = vi.spyOn(component, 'onInlineViewerMenuToggle');
+
+    component.book = createBook({
+      id: 33,
+      metadata: { title: 'Menu Button Title' } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 33, fileName: 'menu-button-title.cbz', bookType: 'CBX' },
+    });
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    const menuButton = document.body.querySelector('.book-card-mobile-preview-menu-button') as HTMLButtonElement;
+    menuButton.click();
+
+    expect(menuSpy).toHaveBeenCalledOnce();
+  });
+
+  it('binds the inline mobile preview read status button click from the DOM', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    const statusSpy = vi.spyOn(component, 'toggleInlineViewerReadStatusMenu');
+
+    component.book = createBook({
+      id: 34,
+      metadata: { title: 'Status Button Title' } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 34, fileName: 'status-button-title.cbz', bookType: 'CBX' },
+    });
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    const statusButton = document.body.querySelector('.book-card-mobile-preview-status-button') as HTMLButtonElement;
+    statusButton.click();
+
+    expect(statusSpy).toHaveBeenCalledOnce();
+  });
+
   it('renders the interactive title branch without a tooltip directive and keeps the passive tooltip branch', () => {
     const templatePath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.html');
     const template = readFileSync(templatePath, 'utf8');
@@ -433,6 +499,36 @@ describe('BookCardComponent', () => {
     const stopPropagation = vi.fn();
 
     component.onInlineViewerMenuToggle({
+      target: nestedTarget,
+      currentTarget: nestedTarget,
+      stopPropagation,
+    } as unknown as Event, { toggle } as unknown as never);
+
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(toggle).toHaveBeenCalledWith(expect.objectContaining({
+      currentTarget: trigger,
+      target: trigger,
+    }));
+  });
+
+  it('anchors the inline mobile preview read status menu to the popup trigger button', () => {
+    const component = createComponent();
+    component.book = createBook({ id: 35, primaryFile: { id: 1, bookId: 35, bookType: 'CBX' } });
+    component.ngOnInit();
+
+    const triggerHost = document.createElement('span');
+    const trigger = document.createElement('button');
+    const nestedTarget = document.createElement('span');
+    triggerHost.appendChild(trigger);
+    trigger.appendChild(nestedTarget);
+    (component as unknown as { mobilePreviewReadStatusTriggerRef?: { nativeElement: HTMLElement } }).mobilePreviewReadStatusTriggerRef = {
+      nativeElement: triggerHost,
+    };
+
+    const toggle = vi.fn();
+    const stopPropagation = vi.fn();
+
+    component.toggleInlineViewerReadStatusMenu({
       target: nestedTarget,
       currentTarget: nestedTarget,
       stopPropagation,

@@ -294,8 +294,8 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
 
   getViewerCoverUrl(book: Book): string {
     return book.primaryFile?.bookType === 'AUDIOBOOK'
-      ? this.urlHelper.getAudiobookThumbnailUrl(book.id, book.metadata?.audiobookCoverUpdatedOn)
-      : this.urlHelper.getThumbnailUrl(book.id, book.metadata?.coverUpdatedOn);
+      ? this.urlHelper.getAudiobookCoverUrl(book.id, book.metadata?.audiobookCoverUpdatedOn)
+      : this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
   }
 
   getViewerTitle(book: Book): string {

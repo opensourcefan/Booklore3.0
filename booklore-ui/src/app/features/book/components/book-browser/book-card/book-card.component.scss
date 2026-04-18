@@ -661,63 +661,75 @@
   justify-content: space-between;
   gap: 0.75rem;
   z-index: 2;
+  pointer-events: none;
 }
 
-.book-card-mobile-preview-menu {
-  margin-left: auto;
-}
-
-::ng-deep .book-card-mobile-preview-menu .p-button {
-  background: rgba(8, 12, 20, 0.74);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
+.book-card-mobile-preview-status-button,
+.book-card-mobile-preview-menu-button {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 2rem;
   height: 2rem;
+  padding: 0;
+  border-radius: 999px;
+  background: rgba(8, 12, 20, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: #f8fafc;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
 }
 
-.book-card-mobile-preview-status {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(8, 12, 20, 0.74);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+.book-card-mobile-preview-status-button {
+  flex: 0 0 auto;
 }
 
-.book-card-mobile-preview-status.status-read {
+.book-card-mobile-preview-menu-button {
+  margin-left: auto;
+}
+
+.book-card-mobile-preview-status-button,
+.book-card-mobile-preview-menu-button {
+  &:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.75);
+    outline-offset: 2px;
+  }
+}
+
+.book-card-mobile-preview-status-button {
+  width: 2rem;
+  height: 2rem;
+}
+
+.book-card-mobile-preview-status-button.status-read {
   color: #22c55e;
 }
 
-.book-card-mobile-preview-status.status-reading {
+.book-card-mobile-preview-status-button.status-reading {
   color: #3b82f6;
 }
 
-.book-card-mobile-preview-status.status-re-reading {
+.book-card-mobile-preview-status-button.status-re-reading {
   color: #06b6d4;
 }
 
-.book-card-mobile-preview-status.status-partially-read {
+.book-card-mobile-preview-status-button.status-partially-read {
   color: #f59e0b;
 }
 
-.book-card-mobile-preview-status.status-paused {
+.book-card-mobile-preview-status-button.status-paused {
   color: #eab308;
 }
 
-.book-card-mobile-preview-status.status-abandoned {
+.book-card-mobile-preview-status-button.status-abandoned {
   color: #ef4444;
 }
 
-.book-card-mobile-preview-status.status-wont-read {
+.book-card-mobile-preview-status-button.status-wont-read {
   color: #ec4899;
 }
 
-.book-card-mobile-preview-status.status-unset {
+.book-card-mobile-preview-status-button.status-unset {
   color: var(--text-color-secondary);
 }
 
