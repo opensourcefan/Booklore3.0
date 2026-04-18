@@ -43,6 +43,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private readonly MOBILE_BREAKPOINT = 768;
   private readonly MOBILE_LONG_EDGE_MAX_PX = 1200;
   private readonly VIEWER_SWIPE_THRESHOLD_PX = 48;
+  // TieredMenu computes final z-index as baseZIndex + PrimeNG menu z-index.
+  readonly inlineMobileMenuBaseZIndex = 1500;
   private bodyScrollLockState: {
     bodyOverflow: string;
     bodyTouchAction: string;

@@ -643,6 +643,16 @@ describe('BookCardComponent', () => {
     expect(titleContainer?.textContent).toContain('Mobile Viewer Title');
   });
 
+  it('configures inline mobile popup menus with an explicit base z-index above the preview backdrop', () => {
+    const templatePath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.html');
+    const template = readFileSync(templatePath, 'utf8');
+    const component = createComponent();
+
+    expect(component.inlineMobileMenuBaseZIndex).toBeGreaterThan(1200);
+    expect(template).toMatch(/#mobileReadStatusMenu[\s\S]*?\[baseZIndex\]="inlineMobileMenuBaseZIndex"/);
+    expect(template).toMatch(/#mobileMenu[\s\S]*?\[baseZIndex\]="inlineMobileMenuBaseZIndex"/);
+  });
+
   it('anchors the popup menu to the inner button element rather than the button host wrapper', () => {
     const component = createComponent();
     component.book = createBook({ id: 12, primaryFile: { id: 1, bookId: 12, bookType: 'CBX' } });

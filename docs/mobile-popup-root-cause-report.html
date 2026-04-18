@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BookCard Mobile Popup Root Cause Report</title>
+  <style>
+    :root {
+      --bg: #0b1320;
+      --panel: #121c2e;
+      --panel-2: #0f1828;
+      --text: #e8eef8;
+      --muted: #a8b7cf;
+      --ok: #20c997;
+      --warn: #f6c343;
+      --danger: #ff6b6b;
+      --accent: #5aa9ff;
+      --border: #243552;
+      --code: #0a1020;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: radial-gradient(1200px 800px at 15% -10%, #1b2a44, var(--bg));
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 18px 56px;
+    }
+    .hero {
+      background: linear-gradient(180deg, rgba(90, 169, 255, 0.14), rgba(90, 169, 255, 0.03));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 18px 14px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+      letter-spacing: 0.01em;
+    }
+    .sub {
+      color: var(--muted);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.06rem;
+      color: #d7e6ff;
+    }
+    h3 {
+      margin: 14px 0 8px;
+      font-size: 0.98rem;
+      color: #d7e6ff;
+    }
+    p, li { color: var(--text); }
+    ul { margin: 8px 0 0 18px; }
+    li { margin: 5px 0; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.77rem;
+      margin-right: 6px;
+      border: 1px solid transparent;
+    }
+    .ok { background: rgba(32, 201, 151, 0.12); color: #98f0d5; border-color: rgba(32, 201, 151, 0.4); }
+    .warn { background: rgba(246, 195, 67, 0.14); color: #ffe3a1; border-color: rgba(246, 195, 67, 0.45); }
+    .danger { background: rgba(255, 107, 107, 0.14); color: #ffb2b2; border-color: rgba(255, 107, 107, 0.45); }
+    .code {
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      color: #d9ecff;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.83rem;
+      white-space: pre-wrap;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.89rem;
+    }
+    .table th, .table td {
+      border: 1px solid var(--border);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .table th { color: #cfe3ff; background: #13213a; }
+    .muted { color: var(--muted); }
+    .foot {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>BookCard Mobile Cover Popup: Root Cause and Fix</h1>
+      <p class="sub">Date: 2026-04-18 | Scope: Shared BookCard mobile popup controls (status button and 3-dot menu)</p>
+      <div style="margin-top:10px;">
+        <span class="badge danger">Root Cause Proven</span>
+        <span class="badge ok">Fix Implemented</span>
+        <span class="badge warn">Release Pending in this report snapshot</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>User Symptom</h2>
+        <ul>
+          <li>Inside the mobile cover popup, tapping the left status button or right 3-dot menu appears to do nothing.</li>
+          <li>This occurs even though the click handlers are wired and testable in unit tests.</li>
+        </ul>
+
+        <h3>Timeline Checked (Recent Pushes)</h3>
+        <ul>
+          <li>v3.10.35: Fix mobile popup buttons and cover quality</li>
+          <li>v3.10.36: Fix mobile viewer controls and cover alignment</li>
+          <li>v3.10.37: Fix stale book card popup overlays</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Evidence from Feature Code</h2>
+        <ul>
+          <li>Mobile popup backdrop uses z-index 1200 in book-card.component.scss.</li>
+          <li>Popup menus in the mobile viewer template were appendTo="body" with no baseZIndex override.</li>
+        </ul>
+        <div class="code">book-card.component.scss
+.book-card-mobile-preview-backdrop {
+  z-index: 1200;
+}</div>
+        <div class="code" style="margin-top:8px;">book-card.component.html (before fix)
+&lt;p-tieredmenu #mobileReadStatusMenu ... appendTo="body"&gt;&lt;/p-tieredmenu&gt;
+&lt;p-tieredmenu #mobileMenu ... appendTo="body"&gt;&lt;/p-tieredmenu&gt;</div>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Evidence from Underlying Framework (PrimeNG TieredMenu)</h2>
+      <ul>
+        <li>TieredMenu calculates overlay z-index using <span class="muted">baseZIndex + config.zIndex.menu</span>.</li>
+        <li>TieredMenu defaults: <span class="muted">baseZIndex = 0</span>, <span class="muted">autoZIndex = true</span>.</li>
+        <li>PrimeNG default config: <span class="muted">zIndex.menu = 1000</span>.</li>
+      </ul>
+      <div class="code">primeng-tieredmenu.mjs
+moveOnTop() {
+  if (this.autoZIndex) {
+    ZIndexUtils.set('menu', this.container, this.baseZIndex + this.config.zIndex.menu);
+  }
+}
+
+Defaults:
+autoZIndex = true
+baseZIndex = 0</div>
+      <div class="code" style="margin-top:8px;">primeng-config.mjs default zIndex values
+modal: 1100
+overlay: 1000
+menu: 1000
+tooltip: 1100</div>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Actual Root Cause</h2>
+      <p>
+        In mobile popup mode, TieredMenu overlays were opening behind the popup backdrop layer.
+        The backdrop was fixed at z-index 1200, while TieredMenu defaulted to menu z-index around 1000.
+        Therefore, button taps did execute handlers, but overlays rendered under the dark backdrop and appeared non-functional.
+      </p>
+      <table class="table">
+        <thead>
+          <tr><th>Layer</th><th>Source</th><th>Effective z-index</th><th>Outcome</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Mobile popup backdrop</td><td>Feature SCSS</td><td>1200</td><td>Above app content</td></tr>
+          <tr><td>TieredMenu overlay (before fix)</td><td>PrimeNG defaults</td><td>0 + 1000 = 1000</td><td>Behind backdrop</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Fix Implemented</h2>
+      <ul>
+        <li>Added a dedicated mobile popup menu base z-index in BookCard component: <span class="muted">inlineMobileMenuBaseZIndex = 1500</span>.</li>
+        <li>Bound both popup-mode menus to this base value via <span class="muted">[baseZIndex]="inlineMobileMenuBaseZIndex"</span>.</li>
+        <li>Left non-popup card menus unchanged.</li>
+      </ul>
+      <div class="code">book-card.component.ts
+readonly inlineMobileMenuBaseZIndex = 1500;</div>
+      <div class="code" style="margin-top:8px;">book-card.component.html (after fix)
+&lt;p-tieredmenu #mobileReadStatusMenu ... [baseZIndex]="inlineMobileMenuBaseZIndex" appendTo="body" ...&gt;&lt;/p-tieredmenu&gt;
+&lt;p-tieredmenu #mobileMenu ... [baseZIndex]="inlineMobileMenuBaseZIndex" appendTo="body" ...&gt;&lt;/p-tieredmenu&gt;</div>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Regression Coverage Added</h2>
+      <ul>
+        <li>Template-level regression assertion ensures popup-mode menus retain explicit base z-index binding.</li>
+        <li>Component-level assertion ensures base z-index remains above the popup backdrop threshold.</li>
+      </ul>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Validation Status (Current)</h2>
+      <ul>
+        <li><span class="badge ok">PASS</span> Focused BookCard suite: 18/18</li>
+        <li><span class="badge ok">PASS</span> Full frontend Vitest: 582/582</li>
+        <li><span class="badge ok">PASS</span> Frontend production build</li>
+        <li><span class="badge ok">PASS</span> Backend Gradle tests</li>
+      </ul>
+    </section>
+
+    <p class="foot">
+      This report is evidence-based from current repository sources and framework internals, with no speculative assumptions.
+    </p>
+  </div>
+</body>
+</html>
