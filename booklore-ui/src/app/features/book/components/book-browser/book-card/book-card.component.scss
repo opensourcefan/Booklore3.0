@@ -644,34 +644,27 @@
   align-items: flex-start;
 }
 
-.book-card-mobile-preview-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.22rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.book-card-mobile-preview-badges .book-type-pill-overlay,
+.book-card-mobile-preview-badges .ai-panel-overlay,
+.book-card-mobile-preview-badges .series-number-overlay,
+.book-card-mobile-preview-badges .series-items-count-overlay {
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
 }
 
-.book-card-mobile-preview-badge--primary {
-  background: var(--p-primary-color);
-  color: var(--primary-text-color-dark);
-}
-
-.book-card-mobile-preview-badge--secondary {
-  background: rgba(15, 23, 42, 0.82);
-  color: #f8fafc;
+.book-card-mobile-preview-cover-controls {
+  position: absolute;
+  left: 0.8rem;
+  right: 0.8rem;
+  bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  z-index: 2;
 }
 
 .book-card-mobile-preview-menu {
-  position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
-  z-index: 2;
+  margin-left: auto;
 }
 
 ::ng-deep .book-card-mobile-preview-menu .p-button {
@@ -685,9 +678,6 @@
 }
 
 .book-card-mobile-preview-status {
-  position: absolute;
-  left: 0.8rem;
-  bottom: 0.8rem;
   width: 2rem;
   height: 2rem;
   border-radius: 999px;

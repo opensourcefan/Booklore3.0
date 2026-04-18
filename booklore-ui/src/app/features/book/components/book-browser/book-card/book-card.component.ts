@@ -86,6 +86,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @ViewChild('checkboxElem') checkboxElem!: ElementRef<HTMLInputElement>;
   @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
   @ViewChild('menuTrigger', {read: ElementRef}) private menuTriggerRef?: ElementRef<HTMLElement>;
+  @ViewChild('mobilePreviewMenuTrigger', {read: ElementRef}) private mobilePreviewMenuTriggerRef?: ElementRef<HTMLElement>;
   @ViewChild('readStatusTrigger', {read: ElementRef}) private readStatusTriggerRef?: ElementRef<HTMLElement>;
   @ViewChild(CdkPortal) private previewPortal?: CdkPortal;
 
@@ -429,6 +430,35 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
 
     menu.toggle(this.getPopupAnchorEvent(event, this.menuTriggerRef?.nativeElement));
+
+    if (!this.additionalFilesLoaded && !this.isSubMenuLoading && this.needsAdditionalFilesData()) {
+      this.isSubMenuLoading = true;
+      this.cdr.markForCheck();
+      this.bookService.getBookByIdFromAPI(this.book.id, true).subscribe({
+        next: (book) => {
+          this.book = book;
+          this.additionalFilesLoaded = true;
+          this.isSubMenuLoading = false;
+          this.initMenu();
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isSubMenuLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
+    }
+  }
+
+  onInlineViewerMenuToggle(event: Event, menu: TieredMenu): void {
+    event.stopPropagation();
+    if (!this.menuInitialized) {
+      this.menuInitialized = true;
+      this.initMenu();
+      this.cdr.markForCheck();
+    }
+
+    menu.toggle(this.getPopupAnchorEvent(event, this.mobilePreviewMenuTriggerRef?.nativeElement));
 
     if (!this.additionalFilesLoaded && !this.isSubMenuLoading && this.needsAdditionalFilesData()) {
       this.isSubMenuLoading = true;

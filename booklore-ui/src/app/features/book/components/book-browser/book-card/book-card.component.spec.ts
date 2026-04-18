@@ -224,6 +224,7 @@ describe('BookCardComponent', () => {
 
     const overlayMenuButton = document.body.querySelector('.book-card-mobile-preview-menu') as HTMLElement;
     expect(overlayMenuButton).toBeTruthy();
+    expect(document.body.querySelector('.book-card-mobile-preview-cover-controls .book-card-mobile-preview-menu')).toBeTruthy();
 
     const titleToggle = document.body.querySelector('.book-card-mobile-preview-title-toggle') as HTMLButtonElement;
     titleToggle.click();
@@ -309,6 +310,36 @@ describe('BookCardComponent', () => {
     expect(document.body.querySelector('.book-card-mobile-preview')).toBeNull();
   });
 
+  it('reuses the original overlay badge classes inside the inline mobile preview', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+
+    component.book = createBook({
+      id: 31,
+      hasAiPanelData: true,
+      seriesCount: 3,
+      metadata: {
+        title: 'Badge Viewer Title',
+        comicMetadata: { issueNumber: '7' },
+      } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 31, fileName: 'badge-viewer-title.cbz', bookType: 'CBX', extension: 'cbz' },
+    });
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    const preview = document.body.querySelector('.book-card-mobile-preview') as HTMLElement;
+    expect(preview.querySelector('.book-type-pill-overlay.book-type-cbz')).toBeTruthy();
+    expect(preview.querySelector('.ai-panel-overlay')).toBeTruthy();
+    expect(preview.querySelector('.series-number-overlay')).toBeTruthy();
+    expect(preview.querySelector('.series-items-count-overlay')).toBeTruthy();
+    expect(preview.querySelector('.book-card-mobile-preview-badge--primary')).toBeNull();
+  });
+
   it('renders the interactive title branch without a tooltip directive and keeps the passive tooltip branch', () => {
     const templatePath = join(process.cwd(), 'src/app/features/book/components/book-browser/book-card/book-card.component.html');
     const template = readFileSync(templatePath, 'utf8');
@@ -366,6 +397,42 @@ describe('BookCardComponent', () => {
     const stopPropagation = vi.fn();
 
     component.onMenuToggle({
+      target: nestedTarget,
+      currentTarget: nestedTarget,
+      stopPropagation,
+    } as unknown as Event, { toggle } as unknown as never);
+
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(toggle).toHaveBeenCalledWith(expect.objectContaining({
+      currentTarget: trigger,
+      target: trigger,
+    }));
+  });
+
+  it('anchors the inline mobile preview menu to the popup trigger button', () => {
+    const component = createComponent();
+    component.book = createBook({ id: 32, primaryFile: { id: 1, bookId: 32, bookType: 'CBX' } });
+    component.ngOnInit();
+    (component as unknown as { user: { permissions: { canDownload: boolean; canDeleteBook: boolean } } }).user = {
+      permissions: {
+        canDownload: false,
+        canDeleteBook: false,
+      },
+    };
+
+    const triggerHost = document.createElement('span');
+    const trigger = document.createElement('button');
+    const nestedTarget = document.createElement('span');
+    triggerHost.appendChild(trigger);
+    trigger.appendChild(nestedTarget);
+    (component as unknown as { mobilePreviewMenuTriggerRef?: { nativeElement: HTMLElement } }).mobilePreviewMenuTriggerRef = {
+      nativeElement: triggerHost,
+    };
+
+    const toggle = vi.fn();
+    const stopPropagation = vi.fn();
+
+    component.onInlineViewerMenuToggle({
       target: nestedTarget,
       currentTarget: nestedTarget,
       stopPropagation,
