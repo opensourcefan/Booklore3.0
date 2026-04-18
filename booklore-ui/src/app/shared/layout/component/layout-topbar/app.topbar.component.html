@@ -18,11 +18,11 @@
         pTooltip="Folders"
         tooltipPosition="bottom">
       </p-button>
-      <p-popover #mobileDirPop [dismissable]="true" styleClass="dir-mobile-panel-popover">
+      <p-popover #mobileDirPop [dismissable]="true" styleClass="dir-mobile-panel-popover" (onShow)="onMobileDirectoryPopoverShow()" (onHide)="onMobileDirectoryPopoverHide()">
         <app-directory-mobile-panel></app-directory-mobile-panel>
       </p-popover>
     }
-    <p-popover #mobileSidebarPop [dismissable]="true" styleClass="mobile-sidebar-popover">
+    <p-popover #mobileSidebarPop [dismissable]="true" styleClass="mobile-sidebar-popover" (onShow)="onMobileSidebarPopoverShow()" (onHide)="onMobileSidebarPopoverHide()">
       <app-sidebar (click)="onMobileSidebarClick($event)"></app-sidebar>
     </p-popover>
   </div>
@@ -231,7 +231,7 @@
         outlined
         (click)="mobileMenu.toggle($event)"
       />
-      <p-popover #mobileMenu [dismissable]="true">
+      <p-popover #mobileMenu [dismissable]="true" (onShow)="onMobileOverflowPopoverShow()" (onHide)="onMobileOverflowPopoverHide()">
         <ul class="mobile-menu-list">
           @if (userService.userState$ | async; as userState) {
             @if (userState.user?.permissions?.canAccessBookdrop || userState.user?.permissions?.admin) {

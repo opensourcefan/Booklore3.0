@@ -1,10 +1,13 @@
-import {Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, DoCheck, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {TranslocoPipe} from '@jsverse/transloco';
 import {CbxHeaderService, CbxHeaderState} from './cbx-header.service';
 import {ReaderIconComponent} from '../../../ebook-reader';
 import {CommonModule} from '@angular/common';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
+
+type CbxHeaderMobileSurface = 'overflow' | 'aiMenu' | 'panelAdjust';
 
 @Component({
   selector: 'app-cbx-header',
@@ -13,9 +16,11 @@ import {CommonModule} from '@angular/common';
   templateUrl: './cbx-header.component.html',
   styleUrls: ['./cbx-header.component.scss']
 })
-export class CbxHeaderComponent implements OnInit, OnDestroy {
+export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
   private headerService = inject(CbxHeaderService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
   private destroy$ = new Subject<void>();
+  private mobileBackHandles: Partial<Record<CbxHeaderMobileSurface, MobileBackHandle>> = {};
 
   @Input() isCurrentPageBookmarked = false;
   @Input() currentPageHasNotes = false;
@@ -65,8 +70,21 @@ export class CbxHeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.releaseAllMobileBackRegistrations(false);
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  ngDoCheck(): void {
+    this.syncMobileBackSurface('overflow', this.overflowOpen, () => {
+      this.overflowOpen = false;
+    });
+    this.syncMobileBackSurface('aiMenu', this.aiMenuOpen, () => {
+      this.aiMenuOpen = false;
+    });
+    this.syncMobileBackSurface('panelAdjust', this.panelAdjustOpen, () => {
+      this.panelAdjustOpen = false;
+    });
   }
 
   onOpenSidebar(): void {
@@ -133,6 +151,28 @@ export class CbxHeaderComponent implements OnInit, OnDestroy {
     this.aiMenuOpen = false;
     this.overflowOpen = false;
     this.panelAdjustOpen = false;
+  }
+
+  private syncMobileBackSurface(surface: CbxHeaderMobileSurface, isOpen: boolean, close: () => void): void {
+    const existingHandle = this.mobileBackHandles[surface];
+
+    if (isOpen) {
+      if (!existingHandle) {
+        this.mobileBackHandles[surface] = this.mobileBackNavigation.register(close);
+      }
+      return;
+    }
+
+    existingHandle?.release();
+    delete this.mobileBackHandles[surface];
+  }
+
+  private releaseAllMobileBackRegistrations(removeHistoryEntry: boolean): void {
+    const surfaces = Object.keys(this.mobileBackHandles) as CbxHeaderMobileSurface[];
+    for (const surface of surfaces) {
+      this.mobileBackHandles[surface]?.release(removeHistoryEntry);
+      delete this.mobileBackHandles[surface];
+    }
   }
 
   onTogglePanelAdjust(event: MouseEvent): void {

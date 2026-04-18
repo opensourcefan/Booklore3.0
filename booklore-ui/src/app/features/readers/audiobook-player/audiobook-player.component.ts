@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, DoCheck, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CommonModule, Location} from '@angular/common';
 import {ActivatedRoute} from '@angular/router';
 import {FormsModule} from '@angular/forms';
@@ -22,6 +22,9 @@ import {AudiobookSessionService} from '../../../shared/service/audiobook-session
 import {PageTitleService} from '../../../shared/service/page-title.service';
 import {AuthService} from '../../../shared/service/auth.service';
 import {API_CONFIG} from '../../../core/config/api-config';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
+
+type AudiobookMobileSurface = 'trackList' | 'bookmarkList';
 
 @Component({
   selector: 'app-audiobook-player',
@@ -40,7 +43,7 @@ import {API_CONFIG} from '../../../core/config/api-config';
   templateUrl: './audiobook-player.component.html',
   styleUrls: ['./audiobook-player.component.scss']
 })
-export class AudiobookPlayerComponent implements OnInit, OnDestroy {
+export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
   @ViewChild('audioElement') audioElement!: ElementRef<HTMLAudioElement>;
 
   private destroy$ = new Subject<void>();
@@ -54,6 +57,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy {
   private audiobookSessionService = inject(AudiobookSessionService);
   private pageTitle = inject(PageTitleService);
   private readonly t = inject(TranslocoService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
 
   isLoading = true;
   audioLoading = false;
@@ -104,6 +108,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy {
 
   private seekDebounceTimeout?: ReturnType<typeof setTimeout>;
   private isSeeking = false;
+  private mobileBackHandles: Partial<Record<AudiobookMobileSurface, MobileBackHandle>> = {};
 
   ngOnInit(): void {
     this.sleepTimerOptions = [
@@ -122,7 +127,12 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngDoCheck(): void {
+    this.syncMobileBackRegistrations();
+  }
+
   ngOnDestroy(): void {
+    this.releaseAllMobileBackRegistrations(false);
     this.destroy$.next();
     this.destroy$.complete();
 
@@ -142,6 +152,37 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy {
 
     if (this.audiobookSessionService.isSessionActive()) {
       this.audiobookSessionService.endSession(Math.round(this.currentTime * 1000));
+    }
+  }
+
+  private syncMobileBackRegistrations(): void {
+    this.syncMobileBackSurface('trackList', this.showTrackList, () => {
+      this.showTrackList = false;
+    });
+    this.syncMobileBackSurface('bookmarkList', this.showBookmarkList, () => {
+      this.showBookmarkList = false;
+    });
+  }
+
+  private syncMobileBackSurface(surface: AudiobookMobileSurface, isOpen: boolean, close: () => void): void {
+    const existingHandle = this.mobileBackHandles[surface];
+
+    if (isOpen) {
+      if (!existingHandle) {
+        this.mobileBackHandles[surface] = this.mobileBackNavigation.register(close);
+      }
+      return;
+    }
+
+    existingHandle?.release();
+    delete this.mobileBackHandles[surface];
+  }
+
+  private releaseAllMobileBackRegistrations(removeHistoryEntry: boolean): void {
+    const surfaces = Object.keys(this.mobileBackHandles) as AudiobookMobileSurface[];
+    for (const surface of surfaces) {
+      this.mobileBackHandles[surface]?.release(removeHistoryEntry);
+      delete this.mobileBackHandles[surface];
     }
   }
 

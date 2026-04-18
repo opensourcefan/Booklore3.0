@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mobile Back Gesture Root Cause Report</title>
+  <style>
+    :root {
+      --bg: #0c111b;
+      --panel: #121a28;
+      --panel-2: #0f1724;
+      --text: #e8eef9;
+      --muted: #adc0de;
+      --accent: #7cc8ff;
+      --ok: #2dd4a8;
+      --warn: #f5bf4d;
+      --danger: #ff7b7b;
+      --border: #273550;
+      --code: #0a101b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: radial-gradient(1000px 700px at 12% -8%, #1b2a44, var(--bg));
+      color: var(--text);
+      line-height: 1.46;
+    }
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 26px 16px 52px;
+    }
+    .hero {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(124, 200, 255, 0.15), rgba(124, 200, 255, 0.03));
+      padding: 18px 18px 14px;
+      margin-bottom: 14px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.52rem;
+      color: #f0f6ff;
+    }
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .badges { margin-top: 10px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.77rem;
+      margin-right: 7px;
+      border: 1px solid transparent;
+    }
+    .ok { background: rgba(45, 212, 168, 0.14); color: #97f5d9; border-color: rgba(45, 212, 168, 0.45); }
+    .warn { background: rgba(245, 191, 77, 0.14); color: #ffe6a8; border-color: rgba(245, 191, 77, 0.45); }
+    .danger { background: rgba(255, 123, 123, 0.14); color: #ffc1c1; border-color: rgba(255, 123, 123, 0.45); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      padding: 14px;
+    }
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.06rem;
+      color: #dcedff;
+    }
+    h3 {
+      margin: 14px 0 8px;
+      font-size: 0.97rem;
+      color: #dcedff;
+    }
+    ul { margin: 8px 0 0 18px; }
+    li { margin: 5px 0; }
+    .code {
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.83rem;
+      color: #d9ecff;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.89rem;
+      margin-top: 8px;
+    }
+    .table th, .table td {
+      border: 1px solid var(--border);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .table th {
+      background: #13223a;
+      color: #d4e7ff;
+    }
+    .muted { color: var(--muted); }
+    .foot {
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Mobile Back Gesture: Root Cause and Evidence-Based Fix</h1>
+      <p class="sub">Date: 2026-04-18 | Scope: Mobile back/edge-swipe behavior across BookLore UI surfaces</p>
+      <div class="badges">
+        <span class="badge danger">Root Cause Confirmed</span>
+        <span class="badge ok">Fix Implemented</span>
+        <span class="badge ok">Regression Coverage Added</span>
+        <span class="badge warn">Release Tagging Follows Validation</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>User Symptom</h2>
+        <ul>
+          <li>On Android, edge-swipe/back frequently navigated away while mobile UI overlays were still open.</li>
+          <li>Users expected back to close the currently open popup/panel first, then navigate only after overlays were dismissed.</li>
+          <li>Behavior was inconsistent by feature area and reader type.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Root Cause</h2>
+        <ul>
+          <li>Back handling was fragmented into one-off implementations instead of one shared stack.</li>
+          <li>Only a small subset of mobile surfaces integrated history/popstate logic.</li>
+          <li>Most overlays had local open/close state but no back-stack registration, so route navigation won the race.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Reverse Engineering Findings</h2>
+      <table class="table">
+        <thead>
+          <tr><th>Area</th><th>Status Before Fix</th><th>Gap</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Book browser mobile filter sidebar</td><td>Had bespoke popstate/history logic</td><td>Not reusable, duplicated lifecycle complexity</td></tr>
+          <tr><td>Metadata image preview</td><td>Had local popstate close listener</td><td>Isolated implementation</td></tr>
+          <tr><td>Book card mobile preview / physical viewer</td><td>No shared back registration</td><td>Back could navigate away with viewer still open</td></tr>
+          <tr><td>EPUB/CBX readers and topbar popovers</td><td>Multiple open surfaces, no unified back-stack behavior</td><td>Inconsistent close order and user experience</td></tr>
+          <tr><td>Audiobook mobile side panels</td><td>Local toggles only</td><td>No system-back-first close guarantee</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Fix Architecture</h2>
+      <ul>
+        <li>Introduced a centralized service: <span class="muted">mobile-back-navigation.service.ts</span>.</li>
+        <li>Each mobile surface now registers a close handler when opened and releases it when closed/destroyed.</li>
+        <li>The first back event pops the most recent registered surface and closes it.</li>
+        <li>Route navigation proceeds only after the mobile UI stack is exhausted.</li>
+        <li>Legacy one-off logic in book browser was replaced with the shared path.</li>
+      </ul>
+      <div class="code">Core pattern (simplified)
+openSurface() {
+  this.mobileBackHandle = this.mobileBackNavigation.register(() => this.closeSurfaceFromBack());
+}
+
+closeSurface() {
+  this.mobileBackHandle?.release();
+  this.mobileBackHandle = null;
+}</div>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Integrated Surface Coverage</h2>
+      <ul>
+        <li>Book browser mobile right sidebar</li>
+        <li>Book card inline mobile preview</li>
+        <li>Physical books mobile viewer</li>
+        <li>EPUB reader sidebars/settings/dialog overlays</li>
+        <li>CBX reader sidebars/settings/dialog overlays</li>
+        <li>Topbar mobile popovers and menus</li>
+        <li>Audiobook mobile track/bookmark panels</li>
+      </ul>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Regression Coverage and Validation</h2>
+      <ul>
+        <li><span class="badge ok">PASS</span> Focused regressions for popstate-driven close in shared book card and physical books viewer.</li>
+        <li><span class="badge ok">PASS</span> Full frontend tests: 34 files, 584 tests.</li>
+        <li><span class="badge ok">PASS</span> Frontend production build (Angular build).</li>
+        <li><span class="badge ok">PASS</span> Backend test run (Gradle): BUILD SUCCESSFUL.</li>
+      </ul>
+      <h3>Test Environment Lesson Captured</h3>
+      <ul>
+        <li>Mobile-gated back-stack behavior depends on real window dimensions, not only component screen fields.</li>
+        <li>Regression specs now set and restore window.innerWidth/window.innerHeight to execute true mobile paths.</li>
+      </ul>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h2>Outcome</h2>
+      <p>
+        Mobile back behavior is now deterministic and app-wide: if a popup, panel, or overlay is open,
+        back closes that UI surface first. Navigation occurs only after stacked mobile surfaces are dismissed.
+      </p>
+    </section>
+
+    <p class="foot">
+      This report was produced from direct repository evidence, implemented code paths, and validated test/build runs.
+    </p>
+  </div>
+</body>
+</html>

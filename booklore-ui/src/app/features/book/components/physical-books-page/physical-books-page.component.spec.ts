@@ -3,6 +3,7 @@ import {join} from 'node:path';
 import {TestBed} from '@angular/core/testing';
 import {BehaviorSubject, of} from 'rxjs';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {Router} from '@angular/router';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookService} from '../../service/book.service';
 import {LibraryService} from '../../service/library.service';
@@ -77,6 +78,7 @@ describe('PhysicalBooksPageComponent', () => {
             showIssueNumber$: of(true),
           },
         },
+        { provide: Router, useValue: { url: '/book/physical' } },
       ],
     });
   });
@@ -106,6 +108,34 @@ describe('PhysicalBooksPageComponent', () => {
 
     expect(component.isMobileViewerOpen).toBe(false);
     expect(component.activeMobileViewerBook).toBeNull();
+  });
+
+  it('closes the mobile viewer on popstate to match Android edge-swipe back behavior', () => {
+    const component = createComponent();
+    const first = createBook({ id: 66, metadata: { bookId: 66, title: 'Popstate Viewer' } as Book['metadata'] });
+    const originalWidth = window.innerWidth;
+    const originalHeight = window.innerHeight;
+
+    Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: 390 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, writable: true, value: 844 });
+
+    try {
+      component.screenWidth = 390;
+      component.screenHeight = 844;
+      component.toggleMobileBookViewer([
+        { key: 'library:1', libraryId: 1, libraryName: 'Main', books: [first] },
+      ], first);
+
+      expect(component.isMobileViewerOpen).toBe(true);
+
+      window.dispatchEvent(new PopStateEvent('popstate'));
+
+      expect(component.isMobileViewerOpen).toBe(false);
+      expect(component.activeMobileViewerBook).toBeNull();
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: originalWidth });
+      Object.defineProperty(window, 'innerHeight', { configurable: true, writable: true, value: originalHeight });
+    }
   });
 
   it('opens the mobile viewer on compact landscape phone-sized viewports', () => {

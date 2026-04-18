@@ -13,6 +13,7 @@ import {LocalStorageService} from '../../../../shared/service/local-storage.serv
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {ReadStatusHelper} from '../../helpers/read-status.helper';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 
 interface PhysicalBookGroup {
   key: string;
@@ -51,6 +52,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   private readonly t = inject(TranslocoService);
   private readonly urlHelper = inject(UrlHelperService);
   private readonly readStatusHelper = inject(ReadStatusHelper);
+  private readonly mobileBackNavigation = inject(MobileBackNavigationService);
   private readonly destroy$ = new Subject<void>();
 
   readonly bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
@@ -65,6 +67,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   private viewerTouchStartX = 0;
   private viewerTouchStartY = 0;
   private viewerTouchMoved = false;
+  private mobileViewerBackHandle: MobileBackHandle | null = null;
 
   readonly vm$: Observable<PhysicalBooksViewModel> = combineLatest([
     this.bookService.bookState$,
@@ -145,6 +148,8 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.mobileViewerBackHandle?.release(false);
+    this.mobileViewerBackHandle = null;
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -236,12 +241,19 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
 
     this.mobileViewerBooks = orderedBooks;
     this.mobileViewerIndex = nextIndex;
+    if (!this.mobileViewerBackHandle) {
+      this.mobileViewerBackHandle = this.mobileBackNavigation.register(() => {
+        this.closeMobileBookViewer();
+      });
+    }
     this.resetViewerTouch();
   }
 
   closeMobileBookViewer(): void {
     this.mobileViewerBooks = [];
     this.mobileViewerIndex = -1;
+    this.mobileViewerBackHandle?.release();
+    this.mobileViewerBackHandle = null;
     this.resetViewerTouch();
   }
 

@@ -40,6 +40,7 @@ import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from '../../../.
 import {WriteProgressPayload, WriteProgressService} from '../../../../shared/service/write-progress.service';
 import {SidecarBackupProgressService} from '../../../service/sidecar-backup-progress.service';
 import {MetadataTaskLog, MetadataTaskService} from '../../../../features/book/service/metadata-task';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../service/mobile-back-navigation.service';
 
 @Component({
   selector: 'app-topbar',
@@ -82,6 +83,8 @@ export class AppTopBarComponent implements OnDestroy {
   @ViewChild('topbarmenu') menu!: ElementRef;
   @ViewChild('statsMenu') statsMenu: Menu | undefined;
   @ViewChild('mobileSidebarPop') mobileSidebarPop: Popover | undefined;
+  @ViewChild('mobileDirPop') mobileDirPop: Popover | undefined;
+  @ViewChild('mobileMenu') mobileMenuPop: Popover | undefined;
 
   isMenuVisible = true;
   mobileSearchVisible = false;
@@ -117,6 +120,9 @@ export class AppTopBarComponent implements OnDestroy {
   private latestTasks: Record<string, MetadataBatchProgressNotification> = {};
   private latestHasPendingFiles = false;
   private latestNotificationSeverity?: Severity;
+  private mobileSidebarBackHandle: MobileBackHandle | null = null;
+  private mobileDirectoryBackHandle: MobileBackHandle | null = null;
+  private mobileOverflowBackHandle: MobileBackHandle | null = null;
 
   activeLang = '';
   langMenuItems: MenuItem[] = [];
@@ -138,6 +144,7 @@ export class AppTopBarComponent implements OnDestroy {
   private writeProgressService = inject(WriteProgressService);
   private sidecarBackupProgressService = inject(SidecarBackupProgressService);
   private metadataTaskService = inject(MetadataTaskService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
 
   constructor() {
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -287,7 +294,7 @@ export class AppTopBarComponent implements OnDestroy {
       )
       .subscribe((event) => {
         this.mobileSearchVisible = false;
-        this.mobileSidebarPop?.hide();
+        this.closeMobileTopbarPopoversForNavigation();
         this.updateMobileBookFilterTriggerVisibility((event as NavigationStart).url);
       });
 
@@ -295,6 +302,13 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.mobileSidebarBackHandle?.release(false);
+    this.mobileSidebarBackHandle = null;
+    this.mobileDirectoryBackHandle?.release(false);
+    this.mobileDirectoryBackHandle = null;
+    this.mobileOverflowBackHandle?.release(false);
+    this.mobileOverflowBackHandle = null;
+
     if (this.ref) this.ref.close();
     clearTimeout(this.eventTimer);
     clearTimeout(this.flushDismissTimer);
@@ -342,6 +356,64 @@ export class AppTopBarComponent implements OnDestroy {
     if (selectedRow && !inlineAction) {
       this.mobileSidebarPop?.hide();
     }
+  }
+
+  onMobileSidebarPopoverShow(): void {
+    if (this.mobileSidebarBackHandle) {
+      return;
+    }
+
+    this.mobileSidebarBackHandle = this.mobileBackNavigation.register(() => {
+      this.mobileSidebarPop?.hide();
+    });
+  }
+
+  onMobileSidebarPopoverHide(): void {
+    this.mobileSidebarBackHandle?.release();
+    this.mobileSidebarBackHandle = null;
+  }
+
+  onMobileDirectoryPopoverShow(): void {
+    if (this.mobileDirectoryBackHandle) {
+      return;
+    }
+
+    this.mobileDirectoryBackHandle = this.mobileBackNavigation.register(() => {
+      this.mobileDirPop?.hide();
+    });
+  }
+
+  onMobileDirectoryPopoverHide(): void {
+    this.mobileDirectoryBackHandle?.release();
+    this.mobileDirectoryBackHandle = null;
+  }
+
+  onMobileOverflowPopoverShow(): void {
+    if (this.mobileOverflowBackHandle) {
+      return;
+    }
+
+    this.mobileOverflowBackHandle = this.mobileBackNavigation.register(() => {
+      this.mobileMenuPop?.hide();
+    });
+  }
+
+  onMobileOverflowPopoverHide(): void {
+    this.mobileOverflowBackHandle?.release();
+    this.mobileOverflowBackHandle = null;
+  }
+
+  private closeMobileTopbarPopoversForNavigation(): void {
+    this.mobileSidebarBackHandle?.release(false);
+    this.mobileSidebarBackHandle = null;
+    this.mobileDirectoryBackHandle?.release(false);
+    this.mobileDirectoryBackHandle = null;
+    this.mobileOverflowBackHandle?.release(false);
+    this.mobileOverflowBackHandle = null;
+
+    this.mobileSidebarPop?.hide();
+    this.mobileDirPop?.hide();
+    this.mobileMenuPop?.hide();
   }
 
 

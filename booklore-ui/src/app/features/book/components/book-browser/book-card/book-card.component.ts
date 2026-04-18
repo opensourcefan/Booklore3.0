@@ -30,6 +30,7 @@ import {BookNavigationService} from '../../../service/book-navigation.service';
 import {BookCardOverlayPreferenceService} from '../book-card-overlay-preference.service';
 import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
 import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
 
 @Component({
   selector: 'app-book-card',
@@ -53,6 +54,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   } | null = null;
   private previewPortalHost: HTMLElement | null = null;
   private previewPortalOutlet: DomPortalOutlet | null = null;
+  private inlineMobilePreviewBackHandle: MobileBackHandle | null = null;
+  private readonly mobileBackNavigation = inject(MobileBackNavigationService);
 
   @Output() bookClicked = new EventEmitter<Book>();
   @Output() bookHoverEnded = new EventEmitter<number>();
@@ -1327,6 +1330,11 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
     this.inlineMobileViewerBooks = orderedBooks;
     this.inlineMobileViewerIndex = nextIndex;
+    if (!this.inlineMobilePreviewBackHandle) {
+      this.inlineMobilePreviewBackHandle = this.mobileBackNavigation.register(() => {
+        this.closeInlineMobilePreview();
+      });
+    }
     this.resetInlineViewerTouch();
     this.lockBackgroundScroll();
     this.attachPreviewPortal();
@@ -1341,6 +1349,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.hideActiveTieredMenu();
     this.inlineMobileViewerBooks = [];
     this.inlineMobileViewerIndex = -1;
+    this.inlineMobilePreviewBackHandle?.release();
+    this.inlineMobilePreviewBackHandle = null;
     this.resetInlineViewerTouch();
     this.unlockBackgroundScroll();
     this.detachPreviewPortal();
@@ -1545,6 +1555,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   ngOnDestroy(): void {
+    this.inlineMobilePreviewBackHandle?.release(false);
+    this.inlineMobilePreviewBackHandle = null;
     this.hideActiveTieredMenu();
     this.detachPreviewPortal();
     this.unlockBackgroundScroll();

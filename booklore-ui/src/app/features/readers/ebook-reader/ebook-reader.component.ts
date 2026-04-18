@@ -1,4 +1,4 @@
-import {Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, CUSTOM_ELEMENTS_SCHEMA, DoCheck, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Observable, of, Subject, throwError} from 'rxjs';
 import {catchError, map, switchMap, takeUntil, tap} from 'rxjs/operators';
@@ -32,6 +32,16 @@ import {TextSelectionAction, TextSelectionPopupComponent} from './shared/selecti
 import {NoteDialogData, NoteDialogResult, ReaderNoteDialogComponent} from './dialogs/note-dialog.component';
 import {EbookShortcutsHelpComponent} from './dialogs/shortcuts-help.component';
 import {TranslocoPipe} from '@jsverse/transloco';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
+
+type EbookMobileSurface =
+  | 'sidebar'
+  | 'leftSidebar'
+  | 'quickSettings'
+  | 'controls'
+  | 'metadata'
+  | 'noteDialog'
+  | 'shortcutsHelp';
 
 @Component({
   selector: 'app-ebook-reader',
@@ -69,7 +79,7 @@ import {TranslocoPipe} from '@jsverse/transloco';
   templateUrl: './ebook-reader.component.html',
   styleUrls: ['./ebook-reader.component.scss']
 })
-export class EbookReaderComponent implements OnInit, OnDestroy {
+export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
   private destroy$ = new Subject<void>();
   private loaderService = inject(ReaderLoaderService);
   private styleService = inject(ReaderStyleService);
@@ -82,6 +92,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
   private selectionService = inject(ReaderSelectionService);
   private headerService = inject(ReaderHeaderService);
   private noteService = inject(ReaderNoteService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
 
   public sidebarService = inject(ReaderSidebarService);
   public leftSidebarService = inject(ReaderLeftSidebarService);
@@ -96,6 +107,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
   private visibilityManager!: ReaderHeaderFooterVisibilityManager;
   private relocateTimeout: ReturnType<typeof setTimeout> | null = null;
   private sectionFractionsTimeout: ReturnType<typeof setTimeout> | null = null;
+  private mobileBackHandles: Partial<Record<EbookMobileSurface, MobileBackHandle>> = {};
 
   isLoading = true;
   showQuickSettings = false;
@@ -186,7 +198,12 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
     ).subscribe();
   }
 
+  ngDoCheck(): void {
+    this.syncMobileBackRegistrations();
+  }
+
   ngOnDestroy(): void {
+    this.releaseAllMobileBackRegistrations(false);
     this.destroy$.next();
     this.destroy$.complete();
     this.viewManager.destroy();
@@ -203,6 +220,48 @@ export class EbookReaderComponent implements OnInit, OnDestroy {
     if (this._fileUrl) {
       URL.revokeObjectURL(this._fileUrl);
       this._fileUrl = null;
+    }
+  }
+
+  private syncMobileBackRegistrations(): void {
+    this.syncMobileBackSurface('sidebar', this.sidebarService.isOpen, () => this.sidebarService.close());
+    this.syncMobileBackSurface('leftSidebar', this.leftSidebarService.isOpen, () => this.leftSidebarService.close());
+    this.syncMobileBackSurface('quickSettings', this.showQuickSettings, () => {
+      this.showQuickSettings = false;
+    });
+    this.syncMobileBackSurface('controls', this.showControls, () => {
+      this.showControls = false;
+    });
+    this.syncMobileBackSurface('metadata', this.showMetadata, () => {
+      this.showMetadata = false;
+    });
+    this.syncMobileBackSurface('noteDialog', this.showNoteDialog, () => {
+      this.noteService.closeDialog();
+    });
+    this.syncMobileBackSurface('shortcutsHelp', this.showShortcutsHelp, () => {
+      this.showShortcutsHelp = false;
+    });
+  }
+
+  private syncMobileBackSurface(surface: EbookMobileSurface, isOpen: boolean, close: () => void): void {
+    const existingHandle = this.mobileBackHandles[surface];
+
+    if (isOpen) {
+      if (!existingHandle) {
+        this.mobileBackHandles[surface] = this.mobileBackNavigation.register(close);
+      }
+      return;
+    }
+
+    existingHandle?.release();
+    delete this.mobileBackHandles[surface];
+  }
+
+  private releaseAllMobileBackRegistrations(removeHistoryEntry: boolean): void {
+    const surfaces = Object.keys(this.mobileBackHandles) as EbookMobileSurface[];
+    for (const surface of surfaces) {
+      this.mobileBackHandles[surface]?.release(removeHistoryEntry);
+      delete this.mobileBackHandles[surface];
     }
   }
 

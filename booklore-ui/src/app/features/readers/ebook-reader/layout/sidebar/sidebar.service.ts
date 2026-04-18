@@ -83,6 +83,10 @@ export class ReaderSidebarService {
     return this._activeTab.value;
   }
 
+  get isOpen(): boolean {
+    return this._isOpen.value;
+  }
+
   initialize(bookId: number, book: Book, destroy$: Subject<void>): void {
     this.bookId = bookId;
     this.destroy$ = destroy$;

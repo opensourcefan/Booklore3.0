@@ -65,6 +65,7 @@ import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {DirectoryFilterService} from '../../service/directory-filter.service';
 import {DirectoryPanelService} from '../../service/directory-panel.service';
 import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -134,6 +135,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private directoryFilterService = inject(DirectoryFilterService);
   readonly dirPanelService = inject(DirectoryPanelService);
   private mediaTypePreferences = inject(MediaTypePreferencesService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
 
   bookState$: Observable<BookState> | undefined;
   entity$: Observable<Library | Shelf | MagicShelf | null> | undefined;
@@ -220,29 +222,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('mobileRightSidebarPop')
   mobileRightSidebarPop: Popover | undefined;
   private isMobileRightSidebarOpen = false;
-  private mobileRightSidebarHistoryArmed = false;
-  private mobileRightSidebarClosingFromPopstate = false;
-  private ignoreNextMobileSidebarPopstate = false;
+  private mobileRightSidebarBackHandle: MobileBackHandle | null = null;
 
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
-  }
-
-  @HostListener('window:popstate')
-  onWindowPopState(): void {
-    if (this.ignoreNextMobileSidebarPopstate) {
-      this.ignoreNextMobileSidebarPopstate = false;
-      return;
-    }
-
-    if (!this.isMobileRightSidebarOpen && !this.mobileRightSidebarHistoryArmed) {
-      return;
-    }
-
-    this.mobileRightSidebarClosingFromPopstate = true;
-    this.mobileRightSidebarHistoryArmed = false;
-    this.mobileRightSidebarPop?.hide();
   }
 
   get isMobile(): boolean {
@@ -533,14 +517,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (event.navigationTrigger === 'popstate' && (this.isMobileRightSidebarOpen || this.mobileRightSidebarHistoryArmed)) {
-      this.mobileRightSidebarClosingFromPopstate = true;
-      this.mobileRightSidebarHistoryArmed = false;
-      this.mobileRightSidebarPop?.hide();
-      return;
-    }
-
-    if (this.isMobileRightSidebarOpen || this.mobileRightSidebarHistoryArmed) {
+    if (event.navigationTrigger !== 'popstate' && this.isMobileRightSidebarOpen) {
       this.forceCloseMobileRightSidebar(false);
     }
   }
@@ -849,27 +826,19 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onMobileRightSidebarShow(): void {
     this.isMobileRightSidebarOpen = true;
-    if (!this.isMobile || this.mobileRightSidebarHistoryArmed) {
+    if (this.mobileRightSidebarBackHandle) {
       return;
     }
 
-    window.history.pushState(
-      {...window.history.state, bookBrowserMobileSidebar: true},
-      '',
-      this.router.url
-    );
-    this.mobileRightSidebarHistoryArmed = true;
+    this.mobileRightSidebarBackHandle = this.mobileBackNavigation.register(() => {
+      this.mobileRightSidebarPop?.hide();
+    });
   }
 
   onMobileRightSidebarHide(): void {
     this.isMobileRightSidebarOpen = false;
-
-    if (this.mobileRightSidebarClosingFromPopstate) {
-      this.mobileRightSidebarClosingFromPopstate = false;
-      return;
-    }
-
-    this.disarmMobileRightSidebarHistory(true);
+    this.mobileRightSidebarBackHandle?.release();
+    this.mobileRightSidebarBackHandle = null;
   }
 
   private toggleMobileRightSidebar(event: MouseEvent): void {
@@ -885,29 +854,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.mobileRightSidebarPop?.hide();
     }
 
-    this.disarmMobileRightSidebarHistory(removeHistoryEntry);
+    this.mobileRightSidebarBackHandle?.release(removeHistoryEntry);
+    this.mobileRightSidebarBackHandle = null;
     this.isMobileRightSidebarOpen = false;
-    this.mobileRightSidebarClosingFromPopstate = false;
-  }
-
-  private disarmMobileRightSidebarHistory(removeHistoryEntry: boolean): void {
-    if (!this.mobileRightSidebarHistoryArmed) {
-      return;
-    }
-
-    this.mobileRightSidebarHistoryArmed = false;
-
-    if (removeHistoryEntry) {
-      this.ignoreNextMobileSidebarPopstate = true;
-      window.history.back();
-      return;
-    }
-
-    const currentState = window.history.state;
-    if (currentState && currentState.bookBrowserMobileSidebar) {
-      const {bookBrowserMobileSidebar, ...rest} = currentState;
-      window.history.replaceState(rest, '', this.router.url);
-    }
   }
 
   updateScale(): void {

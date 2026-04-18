@@ -1,10 +1,11 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, DoCheck, inject, OnDestroy, OnInit} from '@angular/core';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {ReaderHeaderService} from './header.service';
 import {ReaderIconComponent} from '../../shared/icon.component';
 import {Router} from '@angular/router';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
 
 @Component({
   selector: 'app-reader-header',
@@ -13,10 +14,12 @@ import {Router} from '@angular/router';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
-export class ReaderHeaderComponent implements OnInit, OnDestroy {
+export class ReaderHeaderComponent implements OnInit, OnDestroy, DoCheck {
   private headerService = inject(ReaderHeaderService);
   private router = inject(Router);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
   private destroy$ = new Subject<void>();
+  private overflowBackHandle: MobileBackHandle | null = null;
 
   isVisible = false;
   isCurrentCfiBookmarked = false;
@@ -46,8 +49,24 @@ export class ReaderHeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.overflowBackHandle?.release(false);
+    this.overflowBackHandle = null;
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  ngDoCheck(): void {
+    if (this.overflowOpen) {
+      if (!this.overflowBackHandle) {
+        this.overflowBackHandle = this.mobileBackNavigation.register(() => {
+          this.overflowOpen = false;
+        });
+      }
+      return;
+    }
+
+    this.overflowBackHandle?.release();
+    this.overflowBackHandle = null;
   }
 
   onShowChapters(): void {

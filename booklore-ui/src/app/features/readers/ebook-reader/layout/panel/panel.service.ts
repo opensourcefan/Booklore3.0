@@ -36,6 +36,10 @@ export class ReaderLeftSidebarService {
   private _editNote = new Subject<BookNoteV2>();
   editNote$ = this._editNote.asObservable();
 
+  get isOpen(): boolean {
+    return this._isOpen.value;
+  }
+
   initialize(bookId: number, destroy$: Subject<void>): void {
     this.bookId = bookId;
     this.destroy$ = destroy$;

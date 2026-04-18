@@ -283,6 +283,47 @@ describe('BookCardComponent', () => {
     expect(document.documentElement.style.overflow).toBe('');
   });
 
+  it('closes the inline mobile preview on popstate for Android back gesture support', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    const originalWidth = window.innerWidth;
+    const originalHeight = window.innerHeight;
+
+    Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: 915 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, writable: true, value: 412 });
+
+    try {
+      component.book = createBook({
+        id: 29,
+        metadata: {
+          title: 'Back Gesture Preview Title',
+        } as Book['metadata'],
+        primaryFile: { id: 1, bookId: 29, fileName: 'back-gesture-preview-title.cbz', bookType: 'CBX' },
+      });
+      component.screenWidth = 915;
+      component.screenHeight = 412;
+      fixture.detectChanges();
+
+      const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+      titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      fixture.detectChanges();
+
+      expect(component.isInlineMobilePreviewOpen).toBe(true);
+      expect(document.body.querySelector('.book-card-mobile-preview')).toBeTruthy();
+
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      fixture.detectChanges();
+
+      expect(component.isInlineMobilePreviewOpen).toBe(false);
+      expect(document.body.querySelector('.book-card-mobile-preview')).toBeNull();
+      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: originalWidth });
+      Object.defineProperty(window, 'innerHeight', { configurable: true, writable: true, value: originalHeight });
+    }
+  });
+
   it('supports horizontal swipe navigation inside the inline mobile preview', () => {
     const fixture = createFixture();
     const component = fixture.componentInstance;

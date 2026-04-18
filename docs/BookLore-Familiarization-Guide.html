@@ -155,7 +155,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.78 &mdash; April 15, 2026<br>
+    Version 1.1.92 &mdash; April 18, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -330,7 +330,7 @@
   <li><strong>Use a dedicated safe path before reconcile</strong> &mdash; The maintenance dialog now points routine discovery work back to <strong>Scan for New Files</strong> and requires an explicit acknowledgement before <strong>Reconcile Library</strong> can run</li>
   <li><strong>Use a roomier mobile directory picker</strong> &mdash; On phones and other compact screens, the directory picker now fits the dialog width correctly without slight sideways overflow, keeps search and selection controls in compact rows, and leaves more vertical space for the actual folder list</li>
   <li><strong>Use the mobile sidebar grab handles</strong> &mdash; The left and right sidebar width bars now stay visibly available on touch devices as always-on touch handles so you can see where to grab, drag horizontally to resize, and drag vertically to help scroll long side panels</li>
-  <li><strong>Use the phone back gesture to close the mobile filter sidebar first</strong> &mdash; When the book-browser filter sidebar is open on mobile, the first back gesture now closes that sidebar before the app navigates away underneath it</li>
+  <li><strong>Use the phone back gesture to close the active mobile panel or popup first</strong> &mdash; On mobile, the first back gesture now dismisses the topmost open surface (for example filter sidebars, topbar popovers, book preview viewers, and reader overlays) before BookLore navigates away underneath it</li>
   <li><strong>See preparation feedback for large imports</strong> &mdash; When creating a library with many files, the dialog now shows an in-between working state before the full progress overlay appears</li>
   <li><strong>Check library health</strong> &mdash; Verify the folder is accessible and working</li>
   <li><strong>Delete libraries</strong> &mdash; Remove a library from BookLore without deleting the original source files on disk</li>
@@ -540,6 +540,10 @@
 <h2 id="sec10">10. Reading Books</h2>
 
 <p>BookLore includes built-in readers for every supported format. Each reader is tailored to its format.</p>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> On mobile, the system back gesture or back button now closes whichever reader panel, menu, or dialog is currently open (such as sidebars, quick settings, overflow menus, and preview dialogs) before leaving the reader screen.
+</div>
 
 <!-- 10a: PDF -->
 <h3 id="sec10a">a) PDF Reader</h3>
@@ -1312,6 +1316,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-18</td><td>1.1.92</td><td>Documented the mobile back-navigation overhaul so Android/iOS system back now closes the topmost open mobile surface first across browsing and reading flows (including book-browser filters, shared book-card and physical-book mobile viewers, topbar popovers, EPUB/CBX reader sidebars and quick overlays, and audiobook mobile panels) before route-level navigation proceeds underneath those UI layers</td></tr>
   <tr><td>2026-04-17</td><td>1.1.91</td><td>Recorded the reverse-engineered cleanup for the repeated mobile title-tap preview regression: the fallback full-window preview behavior for physical assets is now centralized in the shared <strong>Book Card</strong> component for mobile interaction mode when no parent title-activation handler is wired, which keeps Home/dashboard and browser grid cards consistent with the dedicated Physical Books flow instead of regressing to tooltip-only taps; tests now verify both the external handler path and the shared fallback preview path</td></tr>
   <tr><td>2026-04-17</td><td>1.1.90</td><td>Recorded the final <strong>Physical Books</strong> mobile preview activation repair for high-resolution phones (including compact landscape phone viewports): title-tap interactivity now uses a dedicated mobile interaction mode based on viewport shape rather than raw width alone, so the full-window asset preview reliably opens with title/subtitle on phone landscape resolutions where previous fixes incorrectly fell back to desktop tooltip behavior; regression coverage now includes compact landscape phone dimensions plus desktop exclusion checks</td></tr>
   <tr><td>2026-04-17</td><td>1.1.89</td><td>Recorded the root-cause repair for the lingering <strong>Physical Books</strong> mobile title-tap regression: interactive mobile title areas in the shared book card now render through a dedicated branch with <strong>no tooltip directive attached at all</strong>, so tapping the title no longer shows the small text tooltip overlay and instead goes directly through the mobile viewer activation path; regression coverage was strengthened with a real click-path spec and a template guard that keeps the tooltip directive out of the interactive title branch</td></tr>

@@ -58,6 +58,10 @@ export class CbxSidebarService {
   editNote$ = this._editNote.asObservable();
   bookmarksChanged$ = this._bookmarksChanged.asObservable();
 
+  get isOpen(): boolean {
+    return this._isOpen.value;
+  }
+
   initialize(bookId: number, book: Book, destroy$: Subject<void>, altBookType?: string): void {
     this.bookId = bookId;
     this.altBookType = altBookType;

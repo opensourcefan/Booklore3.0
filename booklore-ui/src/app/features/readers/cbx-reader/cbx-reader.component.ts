@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, DoCheck, ElementRef, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {forkJoin, Subject} from 'rxjs';
@@ -31,6 +31,7 @@ import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {ComicPanelFlowService} from '../../../shared/service/comic-panel-flow.service';
 import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 
 interface CbxPanelRegion {
   x: number;
@@ -44,6 +45,8 @@ interface CbxPagePanelData {
   pageNumber: number;
   panels: CbxPanelRegion[];
 }
+
+type CbxMobileSurface = 'sidebar' | 'quickSettings' | 'noteDialog' | 'shortcutsHelp';
 
 
 @Component({
@@ -70,7 +73,7 @@ interface CbxPagePanelData {
   templateUrl: './cbx-reader.component.html',
   styleUrl: './cbx-reader.component.scss'
 })
-export class CbxReaderComponent implements OnInit, OnDestroy {
+export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private destroy$ = new Subject<void>();
   private progressSaveSubject$ = new Subject<void>();
 
@@ -203,6 +206,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   private appSettingsService = inject(AppSettingsService);
   private comicPanelFlowService = inject(ComicPanelFlowService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
 
   protected readonly CbxScrollMode = CbxScrollMode;
   protected readonly CbxFitMode = CbxFitMode;
@@ -212,6 +216,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
 
   private static readonly TYPE_CBX = 'CBX';
   private static readonly SETTING_GLOBAL = 'Global';
+  private mobileBackHandles: Partial<Record<CbxMobileSurface, MobileBackHandle>> = {};
 
   ngOnInit() {
     this.visibilityManager = new ReaderHeaderFooterVisibilityManager(window.innerHeight);
@@ -359,6 +364,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
         }
       });
     });
+  }
+
+  ngDoCheck(): void {
+    this.syncMobileBackRegistrations();
   }
 
   private subscribeToHeaderEvents(): void {
@@ -2145,6 +2154,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.releaseAllMobileBackRegistrations(false);
     this.clearReaderTimeout(this.panelTouchHintTimeout);
     this.clearReaderTimeout(this.mobilePanelOverviewTimeout);
     this.clearReaderTimeout(this.touchChromeTimeout);
@@ -2152,6 +2162,35 @@ export class CbxReaderComponent implements OnInit, OnDestroy {
     this.endReadingSession();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private syncMobileBackRegistrations(): void {
+    this.syncMobileBackSurface('sidebar', this.sidebarService.isOpen, () => this.sidebarService.close());
+    this.syncMobileBackSurface('quickSettings', this.showQuickSettings, () => this.quickSettingsService.close());
+    this.syncMobileBackSurface('noteDialog', this.showNoteDialog, () => this.onNoteCancel());
+    this.syncMobileBackSurface('shortcutsHelp', this.showShortcutsHelp, () => this.onShortcutsHelpClose());
+  }
+
+  private syncMobileBackSurface(surface: CbxMobileSurface, isOpen: boolean, close: () => void): void {
+    const existingHandle = this.mobileBackHandles[surface];
+
+    if (isOpen) {
+      if (!existingHandle) {
+        this.mobileBackHandles[surface] = this.mobileBackNavigation.register(close);
+      }
+      return;
+    }
+
+    existingHandle?.release();
+    delete this.mobileBackHandles[surface];
+  }
+
+  private releaseAllMobileBackRegistrations(removeHistoryEntry: boolean): void {
+    const surfaces = Object.keys(this.mobileBackHandles) as CbxMobileSurface[];
+    for (const surface of surfaces) {
+      this.mobileBackHandles[surface]?.release(removeHistoryEntry);
+      delete this.mobileBackHandles[surface];
+    }
   }
 
   private handleMobilePanelTap(): boolean {
