@@ -451,6 +451,35 @@ describe('BookCardComponent', () => {
     expect(bookDialogHelperMock.openShelfAssignerDialog).toHaveBeenCalledWith(secondBook, null);
   });
 
+  it('closes an open card read status menu before entering the inline mobile preview', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    const statusSpy = vi.spyOn(component, 'toggleReadStatusMenu');
+
+    component.book = createBook({
+      id: 40,
+      metadata: { title: 'Card Status To Preview Title' } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 40, fileName: 'card-status-to-preview-title.cbz', bookType: 'CBX' },
+    });
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const statusButton = fixture.nativeElement.querySelector('.read-status-indicator') as HTMLDivElement;
+    statusButton.click();
+    fixture.detectChanges();
+
+    const readStatusMenu = statusSpy.mock.calls[0]?.[1] as { hide: () => void };
+    const hideSpy = vi.spyOn(readStatusMenu, 'hide');
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.click();
+    fixture.detectChanges();
+
+    expect(hideSpy).toHaveBeenCalledOnce();
+    expect(document.body.querySelector('.book-card-mobile-preview')).toBeTruthy();
+  });
+
   it('binds the inline mobile preview read status button click from the DOM', () => {
     const fixture = createFixture();
     const component = fixture.componentInstance;
@@ -512,6 +541,71 @@ describe('BookCardComponent', () => {
     component.readStatusMenuItems[0].command?.({} as never);
 
     expect(bookServiceMock.updateBookReadStatus).toHaveBeenCalledWith(39, expect.any(String));
+  });
+
+  it('closes an open inline preview read status menu before opening the inline preview action menu', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    const statusSpy = vi.spyOn(component, 'toggleInlineViewerReadStatusMenu');
+
+    component.book = createBook({
+      id: 41,
+      metadata: { title: 'Preview Menu Handoff Title' } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 41, fileName: 'preview-menu-handoff-title.cbz', bookType: 'CBX' },
+    });
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.click();
+    fixture.detectChanges();
+
+    const statusButton = document.body.querySelector('.book-card-mobile-preview-status-button') as HTMLButtonElement;
+    statusButton.click();
+    fixture.detectChanges();
+
+    const readStatusMenu = statusSpy.mock.calls[0]?.[1] as { hide: () => void };
+    const hideSpy = vi.spyOn(readStatusMenu, 'hide');
+
+    const menuButton = document.body.querySelector('.book-card-mobile-preview-menu-button') as HTMLButtonElement;
+    menuButton.click();
+    fixture.detectChanges();
+
+    expect(hideSpy).toHaveBeenCalledOnce();
+  });
+
+  it('closes an open inline preview action menu when the preview is dismissed from the title', () => {
+    const fixture = createFixture();
+    const component = fixture.componentInstance;
+    const menuSpy = vi.spyOn(component, 'onInlineViewerMenuToggle');
+
+    component.book = createBook({
+      id: 42,
+      metadata: { title: 'Preview Close Title' } as Book['metadata'],
+      primaryFile: { id: 1, bookId: 42, fileName: 'preview-close-title.cbz', bookType: 'CBX' },
+    });
+    component.screenWidth = 915;
+    component.screenHeight = 412;
+    fixture.detectChanges();
+
+    const titleContainer = fixture.nativeElement.querySelector('.book-title-container') as HTMLDivElement;
+    titleContainer.click();
+    fixture.detectChanges();
+
+    const menuButton = document.body.querySelector('.book-card-mobile-preview-menu-button') as HTMLButtonElement;
+    menuButton.click();
+    fixture.detectChanges();
+
+    const actionMenu = menuSpy.mock.calls[0]?.[1] as { hide: () => void };
+    const hideSpy = vi.spyOn(actionMenu, 'hide');
+
+    const titleToggle = document.body.querySelector('.book-card-mobile-preview-title-toggle') as HTMLButtonElement;
+    titleToggle.click();
+    fixture.detectChanges();
+
+    expect(hideSpy).toHaveBeenCalled();
+    expect(document.body.querySelector('.book-card-mobile-preview')).toBeNull();
   });
 
   it('renders the interactive title branch without a tooltip directive and keeps the passive tooltip branch', () => {

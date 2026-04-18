@@ -88,7 +88,7 @@
       </p-button>
     </div>
 
-    <p-tieredmenu #readStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body"></p-tieredmenu>
+    <p-tieredmenu #readStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body" (onHide)="onReadStatusMenuHide(readStatusMenu)"></p-tieredmenu>
     <p-tieredmenu #menu [model]="items" [popup]="true" appendTo="body" (onShow)="onMenuShow()" (onHide)="onMenuHide()"></p-tieredmenu>
 
     @if (hasProgress) {
@@ -219,7 +219,7 @@
           {{ inlineMobileViewerIndex + 1 }} / {{ inlineMobileViewerBooks.length }}
         </div>
 
-        <p-tieredmenu #mobileReadStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body"></p-tieredmenu>
+        <p-tieredmenu #mobileReadStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body" (onHide)="onReadStatusMenuHide(mobileReadStatusMenu)"></p-tieredmenu>
         <p-tieredmenu #mobileMenu [model]="items" [popup]="true" appendTo="body" (onShow)="onMenuShow()" (onHide)="onMenuHide()"></p-tieredmenu>
       </section>
     </div>

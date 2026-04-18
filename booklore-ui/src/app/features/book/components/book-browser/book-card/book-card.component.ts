@@ -139,6 +139,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private allowFileDeletion = false;
   private menuInitialized = false;
   private menuContextBook: Book | null = null;
+  private activeTieredMenu: TieredMenu | null = null;
 
   showBookTypePill = true;
   showAiPanelDataOverlay = true;
@@ -380,7 +381,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (this.readStatusMenuItems.length === 0) {
       this.buildReadStatusMenuItems(menuBook);
     }
+    const wasVisible = menu.visible;
+    this.hideActiveTieredMenu(menu);
     menu.toggle(this.getPopupAnchorEvent(event, this.readStatusTriggerRef?.nativeElement));
+    this.syncActiveTieredMenu(menu, wasVisible);
   }
 
   ngAfterViewInit(): void {
@@ -422,7 +426,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onMenuHide(): void {
+    this.activeTieredMenu = null;
     this.menuToggled.emit(false);
+  }
+
+  onReadStatusMenuHide(menu: TieredMenu): void {
+    if (this.activeTieredMenu === menu) {
+      this.activeTieredMenu = null;
+    }
   }
 
   onMenuToggle(event: Event, menu: TieredMenu): void {
@@ -434,7 +445,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.cdr.markForCheck();
     }
 
+    const wasVisible = menu.visible;
+    this.hideActiveTieredMenu(menu);
     menu.toggle(this.getPopupAnchorEvent(event, this.menuTriggerRef?.nativeElement));
+    this.syncActiveTieredMenu(menu, wasVisible);
 
     if (!this.additionalFilesLoaded && !this.isSubMenuLoading && this.needsAdditionalFilesData(menuBook)) {
       this.isSubMenuLoading = true;
@@ -467,7 +481,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       this.cdr.markForCheck();
     }
 
+    const wasVisible = menu.visible;
+    this.hideActiveTieredMenu(menu);
     menu.toggle(event);
+    this.syncActiveTieredMenu(menu, wasVisible);
 
     if (!this.additionalFilesLoaded && !this.isSubMenuLoading && this.needsAdditionalFilesData(menuBook)) {
       this.isSubMenuLoading = true;
@@ -497,7 +514,34 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (this.readStatusMenuItems.length === 0) {
       this.buildReadStatusMenuItems(menuBook);
     }
+    const wasVisible = menu.visible;
+    this.hideActiveTieredMenu(menu);
     menu.toggle(event);
+    this.syncActiveTieredMenu(menu, wasVisible);
+  }
+
+  private hideActiveTieredMenu(exceptMenu?: TieredMenu): void {
+    if (!this.activeTieredMenu || this.activeTieredMenu === exceptMenu) {
+      return;
+    }
+
+    const activeMenu = this.activeTieredMenu;
+    this.activeTieredMenu = null;
+
+    if (!activeMenu.visible || typeof activeMenu.hide !== 'function') {
+      return;
+    }
+
+    activeMenu.hide();
+  }
+
+  private syncActiveTieredMenu(menu: TieredMenu, wasVisible: boolean | undefined): void {
+    if (typeof menu.hide !== 'function') {
+      this.activeTieredMenu = null;
+      return;
+    }
+
+    this.activeTieredMenu = wasVisible ? null : menu;
   }
 
   private needsAdditionalFilesData(book: Book): boolean {
@@ -1270,6 +1314,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return;
     }
 
+    this.hideActiveTieredMenu();
+
     const orderedBooks = this.resolveInlineViewerBooks();
     const nextIndex = orderedBooks.findIndex(candidate => candidate.id === book.id);
 
@@ -1290,6 +1336,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return;
     }
 
+    this.hideActiveTieredMenu();
     this.inlineMobileViewerBooks = [];
     this.inlineMobileViewerIndex = -1;
     this.resetInlineViewerTouch();
@@ -1406,6 +1453,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return;
     }
 
+    this.hideActiveTieredMenu();
     this.inlineMobileViewerIndex -= 1;
     this.cdr.markForCheck();
   }
@@ -1415,6 +1463,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       return;
     }
 
+    this.hideActiveTieredMenu();
     this.inlineMobileViewerIndex += 1;
     this.cdr.markForCheck();
   }
@@ -1489,10 +1538,12 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.previewPortalOutlet?.detach();
     this.previewPortalOutlet?.dispose();
     this.previewPortalOutlet = null;
+    this.previewPortalHost?.remove();
     this.previewPortalHost = null;
   }
 
   ngOnDestroy(): void {
+    this.hideActiveTieredMenu();
     this.detachPreviewPortal();
     this.unlockBackgroundScroll();
     this.destroy$.next();
