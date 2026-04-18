@@ -575,9 +575,9 @@
 
 .book-card-mobile-preview-backdrop {
   --mobile-preview-top-inset: 4.75rem;
-  --mobile-preview-horizontal-padding: 0.7rem;
-  --mobile-preview-top-padding: 0.15rem;
-  --mobile-preview-bottom-padding: calc(env(safe-area-inset-bottom, 0px) + 0.4rem);
+  --mobile-preview-horizontal-padding: 0.45rem;
+  --mobile-preview-top-padding: 0;
+  --mobile-preview-bottom-padding: calc(env(safe-area-inset-bottom, 0px) + 0.18rem);
   position: fixed;
   inset: var(--mobile-preview-top-inset) 0 0;
   z-index: 1200;
@@ -594,7 +594,7 @@
 }
 
 .book-card-mobile-preview {
-  width: min(100%, 36rem);
+  width: min(100%, 37rem);
   height: calc(100dvh - var(--mobile-preview-top-inset) - var(--mobile-preview-top-padding) - var(--mobile-preview-bottom-padding));
   max-height: none;
   display: flex;
@@ -769,9 +769,9 @@
 @media (max-width: 767px) {
   .book-card-mobile-preview-backdrop {
     --mobile-preview-top-inset: 4.25rem;
-    --mobile-preview-horizontal-padding: 0.45rem;
+    --mobile-preview-horizontal-padding: 0.28rem;
     --mobile-preview-top-padding: 0;
-    --mobile-preview-bottom-padding: calc(env(safe-area-inset-bottom, 0px) + 0.35rem);
+    --mobile-preview-bottom-padding: calc(env(safe-area-inset-bottom, 0px) + 0.12rem);
   }
 
   .book-card-mobile-preview {
