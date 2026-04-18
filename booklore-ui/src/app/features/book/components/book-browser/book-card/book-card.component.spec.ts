@@ -3,7 +3,7 @@ import {join} from 'node:path';
 import {SimpleChange} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslocoService} from '@jsverse/transloco';
@@ -31,6 +31,14 @@ function createBook(overrides: Partial<Book>): Book {
 }
 
 describe('BookCardComponent', () => {
+  afterEach(() => {
+    document.querySelectorAll('.book-card-mobile-preview-portal-host').forEach(host => host.remove());
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    document.documentElement.style.overflow = '';
+    document.documentElement.style.touchAction = '';
+  });
+
   beforeEach(async () => {
     document.body.style.overflow = '';
     document.body.style.touchAction = '';
@@ -205,22 +213,23 @@ describe('BookCardComponent', () => {
     titleContainer.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     fixture.detectChanges();
 
-    const preview = fixture.nativeElement.querySelector('.book-card-mobile-preview') as HTMLElement;
+    const preview = document.body.querySelector('.book-card-mobile-preview') as HTMLElement;
     expect(preview).toBeTruthy();
     expect(preview.textContent).toContain('Landscape Mobile Title');
     expect(preview.textContent).toContain('Issue One');
     expect(preview.textContent).toContain('1 / 1');
+    expect(fixture.nativeElement.querySelector('.book-card-mobile-preview')).toBeNull();
     expect(document.body.style.overflow).toBe('hidden');
     expect(document.documentElement.style.overflow).toBe('hidden');
 
-    const overlayMenuButton = fixture.nativeElement.querySelector('.book-card-mobile-preview-menu') as HTMLElement;
+    const overlayMenuButton = document.body.querySelector('.book-card-mobile-preview-menu') as HTMLElement;
     expect(overlayMenuButton).toBeTruthy();
 
-    const titleToggle = fixture.nativeElement.querySelector('.book-card-mobile-preview-title-toggle') as HTMLButtonElement;
+    const titleToggle = document.body.querySelector('.book-card-mobile-preview-title-toggle') as HTMLButtonElement;
     titleToggle.click();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.book-card-mobile-preview')).toBeNull();
+    expect(document.body.querySelector('.book-card-mobile-preview')).toBeNull();
     expect(document.body.style.overflow).toBe('');
     expect(document.documentElement.style.overflow).toBe('');
   });
@@ -256,7 +265,7 @@ describe('BookCardComponent', () => {
     fixture.detectChanges();
 
     expect(component.inlineMobileViewerIndex).toBe(0);
-    expect((fixture.nativeElement.querySelector('.book-card-mobile-preview') as HTMLElement).textContent).toContain('First Swipe Title');
+    expect((document.body.querySelector('.book-card-mobile-preview') as HTMLElement).textContent).toContain('First Swipe Title');
 
     component.onInlineViewerTouchStart(createTouchEvent(320, 220));
     component.onInlineViewerTouchMove(createTouchEvent(240, 220));
@@ -264,7 +273,7 @@ describe('BookCardComponent', () => {
     fixture.detectChanges();
 
     expect(component.inlineMobileViewerIndex).toBe(1);
-    expect((fixture.nativeElement.querySelector('.book-card-mobile-preview') as HTMLElement).textContent).toContain('Second Swipe Title');
+    expect((document.body.querySelector('.book-card-mobile-preview') as HTMLElement).textContent).toContain('Second Swipe Title');
 
     component.onInlineViewerTouchStart(createTouchEvent(220, 220));
     component.onInlineViewerTouchMove(createTouchEvent(320, 220));
@@ -272,7 +281,7 @@ describe('BookCardComponent', () => {
     fixture.detectChanges();
 
     expect(component.inlineMobileViewerIndex).toBe(0);
-    expect((fixture.nativeElement.querySelector('.book-card-mobile-preview') as HTMLElement).textContent).toContain('First Swipe Title');
+    expect((document.body.querySelector('.book-card-mobile-preview') as HTMLElement).textContent).toContain('First Swipe Title');
   });
 
   it('does not open the inline mobile preview outside mobile interaction mode', () => {
@@ -297,7 +306,7 @@ describe('BookCardComponent', () => {
     fixture.detectChanges();
 
     expect(component.isInlineMobilePreviewOpen).toBe(false);
-    expect(fixture.nativeElement.querySelector('.book-card-mobile-preview')).toBeNull();
+    expect(document.body.querySelector('.book-card-mobile-preview')).toBeNull();
   });
 
   it('renders the interactive title branch without a tooltip directive and keeps the passive tooltip branch', () => {

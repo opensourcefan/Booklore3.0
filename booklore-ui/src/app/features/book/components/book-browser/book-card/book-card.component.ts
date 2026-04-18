@@ -1,4 +1,5 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {AfterViewInit, ApplicationRef, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, inject, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {CdkPortal, DomPortalOutlet, PortalModule} from '@angular/cdk/portal';
 import {TooltipModule} from "primeng/tooltip";
 import {AdditionalFile, Book, BookType, ReadStatus} from '../../../model/book.model';
 import {Button} from 'primeng/button';
@@ -34,7 +35,7 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
   selector: 'app-book-card',
   templateUrl: './book-card.component.html',
   styleUrls: ['./book-card.component.scss'],
-  imports: [Button, MenuModule, CheckboxModule, FormsModule, NgClass, TieredMenu, ProgressBar, TooltipModule, RouterLink, TranslocoPipe],
+  imports: [Button, MenuModule, CheckboxModule, FormsModule, NgClass, TieredMenu, ProgressBar, TooltipModule, RouterLink, TranslocoPipe, PortalModule],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -48,6 +49,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     htmlOverflow: string;
     htmlTouchAction: string;
   } | null = null;
+  private previewPortalHost: HTMLElement | null = null;
+  private previewPortalOutlet: DomPortalOutlet | null = null;
 
   @Output() bookClicked = new EventEmitter<Book>();
   @Output() bookHoverEnded = new EventEmitter<number>();
@@ -84,6 +87,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   @ViewChild('coverImg') private coverImgRef?: ElementRef<HTMLImageElement>;
   @ViewChild('menuTrigger', {read: ElementRef}) private menuTriggerRef?: ElementRef<HTMLElement>;
   @ViewChild('readStatusTrigger', {read: ElementRef}) private readStatusTriggerRef?: ElementRef<HTMLElement>;
+  @ViewChild(CdkPortal) private previewPortal?: CdkPortal;
 
   items: MenuItem[] | undefined;
   readStatusMenuItems: MenuItem[] = [];
@@ -106,6 +110,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private cdr = inject(ChangeDetectorRef);
   private appSettingsService = inject(AppSettingsService);
   private readonly t = inject(TranslocoService);
+  private readonly appRef = inject(ApplicationRef);
+  private readonly injector = inject(Injector);
 
   protected _progressPercentage: number | null = null;
   protected _koProgressPercentage: number | null = null;
@@ -1205,6 +1211,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.inlineMobileViewerIndex = nextIndex;
     this.resetInlineViewerTouch();
     this.lockBackgroundScroll();
+    this.attachPreviewPortal();
     this.cdr.markForCheck();
   }
 
@@ -1217,6 +1224,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.inlineMobileViewerIndex = -1;
     this.resetInlineViewerTouch();
     this.unlockBackgroundScroll();
+    this.detachPreviewPortal();
     this.cdr.markForCheck();
   }
 
@@ -1389,7 +1397,33 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.bodyScrollLockState = null;
   }
 
+  private attachPreviewPortal(): void {
+    if (typeof document === 'undefined' || !this.previewPortal || this.previewPortalOutlet?.hasAttached()) {
+      return;
+    }
+
+    if (!this.previewPortalHost) {
+      this.previewPortalHost = document.createElement('div');
+      this.previewPortalHost.className = 'book-card-mobile-preview-portal-host';
+      document.body.appendChild(this.previewPortalHost);
+    }
+
+    if (!this.previewPortalOutlet) {
+      this.previewPortalOutlet = new DomPortalOutlet(this.previewPortalHost, this.appRef, this.injector);
+    }
+
+    this.previewPortalOutlet.attach(this.previewPortal);
+  }
+
+  private detachPreviewPortal(): void {
+    this.previewPortalOutlet?.detach();
+    this.previewPortalOutlet?.dispose();
+    this.previewPortalOutlet = null;
+    this.previewPortalHost = null;
+  }
+
   ngOnDestroy(): void {
+    this.detachPreviewPortal();
     this.unlockBackgroundScroll();
     this.destroy$.next();
     this.destroy$.complete();
