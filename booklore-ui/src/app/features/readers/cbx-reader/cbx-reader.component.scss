@@ -183,12 +183,12 @@
 
       .joystick-center-dot {
         position: absolute;
-        width: 8px;
-        height: 8px;
+        width: 4px;
+        height: 4px;
         border-radius: 50%;
-        background: #e8f7ff;
-        border: 1px solid rgba(70, 150, 200, 0.7);
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+        background: #ffffff;
+        border: 1px solid #0a0a0f;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.95), 0 0 0 2px rgba(0, 0, 0, 0.88), 0 0 8px rgba(255, 255, 255, 0.75);
         pointer-events: none;
       }
     }
@@ -281,12 +281,13 @@
 
         &.manual-pan {
           .page-image {
-            transform: translate(var(--manual-pan-x, 0px), var(--manual-pan-y, 0px));
+            transform: translate(var(--manual-pan-x, 0px), var(--manual-pan-y, 0px)) scale(var(--manual-page-zoom, 1));
+            transform-origin: 50% 50%;
             transition: transform 0.05s linear;
           }
 
           &:hover .page-image {
-            transform: translate(var(--manual-pan-x, 0px), var(--manual-pan-y, 0px));
+            transform: translate(var(--manual-pan-x, 0px), var(--manual-pan-y, 0px)) scale(var(--manual-page-zoom, 1));
           }
         }
       }

@@ -252,6 +252,101 @@ describe('CbxReaderComponent mobile panel interactions', () => {
     expect(preventDefault).toHaveBeenCalled();
   });
 
+  it('supports two-finger pinch zoom and pan outside panel mode', () => {
+    const containerElement = {
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 390, height: 700}),
+      querySelector: () => ({
+        getBoundingClientRect: () => ({left: 0, top: 0, width: 700, height: 1300})
+      })
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: unknown } }).imageContainerRef = {nativeElement: containerElement};
+
+    component.panelModeEnabled = false;
+    component.activePanelIndex = -1;
+
+    component.onTouchStart({
+      target: {closest: (selector: string) => selector === '.image-container'},
+      touches: [
+        {screenX: 100, screenY: 160, clientX: 100, clientY: 160},
+        {screenX: 200, screenY: 160, clientX: 200, clientY: 160}
+      ]
+    } as unknown as TouchEvent);
+
+    const preventDefault = vi.fn();
+    component.onTouchMove({
+      touches: [
+        {screenX: 90, screenY: 145, clientX: 90, clientY: 145},
+        {screenX: 245, screenY: 210, clientX: 245, clientY: 210}
+      ],
+      preventDefault
+    } as unknown as TouchEvent);
+
+    expect(component.manualPageZoom).toBeGreaterThan(1);
+    expect(component.manualPagePanX).not.toBe(0);
+    expect(component.manualPagePanY).not.toBe(0);
+    expect(preventDefault).toHaveBeenCalled();
+  });
+
+  it('keeps swipe navigation working in non-panel mode', () => {
+    component.panelModeEnabled = false;
+    component.activePanelIndex = -1;
+    component.currentPage = 0;
+
+    component.onTouchStart({
+      target: {closest: (selector: string) => selector === '.image-container'},
+      touches: [{screenX: 260, screenY: 220}]
+    } as unknown as TouchEvent);
+
+    component.onTouchMove({
+      touches: [{screenX: 130, screenY: 225}]
+    } as unknown as TouchEvent);
+
+    component.onTouchEnd({
+      changedTouches: [{screenX: 120, screenY: 225}]
+    } as unknown as TouchEvent);
+
+    expect(component.currentPage).toBe(1);
+  });
+
+  it('does not trigger swipe navigation at the end of a two-finger gesture', () => {
+    component.panelModeEnabled = false;
+    component.activePanelIndex = -1;
+    component.currentPage = 0;
+
+    component.onTouchStart({
+      target: {closest: (selector: string) => selector === '.image-container'},
+      touches: [
+        {screenX: 120, screenY: 200, clientX: 120, clientY: 200},
+        {screenX: 220, screenY: 200, clientX: 220, clientY: 200}
+      ]
+    } as unknown as TouchEvent);
+
+    component.onTouchMove({
+      touches: [
+        {screenX: 105, screenY: 185, clientX: 105, clientY: 185},
+        {screenX: 255, screenY: 230, clientX: 255, clientY: 230}
+      ],
+      preventDefault: vi.fn()
+    } as unknown as TouchEvent);
+
+    component.onTouchEnd({
+      changedTouches: [{screenX: 80, screenY: 180}]
+    } as unknown as TouchEvent);
+
+    expect(component.currentPage).toBe(0);
+  });
+
+  it('does not force mobile chrome when header/footer are pinned', () => {
+    const headerService = TestBed.inject(CbxHeaderService) as unknown as { setForceVisible: ReturnType<typeof vi.fn> };
+    const footerService = TestBed.inject(CbxFooterService) as unknown as { setForceVisible: ReturnType<typeof vi.fn> };
+
+    component.isHeaderFooterPinned = true;
+    component.onImageClick();
+
+    expect(headerService.setForceVisible).not.toHaveBeenCalled();
+    expect(footerService.setForceVisible).not.toHaveBeenCalled();
+  });
+
   it('persists joystick enabled state in device storage', () => {
     const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
 

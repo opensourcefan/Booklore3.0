@@ -55,6 +55,7 @@ interface CbxJoystickDevicePreferences {
 }
 
 type CbxMobileSurface = 'sidebar' | 'quickSettings' | 'noteDialog' | 'shortcutsHelp';
+type CbxPinchGestureMode = 'panel' | 'manual';
 
 
 @Component({
@@ -88,6 +89,12 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private static readonly JOYSTICK_MARGIN_PX = 26;
   private static readonly JOYSTICK_EDGE_OVERSCAN_RATIO = 0.24;
   private static readonly JOYSTICK_EDGE_OVERSCAN_MAX_PX = 120;
+  private static readonly JOYSTICK_BASE_SPEED = 0.6;
+  private static readonly JOYSTICK_MAX_SPEED_DELTA = 4.6;
+  private static readonly JOYSTICK_INPUT_SMOOTHING = 0.2;
+  private static readonly JOYSTICK_RELEASE_SMOOTHING = 0.38;
+  private static readonly MANUAL_PAGE_MIN_ZOOM = 1;
+  private static readonly MANUAL_PAGE_MAX_ZOOM = 3.5;
 
   private destroy$ = new Subject<void>();
   private progressSaveSubject$ = new Subject<void>();
@@ -119,6 +126,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private pinchStartPanY = 0;
   private pinchStartCenterX = 0;
   private pinchStartCenterY = 0;
+  private pinchGestureMode: CbxPinchGestureMode | null = null;
 
   currentBook: Book | null = null;
   nextBookInSeries: Book | null = null;
@@ -203,8 +211,11 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   joystickActive = false;
   joystickKnobX = 0;
   joystickKnobY = 0;
+  manualPageZoom = 1;
   manualPagePanX = 0;
   manualPagePanY = 0;
+  private joystickVelocityX = 0;
+  private joystickVelocityY = 0;
   private joystickPointerId: number | null = null;
   private joystickAnimationFrame: number | null = null;
 
@@ -877,14 +888,14 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onFitModeChange(mode: CbxFitMode): void {
     this.fitMode = mode;
-    this.resetManualPagePan();
+    this.resetManualPageViewport();
     this.quickSettingsService.setFitMode(mode);
     this.updateViewerSetting();
   }
 
   onScrollModeChange(mode: CbxScrollMode): void {
     this.scrollMode = mode;
-    this.resetManualPagePan();
+    this.resetManualPageViewport();
     this.quickSettingsService.setScrollMode(mode);
     this.updateViewerSetting();
 
@@ -902,7 +913,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   onPageViewModeChange(mode: CbxPageViewMode): void {
     if (mode === CbxPageViewMode.TWO_PAGE && this.isPhonePortrait()) return;
     this.pageViewMode = mode;
-    this.resetManualPagePan();
+    this.resetManualPageViewport();
     this.quickSettingsService.setPageViewMode(mode);
     this.alignCurrentPageToParity();
     this.updateCurrentImageUrls();
@@ -914,7 +925,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onPageSpreadChange(spread: CbxPageSpread): void {
     this.pageSpread = spread;
-    this.resetManualPagePan();
+    this.resetManualPageViewport();
     this.quickSettingsService.setPageSpread(spread);
     this.alignCurrentPageToParity();
     this.updateCurrentImageUrls();
@@ -1554,14 +1565,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       this.touchEndY = this.touchStartY;
     }
 
-    if (event.touches.length === 2 && this.preparePanelGestureInteraction()) {
-      const [firstTouch, secondTouch] = Array.from(event.touches);
-      this.pinchStartDistance = this.getTouchDistance(firstTouch, secondTouch);
-      this.pinchStartZoom = this.panelManualZoom;
-      this.pinchStartPanX = this.panelPanX;
-      this.pinchStartPanY = this.panelPanY;
-      this.pinchStartCenterX = (firstTouch.clientX + secondTouch.clientX) / 2;
-      this.pinchStartCenterY = (firstTouch.clientY + secondTouch.clientY) / 2;
+    if (event.touches.length === 2) {
+      this.beginPinchGesture(event);
     }
   }
 
@@ -1579,17 +1584,43 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       }
     }
 
-    if (event.touches.length === 2 && this.preparePanelGestureInteraction()) {
+    if (event.touches.length !== 2) {
+      this.pinchGestureMode = null;
+      this.pinchStartDistance = 0;
+      return;
+    }
+
+    if (!this.pinchGestureMode) {
+      this.beginPinchGesture(event);
+    }
+
+    if (!this.pinchGestureMode) {
+      return;
+    }
+
+    if (event.touches.length === 2) {
       const [firstTouch, secondTouch] = Array.from(event.touches);
       const distance = this.getTouchDistance(firstTouch, secondTouch);
       const centerX = (firstTouch.clientX + secondTouch.clientX) / 2;
       const centerY = (firstTouch.clientY + secondTouch.clientY) / 2;
 
       if (this.pinchStartDistance > 0) {
-        this.panelManualZoom = this.clamp(this.pinchStartZoom * (distance / this.pinchStartDistance), 0.6, 3.5);
-        this.panelPanX = this.pinchStartPanX + (centerX - this.pinchStartCenterX);
-        this.panelPanY = this.pinchStartPanY + (centerY - this.pinchStartCenterY);
-        this.applyPanelPanBounds();
+        if (this.pinchGestureMode === 'panel') {
+          this.panelManualZoom = this.clamp(this.pinchStartZoom * (distance / this.pinchStartDistance), 0.6, 3.5);
+          this.panelPanX = this.pinchStartPanX + (centerX - this.pinchStartCenterX);
+          this.panelPanY = this.pinchStartPanY + (centerY - this.pinchStartCenterY);
+          this.applyPanelPanBounds();
+        } else {
+          this.manualPageZoom = this.clamp(
+            this.pinchStartZoom * (distance / this.pinchStartDistance),
+            CbxReaderComponent.MANUAL_PAGE_MIN_ZOOM,
+            CbxReaderComponent.MANUAL_PAGE_MAX_ZOOM
+          );
+          this.manualPagePanX = this.pinchStartPanX + (centerX - this.pinchStartCenterX);
+          this.manualPagePanY = this.pinchStartPanY + (centerY - this.pinchStartCenterY);
+          this.applyManualPagePanBounds();
+        }
+
         this.touchIsMultiGesture = true;
         this.touchMoved = true;
         event.preventDefault();
@@ -1604,6 +1635,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     this.isReaderTouchActive = false;
+    this.pinchGestureMode = null;
+    this.pinchStartDistance = 0;
 
     if (event.changedTouches.length > 0) {
       this.touchEndX = event.changedTouches[0].screenX;
@@ -1734,7 +1767,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   get isManualPanVisualActive(): boolean {
     return this.scrollMode === CbxScrollMode.PAGINATED
       && !this.isPanelBoxingActive
-      && (Math.abs(this.manualPagePanX) > 0.5 || Math.abs(this.manualPagePanY) > 0.5 || this.joystickActive);
+      && (Math.abs(this.manualPagePanX) > 0.5 || Math.abs(this.manualPagePanY) > 0.5 || this.manualPageZoom > 1.001 || this.joystickActive);
   }
 
   get joystickWrapperStyles(): Record<string, string> {
@@ -1767,7 +1800,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     if (!panel) {
       return {
         '--manual-pan-x': `${this.manualPagePanX}px`,
-        '--manual-pan-y': `${this.manualPagePanY}px`
+        '--manual-pan-y': `${this.manualPagePanY}px`,
+        '--manual-page-zoom': `${this.manualPageZoom}`
       };
     }
 
@@ -1785,7 +1819,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       '--panel-pan-y': `${this.panelPanY}px`,
       '--panel-scale': `${scale}`,
       '--manual-pan-x': `${this.manualPagePanX}px`,
-      '--manual-pan-y': `${this.manualPagePanY}px`
+      '--manual-pan-y': `${this.manualPagePanY}px`,
+      '--manual-page-zoom': `${this.manualPageZoom}`
     };
   }
 
@@ -1807,7 +1842,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   togglePanelMode(): void {
     this.panelModeEnabled = !this.panelModeEnabled;
     this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
-    this.resetManualPagePan();
+    this.resetManualPageViewport();
     this.resetPanelPan();
     this.ensurePanelModeCompatibility();
     this.headerService.updateState({isPanelModeEnabled: this.isPanelModeActive});
@@ -2067,6 +2102,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.joystickActive = false;
     this.joystickKnobX = 0;
     this.joystickKnobY = 0;
+    this.joystickVelocityX = 0;
+    this.joystickVelocityY = 0;
   }
 
   private updateJoystickKnobFromPointer(event: PointerEvent): void {
@@ -2117,25 +2154,43 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
   private applyJoystickMotionStep(): void {
     const magnitude = Math.hypot(this.joystickKnobX, this.joystickKnobY);
-    if (magnitude <= CbxReaderComponent.JOYSTICK_DEADZONE_PX) {
+
+    let targetVelocityX = 0;
+    let targetVelocityY = 0;
+    let smoothing = CbxReaderComponent.JOYSTICK_RELEASE_SMOOTHING;
+
+    if (magnitude > CbxReaderComponent.JOYSTICK_DEADZONE_PX) {
+      const radius = CbxReaderComponent.JOYSTICK_RADIUS_PX;
+      const normalized = this.clamp(magnitude / radius, 0, 1);
+      const smoothStep = normalized * normalized * (3 - (2 * normalized));
+      const speed = (
+        CbxReaderComponent.JOYSTICK_BASE_SPEED
+        + (smoothStep * CbxReaderComponent.JOYSTICK_MAX_SPEED_DELTA)
+      ) * this.getJoystickSensitivityMultiplier();
+
+      targetVelocityX = (this.joystickKnobX / magnitude) * speed;
+      targetVelocityY = (this.joystickKnobY / magnitude) * speed;
+      smoothing = CbxReaderComponent.JOYSTICK_INPUT_SMOOTHING;
+    }
+
+    this.joystickVelocityX += (targetVelocityX - this.joystickVelocityX) * smoothing;
+    this.joystickVelocityY += (targetVelocityY - this.joystickVelocityY) * smoothing;
+
+    if (Math.abs(this.joystickVelocityX) < 0.02 && Math.abs(this.joystickVelocityY) < 0.02) {
+      this.joystickVelocityX = 0;
+      this.joystickVelocityY = 0;
       return;
     }
 
-    const radius = CbxReaderComponent.JOYSTICK_RADIUS_PX;
-    const normalized = this.clamp(magnitude / radius, 0, 1);
-    const speed = (1.2 + (Math.pow(normalized, 1.35) * 9.2)) * this.getJoystickSensitivityMultiplier();
-    const velocityX = (this.joystickKnobX / magnitude) * speed;
-    const velocityY = (this.joystickKnobY / magnitude) * speed;
-
-    this.applyJoystickPanDelta(velocityX, velocityY);
+    this.applyJoystickPanDelta(this.joystickVelocityX, this.joystickVelocityY);
   }
 
   private getJoystickSensitivityMultiplier(): number {
     switch (this.joystickSensitivity) {
       case 'SLOW':
-        return 0.75;
+        return 0.6;
       case 'FAST':
-        return 1.5;
+        return 2;
       default:
         return 1;
     }
@@ -2179,6 +2234,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     if (this.scrollMode !== CbxScrollMode.PAGINATED || this.isPanelBoxingActive) {
       this.manualPagePanX = 0;
       this.manualPagePanY = 0;
+      this.manualPageZoom = 1;
       return;
     }
 
@@ -2219,6 +2275,48 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private resetManualPagePan(): void {
     this.manualPagePanX = 0;
     this.manualPagePanY = 0;
+  }
+
+  private resetManualPageViewport(): void {
+    this.manualPageZoom = 1;
+    this.resetManualPagePan();
+  }
+
+  private beginPinchGesture(event: TouchEvent): void {
+    if (event.touches.length !== 2) {
+      return;
+    }
+
+    const [firstTouch, secondTouch] = Array.from(event.touches);
+    this.pinchStartDistance = this.getTouchDistance(firstTouch, secondTouch);
+    this.pinchStartCenterX = (firstTouch.clientX + secondTouch.clientX) / 2;
+    this.pinchStartCenterY = (firstTouch.clientY + secondTouch.clientY) / 2;
+
+    if (this.preparePanelGestureInteraction()) {
+      this.pinchGestureMode = 'panel';
+      this.pinchStartZoom = this.panelManualZoom;
+      this.pinchStartPanX = this.panelPanX;
+      this.pinchStartPanY = this.panelPanY;
+      return;
+    }
+
+    if (this.prepareManualGestureInteraction()) {
+      this.pinchGestureMode = 'manual';
+      this.pinchStartZoom = this.manualPageZoom;
+      this.pinchStartPanX = this.manualPagePanX;
+      this.pinchStartPanY = this.manualPagePanY;
+      return;
+    }
+
+    this.pinchGestureMode = null;
+    this.pinchStartDistance = 0;
+  }
+
+  private prepareManualGestureInteraction(): boolean {
+    return this.scrollMode === CbxScrollMode.PAGINATED
+      && !this.isPanelBoxingActive
+      && !this.isTwoPageView
+      && this.currentImageUrls.length === 1;
   }
 
   private loadJoystickDevicePreferences(): void {
@@ -2726,7 +2824,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private resetPanelViewport(): void {
-    this.resetManualPagePan();
+    this.resetManualPageViewport();
     this.resetPanelPan();
     this.panelManualZoom = 1;
   }
