@@ -100,6 +100,23 @@ $transition-normal: 200ms ease;
   text-align: right;
 }
 
+.joystick-opacity-control {
+  min-width: 168px;
+  gap: 8px;
+}
+
+.joystick-opacity-slider {
+  width: 120px;
+  accent-color: $active-color;
+}
+
+.joystick-opacity-value {
+  min-width: 36px;
+  text-align: right;
+  color: $text-secondary;
+  font-size: 11px;
+}
+
 // Toggle switch
 .switch {
   position: relative;

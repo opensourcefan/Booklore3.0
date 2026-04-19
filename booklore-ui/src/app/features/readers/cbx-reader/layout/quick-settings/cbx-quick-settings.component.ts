@@ -41,7 +41,10 @@ export class CbxQuickSettingsComponent implements OnInit, OnDestroy {
     magnifierLensSize: CbxMagnifierLensSize.MEDIUM,
     joystickEnabled: false,
     joystickSensitivity: 'NORMAL',
-    joystickPositionLocked: true
+    joystickPositionLocked: true,
+    joystickRecenterOnTouch: true,
+    joystickIndicatorVisible: true,
+    joystickIndicatorOpacity: 0.88
   };
 
   protected readonly CbxFitMode = CbxFitMode;
@@ -190,6 +193,24 @@ export class CbxQuickSettingsComponent implements OnInit, OnDestroy {
 
   onJoystickPositionLockToggle(locked: boolean): void {
     this.quickSettingsService.emitJoystickPositionLockedChange(locked);
+  }
+
+  onJoystickRecenterOnTouchToggle(enabled: boolean): void {
+    this.quickSettingsService.emitJoystickRecenterOnTouchChange(enabled);
+  }
+
+  onJoystickIndicatorVisibleToggle(visible: boolean): void {
+    this.quickSettingsService.emitJoystickIndicatorVisibleChange(visible);
+  }
+
+  onJoystickIndicatorOpacityInput(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    if (!target) {
+      return;
+    }
+
+    const nextOpacity = Number(target.value) / 100;
+    this.quickSettingsService.emitJoystickIndicatorOpacityChange(nextOpacity);
   }
 
   onOverlayClick(): void {

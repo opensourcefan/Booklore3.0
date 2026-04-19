@@ -125,6 +125,9 @@ describe('CbxReaderComponent mobile panel interactions', () => {
             joystickEnabledChange$: of(),
             joystickSensitivityChange$: of(),
             joystickPositionLockedChange$: of(),
+            joystickRecenterOnTouchChange$: of(),
+            joystickIndicatorVisibleChange$: of(),
+            joystickIndicatorOpacityChange$: of(),
             updateState: vi.fn(),
             setFitMode: vi.fn(),
             setScrollMode: vi.fn(),
@@ -138,6 +141,9 @@ describe('CbxReaderComponent mobile panel interactions', () => {
             setJoystickEnabled: vi.fn(),
             setJoystickSensitivity: vi.fn(),
             setJoystickPositionLocked: vi.fn(),
+            setJoystickRecenterOnTouch: vi.fn(),
+            setJoystickIndicatorVisible: vi.fn(),
+            setJoystickIndicatorOpacity: vi.fn(),
             close: vi.fn(),
             show: vi.fn(),
             isVisible: false
@@ -399,6 +405,101 @@ describe('CbxReaderComponent mobile panel interactions', () => {
       stopPropagation: vi.fn(),
       currentTarget: pointerTarget
     } as unknown as PointerEvent);
+  });
+
+  it('recenters joystick touch within the current quadrant when enabled', () => {
+    component.joystickEnabled = true;
+    component.joystickPositionLocked = true;
+    component.joystickRecenterOnTouch = true;
+    component.joystickAnchorX = 0.86;
+    component.joystickAnchorY = 0.78;
+
+    const containerElement = {
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 400, height: 800}),
+      querySelector: () => null
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: unknown } }).imageContainerRef = {nativeElement: containerElement};
+
+    const pointerTarget = {
+      setPointerCapture: vi.fn(),
+      releasePointerCapture: vi.fn()
+    };
+
+    component.onJoystickPointerDown({
+      pointerId: 22,
+      clientX: 80,
+      clientY: 720,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+      currentTarget: pointerTarget
+    } as unknown as PointerEvent);
+
+    expect(component.joystickAnchorX).toBeGreaterThanOrEqual(0.5);
+    expect(component.joystickAnchorY).toBeGreaterThanOrEqual(0.5);
+
+    component.onJoystickPointerUp({
+      pointerId: 22,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+      currentTarget: pointerTarget
+    } as unknown as PointerEvent);
+  });
+
+  it('dampens joystick movement immediately after touch down', () => {
+    const containerElement = {
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 390, height: 700}),
+      querySelector: () => ({
+        getBoundingClientRect: () => ({left: 0, top: 0, width: 700, height: 1300})
+      })
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: unknown } }).imageContainerRef = {nativeElement: containerElement};
+
+    component.panelModeEnabled = false;
+    component.activePanelIndex = -1;
+    component.scrollMode = CbxScrollMode.PAGINATED;
+
+    component.joystickKnobX = 30;
+    component.joystickKnobY = 0;
+
+    const joystickInternals = component as unknown as {
+      joystickVelocityX: number;
+      joystickVelocityY: number;
+      joystickInteractionStartMs: number;
+      applyJoystickMotionStep: () => void;
+    };
+
+    joystickInternals.joystickVelocityX = 0;
+    joystickInternals.joystickVelocityY = 0;
+    joystickInternals.joystickInteractionStartMs = Date.now();
+    joystickInternals.applyJoystickMotionStep();
+    const firstTouchDelta = Math.abs(component.manualPagePanX);
+
+    component.manualPagePanX = 0;
+    component.manualPagePanY = 0;
+    joystickInternals.joystickVelocityX = 0;
+    joystickInternals.joystickVelocityY = 0;
+    joystickInternals.joystickInteractionStartMs = Date.now() - 500;
+    joystickInternals.applyJoystickMotionStep();
+    const settledTouchDelta = Math.abs(component.manualPagePanX);
+
+    expect(firstTouchDelta).toBeGreaterThan(0);
+    expect(settledTouchDelta).toBeGreaterThan(firstTouchDelta * 1.5);
+  });
+
+  it('persists joystick indicator visibility and opacity preferences', () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+
+    component.onJoystickIndicatorVisibleChange(false);
+    component.onJoystickIndicatorOpacityChange(0.35);
+
+    expect(component.joystickIndicatorVisible).toBe(false);
+    expect(component.joystickIndicatorOpacity).toBeCloseTo(0.35, 2);
+
+    const latestPayload = JSON.parse(setItemSpy.mock.calls[setItemSpy.mock.calls.length - 1]?.[1] as string);
+    expect(latestPayload.indicatorVisible).toBe(false);
+    expect(latestPayload.indicatorOpacity).toBeCloseTo(0.35, 2);
+
+    setItemSpy.mockRestore();
   });
 
   it('clamps panel pan when joystick movement exceeds viewport bounds', () => {

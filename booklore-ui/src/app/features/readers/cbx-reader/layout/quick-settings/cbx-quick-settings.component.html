@@ -162,6 +162,61 @@
             </div>
           </div>
         </div>
+
+        <div class="control">
+          <span>{{ 'readerCbx.quickSettings.joystickTouchAnchor' | transloco }}</span>
+          <div class="control-right">
+            <div class="button-group text-btns">
+              <button
+                class="option-btn text-btn small"
+                [class.active]="state.joystickRecenterOnTouch"
+                (click)="onJoystickRecenterOnTouchToggle(true)">
+                {{ 'readerCbx.quickSettings.on' | transloco }}
+              </button>
+              <button
+                class="option-btn text-btn small"
+                [class.active]="!state.joystickRecenterOnTouch"
+                (click)="onJoystickRecenterOnTouchToggle(false)">
+                {{ 'readerCbx.quickSettings.off' | transloco }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="control">
+          <span>{{ 'readerCbx.quickSettings.joystickIndicator' | transloco }}</span>
+          <div class="control-right">
+            <div class="button-group text-btns">
+              <button
+                class="option-btn text-btn small"
+                [class.active]="state.joystickIndicatorVisible"
+                (click)="onJoystickIndicatorVisibleToggle(true)">
+                {{ 'readerCbx.quickSettings.on' | transloco }}
+              </button>
+              <button
+                class="option-btn text-btn small"
+                [class.active]="!state.joystickIndicatorVisible"
+                (click)="onJoystickIndicatorVisibleToggle(false)">
+                {{ 'readerCbx.quickSettings.off' | transloco }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="control">
+          <span>{{ 'readerCbx.quickSettings.joystickIndicatorOpacity' | transloco }}</span>
+          <div class="control-right joystick-opacity-control">
+            <input
+              class="joystick-opacity-slider"
+              type="range"
+              min="10"
+              max="100"
+              step="5"
+              [value]="state.joystickIndicatorOpacity * 100"
+              (input)="onJoystickIndicatorOpacityInput($event)" />
+            <span class="joystick-opacity-value">{{ (state.joystickIndicatorOpacity * 100).toFixed(0) }}%</span>
+          </div>
+        </div>
       }
 
       <!-- Background Color -->

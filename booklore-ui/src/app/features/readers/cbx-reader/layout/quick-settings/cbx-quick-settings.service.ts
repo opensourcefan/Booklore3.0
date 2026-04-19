@@ -17,6 +17,9 @@ export interface CbxQuickSettingsState {
   joystickEnabled: boolean;
   joystickSensitivity: CbxJoystickSensitivity;
   joystickPositionLocked: boolean;
+  joystickRecenterOnTouch: boolean;
+  joystickIndicatorVisible: boolean;
+  joystickIndicatorOpacity: number;
 }
 
 @Injectable()
@@ -33,7 +36,10 @@ export class CbxQuickSettingsService {
     magnifierLensSize: CbxMagnifierLensSize.MEDIUM,
     joystickEnabled: false,
     joystickSensitivity: 'NORMAL',
-    joystickPositionLocked: true
+    joystickPositionLocked: true,
+    joystickRecenterOnTouch: true,
+    joystickIndicatorVisible: true,
+    joystickIndicatorOpacity: 0.88
   });
   state$ = this._state.asObservable();
 
@@ -75,6 +81,15 @@ export class CbxQuickSettingsService {
 
   private _joystickPositionLockedChange = new Subject<boolean>();
   joystickPositionLockedChange$ = this._joystickPositionLockedChange.asObservable();
+
+  private _joystickRecenterOnTouchChange = new Subject<boolean>();
+  joystickRecenterOnTouchChange$ = this._joystickRecenterOnTouchChange.asObservable();
+
+  private _joystickIndicatorVisibleChange = new Subject<boolean>();
+  joystickIndicatorVisibleChange$ = this._joystickIndicatorVisibleChange.asObservable();
+
+  private _joystickIndicatorOpacityChange = new Subject<number>();
+  joystickIndicatorOpacityChange$ = this._joystickIndicatorOpacityChange.asObservable();
 
   get state(): CbxQuickSettingsState {
     return this._state.value;
@@ -144,6 +159,18 @@ export class CbxQuickSettingsService {
     this.updateState({joystickPositionLocked: locked});
   }
 
+  setJoystickRecenterOnTouch(enabled: boolean): void {
+    this.updateState({joystickRecenterOnTouch: enabled});
+  }
+
+  setJoystickIndicatorVisible(visible: boolean): void {
+    this.updateState({joystickIndicatorVisible: visible});
+  }
+
+  setJoystickIndicatorOpacity(opacity: number): void {
+    this.updateState({joystickIndicatorOpacity: opacity});
+  }
+
   // Actions emitted from component
   emitFitModeChange(mode: CbxFitMode): void {
     this._fitModeChange.next(mode);
@@ -193,6 +220,18 @@ export class CbxQuickSettingsService {
     this._joystickPositionLockedChange.next(locked);
   }
 
+  emitJoystickRecenterOnTouchChange(enabled: boolean): void {
+    this._joystickRecenterOnTouchChange.next(enabled);
+  }
+
+  emitJoystickIndicatorVisibleChange(visible: boolean): void {
+    this._joystickIndicatorVisibleChange.next(visible);
+  }
+
+  emitJoystickIndicatorOpacityChange(opacity: number): void {
+    this._joystickIndicatorOpacityChange.next(opacity);
+  }
+
   reset(): void {
     this._state.next({
       fitMode: CbxFitMode.FIT_PAGE,
@@ -206,7 +245,10 @@ export class CbxQuickSettingsService {
       magnifierLensSize: CbxMagnifierLensSize.MEDIUM,
       joystickEnabled: false,
       joystickSensitivity: 'NORMAL',
-      joystickPositionLocked: true
+      joystickPositionLocked: true,
+      joystickRecenterOnTouch: true,
+      joystickIndicatorVisible: true,
+      joystickIndicatorOpacity: 0.88
     });
     this._visible.next(false);
   }

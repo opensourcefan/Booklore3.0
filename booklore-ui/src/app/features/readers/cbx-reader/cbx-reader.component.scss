@@ -147,19 +147,19 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      opacity: 0.05;
-      transition: opacity 0.16s ease, transform 0.16s ease;
+      --joystick-body-opacity: 0.08;
+      transition: transform 0.16s ease;
       touch-action: none;
       cursor: grab;
 
       &.active {
-        opacity: 0.95;
+        --joystick-body-opacity: 0.95;
         transform: scale(1.03);
         cursor: grabbing;
       }
 
       &.unlocked {
-        opacity: 0.85;
+        --joystick-body-opacity: 0.85;
       }
 
       .joystick-ring {
@@ -169,6 +169,8 @@
         border: 1px solid rgba(173, 225, 255, 0.75);
         background: radial-gradient(circle at 35% 35%, rgba(120, 208, 255, 0.2), rgba(0, 0, 0, 0.32));
         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 10px 18px rgba(0, 0, 0, 0.25);
+        opacity: var(--joystick-body-opacity);
+        transition: opacity 0.16s ease;
       }
 
       .joystick-thumb {
@@ -178,7 +180,8 @@
         border: 1px solid rgba(215, 243, 255, 0.95);
         background: radial-gradient(circle at 30% 30%, rgba(233, 248, 255, 0.95), rgba(115, 181, 226, 0.95));
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-        transition: transform 0.05s linear;
+        opacity: var(--joystick-body-opacity);
+        transition: transform 0.05s linear, opacity 0.16s ease;
       }
 
       .joystick-center-dot {
@@ -190,6 +193,7 @@
         border: 1px solid #0a0a0f;
         box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.95), 0 0 0 2px rgba(0, 0, 0, 0.88), 0 0 8px rgba(255, 255, 255, 0.75);
         pointer-events: none;
+        transition: opacity 0.16s ease;
       }
     }
 

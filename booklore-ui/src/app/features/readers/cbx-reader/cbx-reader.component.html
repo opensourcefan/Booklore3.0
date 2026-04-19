@@ -215,7 +215,12 @@
         role="application">
         <div class="joystick-ring"></div>
         <div class="joystick-thumb" [ngStyle]="joystickThumbStyles"></div>
-        <div class="joystick-center-dot" [attr.title]="'readerCbx.reader.joystickHint' | transloco"></div>
+        <div
+          class="joystick-center-dot"
+          [style.display]="joystickIndicatorVisible ? 'block' : 'none'"
+          [style.opacity]="joystickIndicatorOpacity"
+          [attr.title]="'readerCbx.reader.joystickHint' | transloco">
+        </div>
       </div>
     }
   </div>

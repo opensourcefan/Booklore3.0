@@ -50,6 +50,9 @@ interface CbxJoystickDevicePreferences {
   enabled: boolean;
   sensitivity: CbxJoystickSensitivity;
   positionLocked: boolean;
+  recenterOnTouch: boolean;
+  indicatorVisible: boolean;
+  indicatorOpacity: number;
   anchorX: number;
   anchorY: number;
 }
@@ -93,6 +96,9 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private static readonly JOYSTICK_MAX_SPEED_DELTA = 4.6;
   private static readonly JOYSTICK_INPUT_SMOOTHING = 0.2;
   private static readonly JOYSTICK_RELEASE_SMOOTHING = 0.38;
+  private static readonly JOYSTICK_STARTUP_RAMP_MS = 360;
+  private static readonly JOYSTICK_STARTUP_SPEED_FLOOR = 0.16;
+  private static readonly JOYSTICK_STARTUP_DEADZONE_BONUS_PX = 10;
   private static readonly MANUAL_PAGE_MIN_ZOOM = 1;
   private static readonly MANUAL_PAGE_MAX_ZOOM = 3.5;
 
@@ -206,6 +212,9 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   joystickEnabled = false;
   joystickSensitivity: CbxJoystickSensitivity = 'NORMAL';
   joystickPositionLocked = true;
+  joystickRecenterOnTouch = true;
+  joystickIndicatorVisible = true;
+  joystickIndicatorOpacity = 0.88;
   joystickAnchorX = 0.86;
   joystickAnchorY = 0.78;
   joystickActive = false;
@@ -216,6 +225,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   manualPagePanY = 0;
   private joystickVelocityX = 0;
   private joystickVelocityY = 0;
+  private joystickInteractionStartMs = 0;
   private joystickPointerId: number | null = null;
   private joystickAnimationFrame: number | null = null;
 
@@ -581,6 +591,18 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.quickSettingsService.joystickPositionLockedChange$
       .pipe(takeUntil(this.destroy$))
       .subscribe(locked => this.onJoystickPositionLockedChange(locked));
+
+    this.quickSettingsService.joystickRecenterOnTouchChange$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(enabled => this.onJoystickRecenterOnTouchChange(enabled));
+
+    this.quickSettingsService.joystickIndicatorVisibleChange$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(visible => this.onJoystickIndicatorVisibleChange(visible));
+
+    this.quickSettingsService.joystickIndicatorOpacityChange$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(opacity => this.onJoystickIndicatorOpacityChange(opacity));
   }
 
   private updateServiceStates(): void {
@@ -605,7 +627,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       magnifierLensSize: this.magnifierLensSize,
       joystickEnabled: this.joystickEnabled,
       joystickSensitivity: this.joystickSensitivity,
-      joystickPositionLocked: this.joystickPositionLocked
+      joystickPositionLocked: this.joystickPositionLocked,
+      joystickRecenterOnTouch: this.joystickRecenterOnTouch,
+      joystickIndicatorVisible: this.joystickIndicatorVisible,
+      joystickIndicatorOpacity: this.joystickIndicatorOpacity
     });
 
     this.headerService.updateState({
@@ -2012,6 +2037,25 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.saveJoystickDevicePreferences();
   }
 
+  onJoystickRecenterOnTouchChange(enabled: boolean): void {
+    this.joystickRecenterOnTouch = enabled;
+    this.quickSettingsService.setJoystickRecenterOnTouch(enabled);
+    this.saveJoystickDevicePreferences();
+  }
+
+  onJoystickIndicatorVisibleChange(visible: boolean): void {
+    this.joystickIndicatorVisible = visible;
+    this.quickSettingsService.setJoystickIndicatorVisible(visible);
+    this.saveJoystickDevicePreferences();
+  }
+
+  onJoystickIndicatorOpacityChange(opacity: number): void {
+    const safeOpacity = this.clamp(this.toNormalizedPosition(opacity, this.joystickIndicatorOpacity), 0.1, 1);
+    this.joystickIndicatorOpacity = safeOpacity;
+    this.quickSettingsService.setJoystickIndicatorOpacity(safeOpacity);
+    this.saveJoystickDevicePreferences();
+  }
+
   onJoystickPointerDown(event: PointerEvent): void {
     if (!this.showMobileJoystick || this.joystickPointerId !== null) {
       return;
@@ -2029,7 +2073,12 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
 
+    if (this.joystickRecenterOnTouch) {
+      this.updateJoystickAnchorFromPointer(event, true);
+    }
+
     this.joystickActive = true;
+    this.joystickInteractionStartMs = Date.now();
     this.updateJoystickKnobFromPointer(event);
     this.startJoystickAnimationLoop();
     this.revealTouchChrome();
@@ -2104,6 +2153,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.joystickKnobY = 0;
     this.joystickVelocityX = 0;
     this.joystickVelocityY = 0;
+    this.joystickInteractionStartMs = 0;
   }
 
   private updateJoystickKnobFromPointer(event: PointerEvent): void {
@@ -2133,7 +2183,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.joystickKnobY = rawY * limitRatio;
   }
 
-  private updateJoystickAnchorFromPointer(event: PointerEvent): void {
+  private updateJoystickAnchorFromPointer(event: PointerEvent, constrainToCurrentQuadrant = false): void {
     const container = this.imageContainerRef?.nativeElement;
     if (!container) {
       return;
@@ -2148,29 +2198,53 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     const marginY = CbxReaderComponent.JOYSTICK_MARGIN_PX / rect.height;
     const normalizedX = (event.clientX - rect.left) / rect.width;
     const normalizedY = (event.clientY - rect.top) / rect.height;
-    this.joystickAnchorX = this.clamp(normalizedX, marginX, 1 - marginX);
-    this.joystickAnchorY = this.clamp(normalizedY, marginY, 1 - marginY);
+
+    if (!constrainToCurrentQuadrant) {
+      this.joystickAnchorX = this.clamp(normalizedX, marginX, 1 - marginX);
+      this.joystickAnchorY = this.clamp(normalizedY, marginY, 1 - marginY);
+      return;
+    }
+
+    const isRightQuadrant = this.joystickAnchorX >= 0.5;
+    const isBottomQuadrant = this.joystickAnchorY >= 0.5;
+    const minX = isRightQuadrant ? 0.5 : marginX;
+    const maxX = isRightQuadrant ? 1 - marginX : 0.5;
+    const minY = isBottomQuadrant ? 0.5 : marginY;
+    const maxY = isBottomQuadrant ? 1 - marginY : 0.5;
+
+    this.joystickAnchorX = this.clamp(normalizedX, minX, maxX);
+    this.joystickAnchorY = this.clamp(normalizedY, minY, maxY);
   }
 
   private applyJoystickMotionStep(): void {
     const magnitude = Math.hypot(this.joystickKnobX, this.joystickKnobY);
+    const elapsed = this.joystickInteractionStartMs > 0
+      ? Math.max(0, Date.now() - this.joystickInteractionStartMs)
+      : CbxReaderComponent.JOYSTICK_STARTUP_RAMP_MS;
+    const startupProgress = this.clamp(elapsed / CbxReaderComponent.JOYSTICK_STARTUP_RAMP_MS, 0, 1);
+    const startupCurve = startupProgress * startupProgress;
+    const startupSpeedScale = CbxReaderComponent.JOYSTICK_STARTUP_SPEED_FLOOR
+      + ((1 - CbxReaderComponent.JOYSTICK_STARTUP_SPEED_FLOOR) * startupCurve);
+    const startupDeadzone = CbxReaderComponent.JOYSTICK_DEADZONE_PX
+      + ((1 - startupProgress) * CbxReaderComponent.JOYSTICK_STARTUP_DEADZONE_BONUS_PX);
 
     let targetVelocityX = 0;
     let targetVelocityY = 0;
     let smoothing = CbxReaderComponent.JOYSTICK_RELEASE_SMOOTHING;
 
-    if (magnitude > CbxReaderComponent.JOYSTICK_DEADZONE_PX) {
+    if (magnitude > startupDeadzone) {
       const radius = CbxReaderComponent.JOYSTICK_RADIUS_PX;
       const normalized = this.clamp(magnitude / radius, 0, 1);
       const smoothStep = normalized * normalized * (3 - (2 * normalized));
       const speed = (
         CbxReaderComponent.JOYSTICK_BASE_SPEED
         + (smoothStep * CbxReaderComponent.JOYSTICK_MAX_SPEED_DELTA)
-      ) * this.getJoystickSensitivityMultiplier();
+      ) * this.getJoystickSensitivityMultiplier() * startupSpeedScale;
 
       targetVelocityX = (this.joystickKnobX / magnitude) * speed;
       targetVelocityY = (this.joystickKnobY / magnitude) * speed;
-      smoothing = CbxReaderComponent.JOYSTICK_INPUT_SMOOTHING;
+      const startupSmoothing = 0.45 + (startupProgress * 0.55);
+      smoothing = CbxReaderComponent.JOYSTICK_INPUT_SMOOTHING * startupSmoothing;
     }
 
     this.joystickVelocityX += (targetVelocityX - this.joystickVelocityX) * smoothing;
@@ -2324,6 +2398,9 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       enabled: false,
       sensitivity: 'NORMAL',
       positionLocked: true,
+      recenterOnTouch: true,
+      indicatorVisible: true,
+      indicatorOpacity: 0.88,
       anchorX: 0.86,
       anchorY: 0.78,
     };
@@ -2343,6 +2420,9 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
         this.joystickEnabled = defaults.enabled;
         this.joystickSensitivity = defaults.sensitivity;
         this.joystickPositionLocked = defaults.positionLocked;
+        this.joystickRecenterOnTouch = defaults.recenterOnTouch;
+        this.joystickIndicatorVisible = defaults.indicatorVisible;
+        this.joystickIndicatorOpacity = defaults.indicatorOpacity;
         this.joystickAnchorX = defaults.anchorX;
         this.joystickAnchorY = defaults.anchorY;
         return;
@@ -2352,12 +2432,18 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       this.joystickEnabled = !!parsed.enabled;
       this.joystickSensitivity = parsed.sensitivity === 'SLOW' || parsed.sensitivity === 'FAST' ? parsed.sensitivity : 'NORMAL';
       this.joystickPositionLocked = parsed.positionLocked !== false;
+      this.joystickRecenterOnTouch = parsed.recenterOnTouch !== false;
+      this.joystickIndicatorVisible = parsed.indicatorVisible !== false;
+      this.joystickIndicatorOpacity = this.clamp(this.toNormalizedPosition(parsed.indicatorOpacity, defaults.indicatorOpacity), 0.1, 1);
       this.joystickAnchorX = this.clamp(this.toNormalizedPosition(parsed.anchorX, defaults.anchorX), 0.05, 0.95);
       this.joystickAnchorY = this.clamp(this.toNormalizedPosition(parsed.anchorY, defaults.anchorY), 0.05, 0.95);
     } catch {
       this.joystickEnabled = defaults.enabled;
       this.joystickSensitivity = defaults.sensitivity;
       this.joystickPositionLocked = defaults.positionLocked;
+      this.joystickRecenterOnTouch = defaults.recenterOnTouch;
+      this.joystickIndicatorVisible = defaults.indicatorVisible;
+      this.joystickIndicatorOpacity = defaults.indicatorOpacity;
       this.joystickAnchorX = defaults.anchorX;
       this.joystickAnchorY = defaults.anchorY;
     }
@@ -2372,6 +2458,9 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       enabled: this.joystickEnabled,
       sensitivity: this.joystickSensitivity,
       positionLocked: this.joystickPositionLocked,
+      recenterOnTouch: this.joystickRecenterOnTouch,
+      indicatorVisible: this.joystickIndicatorVisible,
+      indicatorOpacity: Number(this.joystickIndicatorOpacity.toFixed(2)),
       anchorX: Number(this.joystickAnchorX.toFixed(4)),
       anchorY: Number(this.joystickAnchorY.toFixed(4)),
     };
