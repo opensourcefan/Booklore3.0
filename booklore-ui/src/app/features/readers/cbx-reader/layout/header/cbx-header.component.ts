@@ -1,4 +1,4 @@
-import {Component, DoCheck, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, DoCheck, ElementRef, EventEmitter, HostListener, inject, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {TranslocoPipe} from '@jsverse/transloco';
@@ -18,10 +18,19 @@ type CbxHeaderMobileSurface = 'overflow' | 'aiMenu' | 'panelAdjust' | 'joystickM
   styleUrls: ['./cbx-header.component.scss']
 })
 export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
+  private static readonly JOYSTICK_MENU_VIEWPORT_GUTTER_PX = 8;
+  private static readonly JOYSTICK_MENU_TOP_OFFSET_PX = 4;
+  private static readonly JOYSTICK_MENU_FALLBACK_WIDTH_PX = 320;
+  private static readonly JOYSTICK_MENU_MIN_WIDTH_PX = 220;
+  private static readonly JOYSTICK_MENU_MIN_HEIGHT_PX = 140;
+
   private headerService = inject(CbxHeaderService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
   private destroy$ = new Subject<void>();
   private mobileBackHandles: Partial<Record<CbxHeaderMobileSurface, MobileBackHandle>> = {};
+  private joystickMenuAnchorRect: DOMRect | null = null;
+
+  @ViewChild('joystickDropdown') joystickDropdownRef?: ElementRef<HTMLDivElement>;
 
   @Input() isCurrentPageBookmarked = false;
   @Input() currentPageHasNotes = false;
@@ -62,6 +71,7 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
   aiMenuOpen = false;
   panelAdjustOpen = false;
   joystickMenuOpen = false;
+  joystickMenuStyle: Record<string, string> = {};
   state: CbxHeaderState = {
     isFullscreen: false,
     isSlideshowActive: false,
@@ -100,8 +110,13 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
       this.panelAdjustOpen = false;
     });
     this.syncMobileBackSurface('joystickMenu', this.joystickMenuOpen, () => {
-      this.joystickMenuOpen = false;
+      this.closeJoystickMenu();
     });
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.scheduleJoystickMenuPositioning();
   }
 
   onOpenSidebar(): void {
@@ -161,7 +176,7 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     this.aiMenuOpen = !this.aiMenuOpen;
     if (this.aiMenuOpen) {
       this.overflowOpen = false;
-      this.joystickMenuOpen = false;
+      this.closeJoystickMenu();
     }
   }
 
@@ -169,7 +184,13 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     this.aiMenuOpen = false;
     this.overflowOpen = false;
     this.panelAdjustOpen = false;
+    this.closeJoystickMenu();
+  }
+
+  closeJoystickMenu(): void {
     this.joystickMenuOpen = false;
+    this.joystickMenuStyle = {};
+    this.joystickMenuAnchorRect = null;
   }
 
   private syncMobileBackSurface(surface: CbxHeaderMobileSurface, isOpen: boolean, close: () => void): void {
@@ -198,18 +219,24 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     event.stopPropagation();
     this.panelAdjustOpen = !this.panelAdjustOpen;
     if (this.panelAdjustOpen) {
-      this.joystickMenuOpen = false;
+      this.closeJoystickMenu();
       this.overflowOpen = false;
     }
   }
 
   onToggleJoystickMenu(event: MouseEvent): void {
     event.stopPropagation();
+    const trigger = event.currentTarget as HTMLElement | null;
     this.joystickMenuOpen = !this.joystickMenuOpen;
+
     if (this.joystickMenuOpen) {
       this.overflowOpen = false;
       this.aiMenuOpen = false;
       this.panelAdjustOpen = false;
+      this.joystickMenuAnchorRect = trigger?.getBoundingClientRect() ?? this.joystickMenuAnchorRect;
+      this.scheduleJoystickMenuPositioning();
+    } else {
+      this.closeJoystickMenu();
     }
   }
 
@@ -217,10 +244,64 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     event.stopPropagation();
     this.overflowOpen = !this.overflowOpen;
     if (this.overflowOpen) {
-      this.joystickMenuOpen = false;
+      this.closeJoystickMenu();
       this.aiMenuOpen = false;
       this.panelAdjustOpen = false;
     }
+  }
+
+  private scheduleJoystickMenuPositioning(): void {
+    if (!this.joystickMenuOpen) {
+      return;
+    }
+
+    setTimeout(() => this.positionJoystickMenuWithinViewport());
+  }
+
+  private positionJoystickMenuWithinViewport(): void {
+    if (!this.joystickMenuOpen) {
+      return;
+    }
+
+    const dropdown = this.joystickDropdownRef?.nativeElement;
+    if (!dropdown) {
+      return;
+    }
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const gutter = CbxHeaderComponent.JOYSTICK_MENU_VIEWPORT_GUTTER_PX;
+    const anchorRight = this.joystickMenuAnchorRect?.right ?? (viewportWidth - gutter);
+    const anchorBottom = this.joystickMenuAnchorRect?.bottom ?? 40;
+    const measuredWidth = dropdown.offsetWidth > 0
+      ? dropdown.offsetWidth
+      : CbxHeaderComponent.JOYSTICK_MENU_FALLBACK_WIDTH_PX;
+    const maxUsableWidth = Math.max(
+      CbxHeaderComponent.JOYSTICK_MENU_MIN_WIDTH_PX,
+      viewportWidth - (gutter * 2)
+    );
+    const width = Math.min(measuredWidth, maxUsableWidth);
+    const left = this.clamp(anchorRight - width, gutter, viewportWidth - width - gutter);
+    const top = Math.max(gutter, anchorBottom + CbxHeaderComponent.JOYSTICK_MENU_TOP_OFFSET_PX);
+    const maxHeight = Math.max(
+      CbxHeaderComponent.JOYSTICK_MENU_MIN_HEIGHT_PX,
+      viewportHeight - top - gutter
+    );
+
+    this.joystickMenuStyle = {
+      left: `${Math.round(left)}px`,
+      top: `${Math.round(top)}px`,
+      width: `${Math.round(width)}px`,
+      maxHeight: `${Math.round(maxHeight)}px`
+    };
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    if (max < min) {
+      return min;
+    }
+
+    return Math.min(max, Math.max(min, value));
   }
 
   onPanelTravelDelta(delta: number): void {

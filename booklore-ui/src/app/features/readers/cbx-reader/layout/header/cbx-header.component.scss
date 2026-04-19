@@ -275,10 +275,10 @@
   }
 
   .joystick-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 4px;
-    margin-top: 4px;
+    position: fixed;
+    top: 44px;
+    left: 8px;
+    margin-top: 0;
     background: #2d2d2d;
     border: 1px solid #404040;
     border-radius: 8px;
@@ -450,7 +450,7 @@
     }
 
     .joystick-dropdown {
-      right: 8px;
+      left: 8px;
       width: min(320px, calc(100vw - 16px));
       max-width: calc(100vw - 16px);
       max-height: calc(100vh - 64px);

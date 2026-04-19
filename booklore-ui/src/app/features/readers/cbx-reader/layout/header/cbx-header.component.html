@@ -139,8 +139,8 @@
         <i class="pi pi-bullseye joystick-bullseye-icon" aria-hidden="true"></i>
       </button>
       @if (joystickMenuOpen) {
-        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="joystickMenuOpen = false" (click)="joystickMenuOpen = false"></div>
-        <div class="joystick-dropdown" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
+        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="closeJoystickMenu()" (click)="closeJoystickMenu()"></div>
+        <div #joystickDropdown class="joystick-dropdown" [ngStyle]="joystickMenuStyle" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
           <div class="joystick-row">
             <span class="joystick-row-label">{{ 'readerCbx.quickSettings.joystick' | transloco }}</span>
             <div class="joystick-chip-group">
