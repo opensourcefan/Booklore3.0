@@ -3,14 +3,17 @@
     <button class="icon-btn" (click)="onOpenSidebar()" [title]="'readerCbx.header.contents' | transloco">
       <app-reader-icon name="menu" [size]="20" />
     </button>
-    <button class="icon-btn" (click)="onToggleBookmark()" [title]="isCurrentPageBookmarked ? ('readerCbx.header.removeBookmark' | transloco) : ('readerCbx.header.addBookmark' | transloco)" [class.active]="isCurrentPageBookmarked">
+    <button class="icon-btn desktop-only" (click)="onToggleBookmark()" [title]="isCurrentPageBookmarked ? ('readerCbx.header.removeBookmark' | transloco) : ('readerCbx.header.addBookmark' | transloco)" [class.active]="isCurrentPageBookmarked">
       <app-reader-icon name="bookmark" [size]="20" />
     </button>
-    <button class="icon-btn" (click)="onOpenNoteDialog()" [title]="currentPageHasNotes ? ('readerCbx.header.pageHasNotesAddAnother' | transloco) : ('readerCbx.header.addNote' | transloco)" [class.has-notes]="currentPageHasNotes">
+    <button class="icon-btn desktop-only" (click)="onOpenNoteDialog()" [title]="currentPageHasNotes ? ('readerCbx.header.pageHasNotesAddAnother' | transloco) : ('readerCbx.header.addNote' | transloco)" [class.has-notes]="currentPageHasNotes">
       <app-reader-icon name="note" [size]="20" />
       @if (currentPageHasNotes) {
         <span class="indicator-dot"></span>
       }
+    </button>
+    <button class="icon-btn mobile-settings-btn" (click)="onOpenSettings()" [title]="'readerCbx.header.settings' | transloco">
+      <app-reader-icon name="settings" [size]="20" />
     </button>
     @if (aiEnabled) {
       <div class="ai-menu">
@@ -96,8 +99,44 @@
       <app-reader-icon name="help" [size]="20" />
     </button>
     <div class="overflow-menu mobile-only">
+      <button class="icon-btn" (click)="onToggleOverflowMenu($event)" [title]="'readerCbx.header.more' | transloco">
+        <app-reader-icon name="dots-vertical" [size]="20" />
+      </button>
+      @if (overflowOpen) {
+        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="overflowOpen = false" (click)="overflowOpen = false"></div>
+        <div class="overflow-dropdown">
+          <button class="overflow-item" (click)="onTogglePin(); overflowOpen = false" [class.active]="isPinned">
+            <app-reader-icon name="pin" [size]="18" />
+            <span>{{ isPinned ? ('readerCbx.header.unpinBarsLabel' | transloco) : ('readerCbx.header.pinBarsLabel' | transloco) }}</span>
+          </button>
+          <button class="overflow-item" (click)="onTogglePanelMode(); overflowOpen = false" [class.active]="state.isPanelModeEnabled">
+            <app-reader-icon name="book" [size]="18" />
+            <span>{{ state.isPanelModeEnabled ? ('readerCbx.header.disablePanelModeLabel' | transloco) : ('readerCbx.header.enablePanelModeLabel' | transloco) }}</span>
+          </button>
+          <button class="overflow-item" (click)="onToggleSlideshow(); overflowOpen = false" [class.active]="state.isSlideshowActive">
+            <app-reader-icon [name]="state.isSlideshowActive ? 'pause' : 'play'" [size]="18" />
+            <span>{{ state.isSlideshowActive ? ('readerCbx.header.stopSlideshowLabel' | transloco) : ('readerCbx.header.startSlideshowLabel' | transloco) }}</span>
+          </button>
+          <button class="overflow-item" (click)="onToggleFullscreen(); overflowOpen = false">
+            <app-reader-icon [name]="state.isFullscreen ? 'fullscreen-exit' : 'fullscreen'" [size]="18" />
+            <span>{{ state.isFullscreen ? ('readerCbx.header.exitFullscreenLabel' | transloco) : ('readerCbx.header.fullscreenLabel' | transloco) }}</span>
+          </button>
+          <button class="overflow-item" (click)="onShowShortcutsHelp(); overflowOpen = false">
+            <app-reader-icon name="help" [size]="18" />
+            <span>{{ 'readerCbx.header.keyboardShortcutsLabel' | transloco }}</span>
+          </button>
+          @if (aiEnabled) {
+            <button class="overflow-item" (click)="onAiPanelDetection(); overflowOpen = false" [disabled]="aiWorking" [class.active]="aiReady && aiScanned">
+              <span class="ai-text">AI</span>
+              <span>{{ aiWorking ? ('readerCbx.header.aiWorking' | transloco) : ('readerCbx.header.aiPanelDetectionLabel' | transloco) }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+    <div class="mobile-joystick-menu">
       <button class="icon-btn joystick-menu-btn" (click)="onToggleJoystickMenu($event)" [title]="'readerCbx.quickSettings.joystick' | transloco" [class.active]="joystickMenuOpen || joystickEnabled">
-        <app-reader-icon name="joystick" [size]="20" />
+        <i class="pi pi-bullseye joystick-bullseye-icon" aria-hidden="true"></i>
       </button>
       @if (joystickMenuOpen) {
         <div class="overflow-backdrop" tabindex="0" (keydown.enter)="joystickMenuOpen = false" (click)="joystickMenuOpen = false"></div>
@@ -161,43 +200,8 @@
           }
         </div>
       }
-
-      <button class="icon-btn" (click)="onToggleOverflowMenu($event)" [title]="'readerCbx.header.more' | transloco">
-        <app-reader-icon name="dots-vertical" [size]="20" />
-      </button>
-      @if (overflowOpen) {
-        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="overflowOpen = false" (click)="overflowOpen = false"></div>
-        <div class="overflow-dropdown">
-          <button class="overflow-item" (click)="onTogglePin(); overflowOpen = false" [class.active]="isPinned">
-            <app-reader-icon name="pin" [size]="18" />
-            <span>{{ isPinned ? ('readerCbx.header.unpinBarsLabel' | transloco) : ('readerCbx.header.pinBarsLabel' | transloco) }}</span>
-          </button>
-          <button class="overflow-item" (click)="onTogglePanelMode(); overflowOpen = false" [class.active]="state.isPanelModeEnabled">
-            <app-reader-icon name="book" [size]="18" />
-            <span>{{ state.isPanelModeEnabled ? ('readerCbx.header.disablePanelModeLabel' | transloco) : ('readerCbx.header.enablePanelModeLabel' | transloco) }}</span>
-          </button>
-          <button class="overflow-item" (click)="onToggleSlideshow(); overflowOpen = false" [class.active]="state.isSlideshowActive">
-            <app-reader-icon [name]="state.isSlideshowActive ? 'pause' : 'play'" [size]="18" />
-            <span>{{ state.isSlideshowActive ? ('readerCbx.header.stopSlideshowLabel' | transloco) : ('readerCbx.header.startSlideshowLabel' | transloco) }}</span>
-          </button>
-          <button class="overflow-item" (click)="onToggleFullscreen(); overflowOpen = false">
-            <app-reader-icon [name]="state.isFullscreen ? 'fullscreen-exit' : 'fullscreen'" [size]="18" />
-            <span>{{ state.isFullscreen ? ('readerCbx.header.exitFullscreenLabel' | transloco) : ('readerCbx.header.fullscreenLabel' | transloco) }}</span>
-          </button>
-          <button class="overflow-item" (click)="onShowShortcutsHelp(); overflowOpen = false">
-            <app-reader-icon name="help" [size]="18" />
-            <span>{{ 'readerCbx.header.keyboardShortcutsLabel' | transloco }}</span>
-          </button>
-          @if (aiEnabled) {
-            <button class="overflow-item" (click)="onAiPanelDetection(); overflowOpen = false" [disabled]="aiWorking" [class.active]="aiReady && aiScanned">
-              <span class="ai-text">AI</span>
-              <span>{{ aiWorking ? ('readerCbx.header.aiWorking' | transloco) : ('readerCbx.header.aiPanelDetectionLabel' | transloco) }}</span>
-            </button>
-          }
-        </div>
-      }
     </div>
-    <button class="icon-btn" (click)="onOpenSettings()" [title]="'readerCbx.header.settings' | transloco">
+    <button class="icon-btn desktop-only" (click)="onOpenSettings()" [title]="'readerCbx.header.settings' | transloco">
       <app-reader-icon name="settings" [size]="20" />
     </button>
     <button class="icon-btn pin-btn" (click)="onTogglePin()" [title]="isPinned ? ('readerCbx.header.unpinBars' | transloco) : ('readerCbx.header.pinBars' | transloco)" [class.active]="isPinned">

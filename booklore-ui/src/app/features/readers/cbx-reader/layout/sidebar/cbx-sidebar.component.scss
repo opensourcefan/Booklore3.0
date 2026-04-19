@@ -99,8 +99,14 @@ $transition-normal: 200ms ease;
   background: rgba(0, 0, 0, 0.2);
 }
 
-.tab {
+.tab-slot {
+  position: relative;
   flex: 1;
+  min-width: 0;
+}
+
+.tab {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -133,6 +139,34 @@ $transition-normal: 200ms ease;
       background: $active-color;
       border-radius: 1px 1px 0 0;
     }
+  }
+}
+
+.tab-add-btn {
+  display: none;
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 999px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  background: rgba(74, 144, 226, 0.95);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: transform $transition-fast, background $transition-fast;
+
+  &:hover {
+    transform: scale(1.06);
+    background: rgba(74, 144, 226, 1);
+  }
+
+  app-reader-icon {
+    transform: scale(0.8);
   }
 }
 
@@ -545,4 +579,10 @@ $transition-normal: 200ms ease;
 @keyframes slideOut {
   from { transform: translateX(0); }
   to { transform: translateX(-100%); }
+}
+
+@media (max-width: 600px) {
+  .tab-slot.has-mobile-add .tab-add-btn {
+    display: inline-flex;
+  }
 }

@@ -18,33 +18,47 @@
       </header>
 
       <nav class="tabs">
-        <button
-          class="tab"
-          [class.active]="activeTab === 'pages'"
-          (click)="setActiveTab('pages')">
-          <app-reader-icon name="book" class="tab-icon"></app-reader-icon>
-          <span>{{ 'readerCbx.sidebar.contentTab' | transloco }}</span>
-        </button>
-        <button
-          class="tab"
-          [class.active]="activeTab === 'bookmarks'"
-          (click)="setActiveTab('bookmarks')">
-          <app-reader-icon name="bookmark" class="tab-icon"></app-reader-icon>
-          <span>{{ 'readerCbx.sidebar.bookmarksTab' | transloco }}</span>
-          @if (bookmarks.length > 0) {
-            <span class="badge">{{ bookmarks.length }}</span>
-          }
-        </button>
-        <button
-          class="tab"
-          [class.active]="activeTab === 'notes'"
-          (click)="setActiveTab('notes')">
-          <app-reader-icon name="note" class="tab-icon"></app-reader-icon>
-          <span>{{ 'readerCbx.sidebar.notesTab' | transloco }}</span>
-          @if (notes.length > 0) {
-            <span class="badge">{{ notes.length }}</span>
-          }
-        </button>
+        <div class="tab-slot">
+          <button
+            class="tab"
+            [class.active]="activeTab === 'pages'"
+            (click)="setActiveTab('pages')">
+            <app-reader-icon name="book" class="tab-icon"></app-reader-icon>
+            <span>{{ 'readerCbx.sidebar.contentTab' | transloco }}</span>
+          </button>
+        </div>
+
+        <div class="tab-slot has-mobile-add">
+          <button
+            class="tab"
+            [class.active]="activeTab === 'bookmarks'"
+            (click)="setActiveTab('bookmarks')">
+            <app-reader-icon name="bookmark" class="tab-icon"></app-reader-icon>
+            <span>{{ 'readerCbx.sidebar.bookmarksTab' | transloco }}</span>
+            @if (bookmarks.length > 0) {
+              <span class="badge">{{ bookmarks.length }}</span>
+            }
+          </button>
+          <button class="tab-add-btn" (click)="onQuickAddBookmark($event)" [attr.aria-label]="'readerCbx.header.addBookmark' | transloco" [title]="'readerCbx.header.addBookmark' | transloco">
+            <app-reader-icon name="plus" [size]="12"></app-reader-icon>
+          </button>
+        </div>
+
+        <div class="tab-slot has-mobile-add">
+          <button
+            class="tab"
+            [class.active]="activeTab === 'notes'"
+            (click)="setActiveTab('notes')">
+            <app-reader-icon name="note" class="tab-icon"></app-reader-icon>
+            <span>{{ 'readerCbx.sidebar.notesTab' | transloco }}</span>
+            @if (notes.length > 0) {
+              <span class="badge">{{ notes.length }}</span>
+            }
+          </button>
+          <button class="tab-add-btn" (click)="onQuickAddNote($event)" [attr.aria-label]="'readerCbx.header.addNote' | transloco" [title]="'readerCbx.header.addNote' | transloco">
+            <app-reader-icon name="plus" [size]="12"></app-reader-icon>
+          </button>
+        </div>
       </nav>
 
       <div class="content">

@@ -30,6 +30,16 @@
     display: flex;
     align-items: center;
     z-index: 1;
+    min-width: 0;
+  }
+
+  .header-left {
+    gap: 2px;
+  }
+
+  .header-right {
+    gap: 2px;
+    margin-left: auto;
   }
 
   .panel-mode-control {
@@ -246,21 +256,36 @@
     position: relative;
   }
 
+  .mobile-settings-btn,
+  .mobile-joystick-menu {
+    display: none;
+  }
+
   .joystick-menu-btn {
-    margin-right: 6px;
+    margin-right: 0;
+  }
+
+  .mobile-joystick-menu {
+    position: relative;
+
+    .joystick-bullseye-icon {
+      font-size: 17px;
+      line-height: 1;
+    }
   }
 
   .joystick-dropdown {
     position: absolute;
     top: 100%;
-    right: 0;
+    right: 4px;
     margin-top: 4px;
     background: #2d2d2d;
     border: 1px solid #404040;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     z-index: 1001;
-    width: min(300px, calc(100vw - 12px));
+    width: min(320px, calc(100vw - 16px));
+    max-width: calc(100vw - 16px);
     max-height: calc(100vh - 72px);
     overflow-y: auto;
     padding: 10px;
@@ -378,6 +403,10 @@
   .cbx-header {
     padding: 0 4px;
 
+    .book-title {
+      display: none;
+    }
+
     .icon-btn {
       padding: 5px;
       margin-right: 6px;
@@ -385,10 +414,6 @@
       app-reader-icon {
         transform: scale(0.9);
       }
-    }
-
-    .book-title {
-      font-size: 12px;
     }
 
     .desktop-only {
@@ -399,13 +424,35 @@
       display: block;
     }
 
+    .mobile-settings-btn,
+    .mobile-joystick-menu {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .header-left,
+    .header-right {
+      flex: 1 1 auto;
+    }
+
+    .header-right {
+      justify-content: flex-end;
+    }
+
+    .ai-btn {
+      padding-left: 0.45rem;
+      padding-right: 0.45rem;
+      letter-spacing: 0.03em;
+    }
+
     .mobile-panel-zoom-controls {
       display: inline-flex;
     }
 
     .joystick-dropdown {
-      right: -6px;
-      width: min(320px, calc(100vw - 8px));
+      right: 8px;
+      width: min(320px, calc(100vw - 16px));
+      max-width: calc(100vw - 16px);
       max-height: calc(100vh - 64px);
     }
   }

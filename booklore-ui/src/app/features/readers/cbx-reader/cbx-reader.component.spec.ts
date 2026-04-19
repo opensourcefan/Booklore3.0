@@ -81,6 +81,8 @@ describe('CbxReaderComponent mobile panel interactions', () => {
             bookmarks$: of(),
             notes$: of(),
             editNote$: of(),
+            toggleCurrentPageBookmark$: of(),
+            openNewNoteDialog$: of(),
             initialize: vi.fn(),
             setCurrentPage: vi.fn(),
             isPageBookmarked: vi.fn(() => false),
@@ -486,7 +488,7 @@ describe('CbxReaderComponent mobile panel interactions', () => {
     expect(settledTouchDelta).toBeGreaterThan(firstTouchDelta * 1.5);
   });
 
-  it('suppresses cross-axis drift when horizontal intent is dominant', () => {
+  it('dampens cross-axis drift while preserving motion when horizontal intent is dominant', () => {
     const containerElement = {
       getBoundingClientRect: () => ({left: 0, top: 0, width: 390, height: 700}),
       querySelector: () => ({
@@ -519,7 +521,44 @@ describe('CbxReaderComponent mobile panel interactions', () => {
 
     expect(joystickInternals.joystickAxisIntent).toBe('horizontal');
     expect(Math.abs(component.manualPagePanX)).toBeGreaterThan(0);
-    expect(Math.abs(component.manualPagePanY)).toBeLessThan(0.1);
+    expect(Math.abs(component.manualPagePanY)).toBeGreaterThan(0);
+    expect(Math.abs(component.manualPagePanY)).toBeLessThan(Math.abs(component.manualPagePanX) * 0.45);
+  });
+
+  it('keeps diagonal joystick movement available for intentional diagonal input', () => {
+    const containerElement = {
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 390, height: 700}),
+      querySelector: () => ({
+        getBoundingClientRect: () => ({left: 0, top: 0, width: 700, height: 1300})
+      })
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: unknown } }).imageContainerRef = {nativeElement: containerElement};
+
+    component.panelModeEnabled = false;
+    component.activePanelIndex = -1;
+    component.scrollMode = CbxScrollMode.PAGINATED;
+    component.manualPagePanX = 0;
+    component.manualPagePanY = 0;
+
+    const joystickInternals = component as unknown as {
+      joystickVelocityX: number;
+      joystickVelocityY: number;
+      joystickInteractionStartMs: number;
+      joystickAxisIntent: 'none' | 'horizontal' | 'vertical';
+      applyJoystickMotionStep: () => void;
+    };
+
+    component.joystickKnobX = 22;
+    component.joystickKnobY = 18;
+    joystickInternals.joystickVelocityX = 0;
+    joystickInternals.joystickVelocityY = 0;
+    joystickInternals.joystickInteractionStartMs = Date.now() - 600;
+    joystickInternals.joystickAxisIntent = 'none';
+    joystickInternals.applyJoystickMotionStep();
+
+    expect(Math.abs(component.manualPagePanX)).toBeGreaterThan(0);
+    expect(Math.abs(component.manualPagePanY)).toBeGreaterThan(0);
+    expect(Math.abs(component.manualPagePanY)).toBeGreaterThan(Math.abs(component.manualPagePanX) * 0.55);
   });
 
   it('requires a deliberate directional change before switching joystick axis intent', () => {

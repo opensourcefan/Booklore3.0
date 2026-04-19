@@ -100,10 +100,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private static readonly JOYSTICK_STARTUP_RAMP_MS = 360;
   private static readonly JOYSTICK_STARTUP_SPEED_FLOOR = 0.16;
   private static readonly JOYSTICK_STARTUP_DEADZONE_BONUS_PX = 10;
-  private static readonly JOYSTICK_AXIS_LOCK_RATIO = 1.34;
-  private static readonly JOYSTICK_AXIS_SWITCH_RATIO = 1.8;
-  private static readonly JOYSTICK_AXIS_CROSS_MUTE_RATIO = 0.52;
-  private static readonly JOYSTICK_AXIS_CROSS_DAMPING = 0.12;
+  private static readonly JOYSTICK_AXIS_LOCK_RATIO = 1.45;
+  private static readonly JOYSTICK_AXIS_SWITCH_RATIO = 1.9;
+  private static readonly JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO = 1.18;
+  private static readonly JOYSTICK_AXIS_MAX_CROSS_DAMPING = 0.55;
   private static readonly JOYSTICK_AXIS_IDLE_RESET_RATIO = 0.72;
   private static readonly MANUAL_PAGE_MIN_ZOOM = 1;
   private static readonly MANUAL_PAGE_MAX_ZOOM = 3.5;
@@ -513,6 +513,18 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       .pipe(takeUntil(this.destroy$))
       .subscribe(note => {
         this.openNoteDialogForEdit(note);
+      });
+
+    this.sidebarService.toggleCurrentPageBookmark$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.toggleBookmark();
+      });
+
+    this.sidebarService.openNewNoteDialog$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.openNoteDialog();
       });
   }
 
@@ -2292,20 +2304,36 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       this.joystickAxisIntent = 'vertical';
     } else if (this.joystickAxisIntent === 'vertical' && absX >= absY * CbxReaderComponent.JOYSTICK_AXIS_SWITCH_RATIO) {
       this.joystickAxisIntent = 'horizontal';
+    } else if (this.joystickAxisIntent !== 'none' && dominanceRatio <= CbxReaderComponent.JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO) {
+      this.joystickAxisIntent = 'none';
     }
 
     if (this.joystickAxisIntent === 'horizontal') {
-      const muteVertical = absY <= absX * CbxReaderComponent.JOYSTICK_AXIS_CROSS_MUTE_RATIO;
+      const ratio = absY <= 0.001 ? Number.POSITIVE_INFINITY : absX / absY;
+      const dampingWindow = Math.max(0.001, CbxReaderComponent.JOYSTICK_AXIS_SWITCH_RATIO - CbxReaderComponent.JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO);
+      const dampingStrength = this.clamp(
+        (ratio - CbxReaderComponent.JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO) / dampingWindow,
+        0,
+        1
+      );
+      const crossScale = 1 - (dampingStrength * CbxReaderComponent.JOYSTICK_AXIS_MAX_CROSS_DAMPING);
       return {
         x: rawX,
-        y: muteVertical ? 0 : rawY * CbxReaderComponent.JOYSTICK_AXIS_CROSS_DAMPING,
+        y: rawY * crossScale,
       };
     }
 
     if (this.joystickAxisIntent === 'vertical') {
-      const muteHorizontal = absX <= absY * CbxReaderComponent.JOYSTICK_AXIS_CROSS_MUTE_RATIO;
+      const ratio = absX <= 0.001 ? Number.POSITIVE_INFINITY : absY / absX;
+      const dampingWindow = Math.max(0.001, CbxReaderComponent.JOYSTICK_AXIS_SWITCH_RATIO - CbxReaderComponent.JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO);
+      const dampingStrength = this.clamp(
+        (ratio - CbxReaderComponent.JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO) / dampingWindow,
+        0,
+        1
+      );
+      const crossScale = 1 - (dampingStrength * CbxReaderComponent.JOYSTICK_AXIS_MAX_CROSS_DAMPING);
       return {
-        x: muteHorizontal ? 0 : rawX * CbxReaderComponent.JOYSTICK_AXIS_CROSS_DAMPING,
+        x: rawX * crossScale,
         y: rawY,
       };
     }

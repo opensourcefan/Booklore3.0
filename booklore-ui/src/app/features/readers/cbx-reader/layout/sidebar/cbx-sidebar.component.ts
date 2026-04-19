@@ -93,6 +93,16 @@ export class CbxSidebarComponent implements OnInit, OnDestroy {
     this.sidebarService.navigateToPage(pageNumber);
   }
 
+  onQuickAddBookmark(event: MouseEvent): void {
+    event.stopPropagation();
+    this.sidebarService.requestToggleCurrentPageBookmark();
+  }
+
+  onQuickAddNote(event: MouseEvent): void {
+    event.stopPropagation();
+    this.sidebarService.requestOpenNewNoteDialog();
+  }
+
   isPageActive(pageNumber: number): boolean {
     return this.currentPage === pageNumber;
   }

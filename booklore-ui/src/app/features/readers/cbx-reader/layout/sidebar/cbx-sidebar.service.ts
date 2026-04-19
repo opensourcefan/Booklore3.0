@@ -46,6 +46,8 @@ export class CbxSidebarService {
   private _navigateToPage = new Subject<number>();
   private _editNote = new Subject<BookNoteV2>();
   private _bookmarksChanged = new Subject<void>();
+  private _toggleCurrentPageBookmark = new Subject<void>();
+  private _openNewNoteDialog = new Subject<void>();
 
   isOpen$ = this._isOpen.asObservable();
   activeTab$ = this._activeTab.asObservable();
@@ -57,6 +59,8 @@ export class CbxSidebarService {
   navigateToPage$ = this._navigateToPage.asObservable();
   editNote$ = this._editNote.asObservable();
   bookmarksChanged$ = this._bookmarksChanged.asObservable();
+  toggleCurrentPageBookmark$ = this._toggleCurrentPageBookmark.asObservable();
+  openNewNoteDialog$ = this._openNewNoteDialog.asObservable();
 
   get isOpen(): boolean {
     return this._isOpen.value;
@@ -119,6 +123,16 @@ export class CbxSidebarService {
   navigateToPage(pageNumber: number): void {
     this._navigateToPage.next(pageNumber);
     this.close();
+  }
+
+  requestToggleCurrentPageBookmark(): void {
+    this.close();
+    this._toggleCurrentPageBookmark.next();
+  }
+
+  requestOpenNewNoteDialog(): void {
+    this.close();
+    this._openNewNoteDialog.next();
   }
 
   isPageBookmarked(pageNumber: number): boolean {
