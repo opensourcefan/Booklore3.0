@@ -59,6 +59,7 @@ interface CbxJoystickDevicePreferences {
 
 type CbxMobileSurface = 'sidebar' | 'quickSettings' | 'noteDialog' | 'shortcutsHelp';
 type CbxPinchGestureMode = 'panel' | 'manual';
+type CbxJoystickAxisIntent = 'none' | 'horizontal' | 'vertical';
 
 
 @Component({
@@ -99,6 +100,11 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private static readonly JOYSTICK_STARTUP_RAMP_MS = 360;
   private static readonly JOYSTICK_STARTUP_SPEED_FLOOR = 0.16;
   private static readonly JOYSTICK_STARTUP_DEADZONE_BONUS_PX = 10;
+  private static readonly JOYSTICK_AXIS_LOCK_RATIO = 1.34;
+  private static readonly JOYSTICK_AXIS_SWITCH_RATIO = 1.8;
+  private static readonly JOYSTICK_AXIS_CROSS_MUTE_RATIO = 0.52;
+  private static readonly JOYSTICK_AXIS_CROSS_DAMPING = 0.12;
+  private static readonly JOYSTICK_AXIS_IDLE_RESET_RATIO = 0.72;
   private static readonly MANUAL_PAGE_MIN_ZOOM = 1;
   private static readonly MANUAL_PAGE_MAX_ZOOM = 3.5;
 
@@ -225,6 +231,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   manualPagePanY = 0;
   private joystickVelocityX = 0;
   private joystickVelocityY = 0;
+  private joystickAxisIntent: CbxJoystickAxisIntent = 'none';
   private joystickInteractionStartMs = 0;
   private joystickPointerId: number | null = null;
   private joystickAnimationFrame: number | null = null;
@@ -2153,6 +2160,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.joystickKnobY = 0;
     this.joystickVelocityX = 0;
     this.joystickVelocityY = 0;
+    this.joystickAxisIntent = 'none';
     this.joystickInteractionStartMs = 0;
   }
 
@@ -2227,22 +2235,24 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       + ((1 - CbxReaderComponent.JOYSTICK_STARTUP_SPEED_FLOOR) * startupCurve);
     const startupDeadzone = CbxReaderComponent.JOYSTICK_DEADZONE_PX
       + ((1 - startupProgress) * CbxReaderComponent.JOYSTICK_STARTUP_DEADZONE_BONUS_PX);
+    const adjustedKnob = this.applyJoystickAxisIntent(this.joystickKnobX, this.joystickKnobY, startupDeadzone);
+    const adjustedMagnitude = Math.hypot(adjustedKnob.x, adjustedKnob.y);
 
     let targetVelocityX = 0;
     let targetVelocityY = 0;
     let smoothing = CbxReaderComponent.JOYSTICK_RELEASE_SMOOTHING;
 
-    if (magnitude > startupDeadzone) {
+    if (magnitude > startupDeadzone && adjustedMagnitude > startupDeadzone) {
       const radius = CbxReaderComponent.JOYSTICK_RADIUS_PX;
-      const normalized = this.clamp(magnitude / radius, 0, 1);
+      const normalized = this.clamp(adjustedMagnitude / radius, 0, 1);
       const smoothStep = normalized * normalized * (3 - (2 * normalized));
       const speed = (
         CbxReaderComponent.JOYSTICK_BASE_SPEED
         + (smoothStep * CbxReaderComponent.JOYSTICK_MAX_SPEED_DELTA)
       ) * this.getJoystickSensitivityMultiplier() * startupSpeedScale;
 
-      targetVelocityX = (this.joystickKnobX / magnitude) * speed;
-      targetVelocityY = (this.joystickKnobY / magnitude) * speed;
+      targetVelocityX = (adjustedKnob.x / adjustedMagnitude) * speed;
+      targetVelocityY = (adjustedKnob.y / adjustedMagnitude) * speed;
       const startupSmoothing = 0.45 + (startupProgress * 0.55);
       smoothing = CbxReaderComponent.JOYSTICK_INPUT_SMOOTHING * startupSmoothing;
     }
@@ -2257,6 +2267,50 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     this.applyJoystickPanDelta(this.joystickVelocityX, this.joystickVelocityY);
+  }
+
+  private applyJoystickAxisIntent(rawX: number, rawY: number, deadzone: number): {x: number, y: number} {
+    const absX = Math.abs(rawX);
+    const absY = Math.abs(rawY);
+    const magnitude = Math.hypot(rawX, rawY);
+
+    if (magnitude <= deadzone * CbxReaderComponent.JOYSTICK_AXIS_IDLE_RESET_RATIO) {
+      this.joystickAxisIntent = 'none';
+      return {x: rawX, y: rawY};
+    }
+
+    const dominantIntent: CbxJoystickAxisIntent = absX >= absY ? 'horizontal' : 'vertical';
+    const dominantValue = dominantIntent === 'horizontal' ? absX : absY;
+    const secondaryValue = dominantIntent === 'horizontal' ? absY : absX;
+    const dominanceRatio = secondaryValue <= 0.001 ? Number.POSITIVE_INFINITY : dominantValue / secondaryValue;
+
+    if (this.joystickAxisIntent === 'none' && dominanceRatio >= CbxReaderComponent.JOYSTICK_AXIS_LOCK_RATIO) {
+      this.joystickAxisIntent = dominantIntent;
+    }
+
+    if (this.joystickAxisIntent === 'horizontal' && absY >= absX * CbxReaderComponent.JOYSTICK_AXIS_SWITCH_RATIO) {
+      this.joystickAxisIntent = 'vertical';
+    } else if (this.joystickAxisIntent === 'vertical' && absX >= absY * CbxReaderComponent.JOYSTICK_AXIS_SWITCH_RATIO) {
+      this.joystickAxisIntent = 'horizontal';
+    }
+
+    if (this.joystickAxisIntent === 'horizontal') {
+      const muteVertical = absY <= absX * CbxReaderComponent.JOYSTICK_AXIS_CROSS_MUTE_RATIO;
+      return {
+        x: rawX,
+        y: muteVertical ? 0 : rawY * CbxReaderComponent.JOYSTICK_AXIS_CROSS_DAMPING,
+      };
+    }
+
+    if (this.joystickAxisIntent === 'vertical') {
+      const muteHorizontal = absX <= absY * CbxReaderComponent.JOYSTICK_AXIS_CROSS_MUTE_RATIO;
+      return {
+        x: muteHorizontal ? 0 : rawX * CbxReaderComponent.JOYSTICK_AXIS_CROSS_DAMPING,
+        y: rawY,
+      };
+    }
+
+    return {x: rawX, y: rawY};
   }
 
   private getJoystickSensitivityMultiplier(): number {

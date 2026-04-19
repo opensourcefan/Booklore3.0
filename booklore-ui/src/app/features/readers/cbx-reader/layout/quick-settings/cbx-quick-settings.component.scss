@@ -67,6 +67,8 @@ $transition-normal: 200ms ease;
 
 .panel-body {
   padding: 16px;
+  max-height: calc(100vh - 116px);
+  overflow-y: auto;
 }
 
 .control {
@@ -231,6 +233,10 @@ $transition-normal: 200ms ease;
     left: 16px;
     width: auto;
     top: 56px;
+  }
+
+  .panel-body {
+    max-height: calc(100vh - 96px);
   }
 
   .pointer {

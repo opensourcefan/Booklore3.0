@@ -486,6 +486,84 @@ describe('CbxReaderComponent mobile panel interactions', () => {
     expect(settledTouchDelta).toBeGreaterThan(firstTouchDelta * 1.5);
   });
 
+  it('suppresses cross-axis drift when horizontal intent is dominant', () => {
+    const containerElement = {
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 390, height: 700}),
+      querySelector: () => ({
+        getBoundingClientRect: () => ({left: 0, top: 0, width: 700, height: 1300})
+      })
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: unknown } }).imageContainerRef = {nativeElement: containerElement};
+
+    component.panelModeEnabled = false;
+    component.activePanelIndex = -1;
+    component.scrollMode = CbxScrollMode.PAGINATED;
+    component.manualPagePanX = 0;
+    component.manualPagePanY = 0;
+
+    const joystickInternals = component as unknown as {
+      joystickVelocityX: number;
+      joystickVelocityY: number;
+      joystickInteractionStartMs: number;
+      joystickAxisIntent: 'none' | 'horizontal' | 'vertical';
+      applyJoystickMotionStep: () => void;
+    };
+
+    component.joystickKnobX = 28;
+    component.joystickKnobY = 7;
+    joystickInternals.joystickVelocityX = 0;
+    joystickInternals.joystickVelocityY = 0;
+    joystickInternals.joystickInteractionStartMs = Date.now() - 600;
+    joystickInternals.joystickAxisIntent = 'none';
+    joystickInternals.applyJoystickMotionStep();
+
+    expect(joystickInternals.joystickAxisIntent).toBe('horizontal');
+    expect(Math.abs(component.manualPagePanX)).toBeGreaterThan(0);
+    expect(Math.abs(component.manualPagePanY)).toBeLessThan(0.1);
+  });
+
+  it('requires a deliberate directional change before switching joystick axis intent', () => {
+    const containerElement = {
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 390, height: 700}),
+      querySelector: () => ({
+        getBoundingClientRect: () => ({left: 0, top: 0, width: 700, height: 1300})
+      })
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: unknown } }).imageContainerRef = {nativeElement: containerElement};
+
+    component.panelModeEnabled = false;
+    component.activePanelIndex = -1;
+    component.scrollMode = CbxScrollMode.PAGINATED;
+
+    const joystickInternals = component as unknown as {
+      joystickVelocityX: number;
+      joystickVelocityY: number;
+      joystickInteractionStartMs: number;
+      joystickAxisIntent: 'none' | 'horizontal' | 'vertical';
+      applyJoystickMotionStep: () => void;
+    };
+
+    joystickInternals.joystickVelocityX = 0;
+    joystickInternals.joystickVelocityY = 0;
+    joystickInternals.joystickInteractionStartMs = Date.now() - 600;
+    joystickInternals.joystickAxisIntent = 'none';
+
+    component.joystickKnobX = 28;
+    component.joystickKnobY = 6;
+    joystickInternals.applyJoystickMotionStep();
+    expect(joystickInternals.joystickAxisIntent).toBe('horizontal');
+
+    component.joystickKnobX = 10;
+    component.joystickKnobY = 14;
+    joystickInternals.applyJoystickMotionStep();
+    expect(joystickInternals.joystickAxisIntent).toBe('horizontal');
+
+    component.joystickKnobX = 6;
+    component.joystickKnobY = 20;
+    joystickInternals.applyJoystickMotionStep();
+    expect(joystickInternals.joystickAxisIntent).toBe('vertical');
+  });
+
   it('persists joystick indicator visibility and opacity preferences', () => {
     const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
 

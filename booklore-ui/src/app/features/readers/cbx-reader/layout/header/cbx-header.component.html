@@ -96,7 +96,73 @@
       <app-reader-icon name="help" [size]="20" />
     </button>
     <div class="overflow-menu mobile-only">
-      <button class="icon-btn" (click)="overflowOpen = !overflowOpen; $event.stopPropagation()" [title]="'readerCbx.header.more' | transloco">
+      <button class="icon-btn joystick-menu-btn" (click)="onToggleJoystickMenu($event)" [title]="'readerCbx.quickSettings.joystick' | transloco" [class.active]="joystickMenuOpen || joystickEnabled">
+        <app-reader-icon name="joystick" [size]="20" />
+      </button>
+      @if (joystickMenuOpen) {
+        <div class="overflow-backdrop" tabindex="0" (keydown.enter)="joystickMenuOpen = false" (click)="joystickMenuOpen = false"></div>
+        <div class="joystick-dropdown" tabindex="0" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
+          <div class="joystick-row">
+            <span class="joystick-row-label">{{ 'readerCbx.quickSettings.joystick' | transloco }}</span>
+            <div class="joystick-chip-group">
+              <button class="joystick-chip" [class.active]="joystickEnabled" (click)="onToggleJoystick()">{{ 'readerCbx.quickSettings.on' | transloco }}</button>
+              <button class="joystick-chip" [class.active]="!joystickEnabled" (click)="onToggleJoystick()">{{ 'readerCbx.quickSettings.off' | transloco }}</button>
+            </div>
+          </div>
+
+          <div class="joystick-row">
+            <span class="joystick-row-label">{{ 'readerCbx.quickSettings.joystickSensitivity' | transloco }}</span>
+            <div class="joystick-chip-group">
+              <button class="joystick-chip" [class.active]="joystickSensitivity === 'SLOW'" (click)="onJoystickSensitivitySelect('SLOW')">{{ 'readerCbx.quickSettings.joystickSensitivitySlow' | transloco }}</button>
+              <button class="joystick-chip" [class.active]="joystickSensitivity === 'NORMAL'" (click)="onJoystickSensitivitySelect('NORMAL')">{{ 'readerCbx.quickSettings.joystickSensitivityNormal' | transloco }}</button>
+              <button class="joystick-chip" [class.active]="joystickSensitivity === 'FAST'" (click)="onJoystickSensitivitySelect('FAST')">{{ 'readerCbx.quickSettings.joystickSensitivityFast' | transloco }}</button>
+            </div>
+          </div>
+
+          @if (joystickEnabled) {
+            <div class="joystick-row">
+              <span class="joystick-row-label">{{ 'readerCbx.quickSettings.joystickPosition' | transloco }}</span>
+              <div class="joystick-chip-group">
+                <button class="joystick-chip" [class.active]="joystickPositionLocked" (click)="onToggleJoystickPositionLock()">{{ 'readerCbx.quickSettings.locked' | transloco }}</button>
+                <button class="joystick-chip" [class.active]="!joystickPositionLocked" (click)="onToggleJoystickPositionLock()">{{ 'readerCbx.quickSettings.unlocked' | transloco }}</button>
+              </div>
+            </div>
+
+            <div class="joystick-row">
+              <span class="joystick-row-label">{{ 'readerCbx.quickSettings.joystickTouchAnchor' | transloco }}</span>
+              <div class="joystick-chip-group">
+                <button class="joystick-chip" [class.active]="joystickRecenterOnTouch" (click)="onJoystickRecenterOnTouchChange(true)">{{ 'readerCbx.quickSettings.on' | transloco }}</button>
+                <button class="joystick-chip" [class.active]="!joystickRecenterOnTouch" (click)="onJoystickRecenterOnTouchChange(false)">{{ 'readerCbx.quickSettings.off' | transloco }}</button>
+              </div>
+            </div>
+
+            <div class="joystick-row">
+              <span class="joystick-row-label">{{ 'readerCbx.quickSettings.joystickIndicator' | transloco }}</span>
+              <div class="joystick-chip-group">
+                <button class="joystick-chip" [class.active]="joystickIndicatorVisible" (click)="onJoystickIndicatorVisibleChange(true)">{{ 'readerCbx.quickSettings.on' | transloco }}</button>
+                <button class="joystick-chip" [class.active]="!joystickIndicatorVisible" (click)="onJoystickIndicatorVisibleChange(false)">{{ 'readerCbx.quickSettings.off' | transloco }}</button>
+              </div>
+            </div>
+
+            <div class="joystick-row joystick-slider-row">
+              <span class="joystick-row-label">{{ 'readerCbx.quickSettings.joystickIndicatorOpacity' | transloco }}</span>
+              <div class="joystick-slider-wrap">
+                <input
+                  class="joystick-slider"
+                  type="range"
+                  min="10"
+                  max="100"
+                  step="5"
+                  [value]="joystickIndicatorOpacity * 100"
+                  (input)="onJoystickIndicatorOpacityInput($event)" />
+                <span class="joystick-slider-value">{{ (joystickIndicatorOpacity * 100).toFixed(0) }}%</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <button class="icon-btn" (click)="onToggleOverflowMenu($event)" [title]="'readerCbx.header.more' | transloco">
         <app-reader-icon name="dots-vertical" [size]="20" />
       </button>
       @if (overflowOpen) {
@@ -110,16 +176,6 @@
             <app-reader-icon name="book" [size]="18" />
             <span>{{ state.isPanelModeEnabled ? ('readerCbx.header.disablePanelModeLabel' | transloco) : ('readerCbx.header.enablePanelModeLabel' | transloco) }}</span>
           </button>
-          <button class="overflow-item" (click)="onToggleJoystick(); overflowOpen = false" [class.active]="joystickEnabled">
-            <span class="joystick-text">JS</span>
-            <span>{{ joystickEnabled ? ('readerCbx.header.disableJoystickLabel' | transloco) : ('readerCbx.header.enableJoystickLabel' | transloco) }}</span>
-          </button>
-          @if (joystickEnabled) {
-            <button class="overflow-item" (click)="onToggleJoystickPositionLock(); overflowOpen = false" [class.active]="joystickPositionLocked">
-              <app-reader-icon name="pin" [size]="18" />
-              <span>{{ joystickPositionLocked ? ('readerCbx.header.unlockJoystickLabel' | transloco) : ('readerCbx.header.lockJoystickLabel' | transloco) }}</span>
-            </button>
-          }
           <button class="overflow-item" (click)="onToggleSlideshow(); overflowOpen = false" [class.active]="state.isSlideshowActive">
             <app-reader-icon [name]="state.isSlideshowActive ? 'pause' : 'play'" [size]="18" />
             <span>{{ state.isSlideshowActive ? ('readerCbx.header.stopSlideshowLabel' | transloco) : ('readerCbx.header.startSlideshowLabel' | transloco) }}</span>

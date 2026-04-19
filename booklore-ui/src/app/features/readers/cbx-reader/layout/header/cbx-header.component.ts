@@ -6,8 +6,9 @@ import {CbxHeaderService, CbxHeaderState} from './cbx-header.service';
 import {ReaderIconComponent} from '../../../ebook-reader';
 import {CommonModule} from '@angular/common';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
+import {CbxJoystickSensitivity} from '../quick-settings/cbx-quick-settings.service';
 
-type CbxHeaderMobileSurface = 'overflow' | 'aiMenu' | 'panelAdjust';
+type CbxHeaderMobileSurface = 'overflow' | 'aiMenu' | 'panelAdjust' | 'joystickMenu';
 
 @Component({
   selector: 'app-cbx-header',
@@ -35,7 +36,11 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
   @Input() panelTravelControlsVisible = false;
   @Input() panelZoomControlsVisible = false;
   @Input() joystickEnabled = false;
+  @Input() joystickSensitivity: CbxJoystickSensitivity = 'NORMAL';
   @Input() joystickPositionLocked = true;
+  @Input() joystickRecenterOnTouch = true;
+  @Input() joystickIndicatorVisible = true;
+  @Input() joystickIndicatorOpacity = 0.88;
 
   @Output() aiPanelDetection = new EventEmitter<void>();
   @Output() aiRescan = new EventEmitter<void>();
@@ -47,11 +52,16 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
   @Output() panelZoomIn = new EventEmitter<void>();
   @Output() toggleJoystick = new EventEmitter<void>();
   @Output() toggleJoystickPositionLock = new EventEmitter<void>();
+  @Output() joystickSensitivityChange = new EventEmitter<CbxJoystickSensitivity>();
+  @Output() joystickRecenterOnTouchChange = new EventEmitter<boolean>();
+  @Output() joystickIndicatorVisibleChange = new EventEmitter<boolean>();
+  @Output() joystickIndicatorOpacityChange = new EventEmitter<number>();
 
   isVisible = true;
   overflowOpen = false;
   aiMenuOpen = false;
   panelAdjustOpen = false;
+  joystickMenuOpen = false;
   state: CbxHeaderState = {
     isFullscreen: false,
     isSlideshowActive: false,
@@ -88,6 +98,9 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     });
     this.syncMobileBackSurface('panelAdjust', this.panelAdjustOpen, () => {
       this.panelAdjustOpen = false;
+    });
+    this.syncMobileBackSurface('joystickMenu', this.joystickMenuOpen, () => {
+      this.joystickMenuOpen = false;
     });
   }
 
@@ -148,6 +161,7 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     this.aiMenuOpen = !this.aiMenuOpen;
     if (this.aiMenuOpen) {
       this.overflowOpen = false;
+      this.joystickMenuOpen = false;
     }
   }
 
@@ -155,6 +169,7 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     this.aiMenuOpen = false;
     this.overflowOpen = false;
     this.panelAdjustOpen = false;
+    this.joystickMenuOpen = false;
   }
 
   private syncMobileBackSurface(surface: CbxHeaderMobileSurface, isOpen: boolean, close: () => void): void {
@@ -182,6 +197,30 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
   onTogglePanelAdjust(event: MouseEvent): void {
     event.stopPropagation();
     this.panelAdjustOpen = !this.panelAdjustOpen;
+    if (this.panelAdjustOpen) {
+      this.joystickMenuOpen = false;
+      this.overflowOpen = false;
+    }
+  }
+
+  onToggleJoystickMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.joystickMenuOpen = !this.joystickMenuOpen;
+    if (this.joystickMenuOpen) {
+      this.overflowOpen = false;
+      this.aiMenuOpen = false;
+      this.panelAdjustOpen = false;
+    }
+  }
+
+  onToggleOverflowMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.overflowOpen = !this.overflowOpen;
+    if (this.overflowOpen) {
+      this.joystickMenuOpen = false;
+      this.aiMenuOpen = false;
+      this.panelAdjustOpen = false;
+    }
   }
 
   onPanelTravelDelta(delta: number): void {
@@ -215,6 +254,28 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onToggleJoystickPositionLock(): void {
     this.toggleJoystickPositionLock.emit();
+  }
+
+  onJoystickSensitivitySelect(sensitivity: CbxJoystickSensitivity): void {
+    this.joystickSensitivityChange.emit(sensitivity);
+  }
+
+  onJoystickRecenterOnTouchChange(enabled: boolean): void {
+    this.joystickRecenterOnTouchChange.emit(enabled);
+  }
+
+  onJoystickIndicatorVisibleChange(visible: boolean): void {
+    this.joystickIndicatorVisibleChange.emit(visible);
+  }
+
+  onJoystickIndicatorOpacityInput(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    if (!target) {
+      return;
+    }
+
+    const opacity = Number(target.value) / 100;
+    this.joystickIndicatorOpacityChange.emit(opacity);
   }
 
   onClose(): void {

@@ -36,7 +36,8 @@ export type ReaderIconName =
   | 'direction-ltr'
   | 'direction-rtl'
   | 'pin'
-  | 'magnifier';
+  | 'magnifier'
+  | 'joystick';
 
 interface IconPath {
   d: string;
@@ -207,6 +208,12 @@ const ICONS: Record<ReaderIconName, IconPath[]> = {
     {d: 'M21 21l-5-5'},
     {d: 'M7,10 L13,10', type: 'line'},
     {d: 'M10,7 L10,13', type: 'line'}
+  ],
+  'joystick': [
+    {d: 'M12 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0', type: 'path'},
+    {d: 'M12,7 L12,13', type: 'line'},
+    {d: 'M12 15m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0', type: 'path'},
+    {d: 'M7,21 L17,21', type: 'line'}
   ]
 };
 
