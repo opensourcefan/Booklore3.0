@@ -122,6 +122,9 @@ describe('CbxReaderComponent mobile panel interactions', () => {
             slideshowIntervalChange$: of(),
             magnifierZoomChange$: of(),
             magnifierLensSizeChange$: of(),
+            joystickEnabledChange$: of(),
+            joystickSensitivityChange$: of(),
+            joystickPositionLockedChange$: of(),
             updateState: vi.fn(),
             setFitMode: vi.fn(),
             setScrollMode: vi.fn(),
@@ -132,6 +135,9 @@ describe('CbxReaderComponent mobile panel interactions', () => {
             setSlideshowInterval: vi.fn(),
             setMagnifierZoom: vi.fn(),
             setMagnifierLensSize: vi.fn(),
+            setJoystickEnabled: vi.fn(),
+            setJoystickSensitivity: vi.fn(),
+            setJoystickPositionLocked: vi.fn(),
             close: vi.fn(),
             show: vi.fn(),
             isVisible: false
@@ -212,10 +218,18 @@ describe('CbxReaderComponent mobile panel interactions', () => {
   });
 
   it('uses two-finger movement to zoom and pan the active panel', () => {
+    const containerElement = {
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 390, height: 700}),
+      querySelector: () => ({
+        getBoundingClientRect: () => ({left: 0, top: 0, width: 700, height: 1300})
+      })
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: unknown } }).imageContainerRef = {nativeElement: containerElement};
+
     component.activePanelIndex = -1;
 
     component.onTouchStart({
-      target: {closest: () => true},
+      target: {closest: (selector: string) => selector === '.image-container'},
       touches: [
         {screenX: 100, screenY: 120, clientX: 100, clientY: 120},
         {screenX: 180, screenY: 120, clientX: 180, clientY: 120}
@@ -236,5 +250,107 @@ describe('CbxReaderComponent mobile panel interactions', () => {
     expect(component.panelPanX).not.toBe(0);
     expect(component.panelPanY).not.toBe(0);
     expect(preventDefault).toHaveBeenCalled();
+  });
+
+  it('persists joystick enabled state in device storage', () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+
+    component.toggleJoystickEnabled();
+
+    expect(component.joystickEnabled).toBe(true);
+    expect(setItemSpy).toHaveBeenCalled();
+
+    setItemSpy.mockRestore();
+  });
+
+  it('repositions joystick when position lock is disabled', () => {
+    component.joystickEnabled = true;
+    component.joystickPositionLocked = false;
+
+    const containerElement = {
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 400, height: 800}),
+      querySelector: () => null
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: unknown } }).imageContainerRef = {nativeElement: containerElement};
+
+    const pointerTarget = {
+      setPointerCapture: vi.fn(),
+      releasePointerCapture: vi.fn()
+    };
+
+    component.onJoystickPointerDown({
+      pointerId: 11,
+      clientX: 380,
+      clientY: 640,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+      currentTarget: pointerTarget
+    } as unknown as PointerEvent);
+
+    component.onJoystickPointerMove({
+      pointerId: 11,
+      clientX: 300,
+      clientY: 560,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    } as unknown as PointerEvent);
+
+    expect(component.joystickAnchorX).toBeCloseTo(0.75, 2);
+    expect(component.joystickAnchorY).toBeCloseTo(0.7, 2);
+
+    component.onJoystickPointerUp({
+      pointerId: 11,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+      currentTarget: pointerTarget
+    } as unknown as PointerEvent);
+  });
+
+  it('clamps panel pan when joystick movement exceeds viewport bounds', () => {
+    const containerElement = {
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 390, height: 700}),
+      querySelector: () => ({
+        getBoundingClientRect: () => ({left: 0, top: 0, width: 700, height: 1300})
+      })
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: unknown } }).imageContainerRef = {nativeElement: containerElement};
+
+    component.activePanelIndex = 0;
+    component.panelModeEnabled = true;
+
+    (component as unknown as { applyJoystickPanDelta: (x: number, y: number) => void }).applyJoystickPanDelta(1000, 1000);
+
+    expect(Math.abs(component.panelPanX)).toBeLessThanOrEqual(260);
+    expect(Math.abs(component.panelPanY)).toBeLessThanOrEqual(440);
+  });
+
+  it('moves scroll position with joystick when in infinite mode', () => {
+    const containerElement = {
+      scrollLeft: 0,
+      scrollTop: 0,
+      getBoundingClientRect: () => ({left: 0, top: 0, width: 390, height: 700}),
+      querySelector: () => null
+    };
+    (component as unknown as { imageContainerRef: { nativeElement: typeof containerElement } }).imageContainerRef = {nativeElement: containerElement};
+
+    component.scrollMode = CbxScrollMode.INFINITE;
+    component.panelModeEnabled = false;
+    component.activePanelIndex = -1;
+
+    (component as unknown as { applyJoystickPanDelta: (x: number, y: number) => void }).applyJoystickPanDelta(14, -18);
+
+    expect(containerElement.scrollLeft).toBe(14);
+    expect(containerElement.scrollTop).toBe(-18);
+  });
+
+  it('ignores reader touch handling when joystick is touched', () => {
+    component.onTouchStart({
+      target: {
+        closest: (selector: string) => selector === '.mobile-joystick'
+      },
+      touches: [{screenX: 100, screenY: 100}]
+    } as unknown as TouchEvent);
+
+    expect((component as unknown as { isReaderTouchActive: boolean }).isReaderTouchActive).toBe(false);
   });
 });

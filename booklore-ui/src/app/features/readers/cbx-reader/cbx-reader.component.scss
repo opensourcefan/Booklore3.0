@@ -137,6 +137,62 @@
       }
     }
 
+    .mobile-joystick {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      margin-left: -32px;
+      margin-top: -32px;
+      z-index: 16;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.05;
+      transition: opacity 0.16s ease, transform 0.16s ease;
+      touch-action: none;
+      cursor: grab;
+
+      &.active {
+        opacity: 0.95;
+        transform: scale(1.03);
+        cursor: grabbing;
+      }
+
+      &.unlocked {
+        opacity: 0.85;
+      }
+
+      .joystick-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1px solid rgba(173, 225, 255, 0.75);
+        background: radial-gradient(circle at 35% 35%, rgba(120, 208, 255, 0.2), rgba(0, 0, 0, 0.32));
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 10px 18px rgba(0, 0, 0, 0.25);
+      }
+
+      .joystick-thumb {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid rgba(215, 243, 255, 0.95);
+        background: radial-gradient(circle at 30% 30%, rgba(233, 248, 255, 0.95), rgba(115, 181, 226, 0.95));
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+        transition: transform 0.05s linear;
+      }
+
+      .joystick-center-dot {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #e8f7ff;
+        border: 1px solid rgba(70, 150, 200, 0.7);
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+        pointer-events: none;
+      }
+    }
+
     &:not(.two-page-view):not(.infinite-scroll) {
       flex-direction: column;
       align-items: stretch;
@@ -220,6 +276,17 @@
 
           &:hover .page-image {
             transform: translate(calc(var(--panel-translate-x, 0) * 1%), calc(var(--panel-translate-y, 0) * 1%)) translate(var(--panel-pan-x, 0px), var(--panel-pan-y, 0px)) scale(var(--panel-scale, 1));
+          }
+        }
+
+        &.manual-pan {
+          .page-image {
+            transform: translate(var(--manual-pan-x, 0px), var(--manual-pan-y, 0px));
+            transition: transform 0.05s linear;
+          }
+
+          &:hover .page-image {
+            transform: translate(var(--manual-pan-x, 0px), var(--manual-pan-y, 0px));
           }
         }
       }

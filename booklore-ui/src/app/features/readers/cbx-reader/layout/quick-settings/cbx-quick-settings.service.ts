@@ -2,6 +2,8 @@ import {Injectable} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {CbxBackgroundColor, CbxFitMode, CbxMagnifierLensSize, CbxMagnifierZoom, CbxPageSpread, CbxPageViewMode, CbxScrollMode, CbxReadingDirection, CbxSlideshowInterval} from '../../../../settings/user-management/user.service';
 
+export type CbxJoystickSensitivity = 'SLOW' | 'NORMAL' | 'FAST';
+
 export interface CbxQuickSettingsState {
   fitMode: CbxFitMode;
   scrollMode: CbxScrollMode;
@@ -12,6 +14,9 @@ export interface CbxQuickSettingsState {
   slideshowInterval: CbxSlideshowInterval;
   magnifierZoom: CbxMagnifierZoom;
   magnifierLensSize: CbxMagnifierLensSize;
+  joystickEnabled: boolean;
+  joystickSensitivity: CbxJoystickSensitivity;
+  joystickPositionLocked: boolean;
 }
 
 @Injectable()
@@ -25,7 +30,10 @@ export class CbxQuickSettingsService {
     readingDirection: CbxReadingDirection.LTR,
     slideshowInterval: CbxSlideshowInterval.FIVE_SECONDS,
     magnifierZoom: CbxMagnifierZoom.ZOOM_3X,
-    magnifierLensSize: CbxMagnifierLensSize.MEDIUM
+    magnifierLensSize: CbxMagnifierLensSize.MEDIUM,
+    joystickEnabled: false,
+    joystickSensitivity: 'NORMAL',
+    joystickPositionLocked: true
   });
   state$ = this._state.asObservable();
 
@@ -58,6 +66,15 @@ export class CbxQuickSettingsService {
 
   private _magnifierLensSizeChange = new Subject<CbxMagnifierLensSize>();
   magnifierLensSizeChange$ = this._magnifierLensSizeChange.asObservable();
+
+  private _joystickEnabledChange = new Subject<boolean>();
+  joystickEnabledChange$ = this._joystickEnabledChange.asObservable();
+
+  private _joystickSensitivityChange = new Subject<CbxJoystickSensitivity>();
+  joystickSensitivityChange$ = this._joystickSensitivityChange.asObservable();
+
+  private _joystickPositionLockedChange = new Subject<boolean>();
+  joystickPositionLockedChange$ = this._joystickPositionLockedChange.asObservable();
 
   get state(): CbxQuickSettingsState {
     return this._state.value;
@@ -115,6 +132,18 @@ export class CbxQuickSettingsService {
     this.updateState({magnifierLensSize: size});
   }
 
+  setJoystickEnabled(enabled: boolean): void {
+    this.updateState({joystickEnabled: enabled});
+  }
+
+  setJoystickSensitivity(sensitivity: CbxJoystickSensitivity): void {
+    this.updateState({joystickSensitivity: sensitivity});
+  }
+
+  setJoystickPositionLocked(locked: boolean): void {
+    this.updateState({joystickPositionLocked: locked});
+  }
+
   // Actions emitted from component
   emitFitModeChange(mode: CbxFitMode): void {
     this._fitModeChange.next(mode);
@@ -152,6 +181,18 @@ export class CbxQuickSettingsService {
     this._magnifierLensSizeChange.next(size);
   }
 
+  emitJoystickEnabledChange(enabled: boolean): void {
+    this._joystickEnabledChange.next(enabled);
+  }
+
+  emitJoystickSensitivityChange(sensitivity: CbxJoystickSensitivity): void {
+    this._joystickSensitivityChange.next(sensitivity);
+  }
+
+  emitJoystickPositionLockedChange(locked: boolean): void {
+    this._joystickPositionLockedChange.next(locked);
+  }
+
   reset(): void {
     this._state.next({
       fitMode: CbxFitMode.FIT_PAGE,
@@ -162,7 +203,10 @@ export class CbxQuickSettingsService {
       readingDirection: CbxReadingDirection.LTR,
       slideshowInterval: CbxSlideshowInterval.FIVE_SECONDS,
       magnifierZoom: CbxMagnifierZoom.ZOOM_3X,
-      magnifierLensSize: CbxMagnifierLensSize.MEDIUM
+      magnifierLensSize: CbxMagnifierLensSize.MEDIUM,
+      joystickEnabled: false,
+      joystickSensitivity: 'NORMAL',
+      joystickPositionLocked: true
     });
     this._visible.next(false);
   }

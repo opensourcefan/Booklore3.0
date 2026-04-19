@@ -15,7 +15,7 @@ import {
   CbxMagnifierLensSize
 } from '../../../../settings/user-management/user.service';
 import {ReaderIconComponent, ReaderIconName} from '../../../ebook-reader/shared/icon.component';
-import {CbxQuickSettingsService, CbxQuickSettingsState} from './cbx-quick-settings.service';
+import {CbxJoystickSensitivity, CbxQuickSettingsService, CbxQuickSettingsState} from './cbx-quick-settings.service';
 
 @Component({
   selector: 'app-cbx-quick-settings',
@@ -38,7 +38,10 @@ export class CbxQuickSettingsComponent implements OnInit, OnDestroy {
     readingDirection: CbxReadingDirection.LTR,
     slideshowInterval: CbxSlideshowInterval.FIVE_SECONDS,
     magnifierZoom: CbxMagnifierZoom.ZOOM_3X,
-    magnifierLensSize: CbxMagnifierLensSize.MEDIUM
+    magnifierLensSize: CbxMagnifierLensSize.MEDIUM,
+    joystickEnabled: false,
+    joystickSensitivity: 'NORMAL',
+    joystickPositionLocked: true
   };
 
   protected readonly CbxFitMode = CbxFitMode;
@@ -90,6 +93,12 @@ export class CbxQuickSettingsComponent implements OnInit, OnDestroy {
     {value: CbxMagnifierLensSize.MEDIUM, label: 'M'},
     {value: CbxMagnifierLensSize.LARGE, label: 'L'},
     {value: CbxMagnifierLensSize.EXTRA_LARGE, label: 'XL'}
+  ];
+
+  joystickSensitivityOptions: {value: CbxJoystickSensitivity, labelKey: string}[] = [
+    {value: 'SLOW', labelKey: 'readerCbx.quickSettings.joystickSensitivitySlow'},
+    {value: 'NORMAL', labelKey: 'readerCbx.quickSettings.joystickSensitivityNormal'},
+    {value: 'FAST', labelKey: 'readerCbx.quickSettings.joystickSensitivityFast'}
   ];
 
   get backgroundOptions() {
@@ -169,6 +178,18 @@ export class CbxQuickSettingsComponent implements OnInit, OnDestroy {
 
   onMagnifierLensSizeSelect(size: CbxMagnifierLensSize): void {
     this.quickSettingsService.emitMagnifierLensSizeChange(size);
+  }
+
+  onJoystickEnabledToggle(enabled: boolean): void {
+    this.quickSettingsService.emitJoystickEnabledChange(enabled);
+  }
+
+  onJoystickSensitivitySelect(sensitivity: CbxJoystickSensitivity): void {
+    this.quickSettingsService.emitJoystickSensitivityChange(sensitivity);
+  }
+
+  onJoystickPositionLockToggle(locked: boolean): void {
+    this.quickSettingsService.emitJoystickPositionLockedChange(locked);
   }
 
   onOverlayClick(): void {

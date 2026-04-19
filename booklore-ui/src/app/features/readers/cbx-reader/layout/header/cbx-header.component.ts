@@ -34,6 +34,8 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
   @Input() panelTravelFactor = 1;
   @Input() panelTravelControlsVisible = false;
   @Input() panelZoomControlsVisible = false;
+  @Input() joystickEnabled = false;
+  @Input() joystickPositionLocked = true;
 
   @Output() aiPanelDetection = new EventEmitter<void>();
   @Output() aiRescan = new EventEmitter<void>();
@@ -43,6 +45,8 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
   @Output() panelTravelFactorChange = new EventEmitter<number>();
   @Output() panelZoomOut = new EventEmitter<void>();
   @Output() panelZoomIn = new EventEmitter<void>();
+  @Output() toggleJoystick = new EventEmitter<void>();
+  @Output() toggleJoystickPositionLock = new EventEmitter<void>();
 
   isVisible = true;
   overflowOpen = false;
@@ -203,6 +207,14 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onPanelZoomIn(): void {
     this.panelZoomIn.emit();
+  }
+
+  onToggleJoystick(): void {
+    this.toggleJoystick.emit();
+  }
+
+  onToggleJoystickPositionLock(): void {
+    this.toggleJoystickPositionLock.emit();
   }
 
   onClose(): void {

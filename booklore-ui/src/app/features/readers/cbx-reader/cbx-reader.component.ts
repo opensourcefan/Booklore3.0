@@ -23,7 +23,7 @@ import {CbxSidebarService} from './layout/sidebar/cbx-sidebar.service';
 import {CbxFooterComponent} from './layout/footer/cbx-footer.component';
 import {CbxFooterService} from './layout/footer/cbx-footer.service';
 import {CbxQuickSettingsComponent} from './layout/quick-settings/cbx-quick-settings.component';
-import {CbxQuickSettingsService} from './layout/quick-settings/cbx-quick-settings.service';
+import {CbxJoystickSensitivity, CbxQuickSettingsService} from './layout/quick-settings/cbx-quick-settings.service';
 import {CbxNoteDialogComponent, CbxNoteDialogData, CbxNoteDialogResult} from './dialogs/cbx-note-dialog.component';
 import {CbxShortcutsHelpComponent} from './dialogs/cbx-shortcuts-help.component';
 import {BookNoteV2} from '../../../shared/service/book-note-v2.service';
@@ -44,6 +44,14 @@ interface CbxPanelRegion {
 interface CbxPagePanelData {
   pageNumber: number;
   panels: CbxPanelRegion[];
+}
+
+interface CbxJoystickDevicePreferences {
+  enabled: boolean;
+  sensitivity: CbxJoystickSensitivity;
+  positionLocked: boolean;
+  anchorX: number;
+  anchorY: number;
 }
 
 type CbxMobileSurface = 'sidebar' | 'quickSettings' | 'noteDialog' | 'shortcutsHelp';
@@ -74,6 +82,13 @@ type CbxMobileSurface = 'sidebar' | 'quickSettings' | 'noteDialog' | 'shortcutsH
   styleUrl: './cbx-reader.component.scss'
 })
 export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
+  private static readonly JOYSTICK_DEVICE_STORAGE_KEY = 'booklore.cbx.mobileJoystick.v1';
+  private static readonly JOYSTICK_RADIUS_PX = 30;
+  private static readonly JOYSTICK_DEADZONE_PX = 6;
+  private static readonly JOYSTICK_MARGIN_PX = 26;
+  private static readonly JOYSTICK_EDGE_OVERSCAN_RATIO = 0.24;
+  private static readonly JOYSTICK_EDGE_OVERSCAN_MAX_PX = 120;
+
   private destroy$ = new Subject<void>();
   private progressSaveSubject$ = new Subject<void>();
 
@@ -174,9 +189,24 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   // Magnifier
   isMagnifierActive = false;
   @ViewChild('magnifierLens', {static: true}) private magnifierLensRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('imageContainer') private imageContainerRef?: ElementRef<HTMLDivElement>;
   magnifierZoom: CbxMagnifierZoom = CbxMagnifierZoom.ZOOM_3X;
   magnifierLensSize: CbxMagnifierLensSize = CbxMagnifierLensSize.MEDIUM;
   private lastMouseEvent: MouseEvent | null = null;
+
+  // Mobile joystick (device-local only)
+  joystickEnabled = false;
+  joystickSensitivity: CbxJoystickSensitivity = 'NORMAL';
+  joystickPositionLocked = true;
+  joystickAnchorX = 0.86;
+  joystickAnchorY = 0.78;
+  joystickActive = false;
+  joystickKnobX = 0;
+  joystickKnobY = 0;
+  manualPagePanX = 0;
+  manualPagePanY = 0;
+  private joystickPointerId: number | null = null;
+  private joystickAnimationFrame: number | null = null;
 
   // Double page detection
   private pageDimensionsCache = new Map<number, {width: number, height: number}>();
@@ -219,6 +249,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private mobileBackHandles: Partial<Record<CbxMobileSurface, MobileBackHandle>> = {};
 
   ngOnInit() {
+    this.loadJoystickDevicePreferences();
+
     this.visibilityManager = new ReaderHeaderFooterVisibilityManager(window.innerHeight);
     this.isHeaderFooterPinned = this.visibilityManager.getIsPinned();
     this.visibilityManager.onStateChange((state) => {
@@ -526,6 +558,18 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.quickSettingsService.magnifierLensSizeChange$
       .pipe(takeUntil(this.destroy$))
       .subscribe(size => this.onMagnifierLensSizeChange(size));
+
+    this.quickSettingsService.joystickEnabledChange$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(enabled => this.onJoystickEnabledChange(enabled));
+
+    this.quickSettingsService.joystickSensitivityChange$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(sensitivity => this.onJoystickSensitivityChange(sensitivity));
+
+    this.quickSettingsService.joystickPositionLockedChange$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(locked => this.onJoystickPositionLockedChange(locked));
   }
 
   private updateServiceStates(): void {
@@ -547,7 +591,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       readingDirection: this.readingDirection,
       slideshowInterval: this.slideshowInterval,
       magnifierZoom: this.magnifierZoom,
-      magnifierLensSize: this.magnifierLensSize
+      magnifierLensSize: this.magnifierLensSize,
+      joystickEnabled: this.joystickEnabled,
+      joystickSensitivity: this.joystickSensitivity,
+      joystickPositionLocked: this.joystickPositionLocked
     });
 
     this.headerService.updateState({
@@ -785,6 +832,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     if (this.currentPage !== previousPage) {
+      this.resetManualPagePan();
       if (this.panelModeEnabled) {
         // Enter each new page at full-page view first, then step into panels.
         this.activePanelIndex = -1;
@@ -829,12 +877,14 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onFitModeChange(mode: CbxFitMode): void {
     this.fitMode = mode;
+    this.resetManualPagePan();
     this.quickSettingsService.setFitMode(mode);
     this.updateViewerSetting();
   }
 
   onScrollModeChange(mode: CbxScrollMode): void {
     this.scrollMode = mode;
+    this.resetManualPagePan();
     this.quickSettingsService.setScrollMode(mode);
     this.updateViewerSetting();
 
@@ -852,6 +902,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   onPageViewModeChange(mode: CbxPageViewMode): void {
     if (mode === CbxPageViewMode.TWO_PAGE && this.isPhonePortrait()) return;
     this.pageViewMode = mode;
+    this.resetManualPagePan();
     this.quickSettingsService.setPageViewMode(mode);
     this.alignCurrentPageToParity();
     this.updateCurrentImageUrls();
@@ -863,6 +914,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onPageSpreadChange(spread: CbxPageSpread): void {
     this.pageSpread = spread;
+    this.resetManualPagePan();
     this.quickSettingsService.setPageSpread(spread);
     this.alignCurrentPageToParity();
     this.updateCurrentImageUrls();
@@ -872,6 +924,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
   onBackgroundColorChange(color: CbxBackgroundColor): void {
     this.backgroundColor = color;
+    this.resetManualPagePan();
     this.quickSettingsService.setBackgroundColor(color);
     this.updateViewerSetting();
   }
@@ -979,6 +1032,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     if (targetIndex === this.currentPage) return;
 
     this.currentPage = targetIndex;
+    this.resetManualPagePan();
     this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
 
     if (this.scrollMode === CbxScrollMode.INFINITE || this.scrollMode === CbxScrollMode.LONG_STRIP) {
@@ -1454,6 +1508,19 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     return 0;
   }
 
+  private toNormalizedPosition(value: unknown, fallback: number): number {
+    if (typeof value !== 'number' && typeof value !== 'string') {
+      return fallback;
+    }
+
+    const numeric = this.toNumber(value);
+    if (!Number.isFinite(numeric)) {
+      return fallback;
+    }
+
+    return numeric;
+  }
+
   private clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
   }
@@ -1467,6 +1534,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent) {
     const target = event.target as HTMLElement | null;
+    if (target?.closest('.mobile-joystick')) {
+      return;
+    }
+
     if (!target?.closest('.image-container')) {
       return;
     }
@@ -1518,6 +1589,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
         this.panelManualZoom = this.clamp(this.pinchStartZoom * (distance / this.pinchStartDistance), 0.6, 3.5);
         this.panelPanX = this.pinchStartPanX + (centerX - this.pinchStartCenterX);
         this.panelPanY = this.pinchStartPanY + (centerY - this.pinchStartCenterY);
+        this.applyPanelPanBounds();
         this.touchIsMultiGesture = true;
         this.touchMoved = true;
         event.preventDefault();
@@ -1556,6 +1628,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   onResize() {
     this.visibilityManager.updateWindowHeight(window.innerHeight);
     this.enforcePortraitSinglePageView();
+    this.applyManualPagePanBounds();
+    this.applyPanelPanBounds();
   }
 
   @HostListener('document:mousemove', ['$event'])
@@ -1563,6 +1637,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     if (this.isPanelDragging && this.isPanelBoxingActive) {
       this.panelPanX = event.clientX - this.panelDragStartX;
       this.panelPanY = event.clientY - this.panelDragStartY;
+      this.applyPanelPanBounds();
       if (Math.abs(this.panelPanX) > 2 || Math.abs(this.panelPanY) > 2) {
         this.panelDragMoved = true;
       }
@@ -1602,6 +1677,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     const direction = event.deltaY < 0 ? 1 : -1;
     const step = 0.1;
     this.panelManualZoom = this.clamp(this.panelManualZoom + (direction * step), 0.6, 3.5);
+    this.applyPanelPanBounds();
     event.preventDefault();
   }
 
@@ -1651,6 +1727,29 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     return window.innerWidth < 768;
   }
 
+  get showMobileJoystick(): boolean {
+    return this.isMobileViewport && this.joystickEnabled;
+  }
+
+  get isManualPanVisualActive(): boolean {
+    return this.scrollMode === CbxScrollMode.PAGINATED
+      && !this.isPanelBoxingActive
+      && (Math.abs(this.manualPagePanX) > 0.5 || Math.abs(this.manualPagePanY) > 0.5 || this.joystickActive);
+  }
+
+  get joystickWrapperStyles(): Record<string, string> {
+    return {
+      left: `${this.joystickAnchorX * 100}%`,
+      top: `${this.joystickAnchorY * 100}%`,
+    };
+  }
+
+  get joystickThumbStyles(): Record<string, string> {
+    return {
+      transform: `translate(${this.joystickKnobX}px, ${this.joystickKnobY}px)`
+    };
+  }
+
   get isPanelBoxingActive(): boolean {
     return this.isPanelModeActive && this.activePanelIndex >= 0 && this.activePanelIndex < this.panelCount;
   }
@@ -1666,13 +1765,15 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   get panelTransformStyles(): Record<string, string> {
     const panel = this.activePanel;
     if (!panel) {
-      return {};
+      return {
+        '--manual-pan-x': `${this.manualPagePanX}px`,
+        '--manual-pan-y': `${this.manualPagePanY}px`
+      };
     }
 
     const originX = (panel.x + panel.width / 2) * 100;
     const originY = (panel.y + panel.height / 2) * 100;
-    const baseScale = this.clamp(Math.min(1 / panel.width, 1 / panel.height) * 0.92, 1, 6);
-    const scale = this.clamp(baseScale * this.panelManualZoom, 1, 10);
+    const scale = this.getPanelScale(panel);
     const travel = this.panelTravelFactor;
     const translateX = (50 - originX) * scale * travel;
     const translateY = (50 - originY) * scale * travel;
@@ -1682,8 +1783,15 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       '--panel-translate-y': `${translateY}`,
       '--panel-pan-x': `${this.panelPanX}px`,
       '--panel-pan-y': `${this.panelPanY}px`,
-      '--panel-scale': `${scale}`
+      '--panel-scale': `${scale}`,
+      '--manual-pan-x': `${this.manualPagePanX}px`,
+      '--manual-pan-y': `${this.manualPagePanY}px`
     };
+  }
+
+  private getPanelScale(panel: CbxPanelRegion): number {
+    const baseScale = this.clamp(Math.min(1 / panel.width, 1 / panel.height) * 0.92, 1, 6);
+    return this.clamp(baseScale * this.panelManualZoom, 1, 10);
   }
 
   get activePanelCenterX(): number {
@@ -1699,6 +1807,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   togglePanelMode(): void {
     this.panelModeEnabled = !this.panelModeEnabled;
     this.activePanelIndex = this.panelModeEnabled ? -1 : 0;
+    this.resetManualPagePan();
     this.resetPanelPan();
     this.ensurePanelModeCompatibility();
     this.headerService.updateState({isPanelModeEnabled: this.isPanelModeActive});
@@ -1832,7 +1941,344 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     this.panelManualZoom = this.clamp(this.panelManualZoom + 0.2, 0.6, 3.5);
+    this.applyPanelPanBounds();
     this.revealTouchChrome();
+  }
+
+  toggleJoystickEnabled(): void {
+    this.onJoystickEnabledChange(!this.joystickEnabled);
+  }
+
+  toggleJoystickPositionLock(): void {
+    this.onJoystickPositionLockedChange(!this.joystickPositionLocked);
+  }
+
+  onJoystickEnabledChange(enabled: boolean): void {
+    this.joystickEnabled = enabled;
+    this.quickSettingsService.setJoystickEnabled(enabled);
+
+    if (!enabled) {
+      this.releaseJoystickInteraction();
+      this.resetManualPagePan();
+    }
+
+    this.saveJoystickDevicePreferences();
+  }
+
+  onJoystickSensitivityChange(sensitivity: CbxJoystickSensitivity): void {
+    this.joystickSensitivity = sensitivity;
+    this.quickSettingsService.setJoystickSensitivity(sensitivity);
+    this.saveJoystickDevicePreferences();
+  }
+
+  onJoystickPositionLockedChange(locked: boolean): void {
+    this.joystickPositionLocked = locked;
+    this.quickSettingsService.setJoystickPositionLocked(locked);
+    this.saveJoystickDevicePreferences();
+  }
+
+  onJoystickPointerDown(event: PointerEvent): void {
+    if (!this.showMobileJoystick || this.joystickPointerId !== null) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const target = event.currentTarget as HTMLElement | null;
+    target?.setPointerCapture(event.pointerId);
+    this.joystickPointerId = event.pointerId;
+
+    if (!this.joystickPositionLocked) {
+      this.updateJoystickAnchorFromPointer(event);
+      return;
+    }
+
+    this.joystickActive = true;
+    this.updateJoystickKnobFromPointer(event);
+    this.startJoystickAnimationLoop();
+    this.revealTouchChrome();
+  }
+
+  onJoystickPointerMove(event: PointerEvent): void {
+    if (event.pointerId !== this.joystickPointerId) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.joystickPositionLocked) {
+      this.updateJoystickAnchorFromPointer(event);
+      return;
+    }
+
+    if (!this.joystickActive) {
+      return;
+    }
+
+    this.updateJoystickKnobFromPointer(event);
+  }
+
+  onJoystickPointerUp(event: PointerEvent): void {
+    if (event.pointerId !== this.joystickPointerId) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const target = event.currentTarget as HTMLElement | null;
+    target?.releasePointerCapture(event.pointerId);
+
+    this.releaseJoystickInteraction();
+    this.saveJoystickDevicePreferences();
+  }
+
+  private startJoystickAnimationLoop(): void {
+    if (this.joystickAnimationFrame !== null) {
+      return;
+    }
+
+    const tick = () => {
+      this.joystickAnimationFrame = null;
+
+      if (!this.joystickActive) {
+        return;
+      }
+
+      this.applyJoystickMotionStep();
+      this.joystickAnimationFrame = requestAnimationFrame(tick);
+    };
+
+    this.joystickAnimationFrame = requestAnimationFrame(tick);
+  }
+
+  private stopJoystickAnimationLoop(): void {
+    if (this.joystickAnimationFrame !== null) {
+      cancelAnimationFrame(this.joystickAnimationFrame);
+      this.joystickAnimationFrame = null;
+    }
+  }
+
+  private releaseJoystickInteraction(): void {
+    this.stopJoystickAnimationLoop();
+    this.joystickPointerId = null;
+    this.joystickActive = false;
+    this.joystickKnobX = 0;
+    this.joystickKnobY = 0;
+  }
+
+  private updateJoystickKnobFromPointer(event: PointerEvent): void {
+    const container = this.imageContainerRef?.nativeElement;
+    if (!container) {
+      this.joystickKnobX = 0;
+      this.joystickKnobY = 0;
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.left + (this.joystickAnchorX * rect.width);
+    const centerY = rect.top + (this.joystickAnchorY * rect.height);
+    const rawX = event.clientX - centerX;
+    const rawY = event.clientY - centerY;
+    const magnitude = Math.hypot(rawX, rawY);
+    const radius = CbxReaderComponent.JOYSTICK_RADIUS_PX;
+
+    if (magnitude === 0) {
+      this.joystickKnobX = 0;
+      this.joystickKnobY = 0;
+      return;
+    }
+
+    const limitRatio = Math.min(1, radius / magnitude);
+    this.joystickKnobX = rawX * limitRatio;
+    this.joystickKnobY = rawY * limitRatio;
+  }
+
+  private updateJoystickAnchorFromPointer(event: PointerEvent): void {
+    const container = this.imageContainerRef?.nativeElement;
+    if (!container) {
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) {
+      return;
+    }
+
+    const marginX = CbxReaderComponent.JOYSTICK_MARGIN_PX / rect.width;
+    const marginY = CbxReaderComponent.JOYSTICK_MARGIN_PX / rect.height;
+    const normalizedX = (event.clientX - rect.left) / rect.width;
+    const normalizedY = (event.clientY - rect.top) / rect.height;
+    this.joystickAnchorX = this.clamp(normalizedX, marginX, 1 - marginX);
+    this.joystickAnchorY = this.clamp(normalizedY, marginY, 1 - marginY);
+  }
+
+  private applyJoystickMotionStep(): void {
+    const magnitude = Math.hypot(this.joystickKnobX, this.joystickKnobY);
+    if (magnitude <= CbxReaderComponent.JOYSTICK_DEADZONE_PX) {
+      return;
+    }
+
+    const radius = CbxReaderComponent.JOYSTICK_RADIUS_PX;
+    const normalized = this.clamp(magnitude / radius, 0, 1);
+    const speed = (1.2 + (Math.pow(normalized, 1.35) * 9.2)) * this.getJoystickSensitivityMultiplier();
+    const velocityX = (this.joystickKnobX / magnitude) * speed;
+    const velocityY = (this.joystickKnobY / magnitude) * speed;
+
+    this.applyJoystickPanDelta(velocityX, velocityY);
+  }
+
+  private getJoystickSensitivityMultiplier(): number {
+    switch (this.joystickSensitivity) {
+      case 'SLOW':
+        return 0.75;
+      case 'FAST':
+        return 1.5;
+      default:
+        return 1;
+    }
+  }
+
+  private applyJoystickPanDelta(deltaX: number, deltaY: number): void {
+    if (this.isPanelBoxingActive) {
+      this.panelPanX -= deltaX;
+      this.panelPanY -= deltaY;
+      this.applyPanelPanBounds();
+      return;
+    }
+
+    if (this.scrollMode === CbxScrollMode.PAGINATED) {
+      this.manualPagePanX -= deltaX;
+      this.manualPagePanY -= deltaY;
+      this.applyManualPagePanBounds();
+      return;
+    }
+
+    const container = this.imageContainerRef?.nativeElement;
+    if (!container) {
+      return;
+    }
+
+    container.scrollLeft += deltaX;
+    container.scrollTop += deltaY;
+  }
+
+  private applyPanelPanBounds(): void {
+    if (!this.isPanelBoxingActive) {
+      return;
+    }
+
+    const bounds = this.getImagePanBounds();
+    this.panelPanX = this.clamp(this.panelPanX, -bounds.maxX, bounds.maxX);
+    this.panelPanY = this.clamp(this.panelPanY, -bounds.maxY, bounds.maxY);
+  }
+
+  private applyManualPagePanBounds(): void {
+    if (this.scrollMode !== CbxScrollMode.PAGINATED || this.isPanelBoxingActive) {
+      this.manualPagePanX = 0;
+      this.manualPagePanY = 0;
+      return;
+    }
+
+    const bounds = this.getImagePanBounds();
+    this.manualPagePanX = this.clamp(this.manualPagePanX, -bounds.maxX, bounds.maxX);
+    this.manualPagePanY = this.clamp(this.manualPagePanY, -bounds.maxY, bounds.maxY);
+  }
+
+  private getImagePanBounds(): {maxX: number; maxY: number} {
+    const container = this.imageContainerRef?.nativeElement;
+    if (!container) {
+      return {maxX: 0, maxY: 0};
+    }
+
+    const image = container.querySelector('.current-page-layer .page-image:not(.previous-image)') as HTMLElement | null;
+    if (!image) {
+      return {maxX: 0, maxY: 0};
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const imageRect = image.getBoundingClientRect();
+
+    if (containerRect.width <= 0 || containerRect.height <= 0 || imageRect.width <= 0 || imageRect.height <= 0) {
+      return {maxX: 0, maxY: 0};
+    }
+
+    const overflowX = Math.max(0, (imageRect.width - containerRect.width) / 2);
+    const overflowY = Math.max(0, (imageRect.height - containerRect.height) / 2);
+    const overscanX = Math.min(containerRect.width * CbxReaderComponent.JOYSTICK_EDGE_OVERSCAN_RATIO, CbxReaderComponent.JOYSTICK_EDGE_OVERSCAN_MAX_PX);
+    const overscanY = Math.min(containerRect.height * CbxReaderComponent.JOYSTICK_EDGE_OVERSCAN_RATIO, CbxReaderComponent.JOYSTICK_EDGE_OVERSCAN_MAX_PX);
+
+    return {
+      maxX: overflowX > 0 ? overflowX + overscanX : 0,
+      maxY: overflowY > 0 ? overflowY + overscanY : 0
+    };
+  }
+
+  private resetManualPagePan(): void {
+    this.manualPagePanX = 0;
+    this.manualPagePanY = 0;
+  }
+
+  private loadJoystickDevicePreferences(): void {
+    const defaults: CbxJoystickDevicePreferences = {
+      enabled: false,
+      sensitivity: 'NORMAL',
+      positionLocked: true,
+      anchorX: 0.86,
+      anchorY: 0.78,
+    };
+
+    if (typeof window === 'undefined') {
+      this.joystickEnabled = defaults.enabled;
+      this.joystickSensitivity = defaults.sensitivity;
+      this.joystickPositionLocked = defaults.positionLocked;
+      this.joystickAnchorX = defaults.anchorX;
+      this.joystickAnchorY = defaults.anchorY;
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(CbxReaderComponent.JOYSTICK_DEVICE_STORAGE_KEY);
+      if (!raw) {
+        this.joystickEnabled = defaults.enabled;
+        this.joystickSensitivity = defaults.sensitivity;
+        this.joystickPositionLocked = defaults.positionLocked;
+        this.joystickAnchorX = defaults.anchorX;
+        this.joystickAnchorY = defaults.anchorY;
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as Partial<CbxJoystickDevicePreferences>;
+      this.joystickEnabled = !!parsed.enabled;
+      this.joystickSensitivity = parsed.sensitivity === 'SLOW' || parsed.sensitivity === 'FAST' ? parsed.sensitivity : 'NORMAL';
+      this.joystickPositionLocked = parsed.positionLocked !== false;
+      this.joystickAnchorX = this.clamp(this.toNormalizedPosition(parsed.anchorX, defaults.anchorX), 0.05, 0.95);
+      this.joystickAnchorY = this.clamp(this.toNormalizedPosition(parsed.anchorY, defaults.anchorY), 0.05, 0.95);
+    } catch {
+      this.joystickEnabled = defaults.enabled;
+      this.joystickSensitivity = defaults.sensitivity;
+      this.joystickPositionLocked = defaults.positionLocked;
+      this.joystickAnchorX = defaults.anchorX;
+      this.joystickAnchorY = defaults.anchorY;
+    }
+  }
+
+  private saveJoystickDevicePreferences(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const payload: CbxJoystickDevicePreferences = {
+      enabled: this.joystickEnabled,
+      sensitivity: this.joystickSensitivity,
+      positionLocked: this.joystickPositionLocked,
+      anchorX: Number(this.joystickAnchorX.toFixed(4)),
+      anchorY: Number(this.joystickAnchorY.toFixed(4)),
+    };
+
+    window.localStorage.setItem(CbxReaderComponent.JOYSTICK_DEVICE_STORAGE_KEY, JSON.stringify(payload));
   }
 
   private enforcePortraitSinglePageView() {
@@ -2155,6 +2601,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
   ngOnDestroy(): void {
     this.releaseAllMobileBackRegistrations(false);
+    this.releaseJoystickInteraction();
     this.clearReaderTimeout(this.panelTouchHintTimeout);
     this.clearReaderTimeout(this.mobilePanelOverviewTimeout);
     this.clearReaderTimeout(this.touchChromeTimeout);
@@ -2279,6 +2726,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private resetPanelViewport(): void {
+    this.resetManualPagePan();
     this.resetPanelPan();
     this.panelManualZoom = 1;
   }

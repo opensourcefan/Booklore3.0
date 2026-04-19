@@ -105,6 +105,65 @@
         </div>
       </div>
 
+      <!-- Mobile Joystick -->
+      <div class="control">
+        <span>{{ 'readerCbx.quickSettings.joystick' | transloco }}</span>
+        <div class="control-right">
+          <div class="button-group text-btns">
+            <button
+              class="option-btn text-btn small"
+              [class.active]="state.joystickEnabled"
+              (click)="onJoystickEnabledToggle(true)">
+              {{ 'readerCbx.quickSettings.on' | transloco }}
+            </button>
+            <button
+              class="option-btn text-btn small"
+              [class.active]="!state.joystickEnabled"
+              (click)="onJoystickEnabledToggle(false)">
+              {{ 'readerCbx.quickSettings.off' | transloco }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      @if (state.joystickEnabled) {
+        <div class="control">
+          <span>{{ 'readerCbx.quickSettings.joystickSensitivity' | transloco }}</span>
+          <div class="control-right">
+            <div class="button-group text-btns">
+              @for (option of joystickSensitivityOptions; track option.value) {
+                <button
+                  class="option-btn text-btn small"
+                  [class.active]="state.joystickSensitivity === option.value"
+                  (click)="onJoystickSensitivitySelect(option.value)">
+                  {{ option.labelKey | transloco }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="control">
+          <span>{{ 'readerCbx.quickSettings.joystickPosition' | transloco }}</span>
+          <div class="control-right">
+            <div class="button-group text-btns">
+              <button
+                class="option-btn text-btn small"
+                [class.active]="state.joystickPositionLocked"
+                (click)="onJoystickPositionLockToggle(true)">
+                {{ 'readerCbx.quickSettings.locked' | transloco }}
+              </button>
+              <button
+                class="option-btn text-btn small"
+                [class.active]="!state.joystickPositionLocked"
+                (click)="onJoystickPositionLockToggle(false)">
+                {{ 'readerCbx.quickSettings.unlocked' | transloco }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
       <!-- Background Color -->
       <div class="control">
         <span>{{ 'readerCbx.quickSettings.background' | transloco }}</span>

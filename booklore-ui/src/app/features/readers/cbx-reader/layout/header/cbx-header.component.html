@@ -110,6 +110,16 @@
             <app-reader-icon name="book" [size]="18" />
             <span>{{ state.isPanelModeEnabled ? ('readerCbx.header.disablePanelModeLabel' | transloco) : ('readerCbx.header.enablePanelModeLabel' | transloco) }}</span>
           </button>
+          <button class="overflow-item" (click)="onToggleJoystick(); overflowOpen = false" [class.active]="joystickEnabled">
+            <span class="joystick-text">JS</span>
+            <span>{{ joystickEnabled ? ('readerCbx.header.disableJoystickLabel' | transloco) : ('readerCbx.header.enableJoystickLabel' | transloco) }}</span>
+          </button>
+          @if (joystickEnabled) {
+            <button class="overflow-item" (click)="onToggleJoystickPositionLock(); overflowOpen = false" [class.active]="joystickPositionLocked">
+              <app-reader-icon name="pin" [size]="18" />
+              <span>{{ joystickPositionLocked ? ('readerCbx.header.unlockJoystickLabel' | transloco) : ('readerCbx.header.lockJoystickLabel' | transloco) }}</span>
+            </button>
+          }
           <button class="overflow-item" (click)="onToggleSlideshow(); overflowOpen = false" [class.active]="state.isSlideshowActive">
             <app-reader-icon [name]="state.isSlideshowActive ? 'pause' : 'play'" [size]="18" />
             <span>{{ state.isSlideshowActive ? ('readerCbx.header.stopSlideshowLabel' | transloco) : ('readerCbx.header.startSlideshowLabel' | transloco) }}</span>

@@ -14,11 +14,15 @@
     [panelTravelFactor]="panelTravelFactor"
     [panelTravelControlsVisible]="isPanelModeActive"
     [panelZoomControlsVisible]="isPanelModeActive"
+    [joystickEnabled]="joystickEnabled"
+    [joystickPositionLocked]="joystickPositionLocked"
     [isPinned]="isHeaderFooterPinned"
     (togglePin)="toggleHeaderFooterPin()"
     (panelTravelFactorChange)="onPanelTravelFactorChange($event)"
     (panelZoomOut)="onPanelZoomOutRequested()"
     (panelZoomIn)="onPanelZoomInRequested()"
+    (toggleJoystick)="toggleJoystickEnabled()"
+    (toggleJoystickPositionLock)="toggleJoystickPositionLock()"
     (aiPanelDetection)="onAiPanelDetectionRequested()"
     (aiRescan)="onAiRescanRequested()"
     (aiDeleteScan)="onAiDeleteScanRequested()"
@@ -58,7 +62,7 @@
 
   <div #magnifierLens class="magnifier-lens"></div>
 
-  <div class="image-container"
+  <div #imageContainer class="image-container"
     [class.magnifier-active]="isMagnifierActive"
     [class.two-page-view]="isTwoPageView && scrollMode === CbxScrollMode.PAGINATED"
     [class.infinite-scroll]="scrollMode === CbxScrollMode.INFINITE"
@@ -97,6 +101,7 @@
               class="current-page-layer"
               [class.fade-in]="isPageTransitioning && imagesLoaded"
               [class.panel-mode]="isPanelBoxingActive"
+              [class.manual-pan]="isManualPanVisualActive"
               [ngStyle]="panelTransformStyles">
               @for (url of currentImageUrls; track url; let i = $index) {
                 <img [src]="url" alt="Page Image" class="page-image" (load)="onPageImageLoad($event, currentPage + i)"/>
@@ -193,6 +198,24 @@
           <div class="spinner"></div>
           <p class="loader-text">{{ 'readerCbx.reader.loadingBook' | transloco }}</p>
         </div>
+      </div>
+    }
+
+    @if (showMobileJoystick) {
+      <div
+        class="mobile-joystick"
+        [class.active]="joystickActive"
+        [class.unlocked]="!joystickPositionLocked"
+        [ngStyle]="joystickWrapperStyles"
+        (pointerdown)="onJoystickPointerDown($event)"
+        (pointermove)="onJoystickPointerMove($event)"
+        (pointerup)="onJoystickPointerUp($event)"
+        (pointercancel)="onJoystickPointerUp($event)"
+        [attr.aria-label]="'readerCbx.reader.joystickAriaLabel' | transloco"
+        role="application">
+        <div class="joystick-ring"></div>
+        <div class="joystick-thumb" [ngStyle]="joystickThumbStyles"></div>
+        <div class="joystick-center-dot" [attr.title]="'readerCbx.reader.joystickHint' | transloco"></div>
       </div>
     }
   </div>
