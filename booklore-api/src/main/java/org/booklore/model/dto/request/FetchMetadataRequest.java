@@ -20,4 +20,6 @@ public class FetchMetadataRequest {
     private String author;
     private String asin;
     private String sourceUrl;
+    private String issueNumber;
+    private String issueRange;
 }

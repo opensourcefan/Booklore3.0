@@ -4,5 +4,7 @@ export interface FetchMetadataRequest {
   title: string,
   author: string,
   isbn: string,
-  sourceUrl?: string
+  sourceUrl?: string,
+  issueNumber?: string,
+  issueRange?: string
 }

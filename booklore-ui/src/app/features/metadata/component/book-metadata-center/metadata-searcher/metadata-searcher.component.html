@@ -47,6 +47,44 @@
         </div>
 
         <div class="search-field">
+          <label for="meta-search-issue-number">
+            <i class="pi pi-hashtag"></i>
+            {{ t('issueNumberLabel') }}
+            <i
+              class="pi pi-info-circle"
+              [pTooltip]="t('issueNumberTooltip')"
+              tooltipPosition="right"
+              style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
+            ></i>
+          </label>
+          <input
+            pInputText
+            id="meta-search-issue-number"
+            formControlName="issueNumber"
+            [placeholder]="t('issueNumberPlaceholder')"
+            class="custom-input"/>
+        </div>
+
+        <div class="search-field">
+          <label for="meta-search-issue-range">
+            <i class="pi pi-sort-numeric-up"></i>
+            {{ t('issueRangeLabel') }}
+            <i
+              class="pi pi-info-circle"
+              [pTooltip]="t('issueRangeTooltip')"
+              tooltipPosition="right"
+              style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
+            ></i>
+          </label>
+          <input
+            pInputText
+            id="meta-search-issue-range"
+            formControlName="issueRange"
+            [placeholder]="t('issueRangePlaceholder')"
+            class="custom-input"/>
+        </div>
+
+        <div class="search-field">
           <label for="meta-search-isbn">
             <i class="pi pi-barcode"></i>
             {{ t('isbnLabel') }}

@@ -68,9 +68,12 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     private static final Pattern ID_FORMAT_PATTERN = Pattern.compile("\\d+-?\\d*");
     private static final Pattern TRAILING_SLASHES_PATTERN = Pattern.compile("/+$");
     private static final Pattern VOLUME_SUFFIX_PATTERN = Pattern.compile("\\s+Vol\\.?\\s*\\d+$");
+    private static final Pattern ISSUE_RANGE_PATTERN = Pattern.compile("^(\\d+)\\s*-\\s*(\\d+)$");
     private static final Pattern COMICVINE_ITEM_URL_PATTERN = Pattern.compile("comicvine\\.gamespot\\.com/[^/]+/(\\d{4})-(\\d+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern COMICVINE_ITEM_ID_PATTERN = Pattern.compile("^(\\d{4})-(\\d+)$");
     private static final Pattern COMICVINE_SLUG_URL_PATTERN = Pattern.compile("comicvine\\.gamespot\\.com/([^/?#]+)/\\d{4}-\\d+", Pattern.CASE_INSENSITIVE);
+    private static final int ISSUE_RANGE_PAGE_SIZE = 100;
+    private static final int MAX_ISSUE_RANGE_SPAN = 400;
 
     private final ObjectMapper objectMapper;
     private final AppSettingService appSettingService;
@@ -107,12 +110,18 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     private record ComicvineReference(ComicvineResourceType resourceType, int itemId) {
     }
 
+    private record IssueRange(int startIssue, int endIssue) {
+    }
+
     @Override
     public List<BookMetadata> fetchMetadata(Book book, FetchMetadataRequest fetchMetadataRequest) {
-        BookMetadata sourceUrlMetadata = fetchMetadataFromSourceUrl(fetchMetadataRequest.getSourceUrl());
-        if (sourceUrlMetadata != null) {
+        List<BookMetadata> sourceUrlMetadata = fetchMetadataFromSourceUrl(
+                fetchMetadataRequest.getSourceUrl(),
+                fetchMetadataRequest.getIssueNumber(),
+                fetchMetadataRequest.getIssueRange());
+        if (!sourceUrlMetadata.isEmpty()) {
             log.info("Comicvine: Resolved metadata directly from source URL");
-            return List.of(sourceUrlMetadata);
+            return sourceUrlMetadata;
         }
 
         String isbn = ParserUtils.cleanIsbn(fetchMetadataRequest.getIsbn());
@@ -133,10 +142,13 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
 
     @Override
     public BookMetadata fetchTopMetadata(Book book, FetchMetadataRequest fetchMetadataRequest) {
-        BookMetadata sourceUrlMetadata = fetchMetadataFromSourceUrl(fetchMetadataRequest.getSourceUrl());
-        if (sourceUrlMetadata != null) {
+        List<BookMetadata> sourceUrlMetadata = fetchMetadataFromSourceUrl(
+                fetchMetadataRequest.getSourceUrl(),
+                fetchMetadataRequest.getIssueNumber(),
+                fetchMetadataRequest.getIssueRange());
+        if (!sourceUrlMetadata.isEmpty()) {
             log.info("Comicvine: Resolved top metadata directly from source URL");
-            return sourceUrlMetadata;
+            return sourceUrlMetadata.getFirst();
         }
 
         String isbn = ParserUtils.cleanIsbn(fetchMetadataRequest.getIsbn());
@@ -162,18 +174,176 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         return enrichTopMetadataIfNeeded(top);
     }
 
-    private BookMetadata fetchMetadataFromSourceUrl(String sourceUrl) {
+    private List<BookMetadata> fetchMetadataFromSourceUrl(String sourceUrl, String issueNumber, String issueRange) {
         Optional<ComicvineReference> reference = parseComicvineReference(sourceUrl);
         if (reference.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
 
         ComicvineReference comicvineReference = reference.get();
         if (comicvineReference.resourceType() == ComicvineResourceType.ISSUE) {
-            return fetchIssueDetails(comicvineReference.itemId(), null);
+            BookMetadata issueMetadata = fetchIssueDetails(comicvineReference.itemId(), null);
+            return issueMetadata != null ? List.of(issueMetadata) : Collections.emptyList();
         }
 
-        return fetchVolumeDetails(comicvineReference.itemId());
+        return fetchVolumeScopedMetadata(comicvineReference.itemId(), issueNumber, issueRange);
+    }
+
+    private List<BookMetadata> fetchVolumeScopedMetadata(int volumeId, String issueNumber, String issueRange) {
+        Comic volumeContext = fetchVolumeById(volumeId);
+
+        String issueNumberHint = trimToNull(issueNumber);
+        if (issueNumberHint != null) {
+            List<BookMetadata> singleIssueMatch = resolveSingleIssueFromVolume(volumeId, issueNumberHint, volumeContext);
+            if (!singleIssueMatch.isEmpty()) {
+                return singleIssueMatch;
+            }
+            log.info("Comicvine: No exact issue match found in volume {} for issue '{}'.", volumeId, issueNumberHint);
+        }
+
+        Optional<IssueRange> parsedIssueRange = parseIssueRange(issueRange);
+        if (parsedIssueRange.isPresent()) {
+            List<BookMetadata> rangedMatches = resolveIssueRangeFromVolume(volumeId, parsedIssueRange.get(), volumeContext);
+            if (!rangedMatches.isEmpty()) {
+                return rangedMatches;
+            }
+            log.info("Comicvine: No issues found in volume {} for range '{}'.", volumeId, issueRange);
+        }
+
+        if (volumeContext != null) {
+            return List.of(buildVolumeMetadata(volumeContext));
+        }
+
+        BookMetadata volumeMetadata = fetchVolumeDetails(volumeId);
+        return volumeMetadata != null ? List.of(volumeMetadata) : Collections.emptyList();
+    }
+
+    private List<BookMetadata> resolveSingleIssueFromVolume(int volumeId, String issueNumber, Comic volumeContext) {
+        Comic queryVolume = volumeContext != null ? volumeContext : new Comic();
+        queryVolume.setId(volumeId);
+        return searchIssuesInVolume(queryVolume, issueNumber);
+    }
+
+    private List<BookMetadata> resolveIssueRangeFromVolume(int volumeId, IssueRange issueRange, Comic volumeContext) {
+        List<Comic> issuesInRange = fetchIssuesForVolume(volumeId, issueRange);
+        if (issuesInRange.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Comic queryVolume = volumeContext != null ? volumeContext : new Comic();
+        queryVolume.setId(volumeId);
+
+        return issuesInRange.stream()
+                .sorted(Comparator.comparingDouble(issue -> issueSortValue(issue.getIssueNumber())))
+                .map(issue -> convertToBookMetadata(issue, queryVolume, false))
+                .toList();
+    }
+
+    private List<Comic> fetchIssuesForVolume(int volumeId, IssueRange issueRange) {
+        String apiToken = getApiToken();
+        if (apiToken == null) return Collections.emptyList();
+
+        List<Comic> matchingIssues = new ArrayList<>();
+        int offset = 0;
+
+        while (true) {
+            URI uri = UriComponentsBuilder.fromUriString(COMICVINE_URL)
+                    .path("/issues/")
+                    .queryParam("api_key", apiToken)
+                    .queryParam("format", "json")
+                    .queryParam("filter", "volume:" + volumeId)
+                    .queryParam("field_list", ISSUE_LIST_FIELDS)
+                    .queryParam("sort", "issue_number:asc")
+                    .queryParam("limit", ISSUE_RANGE_PAGE_SIZE)
+                    .queryParam("offset", offset)
+                    .build()
+                    .toUri();
+
+            ComicvineApiResponse response = sendRequest(uri, ComicvineApiResponse.class);
+            if (response == null || response.getResults() == null || response.getResults().isEmpty()) {
+                break;
+            }
+
+            response.getResults().stream()
+                    .filter(issue -> issueWithinRange(issue.getIssueNumber(), issueRange))
+                    .forEach(matchingIssues::add);
+
+            offset += response.getResults().size();
+
+            if (response.getResults().size() < ISSUE_RANGE_PAGE_SIZE
+                    || offset >= response.getNumberOfTotalResults()) {
+                break;
+            }
+        }
+
+        return matchingIssues;
+    }
+
+    private boolean issueWithinRange(String issueNumber, IssueRange issueRange) {
+        Float issueValue = safeParseFloat(normalizeIssueNumber(issueNumber));
+        if (issueValue == null) {
+            return false;
+        }
+
+        return issueValue >= issueRange.startIssue() && issueValue <= issueRange.endIssue();
+    }
+
+    private double issueSortValue(String issueNumber) {
+        Float issueValue = safeParseFloat(normalizeIssueNumber(issueNumber));
+        if (issueValue == null) {
+            return Double.MAX_VALUE;
+        }
+
+        return issueValue;
+    }
+
+    private Optional<IssueRange> parseIssueRange(String rawIssueRange) {
+        String issueRange = trimToNull(rawIssueRange);
+        if (issueRange == null) {
+            return Optional.empty();
+        }
+
+        Matcher matcher = ISSUE_RANGE_PATTERN.matcher(issueRange);
+        if (!matcher.matches()) {
+            log.warn("Comicvine: Ignoring invalid issue range '{}'. Expected format like '43-171'.", issueRange);
+            return Optional.empty();
+        }
+
+        int start;
+        int end;
+        try {
+            start = Integer.parseInt(matcher.group(1));
+            end = Integer.parseInt(matcher.group(2));
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
+
+        if (start > end) {
+            int tmp = start;
+            start = end;
+            end = tmp;
+        }
+
+        if (end - start + 1 > MAX_ISSUE_RANGE_SPAN) {
+            log.warn(
+                    "Comicvine: Requested issue range '{}' exceeds max span of {}. Truncating to '{}-{}'.",
+                    issueRange,
+                    MAX_ISSUE_RANGE_SPAN,
+                    start,
+                    start + MAX_ISSUE_RANGE_SPAN - 1);
+            end = start + MAX_ISSUE_RANGE_SPAN - 1;
+        }
+
+        return Optional.of(new IssueRange(start, end));
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private BookMetadata enrichTopMetadataIfNeeded(BookMetadata top) {
@@ -618,6 +788,15 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     }
 
     private BookMetadata fetchVolumeDetails(int volumeId) {
+        Comic volume = fetchVolumeById(volumeId);
+        if (volume == null) {
+            return null;
+        }
+
+        return buildVolumeMetadata(volume);
+    }
+
+    private Comic fetchVolumeById(int volumeId) {
         String apiToken = getApiToken();
         if (apiToken == null) return null;
 
@@ -636,7 +815,7 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
             return null;
         }
 
-        return buildVolumeMetadata(response.getResults().getFirst());
+        return response.getResults().getFirst();
     }
 
     private Optional<ComicvineReference> parseComicvineReference(String source) {
@@ -961,6 +1140,10 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     }
 
     private BookMetadata convertToBookMetadata(Comic comic, Comic volumeContext) {
+        return convertToBookMetadata(comic, volumeContext, true);
+    }
+
+    private BookMetadata convertToBookMetadata(Comic comic, Comic volumeContext, boolean allowDetailFallback) {
         if ("volume".equalsIgnoreCase(comic.getResourceType())) {
             return buildVolumeMetadata(comic);
         }
@@ -968,7 +1151,8 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         // For issue search/list responses ComicVine often omits creator credits (including writers).
         // If we don't have any author information here, fall back to the issue detail endpoint
         // to obtain full credits before building the metadata object.
-        if ("issue".equalsIgnoreCase(comic.getResourceType())
+        if (allowDetailFallback
+            && "issue".equalsIgnoreCase(comic.getResourceType())
                 && (comic.getPersonCredits() == null || comic.getPersonCredits().isEmpty())) {
             BookMetadata detailed = fetchIssueDetails(comic.getId(), volumeContext);
             if (detailed != null && detailed.getAuthors() != null && !detailed.getAuthors().isEmpty()) {
@@ -1216,8 +1400,12 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
             return request.getTitle();
         }
 
+        String issueNumberHint = trimToNull(request.getIssueNumber());
         String sourceUrlSearchTerm = extractSearchTermFromSourceUrl(request.getSourceUrl());
         if (sourceUrlSearchTerm != null) {
+            if (issueNumberHint != null) {
+                return sourceUrlSearchTerm + " #" + issueNumberHint;
+            }
             return sourceUrlSearchTerm;
         } else if (book.getPrimaryFile() != null && book.getPrimaryFile().getFileName() != null && !book.getPrimaryFile().getFileName().isEmpty()) {
             String name = book.getPrimaryFile().getFileName();

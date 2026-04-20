@@ -96,7 +96,9 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
       title: [''],
       author: [''],
       isbn: [''],
-      sourceUrl: ['']
+      sourceUrl: [''],
+      issueNumber: [''],
+      issueRange: ['']
     });
   }
 
@@ -206,7 +208,9 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
       title: book.metadata?.title ?? '',
       author: book.metadata?.authors?.[0] ?? '',
       isbn: book.metadata?.isbn13 ?? book.metadata?.isbn10 ?? '',
-      sourceUrl: book.metadata?.externalUrl ?? ''
+      sourceUrl: book.metadata?.externalUrl ?? '',
+      issueNumber: '',
+      issueRange: ''
     };
 
     this.form.patchValue(formUpdate);
@@ -217,7 +221,9 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
       title: book.metadata?.title ?? '',
       author: book.metadata?.authors?.[0] ?? '',
       isbn: book.metadata?.isbn13 ?? book.metadata?.isbn10 ?? '',
-      sourceUrl: book.metadata?.externalUrl ?? ''
+      sourceUrl: book.metadata?.externalUrl ?? '',
+      issueNumber: '',
+      issueRange: ''
     });
   }
 
@@ -327,7 +333,9 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
         title: this.form.get('title')?.value,
         author: this.form.get('author')?.value,
         isbn: this.form.get('isbn')?.value,
-        sourceUrl: this.form.get('sourceUrl')?.value?.trim?.() || undefined
+        sourceUrl: this.form.get('sourceUrl')?.value?.trim?.() || undefined,
+        issueNumber: this.form.get('issueNumber')?.value?.trim?.() || undefined,
+        issueRange: this.form.get('issueRange')?.value?.trim?.() || undefined
       };
 
       this.loading = true;
