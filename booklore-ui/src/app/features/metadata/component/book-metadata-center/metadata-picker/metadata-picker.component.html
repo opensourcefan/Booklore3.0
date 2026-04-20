@@ -50,6 +50,16 @@
               [disabled]="reviewActionDisabled"
               (onClick)="reviewQuickAction.emit()"
             />
+            @if (reviewSecondaryActionLabel) {
+              <p-button
+                [label]="reviewSecondaryActionLabel"
+                severity="secondary"
+                styleClass="review-secondary-action-btn"
+                [loading]="reviewSecondaryActionBusy"
+                [disabled]="reviewSecondaryActionDisabled"
+                (onClick)="reviewSecondaryAction.emit()"
+              />
+            }
           </div>
         }
       </div>

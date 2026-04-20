@@ -144,8 +144,8 @@
           <div class="joystick-row">
             <span class="joystick-row-label">{{ 'readerCbx.quickSettings.joystick' | transloco }}</span>
             <div class="joystick-chip-group">
-              <button class="joystick-chip" [class.active]="joystickEnabled" (click)="onToggleJoystick()">{{ 'readerCbx.quickSettings.on' | transloco }}</button>
-              <button class="joystick-chip" [class.active]="!joystickEnabled" (click)="onToggleJoystick()">{{ 'readerCbx.quickSettings.off' | transloco }}</button>
+              <button class="joystick-chip" [class.active]="joystickEnabled" (click)="onJoystickEnabledSelect(true)">{{ 'readerCbx.quickSettings.on' | transloco }}</button>
+              <button class="joystick-chip" [class.active]="!joystickEnabled" (click)="onJoystickEnabledSelect(false)">{{ 'readerCbx.quickSettings.off' | transloco }}</button>
             </div>
           </div>
 

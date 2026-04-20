@@ -173,6 +173,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedCount = 0;
   selectedBookIds = new Set<number>();
   hiddenSelectedCount = 0;
+  private visibleBookIds = new Set<number>();
   allowFileDeletion = false;
   isSelectionActionPanelOpen = false;
 
@@ -750,7 +751,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const visibleBookIds = new Set(this.bookSelectionService.getCurrentBooks().map(book => book.id));
+    const visibleBookIds = this.visibleBookIds.size > 0
+      ? this.visibleBookIds
+      : new Set(this.bookSelectionService.getCurrentBooks().map(book => book.id));
     let visibleSelectedCount = 0;
 
     this.selectedBookIds.forEach(bookId => {
@@ -879,7 +882,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectAllBooks(): void {
-    this.bookSelectionService.selectAll();
+    this.bookSelectionService.setSelectedBooks(new Set(this.visibleBookIds));
   }
 
   deselectAllBooks(): void {
@@ -982,6 +985,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.bookStateSubscription.unsubscribe();
     }
 
+    this.visibleBookIds = new Set<number>();
+
     this.bookStateSubscription = this.bookState$
       .pipe(
         filter(state => state.loaded && !state.error),
@@ -989,6 +994,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         map(state => state.books || [])
       )
       .subscribe(books => {
+        this.visibleBookIds = new Set(books.map(book => book.id));
         this.bookSelectionService.setCurrentBooks(books);
         this.bookNavigationService.setAvailableBookIds(books.map(book => book.id));
         this.updateSelectionVisibility();

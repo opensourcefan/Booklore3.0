@@ -333,6 +333,19 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     this.toggleJoystick.emit();
   }
 
+  onJoystickEnabledSelect(enabled: boolean): void {
+    if (this.joystickEnabled === enabled) {
+      return;
+    }
+
+    const isTurningOff = this.joystickEnabled && !enabled;
+    this.toggleJoystick.emit();
+
+    if (isTurningOff) {
+      this.closeJoystickMenu();
+    }
+  }
+
   onToggleJoystickPositionLock(): void {
     this.toggleJoystickPositionLock.emit();
   }

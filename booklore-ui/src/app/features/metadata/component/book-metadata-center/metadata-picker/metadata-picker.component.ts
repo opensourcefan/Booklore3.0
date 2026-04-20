@@ -69,8 +69,12 @@ export class MetadataPickerComponent implements OnInit {
   @Input() reviewQuickActionLabel: string | null = null;
   @Input() reviewActionBusy = false;
   @Input() reviewActionDisabled = false;
+  @Input() reviewSecondaryActionLabel: string | null = null;
+  @Input() reviewSecondaryActionBusy = false;
+  @Input() reviewSecondaryActionDisabled = false;
   @Output() goBack = new EventEmitter<boolean>();
   @Output() reviewQuickAction = new EventEmitter<void>();
+  @Output() reviewSecondaryAction = new EventEmitter<void>();
 
   currentBook: Book | null = null;
 

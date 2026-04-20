@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Custom Metadata Scan Reliability Report</title>
+  <style>
+    :root {
+      --bg: #f8f5ef;
+      --card: #fff;
+      --text: #1f2229;
+      --muted: #656f7f;
+      --border: #e4ddcf;
+      --high: #a21d1d;
+      --med: #995400;
+      --low: #2d4a99;
+      --ok: #0f7f4f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top right, #fff8e8 0%, var(--bg) 50%);
+    }
+    .wrap { max-width: 1080px; margin: 30px auto 64px; padding: 0 20px; }
+    .hero {
+      background: linear-gradient(135deg, #6a4112, #9d5d15);
+      color: #fff;
+      border-radius: 16px;
+      padding: 22px 24px;
+      box-shadow: 0 10px 24px rgba(88, 51, 12, 0.22);
+    }
+    .hero h1 { margin: 0 0 8px; font-size: 1.55rem; }
+    .hero p { margin: 0; line-height: 1.5; opacity: 0.96; }
+    .meta { margin-top: 10px; font-size: 0.92rem; opacity: 0.9; }
+    .card {
+      margin-top: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 4px 12px rgba(60, 42, 20, 0.05);
+    }
+    h2 { margin: 0 0 10px; font-size: 1.12rem; color: #6b4210; }
+    p { line-height: 1.56; }
+    ul { margin: 10px 0 0; padding-left: 18px; }
+    li { margin: 6px 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.95rem;
+    }
+    th { background: #fbf4e7; }
+    .sev {
+      display: inline-block;
+      min-width: 62px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.77rem;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .sev.high { background: var(--high); }
+    .sev.med { background: var(--med); }
+    .sev.low { background: var(--low); }
+    .sev.ok { background: var(--ok); }
+    code {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      background: #faf7f2;
+      border: 1px solid #eadfca;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font-size: 0.88em;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Custom Metadata Scan Reliability Report</h1>
+      <p>Report-only reverse engineering of task execution, status propagation, and user-facing reliability signals for custom metadata refresh.</p>
+      <div class="meta">Generated: 2026-04-20T09:56:46-07:00</div>
+    </section>
+
+    <section class="card">
+      <h2>Executive Summary</h2>
+      <p>The custom metadata pipeline is resilient in several ways (task reconciliation and resume support), but one high-impact reliability gap remains: per-book failures can be emitted during processing yet the overall batch can still be marked completed at the end.</p>
+    </section>
+
+    <section class="card">
+      <h2>Findings</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Severity</th>
+            <th>Finding</th>
+            <th>Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>M1</td>
+            <td><span class="sev high">High</span></td>
+            <td>Per-book exceptions are handled inside the loop and emit ERROR progress, but batch finalization still calls completed status after loop exit.</td>
+            <td><code>booklore-api/src/main/java/org/booklore/service/metadata/MetadataRefreshService.java:161</code>, <code>:167</code>, <code>:181</code>, <code>:452</code></td>
+          </tr>
+          <tr>
+            <td>M2</td>
+            <td><span class="sev med">Medium</span></td>
+            <td>Completed task totals in active-task DTOs are based on remaining proposals, and notifications with total zero are filtered out, which can hide "nothing matched" outcomes.</td>
+            <td><code>booklore-api/src/main/java/org/booklore/service/metadata/MetadataTaskService.java:264</code>, <code>:281</code></td>
+          </tr>
+          <tr>
+            <td>M3</td>
+            <td><span class="sev med">Medium</span></td>
+            <td>Frontend success feedback is "scheduled" at task start, not completion. Users must rely on progress/task views for final outcome.</td>
+            <td><code>booklore-ui/src/app/features/settings/task-management/task-helper.service.ts:23</code>, <code>:27</code></td>
+          </tr>
+          <tr>
+            <td>M4</td>
+            <td><span class="sev low">Low</span></td>
+            <td>Frontend task config marks manual metadata refresh as sync while backend declares it async, causing UX wording drift in task-management UI logic.</td>
+            <td><code>booklore-ui/src/app/features/settings/task-management/task.service.ts:28</code>; <code>booklore-api/src/main/java/org/booklore/model/enums/TaskType.java:62</code></td>
+          </tr>
+          <tr>
+            <td>M5</td>
+            <td><span class="sev ok">Strength</span></td>
+            <td>Orphaned in-progress tasks are reconciled to ERROR with resumable messaging, reducing indefinite stuck states.</td>
+            <td><code>booklore-api/src/main/java/org/booklore/service/metadata/MetadataTaskService.java:300</code>, <code>:308</code>, <code>:329</code></td>
+          </tr>
+          <tr>
+            <td>M6</td>
+            <td><span class="sev ok">Strength</span></td>
+            <td>Target-mode book selection is explicit (ALL, NEVER_FETCHED, OLDER_THAN_DAYS), with guardrails for invalid day values.</td>
+            <td><code>booklore-api/src/main/java/org/booklore/service/metadata/MetadataRefreshService.java:1023</code>, <code>:1026</code>, <code>:1029</code>, <code>:1032</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Reliability Recommendations</h2>
+      <ul>
+        <li>Track a <code>hadErrors</code> aggregate during batch loops and finalize as ERROR/COMPLETED_WITH_ERRORS rather than unconditional COMPLETED.</li>
+        <li>Return an explicit non-error task/event for zero-target scans to keep user feedback visible without polluting error channels.</li>
+        <li>Align frontend and backend <code>REFRESH_METADATA_MANUAL</code> async metadata to prevent queue-vs-sync messaging drift.</li>
+        <li>Optionally show a follow-up toast when task status transitions to completed/error for users who launch from custom fetch dialogs.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

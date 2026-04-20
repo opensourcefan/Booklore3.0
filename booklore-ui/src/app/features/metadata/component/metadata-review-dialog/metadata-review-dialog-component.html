@@ -28,7 +28,11 @@
           [reviewQuickActionLabel]="quickActionLabel"
           [reviewActionBusy]="processingAction === 'quick'"
           [reviewActionDisabled]="isBusy && processingAction !== 'quick'"
-          (reviewQuickAction)="onCopyAllSaveAndAdvance()">
+          [reviewSecondaryActionLabel]="tagActionLabel"
+          [reviewSecondaryActionBusy]="processingAction === 'tag'"
+          [reviewSecondaryActionDisabled]="(isBusy && processingAction !== 'tag') || !currentBook"
+          (reviewQuickAction)="onCopyAllSaveAndAdvance()"
+          (reviewSecondaryAction)="onTagAndAdvance()">
         </app-metadata-picker>
       }
     </div>
@@ -106,17 +110,6 @@
           [loading]="processingAction === 'save'"
           [disabled]="isBusy && processingAction !== 'save'"
           (click)="onSave()">
-        </p-button>
-
-        <p-button
-          [label]="tagActionLabel"
-          icon="pi pi-tag"
-          iconPos="right"
-          severity="warn"
-          [outlined]="true"
-          [loading]="processingAction === 'tag'"
-          [disabled]="(isBusy && processingAction !== 'tag') || !currentBook"
-          (click)="onTagAndAdvance()">
         </p-button>
 
         <p-button

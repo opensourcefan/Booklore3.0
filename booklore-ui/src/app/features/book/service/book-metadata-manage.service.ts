@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {catchError, map, tap} from 'rxjs/operators';
+import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {Book, BookMetadata, BulkMetadataUpdateRequest, MetadataUpdateWrapper} from '../model/book.model';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {MessageService} from 'primeng/api';
@@ -24,60 +24,45 @@ export class BookMetadataManageService {
   private bookService = inject(BookService);
   private readonly t = inject(TranslocoService);
 
-  private refreshBooksSnapshot(): void {
-    void this.bookService.refreshBooks().subscribe();
+  private refreshBooksSnapshotAfter<T>(source$: Observable<T>): Observable<T> {
+    return source$.pipe(
+      switchMap(result => this.bookService.refreshBooks().pipe(map(() => result)))
+    );
   }
 
   updateBookMetadata(bookId: number | undefined, wrapper: MetadataUpdateWrapper, mergeCategories: boolean, replaceMode: 'REPLACE_ALL' | 'REPLACE_WHEN_PROVIDED' = 'REPLACE_ALL'): Observable<BookMetadata> {
     const params = new HttpParams().set('mergeCategories', mergeCategories.toString()).set('replaceMode', replaceMode);
-    return this.http.put<BookMetadata>(`${this.url}/${bookId}/metadata`, wrapper, {params}).pipe(
+    return this.refreshBooksSnapshotAfter(this.http.put<BookMetadata>(`${this.url}/${bookId}/metadata`, wrapper, {params}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId!, updatedMetadata);
         return updatedMetadata;
-      }),
-      tap(() => {
-        // Keep sidebar/filter facets in sync across the app after edits.
-        this.refreshBooksSnapshot();
       })
-    );
+    ));
   }
 
   updateBooksMetadata(request: BulkMetadataUpdateRequest): Observable<void> {
-    return this.http.put(`${this.url}/bulk-edit-metadata`, request).pipe(
-      tap(() => {
-        this.refreshBooksSnapshot();
-      }),
+    return this.refreshBooksSnapshotAfter(this.http.put(`${this.url}/bulk-edit-metadata`, request).pipe(
       map(() => void 0)
-    );
+    ));
   }
 
   wipeBookMetadata(bookId: number): Observable<BookMetadata> {
-    return this.http.post<BookMetadata>(`${this.url}/${bookId}/metadata/wipe`, {}).pipe(
+    return this.refreshBooksSnapshotAfter(this.http.post<BookMetadata>(`${this.url}/${bookId}/metadata/wipe`, {}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId, updatedMetadata);
         return updatedMetadata;
-      }),
-      tap(() => {
-        this.refreshBooksSnapshot();
       })
-    );
+    ));
   }
 
   wipeBooksMetadata(bookIds: number[]): Observable<void> {
-    return this.http.post<void>(`${this.url}/metadata/wipe`, {bookIds}).pipe(
-      tap(() => {
-        this.refreshBooksSnapshot();
-      }),
+    return this.refreshBooksSnapshotAfter(this.http.post<void>(`${this.url}/metadata/wipe`, {bookIds}).pipe(
       map(() => void 0)
-    );
+    ));
   }
 
   restoreTitlesFromFilenames(bookIds: number[]): Observable<number> {
-    return this.http.post<number>(`${this.url}/metadata/restore-titles-from-filenames`, {bookIds}).pipe(
-      tap(() => {
-        this.refreshBooksSnapshot();
-      })
-    );
+    return this.refreshBooksSnapshotAfter(this.http.post<number>(`${this.url}/metadata/restore-titles-from-filenames`, {bookIds}));
   }
 
   toggleAllLock(bookIds: Set<number>, lock: string): Observable<void> {
@@ -144,20 +129,12 @@ export class BookMetadataManageService {
 
   consolidateMetadata(metadataType: 'authors' | 'categories' | 'moods' | 'tags' | 'series' | 'publishers' | 'languages', targetValues: string[], valuesToMerge: string[]): Observable<unknown> {
     const payload = {metadataType, targetValues, valuesToMerge};
-    return this.http.post(`${this.url}/metadata/manage/consolidate`, payload).pipe(
-      tap(() => {
-        this.refreshBooksSnapshot();
-      })
-    );
+    return this.refreshBooksSnapshotAfter(this.http.post(`${this.url}/metadata/manage/consolidate`, payload));
   }
 
   deleteMetadata(metadataType: 'authors' | 'categories' | 'moods' | 'tags' | 'series' | 'publishers' | 'languages', valuesToDelete: string[]): Observable<unknown> {
     const payload = {metadataType, valuesToDelete};
-    return this.http.post(`${this.url}/metadata/manage/delete`, payload).pipe(
-      tap(() => {
-        this.refreshBooksSnapshot();
-      })
-    );
+    return this.refreshBooksSnapshotAfter(this.http.post(`${this.url}/metadata/manage/delete`, payload));
   }
 
   /*------------------ Cover Operations ------------------*/

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>App Selection, Refresh, and Save Timing Investigation</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1a2433;
+      --muted: #5c6b81;
+      --border: #dbe3ef;
+      --ok: #0d7a46;
+      --warn: #a35e00;
+      --info: #1f4fa3;
+      --accent: #133c7a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #eef3ff 0%, var(--bg) 45%);
+    }
+    .wrap {
+      max-width: 1080px;
+      margin: 32px auto 64px;
+      padding: 0 20px;
+    }
+    .hero {
+      background: linear-gradient(135deg, #113874, #2e5da8);
+      color: #fff;
+      border-radius: 16px;
+      padding: 22px 24px;
+      box-shadow: 0 10px 24px rgba(15, 37, 74, 0.22);
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 1.55rem;
+      line-height: 1.25;
+    }
+    .hero p {
+      margin: 0;
+      opacity: 0.95;
+      line-height: 1.5;
+    }
+    .meta {
+      margin-top: 10px;
+      font-size: 0.92rem;
+      opacity: 0.88;
+    }
+    .card {
+      margin-top: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 4px 12px rgba(18, 33, 56, 0.05);
+    }
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.15rem;
+      color: var(--accent);
+    }
+    p { line-height: 1.55; }
+    ul {
+      margin: 10px 0 0;
+      padding-left: 18px;
+    }
+    li { margin: 6px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+    th { background: #f3f7ff; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .tag.ok { color: #fff; background: var(--ok); }
+    .tag.warn { color: #fff; background: var(--warn); }
+    .tag.info { color: #fff; background: var(--info); }
+    code {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      background: #f2f6fd;
+      border: 1px solid #dbe4f4;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font-size: 0.89em;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>App Selection, Refresh, and Save Timing Investigation</h1>
+      <p>Scope: hidden selection visibility, stale selection/refresh behavior after metadata actions, and save-progress timing UX.</p>
+      <div class="meta">Generated: 2026-04-20T09:56:46-07:00</div>
+    </section>
+
+    <section class="card">
+      <h2>Executive Summary</h2>
+      <p>Three reliability/UX risks were confirmed and mitigated in code: selection visibility robustness, select-all source alignment, and metadata save-to-refresh sequencing. One residual UX risk remains: write progress completion is intentionally transient and auto-dismisses quickly.</p>
+    </section>
+
+    <section class="card">
+      <h2>Findings</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Finding</th>
+            <th>Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>F1</td>
+            <td><span class="tag ok">Fixed</span></td>
+            <td>Hidden selection visibility now uses the actual rendered ID set, reducing stale-count drift when filters/sorts update.</td>
+            <td><code>booklore-ui/src/app/features/book/components/book-browser/book-browser.component.ts:176</code>, <code>:748</code>, <code>:754</code>, <code>:765</code>, <code>:997</code></td>
+          </tr>
+          <tr>
+            <td>F2</td>
+            <td><span class="tag ok">Fixed</span></td>
+            <td>Select All now targets the current visible IDs directly instead of a potentially stale service snapshot.</td>
+            <td><code>booklore-ui/src/app/features/book/components/book-browser/book-browser.component.ts:885</code></td>
+          </tr>
+          <tr>
+            <td>F3</td>
+            <td><span class="tag ok">Fixed</span></td>
+            <td>Metadata edit operations now complete only after <code>refreshBooks()</code> finishes, reducing stale UI after save/wipe/consolidate/delete flows.</td>
+            <td><code>booklore-ui/src/app/features/book/service/book-metadata-manage.service.ts:27</code>, <code>:29</code>, <code>:35</code>, <code>:44</code>, <code>:50</code>, <code>:59</code>, <code>:65</code>, <code>:132</code>, <code>:137</code></td>
+          </tr>
+          <tr>
+            <td>F4</td>
+            <td><span class="tag warn">Open</span></td>
+            <td>Write-progress completion/failure state auto-clears after 3s in topbar, which can feel like completion happened "too quickly" on busy views.</td>
+            <td><code>booklore-ui/src/app/shared/service/write-progress.service.ts:20</code>, <code>:24</code>; <code>booklore-ui/src/app/shared/layout/component/layout-topbar/app.topbar.component.ts:263</code>, <code>:268</code></td>
+          </tr>
+          <tr>
+            <td>F5</td>
+            <td><span class="tag info">Improved</span></td>
+            <td>Hidden-selection hint and selection panel layout were adjusted to reduce clipping pressure, especially on mobile widths.</td>
+            <td><code>booklore-ui/src/app/features/book/components/book-browser/book-browser.component.html:440</code>, <code>booklore-ui/src/app/features/book/components/book-browser/book-browser.component.scss:236</code>, <code>:437</code>, <code>:725</code>, <code>:736</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Validation</h2>
+      <ul>
+        <li>Frontend build passed: <code>cd booklore-ui &amp;&amp; npm run build</code></li>
+        <li>Targeted unit test passed: <code>npx vitest run src/app/features/metadata/component/metadata-review-dialog/metadata-review-dialog-component.spec.ts</code></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Recommendation</h2>
+      <p>If users still report "save finished too early," consider extending topbar write-progress dismissal to 5-8 seconds or requiring manual dismiss for failures while keeping running/completed semantics unchanged.</p>
+    </section>
+  </div>
+</body>
+</html>

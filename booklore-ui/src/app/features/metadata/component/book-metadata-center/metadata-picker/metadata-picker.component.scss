@@ -143,6 +143,8 @@
   .review-quick-action {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
     flex-shrink: 0;
     margin-left: auto;
     padding-left: 1rem;
@@ -150,6 +152,11 @@
 }
 
 ::ng-deep .review-quick-action-btn.p-button {
+  padding-inline: 1rem;
+  min-width: auto;
+}
+
+::ng-deep .review-secondary-action-btn.p-button {
   padding-inline: 1rem;
   min-width: auto;
 }
@@ -656,6 +663,8 @@
 
     .review-quick-action {
       width: 100%;
+      gap: 0.5rem;
+      flex-wrap: wrap;
       justify-content: center;
       margin-left: 0;
       padding-left: 0;
