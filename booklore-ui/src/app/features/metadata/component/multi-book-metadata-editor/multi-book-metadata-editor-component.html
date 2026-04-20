@@ -45,7 +45,16 @@
         }
         @if (admin || canEditMetadata) {
           <p-tabpanel value="match">
-            <app-metadata-searcher [book$]="book$"></app-metadata-searcher>
+            <app-metadata-searcher
+              [book$]="book$"
+              [showNavigationButtons]="true"
+              [disableNext]="disableNext"
+              [disablePrevious]="disablePrevious"
+              [currentBookPosition]="currentBookPosition"
+              [totalBooks]="filteredBooks.length"
+              (nextBookClicked)="handleNextBook()"
+              (previousBookClicked)="handlePreviousBook()">
+            </app-metadata-searcher>
           </p-tabpanel>
         }
       </p-tabpanels>

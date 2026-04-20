@@ -168,17 +168,19 @@ class MetadataTaskServiceTest {
         @Test
         void returnsTrueAndDeletesWhenFound() {
             MetadataFetchJobEntity task = buildTask("t1", MetadataFetchTaskStatus.COMPLETED, new ArrayList<>());
-            when(metadataFetchTaskRepository.findById("t1")).thenReturn(Optional.of(task));
+            when(metadataFetchTaskRepository.findByTaskIdWithProposals("t1")).thenReturn(Optional.of(task));
 
             assertThat(service.deleteTaskAndProposals("t1")).isTrue();
             verify(metadataFetchTaskRepository).delete(task);
+            verify(metadataFetchTaskRepository).flush();
         }
 
         @Test
         void returnsFalseWhenNotFound() {
-            when(metadataFetchTaskRepository.findById("missing")).thenReturn(Optional.empty());
+            when(metadataFetchTaskRepository.findByTaskIdWithProposals("missing")).thenReturn(Optional.empty());
             assertThat(service.deleteTaskAndProposals("missing")).isFalse();
             verify(metadataFetchTaskRepository, never()).delete(any());
+            verify(metadataFetchTaskRepository, never()).flush();
         }
     }
 

@@ -176,9 +176,10 @@ public class MetadataTaskService {
 
     @Transactional
     public boolean deleteTaskAndProposals(String taskId) {
-        return metadataFetchTaskRepository.findById(taskId)
+        return metadataFetchTaskRepository.findByTaskIdWithProposals(taskId)
                 .map(task -> {
                     metadataFetchTaskRepository.delete(task);
+                    metadataFetchTaskRepository.flush();
                     return true;
                 })
                 .orElse(false);

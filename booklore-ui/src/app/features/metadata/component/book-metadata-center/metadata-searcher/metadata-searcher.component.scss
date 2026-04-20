@@ -81,6 +81,27 @@ $provider-colors: (
   }
 }
 
+.search-navigation-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+
+  @media (max-width: 640px) {
+    justify-content: space-between;
+  }
+}
+
+.navigation-position {
+  min-width: 4.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-color-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 .search-field {
   display: flex;
   flex-direction: column;

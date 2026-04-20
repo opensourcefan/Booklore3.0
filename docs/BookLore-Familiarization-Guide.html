@@ -724,6 +724,7 @@
 <table>
   <tr><th>Action</th><th>Description</th></tr>
   <tr><td>Fetch metadata</td><td>Search online providers by title, author, or ISBN</td></tr>
+  <tr><td>Navigate selected books while searching</td><td>When editing multiple books, use the previous/next controls in metadata search to move through the selected group without leaving the fetch flow</td></tr>
   <tr><td>Preview results</td><td>See what information was found before applying</td></tr>
   <tr><td>Apply selectively</td><td>Choose which fields to update</td></tr>
   <tr><td>Replace all</td><td>Overwrite all metadata with fetched information</td></tr>
@@ -740,6 +741,7 @@
   <li>Use the orange <strong>Copy All, Save &amp; Next</strong> action in the top comparison header to run the common review routine in one step</li>
   <li><strong>Accept &amp; Save</strong> now waits for the metadata save itself to finish before the proposal is marked accepted, so the review queue and saved data stay in sync</li>
   <li>Use <strong>Tag &amp; Next</strong> to add the <strong>Metadata Follow-Up Req</strong> tag to the current asset and advance without accepting the fetched proposal</li>
+  <li>Use <strong>Discard</strong> from the topbar metadata-progress widget when you want to abandon the current review task; the matching task/proposals are now cleared and the live topbar notification is removed immediately</li>
   <li><strong>Lock All</strong> and <strong>Unlock All</strong> now sit on the left edge of the bottom action bar for faster repeated review work</li>
   <li><strong>Finish &amp; Close</strong> now clears the matching topbar notification/task state when the review session is complete</li>
 </ul>
@@ -1316,6 +1318,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-04-20</td><td>1.1.93</td><td>Documented metadata-review follow-ups so using <strong>Discard</strong> from the topbar metadata-progress widget now clears the matching review task/proposals and removes stale notification state immediately, and clarified that metadata search in multi-book editing now includes the same previous/next group navigation flow used in the details tab</td></tr>
   <tr><td>2026-04-18</td><td>1.1.92</td><td>Documented the mobile back-navigation overhaul so Android/iOS system back now closes the topmost open mobile surface first across browsing and reading flows (including book-browser filters, shared book-card and physical-book mobile viewers, topbar popovers, EPUB/CBX reader sidebars and quick overlays, and audiobook mobile panels) before route-level navigation proceeds underneath those UI layers</td></tr>
   <tr><td>2026-04-17</td><td>1.1.91</td><td>Recorded the reverse-engineered cleanup for the repeated mobile title-tap preview regression: the fallback full-window preview behavior for physical assets is now centralized in the shared <strong>Book Card</strong> component for mobile interaction mode when no parent title-activation handler is wired, which keeps Home/dashboard and browser grid cards consistent with the dedicated Physical Books flow instead of regressing to tooltip-only taps; tests now verify both the external handler path and the shared fallback preview path</td></tr>
   <tr><td>2026-04-17</td><td>1.1.90</td><td>Recorded the final <strong>Physical Books</strong> mobile preview activation repair for high-resolution phones (including compact landscape phone viewports): title-tap interactivity now uses a dedicated mobile interaction mode based on viewport shape rather than raw width alone, so the full-window asset preview reliably opens with title/subtitle on phone landscape resolutions where previous fixes incorrectly fell back to desktop tooltip behavior; regression coverage now includes compact landscape phone dimensions plus desktop exclusion checks</td></tr>

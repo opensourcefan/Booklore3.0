@@ -82,6 +82,34 @@
           </p-button>
         </div>
       </div>
+
+      @if ((showNavigationButtons && totalBooks > 0) || (navigationState$ | async)) {
+        <div class="search-navigation-row">
+          <p-button
+            icon="pi pi-chevron-left"
+            [disabled]="!canNavigatePrevious()"
+            (onClick)="navigatePrevious()"
+            rounded
+            outlined
+            severity="secondary"
+            [pTooltip]="getPreviousBookTooltip()"
+            tooltipPosition="bottom">
+          </p-button>
+          <span class="navigation-position">
+            {{ getNavigationPosition() }}
+          </span>
+          <p-button
+            icon="pi pi-chevron-right"
+            [disabled]="!canNavigateNext()"
+            (onClick)="navigateNext()"
+            rounded
+            outlined
+            severity="secondary"
+            [pTooltip]="getNextBookTooltip()"
+            tooltipPosition="bottom">
+          </p-button>
+        </div>
+      }
     </form>
 
     @if (loading || searchTriggered) {

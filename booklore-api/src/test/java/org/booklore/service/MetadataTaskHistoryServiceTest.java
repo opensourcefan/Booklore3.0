@@ -106,23 +106,24 @@ class MetadataTaskHistoryServiceTest {
     @Test
     void deleteTaskAndProposals_shouldDeleteWhenTaskExists() {
         MetadataFetchJobEntity jobEntity = mock(MetadataFetchJobEntity.class);
-        when(jobRepository.findById("task1")).thenReturn(Optional.of(jobEntity));
+        when(jobRepository.findByTaskIdWithProposals("task1")).thenReturn(Optional.of(jobEntity));
 
         boolean result = service.deleteTaskAndProposals("task1");
 
         assertThat(result).isTrue();
-        verify(jobRepository).findById("task1");
+        verify(jobRepository).findByTaskIdWithProposals("task1");
         verify(jobRepository).delete(jobEntity);
+        verify(jobRepository).flush();
     }
 
     @Test
     void deleteTaskAndProposals_shouldReturnFalseWhenTaskMissing() {
-        when(jobRepository.findById("missing")).thenReturn(Optional.empty());
+        when(jobRepository.findByTaskIdWithProposals("missing")).thenReturn(Optional.empty());
 
         boolean result = service.deleteTaskAndProposals("missing");
 
         assertThat(result).isFalse();
-        verify(jobRepository).findById("missing");
+        verify(jobRepository).findByTaskIdWithProposals("missing");
         verifyNoMoreInteractions(jobRepository);
     }
 

@@ -14,6 +14,7 @@ import {MetadataProgressService} from '../../service/metadata-progress.service';
 import {MetadataTaskService} from '../../../features/book/service/metadata-task';
 import {Tag} from 'primeng/tag';
 import {DialogLauncherService} from '../../services/dialog-launcher.service';
+import {NotificationEventService} from '../../websocket/notification-event.service';
 
 @Component({
   selector: 'app-metadata-progress-widget',
@@ -31,6 +32,7 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   private metadataTaskService = inject(MetadataTaskService);
   private messageService = inject(MessageService);
   private readonly t = inject(TranslocoService);
+  private notificationEventService = inject(NotificationEventService);
 
   ngOnInit(): void {
     this.metadataProgressService.activeTasks$
@@ -47,8 +49,19 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   }
 
   clearTask(taskId: string): void {
-    this.metadataTaskService.deleteTask(taskId).subscribe(() => {
-      this.metadataProgressService.clearTask(taskId);
+    this.metadataTaskService.deleteTask(taskId).subscribe({
+      next: () => {
+        this.metadataProgressService.clearTask(taskId);
+        this.notificationEventService.clearNotification();
+      },
+      error: (error) => {
+        console.error('Failed to clear metadata task:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Discard Failed',
+          detail: 'Unable to discard this metadata task. Please try again.'
+        });
+      }
     });
   }
 

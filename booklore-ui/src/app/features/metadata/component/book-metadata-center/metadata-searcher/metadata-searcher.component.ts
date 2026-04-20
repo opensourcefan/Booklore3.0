@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
@@ -10,13 +10,16 @@ import {AppSettings} from '../../../../../shared/model/app-settings.model';
 import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
 
 import {BehaviorSubject, combineLatest, Observable, Subject, Subscription, takeUntil} from 'rxjs';
-import {filter, switchMap} from 'rxjs/operators';
-import {ActivatedRoute} from '@angular/router';
+import {filter, switchMap, take} from 'rxjs/operators';
+import {ActivatedRoute, Router} from '@angular/router';
 import {AsyncPipe} from '@angular/common';
 import {MetadataPickerComponent} from '../metadata-picker/metadata-picker.component';
 import {BookMetadataService} from '../../../../book/service/book-metadata.service';
 import {Tooltip} from 'primeng/tooltip';
-import {TranslocoDirective} from '@jsverse/transloco';
+import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {BookNavigationService} from '../../../../book/service/book-navigation.service';
+import {BookMetadataHostService} from '../../../../../shared/service/book-metadata-host.service';
+import {UserService} from '../../../../settings/user-management/user.service';
 
 @Component({
   selector: 'app-metadata-searcher',
@@ -45,6 +48,14 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input() book$!: Observable<Book | null>;
   @Input() isActiveTab = false;
+  @Input() showNavigationButtons = false;
+  @Input() disableNext = false;
+  @Input() disablePrevious = false;
+  @Input() currentBookPosition = 0;
+  @Input() totalBooks = 0;
+
+  @Output() nextBookClicked = new EventEmitter<void>();
+  @Output() previousBookClicked = new EventEmitter<void>();
 
   selectedFetchedMetadata$ = new BehaviorSubject<BookMetadata | null>(null);
   detailLoading = false;
@@ -53,11 +64,18 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   private bookMetadataService = inject(BookMetadataService);
   private appSettingsService = inject(AppSettingsService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private userService = inject(UserService);
+  private bookNavigationService = inject(BookNavigationService);
+  private metadataHostService = inject(BookMetadataHostService);
+  private translocoService = inject(TranslocoService);
 
   private subscription: Subscription = new Subscription();
   private cancelRequest$ = new Subject<void>();
+  private metadataCenterViewMode: 'route' | 'dialog' = 'route';
 
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
+  navigationState$ = this.bookNavigationService.getNavigationState();
 
   providerCounts = new Map<string, number>();
   providerLoading = new Map<string, boolean>();
@@ -87,6 +105,17 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnInit() {
+    this.subscription.add(
+      this.userService.userState$
+        .pipe(
+          filter(userState => !!userState?.user && userState.loaded),
+          take(1)
+        )
+        .subscribe(userState => {
+          this.metadataCenterViewMode = userState.user?.userSettings.metadataCenterViewMode ?? 'route';
+        })
+    );
+
     this.subscription.add(
       this.form.get('provider')!.valueChanges.subscribe((providers: string[] | null) => {
         this.saveProviderSelection(providers ?? []);
@@ -193,6 +222,85 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
     const title = this.form.get('title')?.value;
     const isbn = this.form.get('isbn')?.value;
     return providerSelected && (title || isbn);
+  }
+
+  canNavigatePrevious(): boolean {
+    if (this.showNavigationButtons) {
+      return !this.disablePrevious;
+    }
+
+    return this.bookNavigationService.canNavigatePrevious();
+  }
+
+  canNavigateNext(): boolean {
+    if (this.showNavigationButtons) {
+      return !this.disableNext;
+    }
+
+    return this.bookNavigationService.canNavigateNext();
+  }
+
+  navigatePrevious(): void {
+    if (this.showNavigationButtons) {
+      this.previousBookClicked.emit();
+      return;
+    }
+
+    const previousBookId = this.bookNavigationService.getPreviousBookId();
+    if (previousBookId) {
+      this.navigateToBook(previousBookId);
+    }
+  }
+
+  navigateNext(): void {
+    if (this.showNavigationButtons) {
+      this.nextBookClicked.emit();
+      return;
+    }
+
+    const nextBookId = this.bookNavigationService.getNextBookId();
+    if (nextBookId) {
+      this.navigateToBook(nextBookId);
+    }
+  }
+
+  getNavigationPosition(): string {
+    if (this.showNavigationButtons && this.currentBookPosition > 0 && this.totalBooks > 0) {
+      return this.translocoService.translate('metadata.viewer.navigationPosition', {
+        current: this.currentBookPosition,
+        total: this.totalBooks,
+      });
+    }
+
+    const position = this.bookNavigationService.getCurrentPosition();
+    return position
+      ? this.translocoService.translate('metadata.viewer.navigationPosition', {
+        current: position.current,
+        total: position.total,
+      })
+      : '';
+  }
+
+  getPreviousBookTooltip(): string {
+    return this.translocoService.translate('metadata.viewer.goToPreviousBook');
+  }
+
+  getNextBookTooltip(): string {
+    return this.translocoService.translate('metadata.viewer.goToNextBook');
+  }
+
+  private navigateToBook(bookId: number): void {
+    this.bookNavigationService.updateCurrentBook(bookId);
+
+    if (this.metadataCenterViewMode === 'route') {
+      this.router.navigate(['/book', bookId], {
+        queryParams: {tab: 'match'},
+        queryParamsHandling: 'merge'
+      });
+      return;
+    }
+
+    this.metadataHostService.switchBook(bookId);
   }
 
   onSubmit(): void {
