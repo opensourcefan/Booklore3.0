@@ -19,4 +19,5 @@ public class FetchMetadataRequest {
     private String title;
     private String author;
     private String asin;
+    private String sourceUrl;
 }

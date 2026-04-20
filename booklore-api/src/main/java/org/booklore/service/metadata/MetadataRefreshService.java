@@ -695,6 +695,7 @@ public class MetadataRefreshService {
                 .asin(metadata.getAsin())
                 .author(metadata.getAuthors() != null ? String.join(", ", metadata.getAuthors()) : null)
                 .title(title)
+            .sourceUrl(metadata.getExternalUrl())
                 .bookId(book.getId())
                 .build();
     }

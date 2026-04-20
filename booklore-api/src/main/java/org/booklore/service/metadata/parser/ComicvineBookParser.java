@@ -68,6 +68,9 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     private static final Pattern ID_FORMAT_PATTERN = Pattern.compile("\\d+-?\\d*");
     private static final Pattern TRAILING_SLASHES_PATTERN = Pattern.compile("/+$");
     private static final Pattern VOLUME_SUFFIX_PATTERN = Pattern.compile("\\s+Vol\\.?\\s*\\d+$");
+    private static final Pattern COMICVINE_ITEM_URL_PATTERN = Pattern.compile("comicvine\\.gamespot\\.com/[^/]+/(\\d{4})-(\\d+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern COMICVINE_ITEM_ID_PATTERN = Pattern.compile("^(\\d{4})-(\\d+)$");
+    private static final Pattern COMICVINE_SLUG_URL_PATTERN = Pattern.compile("comicvine\\.gamespot\\.com/([^/?#]+)/\\d{4}-\\d+", Pattern.CASE_INSENSITIVE);
 
     private final ObjectMapper objectMapper;
     private final AppSettingService appSettingService;
@@ -96,8 +99,22 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         }
     }
 
+    private enum ComicvineResourceType {
+        ISSUE,
+        VOLUME
+    }
+
+    private record ComicvineReference(ComicvineResourceType resourceType, int itemId) {
+    }
+
     @Override
     public List<BookMetadata> fetchMetadata(Book book, FetchMetadataRequest fetchMetadataRequest) {
+        BookMetadata sourceUrlMetadata = fetchMetadataFromSourceUrl(fetchMetadataRequest.getSourceUrl());
+        if (sourceUrlMetadata != null) {
+            log.info("Comicvine: Resolved metadata directly from source URL");
+            return List.of(sourceUrlMetadata);
+        }
+
         String isbn = ParserUtils.cleanIsbn(fetchMetadataRequest.getIsbn());
         if (isbn != null && !isbn.isEmpty()) {
             log.info("Comicvine: Searching by ISBN: {}", isbn);
@@ -116,6 +133,12 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
 
     @Override
     public BookMetadata fetchTopMetadata(Book book, FetchMetadataRequest fetchMetadataRequest) {
+        BookMetadata sourceUrlMetadata = fetchMetadataFromSourceUrl(fetchMetadataRequest.getSourceUrl());
+        if (sourceUrlMetadata != null) {
+            log.info("Comicvine: Resolved top metadata directly from source URL");
+            return sourceUrlMetadata;
+        }
+
         String isbn = ParserUtils.cleanIsbn(fetchMetadataRequest.getIsbn());
         if (isbn != null && !isbn.isEmpty()) {
             log.info("Comicvine: Searching top match by ISBN: {}", isbn);
@@ -137,6 +160,20 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
             return null;
         }
         return enrichTopMetadataIfNeeded(top);
+    }
+
+    private BookMetadata fetchMetadataFromSourceUrl(String sourceUrl) {
+        Optional<ComicvineReference> reference = parseComicvineReference(sourceUrl);
+        if (reference.isEmpty()) {
+            return null;
+        }
+
+        ComicvineReference comicvineReference = reference.get();
+        if (comicvineReference.resourceType() == ComicvineResourceType.ISSUE) {
+            return fetchIssueDetails(comicvineReference.itemId(), null);
+        }
+
+        return fetchVolumeDetails(comicvineReference.itemId());
     }
 
     private BookMetadata enrichTopMetadataIfNeeded(BookMetadata top) {
@@ -554,8 +591,87 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     }
 
     @Override
-    public BookMetadata fetchDetailedMetadata(String comicvineId) {
-        return fetchIssueDetails(Integer.parseInt(comicvineId), null);
+    public BookMetadata fetchDetailedMetadata(String providerItemId) {
+        Optional<ComicvineReference> reference = parseComicvineReference(providerItemId);
+        if (reference.isPresent()) {
+            ComicvineReference comicvineReference = reference.get();
+            if (comicvineReference.resourceType() == ComicvineResourceType.ISSUE) {
+                return fetchIssueDetails(comicvineReference.itemId(), null);
+            }
+            return fetchVolumeDetails(comicvineReference.itemId());
+        }
+
+        Integer parsedId;
+        try {
+            parsedId = Integer.parseInt(providerItemId);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+
+        // Keep legacy behavior for raw IDs by trying issue first, then fallback to volume.
+        BookMetadata issueMetadata = fetchIssueDetails(parsedId, null);
+        if (issueMetadata != null) {
+            return issueMetadata;
+        }
+
+        return fetchVolumeDetails(parsedId);
+    }
+
+    private BookMetadata fetchVolumeDetails(int volumeId) {
+        String apiToken = getApiToken();
+        if (apiToken == null) return null;
+
+        URI uri = UriComponentsBuilder.fromUriString(COMICVINE_URL)
+                .path("/volumes/")
+                .queryParam("api_key", apiToken)
+                .queryParam("format", "json")
+                .queryParam("filter", "id:" + volumeId)
+                .queryParam("field_list", VOLUME_FIELDS)
+                .queryParam("limit", 1)
+                .build()
+                .toUri();
+
+        ComicvineApiResponse response = sendRequest(uri, ComicvineApiResponse.class);
+        if (response == null || response.getResults() == null || response.getResults().isEmpty()) {
+            return null;
+        }
+
+        return buildVolumeMetadata(response.getResults().getFirst());
+    }
+
+    private Optional<ComicvineReference> parseComicvineReference(String source) {
+        if (source == null || source.isBlank()) {
+            return Optional.empty();
+        }
+
+        String candidate = source.trim();
+
+        Matcher idMatcher = COMICVINE_ITEM_ID_PATTERN.matcher(candidate);
+        if (idMatcher.matches()) {
+            return buildComicvineReference(idMatcher.group(1), idMatcher.group(2));
+        }
+
+        Matcher urlMatcher = COMICVINE_ITEM_URL_PATTERN.matcher(candidate);
+        if (urlMatcher.find()) {
+            return buildComicvineReference(urlMatcher.group(1), urlMatcher.group(2));
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<ComicvineReference> buildComicvineReference(String typeCode, String idPart) {
+        int itemId;
+        try {
+            itemId = Integer.parseInt(idPart);
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
+
+        return switch (typeCode) {
+            case "4000" -> Optional.of(new ComicvineReference(ComicvineResourceType.ISSUE, itemId));
+            case "4050" -> Optional.of(new ComicvineReference(ComicvineResourceType.VOLUME, itemId));
+            default -> Optional.empty();
+        };
     }
 
     private BookMetadata fetchIssueDetails(int issueId, Comic volumeContext) {
@@ -1098,6 +1214,11 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     private String getSearchTerm(Book book, FetchMetadataRequest request) {
         if (request.getTitle() != null && !request.getTitle().isEmpty()) {
             return request.getTitle();
+        }
+
+        String sourceUrlSearchTerm = extractSearchTermFromSourceUrl(request.getSourceUrl());
+        if (sourceUrlSearchTerm != null) {
+            return sourceUrlSearchTerm;
         } else if (book.getPrimaryFile() != null && book.getPrimaryFile().getFileName() != null && !book.getPrimaryFile().getFileName().isEmpty()) {
             String name = book.getPrimaryFile().getFileName();
             int dotIndex = name.lastIndexOf('.');
@@ -1107,6 +1228,27 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
             return name.trim();
         }
         return null;
+    }
+
+    private String extractSearchTermFromSourceUrl(String sourceUrl) {
+        if (sourceUrl == null || sourceUrl.isBlank()) {
+            return null;
+        }
+
+        Matcher matcher = COMICVINE_SLUG_URL_PATTERN.matcher(sourceUrl);
+        if (!matcher.find() || matcher.group(1) == null) {
+            return null;
+        }
+
+        String slug = matcher.group(1)
+                .replace('-', ' ')
+                .replace('_', ' ')
+                .trim();
+        if (slug.isEmpty()) {
+            return null;
+        }
+
+        return WHITESPACE_PATTERN.matcher(slug).replaceAll(" ");
     }
 
     private SeriesAndIssue extractSeriesAndIssue(String term) {

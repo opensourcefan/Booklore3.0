@@ -39,6 +39,8 @@ import {UserService} from '../../../../settings/user-management/user.service';
   standalone: true
 })
 export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
+  private static readonly COMICVINE_URL_SLUG_PATTERN = /comicvine\.gamespot\.com\/([^/?#]+)\/\d{4}-\d+/i;
+
   form: FormGroup;
   providers: string[] = [];
   allFetchedMetadata: BookMetadata[] = [];
@@ -93,7 +95,8 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
       provider: null,
       title: [''],
       author: [''],
-      isbn: ['']
+      isbn: [''],
+      sourceUrl: ['']
     });
   }
 
@@ -119,6 +122,12 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
     this.subscription.add(
       this.form.get('provider')!.valueChanges.subscribe((providers: string[] | null) => {
         this.saveProviderSelection(providers ?? []);
+      })
+    );
+
+    this.subscription.add(
+      this.form.get('sourceUrl')!.valueChanges.subscribe((sourceUrl: string | null) => {
+        this.tryAutoFillFromSourceUrl(sourceUrl ?? '');
       })
     );
 
@@ -196,7 +205,8 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
     const formUpdate: Record<string, unknown> = {
       title: book.metadata?.title ?? '',
       author: book.metadata?.authors?.[0] ?? '',
-      isbn: book.metadata?.isbn13 ?? book.metadata?.isbn10 ?? ''
+      isbn: book.metadata?.isbn13 ?? book.metadata?.isbn10 ?? '',
+      sourceUrl: book.metadata?.externalUrl ?? ''
     };
 
     this.form.patchValue(formUpdate);
@@ -206,7 +216,8 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
     this.form.patchValue({
       title: book.metadata?.title ?? '',
       author: book.metadata?.authors?.[0] ?? '',
-      isbn: book.metadata?.isbn13 ?? book.metadata?.isbn10 ?? ''
+      isbn: book.metadata?.isbn13 ?? book.metadata?.isbn10 ?? '',
+      sourceUrl: book.metadata?.externalUrl ?? ''
     });
   }
 
@@ -219,9 +230,10 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
 
   get isSearchEnabled(): boolean {
     const providerSelected = this.getSelectedProviders().length > 0;
-    const title = this.form.get('title')?.value;
-    const isbn = this.form.get('isbn')?.value;
-    return providerSelected && (title || isbn);
+    const title = this.form.get('title')?.value?.trim?.();
+    const isbn = this.form.get('isbn')?.value?.trim?.();
+    const sourceUrl = this.form.get('sourceUrl')?.value?.trim?.();
+    return providerSelected && (title || isbn || sourceUrl);
   }
 
   canNavigatePrevious(): boolean {
@@ -314,7 +326,8 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
         providers: providerKeys,
         title: this.form.get('title')?.value,
         author: this.form.get('author')?.value,
-        isbn: this.form.get('isbn')?.value
+        isbn: this.form.get('isbn')?.value,
+        sourceUrl: this.form.get('sourceUrl')?.value?.trim?.() || undefined
       };
 
       this.loading = true;
@@ -441,6 +454,64 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   private getSelectedProviders(): string[] {
     const providers = this.form.get('provider')?.value;
     return Array.isArray(providers) ? providers : [];
+  }
+
+  private tryAutoFillFromSourceUrl(rawSourceUrl: string): void {
+    const sourceUrl = rawSourceUrl.trim();
+    if (!sourceUrl) {
+      return;
+    }
+
+    const inferredTitle = this.extractTitleFromComicvineUrl(sourceUrl);
+    if (!inferredTitle) {
+      return;
+    }
+
+    const currentTitle = this.form.get('title')?.value?.trim?.();
+    if (!currentTitle) {
+      this.form.patchValue({title: inferredTitle}, {emitEvent: false});
+    }
+
+    this.ensureComicvineProviderSelected();
+  }
+
+  private ensureComicvineProviderSelected(): void {
+    if (!this.providers.includes('Comicvine')) {
+      return;
+    }
+
+    const selectedProviders = this.getSelectedProviders();
+    if (selectedProviders.includes('Comicvine')) {
+      return;
+    }
+
+    this.form.patchValue({provider: [...selectedProviders, 'Comicvine']});
+  }
+
+  private extractTitleFromComicvineUrl(sourceUrl: string): string | null {
+    const match = sourceUrl.match(MetadataSearcherComponent.COMICVINE_URL_SLUG_PATTERN);
+    if (!match?.[1]) {
+      return null;
+    }
+
+    try {
+      const decodedSlug = decodeURIComponent(match[1]);
+      const normalizedTitle = decodedSlug
+        .replace(/[-_]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (!normalizedTitle) {
+        return null;
+      }
+
+      return normalizedTitle
+        .split(' ')
+        .map((word: string) => word ? word.charAt(0).toUpperCase() + word.slice(1) : word)
+        .join(' ');
+    } catch {
+      return null;
+    }
   }
 
   private getStoredProviders(): string[] | null {

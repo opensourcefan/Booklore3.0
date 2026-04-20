@@ -28,6 +28,25 @@
         </div>
 
         <div class="search-field">
+          <label for="meta-search-source-url">
+            <i class="pi pi-link"></i>
+            {{ t('sourceUrlLabel') }}
+            <i
+              class="pi pi-info-circle"
+              [pTooltip]="t('sourceUrlTooltip')"
+              tooltipPosition="right"
+              style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
+            ></i>
+          </label>
+          <input
+            pInputText
+            id="meta-search-source-url"
+            formControlName="sourceUrl"
+            [placeholder]="t('sourceUrlPlaceholder')"
+            class="custom-input"/>
+        </div>
+
+        <div class="search-field">
           <label for="meta-search-isbn">
             <i class="pi pi-barcode"></i>
             {{ t('isbnLabel') }}

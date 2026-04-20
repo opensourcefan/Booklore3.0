@@ -3,5 +3,6 @@ export interface FetchMetadataRequest {
   providers: string[],
   title: string,
   author: string,
-  isbn: string
+  isbn: string,
+  sourceUrl?: string
 }
