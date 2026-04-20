@@ -5,7 +5,7 @@ import {AsyncPipe, DecimalPipe, KeyValuePipe, NgClass, NgStyle} from "@angular/c
 import {filter, map, switchMap, tap} from "rxjs/operators";
 import {combineLatest, Observable, Subscription} from "rxjs";
 import {Book, BookType, ReadStatus} from "../../model/book.model";
-import {BookService} from "../../service/book.service";
+import {BookService, RemoveFromLibraryMode} from "../../service/book.service";
 import {BookMetadataManageService} from "../../service/book-metadata-manage.service";
 import {BookCardComponent} from "../book-browser/book-card/book-card.component";
 import {CoverScalePreferenceService} from "../book-browser/cover-scale-preference.service";
@@ -682,16 +682,40 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
       acceptButtonStyleClass: 'p-button-warning',
       rejectButtonStyleClass: 'p-button-outlined',
       accept: () => {
-        const count = this.selectedBooks.size;
-        this.writeProgressService.show(this.t.translate('book.browser.loading.deleting', {count}));
-
-        this.bookService.deleteBooks(this.selectedBooks, false)
-          .subscribe(() => {
-            this.writeProgressService.complete(`Removed ${count} book${count === 1 ? '' : 's'} from library`);
-            this.deselectAllBooks();
-          });
+        this.removeSelectedBooks('REMOVE_FOREVER');
       }
     });
+  }
+
+  confirmDeleteBooksLibraryUntilNextScan(): void {
+    this.confirmationService.confirm({
+      message: `${this.t.translate('book.browser.confirm.removeFromLibraryMessage', {count: this.selectedBooks.size})}\n\nThis option allows the books to return on the next scan.`,
+      header: 'Remove Until Next Scan',
+      icon: 'pi pi-exclamation-triangle',
+      acceptIcon: 'pi pi-history',
+      rejectIcon: 'pi pi-times',
+      acceptLabel: this.t.translate('common.remove'),
+      rejectLabel: this.t.translate('common.cancel'),
+      acceptButtonStyleClass: 'p-button-warning',
+      rejectButtonStyleClass: 'p-button-outlined',
+      accept: () => {
+        this.removeSelectedBooks('REMOVE_UNTIL_NEXT_SCAN');
+      }
+    });
+  }
+
+  private removeSelectedBooks(mode: RemoveFromLibraryMode): void {
+    const count = this.selectedBooks.size;
+    this.writeProgressService.show(this.t.translate('book.browser.loading.deleting', {count}));
+
+    this.bookService.deleteBooks(this.selectedBooks, false, mode)
+      .subscribe(() => {
+        const detail = mode === 'REMOVE_FOREVER'
+          ? `Removed ${count} book${count === 1 ? '' : 's'} from library permanently`
+          : `Removed ${count} book${count === 1 ? '' : 's'} from library until next scan`;
+        this.writeProgressService.complete(detail);
+        this.deselectAllBooks();
+      });
   }
 
   openShelfAssigner(): void {

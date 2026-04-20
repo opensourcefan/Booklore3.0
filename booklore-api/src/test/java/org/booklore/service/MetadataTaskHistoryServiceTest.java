@@ -221,7 +221,7 @@ class MetadataTaskHistoryServiceTest {
     }
 
     @Test
-    void getActiveTasks_shouldFilterOutTasksWithNoRemainingProposals() {
+    void getActiveTasks_shouldKeepTasksWithNoRemainingProposalsVisible() {
         MetadataFetchJobEntity job = mock(MetadataFetchJobEntity.class);
         MetadataFetchProposalEntity p1 = mock(MetadataFetchProposalEntity.class);
         when(job.getTaskId()).thenReturn("task1");
@@ -233,7 +233,10 @@ class MetadataTaskHistoryServiceTest {
 
         List<MetadataBatchProgressNotification> notifications = service.getActiveTasks();
 
-        assertThat(notifications).isEmpty();
+        assertThat(notifications).hasSize(1);
+        assertThat(notifications.getFirst().getTaskId()).isEqualTo("task1");
+        assertThat(notifications.getFirst().getTotal()).isZero();
+        assertThat(notifications.getFirst().getStatus()).isEqualTo("COMPLETED");
         verify(jobRepository).findAllWithProposals();
     }
 }

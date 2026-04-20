@@ -14,6 +14,8 @@ import {BookSocketService} from './book-socket.service';
 import {BookPatchService} from './book-patch.service';
 import {TranslocoService} from '@jsverse/transloco';
 
+export type RemoveFromLibraryMode = 'REMOVE_FOREVER' | 'REMOVE_UNTIL_NEXT_SCAN';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -180,9 +182,12 @@ export class BookService {
 
   /*------------------ Book Operations ------------------*/
 
-  deleteBooks(ids: Set<number>, deleteFromDisk = true): Observable<BookDeletionResponse> {
+  deleteBooks(ids: Set<number>, deleteFromDisk = true, removeMode: RemoveFromLibraryMode = 'REMOVE_FOREVER'): Observable<BookDeletionResponse> {
     const idList = Array.from(ids);
-    const params = new HttpParams().set('ids', idList.join(',')).set('deleteFromDisk', String(deleteFromDisk));
+    let params = new HttpParams().set('ids', idList.join(',')).set('deleteFromDisk', String(deleteFromDisk));
+    if (!deleteFromDisk) {
+      params = params.set('removeMode', removeMode);
+    }
 
     return this.http.delete<BookDeletionResponse>(this.url, {params}).pipe(
       tap(response => {

@@ -182,7 +182,7 @@ public class PhysicalBookService {
         String requestTitle = normalizeText(request.getTitle());
         Set<String> requestAuthors = normalizeAuthors(request.getAuthors());
 
-        return bookRepository.findAllForDuplicateDetection(libraryId).stream()
+        return bookRepository.findAllForDuplicateDetectionIncludingRemoved(libraryId).stream()
                 .anyMatch(book -> matchesPhysicalDuplicate(book, requestIsbn13, requestIsbn10, requestTitle, requestAuthors));
     }
 

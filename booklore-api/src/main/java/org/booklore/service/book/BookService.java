@@ -13,6 +13,7 @@ import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.model.entity.UserBookFileProgressEntity;
 import org.booklore.model.entity.UserBookProgressEntity;
 import org.booklore.model.enums.BookFileType;
+import org.booklore.model.enums.RemoveFromLibraryMode;
 import org.booklore.repository.*;
 import org.booklore.repository.ComicPanelFlowRepository;
 import org.booklore.service.metadata.sidecar.SidecarMetadataWriter;
@@ -433,6 +434,11 @@ public class BookService {
 
     @Transactional
     public ResponseEntity<BookDeletionResponse> deleteBooks(Set<Long> ids, boolean deleteFromDisk) {
+        return deleteBooks(ids, deleteFromDisk, RemoveFromLibraryMode.REMOVE_FOREVER);
+    }
+
+    @Transactional
+    public ResponseEntity<BookDeletionResponse> deleteBooks(Set<Long> ids, boolean deleteFromDisk, RemoveFromLibraryMode removeMode) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
         List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(ids);
 
@@ -453,13 +459,19 @@ public class BookService {
 
         if (!deleteFromDisk) {
             Instant removedAt = Instant.now();
+            boolean removeForever = removeMode == RemoveFromLibraryMode.REMOVE_FOREVER;
             books.forEach(book -> {
                 book.setDeleted(true);
                 book.setDeletedAt(removedAt);
-                book.setRemovedFromLibrary(true);
+                book.setRemovedFromLibrary(removeForever);
             });
             bookRepository.saveAll(books);
-            auditService.log(AuditAction.BOOK_DELETED, "Removed " + affectedIds.size() + " book(s) from library");
+            auditService.log(
+                    AuditAction.BOOK_DELETED,
+                    (removeForever
+                            ? "Removed " + affectedIds.size() + " book(s) from library permanently"
+                            : "Removed " + affectedIds.size() + " book(s) from library until next scan")
+            );
             return ResponseEntity.ok(new BookDeletionResponse(affectedIds, List.of()));
         }
 

@@ -2,7 +2,7 @@ import {AfterViewChecked, Component, DestroyRef, ElementRef, inject, Input, OnCh
 import {Button} from 'primeng/button';
 import {AsyncPipe, DecimalPipe, NgClass} from '@angular/common';
 import {combineLatest, Observable} from 'rxjs';
-import {BookService} from '../../../../book/service/book.service';
+import {BookService, RemoveFromLibraryMode} from '../../../../book/service/book.service';
 import {BookFileService} from '../../../../book/service/book-file.service';
 import {Rating, RatingRateEvent} from 'primeng/rating';
 import {FormsModule} from '@angular/forms';
@@ -429,31 +429,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
                   ...(!isPhysical ? [{
                     label: this.t.translate('metadata.viewer.menuRemoveFromLibrary'),
                     icon: 'pi pi-minus-circle',
-                    command: () => {
-                      this.confirmationService.confirm({
-                        message: this.t.translate('metadata.viewer.confirm.removeFromLibraryMessage', {title: book.metadata?.title}),
-                        header: this.t.translate('metadata.viewer.menuRemoveFromLibrary'),
-                        icon: 'pi pi-exclamation-triangle',
-                        acceptIcon: 'pi pi-minus-circle',
-                        rejectIcon: 'pi pi-times',
-                        acceptLabel: this.t.translate('common.remove'),
-                        rejectLabel: this.t.translate('common.cancel'),
-                        acceptButtonStyleClass: 'p-button-warning',
-                        rejectButtonStyleClass: 'p-button-outlined',
-                        accept: () => {
-                          this.bookService.deleteBooks(new Set([book.id]), false).subscribe({
-                            next: () => {
-                              if (this.metadataCenterViewMode === 'route') {
-                                this.router.navigate(['/dashboard']);
-                              } else {
-                                this.dialogRef?.close();
-                              }
-                            },
-                            error: () => { /* handled by global error handler */ }
-                          });
-                        }
-                      });
-                    }
+                    items: this.getRemoveFromLibraryMenuItems(book)
                   }] : [])
                 ]
               });
@@ -696,6 +672,53 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
     setTimeout(() => {
       this.isAutoFetching = false;
     }, 15000);
+  }
+
+  private getRemoveFromLibraryMenuItems(book: Book): MenuItem[] {
+    return [
+      {
+        label: 'Remove Permanently',
+        icon: 'pi pi-minus-circle',
+        command: () => this.confirmRemoveFromLibrary(book, 'REMOVE_FOREVER')
+      },
+      {
+        label: 'Remove Until Next Scan',
+        icon: 'pi pi-history',
+        command: () => this.confirmRemoveFromLibrary(book, 'REMOVE_UNTIL_NEXT_SCAN')
+      }
+    ];
+  }
+
+  private confirmRemoveFromLibrary(book: Book, mode: RemoveFromLibraryMode): void {
+    const message = mode === 'REMOVE_FOREVER'
+      ? this.t.translate('metadata.viewer.confirm.removeFromLibraryMessage', {title: book.metadata?.title})
+      : `${this.t.translate('metadata.viewer.confirm.removeFromLibraryMessage', {title: book.metadata?.title})}\n\nThis option allows the book to return on the next scan.`;
+
+    this.confirmationService.confirm({
+      message,
+      header: mode === 'REMOVE_FOREVER' ? this.t.translate('metadata.viewer.menuRemoveFromLibrary') : 'Remove Until Next Scan',
+      icon: 'pi pi-exclamation-triangle',
+      acceptIcon: mode === 'REMOVE_FOREVER' ? 'pi pi-minus-circle' : 'pi pi-history',
+      rejectIcon: 'pi pi-times',
+      acceptLabel: this.t.translate('common.remove'),
+      rejectLabel: this.t.translate('common.cancel'),
+      acceptButtonStyleClass: 'p-button-warning',
+      rejectButtonStyleClass: 'p-button-outlined',
+      accept: () => {
+        this.bookService.deleteBooks(new Set([book.id]), false, mode).subscribe({
+          next: () => this.closeMetadataViewerAfterDelete(),
+          error: () => { /* handled by global error handler */ }
+        });
+      }
+    });
+  }
+
+  private closeMetadataViewerAfterDelete(): void {
+    if (this.metadataCenterViewMode === 'route') {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.dialogRef?.close();
+    }
   }
 
   quickSend(book: Book) {

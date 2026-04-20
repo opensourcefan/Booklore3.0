@@ -25,7 +25,7 @@ export const TASK_TYPE_CONFIG: Record<TaskType, { parallel: boolean; async: bool
   [TaskType.UPDATE_BOOK_RECOMMENDATIONS]: {parallel: false, async: true, displayOrder: 5},
   [TaskType.CLEANUP_DELETED_BOOKS]: {parallel: false, async: false, displayOrder: 6},
   [TaskType.CLEANUP_TEMP_METADATA]: {parallel: false, async: false, displayOrder: 7},
-  [TaskType.REFRESH_METADATA_MANUAL]: {parallel: false, async: false, displayOrder: 8},
+  [TaskType.REFRESH_METADATA_MANUAL]: {parallel: false, async: true, displayOrder: 8},
   [TaskType.CLEAR_PDF_CACHE]: {parallel: false, async: false, displayOrder: 9},
   [TaskType.FLUSH_METADATA_TO_FILES]: {parallel: false, async: true, displayOrder: 10},
 };

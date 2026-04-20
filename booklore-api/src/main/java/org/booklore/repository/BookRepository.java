@@ -120,6 +120,17 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
             """)
     List<BookEntity> findAllForDuplicateDetection(@Param("libraryId") Long libraryId);
 
+        @Query("""
+            SELECT DISTINCT b FROM BookEntity b
+            LEFT JOIN FETCH b.metadata m
+            LEFT JOIN FETCH m.authors
+            LEFT JOIN FETCH b.bookFiles
+            LEFT JOIN FETCH b.libraryPath
+            WHERE b.library.id = :libraryId
+            AND ((b.deleted IS NULL OR b.deleted = false) OR b.removedFromLibrary = true)
+            """)
+        List<BookEntity> findAllForDuplicateDetectionIncludingRemoved(@Param("libraryId") Long libraryId);
+
             @Query("""
                 SELECT DISTINCT b FROM BookEntity b
                 LEFT JOIN FETCH b.metadata m

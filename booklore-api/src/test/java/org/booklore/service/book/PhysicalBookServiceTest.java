@@ -285,7 +285,7 @@ class PhysicalBookServiceTest {
         .build();
     metadata.setBook(existingBook);
 
-    when(bookRepository.findAllForDuplicateDetection(1L)).thenReturn(List.of(existingBook));
+    when(bookRepository.findAllForDuplicateDetectionIncludingRemoved(1L)).thenReturn(List.of(existingBook));
 
     int imported = physicalBookService.importPhysicalBooksFromSidecars(library, List.of(primaryPath));
 

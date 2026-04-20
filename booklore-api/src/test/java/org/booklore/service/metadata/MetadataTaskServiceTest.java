@@ -447,7 +447,7 @@ class MetadataTaskServiceTest {
         }
 
         @Test
-        void filtersOutTasksWithZeroTotal() {
+        void keepsTasksWithZeroTotalVisible() {
             MetadataFetchJobEntity task = buildTask("empty", MetadataFetchTaskStatus.COMPLETED, List.of(
                     MetadataFetchProposalEntity.builder().proposalId(1L).status(FetchedMetadataProposalStatus.REJECTED).build()
             ));
@@ -456,7 +456,10 @@ class MetadataTaskServiceTest {
 
             List<MetadataBatchProgressNotification> result = service.getActiveTasks();
 
-            assertThat(result).isEmpty();
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().getTaskId()).isEqualTo("empty");
+            assertThat(result.getFirst().getTotal()).isZero();
+            assertThat(result.getFirst().getStatus()).isEqualTo("COMPLETED");
         }
 
         @Test

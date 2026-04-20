@@ -5,7 +5,7 @@ import {AdditionalFile, Book, BookType, ReadStatus} from '../../../model/book.mo
 import {Button} from 'primeng/button';
 import {MenuModule} from 'primeng/menu';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
-import {BookService} from '../../../service/book.service';
+import {BookService, RemoveFromLibraryMode} from '../../../service/book.service';
 import {BookFileService} from '../../../service/book-file.service';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
 import {CheckboxChangeEvent, CheckboxModule} from 'primeng/checkbox';
@@ -720,22 +720,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             {
               label: this.t.translate('book.card.menu.removeFromLibrary'),
               icon: 'pi pi-minus-circle',
-              command: () => {
-                this.confirmationService.confirm({
-                  message: this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: book.metadata?.title}),
-                  header: this.t.translate('book.card.confirm.removeFromLibraryHeader'),
-                  icon: 'pi pi-exclamation-triangle',
-                  acceptIcon: 'pi pi-minus-circle',
-                  rejectIcon: 'pi pi-times',
-                  acceptLabel: this.t.translate('common.remove'),
-                  rejectLabel: this.t.translate('common.cancel'),
-                  acceptButtonStyleClass: 'p-button-warning',
-                  rejectButtonStyleClass: 'p-button-outlined',
-                  accept: () => {
-                    this.bookService.deleteBooks(new Set([book.id]), false).subscribe();
-                  }
-                });
-              }
+              items: this.getRemoveFromLibraryMenuItems(book)
             }
           ]
         });
@@ -1090,22 +1075,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     items.push({
       label: this.t.translate('book.card.menu.removeFromLibrary'),
       icon: 'pi pi-minus-circle',
-      command: () => {
-        this.confirmationService.confirm({
-          message: this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: book.metadata?.title}),
-          header: this.t.translate('book.card.confirm.removeFromLibraryHeader'),
-          icon: 'pi pi-exclamation-triangle',
-          acceptIcon: 'pi pi-minus-circle',
-          rejectIcon: 'pi pi-times',
-          acceptLabel: this.t.translate('common.remove'),
-          rejectLabel: this.t.translate('common.cancel'),
-          acceptButtonStyleClass: 'p-button-warning',
-          rejectButtonStyleClass: 'p-button-outlined',
-          accept: () => {
-            this.bookService.deleteBooks(new Set([book.id]), false).subscribe();
-          }
-        });
-      }
+      items: this.getRemoveFromLibraryMenuItems(book)
     });
 
     if (items.length > 0 && this.hasAdditionalFiles(book)) {
@@ -1140,6 +1110,42 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
 
     return items;
+  }
+
+  private getRemoveFromLibraryMenuItems(book: Book): MenuItem[] {
+    return [
+      {
+        label: 'Remove Permanently',
+        icon: 'pi pi-minus-circle',
+        command: () => this.confirmRemoveFromLibrary(book, 'REMOVE_FOREVER')
+      },
+      {
+        label: 'Remove Until Next Scan',
+        icon: 'pi pi-history',
+        command: () => this.confirmRemoveFromLibrary(book, 'REMOVE_UNTIL_NEXT_SCAN')
+      }
+    ];
+  }
+
+  private confirmRemoveFromLibrary(book: Book, mode: RemoveFromLibraryMode): void {
+    const message = mode === 'REMOVE_FOREVER'
+      ? this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: book.metadata?.title})
+      : `${this.t.translate('book.card.confirm.removeFromLibraryMessage', {title: book.metadata?.title})}\n\nThis option allows the book to return on the next scan.`;
+
+    this.confirmationService.confirm({
+      message,
+      header: mode === 'REMOVE_FOREVER' ? this.t.translate('book.card.confirm.removeFromLibraryHeader') : 'Remove Until Next Scan',
+      icon: 'pi pi-exclamation-triangle',
+      acceptIcon: mode === 'REMOVE_FOREVER' ? 'pi pi-minus-circle' : 'pi pi-history',
+      rejectIcon: 'pi pi-times',
+      acceptLabel: this.t.translate('common.remove'),
+      rejectLabel: this.t.translate('common.cancel'),
+      acceptButtonStyleClass: 'p-button-warning',
+      rejectButtonStyleClass: 'p-button-outlined',
+      accept: () => {
+        this.bookService.deleteBooks(new Set([book.id]), false, mode).subscribe();
+      }
+    });
   }
 
   private hasAdditionalFiles(book: Book): boolean {

@@ -268,7 +268,7 @@ export class AppTopBarComponent implements OnDestroy {
           clearTimeout(this.writeDismissTimer);
           this.writeDismissTimer = setTimeout(() => {
             this.writeProgress = null;
-          }, 3000);
+          }, 6000);
         } else {
           clearTimeout(this.writeDismissTimer);
         }

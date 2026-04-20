@@ -18,6 +18,7 @@ import org.booklore.model.dto.response.BookDeletionResponse;
 import org.booklore.model.dto.response.BookStatusUpdateResponse;
 import org.booklore.model.dto.response.DuplicateGroup;
 import org.booklore.model.dto.response.PersonalRatingUpdateResponse;
+import org.booklore.model.enums.RemoveFromLibraryMode;
 import org.booklore.model.enums.ResetProgressType;
 import org.booklore.service.book.BookFileAttachmentService;
 import org.booklore.service.book.BookService;
@@ -109,8 +110,10 @@ public class BookController {
     @DeleteMapping
     public ResponseEntity<BookDeletionResponse> deleteBooks(
             @Parameter(description = "Set of book IDs to delete") @RequestParam Set<Long> ids,
-            @Parameter(description = "Whether to also delete the physical files from disk") @RequestParam(defaultValue = "true") boolean deleteFromDisk) {
-        return bookService.deleteBooks(ids, deleteFromDisk);
+            @Parameter(description = "Whether to also delete the physical files from disk") @RequestParam(defaultValue = "true") boolean deleteFromDisk,
+            @Parameter(description = "When deleteFromDisk is false, controls whether removal is permanent or only until next library scan")
+            @RequestParam(defaultValue = "REMOVE_FOREVER") RemoveFromLibraryMode removeMode) {
+        return bookService.deleteBooks(ids, deleteFromDisk, removeMode);
     }
 
     @Operation(summary = "Get books by IDs", description = "Retrieve multiple books by their IDs. Optionally include descriptions.")

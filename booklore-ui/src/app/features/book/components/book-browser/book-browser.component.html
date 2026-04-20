@@ -566,7 +566,16 @@
                       severity="warn"
                       [disabled]="selectedCount === 0"
                       (click)="confirmDeleteBooksLibraryOnly()"
-                      [pTooltip]="t('tooltip.removeFromLibrary')"
+                      pTooltip="Remove from library permanently"
+                      tooltipPosition="top">
+                    </p-button>
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-history"
+                      severity="warn"
+                      [disabled]="selectedCount === 0"
+                      (click)="confirmDeleteBooksLibraryUntilNextScan()"
+                      pTooltip="Remove from library until next scan"
                       tooltipPosition="top">
                     </p-button>
                   }

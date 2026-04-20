@@ -2,7 +2,7 @@ import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDes
 import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
-import {BookService} from '../../service/book.service';
+import {BookService, RemoveFromLibraryMode} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
 import {debounceTime, filter, map, switchMap, takeUntil} from 'rxjs/operators';
 import {BehaviorSubject, combineLatest, Observable, of, Subject, Subscription} from 'rxjs';
@@ -925,16 +925,40 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       acceptButtonStyleClass: 'p-button-warning',
       rejectButtonStyleClass: 'p-button-outlined',
       accept: () => {
-        const count = this.selectedBooks.size;
-        this.writeProgressService.show(this.t.translate('book.browser.loading.deleting', {count}));
-
-        this.bookService.deleteBooks(this.selectedBooks, false)
-          .subscribe(() => {
-            this.writeProgressService.complete(`Removed ${count} book${count === 1 ? '' : 's'} from library`);
-            this.bookSelectionService.deselectAll();
-          });
+        this.removeSelectedBooks('REMOVE_FOREVER');
       }
     });
+  }
+
+  confirmDeleteBooksLibraryUntilNextScan(): void {
+    this.confirmationService.confirm({
+      message: `${this.t.translate('book.browser.confirm.removeFromLibraryMessage', {count: this.selectedBooks.size})}\n\nThis option allows the books to return on the next scan.`,
+      header: 'Remove Until Next Scan',
+      icon: 'pi pi-exclamation-triangle',
+      acceptIcon: 'pi pi-history',
+      rejectIcon: 'pi pi-times',
+      acceptLabel: this.t.translate('common.remove'),
+      rejectLabel: this.t.translate('common.cancel'),
+      acceptButtonStyleClass: 'p-button-warning',
+      rejectButtonStyleClass: 'p-button-outlined',
+      accept: () => {
+        this.removeSelectedBooks('REMOVE_UNTIL_NEXT_SCAN');
+      }
+    });
+  }
+
+  private removeSelectedBooks(mode: RemoveFromLibraryMode): void {
+    const count = this.selectedBooks.size;
+    this.writeProgressService.show(this.t.translate('book.browser.loading.deleting', {count}));
+
+    this.bookService.deleteBooks(this.selectedBooks, false, mode)
+      .subscribe(() => {
+        const detail = mode === 'REMOVE_FOREVER'
+          ? `Removed ${count} book${count === 1 ? '' : 's'} from library permanently`
+          : `Removed ${count} book${count === 1 ? '' : 's'} from library until next scan`;
+        this.writeProgressService.complete(detail);
+        this.bookSelectionService.deselectAll();
+      });
   }
 
   onSeriesCollapseCheckboxChange(value: boolean): void {

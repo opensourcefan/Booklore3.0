@@ -278,7 +278,6 @@ public class MetadataTaskService {
                             resumable ? pendingCount : null
                     );
                 })
-                .filter(n -> n.getTotal() > 0)
                 .toList();
     }
 

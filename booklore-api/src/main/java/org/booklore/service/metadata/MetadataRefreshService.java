@@ -80,6 +80,7 @@ public class MetadataRefreshService {
         MetadataFetchJobEntity task = null;
         int totalBooks = 0;
         int completedCount = 0;
+        int failedCount = 0;
         boolean isReviewMode = false;
         try {
             AppSettings appSettings = appSettingService.getAppSettings();
@@ -159,6 +160,7 @@ public class MetadataRefreshService {
                     log.info("Metadata refresh task {} cancelled successfully", jobId);
                     return;
                 } catch (Exception e) {
+                    failedCount++;
                     String bookIdentifier = plan != null ? getBookIdentifier(plan.book()) : "Book ID: " + bookId;
                     String bookTitle = plan != null ? Optional.ofNullable(getBookDisplayTitle(plan.book())).orElse(bookIdentifier) : bookIdentifier;
                     String failureReason = Optional.ofNullable(e.getMessage()).orElse(e.getClass().getSimpleName());
@@ -169,7 +171,7 @@ public class MetadataRefreshService {
                             finalCompletedCount,
                             totalBooks,
                             String.format("Failed to process: %s - %s", bookTitle, failureReason),
-                            MetadataFetchTaskStatus.ERROR,
+                            MetadataFetchTaskStatus.IN_PROGRESS,
                             plan != null && plan.reviewMode()
                     );
                 } finally {
@@ -178,9 +180,24 @@ public class MetadataRefreshService {
                 completedCount++;
             }
 
-            completeTask(task, completedCount, totalBooks, isReviewMode);
+            if (failedCount > 0) {
+                String message = String.format(
+                        "Metadata fetch completed with %d error%s (processed %d of %d books).",
+                        failedCount,
+                        failedCount == 1 ? "" : "s",
+                        completedCount,
+                        totalBooks
+                );
+                failTask(jobId, task, completedCount, totalBooks, message, isReviewMode);
+            } else {
+                completeTask(task, completedCount, totalBooks, isReviewMode);
+            }
             cancellationManager.clearCancellation(jobId);
-            log.info("Metadata refresh task {} completed successfully", jobId);
+            if (failedCount > 0) {
+                log.info("Metadata refresh task {} completed with {} per-book failures", jobId, failedCount);
+            } else {
+                log.info("Metadata refresh task {} completed successfully", jobId);
+            }
 
         } catch (RuntimeException e) {
             cancellationManager.clearCancellation(jobId);
@@ -427,7 +444,14 @@ public class MetadataRefreshService {
     }
 
     private void sendTaskProgressNotification(String taskId, int current, int total, String message, MetadataFetchTaskStatus status) {
-        int progress = total > 0 ? Math.min(100, Math.max(0, (current * 100) / total)) : 0;
+        int progress;
+        if (total > 0) {
+            progress = Math.min(100, Math.max(0, (current * 100) / total));
+        } else {
+            progress = (status == MetadataFetchTaskStatus.COMPLETED
+                    || status == MetadataFetchTaskStatus.CANCELLED
+                    || status == MetadataFetchTaskStatus.ERROR) ? 100 : 0;
+        }
 
         notificationService.sendMessage(Topic.TASK_PROGRESS, TaskProgressPayload.builder()
                 .taskId(taskId)
@@ -450,12 +474,15 @@ public class MetadataRefreshService {
     }
 
     private void completeTask(MetadataFetchJobEntity task, int completed, int total, boolean isReviewMode) {
+        String completionMessage = total == 0
+                ? "No books matched the metadata refresh request."
+                : "Batch metadata fetch successfully completed!";
         task.setStatus(MetadataFetchTaskStatus.COMPLETED);
         task.setCompletedAt(Instant.now());
         task.setCompletedBooks(completed);
-        task.setStatusMessage("Batch metadata fetch successfully completed!");
+        task.setStatusMessage(completionMessage);
         metadataFetchJobRepository.save(task);
-        sendBatchProgressNotification(task.getTaskId(), completed, total, "Batch metadata fetch successfully completed!", MetadataFetchTaskStatus.COMPLETED, isReviewMode);
+        sendBatchProgressNotification(task.getTaskId(), completed, total, completionMessage, MetadataFetchTaskStatus.COMPLETED, isReviewMode);
     }
 
     private void failTask(String taskId, MetadataFetchJobEntity task, int completed, int total, String message, boolean isReviewMode) {
