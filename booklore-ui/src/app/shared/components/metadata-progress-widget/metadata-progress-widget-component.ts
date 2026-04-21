@@ -153,5 +153,17 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
     return (task.status === MetadataBatchStatus.ERROR || task.status === MetadataBatchStatus.CANCELLED) && !!task.resumable;
   }
 
+  hasReviewItems(task: MetadataBatchProgressNotification): boolean {
+    if (!task.review) {
+      return false;
+    }
+
+    if (task.status !== MetadataBatchStatus.COMPLETED) {
+      return true;
+    }
+
+    return task.completed < task.total;
+  }
+
   protected readonly Object = Object;
 }

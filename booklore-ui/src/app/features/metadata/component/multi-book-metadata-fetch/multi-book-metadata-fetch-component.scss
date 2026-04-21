@@ -39,11 +39,12 @@
 }
 
 .book-list-container {
-  max-height: 6rem;
+  max-height: 12rem;
   overflow: auto;
-  border: 1px solid #6b7280;
-  border-radius: 0.25rem;
-  padding: 0.5rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  background: color-mix(in srgb, var(--surface-card) 95%, var(--surface-0) 5%);
   font-size: 0.875rem;
 }
 

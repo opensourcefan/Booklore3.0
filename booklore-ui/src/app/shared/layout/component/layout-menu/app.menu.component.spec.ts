@@ -27,6 +27,7 @@ describe('AppMenuComponent reorder mode', () => {
   let routerMock: {navigate: ReturnType<typeof vi.fn>; url: string; events: typeof NEVER; parseUrl: ReturnType<typeof vi.fn>};
   let localStorageMock: {get: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; keyChanges$: typeof NEVER};
   let mediaTypePreferencesMock: {setSidebarOrder: ReturnType<typeof vi.fn>; settings$: Observable<{customTypes: string[]; sidebarOrder: string[]}>};
+  let versionServiceMock: {getVersion: ReturnType<typeof vi.fn>};
   let libraryServiceMock: {libraryState$: Observable<{libraries: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
   let magicShelfServiceMock: {shelvesState$: Observable<{shelves: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
   let shelfServiceMock: {shelfState$: Observable<{shelves: never[]}>; getUnshelvedBookCount: ReturnType<typeof vi.fn>; getBookCount: ReturnType<typeof vi.fn>};
@@ -46,6 +47,9 @@ describe('AppMenuComponent reorder mode', () => {
     mediaTypePreferencesMock = {
       setSidebarOrder: vi.fn(),
       settings$: of({customTypes: ['CBZ', 'PHYSICAL'], sidebarOrder: []})
+    };
+    versionServiceMock = {
+      getVersion: vi.fn().mockReturnValue(of({current: '3.9.7', latest: '3.9.7'}))
     };
     libraryServiceMock = {
       libraryState$: of({libraries: []}),
@@ -68,7 +72,7 @@ describe('AppMenuComponent reorder mode', () => {
         {provide: LibraryHealthService, useValue: {}},
         {provide: ShelfService, useValue: shelfServiceMock},
         {provide: BookService, useValue: {bookState$: of({books: []})}},
-        {provide: VersionService, useValue: {getVersion: vi.fn().mockReturnValue(of({current: '3.9.7', latest: '3.9.7'}))}},
+        {provide: VersionService, useValue: versionServiceMock},
         {provide: LibraryShelfMenuService, useValue: {}},
         {provide: DialogLauncherService, useValue: {openAcknowledgementsDialog: vi.fn()}},
         {provide: UserService, useValue: {userState$: NEVER}},
@@ -163,5 +167,27 @@ describe('AppMenuComponent reorder mode', () => {
     expect(menu).toHaveLength(1);
     expect(menu[0].items?.[0].routerLink).toEqual(['/not-shelfed']);
     expect(menu[0].items?.[0].showBookCount).toBe(true);
+  });
+
+  it('reuses cached stable tag when latest tag is temporarily unavailable', () => {
+    localStorageMock.get.mockImplementation((key: string) => {
+      if (key === 'sidebarLatestStableVersion') {
+        return 'v3.11.1';
+      }
+      return null;
+    });
+    versionServiceMock.getVersion.mockReturnValue(of({current: 'develop-abc123', latest: 'unknown'}));
+
+    component.ngOnInit();
+
+    expect(component.versionInfo).toEqual({current: 'develop-abc123', latest: 'v3.11.1'});
+  });
+
+  it('caches stable latest tags for future fallbacks', () => {
+    versionServiceMock.getVersion.mockReturnValue(of({current: 'develop-abc123', latest: 'v3.11.2'}));
+
+    component.ngOnInit();
+
+    expect(localStorageMock.set).toHaveBeenCalledWith('sidebarLatestStableVersion', 'v3.11.2');
   });
 });

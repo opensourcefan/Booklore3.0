@@ -98,6 +98,7 @@ export class AppMenuComponent implements OnInit {
 
   private readonly sectionOrderKey = 'sidebarSectionOrder';
   private readonly sectionVisibilityKey = 'sidebarSectionVisibility';
+  private readonly versionLatestCacheKey = 'sidebarLatestStableVersion';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
   private readonly homeItemVisibilitySubject = new BehaviorSubject<Record<HomeItemVisibilityKey, boolean>>(this.homeItemVisibility);
   private initialSectionVisibilityFromStorage: Record<string, boolean> | null = null;
@@ -161,7 +162,8 @@ export class AppMenuComponent implements OnInit {
     this.router.events.subscribe(() => this.syncActiveBookTypeFilterFromUrl());
 
     this.versionService.getVersion().pipe(
-      catchError(() => of({current: 'unknown', latest: 'unknown'}))
+      map(data => this.resolveVersionInfoWithCache(data)),
+      catchError(() => of(this.resolveVersionInfoWithCache({current: 'unknown', latest: 'unknown'})))
     ).subscribe((data) => {
       this.versionInfo = data;
     });
@@ -865,6 +867,37 @@ export class AppMenuComponent implements OnInit {
     const semanticVersionPattern = /^v?(\d+\.\d+\.\d+)$/;
     const match = version.trim().match(semanticVersionPattern);
     return match ? `v${match[1]}` : null;
+  }
+
+  private resolveVersionInfoWithCache(versionInfo: AppVersion): AppVersion {
+    const normalizedCurrent = this.getNormalizedDisplayVersion(versionInfo.current) ?? 'unknown';
+    const normalizedLatest = this.getNormalizedSemanticVersion(versionInfo.latest);
+
+    if (normalizedLatest) {
+      this.localStorageService.set(this.versionLatestCacheKey, normalizedLatest);
+      return {
+        current: normalizedCurrent,
+        latest: normalizedLatest,
+      };
+    }
+
+    const cachedLatest = this.getCachedLatestStableVersion();
+    if (cachedLatest) {
+      return {
+        current: normalizedCurrent,
+        latest: cachedLatest,
+      };
+    }
+
+    return {
+      current: normalizedCurrent,
+      latest: this.getNormalizedDisplayVersion(versionInfo.latest) ?? 'unknown',
+    };
+  }
+
+  private getCachedLatestStableVersion(): string | null {
+    const cached = this.localStorageService.get<string>(this.versionLatestCacheKey);
+    return this.getNormalizedSemanticVersion(cached ?? undefined);
   }
 
   private sortArray<T>(array: T[], field: 'name' | 'id', order: 'asc' | 'desc'): T[] {

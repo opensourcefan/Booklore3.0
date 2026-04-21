@@ -9,7 +9,7 @@
             <p class="task-title">{{ t('taskTitle') }}</p>
           </div>
           <div class="task-tags">
-            @if (task.value.review) {
+            @if (hasReviewItems(task.value)) {
               <p-tag
                 [value]="t('tagReview')"
                 severity="warn"
@@ -56,7 +56,7 @@
               </p-button>
             }
 
-            @if (task.value.review) {
+            @if (hasReviewItems(task.value)) {
               <p-button
                 [label]="t('reviewBtn')"
                 severity="info"
@@ -68,12 +68,12 @@
             }
 
             <p-button
-              [label]="task.value.review ? t('discardBtn') : t('dismissBtn')"
+              [label]="hasReviewItems(task.value) ? t('discardBtn') : t('dismissBtn')"
               icon="pi pi-times"
-              [severity]="task.value.review ? 'danger' : 'secondary'"
+              [severity]="hasReviewItems(task.value) ? 'danger' : 'secondary'"
               size="small"
-              [pTooltip]="task.value.review ? t('discardTooltip') : ''"
-              [tooltipPosition]="task.value.review ? 'top' : undefined"
+              [pTooltip]="hasReviewItems(task.value) ? t('discardTooltip') : ''"
+              [tooltipPosition]="hasReviewItems(task.value) ? 'top' : undefined"
               outlined
               (click)="clearTask(task.key)">
             </p-button>
