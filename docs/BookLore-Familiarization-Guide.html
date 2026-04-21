@@ -725,7 +725,7 @@
   <tr><th>Action</th><th>Description</th></tr>
   <tr><td>Fetch metadata</td><td>Search online providers by title, author, or ISBN</td></tr>
   <tr><td>Use provider page URLs</td><td>Paste a provider page URL in metadata search (for example a ComicVine issue or volume page) to bias the match, resolve that item directly when supported, and for ComicVine volumes optionally enter an issue number or issue range (for example 46 or 43-171) to auto-resolve those issue pages</td></tr>
-  <tr><td>Navigate selected books while searching</td><td>When editing multiple books, use the previous/next controls in metadata search to move through the selected group without leaving the fetch flow</td></tr>
+  <tr><td>Navigate selected books while searching</td><td>When editing multiple books, use the previous/next controls from the selected-result detail view to move through the group; BookLore returns to that book&rsquo;s search results context before switching so you can continue review without losing place</td></tr>
   <tr><td>Preview results</td><td>See what information was found before applying</td></tr>
   <tr><td>Apply selectively</td><td>Choose which fields to update</td></tr>
   <tr><td>Replace all</td><td>Overwrite all metadata with fetched information</td></tr>
@@ -781,6 +781,7 @@
   <li>Bulk-update reading status or media type</li>
   <li>Bulk-fetch metadata for selected books, with better recovery when a provider&rsquo;s first match fails but later candidates still contain usable metadata</li>
   <li>Limit a custom metadata fetch to all selected books, only books that have never been fetched, or only books whose last successful metadata fetch is older than a chosen age window</li>
+  <li>Use the custom metadata fetch ComicVine fields (source URL plus issue number or issue range like 43-171) to sequence exact ComicVine issue lookups across selected books, including manual-review workflows</li>
   <li>Restore titles for selected books from each book&rsquo;s own primary filename from the bulk metadata actions menu when those books still have blank, unlocked titles</li>
   <li>Delete all metadata for selected books from the bulk selection action bar</li>
 </ul>

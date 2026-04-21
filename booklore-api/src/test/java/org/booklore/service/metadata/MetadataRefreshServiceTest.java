@@ -338,6 +338,57 @@ class MetadataRefreshServiceTest {
         assertThat(result).hasSize(1);
     }
 
+        @Test
+        void fetchMetadataForBook_appliesSequentialIssueFromRange() {
+        BookParser parser = mock(BookParser.class);
+        when(parserMap.get(MetadataProvider.Comicvine)).thenReturn(parser);
+        when(parser.fetchTopMetadata(any(), any()))
+            .thenReturn(BookMetadata.builder().provider(MetadataProvider.Comicvine).title("Issue Match").build());
+
+        Book book = Book.builder()
+            .id(1L)
+            .metadata(BookMetadata.builder().title("Swamp Thing").build())
+            .build();
+
+        MetadataRefreshOptions options = MetadataRefreshOptions.builder()
+            .sourceUrl("https://comicvine.gamespot.com/swamp-thing/4050-3465/")
+            .issueRange("43-171")
+            .build();
+
+        Map<MetadataProvider, BookMetadata> result = service.fetchMetadataForBook(
+            List.of(MetadataProvider.Comicvine),
+            book,
+            options,
+            3);
+
+        assertThat(result).hasSize(1);
+        verify(parser).fetchTopMetadata(eq(book), argThat(req ->
+            "https://comicvine.gamespot.com/swamp-thing/4050-3465/".equals(req.getSourceUrl())
+                && "46".equals(req.getIssueNumber())));
+        }
+
+        @Test
+        void fetchMetadataForBook_usesExplicitIssueWhenRangeMissing() {
+        BookParser parser = mock(BookParser.class);
+        when(parserMap.get(MetadataProvider.Comicvine)).thenReturn(parser);
+        when(parser.fetchTopMetadata(any(), any()))
+            .thenReturn(BookMetadata.builder().provider(MetadataProvider.Comicvine).title("Issue Match").build());
+
+        Book book = Book.builder()
+            .id(1L)
+            .metadata(BookMetadata.builder().title("Swamp Thing").build())
+            .build();
+
+        MetadataRefreshOptions options = MetadataRefreshOptions.builder()
+            .sourceUrl("https://comicvine.gamespot.com/swamp-thing/4050-3465/")
+            .issueNumber("50")
+            .build();
+
+        service.fetchMetadataForBook(List.of(MetadataProvider.Comicvine), book, options, 5);
+
+        verify(parser).fetchTopMetadata(eq(book), argThat(req -> "50".equals(req.getIssueNumber())));
+        }
+
     @Test
     void getBookEntities_returnsBookIdsForBookRefresh() {
         MetadataRefreshRequest request = MetadataRefreshRequest.builder()
@@ -382,6 +433,23 @@ class MetadataRefreshServiceTest {
         Set<Long> result = service.getBookEntities(request);
 
         assertThat(result).containsExactlyInAnyOrder(2L, 3L);
+        }
+
+        @Test
+        void getBookEntities_filtersNeverFetchedBooks_preservesSelectedOrder() {
+        Set<Long> selected = new LinkedHashSet<>(List.of(4L, 2L, 3L));
+        MetadataRefreshRequest request = MetadataRefreshRequest.builder()
+            .refreshType(MetadataRefreshRequest.RefreshType.BOOKS)
+            .bookIds(selected)
+            .targetMode(MetadataRefreshRequest.TargetMode.NEVER_FETCHED)
+            .build();
+
+        when(bookRepository.findBookIdsByIdInAndLastMetadataFetchAtIsNull(selected))
+            .thenReturn(Set.of(2L, 4L));
+
+        Set<Long> result = service.getBookEntities(request);
+
+        assertThat(result).containsExactly(4L, 2L);
         }
 
         @Test

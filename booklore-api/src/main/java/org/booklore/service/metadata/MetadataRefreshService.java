@@ -44,6 +44,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.booklore.model.enums.MetadataProvider.*;
@@ -52,6 +54,8 @@ import static org.booklore.model.enums.MetadataProvider.*;
 @AllArgsConstructor
 @Service
 public class MetadataRefreshService {
+
+    private static final Pattern ISSUE_RANGE_PATTERN = Pattern.compile("^(\\d+)\\s*-\\s*(\\d+)$");
 
     private record MetadataRefreshPlan(
             Book book,
@@ -147,7 +151,11 @@ public class MetadataRefreshService {
                     }
 
                     MetadataTaskContext.set(jobId, finalCompletedCount, totalBooks, plan.reviewMode());
-                    Map<MetadataProvider, BookMetadata> metadataMap = fetchMetadataForBook(plan.providers(), plan.book());
+                    Map<MetadataProvider, BookMetadata> metadataMap = fetchMetadataForBook(
+                            plan.providers(),
+                            plan.book(),
+                            plan.refreshOptions(),
+                            finalCompletedCount);
                     if (plan.providers().contains(GoodReads)) {
                         delayGoodreadsRequest();
                     }
@@ -356,7 +364,16 @@ public class MetadataRefreshService {
     }
 
     public Map<MetadataProvider, BookMetadata> fetchMetadataForBook(List<MetadataProvider> providers, Book book) {
-        FetchMetadataRequest request = buildFetchMetadataRequestFromBook(book);
+        return fetchMetadataForBook(providers, book, null, 0);
+    }
+
+    public Map<MetadataProvider, BookMetadata> fetchMetadataForBook(
+            List<MetadataProvider> providers,
+            Book book,
+            MetadataRefreshOptions refreshOptions,
+            int sequenceIndex
+    ) {
+        FetchMetadataRequest request = buildFetchMetadataRequestFromBook(book, refreshOptions, sequenceIndex);
         return providers.stream()
             .map(provider -> fetchMetadataFromProvider(provider, book, request))
                 .filter(Objects::nonNull)
@@ -369,15 +386,7 @@ public class MetadataRefreshService {
 
     public Map<MetadataProvider, BookMetadata> fetchMetadataForBook(List<MetadataProvider> providers, BookEntity bookEntity) {
         Book book = bookMapper.toBook(bookEntity);
-        FetchMetadataRequest request = buildFetchMetadataRequestFromBook(book);
-        return providers.stream()
-            .map(provider -> fetchMetadataFromProvider(provider, book, request))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(
-                        BookMetadata::getProvider,
-                        metadata -> metadata,
-                        (existing, replacement) -> existing
-                ));
+        return fetchMetadataForBook(providers, book, null, 0);
     }
 
     private void reportProgressIfNeeded(MetadataFetchJobEntity task, String taskId, int completedCount, int total, BookEntity book, boolean isReviewMode) {
@@ -676,9 +685,20 @@ public class MetadataRefreshService {
     }
 
     private FetchMetadataRequest buildFetchMetadataRequestFromBook(Book book) {
+        return buildFetchMetadataRequestFromBook(book, null, 0);
+    }
+
+    private FetchMetadataRequest buildFetchMetadataRequestFromBook(Book book, MetadataRefreshOptions refreshOptions, int sequenceIndex) {
         BookMetadata metadata = book.getMetadata();
         if (metadata == null) {
+            String sourceUrl = refreshOptions != null ? trimToNull(refreshOptions.getSourceUrl()) : null;
+            String sequentialIssueNumber = refreshOptions != null ? resolveIssueNumberFromRange(refreshOptions.getIssueRange(), sequenceIndex) : null;
+            String explicitIssueNumber = refreshOptions != null ? trimToNull(refreshOptions.getIssueNumber()) : null;
+            String issueNumber = sequentialIssueNumber != null ? sequentialIssueNumber : explicitIssueNumber;
             return FetchMetadataRequest.builder()
+                    .title(getBookDisplayTitle(book))
+                    .sourceUrl(sourceUrl)
+                    .issueNumber(issueNumber)
                     .bookId(book.getId())
                     .build();
         }
@@ -690,14 +710,74 @@ public class MetadataRefreshService {
         if (title == null || title.isBlank()) {
             title = getBookDisplayTitle(book);
         }
+
+        String configuredSourceUrl = metadata.getExternalUrl();
+        String issueNumber = null;
+
+        if (refreshOptions != null) {
+            String customSourceUrl = trimToNull(refreshOptions.getSourceUrl());
+            if (customSourceUrl != null) {
+                configuredSourceUrl = customSourceUrl;
+            }
+
+            String sequentialIssueNumber = resolveIssueNumberFromRange(refreshOptions.getIssueRange(), sequenceIndex);
+            String explicitIssueNumber = trimToNull(refreshOptions.getIssueNumber());
+            issueNumber = sequentialIssueNumber != null ? sequentialIssueNumber : explicitIssueNumber;
+        }
+
         return FetchMetadataRequest.builder()
                 .isbn(isbn)
                 .asin(metadata.getAsin())
                 .author(metadata.getAuthors() != null ? String.join(", ", metadata.getAuthors()) : null)
                 .title(title)
-            .sourceUrl(metadata.getExternalUrl())
+                .sourceUrl(configuredSourceUrl)
+                .issueNumber(issueNumber)
                 .bookId(book.getId())
                 .build();
+    }
+
+    private String resolveIssueNumberFromRange(String rawIssueRange, int sequenceIndex) {
+        String issueRange = trimToNull(rawIssueRange);
+        if (issueRange == null) {
+            return null;
+        }
+
+        Matcher matcher = ISSUE_RANGE_PATTERN.matcher(issueRange);
+        if (!matcher.matches()) {
+            log.warn("Ignoring invalid issue range '{}'. Expected format like '43-171'.", issueRange);
+            return null;
+        }
+
+        int start;
+        int end;
+        try {
+            start = Integer.parseInt(matcher.group(1));
+            end = Integer.parseInt(matcher.group(2));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+
+        if (start > end) {
+            int tmp = start;
+            start = end;
+            end = tmp;
+        }
+
+        int currentIssue = start + Math.max(0, sequenceIndex);
+        if (currentIssue > end) {
+            return null;
+        }
+
+        return String.valueOf(currentIssue);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     public BookMetadata buildFetchMetadata(BookMetadata existingMetadata, Long bookId, MetadataRefreshOptions refreshOptions, Map<MetadataProvider, BookMetadata> metadataMap) {
@@ -1041,7 +1121,9 @@ public class MetadataRefreshService {
                 LibraryEntity libraryEntity = libraryRepository.findById(request.getLibraryId()).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(request.getLibraryId()));
                 yield bookRepository.findBookIdsByLibraryId(libraryEntity.getId());
             }
-            case BOOKS -> request.getBookIds();
+            case BOOKS -> request.getBookIds() != null
+                    ? new LinkedHashSet<>(request.getBookIds())
+                    : Collections.emptySet();
         };
 
         if (selectedBookIds == null || selectedBookIds.isEmpty()) {
@@ -1053,13 +1135,21 @@ public class MetadataRefreshService {
 
         return switch (targetMode) {
             case ALL -> selectedBookIds;
-            case NEVER_FETCHED -> bookRepository.findBookIdsByIdInAndLastMetadataFetchAtIsNull(selectedBookIds);
+            case NEVER_FETCHED -> {
+                Set<Long> eligible = bookRepository.findBookIdsByIdInAndLastMetadataFetchAtIsNull(selectedBookIds);
+                yield selectedBookIds.stream()
+                        .filter(eligible::contains)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+            }
             case OLDER_THAN_DAYS -> {
                 int olderThanDays = Optional.ofNullable(request.getOlderThanDays())
                         .filter(days -> days > 0)
                         .orElseThrow(() -> ApiError.INVALID_REFRESH_TYPE.createException());
                 Instant cutoff = Instant.now().minus(olderThanDays, ChronoUnit.DAYS);
-                yield bookRepository.findBookIdsByIdInAndLastMetadataFetchAtBeforeOrNull(selectedBookIds, cutoff);
+                Set<Long> eligible = bookRepository.findBookIdsByIdInAndLastMetadataFetchAtBeforeOrNull(selectedBookIds, cutoff);
+                yield selectedBookIds.stream()
+                        .filter(eligible::contains)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
             }
         };
     }

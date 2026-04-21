@@ -621,6 +621,13 @@
   },
   "fetchOptions": {
     "startRefresh": "Start Refresh",
+    "comicvineRange": {
+      "label": "ComicVine Sequenced Issue Fetch",
+      "help": "Paste a ComicVine volume URL and provide an issue number or range to auto-assign issues across selected books in order during custom refresh/review.",
+      "sourceUrlPlaceholder": "ComicVine volume URL (e.g. https://comicvine.gamespot.com/swamp-thing/4050-3465/)",
+      "issueNumberPlaceholder": "Issue (e.g. 46)",
+      "issueRangePlaceholder": "Range (e.g. 43-171)"
+    },
     "targetBooks": {
       "label": "Target books",
       "help": "Choose whether to refresh every selected book, only books that have never had metadata fetched, or only books whose last successful metadata fetch is older than the selected age.",

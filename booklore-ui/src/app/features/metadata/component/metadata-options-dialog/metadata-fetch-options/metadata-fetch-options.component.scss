@@ -11,7 +11,8 @@
 }
 
 .resume-callout,
-.targeting-panel {
+.targeting-panel,
+.comicvine-range-panel {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -23,19 +24,22 @@
 }
 
 .resume-copy,
-.targeting-copy {
+.targeting-copy,
+.comicvine-range-copy {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
 
 .resume-title,
-.targeting-label {
+.targeting-label,
+.comicvine-range-label {
   font-weight: 600;
 }
 
 .resume-detail,
-.targeting-help {
+.targeting-help,
+.comicvine-range-help {
   color: var(--text-color-secondary);
   font-size: 0.9rem;
 }
@@ -55,19 +59,43 @@
   min-width: 9rem;
 }
 
+.comicvine-range-controls {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.comicvine-input {
+  min-width: 14rem;
+}
+
+.comicvine-issue-input {
+  min-width: 7rem;
+}
+
+.comicvine-range-input {
+  min-width: 9rem;
+}
+
 @media (max-width: 720px) {
   .resume-callout,
-  .targeting-panel {
+  .targeting-panel,
+  .comicvine-range-panel {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .targeting-controls {
+  .targeting-controls,
+  .comicvine-range-controls {
     justify-content: stretch;
   }
 
   .target-select,
-  .target-days-select {
+  .target-days-select,
+  .comicvine-input,
+  .comicvine-issue-input,
+  .comicvine-range-input {
     min-width: 100%;
   }
 }

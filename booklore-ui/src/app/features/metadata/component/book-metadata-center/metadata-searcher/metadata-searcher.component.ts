@@ -259,6 +259,10 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   navigatePrevious(): void {
+    if (this.selectedFetchedMetadata$.value) {
+      this.onGoBack();
+    }
+
     if (this.showNavigationButtons) {
       this.previousBookClicked.emit();
       return;
@@ -271,6 +275,10 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   navigateNext(): void {
+    if (this.selectedFetchedMetadata$.value) {
+      this.onGoBack();
+    }
+
     if (this.showNavigationButtons) {
       this.nextBookClicked.emit();
       return;

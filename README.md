@@ -55,6 +55,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 
 - **Comic Panel Detection AI** — Detects and saves panel flow data for CBZ/CBR comics using a bundled YOLO-based AI model. Enables panel-by-panel navigation in the reader.
 - **ComicVine URL Issue Navigation** — In metadata search, paste a ComicVine volume or issue URL and optionally provide an issue number or inclusive range (for example `46` or `43-171`) to resolve exact ComicVine issue matches.
+- **ComicVine Batch Issue Sequencing** — In custom metadata fetch for multi-book selections, you can use the same ComicVine source URL plus issue number/range inputs and BookLore will assign sequential issues across the selected books while keeping review-mode workflows.
 - **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views.
 - **Adjustable Cover Preview Panel** — Toggle the right-side cover preview on or off in Settings.
 - **Customizable Upper Toolbar** — Add, remove, and reorder toolbar buttons; insert separators. Drag-and-drop support.

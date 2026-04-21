@@ -5,6 +5,9 @@ export interface MetadataRefreshOptions {
   refreshCovers: boolean;
   mergeCategories: boolean;
   reviewBeforeApply: boolean;
+  sourceUrl?: string;
+  issueNumber?: string;
+  issueRange?: string;
   /**
    * Controls how fetched metadata replaces existing metadata.
    * REPLACE_ALL: Replace all fields with fetched values (even if existing values are present)

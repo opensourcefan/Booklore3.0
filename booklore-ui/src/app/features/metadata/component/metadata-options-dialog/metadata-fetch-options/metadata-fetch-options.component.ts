@@ -13,6 +13,7 @@ import {Button} from 'primeng/button';
 import {MessageService} from 'primeng/api';
 import {MetadataResumableTask, MetadataTaskService} from '../../../../book/service/metadata-task';
 import {FormsModule} from '@angular/forms';
+import {InputText} from 'primeng/inputtext';
 
 @Component({
   selector: 'app-metadata-fetch-options',
@@ -23,7 +24,8 @@ import {FormsModule} from '@angular/forms';
     TranslocoDirective,
     Select,
     Button,
-    FormsModule
+    FormsModule,
+    InputText
   ],
   styleUrl: './metadata-fetch-options.component.scss'
 })
@@ -35,6 +37,9 @@ export class MetadataFetchOptionsComponent {
   targetMode: MetadataRefreshTargetMode = 'ALL';
   olderThanDays: number | null = 30;
   latestResumableTask: MetadataResumableTask | null = null;
+  sourceUrl = '';
+  issueNumber = '';
+  issueRange = '';
 
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   dynamicDialogRef = inject(DynamicDialogRef);
@@ -53,6 +58,9 @@ export class MetadataFetchOptionsComponent {
       take(1)
     ).subscribe(settings => {
       this.currentMetadataOptions = settings?.defaultMetadataRefreshOptions;
+      this.sourceUrl = this.currentMetadataOptions?.sourceUrl ?? '';
+      this.issueNumber = this.currentMetadataOptions?.issueNumber ?? '';
+      this.issueRange = this.currentMetadataOptions?.issueRange ?? '';
     });
 
     this.metadataTaskService.getLatestResumableTask().subscribe({
@@ -83,9 +91,20 @@ export class MetadataFetchOptionsComponent {
   }
 
   onMetadataSubmit(metadataRefreshOptions: MetadataRefreshOptions) {
+    const sourceUrl = this.sourceUrl.trim();
+    const issueNumber = this.issueNumber.trim();
+    const issueRange = this.issueRange.trim();
+
+    const normalizedOptions: MetadataRefreshOptions = {
+      ...metadataRefreshOptions,
+      sourceUrl: sourceUrl || undefined,
+      issueNumber: issueNumber || undefined,
+      issueRange: issueRange || undefined,
+    };
+
     const metadataRefreshRequest: MetadataRefreshRequest = {
       refreshType: this.metadataRefreshType,
-      refreshOptions: metadataRefreshOptions,
+      refreshOptions: normalizedOptions,
       bookIds: this.bookIds,
       libraryId: this.libraryId,
       targetMode: this.targetMode,

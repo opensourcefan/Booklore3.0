@@ -17,6 +17,9 @@ public class MetadataRefreshOptions {
     private boolean refreshCovers;
     private boolean mergeCategories;
     private Boolean reviewBeforeApply;
+    private String sourceUrl;
+    private String issueNumber;
+    private String issueRange;
     /**
      * Controls how fetched metadata replaces existing metadata.
      * REPLACE_ALL: Replace all fields with fetched values (even if existing values are present)
