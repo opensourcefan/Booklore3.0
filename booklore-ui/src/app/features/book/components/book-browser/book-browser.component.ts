@@ -487,6 +487,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   onRouteReattached(): void {
     this.bookFilterComponents?.forEach(component => component.refreshAfterRouteAttach());
     this.syncSelectionState(this.bookSelectionService.selectedBooks);
+    this.bookTableComponent?.refreshSelectionFromInputs();
     this.cdr.detectChanges();
   }
 

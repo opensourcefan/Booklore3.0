@@ -58,8 +58,8 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
         console.error('Failed to clear metadata task:', error);
         this.messageService.add({
           severity: 'error',
-          summary: 'Discard Failed',
-          detail: 'Unable to discard this metadata task. Please try again.'
+          summary: 'Close Failed',
+          detail: 'Unable to close this metadata task notification. Please try again.'
         });
       }
     });

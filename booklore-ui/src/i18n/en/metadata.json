@@ -626,7 +626,18 @@
       "help": "Paste a ComicVine volume URL and provide an issue number or range to auto-assign issues across selected books in order during custom refresh/review.",
       "sourceUrlPlaceholder": "ComicVine volume URL (e.g. https://comicvine.gamespot.com/swamp-thing/4050-3465/)",
       "issueNumberPlaceholder": "Issue (e.g. 46)",
-      "issueRangePlaceholder": "Range (e.g. 43-171)"
+      "issueRangePlaceholder": "Range (e.g. 43-171)",
+      "stepsLabel": "Quick steps",
+      "step1": "Paste a ComicVine volume URL.",
+      "step2": "Enter either a single issue number or a numeric range.",
+      "step3": "Keep selected books in the order you want issue numbers assigned.",
+      "step4": "Set ComicVine as Priority 1 for fields you want driven by this sequence.",
+      "disclaimer": "Issue numbers are assigned sequentially by selected-book order for this run."
+    },
+    "advancedOptions": {
+      "label": "Advanced matching options",
+      "defaultHelp": "Use provider priorities below to control which source fills each metadata field.",
+      "comicvineHelp": "ComicVine sequence inputs control issue matching. Provider priorities below still decide which source populates each field."
     },
     "targetBooks": {
       "label": "Target books",

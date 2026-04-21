@@ -77,14 +77,34 @@
         [placeholder]="t('comicvineRange.issueRangePlaceholder')"
         class="comicvine-input comicvine-range-input"/>
     </div>
+
+    <div class="comicvine-sequence-steps">
+      <div class="comicvine-sequence-steps-label">{{ t('comicvineRange.stepsLabel') }}</div>
+      <ol>
+        <li>{{ t('comicvineRange.step1') }}</li>
+        <li>{{ t('comicvineRange.step2') }}</li>
+        <li>{{ t('comicvineRange.step3') }}</li>
+        <li>{{ t('comicvineRange.step4') }}</li>
+      </ol>
+      <p class="comicvine-sequence-disclaimer">{{ t('comicvineRange.disclaimer') }}</p>
+    </div>
   </div>
 
-  <div class="dialog-content">
-    <app-metadata-advanced-fetch-options
-      (metadataOptionsSubmitted)="onMetadataSubmit($event)"
-      [currentMetadataOptions]="currentMetadataOptions"
-      [submitButtonLabel]="t('startRefresh')">
-    </app-metadata-advanced-fetch-options>
+  <div class="advanced-options-panel" [class.advanced-options-panel--comicvine]="isComicvineSequencedMode">
+    <div class="advanced-options-copy">
+      <div class="advanced-options-label">{{ t('advancedOptions.label') }}</div>
+      <div class="advanced-options-help">
+        {{ isComicvineSequencedMode ? t('advancedOptions.comicvineHelp') : t('advancedOptions.defaultHelp') }}
+      </div>
+    </div>
+
+    <div class="dialog-content">
+      <app-metadata-advanced-fetch-options
+        (metadataOptionsSubmitted)="onMetadataSubmit($event)"
+        [currentMetadataOptions]="currentMetadataOptions"
+        [submitButtonLabel]="t('startRefresh')">
+      </app-metadata-advanced-fetch-options>
+    </div>
   </div>
 </div>
 </ng-container>

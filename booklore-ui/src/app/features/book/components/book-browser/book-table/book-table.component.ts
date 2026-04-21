@@ -156,6 +156,10 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
     this.selectedBooksChange.emit(new Set(this.selectedBookIds));
   }
 
+  refreshSelectionFromInputs(): void {
+    this.syncSelectionFromInputs();
+  }
+
   private syncSelectionFromInputs(): void {
     this.selectedBookIds = new Set(this.preselectedBookIds);
     this.selectedBooks = this.books.filter(book => this.selectedBookIds.has(book.id));

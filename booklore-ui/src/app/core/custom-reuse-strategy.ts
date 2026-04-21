@@ -1,7 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, DetachedRouteHandle, RouteReuseStrategy} from '@angular/router';
 import {BookBrowserScrollService} from '../features/book/components/book-browser/book-browser-scroll.service';
-import {BookSelectionService} from '../features/book/components/book-browser/book-selection.service';
 
 @Injectable({
   providedIn: 'root',
@@ -9,7 +8,6 @@ import {BookSelectionService} from '../features/book/components/book-browser/boo
 export class CustomReuseStrategy implements RouteReuseStrategy {
   private storedRoutes = new Map<string, DetachedRouteHandle>();
   private scrollService = inject(BookBrowserScrollService);
-  private bookSelectionService = inject(BookSelectionService);
 
   private readonly BOOK_BROWSER_PATHS = [
     'library/:libraryId/books',
@@ -41,7 +39,6 @@ export class CustomReuseStrategy implements RouteReuseStrategy {
     if (handle && this.isBookBrowserRoute(route)) {
       const key = this.getRouteKey(route);
       this.storedRoutes.set(key, handle);
-      this.bookSelectionService.deselectAll();
     }
   }
 

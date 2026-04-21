@@ -144,8 +144,27 @@ export class BookService {
     const currentState = this.bookStateService.getCurrentBookState();
     if (!currentState.books || bookIds.length === 0) return [];
 
-    const idSet = new Set(bookIds.map(id => +id));
-    return currentState.books.filter(book => idSet.has(+book.id));
+    // Preserve the caller's selection order so dialog/title lists match the main browser order.
+    const booksById = new Map<number, Book>(
+      currentState.books.map(book => [+book.id, book])
+    );
+    const orderedBooks: Book[] = [];
+    const seen = new Set<number>();
+
+    for (const rawId of bookIds) {
+      const id = +rawId;
+      if (seen.has(id)) {
+        continue;
+      }
+
+      const book = booksById.get(id);
+      if (book) {
+        orderedBooks.push(book);
+        seen.add(id);
+      }
+    }
+
+    return orderedBooks;
   }
 
   getBookByIdFromAPI(bookId: number, withDescription: boolean): Observable<Book> {

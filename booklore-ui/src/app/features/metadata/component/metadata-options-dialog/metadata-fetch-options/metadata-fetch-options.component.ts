@@ -90,6 +90,11 @@ export class MetadataFetchOptionsComponent {
     ];
   }
 
+  get isComicvineSequencedMode(): boolean {
+    return this.sourceUrl.trim().length > 0 &&
+      (this.issueNumber.trim().length > 0 || this.issueRange.trim().length > 0);
+  }
+
   onMetadataSubmit(metadataRefreshOptions: MetadataRefreshOptions) {
     const sourceUrl = this.sourceUrl.trim();
     const issueNumber = this.issueNumber.trim();
