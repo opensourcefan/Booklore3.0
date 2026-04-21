@@ -111,7 +111,7 @@
 
       <span class="menu-item-end-content">
     @if (shouldShowEntityMenu()) {
-      @if ((item.type !== 'Library' || (admin || canManipulateLibrary)) && item.label !== 'Unshelved' && item.label !== 'Kobo') {
+      @if ((item.type !== 'Library' || (admin || canManipulateLibrary)) && !isUnshelvedItem() && item.label !== 'Kobo') {
         <p-button
           (click)="entitymenu.toggle($event); $event.stopPropagation()"
           (mouseover)="hovered = true"

@@ -23,29 +23,31 @@
       <div class="targeting-help">{{ t('targetBooks.help') }}</div>
     </div>
 
-    <div class="targeting-controls">
-      <p-select
-        [options]="targetModeOptions"
-        [(ngModel)]="targetMode"
-        optionLabel="label"
-        optionValue="value"
-        appendTo="body"
-        [placeholder]="t('targetBooks.placeholder')"
-        class="target-select"
-        size="small">
-      </p-select>
-
-      @if (targetMode === 'OLDER_THAN_DAYS') {
+    <div class="section-content-frame targeting-content-frame">
+      <div class="targeting-controls">
         <p-select
-          [options]="olderThanOptions"
-          [(ngModel)]="olderThanDays"
+          [options]="targetModeOptions"
+          [(ngModel)]="targetMode"
           optionLabel="label"
           optionValue="value"
           appendTo="body"
-          class="target-select target-days-select"
+          [placeholder]="t('targetBooks.placeholder')"
+          class="target-select"
           size="small">
         </p-select>
-      }
+
+        @if (targetMode === 'OLDER_THAN_DAYS') {
+          <p-select
+            [options]="olderThanOptions"
+            [(ngModel)]="olderThanDays"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+            class="target-select target-days-select"
+            size="small">
+          </p-select>
+        }
+      </div>
     </div>
   </div>
 
@@ -55,38 +57,40 @@
       <div class="comicvine-range-help">{{ t('comicvineRange.help') }}</div>
     </div>
 
-    <div class="comicvine-range-controls">
-      <input
-        pInputText
-        type="url"
-        [(ngModel)]="sourceUrl"
-        [placeholder]="t('comicvineRange.sourceUrlPlaceholder')"
-        class="comicvine-input"/>
+    <div class="section-content-frame comicvine-content-frame">
+      <div class="comicvine-range-controls">
+        <input
+          pInputText
+          type="url"
+          [(ngModel)]="sourceUrl"
+          [placeholder]="t('comicvineRange.sourceUrlPlaceholder')"
+          class="comicvine-input"/>
 
-      <input
-        pInputText
-        type="text"
-        [(ngModel)]="issueNumber"
-        [placeholder]="t('comicvineRange.issueNumberPlaceholder')"
-        class="comicvine-input comicvine-issue-input"/>
+        <input
+          pInputText
+          type="text"
+          [(ngModel)]="issueNumber"
+          [placeholder]="t('comicvineRange.issueNumberPlaceholder')"
+          class="comicvine-input comicvine-issue-input"/>
 
-      <input
-        pInputText
-        type="text"
-        [(ngModel)]="issueRange"
-        [placeholder]="t('comicvineRange.issueRangePlaceholder')"
-        class="comicvine-input comicvine-range-input"/>
-    </div>
+        <input
+          pInputText
+          type="text"
+          [(ngModel)]="issueRange"
+          [placeholder]="t('comicvineRange.issueRangePlaceholder')"
+          class="comicvine-input comicvine-range-input"/>
+      </div>
 
-    <div class="comicvine-sequence-steps">
-      <div class="comicvine-sequence-steps-label">{{ t('comicvineRange.stepsLabel') }}</div>
-      <ol>
-        <li>{{ t('comicvineRange.step1') }}</li>
-        <li>{{ t('comicvineRange.step2') }}</li>
-        <li>{{ t('comicvineRange.step3') }}</li>
-        <li>{{ t('comicvineRange.step4') }}</li>
-      </ol>
-      <p class="comicvine-sequence-disclaimer">{{ t('comicvineRange.disclaimer') }}</p>
+      <div class="comicvine-sequence-steps">
+        <div class="comicvine-sequence-steps-label">{{ t('comicvineRange.stepsLabel') }}</div>
+        <ol>
+          <li>{{ t('comicvineRange.step1') }}</li>
+          <li>{{ t('comicvineRange.step2') }}</li>
+          <li>{{ t('comicvineRange.step3') }}</li>
+          <li>{{ t('comicvineRange.step4') }}</li>
+        </ol>
+        <p class="comicvine-sequence-disclaimer">{{ t('comicvineRange.disclaimer') }}</p>
+      </div>
     </div>
   </div>
 

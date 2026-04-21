@@ -288,6 +288,10 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   }
 
   shouldShowEntityMenu(): boolean {
+    if (this.isUnshelvedItem()) {
+      return false;
+    }
+
     if (!this.item.menu?.length) {
       return false;
     }
@@ -308,8 +312,13 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
       || this.item.type === 'Physical Books'
       || this.item.type === 'Series'
       || this.item.type === 'Authors'
-      || this.item.label === 'Unshelved'
+      || this.isUnshelvedItem()
       || this.item.label === 'Kobo';
+  }
+
+  isUnshelvedItem(): boolean {
+    const routerLink = Array.isArray(this.item.routerLink) ? this.item.routerLink[0] : this.item.routerLink;
+    return routerLink === '/not-shelfed';
   }
 
   shouldShowInlineEntityCount(): boolean {
