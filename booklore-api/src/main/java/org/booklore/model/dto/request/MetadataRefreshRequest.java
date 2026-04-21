@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Set;
+import java.util.LinkedHashSet;
 
 @Builder
 @Data
@@ -16,6 +18,7 @@ public class MetadataRefreshRequest {
     @NotNull(message = "Refresh type cannot be null")
     private RefreshType refreshType;
     private Long libraryId;
+    @JsonDeserialize(as = LinkedHashSet.class)
     private Set<Long> bookIds;
     private MetadataRefreshOptions refreshOptions;
     @Builder.Default
