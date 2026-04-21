@@ -160,6 +160,36 @@ class MetadataTaskServiceTest {
             assertThat(dto.getTotalBooks()).isEqualTo(10);
             assertThat(dto.getInitiatedBy()).isEqualTo(1L);
         }
+
+        @Test
+        void returnsFetchedProposalsOrderedByRequestedBookIds() {
+            MetadataFetchJobEntity task = buildTask("ordered", MetadataFetchTaskStatus.COMPLETED, new ArrayList<>());
+            task.setRequestedBookIds(List.of(200L, 100L));
+
+            MetadataFetchProposalEntity firstFetched = MetadataFetchProposalEntity.builder()
+                    .proposalId(1L)
+                    .job(task)
+                    .bookId(100L)
+                    .status(FetchedMetadataProposalStatus.FETCHED)
+                    .build();
+            MetadataFetchProposalEntity secondFetched = MetadataFetchProposalEntity.builder()
+                    .proposalId(2L)
+                    .job(task)
+                    .bookId(200L)
+                    .status(FetchedMetadataProposalStatus.FETCHED)
+                    .build();
+            task.setProposals(List.of(firstFetched, secondFetched));
+
+            when(metadataFetchTaskRepository.findById("ordered")).thenReturn(Optional.of(task));
+            when(fetchedProposalMapper.toDto(firstFetched)).thenReturn(FetchedProposal.builder().proposalId(1L).bookId(100L).build());
+            when(fetchedProposalMapper.toDto(secondFetched)).thenReturn(FetchedProposal.builder().proposalId(2L).bookId(200L).build());
+
+            MetadataTaskDetailsResponse result = service.getTaskWithProposals("ordered").orElseThrow();
+
+            assertThat(result.getTask().getProposals())
+                    .extracting(FetchedProposal::getProposalId)
+                    .containsExactly(2L, 1L);
+        }
     }
 
     @Nested

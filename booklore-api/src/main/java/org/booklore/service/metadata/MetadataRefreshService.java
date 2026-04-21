@@ -85,6 +85,7 @@ public class MetadataRefreshService {
         int totalBooks = 0;
         int completedCount = 0;
         int failedCount = 0;
+        int issueSequenceIndex = 0;
         boolean isReviewMode = false;
         try {
             AppSettings appSettings = appSettingService.getAppSettings();
@@ -104,16 +105,16 @@ public class MetadataRefreshService {
             MetadataRefreshOptions reviewModeOptions = requestRefreshOptions != null ?
                     requestRefreshOptions :
                     (libraryRefreshOptions != null ? libraryRefreshOptions : appSettings.getDefaultMetadataRefreshOptions());
-                isReviewMode = Boolean.TRUE.equals(reviewModeOptions.getReviewBeforeApply());
+            isReviewMode = Boolean.TRUE.equals(reviewModeOptions.getReviewBeforeApply());
 
-                task = MetadataFetchJobEntity.builder()
+            task = MetadataFetchJobEntity.builder()
                     .taskId(jobId)
                     .userId(userId)
                     .status(MetadataFetchTaskStatus.IN_PROGRESS)
                     .startedAt(Instant.now())
                     .totalBooksCount(totalBooks)
                     .completedBooks(0)
-                        .requestedBookIds(actualBookIds.stream().sorted().toList())
+                    .requestedBookIds(new ArrayList<>(actualBookIds))
                     .build();
             metadataFetchJobRepository.save(task);
 
@@ -128,6 +129,7 @@ public class MetadataRefreshService {
                 }
 
                 int finalCompletedCount = completedCount;
+                int finalIssueSequenceIndex = issueSequenceIndex;
                 MetadataRefreshPlan plan = null;
                 try {
                     plan = prepareMetadataRefreshPlan(
@@ -155,7 +157,7 @@ public class MetadataRefreshService {
                             plan.providers(),
                             plan.book(),
                             plan.refreshOptions(),
-                            finalCompletedCount);
+                            finalIssueSequenceIndex);
                     if (plan.providers().contains(GoodReads)) {
                         delayGoodreadsRequest();
                     }
@@ -186,6 +188,7 @@ public class MetadataRefreshService {
                     MetadataTaskContext.clear();
                 }
                 completedCount++;
+                issueSequenceIndex++;
             }
 
             if (failedCount > 0) {

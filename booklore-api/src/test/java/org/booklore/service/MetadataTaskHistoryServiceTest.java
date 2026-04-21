@@ -11,12 +11,17 @@ import org.booklore.model.entity.MetadataFetchJobEntity;
 import org.booklore.model.entity.MetadataFetchProposalEntity;
 import org.booklore.model.enums.FetchedMetadataProposalStatus;
 import org.booklore.model.enums.MetadataFetchTaskStatus;
+import org.booklore.repository.BookRepository;
 import org.booklore.repository.MetadataFetchJobRepository;
 import org.booklore.repository.MetadataFetchProposalRepository;
+import org.booklore.repository.TaskHistoryRepository;
+import org.booklore.service.metadata.MetadataRefreshService;
 import org.booklore.service.metadata.MetadataTaskService;
+import org.booklore.service.task.TaskService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,10 +41,25 @@ class MetadataTaskHistoryServiceTest {
     private MetadataFetchProposalRepository proposalRepository;
 
     @Mock
+    private TaskHistoryRepository taskHistoryRepository;
+
+    @Mock
     private FetchedProposalMapper fetchedProposalMapper;
 
     @Mock
     private AuthenticationService authenticationService;
+
+    @Mock
+    private TaskService taskService;
+
+    @Mock
+    private BookRepository bookRepository;
+
+    @Mock
+    private MetadataRefreshService metadataRefreshService;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private MetadataTaskService service;
@@ -73,6 +93,7 @@ class MetadataTaskHistoryServiceTest {
         when(jobEntity.getStartedAt()).thenReturn(FIXED_INSTANT.minusSeconds(60));
         when(jobEntity.getCompletedAt()).thenReturn(null);
         when(jobEntity.getUserId()).thenReturn(99L);
+        when(jobEntity.getRequestedBookIds()).thenReturn(List.of(100L));
 
         when(p1.getStatus()).thenReturn(FetchedMetadataProposalStatus.FETCHED);
         when(p2.getStatus()).thenReturn(FetchedMetadataProposalStatus.ACCEPTED);
@@ -81,6 +102,7 @@ class MetadataTaskHistoryServiceTest {
         when(jobRepository.findById("task1")).thenReturn(Optional.of(jobEntity));
 
         FetchedProposal dto1 = mock(FetchedProposal.class);
+        when(dto1.getBookId()).thenReturn(100L);
         when(fetchedProposalMapper.toDto(p1)).thenReturn(dto1);
 
         Optional<MetadataTaskDetailsResponse> optResponse = service.getTaskWithProposals("task1");

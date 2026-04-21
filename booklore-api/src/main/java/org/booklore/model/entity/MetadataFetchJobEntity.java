@@ -55,6 +55,7 @@ public class MetadataFetchJobEntity {
     private List<Long> completedBookIds = new ArrayList<>();
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("proposalId ASC")
     @Builder.Default
     private List<MetadataFetchProposalEntity> proposals = new ArrayList<>();
 }

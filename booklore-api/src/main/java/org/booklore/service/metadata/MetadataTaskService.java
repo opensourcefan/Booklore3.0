@@ -35,6 +35,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -155,9 +156,18 @@ public class MetadataTaskService {
     }
 
     private MetadataTaskDetailsResponse buildTaskDetailsResponse(MetadataFetchJobEntity task) {
+        Map<Long, Integer> requestedOrder = new LinkedHashMap<>();
+        List<Long> requestedBookIds = resolveRequestedBookIds(task);
+        for (int i = 0; i < requestedBookIds.size(); i++) {
+            requestedOrder.putIfAbsent(requestedBookIds.get(i), i);
+        }
+
         List<FetchedProposal> proposals = task.getProposals().stream()
                 .filter(p -> p.getStatus() == FetchedMetadataProposalStatus.FETCHED)
                 .map(fetchedProposalMapper::toDto)
+                .sorted(Comparator
+                        .comparingInt((FetchedProposal proposal) -> requestedOrder.getOrDefault(proposal.getBookId(), Integer.MAX_VALUE))
+                        .thenComparing(FetchedProposal::getProposalId, Comparator.nullsLast(Long::compareTo)))
                 .toList();
 
         MetadataFetchTask taskDto = MetadataFetchTask.builder()
@@ -410,7 +420,7 @@ public class MetadataTaskService {
                 .map(TaskHistoryEntity::getTaskOptions)
                 .map(options -> objectMapper.convertValue(options, MetadataRefreshRequest.class))
                 .map(metadataRefreshService::getBookEntities)
-                .map(ids -> ids.stream().sorted().toList())
+                .map(ids -> ids.stream().toList())
                 .orElse(List.of());
     }
 

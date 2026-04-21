@@ -402,6 +402,20 @@ class MetadataRefreshServiceTest {
     }
 
     @Test
+    void getBookEntities_preservesInputOrderForAllTargetMode() {
+        Set<Long> selected = new LinkedHashSet<>(List.of(46L, 47L, 48L));
+        MetadataRefreshRequest request = MetadataRefreshRequest.builder()
+                .refreshType(MetadataRefreshRequest.RefreshType.BOOKS)
+                .bookIds(selected)
+                .targetMode(MetadataRefreshRequest.TargetMode.ALL)
+                .build();
+
+        Set<Long> result = service.getBookEntities(request);
+
+        assertThat(result).containsExactly(46L, 47L, 48L);
+    }
+
+    @Test
     void getBookEntities_returnsBookIdsForLibraryRefresh() {
         LibraryEntity library = new LibraryEntity();
         library.setId(5L);
