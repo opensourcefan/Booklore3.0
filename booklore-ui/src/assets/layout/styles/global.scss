@@ -88,6 +88,16 @@
   }
 }
 
+.metadata-refresh-dialog.p-dialog {
+  width: calc(95vw - 26px);
+  max-width: calc(95vw - 26px);
+
+  @media (max-width: 991px) {
+    width: 100vw;
+    max-width: 100vw;
+  }
+}
+
 // =============================================================================
 // Dialog Style Modifiers
 // Composable with size classes (e.g., 'dialog-lg dialog-minimal')

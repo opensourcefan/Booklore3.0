@@ -1,5 +1,8 @@
 @use '../../../../../shared/styles/panel-shared' as panel;
 
+$content-frame-padding-block: 12.6px;
+$content-frame-padding-inline: 14px;
+
 .metadata-fetch-options-container {
   display: flex;
   flex-direction: column;
@@ -15,7 +18,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.9rem 1rem;
+  padding: $content-frame-padding-block $content-frame-padding-inline;
   border-radius: 14px;
   border: 1px solid var(--surface-border);
   background: color-mix(in srgb, var(--surface-card) 92%, var(--primary-color) 8%);
@@ -25,7 +28,7 @@
   border-radius: 14px;
   border: 1px solid var(--surface-border);
   background: color-mix(in srgb, var(--surface-card) 95%, var(--surface-0) 5%);
-  padding: 0.9rem 1rem;
+  padding: $content-frame-padding-block $content-frame-padding-inline;
 }
 
 .targeting-panel {
@@ -45,7 +48,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--card-border);
   background: color-mix(in srgb, var(--surface-card) 98%, var(--surface-0) 2%);
-  padding: 0.9rem 1rem;
+  padding: $content-frame-padding-block $content-frame-padding-inline;
 }
 
 .targeting-content-frame,

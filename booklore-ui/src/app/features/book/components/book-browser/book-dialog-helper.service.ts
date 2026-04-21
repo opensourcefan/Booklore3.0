@@ -116,7 +116,7 @@ export class BookDialogHelperService {
   openMetadataRefreshDialog(bookIds: Set<number>): DynamicDialogRef | null {
     return this.openDialog(MultiBookMetadataFetchComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.FULL} ${DialogStyle.MINIMAL}`,
+      styleClass: `metadata-refresh-dialog ${DialogSize.FULL} ${DialogStyle.MINIMAL}`,
       data: {
         bookIds: Array.from(bookIds),
         metadataRefreshType: MetadataRefreshType.BOOKS,
