@@ -56,7 +56,7 @@
         </p-tab>
       }
     </p-tablist>
-    <p-tabpanels class="tabpanels-responsive">
+    <p-tabpanels class="tabpanels-responsive" [class.dialog-tabpanels]="!!config" [class.route-tabpanels]="!config">
       <p-tabpanel value="view">
         <app-metadata-viewer
           [book$]="book$"

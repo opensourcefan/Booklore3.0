@@ -85,9 +85,11 @@ describe('MultiBookMetadataFetchComponent', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
+    const bookListSection = root.querySelector('.book-list-section.metadata-section-panel') as HTMLElement;
     const framedBookList = root.querySelector('.book-list-container.book-list-frame') as HTMLElement;
     const bookItems = Array.from(root.querySelectorAll('.book-list li'));
 
+    expect(bookListSection).not.toBeNull();
     expect(framedBookList).not.toBeNull();
     expect(bookItems).toHaveLength(2);
     expect(bookItems[0].textContent).toContain('#10');

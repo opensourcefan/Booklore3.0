@@ -3,6 +3,15 @@
 $content-frame-padding-block: 12.6px;
 $content-frame-padding-inline: 14px;
 
+@mixin metadata-section-panel-shell {
+  border-radius: 14px;
+  border: 1px solid var(--surface-border);
+  background: color-mix(in srgb, var(--surface-card) 95%, var(--surface-0) 5%);
+  padding: $content-frame-padding-block $content-frame-padding-inline;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 :host {
   display: flex;
   flex-direction: column;
@@ -37,6 +46,10 @@ $content-frame-padding-inline: 14px;
 }
 
 .book-list-section {
+  @include metadata-section-panel-shell;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   flex-shrink: 0;
   margin-bottom: 1rem;
 }

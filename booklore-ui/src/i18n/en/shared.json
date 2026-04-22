@@ -91,6 +91,7 @@
     "recentLabel": "Recent:",
     "importedBadge": "Imported",
     "alreadyImported": "Already Imported",
+    "subdirectoriesImported": "Subdirectories Imported",
     "importedVisible": "{{ count }} already imported here",
     "importedVisiblePlural": "{{ count }} already imported here"
   },

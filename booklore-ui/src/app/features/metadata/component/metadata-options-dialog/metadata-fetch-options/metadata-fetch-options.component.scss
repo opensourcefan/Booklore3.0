@@ -3,6 +3,15 @@
 $content-frame-padding-block: 12.6px;
 $content-frame-padding-inline: 14px;
 
+@mixin metadata-section-panel-shell {
+  border-radius: 14px;
+  border: 1px solid var(--surface-border);
+  background: color-mix(in srgb, var(--surface-card) 95%, var(--surface-0) 5%);
+  padding: $content-frame-padding-block $content-frame-padding-inline;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .metadata-fetch-options-container {
   display: flex;
   flex-direction: column;
@@ -24,11 +33,8 @@ $content-frame-padding-inline: 14px;
   background: color-mix(in srgb, var(--surface-card) 92%, var(--primary-color) 8%);
 }
 
-.advanced-options-panel {
-  border-radius: 14px;
-  border: 1px solid var(--surface-border);
-  background: color-mix(in srgb, var(--surface-card) 95%, var(--surface-0) 5%);
-  padding: $content-frame-padding-block $content-frame-padding-inline;
+.metadata-section-panel {
+  @include metadata-section-panel-shell;
 }
 
 .targeting-panel {

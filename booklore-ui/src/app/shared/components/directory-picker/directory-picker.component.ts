@@ -223,11 +223,38 @@ export class DirectoryPickerComponent implements OnInit {
   }
 
   isImported(path: string): boolean {
-    return !!this.importedFoldersMap[this.normalizePath(path)];
+    return this.getImportState(path) === 'direct';
+  }
+
+  hasImportedDescendants(path: string): boolean {
+    return this.getImportState(path) === 'descendant';
+  }
+
+  shouldShowImportBadge(path: string): boolean {
+    return this.getImportState(path) !== 'none';
+  }
+
+  getImportBadgeKey(path: string): string {
+    return this.hasImportedDescendants(path) ? 'subdirectoriesImported' : 'alreadyImported';
   }
 
   getImportedFolderCountInView(): number {
     return this.filteredPaths.filter(path => this.isImported(path)).length;
+  }
+
+  private getImportState(path: string): 'direct' | 'descendant' | 'none' {
+    const normalizedPath = this.normalizePath(path);
+
+    if (this.importedFoldersMap[normalizedPath]) {
+      return 'direct';
+    }
+
+    const descendantPrefix = normalizedPath === '/' ? '/' : `${normalizedPath}/`;
+    const hasImportedDescendant = this.importedFolders.some(importedFolder =>
+      importedFolder !== normalizedPath && importedFolder.startsWith(descendantPrefix)
+    );
+
+    return hasImportedDescendant ? 'descendant' : 'none';
   }
 
   private normalizePath(path: string): string {

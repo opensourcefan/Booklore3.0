@@ -9,16 +9,34 @@ $provider-colors: (
   'ranobedb': #06b6d4
 );
 
+:host {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
 .metadata-container {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   width: 100%;
-  flex: auto;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .searcher-container {
+  width: 100%;
   max-width: 1600px;
   margin: 0 auto;
   animation: fadeIn 0.3s ease-in;
+}
+
+::ng-deep app-metadata-picker {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .search-header {

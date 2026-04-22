@@ -289,6 +289,11 @@
   }
 }
 
+.imported-chip--descendant {
+  background: color-mix(in srgb, #f59e0b 14%, var(--overlay-background));
+  color: #f59e0b;
+}
+
 .imported-chip--path {
   margin-left: auto;
 }
@@ -566,6 +571,11 @@
   &.imported:not(.selected) {
     border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
     background: color-mix(in srgb, var(--primary-color) 6%, var(--ground-background));
+  }
+
+  &.imported-descendant:not(.selected) {
+    border-color: color-mix(in srgb, #f59e0b 38%, var(--border-color));
+    background: color-mix(in srgb, #f59e0b 7%, var(--ground-background));
   }
 
   .directory-checkbox {

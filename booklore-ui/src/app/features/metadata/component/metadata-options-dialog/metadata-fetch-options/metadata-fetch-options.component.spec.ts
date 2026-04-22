@@ -81,6 +81,7 @@ describe('MetadataFetchOptionsComponent dialog layout', () => {
     const targetingFrame = targetingPanel.querySelector('.targeting-content-frame') as HTMLElement;
 
     expect(targetingFrame).not.toBeNull();
+    expect(targetingPanel.classList.contains('metadata-section-panel')).toBe(true);
     expect(targetingPanel.children[0]).toBe(targetingCopy);
     expect(targetingPanel.children[1]).toBe(targetingFrame);
     expect(targetingFrame.querySelector('.targeting-controls')).not.toBeNull();
@@ -97,6 +98,7 @@ describe('MetadataFetchOptionsComponent dialog layout', () => {
     const comicvineFrame = comicvinePanel.querySelector('.comicvine-content-frame') as HTMLElement;
 
     expect(comicvineFrame).not.toBeNull();
+    expect(comicvinePanel.classList.contains('metadata-section-panel')).toBe(true);
     expect(comicvinePanel.children[0]).toBe(comicvineCopy);
     expect(comicvinePanel.children[1]).toBe(comicvineFrame);
     expect(comicvineFrame.querySelector('.comicvine-range-controls')).not.toBeNull();

@@ -19,10 +19,10 @@
       <div class="path-value">
         {{ selectedProductName || '/' }}
       </div>
-      @if (isImported(selectedProductName || '/')) {
-        <span class="imported-chip imported-chip--path">
+      @if (shouldShowImportBadge(selectedProductName || '/')) {
+        <span class="imported-chip imported-chip--path" [class.imported-chip--descendant]="hasImportedDescendants(selectedProductName || '/')">
           <i class="pi pi-check-circle"></i>
-          {{ t('alreadyImported') }}
+          {{ t(getImportBadgeKey(selectedProductName || '/')) }}
         </span>
       }
     </div>
@@ -163,6 +163,7 @@
               class="directory-item"
               [class.selected]="isFolderSelected(folder)"
               [class.imported]="isImported(folder)"
+              [class.imported-descendant]="hasImportedDescendants(folder)"
             >
               <div class="directory-checkbox">
                 <p-checkbox
@@ -180,10 +181,10 @@
                 <div class="directory-info">
                   <span class="directory-name-row">
                     <span class="directory-name">{{ getFolderName(folder) }}</span>
-                    @if (isImported(folder)) {
-                      <span class="imported-chip">
+                    @if (shouldShowImportBadge(folder)) {
+                      <span class="imported-chip" [class.imported-chip--descendant]="hasImportedDescendants(folder)">
                         <i class="pi pi-check-circle"></i>
-                        {{ t('alreadyImported') }}
+                        {{ t(getImportBadgeKey(folder)) }}
                       </span>
                     }
                   </span>
