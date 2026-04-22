@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
-import {beforeEach, afterEach, describe, expect, it} from 'vitest';
-import {of} from 'rxjs';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {Observable, of} from 'rxjs';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {TranslocoTestingModule} from '@jsverse/transloco';
 
@@ -48,7 +48,7 @@ describe('DirectoryPickerComponent import badges', () => {
   };
 
   let utilityServiceMock: {
-    getFolders: (path: string) => ReturnType<typeof of>;
+    getFolders: (path: string) => Observable<string[]>;
   };
 
   beforeEach(async () => {
