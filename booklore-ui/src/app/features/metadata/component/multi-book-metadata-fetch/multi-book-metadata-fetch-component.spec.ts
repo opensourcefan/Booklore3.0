@@ -97,4 +97,24 @@ describe('MultiBookMetadataFetchComponent', () => {
     expect(bookItems[1].textContent).toContain('#20');
     expect(bookItems[1].textContent).toContain('Beta');
   }, 15000);
+
+  it('anchors the controls rail directly below the header and keeps scroll content underneath it', () => {
+    const fixture = TestBed.createComponent(MultiBookMetadataFetchComponent);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const header = root.querySelector('.panel-header') as HTMLElement;
+    const railShell = root.querySelector('.dialog-top-control-rail-shell') as HTMLElement;
+    const dialogContent = root.querySelector('.dialog-content') as HTMLElement;
+    const scrollContent = root.querySelector('.dialog-scroll-content') as HTMLElement;
+    const rail = railShell.querySelector('.top-control-rail') as HTMLElement;
+    const childRail = scrollContent.querySelector('app-metadata-fetch-options .top-control-rail') as HTMLElement | null;
+
+    expect(railShell).not.toBeNull();
+    expect(rail).not.toBeNull();
+    expect(header.nextElementSibling).toBe(railShell);
+    expect(railShell.nextElementSibling).toBe(dialogContent);
+    expect(scrollContent.firstElementChild?.classList.contains('book-list-section')).toBe(true);
+    expect(childRail).toBeNull();
+  }, 15000);
 });

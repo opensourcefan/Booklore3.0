@@ -155,7 +155,11 @@ export class MetadataPickerComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         if (this.showSavedState && !this.isSaving && !this.isApplyingFormPatch) {
-          this.showSavedState = false;
+          setTimeout(() => {
+            if (this.showSavedState && !this.isSaving && !this.isApplyingFormPatch) {
+              this.showSavedState = false;
+            }
+          });
         }
       });
 

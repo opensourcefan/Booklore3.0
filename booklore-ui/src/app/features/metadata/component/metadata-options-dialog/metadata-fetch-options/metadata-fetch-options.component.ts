@@ -1,4 +1,4 @@
-import {Component, inject, ViewChild} from '@angular/core';
+import {Component, inject, Input, ViewChild} from '@angular/core';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MetadataRefreshRequest, MetadataRefreshTargetMode} from '../../../model/request/metadata-refresh-request.model';
 import {MetadataRefreshType} from '../../../model/request/metadata-refresh-type.enum';
@@ -34,6 +34,8 @@ import {Tooltip} from 'primeng/tooltip';
   styleUrl: './metadata-fetch-options.component.scss'
 })
 export class MetadataFetchOptionsComponent {
+  @Input() showTopControlRail = true;
+
   libraryId!: number;
   bookIds!: number[];
   metadataRefreshType!: MetadataRefreshType;

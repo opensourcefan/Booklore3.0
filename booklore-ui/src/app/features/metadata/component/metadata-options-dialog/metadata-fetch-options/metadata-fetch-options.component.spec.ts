@@ -107,6 +107,17 @@ describe('MetadataFetchOptionsComponent dialog layout', () => {
     expect(embeddedRail).toBeNull();
   }, 15000);
 
+  it('can hide the internal top rail when a parent dialog renders the anchored copy', () => {
+    const fixture = TestBed.createComponent(MetadataFetchOptionsComponent);
+    fixture.componentInstance.showTopControlRail = false;
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const topRail = root.querySelector('.metadata-fetch-options-container > .top-control-rail');
+
+    expect(topRail).toBeNull();
+  }, 15000);
+
   it('renders the ComicVine sequence controls inside a dedicated frame below ComicVine copy', () => {
     const fixture = TestBed.createComponent(MetadataFetchOptionsComponent);
     fixture.detectChanges();

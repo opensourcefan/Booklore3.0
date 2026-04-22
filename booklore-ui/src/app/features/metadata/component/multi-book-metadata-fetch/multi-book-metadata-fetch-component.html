@@ -17,19 +17,75 @@
     </p-button>
   </div>
 
-  <div class="dialog-content">
-    <div class="book-list-section metadata-section-panel">
-      <div class="book-list-container book-list-frame">
-        <ul class="book-list">
-          @for (book of booksToShow; track book.id) {
-            <li>
-              <span class="book-id">#{{ book.id }}</span>: {{ book.metadata?.title || 'Untitled' }}
-            </li>
-          }
-        </ul>
+  <ng-container *transloco="let t; prefix: 'metadata.advancedFetchOptions'">
+    <div class="dialog-top-control-rail-shell">
+      <div class="footer-row top-control-rail top-control-rail--solid">
+        <div class="options-group">
+          <div class="option-item">
+            <p [pTooltip]="t('replaceModeTooltip')" tooltipPosition="top">{{ t('replaceModeLabel') }}</p>
+            <p-select
+              [options]="replaceModeOptions"
+              [(ngModel)]="replaceMode"
+              optionLabel="label"
+              optionValue="value"
+              appendTo="body"
+              size="small"
+              class="select-mode"
+              [disabled]="!advancedOptionsReady">
+            </p-select>
+          </div>
+          <div class="option-item">
+            <p [pTooltip]="t('updateCoversTooltip')" tooltipPosition="top">{{ t('updateCoversLabel') }}</p>
+            <p-checkbox [(ngModel)]="refreshCovers" [binary]="true" [disabled]="!advancedOptionsReady"></p-checkbox>
+          </div>
+          <div class="option-item">
+            <p [pTooltip]="t('mergeGenresTooltip')" tooltipPosition="top">{{ t('mergeGenresLabel') }}</p>
+            <p-checkbox [(ngModel)]="mergeCategories" [binary]="true" [disabled]="!advancedOptionsReady"></p-checkbox>
+          </div>
+          <div class="option-item">
+            <p [pTooltip]="t('manualReviewTooltip')" tooltipPosition="top">{{ t('manualReviewLabel') }}</p>
+            <p-checkbox [(ngModel)]="reviewBeforeApply" [binary]="true" [disabled]="!advancedOptionsReady"></p-checkbox>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <ng-container *transloco="let tf; prefix: 'metadata.fetchOptions'">
+            <p-button
+              severity="warn"
+              outlined
+              [label]="t('resetForm')"
+              [disabled]="!advancedOptionsReady"
+              (onClick)="resetAdvancedOptions()">
+            </p-button>
+            <p-button
+              [label]="tf('startRefresh')"
+              severity="success"
+              icon="pi pi-save"
+              outlined
+              [disabled]="!advancedOptionsReady"
+              (onClick)="submitAdvancedOptions()">
+            </p-button>
+          </ng-container>
+        </div>
       </div>
     </div>
+  </ng-container>
 
-    <app-metadata-fetch-options></app-metadata-fetch-options>
+  <div class="dialog-content">
+    <div class="dialog-scroll-content">
+      <div class="book-list-section metadata-section-panel">
+        <div class="book-list-container book-list-frame">
+          <ul class="book-list">
+            @for (book of booksToShow; track book.id) {
+              <li>
+                <span class="book-id">#{{ book.id }}</span>: {{ book.metadata?.title || 'Untitled' }}
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+
+      <app-metadata-fetch-options [showTopControlRail]="false"></app-metadata-fetch-options>
+    </div>
   </div>
 </div>

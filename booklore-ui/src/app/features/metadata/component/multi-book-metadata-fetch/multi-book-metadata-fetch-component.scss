@@ -62,18 +62,82 @@ $content-frame-padding-inline: 14px;
   }
 }
 
+.dialog-top-control-rail-shell {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  padding: 0 1rem 0.75rem;
+  background: var(--card-background);
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+}
+
 .dialog-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   min-height: 0;
-  padding: 1rem;
+  padding: 0;
   background: var(--card-background);
   border: 1px solid var(--border-color);
   border-top: none;
   border-radius: 0 0 10px 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.dialog-scroll-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+  padding: 0 1rem 1rem;
+}
+
+.footer-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  background: var(--card-background);
+  background-color: var(--card-background);
+  padding: $content-frame-padding-block $content-frame-padding-inline;
+  box-sizing: border-box;
+}
+
+.top-control-rail {
+  box-shadow: 0 8px 16px -14px rgba(15, 23, 42, 0.6);
+}
+
+.options-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 2rem;
+}
+
+.option-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+
+  p {
+    margin: 0;
+    white-space: nowrap;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
 }
 
 .book-list-section {
@@ -120,4 +184,16 @@ $content-frame-padding-inline: 14px;
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .footer-row {
+    flex-wrap: wrap;
+  }
+
+  .options-group,
+  .action-buttons {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
