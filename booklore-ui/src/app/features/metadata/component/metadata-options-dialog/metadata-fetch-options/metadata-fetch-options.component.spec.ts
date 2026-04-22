@@ -95,10 +95,15 @@ describe('MetadataFetchOptionsComponent dialog layout', () => {
     const root = fixture.nativeElement as HTMLElement;
     const container = root.querySelector('.metadata-fetch-options-container') as HTMLElement;
     const topRail = container.querySelector('.top-control-rail') as HTMLElement;
+    const advancedShell = root.querySelector('.advanced-options-content-shell') as HTMLElement;
+    const externalScroll = root.querySelector('.options-scroll-content--external-controls') as HTMLElement;
     const embeddedRail = root.querySelector('app-metadata-advanced-fetch-options .footer-row') as HTMLElement | null;
 
     expect(topRail).not.toBeNull();
+    expect(topRail.classList.contains('top-control-rail--solid')).toBe(true);
     expect(container.firstElementChild).toBe(topRail);
+    expect(advancedShell).not.toBeNull();
+    expect(externalScroll).not.toBeNull();
     expect(embeddedRail).toBeNull();
   }, 15000);
 

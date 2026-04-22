@@ -91,10 +91,14 @@ describe('MetadataAdvancedFetchOptionsComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     const optionsContainer = root.querySelector('.options-container') as HTMLElement;
     const controlRail = optionsContainer.querySelector('.footer-row') as HTMLElement | null;
+    const optionsScroll = optionsContainer.querySelector('.options-scroll-content') as HTMLElement;
+    const providerSpecificSection = optionsContainer.querySelector('.provider-specific-section') as HTMLElement;
     const table = optionsContainer.querySelector('.custom-table') as HTMLElement;
 
     expect(controlRail).toBeNull();
     expect(optionsContainer.classList.contains('options-container--external-controls')).toBe(true);
+    expect(optionsScroll.classList.contains('options-scroll-content--external-controls')).toBe(true);
     expect(table).not.toBeNull();
+    expect(providerSpecificSection).not.toBeNull();
   });
 });

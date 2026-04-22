@@ -44,7 +44,7 @@ $content-frame-padding-inline: 14px;
   width: 100%;
   border: 1px solid var(--surface-border);
   border-radius: 14px;
-  background: color-mix(in srgb, var(--surface-card) 95%, var(--surface-0) 5%);
+  background: var(--surface-card);
   padding: $content-frame-padding-block $content-frame-padding-inline;
   box-sizing: border-box;
 }
@@ -53,6 +53,12 @@ $content-frame-padding-inline: 14px;
   position: sticky;
   top: 0;
   z-index: 4;
+}
+
+.top-control-rail--solid {
+  background: var(--surface-card);
+  box-shadow: 0 8px 16px -14px rgba(15, 23, 42, 0.6);
+  isolation: isolate;
 }
 
 .options-group {
@@ -185,14 +191,12 @@ $content-frame-padding-inline: 14px;
   flex: 1 1 auto;
   min-height: 0;
 
-  .dialog-content {
+  .advanced-options-content-shell {
     display: flex;
     flex: 1 1 auto;
     min-height: 0;
-    border: 1px solid var(--border-color);
-    border-radius: var(--card-border);
-    background: color-mix(in srgb, var(--surface-card) 98%, var(--surface-0) 2%);
-    padding: $content-frame-padding-block $content-frame-padding-inline;
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -200,6 +204,8 @@ $content-frame-padding-inline: 14px;
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .advanced-options-panel--comicvine {

@@ -1,7 +1,7 @@
 <ng-container *transloco="let t; prefix: 'metadata.fetchOptions'">
 <div class="metadata-fetch-options-container">
   <ng-container *transloco="let ta; prefix: 'metadata.advancedFetchOptions'">
-    <div class="footer-row top-control-rail">
+    <div class="footer-row top-control-rail top-control-rail--solid">
       <div class="options-group">
         <div class="option-item">
           <p [pTooltip]="ta('replaceModeTooltip')" tooltipPosition="top">{{ ta('replaceModeLabel') }}</p>
@@ -152,7 +152,7 @@
       </div>
     </div>
 
-    <div class="dialog-content">
+    <div class="dialog-content advanced-options-content-shell">
       <app-metadata-advanced-fetch-options
         (metadataOptionsSubmitted)="onMetadataSubmit($event)"
         [currentMetadataOptions]="currentMetadataOptions"
