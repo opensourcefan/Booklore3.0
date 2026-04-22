@@ -44,7 +44,8 @@ $content-frame-padding-inline: 14px;
   width: 100%;
   border: 1px solid var(--surface-border);
   border-radius: 14px;
-  background: var(--surface-card);
+  background: var(--card-background);
+  background-color: var(--card-background);
   padding: $content-frame-padding-block $content-frame-padding-inline;
   box-sizing: border-box;
 }
@@ -52,11 +53,24 @@ $content-frame-padding-inline: 14px;
 .top-control-rail {
   position: sticky;
   top: 0;
-  z-index: 4;
+  z-index: 12;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--card-background);
+    background-color: var(--card-background);
+    z-index: -1;
+    pointer-events: none;
+  }
 }
 
 .top-control-rail--solid {
-  background: var(--surface-card);
+  background: var(--card-background) !important;
+  background-color: var(--card-background) !important;
   box-shadow: 0 8px 16px -14px rgba(15, 23, 42, 0.6);
   isolation: isolate;
 }
