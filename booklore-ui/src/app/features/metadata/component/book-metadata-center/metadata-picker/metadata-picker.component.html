@@ -1,45 +1,111 @@
 @if (book$ | async; as book) {
   <form [formGroup]="metadataForm" (ngSubmit)="onSave()" class="metadata-picker" *transloco="let t; prefix: 'metadata.picker'">
-    <div class="dialog-body">
-      @if (detailLoading) {
-        <div class="detail-loading-banner">
-          <i class="pi pi-spin pi-spinner"></i>
-          <span>{{ t('loadingMetadata') }}</span>
-        </div>
-      }
+    <div class="picker-control-rail" [class.picker-control-rail--review]="reviewMode">
+      <div class="rail-left">
+        @if (!reviewMode) {
+          <p-button
+            [label]="t('backToListBtn')"
+            icon="pi pi-arrow-left"
+            severity="info"
+            [outlined]="true"
+            size="small"
+            (onClick)="goBackClick()"
+          />
+        }
 
-      <!-- Column Headers -->
-      <div class="column-headers">
+        @if (showNavigationControls) {
+          <div class="navigation-controls">
+            <p-button
+              icon="pi pi-chevron-left"
+              [disabled]="!canNavigatePrevious"
+              (onClick)="navigatePreviousRequested.emit()"
+              rounded
+              outlined
+              size="small"
+              severity="secondary"
+              [pTooltip]="previousNavigationTooltip"
+              tooltipPosition="bottom">
+            </p-button>
+            @if (navigationPosition) {
+              <span class="navigation-position">{{ navigationPosition }}</span>
+            }
+            <p-button
+              icon="pi pi-chevron-right"
+              [disabled]="!canNavigateNext"
+              (onClick)="navigateNextRequested.emit()"
+              rounded
+              outlined
+              size="small"
+              severity="secondary"
+              [pTooltip]="nextNavigationTooltip"
+              tooltipPosition="bottom">
+            </p-button>
+          </div>
+        }
+      </div>
+
+      <div class="rail-center">
         <div class="column-label current">
           <i class="pi pi-file-edit"></i>
           <span>{{ t('columnCurrent') }}</span>
         </div>
-        @if (!reviewMode) {
-          <div class="column-actions">
-            <p-button
-              icon="pi pi-angle-left"
-              [rounded]="true"
-              [outlined]="true"
-              severity="secondary"
-              [pTooltip]="t('copyMissingTooltip')"
-              tooltipPosition="bottom"
-              (onClick)="copyMissing()"
-            />
-            <p-button
-              icon="pi pi-angle-double-left"
-              [rounded]="true"
-              [outlined]="true"
-              severity="primary"
-              [pTooltip]="t('copyAllTooltip')"
-              tooltipPosition="bottom"
-              (onClick)="copyAll()"
-            />
-          </div>
-        }
         <div class="column-label fetched">
           <i class="pi pi-cloud-download"></i>
           <span>{{ t('columnFetched') }}</span>
         </div>
+      </div>
+
+      <div class="rail-right">
+        @if (!reviewMode) {
+          <p-button
+            icon="pi pi-angle-left"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            [pTooltip]="t('copyMissingTooltip')"
+            tooltipPosition="top"
+            (onClick)="copyMissing()"
+          />
+          <p-button
+            icon="pi pi-angle-double-left"
+            severity="primary"
+            [outlined]="true"
+            size="small"
+            [pTooltip]="t('copyAllTooltip')"
+            tooltipPosition="top"
+            (onClick)="copyAll()"
+          />
+          <div class="rail-divider"></div>
+          <p-button
+            icon="pi pi-lock-open"
+            severity="success"
+            [outlined]="true"
+            size="small"
+            [pTooltip]="t('unlockAllTooltip')"
+            tooltipPosition="top"
+            (onClick)="unlockAll()"
+          />
+          <p-button
+            icon="pi pi-lock"
+            severity="warn"
+            [outlined]="true"
+            size="small"
+            [pTooltip]="t('lockAllTooltip')"
+            tooltipPosition="top"
+            (onClick)="lockAll()"
+          />
+          <div class="rail-divider"></div>
+          <p-button
+            [label]="t('saveChangesBtn')"
+            [icon]="isSaving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+            [loading]="isSaving"
+            [disabled]="isSaving"
+            severity="primary"
+            size="small"
+            type="submit"
+          />
+        }
+
         @if (reviewMode && reviewQuickActionLabel) {
           <div class="review-quick-action">
             <p-button
@@ -63,6 +129,15 @@
           </div>
         }
       </div>
+    </div>
+
+    <div class="dialog-body">
+      @if (detailLoading) {
+        <div class="detail-loading-banner">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>{{ t('loadingMetadata') }}</span>
+        </div>
+      }
 
       <!-- Cover Image Section -->
       <section class="form-section">
@@ -778,64 +853,5 @@
       }
     </div>
 
-    @if (!reviewMode) {
-      <footer class="dialog-footer">
-        <div class="footer-left">
-          <p-button
-            [label]="t('backToListBtn')"
-            icon="pi pi-arrow-left"
-            severity="info"
-            [outlined]="true"
-            (onClick)="goBackClick()"
-          />
-        </div>
-        <div class="footer-right">
-          <div class="footer-transfer-actions">
-            <p-button
-              icon="pi pi-angle-left"
-              severity="secondary"
-              [outlined]="true"
-              [pTooltip]="t('copyMissingTooltip')"
-              tooltipPosition="top"
-              (onClick)="copyMissing()"
-            />
-            <p-button
-              icon="pi pi-angle-double-left"
-              severity="primary"
-              [outlined]="true"
-              [pTooltip]="t('copyAllTooltip')"
-              tooltipPosition="top"
-              (onClick)="copyAll()"
-            />
-          </div>
-          <div class="footer-divider"></div>
-          <p-button
-            icon="pi pi-lock-open"
-            severity="success"
-            [outlined]="true"
-            [pTooltip]="t('unlockAllTooltip')"
-            tooltipPosition="top"
-            (onClick)="unlockAll()"
-          />
-          <p-button
-            icon="pi pi-lock"
-            severity="warn"
-            [outlined]="true"
-            [pTooltip]="t('lockAllTooltip')"
-            tooltipPosition="top"
-            (onClick)="lockAll()"
-          />
-          <div class="footer-divider"></div>
-          <p-button
-            [label]="t('saveChangesBtn')"
-            [icon]="isSaving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
-            [loading]="isSaving"
-            [disabled]="isSaving"
-            severity="primary"
-            type="submit"
-          />
-        </div>
-      </footer>
-    }
   </form>
 }

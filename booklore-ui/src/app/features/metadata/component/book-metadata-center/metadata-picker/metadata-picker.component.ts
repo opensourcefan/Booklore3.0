@@ -72,9 +72,17 @@ export class MetadataPickerComponent implements OnInit {
   @Input() reviewSecondaryActionLabel: string | null = null;
   @Input() reviewSecondaryActionBusy = false;
   @Input() reviewSecondaryActionDisabled = false;
+  @Input() showNavigationControls = false;
+  @Input() canNavigatePrevious = false;
+  @Input() canNavigateNext = false;
+  @Input() navigationPosition = '';
+  @Input() previousNavigationTooltip = '';
+  @Input() nextNavigationTooltip = '';
   @Output() goBack = new EventEmitter<boolean>();
   @Output() reviewQuickAction = new EventEmitter<void>();
   @Output() reviewSecondaryAction = new EventEmitter<void>();
+  @Output() navigatePreviousRequested = new EventEmitter<void>();
+  @Output() navigateNextRequested = new EventEmitter<void>();
 
   currentBook: Book | null = null;
 

@@ -1,8 +1,27 @@
 .options-container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 1rem;
+  gap: 1rem;
+  padding: 0.75rem;
+  min-height: 0;
+}
+
+.options-scroll-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 999px;
+  }
 }
 
 .custom-table {
@@ -104,6 +123,16 @@
   justify-content: space-between;
   gap: 1rem;
   width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: var(--card-border);
+  background: var(--overlay-background);
+  padding: 0.625rem 0.75rem;
+}
+
+.top-control-rail {
+  position: sticky;
+  top: 0;
+  z-index: 4;
 }
 
 .options-group {
@@ -129,7 +158,38 @@
 .action-buttons {
   display: flex;
   flex-direction: row;
-  gap: 1.5rem;
+  gap: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .footer-row {
+    flex-wrap: wrap;
+  }
+
+  .options-group,
+  .action-buttons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .options-container {
+    padding: 0.5rem;
+  }
+
+  .option-item {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .action-buttons {
+    justify-content: stretch;
+  }
+
+  .action-buttons ::ng-deep .p-button {
+    width: 100%;
+  }
 }
 
 // Select styles

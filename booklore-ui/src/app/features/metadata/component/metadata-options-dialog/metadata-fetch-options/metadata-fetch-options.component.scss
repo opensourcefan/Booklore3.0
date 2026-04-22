@@ -16,6 +16,8 @@ $content-frame-padding-inline: 14px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  flex: 1;
+  min-height: 0;
 }
 
 .panel-header {
@@ -134,6 +136,20 @@ $content-frame-padding-inline: 14px;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  flex: 1 1 auto;
+  min-height: 0;
+
+  .dialog-content {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}
+
+::ng-deep .advanced-options-panel app-metadata-advanced-fetch-options {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .advanced-options-panel--comicvine {
