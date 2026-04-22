@@ -6,6 +6,10 @@
   min-height: 0;
 }
 
+.options-container--external-controls {
+  padding: 0;
+}
+
 .options-scroll-content {
   display: flex;
   flex-direction: column;
@@ -22,6 +26,11 @@
     background: var(--border-color);
     border-radius: 999px;
   }
+}
+
+.options-container--external-controls .options-scroll-content {
+  overflow: visible;
+  padding-right: 0;
 }
 
 .custom-table {

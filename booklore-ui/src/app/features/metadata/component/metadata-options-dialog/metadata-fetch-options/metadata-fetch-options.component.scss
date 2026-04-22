@@ -35,6 +35,52 @@ $content-frame-padding-inline: 14px;
   background: color-mix(in srgb, var(--surface-card) 92%, var(--primary-color) 8%);
 }
 
+.footer-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-card) 95%, var(--surface-0) 5%);
+  padding: $content-frame-padding-block $content-frame-padding-inline;
+  box-sizing: border-box;
+}
+
+.top-control-rail {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.options-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 2rem;
+}
+
+.option-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+
+  p {
+    margin: 0;
+    white-space: nowrap;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+}
+
 .metadata-section-panel {
   @include metadata-section-panel-shell;
 }
@@ -143,6 +189,10 @@ $content-frame-padding-inline: 14px;
     display: flex;
     flex: 1 1 auto;
     min-height: 0;
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-border);
+    background: color-mix(in srgb, var(--surface-card) 98%, var(--surface-0) 2%);
+    padding: $content-frame-padding-block $content-frame-padding-inline;
   }
 }
 
@@ -185,6 +235,16 @@ $content-frame-padding-inline: 14px;
     flex-direction: column;
   }
 
+  .footer-row {
+    flex-wrap: wrap;
+  }
+
+  .options-group,
+  .action-buttons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .targeting-controls,
   .comicvine-range-controls {
     justify-content: flex-start;
@@ -196,5 +256,19 @@ $content-frame-padding-inline: 14px;
   .comicvine-issue-input,
   .comicvine-range-input {
     min-width: 100%;
+  }
+
+  .action-buttons {
+    justify-content: stretch;
+  }
+
+  .action-buttons ::ng-deep .p-button {
+    width: 100%;
+  }
+}
+
+:host ::ng-deep {
+  .select-mode {
+    min-width: 10rem;
   }
 }

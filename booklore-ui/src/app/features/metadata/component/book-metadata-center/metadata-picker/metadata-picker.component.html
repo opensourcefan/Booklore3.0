@@ -96,8 +96,8 @@
           />
           <div class="rail-divider"></div>
           <p-button
-            [label]="t('saveChangesBtn')"
-            [icon]="isSaving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+            [label]="showSavedState ? 'Saved' : t('saveChangesBtn')"
+            [icon]="isSaving ? 'pi pi-spin pi-spinner' : (showSavedState ? 'pi pi-check-circle' : 'pi pi-check')"
             [loading]="isSaving"
             [disabled]="isSaving"
             severity="primary"

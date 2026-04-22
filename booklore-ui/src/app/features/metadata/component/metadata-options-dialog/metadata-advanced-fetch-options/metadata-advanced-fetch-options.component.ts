@@ -25,6 +25,7 @@ export class MetadataAdvancedFetchOptionsComponent implements OnChanges {
   @Output() metadataOptionsSubmitted = new EventEmitter<MetadataRefreshOptions>();
   @Input() currentMetadataOptions!: MetadataRefreshOptions;
   @Input() submitButtonLabel!: string;
+  @Input() showEmbeddedControls = true;
 
   fields: (keyof FieldOptions)[] = [
     'title', 'subtitle', 'description', 'authors', 'publisher', 'publishedDate',

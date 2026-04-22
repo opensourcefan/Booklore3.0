@@ -1,5 +1,55 @@
 <ng-container *transloco="let t; prefix: 'metadata.fetchOptions'">
 <div class="metadata-fetch-options-container">
+  <ng-container *transloco="let ta; prefix: 'metadata.advancedFetchOptions'">
+    <div class="footer-row top-control-rail">
+      <div class="options-group">
+        <div class="option-item">
+          <p [pTooltip]="ta('replaceModeTooltip')" tooltipPosition="top">{{ ta('replaceModeLabel') }}</p>
+          <p-select
+            [options]="replaceModeOptions"
+            [(ngModel)]="replaceMode"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+            size="small"
+            class="select-mode"
+            [disabled]="!advancedOptionsReady">
+          </p-select>
+        </div>
+        <div class="option-item">
+          <p [pTooltip]="ta('updateCoversTooltip')" tooltipPosition="top">{{ ta('updateCoversLabel') }}</p>
+          <p-checkbox [(ngModel)]="refreshCovers" [binary]="true" [disabled]="!advancedOptionsReady"></p-checkbox>
+        </div>
+        <div class="option-item">
+          <p [pTooltip]="ta('mergeGenresTooltip')" tooltipPosition="top">{{ ta('mergeGenresLabel') }}</p>
+          <p-checkbox [(ngModel)]="mergeCategories" [binary]="true" [disabled]="!advancedOptionsReady"></p-checkbox>
+        </div>
+        <div class="option-item">
+          <p [pTooltip]="ta('manualReviewTooltip')" tooltipPosition="top">{{ ta('manualReviewLabel') }}</p>
+          <p-checkbox [(ngModel)]="reviewBeforeApply" [binary]="true" [disabled]="!advancedOptionsReady"></p-checkbox>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <p-button
+          severity="warn"
+          outlined
+          [label]="ta('resetForm')"
+          [disabled]="!advancedOptionsReady"
+          (onClick)="resetAdvancedOptions()">
+        </p-button>
+        <p-button
+          [label]="t('startRefresh')"
+          severity="success"
+          icon="pi pi-save"
+          outlined
+          [disabled]="!advancedOptionsReady"
+          (onClick)="submitAdvancedOptions()">
+        </p-button>
+      </div>
+    </div>
+  </ng-container>
+
   @if (latestResumableTask) {
     <div class="resume-callout">
       <div class="resume-copy">
@@ -106,7 +156,8 @@
       <app-metadata-advanced-fetch-options
         (metadataOptionsSubmitted)="onMetadataSubmit($event)"
         [currentMetadataOptions]="currentMetadataOptions"
-        [submitButtonLabel]="t('startRefresh')">
+        [submitButtonLabel]="t('startRefresh')"
+        [showEmbeddedControls]="false">
       </app-metadata-advanced-fetch-options>
     </div>
   </div>

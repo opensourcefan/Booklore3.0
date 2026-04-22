@@ -88,6 +88,20 @@ describe('MetadataFetchOptionsComponent dialog layout', () => {
     expect(targetingFrame.querySelector('.targeting-controls .target-select')).not.toBeNull();
   }, 15000);
 
+  it('renders the advanced controls rail at the top and disables embedded child controls', () => {
+    const fixture = TestBed.createComponent(MetadataFetchOptionsComponent);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const container = root.querySelector('.metadata-fetch-options-container') as HTMLElement;
+    const topRail = container.querySelector('.top-control-rail') as HTMLElement;
+    const embeddedRail = root.querySelector('app-metadata-advanced-fetch-options .footer-row') as HTMLElement | null;
+
+    expect(topRail).not.toBeNull();
+    expect(container.firstElementChild).toBe(topRail);
+    expect(embeddedRail).toBeNull();
+  }, 15000);
+
   it('renders the ComicVine sequence controls inside a dedicated frame below ComicVine copy', () => {
     const fixture = TestBed.createComponent(MetadataFetchOptionsComponent);
     fixture.detectChanges();

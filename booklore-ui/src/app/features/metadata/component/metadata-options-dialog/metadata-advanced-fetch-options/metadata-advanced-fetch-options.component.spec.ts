@@ -81,4 +81,20 @@ describe('MetadataAdvancedFetchOptionsComponent', () => {
     expect(optionsContainer.firstElementChild).toBe(controlRail);
     expect(table).not.toBeNull();
   });
+
+  it('hides the embedded footer controls when external controls are enabled', () => {
+    const fixture = TestBed.createComponent(MetadataAdvancedFetchOptionsComponent);
+    fixture.componentInstance.submitButtonLabel = 'Start';
+    fixture.componentInstance.showEmbeddedControls = false;
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const optionsContainer = root.querySelector('.options-container') as HTMLElement;
+    const controlRail = optionsContainer.querySelector('.footer-row') as HTMLElement | null;
+    const table = optionsContainer.querySelector('.custom-table') as HTMLElement;
+
+    expect(controlRail).toBeNull();
+    expect(optionsContainer.classList.contains('options-container--external-controls')).toBe(true);
+    expect(table).not.toBeNull();
+  });
 });

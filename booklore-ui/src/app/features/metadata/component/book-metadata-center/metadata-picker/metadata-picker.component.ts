@@ -96,6 +96,7 @@ export class MetadataPickerComponent implements OnInit {
   savedFields: Record<string, boolean> = {};
   originalMetadata!: BookMetadata;
   isSaving = false;
+  showSavedState = false;
   hoveredFields: Record<string, boolean> = {};
 
   private messageService = inject(MessageService);
@@ -110,6 +111,7 @@ export class MetadataPickerComponent implements OnInit {
   private dialogRef = inject(DynamicDialogRef, {optional: true});
 
   private enabledProviderFields: MetadataProviderSpecificFields | null = null;
+  private isApplyingFormPatch = false;
 
   constructor() {
     this.metadataForm = this.formBuilder.buildForm(true);
@@ -149,6 +151,14 @@ export class MetadataPickerComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.metadataForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.showSavedState && !this.isSaving && !this.isApplyingFormPatch) {
+          this.showSavedState = false;
+        }
+      });
+
     this.appSettingsService.appSettings$
       .pipe(
         filter(settings => !!settings?.metadataProviderSpecificFields),
@@ -198,6 +208,8 @@ export class MetadataPickerComponent implements OnInit {
         this.savedFields = {};
         this.hoveredFields = {};
       }
+
+      this.showSavedState = false;
 
       this.currentBook = book;
       const metadata = book.metadata!;
@@ -261,7 +273,10 @@ export class MetadataPickerComponent implements OnInit {
       patchData[field.lockedKey] = comicMeta?.[modelLockKey as keyof ComicMetadata] ?? false;
     }
 
-    this.metadataForm.patchValue(patchData);
+    this.isApplyingFormPatch = true;
+    this.metadataForm.patchValue(patchData, {emitEvent: false});
+    this.isApplyingFormPatch = false;
+    this.metadataForm.markAsPristine();
     this.applyLockStates(metadata);
     this.comicSectionExpanded = this.hasAnyFetchedComicData() || this.hasAnyCurrentComicData();
   }
@@ -376,9 +391,11 @@ export class MetadataPickerComponent implements OnInit {
               this.savedFields[field] = true;
             }
           }
+          this.showSavedState = true;
           this.messageService.add({severity: 'info', summary: this.t.translate('metadata.picker.toast.successSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdated')});
         },
         error: () => {
+          this.showSavedState = false;
           this.messageService.add({severity: 'error', summary: this.t.translate('metadata.picker.toast.errorSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdateFailed')});
         }
       }),

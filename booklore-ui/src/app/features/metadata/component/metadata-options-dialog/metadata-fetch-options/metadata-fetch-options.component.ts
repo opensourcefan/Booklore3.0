@@ -1,8 +1,8 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, ViewChild} from '@angular/core';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MetadataRefreshRequest, MetadataRefreshTargetMode} from '../../../model/request/metadata-refresh-request.model';
 import {MetadataRefreshType} from '../../../model/request/metadata-refresh-type.enum';
-import {MetadataRefreshOptions} from '../../../model/request/metadata-refresh-options.model';
+import {MetadataRefreshOptions, MetadataReplaceMode} from '../../../model/request/metadata-refresh-options.model';
 import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
 import {filter, take} from 'rxjs/operators';
 import {MetadataAdvancedFetchOptionsComponent} from '../metadata-advanced-fetch-options/metadata-advanced-fetch-options.component';
@@ -14,6 +14,8 @@ import {MessageService} from 'primeng/api';
 import {MetadataResumableTask, MetadataTaskService} from '../../../../book/service/metadata-task';
 import {FormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
+import {Checkbox} from 'primeng/checkbox';
+import {Tooltip} from 'primeng/tooltip';
 
 @Component({
   selector: 'app-metadata-fetch-options',
@@ -25,7 +27,9 @@ import {InputText} from 'primeng/inputtext';
     Select,
     Button,
     FormsModule,
-    InputText
+    InputText,
+    Checkbox,
+    Tooltip
   ],
   styleUrl: './metadata-fetch-options.component.scss'
 })
@@ -40,6 +44,9 @@ export class MetadataFetchOptionsComponent {
   sourceUrl = '';
   issueNumber = '';
   issueRange = '';
+
+  @ViewChild(MetadataAdvancedFetchOptionsComponent)
+  advancedFetchOptionsComponent?: MetadataAdvancedFetchOptionsComponent;
 
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   dynamicDialogRef = inject(DynamicDialogRef);
@@ -93,6 +100,62 @@ export class MetadataFetchOptionsComponent {
   get isComicvineSequencedMode(): boolean {
     return this.sourceUrl.trim().length > 0 &&
       (this.issueNumber.trim().length > 0 || this.issueRange.trim().length > 0);
+  }
+
+  get advancedOptionsReady(): boolean {
+    return !!this.advancedFetchOptionsComponent;
+  }
+
+  get replaceModeOptions(): {label: string; value: MetadataReplaceMode}[] {
+    return this.advancedFetchOptionsComponent?.replaceModeOptions ?? [];
+  }
+
+  get replaceMode(): MetadataReplaceMode {
+    return this.advancedFetchOptionsComponent?.replaceMode ?? 'REPLACE_MISSING';
+  }
+
+  set replaceMode(value: MetadataReplaceMode) {
+    if (this.advancedFetchOptionsComponent) {
+      this.advancedFetchOptionsComponent.replaceMode = value;
+    }
+  }
+
+  get refreshCovers(): boolean {
+    return this.advancedFetchOptionsComponent?.refreshCovers ?? false;
+  }
+
+  set refreshCovers(value: boolean) {
+    if (this.advancedFetchOptionsComponent) {
+      this.advancedFetchOptionsComponent.refreshCovers = value;
+    }
+  }
+
+  get mergeCategories(): boolean {
+    return this.advancedFetchOptionsComponent?.mergeCategories ?? false;
+  }
+
+  set mergeCategories(value: boolean) {
+    if (this.advancedFetchOptionsComponent) {
+      this.advancedFetchOptionsComponent.mergeCategories = value;
+    }
+  }
+
+  get reviewBeforeApply(): boolean {
+    return this.advancedFetchOptionsComponent?.reviewBeforeApply ?? true;
+  }
+
+  set reviewBeforeApply(value: boolean) {
+    if (this.advancedFetchOptionsComponent) {
+      this.advancedFetchOptionsComponent.reviewBeforeApply = value;
+    }
+  }
+
+  resetAdvancedOptions(): void {
+    this.advancedFetchOptionsComponent?.reset();
+  }
+
+  submitAdvancedOptions(): void {
+    this.advancedFetchOptionsComponent?.submit();
   }
 
   onMetadataSubmit(metadataRefreshOptions: MetadataRefreshOptions) {
