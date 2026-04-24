@@ -614,5 +614,25 @@ public class BookService {
                 .collect(Collectors.toSet());
     }
 
+    public Book updateCurrentlyReadingStatus(long bookId, boolean isCurrentlyReading) {
+        BookLoreUser user = authenticationService.getAuthenticatedUser();
+        BookEntity bookEntity = bookRepository.findById(bookId)
+                .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+        
+        // Check if user has access to this book
+        if (!user.getPermissions().isAdmin()) {
+            Set<Long> userLibraryIds = getUserLibraryIds(user);
+            if (!userLibraryIds.contains(bookEntity.getLibrary().getId())) {
+                throw ApiError.BOOK_NOT_FOUND.createException(bookId);
+            }
+        }
+        
+        // Use BookUpdateService to update the field
+        bookUpdateService.updateCurrentlyReadingStatus(bookId, isCurrentlyReading);
+        
+        // Return the updated book
+        return bookMapper.toBook(bookRepository.findById(bookId).get());
+    }
+
 }
 

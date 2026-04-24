@@ -387,4 +387,13 @@ public class BookUpdateService {
                 .filter(shelf -> userId.equals(shelf.getUserId()))
                 .collect(Collectors.toSet());
     }
+
+    @Transactional
+    public void updateCurrentlyReadingStatus(long bookId, boolean isCurrentlyReading) {
+        BookEntity book = bookRepository.findById(bookId)
+                .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+        
+        book.setCurrentlyReading(isCurrentlyReading);
+        bookRepository.save(book);
+    }
 }

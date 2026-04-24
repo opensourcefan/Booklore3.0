@@ -307,6 +307,19 @@ public class BookController {
         return ResponseEntity.ok(physicalBookService.togglePhysicalFlag(bookId, physical));
     }
 
+    @Operation(summary = "Update currently reading status", description = "Mark or unmark a book as currently reading.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Currently reading status updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Book not found")
+    })
+    @PatchMapping("/{bookId}")
+    @CheckBookAccess(bookIdParam = "bookId")
+    public ResponseEntity<Book> updateCurrentlyReadingStatus(
+            @Parameter(description = "ID of the book") @PathVariable long bookId,
+            @Parameter(description = "Whether the book is currently reading") @RequestParam boolean isCurrentlyReading) {
+        return ResponseEntity.ok(bookService.updateCurrentlyReadingStatus(bookId, isCurrentlyReading));
+    }
+
     @Operation(summary = "Attach book files", description = "Attach book files from single-file source books to a target book as alternative formats.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Book files attached successfully"),

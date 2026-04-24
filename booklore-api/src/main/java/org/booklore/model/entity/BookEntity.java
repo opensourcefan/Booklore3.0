@@ -143,4 +143,8 @@ public class BookEntity {
     public boolean hasFiles() {
         return bookFiles != null && !bookFiles.isEmpty();
     }
+
+    public void setCurrentlyReading(Boolean currentlyReading) {
+        this.isCurrentlyReading = currentlyReading;
+    }
 }

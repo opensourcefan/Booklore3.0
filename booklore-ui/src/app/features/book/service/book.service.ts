@@ -399,7 +399,8 @@ export class BookService {
   }
 
   updateBookCurrentlyReadingStatus(bookId: number, isCurrentlyReading: boolean): Observable<Book> {
-    return this.http.patch<Book>(`${this.url}/${bookId}`, { isCurrentlyReading }).pipe(
+    const params = new HttpParams().set('isCurrentlyReading', isCurrentlyReading.toString());
+    return this.http.patch<Book>(`${this.url}/${bookId}`, null, { params }).pipe(
       tap(_updatedBook => {
         const currentState = this.bookStateService.getCurrentBookState();
         const updatedBooks = (currentState.books || []).map(b => b.id === bookId ? {...b, isCurrentlyReading} : b);

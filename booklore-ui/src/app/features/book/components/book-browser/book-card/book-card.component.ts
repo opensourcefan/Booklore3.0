@@ -988,11 +988,12 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
           life: 2000
         });
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error updating Currently Reading status:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Update Failed',
-          detail: `Could not ${action} Currently Reading panel`,
+          detail: `Could not ${action} Currently Reading panel: ${error?.message || 'Unknown error'}`,
           life: 3000
         });
       }
