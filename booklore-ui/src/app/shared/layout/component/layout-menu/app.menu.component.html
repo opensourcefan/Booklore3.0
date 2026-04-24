@@ -68,70 +68,84 @@
       [cdkDropListDisabled]="!isReorderMode"
       (cdkDropListDropped)="onSectionDrop($event)">
       @for (section of visibleSectionOrder; track section) {
-        <div class="menu-section" cdkDrag [cdkDragDisabled]="!isReorderMode">
-          @switch (section) {
-            @case ('home') {
-              <div class="home-menu-section">
-                <ul class="layout-menu">
-                  @if (homeMenu$ | async; as homeMenu) {
-                    @for (item of homeMenu; track item.label; let i = $index) {
-                      @if (!item.separator) {
-                        <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="home" [reorderMode]="isReorderMode"></li>
-                      }
-                    }
-                  }
-                </ul>
-              </div>
-            }
-            @case ('library') {
-              <ul class="layout-menu">
-                @if (libraryMenu$ | async; as libraryMenu) {
-                  @for (item of libraryMenu; track item.label; let i = $index) {
-                    @if (!item.separator) {
-                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="library" [reorderMode]="isReorderMode"></li>
-                    }
-                  }
-                }
-              </ul>
-            }
-            @case ('shelf') {
-              <ul class="layout-menu">
-                @if (shelfMenu$ | async; as shelfMenu) {
-                  @for (item of shelfMenu; track item.label; let i = $index) {
-                    @if (!item.separator) {
-                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="shelf" [reorderMode]="isReorderMode"></li>
-                    }
-                  }
-                }
-              </ul>
-            }
-            @case ('magicShelf') {
-              <ul class="layout-menu">
-                @if (magicShelfMenu$ | async; as shelfMenu) {
-                  @for (item of shelfMenu; track item.label; let i = $index) {
-                    @if (!item.separator) {
-                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="magicShelf" [reorderMode]="isReorderMode"></li>
-                    }
-                  }
-                }
-              </ul>
-            }
-            @case ('bookType') {
-              <ul class="layout-menu">
-                @if (bookTypeMenu$ | async; as bookTypeMenu) {
-                  @for (item of bookTypeMenu; track item.label; let i = $index) {
-                    @if (!item.separator) {
-                      <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="bookType" [reorderMode]="isReorderMode"></li>
-                    }
-                  }
-                }
-              </ul>
-            }
-          }
-        </div>
+        @if (isReorderMode) {
+          <div class="menu-section" cdkDrag>
+            <ng-container
+              [ngTemplateOutlet]="sectionTemplate"
+              [ngTemplateOutletContext]="{ $implicit: section }"></ng-container>
+          </div>
+        } @else {
+          <div class="menu-section">
+            <ng-container
+              [ngTemplateOutlet]="sectionTemplate"
+              [ngTemplateOutletContext]="{ $implicit: section }"></ng-container>
+          </div>
+        }
       }
     </div>
   </div>
+
+  <ng-template #sectionTemplate let-section>
+    @switch (section) {
+      @case ('home') {
+        <div class="home-menu-section">
+          <ul class="layout-menu">
+            @if (homeMenu$ | async; as homeMenu) {
+              @for (item of homeMenu; track item.label; let i = $index) {
+                @if (!item.separator) {
+                  <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="home" [reorderMode]="isReorderMode"></li>
+                }
+              }
+            }
+          </ul>
+        </div>
+      }
+      @case ('library') {
+        <ul class="layout-menu">
+          @if (libraryMenu$ | async; as libraryMenu) {
+            @for (item of libraryMenu; track item.label; let i = $index) {
+              @if (!item.separator) {
+                <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="library" [reorderMode]="isReorderMode"></li>
+              }
+            }
+          }
+        </ul>
+      }
+      @case ('shelf') {
+        <ul class="layout-menu">
+          @if (shelfMenu$ | async; as shelfMenu) {
+            @for (item of shelfMenu; track item.label; let i = $index) {
+              @if (!item.separator) {
+                <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="shelf" [reorderMode]="isReorderMode"></li>
+              }
+            }
+          }
+        </ul>
+      }
+      @case ('magicShelf') {
+        <ul class="layout-menu">
+          @if (magicShelfMenu$ | async; as shelfMenu) {
+            @for (item of shelfMenu; track item.label; let i = $index) {
+              @if (!item.separator) {
+                <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="magicShelf" [reorderMode]="isReorderMode"></li>
+              }
+            }
+          }
+        </ul>
+      }
+      @case ('bookType') {
+        <ul class="layout-menu">
+          @if (bookTypeMenu$ | async; as bookTypeMenu) {
+            @for (item of bookTypeMenu; track item.label; let i = $index) {
+              @if (!item.separator) {
+                <li app-menuitem [item]="item" [index]="i" [root]="true" menuKey="bookType" [reorderMode]="isReorderMode"></li>
+              }
+            }
+          }
+        </ul>
+      }
+    }
+  </ng-template>
 
   <!-- Footer: icons, divider, version -->
   <div class="sidebar-footer">

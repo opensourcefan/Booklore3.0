@@ -1,6 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {AppMenuitemComponent, AppMenuItem} from './app.menuitem.component';
-import {AsyncPipe} from '@angular/common';
+import {AsyncPipe, NgTemplateOutlet} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
@@ -36,7 +36,7 @@ type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'serie
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, Popover, CheckboxModule, FormsModule],
+  imports: [AppMenuitemComponent, MenuModule, AsyncPipe, NgTemplateOutlet, TranslocoDirective, Menu, TooltipModule, CdkDropList, CdkDrag, Popover, CheckboxModule, FormsModule],
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })

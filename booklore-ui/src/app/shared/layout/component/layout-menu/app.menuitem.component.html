@@ -145,16 +145,26 @@
           [cdkDropListDisabled]="!isChildSortable()"
           (cdkDropListDropped)="onChildDrop($event)">
           @for (child of item.items; track child.routerLink?.[0] ?? child.label; let i = $index) {
-            <li
-              app-menuitem
-              [item]="child"
-              [index]="i"
-              [parentKey]="key"
-              [menuKey]="menuKey"
-              [reorderMode]="reorderMode"
-              [class]="child.badgeClass"
-              cdkDrag
-              [cdkDragDisabled]="!isChildSortable()"></li>
+            @if (isChildSortable()) {
+              <li
+                app-menuitem
+                [item]="child"
+                [index]="i"
+                [parentKey]="key"
+                [menuKey]="menuKey"
+                [reorderMode]="reorderMode"
+                [class]="child.badgeClass"
+                cdkDrag></li>
+            } @else {
+              <li
+                app-menuitem
+                [item]="child"
+                [index]="i"
+                [parentKey]="key"
+                [menuKey]="menuKey"
+                [reorderMode]="reorderMode"
+                [class]="child.badgeClass"></li>
+            }
           }
         </ul>
       }

@@ -4,7 +4,7 @@ import {of, Subject} from 'rxjs';
 import {provideRouter} from '@angular/router';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {By} from '@angular/platform-browser';
-import {CdkDragHandle} from '@angular/cdk/drag-drop';
+import {CdkDrag} from '@angular/cdk/drag-drop';
 
 import {AppMenuitemComponent} from './app.menuitem.component';
 import {MenuService} from './service/app.menu.service';
@@ -103,6 +103,35 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     return fixture;
   }
 
+  function createRootWithChildrenFixture(reorderMode: boolean) {
+    const fixture = TestBed.createComponent(AppMenuitemComponent);
+
+    fixture.componentRef.setInput('item', {
+      label: 'Libraries',
+      hasDropDown: true,
+      items: [
+        {
+          label: 'Library A',
+          type: 'Library',
+          routerLink: ['/library/1'],
+        },
+        {
+          label: 'Library B',
+          type: 'Library',
+          routerLink: ['/library/2'],
+        },
+      ],
+    });
+    fixture.componentRef.setInput('index', 0);
+    fixture.componentRef.setInput('root', true);
+    fixture.componentRef.setInput('parentKey', 'library');
+    fixture.componentRef.setInput('menuKey', 'library');
+    fixture.componentRef.setInput('reorderMode', reorderMode);
+
+    fixture.detectChanges();
+    return fixture;
+  }
+
   it('does not render the entity menu button for the /not-shelfed route item', () => {
     const fixture = createUnshelvedFixture();
 
@@ -153,10 +182,17 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     expect(clickEvent.stopPropagation).toHaveBeenCalled();
   });
 
-  it('does not render cdk drag-handle directives on sidebar rows', () => {
-    const fixture = createUnshelvedFixture();
+  it('does not render child row drag directives while reorder mode is off', () => {
+    const fixture = createRootWithChildrenFixture(false);
 
-    const handles = fixture.debugElement.queryAll(By.directive(CdkDragHandle));
-    expect(handles.length).toBe(0);
+    const dragRows = fixture.debugElement.queryAll(By.directive(CdkDrag));
+    expect(dragRows.length).toBe(0);
+  });
+
+  it('renders child row drag directives when reorder mode is enabled', () => {
+    const fixture = createRootWithChildrenFixture(true);
+
+    const dragRows = fixture.debugElement.queryAll(By.directive(CdkDrag));
+    expect(dragRows.length).toBeGreaterThan(0);
   });
 });
