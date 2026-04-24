@@ -53,6 +53,10 @@ public class BookEntity {
     @Builder.Default
     private Boolean isPhysical = Boolean.FALSE;
 
+    @Column(name = "is_currently_reading")
+    @Builder.Default
+    private Boolean isCurrentlyReading = Boolean.FALSE;
+
     @Column(name = "added_on")
     private Instant addedOn;
 
