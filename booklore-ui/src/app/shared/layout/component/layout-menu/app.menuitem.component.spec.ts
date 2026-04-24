@@ -153,17 +153,10 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     expect(clickEvent.stopPropagation).toHaveBeenCalled();
   });
 
-  it('disables drag handles unless reorder mode is enabled', () => {
+  it('does not render cdk drag-handle directives on sidebar rows', () => {
     const fixture = createUnshelvedFixture();
 
-    let handles = fixture.debugElement.queryAll(By.directive(CdkDragHandle));
-    expect(handles.length).toBeGreaterThan(0);
-    expect(handles.every(handle => handle.injector.get(CdkDragHandle).disabled)).toBe(true);
-
-    fixture.componentRef.setInput('reorderMode', true);
-    fixture.detectChanges();
-
-    handles = fixture.debugElement.queryAll(By.directive(CdkDragHandle));
-    expect(handles.every(handle => !handle.injector.get(CdkDragHandle).disabled)).toBe(true);
+    const handles = fixture.debugElement.queryAll(By.directive(CdkDragHandle));
+    expect(handles.length).toBe(0);
   });
 });

@@ -16,7 +16,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {IconSelection} from '../../../service/icon-picker.service';
 import {TranslocoPipe} from '@jsverse/transloco';
 import {MenuItem} from 'primeng/api';
-import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
+import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {ThumbnailPrefetchService} from '../../../../features/book/service/thumbnail-prefetch.service';
 import {DirectoryFilterService} from '../../../../features/book/service/directory-filter.service';
@@ -56,8 +56,7 @@ export interface AppMenuItem extends MenuItem {
     Tooltip,
     TranslocoPipe,
     CdkDropList,
-    CdkDrag,
-    CdkDragHandle
+    CdkDrag
   ],
   animations: [
     trigger('children', [
