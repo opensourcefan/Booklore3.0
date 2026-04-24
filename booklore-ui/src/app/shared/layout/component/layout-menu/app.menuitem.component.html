@@ -54,7 +54,7 @@
       (touchcancel)="onTouchCancel()"
       [attr.tabindex]="(item.routerLink && !item.items && !reorderMode) ? '0' : '-1'"
       (keydown.enter)="triggerLink()"
-      (click)="triggerLink()"
+      (click)="triggerLink($event)"
     >
       @if ((item.routerLink && !item.items)) {
         <a

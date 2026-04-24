@@ -114,4 +114,40 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     expect(badge).not.toBeNull();
     expect(badge.textContent?.trim()).toBe('7');
   });
+
+  it('stops bubbling click events when touch interaction is treated as a swipe', () => {
+    const fixture = createUnshelvedFixture();
+    const component = fixture.componentInstance;
+    const clickEvent = {
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    } as unknown as Event;
+
+    component.onTouchStart({
+      touches: [{clientX: 10, clientY: 10}],
+    } as unknown as TouchEvent);
+    component.onTouchEnd({
+      changedTouches: [{clientX: 28, clientY: 10}],
+    } as unknown as TouchEvent);
+
+    component.triggerLink(clickEvent);
+
+    expect(clickEvent.preventDefault).toHaveBeenCalled();
+    expect(clickEvent.stopPropagation).toHaveBeenCalled();
+  });
+
+  it('stops bubbling click events while reorder mode is active', () => {
+    const fixture = createUnshelvedFixture();
+    const component = fixture.componentInstance;
+    const clickEvent = {
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    } as unknown as Event;
+
+    component.reorderMode = true;
+    component.triggerLink(clickEvent);
+
+    expect(clickEvent.preventDefault).toHaveBeenCalled();
+    expect(clickEvent.stopPropagation).toHaveBeenCalled();
+  });
 });

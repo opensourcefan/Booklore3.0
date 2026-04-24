@@ -273,12 +273,16 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     }
   }
 
-  triggerLink() {
+  triggerLink(event?: Event) {
     if (this.reorderMode) {
+      event?.preventDefault();
+      event?.stopPropagation();
       return;
     }
 
     if (this.shouldSuppressTap()) {
+      event?.preventDefault();
+      event?.stopPropagation();
       return;
     }
 
