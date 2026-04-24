@@ -292,6 +292,23 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
+  private getCurrentlyReadingBooks(maxItems: number, libraryId: number | null): Observable<Book[]> {
+    return this.bookService.bookState$.pipe(
+      map((state: BookState) => {
+        let books = (state.books || []).filter(book =>
+          book.isCurrentlyReading === true
+        );
+        books = this.filterBooksByLibrary(books, libraryId);
+        books = books.sort((a, b) => {
+          const aTime = new Date(a.addedOn || '').getTime();
+          const bTime = new Date(b.addedOn || '').getTime();
+          return bTime - aTime;
+        });
+        return books.slice(0, maxItems);
+      })
+    );
+  }
+
   getBooksForScroller(config: ScrollerConfig): Observable<Book[]> {
     if (!this.scrollerBooksCache.has(config.id)) {
       let books$: Observable<Book[]>;
@@ -319,6 +336,9 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
               return books;
             })
           );
+          break;
+        case ScrollerType.CURRENTLY_READING:
+          books$ = this.getCurrentlyReadingBooks(config.maxItems || DEFAULT_MAX_ITEMS, config.libraryId ?? null);
           break;
         default:
           books$ = this.bookService.bookState$.pipe(map(() => []));

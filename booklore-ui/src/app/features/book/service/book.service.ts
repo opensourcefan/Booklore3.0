@@ -398,6 +398,16 @@ export class BookService {
     return this.bookPatchService.updateBookReadStatus(bookIds, status);
   }
 
+  updateBookCurrentlyReadingStatus(bookId: number, isCurrentlyReading: boolean): Observable<Book> {
+    return this.http.patch<Book>(`${this.url}/${bookId}`, { isCurrentlyReading }).pipe(
+      tap(_updatedBook => {
+        const currentState = this.bookStateService.getCurrentBookState();
+        const updatedBooks = (currentState.books || []).map(b => b.id === bookId ? {...b, isCurrentlyReading} : b);
+        this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+      })
+    );
+  }
+
   /*------------------ Personal Rating ------------------*/
 
   resetPersonalRating(bookIds: number | number[]): Observable<PersonalRatingUpdateResponse[]> {

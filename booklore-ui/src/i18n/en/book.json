@@ -122,6 +122,7 @@
       "readStatus": "Read Status",
       "resetBookloreProgress": "Reset Booklore Progress",
       "resetKOReaderProgress": "Reset KOReader Progress",
+      "currentlyReading": "Currently Reading",
       "book": "Book",
       "loading": "Loading..."
     },

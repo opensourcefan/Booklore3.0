@@ -3,7 +3,8 @@ export enum ScrollerType {
   LAST_LISTENED = 'lastListened',
   LATEST_ADDED = 'latestAdded',
   RANDOM = 'random',
-  MAGIC_SHELF = 'magicShelf'
+  MAGIC_SHELF = 'magicShelf',
+  CURRENTLY_READING = 'currentlyReading'
 }
 
 export const DEFAULT_MAX_ITEMS = 20;
@@ -36,7 +37,8 @@ const DEFAULT_DASHBOARD_SCROLLERS: ScrollerConfig[] = [
   {id: '1', type: ScrollerType.LAST_LISTENED, title: 'dashboard.scroller.continueListening', enabled: true, order: 1, maxItems: DEFAULT_MAX_ITEMS, libraryId: null, columnSpan: null},
   {id: '2', type: ScrollerType.LAST_READ, title: 'dashboard.scroller.continueReading', enabled: true, order: 2, maxItems: DEFAULT_MAX_ITEMS, libraryId: null, columnSpan: null},
   {id: '3', type: ScrollerType.LATEST_ADDED, title: 'dashboard.scroller.recentlyAdded', enabled: true, order: 3, maxItems: DEFAULT_MAX_ITEMS, libraryId: null, columnSpan: null},
-  {id: '4', type: ScrollerType.RANDOM, title: 'dashboard.scroller.discoverNew', enabled: true, order: 4, maxItems: DEFAULT_MAX_ITEMS, libraryId: null, columnSpan: null}
+  {id: '4', type: ScrollerType.RANDOM, title: 'dashboard.scroller.discoverNew', enabled: true, order: 4, maxItems: DEFAULT_MAX_ITEMS, libraryId: null, columnSpan: null},
+  {id: '5', type: ScrollerType.CURRENTLY_READING, title: 'dashboard.scroller.currentlyReading', enabled: false, order: 5, maxItems: DEFAULT_MAX_ITEMS, libraryId: null, columnSpan: null}
 ];
 
 export function getDefaultScrollerTitleKey(type: ScrollerType): string {
@@ -51,6 +53,8 @@ export function getDefaultScrollerTitleKey(type: ScrollerType): string {
       return 'dashboard.scroller.discoverNew';
     case ScrollerType.MAGIC_SHELF:
       return 'dashboard.scroller.magicShelf';
+    case ScrollerType.CURRENTLY_READING:
+      return 'dashboard.scroller.currentlyReading';
     default:
       return 'dashboard.scroller.default';
   }

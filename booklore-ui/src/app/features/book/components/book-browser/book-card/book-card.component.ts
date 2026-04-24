@@ -881,6 +881,13 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
     moreActions.push(
       {
+        label: this.t.translate('book.card.menu.currentlyReading'),
+        icon: 'pi pi-bookmark',
+        command: () => {
+          this.toggleCurrentlyReading(book);
+        }
+      },
+      {
         label: this.t.translate('book.card.menu.readStatus'),
         icon: 'pi pi-book',
         items: Object.entries(readStatusLabels).map(([status, label]) => ({
@@ -962,6 +969,30 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
           severity: 'error',
           summary: this.t.translate('book.card.toast.readStatusFailedSummary'),
           detail: this.t.translate('book.card.toast.readStatusFailedDetail'),
+          life: 3000
+        });
+      }
+    });
+  }
+
+  private toggleCurrentlyReading(book: Book): void {
+    const isCurrentlyReading = book['isCurrentlyReading'] === true;
+    const action = isCurrentlyReading ? 'remove from' : 'add to';
+    
+    this.bookService.updateBookCurrentlyReadingStatus(book.id, !isCurrentlyReading).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Currently Reading Updated',
+          detail: `Book ${isCurrentlyReading ? 'removed from' : 'added to'} Currently Reading panel`,
+          life: 2000
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Update Failed',
+          detail: `Could not ${action} Currently Reading panel`,
           life: 3000
         });
       }

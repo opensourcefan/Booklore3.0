@@ -16,6 +16,7 @@
     "recentlyAdded": "Recently Added",
     "discoverNew": "Discover Something New",
     "magicShelf": "Magic Shelf",
+    "currentlyReading": "Currently Reading",
     "default": "Scroller"
   },
   "settings": {
@@ -47,6 +48,7 @@
       "latestAdded": "Recently Added",
       "random": "Discover Something New",
       "magicShelf": "Magic Shelf",
+      "currentlyReading": "Currently Reading",
       "default": "Scroller"
     },
     "sortFields": {

@@ -111,7 +111,8 @@ export class DashboardSettingsComponent implements OnInit {
       {label: t('scrollerTypes.lastListened'), value: ScrollerType.LAST_LISTENED},
       {label: t('scrollerTypes.latestAdded'), value: ScrollerType.LATEST_ADDED},
       {label: t('scrollerTypes.random'), value: ScrollerType.RANDOM},
-      {label: t('scrollerTypes.magicShelf'), value: ScrollerType.MAGIC_SHELF}
+      {label: t('scrollerTypes.magicShelf'), value: ScrollerType.MAGIC_SHELF},
+      {label: t('scrollerTypes.currentlyReading'), value: ScrollerType.CURRENTLY_READING}
     ];
 
     this.sortFieldOptions = [
