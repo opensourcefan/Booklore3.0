@@ -197,6 +197,17 @@
   touch-action: pan-y;
 }
 
+:host-context(.mobile-sidebar-popover) .menu-scrollable {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+:host-context(.mobile-sidebar-popover) .menu-scrollable::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 :host-context(.mobile-sidebar-popover) .book-type-item {
   margin-left: -0.3rem;
   width: calc(100% + 0.3rem);

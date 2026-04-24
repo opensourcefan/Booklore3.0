@@ -3,6 +3,8 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {of, Subject} from 'rxjs';
 import {provideRouter} from '@angular/router';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {By} from '@angular/platform-browser';
+import {CdkDragHandle} from '@angular/cdk/drag-drop';
 
 import {AppMenuitemComponent} from './app.menuitem.component';
 import {MenuService} from './service/app.menu.service';
@@ -149,5 +151,19 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
 
     expect(clickEvent.preventDefault).toHaveBeenCalled();
     expect(clickEvent.stopPropagation).toHaveBeenCalled();
+  });
+
+  it('disables drag handles unless reorder mode is enabled', () => {
+    const fixture = createUnshelvedFixture();
+
+    let handles = fixture.debugElement.queryAll(By.directive(CdkDragHandle));
+    expect(handles.length).toBeGreaterThan(0);
+    expect(handles.every(handle => handle.injector.get(CdkDragHandle).disabled)).toBe(true);
+
+    fixture.componentRef.setInput('reorderMode', true);
+    fixture.detectChanges();
+
+    handles = fixture.debugElement.queryAll(By.directive(CdkDragHandle));
+    expect(handles.every(handle => !handle.injector.get(CdkDragHandle).disabled)).toBe(true);
   });
 });

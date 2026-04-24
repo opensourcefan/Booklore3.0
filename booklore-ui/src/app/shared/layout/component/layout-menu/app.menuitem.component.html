@@ -1,7 +1,7 @@
 <ng-container>
   @if (root) {
     @if (item.hasDropDown) {
-      <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle>
+      <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target" cdkDragHandle [cdkDragHandleDisabled]="!reorderMode">
         <div class="root-item-label-container">
           <div class="sidebar-heading-label">{{ item.label }}</div>
           @if (item.hasCreate) {
@@ -32,7 +32,7 @@
         ></i>
       </div>
     } @else {
-      <div class="layout-menuitem-root-text root-item drag-press-target" cdkDragHandle>
+      <div class="layout-menuitem-root-text root-item drag-press-target" cdkDragHandle [cdkDragHandleDisabled]="!reorderMode">
         <div class="sidebar-heading-label">{{ item.label }}</div>
       </div>
     }
@@ -42,6 +42,7 @@
     <div
       class="menu-item-container"
       cdkDragHandle
+      [cdkDragHandleDisabled]="!reorderMode"
       [class.reorder-row]="reorderMode"
       [class.drag-press-target]="!root"
       [class.draggable-child]="!root"
