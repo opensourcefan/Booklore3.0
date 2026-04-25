@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {Observable} from 'rxjs';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {NEVER, of} from 'rxjs';
 import {MessageService} from 'primeng/api';
 import {Router} from '@angular/router';
@@ -31,8 +31,12 @@ describe('AppMenuComponent reorder mode', () => {
   let libraryServiceMock: {libraryState$: Observable<{libraries: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
   let magicShelfServiceMock: {shelvesState$: Observable<{shelves: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
   let shelfServiceMock: {shelfState$: Observable<{shelves: never[]}>; getUnshelvedBookCount: ReturnType<typeof vi.fn>; getBookCount: ReturnType<typeof vi.fn>};
+  let langChanges$: BehaviorSubject<string>;
+  let keyChanges$: Subject<string>;
 
   beforeEach(() => {
+    langChanges$ = new BehaviorSubject<string>('en');
+    keyChanges$ = new Subject<string>();
     routerMock = {
       navigate: vi.fn(),
       url: '/all-books',
@@ -42,7 +46,7 @@ describe('AppMenuComponent reorder mode', () => {
     localStorageMock = {
       get: vi.fn(),
       set: vi.fn(),
-      keyChanges$: NEVER
+      keyChanges$: keyChanges$.asObservable() as typeof NEVER
     };
     mediaTypePreferencesMock = {
       setSidebarOrder: vi.fn(),
@@ -79,7 +83,7 @@ describe('AppMenuComponent reorder mode', () => {
         {provide: MagicShelfService, useValue: magicShelfServiceMock},
         {provide: SeriesDataService, useValue: {allSeries$: of([])}},
         {provide: AuthorService, useValue: {getAllAuthors: vi.fn().mockReturnValue(of([])), allAuthors$: of([])}},
-        {provide: TranslocoService, useValue: {translate: (key: string) => key, getActiveLang: () => 'en', langChanges$: of('en'), load: vi.fn().mockReturnValue(of(void 0)), setActiveLang: vi.fn()}},
+        {provide: TranslocoService, useValue: {translate: (key: string) => key, getActiveLang: () => 'en', langChanges$: langChanges$.asObservable(), load: vi.fn().mockReturnValue(of(void 0)), setActiveLang: vi.fn()}},
         {provide: LocalStorageService, useValue: localStorageMock},
         {provide: BookDialogHelperService, useValue: {openBookTypeCreatorDialog: vi.fn().mockReturnValue({onClose: of(false)})}},
         {provide: MessageService, useValue: {add: vi.fn()}},
@@ -189,5 +193,37 @@ describe('AppMenuComponent reorder mode', () => {
     component.ngOnInit();
 
     expect(localStorageMock.set).toHaveBeenCalledWith('sidebarLatestStableVersion', 'v3.11.2');
+  });
+
+  it('stops reacting to long-lived streams after destroy', () => {
+    localStorageMock.get.mockImplementation((key: string) => {
+      if (key === 'sidebarSectionOrder') {
+        return ['library', 'home', 'shelf'];
+      }
+      return null;
+    });
+
+    component.ngOnInit();
+
+    langChanges$.next('fr');
+    keyChanges$.next('sidebarSectionOrder');
+
+    expect(component.activeLang).toBe('fr');
+    expect(component.sectionOrder).toEqual(['library', 'home', 'shelf', 'magicShelf', 'bookType']);
+
+    component.ngOnDestroy();
+
+    localStorageMock.get.mockImplementation((key: string) => {
+      if (key === 'sidebarSectionOrder') {
+        return ['shelf', 'home', 'library'];
+      }
+      return null;
+    });
+
+    langChanges$.next('de');
+    keyChanges$.next('sidebarSectionOrder');
+
+    expect(component.activeLang).toBe('fr');
+    expect(component.sectionOrder).toEqual(['library', 'home', 'shelf', 'magicShelf', 'bookType']);
   });
 });

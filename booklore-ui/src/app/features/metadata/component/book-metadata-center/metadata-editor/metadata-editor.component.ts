@@ -25,6 +25,7 @@ import {Image} from "primeng/image";
 import {LazyLoadImageModule} from "ng-lazyload-image";
 import {Select} from "primeng/select";
 import {TaskHelperService} from '../../../../settings/task-management/task-helper.service';
+import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from '../../../../settings/task-management/task.service';
 import {BookDialogHelperService} from "../../../../book/components/book-browser/book-dialog-helper.service";
 import {BookNavigationService} from '../../../../book/service/book-navigation.service';
 import {BookMetadataHostService} from '../../../../../shared/service/book-metadata-host.service';
@@ -79,6 +80,7 @@ export class MetadataEditorComponent implements OnInit {
   private bookService = inject(BookService);
   private bookMetadataManageService = inject(BookMetadataManageService);
   private taskHelperService = inject(TaskHelperService);
+  private taskService = inject(TaskService);
   protected urlHelper = inject(UrlHelperService);
   private bookDialogHelperService = inject(BookDialogHelperService);
   private bookNavigationService = inject(BookNavigationService);
@@ -103,6 +105,7 @@ export class MetadataEditorComponent implements OnInit {
   isAutoFetching = false;
   isFetchingFromFile = false;
   autoSaveEnabled = false;
+  private activeAutoFetchTaskId: string | null = null;
 
   originalMetadata!: BookMetadata;
 
@@ -367,12 +370,25 @@ export class MetadataEditorComponent implements OnInit {
       if (!metadata) return;
       this.currentBookId = metadata.bookId;
       if (this.refreshingBookIds.has(book.id)) {
-        this.refreshingBookIds.delete(book.id);
-        this.isAutoFetching = false;
+        this.finishAutoFetch(book.id);
       }
       this.originalMetadata = structuredClone(metadata);
       this.populateFormFromMetadata(metadata);
     });
+
+    this.taskService.taskProgress$
+      .pipe(
+        filter((progress): progress is TaskProgressPayload =>
+          !!progress &&
+          progress.taskType === TaskType.REFRESH_METADATA_MANUAL &&
+          progress.taskId === this.activeAutoFetchTaskId &&
+          this.isTerminalTaskStatus(progress.taskStatus)
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.finishAutoFetch();
+      });
 
     this.prepareAutoComplete();
 
@@ -1112,27 +1128,39 @@ export class MetadataEditorComponent implements OnInit {
   autoFetch(bookId: number) {
     this.refreshingBookIds.add(bookId);
     this.isAutoFetching = true;
+    this.activeAutoFetchTaskId = null;
 
     this.taskHelperService.refreshMetadataTask({
       refreshType: MetadataRefreshType.BOOKS,
       bookIds: [bookId],
-    }).subscribe({
-      next: () => {
-        this.isAutoFetching = false;
-      },
-      error: () => {
-        this.isAutoFetching = false;
-      },
-      complete: () => {
-        this.isAutoFetching = false;
-        this.refreshingBookIds.delete(bookId);
+    }).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (result) => {
+        if (!result.success) {
+          this.finishAutoFetch(bookId);
+          return;
+        }
+
+        this.activeAutoFetchTaskId = result.taskId;
       }
     });
+  }
 
-    setTimeout(() => {
-      this.isAutoFetching = false;
-      this.refreshingBookIds.delete(bookId);
-    }, 15000);
+  private finishAutoFetch(bookId?: number): void {
+    this.isAutoFetching = false;
+    this.activeAutoFetchTaskId = null;
+
+    if (bookId == null) {
+      this.refreshingBookIds.clear();
+      return;
+    }
+
+    this.refreshingBookIds.delete(bookId);
+  }
+
+  private isTerminalTaskStatus(status: TaskStatus): boolean {
+    return status === TaskStatus.COMPLETED || status === TaskStatus.FAILED || status === TaskStatus.CANCELLED;
   }
 
   fetchFromFile(bookId: number) {

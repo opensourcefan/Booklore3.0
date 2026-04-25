@@ -1,10 +1,10 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {AppMenuitemComponent, AppMenuItem} from './app.menuitem.component';
 import {AsyncPipe, NgTemplateOutlet} from '@angular/common';
 import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
-import {BehaviorSubject, combineLatest, Observable, of} from 'rxjs';
+import {BehaviorSubject, combineLatest, Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, map} from 'rxjs/operators';
 import {ShelfService} from '../../../../features/book/service/shelf.service';
 import {BookService} from '../../../../features/book/service/book.service';
@@ -40,7 +40,7 @@ type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'serie
   templateUrl: './app.menu.component.html',
   styleUrl: './app.menu.component.scss',
 })
-export class AppMenuComponent implements OnInit {
+export class AppMenuComponent implements OnInit, OnDestroy {
   libraryMenu$: Observable<AppMenuItem[]> | undefined;
   shelfMenu$: Observable<AppMenuItem[]> | undefined;
   homeMenu$: Observable<AppMenuItem[]> | undefined;
@@ -101,6 +101,7 @@ export class AppMenuComponent implements OnInit {
   private readonly versionLatestCacheKey = 'sidebarLatestStableVersion';
   private readonly nestedOrderPrefix = 'sidebarNestedOrder_';
   private readonly homeItemVisibilitySubject = new BehaviorSubject<Record<HomeItemVisibilityKey, boolean>>(this.homeItemVisibility);
+  private readonly subscriptions = new Subscription();
   private initialSectionVisibilityFromStorage: Record<string, boolean> | null = null;
   private sectionVisibilityUserId: number | null = null;
   private touchStartX: number | null = null;
@@ -144,8 +145,8 @@ export class AppMenuComponent implements OnInit {
 
     this.activeLang = this.t.getActiveLang();
     this.buildLangMenu();
-    this.t.langChanges$.subscribe((lang: string) => { this.activeLang = lang; this.buildLangMenu(); });
-    this.localStorageService.keyChanges$.subscribe((key: string) => {
+    this.subscriptions.add(this.t.langChanges$.subscribe((lang: string) => { this.activeLang = lang; this.buildLangMenu(); }));
+    this.subscriptions.add(this.localStorageService.keyChanges$.subscribe((key: string) => {
       if (key === this.sectionOrderKey) {
         const updatedOrder = this.localStorageService.get<string[]>(this.sectionOrderKey);
         if (updatedOrder?.length) {
@@ -156,10 +157,10 @@ export class AppMenuComponent implements OnInit {
         const updatedVisibility = this.localStorageService.get<Record<string, boolean>>(this.sectionVisibilityKey);
         this.applySidebarVisibility(updatedVisibility);
       }
-    });
+    }));
 
     this.syncActiveBookTypeFilterFromUrl();
-    this.router.events.subscribe(() => this.syncActiveBookTypeFilterFromUrl());
+    this.subscriptions.add(this.router.events.subscribe(() => this.syncActiveBookTypeFilterFromUrl()));
 
     this.versionService.getVersion().pipe(
       map(data => this.resolveVersionInfoWithCache(data)),
@@ -170,7 +171,7 @@ export class AppMenuComponent implements OnInit {
 
     this.authorService.getAllAuthors().subscribe();
 
-    this.userService.userState$.pipe(
+    this.subscriptions.add(this.userService.userState$.pipe(
       filter(userState => !!userState?.user && userState.loaded))
       .subscribe(userState => {
         if (this.sectionVisibilityUserId !== userState.user?.id) {
@@ -191,7 +192,7 @@ export class AppMenuComponent implements OnInit {
           this.magicShelfSortOrder = this.validateSortOrder(userState.user.userSettings.sidebarMagicShelfSorting.order);
         }
         this.initMenus();
-      });
+      }));
 
     this.homeMenu$ = combineLatest([this.bookService.bookState$, this.t.langChanges$, this.homeItemVisibilitySubject]).pipe(
       map(([bookState]) => {
@@ -292,6 +293,10 @@ export class AppMenuComponent implements OnInit {
         ];
       })
     );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   onSectionDrop(event: CdkDragDrop<string[]>): void {

@@ -29,6 +29,7 @@ import {BookDialogHelperService} from '../../../../book/components/book-browser/
 import {LibraryService} from '../../../../book/service/library.service';
 import {TagColor, TagComponent} from '../../../../../shared/components/tag/tag.component';
 import {TaskHelperService} from '../../../../settings/task-management/task-helper.service';
+import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from '../../../../settings/task-management/task.service';
 import {AGE_RATING_OPTIONS, CONTENT_RATING_LABELS, fileSizeRanges, matchScoreRanges, pageCountRanges} from '../../../../book/components/book-browser/book-filter/book-filter.config';
 import {BookNavigationService} from '../../../../book/service/book-navigation.service';
 import {BookMetadataHostService} from '../../../../../shared/service/book-metadata-host.service';
@@ -61,6 +62,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
   private bookService = inject(BookService);
   private bookFileService = inject(BookFileService);
   private taskHelperService = inject(TaskHelperService);
+  private taskService = inject(TaskService);
   private authorService = inject(AuthorService);
   protected urlHelper = inject(UrlHelperService);
   protected userService = inject(UserService);
@@ -82,6 +84,8 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
   isComicSectionExpanded = true;
   showFilePath = false;
   isAutoFetching = false;
+  private activeAutoFetchTaskId: string | null = null;
+  private activeAutoFetchBookId: number | null = null;
   private metadataCenterViewMode: 'route' | 'dialog' = 'route';
   selectedReadStatus: ReadStatus = ReadStatus.UNREAD;
   isEditingDateFinished = false;
@@ -456,9 +460,25 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
         filter((book): book is Book => book != null && book.metadata != null)
       )
       .subscribe(book => {
-        this.isAutoFetching = false;
+        if (this.activeAutoFetchBookId === book.id) {
+          this.finishAutoFetch();
+        }
         this.loadBooksInSeriesAndFilterRecommended(book.metadata!.bookId);
         this.selectedReadStatus = book.readStatus ?? ReadStatus.UNREAD;
+      });
+
+    this.taskService.taskProgress$
+      .pipe(
+        filter((progress): progress is TaskProgressPayload =>
+          !!progress &&
+          progress.taskType === TaskType.REFRESH_METADATA_MANUAL &&
+          progress.taskId === this.activeAutoFetchTaskId &&
+          this.isTerminalTaskStatus(progress.taskStatus)
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.finishAutoFetch();
       });
 
     this.appSettings$
@@ -663,15 +683,32 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
 
   quickRefresh(bookId: number) {
     this.isAutoFetching = true;
+    this.activeAutoFetchBookId = bookId;
+    this.activeAutoFetchTaskId = null;
 
     this.taskHelperService.refreshMetadataTask({
       refreshType: MetadataRefreshType.BOOKS,
       bookIds: [bookId],
-    }).subscribe();
+    }).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(result => {
+      if (!result.success) {
+        this.finishAutoFetch();
+        return;
+      }
 
-    setTimeout(() => {
-      this.isAutoFetching = false;
-    }, 15000);
+      this.activeAutoFetchTaskId = result.taskId;
+    });
+  }
+
+  private finishAutoFetch(): void {
+    this.isAutoFetching = false;
+    this.activeAutoFetchTaskId = null;
+    this.activeAutoFetchBookId = null;
+  }
+
+  private isTerminalTaskStatus(status: TaskStatus): boolean {
+    return status === TaskStatus.COMPLETED || status === TaskStatus.FAILED || status === TaskStatus.CANCELLED;
   }
 
   private getRemoveFromLibraryMenuItems(book: Book): MenuItem[] {

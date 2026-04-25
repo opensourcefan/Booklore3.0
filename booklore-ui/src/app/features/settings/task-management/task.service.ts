@@ -46,8 +46,9 @@ export interface TaskCreateRequest {
 }
 
 export interface TaskCreateResponse {
-  id?: string;
-  type: string;
+  taskId?: string;
+  taskType?: string;
+  type?: string;
   status: TaskStatus;
   message?: string;
   createdAt?: string;

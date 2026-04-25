@@ -6,6 +6,11 @@ import {of} from 'rxjs';
 import {TaskCreateRequest, TaskService, TaskType} from './task.service';
 import {TranslocoService} from '@jsverse/transloco';
 
+export interface StartedTaskResult {
+  success: boolean;
+  taskId: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -21,13 +26,13 @@ export class TaskHelperService {
       options
     };
     return this.taskService.startTask(request).pipe(
-      map(() => {
+      map((response): StartedTaskResult => {
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('settingsTasks.toast.metadataScheduled'),
           detail: this.t.translate('settingsTasks.toast.metadataScheduledDetail')
         });
-        return {success: true};
+        return {success: true, taskId: response.taskId ?? null};
       }),
       catchError((e) => {
         if (e.status === 409) {
@@ -45,7 +50,7 @@ export class TaskHelperService {
             detail: this.t.translate('settingsTasks.toast.metadataFailedDetail')
           });
         }
-        return of({success: false});
+        return of({success: false, taskId: null});
       })
     );
   }
