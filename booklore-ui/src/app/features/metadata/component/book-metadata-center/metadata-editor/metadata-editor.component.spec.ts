@@ -26,6 +26,8 @@ describe('MetadataEditorComponent auto fetch lifecycle', () => {
 
   const currentBook = {
     id: 42,
+    libraryId: 7,
+    libraryName: 'Main Library',
     metadata: {
       bookId: 42,
       title: 'Example Book',
