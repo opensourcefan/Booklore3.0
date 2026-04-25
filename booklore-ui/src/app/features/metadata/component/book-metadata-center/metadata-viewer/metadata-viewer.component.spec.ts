@@ -28,6 +28,8 @@ describe('MetadataViewerComponent refresh lifecycle', () => {
 
   const currentBook = {
     id: 77,
+    libraryId: 9,
+    libraryName: 'Viewer Library',
     metadata: {
       bookId: 77,
       title: 'Viewer Book',
@@ -118,6 +120,7 @@ describe('MetadataViewerComponent refresh lifecycle', () => {
     book$.next({
       ...currentBook,
       metadata: {
+        bookId: 77,
         ...currentBook.metadata,
         title: 'Updated Viewer Book'
       }
