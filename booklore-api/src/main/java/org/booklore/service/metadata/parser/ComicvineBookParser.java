@@ -513,15 +513,20 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         final String finalSeriesName = seriesName;
         log.debug("searchVolumesAndIssues: seriesName='{}', issueNumber='{}', year='{}'", finalSeriesName, issueNumber, extractedYear);
         
-        List<Comic> volumes = searchVolumes(finalSeriesName);
+        List<Comic> volumes = new ArrayList<>(searchVolumes(finalSeriesName));
         if (volumes.isEmpty()) {
             log.debug("No volumes found for series '{}'", finalSeriesName);
             return Collections.emptyList();
         }
 
+        Map<Comic, Integer> originalIndex = new IdentityHashMap<>(volumes.size());
+        for (int idx = 0; idx < volumes.size(); idx++) {
+            originalIndex.put(volumes.get(idx), idx);
+        }
+
         volumes.sort((v1, v2) -> {
-            int score1 = calculateVolumeScore(v1, finalSeriesName, normalizedIssue, extractedYear);
-            int score2 = calculateVolumeScore(v2, finalSeriesName, normalizedIssue, extractedYear);
+            int score1 = calculateVolumeScore(v1, finalSeriesName, normalizedIssue, extractedYear, originalIndex.get(v1));
+            int score2 = calculateVolumeScore(v2, finalSeriesName, normalizedIssue, extractedYear, originalIndex.get(v2));
             return Integer.compare(score2, score1);
         });
 
@@ -556,14 +561,19 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         }
 
         final String finalSeriesName = seriesName;
-        List<Comic> volumes = searchVolumes(finalSeriesName);
+        List<Comic> volumes = new ArrayList<>(searchVolumes(finalSeriesName));
         if (volumes.isEmpty()) {
             return null;
         }
 
+        Map<Comic, Integer> originalIndex = new IdentityHashMap<>(volumes.size());
+        for (int idx = 0; idx < volumes.size(); idx++) {
+            originalIndex.put(volumes.get(idx), idx);
+        }
+
         volumes.sort((v1, v2) -> {
-            int score1 = calculateVolumeScore(v1, finalSeriesName, normalizedIssue, extractedYear);
-            int score2 = calculateVolumeScore(v2, finalSeriesName, normalizedIssue, extractedYear);
+            int score1 = calculateVolumeScore(v1, finalSeriesName, normalizedIssue, extractedYear, originalIndex.get(v1));
+            int score2 = calculateVolumeScore(v2, finalSeriesName, normalizedIssue, extractedYear, originalIndex.get(v2));
             return Integer.compare(score2, score1);
         });
 
@@ -579,8 +589,11 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         return null;
     }
 
-    private int calculateVolumeScore(Comic volume, String seriesName, String normalizedIssue, Integer extractedYear) {
+    private int calculateVolumeScore(Comic volume, String seriesName, String normalizedIssue, Integer extractedYear, int originalIndex) {
         int score = 0;
+
+        // Relevance bonus from API search order
+        score += Math.max(0, 25 - originalIndex);
 
         if (extractedYear != null && matchesYear(volume, extractedYear)) {
             score += 100;
@@ -639,14 +652,15 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         String apiToken = getApiToken();
         if (apiToken == null) return Collections.emptyList();
 
+        log.debug("Searching for volumes via /search/ endpoint: '{}'", seriesName);
         URI uri = UriComponentsBuilder.fromUriString(COMICVINE_URL)
-                .path("/volumes/")
+                .path("/search/")
                 .queryParam("api_key", apiToken)
                 .queryParam("format", "json")
-                .queryParam("filter", "name:" + seriesName)
-                .queryParam("limit", 20)
+                .queryParam("resources", "volume")
+                .queryParam("query", seriesName)
+                .queryParam("limit", 25)
                 .queryParam("field_list", VOLUME_FIELDS)
-                .queryParam("sort", "count_of_issues:desc")
                 .build()
                 .toUri();
 
@@ -654,12 +668,12 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         List<Comic> volumes = response != null && response.getResults() != null ? response.getResults() : Collections.emptyList();
 
         if (volumes.isEmpty()) {
-            log.debug("No volumes found via /volumes filter, trying /search for '{}'", seriesName);
-            volumes = searchVolumesViaSearch(seriesName, apiToken);
+            log.debug("No volumes found via /search/ endpoint, falling back to /volumes/ filter for '{}'", seriesName);
+            volumes = searchVolumesViaFilter(seriesName, apiToken);
         }
 
         if (!volumes.isEmpty()) {
-            volumeCache.put(cacheKey, new CachedVolumes(volumes));
+            volumeCache.put(cacheKey, new CachedVolumes(List.copyOf(volumes)));
         } else if (seriesName.contains(" - ")) {
             String alternativeName = seriesName.replace(" - ", ": ");
             log.debug("No results for '{}', trying alternative name '{}'", seriesName, alternativeName);
@@ -669,14 +683,13 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         return volumes;
     }
 
-    private List<Comic> searchVolumesViaSearch(String seriesName, String apiToken) {
+    private List<Comic> searchVolumesViaFilter(String seriesName, String apiToken) {
         URI uri = UriComponentsBuilder.fromUriString(COMICVINE_URL)
-                .path("/search/")
+                .path("/volumes/")
                 .queryParam("api_key", apiToken)
                 .queryParam("format", "json")
-                .queryParam("resources", "volume")
-                .queryParam("query", seriesName)
-                .queryParam("limit", 10)
+                .queryParam("filter", "name:" + seriesName)
+                .queryParam("limit", 20)
                 .queryParam("field_list", VOLUME_FIELDS)
                 .build()
                 .toUri();
