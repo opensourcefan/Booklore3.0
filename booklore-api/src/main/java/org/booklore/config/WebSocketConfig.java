@@ -10,6 +10,11 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
+
 import java.util.Arrays;
 
 @Slf4j
@@ -27,9 +32,20 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/queue", "/topic");
+        registry.enableSimpleBroker("/queue", "/topic")
+                .setHeartbeatValue(new long[]{10_000, 10_000})
+                .setTaskScheduler(wsHeartbeatScheduler());
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
+    }
+
+    @Bean
+    public TaskScheduler wsHeartbeatScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.setDaemon(true);
+        return scheduler;
     }
 
     @Override
@@ -52,6 +68,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             endpoint.setAllowedOriginPatterns(origins);
             log.info("WebSocket endpoint registered at /ws with allowed origins: {}", Arrays.toString(origins));
         }
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        registration.setSendTimeLimit(15_000)
+                .setSendBufferSizeLimit(512 * 1024)
+                .setMessageSizeLimit(128 * 1024)
+                .setTimeToFirstMessage(30_000);
     }
 
     @Override
