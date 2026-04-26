@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, Input, OnInit, ViewChild, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnInit, ViewChild, inject} from '@angular/core';
 import {BookCardComponent} from '../../../book/components/book-browser/book-card/book-card.component';
 import {InfiniteScrollDirective} from 'ngx-infinite-scroll';
 import {NgClass} from '@angular/common';
@@ -12,6 +12,7 @@ import {LocalStorageService} from '../../../../shared/service/local-storage.serv
 
 @Component({
   selector: 'app-dashboard-scroller',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard-scroller.component.html',
   styleUrls: ['./dashboard-scroller.component.scss'],
   imports: [

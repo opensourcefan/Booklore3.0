@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, Input, OnDestroy, OnInit} from '@angular/core';
 import {Book} from '../../model/book.model';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Button} from 'primeng/button';
@@ -12,6 +12,7 @@ import {TooltipModule} from 'primeng/tooltip';
 
 @Component({
   selector: 'app-book-card-lite-component',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     Button,
     NgClass,
