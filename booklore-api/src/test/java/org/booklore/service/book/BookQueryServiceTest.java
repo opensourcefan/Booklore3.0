@@ -39,7 +39,7 @@ class BookQueryServiceTest {
         when(bookRepository.findAllWithMetadata()).thenReturn(List.of(entity));
         when(bookMapperV2.toDTO(entity)).thenReturn(dto);
 
-        Book result = service.getAllBooks(false).getFirst();
+        Book result = service.getAllBooks(false, true).getFirst();
 
         assertEquals("Existing Title", result.getMetadata().getTitle());
         assertEquals("TEST", result.getMetadata().getSubtitle());
