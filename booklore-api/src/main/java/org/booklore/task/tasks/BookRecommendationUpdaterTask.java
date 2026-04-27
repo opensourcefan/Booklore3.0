@@ -61,9 +61,6 @@ public class BookRecommendationUpdaterTask implements Task {
 
         long totalBooksLong = bookQueryService.countAllNonDeleted();
         int totalBooks = (int) totalBooksLong;
-        if (totalBooks == 0) {
-            return builder.status(TaskStatus.COMPLETED).build();
-        }
 
         lastNotificationTime = sendTaskProgressNotification(taskId, 5, String.format("Found %d books, generating embeddings in batches...", totalBooks), TaskStatus.IN_PROGRESS, lastNotificationTime, false);
 
