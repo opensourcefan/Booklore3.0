@@ -4,8 +4,8 @@ import org.booklore.util.BookUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.LazyGroup;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -298,12 +298,16 @@ public class BookMetadataEntity {
     @Builder.Default
     private Boolean abridgedLocked = Boolean.FALSE;
 
+    @Basic(fetch = FetchType.LAZY)
+    @LazyGroup("embedding")
     @Column(name = "embedding_vector", columnDefinition = "TEXT")
     private String embeddingVector;
 
     @Column(name = "embedding_updated_at")
     private Instant embeddingUpdatedAt;
 
+    @Basic(fetch = FetchType.LAZY)
+    @LazyGroup("heavyText")
     @Column(name = "search_text", columnDefinition = "TEXT")
     private String searchText;
 
@@ -370,9 +374,10 @@ public class BookMetadataEntity {
             name = "book_metadata_author_mapping",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "author_id"))
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 20)
     @OrderColumn(name = "sort_order")
-    private List<AuthorEntity> authors;
+    @Builder.Default
+    private List<AuthorEntity> authors = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
@@ -380,8 +385,9 @@ public class BookMetadataEntity {
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
-    @Fetch(FetchMode.SUBSELECT)
-    private Set<CategoryEntity> categories;
+    @BatchSize(size = 20)
+    @Builder.Default
+    private Set<CategoryEntity> categories = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
@@ -389,8 +395,9 @@ public class BookMetadataEntity {
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "mood_id")
     )
-    @Fetch(FetchMode.SUBSELECT)
-    private Set<MoodEntity> moods;
+    @BatchSize(size = 20)
+    @Builder.Default
+    private Set<MoodEntity> moods = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
@@ -398,11 +405,12 @@ public class BookMetadataEntity {
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    @Fetch(FetchMode.SUBSELECT)
-    private Set<TagEntity> tags;
+    @BatchSize(size = 20)
+    @Builder.Default
+    private Set<TagEntity> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "bookMetadata", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 20)
     @Builder.Default
     private Set<BookReviewEntity> reviews = new HashSet<>();
 

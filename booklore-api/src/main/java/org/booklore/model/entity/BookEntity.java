@@ -10,8 +10,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hibernate.annotations.LazyGroup;
 
 @Entity
 @Getter
@@ -89,8 +91,11 @@ public class BookEntity {
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "shelf_id")
     )
-    private Set<ShelfEntity> shelves;
+    @Builder.Default
+    private Set<ShelfEntity> shelves = new HashSet<>();
 
+    @Basic(fetch = FetchType.LAZY)
+    @LazyGroup("recommendations")
     @Convert(converter = BookRecommendationIdsListConverter.class)
     @Column(name = "similar_books_json", columnDefinition = "TEXT")
     private Set<BookRecommendationLite> similarBooksJson;
@@ -101,7 +106,8 @@ public class BookEntity {
     private List<BookFileEntity> bookFiles = new ArrayList<>();
 
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
-    private List<UserBookProgressEntity> userBookProgress;
+    @Builder.Default
+    private List<UserBookProgressEntity> userBookProgress = new ArrayList<>();
 
     public Path getFullFilePath() {
         BookFileEntity primaryBookFile = getPrimaryBookFile();
