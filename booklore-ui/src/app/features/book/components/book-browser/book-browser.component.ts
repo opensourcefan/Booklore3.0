@@ -419,7 +419,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           this.selectedBookTitle = this.getDisplayTitle(book);
           this.pendingPreviewBookId = null;
           this.hoverPreviewTimer = null;
-          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         });
       }, this.COVER_PREVIEW_HOVER_DELAY_MS);
     });
