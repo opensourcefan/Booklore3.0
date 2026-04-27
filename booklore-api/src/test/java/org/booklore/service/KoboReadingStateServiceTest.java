@@ -44,6 +44,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@SuppressWarnings("deprecation")
 class KoboReadingStateServiceTest {
 
     @Mock

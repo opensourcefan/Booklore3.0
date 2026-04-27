@@ -317,17 +317,6 @@ public class KomgaService {
         return pages;
     }
 
-    private Map<String, List<BookEntity>> groupBooksBySeries(List<BookEntity> books) {
-        Map<String, List<BookEntity>> seriesMap = new HashMap<>();
-        
-        for (BookEntity book : books) {
-            String seriesName = komgaMapper.getBookSeriesName(book);
-            seriesMap.computeIfAbsent(seriesName, k -> new ArrayList<>()).add(book);
-        }
-        
-        return seriesMap;
-    }
-    
     public KomgaPageableDto<KomgaCollectionDto> getCollections(int page, int size, boolean unpaged) {
         log.debug("Getting collections, page: {}, size: {}, unpaged: {}", page, size, unpaged);
         

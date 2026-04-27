@@ -15,5 +15,9 @@
     ],
     "editor.formatOnSave": false,
     "chat.agent.maxRequests": 100,
-    "java.debug.settings.onBuildFailureProceed": true
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.errors.incompleteClasspath.severity": "ignore",
+    "problems.exclude": {
+        "**/booklore-api/src/test/java/**/*.java": true
+    }
 }

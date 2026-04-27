@@ -266,10 +266,16 @@ public class BookDownloadService {
             }
 
             if (convertCbxToEpub) {
+                if (tempDir == null) {
+                    throw ApiError.FAILED_TO_DOWNLOAD_FILE.createException(bookId);
+                }
                 fileToSend = cbxConversionService.convertCbxToEpub(inputFile, tempDir.toFile(), bookEntity,compressionPercentage);
             }
 
             if (convertEpubToKepub) {
+                if (tempDir == null) {
+                    throw ApiError.FAILED_TO_DOWNLOAD_FILE.createException(bookId);
+                }
                 fileToSend = kepubConversionService.convertEpubToKepub(inputFile, tempDir.toFile(),
                     koboSettings.isForceEnableHyphenation());
             }

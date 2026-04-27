@@ -55,6 +55,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@SuppressWarnings("deprecation")
 class BookDropServiceTest {
 
     @Mock
@@ -160,7 +161,6 @@ class BookDropServiceTest {
     void getFilesByStatus_WhenStatusIsPending_ShouldReturnPendingFiles() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<BookdropFileEntity> entityPage = new PageImpl<>(List.of(bookdropFileEntity));
-        Page<BookdropFile> expectedPage = new PageImpl<>(List.of(bookdropFile));
 
         when(bookdropFileRepository.findAllByStatus(BookdropFileEntity.Status.PENDING_REVIEW, pageable))
                 .thenReturn(entityPage);
@@ -462,7 +462,7 @@ class BookDropServiceTest {
         pathEntity.setPath("/books");
         when(libraryPathRepository.findById(1L)).thenReturn(Optional.of(pathEntity));
 
-        lenient().when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new BookMetadata());
+        lenient().when(objectMapper.readValue(anyString(), eq(BookMetadata.class))).thenReturn(new BookMetadata());
         when(fileMovingHelper.getFileNamingPattern(libraryEntity)).thenReturn("{title}");
         when(fileMovingHelper.generateNewFilePath(anyString(), any(), anyString(), anyString()))
                 .thenReturn(tempDir.resolve("moved-book.pdf"));

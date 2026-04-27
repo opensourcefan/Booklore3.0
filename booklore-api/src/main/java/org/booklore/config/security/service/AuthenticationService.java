@@ -186,7 +186,7 @@ public class AuthenticationService {
         String accessToken = jwtUtils.generateAccessToken(user);
         String refreshToken = jwtUtils.generateRefreshToken(user);
 
-        long expirationMs = customRefreshTokenExpirationMs != null ? customRefreshTokenExpirationMs : jwtUtils.getRefreshTokenExpirationMs();
+        long expirationMs = customRefreshTokenExpirationMs != null ? customRefreshTokenExpirationMs : JwtUtils.getRefreshTokenExpirationMs();
 
         RefreshTokenEntity refreshTokenEntity = RefreshTokenEntity.builder()
                 .user(user)
@@ -229,7 +229,7 @@ public class AuthenticationService {
         RefreshTokenEntity newRefreshTokenEntity = RefreshTokenEntity.builder()
                 .user(user)
                 .token(newRefreshToken)
-                .expiryDate(Instant.now().plusMillis(jwtUtils.getRefreshTokenExpirationMs()))
+            .expiryDate(Instant.now().plusMillis(JwtUtils.getRefreshTokenExpirationMs()))
                 .revoked(false)
                 .build();
 

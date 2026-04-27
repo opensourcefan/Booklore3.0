@@ -154,6 +154,9 @@ public class MigrateProgressToFileProgressMigration implements Migration {
                         String.valueOf(progress.getCbxProgress()) : null);
                 fileProgress.setProgressPercent(progress.getCbxProgressPercent());
             }
+            case AUDIOBOOK -> {
+                // AUDIOBOOK progress mapping is handled elsewhere.
+            }
         }
 
         return fileProgress;

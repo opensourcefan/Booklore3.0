@@ -122,6 +122,9 @@ public class KoreaderService {
                             String.valueOf(progress.getCbxProgress()) : null);
                     fileProgress.setProgressPercent(progress.getCbxProgressPercent());
                 }
+                case AUDIOBOOK -> {
+                    // KOReader does not sync audiobook position data.
+                }
             }
 
             fileProgressRepository.save(fileProgress);

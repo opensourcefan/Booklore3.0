@@ -31,7 +31,7 @@ import static org.booklore.util.FileService.truncate;
 
 @Slf4j
 @Service
-public class EpubProcessor extends AbstractFileProcessor implements BookFileProcessor {
+public class EpubProcessor extends AbstractFileProcessor {
 
     private final EpubMetadataExtractor epubMetadataExtractor;
 

@@ -2,7 +2,6 @@ package org.booklore.service.monitoring;
 
 import org.booklore.model.dto.Library;
 import org.booklore.model.dto.LibraryPath;
-import org.booklore.model.enums.BookFileExtension;
 import org.booklore.service.watcher.LibraryFileEventProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

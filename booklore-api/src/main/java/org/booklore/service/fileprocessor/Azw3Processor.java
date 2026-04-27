@@ -29,7 +29,7 @@ import static org.booklore.util.FileService.truncate;
 
 @Slf4j
 @Service
-public class Azw3Processor extends AbstractFileProcessor implements BookFileProcessor {
+public class Azw3Processor extends AbstractFileProcessor {
 
     private final Azw3MetadataExtractor azw3MetadataExtractor;
 

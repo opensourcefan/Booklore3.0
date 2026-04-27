@@ -33,7 +33,7 @@ import static org.booklore.util.FileService.truncate;
 
 @Slf4j
 @Service
-public class AudiobookProcessor extends AbstractFileProcessor implements BookFileProcessor {
+public class AudiobookProcessor extends AbstractFileProcessor {
 
     private final AudiobookMetadataExtractor audiobookMetadataExtractor;
 

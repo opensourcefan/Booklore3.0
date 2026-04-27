@@ -29,7 +29,7 @@ import static org.booklore.util.FileService.truncate;
 
 @Slf4j
 @Service
-public class Fb2Processor extends AbstractFileProcessor implements BookFileProcessor {
+public class Fb2Processor extends AbstractFileProcessor {
 
     private final Fb2MetadataExtractor fb2MetadataExtractor;
 

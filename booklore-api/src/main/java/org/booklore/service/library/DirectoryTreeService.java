@@ -10,7 +10,6 @@ import org.booklore.model.entity.BookLoreUserEntity;
 import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.repository.BookFileRepository;
-import org.booklore.repository.LibraryPathRepository;
 import org.booklore.repository.LibraryRepository;
 import org.booklore.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,7 +26,6 @@ import java.util.Map;
 public class DirectoryTreeService {
 
     private final LibraryRepository libraryRepository;
-    private final LibraryPathRepository libraryPathRepository;
     private final BookFileRepository bookFileRepository;
     private final AuthenticationService authenticationService;
     private final UserRepository userRepository;

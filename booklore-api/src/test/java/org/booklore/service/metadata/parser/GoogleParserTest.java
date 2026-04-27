@@ -149,6 +149,6 @@ class GoogleParserTest {
         }
         
         when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-                .thenReturn(responses[0], Arrays.copyOfRange(responses, 1, responses.length));
+            .thenReturn(responses[0], Arrays.copyOfRange(responses, 1, responses.length));
     }
 }

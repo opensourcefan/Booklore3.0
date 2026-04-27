@@ -43,7 +43,7 @@ import static org.booklore.util.FileService.truncate;
 
 @Slf4j
 @Service
-public class CbxProcessor extends AbstractFileProcessor implements BookFileProcessor {
+public class CbxProcessor extends AbstractFileProcessor {
 
     private static final Pattern UNDERSCORE_HYPHEN_PATTERN = Pattern.compile("[_\\-]");
     private static final Pattern IMAGE_EXTENSION_PATTERN = Pattern.compile(".*\\.(jpg|jpeg|png|webp)");

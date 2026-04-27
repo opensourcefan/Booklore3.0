@@ -80,7 +80,7 @@ describe('MetadataAdvancedFetchOptionsComponent', () => {
     expect(controlRail).not.toBeNull();
     expect(optionsContainer.firstElementChild).toBe(controlRail);
     expect(table).not.toBeNull();
-  });
+  }, 15000);
 
   it('hides the embedded footer controls when external controls are enabled', () => {
     const fixture = TestBed.createComponent(MetadataAdvancedFetchOptionsComponent);

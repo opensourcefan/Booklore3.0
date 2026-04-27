@@ -492,6 +492,9 @@ public class OpdsBookService {
         List<Book> sortedBooks = new ArrayList<>(booksPage.getContent());
         
         switch (sortOrder) {
+            case RECENT -> {
+                // Already sorted by addedOn DESC from repository query.
+            }
             case TITLE_ASC -> sortedBooks.sort((b1, b2) -> {
                 String title1 = b1.getMetadata() != null && b1.getMetadata().getTitle() != null 
                     ? b1.getMetadata().getTitle() : "";

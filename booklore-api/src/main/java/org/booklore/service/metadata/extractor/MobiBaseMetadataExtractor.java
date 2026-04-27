@@ -218,7 +218,7 @@ public abstract class MobiBaseMetadataExtractor implements FileMetadataExtractor
         int textLength = readInt(raf);
         int recordCount = readShort(raf);
         int recordSize = readShort(raf);
-        int encryptionType = readShort(raf);
+        readShort(raf);
         raf.skipBytes(2);
 
         log.debug("PalmDOC: compression={}, textLength={}, recordCount={}, recordSize={}",
@@ -310,8 +310,6 @@ public abstract class MobiBaseMetadataExtractor implements FileMetadataExtractor
     }
 
     protected void readExthRecords(RandomAccessFile raf, MobiHeader header, Charset charset) throws IOException {
-        long exthStart = raf.getFilePointer() - 4;
-
         int headerLength = readInt(raf);
         int recordCount = readInt(raf);
 
