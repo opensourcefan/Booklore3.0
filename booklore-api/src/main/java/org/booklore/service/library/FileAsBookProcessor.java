@@ -24,9 +24,7 @@ import org.booklore.util.BookFileGroupingUtils;
 import org.booklore.util.FileService;
 import org.booklore.util.FileUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -53,17 +51,19 @@ public class FileAsBookProcessor {
     private final FileService fileService;
     private final MetadataExtractorFactory metadataExtractorFactory;
     private final AudiobookMetadataExtractor audiobookMetadataExtractor;
-    private final TransactionTemplate transactionTemplate;
 
+    @Transactional
     public void processLibraryFiles(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
         Map<String, List<LibraryFile>> groups = BookFileGroupingUtils.groupByBaseName(libraryFiles);
         processLibraryFilesGrouped(groups, libraryEntity);
     }
 
+    @Transactional
     public void processLibraryFilesGrouped(Map<String, List<LibraryFile>> groups, LibraryEntity libraryEntity) {
         processLibraryFilesGrouped(groups, libraryEntity, null);
     }
 
+    @Transactional
     public void processLibraryFilesGrouped(Map<String, List<LibraryFile>> groups, LibraryEntity libraryEntity, BiConsumer<Integer, Integer> progressCallback) {
         LibraryEntity managedLibrary = ensureManaged(libraryEntity);
         int total = groups.size();
@@ -87,9 +87,7 @@ public class FileAsBookProcessor {
 
     private void processGroupWithErrorHandling(List<LibraryFile> group, LibraryEntity libraryEntity) {
         try {
-            transactionTemplate.executeWithoutResult(status -> {
-                processGroup(group, libraryEntity);
-            });
+            processGroup(group, libraryEntity);
         } catch (Exception e) {
             String fileNames = group.stream().map(LibraryFile::getFileName).toList().toString();
             log.error("Failed to process file group {}: {}", fileNames, e.getMessage());
@@ -120,18 +118,8 @@ public class FileAsBookProcessor {
             return;
         }
 
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    bookEventBroadcaster.broadcastBookAddEvent(result.getBook());
-                    koboAutoShelfService.autoAddBookToKoboShelves(result.getBook().getId());
-                }
-            });
-        } else {
-            bookEventBroadcaster.broadcastBookAddEvent(result.getBook());
-            koboAutoShelfService.autoAddBookToKoboShelves(result.getBook().getId());
-        }
+        bookEventBroadcaster.broadcastBookAddEvent(result.getBook());
+        koboAutoShelfService.autoAddBookToKoboShelves(result.getBook().getId());
 
         List<LibraryFile> additionalFiles = group.stream()
                 .filter(f -> !f.equals(primary))

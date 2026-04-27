@@ -29,7 +29,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import org.springframework.transaction.support.TransactionTemplate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -65,9 +64,6 @@ class FileAsBookProcessorTest {
     private AudiobookMetadataExtractor audiobookMetadataExtractor;
 
     @Mock
-    private TransactionTemplate transactionTemplate;
-
-    @Mock
     private BookFileProcessor bookFileProcessor;
 
     private FileAsBookProcessor fileAsBookProcessor;
@@ -79,13 +75,6 @@ class FileAsBookProcessorTest {
     @BeforeEach
     void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
-        
-        doAnswer(invocation -> {
-            java.util.function.Consumer<org.springframework.transaction.TransactionStatus> action = invocation.getArgument(0);
-            action.accept(null);
-            return null;
-        }).when(transactionTemplate).executeWithoutResult(any());
-        
         fileAsBookProcessor = new FileAsBookProcessor(
                 bookEventBroadcaster,
                 processorRegistry,
@@ -95,8 +84,7 @@ class FileAsBookProcessorTest {
                 libraryRepository,
                 fileService,
                 metadataExtractorFactory,
-                audiobookMetadataExtractor,
-                transactionTemplate
+                audiobookMetadataExtractor
         );
         fileFingerprintMock = mockStatic(FileFingerprint.class);
         fileFingerprintMock.when(() -> FileFingerprint.generateHash(any(Path.class))).thenReturn("testhash");
