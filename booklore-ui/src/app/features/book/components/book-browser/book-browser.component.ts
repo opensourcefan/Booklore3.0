@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, QueryList, NgZone, ViewChild, ViewChildren} from '@angular/core';
 import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
@@ -112,6 +112,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
   protected bookSelectionService = inject(BookSelectionService);
   protected appSettingsService = inject(AppSettingsService);
+  private ngZone = inject(NgZone);
 
   private cdr = inject(ChangeDetectorRef);
   private activatedRoute = inject(ActivatedRoute);
@@ -408,15 +409,20 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.clearHoverPreviewTimer();
     this.pendingPreviewBookId = book.id;
 
-    this.hoverPreviewTimer = setTimeout(() => {
-      if (this.pendingPreviewBookId !== book.id) {
-        return;
-      }
-      this.selectedCoverUrl = this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
-      this.selectedBookTitle = this.getDisplayTitle(book);
-      this.pendingPreviewBookId = null;
-      this.hoverPreviewTimer = null;
-    }, this.COVER_PREVIEW_HOVER_DELAY_MS);
+    this.ngZone.runOutsideAngular(() => {
+      this.hoverPreviewTimer = setTimeout(() => {
+        this.ngZone.run(() => {
+          if (this.pendingPreviewBookId !== book.id) {
+            return;
+          }
+          this.selectedCoverUrl = this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
+          this.selectedBookTitle = this.getDisplayTitle(book);
+          this.pendingPreviewBookId = null;
+          this.hoverPreviewTimer = null;
+          this.cdr.markForCheck();
+        });
+      }, this.COVER_PREVIEW_HOVER_DELAY_MS);
+    });
   }
 
   onBookHoverEnded(bookId: number): void {
