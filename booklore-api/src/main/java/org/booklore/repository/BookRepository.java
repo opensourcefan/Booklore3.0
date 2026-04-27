@@ -457,4 +457,39 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     List<BookEntity> findBooksBySeriesNameUngroupedByLibraryId(
             @Param("seriesName") String seriesName,
             @Param("libraryId") Long libraryId);
+
+    @Query("""
+            SELECT DISTINCT b FROM BookEntity b
+            LEFT JOIN FETCH b.metadata m
+            LEFT JOIN FETCH m.authors
+            LEFT JOIN FETCH m.categories
+            WHERE (b.deleted IS NULL OR b.deleted = false)
+            AND b.id <> :excludeBookId
+            """)
+    List<BookEntity> findAllForRecommendation(@Param("excludeBookId") Long excludeBookId);
+
+    @EntityGraph(attributePaths = {"metadata", "metadata.comicMetadata", "libraryPath", "library"})
+    @Query("SELECT b FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
+    org.springframework.data.domain.Page<BookEntity> findAllWithMetadataPage(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"metadata", "metadata.comicMetadata", "libraryPath", "library"})
+    @Query("SELECT b FROM BookEntity b WHERE b.library.id IN :libraryIds AND (b.deleted IS NULL OR b.deleted = false)")
+    org.springframework.data.domain.Page<BookEntity> findAllWithMetadataByLibraryIdsPage(@Param("libraryIds") Collection<Long> libraryIds, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"metadata", "metadata.comicMetadata"})
+    @Query("SELECT b FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false) ORDER BY b.id")
+    List<BookEntity> findAllFullBooksBatch(Pageable pageable);
+
+    @Query("""
+            SELECT b.id as bookId, m.embeddingVector as embeddingVector, m.seriesName as seriesName
+            FROM BookEntity b
+            LEFT JOIN b.metadata m
+            WHERE (b.deleted IS NULL OR b.deleted = false)
+            AND b.id <> :excludeBookId
+            AND m.embeddingVector IS NOT NULL
+            """)
+    List<org.booklore.repository.projection.BookEmbeddingProjection> findAllEmbeddingsForRecommendation(@Param("excludeBookId") Long excludeBookId);
+
+    @Query("SELECT COUNT(b) FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
+    long countNonDeleted();
 }

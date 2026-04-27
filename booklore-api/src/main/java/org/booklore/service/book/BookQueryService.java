@@ -10,8 +10,14 @@ import org.booklore.service.restriction.ContentRestrictionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Set;
+import org.booklore.model.dto.BookRecommendationLite;
+import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -33,6 +39,35 @@ public class BookQueryService {
         return mapBooksToDto(books, includeDescription, userId, stripForListView);
     }
 
+    public Page<Book> getAllBooksPaged(Pageable pageable) {
+        Page<BookEntity> page = bookRepository.findAllWithMetadataPage(pageable);
+        return page.map(book -> mapBookToDto(book, false, null, true));
+    }
+
+    public Page<Book> getAllBooksByLibraryIdsPaged(Collection<Long> libraryIds, Long userId, Pageable pageable) {
+        Page<BookEntity> page = bookRepository.findAllWithMetadataByLibraryIdsPage(libraryIds, pageable);
+        List<BookEntity> filtered = contentRestrictionService.applyRestrictions(page.getContent(), userId);
+        List<Book> dtos = filtered.stream()
+                .map(book -> mapBookToDto(book, false, userId, true))
+                .toList();
+        return new PageImpl<>(dtos, pageable, page.getTotalElements());
+    }
+
+    public List<BookEntity> getAllFullBookEntitiesBatch(Pageable pageable) {
+        List<BookEntity> books = bookRepository.findAllFullBooksBatch(pageable);
+        for (BookEntity book : books) {
+            if (book.getMetadata() != null) {
+                Hibernate.initialize(book.getMetadata().getAuthors());
+                Hibernate.initialize(book.getMetadata().getCategories());
+            }
+        }
+        return books;
+    }
+
+    public long countAllNonDeleted() {
+        return bookRepository.countNonDeleted();
+    }
+
     public List<BookEntity> findAllWithMetadataByIds(Set<Long> bookIds) {
         return bookRepository.findAllWithMetadataByIds(bookIds);
     }
@@ -49,6 +84,36 @@ public class BookQueryService {
         bookRepository.saveAll(books);
     }
 
+    @Transactional
+    public void compareAndSaveEmbeddings(Map<Long, String> embeddingJsonByBookId) {
+        List<BookEntity> books = bookRepository.findAllWithMetadataByIds(new HashSet<>(embeddingJsonByBookId.keySet()));
+        for (BookEntity book : books) {
+            String embeddingJson = embeddingJsonByBookId.get(book.getId());
+            if (embeddingJson != null && book.getMetadata() != null) {
+                if (!Objects.equals(book.getMetadata().getEmbeddingVector(), embeddingJson)) {
+                    book.getMetadata().setEmbeddingVector(embeddingJson);
+                    book.getMetadata().setEmbeddingUpdatedAt(java.time.Instant.now());
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public void saveRecommendationsInBatches(Map<Long, Set<BookRecommendationLite>> recommendations, int batchSize) {
+        List<Long> bookIds = new ArrayList<>(recommendations.keySet());
+        for (int i = 0; i < bookIds.size(); i += batchSize) {
+            List<Long> batchIds = bookIds.subList(i, Math.min(i + batchSize, bookIds.size()));
+            List<BookEntity> batch = bookRepository.findAllById(batchIds);
+            for (BookEntity book : batch) {
+                Set<BookRecommendationLite> recs = recommendations.get(book.getId());
+                if (recs != null) {
+                    book.setSimilarBooksJson(recs);
+                }
+            }
+            bookRepository.saveAll(batch);
+        }
+    }
+
     private List<Book> mapBooksToDto(List<BookEntity> books, boolean includeDescription, Long userId, boolean stripForListView) {
         return books.stream()
                 .map(book -> mapBookToDto(book, includeDescription, userId, stripForListView))
@@ -58,8 +123,8 @@ public class BookQueryService {
     private Book mapBookToDto(BookEntity bookEntity, boolean includeDescription, Long userId, boolean stripForListView) {
         Book dto = bookMapperV2.toDTO(bookEntity);
 
-        if (!includeDescription && dto.getMetadata() != null) {
-            dto.getMetadata().setDescription(null);
+        if (includeDescription && dto.getMetadata() != null && bookEntity.getMetadata() != null) {
+            dto.getMetadata().setDescription(bookEntity.getMetadata().getDescription());
         }
 
         if (dto.getShelves() != null && userId != null) {

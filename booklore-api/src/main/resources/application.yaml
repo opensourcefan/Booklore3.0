@@ -86,6 +86,7 @@ spring:
       hibernate:
         query:
           timeout: 30              # 30s max for any HQL/JPQL query
+          fail_on_pagination_over_collection_fetch: true
         jdbc:
           time_zone: UTC
           batch_size: 500
