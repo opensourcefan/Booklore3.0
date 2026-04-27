@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
-@AllArgsConstructor
 @Component
 @Slf4j
 public class FileAsBookProcessor {
@@ -51,6 +50,30 @@ public class FileAsBookProcessor {
     private final FileService fileService;
     private final MetadataExtractorFactory metadataExtractorFactory;
     private final AudiobookMetadataExtractor audiobookMetadataExtractor;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    @org.springframework.context.annotation.Lazy
+    private FileAsBookProcessor self;
+
+    public FileAsBookProcessor(BookEventBroadcaster bookEventBroadcaster,
+                               BookFileProcessorRegistry processorRegistry,
+                               KoboAutoShelfService koboAutoShelfService,
+                               BookRepository bookRepository,
+                               BookAdditionalFileRepository bookAdditionalFileRepository,
+                               LibraryRepository libraryRepository,
+                               FileService fileService,
+                               MetadataExtractorFactory metadataExtractorFactory,
+                               AudiobookMetadataExtractor audiobookMetadataExtractor) {
+        this.bookEventBroadcaster = bookEventBroadcaster;
+        this.processorRegistry = processorRegistry;
+        this.koboAutoShelfService = koboAutoShelfService;
+        this.bookRepository = bookRepository;
+        this.bookAdditionalFileRepository = bookAdditionalFileRepository;
+        this.libraryRepository = libraryRepository;
+        this.fileService = fileService;
+        this.metadataExtractorFactory = metadataExtractorFactory;
+        this.audiobookMetadataExtractor = audiobookMetadataExtractor;
+    }
 
     @Transactional
     public void processLibraryFiles(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
@@ -87,14 +110,15 @@ public class FileAsBookProcessor {
 
     private void processGroupWithErrorHandling(List<LibraryFile> group, LibraryEntity libraryEntity) {
         try {
-            processGroup(group, libraryEntity);
+            self.processGroupTransactionally(group, libraryEntity);
         } catch (Exception e) {
             String fileNames = group.stream().map(LibraryFile::getFileName).toList().toString();
             log.error("Failed to process file group {}: {}", fileNames, e.getMessage());
         }
     }
 
-    private void processGroup(List<LibraryFile> group, LibraryEntity libraryEntity) {
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public void processGroupTransactionally(List<LibraryFile> group, LibraryEntity libraryEntity) {
         Optional<LibraryFile> primaryFile = findBestPrimaryFile(group, libraryEntity);
         if (primaryFile.isEmpty()) {
             log.warn("No suitable book file found in group");
@@ -118,7 +142,16 @@ public class FileAsBookProcessor {
             return;
         }
 
-        bookEventBroadcaster.broadcastBookAddEvent(result.getBook());
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(new org.springframework.transaction.support.TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    bookEventBroadcaster.broadcastBookAddEvent(result.getBook());
+                }
+            });
+        } else {
+            bookEventBroadcaster.broadcastBookAddEvent(result.getBook());
+        }
         koboAutoShelfService.autoAddBookToKoboShelves(result.getBook().getId());
 
         List<LibraryFile> additionalFiles = group.stream()

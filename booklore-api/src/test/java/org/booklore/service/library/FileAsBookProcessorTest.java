@@ -86,6 +86,8 @@ class FileAsBookProcessorTest {
                 metadataExtractorFactory,
                 audiobookMetadataExtractor
         );
+        org.springframework.test.util.ReflectionTestUtils.setField(fileAsBookProcessor, "self", fileAsBookProcessor);
+        
         fileFingerprintMock = mockStatic(FileFingerprint.class);
         fileFingerprintMock.when(() -> FileFingerprint.generateHash(any(Path.class))).thenReturn("testhash");
         fileUtilsMock = mockStatic(FileUtils.class);

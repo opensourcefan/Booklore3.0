@@ -383,12 +383,22 @@ public class LibraryProcessingService {
                     .progress(progress)
                     .taskStatus(status)
                     .build();
-            notificationService.sendMessage(Topic.TASK_PROGRESS, payload);
+            if (status == TaskStatus.COMPLETED && org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+                org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                        new org.springframework.transaction.support.TransactionSynchronization() {
+                            @Override
+                            public void afterCommit() {
+                                notificationService.sendMessage(Topic.TASK_PROGRESS, payload);
+                            }
+                        }
+                );
+            } else {
+                notificationService.sendMessage(Topic.TASK_PROGRESS, payload);
+            }
         } catch (Exception e) {
             log.error("Failed to send sync progress notification: {}", e.getMessage(), e);
         }
     }
-
     private void scheduleImportedBookTaggingIfEnabled(LibraryEntity libraryEntity, List<LibraryFile> importedFiles) {
         if (!libraryEntity.isTagByDirectory()) {
             return;
