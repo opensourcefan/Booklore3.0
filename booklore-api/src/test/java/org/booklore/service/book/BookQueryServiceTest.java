@@ -32,7 +32,6 @@ class BookQueryServiceTest {
                 .metadata(BookMetadata.builder()
                         .title("Existing Title")
                         .subtitle("TEST")
-                        .description("Long description")
                         .build())
                 .build();
 
