@@ -292,3 +292,6 @@ The current HTML guide also documents the directory explorer workflow, including
 <img src="assets/booklore3.0-screenshot2.png" width="800">
 
 <img src="assets/booklore3.0-screenshot3.png" width="800">
+
+## Automated Maintenance
+Dependabot is configured to automatically keep dependencies updated. Safe, non-breaking pull requests will be auto-merged by GitHub Actions.
