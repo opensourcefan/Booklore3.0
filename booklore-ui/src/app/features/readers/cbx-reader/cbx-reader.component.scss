@@ -286,7 +286,7 @@
           .page-image {
             transform: translate(var(--manual-pan-x, 0px), var(--manual-pan-y, 0px)) scale(var(--manual-page-zoom, 1));
             transform-origin: 50% 50%;
-            transition: transform 0.15s ease-out;
+            transition: transform 0.45s ease-out;
           }
 
           &:hover .page-image {
@@ -798,7 +798,7 @@
     height: 28px;
     padding: 0 24px;
     gap: 16px;
-    background: rgba(20, 20, 20, 0.45);
+    background: rgba(20, 20, 20, 0.22);
     z-index: 1001;
     display: flex;
     align-items: center;
