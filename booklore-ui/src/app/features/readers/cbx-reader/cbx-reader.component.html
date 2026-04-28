@@ -1,6 +1,7 @@
 <div class="comic-reader-container" tabindex="0"
   [class.rtl-reading]="readingDirection === CbxReadingDirection.RTL"
   [class.fullscreen-mode]="isFullscreen"
+  [class.has-mobile-slider]="showMobileJoystick"
   [class.slideshow-active]="isSlideshowActive">
   <app-cbx-header
     [isCurrentPageBookmarked]="isCurrentPageBookmarked"
@@ -210,6 +211,20 @@
     }
 
     @if (showMobileJoystick) {
+      <div class="mobile-zoom-slider">
+        <span class="zoom-icon">−</span>
+        <input 
+          type="range" 
+          class="zoom-range" 
+          min="1" 
+          max="3.5" 
+          step="0.01" 
+          [value]="manualPageZoom"
+          (input)="onMobileZoomSliderChange($event)"
+          title="Zoom" />
+        <span class="zoom-icon">+</span>
+      </div>
+
       <div
         class="mobile-joystick"
         [class.active]="joystickActive"

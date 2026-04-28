@@ -439,6 +439,12 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.syncMobileBackRegistrations();
   }
 
+  onMobileZoomSliderChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.manualPageZoom = parseFloat(target.value);
+    this.applyManualPagePanBounds();
+  }
+
   private subscribeToHeaderEvents(): void {
     this.headerService.showQuickSettings$
       .pipe(takeUntil(this.destroy$))

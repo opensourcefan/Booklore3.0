@@ -329,54 +329,7 @@ $transition-fast: 150ms ease;
   }
 
   .mobile-zoom-slider {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 36px;
-    padding: 0 16px;
-    gap: 12px;
-    background: rgba(30, 30, 30, 0.95);
-    border-top: 1px solid #404040;
-    width: 100%;
-    backdrop-filter: blur(8px);
-    
-    .zoom-icon {
-      font-size: 20px;
-      font-weight: 500;
-      color: $text-primary;
-      user-select: none;
-    }
-
-    .zoom-range {
-      flex: 1;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
-      outline: none;
-      -webkit-appearance: none;
-      appearance: none;
-      
-      &::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: $active-color;
-        cursor: pointer;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-      }
-      
-      &::-moz-range-thumb {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: $active-color;
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-      }
-    }
+    display: none;
   }
 
   .page-nav-left .series-btn,
