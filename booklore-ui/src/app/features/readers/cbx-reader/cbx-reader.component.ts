@@ -2344,7 +2344,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private getJoystickSensitivityMultiplier(): number {
     switch (this.joystickSensitivity) {
       case 'SLOW':
-        return 0.6;
+        return 0.3; // Temporarily reduced acceleration by 50% per Phase 1 request
       case 'FAST':
         return 2;
       default:
