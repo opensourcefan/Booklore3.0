@@ -61,6 +61,7 @@ public class SidecarMetadataMapper {
                 .generatedBy("booklore")
                 .metadata(bookMetadata)
                 .cover(coverInfo)
+                .bookId(entity.getBook().getId())
                 .build();
     }
 

@@ -57,6 +57,7 @@ class BookMetadataUpdaterTest {
     @Mock private BookReviewUpdateService bookReviewUpdateService;
     @Mock private FileMoveService fileMoveService;
     @Mock private SidecarMetadataWriter sidecarMetadataWriter;
+    @Mock private org.booklore.service.metadata.sidecar.SidecarPathResolver sidecarPathResolver;
 
     @InjectMocks
     private BookMetadataUpdater updater;

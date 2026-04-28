@@ -134,6 +134,7 @@ public class GoodReadsParser implements BookParser, DetailedMetadataProvider {
 
     @Override
     public List<BookMetadata> fetchMetadata(Book book, FetchMetadataRequest fetchMetadataRequest) {
+        try {
         String isbn = ParserUtils.cleanIsbn(fetchMetadataRequest.getIsbn());
         if (isbn != null && !isbn.isBlank()) {
             log.info("Goodreads Query URL (ISBN): {}{}", BASE_ISBN_URL, isbn);
@@ -170,6 +171,10 @@ public class GoodReadsParser implements BookParser, DetailedMetadataProvider {
         }
 
         return results;
+        } catch (Exception e) {
+            log.error("Unhandled network or parsing error in GoodReadsParser: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 
     private List<BookMetadata> fetchMetadataUsingPreviews(List<BookMetadata> previews) {

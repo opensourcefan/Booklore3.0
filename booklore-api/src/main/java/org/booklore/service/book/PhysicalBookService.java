@@ -141,6 +141,10 @@ public class PhysicalBookService {
                     if (sidecar.isEmpty()) {
                         continue;
                     }
+                    if (sidecar.get().getBookId() != null && bookRepository.existsById(sidecar.get().getBookId())) {
+                        log.debug("Skipping physical sidecar {} because book with ID {} already exists.", sidecarPath.getFileName(), sidecar.get().getBookId());
+                        continue;
+                    }
 
                     CreatePhysicalBookRequest request = toCreateRequest(libraryEntity.getId(), libraryPath.getId(), sidecar.get());
                     if (request == null) {

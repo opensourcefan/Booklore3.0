@@ -21,4 +21,5 @@ public class SidecarMetadata {
     private String generatedBy = "booklore";
     private SidecarBookMetadata metadata;
     private SidecarCoverInfo cover;
+    private Long bookId;
 }

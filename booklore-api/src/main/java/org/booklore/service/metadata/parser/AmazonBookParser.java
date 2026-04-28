@@ -105,6 +105,7 @@ public class AmazonBookParser implements BookParser, DetailedMetadataProvider {
 
     @Override
     public List<BookMetadata> fetchMetadata(Book book, FetchMetadataRequest fetchMetadataRequest) {
+        try {
         List<String> amazonBookIds = getAmazonBookIds(book, fetchMetadataRequest);
         if (amazonBookIds.isEmpty()) {
             return Collections.emptyList();
@@ -127,6 +128,10 @@ public class AmazonBookParser implements BookParser, DetailedMetadataProvider {
             }
         }
         return results;
+        } catch (Exception e) {
+            log.error("Unhandled network or parsing error in AmazonBookParser: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 
     private List<BookMetadata> extractSearchPreviews(Document doc) {

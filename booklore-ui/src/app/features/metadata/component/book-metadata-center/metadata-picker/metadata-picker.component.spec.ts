@@ -123,7 +123,9 @@ describe('MetadataPickerComponent save button state', () => {
     fixture.detectChanges();
 
     expect(updateBookMetadata).toHaveBeenCalledTimes(1);
-    expect(getSaveButton(fixture).textContent).toContain('Saved');
+          await vi.waitFor(() => {
+        expect(getSaveButton(fixture).textContent).toContain('Saved');
+      });
 
     component.metadataForm.get('title')?.setValue('Edited title');
     await vi.waitFor(() => {

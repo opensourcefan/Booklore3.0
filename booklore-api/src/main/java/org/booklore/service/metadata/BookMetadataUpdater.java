@@ -62,6 +62,7 @@ public class BookMetadataUpdater {
     private final BookReviewUpdateService bookReviewUpdateService;
     private final FileMoveService fileMoveService;
     private final SidecarMetadataWriter sidecarMetadataWriter;
+    private final org.booklore.service.metadata.sidecar.SidecarPathResolver sidecarPathResolver;
 
     @Transactional
     public void setBookMetadata(MetadataUpdateContext context) {
@@ -104,6 +105,13 @@ public class BookMetadataUpdater {
         BookFileType bookType = primaryFile != null ? primaryFile.getBookType() : null;
 
         boolean hasValueChangesForFileWrite = MetadataChangeDetector.hasValueChangesForFileWrite(newMetadata, metadata, clearFlags);
+
+                java.nio.file.Path oldSidecarPath = null;
+        java.nio.file.Path oldCoverPath = null;
+        if (sidecarMetadataWriter.isWriteOnUpdateEnabled()) {
+             oldSidecarPath = sidecarPathResolver.resolveSidecarPath(bookEntity);
+             oldCoverPath = sidecarPathResolver.resolveCoverPath(bookEntity);
+        }
 
         updateBasicFields(newMetadata, metadata, clearFlags, replaceMode);
         updateAuthorsIfNeeded(newMetadata, metadata, clearFlags, mergeCategories, replaceMode);
@@ -150,6 +158,16 @@ public class BookMetadataUpdater {
 
         if (sidecarMetadataWriter.isWriteOnUpdateEnabled()) {
             try {
+                java.nio.file.Path newSidecarPath = sidecarPathResolver.resolveSidecarPath(bookEntity);
+                java.nio.file.Path newCoverPath = sidecarPathResolver.resolveCoverPath(bookEntity);
+                
+                if (oldSidecarPath != null && newSidecarPath != null && !oldSidecarPath.equals(newSidecarPath)) {
+                    java.nio.file.Files.deleteIfExists(oldSidecarPath);
+                }
+                if (oldCoverPath != null && newCoverPath != null && !oldCoverPath.equals(newCoverPath)) {
+                    java.nio.file.Files.deleteIfExists(oldCoverPath);
+                }
+
                 sidecarMetadataWriter.writeSidecarMetadata(bookEntity);
             } catch (Exception e) {
                 log.warn("Failed to write sidecar metadata for book ID {}: {}", bookId, e.getMessage());
