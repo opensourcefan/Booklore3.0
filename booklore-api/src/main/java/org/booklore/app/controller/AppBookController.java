@@ -1,6 +1,9 @@
 package org.booklore.app.controller;
 
 import org.booklore.app.dto.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PatchMapping;
+import java.util.Map;
 import org.booklore.app.service.AppBookService;
 import org.booklore.model.enums.BookFileType;
 import org.booklore.model.enums.ReadStatus;
@@ -17,6 +20,12 @@ import java.util.List;
 public class AppBookController {
 
     private final AppBookService mobileBookService;
+
+    @PatchMapping("/{id}/progress")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Map<String, Object>> updateMobileProgress(@PathVariable Long id) {
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Mobile book progress write endpoint stub initialized."));
+    }
 
     @GetMapping
     public ResponseEntity<AppPageResponse<AppBookSummary>> getBooks(
