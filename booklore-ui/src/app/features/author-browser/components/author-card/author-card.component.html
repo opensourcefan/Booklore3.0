@@ -34,7 +34,7 @@
       }
       <h4 class="author-name" [pTooltip]="author.name" tooltipPosition="bottom">{{ author.name }}</h4>
       <div class="menu-button-container">
-        <p-tieredmenu #menu [model]="items" [popup]="true" appendTo="body" (onShow)="onMenuShow()" (onHide)="onMenuHide()"></p-tieredmenu>
+        <p-tieredmenu [autoDisplay]="true" #menu [model]="items" [popup]="true" appendTo="body" (onShow)="onMenuShow()" (onHide)="onMenuHide()"></p-tieredmenu>
         <p-button
           class="card-menu-btn"
           size="small"
