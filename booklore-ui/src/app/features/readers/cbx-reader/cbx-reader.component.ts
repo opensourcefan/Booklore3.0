@@ -226,7 +226,16 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   joystickActive = false;
   joystickKnobX = 0;
   joystickKnobY = 0;
-  manualPageZoom = 1;
+  
+  private _manualPageZoom = 1;
+  get manualPageZoom(): number {
+    return this._manualPageZoom;
+  }
+  set manualPageZoom(value: number) {
+    this._manualPageZoom = value;
+    this.footerService.setManualPageZoom(value);
+  }
+  
   manualPagePanX = 0;
   manualPagePanY = 0;
   private joystickVelocityX = 0;
@@ -560,6 +569,13 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.footerService.sliderChange$
       .pipe(takeUntil(this.destroy$))
       .subscribe(page => this.goToPage(page));
+
+    this.footerService.zoomChange$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(zoom => {
+        this.manualPageZoom = zoom;
+        this.applyManualPagePanBounds();
+      });
   }
 
   private subscribeToQuickSettingsEvents(): void {

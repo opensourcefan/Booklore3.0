@@ -27,7 +27,8 @@ export class CbxFooterComponent implements OnInit, OnDestroy {
     isTwoPageView: false,
     previousBookInSeries: null,
     nextBookInSeries: null,
-    hasSeries: false
+    hasSeries: false,
+    manualPageZoom: 1
   };
 
   goToPageInput: number | null = null;
@@ -135,6 +136,12 @@ export class CbxFooterComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLInputElement;
     const page = parseInt(target.value, 10);
     this.footerService.emitSliderChange(page);
+  }
+
+  onZoomSliderChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const zoom = parseFloat(target.value);
+    this.footerService.emitZoomChange(zoom);
   }
 
   onPreviousBook(): void {

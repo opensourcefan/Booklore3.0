@@ -104,12 +104,14 @@ describe('CbxReaderComponent mobile panel interactions', () => {
             previousBook$: of(),
             nextBook$: of(),
             sliderChange$: of(),
+            zoomChange$: of(),
             updateState: vi.fn(),
             setCurrentPage: vi.fn(),
             setForceVisible: vi.fn(),
             setTwoPageView: vi.fn(),
             setSeriesBooks: vi.fn(),
-            setHasSeries: vi.fn()
+            setHasSeries: vi.fn(),
+            setManualPageZoom: vi.fn()
           }
         },
         {

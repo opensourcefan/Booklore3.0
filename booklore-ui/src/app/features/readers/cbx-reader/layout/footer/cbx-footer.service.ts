@@ -9,6 +9,7 @@ export interface CbxFooterState {
   previousBookInSeries: Book | null;
   nextBookInSeries: Book | null;
   hasSeries: boolean;
+  manualPageZoom: number;
 }
 
 @Injectable()
@@ -19,7 +20,8 @@ export class CbxFooterService {
     isTwoPageView: false,
     previousBookInSeries: null,
     nextBookInSeries: null,
-    hasSeries: false
+    hasSeries: false,
+    manualPageZoom: 1
   });
   state$ = this._state.asObservable();
 
@@ -49,6 +51,9 @@ export class CbxFooterService {
 
   private _sliderChange = new Subject<number>();
   sliderChange$ = this._sliderChange.asObservable();
+
+  private _zoomChange = new Subject<number>();
+  zoomChange$ = this._zoomChange.asObservable();
 
   get state(): CbxFooterState {
     return this._state.value;
@@ -122,6 +127,14 @@ export class CbxFooterService {
     this._sliderChange.next(page);
   }
 
+  emitZoomChange(zoom: number): void {
+    this._zoomChange.next(zoom);
+  }
+
+  setManualPageZoom(zoom: number): void {
+    this.updateState({manualPageZoom: zoom});
+  }
+
   reset(): void {
     this._state.next({
       currentPage: 0,
@@ -129,7 +142,8 @@ export class CbxFooterService {
       isTwoPageView: false,
       previousBookInSeries: null,
       nextBookInSeries: null,
-      hasSeries: false
+      hasSeries: false,
+      manualPageZoom: 1
     });
     this._forceVisible.next(false);
   }

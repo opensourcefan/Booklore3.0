@@ -15,16 +15,7 @@ $transition-fast: 150ms ease;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 52px;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   z-index: 1000;
-  background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
-  border-top: 1px solid #404040;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
   color: $text-primary;
   transform: translateY(100%);
   opacity: 0;
@@ -36,6 +27,22 @@ $transition-fast: 150ms ease;
     opacity: 1;
     pointer-events: auto;
   }
+}
+
+.footer-content {
+  height: 52px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
+  border-top: 1px solid #404040;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-zoom-slider {
+  display: none;
 }
 
 .page-nav-left,
@@ -314,11 +321,62 @@ $transition-fast: 150ms ease;
 }
 
 @media (max-width: 768px) {
-  .cbx-footer {
+  .footer-content {
     height: 48px;
     padding: 0 8px;
     gap: 8px;
     justify-content: center;
+  }
+
+  .mobile-zoom-slider {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 36px;
+    padding: 0 16px;
+    gap: 12px;
+    background: rgba(30, 30, 30, 0.95);
+    border-top: 1px solid #404040;
+    width: 100%;
+    backdrop-filter: blur(8px);
+    
+    .zoom-icon {
+      font-size: 20px;
+      font-weight: 500;
+      color: $text-primary;
+      user-select: none;
+    }
+
+    .zoom-range {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: $active-color;
+        cursor: pointer;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      }
+      
+      &::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: $active-color;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      }
+    }
   }
 
   .page-nav-left .series-btn,
