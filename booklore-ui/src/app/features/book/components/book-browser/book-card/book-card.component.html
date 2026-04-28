@@ -88,8 +88,8 @@
       </p-button>
     </div>
 
-    <p-tieredmenu [autoDisplay]="true" #readStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body" (onHide)="onReadStatusMenuHide(readStatusMenu)"></p-tieredmenu>
-    <p-tieredmenu [autoDisplay]="true" #menu [model]="items" [popup]="true" appendTo="body" (onShow)="onMenuShow()" (onHide)="onMenuHide()"></p-tieredmenu>
+    <p-tieredmenu [autoDisplay]="true" #readStatusMenu [model]="readStatusMenuItems" [popup]="true" appendTo="body" (onShow)="readStatusMenu.dirty = true" (onHide)="onReadStatusMenuHide(readStatusMenu)"></p-tieredmenu>
+    <p-tieredmenu [autoDisplay]="true" #menu [model]="items" [popup]="true" appendTo="body" (onShow)="onMenuShow(); menu.dirty = true" (onHide)="onMenuHide()"></p-tieredmenu>
 
     @if (hasProgress) {
       <div class="cover-progress-bar-container" [pTooltip]="progressTooltip" tooltipPosition="top">
@@ -219,8 +219,8 @@
           {{ inlineMobileViewerIndex + 1 }} / {{ inlineMobileViewerBooks.length }}
         </div>
 
-        <p-tieredmenu [autoDisplay]="true" #mobileReadStatusMenu [model]="readStatusMenuItems" [popup]="true" [baseZIndex]="inlineMobileMenuBaseZIndex" appendTo="body" (onHide)="onReadStatusMenuHide(mobileReadStatusMenu)"></p-tieredmenu>
-        <p-tieredmenu [autoDisplay]="true" #mobileMenu [model]="items" [popup]="true" [baseZIndex]="inlineMobileMenuBaseZIndex" appendTo="body" (onShow)="onMenuShow()" (onHide)="onMenuHide()"></p-tieredmenu>
+        <p-tieredmenu [autoDisplay]="true" #mobileReadStatusMenu [model]="readStatusMenuItems" [popup]="true" [baseZIndex]="inlineMobileMenuBaseZIndex" appendTo="body" (onShow)="mobileReadStatusMenu.dirty = true" (onHide)="onReadStatusMenuHide(mobileReadStatusMenu)"></p-tieredmenu>
+        <p-tieredmenu [autoDisplay]="true" #mobileMenu [model]="items" [popup]="true" [baseZIndex]="inlineMobileMenuBaseZIndex" appendTo="body" (onShow)="onMenuShow(); mobileMenu.dirty = true" (onHide)="onMenuHide()"></p-tieredmenu>
       </section>
     </div>
   }
