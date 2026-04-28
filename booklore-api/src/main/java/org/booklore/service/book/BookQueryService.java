@@ -53,6 +53,7 @@ public class BookQueryService {
         return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
 
+    @Transactional(readOnly = true)
     public List<BookEntity> getAllFullBookEntitiesBatch(Pageable pageable) {
         List<BookEntity> books = bookRepository.findAllFullBooksBatch(pageable);
         for (BookEntity book : books) {
