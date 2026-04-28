@@ -1,3 +1,0 @@
---- ADD @Output() bookClicked after existing @Output() checkboxClick line ---
-@Output() bookClicked = new EventEmitter<Book>();
---- ADD call in onCardClick, after the ctrlKey guard, emit on normal click ---
