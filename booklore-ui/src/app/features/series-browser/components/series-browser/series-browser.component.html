@@ -77,25 +77,40 @@
           <p>{{ t('noSeriesFound') }}</p>
         </div>
       } @else {
-        <virtual-scroller
-          #scroll
-          [items]="seriesList"
+        <div
+          #scrollElement
           class="virtual-scroller">
-          <div class="series-grid"
-            #container
-            [ngStyle]="{'grid-template-columns': 'repeat(auto-fill, minmax(' + gridColumnMinWidth + ', 1fr))'}">
-            @for (series of scroll.viewPortItems; track series.seriesName) {
-              <div class="virtual-scroller-item"
-                [ngStyle]="{width: cardWidth + 'px', height: cardHeight + 'px'}"
-                [style.--card-scale]="seriesScaleService.scaleFactor">
-                <app-series-card
-                  [series]="series"
-                  (cardClick)="navigateToSeries($event)">
-                </app-series-card>
+          <div class="virtual-scroller-content"
+               [style.height.px]="virtualizer.getTotalSize()"
+               [style.width]="'100%'"
+               [style.position]="'relative'">
+            @for (virtualRow of virtualizer.getVirtualItems(); track virtualRow.index) {
+              <div class="series-grid"
+                [style.position]="'absolute'"
+                [style.top.px]="virtualRow.start"
+                [style.left.px]="0"
+                [style.width]="'100%'"
+                [style.padding-top.px]="0"
+                [style.padding-bottom.px]="0"
+                [style.display]="'flex'"
+                [style.flex-wrap]="'wrap'"
+                [style.gap.px]="20"
+                [style.justify-content]="'center'">
+                @for (series of gridRows()[virtualRow.index]; track series.seriesName) {
+                  <div class="virtual-scroller-item"
+                    [style.width.px]="cardWidth"
+                    [style.height.px]="cardHeight"
+                    [style.--card-scale]="seriesScaleService.scaleFactor">
+                    <app-series-card
+                      [series]="series"
+                      (cardClick)="navigateToSeries($event)">
+                    </app-series-card>
+                  </div>
+                }
               </div>
             }
           </div>
-        </virtual-scroller>
+        </div>
       }
     }
   }

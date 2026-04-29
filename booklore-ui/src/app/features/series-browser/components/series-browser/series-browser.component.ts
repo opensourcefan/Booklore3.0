@@ -1,7 +1,10 @@
 import {Component, HostListener, inject, OnInit} from '@angular/core';
-import {AsyncPipe, NgStyle} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {combineLatest, Observable, BehaviorSubject} from 'rxjs';
+import {injectVirtualizer} from '@tanstack/angular-virtual';
+import {ElementRef, ViewChild, signal, computed} from '@angular/core';
+
 import {map} from 'rxjs/operators';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {InputText} from 'primeng/inputtext';
@@ -9,7 +12,7 @@ import {Select} from 'primeng/select';
 import {Slider} from 'primeng/slider';
 import {Popover} from 'primeng/popover';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import {VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
+
 import {SeriesDataService} from '../../service/series-data.service';
 import {SeriesSummary} from '../../model/series.model';
 import {SeriesCardComponent} from '../series-card/series-card.component';
@@ -36,7 +39,6 @@ interface SortOption {
   styleUrls: ['./series-browser.component.scss'],
   imports: [
     AsyncPipe,
-    NgStyle,
     FormsModule,
     ProgressSpinner,
     InputText,
@@ -45,8 +47,7 @@ interface SortOption {
     Popover,
     TranslocoDirective,
     SeriesCardComponent,
-    VirtualScrollerModule
-  ]
+      ]
 })
 export class SeriesBrowserComponent implements OnInit {
 
@@ -69,6 +70,11 @@ export class SeriesBrowserComponent implements OnInit {
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
+    if (this.scrollElement?.nativeElement) {
+      this.containerWidth.set(this.scrollElement.nativeElement.clientWidth);
+    } else {
+      this.containerWidth.set(window.innerWidth);
+    }
   }
 
   get isMobile(): boolean {
@@ -103,6 +109,38 @@ export class SeriesBrowserComponent implements OnInit {
 
   // Filtered grid
   filteredSeries$!: Observable<SeriesSummary[]>;
+  seriesList = signal<SeriesSummary[]>([]);
+
+  @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLDivElement>;
+  containerWidth = signal<number>(window.innerWidth);
+
+  columns = computed(() => {
+    const listLength = this.seriesList().length;
+    if (listLength === 0) return Math.max(1, Math.floor((this.containerWidth() - 32 + 20) / (this.cardWidth + 20)));
+    const containerW = this.containerWidth() - 32; // 2rem padding
+    const cols = Math.floor((containerW + 20) / (this.cardWidth + 20));
+    return Math.max(1, cols);
+  });
+
+  gridRows = computed(() => {
+    const items = this.seriesList();
+    const cols = this.columns();
+    const rows = [];
+    for (let i = 0; i < items.length; i += cols) {
+      rows.push(items.slice(i, i + cols));
+    }
+    return rows;
+  });
+
+  virtualizer = injectVirtualizer(() => ({
+    scrollElement: this.scrollElement?.nativeElement,
+    count: this.gridRows().length,
+    estimateSize: () => this.cardHeight, // Since we calculate position via rows, we just report the height
+    paddingStart: 16,
+    paddingEnd: 16,
+    gap: 20, // 1.25rem gap
+    overscan: 5
+  }));
 
   ngOnInit(): void {
     this.pageTitle.setPageTitle(this.t.translate('seriesBrowser.pageTitle'));
@@ -147,6 +185,17 @@ export class SeriesBrowserComponent implements OnInit {
         return result;
       })
     );
+    
+    this.filteredSeries$.subscribe(series => {
+      this.seriesList.set(series);
+      if (this.scrollElement?.nativeElement) {
+        this.containerWidth.set(this.scrollElement.nativeElement.clientWidth);
+      }
+    });
+    
+    this.filteredSeries$.subscribe(series => {
+      this.seriesList.set(series);
+    });
   }
 
   onSearchChange(value: string): void {

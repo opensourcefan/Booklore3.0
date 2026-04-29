@@ -1,5 +1,5 @@
 import {Component, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {AsyncPipe, NgStyle} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {combineLatest, Observable, BehaviorSubject, Subscription} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
@@ -12,7 +12,8 @@ import {Button} from 'primeng/button';
 import {Divider} from 'primeng/divider';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import {VirtualScrollerComponent, VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
+import {injectVirtualizer} from '@tanstack/angular-virtual';
+import {ElementRef, signal, computed} from '@angular/core';
 import {BookBrowserScrollService} from '../../../book/components/book-browser/book-browser-scroll.service';
 import {MessageService} from 'primeng/api';
 import {AuthorService} from '../../service/author.service';
@@ -57,7 +58,7 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
   styleUrls: ['./author-browser.component.scss'],
   imports: [
     AsyncPipe,
-    NgStyle,
+    
     FormsModule,
     ProgressSpinner,
     InputText,
@@ -69,8 +70,7 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
     Tooltip,
     TranslocoDirective,
     AuthorCardComponent,
-    VirtualScrollerModule
-  ]
+      ]
 })
 export class AuthorBrowserComponent implements OnInit, OnDestroy {
 
@@ -91,8 +91,34 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   protected authorScaleService = inject(AuthorScalePreferenceService);
   protected selectionService = inject(AuthorSelectionService);
 
-  @ViewChild('scroll')
-  virtualScroller: VirtualScrollerComponent | undefined;
+  @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLDivElement>;
+  containerWidth = signal<number>(window.innerWidth);
+  authorList = signal<EnrichedAuthor[]>([]);
+  columns = computed(() => {
+    const listLength = this.authorList().length;
+    if (listLength === 0) return Math.max(1, Math.floor((this.containerWidth() - 32 + 20) / (this.cardWidth + 20)));
+    const containerW = this.containerWidth() - 32;
+    const cols = Math.floor((containerW + 20) / (this.cardWidth + 20));
+    return Math.max(1, cols);
+  });
+  gridRows = computed(() => {
+    const items = this.authorList();
+    const cols = this.columns();
+    const rows = [];
+    for (let i = 0; i < items.length; i += cols) {
+      rows.push(items.slice(i, i + cols));
+    }
+    return rows;
+  });
+  virtualizer = injectVirtualizer(() => ({
+    scrollElement: this.scrollElement?.nativeElement,
+    count: this.gridRows().length,
+    estimateSize: () => this.cardHeight,
+    paddingStart: 16,
+    paddingEnd: 16,
+    gap: 20,
+    overscan: 5
+  }));
 
   private subscriptions: Subscription[] = [];
 
@@ -107,6 +133,11 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
+    if (this.scrollElement?.nativeElement) {
+      this.containerWidth.set(this.scrollElement.nativeElement.clientWidth);
+    } else {
+      this.containerWidth.set(window.innerWidth);
+    }
   }
 
   get isMobile(): boolean {
@@ -559,9 +590,9 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   }
 
   private saveScrollPosition(): void {
-    if (this.virtualScroller?.viewPortInfo) {
+    if (this.virtualizer) {
       const key = this.getScrollPositionKey();
-      const position = this.virtualScroller.viewPortInfo.scrollStartPosition ?? 0;
+      const position = this.virtualizer ? (this.virtualizer.scrollOffset() ?? 0) : 0;
       this.scrollService.savePosition(key, position);
     }
   }

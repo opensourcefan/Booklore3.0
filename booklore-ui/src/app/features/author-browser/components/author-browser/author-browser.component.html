@@ -193,36 +193,43 @@
           <p>{{ t('noAuthorsFound') }}</p>
         </div>
       } @else {
-        <virtual-scroller
-          #scroll
-          [items]="authorList"
+        <div
+          #scrollElement
           class="virtual-scroller">
-          <div class="author-grid"
-            #container
-            [ngStyle]="{'grid-template-columns': 'repeat(auto-fill, minmax(' + gridColumnMinWidth + ', 1fr))'}">
-            @for (author of scroll.viewPortItems; track author.id; let i = $index) {
-              <div class="virtual-scroller-item"
-                [ngStyle]="{width: cardWidth + 'px', height: cardHeight + 'px'}"
-                [style.--card-scale]="authorScaleService.scaleFactor">
-                <app-author-card
-                  [author]="author"
-                  [index]="authorList.indexOf(author)"
-                  [cacheBuster]="thumbnailCacheBusters.get(author.id) || 0"
-                  [canQuickMatch]="canEditMetadata"
-                  [canDelete]="canDeleteBook"
-                  [isCheckboxEnabled]="canEditMetadata || canDeleteBook"
-                  [isSelected]="isAuthorSelected(author.id)"
-                  (cardClick)="navigateToAuthor($event)"
-                  (viewAuthor)="navigateToAuthor($event)"
-                  (editAuthor)="navigateToAuthorEdit($event)"
-                  (deleteAuthor)="deleteAuthor($event)"
-                  (quickMatched)="onAuthorQuickMatched($event)"
-                  (checkboxClick)="onCheckboxClicked($event)">
-                </app-author-card>
+          <div class="virtual-scroller-content"
+               [style.height.px]="virtualizer.getTotalSize()"
+               [style.width]="'100%'"
+               [style.position]="'relative'">
+            @for (virtualRow of virtualizer.getVirtualItems(); track virtualRow.index) {
+              <div class="author-grid"
+                [style.position]="'absolute'"
+                [style.top.px]="virtualRow.start"
+                [style.left.px]="0"
+                [style.width]="'100%'"
+                [style.padding-top.px]="0"
+                [style.padding-bottom.px]="0"
+                [style.display]="'flex'"
+                [style.flex-wrap]="'wrap'"
+                [style.gap.px]="20"
+                [style.justify-content]="'center'">
+                @for (author of gridRows()[virtualRow.index]; track author.id) {
+                  <div class="virtual-scroller-item"
+                    [style.width.px]="cardWidth"
+                    [style.height.px]="cardHeight"
+                    [style.--card-scale]="authorScaleService.scaleFactor">
+                    <app-author-card
+                      [author]="author"
+                      [index]="authorList.indexOf(author)"
+                      [isSelected]="isAuthorSelected(author.id)"
+                      (cardClick)="navigateToAuthor($event)"
+                      (checkboxClick)="onCheckboxClicked($event)">
+                    </app-author-card>
+                  </div>
+                }
               </div>
             }
           </div>
-        </virtual-scroller>
+        </div>
       }
     }
 

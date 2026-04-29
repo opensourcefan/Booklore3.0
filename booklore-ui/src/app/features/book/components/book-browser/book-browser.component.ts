@@ -17,7 +17,8 @@ import {BookTableComponent} from './book-table/book-table.component';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {Button} from 'primeng/button';
 import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
-import {VirtualScrollerComponent, VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
+import {injectVirtualizer} from '@tanstack/angular-virtual';
+import {signal, computed, ElementRef} from '@angular/core';
 import {BookCardComponent} from './book-card/book-card.component';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Menu} from 'primeng/menu';
@@ -81,7 +82,7 @@ export enum EntityType {
   templateUrl: './book-browser.component.html',
   styleUrls: ['./book-browser.component.scss'],
   imports: [
-    Button, VirtualScrollerModule, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule,
+    Button,  BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule,
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, NgStyle, Popover,
     Checkbox, Slider, Divider, MultiSelect, TieredMenu, BadgeModule, MultiSortPopoverComponent, TranslocoDirective,
     ResizableDividerDirective, CoverPreviewComponent,
@@ -101,6 +102,36 @@ export enum EntityType {
   ]
 })
 export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLDivElement>;
+  containerWidth = signal<number>(window.innerWidth);
+  booksSignal = signal<Book[]>([]);
+  columns = computed(() => {
+    const len = this.booksSignal().length;
+    if(len === 0) return Math.max(1, Math.floor((this.containerWidth() - 32 + 20) / (this.currentCardSize.width + 20)));
+    return Math.max(1, Math.floor((this.containerWidth() - 32 + 20) / (this.currentCardSize.width + 20)));
+  });
+  gridRows = computed(() => {
+    const items = this.booksSignal();
+    const cols = this.columns();
+    const rows = [];
+    for (let i = 0; i < items.length; i += cols) {
+      rows.push(items.slice(i, i + cols));
+    }
+    return rows;
+  });
+  virtualizer = injectVirtualizer(() => ({
+    count: this.gridRows().length,
+    scrollElement: this.scrollElement?.nativeElement,
+    estimateSize: () => {
+        const row = this.gridRows()[0] || [];
+        let h = 0;
+        if(row.length) {
+             h = this.getCardHeight(row[0]);
+        }
+        return (h || this.currentCardSize.height) + 20;
+    },
+    overscan: 5
+  }));
 
   protected userService = inject(UserService);
   protected coverScalePreferenceService = inject(CoverScalePreferenceService);
@@ -219,8 +250,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   bookTableComponent!: BookTableComponent;
   @ViewChildren(BookFilterComponent)
   bookFilterComponents!: QueryList<BookFilterComponent>;
-  @ViewChild('scroll')
-  virtualScroller: VirtualScrollerComponent | undefined;
+  
   @ViewChild('mobileRightSidebarPop')
   mobileRightSidebarPop: Popover | undefined;
   private isMobileRightSidebarOpen = false;
@@ -532,9 +562,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private saveScrollPosition(): void {
-    if (this.virtualScroller?.viewPortInfo) {
+    if (this.virtualizer) {
       const key = this.getScrollPositionKey();
-      const position = this.virtualScroller.viewPortInfo.scrollStartPosition ?? 0;
+      const position = (this.virtualizer.scrollOffset() ?? 0);
       this.scrollService.savePosition(key, position);
     }
   }
@@ -1049,7 +1079,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     return {
       ...bookState,
-      books: this.sortService.applyMultiSort(bookState.books, sortCriteria)
+      books: (() => { 
+        const res = this.sortService.applyMultiSort(bookState.books, sortCriteria); 
+        this.booksSignal.set(res); 
+        return res; 
+      })()
     };
   }
 
