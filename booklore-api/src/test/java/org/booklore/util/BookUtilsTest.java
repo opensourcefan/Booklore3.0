@@ -34,12 +34,32 @@ public class BookUtilsTest {
         assertEquals("Normal Title", req.getTitle());
         assertNull(req.getAuthor());
 
-        // With Author already set
         req = new FetchMetadataRequest();
         req.setTitle("Some Book [2022]");
         req.setAuthor("Famous Author");
         BookUtils.cleanFetchMetadataRequest(req);
         assertEquals("Some Book", req.getTitle());
         assertEquals("Famous Author", req.getAuthor());
+
+        req = new FetchMetadataRequest();
+        req.setTitle("Stitched Terror 001 (2019) (Digital) (Mephisto-Empire)");
+        BookUtils.cleanFetchMetadataRequest(req);
+        assertEquals("Stitched Terror #1", req.getTitle());
+        assertNull(req.getAuthor());
+
+        req = new FetchMetadataRequest();
+        req.setTitle("Stitched Terror 001");
+        BookUtils.cleanFetchMetadataRequest(req);
+        assertEquals("Stitched Terror #1", req.getTitle());
+
+        req = new FetchMetadataRequest();
+        req.setTitle("Stitched Terror 01");
+        BookUtils.cleanFetchMetadataRequest(req);
+        assertEquals("Stitched Terror #1", req.getTitle());
+        
+        req = new FetchMetadataRequest();
+        req.setTitle("Stitched Terror #001");
+        BookUtils.cleanFetchMetadataRequest(req);
+        assertEquals("Stitched Terror #1", req.getTitle());
     }
 }
