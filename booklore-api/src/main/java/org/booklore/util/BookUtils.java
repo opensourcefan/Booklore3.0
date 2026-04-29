@@ -150,11 +150,32 @@ public class BookUtils {
         String title = request.getTitle();
         if (title == null || title.isBlank()) return;
 
+        // Remove any bracketed or parenthesized tags that are NOT 4-digit years
+        Matcher nonYearTags = Pattern.compile("\\s*[\\(\\[](?!\\d{4}[\\)\\]])[^\\)\\]]*[\\)\\]]").matcher(title);
+        title = nonYearTags.replaceAll("");
+
+        // Format issue numbers at the end of the title (or before the year)
+        // e.g. "Stitched Terror 001", "Stitched Terror 01", "Stitched Terror #001" -> "Stitched Terror #1"
+        // Title might end with year like (2019) or [2019]
+        Matcher issueMatcher = Pattern.compile("^(.*?)\\s+#?0*(\\d+)(?:\\s*([\\[\\(]\\d{4}[\\)\\]]))?\\s*$").matcher(title);
+        if (issueMatcher.matches()) {
+            String baseTitle = issueMatcher.group(1);
+            String issueNum = issueMatcher.group(2);
+            String yearPart = issueMatcher.group(3); // might be null
+            if (yearPart != null) {
+                title = baseTitle + " #" + issueNum + " " + yearPart;
+            } else {
+                title = baseTitle + " #" + issueNum;
+            }
+        }
+
         // If author is already provided, just strip trailing year from title
         if (request.getAuthor() != null && !request.getAuthor().isBlank()) {
             Matcher m = Pattern.compile("^(.*?)\\s*[\\(\\[](\\d{4})[\\)\\]]\\s*$").matcher(title);
             if (m.matches()) {
                 request.setTitle(m.group(1).trim());
+            } else {
+                request.setTitle(title.trim());
             }
             return;
         }
@@ -171,6 +192,9 @@ public class BookUtils {
         Matcher m2 = Pattern.compile("^(.*?)\\s*[\\(\\[](\\d{4})[\\)\\]]\\s*$").matcher(title);
         if (m2.matches()) {
             request.setTitle(m2.group(1).trim());
+            return;
         }
+
+        request.setTitle(title.trim());
     }
 }
