@@ -1,4 +1,4 @@
-import {Component, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
 import {AsyncPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {combineLatest, Observable, BehaviorSubject, Subscription} from 'rxjs';
@@ -13,7 +13,7 @@ import {Divider} from 'primeng/divider';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {injectVirtualizer} from '@tanstack/angular-virtual';
-import {ElementRef, signal, computed} from '@angular/core';
+import {ElementRef, signal, computed, viewChild} from '@angular/core';
 import {BookBrowserScrollService} from '../../../book/components/book-browser/book-browser-scroll.service';
 import {MessageService} from 'primeng/api';
 import {AuthorService} from '../../service/author.service';
@@ -91,7 +91,7 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   protected authorScaleService = inject(AuthorScalePreferenceService);
   protected selectionService = inject(AuthorSelectionService);
 
-  @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLDivElement>;
+  scrollElement = viewChild<ElementRef<HTMLDivElement>>('scrollElement');
   containerWidth = signal<number>(window.innerWidth);
   authorList = signal<EnrichedAuthor[]>([]);
   columns = computed(() => {
@@ -111,7 +111,7 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
     return rows;
   });
   virtualizer = injectVirtualizer(() => ({
-    scrollElement: this.scrollElement?.nativeElement,
+    scrollElement: this.scrollElement()?.nativeElement,
     count: this.gridRows().length,
     estimateSize: () => this.cardHeight,
     paddingStart: 16,
@@ -133,8 +133,8 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
-    if (this.scrollElement?.nativeElement) {
-      this.containerWidth.set(this.scrollElement.nativeElement.clientWidth);
+    if (this.scrollElement()?.nativeElement) {
+      this.containerWidth.set(this.scrollElement()!.nativeElement.clientWidth);
     } else {
       this.containerWidth.set(window.innerWidth);
     }
@@ -247,6 +247,7 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
         result = this.applyFilters(result, filters);
         result = this.applySort(result, sortBy, sortDir);
         this.selectionService.setCurrentAuthors(result);
+        this.authorList.set(result);
         return result;
       })
     );

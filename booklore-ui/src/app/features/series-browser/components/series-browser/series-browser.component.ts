@@ -3,7 +3,7 @@ import {AsyncPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {combineLatest, Observable, BehaviorSubject} from 'rxjs';
 import {injectVirtualizer} from '@tanstack/angular-virtual';
-import {ElementRef, ViewChild, signal, computed} from '@angular/core';
+import {ElementRef, signal, computed, viewChild} from '@angular/core';
 
 import {map} from 'rxjs/operators';
 import {ProgressSpinner} from 'primeng/progressspinner';
@@ -70,8 +70,8 @@ export class SeriesBrowserComponent implements OnInit {
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
-    if (this.scrollElement?.nativeElement) {
-      this.containerWidth.set(this.scrollElement.nativeElement.clientWidth);
+    if (this.scrollElement()?.nativeElement) {
+      this.containerWidth.set(this.scrollElement()!.nativeElement.clientWidth);
     } else {
       this.containerWidth.set(window.innerWidth);
     }
@@ -111,7 +111,7 @@ export class SeriesBrowserComponent implements OnInit {
   filteredSeries$!: Observable<SeriesSummary[]>;
   seriesList = signal<SeriesSummary[]>([]);
 
-  @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLDivElement>;
+  scrollElement = viewChild<ElementRef<HTMLDivElement>>('scrollElement');
   containerWidth = signal<number>(window.innerWidth);
 
   columns = computed(() => {
@@ -133,7 +133,7 @@ export class SeriesBrowserComponent implements OnInit {
   });
 
   virtualizer = injectVirtualizer(() => ({
-    scrollElement: this.scrollElement?.nativeElement,
+    scrollElement: this.scrollElement()?.nativeElement,
     count: this.gridRows().length,
     estimateSize: () => this.cardHeight, // Since we calculate position via rows, we just report the height
     paddingStart: 16,
@@ -188,8 +188,8 @@ export class SeriesBrowserComponent implements OnInit {
     
     this.filteredSeries$.subscribe(series => {
       this.seriesList.set(series);
-      if (this.scrollElement?.nativeElement) {
-        this.containerWidth.set(this.scrollElement.nativeElement.clientWidth);
+      if (this.scrollElement()?.nativeElement) {
+        this.containerWidth.set(this.scrollElement()!.nativeElement.clientWidth);
       }
     });
     

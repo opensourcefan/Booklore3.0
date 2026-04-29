@@ -18,7 +18,7 @@ import {animate, style, transition, trigger} from '@angular/animations';
 import {Button} from 'primeng/button';
 import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
 import {injectVirtualizer} from '@tanstack/angular-virtual';
-import {signal, computed, ElementRef} from '@angular/core';
+import {signal, computed, ElementRef, viewChild} from '@angular/core';
 import {BookCardComponent} from './book-card/book-card.component';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Menu} from 'primeng/menu';
@@ -102,7 +102,7 @@ export enum EntityType {
   ]
 })
 export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLDivElement>;
+  scrollElement = viewChild<ElementRef<HTMLDivElement>>('scrollElement');
   containerWidth = signal<number>(window.innerWidth);
   booksSignal = signal<Book[]>([]);
   columns = computed(() => {
@@ -121,7 +121,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   });
   virtualizer = injectVirtualizer(() => ({
     count: this.gridRows().length,
-    scrollElement: this.scrollElement?.nativeElement,
+    scrollElement: this.scrollElement()?.nativeElement,
     estimateSize: () => {
         const row = this.gridRows()[0] || [];
         let h = 0;
@@ -259,6 +259,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
+    if (this.scrollElement()?.nativeElement) {
+      this.containerWidth.set(this.scrollElement()!.nativeElement.clientWidth);
+    } else {
+      this.containerWidth.set(window.innerWidth);
+    }
   }
 
   get isMobile(): boolean {
@@ -1068,6 +1073,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.visibleBookIds = new Set(books.map(book => book.id));
         this.bookSelectionService.setCurrentBooks(books);
         this.bookNavigationService.setAvailableBookIds(books.map(book => book.id));
+        this.booksSignal.set(books);
         this.updateSelectionVisibility();
         this.cdr.markForCheck();
       });
@@ -1079,11 +1085,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     return {
       ...bookState,
-      books: (() => { 
-        const res = this.sortService.applyMultiSort(bookState.books, sortCriteria); 
-        this.booksSignal.set(res); 
-        return res; 
-      })()
+      books: this.sortService.applyMultiSort(bookState.books, sortCriteria)
     };
   }
 
