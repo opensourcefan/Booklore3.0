@@ -15,7 +15,7 @@ public interface MetadataFetchJobRepository extends JpaRepository<MetadataFetchJ
 
     int deleteAllByCompletedAtBefore(Instant cutoff);
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM MetadataFetchJobEntity")
     int deleteAllRecords();
 

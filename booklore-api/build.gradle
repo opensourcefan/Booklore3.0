@@ -178,4 +178,7 @@ bootRun {
 
 bootJar {
     mainClass = 'org.booklore.BookloreApplication'
+    manifest {
+        attributes 'Implementation-Version': archiveVersion.get()
+    }
 }

@@ -17,7 +17,7 @@ public interface KoboSnapshotBookRepository extends JpaRepository<KoboSnapshotBo
 
     Page<KoboSnapshotBookEntity> findBySnapshot_IdAndSyncedFalse(String snapshotId, Pageable pageable);
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE KoboSnapshotBookEntity b SET b.synced = true WHERE b.snapshot.id = :snapshotId AND b.bookId IN :bookIds")
     void markBooksSynced(@Param("snapshotId") String snapshotId, @Param("bookIds") List<Long> bookIds);
 

@@ -70,6 +70,7 @@
   "overrides": {
     "minimatch": "^10.2.1",
     "ajv": "^8.18.0",
+    "picomatch": "^4.0.4",
     "eslint": {
       "ajv": "^6.14.0"
     },

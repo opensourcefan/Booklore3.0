@@ -27,7 +27,7 @@ public interface BookAdditionalFileRepository extends JpaRepository<BookFileEnti
     @Query("SELECT bf FROM BookFileEntity bf WHERE bf.book.library.id = :libraryId")
     List<BookFileEntity> findByLibraryId(@Param("libraryId") Long libraryId);
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""
             UPDATE BookFileEntity bf SET
                 bf.fileName = :fileName,

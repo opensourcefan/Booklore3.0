@@ -11,7 +11,7 @@ public interface ComicLocationRepository extends JpaRepository<ComicLocationEnti
 
     Optional<ComicLocationEntity> findByName(String name);
 
-    @Modifying(flushAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query(value = "DELETE FROM comic_location WHERE id NOT IN (SELECT DISTINCT location_id FROM comic_metadata_location_mapping)", nativeQuery = true)
     void deleteOrphaned();
 }

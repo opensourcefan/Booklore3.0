@@ -191,12 +191,12 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
             """)
     List<BookEntity> findBooksWithMetadataAndAuthors(@Param("bookIds") List<Long> bookIds);
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("DELETE FROM BookEntity b WHERE b.deleted IS TRUE AND (b.removedFromLibrary IS NULL OR b.removedFromLibrary = false)")
     int deleteAllSoftDeleted();
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("DELETE FROM BookEntity b WHERE b.deleted IS TRUE AND b.deletedAt < :cutoffDate AND (b.removedFromLibrary IS NULL OR b.removedFromLibrary = false)")
     int deleteSoftDeletedBefore(@Param("cutoffDate") Instant cutoffDate);
@@ -296,7 +296,7 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query("SELECT b.id as id, m.coverUpdatedOn as coverUpdatedOn FROM BookEntity b LEFT JOIN b.metadata m WHERE b.id IN :bookIds")
     List<BookCoverUpdateProjection> findCoverUpdateInfoByIds(@Param("bookIds") Collection<Long> bookIds);
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""
             UPDATE BookEntity b SET
                 b.library.id = :libraryId,
