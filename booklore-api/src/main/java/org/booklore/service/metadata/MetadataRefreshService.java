@@ -47,6 +47,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.booklore.util.BookUtils;
 
 import static org.booklore.model.enums.MetadataProvider.*;
 
@@ -693,50 +694,56 @@ public class MetadataRefreshService {
 
     private FetchMetadataRequest buildFetchMetadataRequestFromBook(Book book, MetadataRefreshOptions refreshOptions, int sequenceIndex) {
         BookMetadata metadata = book.getMetadata();
+        FetchMetadataRequest request;
+        
         if (metadata == null) {
             String sourceUrl = refreshOptions != null ? trimToNull(refreshOptions.getSourceUrl()) : null;
             String sequentialIssueNumber = refreshOptions != null ? resolveIssueNumberFromRange(refreshOptions.getIssueRange(), sequenceIndex) : null;
             String explicitIssueNumber = refreshOptions != null ? trimToNull(refreshOptions.getIssueNumber()) : null;
             String issueNumber = sequentialIssueNumber != null ? sequentialIssueNumber : explicitIssueNumber;
-            return FetchMetadataRequest.builder()
+            request = FetchMetadataRequest.builder()
                     .title(getBookDisplayTitle(book))
                     .sourceUrl(sourceUrl)
                     .issueNumber(issueNumber)
                     .bookId(book.getId())
                     .build();
-        }
-        String isbn = metadata.getIsbn13();
-        if (isbn == null || isbn.isBlank()) {
-            isbn = metadata.getIsbn10();
-        }
-        String title = metadata.getTitle();
-        if (title == null || title.isBlank()) {
-            title = getBookDisplayTitle(book);
-        }
-
-        String configuredSourceUrl = metadata.getExternalUrl();
-        String issueNumber = null;
-
-        if (refreshOptions != null) {
-            String customSourceUrl = trimToNull(refreshOptions.getSourceUrl());
-            if (customSourceUrl != null) {
-                configuredSourceUrl = customSourceUrl;
+        } else {
+            String isbn = metadata.getIsbn13();
+            if (isbn == null || isbn.isBlank()) {
+                isbn = metadata.getIsbn10();
+            }
+            String title = metadata.getTitle();
+            if (title == null || title.isBlank()) {
+                title = getBookDisplayTitle(book);
             }
 
-            String sequentialIssueNumber = resolveIssueNumberFromRange(refreshOptions.getIssueRange(), sequenceIndex);
-            String explicitIssueNumber = trimToNull(refreshOptions.getIssueNumber());
-            issueNumber = sequentialIssueNumber != null ? sequentialIssueNumber : explicitIssueNumber;
+            String configuredSourceUrl = metadata.getExternalUrl();
+            String issueNumber = null;
+
+            if (refreshOptions != null) {
+                String customSourceUrl = trimToNull(refreshOptions.getSourceUrl());
+                if (customSourceUrl != null) {
+                    configuredSourceUrl = customSourceUrl;
+                }
+
+                String sequentialIssueNumber = resolveIssueNumberFromRange(refreshOptions.getIssueRange(), sequenceIndex);
+                String explicitIssueNumber = trimToNull(refreshOptions.getIssueNumber());
+                issueNumber = sequentialIssueNumber != null ? sequentialIssueNumber : explicitIssueNumber;
+            }
+
+            request = FetchMetadataRequest.builder()
+                    .isbn(isbn)
+                    .asin(metadata.getAsin())
+                    .author(metadata.getAuthors() != null ? String.join(", ", metadata.getAuthors()) : null)
+                    .title(title)
+                    .sourceUrl(configuredSourceUrl)
+                    .issueNumber(issueNumber)
+                    .bookId(book.getId())
+                    .build();
         }
 
-        return FetchMetadataRequest.builder()
-                .isbn(isbn)
-                .asin(metadata.getAsin())
-                .author(metadata.getAuthors() != null ? String.join(", ", metadata.getAuthors()) : null)
-                .title(title)
-                .sourceUrl(configuredSourceUrl)
-                .issueNumber(issueNumber)
-                .bookId(book.getId())
-                .build();
+        BookUtils.cleanFetchMetadataRequest(request);
+        return request;
     }
 
     private String resolveIssueNumberFromRange(String rawIssueRange, int sequenceIndex) {
