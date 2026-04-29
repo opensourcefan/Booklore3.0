@@ -9,6 +9,16 @@
 
   @if (!loading && author) {
     <div class="author-wrapper">
+      <p-button
+        icon="pi pi-times"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        (click)="goBack()"
+        class="dialog-close-btn"
+        [pTooltip]="t('close')"
+        tooltipPosition="bottom">
+      </p-button>
       <p-tabs [value]="tab" lazy="true" scrollable>
         <p-tablist>
           <p-tab value="books">

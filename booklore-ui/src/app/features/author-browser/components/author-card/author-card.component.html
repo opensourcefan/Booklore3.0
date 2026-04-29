@@ -2,6 +2,7 @@
   <div class="cover-container" [ngClass]="{'loaded': isImageLoaded}">
     @if (hasPhoto) {
       <img
+        #coverImg
         [src]="thumbnailUrl"
         class="author-photo"
         [class.loaded]="isImageLoaded"

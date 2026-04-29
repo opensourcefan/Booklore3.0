@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, QueryList, NgZone, ViewChild, ViewChildren} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, QueryList, NgZone, ViewChild, ViewChildren, ChangeDetectionStrategy} from '@angular/core';
 import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
@@ -18,7 +18,7 @@ import {animate, style, transition, trigger} from '@angular/animations';
 import {Button} from 'primeng/button';
 import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
 import {injectVirtualizer} from '@tanstack/angular-virtual';
-import {signal, computed, ElementRef, viewChild} from '@angular/core';
+import {signal, computed, ElementRef, viewChild, effect} from '@angular/core';
 import {BookCardComponent} from './book-card/book-card.component';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Menu} from 'primeng/menu';
@@ -81,6 +81,7 @@ export enum EntityType {
   standalone: true,
   templateUrl: './book-browser.component.html',
   styleUrls: ['./book-browser.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     Button,  BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule,
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, NgStyle, Popover,
@@ -104,6 +105,34 @@ export enum EntityType {
 export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   scrollElement = viewChild<ElementRef<HTMLDivElement>>('scrollElement');
   containerWidth = signal<number>(window.innerWidth);
+  
+  private resizeObserver: ResizeObserver | null = null;
+  private isDestroyed = false;
+  
+  constructor() {
+    effect(() => {
+      const el = this.scrollElement()?.nativeElement;
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect();
+      }
+      if (el) {
+        this.resizeObserver = new ResizeObserver((entries) => {
+          let hasWidth = false;
+          for (const entry of entries) {
+            if (entry.contentRect.width > 0 && Math.abs(this.containerWidth() - entry.contentRect.width) > 1) {
+              this.containerWidth.set(entry.contentRect.width);
+              hasWidth = true;
+            }
+          }
+          if (hasWidth && !this.isDestroyed) {
+             this.cdr.detectChanges();
+          }
+        });
+        this.resizeObserver.observe(el);
+      }
+    });
+  }
+
   booksSignal = signal<Book[]>([]);
   columns = computed(() => {
     const len = this.booksSignal().length;
@@ -520,6 +549,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.isDestroyed = true;
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
     this.forceCloseMobileRightSidebar(false);
     this.clearHoverPreviewTimer();
     this.destroy$.next();

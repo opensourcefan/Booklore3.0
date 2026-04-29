@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
+import {ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, Output, SimpleChanges, AfterViewInit, viewChild, ElementRef, ChangeDetectionStrategy} from '@angular/core';
 import {NgClass} from '@angular/common';
 import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {Tooltip} from 'primeng/tooltip';
@@ -15,9 +15,10 @@ import {AuthorService} from '../../service/author.service';
   standalone: true,
   templateUrl: './author-card.component.html',
   styleUrls: ['./author-card.component.scss'],
-  imports: [NgClass, TranslocoPipe, Tooltip, CheckboxModule, FormsModule, TieredMenu, Button]
+  imports: [NgClass, TranslocoPipe, Tooltip, CheckboxModule, FormsModule, TieredMenu, Button],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AuthorCardComponent implements OnChanges {
+export class AuthorCardComponent implements OnChanges, AfterViewInit {
 
   @Input({required: true}) author!: AuthorSummary;
   @Input() canQuickMatch = false;
@@ -40,12 +41,22 @@ export class AuthorCardComponent implements OnChanges {
   private cdr = inject(ChangeDetectorRef);
   private lastShiftKey = false;
 
+  coverImg = viewChild<ElementRef<HTMLImageElement>>('coverImg');
+
   hasPhoto = false;
   isImageLoaded = false;
   quickMatching = false;
 
   items: MenuItem[] = [];
   private menuInitialized = false;
+
+  ngAfterViewInit(): void {
+    const img = this.coverImg()?.nativeElement;
+    if (img && img.complete && img.naturalWidth > 0) {
+      this.isImageLoaded = true;
+      this.cdr.markForCheck();
+    }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['author']) {
@@ -87,10 +98,12 @@ export class AuthorCardComponent implements OnChanges {
 
   onImageLoad(): void {
     this.isImageLoaded = true;
+    this.cdr.markForCheck();
   }
 
   onPhotoError(): void {
     this.hasPhoto = false;
+    this.cdr.markForCheck();
   }
 
   captureMouseEvent(event: MouseEvent): void {
@@ -157,6 +170,7 @@ export class AuthorCardComponent implements OnChanges {
     if (this.quickMatching) return;
 
     this.quickMatching = true;
+    this.cdr.markForCheck();
     this.authorService.quickMatchAuthor(this.author.id).subscribe({
       next: (updated) => {
         this.quickMatching = false;
@@ -164,6 +178,7 @@ export class AuthorCardComponent implements OnChanges {
         this.hasPhoto = true;
         this.isImageLoaded = false;
         this.menuInitialized = false;
+        this.cdr.markForCheck();
         this.quickMatched.emit(this.author);
         this.messageService.add({
           severity: 'success',
@@ -173,6 +188,7 @@ export class AuthorCardComponent implements OnChanges {
       },
       error: () => {
         this.quickMatching = false;
+        this.cdr.markForCheck();
         this.messageService.add({
           severity: 'error',
           summary: this.t.translate('authorBrowser.toast.quickMatchFailedSummary'),

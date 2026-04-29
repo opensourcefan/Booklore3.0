@@ -1,4 +1,4 @@
-import {Component, HostListener, inject, OnInit} from '@angular/core';
+import {Component, HostListener, inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {AsyncPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {combineLatest, Observable, BehaviorSubject} from 'rxjs';
@@ -37,6 +37,7 @@ interface SortOption {
   standalone: true,
   templateUrl: './series-browser.component.html',
   styleUrls: ['./series-browser.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     FormsModule,

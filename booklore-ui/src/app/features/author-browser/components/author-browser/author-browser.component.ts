@@ -1,5 +1,5 @@
 import {Component, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
-import {AsyncPipe} from '@angular/common';
+import {AsyncPipe, NgClass} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {combineLatest, Observable, BehaviorSubject, Subscription} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
@@ -13,7 +13,7 @@ import {Divider} from 'primeng/divider';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {injectVirtualizer} from '@tanstack/angular-virtual';
-import {ElementRef, signal, computed, viewChild} from '@angular/core';
+import {ElementRef, signal, computed, viewChild, ChangeDetectionStrategy, ChangeDetectorRef, effect} from '@angular/core';
 import {BookBrowserScrollService} from '../../../book/components/book-browser/book-browser-scroll.service';
 import {MessageService} from 'primeng/api';
 import {AuthorService} from '../../service/author.service';
@@ -56,8 +56,9 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
   standalone: true,
   templateUrl: './author-browser.component.html',
   styleUrls: ['./author-browser.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    AsyncPipe,
+    AsyncPipe, NgClass,
     
     FormsModule,
     ProgressSpinner,
@@ -78,6 +79,35 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   private static readonly BASE_HEIGHT = 290;
   private static readonly MOBILE_BASE_WIDTH = 140;
   private static readonly MOBILE_BASE_HEIGHT = 250;
+
+  private resizeObserver: ResizeObserver | null = null;
+  private isDestroyed = false;
+
+  private cdr = inject(ChangeDetectorRef);
+
+  constructor() {
+    effect(() => {
+      const el = this.scrollElement()?.nativeElement;
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect();
+      }
+      if (el) {
+        this.resizeObserver = new ResizeObserver((entries) => {
+          let hasWidth = false;
+          for (const entry of entries) {
+            if (entry.contentRect.width > 0 && Math.abs(this.containerWidth() - entry.contentRect.width) > 1) {
+              this.containerWidth.set(entry.contentRect.width);
+              hasWidth = true;
+            }
+          }
+          if (hasWidth && !this.isDestroyed) {
+            this.cdr.detectChanges();
+          }
+        });
+        this.resizeObserver.observe(el);
+      }
+    });
+  }
 
   private authorService = inject(AuthorService);
   private bookService = inject(BookService);
@@ -128,6 +158,10 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   screenWidth = window.innerWidth;
   selectedCount = 0;
   isCheckboxEnabled = false;
+  isSelectionActionPanelOpen = false;
+  toggleSelectionActionPanel(): void {
+    this.isSelectionActionPanelOpen = !this.isSelectionActionPanelOpen;
+  }
   thumbnailCacheBusters = new Map<number, number>();
 
   @HostListener('window:resize')
@@ -254,7 +288,13 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
 
     this.subscriptions.push(
       this.selectionService.selectedAuthors$.subscribe(selected => {
-        this.selectedCount = selected.size;
+        const nextSelectedCount = selected.size;
+        if (nextSelectedCount > 0 && this.selectedCount === 0) {
+          this.isSelectionActionPanelOpen = true;
+        } else if (nextSelectedCount === 0 && this.selectedCount > 0) {
+          this.isSelectionActionPanelOpen = false;
+        }
+        this.selectedCount = nextSelectedCount;
         this.isCheckboxEnabled = selected.size > 0;
       })
     );
@@ -263,6 +303,10 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.isDestroyed = true;
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
     this.subscriptions.forEach(s => s.unsubscribe());
     this.selectionService.deselectAll();
   }
