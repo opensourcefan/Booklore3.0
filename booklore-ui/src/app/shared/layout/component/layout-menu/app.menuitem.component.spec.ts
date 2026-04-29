@@ -132,15 +132,15 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     return fixture;
   }
 
-  it('does not render the entity menu button for the /not-shelfed route item', () => {
+  it('does not render the interactive entity menu button for the /not-shelfed route item', () => {
     const fixture = createUnshelvedFixture();
 
-    expect(fixture.nativeElement.querySelector('.entity-menu-button')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.interactive-entity-menu-button')).toBeNull();
   });
 
   it('shows the count badge for the /not-shelfed route item with translated label text', () => {
     const fixture = createUnshelvedFixture();
-    const badge = fixture.nativeElement.querySelector('.book-count') as HTMLElement;
+    const badge = fixture.nativeElement.querySelector('.non-interactive-badge') as HTMLElement;
 
     expect(badge).not.toBeNull();
     expect(badge.textContent?.trim()).toBe('7');

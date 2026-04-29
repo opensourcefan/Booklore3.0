@@ -324,8 +324,17 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     return routerLink === '/not-shelfed';
   }
 
-  shouldShowInlineEntityCount(): boolean {
-    return this.shouldShowEntityMenu() && !this.shouldShowCount();
+  canShowEntityMenu(): boolean {
+    if (!this.item.menu?.length) {
+      return false;
+    }
+    if (this.isUnshelvedItem() || this.item.label === 'Kobo') {
+      return false;
+    }
+    if (this.item.type === 'Library' && !this.admin && !this.canManipulateLibrary) {
+      return false;
+    }
+    return this.shouldShowEntityMenu();
   }
 
   onTouchStart(event: TouchEvent): void {

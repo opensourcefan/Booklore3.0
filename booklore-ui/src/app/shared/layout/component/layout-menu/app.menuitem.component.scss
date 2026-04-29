@@ -213,6 +213,11 @@
   display: flex;
 }
 
+.non-interactive-badge {
+  pointer-events: none;
+  background: transparent !important;
+}
+
 .book-count {
   color: var(--primary-color);
   display: inline-flex;
