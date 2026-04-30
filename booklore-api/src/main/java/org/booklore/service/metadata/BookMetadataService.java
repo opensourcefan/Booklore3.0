@@ -29,7 +29,6 @@ import org.booklore.service.metadata.parser.BookParser;
 import org.booklore.service.metadata.parser.DetailedMetadataProvider;
 import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.model.dto.request.MetadataRefreshOptions;
-import org.booklore.util.BookUtils;
 import org.booklore.util.FileUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,8 +72,6 @@ public class BookMetadataService {
     public Flux<BookMetadata> getProspectiveMetadataListForBookId(long bookId, FetchMetadataRequest request) {
         BookEntity bookEntity = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
         Book book = bookMapper.toBook(bookEntity);
-
-        BookUtils.cleanFetchMetadataRequest(request);
 
         return Flux.fromIterable(request.getProviders())
                 .flatMap(provider ->

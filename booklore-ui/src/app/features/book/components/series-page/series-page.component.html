@@ -1,16 +1,6 @@
 <ng-container *transloco="let t; prefix: 'book.seriesPage'">
 @if (filteredBooks$ | async; as books) {
   <div class="series-wrapper">
-    <p-button
-      icon="pi pi-times"
-      [rounded]="true"
-      [text]="true"
-      severity="secondary"
-      (click)="goBack()"
-      class="dialog-close-btn"
-      [pTooltip]="t('closeButton')"
-      tooltipPosition="bottom">
-    </p-button>
     <p-tabs [value]="tab" lazy="true" scrollable>
       <p-tablist>
         <p-tab value="view">

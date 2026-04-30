@@ -659,51 +659,36 @@
                 ></app-book-table>
               }
               @if (currentViewMode === 'grid') {
-                
-                <div class="virtual-scroller" #scrollElement style="overflow-y: auto; height: 100%; position: relative;">
-                  <div class="grid"
-                    [style.height.px]="virtualizer.getTotalSize()"
-                    [style.position]="'relative'"
-                    [style.width]="'100%'">
-                    @for (virtualRow of virtualizer.getVirtualItems(); track virtualRow.index) {
-                      <div class="virtual-row"
-                        [style.position]="'absolute'"
-                        [style.top.px]="0"
-                        [style.left.px]="0"
-                        [style.transform]="'translateY(' + virtualRow.start + 'px)'"
-                        [style.width]="'100%'"
-                        [style.display]="'flex'"
-                        [style.flex-wrap]="'wrap'"
-                        [style.gap.px]="20"
-                      >
-                        @for (book of gridRows()[virtualRow.index]; track book.id) {
-                          <div
-                            class="virtual-scroller-item"
-                            [ngStyle]="{width: currentCardSize.width + 'px', height: getCardHeight(book) + 'px'}">
-                            <app-book-card
-                              [index]="books.indexOf(book)"
-                              [book]="book"
-                              [titleRows]="isMobile ? mobileTitleRows : desktopTitleRows"
-                              [mobileViewerBooksContext]="books"
-                              [isCheckboxEnabled]="true"
-                              [seriesViewEnabled]="seriesViewEnabled"
-                              [isSeriesCollapsed]="seriesCollapseFilter.isSeriesCollapsed"
-                              [showSubtitle]="showSubtitles"
-                              [forceFileNameTitle]="isDirectoryScopedView"
-                              (checkboxClick)="onCheckboxClicked($event)"
-                              (bookClicked)="onBookClicked($event)"
-                              (bookHoverEnded)="onBookHoverEnded($event)"
-                              [isSelected]="selectedBooks.has(book.id)"
-                              [useSquareCovers]="isAudiobookOnlyLibrary"
-                              [overlayPreferenceService]="bookCardOverlayPreferenceService">
-                            </app-book-card>
-                          </div>
-                        }
+                <virtual-scroller class="virtual-scroller" #scroll [items]="books">
+                  <div
+                    class="grid"
+                    #container
+                    [ngStyle]="{'grid-template-columns': 'repeat(auto-fill, minmax(' + gridColumnMinWidth + ', 1fr))'}">
+                    @for (book of scroll.viewPortItems; let i = $index; track book.id) {
+                      <div
+                        class="virtual-scroller-item"
+                        [ngStyle]="{width: currentCardSize.width + 'px', height: getCardHeight(book) + 'px'}">
+                        <app-book-card
+                          [index]="books.indexOf(book)"
+                          [book]="book"
+                          [titleRows]="isMobile ? mobileTitleRows : desktopTitleRows"
+                          [mobileViewerBooksContext]="books"
+                          [isCheckboxEnabled]="true"
+                          [seriesViewEnabled]="seriesViewEnabled"
+                          [isSeriesCollapsed]="seriesCollapseFilter.isSeriesCollapsed"
+                          [showSubtitle]="showSubtitles"
+                          [forceFileNameTitle]="isDirectoryScopedView"
+                          (checkboxClick)="onCheckboxClicked($event)"
+                          (bookClicked)="onBookClicked($event)"
+                          (bookHoverEnded)="onBookHoverEnded($event)"
+                          [isSelected]="selectedBooks.has(book.id)"
+                          [useSquareCovers]="isAudiobookOnlyLibrary"
+                          [overlayPreferenceService]="bookCardOverlayPreferenceService">
+                        </app-book-card>
                       </div>
                     }
                   </div>
-                </div>
-
+                </virtual-scroller>
               }
             }
           }

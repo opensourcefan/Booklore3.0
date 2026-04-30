@@ -14,13 +14,6 @@
   border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--p-content-border-color);
-
-  .dialog-close-btn {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    z-index: 100;
-  }
 }
 
 .loading-state {

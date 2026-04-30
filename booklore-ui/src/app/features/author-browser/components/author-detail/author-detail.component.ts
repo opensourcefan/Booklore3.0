@@ -1,6 +1,6 @@
 import {AfterViewChecked, Component, ElementRef, inject, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {AsyncPipe, NgClass, NgStyle, Location} from '@angular/common';
+import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
 import {Observable} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
@@ -52,7 +52,6 @@ export class AuthorDetailComponent implements OnInit, AfterViewChecked {
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private location = inject(Location);
   private authorService = inject(AuthorService);
   private bookService = inject(BookService);
   private messageService = inject(MessageService);
@@ -123,10 +122,6 @@ export class AuthorDetailComponent implements OnInit, AfterViewChecked {
 
   toggleExpand(): void {
     this.isExpanded = !this.isExpanded;
-  }
-
-  goBack(): void {
-    this.location.back();
   }
 
   onPhotoError(): void {

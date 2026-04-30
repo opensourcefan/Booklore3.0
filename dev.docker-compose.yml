@@ -3,8 +3,7 @@ services:
     image: gradle:9.4.1-jdk25-alpine
     command: sh -c "cd /booklore-api && ./gradlew bootRun"
     ports:
-      - "4201:4200"
-      - "6060:6060"
+      - "${BACKEND_PORT:-6060}:6060"
       # SECURITY (L2): JDWP remote debugger is bound to 127.0.0.1 (loopback only).
       # DO NOT change this to 0.0.0.0 — JDWP allows unauthenticated remote code execution.
       # This file is FOR LOCAL DEVELOPMENT ONLY and must never be used in production or
@@ -15,7 +14,7 @@ services:
       - DATABASE_USERNAME=booklore
       - DATABASE_PASSWORD=booklore
       - REMOTE_DEBUG_ENABLED=true
-      - ALLOWED_ORIGINS=http://localhost:4200,http://localhost:4201,http://localhost:4202,http://127.0.0.1:4200,http://127.0.0.1:4201,http://127.0.0.1:4202
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:4200}
       - AI_SERVICE_BASE_URL=http://ai-panel:8080
     stdin_open: true
     tty: true

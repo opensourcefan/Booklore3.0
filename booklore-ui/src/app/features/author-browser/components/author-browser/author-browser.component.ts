@@ -1,5 +1,5 @@
-import {Component, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
-import {AsyncPipe, NgClass} from '@angular/common';
+import {Component, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AsyncPipe, NgStyle} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {combineLatest, Observable, BehaviorSubject, Subscription} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
@@ -12,8 +12,7 @@ import {Button} from 'primeng/button';
 import {Divider} from 'primeng/divider';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import {injectVirtualizer} from '@tanstack/angular-virtual';
-import {ElementRef, signal, computed, viewChild, ChangeDetectionStrategy, ChangeDetectorRef, effect} from '@angular/core';
+import {VirtualScrollerComponent, VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
 import {BookBrowserScrollService} from '../../../book/components/book-browser/book-browser-scroll.service';
 import {MessageService} from 'primeng/api';
 import {AuthorService} from '../../service/author.service';
@@ -56,10 +55,9 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
   standalone: true,
   templateUrl: './author-browser.component.html',
   styleUrls: ['./author-browser.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    AsyncPipe, NgClass,
-    
+    AsyncPipe,
+    NgStyle,
     FormsModule,
     ProgressSpinner,
     InputText,
@@ -71,7 +69,8 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
     Tooltip,
     TranslocoDirective,
     AuthorCardComponent,
-      ]
+    VirtualScrollerModule
+  ]
 })
 export class AuthorBrowserComponent implements OnInit, OnDestroy {
 
@@ -79,35 +78,6 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   private static readonly BASE_HEIGHT = 290;
   private static readonly MOBILE_BASE_WIDTH = 140;
   private static readonly MOBILE_BASE_HEIGHT = 250;
-
-  private resizeObserver: ResizeObserver | null = null;
-  private isDestroyed = false;
-
-  private cdr = inject(ChangeDetectorRef);
-
-  constructor() {
-    effect(() => {
-      const el = this.scrollElement()?.nativeElement;
-      if (this.resizeObserver) {
-        this.resizeObserver.disconnect();
-      }
-      if (el) {
-        this.resizeObserver = new ResizeObserver((entries) => {
-          let hasWidth = false;
-          for (const entry of entries) {
-            if (entry.contentRect.width > 0 && Math.abs(this.containerWidth() - entry.contentRect.width) > 1) {
-              this.containerWidth.set(entry.contentRect.width);
-              hasWidth = true;
-            }
-          }
-          if (hasWidth && !this.isDestroyed) {
-            this.cdr.detectChanges();
-          }
-        });
-        this.resizeObserver.observe(el);
-      }
-    });
-  }
 
   private authorService = inject(AuthorService);
   private bookService = inject(BookService);
@@ -121,34 +91,8 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   protected authorScaleService = inject(AuthorScalePreferenceService);
   protected selectionService = inject(AuthorSelectionService);
 
-  scrollElement = viewChild<ElementRef<HTMLDivElement>>('scrollElement');
-  containerWidth = signal<number>(window.innerWidth);
-  authorList = signal<EnrichedAuthor[]>([]);
-  columns = computed(() => {
-    const listLength = this.authorList().length;
-    if (listLength === 0) return Math.max(1, Math.floor((this.containerWidth() - 32 + 20) / (this.cardWidth + 20)));
-    const containerW = this.containerWidth() - 32;
-    const cols = Math.floor((containerW + 20) / (this.cardWidth + 20));
-    return Math.max(1, cols);
-  });
-  gridRows = computed(() => {
-    const items = this.authorList();
-    const cols = this.columns();
-    const rows = [];
-    for (let i = 0; i < items.length; i += cols) {
-      rows.push(items.slice(i, i + cols));
-    }
-    return rows;
-  });
-  virtualizer = injectVirtualizer(() => ({
-    scrollElement: this.scrollElement()?.nativeElement,
-    count: this.gridRows().length,
-    estimateSize: () => this.cardHeight,
-    paddingStart: 16,
-    paddingEnd: 16,
-    gap: 20,
-    overscan: 5
-  }));
+  @ViewChild('scroll')
+  virtualScroller: VirtualScrollerComponent | undefined;
 
   private subscriptions: Subscription[] = [];
 
@@ -158,20 +102,11 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   screenWidth = window.innerWidth;
   selectedCount = 0;
   isCheckboxEnabled = false;
-  isSelectionActionPanelOpen = false;
-  toggleSelectionActionPanel(): void {
-    this.isSelectionActionPanelOpen = !this.isSelectionActionPanelOpen;
-  }
   thumbnailCacheBusters = new Map<number, number>();
 
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
-    if (this.scrollElement()?.nativeElement) {
-      this.containerWidth.set(this.scrollElement()!.nativeElement.clientWidth);
-    } else {
-      this.containerWidth.set(window.innerWidth);
-    }
   }
 
   get isMobile(): boolean {
@@ -281,20 +216,13 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
         result = this.applyFilters(result, filters);
         result = this.applySort(result, sortBy, sortDir);
         this.selectionService.setCurrentAuthors(result);
-        this.authorList.set(result);
         return result;
       })
     );
 
     this.subscriptions.push(
       this.selectionService.selectedAuthors$.subscribe(selected => {
-        const nextSelectedCount = selected.size;
-        if (nextSelectedCount > 0 && this.selectedCount === 0) {
-          this.isSelectionActionPanelOpen = true;
-        } else if (nextSelectedCount === 0 && this.selectedCount > 0) {
-          this.isSelectionActionPanelOpen = false;
-        }
-        this.selectedCount = nextSelectedCount;
+        this.selectedCount = selected.size;
         this.isCheckboxEnabled = selected.size > 0;
       })
     );
@@ -303,10 +231,6 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.isDestroyed = true;
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-    }
     this.subscriptions.forEach(s => s.unsubscribe());
     this.selectionService.deselectAll();
   }
@@ -635,9 +559,9 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   }
 
   private saveScrollPosition(): void {
-    if (this.virtualizer) {
+    if (this.virtualScroller?.viewPortInfo) {
       const key = this.getScrollPositionKey();
-      const position = this.virtualizer ? (this.virtualizer.scrollOffset() ?? 0) : 0;
+      const position = this.virtualScroller.viewPortInfo.scrollStartPosition ?? 0;
       this.scrollService.savePosition(key, position);
     }
   }

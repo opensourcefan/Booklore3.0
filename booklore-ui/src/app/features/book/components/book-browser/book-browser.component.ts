@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, QueryList, NgZone, ViewChild, ViewChildren, ChangeDetectionStrategy} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, QueryList, NgZone, ViewChild, ViewChildren} from '@angular/core';
 import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
@@ -17,8 +17,7 @@ import {BookTableComponent} from './book-table/book-table.component';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {Button} from 'primeng/button';
 import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
-import {injectVirtualizer} from '@tanstack/angular-virtual';
-import {signal, computed, ElementRef, viewChild, effect} from '@angular/core';
+import {VirtualScrollerComponent, VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
 import {BookCardComponent} from './book-card/book-card.component';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Menu} from 'primeng/menu';
@@ -81,9 +80,8 @@ export enum EntityType {
   standalone: true,
   templateUrl: './book-browser.component.html',
   styleUrls: ['./book-browser.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    Button,  BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule,
+    Button, VirtualScrollerModule, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule,
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, NgStyle, Popover,
     Checkbox, Slider, Divider, MultiSelect, TieredMenu, BadgeModule, MultiSortPopoverComponent, TranslocoDirective,
     ResizableDividerDirective, CoverPreviewComponent,
@@ -103,64 +101,6 @@ export enum EntityType {
   ]
 })
 export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
-  scrollElement = viewChild<ElementRef<HTMLDivElement>>('scrollElement');
-  containerWidth = signal<number>(window.innerWidth);
-  
-  private resizeObserver: ResizeObserver | null = null;
-  private isDestroyed = false;
-  
-  constructor() {
-    effect(() => {
-      const el = this.scrollElement()?.nativeElement;
-      if (this.resizeObserver) {
-        this.resizeObserver.disconnect();
-      }
-      if (el) {
-        this.resizeObserver = new ResizeObserver((entries) => {
-          let hasWidth = false;
-          for (const entry of entries) {
-            if (entry.contentRect.width > 0 && Math.abs(this.containerWidth() - entry.contentRect.width) > 1) {
-              this.containerWidth.set(entry.contentRect.width);
-              hasWidth = true;
-            }
-          }
-          if (hasWidth && !this.isDestroyed) {
-             this.cdr.detectChanges();
-          }
-        });
-        this.resizeObserver.observe(el);
-      }
-    });
-  }
-
-  booksSignal = signal<Book[]>([]);
-  columns = computed(() => {
-    const len = this.booksSignal().length;
-    if(len === 0) return Math.max(1, Math.floor((this.containerWidth() - 32 + 20) / (this.currentCardSize.width + 20)));
-    return Math.max(1, Math.floor((this.containerWidth() - 32 + 20) / (this.currentCardSize.width + 20)));
-  });
-  gridRows = computed(() => {
-    const items = this.booksSignal();
-    const cols = this.columns();
-    const rows = [];
-    for (let i = 0; i < items.length; i += cols) {
-      rows.push(items.slice(i, i + cols));
-    }
-    return rows;
-  });
-  virtualizer = injectVirtualizer(() => ({
-    count: this.gridRows().length,
-    scrollElement: this.scrollElement()?.nativeElement,
-    estimateSize: () => {
-        const row = this.gridRows()[0] || [];
-        let h = 0;
-        if(row.length) {
-             h = this.getCardHeight(row[0]);
-        }
-        return (h || this.currentCardSize.height) + 20;
-    },
-    overscan: 5
-  }));
 
   protected userService = inject(UserService);
   protected coverScalePreferenceService = inject(CoverScalePreferenceService);
@@ -279,7 +219,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   bookTableComponent!: BookTableComponent;
   @ViewChildren(BookFilterComponent)
   bookFilterComponents!: QueryList<BookFilterComponent>;
-  
+  @ViewChild('scroll')
+  virtualScroller: VirtualScrollerComponent | undefined;
   @ViewChild('mobileRightSidebarPop')
   mobileRightSidebarPop: Popover | undefined;
   private isMobileRightSidebarOpen = false;
@@ -288,11 +229,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
-    if (this.scrollElement()?.nativeElement) {
-      this.containerWidth.set(this.scrollElement()!.nativeElement.clientWidth);
-    } else {
-      this.containerWidth.set(window.innerWidth);
-    }
   }
 
   get isMobile(): boolean {
@@ -549,10 +485,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.isDestroyed = true;
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-    }
     this.forceCloseMobileRightSidebar(false);
     this.clearHoverPreviewTimer();
     this.destroy$.next();
@@ -600,9 +532,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private saveScrollPosition(): void {
-    if (this.virtualizer) {
+    if (this.virtualScroller?.viewPortInfo) {
       const key = this.getScrollPositionKey();
-      const position = (this.virtualizer.scrollOffset() ?? 0);
+      const position = this.virtualScroller.viewPortInfo.scrollStartPosition ?? 0;
       this.scrollService.savePosition(key, position);
     }
   }
@@ -1106,7 +1038,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.visibleBookIds = new Set(books.map(book => book.id));
         this.bookSelectionService.setCurrentBooks(books);
         this.bookNavigationService.setAvailableBookIds(books.map(book => book.id));
-        this.booksSignal.set(books);
         this.updateSelectionVisibility();
         this.cdr.markForCheck();
       });

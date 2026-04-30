@@ -1,7 +1,7 @@
 import {FormsModule} from "@angular/forms";
 import {Button} from "primeng/button";
 import {ActivatedRoute, Router} from "@angular/router";
-import {AsyncPipe, DecimalPipe, KeyValuePipe, NgClass, NgStyle, Location} from "@angular/common";
+import {AsyncPipe, DecimalPipe, KeyValuePipe, NgClass, NgStyle} from "@angular/common";
 import {filter, map, switchMap, tap} from "rxjs/operators";
 import {combineLatest, Observable, Subscription} from "rxjs";
 import {Book, BookType, ReadStatus} from "../../model/book.model";
@@ -122,7 +122,8 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
   protected bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
   protected appSettingsService = inject(AppSettingsService);
   private readonly t = inject(TranslocoService);
-  protected urlHelper = inject(UrlHelperService);  protected location = inject(Location);
+  protected urlHelper = inject(UrlHelperService);
+
   @ViewChild('descriptionContent') descriptionContentRef?: ElementRef<HTMLElement>;
   tab = "view";
   isExpanded = false;
@@ -930,9 +931,5 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
 
   get hasMoreActionsItems(): boolean {
     return (this.moreActionsMenuItems?.length ?? 0) > 0;
-  }
-
-  goBack(): void {
-    this.location.back();
   }
 }
