@@ -65,7 +65,7 @@ RUN chmod 755 /usr/local/bin/unrar
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-COPY --from=springboot-build /springboot-app/build/libs/booklore-api-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY --from=springboot-build /springboot-app/build/libs/booklore-api-3.9.9.jar /app/app.jar
 
 ARG BOOKLORE_PORT=6060
 EXPOSE ${BOOKLORE_PORT}
