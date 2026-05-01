@@ -1,0 +1,42 @@
+# Testing compose - only booklore service with testing image
+# Run this alongside your main docker-compose.yml to test v3.14.1-testing
+# using your existing database and AI services
+
+services:
+  booklore-testing:
+    # Testing version - pinned to v3.14.1-testing for reproducible testing
+    image: ghcr.io/opensourcefan/booklore3:v3.14.1-testing
+    container_name: booklore-testing
+    environment:
+      - USER_ID=${APP_USER_ID}
+      - GROUP_ID=${APP_GROUP_ID}
+      - TZ=${TZ}
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_USERNAME=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - DISK_TYPE=${DISK_TYPE}
+      - TELEMETRY_ENABLED=false
+      # Connect to existing AI panel from main compose
+      - AI_SERVICE_BASE_URL=${AI_SERVICE_BASE_URL:-http://booklore-ai-panel:8080}
+      # CORS / Cross-origin access:
+      # Leave ALLOWED_ORIGINS unset (default) for same-origin deployments (most common).
+      # Set to your frontend URL only when the UI is served from a different origin:
+      #   ALLOWED_ORIGINS=https://books.example.com
+      # WARNING: ALLOWED_ORIGINS=* is insecure - it allows any website to make
+      # credentialed cross-origin requests to the API while a user session is active.
+      # - ALLOWED_ORIGINS=
+    # Note: depends_on not needed - connects to existing mariadb from main compose
+    ports:
+      # Use different port (6061) to avoid conflict with main booklore on 6060
+      - "6061:6060"
+    volumes:
+      - ./data:/app/data
+      - ./books:/books
+      - ./bookdrop:/bookdrop
+    networks:
+      - booklore_shared
+    restart: unless-stopped
+
+networks:
+  booklore_shared:
+    external: true
