@@ -52,8 +52,8 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     private static final Pattern DIGIT_PATTERN = Pattern.compile("\\d+");
     private static final Pattern SERIES_ISSUE_PATTERN = Pattern.compile("^(.+?)\\s+#?(\\d+(?:\\.\\d+)?)(?:\\s|$)", Pattern.CASE_INSENSITIVE);
     private static final Pattern DIGITAL_PATTERN = Pattern.compile("\\(digital\\)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern PARENTHETICAL_PATTERN = Pattern.compile("\\([^)]*\\)");
-    private static final Pattern BRACKETED_PATTERN = Pattern.compile("\\[[^\\]]*\\]");
+    private static final Pattern PARENTHETICAL_PATTERN = Pattern.compile("(?:\\([^)]*+\\))");
+    private static final Pattern BRACKETED_PATTERN = Pattern.compile("(?:\\[[^\\]]*+\\])");
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     private static final Pattern SPECIAL_ISSUE_PATTERN = Pattern.compile("(annual|special|one-?shot)\\s+(\\d+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern YEAR_PATTERN = Pattern.compile("\\(?(\\d{4})\\)?");
@@ -65,8 +65,7 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
     private static final String ISSUE_DETAIL_FIELDS = "api_detail_url,cover_date,store_date,description,deck,id,image,issue_number,name,person_credits,volume,site_detail_url,aliases,character_credits,team_credits,story_arc_credits,location_credits";
     private static final String SEARCH_FIELDS = "api_detail_url,cover_date,store_date,description,deck,id,image,issue_number,name,publisher,volume,site_detail_url,resource_type,start_year,count_of_issues,aliases,person_credits";
     private static final Pattern ISSUE_NUMBER_PATTERN = Pattern.compile("issue\\s*#?\\d+");
-    private static final Pattern ID_FORMAT_PATTERN = Pattern.compile("\\d+-?\\d*");
-    private static final Pattern TRAILING_SLASHES_PATTERN = Pattern.compile("/+$");
+    private static final Pattern ID_FORMAT_PATTERN = Pattern.compile("\\d++-?+\\d*+");
     private static final Pattern VOLUME_SUFFIX_PATTERN = Pattern.compile("\\s+Vol\\.?\\s*\\d+$");
     private static final Pattern ISSUE_RANGE_PATTERN = Pattern.compile("^(\\d+)\\s*-\\s*(\\d+)$");
     private static final Pattern COMICVINE_ITEM_URL_PATTERN = Pattern.compile("comicvine\\.gamespot\\.com/[^/]+/(\\d{4})-(\\d+)", Pattern.CASE_INSENSITIVE);
@@ -1137,7 +1136,10 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
         String path = uri.getPath();
         if (path == null || path.isEmpty()) return "unknown";
         
-        path = TRAILING_SLASHES_PATTERN.matcher(path).replaceAll("");
+        // Strip trailing slashes using simple character loop (ReDoS-safe)
+        while (!path.isEmpty() && path.charAt(path.length() - 1) == '/') {
+            path = path.substring(0, path.length() - 1);
+        }
         int lastSlash = path.lastIndexOf('/');
         if (lastSlash >= 0 && lastSlash < path.length() - 1) {
             String segment = path.substring(lastSlash + 1);

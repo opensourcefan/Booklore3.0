@@ -34,10 +34,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class AmazonBookParser implements BookParser, DetailedMetadataProvider {
     private static final Pattern ASIN_PATTERN = Pattern.compile("([A-Z0-9]{10})");
-    private static final Pattern TRAILING_BR_TAGS_PATTERN = Pattern.compile("(\\s*<br\\s*/?>\\s*)+$");
-    private static final Pattern LEADING_BR_TAGS_PATTERN = Pattern.compile("^(\\s*<br\\s*/?>\\s*)+");
-    private static final Pattern MULTIPLE_BR_TAGS_PATTERN = Pattern.compile("(<br\\s*/?>\\s*){3,}");
-    private static final Pattern MULTIPLE_BR_CLOSING_TAGS_PATTERN = Pattern.compile("(<br>\\s*){3,}");
 
     private static class AmazonAntiScrapingException extends RuntimeException {
         public AmazonAntiScrapingException(String message) {
@@ -961,38 +957,73 @@ public class AmazonBookParser implements BookParser, DetailedMetadataProvider {
                     .filter(p -> p.text().trim().isEmpty())
                     .forEach(Element::remove);
 
-            // Remove excessive line breaks (more than 2 consecutive <br> tags)
-            Elements brTags = document.select("br");
-            for (int i = 0; i < brTags.size(); i++) {
-                Element br = brTags.get(i);
-                int consecutiveBrCount = 1;
-                Element next = br.nextElementSibling();
+            // Collapse excessive <br> tags to at most 2 consecutive using DOM traversal
+            Element body = document.body();
+            if (body != null) {
+                // Remove leading <br> tags
+                org.jsoup.select.NodeTraversor.traverse(new org.jsoup.select.NodeVisitor() {
+                    private boolean foundNonWhitespace = false;
 
-                // Count consecutive <br> tags
-                while (next != null && "br".equals(next.tagName())) {
-                    consecutiveBrCount++;
-                    Element temp = next;
-                    next = next.nextElementSibling();
+                    @Override
+                    public void head(org.jsoup.nodes.Node node, int depth) {
+                        if (node instanceof Element && "br".equals(((Element) node).tagName()) && !foundNonWhitespace) {
+                            node.remove();
+                        } else if (!(node instanceof Element && "br".equals(((Element) node).tagName()))) {
+                            if (node instanceof org.jsoup.nodes.TextNode) {
+                                String text = ((org.jsoup.nodes.TextNode) node).text();
+                                if (!text.isBlank()) {
+                                    foundNonWhitespace = true;
+                                }
+                            } else {
+                                foundNonWhitespace = true;
+                            }
+                        }
+                    }
 
-                    // Remove extra <br> tags beyond the first two
-                    if (consecutiveBrCount > 2) {
-                        temp.remove();
+                    @Override
+                    public void tail(org.jsoup.nodes.Node node, int depth) {
+                    }
+                }, body);
+
+                // Collapse consecutive <br> tags to at most 2
+                boolean changed = true;
+                while (changed) {
+                    changed = false;
+                    Elements allBr = document.select("br");
+                    for (int i = 0; i < allBr.size(); i++) {
+                        Element br = allBr.get(i);
+                        int consecutive = 1;
+                        Element nextSibling = br.nextElementSibling();
+                        while (nextSibling != null && "br".equals(nextSibling.tagName())) {
+                            consecutive++;
+                            Element toRemove = nextSibling;
+                            nextSibling = nextSibling.nextElementSibling();
+                            if (consecutive > 2) {
+                                toRemove.remove();
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+
+                // Remove trailing <br> tags from the body
+                List<org.jsoup.nodes.Node> children = body.childNodes();
+                for (int i = children.size() - 1; i >= 0; i--) {
+                    org.jsoup.nodes.Node node = children.get(i);
+                    if (node instanceof Element && "br".equals(((Element) node).tagName())) {
+                        node.remove();
+                    } else if (node instanceof org.jsoup.nodes.TextNode) {
+                        if (((org.jsoup.nodes.TextNode) node).text().isBlank()) {
+                            continue;
+                        }
+                        break;
+                    } else {
+                        break;
                     }
                 }
             }
 
-            // Clean up any remaining whitespace issues
-            String cleanedHtml = document.body().html();
-
-            // Replace multiple consecutive <br> patterns that might still exist
-            cleanedHtml = MULTIPLE_BR_CLOSING_TAGS_PATTERN.matcher(cleanedHtml).replaceAll("<br><br>");
-            cleanedHtml = MULTIPLE_BR_TAGS_PATTERN.matcher(cleanedHtml).replaceAll("<br><br>");
-
-            // Remove leading/trailing <br> tags
-            cleanedHtml = LEADING_BR_TAGS_PATTERN.matcher(cleanedHtml).replaceAll("");
-            cleanedHtml = TRAILING_BR_TAGS_PATTERN.matcher(cleanedHtml).replaceAll("");
-
-            return cleanedHtml;
+            return document.body().html();
         } catch (Exception e) {
             log.warn("Error cleaning html description, Error: {}", e.getMessage());
         }
