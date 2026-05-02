@@ -16,10 +16,15 @@
   border: 1px solid var(--p-content-border-color);
 }
 
-.close-button-row {
-  display: flex;
-  justify-content: flex-start;
-  padding: 0.25rem 0.5rem;
+:host ::ng-deep p-tablist {
+  padding-right: 3.5rem;
+}
+
+.route-return-control {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  z-index: 2;
 }
 
 .loading-state {

@@ -58,3 +58,8 @@ booklore-v3c/
 .env
 booklore_r730/
 patches/
+.continue/rules/codebase.md
+.continue/agents/ds4flash.yaml
+.continue/agents/ds4pro.yaml
+.clinerules/codespace.md
+.clinerules/preferences.md
