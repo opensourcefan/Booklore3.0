@@ -9,6 +9,9 @@
 
   @if (!loading && author) {
     <div class="author-wrapper">
+      <div class="close-button-row">
+        <p-button icon="pi pi-arrow-left" severity="secondary" class="route-return-button" (onClick)="closePage()" />
+      </div>
       <p-tabs [value]="tab" lazy="true" scrollable>
         <p-tablist>
           <p-tab value="books">

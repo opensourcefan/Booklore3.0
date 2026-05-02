@@ -158,6 +158,17 @@ export class AuthorDetailComponent implements OnInit, AfterViewChecked {
     });
   }
 
+  closePage(): void {
+    this.router.navigate(['/all-books'], {
+      queryParams: {
+        view: 'grid',
+        sort: 'title',
+        direction: 'asc',
+        sidebar: true
+      }
+    });
+  }
+
   private loadAuthor(authorId: number): void {
     this.authorService.getAuthorDetails(authorId).subscribe({
       next: (author) => {

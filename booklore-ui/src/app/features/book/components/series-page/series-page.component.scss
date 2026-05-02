@@ -16,6 +16,12 @@
   border: 1px solid var(--p-content-border-color);
 }
 
+.close-button-row {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0.25rem 0.5rem;
+}
+
 .series-main {
   display: flex;
   flex-direction: column;

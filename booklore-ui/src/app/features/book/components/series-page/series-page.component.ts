@@ -449,6 +449,17 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
     return this.coverScalePreferenceService.gridColumnMinWidth;
   }
 
+  closePage(): void {
+    this.router.navigate(['/all-books'], {
+      queryParams: {
+        view: 'grid',
+        sort: 'title',
+        direction: 'asc',
+        sidebar: true
+      }
+    });
+  }
+
   goToAuthorBooks(author: string): void {
     this.handleMetadataClick("author", author);
   }
