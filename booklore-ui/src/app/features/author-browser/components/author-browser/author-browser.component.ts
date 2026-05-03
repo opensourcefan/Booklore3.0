@@ -101,10 +101,25 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   protected authorScaleService = inject(AuthorScalePreferenceService);
   protected selectionService = inject(AuthorSelectionService);
 
+  private _scrollContainer?: ElementRef<HTMLElement>;
   @ViewChild('scrollContainer')
-  scrollContainer?: ElementRef<HTMLElement>;
+  set scrollContainer(el: ElementRef<HTMLElement> | undefined) {
+    this._scrollContainer = el;
+    this.updateVirtualGridDomBindings();
+  }
+  get scrollContainer(): ElementRef<HTMLElement> | undefined {
+    return this._scrollContainer;
+  }
+
+  private _gridContainer?: ElementRef<HTMLElement>;
   @ViewChild('gridContainer')
-  gridContainer?: ElementRef<HTMLElement>;
+  set gridContainer(el: ElementRef<HTMLElement> | undefined) {
+    this._gridContainer = el;
+    this.updateVirtualGridDomBindings();
+  }
+  get gridContainer(): ElementRef<HTMLElement> | undefined {
+    return this._gridContainer;
+  }
 
   private subscriptions: Subscription[] = [];
 

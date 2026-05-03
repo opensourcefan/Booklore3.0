@@ -74,8 +74,25 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
   private readonly GRID_GAP_DESKTOP = 20.8;
 
   @ViewChild('descriptionContent') descriptionContentRef?: ElementRef<HTMLElement>;
-  @ViewChild('scrollContainer') scrollContainer?: ElementRef<HTMLElement>;
-  @ViewChild('gridContainer') gridContainer?: ElementRef<HTMLElement>;
+  private _scrollContainer?: ElementRef<HTMLElement>;
+  @ViewChild('scrollContainer')
+  set scrollContainer(el: ElementRef<HTMLElement> | undefined) {
+    this._scrollContainer = el;
+    this.updateVirtualGridDomBindings();
+  }
+  get scrollContainer(): ElementRef<HTMLElement> | undefined {
+    return this._scrollContainer;
+  }
+
+  private _gridContainer?: ElementRef<HTMLElement>;
+  @ViewChild('gridContainer')
+  set gridContainer(el: ElementRef<HTMLElement> | undefined) {
+    this._gridContainer = el;
+    this.updateVirtualGridDomBindings();
+  }
+  get gridContainer(): ElementRef<HTMLElement> | undefined {
+    return this._gridContainer;
+  }
 
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
 
