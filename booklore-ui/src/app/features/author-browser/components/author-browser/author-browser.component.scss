@@ -143,27 +143,6 @@
   padding: 1rem;
   box-sizing: border-box;
   overflow-y: auto;
-
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary-color) rgba(20, 20, 30, 0.5);
-
-  &::-webkit-scrollbar {
-    width: 12px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: rgba(20, 20, 30, 0.5);
-    border-radius: 10px;
-  }
-
-  @media (max-width: 768px) {
-    height: calc(100dvh - 13rem);
-    padding: 0.5rem;
-
-    &::-webkit-scrollbar {
-      width: 8px;
-    }
-  }
 }
 
 .author-grid {

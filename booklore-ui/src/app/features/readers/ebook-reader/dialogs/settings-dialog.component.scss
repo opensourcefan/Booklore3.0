@@ -138,22 +138,8 @@ $transition-normal: 200ms ease;
   min-height: 0;
   max-height: 100%;
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
 
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.25);
-    }
-  }
 }
 
 .tab-content {

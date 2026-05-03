@@ -100,28 +100,6 @@
   position: relative;
   z-index: 2;
 
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary-color) rgba(20, 20, 30, 0.5);
-
-  &::-webkit-scrollbar {
-    height: var(--dashboard-scroller-scrollbar-size);
-  }
-
-  &::-webkit-scrollbar-track {
-    background: rgba(20, 20, 30, 0.5);
-    border-top: 2px solid transparent;
-    border-bottom: 2px solid transparent;
-    background-clip: content-box;
-    border-radius: 999px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-top: 2px solid transparent;
-    border-bottom: 2px solid transparent;
-    background-clip: content-box;
-    border-radius: 999px;
-  }
 }
 
 .dashboard-scroller-card {

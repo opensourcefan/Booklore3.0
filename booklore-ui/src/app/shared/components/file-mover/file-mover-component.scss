@@ -32,22 +32,6 @@
   border-top: none;
   border-bottom: none;
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-
-    &:hover {
-      background: var(--primary-color);
-    }
-  }
 }
 
 .dialog-footer {

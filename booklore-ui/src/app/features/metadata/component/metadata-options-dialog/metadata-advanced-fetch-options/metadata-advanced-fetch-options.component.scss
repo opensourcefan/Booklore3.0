@@ -20,14 +20,6 @@
   overflow-y: auto;
   padding-right: 0.25rem;
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 999px;
-  }
 }
 
 .options-container--external-controls .options-scroll-content {

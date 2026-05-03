@@ -79,8 +79,6 @@
   position: relative;
   z-index: 2;
 
-  scrollbar-color: var(--primary-color) rgba(20, 20, 30, 0.5);
-
   > * {
     scroll-snap-align: start;
   }

@@ -111,22 +111,6 @@
   overflow-y: auto;
   gap: 1.25rem;
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-
-    &:hover {
-      background: var(--primary-color);
-    }
-  }
 }
 
 // Search
@@ -416,14 +400,6 @@
   overflow-y: auto;
   padding: 0.25rem;
 
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 2px;
-  }
 }
 
 .queue-item {

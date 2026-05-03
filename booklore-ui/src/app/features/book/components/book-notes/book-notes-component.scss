@@ -72,16 +72,8 @@
   overflow-y: hidden;
   height: 100%;
 
-  &::-webkit-scrollbar {
-    height: 10px;
-  }
 
-  &::-webkit-scrollbar-track {
-    background: rgba(30, 30, 30, 0.5);
-    border-radius: 10px;
-  }
 
-  scrollbar-width: thin;
 }
 
 .notes-horizontal-list {
@@ -271,9 +263,6 @@
     font-size: 0.85rem;
   }
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
 }
 
 .dialog-form {

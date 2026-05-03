@@ -173,18 +173,6 @@
   height: calc(100dvh - 22rem);
   box-sizing: border-box;
   overflow-y: auto;
-
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary-color) rgba(20, 20, 30, 0.5);
-
-  &::-webkit-scrollbar {
-    width: 12px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: rgba(20, 20, 30, 0.5);
-    border-radius: 10px;
-  }
 }
 
 .books-grid {

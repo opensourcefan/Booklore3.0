@@ -70,22 +70,9 @@
   transform: translateY(-10px);
   transition: opacity 0.2s ease, transform 0.2s ease, height 0.2s ease;
 
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
 
-  &::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-  }
 
-  &::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary-color);
-  }
 }
 
 .search-dropdown.show {
