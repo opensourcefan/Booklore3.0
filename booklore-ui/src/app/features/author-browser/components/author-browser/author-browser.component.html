@@ -185,6 +185,69 @@
         </div>
       </div>
     </div>
+    @if (userService.userState$ | async; as userState) {
+      <div class="selection-action-panel" [class.panel-hidden]="selectedCount === 0">
+        <div class="selection-panel-content">
+          <div class="selection-panel-left">
+            <div class="selected-count-badge">
+              <i class="pi pi-check-circle"></i>
+              <span class="selected-count">{{ selectedCount }}</span>
+              <span class="selected-label">{{ t('footer.selected') }}</span>
+            </div>
+          </div>
+          <div class="selection-panel-center">
+            @if (canEditMetadata || canDeleteBook) {
+              <div class="action-buttons-group">
+                @if (canEditMetadata) {
+                  <p-button
+                    icon="pi pi-bolt"
+                    [outlined]="true"
+                    severity="info"
+                    size="small"
+                    (onClick)="autoMatchSelected()"
+                    [pTooltip]="t('footer.autoMatch')"
+                    tooltipPosition="bottom">
+                  </p-button>
+                }
+                @if (canDeleteBook) {
+                  <p-button
+                    icon="pi pi-trash"
+                    [outlined]="true"
+                    severity="danger"
+                    size="small"
+                    (onClick)="deleteSelected()"
+                    [pTooltip]="t('footer.deleteSelected')"
+                    tooltipPosition="bottom">
+                  </p-button>
+                }
+              </div>
+            }
+          </div>
+          <div class="selection-panel-right">
+            <div class="action-buttons-group">
+              <p-button
+                [outlined]="true"
+                icon="pi pi-check-square"
+                severity="success"
+                size="small"
+                (onClick)="selectAllAuthors()"
+                [pTooltip]="t('footer.selectAll')"
+                tooltipPosition="bottom">
+              </p-button>
+              <p-button
+                [outlined]="true"
+                icon="pi pi-times"
+                severity="warn"
+                size="small"
+                (onClick)="deselectAllAuthors()"
+                [pTooltip]="t('footer.deselectAll')"
+                tooltipPosition="bottom">
+              </p-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
 
     @if (filteredAuthors$ | async; as authorList) {
       @if (authorList.length === 0) {
@@ -231,60 +294,6 @@
       }
     }
 
-    @if (userService.userState$ | async; as userState) {
-      <div class="author-browser-footer" [class.footer-hidden]="selectedCount === 0">
-        <div class="footer-content">
-          <div class="selected-count-badge">
-            <i class="pi pi-check-circle"></i>
-            <span class="selected-count">{{ selectedCount }}</span>
-            <span class="selected-label">{{ t('footer.selected') }}</span>
-          </div>
-          @if (canEditMetadata || canDeleteBook) {
-            <p-divider layout="vertical"></p-divider>
-            <div class="action-buttons-group">
-              @if (canEditMetadata) {
-                <p-button
-                  icon="pi pi-bolt"
-                  outlined="true"
-                  severity="info"
-                  (onClick)="autoMatchSelected()"
-                  [pTooltip]="t('footer.autoMatch')"
-                  tooltipPosition="top">
-                </p-button>
-              }
-              @if (canDeleteBook) {
-                <p-button
-                  icon="pi pi-trash"
-                  outlined="true"
-                  severity="danger"
-                  (onClick)="deleteSelected()"
-                  [pTooltip]="t('footer.deleteSelected')"
-                  tooltipPosition="top">
-                </p-button>
-              }
-            </div>
-          }
-          <p-divider layout="vertical"></p-divider>
-          <div class="action-buttons-group">
-            <p-button
-              outlined="true"
-              icon="pi pi-check-square"
-              severity="success"
-              (click)="selectAllAuthors()"
-              [pTooltip]="t('footer.selectAll')"
-              tooltipPosition="top">
-            </p-button>
-            <p-button
-              outlined="true"
-              icon="pi pi-times"
-              severity="warn"
-              (click)="deselectAllAuthors()"
-              [pTooltip]="t('footer.deselectAll')"
-              tooltipPosition="top">
-            </p-button>
-          </div>
-        </div>
-      </div>
-    }
+
   }
 </ng-container>

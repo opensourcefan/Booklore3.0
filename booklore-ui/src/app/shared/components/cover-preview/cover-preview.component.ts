@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, ViewChild, inject, OnChanges, SimpleChanges } from '@angular/core';
 
 @Component({
   selector: 'app-cover-preview',
@@ -14,7 +14,7 @@ import { AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, View
         }
       </div>
       <div class="cover-preview-body">
-        @if (coverUrl) {
+        @if (coverUrl && !imageError) {
           <img
             [src]="coverUrl"
             [alt]="bookTitle"
@@ -45,12 +45,20 @@ import { AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, View
     '.cover-placeholder span { font-size: 0.78rem; opacity: 0.5; }'
   ]
 })
-export class CoverPreviewComponent implements AfterViewInit, OnDestroy {
+export class CoverPreviewComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() coverUrl: string | null = null;
   @Input() bookTitle = '';
 
   @ViewChild('panel') panelRef!: ElementRef<HTMLElement>;
   @ViewChild('resizeHandle') resizeHandleRef!: ElementRef<HTMLElement>;
+
+  imageError = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['coverUrl']) {
+      this.imageError = false;
+    }
+  }
 
   private dragging = false;
   private startY = 0;
@@ -102,7 +110,7 @@ export class CoverPreviewComponent implements AfterViewInit, OnDestroy {
   }
 
   onImgError(): void {
-    this.coverUrl = null;
+    this.imageError = true;
   }
 
   ngOnDestroy(): void {

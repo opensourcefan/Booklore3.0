@@ -19,7 +19,7 @@ import {Select} from 'primeng/select';
 import {Slider} from 'primeng/slider';
 import {Popover} from 'primeng/popover';
 import {Button} from 'primeng/button';
-import {Divider} from 'primeng/divider';
+
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
@@ -74,7 +74,6 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
     Slider,
     Popover,
     Button,
-    Divider,
     Tooltip,
     TranslocoDirective,
     AuthorCardComponent,
@@ -322,6 +321,9 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
   updateScale(): void {
     this.authorScaleService.setScale(this.authorScaleService.scaleFactor);
+    this.cardWidthSig.set(this.cardWidth);
+    this.cardHeightSig.set(this.cardHeight);
+    queueMicrotask(() => this.updateVirtualGridDomBindings());
   }
 
   get canEditMetadata(): boolean {
@@ -626,9 +628,17 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   private updateVirtualGridDomBindings(): void {
     const scrollEl = this.scrollContainer?.nativeElement ?? null;
     this.virtualGrid.setScrollElement(scrollEl);
+
     const widthEl = this.gridContainer?.nativeElement ?? scrollEl;
     if (widthEl) {
-      this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+      queueMicrotask(() => {
+        if (widthEl.clientWidth > 0) {
+          this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+        }
+        if (scrollEl) {
+          scrollEl.dispatchEvent(new Event('scroll'));
+        }
+      });
     }
   }
 

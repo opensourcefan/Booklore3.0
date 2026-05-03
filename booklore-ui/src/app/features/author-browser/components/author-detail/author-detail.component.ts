@@ -257,9 +257,17 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
   private updateVirtualGridDomBindings(): void {
     const scrollEl = this.scrollContainer?.nativeElement ?? null;
     this.virtualGrid.setScrollElement(scrollEl);
+
     const widthEl = this.gridContainer?.nativeElement ?? scrollEl;
     if (widthEl) {
-      this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+      queueMicrotask(() => {
+        if (widthEl.clientWidth > 0) {
+          this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+        }
+        if (scrollEl) {
+          scrollEl.dispatchEvent(new Event('scroll'));
+        }
+      });
     }
   }
 }

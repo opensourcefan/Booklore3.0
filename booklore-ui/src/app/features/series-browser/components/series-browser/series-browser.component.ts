@@ -228,6 +228,9 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
   updateScale(): void {
     this.seriesScaleService.setScale(this.seriesScaleService.scaleFactor);
+    this.cardWidthSig.set(this.cardWidth);
+    this.cardHeightSig.set(this.cardHeight);
+    queueMicrotask(() => this.updateVirtualGridDomBindings());
   }
 
   navigateToSeries(series: SeriesSummary): void {
@@ -237,9 +240,17 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   private updateVirtualGridDomBindings(): void {
     const scrollEl = this.scrollContainer?.nativeElement ?? null;
     this.virtualGrid.setScrollElement(scrollEl);
+
     const widthEl = this.gridContainer?.nativeElement ?? scrollEl;
     if (widthEl) {
-      this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+      queueMicrotask(() => {
+        if (widthEl.clientWidth > 0) {
+          this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+        }
+        if (scrollEl) {
+          scrollEl.dispatchEvent(new Event('scroll'));
+        }
+      });
     }
   }
 

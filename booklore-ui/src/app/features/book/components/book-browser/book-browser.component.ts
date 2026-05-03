@@ -451,7 +451,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           if (this.pendingPreviewBookId !== book.id) {
             return;
           }
-          this.selectedCoverUrl = this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
+          const isAudiobook = book.primaryFile?.bookType === 'AUDIOBOOK';
+          this.selectedCoverUrl = isAudiobook
+            ? this.urlHelper.getAudiobookCoverUrl(book.id, book.metadata?.audiobookCoverUpdatedOn)
+            : this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
           this.selectedBookTitle = this.getDisplayTitle(book);
           this.pendingPreviewBookId = null;
           this.hoverPreviewTimer = null;
@@ -929,6 +932,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   updateScale(): void {
     this.coverScalePreferenceService.setScale(this.coverScalePreferenceService.scaleFactor);
+    this.cardWidthSig.set(this.currentCardSize.width);
+    this.cardHeightSig.set(this.getUniformCardHeight());
+    queueMicrotask(() => this.updateVirtualGridDomBindings());
   }
 
   onVisibleColumnsChange(selected: { field: string; header: string }[]): void {
@@ -1114,7 +1120,15 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const widthEl = this.gridContainer?.nativeElement ?? scrollEl;
     if (widthEl) {
-      this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+      // clientWidth might be 0 during initial view attach, queue microtask to get painted width
+      queueMicrotask(() => {
+        if (widthEl.clientWidth > 0) {
+          this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+        }
+        if (scrollEl) {
+          scrollEl.dispatchEvent(new Event('scroll'));
+        }
+      });
     }
   }
 
