@@ -2,6 +2,7 @@ package org.booklore.controller;
 
 import org.booklore.config.security.annotation.CheckBookAccess;
 import org.booklore.exception.ApiError;
+import org.booklore.app.dto.AppPageResponse;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.BookRecommendation;
 import org.booklore.model.dto.BookViewerSettings;
@@ -74,6 +75,18 @@ public class BookController {
             @Parameter(description = "Remove other metadata fields from the response")
             @RequestParam(required = false, defaultValue = "true") boolean stripForListView) {
         return ResponseEntity.ok(bookService.getBookDTOs(withDescription, stripForListView));
+    }
+
+    @Operation(summary = "Get books with pagination", description = "Retrieve a paginated list of books. Supports sorting and optional library filtering.")
+    @ApiResponse(responseCode = "200", description = "Paginated list of books returned successfully")
+    @GetMapping("/paged")
+    public ResponseEntity<AppPageResponse<Book>> getBooksPaged(
+            @Parameter(description = "Page number (zero-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "50") int size,
+            @Parameter(description = "Sort field") @RequestParam(defaultValue = "addedOn") String sort,
+            @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String dir,
+            @Parameter(description = "Optional library ID filter") @RequestParam(required = false) Long libraryId) {
+        return ResponseEntity.ok(bookService.getBooksPaged(page, size, sort, dir, libraryId));
     }
 
     @Operation(summary = "Get a book by ID", description = "Retrieve details of a specific book by its ID.")

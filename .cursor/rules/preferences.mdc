@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 - After pushing, provide a numbered fix summary matching the user’s task order IN THE EDITOR WINDOW, not the chat window.
 - For frontend interaction regressions, prefer DOM-backed mock tests that verify real click behavior and the presence or absence of directives, not only component state.
 - Guesswork is not acceptable

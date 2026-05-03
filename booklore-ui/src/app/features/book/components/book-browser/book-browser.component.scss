@@ -582,21 +582,31 @@
   }
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(1px, 1fr));
-  gap: 1.3rem;
-  align-items: start;
+.virtual-grid {
+  position: relative;
   width: 100%;
+}
+
+.virtual-grid-spacer {
+  width: 100%;
+}
+
+.virtual-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.3rem;
+  will-change: transform;
 
   @media (max-width: 767px) {
     gap: 0.5rem;
-    padding: 0 0.5rem;
   }
 }
 
-.virtual-scroller-item {
-  position: relative;
+.virtual-cell {
+  flex: 0 0 auto;
   transition: width 0.2s ease, height 0.2s ease;
 }
 

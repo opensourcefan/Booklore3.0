@@ -1,7 +1,17 @@
-import {Component, HostListener, inject, OnInit} from '@angular/core';
-import {AsyncPipe, NgStyle} from '@angular/common';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild
+} from '@angular/core';
+import {AsyncPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {combineLatest, Observable, BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, combineLatest, Observable, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {InputText} from 'primeng/inputtext';
@@ -9,7 +19,7 @@ import {Select} from 'primeng/select';
 import {Slider} from 'primeng/slider';
 import {Popover} from 'primeng/popover';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import {VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
+import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
 import {SeriesDataService} from '../../service/series-data.service';
 import {SeriesSummary} from '../../model/series.model';
 import {SeriesCardComponent} from '../series-card/series-card.component';
@@ -36,7 +46,6 @@ interface SortOption {
   styleUrls: ['./series-browser.component.scss'],
   imports: [
     AsyncPipe,
-    NgStyle,
     FormsModule,
     ProgressSpinner,
     InputText,
@@ -45,15 +54,16 @@ interface SortOption {
     Popover,
     TranslocoDirective,
     SeriesCardComponent,
-    VirtualScrollerModule
   ]
 })
-export class SeriesBrowserComponent implements OnInit {
+export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private static readonly BASE_WIDTH = 230;
   private static readonly BASE_HEIGHT = 285;
   private static readonly MOBILE_BASE_WIDTH = 180;
   private static readonly MOBILE_BASE_HEIGHT = 250;
+  private readonly GRID_GAP_MOBILE = 8;
+  private readonly GRID_GAP_DESKTOP = 20;
 
   private seriesDataService = inject(SeriesDataService);
   private bookService = inject(BookService);
@@ -66,9 +76,33 @@ export class SeriesBrowserComponent implements OnInit {
 
   screenWidth = window.innerWidth;
 
+  @ViewChild('scrollContainer')
+  scrollContainer?: ElementRef<HTMLElement>;
+  @ViewChild('gridContainer')
+  gridContainer?: ElementRef<HTMLElement>;
+
+  private gridSub?: Subscription;
+
+  private readonly gridItemCountSig = signal(0);
+  private readonly cardWidthSig = signal(this.cardWidth);
+  private readonly cardHeightSig = signal(this.cardHeight);
+  private readonly gapSig = signal(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+
+  readonly virtualGrid = injectVirtualGrid(() => ({
+    itemCount: this.gridItemCountSig(),
+    cardWidth: this.cardWidthSig(),
+    cardHeight: this.cardHeightSig(),
+    gap: this.gapSig(),
+    overscan: 5,
+  }));
+
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
+    this.cardWidthSig.set(this.cardWidth);
+    this.cardHeightSig.set(this.cardHeight);
+    this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+    this.updateVirtualGridDomBindings();
   }
 
   get isMobile(): boolean {
@@ -147,6 +181,22 @@ export class SeriesBrowserComponent implements OnInit {
         return result;
       })
     );
+
+    this.gridSub = this.filteredSeries$.subscribe(series => {
+      this.gridItemCountSig.set(series.length);
+      this.cardWidthSig.set(this.cardWidth);
+      this.cardHeightSig.set(this.cardHeight);
+      this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+      queueMicrotask(() => this.updateVirtualGridDomBindings());
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.updateVirtualGridDomBindings();
+  }
+
+  ngOnDestroy(): void {
+    this.gridSub?.unsubscribe();
   }
 
   onSearchChange(value: string): void {
@@ -167,6 +217,15 @@ export class SeriesBrowserComponent implements OnInit {
 
   navigateToSeries(series: SeriesSummary): void {
     this.router.navigate(['/series', series.seriesName]);
+  }
+
+  private updateVirtualGridDomBindings(): void {
+    const scrollEl = this.scrollContainer?.nativeElement ?? null;
+    this.virtualGrid.setScrollElement(scrollEl);
+    const widthEl = this.gridContainer?.nativeElement ?? scrollEl;
+    if (widthEl) {
+      this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+    }
   }
 
   private applyStatusFilter(series: SeriesSummary[], filterValue: string): SeriesSummary[] {

@@ -114,23 +114,32 @@
                     <p>{{ t('noBooksFound') }}</p>
                   </div>
                 } @else {
-                  <virtual-scroller #scroll [items]="books" class="books-virtual-scroller">
-                    <div class="books-grid" #container
-                      [ngStyle]="{'grid-template-columns': 'repeat(auto-fill, minmax(' + gridColumnMinWidth + ', 1fr))'}">
-                      @for (book of scroll.viewPortItems; track book.id; let i = $index) {
-                        <div class="virtual-scroller-item"
-                          [ngStyle]="{width: currentCardSize.width + 'px', height: currentCardSize.height + 'px'}">
-                          <app-book-card
-                            [index]="books.indexOf(book)"
-                            [book]="book"
-                            [mobileViewerBooksContext]="books"
-                            [isSeriesCollapsed]="false"
-                            [overlayPreferenceService]="bookCardOverlayPreferenceService">
-                          </app-book-card>
+                  <div class="books-virtual-scroller" #scrollContainer>
+                    <div class="virtual-grid" #gridContainer>
+                      <div class="virtual-grid-spacer" [style.height.px]="virtualGrid.virtualizer.getTotalSize()"></div>
+                      @for (row of virtualGrid.virtualizer.getVirtualItems(); track row.key) {
+                        <div
+                          class="virtual-row"
+                          [style.transform]="'translateY(' + row.start + 'px)'"
+                          [style.height.px]="virtualGrid.rowHeight()">
+                          @for (book of virtualGrid.getRowItems(row.index, books); track book.id) {
+                            <div
+                              class="virtual-cell"
+                              [style.width.px]="currentCardSize.width"
+                              [style.height.px]="currentCardSize.height">
+                              <app-book-card
+                                [index]="books.indexOf(book)"
+                                [book]="book"
+                                [mobileViewerBooksContext]="books"
+                                [isSeriesCollapsed]="false"
+                                [overlayPreferenceService]="bookCardOverlayPreferenceService">
+                              </app-book-card>
+                            </div>
+                          }
                         </div>
                       }
                     </div>
-                  </virtual-scroller>
+                  </div>
                 }
               </div>
             }

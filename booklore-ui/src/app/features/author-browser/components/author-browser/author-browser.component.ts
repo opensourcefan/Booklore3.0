@@ -1,5 +1,15 @@
-import {Component, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {AsyncPipe, NgStyle} from '@angular/common';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild
+} from '@angular/core';
+import {AsyncPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {combineLatest, Observable, BehaviorSubject, Subscription} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
@@ -12,7 +22,7 @@ import {Button} from 'primeng/button';
 import {Divider} from 'primeng/divider';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import {VirtualScrollerComponent, VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
+import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
 import {BookBrowserScrollService} from '../../../book/components/book-browser/book-browser-scroll.service';
 import {MessageService} from 'primeng/api';
 import {AuthorService} from '../../service/author.service';
@@ -57,7 +67,6 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
   styleUrls: ['./author-browser.component.scss'],
   imports: [
     AsyncPipe,
-    NgStyle,
     FormsModule,
     ProgressSpinner,
     InputText,
@@ -69,15 +78,16 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
     Tooltip,
     TranslocoDirective,
     AuthorCardComponent,
-    VirtualScrollerModule
   ]
 })
-export class AuthorBrowserComponent implements OnInit, OnDestroy {
+export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private static readonly BASE_WIDTH = 165;
   private static readonly BASE_HEIGHT = 290;
   private static readonly MOBILE_BASE_WIDTH = 140;
   private static readonly MOBILE_BASE_HEIGHT = 250;
+  private readonly GRID_GAP_MOBILE = 8;
+  private readonly GRID_GAP_DESKTOP = 20;
 
   private authorService = inject(AuthorService);
   private bookService = inject(BookService);
@@ -91,8 +101,10 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   protected authorScaleService = inject(AuthorScalePreferenceService);
   protected selectionService = inject(AuthorSelectionService);
 
-  @ViewChild('scroll')
-  virtualScroller: VirtualScrollerComponent | undefined;
+  @ViewChild('scrollContainer')
+  scrollContainer?: ElementRef<HTMLElement>;
+  @ViewChild('gridContainer')
+  gridContainer?: ElementRef<HTMLElement>;
 
   private subscriptions: Subscription[] = [];
 
@@ -104,9 +116,26 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   isCheckboxEnabled = false;
   thumbnailCacheBusters = new Map<number, number>();
 
+  private readonly gridItemCountSig = signal(0);
+  private readonly cardWidthSig = signal(this.cardWidth);
+  private readonly cardHeightSig = signal(this.cardHeight);
+  private readonly gapSig = signal(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+
+  readonly virtualGrid = injectVirtualGrid(() => ({
+    itemCount: this.gridItemCountSig(),
+    cardWidth: this.cardWidthSig(),
+    cardHeight: this.cardHeightSig(),
+    gap: this.gapSig(),
+    overscan: 5,
+  }));
+
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
+    this.cardWidthSig.set(this.cardWidth);
+    this.cardHeightSig.set(this.cardHeight);
+    this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+    this.updateVirtualGridDomBindings();
   }
 
   get isMobile(): boolean {
@@ -227,7 +256,21 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
       })
     );
 
+    this.subscriptions.push(
+      this.filteredAuthors$.subscribe(authors => {
+        this.gridItemCountSig.set(authors.length);
+        this.cardWidthSig.set(this.cardWidth);
+        this.cardHeightSig.set(this.cardHeight);
+        this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+        queueMicrotask(() => this.updateVirtualGridDomBindings());
+      })
+    );
+
     this.setupScrollPositionTracking();
+  }
+
+  ngAfterViewInit(): void {
+    this.updateVirtualGridDomBindings();
   }
 
   ngOnDestroy(): void {
@@ -559,10 +602,18 @@ export class AuthorBrowserComponent implements OnInit, OnDestroy {
   }
 
   private saveScrollPosition(): void {
-    if (this.virtualScroller?.viewPortInfo) {
-      const key = this.getScrollPositionKey();
-      const position = this.virtualScroller.viewPortInfo.scrollStartPosition ?? 0;
-      this.scrollService.savePosition(key, position);
+    const el = this.scrollContainer?.nativeElement;
+    if (!el) return;
+    const key = this.getScrollPositionKey();
+    this.scrollService.savePosition(key, el.scrollTop ?? 0);
+  }
+
+  private updateVirtualGridDomBindings(): void {
+    const scrollEl = this.scrollContainer?.nativeElement ?? null;
+    this.virtualGrid.setScrollElement(scrollEl);
+    const widthEl = this.gridContainer?.nativeElement ?? scrollEl;
+    if (widthEl) {
+      this.virtualGrid.setContainerWidth(widthEl.clientWidth);
     }
   }
 

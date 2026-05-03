@@ -77,25 +77,30 @@
           <p>{{ t('noSeriesFound') }}</p>
         </div>
       } @else {
-        <virtual-scroller
-          #scroll
-          [items]="seriesList"
-          class="virtual-scroller">
-          <div class="series-grid"
-            #container
-            [ngStyle]="{'grid-template-columns': 'repeat(auto-fill, minmax(' + gridColumnMinWidth + ', 1fr))'}">
-            @for (series of scroll.viewPortItems; track series.seriesName) {
-              <div class="virtual-scroller-item"
-                [ngStyle]="{width: cardWidth + 'px', height: cardHeight + 'px'}"
-                [style.--card-scale]="seriesScaleService.scaleFactor">
-                <app-series-card
-                  [series]="series"
-                  (cardClick)="navigateToSeries($event)">
-                </app-series-card>
+        <div class="virtual-scroller" #scrollContainer>
+          <div class="virtual-grid" #gridContainer>
+            <div class="virtual-grid-spacer" [style.height.px]="virtualGrid.virtualizer.getTotalSize()"></div>
+            @for (row of virtualGrid.virtualizer.getVirtualItems(); track row.key) {
+              <div
+                class="virtual-row"
+                [style.transform]="'translateY(' + row.start + 'px)'"
+                [style.height.px]="virtualGrid.rowHeight()">
+                @for (series of virtualGrid.getRowItems(row.index, seriesList); track series.seriesName) {
+                  <div
+                    class="virtual-cell"
+                    [style.width.px]="cardWidth"
+                    [style.height.px]="cardHeight"
+                    [style.--card-scale]="seriesScaleService.scaleFactor">
+                    <app-series-card
+                      [series]="series"
+                      (cardClick)="navigateToSeries($event)">
+                    </app-series-card>
+                  </div>
+                }
               </div>
             }
           </div>
-        </virtual-scroller>
+        </div>
       }
     }
   }

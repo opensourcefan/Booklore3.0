@@ -23,6 +23,9 @@ import org.booklore.service.FileStreamingService;
 import org.booklore.util.FileService;
 import org.booklore.util.FileUtils;
 import org.booklore.service.appsettings.AppSettingService;
+import org.booklore.app.dto.AppPageResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -613,6 +616,55 @@ public class BookService {
         return shelves.stream()
                 .filter(shelf -> userId.equals(shelf.getUserId()))
                 .collect(Collectors.toSet());
+    }
+
+    public AppPageResponse<Book> getBooksPaged(int page, int size, String sort, String dir, Long libraryId) {
+        BookLoreUser user = authenticationService.getAuthenticatedUser();
+        boolean isAdmin = user.getPermissions().isAdmin();
+
+        org.springframework.data.domain.Sort sortObj = org.springframework.data.domain.Sort.by(
+                dir.equalsIgnoreCase("desc")
+                        ? org.springframework.data.domain.Sort.Direction.DESC
+                        : org.springframework.data.domain.Sort.Direction.ASC,
+                sort
+        );
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sortObj);
+
+        Page<Book> bookPage;
+        if (libraryId != null) {
+            bookPage = bookQueryService.getAllBooksByLibraryIdsPaged(
+                    Set.of(libraryId), user.getId(), pageable);
+        } else if (isAdmin) {
+            bookPage = bookQueryService.getAllBooksPaged(pageable);
+        } else {
+            bookPage = bookQueryService.getAllBooksByLibraryIdsPaged(
+                    getUserLibraryIds(user), user.getId(), pageable);
+        }
+
+        Set<Long> bookIds = bookPage.getContent().stream().map(Book::getId).collect(Collectors.toSet());
+        Map<Long, UserBookProgressEntity> progressMap =
+                readingProgressService.fetchUserProgress(user.getId(), bookIds);
+        Map<Long, UserBookFileProgressEntity> fileProgressMap =
+                readingProgressService.fetchUserFileProgress(user.getId(), bookIds);
+
+        bookPage.getContent().forEach(book -> {
+            readingProgressService.enrichBookWithProgress(
+                    book,
+                    progressMap.get(book.getId()),
+                    fileProgressMap.get(book.getId())
+            );
+            Set<Shelf> filtered = filterShelvesByUserId(book.getShelves(), user.getId());
+            book.setShelves(filtered != null && filtered.isEmpty() ? null : filtered);
+        });
+
+        applyAiPanelFlags(bookPage.getContent(), user.getId());
+
+        return AppPageResponse.of(
+                bookPage.getContent(),
+                bookPage.getNumber(),
+                bookPage.getSize(),
+                bookPage.getTotalElements()
+        );
     }
 
     public Book updateCurrentlyReadingStatus(long bookId, boolean isCurrentlyReading) {

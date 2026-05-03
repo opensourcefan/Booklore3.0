@@ -175,16 +175,34 @@
   overflow-y: auto;
 }
 
-.books-grid {
-  display: grid;
-  gap: 1.3rem;
-  align-items: start;
-  justify-items: center;
+.virtual-grid {
+  position: relative;
   width: 100%;
   padding: 0.5rem;
+  box-sizing: border-box;
 }
 
-.virtual-scroller-item {
+.virtual-grid-spacer {
+  width: 100%;
+}
+
+.virtual-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.3rem;
+  will-change: transform;
+
+  @media (max-width: 767px) {
+    gap: 0.5rem;
+  }
+}
+
+.virtual-cell {
+  flex: 0 0 auto;
   position: relative;
   overflow: visible;
 }

@@ -1,14 +1,25 @@
-import {AfterViewChecked, Component, ElementRef, inject, OnInit, ViewChild} from '@angular/core';
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild
+} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
-import {Observable} from 'rxjs';
+import {AsyncPipe, NgClass} from '@angular/common';
+import {Observable, Subscription} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Button} from 'primeng/button';
 import {Tag} from 'primeng/tag';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import {VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
+import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
 import {MessageService} from 'primeng/api';
 import {Tooltip} from 'primeng/tooltip';
 import {AuthorService} from '../../service/author.service';
@@ -31,7 +42,6 @@ import {PageTitleService} from '../../../../shared/service/page-title.service';
   imports: [
     AsyncPipe,
     NgClass,
-    NgStyle,
     Tabs,
     TabList,
     Tab,
@@ -42,13 +52,12 @@ import {PageTitleService} from '../../../../shared/service/page-title.service';
     Tag,
     TranslocoDirective,
     Tooltip,
-    VirtualScrollerModule,
     BookCardComponent,
     AuthorMatchComponent,
     AuthorEditorComponent
   ]
 })
-export class AuthorDetailComponent implements OnInit, AfterViewChecked {
+export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewChecked, OnDestroy {
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -61,7 +70,29 @@ export class AuthorDetailComponent implements OnInit, AfterViewChecked {
   private pageTitle = inject(PageTitleService);
   private t = inject(TranslocoService);
 
+  private readonly GRID_GAP_MOBILE = 8;
+  private readonly GRID_GAP_DESKTOP = 20.8;
+
   @ViewChild('descriptionContent') descriptionContentRef?: ElementRef<HTMLElement>;
+  @ViewChild('scrollContainer') scrollContainer?: ElementRef<HTMLElement>;
+  @ViewChild('gridContainer') gridContainer?: ElementRef<HTMLElement>;
+
+  screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+
+  private authorBooksGridSub?: Subscription;
+
+  private readonly gridItemCountSig = signal(0);
+  private readonly cardWidthSig = signal(this.coverScalePreferenceService.currentCardSize.width);
+  private readonly cardHeightSig = signal(this.coverScalePreferenceService.currentCardSize.height);
+  private readonly gapSig = signal(this.GRID_GAP_DESKTOP);
+
+  readonly virtualGrid = injectVirtualGrid(() => ({
+    itemCount: this.gridItemCountSig(),
+    cardWidth: this.cardWidthSig(),
+    cardHeight: this.cardHeightSig(),
+    gap: this.gapSig(),
+    overscan: 5,
+  }));
 
   author: AuthorDetails | null = null;
   loading = true;
@@ -78,8 +109,17 @@ export class AuthorDetailComponent implements OnInit, AfterViewChecked {
     return this.coverScalePreferenceService.currentCardSize;
   }
 
-  get gridColumnMinWidth(): string {
-    return this.coverScalePreferenceService.gridColumnMinWidth;
+  get isMobile(): boolean {
+    return this.screenWidth <= 767;
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.screenWidth = window.innerWidth;
+    this.cardWidthSig.set(this.currentCardSize.width);
+    this.cardHeightSig.set(this.currentCardSize.height);
+    this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+    this.updateVirtualGridDomBindings();
   }
 
   get photoUrl(): string {
@@ -99,18 +139,10 @@ export class AuthorDetailComponent implements OnInit, AfterViewChecked {
       this.tab = tabParam;
     }
     this.loadAuthor(authorId);
+  }
 
-    this.authorBooks$ = this.bookService.bookState$.pipe(
-      filter(state => state.loaded && !!state.books),
-      map(state => {
-        const books = state.books || [];
-        const authorName = this.author?.name?.toLowerCase();
-        if (!authorName) return [];
-        return books.filter(b =>
-          b.metadata?.authors?.some(a => a.toLowerCase() === authorName)
-        );
-      })
-    );
+  ngAfterViewInit(): void {
+    this.updateVirtualGridDomBindings();
   }
 
   ngAfterViewChecked(): void {
@@ -118,6 +150,10 @@ export class AuthorDetailComponent implements OnInit, AfterViewChecked {
       const el = this.descriptionContentRef.nativeElement;
       this.isOverflowing = el.scrollHeight > el.clientHeight;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.authorBooksGridSub?.unsubscribe();
   }
 
   toggleExpand(): void {
@@ -176,6 +212,7 @@ export class AuthorDetailComponent implements OnInit, AfterViewChecked {
         this.loading = false;
         this.pageTitle.setPageTitle(author.name);
 
+        this.authorBooksGridSub?.unsubscribe();
         this.authorBooks$ = this.bookService.bookState$.pipe(
           filter(state => state.loaded && !!state.books),
           map(state => {
@@ -186,10 +223,26 @@ export class AuthorDetailComponent implements OnInit, AfterViewChecked {
             );
           })
         );
+        this.authorBooksGridSub = this.authorBooks$.subscribe(books => {
+          this.gridItemCountSig.set(books.length);
+          this.cardWidthSig.set(this.currentCardSize.width);
+          this.cardHeightSig.set(this.currentCardSize.height);
+          this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+          queueMicrotask(() => this.updateVirtualGridDomBindings());
+        });
       },
       error: () => {
         this.loading = false;
       }
     });
+  }
+
+  private updateVirtualGridDomBindings(): void {
+    const scrollEl = this.scrollContainer?.nativeElement ?? null;
+    this.virtualGrid.setScrollElement(scrollEl);
+    const widthEl = this.gridContainer?.nativeElement ?? scrollEl;
+    if (widthEl) {
+      this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+    }
   }
 }

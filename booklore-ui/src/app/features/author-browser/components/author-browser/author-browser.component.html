@@ -193,36 +193,41 @@
           <p>{{ t('noAuthorsFound') }}</p>
         </div>
       } @else {
-        <virtual-scroller
-          #scroll
-          [items]="authorList"
-          class="virtual-scroller">
-          <div class="author-grid"
-            #container
-            [ngStyle]="{'grid-template-columns': 'repeat(auto-fill, minmax(' + gridColumnMinWidth + ', 1fr))'}">
-            @for (author of scroll.viewPortItems; track author.id; let i = $index) {
-              <div class="virtual-scroller-item"
-                [ngStyle]="{width: cardWidth + 'px', height: cardHeight + 'px'}"
-                [style.--card-scale]="authorScaleService.scaleFactor">
-                <app-author-card
-                  [author]="author"
-                  [index]="authorList.indexOf(author)"
-                  [cacheBuster]="thumbnailCacheBusters.get(author.id) || 0"
-                  [canQuickMatch]="canEditMetadata"
-                  [canDelete]="canDeleteBook"
-                  [isCheckboxEnabled]="canEditMetadata || canDeleteBook"
-                  [isSelected]="isAuthorSelected(author.id)"
-                  (cardClick)="navigateToAuthor($event)"
-                  (viewAuthor)="navigateToAuthor($event)"
-                  (editAuthor)="navigateToAuthorEdit($event)"
-                  (deleteAuthor)="deleteAuthor($event)"
-                  (quickMatched)="onAuthorQuickMatched($event)"
-                  (checkboxClick)="onCheckboxClicked($event)">
-                </app-author-card>
+        <div class="virtual-scroller" #scrollContainer>
+          <div class="virtual-grid" #gridContainer>
+            <div class="virtual-grid-spacer" [style.height.px]="virtualGrid.virtualizer.getTotalSize()"></div>
+            @for (row of virtualGrid.virtualizer.getVirtualItems(); track row.key) {
+              <div
+                class="virtual-row"
+                [style.transform]="'translateY(' + row.start + 'px)'"
+                [style.height.px]="virtualGrid.rowHeight()">
+                @for (author of virtualGrid.getRowItems(row.index, authorList); track author.id) {
+                  <div
+                    class="virtual-cell"
+                    [style.width.px]="cardWidth"
+                    [style.height.px]="cardHeight"
+                    [style.--card-scale]="authorScaleService.scaleFactor">
+                    <app-author-card
+                      [author]="author"
+                      [index]="authorList.indexOf(author)"
+                      [cacheBuster]="thumbnailCacheBusters.get(author.id) || 0"
+                      [canQuickMatch]="canEditMetadata"
+                      [canDelete]="canDeleteBook"
+                      [isCheckboxEnabled]="canEditMetadata || canDeleteBook"
+                      [isSelected]="isAuthorSelected(author.id)"
+                      (cardClick)="navigateToAuthor($event)"
+                      (viewAuthor)="navigateToAuthor($event)"
+                      (editAuthor)="navigateToAuthorEdit($event)"
+                      (deleteAuthor)="deleteAuthor($event)"
+                      (quickMatched)="onAuthorQuickMatched($event)"
+                      (checkboxClick)="onCheckboxClicked($event)">
+                    </app-author-card>
+                  </div>
+                }
               </div>
             }
           </div>
-        </virtual-scroller>
+        </div>
       }
     }
 

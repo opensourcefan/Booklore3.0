@@ -1,4 +1,18 @@
-import {AfterViewInit, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, QueryList, NgZone, ViewChild, ViewChildren} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  NgZone,
+  signal,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
@@ -16,8 +30,7 @@ import {LibraryShelfMenuService} from '../../service/library-shelf-menu.service'
 import {BookTableComponent} from './book-table/book-table.component';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {Button} from 'primeng/button';
-import {AsyncPipe, NgClass, NgStyle} from '@angular/common';
-import {VirtualScrollerComponent, VirtualScrollerModule} from '@iharbeck/ngx-virtual-scroller';
+import {AsyncPipe, NgClass} from '@angular/common';
 import {BookCardComponent} from './book-card/book-card.component';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Menu} from 'primeng/menu';
@@ -58,6 +71,8 @@ import {BookBrowserScrollService} from './book-browser-scroll.service';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 import {MultiSortPopoverComponent} from './sorting/multi-sort-popover/multi-sort-popover.component';
 import {SortService} from '../../service/sort.service';
+import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
+
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
 import {CoverPreviewComponent} from '../../../../shared/components/cover-preview/cover-preview.component';
@@ -81,8 +96,8 @@ export enum EntityType {
   templateUrl: './book-browser.component.html',
   styleUrls: ['./book-browser.component.scss'],
   imports: [
-    Button, VirtualScrollerModule, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule,
-    BookTableComponent, BookFilterComponent, Tooltip, NgClass, NgStyle, Popover,
+    Button, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule,
+    BookTableComponent, BookFilterComponent, Tooltip, NgClass, Popover,
     Checkbox, Slider, Divider, MultiSelect, TieredMenu, BadgeModule, MultiSortPopoverComponent, TranslocoDirective,
     ResizableDividerDirective, CoverPreviewComponent,
   ],
@@ -219,8 +234,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   bookTableComponent!: BookTableComponent;
   @ViewChildren(BookFilterComponent)
   bookFilterComponents!: QueryList<BookFilterComponent>;
-  @ViewChild('scroll')
-  virtualScroller: VirtualScrollerComponent | undefined;
+  @ViewChild('scrollContainer')
+  scrollContainer?: ElementRef<HTMLElement>;
+  @ViewChild('gridContainer')
+  gridContainer?: ElementRef<HTMLElement>;
   @ViewChild('mobileRightSidebarPop')
   mobileRightSidebarPop: Popover | undefined;
   private isMobileRightSidebarOpen = false;
@@ -229,6 +246,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     this.screenWidth = window.innerWidth;
+    this.cardWidthSig.set(this.currentCardSize.width);
+    this.cardHeightSig.set(this.getUniformCardHeight());
+    this.gapSig.set(this.isMobile ? this.MOBILE_GAP : 20.8);
+    this.updateVirtualGridDomBindings();
   }
 
   get isMobile(): boolean {
@@ -432,6 +453,19 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private readonly gridItemCountSig = signal(0);
+  private readonly cardWidthSig = signal(this.currentCardSize.width);
+  private readonly cardHeightSig = signal(this.getUniformCardHeight());
+  private readonly gapSig = signal(this.isMobile ? this.MOBILE_GAP : 20.8);
+
+  readonly virtualGrid = injectVirtualGrid(() => ({
+    itemCount: this.gridItemCountSig(),
+    cardWidth: this.cardWidthSig(),
+    cardHeight: this.cardHeightSig(),
+    gap: this.gapSig(),
+    overscan: 5,
+  }));
+
   ngOnInit(): void {
     this.pageTitle.setPageTitle('');
     this.coverScalePreferenceService.scaleChange$.pipe(debounceTime(1000), takeUntil(this.destroy$)).subscribe();
@@ -476,12 +510,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const savedPosition = this.scrollService.getPosition(key);
     if (savedPosition !== undefined) {
       setTimeout(() => {
-        const scrollElement = document.querySelector('.virtual-scroller');
-        if (scrollElement) {
-          (scrollElement as HTMLElement).scrollTop = savedPosition;
-        }
+        const el = this.scrollContainer?.nativeElement;
+        if (el) el.scrollTop = savedPosition;
       }, 0);
     }
+
+    this.updateVirtualGridDomBindings();
   }
 
   ngOnDestroy(): void {
@@ -532,11 +566,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private saveScrollPosition(): void {
-    if (this.virtualScroller?.viewPortInfo) {
-      const key = this.getScrollPositionKey();
-      const position = this.virtualScroller.viewPortInfo.scrollStartPosition ?? 0;
-      this.scrollService.savePosition(key, position);
-    }
+    const el = this.scrollContainer?.nativeElement;
+    if (!el) return;
+    const key = this.getScrollPositionKey();
+    this.scrollService.savePosition(key, el.scrollTop ?? 0);
   }
 
   private initializeEntityRouting(): void {
@@ -1035,12 +1068,39 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         map(state => state.books || [])
       )
       .subscribe(books => {
+        this.gridItemCountSig.set(books.length);
+        this.cardWidthSig.set(this.currentCardSize.width);
+        this.cardHeightSig.set(this.getUniformCardHeight());
+        this.gapSig.set(this.isMobile ? this.MOBILE_GAP : 20.8);
+        this.updateVirtualGridDomBindings();
+
         this.visibleBookIds = new Set(books.map(book => book.id));
         this.bookSelectionService.setCurrentBooks(books);
         this.bookNavigationService.setAvailableBookIds(books.map(book => book.id));
         this.updateSelectionVisibility();
         this.cdr.markForCheck();
       });
+  }
+
+  private getUniformCardHeight(): number {
+    if (this.isMobile) {
+      return this.mobileCardSize.height;
+    }
+    const desktopTitleRowsExtra = (this.desktopTitleRows - 1) * 18;
+    if (this.isAudiobookOnlyLibrary) {
+      return this.currentCardSize.height + desktopTitleRowsExtra;
+    }
+    return this.coverScalePreferenceService.currentCardSize.height + desktopTitleRowsExtra;
+  }
+
+  private updateVirtualGridDomBindings(): void {
+    const scrollEl = this.scrollContainer?.nativeElement ?? null;
+    this.virtualGrid.setScrollElement(scrollEl);
+
+    const widthEl = this.gridContainer?.nativeElement ?? scrollEl;
+    if (widthEl) {
+      this.virtualGrid.setContainerWidth(widthEl.clientWidth);
+    }
   }
 
   private applyClientSideMultiSort(bookState: BookState, sortCriteria: SortOption[]): BookState {
