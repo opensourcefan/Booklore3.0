@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
+import {ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
 import {TableModule} from 'primeng/table';
 import {DatePipe, NgClass} from '@angular/common';
 import {Rating} from 'primeng/rating';
@@ -32,8 +32,7 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
     TranslocoDirective
   ],
   styleUrls: ['./book-table.component.scss'],
-  providers: [DatePipe],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [DatePipe]
 })
 export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
   selectedBooks: Book[] = [];
