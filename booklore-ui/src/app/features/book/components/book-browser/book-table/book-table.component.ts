@@ -88,12 +88,21 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   private readonly onResize = () => this.setScrollHeight();
 
   ngAfterViewInit(): void {
-    // PrimeNG's virtual scroller reads offsetHeight during init, which is 0
-    // when the component is first created inside an @if block before the browser
-    // has done a layout pass. Deferring setSize() to after the next paint ensures
-    // the scroll container has its real pixel height before row count is calculated.
+    // PrimeNG's virtual scroller reads offsetHeight during its own ngAfterViewInit,
+    // but when BookTableComponent is first created inside an @if block the browser
+    // has not yet done a layout pass so offsetHeight is 0. This leaves
+    // numItemsInViewport = 0 and zero body rows are ever rendered.
+    //
+    // Fix: after the next paint (setTimeout 0), call setSize() to recalculate
+    // numItemsInViewport using the real container height, then dispatch a scroll
+    // event on the scroller element so PrimeNG re-evaluates the visible item range
+    // and actually renders the rows.
     setTimeout(() => {
-      this.ptable?.scroller?.setSize();
+      const scroller = this.ptable?.scroller;
+      if (!scroller) return;
+      scroller.setSize();
+      const el = scroller.getElementRef()?.nativeElement as HTMLElement | undefined;
+      el?.dispatchEvent(new Event('scroll'));
     }, 0);
   }
 
