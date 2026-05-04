@@ -129,17 +129,7 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
       : 'calc(100dvh - 150px)';
   }
 
-  private cellValueCache = new Map<string, string | number>();
-  private cellClickableCache = new Map<string, {url: string | UrlTree, anchor: string | number | null | undefined}[]>();
-  private metadataLockedCache = new Map<number, boolean>();
-
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['books']) {
-      this.cellValueCache.clear();
-      this.cellClickableCache.clear();
-      this.metadataLockedCache.clear();
-    }
-
     if (changes['books'] || changes['preselectedBookIds']) {
       this.syncSelectionFromInputs();
     }
@@ -222,14 +212,8 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
       return false;
     }
 
-    const bookId = metadata.bookId;
-    if (this.metadataLockedCache.has(bookId)) {
-      return this.metadataLockedCache.get(bookId)!;
-    }
     const lockedKeys = Object.keys(metadata).filter(key => key.endsWith('Locked'));
-    const isLocked = lockedKeys.length > 0 && lockedKeys.every(key => metadata[key] === true);
-    this.metadataLockedCache.set(bookId, isLocked);
-    return isLocked;
+    return lockedKeys.length > 0 && lockedKeys.every(key => metadata[key] === true);
   }
 
   formatFileSize(kb?: number): string {
@@ -255,11 +239,6 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   }
 
   getCellClickableValue(metadata: BookMetadata | null | undefined, book: Book, field: string) {
-    const cacheKey = `${book.id}-${field}`;
-    if (this.cellClickableCache.has(cacheKey)) {
-      return this.cellClickableCache.get(cacheKey)!;
-    }
-
     const filterKeys: Record<string, string> = {
       'authors': 'author',
       'publisher': 'publisher',
@@ -317,16 +296,10 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
       });
     }
 
-    this.cellClickableCache.set(cacheKey, result);
     return result;
   }
 
   getCellValue(metadata: BookMetadata | null | undefined, book: Book, field: string): string | number {
-    const cacheKey = `${book.id}-${field}`;
-    if (this.cellValueCache.has(cacheKey)) {
-      return this.cellValueCache.get(cacheKey)!;
-    }
-
     let val: string | number = '';
     switch (field) {
       case 'readStatus':
@@ -389,7 +362,6 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
         break;
     }
     
-    this.cellValueCache.set(cacheKey, val);
     return val;
   }
 
