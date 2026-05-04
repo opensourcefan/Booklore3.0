@@ -1,3 +1,4 @@
+import {ChangeDetectorRef} from '@angular/core';
 import {DatePipe} from '@angular/common';
 import {TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
@@ -40,6 +41,7 @@ describe('BookTableComponent', () => {
           },
         },
         { provide: TranslocoService, useValue: { translate: vi.fn((key: string) => key) } },
+        ChangeDetectorRef,
       ],
     });
   });

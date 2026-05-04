@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
 import {TableModule} from 'primeng/table';
 import {DatePipe, NgClass} from '@angular/common';
 import {Rating} from 'primeng/rating';
@@ -54,6 +54,7 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
   private datePipe = inject(DatePipe);
   private readStatusHelper = inject(ReadStatusHelper);
   private readonly t = inject(TranslocoService);
+  private cdr = inject(ChangeDetectorRef);
 
   private metadataCenterViewMode: 'route' | 'dialog' = 'route';
   private destroy$ = new Subject<void>();
@@ -114,11 +115,6 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
   private metadataLockedCache = new Map<number, boolean>();
 
   ngOnChanges(changes: SimpleChanges): void {
-    const wrapperElements: HTMLCollection = document.getElementsByClassName('p-virtualscroller');
-    Array.prototype.forEach.call(wrapperElements, function (wrapperElement) {
-      wrapperElement.style["height"] = 'calc(100dvh - 160px)';
-    });
-
     if (changes['books']) {
       this.cellValueCache.clear();
       this.cellClickableCache.clear();
