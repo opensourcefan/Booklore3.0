@@ -1,8 +1,6 @@
 import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {Table, TableModule} from 'primeng/table';
 import {DatePipe, NgClass} from '@angular/common';
-import {Rating} from 'primeng/rating';
-import {FormsModule} from '@angular/forms';
 import {TooltipModule} from "primeng/tooltip";
 import {Book, BookMetadata, ReadStatus} from '../../../model/book.model';
 import {SortOption} from '../../../model/sort.model';
@@ -23,8 +21,6 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
   templateUrl: './book-table.component.html',
   imports: [
     TableModule,
-    Rating,
-    FormsModule,
     Button,
     TooltipModule,
     NgClass,
@@ -58,6 +54,8 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   private readStatusHelper = inject(ReadStatusHelper);
   private readonly t = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
+
+  readonly starRange = [1, 2, 3, 4, 5];
 
   private metadataCenterViewMode: 'route' | 'dialog' = 'route';
   private destroy$ = new Subject<void>();

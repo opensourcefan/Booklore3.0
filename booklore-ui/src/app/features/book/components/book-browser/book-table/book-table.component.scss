@@ -89,6 +89,12 @@
   gap: 0.25rem;
 }
 
+.star-display {
+  display: inline-flex;
+  gap: 0.1rem;
+  font-size: 0.75rem;
+}
+
 .cell-text {
   overflow: hidden;
   text-overflow: ellipsis;
