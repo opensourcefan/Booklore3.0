@@ -1,5 +1,5 @@
-import {ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
-import {TableModule} from 'primeng/table';
+import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {Table, TableModule} from 'primeng/table';
 import {DatePipe, NgClass} from '@angular/common';
 import {Rating} from 'primeng/rating';
 import {FormsModule} from '@angular/forms';
@@ -34,7 +34,8 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
   styleUrls: ['./book-table.component.scss'],
   providers: [DatePipe]
 })
-export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
+export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
+  @ViewChild(Table) private ptable?: Table;
   selectedBooks: Book[] = [];
   selectedBookIds = new Set<number>();
 
@@ -85,6 +86,16 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
 
   scrollHeight = 'calc(100dvh - 160px)';
   private readonly onResize = () => this.setScrollHeight();
+
+  ngAfterViewInit(): void {
+    // PrimeNG's virtual scroller reads offsetHeight during init, which is 0
+    // when the component is first created inside an @if block before the browser
+    // has done a layout pass. Deferring setSize() to after the next paint ensures
+    // the scroll container has its real pixel height before row count is calculated.
+    setTimeout(() => {
+      this.ptable?.scroller?.setSize();
+    }, 0);
+  }
 
   ngOnInit(): void {
     this.userService.userState$
