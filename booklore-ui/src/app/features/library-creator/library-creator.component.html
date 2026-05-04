@@ -169,9 +169,22 @@
                       }
                     </div>
                   </div>
-                  <button
-                    class="folder-remove"
-                    [class.folder-remove--labeled]="isDirectoryManagementMode()"
+                  <div class="folder-actions">
+                    @if (isDirectoryManagementMode()) {
+                      <button
+                        class="folder-rescan"
+                        [pTooltip]="t('rescanDirectoryTooltip')"
+                        tooltipPosition="top"
+                        (click)="rescanDirectory(folder)"
+                        type="button"
+                        [disabled]="isSubmitting || scanningDirectory === folder">
+                        <i class="pi pi-refresh" [class.pi-spin]="scanningDirectory === folder"></i>
+                        <span>{{ t('rescanDirectoryLabel') }}</span>
+                      </button>
+                    }
+                    <button
+                      class="folder-remove"
+                      [class.folder-remove--labeled]="isDirectoryManagementMode()"
                     [attr.aria-label]="t(getRemoveFolderKey())"
                     [attr.title]="t(getRemoveFolderKey())"
                     (click)="removeFolder(i)"
@@ -183,6 +196,7 @@
                     }
                   </button>
                 </div>
+              </div>
               }
             </div>
           } @else {

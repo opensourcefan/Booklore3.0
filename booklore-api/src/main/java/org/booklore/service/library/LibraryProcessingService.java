@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -267,19 +268,25 @@ public class LibraryProcessingService {
     }
 
     protected List<LibraryFile> detectNewBookPaths(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
-        Set<String> existingKeys = bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryEntity.getId()).stream()
+        Set<Path> existingPaths = bookRepository.findAllByLibraryIdWithFilesAndPathIncludingRemoved(libraryEntity.getId()).stream()
                 .filter(book -> book.getBookFiles() != null && !book.getBookFiles().isEmpty())
-                .map(this::generateUniqueKey)
+                .flatMap(book -> book.getBookFiles().stream())
+                .map(file -> {
+                    try { return file.getFullFilePath(); } catch (Exception e) { return null; }
+                })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        Set<String> additionalFileKeys = bookAdditionalFileRepository.findByLibraryId(libraryEntity.getId()).stream()
-                .map(this::generateUniqueKey)
-                .collect(Collectors.toSet());
-
-        existingKeys.addAll(additionalFileKeys);
+        // Additional files (non-book files like covers) also need dedup
+        bookAdditionalFileRepository.findByLibraryId(libraryEntity.getId()).stream()
+                .map(file -> {
+                    try { return file.getFullFilePath(); } catch (Exception e) { return null; }
+                })
+                .filter(Objects::nonNull)
+                .forEach(existingPaths::add);
 
         return libraryFiles.stream()
-                .filter(file -> !existingKeys.contains(generateUniqueKey(file)))
+                .filter(file -> !existingPaths.contains(file.getFullPath()))
                 .collect(Collectors.toList());
     }
 

@@ -48,6 +48,7 @@ export class LibraryCreatorComponent implements OnInit {
   allowAllFormats = true;
   selectedAllowedFormats = new Set<BookType>();
   formatCounts: Record<string, number> = {};
+  scanningDirectory: string | null = null;
   metadataSource: MetadataSource = 'EMBEDDED';
   organizationMode: OrganizationMode = 'BOOK_PER_FILE';
 
@@ -242,6 +243,30 @@ export class LibraryCreatorComponent implements OnInit {
 
   removeFolder(index: number): void {
     this.folders.splice(index, 1);
+  }
+
+  rescanDirectory(path: string): void {
+    if (this.isSubmitting || !this.library?.id) return;
+    this.scanningDirectory = path;
+    this.libraryService.scanLibraryDirectoriesForNewFiles(this.library.id as number, [path]).subscribe({
+      complete: () => {
+        this.scanningDirectory = null;
+        this.messageService.add({
+          severity: 'success',
+          summary: this.t.translate('libraryCreator.creator.toast.updatedSummary'),
+          detail: this.t.translate('libraryCreator.creator.toast.rescannedDirectoryDetail', {path})
+        });
+      },
+      error: (e) => {
+        this.scanningDirectory = null;
+        this.messageService.add({
+          severity: 'warn',
+          summary: this.t.translate('libraryCreator.creator.toast.updatedSummary'),
+          detail: this.t.translate('libraryCreator.creator.toast.rescanDirectoryFailedDetail', {path})
+        });
+        console.error(e);
+      }
+    });
   }
 
   clearSelectedIcon(): void {
