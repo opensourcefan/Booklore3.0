@@ -105,27 +105,21 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   }
 
   private scheduleVirtualScrollFix(): void {
-    const MAX_RETRIES = 3;
-    let attempts = 0;
-
-    const attemptFix = () => {
-      requestAnimationFrame(() => {
+    // PrimeNG's virtual scroller init() uses setTimeout(..., 1) to
+    // schedule setSize()/calculateOptions(). We must defer past that
+    // so our scroll event arrives after the scroller's internal state
+    // is ready. scrollToIndex(1) + scrollToIndex(0) produce two real
+    // native scroll events that trigger onScrollPositionChange →
+    // onScrollChange → row rendering for the initial viewport.
+    requestAnimationFrame(() => {
+      setTimeout(() => {
         const scroller = this.ptable?.scroller;
-        if (!scroller) {
-          attempts++;
-          if (attempts < MAX_RETRIES) {
-            // scroller not ready yet — retry after the next rAF
-            setTimeout(attemptFix, 50);
-          }
-          return;
-        }
+        if (!scroller) return;
         scroller.setSize();
-        const el = scroller.getElementRef()?.nativeElement as HTMLElement | undefined;
-        el?.dispatchEvent(new Event('scroll'));
-      });
-    };
-
-    attemptFix();
+        scroller.scrollToIndex(1, 'auto');
+        setTimeout(() => scroller.scrollToIndex(0, 'auto'), 16);
+      }, 50);
+    });
   }
 
   ngOnInit(): void {
