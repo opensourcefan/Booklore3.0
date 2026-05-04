@@ -24,7 +24,7 @@ import { initializeLanguage } from './app/core/config/language-initializer';
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideZoneChangeDetection(),
+    provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
     provideCharts(withDefaultRegisterables(), ChartDataLabels),
     provideAppInitializer(() => {
       const authService = inject(AuthService);

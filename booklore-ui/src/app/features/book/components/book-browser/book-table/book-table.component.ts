@@ -60,32 +60,35 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   private metadataCenterViewMode: 'route' | 'dialog' = 'route';
   private destroy$ = new Subject<void>();
 
-  readonly allColumns: { field: string; header: string }[] = [
-    {field: 'readStatus', header: this.t.translate('book.columnPref.columns.readStatus')},
-    {field: 'title', header: this.t.translate('book.columnPref.columns.title')},
-    {field: 'authors', header: this.t.translate('book.columnPref.columns.authors')},
-    {field: 'publisher', header: this.t.translate('book.columnPref.columns.publisher')},
-    {field: 'seriesName', header: this.t.translate('book.columnPref.columns.seriesName')},
-    {field: 'seriesNumber', header: this.t.translate('book.columnPref.columns.seriesNumber')},
-    {field: 'categories', header: this.t.translate('book.columnPref.columns.categories')},
-    {field: 'publishedDate', header: this.t.translate('book.columnPref.columns.publishedDate')},
-    {field: 'lastReadTime', header: this.t.translate('book.columnPref.columns.lastReadTime')},
-    {field: 'addedOn', header: this.t.translate('book.columnPref.columns.addedOn')},
-    {field: 'fileName', header: this.t.translate('book.columnPref.columns.fileName')},
-    {field: 'fileSizeKb', header: this.t.translate('book.columnPref.columns.fileSizeKb')},
-    {field: 'language', header: this.t.translate('book.columnPref.columns.language')},
-    {field: 'isbn', header: this.t.translate('book.columnPref.columns.isbn')},
-    {field: 'pageCount', header: this.t.translate('book.columnPref.columns.pageCount')},
-    {field: 'amazonRating', header: this.t.translate('book.columnPref.columns.amazonRating')},
-    {field: 'amazonReviewCount', header: this.t.translate('book.columnPref.columns.amazonReviewCount')},
-    {field: 'goodreadsRating', header: this.t.translate('book.columnPref.columns.goodreadsRating')},
-    {field: 'goodreadsReviewCount', header: this.t.translate('book.columnPref.columns.goodreadsReviewCount')},
-    {field: 'hardcoverRating', header: this.t.translate('book.columnPref.columns.hardcoverRating')},
-    {field: 'hardcoverReviewCount', header: this.t.translate('book.columnPref.columns.hardcoverReviewCount')},
-    {field: 'ranobedbRating', header: this.t.translate('book.columnPref.columns.ranobedbRating')},
-  ];
+  /** Columns with live-translated headers (rebuilt on each access). */
+  get allColumns(): { field: string; header: string }[] {
+    return [
+      {field: 'readStatus', header: this.t.translate('book.columnPref.columns.readStatus')},
+      {field: 'title', header: this.t.translate('book.columnPref.columns.title')},
+      {field: 'authors', header: this.t.translate('book.columnPref.columns.authors')},
+      {field: 'publisher', header: this.t.translate('book.columnPref.columns.publisher')},
+      {field: 'seriesName', header: this.t.translate('book.columnPref.columns.seriesName')},
+      {field: 'seriesNumber', header: this.t.translate('book.columnPref.columns.seriesNumber')},
+      {field: 'categories', header: this.t.translate('book.columnPref.columns.categories')},
+      {field: 'publishedDate', header: this.t.translate('book.columnPref.columns.publishedDate')},
+      {field: 'lastReadTime', header: this.t.translate('book.columnPref.columns.lastReadTime')},
+      {field: 'addedOn', header: this.t.translate('book.columnPref.columns.addedOn')},
+      {field: 'fileName', header: this.t.translate('book.columnPref.columns.fileName')},
+      {field: 'fileSizeKb', header: this.t.translate('book.columnPref.columns.fileSizeKb')},
+      {field: 'language', header: this.t.translate('book.columnPref.columns.language')},
+      {field: 'isbn', header: this.t.translate('book.columnPref.columns.isbn')},
+      {field: 'pageCount', header: this.t.translate('book.columnPref.columns.pageCount')},
+      {field: 'amazonRating', header: this.t.translate('book.columnPref.columns.amazonRating')},
+      {field: 'amazonReviewCount', header: this.t.translate('book.columnPref.columns.amazonReviewCount')},
+      {field: 'goodreadsRating', header: this.t.translate('book.columnPref.columns.goodreadsRating')},
+      {field: 'goodreadsReviewCount', header: this.t.translate('book.columnPref.columns.goodreadsReviewCount')},
+      {field: 'hardcoverRating', header: this.t.translate('book.columnPref.columns.hardcoverRating')},
+      {field: 'hardcoverReviewCount', header: this.t.translate('book.columnPref.columns.hardcoverReviewCount')},
+      {field: 'ranobedbRating', header: this.t.translate('book.columnPref.columns.ranobedbRating')},
+    ];
+  }
 
-  scrollHeight = 'calc(100dvh - 160px)';
+  scrollHeight = 'calc(100dvh - 150px)';
   private readonly onResize = () => this.setScrollHeight();
 
   ngAfterViewInit(): void {
@@ -94,17 +97,35 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
     // has not yet done a layout pass so offsetHeight is 0. This leaves
     // numItemsInViewport = 0 and zero body rows are ever rendered.
     //
-    // Fix: after the next paint (setTimeout 0), call setSize() to recalculate
-    // numItemsInViewport using the real container height, then dispatch a scroll
-    // event on the scroller element so PrimeNG re-evaluates the visible item range
-    // and actually renders the rows.
-    setTimeout(() => {
-      const scroller = this.ptable?.scroller;
-      if (!scroller) return;
-      scroller.setSize();
-      const el = scroller.getElementRef()?.nativeElement as HTMLElement | undefined;
-      el?.dispatchEvent(new Event('scroll'));
-    }, 0);
+    // Fix: use requestAnimationFrame to wait for the first paint, then call
+    // setSize() to recalculate numItemsInViewport using the real container
+    // height, then dispatch a scroll event on the scroller element so PrimeNG
+    // re-evaluates the visible item range and actually renders the rows.
+    this.scheduleVirtualScrollFix();
+  }
+
+  private scheduleVirtualScrollFix(): void {
+    const MAX_RETRIES = 3;
+    let attempts = 0;
+
+    const attemptFix = () => {
+      requestAnimationFrame(() => {
+        const scroller = this.ptable?.scroller;
+        if (!scroller) {
+          attempts++;
+          if (attempts < MAX_RETRIES) {
+            // scroller not ready yet — retry after the next rAF
+            setTimeout(attemptFix, 50);
+          }
+          return;
+        }
+        scroller.setSize();
+        const el = scroller.getElementRef()?.nativeElement as HTMLElement | undefined;
+        el?.dispatchEvent(new Event('scroll'));
+      });
+    };
+
+    attemptFix();
   }
 
   ngOnInit(): void {
@@ -126,9 +147,12 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
 
   setScrollHeight() {
     const isMobile = window.innerWidth <= 768;
+    // Account for selection action panel (~50px) when active
+    const hasActionPanel = !!document.querySelector('.selection-action-panel:not(.panel-hidden)');
+    const actionPanelOffset = hasActionPanel ? 50 : 0;
     this.scrollHeight = isMobile
-      ? 'calc(100dvh - 125px)'
-      : 'calc(100dvh - 150px)';
+      ? `calc(100dvh - ${125 + actionPanelOffset}px)`
+      : `calc(100dvh - ${150 + actionPanelOffset}px)`;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -138,6 +162,15 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
 
     if (changes['books'] || changes['preselectedBookIds']) {
       this.syncSelectionFromInputs();
+    }
+
+    // Recalculate scrollHeight when books change (layout may shift)
+    if (changes['books']) {
+      this.setScrollHeight();
+      // Re-apply virtual scroll fix when books arrive
+      if (changes['books'].currentValue?.length > 0 && !changes['books'].firstChange) {
+        this.scheduleVirtualScrollFix();
+      }
     }
   }
 
