@@ -38,6 +38,9 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   @ViewChild(Table) private ptable?: Table;
   selectedBooks: Book[] = [];
   selectedBookIds = new Set<number>();
+  private cellValueCache = new Map<string, string | number>();
+  private cellClickableCache = new Map<string, {url: string | UrlTree, anchor: string | number | null | undefined}[]>();
+  private metadataLockedCache = new Map<number, boolean>();
 
   @Output() selectedBooksChange = new EventEmitter<Set<number>>();
   @Input() books: Book[] = [];
@@ -118,6 +121,7 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
       });
 
     this.syncSelectionFromInputs();
+    this.rebuildDerivedCaches();
     this.setScrollHeight();
     window.addEventListener('resize', this.onResize);
   }
@@ -130,6 +134,10 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['books'] || changes['visibleColumns'] || changes['showSubtitle'] || changes['forceFileNameTitle']) {
+      this.rebuildDerivedCaches();
+    }
+
     if (changes['books'] || changes['preselectedBookIds']) {
       this.syncSelectionFromInputs();
     }
@@ -212,8 +220,8 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
       return false;
     }
 
-    const lockedKeys = Object.keys(metadata).filter(key => key.endsWith('Locked'));
-    return lockedKeys.length > 0 && lockedKeys.every(key => metadata[key] === true);
+    return this.metadataLockedCache.get(metadata.bookId)
+      ?? this.computeMetadataLocked(metadata);
   }
 
   formatFileSize(kb?: number): string {
@@ -239,67 +247,22 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   }
 
   getCellClickableValue(metadata: BookMetadata | null | undefined, book: Book, field: string) {
-    const filterKeys: Record<string, string> = {
-      'authors': 'author',
-      'publisher': 'publisher',
-      'categories': 'category',
-      'language': 'language',
-      'title': 'title',
-      'isbn': 'isbn'
-    } as const;
-
-    let data: string[] = metadata ? [metadata[field] as string] : [];
-    let result: {url: string | UrlTree, anchor: string | number | null | undefined}[] = [];
-
-    switch (field) {
-      case 'title':
-        result = [
-          {
-            url: this.urlHelper.getBookUrl(book),
-            anchor: this.getDisplayTitle(book)
-          }
-        ];
-        break;
-
-      case 'categories':
-        data = metadata?.categories ?? [];
-        break;
-
-      case 'authors':
-        data = metadata?.authors ?? [];
-        break;
-
-      case 'seriesName':
-        result = [
-          {
-            url: this.urlHelper.filterBooksBy('series', metadata?.seriesName ?? ''),
-            anchor: metadata?.seriesName
-          }
-        ];
-        break;
-      case 'isbn':
-        result = [
-          {
-            url: '',
-            anchor: this.getCellValue(metadata, book, 'isbn')
-          }
-        ];
-        break;
-    }
-
-    if (result.length === 0) {
-      result = data.map(item => {
-        return {
-          url: this.urlHelper.filterBooksBy(filterKeys[field] ?? field, item),
-          anchor: item
-        };
-      });
-    }
-
-    return result;
+    const cacheKey = `${book.id}-${field}`;
+    return this.cellClickableCache.get(cacheKey)
+      ?? this.computeCellClickableValue(metadata, book, field);
   }
 
   getCellValue(metadata: BookMetadata | null | undefined, book: Book, field: string): string | number {
+    const cacheKey = `${book.id}-${field}`;
+    const cachedValue = this.cellValueCache.get(cacheKey);
+    if (cachedValue !== undefined) {
+      return cachedValue;
+    }
+
+    return this.computeCellValue(metadata, book, field);
+  }
+
+  private computeCellValue(metadata: BookMetadata | null | undefined, book: Book, field: string): string | number {
     let val: string | number = '';
     switch (field) {
       case 'readStatus':
@@ -361,8 +324,105 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
         val = metadata?.isbn13 || metadata?.isbn10 || '';
         break;
     }
-    
+
     return val;
+  }
+
+  private computeCellClickableValue(metadata: BookMetadata | null | undefined, book: Book, field: string): {url: string | UrlTree, anchor: string | number | null | undefined}[] {
+    const filterKeys: Record<string, string> = {
+      'authors': 'author',
+      'publisher': 'publisher',
+      'categories': 'category',
+      'language': 'language',
+      'title': 'title',
+      'isbn': 'isbn'
+    } as const;
+
+    let data: string[] = metadata ? [metadata[field] as string] : [];
+    let result: {url: string | UrlTree, anchor: string | number | null | undefined}[] = [];
+
+    switch (field) {
+      case 'title':
+        result = [
+          {
+            url: this.urlHelper.getBookUrl ? this.urlHelper.getBookUrl(book) : '',
+            anchor: this.getDisplayTitle(book)
+          }
+        ];
+        break;
+
+      case 'categories':
+        data = metadata?.categories ?? [];
+        break;
+
+      case 'authors':
+        data = metadata?.authors ?? [];
+        break;
+
+      case 'seriesName':
+        result = [
+          {
+            url: this.urlHelper.filterBooksBy ? this.urlHelper.filterBooksBy('series', metadata?.seriesName ?? '') : '',
+            anchor: metadata?.seriesName
+          }
+        ];
+        break;
+      case 'isbn':
+        result = [
+          {
+            url: '',
+            anchor: this.computeCellValue(metadata, book, 'isbn')
+          }
+        ];
+        break;
+    }
+
+    if (result.length === 0) {
+      result = data.map(item => {
+        return {
+          url: this.urlHelper.filterBooksBy ? this.urlHelper.filterBooksBy(filterKeys[field] ?? field, item) : '',
+          anchor: item
+        };
+      });
+    }
+
+    return result;
+  }
+
+  private computeMetadataLocked(metadata: BookMetadata): boolean {
+    const lockedKeys = Object.keys(metadata).filter(key => key.endsWith('Locked'));
+    return lockedKeys.length > 0 && lockedKeys.every(key => metadata[key] === true);
+  }
+
+  private rebuildDerivedCaches(): void {
+    this.cellValueCache.clear();
+    this.cellClickableCache.clear();
+    this.metadataLockedCache.clear();
+
+    const valueFields = new Set<string>(['title']);
+    const clickableFields = new Set<string>(['title']);
+    const clickableFieldCandidates = new Set<string>(['title', 'authors', 'publisher', 'seriesName', 'categories', 'language', 'isbn']);
+    this.visibleColumns.forEach(col => {
+      valueFields.add(col.field);
+      if (clickableFieldCandidates.has(col.field)) {
+        clickableFields.add(col.field);
+      }
+    });
+
+    for (const book of this.books) {
+      const metadata = book.metadata ?? undefined;
+      if (metadata) {
+        this.metadataLockedCache.set(metadata.bookId, this.computeMetadataLocked(metadata));
+      }
+
+      for (const field of valueFields) {
+        this.cellValueCache.set(`${book.id}-${field}`, this.computeCellValue(metadata, book, field));
+      }
+
+      for (const field of clickableFields) {
+        this.cellClickableCache.set(`${book.id}-${field}`, this.computeCellClickableValue(metadata, book, field));
+      }
+    }
   }
 
   private getDisplayTitle(book: Book): string {
