@@ -217,7 +217,11 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
     return book.id;
   }
 
-  isMetadataFullyLocked(metadata: BookMetadata): boolean {
+  isMetadataFullyLocked(metadata: BookMetadata | null | undefined): boolean {
+    if (!metadata) {
+      return false;
+    }
+
     const bookId = metadata.bookId;
     if (this.metadataLockedCache.has(bookId)) {
       return this.metadataLockedCache.get(bookId)!;
@@ -250,7 +254,7 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
     return this.readStatusHelper.shouldShowStatusIcon(readStatus);
   }
 
-  getCellClickableValue(metadata: BookMetadata, book: Book, field: string) {
+  getCellClickableValue(metadata: BookMetadata | null | undefined, book: Book, field: string) {
     const cacheKey = `${book.id}-${field}`;
     if (this.cellClickableCache.has(cacheKey)) {
       return this.cellClickableCache.get(cacheKey)!;
@@ -265,7 +269,7 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
       'isbn': 'isbn'
     } as const;
 
-    let data: string[] = [metadata[field] as string];
+    let data: string[] = metadata ? [metadata[field] as string] : [];
     let result: {url: string | UrlTree, anchor: string | number | null | undefined}[] = [];
 
     switch (field) {
@@ -279,18 +283,18 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
         break;
 
       case 'categories':
-        data = metadata.categories ?? [];
+        data = metadata?.categories ?? [];
         break;
 
       case 'authors':
-        data = metadata.authors ?? [];
+        data = metadata?.authors ?? [];
         break;
 
       case 'seriesName':
         result = [
           {
-            url: this.urlHelper.filterBooksBy('series', metadata.seriesName ?? ''),
-            anchor: metadata.seriesName
+            url: this.urlHelper.filterBooksBy('series', metadata?.seriesName ?? ''),
+            anchor: metadata?.seriesName
           }
         ];
         break;
@@ -317,7 +321,7 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
     return result;
   }
 
-  getCellValue(metadata: BookMetadata, book: Book, field: string): string | number {
+  getCellValue(metadata: BookMetadata | null | undefined, book: Book, field: string): string | number {
     const cacheKey = `${book.id}-${field}`;
     if (this.cellValueCache.has(cacheKey)) {
       return this.cellValueCache.get(cacheKey)!;
@@ -332,22 +336,22 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
         val = this.getDisplayTitle(book);
         break;
       case 'authors':
-        val = this.getAuthorNames(metadata.authors!);
+        val = this.getAuthorNames(metadata?.authors ?? []);
         break;
       case 'publisher':
-        val = metadata.publisher ?? '';
+        val = metadata?.publisher ?? '';
         break;
       case 'seriesName':
-        val = metadata.seriesName ?? '';
+        val = metadata?.seriesName ?? '';
         break;
       case 'seriesNumber':
-        val = metadata.seriesNumber ?? '';
+        val = metadata?.seriesNumber ?? '';
         break;
       case 'categories':
-        val = this.getGenres(metadata.categories!);
+        val = this.getGenres(metadata?.categories ?? []);
         break;
       case 'publishedDate':
-        val = metadata.publishedDate ? this.datePipe.transform(metadata.publishedDate, 'dd-MMM-yyyy') ?? '' : '';
+        val = metadata?.publishedDate ? this.datePipe.transform(metadata.publishedDate, 'dd-MMM-yyyy') ?? '' : '';
         break;
       case 'lastReadTime':
         val = book.lastReadTime ? this.datePipe.transform(book.lastReadTime, 'dd-MMM-yyyy') ?? '' : '';
@@ -362,26 +366,26 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
         val = this.formatFileSize(book.fileSizeKb);
         break;
       case 'language':
-        val = metadata.language ?? '';
+        val = metadata?.language ?? '';
         break;
       case 'pageCount':
-        val = metadata.pageCount ?? '';
+        val = metadata?.pageCount ?? '';
         break;
       case 'amazonRating':
       case 'goodreadsRating':
       case 'hardcoverRating':
       case 'ranobedbRating': {
-        const rating = metadata[field];
+        const rating = metadata?.[field];
         val = typeof rating === 'number' ? rating.toFixed(1) : '';
         break;
       }
       case 'amazonReviewCount':
       case 'goodreadsReviewCount':
       case 'hardcoverReviewCount':
-        val = metadata[field] ?? '';
+        val = metadata?.[field] ?? '';
         break;
       case 'isbn':
-        val = metadata.isbn13 || metadata.isbn10 || '';
+        val = metadata?.isbn13 || metadata?.isbn10 || '';
         break;
     }
     
@@ -405,7 +409,11 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
     return title || fileName;
   }
 
-  toggleMetadataLock(metadata: BookMetadata): void {
+  toggleMetadataLock(metadata: BookMetadata | null | undefined): void {
+    if (!metadata) {
+      return;
+    }
+
     const lockKeys = Object.keys(metadata).filter(key => key.endsWith('Locked'));
     const allLocked = lockKeys.every(key => metadata[key] === true);
     const lockAction = allLocked ? 'UNLOCK' : 'LOCK';

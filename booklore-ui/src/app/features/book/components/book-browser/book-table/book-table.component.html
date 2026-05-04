@@ -33,8 +33,8 @@
   </ng-template>
 
   <ng-template pTemplate="body" let-book>
-    @if (book.metadata; as metadata) {
-      <tr style="height:46px">
+    @let metadata = book.metadata;
+    <tr style="height:46px">
         <td>
           <p-tableCheckbox [value]="book"/>
         </td>
@@ -44,32 +44,35 @@
             [severity]="isMetadataFullyLocked(metadata) ? 'danger' : 'success'"
             [text]="true"
             [title]="isMetadataFullyLocked(metadata) ? t('locked') : t('unlocked')"
+            [disabled]="!metadata"
             size="small"
             [style]="{ width: '1.5rem', height: '1.5rem', padding: '0', fontSize: '0.75rem' }"
             (click)="toggleMetadataLock(metadata)">
           </p-button>
         </td>
         <td>
-          <a [routerLink]="urlHelper.getBookUrl(book)">
-            <img
-              [attr.src]="urlHelper.getThumbnailUrl(metadata.bookId, metadata.coverUpdatedOn)"
-              [alt]="t('bookCoverAlt')"
-              class="cover-thumbnail"
-              tooltipPosition="left"
-              [pTooltip]="tooltipContent"
-              tooltipStyleClass="cover-tooltip"
-            />
-          </a>
-          <ng-template #tooltipContent>
-            <div class="tooltip-cover-container">
+          @if (metadata) {
+            <a [routerLink]="urlHelper.getBookUrl(book)">
               <img
                 [attr.src]="urlHelper.getThumbnailUrl(metadata.bookId, metadata.coverUpdatedOn)"
                 [alt]="t('bookCoverAlt')"
-                class="tooltip-cover-image"
+                class="cover-thumbnail"
+                tooltipPosition="left"
+                [pTooltip]="tooltipContent"
+                tooltipStyleClass="cover-tooltip"
               />
-              <em class="tooltip-cover-title">{{ getCellClickableValue(metadata, book, 'title') }}</em>
-            </div>
-          </ng-template>
+            </a>
+            <ng-template #tooltipContent>
+              <div class="tooltip-cover-container">
+                <img
+                  [attr.src]="urlHelper.getThumbnailUrl(metadata.bookId, metadata.coverUpdatedOn)"
+                  [alt]="t('bookCoverAlt')"
+                  class="tooltip-cover-image"
+                />
+                <em class="tooltip-cover-title">{{ getCellValue(metadata, book, 'title') }}</em>
+              </div>
+            </ng-template>
+          }
         </td>
 
         @for (col of visibleColumns; track col.field) {
@@ -86,17 +89,19 @@
             </td>
           } @else if (col.field === 'amazonRating' || col.field === 'goodreadsRating' || col.field === 'hardcoverRating' || col.field === 'ranobedbRating') {
             <td class="cell-rating">
-              <span class="rating-wrapper">
-                <p-rating
-                  [(ngModel)]="metadata[col.field]"
-                  readonly
-                  stars="5"
-                  [style.--p-rating-icon-active-color]="getStarColor(metadata[col.field])"
-                ></p-rating>
-                @if (metadata[col.field] !== null) {
-                  <span>({{ metadata[col.field]?.toFixed(1) }})</span>
-                }
-              </span>
+              @if (metadata) {
+                <span class="rating-wrapper">
+                  <p-rating
+                    [ngModel]="metadata[col.field]"
+                    readonly
+                    stars="5"
+                    [style.--p-rating-icon-active-color]="getStarColor(metadata[col.field] ?? 0)"
+                  ></p-rating>
+                  @if (metadata[col.field] !== null && metadata[col.field] !== undefined) {
+                    <span>({{ metadata[col.field]?.toFixed(1) }})</span>
+                  }
+                </span>
+              }
             </td>
           } @else {
             <td
@@ -113,8 +118,7 @@
             </td>
           }
         }
-      </tr>
-    }
+    </tr>
   </ng-template>
 </p-table>
 </ng-container>
