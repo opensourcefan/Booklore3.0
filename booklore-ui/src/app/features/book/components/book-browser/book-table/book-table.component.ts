@@ -10,7 +10,7 @@ import {UrlHelperService} from '../../../../../shared/service/url-helper.service
 import {Button} from 'primeng/button';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
 import {MessageService} from 'primeng/api';
-import {RouterLink} from '@angular/router';
+import {RouterLink, UrlTree} from '@angular/router';
 import {filter, Subject} from 'rxjs';
 import {UserService} from '../../../../settings/user-management/user.service';
 import {take, takeUntil} from 'rxjs/operators';
@@ -110,7 +110,7 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private cellValueCache = new Map<string, string | number>();
-  private cellClickableCache = new Map<string, {url: string, anchor: string | number | null | undefined}[]>();
+  private cellClickableCache = new Map<string, {url: string | UrlTree, anchor: string | number | null | undefined}[]>();
   private metadataLockedCache = new Map<number, boolean>();
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -251,7 +251,7 @@ export class BookTableComponent implements OnInit, OnDestroy, OnChanges {
     } as const;
 
     let data: string[] = [metadata[field] as string];
-    let result: {url: string, anchor: string | number | null | undefined}[] = [];
+    let result: {url: string | UrlTree, anchor: string | number | null | undefined}[] = [];
 
     switch (field) {
       case 'title':
