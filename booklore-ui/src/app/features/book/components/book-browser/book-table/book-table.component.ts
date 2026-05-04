@@ -234,6 +234,10 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
     }
   }
 
+  ratingForField(metadata: BookMetadata, field: string): number {
+    return (metadata as Record<string, number | null | undefined>)[field] ?? 0;
+  }
+
   getAuthorNames(authors: string[]): string {
     return authors?.join(', ') || '';
   }

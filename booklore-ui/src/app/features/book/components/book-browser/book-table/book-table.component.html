@@ -91,11 +91,10 @@
             <td class="cell-rating">
               @if (metadata) {
                 <span class="rating-wrapper">
-                  @let ratingVal = (metadata[col.field] ?? 0);
                   <span class="star-display">
                     @for (star of starRange; track star) {
-                      <i [class]="star <= ratingVal ? 'pi pi-star-fill' : 'pi pi-star'"
-                         [style.color]="star <= ratingVal ? getStarColor(ratingVal) : null"></i>
+                      <i [class]="star <= ratingForField(metadata, col.field) ? 'pi pi-star-fill' : 'pi pi-star'"
+                         [style.color]="star <= ratingForField(metadata, col.field) ? getStarColor(ratingForField(metadata, col.field)) : null"></i>
                     }
                   </span>
                   @if (metadata[col.field] !== null && metadata[col.field] !== undefined) {
