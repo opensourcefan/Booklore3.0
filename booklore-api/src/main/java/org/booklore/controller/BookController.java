@@ -77,16 +77,30 @@ public class BookController {
         return ResponseEntity.ok(bookService.getBookDTOs(withDescription, stripForListView));
     }
 
-    @Operation(summary = "Get books with pagination", description = "Retrieve a paginated list of books. Supports sorting and optional library filtering.")
+    @Operation(summary = "Get books with pagination", description = "Retrieve a paginated list of books. Supports multi-field sorting, text search, and server-side filters.")
     @ApiResponse(responseCode = "200", description = "Paginated list of books returned successfully")
     @GetMapping("/paged")
     public ResponseEntity<AppPageResponse<Book>> getBooksPaged(
             @Parameter(description = "Page number (zero-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "50") int size,
-            @Parameter(description = "Sort field") @RequestParam(defaultValue = "addedOn") String sort,
-            @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String dir,
-            @Parameter(description = "Optional library ID filter") @RequestParam(required = false) Long libraryId) {
-        return ResponseEntity.ok(bookService.getBooksPaged(page, size, sort, dir, libraryId));
+            @Parameter(description = "Sort fields as field,direction pairs (e.g. sorts=title,asc&sorts=addedOn,desc)") @RequestParam(required = false) List<String> sorts,
+            @Parameter(description = "Single sort field (backward-compatible)") @RequestParam(required = false) String sort,
+            @Parameter(description = "Single sort direction (backward-compatible, asc/desc)") @RequestParam(required = false) String dir,
+            @Parameter(description = "Optional library ID filter") @RequestParam(required = false) Long libraryId,
+            @Parameter(description = "Text search across title, series, authors") @RequestParam(required = false) String search,
+            @Parameter(description = "Filter by authors (comma-separated, OR within, AND/OR between categories depending on filterMode)") @RequestParam(required = false) List<String> authors,
+            @Parameter(description = "Filter by categories (comma-separated)") @RequestParam(required = false) List<String> categories,
+            @Parameter(description = "Filter by series name") @RequestParam(required = false) String series,
+            @Parameter(description = "Filter by publisher") @RequestParam(required = false) String publisher,
+            @Parameter(description = "Filter by language code") @RequestParam(required = false) String language,
+            @Parameter(description = "Filter by ISBN (10 or 13)") @RequestParam(required = false) String isbn,
+            @Parameter(description = "Filter by read status") @RequestParam(required = false) String readStatus,
+            @Parameter(description = "Filter by book type (ePub, PDF, CBZ, AUDIOBOOK, PHYSICAL)") @RequestParam(required = false) String bookType,
+            @Parameter(description = "Filter by content rating") @RequestParam(required = false) String contentRating,
+            @Parameter(description = "Filter: AND (all categories must match) or OR (any category matches)") @RequestParam(defaultValue = "and") String filterMode) {
+        return ResponseEntity.ok(bookService.getBooksPaged(page, size, sorts, sort, dir, libraryId,
+                search, authors, categories, series, publisher, language, isbn,
+                readStatus, bookType, contentRating, filterMode));
     }
 
     @Operation(summary = "Get a book by ID", description = "Retrieve details of a specific book by its ID.")

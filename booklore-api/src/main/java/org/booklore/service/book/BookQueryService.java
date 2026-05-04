@@ -15,6 +15,7 @@ import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -41,6 +42,11 @@ public class BookQueryService {
 
     public Page<Book> getAllBooksPaged(Pageable pageable) {
         Page<BookEntity> page = bookRepository.findAllWithMetadataPage(pageable);
+        return page.map(book -> mapBookToDto(book, false, null, true));
+    }
+
+    public Page<Book> findAllPaged(Specification<BookEntity> spec, Pageable pageable) {
+        Page<BookEntity> page = bookRepository.findAll(spec, pageable);
         return page.map(book -> mapBookToDto(book, false, null, true));
     }
 

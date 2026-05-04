@@ -24,8 +24,12 @@ import org.booklore.util.FileService;
 import org.booklore.util.FileUtils;
 import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.app.dto.AppPageResponse;
+import org.booklore.app.specification.AppBookSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -618,28 +622,40 @@ public class BookService {
                 .collect(Collectors.toSet());
     }
 
-    public AppPageResponse<Book> getBooksPaged(int page, int size, String sort, String dir, Long libraryId) {
+    public AppPageResponse<Book> getBooksPaged(int page, int size, List<String> sorts,
+            String sortField, String sortDir, Long libraryId,
+            String search, List<String> authors, List<String> categories,
+            String series, String publisher, String language, String isbn,
+            String readStatus, String bookType, String contentRating, String filterMode) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
         boolean isAdmin = user.getPermissions().isAdmin();
 
-        org.springframework.data.domain.Sort sortObj = org.springframework.data.domain.Sort.by(
-                dir.equalsIgnoreCase("desc")
-                        ? org.springframework.data.domain.Sort.Direction.DESC
-                        : org.springframework.data.domain.Sort.Direction.ASC,
-                sort
-        );
-        Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sortObj);
+        // Build sort
+        Sort springSort = buildSort(sorts, sortField, sortDir);
+        Pageable pageable = PageRequest.of(page, size, springSort);
 
-        Page<Book> bookPage;
+        // Build filter specification
+        Specification<BookEntity> filterSpec = buildFilterSpec(search, authors, categories,
+                series, publisher, language, isbn, readStatus, bookType, contentRating,
+                filterMode, user);
+
+        // Build base specification with library access control
+        Specification<BookEntity> baseSpec;
         if (libraryId != null) {
-            bookPage = bookQueryService.getAllBooksByLibraryIdsPaged(
-                    Set.of(libraryId), user.getId(), pageable);
-        } else if (isAdmin) {
-            bookPage = bookQueryService.getAllBooksPaged(pageable);
+            baseSpec = AppBookSpecification.inLibrary(libraryId);
+        } else if (!isAdmin) {
+            baseSpec = AppBookSpecification.inLibraries(getUserLibraryIds(user));
         } else {
-            bookPage = bookQueryService.getAllBooksByLibraryIdsPaged(
-                    getUserLibraryIds(user), user.getId(), pageable);
+            baseSpec = (root, query, cb) -> cb.conjunction();
         }
+
+        Specification<BookEntity> combined = AppBookSpecification.combine(
+                AppBookSpecification.notDeleted(),
+                baseSpec,
+                filterSpec
+        );
+
+        Page<Book> bookPage = bookQueryService.findAllPaged(combined, pageable);
 
         Set<Long> bookIds = bookPage.getContent().stream().map(Book::getId).collect(Collectors.toSet());
         Map<Long, UserBookProgressEntity> progressMap =
@@ -665,6 +681,106 @@ public class BookService {
                 bookPage.getSize(),
                 bookPage.getTotalElements()
         );
+    }
+
+    private Sort buildSort(List<String> sorts, String sortField, String sortDir) {
+        if (sorts != null && !sorts.isEmpty()) {
+            List<Sort.Order> orders = new ArrayList<>();
+            for (String s : sorts) {
+                String[] parts = s.split(",");
+                if (parts.length >= 2) {
+                    Sort.Direction direction = "desc".equalsIgnoreCase(parts[1].trim())
+                            ? Sort.Direction.DESC : Sort.Direction.ASC;
+                    orders.add(new Sort.Order(direction, parts[0].trim()));
+                }
+            }
+            return orders.isEmpty() ? Sort.by(Sort.Direction.DESC, "addedOn") : Sort.by(orders);
+        }
+        if (sortField != null && !sortField.isEmpty()) {
+            Sort.Direction direction = "asc".equalsIgnoreCase(sortDir)
+                    ? Sort.Direction.ASC : Sort.Direction.DESC;
+            return Sort.by(direction, sortField);
+        }
+        return Sort.by(Sort.Direction.DESC, "addedOn");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Specification<BookEntity> buildFilterSpec(String search, List<String> authors,
+            List<String> categories, String series, String publisher, String language,
+            String isbn, String readStatus, String bookType, String contentRating,
+            String filterMode, BookLoreUser user) {
+        boolean orMode = "or".equalsIgnoreCase(filterMode);
+
+        List<Specification<BookEntity>> specs = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            specs.add(AppBookSpecification.searchText(search));
+        }
+        if (authors != null && !authors.isEmpty()) {
+            List<Specification<BookEntity>> authorSpecs = authors.stream()
+                    .filter(a -> !a.trim().isEmpty())
+                    .map(AppBookSpecification::withAuthor)
+                    .toList();
+            if (!authorSpecs.isEmpty()) {
+                specs.add(AppBookSpecification.combineOr(authorSpecs.toArray(new Specification[0])));
+            }
+        }
+        if (categories != null && !categories.isEmpty()) {
+            List<Specification<BookEntity>> catSpecs = categories.stream()
+                    .filter(c -> !c.trim().isEmpty())
+                    .map(AppBookSpecification::withCategory)
+                    .toList();
+            if (!catSpecs.isEmpty()) {
+                specs.add(AppBookSpecification.combineOr(catSpecs.toArray(new Specification[0])));
+            }
+        }
+        if (series != null && !series.trim().isEmpty()) {
+            specs.add(AppBookSpecification.inSeries(series));
+        }
+        if (publisher != null && !publisher.trim().isEmpty()) {
+            specs.add(AppBookSpecification.withPublisher(publisher));
+        }
+        if (language != null && !language.trim().isEmpty()) {
+            specs.add(AppBookSpecification.withLanguage(language));
+        }
+        if (isbn != null && !isbn.trim().isEmpty()) {
+            specs.add(AppBookSpecification.withIsbn(isbn));
+        }
+        if (readStatus != null && !readStatus.trim().isEmpty()) {
+            try {
+                org.booklore.model.enums.ReadStatus status =
+                        org.booklore.model.enums.ReadStatus.valueOf(readStatus.toUpperCase());
+                specs.add(AppBookSpecification.withReadStatus(status, user.getId()));
+            } catch (IllegalArgumentException ignored) {
+                // invalid read status value — skip filter
+            }
+        }
+        if (bookType != null && !bookType.trim().isEmpty()) {
+            String upper = bookType.toUpperCase().trim();
+            if ("PHYSICAL".equals(upper)) {
+                specs.add((root, query, cb) -> cb.isTrue(root.get("isPhysical")));
+            } else if ("AUDIOBOOK".equals(upper)) {
+                specs.add(AppBookSpecification.hasAudiobookFile());
+            } else {
+                try {
+                    BookFileType bft = BookFileType.valueOf(upper);
+                    specs.add(AppBookSpecification.withFileType(bft));
+                } catch (IllegalArgumentException ignored) {
+                    // invalid book type
+                }
+            }
+        }
+        if (contentRating != null && !contentRating.trim().isEmpty()) {
+            specs.add(AppBookSpecification.withContentRating(contentRating));
+        }
+
+        if (specs.isEmpty()) {
+            return (root, query, cb) -> cb.conjunction();
+        }
+
+        Specification<BookEntity>[] specArray = specs.toArray(new Specification[0]);
+        return orMode ? AppBookSpecification.combineOr(specArray)
+                      : AppBookSpecification.combine(specArray);
     }
 
     public Book updateCurrentlyReadingStatus(long bookId, boolean isCurrentlyReading) {

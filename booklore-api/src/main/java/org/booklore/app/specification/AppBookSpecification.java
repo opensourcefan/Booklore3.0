@@ -250,4 +250,154 @@ public class AppBookSpecification {
         }
         return result;
     }
+
+    @SafeVarargs
+    public static Specification<BookEntity> combineOr(Specification<BookEntity>... specs) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            for (Specification<BookEntity> spec : specs) {
+                if (spec != null) {
+                    predicates.add(spec.toPredicate(root, query, cb));
+                }
+            }
+            if (predicates.isEmpty()) {
+                return cb.conjunction();
+            }
+            return cb.or(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<BookEntity> withCategory(String category) {
+        return (root, query, cb) -> {
+            if (category == null || category.trim().isEmpty()) return cb.conjunction();
+            Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
+            Join<BookMetadataEntity, CategoryEntity> catJoin = metadataJoin.join("categories", JoinType.LEFT);
+            query.distinct(true);
+            return cb.equal(cb.lower(catJoin.get("name")), category.toLowerCase().trim());
+        };
+    }
+
+    public static Specification<BookEntity> withPublisher(String publisher) {
+        return (root, query, cb) -> {
+            if (publisher == null || publisher.trim().isEmpty()) return cb.conjunction();
+            Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
+            return cb.equal(cb.lower(metadataJoin.get("publisher")), publisher.toLowerCase().trim());
+        };
+    }
+
+    public static Specification<BookEntity> withIsbn(String isbn) {
+        return (root, query, cb) -> {
+            if (isbn == null || isbn.trim().isEmpty()) return cb.conjunction();
+            Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
+            String trimmed = isbn.trim();
+            return cb.or(
+                cb.equal(metadataJoin.get("isbn13"), trimmed),
+                cb.equal(metadataJoin.get("isbn10"), trimmed)
+            );
+        };
+    }
+
+    public static Specification<BookEntity> withAmazonRatingBetween(Double min, Double max) {
+        return numericRangeSpec("metadata", "amazonRating", min, max);
+    }
+
+    public static Specification<BookEntity> withGoodreadsRatingBetween(Double min, Double max) {
+        return numericRangeSpec("metadata", "goodreadsRating", min, max);
+    }
+
+    public static Specification<BookEntity> withHardcoverRatingBetween(Double min, Double max) {
+        return numericRangeSpec("metadata", "hardcoverRating", min, max);
+    }
+
+    public static Specification<BookEntity> withPageCountBetween(Integer min, Integer max) {
+        return numericRangeSpec("metadata", "pageCount", min, max);
+    }
+
+    public static Specification<BookEntity> withPublishedYear(int year) {
+        return (root, query, cb) -> {
+            Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
+            Expression<String> dateExpr = metadataJoin.get("publishedDate");
+            return cb.like(dateExpr, year + "%");
+        };
+    }
+
+    public static Specification<BookEntity> withContentRating(String contentRating) {
+        return (root, query, cb) -> {
+            if (contentRating == null || contentRating.trim().isEmpty()) return cb.conjunction();
+            Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
+            return cb.equal(cb.lower(metadataJoin.get("contentRating")), contentRating.toLowerCase().trim());
+        };
+    }
+
+    public static Specification<BookEntity> withAgeRating(int ageRating) {
+        return (root, query, cb) -> {
+            Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
+            return cb.equal(metadataJoin.get("ageRating"), ageRating);
+        };
+    }
+
+    public static Specification<BookEntity> withFileSizeBetween(Long minKb, Long maxKb) {
+        return (root, query, cb) -> {
+            Join<BookEntity, BookFileEntity> filesJoin = root.join("bookFiles", JoinType.LEFT);
+            query.distinct(true);
+            List<Predicate> predicates = new ArrayList<>();
+            if (minKb != null) {
+                predicates.add(cb.greaterThanOrEqualTo(filesJoin.get("fileSizeKb"), minKb));
+            }
+            if (maxKb != null) {
+                predicates.add(cb.lessThanOrEqualTo(filesJoin.get("fileSizeKb"), maxKb));
+            }
+            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<BookEntity> withMatchScoreBetween(Double min, Double max) {
+        return numericRangeSpec(null, "metadataMatchScore", min, max);
+    }
+
+    public static Specification<BookEntity> withTag(String tag) {
+        return (root, query, cb) -> {
+            if (tag == null || tag.trim().isEmpty()) return cb.conjunction();
+            Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
+            Join<BookMetadataEntity, TagEntity> tagJoin = metadataJoin.join("tags", JoinType.LEFT);
+            query.distinct(true);
+            return cb.equal(cb.lower(tagJoin.get("name")), tag.toLowerCase().trim());
+        };
+    }
+
+    public static Specification<BookEntity> withSeriesNumber(Integer number) {
+        return (root, query, cb) -> {
+            if (number == null) return cb.conjunction();
+            Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
+            return cb.equal(metadataJoin.get("seriesNumber"), number);
+        };
+    }
+
+    public static Specification<BookEntity> withNarrator(String narrator) {
+        return (root, query, cb) -> {
+            if (narrator == null || narrator.trim().isEmpty()) return cb.conjunction();
+            Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
+            return cb.equal(cb.lower(metadataJoin.get("narrator")), narrator.toLowerCase().trim());
+        };
+    }
+
+    private static <T extends Number & Comparable<?>> Specification<BookEntity> numericRangeSpec(
+            String joinPath, String field, T min, T max) {
+        return (root, query, cb) -> {
+            Path<T> path;
+            if (joinPath != null) {
+                path = root.join(joinPath, JoinType.LEFT).get(field);
+            } else {
+                path = root.get(field);
+            }
+            List<Predicate> predicates = new ArrayList<>();
+            if (min != null) {
+                predicates.add(cb.ge(path, min));
+            }
+            if (max != null) {
+                predicates.add(cb.le(path, max));
+            }
+            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 }

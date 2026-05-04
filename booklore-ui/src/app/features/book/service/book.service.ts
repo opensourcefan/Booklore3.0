@@ -16,6 +16,38 @@ import {TranslocoService} from '@jsverse/transloco';
 
 export type RemoveFromLibraryMode = 'REMOVE_FOREVER' | 'REMOVE_UNTIL_NEXT_SCAN';
 
+/** Paginated response from GET /api/v1/books/paged */
+export interface AppPageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+/** Parameters for the paginated book endpoint */
+export interface PagedBooksParams {
+  page?: number;
+  size?: number;
+  sorts?: string[];
+  sort?: string;
+  dir?: string;
+  libraryId?: number;
+  search?: string;
+  authors?: string[];
+  categories?: string[];
+  series?: string;
+  publisher?: string;
+  language?: string;
+  isbn?: string;
+  readStatus?: string;
+  bookType?: string;
+  contentRating?: string;
+  filterMode?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -93,6 +125,40 @@ export class BookService {
         throw error;
       })
     );
+  }
+
+  /**
+   * Fetch paginated books with server-side sort and filter support.
+   * Corresponds to GET /api/v1/books/paged.
+   */
+  getBooksPaged(params: PagedBooksParams = {}): Observable<AppPageResponse<Book>> {
+    let httpParams = new HttpParams()
+      .set('page', String(params.page ?? 0))
+      .set('size', String(params.size ?? 50));
+
+    if (params.sorts?.length) {
+      params.sorts.forEach(s => httpParams = httpParams.append('sorts', s));
+    }
+    if (params.sort) httpParams = httpParams.set('sort', params.sort);
+    if (params.dir) httpParams = httpParams.set('dir', params.dir);
+    if (params.libraryId != null) httpParams = httpParams.set('libraryId', String(params.libraryId));
+    if (params.search) httpParams = httpParams.set('search', params.search);
+    if (params.authors?.length) {
+      params.authors.forEach(a => httpParams = httpParams.append('authors', a));
+    }
+    if (params.categories?.length) {
+      params.categories.forEach(c => httpParams = httpParams.append('categories', c));
+    }
+    if (params.series) httpParams = httpParams.set('series', params.series);
+    if (params.publisher) httpParams = httpParams.set('publisher', params.publisher);
+    if (params.language) httpParams = httpParams.set('language', params.language);
+    if (params.isbn) httpParams = httpParams.set('isbn', params.isbn);
+    if (params.readStatus) httpParams = httpParams.set('readStatus', params.readStatus);
+    if (params.bookType) httpParams = httpParams.set('bookType', params.bookType);
+    if (params.contentRating) httpParams = httpParams.set('contentRating', params.contentRating);
+    if (params.filterMode) httpParams = httpParams.set('filterMode', params.filterMode);
+
+    return this.http.get<AppPageResponse<Book>>(`${this.url}/paged`, { params: httpParams });
   }
 
   refreshBooks(): Observable<Book[]> {
