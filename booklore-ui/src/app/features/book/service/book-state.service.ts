@@ -97,18 +97,53 @@ export class BookStateService {
     return orderedBooks;
   }
 
-  setPagedCache(cache: Record<string, PagedBookBrowserCacheEntry>, totalCount: number | null): void {
+  setPagedCache(
+    cache: Record<string, PagedBookBrowserCacheEntry>,
+    totalCount: number | null = this.deriveTotalCount(cache)
+  ): void {
     this.updateBookState({
       pagedCache: cache,
       totalCount,
     });
   }
 
-  invalidatePagedCacheByEntity(entity: PagedBookBrowserEntity, entityId: number | null = null): void {
-    const filteredEntries = Object.entries(this.getCurrentBookState().pagedCache ?? {})
-      .filter(([, entry]) => !(entry.key.entity === entity && (entityId == null || entry.key.entityId === entityId)));
+  patchPagedCacheBook(updatedBook: Book): boolean {
+    let didChange = false;
+    const nextCache = Object.fromEntries(
+      Object.entries(this.getCurrentBookState().pagedCache ?? {}).map(([cacheKey, entry]) => {
+        if (!entry.page?.content?.some(book => book.id === updatedBook.id)) {
+          return [cacheKey, entry];
+        }
 
-    this.setPagedCache(Object.fromEntries(filteredEntries), this.deriveTotalCount(Object.fromEntries(filteredEntries)));
+        didChange = true;
+
+        return [cacheKey, {
+          ...entry,
+          page: entry.page
+            ? {
+                ...entry.page,
+                content: entry.page.content.map(book => book.id === updatedBook.id ? updatedBook : book),
+              }
+            : null,
+        } satisfies PagedBookBrowserCacheEntry];
+      })
+    );
+
+    if (!didChange) {
+      return false;
+    }
+
+    this.setPagedCache(nextCache);
+    return true;
+  }
+
+  invalidatePagedCacheByEntity(entity: PagedBookBrowserEntity, entityId: number | null = null): void {
+    const nextCache = Object.fromEntries(
+      Object.entries(this.getCurrentBookState().pagedCache ?? {})
+        .filter(([, entry]) => !(entry.key.entity === entity && (entityId == null || entry.key.entityId === entityId)))
+    );
+
+    this.setPagedCache(nextCache);
   }
 
   invalidatePagedCacheByBookIds(bookIds: number[]): void {
@@ -117,10 +152,12 @@ export class BookStateService {
     }
 
     const idSet = new Set(bookIds.map(id => +id));
-    const filteredEntries = Object.entries(this.getCurrentBookState().pagedCache ?? {})
-      .filter(([, entry]) => !(entry.page?.content ?? []).some(book => idSet.has(book.id)));
+    const nextCache = Object.fromEntries(
+      Object.entries(this.getCurrentBookState().pagedCache ?? {})
+        .filter(([, entry]) => !(entry.page?.content ?? []).some(book => idSet.has(book.id)))
+    );
 
-    this.setPagedCache(Object.fromEntries(filteredEntries), this.deriveTotalCount(Object.fromEntries(filteredEntries)));
+    this.setPagedCache(nextCache);
   }
 
   private deriveTotalCount(cache: Record<string, PagedBookBrowserCacheEntry>): number | null {
