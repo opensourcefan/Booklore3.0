@@ -140,7 +140,7 @@ describe('BookSocketService', () => {
     const state = bookStateService.getCurrentBookState();
 
     expect(state.books?.[0].metadata?.title).toBe('New Title');
-    expect(state.pagedCache?.allBooks.page?.content[0].metadata?.title).toBe('New Title');
+    expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.title).toBe('New Title');
     expect(state.totalCount).toBe(12);
   });
 
@@ -168,8 +168,8 @@ describe('BookSocketService', () => {
 
     expect(state.books?.[0].metadata?.title).toBe('Updated Title');
     expect(state.books?.[0].metadata?.coverUpdatedOn).toBe('2025-05-05T12:00:00Z');
-    expect(state.pagedCache?.allBooks.page?.content[0].metadata?.title).toBe('Updated Title');
-    expect(state.pagedCache?.allBooks.page?.content[0].metadata?.coverUpdatedOn).toBe('2025-05-05T12:00:00Z');
+    expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.title).toBe('Updated Title');
+    expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.coverUpdatedOn).toBe('2025-05-05T12:00:00Z');
     expect(state.totalCount).toBe(6);
   });
 });
