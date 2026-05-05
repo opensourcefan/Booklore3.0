@@ -83,6 +83,12 @@ import {DirectoryPanelService} from '../../service/directory-panel.service';
 import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 import {isDirectoryScopeActive} from './book-browser-directory-scope.util';
+import {
+  buildGridViewportContext,
+  didDirectoryPanelClose,
+  GridViewportContext,
+  shouldResetGridViewport,
+} from './book-browser-grid-reset.util';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -222,6 +228,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected moreActionsMenuItems: MenuItem[] | undefined;
   mediaTypeActionsMenuItems: MenuItem[] = [];
   showSubtitles = false;
+  protected gridRenderVersion = 0;
 
   private sideBarFilter = new SideBarFilter(this.selectedFilter, this.selectedFilterMode);
   private headerFilter = new HeaderFilter(this.searchTerm$);
@@ -232,6 +239,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private sortService = inject(SortService);
 
   private bookStateSubscription: Subscription | undefined;
+  private directoryPanelWasVisible = false;
+  private pendingGridViewportReset = false;
+  private lastGridViewportContext: GridViewportContext | null = null;
 
   @ViewChild(BookTableComponent)
   bookTableComponent!: BookTableComponent;
@@ -496,7 +506,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.dirPanelService.visible$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
+      .subscribe(visible => {
+        if (didDirectoryPanelClose(this.directoryPanelWasVisible, visible)) {
+          this.resetDirectoryScopeForCurrentRoute();
+        }
+
+        this.directoryPanelWasVisible = visible;
         requestAnimationFrame(() => this.updateVirtualGridDomBindings());
       });
 
@@ -1084,6 +1099,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   applySortCriteria(sortCriteria: SortOption[]): void {
     const primarySort = sortCriteria[0] ?? {field: 'addedOn', direction: 'DESCENDING', label: 'Added On'};
+    const nextViewportContext = this.createGridViewportContext(sortCriteria);
+
+    if (shouldResetGridViewport(this.lastGridViewportContext, nextViewportContext)) {
+      this.pendingGridViewportReset = true;
+      this.gridRenderVersion += 1;
+    }
+
+    this.lastGridViewportContext = nextViewportContext;
 
     if (this.entityType === EntityType.ALL_BOOKS) {
       this.bookState$ = this.allBooksPagedGridPilotService.connect({
@@ -1136,6 +1159,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gapSig.set(this.isMobile ? this.MOBILE_GAP : 20.8);
         this.updateVirtualGridDomBindings();
 
+        if (this.currentViewMode === VIEW_MODES.GRID && this.pendingGridViewportReset) {
+          this.resetGridViewport();
+        }
+
+        this.pendingGridViewportReset = false;
+
         this.visibleBookIds = new Set(books.map(book => book.id));
         this.bookSelectionService.setCurrentBooks(books);
         this.bookNavigationService.setAvailableBookIds(books.map(book => book.id));
@@ -1175,6 +1204,18 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     }
+  }
+
+  private resetGridViewport(): void {
+    const scrollEl = this.scrollContainer?.nativeElement;
+    if (!scrollEl) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      scrollEl.scrollTop = 0;
+      scrollEl.dispatchEvent(new Event('scroll'));
+    });
   }
 
   onGridScroll(event?: Event): void {
@@ -1852,6 +1893,23 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const scopeKey = this.directoryFilterService.getScopeKeyFromUrl(this.router.url);
     const scopedFilter = this.directoryFilterService.getScopedFilter(scopeKey);
     this.activeDirFilterPath = scopedFilter ? scopedFilter.fileSubPath : null;
+  }
+
+  private resetDirectoryScopeForCurrentRoute(): void {
+    const scopeKey = this.directoryFilterService.getScopeKeyFromUrl(this.router.url);
+    this.directoryFilterService.clearScope(scopeKey);
+  }
+
+  private createGridViewportContext(sortCriteria: SortOption[]): GridViewportContext {
+    return buildGridViewportContext({
+      viewMode: this.currentViewMode,
+      entityType: this.entityType,
+      sortCriteria,
+      filterMode: this.selectedFilterMode.getValue(),
+      searchTerm: this.searchTerm$.getValue(),
+      activeDirFilterPath: this.activeDirFilterPath,
+      filterSignature: JSON.stringify(this.parsedFilters),
+    });
   }
 
   setMobileColumns(columns: number): void {

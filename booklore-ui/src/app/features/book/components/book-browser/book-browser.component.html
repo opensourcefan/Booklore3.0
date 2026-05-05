@@ -663,7 +663,7 @@
                   <div class="virtual-grid" #gridContainer>
                     <div class="virtual-grid-spacer" [style.height.px]="virtualGrid.virtualizer.getTotalSize()"></div>
 
-                    @for (row of virtualGrid.virtualizer.getVirtualItems(); track row.key) {
+                    @for (row of virtualGrid.virtualizer.getVirtualItems(); track row.key + ':' + gridRenderVersion) {
                       <div
                         class="virtual-row"
                         [style.transform]="'translateY(' + row.start + 'px)'"

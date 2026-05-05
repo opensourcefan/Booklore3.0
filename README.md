@@ -56,7 +56,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 - **Comic Panel Detection AI** — Detects and saves panel flow data for CBZ/CBR comics using a bundled YOLO-based AI model. Enables panel-by-panel navigation in the reader.
 - **ComicVine URL Issue Navigation** — In metadata search, paste a ComicVine volume or issue URL and optionally provide an issue number or inclusive range (for example `46` or `43-171`) to resolve exact ComicVine issue matches.
 - **ComicVine Batch Issue Sequencing** — In custom metadata fetch for multi-book selections, you can use the same ComicVine source URL plus issue number/range inputs and BookLore will assign sequential issues across the selected books while keeping review-mode workflows.
-- **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views.
+- **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views, then close the panel to clear the active folder scope and return to the normal collection view.
 - **Adjustable Cover Preview Panel** — Toggle the right-side cover preview on or off in Settings.
 - **Customizable Upper Toolbar** — Add, remove, and reorder toolbar buttons; insert separators. Drag-and-drop support.
 - **Adjustable Side Panels** — Resizable left and right sidebars.
@@ -281,7 +281,7 @@ New to BookLore? A complete **Familiarization Guide** is available in the `docs/
 
 The guide is written for users of all experience levels and covers every feature — libraries, importing, reading, shelves, metadata, search, AI panel detection, OPDS, user management, settings, backups, and more. Each section includes what you can do, what you can't do, and things to be careful about.
 
-The current HTML guide also documents the directory explorer workflow, including opening the folder panel, expanding folders, and filtering the book grid by top-level folders or subfolders.
+The current HTML guide also documents the directory explorer workflow, including opening the folder panel, expanding folders, filtering the book grid by top-level folders or subfolders, and closing the panel to clear the active folder scope.
 
 ---
 
