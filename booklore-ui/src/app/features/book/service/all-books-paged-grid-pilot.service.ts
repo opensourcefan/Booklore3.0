@@ -30,10 +30,10 @@ interface ActivePagedQuery {
   providedIn: 'root',
 })
 export class AllBooksPagedGridPilotService {
-  private static readonly PAGE_SIZE = 100;
+  private static readonly PAGE_SIZE = 80;
   private static readonly LOAD_MORE_THRESHOLD_PX = 600;
-  private static readonly LOAD_MORE_THRESHOLD_VIEWPORTS = 2;
-  private static readonly PREFETCHED_PAGE_COUNT = 2;
+  private static readonly LOAD_MORE_THRESHOLD_VIEWPORTS = 3;
+  private static readonly PREFETCHED_PAGE_COUNT = 4;
 
   private readonly bookService = inject(BookService);
   private readonly pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
@@ -78,7 +78,10 @@ export class AllBooksPagedGridPilotService {
     const signature = this.buildSignature(requestKey);
 
     if (this.activeQuery?.signature === signature && this.pagedActive) {
-      this.emitCachedState(this.activeQuery);
+      if (this.getCachedPages(this.activeQuery.requestKey).length > 0) {
+        this.emitCachedState(this.activeQuery);
+        this.ensurePrefetchedRunway(this.activeQuery);
+      }
       return this.bookState$;
     }
 
@@ -100,14 +103,14 @@ export class AllBooksPagedGridPilotService {
       nextPage: 0,
     };
 
-    this.emitCachedState(this.activeQuery);
-
-    if (this.activeQuery.nextPage !== null && this.getCachedPages(this.activeQuery.requestKey).length === 0) {
+    const cachedPages = this.getCachedPages(this.activeQuery.requestKey);
+    if (cachedPages.length === 0) {
       this.seedFromLegacyState(this.activeQuery);
       this.fetchPage(this.activeQuery, 0);
       return this.bookState$;
     }
 
+    this.emitCachedState(this.activeQuery);
     this.ensurePrefetchedRunway(this.activeQuery);
 
     return this.bookState$;

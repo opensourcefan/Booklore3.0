@@ -4,6 +4,7 @@ import {of, firstValueFrom} from 'rxjs';
 import {BookService} from './book.service';
 import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 import {Book} from '../model/book.model';
+import {BookStateService} from './book-state.service';
 
 function createBook(overrides: Partial<Book>): Book {
   return {
@@ -41,6 +42,10 @@ describe('PagedBookBrowserStateService', () => {
 
   function createService(): PagedBookBrowserStateService {
     return TestBed.inject(PagedBookBrowserStateService);
+  }
+
+  function getBookStateService(): BookStateService {
+    return TestBed.inject(BookStateService);
   }
 
   it('starts in legacy mode with an empty cache', () => {
@@ -85,6 +90,7 @@ describe('PagedBookBrowserStateService', () => {
 
   it('stores pages, marks loading, and invalidates by entity and book ids', () => {
     const service = createService();
+    const bookStateService = getBookStateService();
     const requestKey = service.buildRequestKey('LIBRARY', 10, 'grid', {
       page: 0,
       size: 50,
@@ -105,9 +111,12 @@ describe('PagedBookBrowserStateService', () => {
     });
 
     expect(service.getCachedPage(requestKey)?.content.map(book => book.id)).toEqual([11, 22]);
+    expect(Object.keys(bookStateService.getCurrentBookState().pagedCache ?? {})).toHaveLength(1);
+    expect(bookStateService.getCurrentBookState().totalCount).toBe(2);
 
     service.invalidateBooks([22]);
     expect(service.getCachedPage(requestKey)).toBeNull();
+    expect(bookStateService.getCurrentBookState().pagedCache).toEqual({});
 
     service.storePage(requestKey, {
       content: [createBook({id: 11})],
@@ -121,6 +130,7 @@ describe('PagedBookBrowserStateService', () => {
 
     service.invalidateEntity('LIBRARY', 10);
     expect(service.getCachedPage(requestKey)).toBeNull();
+    expect(bookStateService.getCurrentBookState().pagedCache).toEqual({});
   });
 
   it('resolves books by preferring cache, then full state, then API', async () => {

@@ -203,17 +203,27 @@ export class BookService {
 
   getBookByIdFromState(bookId: number): Book | undefined {
     const currentState = this.bookStateService.getCurrentBookState();
-    return currentState.books?.find(book => +book.id === +bookId);
+    return currentState.books?.find(book => +book.id === +bookId)
+      ?? this.bookStateService.getCachedPagedBookById(+bookId);
   }
 
   getBooksByIdsFromState(bookIds: number[]): Book[] {
     const currentState = this.bookStateService.getCurrentBookState();
-    if (!currentState.books || bookIds.length === 0) return [];
+    if (bookIds.length === 0) return [];
 
     // Preserve the caller's selection order so dialog/title lists match the main browser order.
-    const booksById = new Map<number, Book>(
-      currentState.books.map(book => [+book.id, book])
-    );
+    const booksById = new Map<number, Book>();
+
+    for (const book of currentState.books ?? []) {
+      booksById.set(+book.id, book);
+    }
+
+    for (const book of this.bookStateService.getCachedPagedBooksByIds(bookIds)) {
+      if (!booksById.has(+book.id)) {
+        booksById.set(+book.id, book);
+      }
+    }
+
     const orderedBooks: Book[] = [];
     const seen = new Set<number>();
 
@@ -373,9 +383,7 @@ export class BookService {
   /*------------------ Reading & Viewer Settings ------------------*/
 
   readBook(bookId: number, reader?: 'epub-streaming', explicitBookType?: BookType): void {
-    const book = this.bookStateService
-      .getCurrentBookState()
-      .books?.find(b => b.id === bookId);
+    const book = this.getBookByIdFromState(bookId);
 
     if (!book) {
       console.error('Book not found');

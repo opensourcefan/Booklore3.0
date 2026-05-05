@@ -2,6 +2,7 @@ import {Injectable, inject} from '@angular/core';
 import {BehaviorSubject, forkJoin, map, Observable, of} from 'rxjs';
 import {AppPageResponse, BookService, PagedBooksParams} from './book.service';
 import {Book} from '../model/book.model';
+import {BookStateService} from './book-state.service';
 import {
   BookBrowserViewMode,
   DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS,
@@ -18,6 +19,7 @@ import {
 })
 export class PagedBookBrowserStateService {
   private readonly bookService = inject(BookService);
+  private readonly bookStateService = inject(BookStateService);
 
   private readonly pagedBookBrowserStateSubject = new BehaviorSubject<PagedBookBrowserState>({
     guardrails: DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS,
@@ -130,38 +132,11 @@ export class PagedBookBrowserStateService {
   }
 
   getCachedBookById(bookId: number): Book | undefined {
-    return Object.values(this.getCurrentState().cache)
-      .flatMap(entry => entry.page?.content ?? [])
-      .find(book => book.id === bookId);
+    return this.bookStateService.getCachedPagedBookById(bookId);
   }
 
   getCachedBooksByIds(bookIds: number[]): Book[] {
-    const seen = new Set<number>();
-    const booksById = new Map<number, Book>();
-
-    for (const entry of Object.values(this.getCurrentState().cache)) {
-      for (const book of entry.page?.content ?? []) {
-        if (!booksById.has(book.id)) {
-          booksById.set(book.id, book);
-        }
-      }
-    }
-
-    const orderedBooks: Book[] = [];
-    for (const rawId of bookIds) {
-      const id = +rawId;
-      if (seen.has(id)) {
-        continue;
-      }
-
-      const book = booksById.get(id);
-      if (book) {
-        orderedBooks.push(book);
-        seen.add(id);
-      }
-    }
-
-    return orderedBooks;
+    return this.bookStateService.getCachedPagedBooksByIds(bookIds);
   }
 
   resolveBookById(bookId: number, withDescription = false): Observable<Book | undefined> {
@@ -279,5 +254,18 @@ export class PagedBookBrowserStateService {
 
   private updateState(state: PagedBookBrowserState): void {
     this.pagedBookBrowserStateSubject.next(state);
+    this.bookStateService.setPagedCache(state.cache, this.deriveTotalCount(state.cache));
+  }
+
+  private deriveTotalCount(cache: Record<string, PagedBookBrowserCacheEntry>): number | null {
+    const totalCounts = Object.values(cache)
+      .map(entry => entry.page?.totalElements ?? null)
+      .filter((value): value is number => value !== null);
+
+    if (totalCounts.length === 0) {
+      return null;
+    }
+
+    return Math.max(...totalCounts);
   }
 }
