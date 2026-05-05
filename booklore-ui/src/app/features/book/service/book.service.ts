@@ -202,45 +202,11 @@ export class BookService {
   /*------------------ Book Retrieval ------------------*/
 
   getBookByIdFromState(bookId: number): Book | undefined {
-    const currentState = this.bookStateService.getCurrentBookState();
-    return currentState.books?.find(book => +book.id === +bookId)
-      ?? this.bookStateService.getCachedPagedBookById(+bookId);
+    return this.bookStateService.getBookById(+bookId);
   }
 
   getBooksByIdsFromState(bookIds: number[]): Book[] {
-    const currentState = this.bookStateService.getCurrentBookState();
-    if (bookIds.length === 0) return [];
-
-    // Preserve the caller's selection order so dialog/title lists match the main browser order.
-    const booksById = new Map<number, Book>();
-
-    for (const book of currentState.books ?? []) {
-      booksById.set(+book.id, book);
-    }
-
-    for (const book of this.bookStateService.getCachedPagedBooksByIds(bookIds)) {
-      if (!booksById.has(+book.id)) {
-        booksById.set(+book.id, book);
-      }
-    }
-
-    const orderedBooks: Book[] = [];
-    const seen = new Set<number>();
-
-    for (const rawId of bookIds) {
-      const id = +rawId;
-      if (seen.has(id)) {
-        continue;
-      }
-
-      const book = booksById.get(id);
-      if (book) {
-        orderedBooks.push(book);
-        seen.add(id);
-      }
-    }
-
-    return orderedBooks;
+    return this.bookStateService.getBooksByIds(bookIds);
   }
 
   getBookByIdFromAPI(bookId: number, withDescription: boolean): Observable<Book> {

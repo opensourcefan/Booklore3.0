@@ -106,6 +106,49 @@ describe('BookStateService', () => {
     expect(service.getCachedPagedBooksByIds([33, 22, 33]).map(book => book.id)).toEqual([33, 22]);
   });
 
+  it('resolves book lookups by preferring legacy full-state books before paged cache', () => {
+    const service = createService();
+
+    service.updateBookState({
+      books: [createBook(55, 'Legacy Title')],
+      loaded: true,
+      error: null,
+    });
+
+    service.setPagedCache({
+      page0: {
+        key: {
+          entity: 'ALL_BOOKS',
+          entityId: null,
+          viewMode: 'grid',
+          page: 0,
+          size: 80,
+          sorts: ['addedOn,desc'],
+          filterMode: 'and',
+          search: null,
+          filters: {},
+        },
+        status: 'loaded',
+        page: {
+          content: [createBook(55, 'Paged Title'), createBook(66, 'Paged Only')],
+          page: 0,
+          size: 80,
+          totalElements: 2,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        },
+        error: null,
+        loadedAt: Date.now(),
+        fallbackReason: null,
+      },
+    });
+
+    expect(service.getBookById(55)?.metadata?.title).toBe('Legacy Title');
+    expect(service.getBookById(66)?.metadata?.title).toBe('Paged Only');
+    expect(service.getBooksByIds([66, 55]).map(book => book.metadata?.title)).toEqual(['Paged Only', 'Legacy Title']);
+  });
+
   it('patches paged cache books in place and keeps derived total count', () => {
     const service = createService();
 

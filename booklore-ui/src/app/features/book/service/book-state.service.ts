@@ -67,6 +67,12 @@ export class BookStateService {
       .find(book => book.id === bookId);
   }
 
+  getBookById(bookId: number): Book | undefined {
+    const normalizedId = +bookId;
+    return this.getCurrentBookState().books?.find(book => +book.id === normalizedId)
+      ?? this.getCachedPagedBookById(normalizedId);
+  }
+
   getCachedPagedBooksByIds(bookIds: number[]): Book[] {
     const booksById = new Map<number, Book>();
 
@@ -75,6 +81,42 @@ export class BookStateService {
         if (!booksById.has(book.id)) {
           booksById.set(book.id, book);
         }
+      }
+    }
+
+    const orderedBooks: Book[] = [];
+    const seen = new Set<number>();
+
+    for (const rawId of bookIds) {
+      const id = +rawId;
+      if (seen.has(id)) {
+        continue;
+      }
+
+      const book = booksById.get(id);
+      if (book) {
+        orderedBooks.push(book);
+        seen.add(id);
+      }
+    }
+
+    return orderedBooks;
+  }
+
+  getBooksByIds(bookIds: number[]): Book[] {
+    if (bookIds.length === 0) {
+      return [];
+    }
+
+    const booksById = new Map<number, Book>();
+
+    for (const book of this.getCurrentBookState().books ?? []) {
+      booksById.set(+book.id, book);
+    }
+
+    for (const book of this.getCachedPagedBooksByIds(bookIds)) {
+      if (!booksById.has(+book.id)) {
+        booksById.set(+book.id, book);
       }
     }
 
