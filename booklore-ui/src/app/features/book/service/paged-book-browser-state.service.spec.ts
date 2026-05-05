@@ -133,6 +133,32 @@ describe('PagedBookBrowserStateService', () => {
     expect(bookStateService.getCurrentBookState().pagedCache).toEqual({});
   });
 
+  it('patches cached books in place and keeps the shared paged cache synchronized', () => {
+    const service = createService();
+    const bookStateService = getBookStateService();
+    const requestKey = service.buildRequestKey('ALL_BOOKS', null, 'grid', {
+      page: 0,
+      size: 50,
+      sorts: ['title,asc'],
+    });
+
+    service.storePage(requestKey, {
+      content: [createBook({id: 11, metadata: {title: 'Old Title'} as never})],
+      page: 0,
+      size: 50,
+      totalElements: 1,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    });
+
+    service.patchBook(createBook({id: 11, metadata: {title: 'New Title'} as never}));
+
+    expect(service.getCachedPage(requestKey)?.content[0]?.metadata?.title).toBe('New Title');
+    const syncedEntry = Object.values(bookStateService.getCurrentBookState().pagedCache ?? {})[0];
+    expect(syncedEntry?.page?.content[0]?.metadata?.title).toBe('New Title');
+  });
+
   it('resolves books by preferring cache, then full state, then API', async () => {
     const service = createService();
     const requestKey = service.buildRequestKey('ALL_BOOKS', null, 'grid', {page: 0, size: 50});

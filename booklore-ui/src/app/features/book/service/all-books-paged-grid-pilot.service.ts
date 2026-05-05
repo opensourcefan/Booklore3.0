@@ -120,6 +120,19 @@ export class AllBooksPagedGridPilotService {
     return this.pagedActive;
   }
 
+  refreshActiveState(): void {
+    if (!this.pagedActive || !this.activeQuery) {
+      return;
+    }
+
+    const cachedPages = this.getCachedPages(this.activeQuery.requestKey);
+    if (cachedPages.length === 0) {
+      return;
+    }
+
+    this.emitCachedState(this.activeQuery);
+  }
+
   loadNextPageIfNeeded(scrollTop: number, clientHeight: number, scrollHeight: number): void {
     if (!this.pagedActive || !this.activeQuery || this.activeQuery.nextPage === null) {
       return;

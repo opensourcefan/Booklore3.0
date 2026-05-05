@@ -8,16 +8,22 @@ import {BookService} from './book.service';
 import {BookMetadataManageService} from './book-metadata-manage.service';
 import {BookSocketService} from './book-socket.service';
 import {BookStateService} from './book-state.service';
+import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
+import {AllBooksPagedGridPilotService} from './all-books-paged-grid-pilot.service';
 
 describe('BookMetadataManageService', () => {
   let service: BookMetadataManageService;
   let httpPutSpy: ReturnType<typeof vi.fn>;
   let refreshSubscriptions: number;
   let handleBookMetadataUpdateSpy: ReturnType<typeof vi.fn>;
+  let patchBookSpy: ReturnType<typeof vi.fn>;
+  let refreshActiveStateSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     httpPutSpy = vi.fn();
     handleBookMetadataUpdateSpy = vi.fn();
+    patchBookSpy = vi.fn();
+    refreshActiveStateSpy = vi.fn();
     refreshSubscriptions = 0;
 
     TestBed.configureTestingModule({
@@ -34,6 +40,7 @@ describe('BookMetadataManageService', () => {
         {
           provide: BookService,
           useValue: {
+            getBookByIdFromState: vi.fn((bookId: number) => ({id: bookId, metadata: {title: 'Old Title'}})),
             refreshBooks: vi.fn(() => defer(() => {
               refreshSubscriptions += 1;
               return of([]);
@@ -51,6 +58,19 @@ describe('BookMetadataManageService', () => {
           useValue: {
             getCurrentBookState: vi.fn(() => ({books: [], loaded: true, error: null})),
             updateBookState: vi.fn(),
+          },
+        },
+        {
+          provide: PagedBookBrowserStateService,
+          useValue: {
+            getCachedBookById: vi.fn(),
+            patchBook: patchBookSpy,
+          },
+        },
+        {
+          provide: AllBooksPagedGridPilotService,
+          useValue: {
+            refreshActiveState: refreshActiveStateSpy,
           },
         },
         {provide: MessageService, useValue: {add: vi.fn()}},
@@ -86,6 +106,11 @@ describe('BookMetadataManageService', () => {
     });
 
     expect(handleBookMetadataUpdateSpy).toHaveBeenCalledWith(4, updatedMetadata);
+    expect(patchBookSpy).toHaveBeenCalledWith({
+      id: 4,
+      metadata: updatedMetadata,
+    });
+    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
     expect(refreshSubscriptions).toBe(1);
   });
 });

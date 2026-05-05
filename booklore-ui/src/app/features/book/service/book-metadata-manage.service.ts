@@ -9,6 +9,8 @@ import {BookStateService} from './book-state.service';
 import {BookSocketService} from './book-socket.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookService} from './book.service';
+import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
+import {AllBooksPagedGridPilotService} from './all-books-paged-grid-pilot.service';
 
 @Injectable({
   providedIn: 'root',
@@ -22,6 +24,8 @@ export class BookMetadataManageService {
   private bookStateService = inject(BookStateService);
   private bookSocketService = inject(BookSocketService);
   private bookService = inject(BookService);
+  private pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
+  private allBooksPagedGridPilotService = inject(AllBooksPagedGridPilotService);
   private readonly t = inject(TranslocoService);
 
   private refreshBooksSnapshotAfter<T>(source$: Observable<T>): Observable<T> {
@@ -35,6 +39,7 @@ export class BookMetadataManageService {
     return this.refreshBooksSnapshotAfter(this.http.put<BookMetadata>(`${this.url}/${bookId}/metadata`, wrapper, {params}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId!, updatedMetadata);
+        this.syncUpdatedMetadataToPagedState(bookId!, updatedMetadata);
         return updatedMetadata;
       })
     ));
@@ -50,9 +55,25 @@ export class BookMetadataManageService {
     return this.refreshBooksSnapshotAfter(this.http.post<BookMetadata>(`${this.url}/${bookId}/metadata/wipe`, {}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId, updatedMetadata);
+        this.syncUpdatedMetadataToPagedState(bookId, updatedMetadata);
         return updatedMetadata;
       })
     ));
+  }
+
+  private syncUpdatedMetadataToPagedState(bookId: number, updatedMetadata: BookMetadata): void {
+    const sourceBook = this.bookService.getBookByIdFromState(bookId)
+      ?? this.pagedBookBrowserStateService.getCachedBookById(bookId);
+
+    if (!sourceBook) {
+      return;
+    }
+
+    this.pagedBookBrowserStateService.patchBook({
+      ...sourceBook,
+      metadata: updatedMetadata,
+    });
+    this.allBooksPagedGridPilotService.refreshActiveState();
   }
 
   wipeBooksMetadata(bookIds: number[]): Observable<void> {

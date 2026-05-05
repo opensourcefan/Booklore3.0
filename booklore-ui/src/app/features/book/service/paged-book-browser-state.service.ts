@@ -139,6 +139,38 @@ export class PagedBookBrowserStateService {
     return this.bookStateService.getCachedPagedBooksByIds(bookIds);
   }
 
+  patchBook(updatedBook: Book): void {
+    let didChange = false;
+    const nextCache = Object.fromEntries(
+      Object.entries(this.getCurrentState().cache).map(([cacheKey, entry]) => {
+        if (!entry.page?.content?.some(book => book.id === updatedBook.id)) {
+          return [cacheKey, entry];
+        }
+
+        didChange = true;
+
+        return [cacheKey, {
+          ...entry,
+          page: entry.page
+            ? {
+                ...entry.page,
+                content: entry.page.content.map(book => book.id === updatedBook.id ? updatedBook : book),
+              }
+            : null,
+        } satisfies PagedBookBrowserCacheEntry];
+      })
+    );
+
+    if (!didChange) {
+      return;
+    }
+
+    this.updateState({
+      ...this.getCurrentState(),
+      cache: nextCache,
+    });
+  }
+
   resolveBookById(bookId: number, withDescription = false): Observable<Book | undefined> {
     const cached = this.getCachedBookById(bookId);
     if (cached) {
