@@ -10,6 +10,7 @@ import {APIException} from '../../../shared/models/api-exception.model';
 import {HttpErrorResponse} from '@angular/common/http';
 import {TranslocoService} from '@jsverse/transloco';
 import {WriteProgressService} from '../../../shared/service/write-progress.service';
+import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,7 @@ export class BookMenuService {
   confirmationService = inject(ConfirmationService);
   messageService = inject(MessageService);
   bookService = inject(BookService);
+  pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
   bookMetadataManageService = inject(BookMetadataManageService);
   writeProgressService = inject(WriteProgressService);
   private readonly t = inject(TranslocoService);
@@ -337,23 +339,33 @@ export class BookMenuService {
              acceptLabel: this.t.translate('common.yes'),
              rejectLabel: this.t.translate('common.no'),
              accept: () => {
-               const books = this.bookService.getBooksByIdsFromState(Array.from(selectedBooks));
-               const allShelfIds = new Set<number>();
-               books.forEach(b => b.shelves?.forEach(s => {
-                 if (s.id) allShelfIds.add(s.id);
-               }));
-
-               if (allShelfIds.size === 0) {
-                 this.messageService.add({ severity: 'info', summary: this.t.translate('common.info'), detail: this.t.translate('book.menuService.toast.noBooksOnShelvesDetail') });
-                 return;
-               }
-
-               this.writeProgressService.show(this.t.translate('book.menuService.loading.removingFromShelves', {count}));
-               this.bookService.updateBookShelves(selectedBooks, new Set(), allShelfIds)
+               this.pagedBookBrowserStateService.resolveBooksByIds(Array.from(selectedBooks))
                  .subscribe({
-                   next: () => {
-                     this.writeProgressService.complete(this.t.translate('book.menuService.toast.unshelveSuccessDetail'));
-                     this.messageService.add({severity: 'success', summary: this.t.translate('common.success'), detail: this.t.translate('book.menuService.toast.unshelveSuccessDetail')});
+                   next: books => {
+                     const allShelfIds = new Set<number>();
+                     books.forEach(b => b.shelves?.forEach(shelf => {
+                       if (shelf.id) {
+                         allShelfIds.add(shelf.id);
+                       }
+                     }));
+
+                     if (allShelfIds.size === 0) {
+                       this.messageService.add({ severity: 'info', summary: this.t.translate('common.info'), detail: this.t.translate('book.menuService.toast.noBooksOnShelvesDetail') });
+                       return;
+                     }
+
+                     this.writeProgressService.show(this.t.translate('book.menuService.loading.removingFromShelves', {count}));
+                     this.bookService.updateBookShelves(selectedBooks, new Set(), allShelfIds)
+                       .subscribe({
+                         next: () => {
+                           this.writeProgressService.complete(this.t.translate('book.menuService.toast.unshelveSuccessDetail'));
+                           this.messageService.add({severity: 'success', summary: this.t.translate('common.success'), detail: this.t.translate('book.menuService.toast.unshelveSuccessDetail')});
+                         },
+                         error: () => {
+                           this.writeProgressService.fail(this.t.translate('book.menuService.toast.unshelveFailedDetail'));
+                           this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('book.menuService.toast.unshelveFailedDetail')});
+                         }
+                       });
                    },
                    error: () => {
                      this.writeProgressService.fail(this.t.translate('book.menuService.toast.unshelveFailedDetail'));

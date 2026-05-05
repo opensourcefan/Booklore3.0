@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
-import {Book} from '../model/book.model';
+import {Book, BookMetadata} from '../model/book.model';
 import {BookState} from '../model/state/book-state.model';
 import {PagedBookBrowserCacheEntry, PagedBookBrowserEntity} from '../model/state/paged-book-browser-state.model';
 
@@ -149,6 +149,147 @@ export class BookStateService {
     });
   }
 
+  upsertBookAndInvalidatePagedCaches(book: Book): void {
+    const currentState = this.getCurrentBookState();
+    const currentBooks = currentState.books ?? [];
+    const existingIndex = currentBooks.findIndex(existingBook => existingBook.id === book.id);
+    const nextBooks = [...currentBooks];
+
+    if (existingIndex > -1) {
+      nextBooks[existingIndex] = book;
+    } else {
+      nextBooks.push(book);
+    }
+
+    const nextPagedCache = this.invalidatePagedCacheEntries(entry => (
+      entry.key.entity === 'ALL_BOOKS'
+      || (entry.key.entity === 'LIBRARY' && entry.key.entityId === book.libraryId)
+    ));
+
+    this.commitState(nextBooks, nextPagedCache, nextBooks.length);
+  }
+
+  removeBooksAndInvalidatePagedCaches(bookIds: number[]): void {
+    if (bookIds.length === 0) {
+      return;
+    }
+
+    const currentState = this.getCurrentBookState();
+    const idSet = new Set(bookIds.map(id => +id));
+    const impactedLibraryIds = this.collectLibraryIdsForBookIds(idSet);
+    const nextBooks = (currentState.books ?? []).filter(book => !idSet.has(book.id));
+    const nextPagedCache = this.invalidatePagedCacheEntries(entry => (
+      entry.key.entity === 'ALL_BOOKS'
+      || (entry.key.entity === 'LIBRARY' && entry.key.entityId !== null && impactedLibraryIds.has(entry.key.entityId))
+    ));
+
+    this.commitState(nextBooks, nextPagedCache, nextBooks.length);
+  }
+
+  replaceBookAcrossState(updatedBook: Book): void {
+    const currentState = this.getCurrentBookState();
+    let didChange = false;
+
+    const nextBooks = currentState.books?.map(book => {
+      if (book.id !== updatedBook.id) {
+        return book;
+      }
+
+      didChange = true;
+      return updatedBook;
+    }) ?? null;
+
+    const nextPagedCache = this.mapPagedCacheBooks(book => {
+      if (book.id !== updatedBook.id) {
+        return book;
+      }
+
+      didChange = true;
+      return updatedBook;
+    });
+
+    if (!didChange) {
+      return;
+    }
+
+    this.commitState(nextBooks, nextPagedCache);
+  }
+
+  replaceBookMetadataAcrossState(bookId: number, updatedMetadata: BookMetadata): void {
+    let didChange = false;
+
+    const nextBooks = this.getCurrentBookState().books?.map(book => {
+      if (book.id !== bookId) {
+        return book;
+      }
+
+      didChange = true;
+      return {...book, metadata: updatedMetadata};
+    }) ?? null;
+
+    const nextPagedCache = this.mapPagedCacheBooks(book => {
+      if (book.id !== bookId) {
+        return book;
+      }
+
+      didChange = true;
+      return {...book, metadata: updatedMetadata};
+    });
+
+    if (!didChange) {
+      return;
+    }
+
+    this.commitState(nextBooks, nextPagedCache);
+  }
+
+  patchBookCoverUpdatesAcrossState(patches: { id: number; coverUpdatedOn: string }[]): void {
+    if (patches.length === 0) {
+      return;
+    }
+
+    const patchMap = new Map(patches.map(patch => [patch.id, patch.coverUpdatedOn]));
+    let didChange = false;
+
+    const nextBooks = this.getCurrentBookState().books?.map(book => {
+      const coverUpdatedOn = patchMap.get(book.id);
+      if (!coverUpdatedOn || !book.metadata) {
+        return book;
+      }
+
+      didChange = true;
+      return {
+        ...book,
+        metadata: {
+          ...book.metadata,
+          coverUpdatedOn,
+        },
+      };
+    }) ?? null;
+
+    const nextPagedCache = this.mapPagedCacheBooks(book => {
+      const coverUpdatedOn = patchMap.get(book.id);
+      if (!coverUpdatedOn || !book.metadata) {
+        return book;
+      }
+
+      didChange = true;
+      return {
+        ...book,
+        metadata: {
+          ...book.metadata,
+          coverUpdatedOn,
+        },
+      };
+    });
+
+    if (!didChange) {
+      return;
+    }
+
+    this.commitState(nextBooks, nextPagedCache);
+  }
+
   patchPagedCacheBook(updatedBook: Book): boolean {
     let didChange = false;
     const nextCache = Object.fromEntries(
@@ -212,6 +353,71 @@ export class BookStateService {
     }
 
     return Math.max(...totalCounts);
+  }
+
+  private commitState(
+    books: Book[] | null,
+    pagedCache: Record<string, PagedBookBrowserCacheEntry>,
+    totalCount: number | null = this.deriveTotalCount(pagedCache) ?? (Array.isArray(books) ? books.length : this.getCurrentBookState().totalCount ?? null)
+  ): void {
+    const currentState = this.getCurrentBookState();
+
+    this.bookStateSubject.next({
+      books,
+      loaded: currentState.loaded,
+      error: currentState.error,
+      totalCount,
+      pagedCache,
+    });
+  }
+
+  private invalidatePagedCacheEntries(
+    shouldInvalidate: (entry: PagedBookBrowserCacheEntry) => boolean
+  ): Record<string, PagedBookBrowserCacheEntry> {
+    return Object.fromEntries(
+      Object.entries(this.getCurrentBookState().pagedCache ?? {})
+        .filter(([, entry]) => !shouldInvalidate(entry))
+    );
+  }
+
+  private mapPagedCacheBooks(
+    mapper: (book: Book) => Book
+  ): Record<string, PagedBookBrowserCacheEntry> {
+    return Object.fromEntries(
+      Object.entries(this.getCurrentBookState().pagedCache ?? {}).map(([cacheKey, entry]) => {
+        if (!entry.page) {
+          return [cacheKey, entry];
+        }
+
+        return [cacheKey, {
+          ...entry,
+          page: {
+            ...entry.page,
+            content: entry.page.content.map(mapper),
+          },
+        } satisfies PagedBookBrowserCacheEntry];
+      })
+    );
+  }
+
+  private collectLibraryIdsForBookIds(bookIds: Set<number>): Set<number> {
+    const libraryIds = new Set<number>();
+
+    for (const book of this.getCurrentBookState().books ?? []) {
+      if (bookIds.has(book.id)) {
+        libraryIds.add(book.libraryId);
+      }
+    }
+
+    for (const entry of Object.values(this.getCurrentBookState().pagedCache ?? {})) {
+      for (const book of entry.page?.content ?? []) {
+        if (bookIds.has(book.id)) {
+          libraryIds.add(book.libraryId);
+        }
+      }
+    }
+
+    return libraryIds;
   }
 }
 
