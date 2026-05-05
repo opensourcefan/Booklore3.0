@@ -261,18 +261,8 @@ describe('AllBooksPagedGridPilotService', () => {
     expect(getBooksPaged).not.toHaveBeenCalled();
   });
 
-  it('uses ascending Added On sort when the primary sort direction is ascending', async () => {
+  it('falls back to the legacy path for ascending Added On so client-side ordering remains authoritative', async () => {
     const service = createService();
-
-    getBooksPaged.mockReturnValue(of({
-      content: [createBook(1), createBook(2)],
-      page: 0,
-      size: 80,
-      totalElements: 2,
-      totalPages: 1,
-      hasNext: false,
-      hasPrevious: false,
-    }));
 
     const bookState$ = service.connect({
       isAllBooksRoute: true,
@@ -283,15 +273,13 @@ describe('AllBooksPagedGridPilotService', () => {
       isDirectoryScopedView: false,
       isSeriesCollapsed: false,
       searchTerm: '',
-    }, () => of(legacyState([createBook(90, 'Warm 90')])));
+    }, () => of(legacyState([createBook(2, 'Older'), createBook(1, 'Oldest')])));
 
-    await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+    const legacyLoadedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
 
-    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
-      page: 0,
-      size: 80,
-      sorts: ['addedOn,asc'],
-    }));
+    expect(legacyLoadedState.books?.map(book => book.id)).toEqual([2, 1]);
+    expect(service.isPagedActive()).toBe(false);
+    expect(getBooksPaged).not.toHaveBeenCalled();
   });
 
   it('falls back to the legacy path when the request uses unsupported filter keys', async () => {

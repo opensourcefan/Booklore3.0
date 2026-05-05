@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, filter, Observable, Subscription, take } from 'rxjs';
 import { BookState } from '../model/state/book-state.model';
-import { SortOption } from '../model/sort.model';
+import { SortDirection, SortOption } from '../model/sort.model';
 import { PagedBookBrowserPage, PagedBookBrowserRequestKey } from '../model/state/paged-book-browser-state.model';
 import { BookService, PagedBooksParams } from './book.service';
 import { PagedBookBrowserStateService } from './paged-book-browser-state.service';
@@ -195,7 +195,11 @@ export class AllBooksPagedGridPilotService {
 
   private hasPagedSafeSort(sortCriteria: SortOption[]): boolean {
     return sortCriteria.length === 0
-      || (sortCriteria.length === 1 && sortCriteria[0].field === 'addedOn');
+      || (
+        sortCriteria.length === 1
+        && sortCriteria[0].field === 'addedOn'
+        && sortCriteria[0].direction === SortDirection.DESCENDING
+      );
   }
 
   private fetchPage(query: ActivePagedQuery, page: number): void {
