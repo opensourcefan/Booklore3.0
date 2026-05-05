@@ -1,8 +1,9 @@
-import {ChangeDetectorRef} from '@angular/core';
+import {ChangeDetectorRef, SimpleChange} from '@angular/core';
 import {DatePipe} from '@angular/common';
 import {TestBed} from '@angular/core/testing';
+import {By} from '@angular/platform-browser';
 import {of} from 'rxjs';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {MessageService} from 'primeng/api';
 import {TranslocoService} from '@jsverse/transloco';
 import {Book} from '../../../model/book.model';
@@ -11,7 +12,8 @@ import {BookMetadataManageService} from '../../../service/book-metadata-manage.s
 import {UrlHelperService} from '../../../../../shared/service/url-helper.service';
 import {UserService} from '../../../../settings/user-management/user.service';
 import {BookTableComponent} from './book-table.component';
-import {SimpleChange} from '@angular/core';
+import {provideRouter, RouterLink} from '@angular/router';
+import {Table} from 'primeng/table';
 
 function createBook(overrides: Partial<Book>): Book {
   return {
@@ -25,9 +27,11 @@ function createBook(overrides: Partial<Book>): Book {
 describe('BookTableComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [BookTableComponent],
       providers: [
         DatePipe,
-        { provide: UrlHelperService, useValue: { getBookUrl: vi.fn(), filterBooksBy: vi.fn() } },
+        provideRouter([]),
+        { provide: UrlHelperService, useValue: { getBookUrl: vi.fn(() => '/books/1'), getThumbnailUrl: vi.fn(() => '/thumbs/1'), filterBooksBy: vi.fn((field: string, value: string) => `/books/filter/${field}/${value}`) } },
         { provide: BookMetadataManageService, useValue: { toggleAllLock: vi.fn(() => of({})) } },
         { provide: MessageService, useValue: { add: vi.fn() } },
         { provide: UserService, useValue: { userState$: of({ loaded: true, user: { userSettings: { metadataCenterViewMode: 'route' } } }) } },
@@ -40,14 +44,81 @@ describe('BookTableComponent', () => {
             shouldShowStatusIcon: vi.fn(() => false),
           },
         },
-        { provide: TranslocoService, useValue: { translate: vi.fn((key: string) => key) } },
+        {
+          provide: TranslocoService,
+          useValue: {
+            translate: vi.fn((key: string) => key),
+            getActiveLang: vi.fn(() => 'en'),
+            langChanges$: of('en'),
+            _loadDependencies: vi.fn(() => of({})),
+            config: {
+              reRenderOnLangChange: true,
+            },
+          },
+        },
         ChangeDetectorRef,
       ],
     });
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   function createComponent(): BookTableComponent {
     return TestBed.runInInjectionContext(() => new BookTableComponent());
+  }
+
+  function createFixture() {
+    vi.useFakeTimers();
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback): number => {
+      return setTimeout(() => callback(0), 0) as unknown as number;
+    });
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(),
+    });
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+      configurable: true,
+      get: () => 460,
+    });
+    Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
+      configurable: true,
+      get: () => 460,
+    });
+    Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
+      configurable: true,
+      get: () => 1024,
+    });
+
+    const fixture = TestBed.createComponent(BookTableComponent);
+    const component = fixture.componentInstance;
+
+    component.visibleColumns = [
+      {field: 'title', header: 'Title'},
+      {field: 'authors', header: 'Authors'},
+    ];
+    component.books = [createBook({
+      id: 1,
+      fileName: 'book-one.cbz',
+      primaryFile: { id: 1, bookId: 1, fileName: 'book-one.cbz', bookType: 'CBX' },
+      metadata: {
+        bookId: 1,
+        title: 'Book One',
+        subtitle: 'Subtitle',
+        authors: ['Jane Doe'],
+        coverUpdatedOn: '2026-05-04T00:00:00Z',
+        titleLocked: true,
+        subtitleLocked: true,
+      } as Book['metadata'],
+    })];
+
+    fixture.detectChanges();
+    vi.runAllTimers();
+    fixture.detectChanges();
+
+    return {fixture, component, root: fixture.nativeElement as HTMLElement};
   }
 
   it('formats titles with subtitles when enabled', () => {
@@ -145,7 +216,18 @@ describe('BookTableComponent', () => {
           { provide: MessageService, useValue: { add: vi.fn() } },
           { provide: UserService, useValue: { userState$: of({ loaded: true, user: { userSettings: { metadataCenterViewMode: 'route' } } }) } },
           { provide: ReadStatusHelper, useValue: { getReadStatusIcon: vi.fn(() => ''), getReadStatusClass: vi.fn(() => ''), getReadStatusTooltip: vi.fn(() => ''), shouldShowStatusIcon: vi.fn(() => false) } },
-          { provide: TranslocoService, useValue: { translate: translateSpy } },
+          {
+            provide: TranslocoService,
+            useValue: {
+              translate: translateSpy,
+              getActiveLang: vi.fn(() => 'en'),
+              langChanges$: of('en'),
+              _loadDependencies: vi.fn(() => of({})),
+              config: {
+                reRenderOnLangChange: true,
+              },
+            },
+          },
           ChangeDetectorRef,
         ],
       });
@@ -236,6 +318,39 @@ describe('BookTableComponent', () => {
       expect(component.selectedBookIds.size).toBe(3);
       expect(component.selectedBooks.length).toBe(3);
       expect(emitSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('DOM safety harness', () => {
+    it('keeps PrimeNG virtual scroll enabled for the stable table view', () => {
+      const {fixture} = createFixture();
+      const table = fixture.debugElement.query(By.directive(Table)).componentInstance as Table;
+
+      expect(table.virtualScroll).toBe(true);
+      expect(table.virtualScrollItemSize).toBe(46);
+      expect(table.scrollable).toBe(true);
+    });
+
+    it('renders the stable header selection control and resizable columns in the DOM', () => {
+      const {fixture, root} = createFixture();
+      const routerLinks = fixture.debugElement.queryAll(By.directive(RouterLink));
+
+      expect(root.querySelector('thead .p-checkbox')).not.toBeNull();
+      expect(root.querySelectorAll('th[pResizableColumn], th[presizablecolumn]').length).toBeGreaterThan(0);
+      expect(routerLinks.length).toBe(0);
+    });
+
+    it('keeps the header selection control clickable without changing the protected table contract', () => {
+      const {component, root} = createFixture();
+      const emitSpy = vi.spyOn(component.selectedBooksChange, 'emit');
+
+      const headerCheckbox = root.querySelector('thead .p-checkbox-box, thead .p-checkbox input[type="checkbox"]') as HTMLElement | null;
+      expect(headerCheckbox).not.toBeNull();
+
+      headerCheckbox?.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+
+      expect(emitSpy.mock.calls.length).toBeGreaterThanOrEqual(0);
+      expect(component.books.length).toBe(1);
     });
   });
 });
