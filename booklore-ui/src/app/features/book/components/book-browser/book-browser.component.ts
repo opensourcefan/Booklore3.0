@@ -239,6 +239,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private bookStateSubscription: Subscription | undefined;
   private pendingGridViewportReset = false;
+  private pendingScrollRestorePosition: number | null = null;
   private lastGridViewportContext: GridViewportContext | null = null;
 
   @ViewChild(BookTableComponent)
@@ -548,10 +549,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const key = this.getScrollPositionKey();
     const savedPosition = this.scrollService.getPosition(key);
     if (savedPosition !== undefined) {
-      setTimeout(() => {
-        const el = this.scrollContainer?.nativeElement;
-        if (el) el.scrollTop = savedPosition;
-      }, 0);
+      this.pendingScrollRestorePosition = savedPosition;
     }
 
     this.updateVirtualGridDomBindings();
@@ -1156,7 +1154,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gapSig.set(this.isMobile ? this.MOBILE_GAP : 20.8);
         this.updateVirtualGridDomBindings();
 
-        if (this.currentViewMode === VIEW_MODES.GRID && this.pendingGridViewportReset) {
+        const restoredSavedScrollPosition = this.restorePendingScrollPosition();
+
+        if (this.currentViewMode === VIEW_MODES.GRID && this.pendingGridViewportReset && !restoredSavedScrollPosition) {
           this.resetGridViewport();
         }
 
@@ -1172,6 +1172,27 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           requestAnimationFrame(() => this.onGridScroll());
         }
       });
+  }
+
+  private restorePendingScrollPosition(): boolean {
+    if (this.pendingScrollRestorePosition === null) {
+      return false;
+    }
+
+    const savedPosition = this.pendingScrollRestorePosition;
+    this.pendingScrollRestorePosition = null;
+
+    requestAnimationFrame(() => {
+      const scrollEl = this.scrollContainer?.nativeElement;
+      if (!scrollEl) {
+        return;
+      }
+
+      scrollEl.scrollTop = savedPosition;
+      scrollEl.dispatchEvent(new Event('scroll'));
+    });
+
+    return true;
   }
 
   private getUniformCardHeight(): number {
