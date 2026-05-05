@@ -187,9 +187,15 @@ export class AllBooksPagedGridPilotService {
       && context.viewMode === 'grid'
       && !context.isDirectoryScopedView
       && !context.isSeriesCollapsed
-        && context.searchTerm.trim().length === 0
+      && context.searchTerm.trim().length === 0
+      && this.hasPagedSafeSort(context.sortCriteria)
       && this.serverFilterAdapter.supportsSortCriteria(context.sortCriteria)
       && this.serverFilterAdapter.supportsFilters(context.filters);
+  }
+
+  private hasPagedSafeSort(sortCriteria: SortOption[]): boolean {
+    return sortCriteria.length === 0
+      || (sortCriteria.length === 1 && sortCriteria[0].field === 'addedOn');
   }
 
   private fetchPage(query: ActivePagedQuery, page: number): void {

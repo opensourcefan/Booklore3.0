@@ -222,7 +222,7 @@ describe('AllBooksPagedGridPilotService', () => {
     const context = {
       isAllBooksRoute: true,
       viewMode: 'grid' as const,
-      sortCriteria: [{ field: 'title', label: 'Title', direction: SortDirection.ASCENDING }],
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: {},
       filterMode: 'and',
       isDirectoryScopedView: false,
@@ -241,19 +241,8 @@ describe('AllBooksPagedGridPilotService', () => {
     expect(getBooksPaged).toHaveBeenCalledTimes(2);
   });
 
-  it('does not warm title-sorted queries from legacy state before the paged response returns', async () => {
+  it('falls back to the legacy path for title sorting so client-side order remains authoritative', async () => {
     const service = createService();
-    const pagedResponse$ = new Subject<{
-      content: Book[];
-      page: number;
-      size: number;
-      totalElements: number;
-      totalPages: number;
-      hasNext: boolean;
-      hasPrevious: boolean;
-    }>();
-
-    getBooksPaged.mockReturnValue(pagedResponse$);
 
     const bookState$ = service.connect({
       isAllBooksRoute: true,
@@ -266,23 +255,10 @@ describe('AllBooksPagedGridPilotService', () => {
       searchTerm: '',
     }, () => of(legacyState([createBook(90, 'Warm 90'), createBook(91, 'Warm 91')])));
 
-    const initialState = await firstValueFrom(bookState$);
-    expect(initialState.loaded).toBe(false);
-    expect(initialState.books).toBeNull();
-
-    pagedResponse$.next({
-      content: [createBook(1, 'AAA')],
-      page: 0,
-      size: 80,
-      totalElements: 1,
-      totalPages: 1,
-      hasNext: false,
-      hasPrevious: false,
-    });
-    pagedResponse$.complete();
-
     const pagedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
-    expect(pagedState.books?.map(book => book.id)).toEqual([1]);
+    expect(pagedState.books?.map(book => book.id)).toEqual([90, 91]);
+    expect(service.isPagedActive()).toBe(false);
+    expect(getBooksPaged).not.toHaveBeenCalled();
   });
 
   it('falls back to the legacy path when the request uses unsupported filter keys', async () => {
@@ -349,7 +325,7 @@ describe('AllBooksPagedGridPilotService', () => {
     const bookState$ = service.connect({
       isAllBooksRoute: true,
       viewMode: 'grid',
-      sortCriteria: [{ field: 'title', label: 'Title', direction: SortDirection.ASCENDING }],
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: {},
       filterMode: 'and',
       isDirectoryScopedView: false,
@@ -364,7 +340,7 @@ describe('AllBooksPagedGridPilotService', () => {
     expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
       page: 0,
       size: 80,
-      sorts: ['metadata.title,asc'],
+      sorts: ['addedOn,desc'],
     }));
   });
 });
