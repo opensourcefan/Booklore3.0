@@ -82,6 +82,7 @@ import {DirectoryFilterService} from '../../service/directory-filter.service';
 import {DirectoryPanelService} from '../../service/directory-panel.service';
 import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
+import {isDirectoryScopeActive} from './book-browser-directory-scope.util';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -337,7 +338,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get isDirectoryScopedView(): boolean {
-    return this.activeDirFilterPath !== null;
+    return isDirectoryScopeActive(this.activeDirFilterPath);
   }
 
   get canShowDirectoryExplorer(): boolean {
@@ -1416,7 +1417,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getEffectiveSortCriteria(baseSortCriteria: SortOption[]): SortOption[] {
-    if (!this.activeDirFilterPath) {
+    if (!isDirectoryScopeActive(this.activeDirFilterPath)) {
       return baseSortCriteria;
     }
 
