@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { filter, firstValueFrom, of, throwError } from 'rxjs';
+import { filter, firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { Book } from '../model/book.model';
 import { BookState } from '../model/state/book-state.model';
 import { SortDirection } from '../model/sort.model';
@@ -56,18 +56,69 @@ describe('AllBooksPagedGridPilotService', () => {
     };
   }
 
-  it('loads the All Books grid pilot from the paged endpoint and appends the next page on scroll', async () => {
+  it('warms the All Books grid pilot from legacy state while the first paged response is loading', async () => {
+    const service = createService();
+    const pagedResponse$ = new Subject<{
+      content: Book[];
+      page: number;
+      size: number;
+      totalElements: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrevious: boolean;
+    }>();
+
+    getBooksPaged.mockReturnValue(pagedResponse$);
+
+    const bookState$ = service.connect({
+      isAllBooksRoute: true,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, () => of(legacyState([createBook(90, 'Warm 90'), createBook(91, 'Warm 91')])));
+
+    const warmState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+    expect(warmState.books?.map(book => book.id)).toEqual([90, 91]);
+    expect(service.isPagedActive()).toBe(true);
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      page: 0,
+      size: 100,
+      sorts: ['addedOn,desc'],
+    }));
+
+    pagedResponse$.next({
+      content: [createBook(1), createBook(2)],
+      page: 0,
+      size: 100,
+      totalElements: 2,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    });
+    pagedResponse$.complete();
+
+    const pagedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && state.books?.[0]?.id === 1)));
+    expect(pagedState.books?.map(book => book.id)).toEqual([1, 2]);
+  });
+
+  it('loads the All Books grid pilot, prefetches the next page, and appends another page on scroll', async () => {
     const service = createService();
 
     getBooksPaged.mockImplementation(({ page }: { page?: number }) => of({
-      content: page === 1
-        ? [createBook(3), createBook(4)]
-        : [createBook(1), createBook(2)],
+      content: page === 2
+        ? [createBook(5), createBook(6)]
+        : page === 1
+          ? [createBook(3), createBook(4)]
+          : [createBook(1), createBook(2)],
       page: page ?? 0,
       size: 100,
-      totalElements: 4,
-      totalPages: 2,
-      hasNext: page !== 1,
+      totalElements: 6,
+      totalPages: 3,
+      hasNext: page !== 2,
       hasPrevious: (page ?? 0) > 0,
     }));
 
@@ -80,11 +131,11 @@ describe('AllBooksPagedGridPilotService', () => {
       isDirectoryScopedView: false,
       isSeriesCollapsed: false,
       searchTerm: '',
-    }, () => of(legacyState([createBook(99, 'Legacy')])));
+    }, () => of({ books: null, loaded: false, error: null }));
 
     const firstLoadedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
 
-    expect(firstLoadedState.books?.map(book => book.id)).toEqual([1, 2]);
+    expect(firstLoadedState.books?.slice(0, 2).map(book => book.id)).toEqual([1, 2]);
     expect(service.isPagedActive()).toBe(true);
     expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
       page: 0,
@@ -93,12 +144,16 @@ describe('AllBooksPagedGridPilotService', () => {
       authors: ['Jane Doe'],
       filterMode: 'and',
     }));
-
-    service.loadNextPageIfNeeded(550, 500, 1200);
-
-    const secondLoadedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && (state.books?.length ?? 0) === 4)));
-    expect(secondLoadedState.books?.map(book => book.id)).toEqual([1, 2, 3, 4]);
     expect(getBooksPaged).toHaveBeenCalledTimes(2);
+
+    const prefetchedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && (state.books?.length ?? 0) === 4)));
+    expect(prefetchedState.books?.map(book => book.id)).toEqual([1, 2, 3, 4]);
+
+    service.loadNextPageIfNeeded(1500, 500, 2200);
+
+    const secondLoadedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && (state.books?.length ?? 0) === 6)));
+    expect(secondLoadedState.books?.map(book => book.id)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(getBooksPaged).toHaveBeenCalledTimes(3);
   });
 
   it('falls back to the legacy path when the request uses unsupported filter keys', async () => {

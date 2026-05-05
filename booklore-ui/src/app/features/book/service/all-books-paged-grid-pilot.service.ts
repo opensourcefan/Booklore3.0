@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, filter, Observable, Subscription, take } from 'rxjs';
 import { BookState } from '../model/state/book-state.model';
 import { SortOption } from '../model/sort.model';
 import { PagedBookBrowserPage, PagedBookBrowserRequestKey } from '../model/state/paged-book-browser-state.model';
@@ -32,6 +32,8 @@ interface ActivePagedQuery {
 export class AllBooksPagedGridPilotService {
   private static readonly PAGE_SIZE = 100;
   private static readonly LOAD_MORE_THRESHOLD_PX = 600;
+  private static readonly LOAD_MORE_THRESHOLD_VIEWPORTS = 2;
+  private static readonly PREFETCHED_PAGE_COUNT = 2;
 
   private readonly bookService = inject(BookService);
   private readonly pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
@@ -49,6 +51,7 @@ export class AllBooksPagedGridPilotService {
   private pagedActive = false;
   private requestSubscription: Subscription | null = null;
   private legacySubscription: Subscription | null = null;
+  private warmStartSubscription: Subscription | null = null;
 
   connect(context: AllBooksPagedGridPilotContext, legacyFactory: () => Observable<BookState>): Observable<BookState> {
     if (!this.canUsePagedPilot(context)) {
@@ -100,8 +103,12 @@ export class AllBooksPagedGridPilotService {
     this.emitCachedState(this.activeQuery);
 
     if (this.activeQuery.nextPage !== null && this.getCachedPages(this.activeQuery.requestKey).length === 0) {
+      this.seedFromLegacyState(this.activeQuery);
       this.fetchPage(this.activeQuery, 0);
+      return this.bookState$;
     }
+
+    this.ensurePrefetchedRunway(this.activeQuery);
 
     return this.bookState$;
   }
@@ -116,7 +123,12 @@ export class AllBooksPagedGridPilotService {
     }
 
     const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
-    if (distanceFromBottom > AllBooksPagedGridPilotService.LOAD_MORE_THRESHOLD_PX) {
+    const loadMoreThreshold = Math.max(
+      AllBooksPagedGridPilotService.LOAD_MORE_THRESHOLD_PX,
+      clientHeight * AllBooksPagedGridPilotService.LOAD_MORE_THRESHOLD_VIEWPORTS,
+    );
+
+    if (distanceFromBottom > loadMoreThreshold) {
       return;
     }
 
@@ -135,7 +147,7 @@ export class AllBooksPagedGridPilotService {
       && context.viewMode === 'grid'
       && !context.isDirectoryScopedView
       && !context.isSeriesCollapsed
-      && context.searchTerm.trim().length < 2
+        && context.searchTerm.trim().length === 0
       && this.serverFilterAdapter.supportsSortCriteria(context.sortCriteria)
       && this.serverFilterAdapter.supportsFilters(context.filters);
   }
@@ -162,6 +174,7 @@ export class AllBooksPagedGridPilotService {
     const cachedPage = this.pagedBookBrowserStateService.getCachedPage(requestKey);
     if (cachedPage) {
       this.emitCachedState(query);
+      this.ensurePrefetchedRunway(query);
       return;
     }
 
@@ -176,6 +189,7 @@ export class AllBooksPagedGridPilotService {
 
         this.pagedBookBrowserStateService.storePage(requestKey, response);
         this.emitCachedState(this.activeQuery);
+        this.ensurePrefetchedRunway(this.activeQuery);
       },
       error: error => {
         this.requestSubscription = null;
@@ -189,6 +203,53 @@ export class AllBooksPagedGridPilotService {
       },
     });
     this.requestSubscription = requestSubscription.closed ? null : requestSubscription;
+  }
+
+  private seedFromLegacyState(query: ActivePagedQuery): void {
+    this.warmStartSubscription?.unsubscribe();
+    this.warmStartSubscription = query.legacyFactory().pipe(
+      filter(state => state.loaded && !state.error),
+      take(1),
+    ).subscribe(state => {
+      this.warmStartSubscription = null;
+
+      if (!this.activeQuery || this.activeQuery.signature !== query.signature) {
+        return;
+      }
+
+      if (this.getCachedPages(query.requestKey).length > 0) {
+        return;
+      }
+
+      const warmBooks = state.books?.slice(0, query.params.size ?? AllBooksPagedGridPilotService.PAGE_SIZE) ?? [];
+      if (warmBooks.length === 0) {
+        return;
+      }
+
+      this.bookStateSubject.next({
+        books: warmBooks,
+        loaded: true,
+        error: null,
+      });
+    });
+  }
+
+  private ensurePrefetchedRunway(query: ActivePagedQuery): void {
+    if (this.requestSubscription || !this.activeQuery || this.activeQuery.signature !== query.signature) {
+      return;
+    }
+
+    const cachedPages = this.getCachedPages(query.requestKey);
+    if (cachedPages.length === 0 || cachedPages.length >= AllBooksPagedGridPilotService.PREFETCHED_PAGE_COUNT) {
+      return;
+    }
+
+    const lastPage = cachedPages[cachedPages.length - 1];
+    if (!lastPage.hasNext) {
+      return;
+    }
+
+    this.fetchPage(query, lastPage.page + 1);
   }
 
   private emitCachedState(query: ActivePagedQuery): void {
@@ -281,5 +342,7 @@ export class AllBooksPagedGridPilotService {
     this.requestSubscription = null;
     this.legacySubscription?.unsubscribe();
     this.legacySubscription = null;
+    this.warmStartSubscription?.unsubscribe();
+    this.warmStartSubscription = null;
   }
 }
