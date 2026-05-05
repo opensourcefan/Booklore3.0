@@ -9,7 +9,6 @@ import {BookStateService} from './book-state.service';
 import {BookSocketService} from './book-socket.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookService} from './book.service';
-import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 import {AllBooksPagedGridPilotService} from './all-books-paged-grid-pilot.service';
 
 @Injectable({
@@ -24,7 +23,6 @@ export class BookMetadataManageService {
   private bookStateService = inject(BookStateService);
   private bookSocketService = inject(BookSocketService);
   private bookService = inject(BookService);
-  private pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
   private allBooksPagedGridPilotService = inject(AllBooksPagedGridPilotService);
   private readonly t = inject(TranslocoService);
 
@@ -39,51 +37,44 @@ export class BookMetadataManageService {
     return this.refreshBooksSnapshotAfter(this.http.put<BookMetadata>(`${this.url}/${bookId}/metadata`, wrapper, {params}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId!, updatedMetadata);
-        this.syncUpdatedMetadataToPagedState(bookId!, updatedMetadata);
         return updatedMetadata;
       })
-    ));
+    )).pipe(
+      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
+    );
   }
 
   updateBooksMetadata(request: BulkMetadataUpdateRequest): Observable<void> {
     return this.refreshBooksSnapshotAfter(this.http.put(`${this.url}/bulk-edit-metadata`, request).pipe(
       map(() => void 0)
-    ));
+    )).pipe(
+      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
+    );
   }
 
   wipeBookMetadata(bookId: number): Observable<BookMetadata> {
     return this.refreshBooksSnapshotAfter(this.http.post<BookMetadata>(`${this.url}/${bookId}/metadata/wipe`, {}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId, updatedMetadata);
-        this.syncUpdatedMetadataToPagedState(bookId, updatedMetadata);
         return updatedMetadata;
       })
-    ));
-  }
-
-  private syncUpdatedMetadataToPagedState(bookId: number, updatedMetadata: BookMetadata): void {
-    const sourceBook = this.bookService.getBookByIdFromState(bookId)
-      ?? this.pagedBookBrowserStateService.getCachedBookById(bookId);
-
-    if (!sourceBook) {
-      return;
-    }
-
-    this.pagedBookBrowserStateService.patchBook({
-      ...sourceBook,
-      metadata: updatedMetadata,
-    });
-    this.allBooksPagedGridPilotService.refreshActiveState();
+    )).pipe(
+      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
+    );
   }
 
   wipeBooksMetadata(bookIds: number[]): Observable<void> {
     return this.refreshBooksSnapshotAfter(this.http.post<void>(`${this.url}/metadata/wipe`, {bookIds}).pipe(
       map(() => void 0)
-    ));
+    )).pipe(
+      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
+    );
   }
 
   restoreTitlesFromFilenames(bookIds: number[]): Observable<number> {
-    return this.refreshBooksSnapshotAfter(this.http.post<number>(`${this.url}/metadata/restore-titles-from-filenames`, {bookIds}));
+    return this.refreshBooksSnapshotAfter(this.http.post<number>(`${this.url}/metadata/restore-titles-from-filenames`, {bookIds})).pipe(
+      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
+    );
   }
 
   toggleAllLock(bookIds: Set<number>, lock: string): Observable<void> {

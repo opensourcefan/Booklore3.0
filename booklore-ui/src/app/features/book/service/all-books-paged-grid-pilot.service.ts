@@ -81,6 +81,9 @@ export class AllBooksPagedGridPilotService {
       if (this.getCachedPages(this.activeQuery.requestKey).length > 0) {
         this.emitCachedState(this.activeQuery);
         this.ensurePrefetchedRunway(this.activeQuery);
+      } else {
+        this.seedFromLegacyState(this.activeQuery);
+        this.fetchPage(this.activeQuery, 0);
       }
       return this.bookState$;
     }
@@ -127,10 +130,31 @@ export class AllBooksPagedGridPilotService {
 
     const cachedPages = this.getCachedPages(this.activeQuery.requestKey);
     if (cachedPages.length === 0) {
+      this.seedFromLegacyState(this.activeQuery);
+      this.fetchPage(this.activeQuery, 0);
       return;
     }
 
     this.emitCachedState(this.activeQuery);
+  }
+
+  invalidateAllBooksCache(): void {
+    this.pagedBookBrowserStateService.invalidateEntity('ALL_BOOKS');
+
+    if (!this.pagedActive || !this.activeQuery) {
+      return;
+    }
+
+    this.requestSubscription?.unsubscribe();
+    this.requestSubscription = null;
+
+    this.bookStateSubject.next({
+      books: null,
+      loaded: false,
+      error: null,
+    });
+
+    this.fetchPage(this.activeQuery, 0);
   }
 
   loadNextPageIfNeeded(scrollTop: number, clientHeight: number, scrollHeight: number): void {
@@ -222,6 +246,10 @@ export class AllBooksPagedGridPilotService {
   }
 
   private seedFromLegacyState(query: ActivePagedQuery): void {
+    if (!this.canWarmStart(query)) {
+      return;
+    }
+
     this.warmStartSubscription?.unsubscribe();
     this.warmStartSubscription = query.legacyFactory().pipe(
       filter(state => state.loaded && !state.error),
@@ -341,6 +369,11 @@ export class AllBooksPagedGridPilotService {
       search: requestKey.search,
       filters: requestKey.filters,
     });
+  }
+
+  private canWarmStart(query: ActivePagedQuery): boolean {
+    return query.requestKey.sorts.length === 0
+      || query.requestKey.sorts.every(sort => sort.split(',')[0] === 'addedOn');
   }
 
   private subscribeToLegacy(legacyFactory: () => Observable<BookState>): void {

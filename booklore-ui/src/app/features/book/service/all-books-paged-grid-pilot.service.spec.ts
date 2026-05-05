@@ -196,6 +196,95 @@ describe('AllBooksPagedGridPilotService', () => {
     expect(getBooksPaged).toHaveBeenCalledTimes(1);
   });
 
+  it('refetches page zero after the All Books cache is invalidated', async () => {
+    const service = createService();
+
+    getBooksPaged
+      .mockReturnValueOnce(of({
+        content: [createBook(1), createBook(2)],
+        page: 0,
+        size: 80,
+        totalElements: 2,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }))
+      .mockReturnValueOnce(of({
+        content: [createBook(10), createBook(11)],
+        page: 0,
+        size: 80,
+        totalElements: 2,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }));
+
+    const context = {
+      isAllBooksRoute: true,
+      viewMode: 'grid' as const,
+      sortCriteria: [{ field: 'title', label: 'Title', direction: SortDirection.ASCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    };
+
+    const bookState$ = service.connect(context, () => of(legacyState([createBook(90, 'Warm 90')])));
+    const initialState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+    expect(initialState.books?.map(book => book.id)).toEqual([1, 2]);
+
+    service.invalidateAllBooksCache();
+
+    const refreshedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && state.books?.[0]?.id === 10)));
+    expect(refreshedState.books?.map(book => book.id)).toEqual([10, 11]);
+    expect(getBooksPaged).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not warm title-sorted queries from legacy state before the paged response returns', async () => {
+    const service = createService();
+    const pagedResponse$ = new Subject<{
+      content: Book[];
+      page: number;
+      size: number;
+      totalElements: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrevious: boolean;
+    }>();
+
+    getBooksPaged.mockReturnValue(pagedResponse$);
+
+    const bookState$ = service.connect({
+      isAllBooksRoute: true,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'title', label: 'Title', direction: SortDirection.ASCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, () => of(legacyState([createBook(90, 'Warm 90'), createBook(91, 'Warm 91')])));
+
+    const initialState = await firstValueFrom(bookState$);
+    expect(initialState.loaded).toBe(false);
+    expect(initialState.books).toBeNull();
+
+    pagedResponse$.next({
+      content: [createBook(1, 'AAA')],
+      page: 0,
+      size: 80,
+      totalElements: 1,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    });
+    pagedResponse$.complete();
+
+    const pagedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+    expect(pagedState.books?.map(book => book.id)).toEqual([1]);
+  });
+
   it('falls back to the legacy path when the request uses unsupported filter keys', async () => {
     const service = createService();
 
