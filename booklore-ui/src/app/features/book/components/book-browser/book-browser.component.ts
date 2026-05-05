@@ -493,6 +493,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadTitleRowsPreference();
     this.loadSubtitlePreference();
 
+    this.dirPanelService.visible$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        requestAnimationFrame(() => this.updateVirtualGridDomBindings());
+      });
+
     this.directoryFilterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.syncActiveDirectoryFilter();
       this.applyEffectiveSortCriteria();
@@ -677,6 +683,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(value => {
         this.showFilter = value;
+        requestAnimationFrame(() => this.updateVirtualGridDomBindings());
       });
 
     combineLatest([
@@ -684,7 +691,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activatedRoute.queryParamMap,
       this.userService.userState$.pipe(filter(u => !!u?.user && u.loaded))
     ]).pipe(takeUntil(this.destroy$)).subscribe(([entityInfo, queryParamMap, user]) => {
+      const previousViewMode = this.currentViewMode;
+      const previousFilterMode = this.selectedFilterMode.getValue();
+      const previousFilterSignature = JSON.stringify(this.parsedFilters);
       const entityKey = `${entityInfo.entityType}:${entityInfo.entityId}`;
+      const entityChanged = this.lastEntityKey !== null && this.lastEntityKey !== entityKey;
       if (this.lastEntityKey !== null && this.lastEntityKey !== entityKey) {
         this.directoryFilterService.clear();
       }
@@ -741,6 +752,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       this.parsedFilters = parseResult.filters;
+      const currentFilterSignature = JSON.stringify(this.parsedFilters);
 
       if (entityInfo.entityType === EntityType.ALL_BOOKS || entityInfo.entityType === EntityType.NOT_SHELFED) {
         this.pageTitle.setPageTitle(this.currentFilterLabel ?? '');
@@ -760,8 +772,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.bookSorter.setSortCriteria(effectiveSortCriteria);
       }
       this.currentViewMode = parseResult.viewMode;
+      const dataSourceContextChanged = entityChanged
+        || previousViewMode !== this.currentViewMode
+        || previousFilterMode !== this.selectedFilterMode.getValue()
+        || previousFilterSignature !== currentFilterSignature;
 
-      if (!this.areSortCriteriaEqual(this.lastAppliedSortCriteria, this.bookSorter.selectedSortCriteria)) {
+      if (dataSourceContextChanged || !this.areSortCriteriaEqual(this.lastAppliedSortCriteria, this.bookSorter.selectedSortCriteria)) {
         this.lastAppliedSortCriteria = [...this.bookSorter.selectedSortCriteria];
         this.applySortCriteria(this.bookSorter.selectedSortCriteria);
       }
@@ -845,11 +861,16 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedFilter.next(filters);
     this.rawFilterParamFromUrl = null;
+    this.parsedFilters = filters ?? {};
 
     const hasSidebarFilters = !!filters && Object.keys(filters).length > 0;
     this.currentFilterLabel = hasSidebarFilters ? this.computedFilterLabel : this.t.translate('book.browser.labels.allBooks');
 
     this.queryParamsService.updateFilters(this.activatedRoute, filters);
+
+    if (this.entityType === EntityType.ALL_BOOKS) {
+      this.applySortCriteria(this.getEffectiveSortCriteria(this.bookSorter.selectedSortCriteria));
+    }
   }
 
   onFilterModeChanged(mode: BookFilterMode): void {
@@ -860,6 +881,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedFilterMode.next(safe);
     this.queryParamsService.updateFilterMode(this.activatedRoute, safe, {}, true);
     this.persistFilterModePreference(safe);
+
+    if (this.entityType === EntityType.ALL_BOOKS) {
+      this.applySortCriteria(this.getEffectiveSortCriteria(this.bookSorter.selectedSortCriteria));
+    }
   }
 
   private clearSidebarFiltersState(suppressFilterSelectionEvents = false): void {
@@ -896,6 +921,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   toggleSidebar(): void {
     this.showFilter = !this.showFilter;
     this.sidebarFilterTogglePrefService.selectedShowFilter = this.showFilter;
+    requestAnimationFrame(() => this.updateVirtualGridDomBindings());
   }
 
   onMobileRightSidebarShow(): void {
@@ -1114,6 +1140,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.bookNavigationService.setAvailableBookIds(books.map(book => book.id));
         this.updateSelectionVisibility();
         this.cdr.markForCheck();
+
+        if (this.allBooksPagedGridPilotService.isPagedActive()) {
+          requestAnimationFrame(() => this.onGridScroll());
+        }
       });
   }
 
@@ -1146,7 +1176,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  onGridScroll(): void {
+  onGridScroll(event?: Event): void {
+    if (event && !event.isTrusted) {
+      return;
+    }
+
     if (!this.allBooksPagedGridPilotService.isPagedActive()) {
       return;
     }
@@ -1416,7 +1450,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchTerm$.next(term);
 
     if (this.entityType === EntityType.ALL_BOOKS && this.currentViewMode === VIEW_MODES.GRID) {
-      this.applyEffectiveSortCriteria();
+      this.applySortCriteria(this.getEffectiveSortCriteria(this.bookSorter.selectedSortCriteria));
     }
   }
 
@@ -1434,6 +1468,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.selectedFilter.value !== null) {
       this.selectedFilter.next(null);
     }
+    this.parsedFilters = {};
+    this.rawFilterParamFromUrl = null;
+    this.currentFilterLabel = this.t.translate('book.browser.labels.allBooks');
+    this.queryParamsService.updateFilters(this.activatedRoute, null);
     this.clearSearch();
   }
 

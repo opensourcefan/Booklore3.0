@@ -122,6 +122,41 @@ describe('AllBooksPagedGridPilotService', () => {
     expect(getBooksPaged).not.toHaveBeenCalled();
   });
 
+  it('falls back to the legacy path for table view and active search terms', async () => {
+    const service = createService();
+
+    const tableState$ = service.connect({
+      isAllBooksRoute: true,
+      viewMode: 'table',
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, () => of(legacyState([createBook(5, 'Legacy Table')])));
+
+    const tableState = await firstValueFrom(tableState$.pipe(filter(state => state.loaded)));
+    expect(tableState.books?.map(book => book.id)).toEqual([5]);
+    expect(service.isPagedActive()).toBe(false);
+
+    const searchState$ = service.connect({
+      isAllBooksRoute: true,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: 'batman',
+    }, () => of(legacyState([createBook(6, 'Legacy Search')])));
+
+    const searchState = await firstValueFrom(searchState$.pipe(filter(state => state.loaded)));
+    expect(searchState.books?.map(book => book.id)).toEqual([6]);
+    expect(service.isPagedActive()).toBe(false);
+    expect(getBooksPaged).not.toHaveBeenCalled();
+  });
+
   it('falls back to the legacy path when the paged request fails', async () => {
     const service = createService();
 
