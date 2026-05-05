@@ -72,6 +72,7 @@ import {AppSettingsService} from '../../../../shared/service/app-settings.servic
 import {MultiSortPopoverComponent} from './sorting/multi-sort-popover/multi-sort-popover.component';
 import {SortService} from '../../service/sort.service';
 import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
+import {AllBooksPagedGridPilotService} from '../../service/all-books-paged-grid-pilot.service';
 
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
@@ -152,6 +153,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly dirPanelService = inject(DirectoryPanelService);
   private mediaTypePreferences = inject(MediaTypePreferencesService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
+  private allBooksPagedGridPilotService = inject(AllBooksPagedGridPilotService);
 
   bookState$: Observable<BookState> | undefined;
   entity$: Observable<Library | Shelf | MagicShelf | null> | undefined;
@@ -539,6 +541,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.forceCloseMobileRightSidebar(false);
     this.clearHoverPreviewTimer();
+    this.allBooksPagedGridPilotService.resetActiveQuery();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -1056,16 +1059,27 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const primarySort = sortCriteria[0] ?? {field: 'addedOn', direction: 'DESCENDING', label: 'Added On'};
 
     if (this.entityType === EntityType.ALL_BOOKS) {
-      this.bookState$ = this.entityService.fetchAllBooks(primarySort).pipe(
+      this.bookState$ = this.allBooksPagedGridPilotService.connect({
+        isAllBooksRoute: true,
+        viewMode: this.currentViewMode,
+        sortCriteria,
+        filters: this.parsedFilters,
+        filterMode: this.selectedFilterMode.getValue(),
+        isDirectoryScopedView: this.isDirectoryScopedView,
+        isSeriesCollapsed: this.seriesCollapseFilter.isSeriesCollapsed,
+        searchTerm: this.searchTerm$.getValue(),
+      }, () => this.entityService.fetchAllBooks(primarySort).pipe(
         map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
         switchMap(bookState => this.applyBookFilters(bookState))
-      );
+      ));
     } else if (this.entityType === EntityType.NOT_SHELFED) {
+      this.allBooksPagedGridPilotService.resetActiveQuery();
       this.bookState$ = this.entityService.fetchNotShelfedBooks(primarySort).pipe(
         map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
         switchMap(bookState => this.applyBookFilters(bookState))
       );
     } else {
+      this.allBooksPagedGridPilotService.resetActiveQuery();
       const routeParam$ = this.entityService.getEntityInfoFromRoute(this.activatedRoute);
       this.bookState$ = routeParam$.pipe(
         switchMap(({entityId, entityType}) =>
@@ -1130,6 +1144,23 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     }
+  }
+
+  onGridScroll(): void {
+    if (!this.allBooksPagedGridPilotService.isPagedActive()) {
+      return;
+    }
+
+    const scrollElement = this.scrollContainer?.nativeElement;
+    if (!scrollElement) {
+      return;
+    }
+
+    this.allBooksPagedGridPilotService.loadNextPageIfNeeded(
+      scrollElement.scrollTop,
+      scrollElement.clientHeight,
+      scrollElement.scrollHeight,
+    );
   }
 
   private applyClientSideMultiSort(bookState: BookState, sortCriteria: SortOption[]): BookState {
@@ -1383,6 +1414,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSearchTermChange(term: string): void {
     this.searchTerm$.next(term);
+
+    if (this.entityType === EntityType.ALL_BOOKS && this.currentViewMode === VIEW_MODES.GRID) {
+      this.applyEffectiveSortCriteria();
+    }
   }
 
   clearSearch(): void {

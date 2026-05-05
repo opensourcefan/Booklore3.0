@@ -44,3 +44,14 @@ Stage 2 adds dormant orchestration primitives only:
 - ID lookup helpers that prefer paged cache, then existing full state, then API fallback
 
 Stage 2 still does not wire paged browse state into any route, component, or list/table rendering path.
+
+## Stage 3 Deliverables
+
+Stage 3 enables the first guarded runtime slice only:
+
+- All Books grid can use the paged endpoint through a dedicated pilot seam outside the table component
+- server-side paging activates only when the route, view, sort fields, and sidebar filters are all in the verified safe subset
+- unsupported search, unsupported filters, directory scope, series-collapsed mode, non-grid view, and non-All-Books routes immediately stay on or fall back to the legacy full-state path
+- paged request failures immediately fall back to the legacy full-state path for the active route
+
+Stage 3 still leaves the stable list/table path on the legacy data source.

@@ -2,6 +2,23 @@ import { Injectable } from '@angular/core';
 import { SortOption, SortDirection } from '../model/sort.model';
 import { PagedBooksParams } from './book.service';
 
+const SUPPORTED_SORT_FIELD_MAP: Readonly<Record<string, string>> = {
+  addedOn: 'addedOn',
+  title: 'metadata.title',
+  seriesName: 'metadata.seriesName',
+};
+
+const SUPPORTED_FILTER_KEYS = new Set<string>([
+  'author',
+  'category',
+  'series',
+  'publisher',
+  'language',
+  'readStatus',
+  'bookType',
+  'contentRating',
+]);
+
 /**
  * Translates client-side filter state (as used by SideBarFilter / BookFilterOrchestrationService)
  * into PagedBooksParams suitable for the server-side GET /api/v1/books/paged endpoint.
@@ -12,6 +29,27 @@ import { PagedBooksParams } from './book.service';
 @Injectable({ providedIn: 'root' })
 export class ServerFilterAdapter {
 
+  supportsSortCriteria(sortCriteria: SortOption[]): boolean {
+    return this.getUnsupportedSortFields(sortCriteria).length === 0;
+  }
+
+  getUnsupportedSortFields(sortCriteria: SortOption[]): string[] {
+    return sortCriteria
+      .map(sort => sort.field)
+      .filter(field => !SUPPORTED_SORT_FIELD_MAP[field]);
+  }
+
+  supportsFilters(selectedFilters: Record<string, unknown[]>): boolean {
+    return this.getUnsupportedFilterKeys(selectedFilters).length === 0;
+  }
+
+  getUnsupportedFilterKeys(selectedFilters: Record<string, unknown[]>): string[] {
+    return Object.entries(selectedFilters)
+      .filter(([, values]) => values?.length)
+      .map(([key]) => key)
+      .filter(key => !SUPPORTED_FILTER_KEYS.has(key));
+  }
+
   /**
    * Build paginated query params from sort criteria.
    * Each SortOption becomes a "field,direction" pair (e.g. "title,asc").
@@ -20,9 +58,15 @@ export class ServerFilterAdapter {
     if (!sortCriteria?.length) {
       return {};
     }
+
+    const supportedSorts = sortCriteria.filter(sort => !!SUPPORTED_SORT_FIELD_MAP[sort.field]);
+    if (supportedSorts.length === 0) {
+      return {};
+    }
+
     return {
-      sorts: sortCriteria.map(s =>
-        `${s.field},${s.direction === SortDirection.DESCENDING ? 'desc' : 'asc'}`
+      sorts: supportedSorts.map(s =>
+        `${SUPPORTED_SORT_FIELD_MAP[s.field]},${s.direction === SortDirection.DESCENDING ? 'desc' : 'asc'}`
       ),
     };
   }
@@ -42,6 +86,10 @@ export class ServerFilterAdapter {
 
     for (const [key, values] of Object.entries(selectedFilters)) {
       if (!values?.length) continue;
+
+      if (!SUPPORTED_FILTER_KEYS.has(key)) {
+        continue;
+      }
 
       const strings = values.map(v => String(v));
 

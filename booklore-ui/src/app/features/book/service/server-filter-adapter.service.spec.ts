@@ -21,8 +21,22 @@ describe('ServerFilterAdapter', () => {
       {field: 'title', label: 'Title', direction: SortDirection.ASCENDING},
       {field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING},
     ])).toEqual({
-      sorts: ['title,asc', 'addedOn,desc'],
+      sorts: ['metadata.title,asc', 'addedOn,desc'],
     });
+  });
+
+  it('reports unsupported sort fields and filter keys for guarded fallback decisions', () => {
+    const service = createService();
+
+    expect(service.getUnsupportedSortFields([
+      {field: 'random', label: 'Random', direction: SortDirection.ASCENDING},
+      {field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING},
+    ])).toEqual(['random']);
+
+    expect(service.getUnsupportedFilterKeys({
+      author: ['Jane Doe'],
+      tag: ['favorite'],
+    })).toEqual(['tag']);
   });
 
   it('translates supported browser filters and leaves unsupported ones on the client path', () => {
