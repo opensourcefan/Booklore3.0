@@ -13,12 +13,14 @@ import {AllBooksPagedGridPilotService} from './all-books-paged-grid-pilot.servic
 describe('BookMetadataManageService', () => {
   let service: BookMetadataManageService;
   let httpPutSpy: ReturnType<typeof vi.fn>;
+  let httpPostSpy: ReturnType<typeof vi.fn>;
   let refreshSubscriptions: number;
   let handleBookMetadataUpdateSpy: ReturnType<typeof vi.fn>;
   let invalidateAllBooksCacheSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     httpPutSpy = vi.fn();
+    httpPostSpy = vi.fn();
     handleBookMetadataUpdateSpy = vi.fn();
     invalidateAllBooksCacheSpy = vi.fn();
     refreshSubscriptions = 0;
@@ -30,7 +32,7 @@ describe('BookMetadataManageService', () => {
           provide: HttpClient,
           useValue: {
             put: httpPutSpy,
-            post: vi.fn(),
+            post: httpPostSpy,
             get: vi.fn(),
           },
         },
@@ -81,9 +83,10 @@ describe('BookMetadataManageService', () => {
     });
 
     expect(refreshSubscriptions).toBe(1);
+    expect(invalidateAllBooksCacheSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('subscribes to the book refresh after single-book metadata updates', async () => {
+  it('keeps single-book metadata updates in place without forcing a full refresh', async () => {
     const updatedMetadata = {bookId: 4, tags: ['Tag A']} as never;
     httpPutSpy.mockReturnValue(of(updatedMetadata));
 
@@ -95,7 +98,23 @@ describe('BookMetadataManageService', () => {
     });
 
     expect(handleBookMetadataUpdateSpy).toHaveBeenCalledWith(4, updatedMetadata);
-    expect(invalidateAllBooksCacheSpy).toHaveBeenCalledTimes(1);
-    expect(refreshSubscriptions).toBe(1);
+    expect(invalidateAllBooksCacheSpy).not.toHaveBeenCalled();
+    expect(refreshSubscriptions).toBe(0);
+  });
+
+  it('keeps single-book metadata wipes in place without forcing a full refresh', async () => {
+    const wipedMetadata = {bookId: 5, title: undefined} as never;
+    httpPostSpy.mockReturnValue(of(wipedMetadata));
+
+    await new Promise<void>((resolve, reject) => {
+      service.wipeBookMetadata(5).subscribe({
+        next: () => resolve(),
+        error: reject,
+      });
+    });
+
+    expect(handleBookMetadataUpdateSpy).toHaveBeenCalledWith(5, wipedMetadata);
+    expect(invalidateAllBooksCacheSpy).not.toHaveBeenCalled();
+    expect(refreshSubscriptions).toBe(0);
   });
 });

@@ -120,6 +120,7 @@
         [pTooltip]="item.endActionTooltip"
         tooltipPosition="right"
         class="entity-menu-button interactive-entity-menu-button sidebar-row-end-action"
+        [ngClass]="item.endActionClass"
         [attr.aria-label]="item.endActionAriaLabel || item.endActionTooltip"
         [tabindex]="-1"
       ></p-button>

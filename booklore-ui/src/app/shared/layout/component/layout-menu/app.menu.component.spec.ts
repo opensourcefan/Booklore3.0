@@ -183,6 +183,7 @@ describe('AppMenuComponent reorder mode', () => {
     const dashboardItem = menu[0].items?.find(item => item.routerLink?.[0] === '/dashboard');
 
     expect(dashboardItem?.endActionIcon).toBe('pi pi-cog');
+    expect(dashboardItem?.endActionClass).toBe('dashboard-row-end-action');
     expect(dashboardItem?.endActionCommand).toBeTypeOf('function');
   });
 

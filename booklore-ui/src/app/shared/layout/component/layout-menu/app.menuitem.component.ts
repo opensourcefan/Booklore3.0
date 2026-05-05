@@ -39,6 +39,7 @@ export interface AppMenuItem extends MenuItem {
   endActionTooltip?: string;
   endActionAriaLabel?: string;
   endActionCommand?: () => void;
+  endActionClass?: string;
   activeMatch?: (url: string, queryParams: Record<string, unknown>) => boolean;
   onItemsReorder?: (items: AppMenuItem[]) => void;
   onCreate?: () => void;

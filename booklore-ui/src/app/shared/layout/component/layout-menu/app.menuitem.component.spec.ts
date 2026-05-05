@@ -206,6 +206,7 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
       endActionIcon: 'pi pi-cog',
       endActionTooltip: 'Customize Dashboard',
       endActionAriaLabel: 'Customize Dashboard',
+      endActionClass: 'dashboard-row-end-action',
       endActionCommand,
     });
     fixture.componentRef.setInput('index', 0);
@@ -219,6 +220,7 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     const actionButton = fixture.nativeElement.querySelector('.sidebar-row-end-action') as HTMLButtonElement;
 
     expect(actionButton).not.toBeNull();
+    expect(actionButton.classList.contains('dashboard-row-end-action')).toBe(true);
 
     actionButton.click();
 

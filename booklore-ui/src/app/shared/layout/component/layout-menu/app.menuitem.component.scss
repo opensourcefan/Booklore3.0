@@ -213,6 +213,12 @@
   display: flex;
 }
 
+.dashboard-row-end-action {
+  :is(.p-button-icon, .pi) {
+    font-size: 0.8rem;
+  }
+}
+
 .non-interactive-badge {
   pointer-events: none;
   background: transparent !important;

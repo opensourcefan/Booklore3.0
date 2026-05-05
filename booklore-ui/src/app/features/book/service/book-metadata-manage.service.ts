@@ -34,13 +34,11 @@ export class BookMetadataManageService {
 
   updateBookMetadata(bookId: number | undefined, wrapper: MetadataUpdateWrapper, mergeCategories: boolean, replaceMode: 'REPLACE_ALL' | 'REPLACE_WHEN_PROVIDED' = 'REPLACE_ALL'): Observable<BookMetadata> {
     const params = new HttpParams().set('mergeCategories', mergeCategories.toString()).set('replaceMode', replaceMode);
-    return this.refreshBooksSnapshotAfter(this.http.put<BookMetadata>(`${this.url}/${bookId}/metadata`, wrapper, {params}).pipe(
+    return this.http.put<BookMetadata>(`${this.url}/${bookId}/metadata`, wrapper, {params}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId!, updatedMetadata);
         return updatedMetadata;
       })
-    )).pipe(
-      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
     );
   }
 
@@ -53,13 +51,11 @@ export class BookMetadataManageService {
   }
 
   wipeBookMetadata(bookId: number): Observable<BookMetadata> {
-    return this.refreshBooksSnapshotAfter(this.http.post<BookMetadata>(`${this.url}/${bookId}/metadata/wipe`, {}).pipe(
+    return this.http.post<BookMetadata>(`${this.url}/${bookId}/metadata/wipe`, {}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId, updatedMetadata);
         return updatedMetadata;
       })
-    )).pipe(
-      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
     );
   }
 

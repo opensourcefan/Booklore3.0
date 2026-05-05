@@ -205,6 +205,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             endActionIcon: 'pi pi-cog',
             endActionTooltip: this.t.translate('dashboard.main.customizeDashboard'),
             endActionAriaLabel: this.t.translate('dashboard.main.customizeDashboard'),
+            endActionClass: 'dashboard-row-end-action',
             endActionCommand: () => this.dialogLauncherService.openDashboardSettingsDialog(),
           },
           {
