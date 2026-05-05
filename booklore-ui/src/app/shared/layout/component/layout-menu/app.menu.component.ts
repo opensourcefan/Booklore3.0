@@ -202,6 +202,10 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             visibilityKey: 'dashboard',
             icon: 'pi pi-fw pi-home',
             routerLink: ['/dashboard'],
+            endActionIcon: 'pi pi-cog',
+            endActionTooltip: this.t.translate('dashboard.main.customizeDashboard'),
+            endActionAriaLabel: this.t.translate('dashboard.main.customizeDashboard'),
+            endActionCommand: () => this.dialogLauncherService.openDashboardSettingsDialog(),
           },
           {
             label: this.t.translate('layout.menu.allBooks'),

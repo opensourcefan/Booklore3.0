@@ -20,10 +20,6 @@ interface BuildGridViewportContextInput {
   filterSignature: string;
 }
 
-export function didDirectoryPanelClose(previousVisible: boolean, nextVisible: boolean): boolean {
-  return previousVisible && !nextVisible;
-}
-
 export function buildGridViewportContext(input: BuildGridViewportContextInput): GridViewportContext {
   return {
     viewMode: input.viewMode,

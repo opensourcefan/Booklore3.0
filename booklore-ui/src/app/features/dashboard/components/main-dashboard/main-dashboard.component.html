@@ -41,20 +41,6 @@
           } @else {
             @if (dashboardConfig$ | async; as config) {
               <div class="dashboard-workspace">
-                <div class="dashboard-toolbar">
-                  <div class="dashboard-settings-button">
-                    <p-button
-                      icon="pi pi-cog"
-                      severity="info"
-                      rounded
-                      text
-                      [pTooltip]="t('customizeDashboard')"
-                      tooltipPosition="left"
-                      (click)="openDashboardSettings()">
-                    </p-button>
-                  </div>
-                </div>
-
                 @let enabledScrollers = getEnabledScrollers(config);
                 <div
                   #dashboardGrid

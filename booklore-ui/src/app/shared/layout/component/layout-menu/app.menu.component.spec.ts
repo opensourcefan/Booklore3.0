@@ -173,6 +173,19 @@ describe('AppMenuComponent reorder mode', () => {
     expect(menu[0].items?.[0].showBookCount).toBe(true);
   });
 
+  it('adds the dashboard settings end action to the dashboard row', async () => {
+    component.ngOnInit();
+
+    const menu = await new Promise<AppMenuItem[]>((resolve) => {
+      component.homeMenu$?.subscribe(resolve);
+    });
+
+    const dashboardItem = menu[0].items?.find(item => item.routerLink?.[0] === '/dashboard');
+
+    expect(dashboardItem?.endActionIcon).toBe('pi pi-cog');
+    expect(dashboardItem?.endActionCommand).toBeTypeOf('function');
+  });
+
   it('reuses cached stable tag when latest tag is temporarily unavailable', () => {
     localStorageMock.get.mockImplementation((key: string) => {
       if (key === 'sidebarLatestStableVersion') {

@@ -109,7 +109,21 @@
       }
 
       <span class="menu-item-end-content">
-    @if (canShowEntityMenu()) {
+    @if (hasEndAction()) {
+      <p-button
+        (click)="onEndActionClick($event)"
+        [disabled]="reorderMode"
+        [text]="true"
+        [outlined]="false"
+        [rounded]="true"
+        [icon]="item.endActionIcon"
+        [pTooltip]="item.endActionTooltip"
+        tooltipPosition="right"
+        class="entity-menu-button interactive-entity-menu-button sidebar-row-end-action"
+        [attr.aria-label]="item.endActionAriaLabel || item.endActionTooltip"
+        [tabindex]="-1"
+      ></p-button>
+    } @else if (canShowEntityMenu()) {
       <p-button
         (click)="entitymenu.toggle($event); $event.stopPropagation()"
         (mouseover)="hovered = true"

@@ -85,7 +85,6 @@ import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/
 import {isDirectoryScopeActive} from './book-browser-directory-scope.util';
 import {
   buildGridViewportContext,
-  didDirectoryPanelClose,
   GridViewportContext,
   shouldResetGridViewport,
 } from './book-browser-grid-reset.util';
@@ -239,7 +238,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private sortService = inject(SortService);
 
   private bookStateSubscription: Subscription | undefined;
-  private directoryPanelWasVisible = false;
   private pendingGridViewportReset = false;
   private lastGridViewportContext: GridViewportContext | null = null;
 
@@ -349,6 +347,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get isDirectoryScopedView(): boolean {
     return isDirectoryScopeActive(this.activeDirFilterPath);
+  }
+
+  get shouldShowDirectoryReset(): boolean {
+    return this.canShowDirectoryExplorer && isDirectoryScopeActive(this.activeDirFilterPath);
   }
 
   get canShowDirectoryExplorer(): boolean {
@@ -506,12 +508,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.dirPanelService.visible$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(visible => {
-        if (didDirectoryPanelClose(this.directoryPanelWasVisible, visible)) {
-          this.resetDirectoryScopeForCurrentRoute();
-        }
-
-        this.directoryPanelWasVisible = visible;
+      .subscribe(() => {
         requestAnimationFrame(() => this.updateVirtualGridDomBindings());
       });
 
@@ -1898,6 +1895,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private resetDirectoryScopeForCurrentRoute(): void {
     const scopeKey = this.directoryFilterService.getScopeKeyFromUrl(this.router.url);
     this.directoryFilterService.clearScope(scopeKey);
+  }
+
+  resetDirectoryScope(): void {
+    if (!isDirectoryScopeActive(this.activeDirFilterPath)) {
+      return;
+    }
+
+    this.resetDirectoryScopeForCurrentRoute();
   }
 
   private createGridViewportContext(sortCriteria: SortOption[]): GridViewportContext {

@@ -195,4 +195,33 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     const dragRows = fixture.debugElement.queryAll(By.directive(CdkDrag));
     expect(dragRows.length).toBeGreaterThan(0);
   });
+
+  it('renders an inline end action button and triggers it without navigating the row', () => {
+    const fixture = TestBed.createComponent(AppMenuitemComponent);
+    const endActionCommand = vi.fn();
+
+    fixture.componentRef.setInput('item', {
+      label: 'Dashboard',
+      routerLink: ['/dashboard'],
+      endActionIcon: 'pi pi-cog',
+      endActionTooltip: 'Customize Dashboard',
+      endActionAriaLabel: 'Customize Dashboard',
+      endActionCommand,
+    });
+    fixture.componentRef.setInput('index', 0);
+    fixture.componentRef.setInput('root', false);
+    fixture.componentRef.setInput('parentKey', 'home');
+    fixture.componentRef.setInput('menuKey', 'home');
+    fixture.componentRef.setInput('reorderMode', false);
+
+    fixture.detectChanges();
+
+    const actionButton = fixture.nativeElement.querySelector('.sidebar-row-end-action') as HTMLButtonElement;
+
+    expect(actionButton).not.toBeNull();
+
+    actionButton.click();
+
+    expect(endActionCommand).toHaveBeenCalledTimes(1);
+  });
 });

@@ -35,6 +35,10 @@ export interface AppMenuItem extends MenuItem {
   items?: AppMenuItem[];
   prefetchLibraryId?: number;
   showBookCount?: boolean;
+  endActionIcon?: string;
+  endActionTooltip?: string;
+  endActionAriaLabel?: string;
+  endActionCommand?: () => void;
   activeMatch?: (url: string, queryParams: Record<string, unknown>) => boolean;
   onItemsReorder?: (items: AppMenuItem[]) => void;
   onCreate?: () => void;
@@ -317,6 +321,21 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
       || this.item.type === 'Authors'
       || this.isUnshelvedItem()
       || this.item.label === 'Kobo';
+  }
+
+  hasEndAction(): boolean {
+    return !!this.item.endActionCommand && !!this.item.endActionIcon;
+  }
+
+  onEndActionClick(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (this.reorderMode || !this.item.endActionCommand) {
+      return;
+    }
+
+    this.item.endActionCommand();
   }
 
   isUnshelvedItem(): boolean {

@@ -14,6 +14,16 @@
                     tooltipPosition="top">
               <i class="pi pi-folder"></i>
             </button>
+            @if (shouldShowDirectoryReset) {
+              <button type="button"
+                      class="topbar-items topbar-item"
+                      (click)="resetDirectoryScope()"
+                      pTooltip="Reset directory scope"
+                      tooltipPosition="top"
+                      aria-label="Reset directory scope">
+                <i class="pi pi-undo"></i>
+              </button>
+            }
           </div>
         }
 

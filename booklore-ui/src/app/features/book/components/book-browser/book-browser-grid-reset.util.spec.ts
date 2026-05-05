@@ -2,17 +2,10 @@ import {describe, expect, it} from 'vitest';
 import {SortDirection} from '../../model/sort.model';
 import {
   buildGridViewportContext,
-  didDirectoryPanelClose,
   shouldResetGridViewport,
 } from './book-browser-grid-reset.util';
 
 describe('book browser grid reset helpers', () => {
-  it('detects a directory panel close transition', () => {
-    expect(didDirectoryPanelClose(true, false)).toBe(true);
-    expect(didDirectoryPanelClose(false, false)).toBe(false);
-    expect(didDirectoryPanelClose(true, true)).toBe(false);
-  });
-
   it('requests a grid reset when the Added On direction changes', () => {
     const previous = buildGridViewportContext({
       viewMode: 'grid',
