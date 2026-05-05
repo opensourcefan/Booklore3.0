@@ -44,10 +44,20 @@ export interface BookBrowserRolloutGuardrails {
   enabledEntities: PagedBookBrowserEntity[];
 }
 
+export interface PagedBookBrowserState {
+  guardrails: BookBrowserRolloutGuardrails;
+  cache: Record<string, PagedBookBrowserCacheEntry>;
+}
+
 export const DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS: Readonly<BookBrowserRolloutGuardrails> = Object.freeze({
   activeMode: 'legacy-full-state',
   fallbackMode: 'legacy-full-state',
   allowPagedGridView: false,
   allowPagedTableView: false,
   enabledEntities: [],
+});
+
+export const DEFAULT_PAGED_BOOK_BROWSER_STATE: Readonly<PagedBookBrowserState> = Object.freeze({
+  guardrails: DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS,
+  cache: {},
 });

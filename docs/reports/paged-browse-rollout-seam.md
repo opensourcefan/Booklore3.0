@@ -33,3 +33,14 @@ Stage 1 only adds:
 - this rollback seam document
 
 Stage 1 does not change live routing, list rendering, grid rendering, or browser data-source behavior.
+
+## Stage 2 Deliverables
+
+Stage 2 adds dormant orchestration primitives only:
+
+- a separate paged browse-state service
+- stable request-key construction for paged browse cache entries
+- cache storage and invalidation primitives
+- ID lookup helpers that prefer paged cache, then existing full state, then API fallback
+
+Stage 2 still does not wire paged browse state into any route, component, or list/table rendering path.
