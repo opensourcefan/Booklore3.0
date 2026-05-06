@@ -27,7 +27,7 @@ import {SortDirection, SortOption} from '../../model/sort.model';
 import {BookState} from '../../model/state/book-state.model';
 import {Book} from '../../model/book.model';
 import {LibraryShelfMenuService} from '../../service/library-shelf-menu.service';
-import {BookTableComponent} from './book-table/book-table.component';
+import {BookTableComponent, TableViewportMetrics} from './book-table/book-table.component';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {Button} from 'primeng/button';
 import {AsyncPipe, NgClass} from '@angular/common';
@@ -367,6 +367,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get shouldShowPagedGridStatus(): boolean {
     return this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.LIBRARY;
+  }
+
+  get isPagedPilotActive(): boolean {
+    return this.pagedGridPilotService.isPagedActive();
   }
 
   getPagedGridStatusTooltip(status: PagedGridPilotStatus): string {
@@ -1298,11 +1302,26 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    this.loadNextPagedPageIfNeeded(this.scrollContainer?.nativeElement ?? null);
+  }
+
+  onTableScroll(metrics: TableViewportMetrics): void {
     if (!this.pagedGridPilotService.isPagedActive()) {
       return;
     }
 
-    const scrollElement = this.scrollContainer?.nativeElement;
+    this.pagedGridPilotService.loadNextPageIfNeeded(
+      metrics.scrollTop,
+      metrics.clientHeight,
+      metrics.scrollHeight,
+    );
+  }
+
+  private loadNextPagedPageIfNeeded(scrollElement: HTMLElement | null): void {
+    if (!this.pagedGridPilotService.isPagedActive()) {
+      return;
+    }
+
     if (!scrollElement) {
       return;
     }

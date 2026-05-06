@@ -329,6 +329,7 @@ describe('BookTableComponent', () => {
       expect(table.virtualScroll).toBe(true);
       expect(table.virtualScrollItemSize).toBe(46);
       expect(table.scrollable).toBe(true);
+      expect(table.virtualScrollOptions?.onScroll).toBeTypeOf('function');
     });
 
     it('renders the stable header selection control and resizable columns in the DOM', () => {
@@ -352,5 +353,49 @@ describe('BookTableComponent', () => {
       expect(emitSpy.mock.calls.length).toBeGreaterThanOrEqual(0);
       expect(component.books.length).toBe(1);
     });
+
+    it('emits viewport scroll metrics from the PrimeNG scroller callback', () => {
+      const {fixture, component} = createFixture();
+      const table = fixture.debugElement.query(By.directive(Table)).componentInstance as Table;
+      const emitSpy = vi.spyOn(component.viewportScroll, 'emit');
+      const scrollElement = document.createElement('div');
+
+      Object.defineProperty(scrollElement, 'scrollTop', {
+        configurable: true,
+        get: () => 240,
+      });
+      Object.defineProperty(scrollElement, 'clientHeight', {
+        configurable: true,
+        get: () => 460,
+      });
+      Object.defineProperty(scrollElement, 'scrollHeight', {
+        configurable: true,
+        get: () => 1280,
+      });
+
+      table.virtualScrollOptions?.onScroll?.({
+        originalEvent: {
+          target: scrollElement,
+        } as unknown as Event,
+      });
+
+      expect(emitSpy).toHaveBeenCalledWith({
+        scrollTop: 240,
+        clientHeight: 460,
+        scrollHeight: 1280,
+      });
+    });
+  });
+
+  it('skips the legacy virtual scroll bounce when paged mode appends books', () => {
+    const component = createComponent();
+    const scheduleVirtualScrollFixSpy = vi.spyOn(component as never, 'scheduleVirtualScrollFix');
+
+    component.pagedPilotActive = true;
+    component.ngOnChanges({
+      books: new SimpleChange([createBook({ id: 1 })], [createBook({ id: 1 }), createBook({ id: 2 })], false),
+    });
+
+    expect(scheduleVirtualScrollFixSpy).not.toHaveBeenCalled();
   });
 });

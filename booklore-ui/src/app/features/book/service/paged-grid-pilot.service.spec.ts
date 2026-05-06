@@ -382,8 +382,18 @@ describe('PagedGridPilotService', () => {
     expect(getBooksPaged).not.toHaveBeenCalled();
   });
 
-  it('falls back to the legacy path for table view and active search terms', async () => {
+  it('uses the paged path for guarded table view and still falls back for active search terms', async () => {
     const service = createService();
+
+    getBooksPaged.mockReturnValueOnce(of({
+      content: [createBook(5, 'Paged Table')],
+      page: 0,
+      size: 80,
+      totalElements: 1,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    }));
 
     const tableState$ = service.connect({
       entity: 'ALL_BOOKS',
@@ -399,11 +409,16 @@ describe('PagedGridPilotService', () => {
 
     const tableState = await firstValueFrom(tableState$.pipe(filter(state => state.loaded)));
     expect(tableState.books?.map(book => book.id)).toEqual([5]);
-    expect(service.isPagedActive()).toBe(false);
+    expect(service.isPagedActive()).toBe(true);
     expect(service.getStatus()).toMatchObject({
-      mode: 'legacy',
-      blockers: ['view mode is table'],
+      mode: 'paged',
+      summary: 'Paged list active',
     });
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      page: 0,
+      size: 80,
+      sorts: ['addedOn,desc'],
+    }));
 
     const searchState$ = service.connect({
       entity: 'ALL_BOOKS',
@@ -424,7 +439,7 @@ describe('PagedGridPilotService', () => {
       mode: 'legacy',
       blockers: ['search is active'],
     });
-    expect(getBooksPaged).not.toHaveBeenCalled();
+    expect(getBooksPaged).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to the legacy path when the paged request fails', async () => {

@@ -14,6 +14,13 @@ import {UserService} from '../../../../settings/user-management/user.service';
 import {take, takeUntil} from 'rxjs/operators';
 import {ReadStatusHelper} from '../../../helpers/read-status.helper';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {ScrollerOptions} from 'primeng/api';
+
+export interface TableViewportMetrics {
+  scrollTop: number;
+  clientHeight: number;
+  scrollHeight: number;
+}
 
 @Component({
   selector: 'app-book-table',
@@ -39,12 +46,14 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   private metadataLockedCache = new Map<number, boolean>();
 
   @Output() selectedBooksChange = new EventEmitter<Set<number>>();
+  @Output() viewportScroll = new EventEmitter<TableViewportMetrics>();
   @Input() books: Book[] = [];
   @Input() sortOption: SortOption | null = null;
   @Input() visibleColumns: { field: string; header: string }[] = [];
   @Input() preselectedBookIds = new Set<number>();
   @Input() showSubtitle = false;
   @Input() forceFileNameTitle = false;
+  @Input() pagedPilotActive = false;
 
   protected urlHelper = inject(UrlHelperService);
   private bookMetadataManageService = inject(BookMetadataManageService);
@@ -56,6 +65,9 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   private cdr = inject(ChangeDetectorRef);
 
   readonly starRange = [1, 2, 3, 4, 5];
+  readonly virtualScrollOptions: ScrollerOptions = {
+    onScroll: (event: { originalEvent?: Event }) => this.onVirtualScroll(event),
+  };
 
   private metadataCenterViewMode: 'route' | 'dialog' = 'route';
   private destroy$ = new Subject<void>();
@@ -161,11 +173,25 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
     // Recalculate scrollHeight when books change (layout may shift)
     if (changes['books']) {
       this.setScrollHeight();
-      // Re-apply virtual scroll fix when books arrive
-      if (changes['books'].currentValue?.length > 0 && !changes['books'].firstChange) {
+      // Keep PrimeNG's initial render fix for legacy table refreshes, but skip
+      // the scroll bounce for incremental paged appends.
+      if (changes['books'].currentValue?.length > 0 && !changes['books'].firstChange && !this.pagedPilotActive) {
         this.scheduleVirtualScrollFix();
       }
     }
+  }
+
+  private onVirtualScroll(event: { originalEvent?: Event }): void {
+    const target = event.originalEvent?.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    this.viewportScroll.emit({
+      scrollTop: target.scrollTop,
+      clientHeight: target.clientHeight,
+      scrollHeight: target.scrollHeight,
+    });
   }
 
   selectAllBooks(): void {

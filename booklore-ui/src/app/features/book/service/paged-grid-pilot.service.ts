@@ -26,6 +26,8 @@ export interface PagedGridPilotStatus {
   blockers: string[];
 }
 
+type PilotViewMode = 'grid' | 'table';
+
 interface ActivePagedQuery {
   signature: string;
   params: PagedBooksParams;
@@ -70,6 +72,7 @@ export class PagedGridPilotService {
 
   connect(context: PagedGridPilotContext, legacyFactory: () => Observable<BookState>): Observable<BookState> {
     const blockers = this.getEligibilityBlockers(context);
+    const viewMode = this.normalizeViewMode(context.viewMode);
 
     if (blockers.length > 0) {
       this.setLegacyStatus(blockers);
@@ -93,14 +96,14 @@ export class PagedGridPilotService {
     const requestKey = this.pagedBookBrowserStateService.buildRequestKey(
       context.entity,
       context.entityId ?? null,
-      'grid',
+      viewMode!,
       params,
       context.filters,
     );
     const signature = this.buildSignature(requestKey);
 
     if (this.activeQuery?.signature === signature && this.pagedActive) {
-      this.setPagedStatus();
+      this.setPagedStatus(viewMode!);
       if (this.getCachedPages(this.activeQuery.requestKey).length > 0) {
         this.emitCachedState(this.activeQuery);
         this.ensurePrefetchedRunway(this.activeQuery);
@@ -113,12 +116,12 @@ export class PagedGridPilotService {
 
     this.clearActiveSubscriptions();
     this.pagedActive = true;
-    this.setPagedStatus();
+    this.setPagedStatus(viewMode!);
     this.pagedBookBrowserStateService.setGuardrails({
       activeMode: 'paged-browse',
       fallbackMode: 'legacy-full-state',
       allowPagedGridView: true,
-      allowPagedTableView: false,
+      allowPagedTableView: true,
       enabledEntities: ['ALL_BOOKS', 'LIBRARY'],
     });
 
@@ -246,7 +249,7 @@ export class PagedGridPilotService {
   private getEligibilityBlockers(context: PagedGridPilotContext): string[] {
     const blockers: string[] = [];
 
-    if (context.viewMode !== 'grid') {
+    if (!this.normalizeViewMode(context.viewMode)) {
       blockers.push(`view mode is ${context.viewMode ?? 'unset'}`);
     }
 
@@ -293,13 +296,25 @@ export class PagedGridPilotService {
     return `multi-sort (${sortCriteria.map(sort => `${sort.field} ${sort.direction === SortDirection.DESCENDING ? 'desc' : 'asc'}`).join(', ')})`;
   }
 
-  private setPagedStatus(): void {
+  private setPagedStatus(viewMode: PilotViewMode): void {
+    const isTableView = viewMode === 'table';
+
     this.statusSubject.next({
       mode: 'paged',
-      summary: 'Paged grid active',
-      detail: 'This route is using the server-paged grid pilot.',
+      summary: isTableView ? 'Paged list active' : 'Paged grid active',
+      detail: isTableView
+        ? 'This route is using the server-paged list pilot.'
+        : 'This route is using the server-paged grid pilot.',
       blockers: [],
     });
+  }
+
+  private normalizeViewMode(viewMode: string | undefined): PilotViewMode | null {
+    if (viewMode === 'grid' || viewMode === 'table') {
+      return viewMode;
+    }
+
+    return null;
   }
 
   private setLegacyStatus(blockers: string[], detail?: string): void {

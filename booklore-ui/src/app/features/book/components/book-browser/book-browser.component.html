@@ -676,10 +676,12 @@
                   [books]="books"
                   [preselectedBookIds]="selectedBooks"
                   (selectedBooksChange)="onSelectedBooksChange($event)"
+                  (viewportScroll)="onTableScroll($event)"
                   [sortOption]="this.bookSorter.selectedSort!"
                   [visibleColumns]="visibleColumns"
                   [showSubtitle]="showSubtitles"
                   [forceFileNameTitle]="isDirectoryScopedView"
+                  [pagedPilotActive]="isPagedPilotActive"
                 ></app-book-table>
               }
               @if (currentViewMode === 'grid') {
