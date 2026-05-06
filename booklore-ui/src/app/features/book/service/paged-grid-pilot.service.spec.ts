@@ -7,7 +7,7 @@ import { SortDirection } from '../model/sort.model';
 import { BookService } from './book.service';
 import { PagedBookBrowserStateService } from './paged-book-browser-state.service';
 import { ServerFilterAdapter } from './server-filter-adapter.service';
-import { AllBooksPagedGridPilotService } from './all-books-paged-grid-pilot.service';
+import { PagedGridPilotService } from './paged-grid-pilot.service';
 
 function createBook(id: number, title = `Book ${id}`): Book {
   return {
@@ -20,7 +20,7 @@ function createBook(id: number, title = `Book ${id}`): Book {
   } as Book;
 }
 
-describe('AllBooksPagedGridPilotService', () => {
+describe('PagedGridPilotService', () => {
   let getBooksPaged: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -28,7 +28,7 @@ describe('AllBooksPagedGridPilotService', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        AllBooksPagedGridPilotService,
+        PagedGridPilotService,
         PagedBookBrowserStateService,
         ServerFilterAdapter,
         {
@@ -44,8 +44,12 @@ describe('AllBooksPagedGridPilotService', () => {
     });
   });
 
-  function createService(): AllBooksPagedGridPilotService {
-    return TestBed.inject(AllBooksPagedGridPilotService);
+  function createService(): PagedGridPilotService {
+    return TestBed.inject(PagedGridPilotService);
+  }
+
+  function getPagedStateService(): PagedBookBrowserStateService {
+    return TestBed.inject(PagedBookBrowserStateService);
   }
 
   function legacyState(books: Book[]): BookState {
@@ -71,7 +75,8 @@ describe('AllBooksPagedGridPilotService', () => {
     getBooksPaged.mockReturnValue(pagedResponse$);
 
     const bookState$ = service.connect({
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'grid',
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: {},
@@ -127,7 +132,8 @@ describe('AllBooksPagedGridPilotService', () => {
     }));
 
     const bookState$ = service.connect({
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'grid',
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: { author: ['Jane Doe'] },
@@ -175,7 +181,8 @@ describe('AllBooksPagedGridPilotService', () => {
     getBooksPaged.mockReturnValue(pagedResponse$);
 
     const context = {
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'grid' as const,
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: {},
@@ -220,7 +227,8 @@ describe('AllBooksPagedGridPilotService', () => {
       }));
 
     const context = {
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'grid' as const,
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: {},
@@ -241,11 +249,71 @@ describe('AllBooksPagedGridPilotService', () => {
     expect(getBooksPaged).toHaveBeenCalledTimes(2);
   });
 
+  it('uses library-specific request keys and refetches the active library query after invalidation', async () => {
+    const service = createService();
+    const pagedStateService = getPagedStateService();
+
+    getBooksPaged
+      .mockReturnValueOnce(of({
+        content: [createBook(31, 'Library One')],
+        page: 0,
+        size: 80,
+        totalElements: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }))
+      .mockReturnValueOnce(of({
+        content: [createBook(41, 'Library Refetch')],
+        page: 0,
+        size: 80,
+        totalElements: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }));
+
+    const context = {
+      entity: 'LIBRARY' as const,
+      entityId: 7,
+      viewMode: 'grid' as const,
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    };
+
+    const bookState$ = service.connect(context, () => of(legacyState([createBook(90, 'Warm 90')])));
+    const initialState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+
+    expect(initialState.books?.map(book => book.id)).toEqual([31]);
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      libraryId: 7,
+      page: 0,
+      size: 80,
+      sorts: ['addedOn,desc'],
+    }));
+
+    const cachedEntries = Object.values(pagedStateService.getCurrentState().cache);
+    expect(cachedEntries).toHaveLength(1);
+    expect(cachedEntries[0]?.key.entity).toBe('LIBRARY');
+    expect(cachedEntries[0]?.key.entityId).toBe(7);
+
+    service.invalidateAllBooksCache();
+
+    const refreshedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && state.books?.[0]?.id === 41)));
+    expect(refreshedState.books?.map(book => book.id)).toEqual([41]);
+    expect(getBooksPaged).toHaveBeenCalledTimes(2);
+  });
+
   it('falls back to the legacy path for title sorting so client-side order remains authoritative', async () => {
     const service = createService();
 
     const bookState$ = service.connect({
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'grid',
       sortCriteria: [{ field: 'title', label: 'Title', direction: SortDirection.ASCENDING }],
       filters: {},
@@ -265,7 +333,8 @@ describe('AllBooksPagedGridPilotService', () => {
     const service = createService();
 
     const bookState$ = service.connect({
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'grid',
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.ASCENDING }],
       filters: {},
@@ -286,7 +355,8 @@ describe('AllBooksPagedGridPilotService', () => {
     const service = createService();
 
     const bookState$ = service.connect({
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'grid',
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: { tag: ['favorite'] },
@@ -307,7 +377,8 @@ describe('AllBooksPagedGridPilotService', () => {
     const service = createService();
 
     const tableState$ = service.connect({
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'table',
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: {},
@@ -322,7 +393,8 @@ describe('AllBooksPagedGridPilotService', () => {
     expect(service.isPagedActive()).toBe(false);
 
     const searchState$ = service.connect({
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'grid',
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: {},
@@ -344,7 +416,8 @@ describe('AllBooksPagedGridPilotService', () => {
     getBooksPaged.mockReturnValue(throwError(() => new Error('paged request failed')));
 
     const bookState$ = service.connect({
-      isAllBooksRoute: true,
+      entity: 'ALL_BOOKS',
+      entityId: null,
       viewMode: 'grid',
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
       filters: {},

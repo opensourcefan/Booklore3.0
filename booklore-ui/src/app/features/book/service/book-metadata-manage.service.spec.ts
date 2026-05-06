@@ -8,7 +8,7 @@ import {BookService} from './book.service';
 import {BookMetadataManageService} from './book-metadata-manage.service';
 import {BookSocketService} from './book-socket.service';
 import {BookStateService} from './book-state.service';
-import {AllBooksPagedGridPilotService} from './all-books-paged-grid-pilot.service';
+import {PagedGridPilotService} from './paged-grid-pilot.service';
 
 describe('BookMetadataManageService', () => {
   let service: BookMetadataManageService;
@@ -59,7 +59,7 @@ describe('BookMetadataManageService', () => {
           },
         },
         {
-          provide: AllBooksPagedGridPilotService,
+          provide: PagedGridPilotService,
           useValue: {
             invalidateAllBooksCache: invalidateAllBooksCacheSpy,
           },
