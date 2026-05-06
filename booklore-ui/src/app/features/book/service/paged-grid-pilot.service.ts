@@ -9,7 +9,7 @@ import { ServerFilterAdapter } from './server-filter-adapter.service';
 
 export interface PagedGridPilotContext {
   entity: PagedBookBrowserEntity;
-  entityId: number | null;
+  entityId?: number | null;
   viewMode: string | undefined;
   sortCriteria: SortOption[];
   filters: Record<string, string[]>;

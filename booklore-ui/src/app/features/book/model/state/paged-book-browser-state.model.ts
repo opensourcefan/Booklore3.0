@@ -7,7 +7,7 @@ export type PagedBookBrowserStatus = 'idle' | 'loading' | 'loaded' | 'error';
 
 export interface PagedBookBrowserRequestKey {
   entity: PagedBookBrowserEntity;
-  entityId: number | null;
+  entityId: number | null | undefined;
   viewMode: BookBrowserViewMode;
   page: number;
   size: number;
