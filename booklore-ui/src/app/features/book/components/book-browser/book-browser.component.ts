@@ -731,6 +731,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activatedRoute.queryParamMap,
       this.userService.userState$.pipe(filter(u => !!u?.user && u.loaded))
     ]).pipe(takeUntil(this.destroy$)).subscribe(([entityInfo, queryParamMap, user]) => {
+      this.entityType = entityInfo.entityType;
       const previousViewMode = this.currentViewMode;
       const previousFilterMode = this.selectedFilterMode.getValue();
       const previousFilterSignature = JSON.stringify(this.parsedFilters);

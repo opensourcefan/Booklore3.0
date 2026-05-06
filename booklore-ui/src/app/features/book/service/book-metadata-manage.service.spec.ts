@@ -9,6 +9,7 @@ import {BookMetadataManageService} from './book-metadata-manage.service';
 import {BookSocketService} from './book-socket.service';
 import {BookStateService} from './book-state.service';
 import {PagedGridPilotService} from './paged-grid-pilot.service';
+import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 
 describe('BookMetadataManageService', () => {
   let service: BookMetadataManageService;
@@ -18,6 +19,7 @@ describe('BookMetadataManageService', () => {
   let handleBookMetadataUpdateSpy: ReturnType<typeof vi.fn>;
   let invalidateAllBooksCacheSpy: ReturnType<typeof vi.fn>;
   let refreshActiveStateSpy: ReturnType<typeof vi.fn>;
+  let syncCacheFromSharedStateSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     httpPutSpy = vi.fn();
@@ -25,6 +27,7 @@ describe('BookMetadataManageService', () => {
     handleBookMetadataUpdateSpy = vi.fn();
     invalidateAllBooksCacheSpy = vi.fn();
     refreshActiveStateSpy = vi.fn();
+    syncCacheFromSharedStateSpy = vi.fn();
     refreshSubscriptions = 0;
 
     TestBed.configureTestingModule({
@@ -58,6 +61,12 @@ describe('BookMetadataManageService', () => {
           useValue: {
             getCurrentBookState: vi.fn(() => ({books: [], loaded: true, error: null})),
             updateBookState: vi.fn(),
+          },
+        },
+        {
+          provide: PagedBookBrowserStateService,
+          useValue: {
+            syncCacheFromSharedState: syncCacheFromSharedStateSpy,
           },
         },
         {
@@ -101,6 +110,7 @@ describe('BookMetadataManageService', () => {
     });
 
     expect(handleBookMetadataUpdateSpy).toHaveBeenCalledWith(4, updatedMetadata);
+    expect(syncCacheFromSharedStateSpy).toHaveBeenCalledTimes(1);
     expect(invalidateAllBooksCacheSpy).not.toHaveBeenCalled();
     expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
     expect(refreshSubscriptions).toBe(0);
@@ -118,6 +128,7 @@ describe('BookMetadataManageService', () => {
     });
 
     expect(handleBookMetadataUpdateSpy).toHaveBeenCalledWith(5, wipedMetadata);
+    expect(syncCacheFromSharedStateSpy).toHaveBeenCalledTimes(1);
     expect(invalidateAllBooksCacheSpy).not.toHaveBeenCalled();
     expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
     expect(refreshSubscriptions).toBe(0);

@@ -211,6 +211,10 @@ export class PagedBookBrowserStateService {
     this.syncCacheFromBookState();
   }
 
+  syncCacheFromSharedState(): void {
+    this.syncCacheFromBookState();
+  }
+
   reset(): void {
     this.updateState({
       guardrails: DEFAULT_PAGED_BOOK_BROWSER_STATE.guardrails,
