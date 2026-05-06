@@ -75,7 +75,7 @@ export class PagedGridPilotService {
 
     const requestKey = this.pagedBookBrowserStateService.buildRequestKey(
       context.entity,
-      context.entityId,
+      context.entityId ?? null,
       'grid',
       params,
       context.filters,
