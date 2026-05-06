@@ -1220,10 +1220,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.bookNavigationService.setAvailableBookIds(books.map(book => book.id));
         this.updateSelectionVisibility();
         this.cdr.markForCheck();
-
-        if (this.pagedGridPilotService.isPagedActive()) {
-          requestAnimationFrame(() => this.onGridScroll());
-        }
       });
   }
 
@@ -1271,9 +1267,16 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         if (widthEl.clientWidth > 0) {
           this.virtualGrid.setContainerWidth(widthEl.clientWidth);
         }
-        if (scrollEl) {
-          scrollEl.dispatchEvent(new Event('scroll'));
-        }
+
+        requestAnimationFrame(() => {
+          this.virtualGrid.virtualizer.measure();
+
+          if (scrollEl) {
+            scrollEl.dispatchEvent(new Event('scroll'));
+          }
+
+          this.cdr.markForCheck();
+        });
       });
     }
   }
