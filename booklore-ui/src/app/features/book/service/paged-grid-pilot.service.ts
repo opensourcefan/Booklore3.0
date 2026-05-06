@@ -226,6 +226,14 @@ export class PagedGridPilotService {
     });
   }
 
+  setExplicitLegacyStatus(detail: string, blockers: string[] = []): void {
+    this.clearActiveSubscriptions();
+    this.activeQuery = null;
+    this.pagedActive = false;
+    this.pagedBookBrowserStateService.resetToLegacyMode();
+    this.setLegacyStatus(blockers, detail);
+  }
+
   private canUsePagedPilot(context: PagedGridPilotContext): boolean {
     return (context.entity === 'ALL_BOOKS' || context.entity === 'LIBRARY')
       && context.viewMode === 'grid'

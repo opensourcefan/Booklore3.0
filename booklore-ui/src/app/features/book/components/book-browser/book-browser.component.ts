@@ -366,7 +366,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get shouldShowPagedGridStatus(): boolean {
-    return this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.LIBRARY;
+    return !!this.entityType;
   }
 
   get isPagedPilotActive(): boolean {
@@ -1175,13 +1175,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         );
       }
     } else if (this.entityType === EntityType.NOT_SHELFED) {
-      this.pagedGridPilotService.resetActiveQuery();
+      this.syncExplicitLegacyBrowseStatus();
       this.bookState$ = this.entityService.fetchNotShelfedBooks(primarySort).pipe(
         map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
         switchMap(bookState => this.applyBookFilters(bookState))
       );
     } else {
-      this.pagedGridPilotService.resetActiveQuery();
+      this.syncExplicitLegacyBrowseStatus();
       const routeParam$ = this.entityService.getEntityInfoFromRoute(this.activatedRoute);
       this.bookState$ = routeParam$.pipe(
         switchMap(({entityId, entityType}) =>
@@ -1225,6 +1225,32 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.updateSelectionVisibility();
         this.cdr.markForCheck();
       });
+  }
+
+  private syncExplicitLegacyBrowseStatus(): void {
+    switch (this.entityType) {
+      case EntityType.SHELF:
+        this.pagedGridPilotService.setExplicitLegacyStatus(
+          'Shelf routes currently use the legacy full-state path.',
+          ['shelf route stays on legacy full-state mode'],
+        );
+        break;
+      case EntityType.MAGIC_SHELF:
+        this.pagedGridPilotService.setExplicitLegacyStatus(
+          'Magic Shelf routes currently use the legacy full-state path.',
+          ['magic shelf route stays on legacy full-state mode'],
+        );
+        break;
+      case EntityType.NOT_SHELFED:
+        this.pagedGridPilotService.setExplicitLegacyStatus(
+          'Not Shelfed routes currently use the legacy full-state path.',
+          ['not-shelfed route stays on legacy full-state mode'],
+        );
+        break;
+      default:
+        this.pagedGridPilotService.resetActiveQuery();
+        break;
+    }
   }
 
   private restorePendingScrollPosition(): boolean {

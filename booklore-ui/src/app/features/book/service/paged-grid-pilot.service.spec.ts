@@ -253,6 +253,23 @@ describe('PagedGridPilotService', () => {
     expect(getBooksPaged).toHaveBeenCalledTimes(2);
   });
 
+  it('surfaces explicit legacy status for legacy-only routes', () => {
+    const service = createService();
+
+    service.setExplicitLegacyStatus(
+      'Shelf routes currently use the legacy full-state path.',
+      ['shelf route stays on legacy full-state mode'],
+    );
+
+    expect(service.isPagedActive()).toBe(false);
+    expect(service.getStatus()).toEqual({
+      mode: 'legacy',
+      summary: 'Legacy full-state mode',
+      detail: 'Shelf routes currently use the legacy full-state path.',
+      blockers: ['shelf route stays on legacy full-state mode'],
+    });
+  });
+
   it('uses library-specific request keys and refetches the active library query after invalidation', async () => {
     const service = createService();
     const pagedStateService = getPagedStateService();
