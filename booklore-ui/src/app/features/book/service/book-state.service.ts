@@ -180,9 +180,7 @@ export class BookStateService {
     const nextBooks = (currentState.books ?? []).filter(book => !idSet.has(book.id));
     const nextPagedCache = this.invalidatePagedCacheEntries(entry => (
       entry.key.entity === 'ALL_BOOKS'
-      || (entry.key.entity === 'LIBRARY' && entry.key.entityId !== null && impactedLibraryIds.has(entry.key.entityId))
-    ));
-
+        || (entry.key.entity === 'LIBRARY' && entry.key.entityId != null && impactedLibraryIds.has(entry.key.entityId))      ));
     this.commitState(nextBooks, nextPagedCache, nextBooks.length);
   }
 
