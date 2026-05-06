@@ -567,6 +567,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.bookFilterComponents?.forEach(component => component.refreshAfterRouteAttach());
     this.syncSelectionState(this.bookSelectionService.selectedBooks);
     this.bookTableComponent?.refreshSelectionFromInputs();
+    this.restoreSavedScrollPosition();
     this.cdr.detectChanges();
   }
 
@@ -608,6 +609,23 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!el) return;
     const key = this.getScrollPositionKey();
     this.scrollService.savePosition(key, el.scrollTop ?? 0);
+  }
+
+  private restoreSavedScrollPosition(): void {
+    const savedPosition = this.scrollService.getPosition(this.getScrollPositionKey());
+    if (savedPosition === undefined) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      const scrollEl = this.scrollContainer?.nativeElement;
+      if (!scrollEl) {
+        return;
+      }
+
+      scrollEl.scrollTop = savedPosition;
+      scrollEl.dispatchEvent(new Event('scroll'));
+    });
   }
 
   private initializeEntityRouting(): void {

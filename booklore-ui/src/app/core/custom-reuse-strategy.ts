@@ -52,21 +52,7 @@ export class CustomReuseStrategy implements RouteReuseStrategy {
 
   retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle | null {
     const key = this.getRouteKey(route);
-    const handle = this.storedRoutes.get(key) || null;
-
-    if (handle) {
-      const savedPosition = this.scrollService.getPosition(key);
-      if (savedPosition !== undefined) {
-        setTimeout(() => {
-          const scrollElement = document.querySelector('.virtual-scroller');
-          if (scrollElement) {
-            (scrollElement as HTMLElement).scrollTop = savedPosition;
-          }
-        }, 0);
-      }
-    }
-
-    return handle;
+    return this.storedRoutes.get(key) || null;
   }
 
   shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
