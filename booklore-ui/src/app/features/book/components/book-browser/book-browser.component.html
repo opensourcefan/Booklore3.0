@@ -64,6 +64,20 @@
                   {{ t('labels.seriesCollapsedInfo', { count: books.length, itemWord: books.length === 1 ? t('labels.item') : t('labels.items') }) }}
                 </p>
               }
+              @if (shouldShowPagedGridStatus && (pagedGridPilotStatus$ | async); as pagingStatus) {
+                @if (pagingStatus.mode !== 'inactive') {
+                  <p class="paged-grid-status"
+                     [class.paged-grid-status--paged]="pagingStatus.mode === 'paged'"
+                     [class.paged-grid-status--legacy]="pagingStatus.mode === 'legacy'"
+                     [pTooltip]="getPagedGridStatusTooltip(pagingStatus)"
+                     tooltipPosition="bottom">
+                    <span class="paged-grid-status__summary">{{ pagingStatus.summary }}</span>
+                    @if (pagingStatus.detail && pagingStatus.mode === 'legacy') {
+                      <span class="paged-grid-status__detail">{{ pagingStatus.detail }}</span>
+                    }
+                  </p>
+                }
+              }
               @if (activeDirFilterPath !== null) {
                 <p class="dir-filter-breadcrumb">
                   <i class="pi pi-folder"></i>

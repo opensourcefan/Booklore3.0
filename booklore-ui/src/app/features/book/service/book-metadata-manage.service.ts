@@ -37,6 +37,7 @@ export class BookMetadataManageService {
     return this.http.put<BookMetadata>(`${this.url}/${bookId}/metadata`, wrapper, {params}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId!, updatedMetadata);
+        this.pagedGridPilotService.refreshActiveState();
         return updatedMetadata;
       })
     );
@@ -54,6 +55,7 @@ export class BookMetadataManageService {
     return this.http.post<BookMetadata>(`${this.url}/${bookId}/metadata/wipe`, {}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId, updatedMetadata);
+        this.pagedGridPilotService.refreshActiveState();
         return updatedMetadata;
       })
     );

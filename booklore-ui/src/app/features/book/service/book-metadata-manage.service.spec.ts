@@ -17,12 +17,14 @@ describe('BookMetadataManageService', () => {
   let refreshSubscriptions: number;
   let handleBookMetadataUpdateSpy: ReturnType<typeof vi.fn>;
   let invalidateAllBooksCacheSpy: ReturnType<typeof vi.fn>;
+  let refreshActiveStateSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     httpPutSpy = vi.fn();
     httpPostSpy = vi.fn();
     handleBookMetadataUpdateSpy = vi.fn();
     invalidateAllBooksCacheSpy = vi.fn();
+    refreshActiveStateSpy = vi.fn();
     refreshSubscriptions = 0;
 
     TestBed.configureTestingModule({
@@ -62,6 +64,7 @@ describe('BookMetadataManageService', () => {
           provide: PagedGridPilotService,
           useValue: {
             invalidateAllBooksCache: invalidateAllBooksCacheSpy,
+            refreshActiveState: refreshActiveStateSpy,
           },
         },
         {provide: MessageService, useValue: {add: vi.fn()}},
@@ -99,6 +102,7 @@ describe('BookMetadataManageService', () => {
 
     expect(handleBookMetadataUpdateSpy).toHaveBeenCalledWith(4, updatedMetadata);
     expect(invalidateAllBooksCacheSpy).not.toHaveBeenCalled();
+    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
     expect(refreshSubscriptions).toBe(0);
   });
 
@@ -115,6 +119,7 @@ describe('BookMetadataManageService', () => {
 
     expect(handleBookMetadataUpdateSpy).toHaveBeenCalledWith(5, wipedMetadata);
     expect(invalidateAllBooksCacheSpy).not.toHaveBeenCalled();
+    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
     expect(refreshSubscriptions).toBe(0);
   });
 });

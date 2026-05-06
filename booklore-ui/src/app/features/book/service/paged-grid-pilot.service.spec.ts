@@ -89,6 +89,10 @@ describe('PagedGridPilotService', () => {
     const warmState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
     expect(warmState.books?.map(book => book.id)).toEqual([90, 91]);
     expect(service.isPagedActive()).toBe(true);
+    expect(service.getStatus()).toMatchObject({
+      mode: 'paged',
+      summary: 'Paged grid active',
+    });
     expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
       page: 0,
       size: 80,
@@ -370,6 +374,11 @@ describe('PagedGridPilotService', () => {
 
     expect(legacyLoadedState.books?.map(book => book.id)).toEqual([42]);
     expect(service.isPagedActive()).toBe(false);
+    expect(service.getStatus()).toMatchObject({
+      mode: 'legacy',
+      summary: 'Legacy full-state mode',
+      blockers: ['unsupported filters: tag'],
+    });
     expect(getBooksPaged).not.toHaveBeenCalled();
   });
 
@@ -391,6 +400,10 @@ describe('PagedGridPilotService', () => {
     const tableState = await firstValueFrom(tableState$.pipe(filter(state => state.loaded)));
     expect(tableState.books?.map(book => book.id)).toEqual([5]);
     expect(service.isPagedActive()).toBe(false);
+    expect(service.getStatus()).toMatchObject({
+      mode: 'legacy',
+      blockers: ['view mode is table'],
+    });
 
     const searchState$ = service.connect({
       entity: 'ALL_BOOKS',
@@ -407,6 +420,10 @@ describe('PagedGridPilotService', () => {
     const searchState = await firstValueFrom(searchState$.pipe(filter(state => state.loaded)));
     expect(searchState.books?.map(book => book.id)).toEqual([6]);
     expect(service.isPagedActive()).toBe(false);
+    expect(service.getStatus()).toMatchObject({
+      mode: 'legacy',
+      blockers: ['search is active'],
+    });
     expect(getBooksPaged).not.toHaveBeenCalled();
   });
 

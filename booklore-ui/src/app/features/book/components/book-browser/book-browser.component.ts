@@ -72,7 +72,7 @@ import {AppSettingsService} from '../../../../shared/service/app-settings.servic
 import {MultiSortPopoverComponent} from './sorting/multi-sort-popover/multi-sort-popover.component';
 import {SortService} from '../../service/sort.service';
 import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
-import {PagedGridPilotService} from '../../service/paged-grid-pilot.service';
+import {PagedGridPilotService, PagedGridPilotStatus} from '../../service/paged-grid-pilot.service';
 
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
@@ -160,6 +160,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private mediaTypePreferences = inject(MediaTypePreferencesService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
   private pagedGridPilotService = inject(PagedGridPilotService);
+  readonly pagedGridPilotStatus$ = this.pagedGridPilotService.status$;
 
   bookState$: Observable<BookState> | undefined;
   entity$: Observable<Library | Shelf | MagicShelf | null> | undefined;
@@ -364,6 +365,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       || this.entityType === EntityType.SHELF;
   }
 
+  get shouldShowPagedGridStatus(): boolean {
+    return this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.LIBRARY;
+  }
+
+  getPagedGridStatusTooltip(status: PagedGridPilotStatus): string {
+    return status.detail ?? status.summary;
+  }
+
   get computedFilterLabel(): string {
     const filters = this.selectedFilter.value;
 
@@ -565,6 +574,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onRouteReattached(): void {
     this.bookFilterComponents?.forEach(component => component.refreshAfterRouteAttach());
+    this.pagedGridPilotService.refreshActiveState();
     this.syncSelectionState(this.bookSelectionService.selectedBooks);
     this.bookTableComponent?.refreshSelectionFromInputs();
     this.restoreSavedScrollPosition();

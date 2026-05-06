@@ -19,6 +19,13 @@ export interface PagedGridPilotContext {
   searchTerm: string;
 }
 
+export interface PagedGridPilotStatus {
+  mode: 'inactive' | 'paged' | 'legacy';
+  summary: string;
+  detail: string | null;
+  blockers: string[];
+}
+
 interface ActivePagedQuery {
   signature: string;
   params: PagedBooksParams;
@@ -45,8 +52,15 @@ export class PagedGridPilotService {
     loaded: false,
     error: null,
   });
+  private readonly statusSubject = new BehaviorSubject<PagedGridPilotStatus>({
+    mode: 'inactive',
+    summary: '',
+    detail: null,
+    blockers: [],
+  });
 
   readonly bookState$ = this.bookStateSubject.asObservable();
+  readonly status$ = this.statusSubject.asObservable();
 
   private activeQuery: ActivePagedQuery | null = null;
   private pagedActive = false;
@@ -55,7 +69,10 @@ export class PagedGridPilotService {
   private warmStartSubscription: Subscription | null = null;
 
   connect(context: PagedGridPilotContext, legacyFactory: () => Observable<BookState>): Observable<BookState> {
-    if (!this.canUsePagedPilot(context)) {
+    const blockers = this.getEligibilityBlockers(context);
+
+    if (blockers.length > 0) {
+      this.setLegacyStatus(blockers);
       this.subscribeToLegacy(legacyFactory);
       return this.bookState$;
     }
@@ -83,6 +100,7 @@ export class PagedGridPilotService {
     const signature = this.buildSignature(requestKey);
 
     if (this.activeQuery?.signature === signature && this.pagedActive) {
+      this.setPagedStatus();
       if (this.getCachedPages(this.activeQuery.requestKey).length > 0) {
         this.emitCachedState(this.activeQuery);
         this.ensurePrefetchedRunway(this.activeQuery);
@@ -95,6 +113,7 @@ export class PagedGridPilotService {
 
     this.clearActiveSubscriptions();
     this.pagedActive = true;
+    this.setPagedStatus();
     this.pagedBookBrowserStateService.setGuardrails({
       activeMode: 'paged-browse',
       fallbackMode: 'legacy-full-state',
@@ -126,6 +145,10 @@ export class PagedGridPilotService {
 
   isPagedActive(): boolean {
     return this.pagedActive;
+  }
+
+  getStatus(): PagedGridPilotStatus {
+    return this.statusSubject.getValue();
   }
 
   refreshActiveState(): void {
@@ -192,6 +215,12 @@ export class PagedGridPilotService {
     this.activeQuery = null;
     this.pagedActive = false;
     this.pagedBookBrowserStateService.resetToLegacyMode();
+    this.statusSubject.next({
+      mode: 'inactive',
+      summary: '',
+      detail: null,
+      blockers: [],
+    });
   }
 
   private canUsePagedPilot(context: PagedGridPilotContext): boolean {
@@ -212,6 +241,74 @@ export class PagedGridPilotService {
         && sortCriteria[0].field === 'addedOn'
         && sortCriteria[0].direction === SortDirection.DESCENDING
       );
+  }
+
+  private getEligibilityBlockers(context: PagedGridPilotContext): string[] {
+    const blockers: string[] = [];
+
+    if (context.viewMode !== 'grid') {
+      blockers.push(`view mode is ${context.viewMode ?? 'unset'}`);
+    }
+
+    if (context.isDirectoryScopedView) {
+      blockers.push('directory scope is active');
+    }
+
+    if (context.isSeriesCollapsed) {
+      blockers.push('series collapse is enabled');
+    }
+
+    if (context.searchTerm.trim().length > 0) {
+      blockers.push('search is active');
+    }
+
+    if (!this.hasPagedSafeSort(context.sortCriteria)) {
+      blockers.push(`sort is ${this.describeSortCriteria(context.sortCriteria)}`);
+    } else {
+      const unsupportedSortFields = this.serverFilterAdapter.getUnsupportedSortFields(context.sortCriteria);
+      if (unsupportedSortFields.length > 0) {
+        blockers.push(`unsupported sort fields: ${unsupportedSortFields.join(', ')}`);
+      }
+    }
+
+    const unsupportedFilterKeys = this.serverFilterAdapter.getUnsupportedFilterKeys(context.filters);
+    if (unsupportedFilterKeys.length > 0) {
+      blockers.push(`unsupported filters: ${unsupportedFilterKeys.join(', ')}`);
+    }
+
+    return blockers;
+  }
+
+  private describeSortCriteria(sortCriteria: SortOption[]): string {
+    if (sortCriteria.length === 0) {
+      return 'default';
+    }
+
+    if (sortCriteria.length === 1) {
+      const [sort] = sortCriteria;
+      const direction = sort.direction === SortDirection.DESCENDING ? 'desc' : 'asc';
+      return `${sort.field} ${direction}`;
+    }
+
+    return `multi-sort (${sortCriteria.map(sort => `${sort.field} ${sort.direction === SortDirection.DESCENDING ? 'desc' : 'asc'}`).join(', ')})`;
+  }
+
+  private setPagedStatus(): void {
+    this.statusSubject.next({
+      mode: 'paged',
+      summary: 'Paged grid active',
+      detail: 'This route is using the server-paged grid pilot.',
+      blockers: [],
+    });
+  }
+
+  private setLegacyStatus(blockers: string[], detail?: string): void {
+    this.statusSubject.next({
+      mode: 'legacy',
+      summary: 'Legacy full-state mode',
+      detail: detail ?? blockers.join(' | '),
+      blockers,
+    });
   }
 
   private fetchPage(query: ActivePagedQuery, page: number): void {
@@ -256,6 +353,7 @@ export class PagedGridPilotService {
       error: error => {
         this.requestSubscription = null;
         this.pagedBookBrowserStateService.markError(requestKey, error, 'stage-3-legacy-fallback');
+        this.setLegacyStatus(['paged request failed'], 'The paged request failed, so the browser fell back to the legacy full-state path.');
 
         if (!this.activeQuery || this.activeQuery.signature !== query.signature) {
           return;
