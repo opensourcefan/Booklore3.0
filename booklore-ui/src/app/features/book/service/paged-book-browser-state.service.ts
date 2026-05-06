@@ -132,19 +132,76 @@ export class PagedBookBrowserStateService {
   }
 
   getCachedBookById(bookId: number): Book | undefined {
-    return this.bookStateService.getCachedPagedBookById(bookId);
+    for (const entry of Object.values(this.getCurrentState().cache)) {
+      const book = entry.page?.content?.find(b => b.id === bookId);
+      if (book) {
+        return book;
+      }
+    }
+    return undefined;
   }
 
   getCachedBooksByIds(bookIds: number[]): Book[] {
-    return this.bookStateService.getCachedPagedBooksByIds(bookIds);
+    const booksById = new Map<number, Book>();
+
+    for (const entry of Object.values(this.getCurrentState().cache)) {
+      for (const book of entry.page?.content ?? []) {
+        if (!booksById.has(book.id)) {
+          booksById.set(book.id, book);
+        }
+      }
+    }
+
+    const orderedBooks: Book[] = [];
+    const seen = new Set<number>();
+
+    for (const rawId of bookIds) {
+      const id = +rawId;
+      if (seen.has(id)) {
+        continue;
+      }
+
+      const book = booksById.get(id);
+      if (book) {
+        orderedBooks.push(book);
+        seen.add(id);
+      }
+    }
+
+    return orderedBooks;
   }
 
   patchBook(updatedBook: Book): void {
-    if (!this.bookStateService.patchPagedCacheBook(updatedBook)) {
-      return;
-    }
+    let didChange = false;
+    const nextCache = Object.fromEntries(
+      Object.entries(this.getCurrentState().cache).map(([cacheKey, entry]) => {
+        if (!entry.page?.content?.some(book => book.id === updatedBook.id)) {
+          return [cacheKey, entry];
+        }
 
-    this.syncCacheFromBookState();
+        didChange = true;
+
+        return [
+          cacheKey,
+          {
+            ...entry,
+            page: entry.page
+              ? {
+                  ...entry.page,
+                  content: entry.page.content.map(book => (book.id === updatedBook.id ? updatedBook : book)),
+                }
+              : null,
+          } satisfies PagedBookBrowserCacheEntry,
+        ];
+      })
+    );
+
+    if (didChange) {
+      this.updateState({
+        ...this.getCurrentState(),
+        cache: nextCache,
+      });
+    }
   }
 
   resolveBookById(bookId: number, withDescription = false): Observable<Book | undefined> {
@@ -198,8 +255,18 @@ export class PagedBookBrowserStateService {
   }
 
   invalidateEntity(entity: PagedBookBrowserEntity, entityId: number | null = null): void {
-    this.bookStateService.invalidatePagedCacheByEntity(entity, entityId);
-    this.syncCacheFromBookState();
+    const nextCache = Object.fromEntries(
+      Object.entries(this.getCurrentState().cache).filter(
+        ([, entry]) => !(entry.key.entity === entity && (entityId == null || entry.key.entityId === entityId))
+      )
+    );
+
+    if (Object.keys(nextCache).length < Object.keys(this.getCurrentState().cache).length) {
+      this.updateState({
+        ...this.getCurrentState(),
+        cache: nextCache,
+      });
+    }
   }
 
   invalidateBooks(bookIds: number[]): void {
@@ -207,8 +274,19 @@ export class PagedBookBrowserStateService {
       return;
     }
 
-    this.bookStateService.invalidatePagedCacheByBookIds(bookIds);
-    this.syncCacheFromBookState();
+    const idSet = new Set(bookIds.map(id => +id));
+    const nextCache = Object.fromEntries(
+      Object.entries(this.getCurrentState().cache).filter(
+        ([, entry]) => !(entry.page?.content ?? []).some(book => idSet.has(book.id))
+      )
+    );
+
+    if (Object.keys(nextCache).length < Object.keys(this.getCurrentState().cache).length) {
+      this.updateState({
+        ...this.getCurrentState(),
+        cache: nextCache,
+      });
+    }
   }
 
   reset(): void {
@@ -251,13 +329,5 @@ export class PagedBookBrowserStateService {
 
   private updateState(state: PagedBookBrowserState): void {
     this.pagedBookBrowserStateSubject.next(state);
-    this.bookStateService.setPagedCache(state.cache);
-  }
-
-  private syncCacheFromBookState(): void {
-    this.pagedBookBrowserStateSubject.next({
-      ...this.getCurrentState(),
-      cache: {...(this.bookStateService.getCurrentBookState().pagedCache ?? {})},
-    });
   }
 }
