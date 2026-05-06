@@ -181,7 +181,7 @@ describe('PagedGridPilotService', () => {
     getBooksPaged.mockReturnValue(pagedResponse$);
 
     const context = {
-      entity: 'ALL_BOOKS',
+      entity: 'ALL_BOOKS' as const,
       entityId: null,
       viewMode: 'grid' as const,
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
@@ -227,7 +227,7 @@ describe('PagedGridPilotService', () => {
       }));
 
     const context = {
-      entity: 'ALL_BOOKS',
+      entity: 'ALL_BOOKS' as const,
       entityId: null,
       viewMode: 'grid' as const,
       sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
