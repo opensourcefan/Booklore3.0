@@ -398,4 +398,61 @@ describe('BookTableComponent', () => {
 
     expect(scheduleVirtualScrollFixSpy).not.toHaveBeenCalled();
   });
+
+  it('restores the PrimeNG scroller position after paged appends', () => {
+    vi.useFakeTimers();
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback): number => {
+      return setTimeout(() => callback(0), 0) as unknown as number;
+    });
+
+    const component = createComponent();
+    const setSize = vi.fn();
+    const dispatchEvent = vi.fn();
+    let restoredScrollTop = 240;
+    const scrollElement = document.createElement('div');
+
+    Object.defineProperty(scrollElement, 'scrollTop', {
+      configurable: true,
+      get: () => restoredScrollTop,
+      set: (value: number) => {
+        restoredScrollTop = value;
+      },
+    });
+    Object.defineProperty(scrollElement, 'clientHeight', {
+      configurable: true,
+      get: () => 460,
+    });
+    Object.defineProperty(scrollElement, 'scrollHeight', {
+      configurable: true,
+      get: () => 1280,
+    });
+    Object.defineProperty(scrollElement, 'dispatchEvent', {
+      configurable: true,
+      value: dispatchEvent,
+    });
+
+    (component as unknown as { ptable?: Table }).ptable = {
+      scroller: {
+        setSize,
+        getElementRef: () => ({ nativeElement: scrollElement }),
+      },
+    } as unknown as Table;
+
+    component.pagedPilotActive = true;
+    component.virtualScrollOptions.onScroll?.({
+      originalEvent: {
+        target: scrollElement,
+      } as unknown as Event,
+    });
+
+    component.ngOnChanges({
+      books: new SimpleChange([createBook({ id: 1 })], [createBook({ id: 1 }), createBook({ id: 2 })], false),
+    });
+
+    vi.runAllTimers();
+
+    expect(setSize).toHaveBeenCalled();
+    expect(restoredScrollTop).toBe(240);
+    expect(dispatchEvent).toHaveBeenCalled();
+  });
 });

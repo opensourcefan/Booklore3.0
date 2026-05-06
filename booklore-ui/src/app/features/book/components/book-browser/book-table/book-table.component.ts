@@ -44,6 +44,7 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   private cellValueCache = new Map<string, string | number>();
   private cellClickableCache = new Map<string, {url: string | UrlTree, anchor: string | number | null | undefined}[]>();
   private metadataLockedCache = new Map<number, boolean>();
+  private lastViewportMetrics: TableViewportMetrics | null = null;
 
   @Output() selectedBooksChange = new EventEmitter<Set<number>>();
   @Output() viewportScroll = new EventEmitter<TableViewportMetrics>();
@@ -173,10 +174,19 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
     // Recalculate scrollHeight when books change (layout may shift)
     if (changes['books']) {
       this.setScrollHeight();
+
+      const previousBooks = (changes['books'].previousValue as Book[] | undefined) ?? [];
+      const currentBooks = (changes['books'].currentValue as Book[] | undefined) ?? [];
+      const appendedPagedBooks = this.pagedPilotActive
+        && !changes['books'].firstChange
+        && currentBooks.length > previousBooks.length;
+
       // Keep PrimeNG's initial render fix for legacy table refreshes, but skip
       // the scroll bounce for incremental paged appends.
-      if (changes['books'].currentValue?.length > 0 && !changes['books'].firstChange && !this.pagedPilotActive) {
+      if (currentBooks.length > 0 && !changes['books'].firstChange && !this.pagedPilotActive) {
         this.scheduleVirtualScrollFix();
+      } else if (appendedPagedBooks) {
+        this.restorePagedScrollPosition();
       }
     }
   }
@@ -187,10 +197,30 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
       return;
     }
 
-    this.viewportScroll.emit({
+    const metrics = {
       scrollTop: target.scrollTop,
       clientHeight: target.clientHeight,
       scrollHeight: target.scrollHeight,
+    };
+
+    this.lastViewportMetrics = metrics;
+    this.viewportScroll.emit(metrics);
+  }
+
+  private restorePagedScrollPosition(): void {
+    const savedMetrics = this.lastViewportMetrics;
+    const scroller = this.ptable?.scroller;
+    const scrollEl = scroller?.getElementRef()?.nativeElement as HTMLElement | undefined;
+
+    if (!savedMetrics || !scroller || !scrollEl) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      scroller.setSize();
+      scrollEl.scrollTop = savedMetrics.scrollTop;
+      scrollEl.dispatchEvent(new Event('scroll'));
+      this.cdr.markForCheck?.();
     });
   }
 
