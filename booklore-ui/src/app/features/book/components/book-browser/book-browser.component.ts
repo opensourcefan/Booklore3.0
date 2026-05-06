@@ -72,7 +72,7 @@ import {AppSettingsService} from '../../../../shared/service/app-settings.servic
 import {MultiSortPopoverComponent} from './sorting/multi-sort-popover/multi-sort-popover.component';
 import {SortService} from '../../service/sort.service';
 import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
-import {AllBooksPagedGridPilotService} from '../../service/all-books-paged-grid-pilot.service';
+import {PagedGridPilotService} from '../../service/paged-grid-pilot.service';
 
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
@@ -159,7 +159,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly dirPanelService = inject(DirectoryPanelService);
   private mediaTypePreferences = inject(MediaTypePreferencesService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
-  private allBooksPagedGridPilotService = inject(AllBooksPagedGridPilotService);
+  private pagedGridPilotService = inject(PagedGridPilotService);
 
   bookState$: Observable<BookState> | undefined;
   entity$: Observable<Library | Shelf | MagicShelf | null> | undefined;
@@ -558,7 +558,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.forceCloseMobileRightSidebar(false);
     this.clearHoverPreviewTimer();
-    this.allBooksPagedGridPilotService.resetActiveQuery();
+    this.pagedGridPilotService.resetActiveQuery();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -1122,28 +1122,51 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.lastGridViewportContext = nextViewportContext;
 
-    if (this.entityType === EntityType.ALL_BOOKS) {
-      this.bookState$ = this.allBooksPagedGridPilotService.connect({
-        isAllBooksRoute: true,
-        viewMode: this.currentViewMode,
-        sortCriteria,
-        filters: this.parsedFilters,
-        filterMode: this.selectedFilterMode.getValue(),
-        isDirectoryScopedView: this.isDirectoryScopedView,
-        isSeriesCollapsed: this.seriesCollapseFilter.isSeriesCollapsed,
-        searchTerm: this.searchTerm$.getValue(),
-      }, () => this.entityService.fetchAllBooks(primarySort).pipe(
-        map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
-        switchMap(bookState => this.applyBookFilters(bookState))
-      ));
+    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.LIBRARY) {
+      if (this.entityType === EntityType.ALL_BOOKS) {
+        this.bookState$ = this.pagedGridPilotService.connect({
+          entity: 'ALL_BOOKS',
+          entityId: null,
+          viewMode: this.currentViewMode,
+          sortCriteria,
+          filters: this.parsedFilters,
+          filterMode: this.selectedFilterMode.getValue(),
+          isDirectoryScopedView: this.isDirectoryScopedView,
+          isSeriesCollapsed: this.seriesCollapseFilter.isSeriesCollapsed,
+          searchTerm: this.searchTerm$.getValue(),
+        }, () => this.entityService.fetchAllBooks(primarySort).pipe(
+          map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
+          switchMap(bookState => this.applyBookFilters(bookState))
+        ));
+      } else {
+        const routeParam$ = this.entityService.getEntityInfoFromRoute(this.activatedRoute);
+        this.bookState$ = routeParam$.pipe(
+          switchMap(({entityId, entityType}) =>
+            this.pagedGridPilotService.connect({
+              entity: 'LIBRARY',
+              entityId: entityId,
+              viewMode: this.currentViewMode,
+              sortCriteria,
+              filters: this.parsedFilters,
+              filterMode: this.selectedFilterMode.getValue(),
+              isDirectoryScopedView: this.isDirectoryScopedView,
+              isSeriesCollapsed: this.seriesCollapseFilter.isSeriesCollapsed,
+              searchTerm: this.searchTerm$.getValue(),
+            }, () => this.entityService.fetchBooksByEntity(entityId, entityType, primarySort).pipe(
+              map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
+              switchMap(bookState => this.applyBookFilters(bookState))
+            ))
+          )
+        );
+      }
     } else if (this.entityType === EntityType.NOT_SHELFED) {
-      this.allBooksPagedGridPilotService.resetActiveQuery();
+      this.pagedGridPilotService.resetActiveQuery();
       this.bookState$ = this.entityService.fetchNotShelfedBooks(primarySort).pipe(
         map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
         switchMap(bookState => this.applyBookFilters(bookState))
       );
     } else {
-      this.allBooksPagedGridPilotService.resetActiveQuery();
+      this.pagedGridPilotService.resetActiveQuery();
       const routeParam$ = this.entityService.getEntityInfoFromRoute(this.activatedRoute);
       this.bookState$ = routeParam$.pipe(
         switchMap(({entityId, entityType}) =>
@@ -1187,7 +1210,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.updateSelectionVisibility();
         this.cdr.markForCheck();
 
-        if (this.allBooksPagedGridPilotService.isPagedActive()) {
+        if (this.pagedGridPilotService.isPagedActive()) {
           requestAnimationFrame(() => this.onGridScroll());
         }
       });
@@ -1261,7 +1284,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (!this.allBooksPagedGridPilotService.isPagedActive()) {
+    if (!this.pagedGridPilotService.isPagedActive()) {
       return;
     }
 
@@ -1270,7 +1293,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    this.allBooksPagedGridPilotService.loadNextPageIfNeeded(
+    this.pagedGridPilotService.loadNextPageIfNeeded(
       scrollElement.scrollTop,
       scrollElement.clientHeight,
       scrollElement.scrollHeight,

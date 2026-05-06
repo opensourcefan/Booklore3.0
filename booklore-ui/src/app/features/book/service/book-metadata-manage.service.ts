@@ -9,7 +9,7 @@ import {BookStateService} from './book-state.service';
 import {BookSocketService} from './book-socket.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookService} from './book.service';
-import {AllBooksPagedGridPilotService} from './all-books-paged-grid-pilot.service';
+import {PagedGridPilotService} from './paged-grid-pilot.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,7 +23,7 @@ export class BookMetadataManageService {
   private bookStateService = inject(BookStateService);
   private bookSocketService = inject(BookSocketService);
   private bookService = inject(BookService);
-  private allBooksPagedGridPilotService = inject(AllBooksPagedGridPilotService);
+  private pagedGridPilotService = inject(PagedGridPilotService);
   private readonly t = inject(TranslocoService);
 
   private refreshBooksSnapshotAfter<T>(source$: Observable<T>): Observable<T> {
@@ -46,7 +46,7 @@ export class BookMetadataManageService {
     return this.refreshBooksSnapshotAfter(this.http.put(`${this.url}/bulk-edit-metadata`, request).pipe(
       map(() => void 0)
     )).pipe(
-      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
+      tap(() => this.pagedGridPilotService.invalidateAllBooksCache())
     );
   }
 
@@ -63,13 +63,13 @@ export class BookMetadataManageService {
     return this.refreshBooksSnapshotAfter(this.http.post<void>(`${this.url}/metadata/wipe`, {bookIds}).pipe(
       map(() => void 0)
     )).pipe(
-      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
+      tap(() => this.pagedGridPilotService.invalidateAllBooksCache())
     );
   }
 
   restoreTitlesFromFilenames(bookIds: number[]): Observable<number> {
     return this.refreshBooksSnapshotAfter(this.http.post<number>(`${this.url}/metadata/restore-titles-from-filenames`, {bookIds})).pipe(
-      tap(() => this.allBooksPagedGridPilotService.invalidateAllBooksCache())
+      tap(() => this.pagedGridPilotService.invalidateAllBooksCache())
     );
   }
 

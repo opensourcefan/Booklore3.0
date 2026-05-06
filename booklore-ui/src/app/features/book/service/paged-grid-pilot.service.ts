@@ -2,13 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, filter, Observable, Subscription, take } from 'rxjs';
 import { BookState } from '../model/state/book-state.model';
 import { SortDirection, SortOption } from '../model/sort.model';
-import { PagedBookBrowserPage, PagedBookBrowserRequestKey } from '../model/state/paged-book-browser-state.model';
+import { PagedBookBrowserPage, PagedBookBrowserRequestKey, PagedBookBrowserEntity } from '../model/state/paged-book-browser-state.model';
 import { BookService, PagedBooksParams } from './book.service';
 import { PagedBookBrowserStateService } from './paged-book-browser-state.service';
 import { ServerFilterAdapter } from './server-filter-adapter.service';
 
-export interface AllBooksPagedGridPilotContext {
-  isAllBooksRoute: boolean;
+export interface PagedGridPilotContext {
+  entity: PagedBookBrowserEntity;
+  entityId: number | null;
   viewMode: string | undefined;
   sortCriteria: SortOption[];
   filters: Record<string, string[]>;
@@ -29,7 +30,7 @@ interface ActivePagedQuery {
 @Injectable({
   providedIn: 'root',
 })
-export class AllBooksPagedGridPilotService {
+export class PagedGridPilotService {
   private static readonly PAGE_SIZE = 80;
   private static readonly LOAD_MORE_THRESHOLD_PX = 600;
   private static readonly LOAD_MORE_THRESHOLD_VIEWPORTS = 3;
@@ -53,7 +54,7 @@ export class AllBooksPagedGridPilotService {
   private legacySubscription: Subscription | null = null;
   private warmStartSubscription: Subscription | null = null;
 
-  connect(context: AllBooksPagedGridPilotContext, legacyFactory: () => Observable<BookState>): Observable<BookState> {
+  connect(context: PagedGridPilotContext, legacyFactory: () => Observable<BookState>): Observable<BookState> {
     if (!this.canUsePagedPilot(context)) {
       this.subscribeToLegacy(legacyFactory);
       return this.bookState$;
@@ -62,15 +63,19 @@ export class AllBooksPagedGridPilotService {
     const params = this.serverFilterAdapter.mergeParams(
       {
         page: 0,
-        size: AllBooksPagedGridPilotService.PAGE_SIZE,
+        size: PagedGridPilotService.PAGE_SIZE,
       },
       this.serverFilterAdapter.buildSortParams(context.sortCriteria),
       this.serverFilterAdapter.buildFilterParams(context.filters, context.filterMode),
     );
 
+    if (context.entity === 'LIBRARY' && context.entityId != null) {
+      params.libraryId = context.entityId;
+    }
+
     const requestKey = this.pagedBookBrowserStateService.buildRequestKey(
-      'ALL_BOOKS',
-      null,
+      context.entity,
+      context.entityId,
       'grid',
       params,
       context.filters,
@@ -95,7 +100,7 @@ export class AllBooksPagedGridPilotService {
       fallbackMode: 'legacy-full-state',
       allowPagedGridView: true,
       allowPagedTableView: false,
-      enabledEntities: ['ALL_BOOKS'],
+      enabledEntities: ['ALL_BOOKS', 'LIBRARY'],
     });
 
     this.activeQuery = {
@@ -164,8 +169,8 @@ export class AllBooksPagedGridPilotService {
 
     const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
     const loadMoreThreshold = Math.max(
-      AllBooksPagedGridPilotService.LOAD_MORE_THRESHOLD_PX,
-      clientHeight * AllBooksPagedGridPilotService.LOAD_MORE_THRESHOLD_VIEWPORTS,
+      PagedGridPilotService.LOAD_MORE_THRESHOLD_PX,
+      clientHeight * PagedGridPilotService.LOAD_MORE_THRESHOLD_VIEWPORTS,
     );
 
     if (distanceFromBottom > loadMoreThreshold) {
@@ -182,8 +187,8 @@ export class AllBooksPagedGridPilotService {
     this.pagedBookBrowserStateService.resetToLegacyMode();
   }
 
-  private canUsePagedPilot(context: AllBooksPagedGridPilotContext): boolean {
-    return context.isAllBooksRoute
+  private canUsePagedPilot(context: PagedGridPilotContext): boolean {
+    return (context.entity === 'ALL_BOOKS' || context.entity === 'LIBRARY')
       && context.viewMode === 'grid'
       && !context.isDirectoryScopedView
       && !context.isSeriesCollapsed
@@ -210,7 +215,7 @@ export class AllBooksPagedGridPilotService {
     const params: PagedBooksParams = {
       ...query.params,
       page,
-      size: AllBooksPagedGridPilotService.PAGE_SIZE,
+      size: PagedGridPilotService.PAGE_SIZE,
     };
 
     const requestKey = this.pagedBookBrowserStateService.buildRequestKey(
@@ -275,7 +280,7 @@ export class AllBooksPagedGridPilotService {
         return;
       }
 
-      const warmBooks = state.books?.slice(0, query.params.size ?? AllBooksPagedGridPilotService.PAGE_SIZE) ?? [];
+      const warmBooks = state.books?.slice(0, query.params.size ?? PagedGridPilotService.PAGE_SIZE) ?? [];
       if (warmBooks.length === 0) {
         return;
       }
@@ -294,7 +299,7 @@ export class AllBooksPagedGridPilotService {
     }
 
     const cachedPages = this.getCachedPages(query.requestKey);
-    if (cachedPages.length === 0 || cachedPages.length >= AllBooksPagedGridPilotService.PREFETCHED_PAGE_COUNT) {
+    if (cachedPages.length === 0 || cachedPages.length >= PagedGridPilotService.PREFETCHED_PAGE_COUNT) {
       return;
     }
 
