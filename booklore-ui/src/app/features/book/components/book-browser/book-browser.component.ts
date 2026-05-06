@@ -606,7 +606,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private saveScrollPosition(): void {
     const el = this.scrollContainer?.nativeElement;
-    if (!el) return;
+    if (!el || !el.isConnected) return;
     const key = this.getScrollPositionKey();
     this.scrollService.savePosition(key, el.scrollTop ?? 0);
   }
@@ -625,6 +625,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
       scrollEl.scrollTop = savedPosition;
       scrollEl.dispatchEvent(new Event('scroll'));
+      this.cdr.detectChanges();
     });
   }
 
@@ -1208,6 +1209,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
       scrollEl.scrollTop = savedPosition;
       scrollEl.dispatchEvent(new Event('scroll'));
+      this.cdr.detectChanges();
     });
 
     return true;
