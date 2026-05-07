@@ -55,6 +55,7 @@ class BookServiceDeleteTests {
         BookDownloadService bookDownloadService = Mockito.mock(BookDownloadService.class);
         MonitoringRegistrationService monitoringRegistrationService = Mockito.mock(MonitoringRegistrationService.class);
         BookUpdateService bookUpdateService = Mockito.mock(BookUpdateService.class);
+        ShelfRepository shelfRepository = Mockito.mock(ShelfRepository.class);
         SidecarMetadataWriter sidecarMetadataWriter = Mockito.mock(SidecarMetadataWriter.class);
         FileStreamingService fileStreamingService = Mockito.mock(FileStreamingService.class);
         AuditService auditService = Mockito.mock(AuditService.class);
@@ -76,6 +77,7 @@ class BookServiceDeleteTests {
                 monitoringRegistrationService,
                 bookUpdateService,
                 ebookViewerPreferenceRepository,
+                shelfRepository,
                 sidecarMetadataWriter,
                 fileStreamingService,
                 auditService,

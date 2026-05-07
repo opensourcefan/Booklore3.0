@@ -10,6 +10,7 @@ import org.booklore.model.dto.response.BookStatusUpdateResponse;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookFileEntity;
 import org.booklore.model.entity.LibraryPathEntity;
+import org.booklore.model.entity.ShelfEntity;
 import org.booklore.model.entity.UserBookFileProgressEntity;
 import org.booklore.model.entity.UserBookProgressEntity;
 import org.booklore.model.enums.BookFileType;
@@ -79,6 +80,7 @@ public class BookService {
     private final MonitoringRegistrationService monitoringRegistrationService;
     private final BookUpdateService bookUpdateService;
     private final EbookViewerPreferenceRepository ebookViewerPreferencesRepository;
+    private final ShelfRepository shelfRepository;
     private final SidecarMetadataWriter sidecarMetadataWriter;
     private final FileStreamingService fileStreamingService;
     private final AuditService auditService;
@@ -624,7 +626,7 @@ public class BookService {
 
     public AppPageResponse<Book> getBooksPaged(int page, int size, List<String> sorts,
             String sortField, String sortDir, Long libraryId,
-            String search, List<String> authors, List<String> categories,
+            Long shelfId, boolean unshelved, String search, List<String> authors, List<String> categories,
             String series, String publisher, String language, String isbn,
             String readStatus, String bookType, String contentRating, String filterMode) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
@@ -636,8 +638,8 @@ public class BookService {
 
         // Build filter specification
         Specification<BookEntity> filterSpec = buildFilterSpec(search, authors, categories,
-                series, publisher, language, isbn, readStatus, bookType, contentRating,
-                filterMode, user);
+            series, publisher, language, isbn, readStatus, bookType, contentRating,
+            shelfId, unshelved, filterMode, user);
 
         // Build base specification with library access control
         Specification<BookEntity> baseSpec;
@@ -655,7 +657,7 @@ public class BookService {
                 filterSpec
         );
 
-        Page<Book> bookPage = bookQueryService.findAllPaged(combined, pageable);
+        Page<Book> bookPage = bookQueryService.findAllPaged(combined, pageable, user.getId());
 
         Set<Long> bookIds = bookPage.getContent().stream().map(Book::getId).collect(Collectors.toSet());
         Map<Long, UserBookProgressEntity> progressMap =
@@ -708,10 +710,19 @@ public class BookService {
     private Specification<BookEntity> buildFilterSpec(String search, List<String> authors,
             List<String> categories, String series, String publisher, String language,
             String isbn, String readStatus, String bookType, String contentRating,
-            String filterMode, BookLoreUser user) {
+            Long shelfId, boolean unshelved, String filterMode, BookLoreUser user) {
         boolean orMode = "or".equalsIgnoreCase(filterMode);
 
         List<Specification<BookEntity>> specs = new ArrayList<>();
+
+        if (shelfId != null) {
+            validateShelfAccess(shelfId, user);
+            specs.add(AppBookSpecification.inShelf(shelfId));
+        }
+
+        if (unshelved) {
+            specs.add(AppBookSpecification.withoutShelvesForUser(user.getId()));
+        }
 
         if (search != null && !search.trim().isEmpty()) {
             specs.add(AppBookSpecification.searchText(search));
@@ -781,6 +792,15 @@ public class BookService {
         Specification<BookEntity>[] specArray = specs.toArray(new Specification[0]);
         return orMode ? AppBookSpecification.combineOr(specArray)
                       : AppBookSpecification.combine(specArray);
+    }
+
+    private void validateShelfAccess(Long shelfId, BookLoreUser user) {
+        ShelfEntity shelf = shelfRepository.findById(shelfId)
+                .orElseThrow(() -> ApiError.SHELF_NOT_FOUND.createException(shelfId));
+
+        if (!shelf.isPublic() && !Objects.equals(shelf.getUser().getId(), user.getId())) {
+            throw ApiError.FORBIDDEN.createException("Access denied to shelf " + shelfId);
+        }
     }
 
     public Book updateCurrentlyReadingStatus(long bookId, boolean isCurrentlyReading) {

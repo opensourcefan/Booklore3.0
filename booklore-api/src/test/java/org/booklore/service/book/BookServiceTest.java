@@ -1,6 +1,7 @@
 package org.booklore.service.book;
 
 import org.booklore.config.security.service.AuthenticationService;
+import org.booklore.app.dto.AppPageResponse;
 import org.booklore.exception.APIException;
 import org.booklore.service.audit.AuditService;
 import org.booklore.mapper.BookMapper;
@@ -30,6 +31,9 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -79,6 +83,8 @@ class BookServiceTest {
     private AuditService auditService;
     @Mock
     private AppSettingService appSettingService;
+    @Mock
+    private ShelfRepository shelfRepository;
 
     @InjectMocks
     private BookService bookService;
@@ -520,5 +526,85 @@ class BookServiceTest {
 
         assertEquals(1, result.size());
         assertTrue(result.contains(shelf1));
+    }
+
+    @Test
+    void getBooksPaged_withAccessibleShelf_usesMainPagedContract() {
+        ShelfEntity shelf = ShelfEntity.builder()
+                .id(7L)
+                .isPublic(true)
+                .build();
+        PageRequest pageable = PageRequest.of(0, 50, Sort.by(Sort.Direction.ASC, "metadata.title"));
+
+        when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
+        when(shelfRepository.findById(7L)).thenReturn(Optional.of(shelf));
+        when(bookQueryService.findAllPaged(any(), eq(pageable), eq(testUser.getId())))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+        when(readingProgressService.fetchUserProgress(anyLong(), anySet())).thenReturn(Map.of());
+        when(readingProgressService.fetchUserFileProgress(anyLong(), anySet())).thenReturn(Map.of());
+
+        AppPageResponse<Book> result = bookService.getBooksPaged(
+                0,
+                50,
+                List.of("metadata.title,asc"),
+                null,
+                null,
+                null,
+                7L,
+                false,
+                "dune",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "and"
+        );
+
+        assertEquals(0, result.getTotalElements());
+        verify(shelfRepository).findById(7L);
+        verify(bookQueryService).findAllPaged(any(), eq(pageable), eq(testUser.getId()));
+    }
+
+    @Test
+    void getBooksPaged_withPrivateShelfOwnedByAnotherUser_throwsForbidden() {
+        BookLoreUserEntity otherUser = new BookLoreUserEntity();
+        otherUser.setId(99L);
+        ShelfEntity shelf = ShelfEntity.builder()
+                .id(8L)
+                .user(otherUser)
+                .isPublic(false)
+                .build();
+
+        when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
+        when(shelfRepository.findById(8L)).thenReturn(Optional.of(shelf));
+
+        assertThrows(APIException.class, () -> bookService.getBooksPaged(
+                0,
+                50,
+                null,
+                null,
+                null,
+                null,
+                8L,
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "and"
+        ));
+
+        verify(bookQueryService, never()).findAllPaged(any(), any());
     }
 }

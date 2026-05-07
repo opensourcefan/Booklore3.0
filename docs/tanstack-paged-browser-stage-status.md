@@ -4,6 +4,16 @@ Last verified: 2026-05-06
 Branch: `develop`
 Latest verified release at time of update: `v3.15.41`
 
+## Current Local Follow-On Batch
+
+An unreleased local follow-on batch now extends the guarded paged browser beyond the `v3.15.41` shipped boundary.
+
+- The guarded paged browser path now supports `ALL_BOOKS`, `LIBRARY`, `SHELF`, and `NOT_SHELFED` when the request stays within the current server-backed contract.
+- The guarded paged browser path now supports active search terms instead of forcing an automatic legacy fallback.
+- The main paged browser endpoint now exposes `shelfId` and `unshelved` filters for the browser path.
+- The current server adapter now supports a broader metadata-backed sort set plus user-progress-backed `personalRating`, `lastReadTime`, `dateFinished`, and `readStatus` on the paged path.
+- Magic Shelf remains intentionally legacy.
+
 ## Current Stage Position
 
 Stage 5 is complete.
@@ -33,25 +43,44 @@ Any future feature-by-feature legacy dependency reductions are now post-plan fol
 - The guarded paged path falls back to legacy full-state mode when sort or filter criteria are not supported by the server adapter.
 - Shelf, Magic Shelf, and Not Shelfed routes now surface the same legacy status pill in the browser UI instead of showing no route-status pill at all.
 
+## Current Local Browser Boundary
+
+- `ALL_BOOKS`, `LIBRARY`, `SHELF`, and `NOT_SHELFED` can now stay on the paged browser path for `grid` and `table` views.
+- Active search terms can now stay on the paged browser path.
+- Metadata-backed server sort fields can now stay on the paged browser path.
+- User-progress-backed `personalRating`, `lastReadTime`, `dateFinished`, and `readStatus` can now stay on the paged browser path.
+- Unsupported computed, random, `readingProgress`, and file-primary sort fields still fall back to legacy full-state mode.
+- Directory-scoped browsing still falls back to legacy full-state mode.
+- Series-collapsed browsing still falls back to legacy full-state mode.
+- Magic Shelf still falls back to legacy full-state mode.
+
 ## What Remains Legacy By Design Today
 
-- Shelf routes remain legacy full-state.
 - Magic Shelf routes remain legacy full-state.
-- Not Shelfed routes remain legacy full-state.
 - Directory-scoped browsing remains legacy full-state.
 - Series-collapsed browsing remains legacy full-state.
-- Search-driven browsing remains legacy full-state.
-- Unsupported sort combinations remain legacy full-state.
+- Unsupported computed sort combinations, including `readingProgress`, remain legacy full-state.
 - Unsupported filter combinations remain legacy full-state.
+
+## Exact Remaining Follow-On Work
+
+- `readingProgress` still needs a server-side sort contract that matches the client's current multi-source progress precedence across EPUB, PDF, CBX, audiobook, KOReader, and Kobo progress values.
+- Directory-scoped browser routes still need a server-backed contract before they can move off legacy full-state mode.
+- Series-collapsed browser routes still need a server-backed grouped-query contract before they can move off legacy full-state mode.
+- Magic Shelf remains intentionally legacy unless there is a future decision to add a dedicated paged contract for rule-based shelf results.
+- Unsupported browser filter combinations still need explicit server mappings before they can stay on the paged path.
 
 ## Evidence Basis
 
-- `PagedGridPilotService` only enables paged mode for `ALL_BOOKS` and `LIBRARY` and only for normalized `grid` or `table` view modes.
+- `PagedGridPilotService` now enables paged mode for `ALL_BOOKS`, `LIBRARY`, `SHELF`, and `NOT_SHELFED` for normalized `grid` or `table` view modes.
 - `PagedGridPilotService` guardrails explicitly allow paged grid and paged table view while preserving `legacy-full-state` fallback mode.
-- `PagedGridPilotService` blocker logic explicitly rejects directory scope, series collapse, active search, unsupported sort criteria, and unsupported filters.
+- `PagedGridPilotService` now carries active search on the server path and only rejects directory scope, series collapse, unsupported sort criteria, short search terms, and unsupported filters.
 - `BookBrowserComponent` passes live table scroll metrics into the guarded pilot and exposes the paged pilot state to the protected `BookTableComponent` without rewriting the table.
 - `BookTableComponent` keeps PrimeNG virtual scroll intact and preserves scroll position during incremental paged appends.
-- `BookBrowserComponent` now keeps the status pill visible on Shelf, Magic Shelf, and Not Shelfed routes by setting an explicit legacy status instead of clearing the pilot status to inactive.
+- `BookBrowserComponent` now routes `SHELF` and `NOT_SHELFED` through the guarded pilot when the contract is satisfied and leaves `MAGIC_SHELF` on explicit legacy status.
+- `BookController` and `BookService` now expose and process `shelfId` and `unshelved` on the main paged endpoint.
+- `AppBookSpecification.searchText` now searches normalized metadata search text plus categories, ISBNs, and file names.
+- `BookQueryService` now applies current-user-aware paged sorting for `personalRating`, `lastReadTime`, `dateFinished`, and `readStatus` instead of forcing those fields back to legacy mode.
 
 ## Stage 6 Release History
 
@@ -81,12 +110,12 @@ Shipped outcome:
 
 - Any future dependency reduction must pick one narrow remaining legacy surface.
 - Any future dependency reduction needs its own validation story and rollback path.
-- Broadening the paged pilot without explicit evidence and isolated tests is still not allowed.
+- Broadening the paged pilot into directory scope, Magic Shelf, or computed sorts such as `readingProgress` without explicit evidence and isolated tests is still not allowed.
 
 ## Validation Guidance For Any Future Follow-On Reduction
 
-- `cd booklore-ui && npm exec vitest run src/app/features/book/service/paged-grid-pilot.service.spec.ts src/app/features/book/components/book-browser/book-table/book-table.component.spec.ts`
+- `cd booklore-ui && npm exec vitest run src/app/features/book/service/paged-grid-pilot.service.spec.ts src/app/features/book/service/server-filter-adapter.service.spec.ts`
 - `cd booklore-ui && npm run build`
-- `cd booklore-ui && npm run lint`
+- `cd booklore-api && ./gradlew test --tests org.booklore.service.book.BookServiceTest`
 
 Run broader frontend or backend gates only when the touched surface expands beyond the current browser boundary.

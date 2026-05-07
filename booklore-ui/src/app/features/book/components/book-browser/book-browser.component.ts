@@ -88,6 +88,7 @@ import {
   GridViewportContext,
   shouldResetGridViewport,
 } from './book-browser-grid-reset.util';
+import { PagedBookBrowserEntity } from '../../model/state/paged-book-browser-state.model';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -1137,10 +1138,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.lastGridViewportContext = nextViewportContext;
 
-    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.LIBRARY) {
-      if (this.entityType === EntityType.ALL_BOOKS) {
+    const pagedEntity = this.getPagedPilotEntity();
+
+    if (pagedEntity) {
+      if (pagedEntity === 'ALL_BOOKS' || pagedEntity === 'NOT_SHELFED') {
         this.bookState$ = this.pagedGridPilotService.connect({
-          entity: 'ALL_BOOKS',
+          entity: pagedEntity,
           entityId: null,
           viewMode: this.currentViewMode,
           sortCriteria,
@@ -1149,7 +1152,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           isDirectoryScopedView: this.isDirectoryScopedView,
           isSeriesCollapsed: this.seriesCollapseFilter.isSeriesCollapsed,
           searchTerm: this.searchTerm$.getValue(),
-        }, () => this.entityService.fetchAllBooks(primarySort).pipe(
+        }, () => (pagedEntity === 'NOT_SHELFED'
+          ? this.entityService.fetchNotShelfedBooks(primarySort)
+          : this.entityService.fetchAllBooks(primarySort)
+        ).pipe(
           map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
           switchMap(bookState => this.applyBookFilters(bookState))
         ));
@@ -1158,7 +1164,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.bookState$ = routeParam$.pipe(
           switchMap(({entityId, entityType}) =>
             this.pagedGridPilotService.connect({
-              entity: 'LIBRARY',
+              entity: pagedEntity,
               entityId,
               viewMode: this.currentViewMode,
               sortCriteria,
@@ -1174,12 +1180,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           )
         );
       }
-    } else if (this.entityType === EntityType.NOT_SHELFED) {
-      this.syncExplicitLegacyBrowseStatus();
-      this.bookState$ = this.entityService.fetchNotShelfedBooks(primarySort).pipe(
-        map(bookState => this.applyClientSideMultiSort(bookState, sortCriteria)),
-        switchMap(bookState => this.applyBookFilters(bookState))
-      );
     } else {
       this.syncExplicitLegacyBrowseStatus();
       const routeParam$ = this.entityService.getEntityInfoFromRoute(this.activatedRoute);
@@ -1229,22 +1229,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private syncExplicitLegacyBrowseStatus(): void {
     switch (this.entityType) {
-      case EntityType.SHELF:
-        this.pagedGridPilotService.setExplicitLegacyStatus(
-          'Shelf routes currently use the legacy full-state path.',
-          ['shelf route stays on legacy full-state mode'],
-        );
-        break;
       case EntityType.MAGIC_SHELF:
         this.pagedGridPilotService.setExplicitLegacyStatus(
           'Magic Shelf routes currently use the legacy full-state path.',
           ['magic shelf route stays on legacy full-state mode'],
-        );
-        break;
-      case EntityType.NOT_SHELFED:
-        this.pagedGridPilotService.setExplicitLegacyStatus(
-          'Not Shelfed routes currently use the legacy full-state path.',
-          ['not-shelfed route stays on legacy full-state mode'],
         );
         break;
       default:
@@ -1611,8 +1599,23 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   onSearchTermChange(term: string): void {
     this.searchTerm$.next(term);
 
-    if (this.entityType === EntityType.ALL_BOOKS && this.currentViewMode === VIEW_MODES.GRID) {
+    if (this.getPagedPilotEntity()) {
       this.applySortCriteria(this.getEffectiveSortCriteria(this.bookSorter.selectedSortCriteria));
+    }
+  }
+
+  private getPagedPilotEntity(): PagedBookBrowserEntity | null {
+    switch (this.entityType) {
+      case EntityType.ALL_BOOKS:
+        return 'ALL_BOOKS';
+      case EntityType.LIBRARY:
+        return 'LIBRARY';
+      case EntityType.SHELF:
+        return 'SHELF';
+      case EntityType.NOT_SHELFED:
+        return 'NOT_SHELFED';
+      default:
+        return null;
     }
   }
 

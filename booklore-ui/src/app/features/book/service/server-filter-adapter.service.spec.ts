@@ -19,9 +19,11 @@ describe('ServerFilterAdapter', () => {
 
     expect(service.buildSortParams([
       {field: 'title', label: 'Title', direction: SortDirection.ASCENDING},
+      {field: 'personalRating', label: 'Personal Rating', direction: SortDirection.DESCENDING},
+      {field: 'publisher', label: 'Publisher', direction: SortDirection.DESCENDING},
       {field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING},
     ])).toEqual({
-      sorts: ['metadata.title,asc', 'addedOn,desc'],
+      sorts: ['metadata.title,asc', 'personalRating,desc', 'metadata.publisher,desc', 'addedOn,desc'],
     });
   });
 
@@ -30,6 +32,8 @@ describe('ServerFilterAdapter', () => {
 
     expect(service.getUnsupportedSortFields([
       {field: 'random', label: 'Random', direction: SortDirection.ASCENDING},
+      {field: 'personalRating', label: 'Personal Rating', direction: SortDirection.DESCENDING},
+      {field: 'lastReadTime', label: 'Last Read', direction: SortDirection.DESCENDING},
       {field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING},
     ])).toEqual(['random']);
 

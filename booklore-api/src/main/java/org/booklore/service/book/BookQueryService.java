@@ -1,10 +1,24 @@
 package org.booklore.service.book;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.booklore.mapper.v2.BookMapperV2;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.BookMetadata;
 import org.booklore.model.dto.ComicMetadata;
 import org.booklore.model.entity.BookEntity;
+import org.booklore.model.entity.UserBookProgressEntity;
+import org.booklore.model.enums.ReadStatus;
 import org.booklore.repository.BookRepository;
 import org.booklore.service.restriction.ContentRestrictionService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +29,7 @@ import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +40,17 @@ import java.util.stream.Collectors;
 @Service
 public class BookQueryService {
 
+    private static final Set<String> USER_PROGRESS_SORT_FIELDS = Set.of(
+            "personalRating",
+            "lastReadTime",
+            "dateFinished",
+            "readStatus"
+    );
+
     private final BookRepository bookRepository;
     private final BookMapperV2 bookMapperV2;
     private final ContentRestrictionService contentRestrictionService;
+    private final EntityManager entityManager;
 
     public List<Book> getAllBooks(boolean includeDescription, boolean stripForListView) {
         List<BookEntity> books = bookRepository.findAllWithMetadata();
@@ -46,8 +69,163 @@ public class BookQueryService {
     }
 
     public Page<Book> findAllPaged(Specification<BookEntity> spec, Pageable pageable) {
-        Page<BookEntity> page = bookRepository.findAll(spec, pageable);
-        return page.map(book -> mapBookToDto(book, false, null, true));
+        return findAllPaged(spec, pageable, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Book> findAllPaged(Specification<BookEntity> spec, Pageable pageable, Long userId) {
+        if (userId == null || !requiresUserProgressSort(pageable.getSort())) {
+            Page<BookEntity> page = bookRepository.findAll(spec, pageable);
+            return page.map(book -> mapBookToDto(book, false, null, true));
+        }
+
+        return findAllPagedWithUserSort(spec, pageable, userId);
+    }
+
+    private Page<Book> findAllPagedWithUserSort(Specification<BookEntity> spec, Pageable pageable, Long userId) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<BookEntity> contentQuery = cb.createQuery(BookEntity.class);
+        Root<BookEntity> root = contentQuery.from(BookEntity.class);
+        Predicate predicate = applySpecification(spec, root, contentQuery, cb);
+        Join<BookEntity, UserBookProgressEntity> progressJoin = root.join("userBookProgress", JoinType.LEFT);
+        progressJoin.on(cb.equal(progressJoin.get("user").get("id"), userId));
+
+        contentQuery.select(root).distinct(true);
+        if (predicate != null) {
+            contentQuery.where(predicate);
+        }
+        contentQuery.orderBy(buildSortOrders(pageable.getSort(), root, progressJoin, cb));
+
+        TypedQuery<BookEntity> typedQuery = entityManager.createQuery(contentQuery);
+        typedQuery.setFirstResult((int) pageable.getOffset());
+        typedQuery.setMaxResults(pageable.getPageSize());
+        List<BookEntity> content = typedQuery.getResultList();
+
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<BookEntity> countRoot = countQuery.from(BookEntity.class);
+        Predicate countPredicate = applySpecification(spec, countRoot, countQuery, cb);
+        countQuery.select(cb.countDistinct(countRoot));
+        if (countPredicate != null) {
+            countQuery.where(countPredicate);
+        }
+
+        long total = entityManager.createQuery(countQuery).getSingleResult();
+        List<Book> mapped = content.stream()
+                .map(book -> mapBookToDto(book, false, null, true))
+                .toList();
+        return new PageImpl<>(mapped, pageable, total);
+    }
+
+    private Predicate applySpecification(
+            Specification<BookEntity> spec,
+            Root<BookEntity> root,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb) {
+        if (spec == null) {
+            return cb.conjunction();
+        }
+
+        return spec.toPredicate(root, query, cb);
+    }
+
+    private boolean requiresUserProgressSort(Sort sort) {
+        return sort.stream().anyMatch(order -> USER_PROGRESS_SORT_FIELDS.contains(order.getProperty()));
+    }
+
+    private List<Order> buildSortOrders(
+            Sort sort,
+            Root<BookEntity> root,
+            Join<BookEntity, UserBookProgressEntity> progressJoin,
+            CriteriaBuilder cb) {
+        List<Order> orders = new ArrayList<>();
+        Map<String, From<?, ?>> joins = new HashMap<>();
+
+        for (Sort.Order sortOrder : sort) {
+            String property = sortOrder.getProperty();
+            if (USER_PROGRESS_SORT_FIELDS.contains(property)) {
+                addUserProgressSort(orders, property, sortOrder.getDirection(), progressJoin, cb);
+                continue;
+            }
+
+            Path<?> path = resolvePath(root, joins, property);
+            orders.add(sortOrder.isAscending() ? cb.asc(path) : cb.desc(path));
+        }
+
+        return orders;
+    }
+
+    private void addUserProgressSort(
+            List<Order> orders,
+            String property,
+            Sort.Direction direction,
+            Join<BookEntity, UserBookProgressEntity> progressJoin,
+            CriteriaBuilder cb) {
+        if ("readStatus".equals(property)) {
+            Expression<Integer> rank = buildReadStatusRank(progressJoin, cb);
+            addNullAwareOrder(orders, rank, cb.isNull(progressJoin.get("id")), direction, cb);
+            return;
+        }
+
+        Expression<?> expression = progressJoin.get(property);
+        addNullAwareOrder(orders, expression, cb.isNull(progressJoin.get(property)), direction, cb);
+    }
+
+    private Expression<Integer> buildReadStatusRank(
+            Join<BookEntity, UserBookProgressEntity> progressJoin,
+            CriteriaBuilder cb) {
+        Path<ReadStatus> readStatusPath = progressJoin.get("readStatus");
+        return cb.<Integer>selectCase()
+            .when(cb.isNull(readStatusPath), 0)
+            .when(cb.equal(readStatusPath, ReadStatus.UNREAD), 1)
+            .when(cb.equal(readStatusPath, ReadStatus.READING), 2)
+            .when(cb.equal(readStatusPath, ReadStatus.RE_READING), 3)
+            .when(cb.equal(readStatusPath, ReadStatus.PARTIALLY_READ), 4)
+            .when(cb.equal(readStatusPath, ReadStatus.PAUSED), 5)
+            .when(cb.equal(readStatusPath, ReadStatus.READ), 6)
+            .when(cb.equal(readStatusPath, ReadStatus.ABANDONED), 7)
+            .when(cb.equal(readStatusPath, ReadStatus.WONT_READ), 8)
+            .otherwise(0);
+    }
+
+    private void addNullAwareOrder(
+            List<Order> orders,
+            Expression<?> expression,
+            Predicate isNull,
+            Sort.Direction direction,
+            CriteriaBuilder cb) {
+        Expression<Integer> nullOrder = cb.<Integer>selectCase()
+            .when(isNull, direction.isAscending() ? 1 : 0)
+            .otherwise(direction.isAscending() ? 0 : 1);
+        orders.add(cb.asc(nullOrder));
+        orders.add(direction.isAscending() ? cb.asc(expression) : cb.desc(expression));
+    }
+
+    private Path<?> resolvePath(Root<BookEntity> root, Map<String, From<?, ?>> joins, String propertyPath) {
+        if (!propertyPath.contains(".")) {
+            return root.get(propertyPath);
+        }
+
+        String[] parts = propertyPath.split("\\.");
+        From<?, ?> current = root;
+        StringBuilder joinPath = new StringBuilder();
+
+        for (int index = 0; index < parts.length - 1; index++) {
+            if (!joinPath.isEmpty()) {
+                joinPath.append('.');
+            }
+            joinPath.append(parts[index]);
+
+            String key = joinPath.toString();
+            From<?, ?> existing = joins.get(key);
+            if (existing == null) {
+                existing = current.join(parts[index], JoinType.LEFT);
+                joins.put(key, existing);
+            }
+            current = existing;
+        }
+
+        return current.get(parts[parts.length - 1]);
     }
 
     public Page<Book> getAllBooksByLibraryIdsPaged(Collection<Long> libraryIds, Long userId, Pageable pageable) {

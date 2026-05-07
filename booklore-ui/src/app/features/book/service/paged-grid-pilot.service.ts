@@ -7,6 +7,13 @@ import { BookService, PagedBooksParams } from './book.service';
 import { PagedBookBrowserStateService } from './paged-book-browser-state.service';
 import { ServerFilterAdapter } from './server-filter-adapter.service';
 
+const ENABLED_PAGED_ENTITIES: ReadonlySet<PagedBookBrowserEntity> = new Set([
+  'ALL_BOOKS',
+  'LIBRARY',
+  'SHELF',
+  'NOT_SHELFED',
+]);
+
 export interface PagedGridPilotContext {
   entity: PagedBookBrowserEntity;
   entityId?: number | null;
@@ -89,8 +96,21 @@ export class PagedGridPilotService {
       this.serverFilterAdapter.buildFilterParams(context.filters, context.filterMode),
     );
 
+    const searchTerm = this.getPagedSearchTerm(context.searchTerm);
+    if (searchTerm) {
+      params.search = searchTerm;
+    }
+
     if (context.entity === 'LIBRARY' && context.entityId != null) {
       params.libraryId = context.entityId;
+    }
+
+    if (context.entity === 'SHELF' && context.entityId != null) {
+      params.shelfId = context.entityId;
+    }
+
+    if (context.entity === 'NOT_SHELFED') {
+      params.unshelved = true;
     }
 
     const requestKey = this.pagedBookBrowserStateService.buildRequestKey(
@@ -122,7 +142,7 @@ export class PagedGridPilotService {
       fallbackMode: 'legacy-full-state',
       allowPagedGridView: true,
       allowPagedTableView: true,
-      enabledEntities: ['ALL_BOOKS', 'LIBRARY'],
+      enabledEntities: ['ALL_BOOKS', 'LIBRARY', 'SHELF', 'NOT_SHELFED'],
     });
 
     this.activeQuery = {
@@ -235,27 +255,20 @@ export class PagedGridPilotService {
   }
 
   private canUsePagedPilot(context: PagedGridPilotContext): boolean {
-    return (context.entity === 'ALL_BOOKS' || context.entity === 'LIBRARY')
-      && context.viewMode === 'grid'
+    return ENABLED_PAGED_ENTITIES.has(context.entity)
+      && !!this.normalizeViewMode(context.viewMode)
       && !context.isDirectoryScopedView
       && !context.isSeriesCollapsed
-      && context.searchTerm.trim().length === 0
-      && this.hasPagedSafeSort(context.sortCriteria)
       && this.serverFilterAdapter.supportsSortCriteria(context.sortCriteria)
       && this.serverFilterAdapter.supportsFilters(context.filters);
   }
 
-  private hasPagedSafeSort(sortCriteria: SortOption[]): boolean {
-    return sortCriteria.length === 0
-      || (
-        sortCriteria.length === 1
-        && sortCriteria[0].field === 'addedOn'
-        && sortCriteria[0].direction === SortDirection.DESCENDING
-      );
-  }
-
   private getEligibilityBlockers(context: PagedGridPilotContext): string[] {
     const blockers: string[] = [];
+
+    if (!ENABLED_PAGED_ENTITIES.has(context.entity)) {
+      blockers.push(`entity ${context.entity} is not enabled for paged browse`);
+    }
 
     if (!this.normalizeViewMode(context.viewMode)) {
       blockers.push(`view mode is ${context.viewMode ?? 'unset'}`);
@@ -269,17 +282,13 @@ export class PagedGridPilotService {
       blockers.push('series collapse is enabled');
     }
 
-    if (context.searchTerm.trim().length > 0) {
-      blockers.push('search is active');
+    const unsupportedSortFields = this.serverFilterAdapter.getUnsupportedSortFields(context.sortCriteria);
+    if (unsupportedSortFields.length > 0) {
+      blockers.push(`unsupported sort fields: ${unsupportedSortFields.join(', ')}`);
     }
 
-    if (!this.hasPagedSafeSort(context.sortCriteria)) {
-      blockers.push(`sort is ${this.describeSortCriteria(context.sortCriteria)}`);
-    } else {
-      const unsupportedSortFields = this.serverFilterAdapter.getUnsupportedSortFields(context.sortCriteria);
-      if (unsupportedSortFields.length > 0) {
-        blockers.push(`unsupported sort fields: ${unsupportedSortFields.join(', ')}`);
-      }
+    if (this.getPagedSearchTerm(context.searchTerm) === null && context.searchTerm.trim().length > 0) {
+      blockers.push('search term is too short for server search');
     }
 
     const unsupportedFilterKeys = this.serverFilterAdapter.getUnsupportedFilterKeys(context.filters);
@@ -516,7 +525,34 @@ export class PagedGridPilotService {
 
   private canWarmStart(query: ActivePagedQuery): boolean {
     return query.requestKey.sorts.length === 0
-      || query.requestKey.sorts.every(sort => sort.split(',')[0] === 'addedOn');
+      || (
+        query.requestKey.search === null
+        && query.requestKey.sorts.every(sort => sort.split(',')[0] === 'addedOn')
+      );
+  }
+
+  private getPagedSearchTerm(searchTerm: string): string | null {
+    const trimmed = searchTerm.trim();
+    if (trimmed.length === 0) {
+      return null;
+    }
+
+    return this.normalizeSearchTerm(trimmed).length >= 2 ? trimmed : null;
+  }
+
+  private normalizeSearchTerm(term: string): string {
+    return term
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/ø/gi, 'o')
+      .replace(/ł/gi, 'l')
+      .replace(/æ/gi, 'ae')
+      .replace(/œ/gi, 'oe')
+      .replace(/ß/g, 'ss')
+      .replace(/[!@$%^&*_=|~`<>?/";']/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
   }
 
   private subscribeToLegacy(legacyFactory: () => Observable<BookState>): void {

@@ -6,6 +6,23 @@ const SUPPORTED_SORT_FIELD_MAP: Readonly<Record<string, string>> = {
   addedOn: 'addedOn',
   title: 'metadata.title',
   seriesName: 'metadata.seriesName',
+  seriesNumber: 'metadata.seriesNumber',
+  publisher: 'metadata.publisher',
+  publishedDate: 'metadata.publishedDate',
+  pageCount: 'metadata.pageCount',
+  rating: 'metadata.rating',
+  amazonRating: 'metadata.amazonRating',
+  amazonReviewCount: 'metadata.amazonReviewCount',
+  goodreadsRating: 'metadata.goodreadsRating',
+  goodreadsReviewCount: 'metadata.goodreadsReviewCount',
+  hardcoverRating: 'metadata.hardcoverRating',
+  hardcoverReviewCount: 'metadata.hardcoverReviewCount',
+  ranobedbRating: 'metadata.ranobedbRating',
+  narrator: 'metadata.narrator',
+  personalRating: 'personalRating',
+  lastReadTime: 'lastReadTime',
+  dateFinished: 'dateFinished',
+  readStatus: 'readStatus',
 };
 
 const SUPPORTED_FILTER_KEYS = new Set<string>([

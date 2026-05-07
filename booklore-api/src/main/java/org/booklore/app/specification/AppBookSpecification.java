@@ -1,5 +1,6 @@
 package org.booklore.app.specification;
 
+import org.booklore.util.BookUtils;
 import org.booklore.model.entity.*;
 import org.booklore.model.enums.BookFileType;
 import org.booklore.model.enums.ReadStatus;
@@ -41,7 +42,25 @@ public class AppBookSpecification {
                 return cb.conjunction();
             }
             Join<BookEntity, ShelfEntity> shelvesJoin = root.join("shelves", JoinType.INNER);
+            query.distinct(true);
             return cb.equal(shelvesJoin.get("id"), shelfId);
+        };
+    }
+
+    public static Specification<BookEntity> withoutShelvesForUser(Long userId) {
+        return (root, query, cb) -> {
+            if (userId == null) {
+                return cb.conjunction();
+            }
+
+            Subquery<Long> subquery = query.subquery(Long.class);
+            Root<ShelfEntity> shelfRoot = subquery.from(ShelfEntity.class);
+            Join<ShelfEntity, BookEntity> shelfBooks = shelfRoot.join("bookEntities", JoinType.INNER);
+
+            subquery.select(shelfBooks.get("id"))
+                    .where(cb.equal(shelfRoot.get("user").get("id"), userId));
+
+            return cb.not(root.get("id").in(subquery));
         };
     }
 
@@ -89,15 +108,20 @@ public class AppBookSpecification {
             if (searchQuery == null || searchQuery.trim().isEmpty()) {
                 return cb.conjunction();
             }
-            String pattern = "%" + searchQuery.toLowerCase().trim() + "%";
+            String normalizedTerm = BookUtils.normalizeForSearch(searchQuery);
+            String normalizedPattern = "%" + normalizedTerm + "%";
+            String rawPattern = "%" + BookUtils.cleanSearchTerm(searchQuery).toLowerCase().trim() + "%";
 
             Join<BookEntity, BookMetadataEntity> metadataJoin = root.join("metadata", JoinType.LEFT);
-            Join<BookMetadataEntity, AuthorEntity> authorsJoin = metadataJoin.join("authors", JoinType.LEFT);
+            Join<BookMetadataEntity, CategoryEntity> categoriesJoin = metadataJoin.join("categories", JoinType.LEFT);
+            Join<BookEntity, BookFileEntity> filesJoin = root.join("bookFiles", JoinType.LEFT);
 
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.like(cb.lower(metadataJoin.get("title")), pattern));
-            predicates.add(cb.like(cb.lower(metadataJoin.get("seriesName")), pattern));
-            predicates.add(cb.like(cb.lower(authorsJoin.get("name")), pattern));
+            predicates.add(cb.like(cb.lower(metadataJoin.get("searchText")), normalizedPattern));
+            predicates.add(cb.like(cb.lower(categoriesJoin.get("name")), rawPattern));
+            predicates.add(cb.like(cb.lower(metadataJoin.get("isbn10")), rawPattern));
+            predicates.add(cb.like(cb.lower(metadataJoin.get("isbn13")), rawPattern));
+            predicates.add(cb.like(cb.lower(filesJoin.get("fileName")), rawPattern));
 
             query.distinct(true);
 

@@ -329,8 +329,18 @@ describe('PagedGridPilotService', () => {
     expect(getBooksPaged).toHaveBeenCalledTimes(2);
   });
 
-  it('falls back to the legacy path for title sorting so client-side order remains authoritative', async () => {
+  it('uses the paged path for title sorting when the server contract supports it', async () => {
     const service = createService();
+
+    getBooksPaged.mockReturnValueOnce(of({
+      content: [createBook(11, 'Alpha'), createBook(12, 'Bravo')],
+      page: 0,
+      size: 80,
+      totalElements: 2,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    }));
 
     const bookState$ = service.connect({
       entity: 'ALL_BOOKS',
@@ -345,19 +355,55 @@ describe('PagedGridPilotService', () => {
     }, () => of(legacyState([createBook(90, 'Warm 90'), createBook(91, 'Warm 91')])));
 
     const pagedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
-    expect(pagedState.books?.map(book => book.id)).toEqual([90, 91]);
-    expect(service.isPagedActive()).toBe(false);
-    expect(getBooksPaged).not.toHaveBeenCalled();
+    expect(pagedState.books?.map(book => book.id)).toEqual([11, 12]);
+    expect(service.isPagedActive()).toBe(true);
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      sorts: ['metadata.title,asc'],
+    }));
   });
 
-  it('falls back to the legacy path for ascending Added On so client-side ordering remains authoritative', async () => {
+  it('uses the paged path for supported user-progress sorting', async () => {
+    const service = createService();
+
+    getBooksPaged.mockReturnValueOnce(of({
+      content: [createBook(2, 'Older'), createBook(1, 'Oldest')],
+      page: 0,
+      size: 80,
+      totalElements: 2,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    }));
+
+    const bookState$ = service.connect({
+      entity: 'ALL_BOOKS',
+      entityId: null,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'personalRating', label: 'Personal Rating', direction: SortDirection.ASCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, () => of(legacyState([createBook(2, 'Older'), createBook(1, 'Oldest')])));
+
+    const pagedLoadedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+
+    expect(pagedLoadedState.books?.map(book => book.id)).toEqual([2, 1]);
+    expect(service.isPagedActive()).toBe(true);
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      sorts: ['personalRating,asc'],
+    }));
+  });
+
+  it('falls back to the legacy path for unsupported computed sorting', async () => {
     const service = createService();
 
     const bookState$ = service.connect({
       entity: 'ALL_BOOKS',
       entityId: null,
       viewMode: 'grid',
-      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.ASCENDING }],
+      sortCriteria: [{ field: 'readingProgress', label: 'Reading Progress', direction: SortDirection.ASCENDING }],
       filters: {},
       filterMode: 'and',
       isDirectoryScopedView: false,
@@ -369,6 +415,10 @@ describe('PagedGridPilotService', () => {
 
     expect(legacyLoadedState.books?.map(book => book.id)).toEqual([2, 1]);
     expect(service.isPagedActive()).toBe(false);
+    expect(service.getStatus()).toMatchObject({
+      mode: 'legacy',
+      blockers: ['unsupported sort fields: readingProgress'],
+    });
     expect(getBooksPaged).not.toHaveBeenCalled();
   });
 
@@ -399,7 +449,7 @@ describe('PagedGridPilotService', () => {
     expect(getBooksPaged).not.toHaveBeenCalled();
   });
 
-  it('uses the paged path for guarded table view and still falls back for active search terms', async () => {
+  it('uses the paged path for guarded table view and active search terms', async () => {
     const service = createService();
 
     getBooksPaged.mockReturnValueOnce(of({
@@ -437,6 +487,16 @@ describe('PagedGridPilotService', () => {
       sorts: ['addedOn,desc'],
     }));
 
+    getBooksPaged.mockReturnValueOnce(of({
+      content: [createBook(6, 'Paged Search')],
+      page: 0,
+      size: 80,
+      totalElements: 1,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    }));
+
     const searchState$ = service.connect({
       entity: 'ALL_BOOKS',
       entityId: null,
@@ -451,12 +511,76 @@ describe('PagedGridPilotService', () => {
 
     const searchState = await firstValueFrom(searchState$.pipe(filter(state => state.loaded)));
     expect(searchState.books?.map(book => book.id)).toEqual([6]);
-    expect(service.isPagedActive()).toBe(false);
+    expect(service.isPagedActive()).toBe(true);
     expect(service.getStatus()).toMatchObject({
-      mode: 'legacy',
-      blockers: ['search is active'],
+      mode: 'paged',
     });
-    expect(getBooksPaged).toHaveBeenCalledTimes(1);
+    expect(getBooksPaged).toHaveBeenCalledTimes(2);
+    expect(getBooksPaged).toHaveBeenLastCalledWith(expect.objectContaining({
+      search: 'batman',
+    }));
+  });
+
+  it('uses the paged path for shelf and unshelved routes when the request stays within contract', async () => {
+    const service = createService();
+
+    getBooksPaged
+      .mockReturnValueOnce(of({
+        content: [createBook(21, 'Shelf Book')],
+        page: 0,
+        size: 80,
+        totalElements: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }))
+      .mockReturnValueOnce(of({
+        content: [createBook(31, 'Unshelved Book')],
+        page: 0,
+        size: 80,
+        totalElements: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }));
+
+    const shelfState$ = service.connect({
+      entity: 'SHELF',
+      entityId: 9,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, () => of(legacyState([createBook(91, 'Legacy Shelf')])));
+
+    const shelfState = await firstValueFrom(shelfState$.pipe(filter(state => state.loaded)));
+    expect(shelfState.books?.map(book => book.id)).toEqual([21]);
+    expect(getBooksPaged).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      shelfId: 9,
+      sorts: ['addedOn,desc'],
+    }));
+
+    const unshelvedState$ = service.connect({
+      entity: 'NOT_SHELFED',
+      entityId: null,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, () => of(legacyState([createBook(92, 'Legacy Unshelved')])));
+
+    const unshelvedState = await firstValueFrom(unshelvedState$.pipe(filter(state => state.loaded)));
+    expect(unshelvedState.books?.map(book => book.id)).toEqual([31]);
+    expect(getBooksPaged).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      unshelved: true,
+      sorts: ['addedOn,desc'],
+    }));
   });
 
   it('falls back to the legacy path when the paged request fails', async () => {

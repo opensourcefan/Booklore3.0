@@ -1,7 +1,7 @@
 import {Book} from '../book.model';
 
 export type BookBrowserDataSourceMode = 'legacy-full-state' | 'paged-browse';
-export type PagedBookBrowserEntity = 'ALL_BOOKS' | 'LIBRARY';
+export type PagedBookBrowserEntity = 'ALL_BOOKS' | 'LIBRARY' | 'SHELF' | 'NOT_SHELFED';
 export type BookBrowserViewMode = 'grid' | 'table';
 export type PagedBookBrowserStatus = 'idle' | 'loading' | 'loaded' | 'error';
 

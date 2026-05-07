@@ -6,6 +6,7 @@ import org.booklore.model.dto.BookMetadata;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.repository.BookRepository;
 import org.booklore.service.restriction.ContentRestrictionService;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -22,7 +23,8 @@ class BookQueryServiceTest {
         BookRepository bookRepository = mock(BookRepository.class);
         BookMapperV2 bookMapperV2 = mock(BookMapperV2.class);
         ContentRestrictionService contentRestrictionService = mock(ContentRestrictionService.class);
-        BookQueryService service = new BookQueryService(bookRepository, bookMapperV2, contentRestrictionService);
+        EntityManager entityManager = mock(EntityManager.class);
+        BookQueryService service = new BookQueryService(bookRepository, bookMapperV2, contentRestrictionService, entityManager);
 
         BookEntity entity = new BookEntity();
         entity.setId(1L);
