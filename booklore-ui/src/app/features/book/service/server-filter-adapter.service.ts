@@ -33,6 +33,8 @@ const SUPPORTED_FILTER_KEYS = new Set<string>([
   'language',
   'readStatus',
   'bookType',
+  'customMediaType',
+  'customBookType',
   'contentRating',
 ]);
 
@@ -131,6 +133,10 @@ export class ServerFilterAdapter {
           break;
         case 'bookType':
           params.bookType = strings[0];
+          break;
+        case 'customMediaType':
+        case 'customBookType':
+          params.mediaTypes = strings;
           break;
         case 'contentRating':
           params.contentRating = strings[0];

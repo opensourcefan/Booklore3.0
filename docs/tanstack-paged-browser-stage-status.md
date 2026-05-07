@@ -1,16 +1,17 @@
 # TanStack Paged Browser Stage Status
 
-Last verified: 2026-05-06
+Last verified: 2026-05-07
 Branch: `develop`
-Latest verified release at time of update: `v3.15.41`
+Latest verified release at time of update: `v3.15.42`
 
 ## Current Local Follow-On Batch
 
-An unreleased local follow-on batch now extends the guarded paged browser beyond the `v3.15.41` shipped boundary.
+An unreleased local follow-on batch now extends the guarded paged browser beyond the `v3.15.42` shipped boundary.
 
 - The guarded paged browser path now supports `ALL_BOOKS`, `LIBRARY`, `SHELF`, and `NOT_SHELFED` when the request stays within the current server-backed contract.
 - The guarded paged browser path now supports active search terms instead of forcing an automatic legacy fallback.
-- The main paged browser endpoint now exposes `shelfId` and `unshelved` filters for the browser path.
+- The main paged browser endpoint now exposes `shelfId`, `unshelved`, and `mediaTypes` filters for the browser path.
+- The guarded paged browser path now supports both the server-backed `bookType` filter and the browser's custom `Media Type` navigation scope backed by `book.fileType`.
 - The current server adapter now supports a broader metadata-backed sort set plus user-progress-backed `personalRating`, `lastReadTime`, `dateFinished`, and `readStatus` on the paged path.
 - Magic Shelf remains intentionally legacy.
 
@@ -34,19 +35,21 @@ Any future feature-by-feature legacy dependency reductions are now post-plan fol
 
 ## What Is Shipped
 
-- The guarded paged browser path supports `ALL_BOOKS` and `LIBRARY`.
+- The guarded paged browser path supports `ALL_BOOKS`, `LIBRARY`, `SHELF`, and `NOT_SHELFED`.
 - The guarded paged browser path supports both `grid` and `table` view modes.
-- The guarded paged path remains limited to the verified `addedOn DESC` sort path.
+- Active search terms can stay on the paged browser path.
+- The shipped paged browser path supports the released metadata-backed sort group plus current-user-aware `personalRating`, `lastReadTime`, `dateFinished`, and `readStatus`.
+- The shipped paged browser path supports the server-backed `bookType` filter.
 - The guarded paged path falls back to legacy full-state mode when directory scope is active.
 - The guarded paged path falls back to legacy full-state mode when series collapse is enabled.
-- The guarded paged path falls back to legacy full-state mode when search is active.
 - The guarded paged path falls back to legacy full-state mode when sort or filter criteria are not supported by the server adapter.
-- Shelf, Magic Shelf, and Not Shelfed routes now surface the same legacy status pill in the browser UI instead of showing no route-status pill at all.
+- Magic Shelf routes now surface the legacy status pill in the browser UI instead of showing no route-status pill at all.
 
 ## Current Local Browser Boundary
 
 - `ALL_BOOKS`, `LIBRARY`, `SHELF`, and `NOT_SHELFED` can now stay on the paged browser path for `grid` and `table` views.
 - Active search terms can now stay on the paged browser path.
+- The server-backed `bookType` filter and the browser's custom `Media Type` navigation filter can now stay on the paged browser path.
 - Metadata-backed server sort fields can now stay on the paged browser path.
 - User-progress-backed `personalRating`, `lastReadTime`, `dateFinished`, and `readStatus` can now stay on the paged browser path.
 - Unsupported computed, random, `readingProgress`, and file-primary sort fields still fall back to legacy full-state mode.
@@ -68,17 +71,20 @@ Any future feature-by-feature legacy dependency reductions are now post-plan fol
 - Directory-scoped browser routes still need a server-backed contract before they can move off legacy full-state mode.
 - Series-collapsed browser routes still need a server-backed grouped-query contract before they can move off legacy full-state mode.
 - Magic Shelf remains intentionally legacy unless there is a future decision to add a dedicated paged contract for rule-based shelf results.
-- Unsupported browser filter combinations still need explicit server mappings before they can stay on the paged path.
+- Unsupported browser filter combinations outside the current server mappings still need explicit server mappings before they can stay on the paged path.
 
 ## Evidence Basis
 
 - `PagedGridPilotService` now enables paged mode for `ALL_BOOKS`, `LIBRARY`, `SHELF`, and `NOT_SHELFED` for normalized `grid` or `table` view modes.
 - `PagedGridPilotService` guardrails explicitly allow paged grid and paged table view while preserving `legacy-full-state` fallback mode.
 - `PagedGridPilotService` now carries active search on the server path and only rejects directory scope, series collapse, unsupported sort criteria, short search terms, and unsupported filters.
+- `ServerFilterAdapter` now maps the browser's `customMediaType` and `customBookType` keys to the paged endpoint `mediaTypes` contract while preserving the separate server `bookType` filter path.
 - `BookBrowserComponent` passes live table scroll metrics into the guarded pilot and exposes the paged pilot state to the protected `BookTableComponent` without rewriting the table.
 - `BookTableComponent` keeps PrimeNG virtual scroll intact and preserves scroll position during incremental paged appends.
 - `BookBrowserComponent` now routes `SHELF` and `NOT_SHELFED` through the guarded pilot when the contract is satisfied and leaves `MAGIC_SHELF` on explicit legacy status.
-- `BookController` and `BookService` now expose and process `shelfId` and `unshelved` on the main paged endpoint.
+- `BookController` and `BookService` now expose and process `shelfId`, `unshelved`, and `mediaTypes` on the main paged endpoint.
+- `BookService.buildFilterSpec` now applies both the server `bookType` filter and the paged `mediaTypes` contract for custom `book.fileType` labels, including the existing `PHYSICAL` fallback semantics for physical books without a custom media label.
+- `BookFilterService` still applies `customMediaType` and `customBookType` client-side against `book.fileType`, and the new paged `mediaTypes` contract now mirrors that browser-level scope instead of forcing legacy fallback.
 - `AppBookSpecification.searchText` now searches normalized metadata search text plus categories, ISBNs, and file names.
 - `BookQueryService` now applies current-user-aware paged sorting for `personalRating`, `lastReadTime`, `dateFinished`, and `readStatus` instead of forcing those fields back to legacy mode.
 

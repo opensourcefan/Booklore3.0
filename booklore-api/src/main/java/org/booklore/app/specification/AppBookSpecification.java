@@ -254,6 +254,25 @@ public class AppBookSpecification {
         };
     }
 
+    public static Specification<BookEntity> withCustomMediaType(String mediaType) {
+        return (root, query, cb) -> {
+            if (mediaType == null || mediaType.trim().isEmpty()) {
+                return cb.conjunction();
+            }
+
+            String trimmed = mediaType.trim();
+            if ("PHYSICAL".equalsIgnoreCase(trimmed)) {
+                Expression<String> normalizedFileType = cb.trim(cb.coalesce(root.get("fileType"), ""));
+                return cb.and(
+                        cb.isTrue(root.get("isPhysical")),
+                        cb.equal(normalizedFileType, "")
+                );
+            }
+
+            return cb.equal(root.get("fileType"), trimmed);
+        };
+    }
+
     public static Specification<BookEntity> inSeries(String seriesName) {
         return (root, query, cb) -> {
             if (seriesName == null || seriesName.trim().isEmpty()) {

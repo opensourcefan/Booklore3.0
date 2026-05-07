@@ -37,6 +37,7 @@ export interface PagedBooksParams {
   libraryId?: number;
   shelfId?: number;
   unshelved?: boolean;
+  mediaTypes?: string[];
   search?: string;
   authors?: string[];
   categories?: string[];
@@ -146,6 +147,9 @@ export class BookService {
     if (params.libraryId != null) httpParams = httpParams.set('libraryId', String(params.libraryId));
     if (params.shelfId != null) httpParams = httpParams.set('shelfId', String(params.shelfId));
     if (params.unshelved) httpParams = httpParams.set('unshelved', 'true');
+    if (params.mediaTypes?.length) {
+      params.mediaTypes.forEach(mediaType => httpParams = httpParams.append('mediaTypes', mediaType));
+    }
     if (params.search) httpParams = httpParams.set('search', params.search);
     if (params.authors?.length) {
       params.authors.forEach(a => httpParams = httpParams.append('authors', a));

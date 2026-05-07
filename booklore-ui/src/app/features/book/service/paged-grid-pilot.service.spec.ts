@@ -449,6 +449,41 @@ describe('PagedGridPilotService', () => {
     expect(getBooksPaged).not.toHaveBeenCalled();
   });
 
+  it('uses the paged path for custom media type filtering when the request stays within contract', async () => {
+    const service = createService();
+
+    getBooksPaged.mockReturnValueOnce(of({
+      content: [createBook(55, 'Paged Media Type')],
+      page: 0,
+      size: 80,
+      totalElements: 1,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    }));
+
+    const bookState$ = service.connect({
+      entity: 'ALL_BOOKS',
+      entityId: null,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: { customMediaType: ['Magazine'] },
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, () => of(legacyState([createBook(95, 'Legacy Media Type')])));
+
+    const pagedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+
+    expect(pagedState.books?.map(book => book.id)).toEqual([55]);
+    expect(service.isPagedActive()).toBe(true);
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      sorts: ['addedOn,desc'],
+      mediaTypes: ['Magazine'],
+    }));
+  });
+
   it('uses the paged path for guarded table view and active search terms', async () => {
     const service = createService();
 

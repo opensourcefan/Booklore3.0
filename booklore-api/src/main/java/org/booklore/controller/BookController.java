@@ -89,6 +89,7 @@ public class BookController {
             @Parameter(description = "Optional library ID filter") @RequestParam(required = false) Long libraryId,
             @Parameter(description = "Optional shelf ID filter") @RequestParam(required = false) Long shelfId,
             @Parameter(description = "Return only books without shelves owned by the current user") @RequestParam(required = false, defaultValue = "false") boolean unshelved,
+            @Parameter(description = "Filter by custom media type labels") @RequestParam(required = false) List<String> mediaTypes,
             @Parameter(description = "Text search across normalized metadata plus file names") @RequestParam(required = false) String search,
             @Parameter(description = "Filter by authors (comma-separated, OR within, AND/OR between categories depending on filterMode)") @RequestParam(required = false) List<String> authors,
             @Parameter(description = "Filter by categories (comma-separated)") @RequestParam(required = false) List<String> categories,
@@ -101,7 +102,7 @@ public class BookController {
             @Parameter(description = "Filter by content rating") @RequestParam(required = false) String contentRating,
             @Parameter(description = "Filter: AND (all categories must match) or OR (any category matches)") @RequestParam(defaultValue = "and") String filterMode) {
         return ResponseEntity.ok(bookService.getBooksPaged(page, size, sorts, sort, dir, libraryId,
-                shelfId, unshelved, search, authors, categories, series, publisher, language, isbn,
+            shelfId, unshelved, mediaTypes, search, authors, categories, series, publisher, language, isbn,
                 readStatus, bookType, contentRating, filterMode));
     }
 

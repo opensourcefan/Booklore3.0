@@ -39,6 +39,7 @@ describe('ServerFilterAdapter', () => {
 
     expect(service.getUnsupportedFilterKeys({
       author: ['Jane Doe'],
+      customMediaType: ['Magazine'],
       tag: ['favorite'],
     })).toEqual(['tag']);
   });
@@ -54,6 +55,7 @@ describe('ServerFilterAdapter', () => {
       language: ['en'],
       readStatus: ['READ'],
       bookType: ['CBX'],
+      customMediaType: ['Magazine'],
       contentRating: ['Teen'],
       tag: ['favorite'],
     }, 'or')).toEqual({
@@ -64,6 +66,7 @@ describe('ServerFilterAdapter', () => {
       language: 'en',
       readStatus: 'READ',
       bookType: 'CBX',
+      mediaTypes: ['Magazine'],
       contentRating: 'Teen',
       filterMode: 'or',
     });

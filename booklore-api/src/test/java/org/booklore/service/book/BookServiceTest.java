@@ -552,6 +552,7 @@ class BookServiceTest {
                 null,
                 7L,
                 false,
+            null,
                 "dune",
                 null,
                 null,
@@ -567,6 +568,43 @@ class BookServiceTest {
 
         assertEquals(0, result.getTotalElements());
         verify(shelfRepository).findById(7L);
+        verify(bookQueryService).findAllPaged(any(), eq(pageable), eq(testUser.getId()));
+    }
+
+    @Test
+    void getBooksPaged_withCustomMediaType_usesMainPagedContract() {
+        PageRequest pageable = PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "addedOn"));
+
+        when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
+        when(bookQueryService.findAllPaged(any(), eq(pageable), eq(testUser.getId())))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+        when(readingProgressService.fetchUserProgress(anyLong(), anySet())).thenReturn(Map.of());
+        when(readingProgressService.fetchUserFileProgress(anyLong(), anySet())).thenReturn(Map.of());
+
+        AppPageResponse<Book> result = bookService.getBooksPaged(
+                0,
+                50,
+                List.of("addedOn,desc"),
+                null,
+                null,
+                null,
+                null,
+                false,
+                List.of("Magazine"),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "and"
+        );
+
+        assertEquals(0, result.getTotalElements());
         verify(bookQueryService).findAllPaged(any(), eq(pageable), eq(testUser.getId()));
     }
 
@@ -592,6 +630,7 @@ class BookServiceTest {
                 null,
                 8L,
                 false,
+            null,
                 null,
                 null,
                 null,
