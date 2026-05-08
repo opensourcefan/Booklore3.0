@@ -74,22 +74,21 @@ public class BookQueryService {
 
     @Transactional(readOnly = true)
     public Page<Book> findAllPaged(Specification<BookEntity> spec, Pageable pageable, Long userId) {
-        if (userId == null || !requiresUserProgressSort(pageable.getSort())) {
-            Page<BookEntity> page = bookRepository.findAll(spec, pageable);
-            return page.map(book -> mapBookToDto(book, false, null, true));
-        }
-
-        return findAllPagedWithUserSort(spec, pageable, userId);
+        return findAllPagedCustom(spec, pageable, userId);
     }
 
-    private Page<Book> findAllPagedWithUserSort(Specification<BookEntity> spec, Pageable pageable, Long userId) {
+    private Page<Book> findAllPagedCustom(Specification<BookEntity> spec, Pageable pageable, Long userId) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<BookEntity> contentQuery = cb.createQuery(BookEntity.class);
         Root<BookEntity> root = contentQuery.from(BookEntity.class);
         Predicate predicate = applySpecification(spec, root, contentQuery, cb);
-        Join<BookEntity, UserBookProgressEntity> progressJoin = root.join("userBookProgress", JoinType.LEFT);
-        progressJoin.on(cb.equal(progressJoin.get("user").get("id"), userId));
+        
+        Join<BookEntity, UserBookProgressEntity> progressJoin = null;
+        if (userId != null && requiresUserProgressSort(pageable.getSort())) {
+            progressJoin = root.join("userBookProgress", JoinType.LEFT);
+            progressJoin.on(cb.equal(progressJoin.get("user").get("id"), userId));
+        }
 
         contentQuery.select(root).distinct(true);
         if (predicate != null) {
