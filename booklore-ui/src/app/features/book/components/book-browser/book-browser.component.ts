@@ -191,6 +191,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private baseSortCriteria: SortOption[] = [];
   private hasExplicitSortQuery = false;
   private isSavingSort = false;
+  private isSavingSortDefault = false;
   visibleSortOptions: SortOption[] = [];
   showFilter = false;
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -685,6 +686,21 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.bookSelectionService.deselectAll();
       this.clearFilter();
       this.syncActiveDirectoryFilter();
+      
+      // Strip sort and direction query params when entity changes to prevent stale sort params
+      const currentParams = this.activatedRoute.snapshot.queryParams;
+      const hasSortParams = currentParams['sort'] || currentParams['direction'];
+      if (hasSortParams) {
+        const newParams = {...currentParams};
+        delete newParams['sort'];
+        delete newParams['direction'];
+        this.router.navigate([], {
+          relativeTo: this.activatedRoute,
+          queryParams: newParams,
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+      }
     });
   }
 
@@ -808,19 +824,26 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (this.isSavingSort) {
         this.isSavingSort = false;
-      } else {
-        if (!this.areSortCriteriaEqual(this.bookSorter.selectedSortCriteria, effectiveSortCriteria)) {
-          this.bookSorter.setSortCriteria(effectiveSortCriteria);
+        if (this.isSavingSortDefault) {
+          this.isSavingSortDefault = false;
         }
-        this.currentViewMode = parseResult.viewMode;
-        const dataSourceContextChanged = entityChanged
-          || previousViewMode !== this.currentViewMode
-          || previousFilterMode !== this.selectedFilterMode.getValue()
-          || previousFilterSignature !== currentFilterSignature;
+      } else {
+        if (this.isSavingSortDefault) {
+          this.isSavingSortDefault = false;
+        } else {
+          if (!this.areSortCriteriaEqual(this.bookSorter.selectedSortCriteria, effectiveSortCriteria)) {
+            this.bookSorter.setSortCriteria(effectiveSortCriteria);
+          }
+          this.currentViewMode = parseResult.viewMode;
+          const dataSourceContextChanged = entityChanged
+            || previousViewMode !== this.currentViewMode
+            || previousFilterMode !== this.selectedFilterMode.getValue()
+            || previousFilterSignature !== currentFilterSignature;
 
-        if (dataSourceContextChanged || !this.areSortCriteriaEqual(this.lastAppliedSortCriteria, this.bookSorter.selectedSortCriteria)) {
-          this.lastAppliedSortCriteria = [...this.bookSorter.selectedSortCriteria];
-          this.applySortCriteria(this.bookSorter.selectedSortCriteria);
+          if (dataSourceContextChanged || !this.areSortCriteriaEqual(this.lastAppliedSortCriteria, this.bookSorter.selectedSortCriteria)) {
+            this.lastAppliedSortCriteria = [...this.bookSorter.selectedSortCriteria];
+            this.applySortCriteria(this.bookSorter.selectedSortCriteria);
+          }
         }
       }
       this.currentViewMode = parseResult.viewMode;
@@ -1457,6 +1480,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.isSavingSort = true;
+    this.isSavingSortDefault = true;
     this.userService.updateUserSetting(user.id, 'entityViewPreferences', prefs);
     this.messageService.add({
       severity: 'success',
