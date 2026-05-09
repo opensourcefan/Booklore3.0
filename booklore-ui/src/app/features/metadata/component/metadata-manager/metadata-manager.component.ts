@@ -17,6 +17,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
 import {ActivatedRoute, Router} from '@angular/router';
+import {Location} from '@angular/common';
 import {Subscription} from 'rxjs';
 import {filter, take} from 'rxjs/operators';
 import {ExternalDocLinkComponent} from '../../../../shared/components/external-doc-link/external-doc-link.component';
@@ -75,6 +76,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private location = inject(Location);
   private pageTitle = inject(PageTitleService);
   private readonly t = inject(TranslocoService);
   private readonly writeProgressService = inject(WriteProgressService);
@@ -129,7 +131,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
   }
 
   closeAndReturn(): void {
-    this.router.navigate(['/']);
+    this.location.back();
   }
 
   tabConfigs: TabConfig[] = [
