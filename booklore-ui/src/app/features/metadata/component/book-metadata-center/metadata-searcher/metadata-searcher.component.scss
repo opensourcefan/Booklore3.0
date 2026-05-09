@@ -27,10 +27,28 @@ $provider-colors: (
 }
 
 .searcher-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
   animation: fadeIn 0.3s ease-in;
+}
+
+.search-cover {
+  flex-shrink: 0;
+  padding-top: 0.25rem;
+
+  ::ng-deep .p-image {
+    display: block;
+  }
+
+  ::ng-deep img {
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    object-fit: cover;
+  }
 }
 
 ::ng-deep app-metadata-picker {

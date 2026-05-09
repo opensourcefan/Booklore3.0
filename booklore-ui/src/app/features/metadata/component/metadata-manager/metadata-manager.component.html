@@ -1,5 +1,15 @@
 <ng-container *transloco="let t; prefix: 'metadata.manager'">
 <div class="main-container enclosing-container">
+  <div class="route-return-control">
+    <p-button
+      icon="pi pi-arrow-left"
+      [rounded]="true"
+      [text]="true"
+      severity="secondary"
+      (click)="closeAndReturn()"
+      class="route-return-button">
+    </p-button>
+  </div>
   <div class="settings-header">
     <h2 class="settings-title">
       <i class="pi pi-sitemap"></i>

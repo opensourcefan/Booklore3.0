@@ -17,6 +17,17 @@
   </div>
 } @else {
   <div class="searcher-container" *transloco="let t; prefix: 'metadata.searcher'">
+    @if (book$ | async; as book) {
+      <div class="search-cover">
+        <p-image
+          [src]="getCoverUrl(book)"
+          alt="Book Cover"
+          width="120"
+          appendTo="body"
+          [preview]="true">
+        </p-image>
+      </div>
+    }
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="search-card">
       <div class="search-grid">
         <div class="search-field search-field-provider">

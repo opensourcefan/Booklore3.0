@@ -128,54 +128,6 @@
   }
 }
 
-.paged-grid-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  width: fit-content;
-  max-width: min(100%, 42rem);
-  margin: 0.2rem 0 0;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  font-size: 0.76rem;
-  line-height: 1.2;
-
-  &--paged {
-    background: color-mix(in srgb, #15803d 14%, var(--card-background));
-    border-color: color-mix(in srgb, #15803d 34%, var(--p-content-border-color));
-    color: #166534;
-  }
-
-  &--legacy {
-    background: color-mix(in srgb, #b45309 12%, var(--card-background));
-    border-color: color-mix(in srgb, #b45309 30%, var(--p-content-border-color));
-    color: #92400e;
-  }
-
-  @media (max-width: 767px) {
-    max-width: 100%;
-    margin-left: 0.25rem;
-    padding: 0.2rem 0.45rem;
-    font-size: 0.72rem;
-  }
-}
-
-.paged-grid-status__summary {
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.paged-grid-status__detail {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  @media (max-width: 767px) {
-    display: none;
-  }
-}
-
 .dir-filter-breadcrumb {
   font-size: 0.78rem;
   color: var(--p-primary-color);

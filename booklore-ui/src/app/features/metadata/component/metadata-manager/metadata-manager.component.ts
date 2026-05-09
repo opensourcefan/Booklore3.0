@@ -128,6 +128,10 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
     });
   }
 
+  closeAndReturn(): void {
+    this.router.navigate(['/']);
+  }
+
   tabConfigs: TabConfig[] = [
     {type: 'authors', labelKey: 'tabs.author', labelPluralKey: 'tabs.authors', placeholderKey: 'placeholders.searchAuthors', selectAllKey: 'selectAllAuthors', icon: 'pi-user'},
     {type: 'categories', labelKey: 'tabs.genre', labelPluralKey: 'tabs.genres', placeholderKey: 'placeholders.searchGenres', selectAllKey: 'selectAllCategories', icon: 'pi-tag'},

@@ -20,6 +20,8 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {BookNavigationService} from '../../../../book/service/book-navigation.service';
 import {BookMetadataHostService} from '../../../../../shared/service/book-metadata-host.service';
 import {UserService} from '../../../../settings/user-management/user.service';
+import {UrlHelperService} from '../../../../../shared/service/url-helper.service';
+import {Image} from 'primeng/image';
 
 @Component({
   selector: 'app-metadata-searcher',
@@ -34,7 +36,8 @@ import {UserService} from '../../../../settings/user-management/user.service';
     MultiSelect,
     AsyncPipe,
     Tooltip,
-    TranslocoDirective
+    TranslocoDirective,
+    Image,
   ],
   standalone: true
 })
@@ -71,6 +74,7 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   private bookNavigationService = inject(BookNavigationService);
   private metadataHostService = inject(BookMetadataHostService);
   private translocoService = inject(TranslocoService);
+  private urlHelper = inject(UrlHelperService);
 
   private subscription: Subscription = new Subscription();
   private cancelRequest$ = new Subject<void>();
@@ -670,6 +674,13 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
   onGoBack() {
     this.detailLoading = false;
     this.selectedFetchedMetadata$.next(null);
+  }
+
+  getCoverUrl(book: Book): string {
+    const isAudiobook = book.primaryFile?.bookType === 'AUDIOBOOK';
+    return isAudiobook
+      ? this.urlHelper.getAudiobookCoverUrl(book.id, book.metadata?.audiobookCoverUpdatedOn)
+      : this.urlHelper.getCoverUrl(book.id, book.metadata?.coverUpdatedOn);
   }
 
   sanitizeHtml(htmlString: string | null | undefined): string {

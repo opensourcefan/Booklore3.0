@@ -1,3 +1,16 @@
+.route-return-control {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
+}
+
+.route-return-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .metadata-manager {
   padding: 1.5rem;
   display: flex;

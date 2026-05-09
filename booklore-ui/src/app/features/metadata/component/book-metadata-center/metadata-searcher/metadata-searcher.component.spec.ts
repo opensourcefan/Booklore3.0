@@ -18,6 +18,8 @@ import {BookNavigationService} from '../../../../book/service/book-navigation.se
 import {UserService} from '../../../../settings/user-management/user.service';
 import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
 import {BookMetadataHostService} from '../../../../../shared/service/book-metadata-host.service';
+import {UrlHelperService} from '../../../../../shared/service/url-helper.service';
+import {Image} from 'primeng/image';
 
 import {MetadataSearcherComponent} from './metadata-searcher.component';
 
@@ -62,6 +64,7 @@ describe('MetadataSearcherComponent control rail integration', () => {
           AsyncPipe,
           Tooltip,
           TranslocoDirective,
+          Image,
         ],
       },
     });
@@ -147,6 +150,13 @@ describe('MetadataSearcherComponent control rail integration', () => {
           provide: BookMetadataHostService,
           useValue: {
             switchBook: vi.fn(),
+          },
+        },
+        {
+          provide: UrlHelperService,
+          useValue: {
+            getCoverUrl: vi.fn().mockReturnValue('test-cover.jpg'),
+            getAudiobookCoverUrl: vi.fn().mockReturnValue('test-audiobook-cover.jpg'),
           },
         },
       ],

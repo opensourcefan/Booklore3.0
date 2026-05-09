@@ -72,7 +72,7 @@ import {AppSettingsService} from '../../../../shared/service/app-settings.servic
 import {MultiSortPopoverComponent} from './sorting/multi-sort-popover/multi-sort-popover.component';
 import {SortService} from '../../service/sort.service';
 import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
-import {PagedGridPilotService, PagedGridPilotStatus} from '../../service/paged-grid-pilot.service';
+import {PagedGridPilotService} from '../../service/paged-grid-pilot.service';
 
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
@@ -366,16 +366,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       || this.entityType === EntityType.SHELF;
   }
 
-  get shouldShowPagedGridStatus(): boolean {
-    return !!this.entityType;
-  }
-
   get isPagedPilotActive(): boolean {
     return this.pagedGridPilotService.isPagedActive();
-  }
-
-  getPagedGridStatusTooltip(status: PagedGridPilotStatus): string {
-    return status.detail ?? status.summary;
   }
 
   get computedFilterLabel(): string {
