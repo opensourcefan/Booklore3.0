@@ -4,8 +4,10 @@
     <p-button
       icon="pi pi-arrow-left"
       [rounded]="true"
-      [text]="true"
+      [outlined]="true"
       severity="secondary"
+      [pTooltip]="t('returnToDashboard')"
+      tooltipPosition="bottom"
       (click)="closeAndReturn()"
       class="route-return-button">
     </p-button>
