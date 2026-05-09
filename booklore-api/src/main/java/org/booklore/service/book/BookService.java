@@ -688,12 +688,23 @@ public class BookService {
     private Sort buildSort(List<String> sorts, String sortField, String sortDir) {
         if (sorts != null && !sorts.isEmpty()) {
             List<Sort.Order> orders = new ArrayList<>();
-            for (String s : sorts) {
+            for (int i = 0; i < sorts.size(); i++) {
+                String s = sorts.get(i);
                 String[] parts = s.split(",");
                 if (parts.length >= 2) {
                     Sort.Direction direction = "desc".equalsIgnoreCase(parts[1].trim())
                             ? Sort.Direction.DESC : Sort.Direction.ASC;
                     orders.add(new Sort.Order(direction, parts[0].trim()));
+                } else if (i + 1 < sorts.size()) {
+                    // Spring may auto-split "field,dir" into two separate list entries
+                    String next = sorts.get(i + 1);
+                    String trimmedNext = next.trim().toLowerCase();
+                    if ("asc".equals(trimmedNext) || "desc".equals(trimmedNext)) {
+                        Sort.Direction direction = "desc".equals(trimmedNext)
+                                ? Sort.Direction.DESC : Sort.Direction.ASC;
+                        orders.add(new Sort.Order(direction, s.trim()));
+                        i++; // skip the direction token
+                    }
                 }
             }
             return orders.isEmpty() ? Sort.by(Sort.Direction.DESC, "addedOn") : Sort.by(orders);
