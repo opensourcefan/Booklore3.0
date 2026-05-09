@@ -190,6 +190,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   lastAppliedSortCriteria: SortOption[] = [];
   private baseSortCriteria: SortOption[] = [];
   private hasExplicitSortQuery = false;
+  private isSavingSort = false;
   visibleSortOptions: SortOption[] = [];
   showFilter = false;
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -805,21 +806,24 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       const sortOptionsByField = new Map(this.bookSorter.sortOptions.map(o => [o.field, o]));
       this.visibleSortOptions = visibleFields.map(f => sortOptionsByField.get(f)).filter((o): o is SortOption => !!o);
 
+      if (this.isSavingSort) {
+        this.isSavingSort = false;
+      } else {
+        if (!this.areSortCriteriaEqual(this.bookSorter.selectedSortCriteria, effectiveSortCriteria)) {
+          this.bookSorter.setSortCriteria(effectiveSortCriteria);
+        }
+        this.currentViewMode = parseResult.viewMode;
+        const dataSourceContextChanged = entityChanged
+          || previousViewMode !== this.currentViewMode
+          || previousFilterMode !== this.selectedFilterMode.getValue()
+          || previousFilterSignature !== currentFilterSignature;
 
-      if (!this.areSortCriteriaEqual(this.bookSorter.selectedSortCriteria, effectiveSortCriteria)) {
-        this.bookSorter.setSortCriteria(effectiveSortCriteria);
+        if (dataSourceContextChanged || !this.areSortCriteriaEqual(this.lastAppliedSortCriteria, this.bookSorter.selectedSortCriteria)) {
+          this.lastAppliedSortCriteria = [...this.bookSorter.selectedSortCriteria];
+          this.applySortCriteria(this.bookSorter.selectedSortCriteria);
+        }
       }
       this.currentViewMode = parseResult.viewMode;
-      const dataSourceContextChanged = entityChanged
-        || previousViewMode !== this.currentViewMode
-        || previousFilterMode !== this.selectedFilterMode.getValue()
-        || previousFilterSignature !== currentFilterSignature;
-
-      if (dataSourceContextChanged || !this.areSortCriteriaEqual(this.lastAppliedSortCriteria, this.bookSorter.selectedSortCriteria)) {
-        this.lastAppliedSortCriteria = [...this.bookSorter.selectedSortCriteria];
-        this.applySortCriteria(this.bookSorter.selectedSortCriteria);
-      }
-
 
       this.queryParamsService.syncQueryParams(
         this.activatedRoute,
@@ -1452,6 +1456,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
+    this.isSavingSort = true;
     this.userService.updateUserSetting(user.id, 'entityViewPreferences', prefs);
     this.messageService.add({
       severity: 'success',
