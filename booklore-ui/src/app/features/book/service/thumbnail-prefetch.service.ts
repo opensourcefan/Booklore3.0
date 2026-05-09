@@ -82,9 +82,9 @@ export class ThumbnailPrefetchService {
       : null;
 
     if (requestIdleCallback) {
-      this.idleHandle = requestIdleCallback(() => {
+      this.idleHandle = requestIdleCallback((deadline?: IdleDeadline) => {
         this.idleHandle = null;
-        this.drainQueue();
+        this.drainQueue(deadline);
       }, {timeout: 800});
       return;
     }
@@ -95,8 +95,14 @@ export class ThumbnailPrefetchService {
     }, 250);
   }
 
-  private drainQueue(): void {
-    while (this.inFlight.size < this.maxConcurrent && this.queue.length) {
+  private drainQueue(deadline?: IdleDeadline): void {
+    // Process at most 2 items per idle callback to keep each callback short.
+    // Falls back to maxConcurrent-based draining when no deadline info is available
+    // (setTimeout fallback path).
+    const maxItems = deadline ? 2 : this.maxConcurrent;
+    let processed = 0;
+
+    while (processed < maxItems && this.inFlight.size < this.maxConcurrent && this.queue.length) {
       const nextUrl = this.queue.shift();
       if (!nextUrl) {
         continue;
@@ -108,6 +114,7 @@ export class ThumbnailPrefetchService {
       }
 
       this.startPrefetch(nextUrl);
+      processed++;
     }
 
     if (this.queue.length) {

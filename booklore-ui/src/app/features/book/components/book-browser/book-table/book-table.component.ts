@@ -55,6 +55,7 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   @Input() showSubtitle = false;
   @Input() forceFileNameTitle = false;
   @Input() pagedPilotActive = false;
+  @Input() isSelectionActionPanelOpen = false;
 
   protected urlHelper = inject(UrlHelperService);
   private bookMetadataManageService = inject(BookMetadataManageService);
@@ -154,9 +155,9 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
 
   setScrollHeight() {
     const isMobile = window.innerWidth <= 768;
-    // Account for selection action panel (~50px) when active
-    const hasActionPanel = !!document.querySelector('.selection-action-panel:not(.panel-hidden)');
-    const actionPanelOffset = hasActionPanel ? 50 : 0;
+    // Use the input binding from the parent instead of polling the DOM,
+    // which forced a style recalculation (forced reflow).
+    const actionPanelOffset = this.isSelectionActionPanelOpen ? 50 : 0;
     this.scrollHeight = isMobile
       ? `calc(100dvh - ${125 + actionPanelOffset}px)`
       : `calc(100dvh - ${150 + actionPanelOffset}px)`;
@@ -171,8 +172,8 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
       this.syncSelectionFromInputs();
     }
 
-    // Recalculate scrollHeight when books change (layout may shift)
-    if (changes['books']) {
+    // Recalculate scrollHeight when action panel state changes or books change
+    if (changes['books'] || changes['isSelectionActionPanelOpen']) {
       this.setScrollHeight();
 
       const previousBooks = (changes['books'].previousValue as Book[] | undefined) ?? [];

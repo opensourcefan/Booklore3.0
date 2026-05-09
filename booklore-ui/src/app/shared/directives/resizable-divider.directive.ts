@@ -98,14 +98,19 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       () => window.removeEventListener('scroll', updatePos, true)
     );
 
-    // Watch DOM mutations so overlays/dialogs immediately hide the handle.
+    // Watch the target element's class/style changes for immediate handle updates.
     if (typeof MutationObserver !== 'undefined') {
       this.mutationObserver = new MutationObserver(() => this.scheduleUpdateHandlePosition());
-      this.mutationObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
+      this.mutationObserver.observe(this.target, {
         attributes: true,
         attributeFilter: ['class', 'style']
+      });
+      // Also observe direct children added/removed from body (dialogs, overlays)
+      // without subtree — this avoids firing on every attribute change across the
+      // entire DOM tree, which was the source of constant forced reflows.
+      this.mutationObserver.observe(document.body, {
+        childList: true,
+        subtree: false,
       });
     }
 

@@ -1266,28 +1266,38 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.coverScalePreferenceService.currentCardSize.height + desktopTitleRowsExtra;
   }
 
+  private virtualGridDomBindingsScheduled = false;
+
   private updateVirtualGridDomBindings(): void {
+    if (this.virtualGridDomBindingsScheduled) {
+      return;
+    }
+    this.virtualGridDomBindingsScheduled = true;
+
     const scrollEl = this.scrollContainer?.nativeElement ?? null;
     this.virtualGrid.setScrollElement(scrollEl);
 
     const widthEl = this.gridContainer?.nativeElement ?? scrollEl;
     if (widthEl) {
-      // clientWidth might be 0 during initial view attach, queue microtask to get painted width
-      queueMicrotask(() => {
+      // Defer all layout reads to a single rAF after the next paint.
+      // This avoids nesting queueMicrotask → rAF and coalesces multiple
+      // rapid calls (from ViewChild setters, resize, explicit triggers)
+      // into one measurement cycle per frame.
+      requestAnimationFrame(() => {
+        this.virtualGridDomBindingsScheduled = false;
         if (widthEl.clientWidth > 0) {
           this.virtualGrid.setContainerWidth(widthEl.clientWidth);
         }
+        this.virtualGrid.virtualizer.measure();
 
-        requestAnimationFrame(() => {
-          this.virtualGrid.virtualizer.measure();
+        if (scrollEl) {
+          scrollEl.dispatchEvent(new Event('scroll'));
+        }
 
-          if (scrollEl) {
-            scrollEl.dispatchEvent(new Event('scroll'));
-          }
-
-          this.cdr.markForCheck();
-        });
+        this.cdr.markForCheck();
       });
+    } else {
+      this.virtualGridDomBindingsScheduled = false;
     }
   }
 

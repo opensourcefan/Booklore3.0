@@ -64,11 +64,27 @@ export class BookSelectionService {
       const end = Math.max(this.lastSelectedIndex, index);
       const isUnselectingRange = !selected;
 
+      // Batch all range operations into a single emission
+      // to avoid N separate emissions each triggering syncSelectionState + cdr.detectChanges()
+      const current = new Set(this.selectedBooksSubject.value);
       for (let i = start; i <= end; i++) {
         const rangeBook = this.currentBooks[i];
         if (!rangeBook) continue;
-        this.handleBookSelection(rangeBook, !isUnselectingRange);
+        if (isUnselectingRange) {
+          if (rangeBook.seriesBooks) {
+            rangeBook.seriesBooks.forEach(b => current.delete(b.id));
+          } else {
+            current.delete(rangeBook.id);
+          }
+        } else {
+          if (rangeBook.seriesBooks) {
+            rangeBook.seriesBooks.forEach(b => current.add(b.id));
+          } else {
+            current.add(rangeBook.id);
+          }
+        }
       }
+      this.selectedBooksSubject.next(current);
     }
   }
 
