@@ -686,6 +686,21 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.bookSelectionService.deselectAll();
       this.clearFilter();
       this.syncActiveDirectoryFilter();
+      
+      // Strip sort and direction query params when entity changes to prevent stale sort params
+      const currentParams = this.activatedRoute.snapshot.queryParams;
+      const hasSortParams = currentParams['sort'] || currentParams['direction'];
+      if (hasSortParams) {
+        const newParams = {...currentParams};
+        delete newParams['sort'];
+        delete newParams['direction'];
+        this.router.navigate([], {
+          relativeTo: this.activatedRoute,
+          queryParams: newParams,
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+      }
     });
   }
 
@@ -736,27 +751,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       const previousFilterSignature = JSON.stringify(this.parsedFilters);
       const entityKey = `${entityInfo.entityType}:${entityInfo.entityId}`;
       const entityChanged = this.lastEntityKey !== null && this.lastEntityKey !== entityKey;
-      if (entityChanged) {
+      if (this.lastEntityKey !== null && this.lastEntityKey !== entityKey) {
         this.directoryFilterService.clear();
       }
       this.lastEntityKey = entityKey;
       this.syncActiveDirectoryFilter();
-
-      // When entity changes, strip URL sort params so the new entity's preferences
-      // determine sort authoritatively. This prevents stale sort params from the
-      // previous entity from carrying over.
-      if (entityChanged && queryParamMap.has('sort')) {
-        const newParams = {...this.activatedRoute.snapshot.queryParams};
-        delete newParams['sort'];
-        delete newParams['direction'];
-        this.router.navigate([], {
-          relativeTo: this.activatedRoute,
-          queryParams: newParams,
-          replaceUrl: true
-        });
-        return;
-      }
-
       const parseResult = this.queryParamsService.parseQueryParams(
         queryParamMap,
         user.user?.userSettings?.entityViewPreferences,
@@ -828,29 +827,26 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.isSavingSortDefault) {
           this.isSavingSortDefault = false;
         }
-        // Don't re-apply sort or sync query params during save ops —
-        // the current sort state was just explicitly set by the user.
-        this.currentViewMode = parseResult.viewMode;
-        return;
-      }
+      } else {
+        if (this.isSavingSortDefault) {
+          this.isSavingSortDefault = false;
+        } else {
+          if (!this.areSortCriteriaEqual(this.bookSorter.selectedSortCriteria, effectiveSortCriteria)) {
+            this.bookSorter.setSortCriteria(effectiveSortCriteria);
+          }
+          this.currentViewMode = parseResult.viewMode;
+          const dataSourceContextChanged = entityChanged
+            || previousViewMode !== this.currentViewMode
+            || previousFilterMode !== this.selectedFilterMode.getValue()
+            || previousFilterSignature !== currentFilterSignature;
 
-      if (this.isSavingSortDefault) {
-        this.isSavingSortDefault = false;
-      }
-
-      if (!this.areSortCriteriaEqual(this.bookSorter.selectedSortCriteria, effectiveSortCriteria)) {
-        this.bookSorter.setSortCriteria(effectiveSortCriteria);
+          if (dataSourceContextChanged || !this.areSortCriteriaEqual(this.lastAppliedSortCriteria, this.bookSorter.selectedSortCriteria)) {
+            this.lastAppliedSortCriteria = [...this.bookSorter.selectedSortCriteria];
+            this.applySortCriteria(this.bookSorter.selectedSortCriteria);
+          }
+        }
       }
       this.currentViewMode = parseResult.viewMode;
-      const dataSourceContextChanged = entityChanged
-        || previousViewMode !== this.currentViewMode
-        || previousFilterMode !== this.selectedFilterMode.getValue()
-        || previousFilterSignature !== currentFilterSignature;
-
-      if (dataSourceContextChanged || !this.areSortCriteriaEqual(this.lastAppliedSortCriteria, this.bookSorter.selectedSortCriteria)) {
-        this.lastAppliedSortCriteria = [...this.bookSorter.selectedSortCriteria];
-        this.applySortCriteria(this.bookSorter.selectedSortCriteria);
-      }
 
       this.queryParamsService.syncQueryParams(
         this.activatedRoute,
