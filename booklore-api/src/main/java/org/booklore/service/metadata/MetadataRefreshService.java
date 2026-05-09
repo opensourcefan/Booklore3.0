@@ -13,6 +13,7 @@ import org.booklore.model.dto.request.MetadataRefreshOptions;
 import org.booklore.model.dto.request.MetadataRefreshRequest;
 import org.booklore.model.dto.settings.AppSettings;
 import org.booklore.model.entity.BookEntity;
+import org.booklore.model.entity.ComicMetadataEntity;
 import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.entity.MetadataFetchJobEntity;
 import org.booklore.model.entity.MetadataFetchProposalEntity;
@@ -32,6 +33,7 @@ import org.booklore.service.metadata.parser.BookParser;
 import org.booklore.task.TaskStatus;
 import org.booklore.task.TaskCancellationManager;
 import org.springframework.stereotype.Service;
+import org.hibernate.Hibernate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.core.JacksonException;
@@ -326,10 +328,18 @@ public class MetadataRefreshService {
     }
 
     private BookEntity loadBookForRefresh(Long bookId) {
-        return bookRepository.findAllWithMetadataByIds(Collections.singleton(bookId))
+        BookEntity book = bookRepository.findAllWithMetadataByIds(Collections.singleton(bookId))
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+        if (book.getMetadata() != null && book.getMetadata().getComicMetadata() != null) {
+            ComicMetadataEntity comic = book.getMetadata().getComicMetadata();
+            Hibernate.initialize(comic.getCharacters());
+            Hibernate.initialize(comic.getTeams());
+            Hibernate.initialize(comic.getLocations());
+            Hibernate.initialize(comic.getCreatorMappings());
+        }
+        return book;
     }
 
     private void delayGoodreadsRequest() {

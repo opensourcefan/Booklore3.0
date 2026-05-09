@@ -82,6 +82,13 @@ public class BookQueryService {
 
         CriteriaQuery<BookEntity> contentQuery = cb.createQuery(BookEntity.class);
         Root<BookEntity> root = contentQuery.from(BookEntity.class);
+
+        boolean needsMetadataFetch = pageable.getSort().stream()
+                .anyMatch(order -> order.getProperty().startsWith("metadata."));
+        if (needsMetadataFetch) {
+            root.fetch("metadata", JoinType.LEFT);
+        }
+
         Predicate predicate = applySpecification(spec, root, contentQuery, cb);
         
         Join<BookEntity, UserBookProgressEntity> progressJoin = null;
