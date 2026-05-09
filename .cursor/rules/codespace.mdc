@@ -27,6 +27,7 @@ The workspace root is `/home/michael/booklore_test`. When working with file path
 | `.github/workflows/` | CI/CD pipelines |
 | `.continue/rules/` | Continue.dev agent rules (this file lives here) |
 | `.continue/agents/` | Continue.dev agent configs (Deepseek4 Flash, Deepseek4 Pro) |
+| `.ghcprules/` | Agent rules, preferences, and memory bank |
 | `.vscode/` | VS Code workspace settings |
 
 ## Git Integration
@@ -39,7 +40,7 @@ The workspace root is `/home/michael/booklore_test`. When working with file path
 | Default branch | `develop` |
 | Current branch | `develop` |
 | Other local branches | `Experimental`, `ai-panel-test`, `sandbox-phase4`, `testing` |
-| Latest tag | `v3.14.6` (also `v3.14.5`..`v3.14.0`, `v3.13.8`) |
+| Latest tag | `v3.15.46` (also `v3.15.45`..`v3.15.0`, `v3.14.6`..`v3.13.8`) |
 | GitHub owner | `opensourcefan` |
 
 ### Branch naming conventions
@@ -222,7 +223,7 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 ### Version Numbers
 
 - Backend version: `3.9.9` (in both `booklore-api/build.gradle` and `booklore-ui/package.json`)
-- Latest git tag: `v3.14.6` (tags are ahead of build version — build version updated separately)
+- Latest git tag: `v3.15.46` (tags are ahead of build version — build version updated separately)
 
 ## Code Conventions
 

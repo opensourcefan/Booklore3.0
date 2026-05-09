@@ -153,6 +153,12 @@ export class PagedGridPilotService {
       nextPage: 0,
     };
 
+    this.bookStateSubject.next({
+      books: null,
+      loaded: false,
+      error: null,
+    });
+
     const cachedPages = this.getCachedPages(this.activeQuery.requestKey);
     if (cachedPages.length === 0) {
       this.seedFromLegacyState(this.activeQuery);
@@ -523,12 +529,8 @@ export class PagedGridPilotService {
     });
   }
 
-  private canWarmStart(query: ActivePagedQuery): boolean {
-    return query.requestKey.sorts.length === 0
-      || (
-        query.requestKey.search === null
-        && query.requestKey.sorts.every(sort => sort.split(',')[0] === 'addedOn')
-      );
+  private canWarmStart(_query: ActivePagedQuery): boolean {
+    return true;
   }
 
   private getPagedSearchTerm(searchTerm: string): string | null {
