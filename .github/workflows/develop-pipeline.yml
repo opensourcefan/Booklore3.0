@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - develop
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - '**'
@@ -159,6 +161,8 @@ jobs:
 
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             image_tag="pr-${{ github.event.pull_request.number }}-${short_sha}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            image_tag="${{ github.ref_name }}"
           else
             image_tag="develop-${short_sha}"
           fi
