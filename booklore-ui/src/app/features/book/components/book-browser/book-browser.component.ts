@@ -231,6 +231,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   showSubtitles = false;
   protected gridRenderVersion = 0;
 
+  // Flags to prevent sort reset after saving preferences
+  private isSavingSort = false;
+  private isSavingSortDefault = false;
+
   private sideBarFilter = new SideBarFilter(this.selectedFilter, this.selectedFilterMode);
   private headerFilter = new HeaderFilter(this.searchTerm$);
   protected bookSorter = new BookSorter(
@@ -728,6 +732,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activatedRoute.queryParamMap,
       this.userService.userState$.pipe(filter(u => !!u?.user && u.loaded))
     ]).pipe(takeUntil(this.destroy$)).subscribe(([entityInfo, queryParamMap, user]) => {
+      // Skip processing if we're in the middle of saving sort preferences
+      if (this.isSavingSort) {
+        this.isSavingSort = false;
+        if (this.isSavingSortDefault) this.isSavingSortDefault = false;
+        return; // Preserve user-explicit sort entirely
+      }
       this.entityType = entityInfo.entityType;
       const previousViewMode = this.currentViewMode;
       const previousFilterMode = this.selectedFilterMode.getValue();
@@ -1461,6 +1471,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         });
       }
     }
+
+    // Set flags to prevent sort reset during user state update
+    this.isSavingSort = true;
+    this.isSavingSortDefault = true;
 
     this.userService.updateUserSetting(user.id, 'entityViewPreferences', prefs);
     this.messageService.add({
