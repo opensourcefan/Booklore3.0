@@ -73,6 +73,7 @@ import {MultiSortPopoverComponent} from './sorting/multi-sort-popover/multi-sort
 import {SortService} from '../../service/sort.service';
 import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
 import {PagedGridPilotService} from '../../service/paged-grid-pilot.service';
+import {PagedBookBrowserStateService} from '../../service/paged-book-browser-state.service';
 
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
@@ -161,6 +162,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private mediaTypePreferences = inject(MediaTypePreferencesService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
   private pagedGridPilotService = inject(PagedGridPilotService);
+  private pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
   readonly pagedGridPilotStatus$ = this.pagedGridPilotService.status$;
 
   bookState$: Observable<BookState> | undefined;
@@ -575,6 +577,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.syncSelectionState(this.bookSelectionService.selectedBooks);
     this.bookTableComponent?.refreshSelectionFromInputs();
     this.restoreSavedScrollPosition();
+
+    if (this.entityType !== EntityType.ALL_BOOKS) {
+      this.pagedBookBrowserStateService.invalidateEntity('ALL_BOOKS');
+    }
+
     this.cdr.detectChanges();
   }
 
