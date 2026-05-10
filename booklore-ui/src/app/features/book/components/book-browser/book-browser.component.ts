@@ -1437,12 +1437,40 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED) {
-      prefs.global = {
-        ...prefs.global,
+      // For All Books and Not Shelved, we should NOT update global preferences as this affects other entities
+      // Instead, we should ensure these entities have their own overrides or use a separate preference system
+      // This prevents the global defaults from being polluted by All Books settings
+      
+      // We'll create/update an override for All Books specifically, rather than modifying global prefs
+      if (!prefs.overrides) prefs.overrides = [];
+      
+      const allBooksOverrideIndex = prefs.overrides.findIndex(
+        o => o.entityType === 'ALL_BOOKS' && o.entityId === 0
+      );
+      
+      const allBooksPreferences = {
         sortKey: sortCriteria[0]?.field ?? 'title',
         sortDir: sortCriteria[0]?.direction ?? 'ASC',
-        sortCriteria
+        sortCriteria,
+        view: prefs.global?.view ?? 'GRID',
+        coverSize: prefs.global?.coverSize ?? 1.0,
+        seriesCollapsed: prefs.global?.seriesCollapsed ?? false,
+        overlayBookType: prefs.global?.overlayBookType ?? true,
+        overlayAiPanelData: prefs.global?.overlayAiPanelData ?? true,
+        overlayIssueNumber: prefs.global?.overlayIssueNumber ?? true
       };
+      
+      if (allBooksOverrideIndex >= 0) {
+        prefs.overrides[allBooksOverrideIndex].preferences = allBooksPreferences;
+      } else {
+        prefs.overrides.push({
+          entityType: 'ALL_BOOKS',
+          entityId: 0,
+          preferences: allBooksPreferences
+        });
+      }
+      
+      // Don't modify global preferences - leave them as default to avoid affecting other entities
     } else {
       if (!this.entity) return;
       if (!prefs.overrides) prefs.overrides = [];
