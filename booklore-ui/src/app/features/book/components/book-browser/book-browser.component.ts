@@ -749,6 +749,19 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       this.lastEntityKey = entityKey;
       this.syncActiveDirectoryFilter();
+      
+      // Handle entity change sort stripping - prevent stale sort params from previous entity
+      if (entityChanged && queryParamMap.has('sort')) {
+        const newParams: Record<string, string | null> = {};
+        queryParamMap.keys.forEach(key => {
+          if (key !== 'sort' && key !== 'direction') {
+            newParams[key] = queryParamMap.get(key);
+          }
+        });
+        this.router.navigate([], { queryParams: newParams, replaceUrl: true });
+        return; // EARLY return - don't parse, don't sync
+      }
+
       const parseResult = this.queryParamsService.parseQueryParams(
         queryParamMap,
         user.user?.userSettings?.entityViewPreferences,
