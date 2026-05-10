@@ -256,20 +256,13 @@ describe('BookTableComponent', () => {
     });
 
     it('accounts for selection action panel when present', () => {
-      // Simulate action panel being visible
-      const querySpy = vi.spyOn(document, 'querySelector');
-      querySpy.mockImplementation((selector: string) => {
-        if (selector === '.selection-action-panel:not(.panel-hidden)') {
-          return document.createElement('div');
-        }
-        return null;
-      });
-
       const component = createComponent();
+      // Set the Input binding from parent instead of spying on querySelector.
+      // The parent passes isSelectionActionPanelOpen=true when the panel is visible.
+      component.isSelectionActionPanelOpen = true;
       component.setScrollHeight();
       // Desktop base is 150px, action panel adds 50px = 200px total
       expect(component.scrollHeight).toBe('calc(100dvh - 200px)');
-      querySpy.mockRestore();
     });
   });
 
