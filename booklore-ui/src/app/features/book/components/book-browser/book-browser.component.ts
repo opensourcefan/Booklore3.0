@@ -1427,6 +1427,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const user = this.userService.getCurrentUser();
     if (!user) return;
 
+    // Capture entity context at the start to ensure consistency during async operations
+    const currentEntityType = this.entityType;
+    const currentEntity = this.entity;
+    const currentEntityId = currentEntity?.id;
+
     const sortCriteria: SortCriterion[] = criteria.map(c => ({
       field: c.field,
       direction: c.direction === SortDirection.ASCENDING ? 'ASC' as const : 'DESC' as const
@@ -1436,9 +1441,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       user.userSettings.entityViewPreferences ?? {global: {sortKey: 'title', sortDir: 'ASC', view: 'GRID', coverSize: 1.0, seriesCollapsed: false, overlayBookType: true, overlayAiPanelData: true, overlayIssueNumber: true}, overrides: []}
     );
 
-    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED) {
-      // For All Books and Not Shelved, we still need to handle global prefs, but be more careful
-      // about not polluting the global defaults that other entities might fall back to
+    if (currentEntityType === EntityType.ALL_BOOKS || currentEntityType === EntityType.NOT_SHELFED) {
+      // For All Books and Not Shelved, save to global prefs
       const currentGlobal = prefs.global ?? {
         sortKey: 'title', 
         sortDir: 'ASC', 
@@ -1457,11 +1461,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         sortCriteria
       };
     } else {
-      if (!this.entity) return;
+      if (!currentEntity) return;
       if (!prefs.overrides) prefs.overrides = [];
 
       let overrideEntityType: 'LIBRARY' | 'SHELF' | 'MAGIC_SHELF';
-      switch (this.entityType) {
+      switch (currentEntityType) {
         case EntityType.LIBRARY: overrideEntityType = 'LIBRARY'; break;
         case EntityType.SHELF: overrideEntityType = 'SHELF'; break;
         case EntityType.MAGIC_SHELF: overrideEntityType = 'MAGIC_SHELF'; break;
@@ -1469,7 +1473,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       const existingIndex = prefs.overrides.findIndex(
-        o => o.entityType === overrideEntityType && o.entityId === this.entity!.id
+        o => o.entityType === overrideEntityType && o.entityId === currentEntityId
       );
 
       if (existingIndex >= 0) {
@@ -1482,7 +1486,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         prefs.overrides.push({
           entityType: overrideEntityType,
-          entityId: this.entity!.id!,
+          entityId: currentEntityId!,
           preferences: {
             sortKey: sortCriteria[0]?.field ?? 'title',
             sortDir: sortCriteria[0]?.direction ?? 'ASC',
@@ -1506,9 +1510,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.messageService.add({
       severity: 'success',
       summary: this.t.translate('book.browser.toast.sortSavedSummary'),
-      detail: this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED
+      detail: currentEntityType === EntityType.ALL_BOOKS || currentEntityType === EntityType.NOT_SHELFED
         ? this.t.translate('book.browser.toast.sortSavedGlobalDetail')
-        : this.t.translate('book.browser.toast.sortSavedEntityDetail', {entityType: this.entityType.toLowerCase()})
+        : this.t.translate('book.browser.toast.sortSavedEntityDetail', {entityType: currentEntityType.toLowerCase()})
     });
   }
 
