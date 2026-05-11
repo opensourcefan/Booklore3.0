@@ -300,7 +300,7 @@ public class BookCoverService {
     public void regenerateCovers(boolean missingOnly) {
         SecurityContextVirtualThread.runWithSecurityContext(() -> {
             try {
-                List<BookRegenerationInfo> books = bookQueryService.getAllFullBookEntities().stream()
+                List<BookRegenerationInfo> books = bookRepository.findAllForCoverRegeneration().stream()
                         .filter(book -> !isCoverLocked(book))
                         .filter(book -> book.getPrimaryBookFile() != null)
                         .filter(book -> !missingOnly || book.getBookCoverHash() == null)
@@ -319,7 +319,7 @@ public class BookCoverService {
                         notificationService.sendMessage(Topic.LOG, LogNotification.info(progress + "Regenerating cover for: " + bookInfo.title()));
 
                         transactionTemplate.execute(status -> {
-                            bookRepository.findById(bookInfo.id()).ifPresent(book -> {
+                            bookRepository.findByIdWithBookFiles(bookInfo.id()).ifPresent(book -> {
                                 var primaryFile = book.getPrimaryBookFile();
                                 if (primaryFile == null) {
                                     log.warn("{}Skipping physical book ID {} ({}) - no file to regenerate cover from", progress, book.getId(), bookInfo.title());

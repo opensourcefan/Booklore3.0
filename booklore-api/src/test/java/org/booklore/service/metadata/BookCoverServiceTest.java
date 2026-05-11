@@ -744,14 +744,14 @@ class BookCoverServiceTest {
             book.setBookFiles(List.of(ebookFile));
             book.setLibrary(LibraryEntity.builder().build());
 
-            when(bookQueryService.getAllFullBookEntities()).thenReturn(List.of(book));
+            when(bookRepository.findAllForCoverRegeneration()).thenReturn(List.of(book));
 
             BookFileProcessor processor = mock(BookFileProcessor.class);
             when(transactionTemplate.execute(any())).thenAnswer(inv -> {
                 var callback = inv.getArgument(0, org.springframework.transaction.support.TransactionCallback.class);
                 return callback.doInTransaction(null);
             });
-            when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+            when(bookRepository.findByIdWithBookFiles(1L)).thenReturn(Optional.of(book));
             when(processorRegistry.getProcessorOrThrow(BookFileType.EPUB)).thenReturn(processor);
             when(processor.generateCover(book)).thenReturn(true);
             when(bookRepository.findCoverUpdateInfoByIds(any())).thenReturn(List.of());
@@ -778,7 +778,7 @@ class BookCoverServiceTest {
             locked.setBookFiles(List.of(ebookFile));
             locked.setLibrary(LibraryEntity.builder().build());
 
-            when(bookQueryService.getAllFullBookEntities()).thenReturn(List.of(locked));
+            when(bookRepository.findAllForCoverRegeneration()).thenReturn(List.of(locked));
 
             try (MockedStatic<SecurityContextVirtualThread> secMock = mockStatic(SecurityContextVirtualThread.class)) {
                 secMock.when(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)))
@@ -809,14 +809,14 @@ class BookCoverServiceTest {
             withoutCover.setBookFiles(List.of(ebookFile2));
             withoutCover.setLibrary(LibraryEntity.builder().build());
 
-            when(bookQueryService.getAllFullBookEntities()).thenReturn(List.of(withCover, withoutCover));
+            when(bookRepository.findAllForCoverRegeneration()).thenReturn(List.of(withCover, withoutCover));
 
             BookFileProcessor processor = mock(BookFileProcessor.class);
             when(transactionTemplate.execute(any())).thenAnswer(inv -> {
                 var callback = inv.getArgument(0, org.springframework.transaction.support.TransactionCallback.class);
                 return callback.doInTransaction(null);
             });
-            when(bookRepository.findById(2L)).thenReturn(Optional.of(withoutCover));
+            when(bookRepository.findByIdWithBookFiles(2L)).thenReturn(Optional.of(withoutCover));
             when(processorRegistry.getProcessorOrThrow(BookFileType.EPUB)).thenReturn(processor);
             when(processor.generateCover(withoutCover)).thenReturn(true);
             when(bookRepository.findCoverUpdateInfoByIds(any())).thenReturn(List.of());
@@ -832,7 +832,7 @@ class BookCoverServiceTest {
 
                 verify(transactionTemplate, times(1)).execute(any());
                 verify(bookRepository).save(withoutCover);
-                verify(bookRepository, never()).findById(1L);
+                verify(bookRepository, never()).findByIdWithBookFiles(1L);
             }
         }
 
@@ -841,7 +841,7 @@ class BookCoverServiceTest {
             BookEntity book = buildBook(1L, false);
             book.setBookFiles(new ArrayList<>());
 
-            when(bookQueryService.getAllFullBookEntities()).thenReturn(List.of(book));
+            when(bookRepository.findAllForCoverRegeneration()).thenReturn(List.of(book));
 
             try (MockedStatic<SecurityContextVirtualThread> secMock = mockStatic(SecurityContextVirtualThread.class)) {
                 secMock.when(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)))

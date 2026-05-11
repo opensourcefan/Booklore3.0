@@ -42,6 +42,7 @@ public class AppBookService {
 
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int MAX_PAGE_SIZE = 50;
+    private static final String APP_VISIBLE_BOOKS_CLAUSE = " AND (b.bookFiles IS NOT EMPTY OR b.isPhysical = true)";
 
     private final BookRepository bookRepository;
     private final UserBookProgressRepository userBookProgressRepository;
@@ -141,7 +142,7 @@ public class AppBookService {
 
         Specification<BookEntity> spec = AppBookSpecification.combine(
                 AppBookSpecification.notDeleted(),
-                AppBookSpecification.hasDigitalFile(),
+            AppBookSpecification.hasDigitalFileOrIsPhysical(),
                 AppBookSpecification.inLibraries(accessibleLibraryIds),
                 AppBookSpecification.searchText(query)
         );
@@ -160,7 +161,7 @@ public class AppBookService {
 
         Specification<BookEntity> spec = AppBookSpecification.combine(
                 AppBookSpecification.notDeleted(),
-                AppBookSpecification.hasDigitalFile(),
+            AppBookSpecification.hasDigitalFileOrIsPhysical(),
                 AppBookSpecification.inLibraries(accessibleLibraryIds),
                 AppBookSpecification.inProgress(userId),
                 AppBookSpecification.hasNonAudiobookFile()
@@ -194,7 +195,7 @@ public class AppBookService {
 
         Specification<BookEntity> spec = AppBookSpecification.combine(
                 AppBookSpecification.notDeleted(),
-                AppBookSpecification.hasDigitalFile(),
+            AppBookSpecification.hasDigitalFileOrIsPhysical(),
                 AppBookSpecification.inLibraries(accessibleLibraryIds),
                 AppBookSpecification.inProgress(userId),
                 AppBookSpecification.hasAudiobookFile()
@@ -228,7 +229,7 @@ public class AppBookService {
 
         Specification<BookEntity> spec = AppBookSpecification.combine(
                 AppBookSpecification.notDeleted(),
-                AppBookSpecification.hasDigitalFile(),
+            AppBookSpecification.hasDigitalFileOrIsPhysical(),
                 AppBookSpecification.inLibraries(accessibleLibraryIds),
                 AppBookSpecification.addedWithinDays(30)
         );
@@ -321,7 +322,7 @@ public class AppBookService {
         Map<Long, UserBookProgressEntity> progressMap = getProgressMapForBooks(userId, bookEntities);
 
         List<AppBookSummary> summaries = bookEntities.stream()
-                .filter(BookEntity::hasFiles)
+            .filter(this::isAppVisibleBook)
                 .map(bookEntity -> mobileBookMapper.toSummary(bookEntity, progressMap.get(bookEntity.getId())))
                 .collect(Collectors.toList());
 
@@ -386,7 +387,7 @@ public class AppBookService {
         String authorQuery = "SELECT a.name, COUNT(DISTINCT b.id) FROM BookEntity b"
                 + " JOIN b.metadata m JOIN m.authors a"
                 + " WHERE (b.deleted IS NULL OR b.deleted = false)"
-                + " AND b.bookFiles IS NOT EMPTY"
+            + APP_VISIBLE_BOOKS_CLAUSE
                 + scopeClause
                 + " GROUP BY a.name ORDER BY COUNT(DISTINCT b.id) DESC";
         var authorQ = entityManager.createQuery(authorQuery, Tuple.class);
@@ -404,7 +405,7 @@ public class AppBookService {
         String langQuery = "SELECT m.language, COUNT(DISTINCT b.id) FROM BookEntity b"
                 + " JOIN b.metadata m"
                 + " WHERE (b.deleted IS NULL OR b.deleted = false)"
-                + " AND b.bookFiles IS NOT EMPTY"
+            + APP_VISIBLE_BOOKS_CLAUSE
                 + " AND m.language IS NOT NULL AND m.language <> ''"
                 + scopeClause
                 + " GROUP BY m.language ORDER BY COUNT(DISTINCT b.id) DESC";
@@ -571,7 +572,7 @@ public class AppBookService {
 
         List<Specification<BookEntity>> specs = new ArrayList<>();
         specs.add(AppBookSpecification.notDeleted());
-        specs.add(AppBookSpecification.hasDigitalFile());
+        specs.add(AppBookSpecification.hasDigitalFileOrIsPhysical());
 
         if (accessibleLibraryIds != null) {
             if (libraryId != null && accessibleLibraryIds.contains(libraryId)) {
@@ -655,7 +656,7 @@ public class AppBookService {
     private Specification<BookEntity> buildBaseSpecification(Set<Long> accessibleLibraryIds, Long libraryId) {
         List<Specification<BookEntity>> specs = new ArrayList<>();
         specs.add(AppBookSpecification.notDeleted());
-        specs.add(AppBookSpecification.hasDigitalFile());
+        specs.add(AppBookSpecification.hasDigitalFileOrIsPhysical());
 
         if (accessibleLibraryIds != null) {
             if (libraryId != null && !accessibleLibraryIds.contains(libraryId)) {
@@ -694,5 +695,9 @@ public class AppBookService {
                 .map(BookEntity::getId)
                 .collect(Collectors.toSet());
         return getProgressMap(userId, bookIds);
+    }
+
+    private boolean isAppVisibleBook(BookEntity book) {
+        return book.hasFiles() || Boolean.TRUE.equals(book.getIsPhysical());
     }
 }

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -210,6 +211,38 @@ class AppSeriesServiceTest {
             AppPageResponse<AppSeriesSummary> result = service.getSeries(0, 20, "bookCount", "desc", null, null, false);
 
             assertNotNull(result);
+        }
+
+        @Test
+        void getSeries_aggregateAndCountQueriesIncludePhysicalBooks() {
+            mockAdminUser();
+            mockAggregateQuery(Collections.emptyList());
+            mockCountQuery(0L);
+
+            service.getSeries(0, 20, null, null, null, null, false);
+
+            ArgumentCaptor<String> aggregateCaptor = ArgumentCaptor.forClass(String.class);
+            verify(entityManager).createQuery(aggregateCaptor.capture(), eq(Tuple.class));
+            assertTrue(aggregateCaptor.getValue().contains("(b.bookFiles IS NOT EMPTY OR b.isPhysical = true)"));
+
+            ArgumentCaptor<String> countCaptor = ArgumentCaptor.forClass(String.class);
+            verify(entityManager).createQuery(countCaptor.capture(), eq(Long.class));
+            assertTrue(countCaptor.getValue().contains("(b.bookFiles IS NOT EMPTY OR b.isPhysical = true)"));
+        }
+
+        @Test
+        void getSeries_booksQueryIncludesPhysicalBooks() {
+            mockAdminUser();
+            mockAggregateQuery(List.of(
+                    mockSeriesTuple("Series X", 1L, 1, Instant.now(), 0L)
+            ));
+            mockCountQuery(1L);
+
+            service.getSeries(0, 20, null, null, null, null, false);
+
+            ArgumentCaptor<String> booksCaptor = ArgumentCaptor.forClass(String.class);
+            verify(entityManager).createQuery(booksCaptor.capture(), eq(BookEntity.class));
+            assertTrue(booksCaptor.getValue().contains("(b.bookFiles IS NOT EMPTY OR b.isPhysical = true)"));
         }
     }
 

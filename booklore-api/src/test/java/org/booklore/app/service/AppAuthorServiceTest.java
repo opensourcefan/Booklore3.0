@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -224,6 +225,23 @@ class AppAuthorServiceTest {
 
             assertNotNull(result);
         }
+
+        @Test
+        void getAuthors_queriesIncludePhysicalBooks() {
+            mockAdminUser();
+            mockCountQuery(1L);
+            mockDataQuery(List.of());
+
+            service.getAuthors(0, 30, null, null, null, null, null);
+
+            ArgumentCaptor<String> countCaptor = ArgumentCaptor.forClass(String.class);
+            verify(entityManager).createQuery(countCaptor.capture(), eq(Long.class));
+            assertTrue(countCaptor.getValue().contains("(b.bookFiles IS NOT EMPTY OR b.isPhysical = true)"));
+
+            ArgumentCaptor<String> dataCaptor = ArgumentCaptor.forClass(String.class);
+            verify(entityManager).createQuery(dataCaptor.capture(), eq(Object[].class));
+            assertTrue(dataCaptor.getValue().contains("(b.bookFiles IS NOT EMPTY OR b.isPhysical = true)"));
+        }
     }
 
     // ---- getAuthorDetail tests ----
@@ -294,6 +312,21 @@ class AppAuthorServiceTest {
             when(authorRepository.findById(4L)).thenReturn(Optional.of(author));
 
             assertThrows(APIException.class, () -> service.getAuthorDetail(4L));
+        }
+
+        @Test
+        void getAuthorDetail_bookCountQueryIncludesPhysicalBooks() {
+            mockAdminUser();
+            AuthorEntity author = buildAuthor(5L, "Author Y");
+            when(authorRepository.findById(5L)).thenReturn(Optional.of(author));
+            mockAuthorThumbnailExists(5L, false);
+            mockBookCountQuery(2);
+
+            service.getAuthorDetail(5L);
+
+            ArgumentCaptor<String> countCaptor = ArgumentCaptor.forClass(String.class);
+            verify(entityManager).createQuery(countCaptor.capture(), eq(Long.class));
+            assertTrue(countCaptor.getValue().contains("(b.bookFiles IS NOT EMPTY OR b.isPhysical = true)"));
         }
     }
 

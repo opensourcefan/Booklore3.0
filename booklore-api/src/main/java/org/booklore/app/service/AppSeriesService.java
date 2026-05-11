@@ -33,6 +33,7 @@ public class AppSeriesService {
 
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int MAX_PAGE_SIZE = 50;
+    private static final String APP_VISIBLE_BOOKS_CLAUSE = " AND (b.bookFiles IS NOT EMPTY OR b.isPhysical = true)";
 
     private final EntityManager entityManager;
     private final AuthenticationService authenticationService;
@@ -63,7 +64,12 @@ public class AppSeriesService {
 
         // Build WHERE clause fragments
         String libraryClause = buildLibraryClause(accessibleLibraryIds, libraryId);
-        String searchClause = (search != null && !search.trim().isEmpty())
+        String trimmedSearch = "";
+        if (search != null) {
+            trimmedSearch = search.trim();
+        }
+        String normalizedSearch = trimmedSearch.isEmpty() ? null : "%" + trimmedSearch.toLowerCase() + "%";
+        String searchClause = normalizedSearch != null
                 ? " AND LOWER(m.seriesName) LIKE :searchPattern"
                 : "";
 
@@ -80,7 +86,7 @@ public class AppSeriesService {
                 + " FROM BookEntity b JOIN b.metadata m"
                 + " LEFT JOIN b.userBookProgress p ON p.user.id = :userId"
                 + " WHERE (b.deleted IS NULL OR b.deleted = false)"
-                + " AND b.bookFiles IS NOT EMPTY"
+            + APP_VISIBLE_BOOKS_CLAUSE
                 + " AND m.seriesName IS NOT NULL"
                 + libraryClause
                 + searchClause
@@ -91,8 +97,8 @@ public class AppSeriesService {
         var aggregateQ = entityManager.createQuery(aggregateQuery, Tuple.class);
         aggregateQ.setParameter("userId", userId);
         setLibraryParams(aggregateQ, accessibleLibraryIds, libraryId);
-        if (!searchClause.isEmpty()) {
-            aggregateQ.setParameter("searchPattern", "%" + search.trim().toLowerCase() + "%");
+        if (normalizedSearch != null) {
+            aggregateQ.setParameter("searchPattern", normalizedSearch);
         }
         aggregateQ.setFirstResult(pageNum * pageSize);
         aggregateQ.setMaxResults(pageSize);
@@ -103,7 +109,7 @@ public class AppSeriesService {
         String countQuery = "SELECT COUNT(DISTINCT m.seriesName) FROM BookEntity b JOIN b.metadata m"
                 + (inProgressOnly ? " LEFT JOIN b.userBookProgress p ON p.user.id = :userId" : "")
                 + " WHERE (b.deleted IS NULL OR b.deleted = false)"
-                + " AND b.bookFiles IS NOT EMPTY"
+            + APP_VISIBLE_BOOKS_CLAUSE
                 + " AND m.seriesName IS NOT NULL"
                 + libraryClause
                 + searchClause;
@@ -114,7 +120,7 @@ public class AppSeriesService {
                     + "SELECT m.seriesName FROM BookEntity b JOIN b.metadata m"
                     + " LEFT JOIN b.userBookProgress p ON p.user.id = :userId"
                     + " WHERE (b.deleted IS NULL OR b.deleted = false)"
-                    + " AND b.bookFiles IS NOT EMPTY"
+                    + APP_VISIBLE_BOOKS_CLAUSE
                     + " AND m.seriesName IS NOT NULL"
                     + libraryClause
                     + searchClause
@@ -125,7 +131,7 @@ public class AppSeriesService {
             String countAlt = "SELECT m.seriesName FROM BookEntity b JOIN b.metadata m"
                     + " LEFT JOIN b.userBookProgress p ON p.user.id = :userId"
                     + " WHERE (b.deleted IS NULL OR b.deleted = false)"
-                    + " AND b.bookFiles IS NOT EMPTY"
+                    + APP_VISIBLE_BOOKS_CLAUSE
                     + " AND m.seriesName IS NOT NULL"
                     + libraryClause
                     + searchClause
@@ -134,8 +140,8 @@ public class AppSeriesService {
             var countQ = entityManager.createQuery(countAlt, String.class);
             countQ.setParameter("userId", userId);
             setLibraryParams(countQ, accessibleLibraryIds, libraryId);
-            if (!searchClause.isEmpty()) {
-                countQ.setParameter("searchPattern", "%" + search.trim().toLowerCase() + "%");
+            if (normalizedSearch != null) {
+                countQ.setParameter("searchPattern", normalizedSearch);
             }
             long totalElements = countQ.getResultList().size();
             return buildSeriesPage(aggregateResults, userId, accessibleLibraryIds, libraryId, inProgressOnly, pageNum, pageSize, totalElements);
@@ -146,8 +152,8 @@ public class AppSeriesService {
             countQ.setParameter("userId", userId);
         }
         setLibraryParams(countQ, accessibleLibraryIds, libraryId);
-        if (!searchClause.isEmpty()) {
-            countQ.setParameter("searchPattern", "%" + search.trim().toLowerCase() + "%");
+        if (normalizedSearch != null) {
+            countQ.setParameter("searchPattern", normalizedSearch);
         }
         long totalElements = countQ.getSingleResult();
 
@@ -179,7 +185,7 @@ public class AppSeriesService {
                 + " LEFT JOIN FETCH b.bookFiles"
                 + " WHERE m.seriesName IN :seriesNames"
                 + " AND (b.deleted IS NULL OR b.deleted = false)"
-                + " AND b.bookFiles IS NOT EMPTY"
+            + APP_VISIBLE_BOOKS_CLAUSE
                 + libraryClause;
 
         var booksQ = entityManager.createQuery(booksQuery, BookEntity.class);
@@ -363,7 +369,7 @@ public class AppSeriesService {
     private Specification<BookEntity> buildSeriesBooksSpec(Set<Long> accessibleLibraryIds, Long libraryId, String seriesName) {
         List<Specification<BookEntity>> specs = new ArrayList<>();
         specs.add(AppBookSpecification.notDeleted());
-        specs.add(AppBookSpecification.hasDigitalFile());
+        specs.add(AppBookSpecification.hasDigitalFileOrIsPhysical());
         specs.add(AppBookSpecification.inSeries(seriesName));
 
         if (accessibleLibraryIds != null) {

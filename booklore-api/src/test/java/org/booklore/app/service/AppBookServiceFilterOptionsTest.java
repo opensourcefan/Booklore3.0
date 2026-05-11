@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -200,6 +201,21 @@ class AppBookServiceFilterOptionsTest {
                 .thenThrow(new RuntimeException("Magic shelf not found"));
 
         assertThrows(RuntimeException.class, () -> service.getFilterOptions(null, null, 7L));
+    }
+
+    @Test
+    void getFilterOptions_authorAndLanguageQueriesIncludePhysicalBooks() {
+        mockAdminUser();
+        mockJpqlQueries();
+
+        service.getFilterOptions(null, null, null);
+
+        ArgumentCaptor<String> tupleQueryCaptor = ArgumentCaptor.forClass(String.class);
+        verify(entityManager, times(2)).createQuery(tupleQueryCaptor.capture(), eq(Tuple.class));
+
+        List<String> queries = tupleQueryCaptor.getAllValues();
+        assertTrue(queries.get(0).contains("(b.bookFiles IS NOT EMPTY OR b.isPhysical = true)"));
+        assertTrue(queries.get(1).contains("(b.bookFiles IS NOT EMPTY OR b.isPhysical = true)"));
     }
 
     // -------------------------------------------------------------------------
