@@ -332,7 +332,6 @@
                   [sortCriteria]="this.bookSorter.selectedSortCriteria"
                   [availableSortOptions]="visibleSortOptions"
                   [showSaveButton]="canSaveSort"
-                  [closeOnFocusOut]="true"
                   (criteriaChange)="onSortCriteriaChange($event)"
                   (saveSortConfig)="onSaveSortConfig($event)">
                 </app-multi-sort-popover>

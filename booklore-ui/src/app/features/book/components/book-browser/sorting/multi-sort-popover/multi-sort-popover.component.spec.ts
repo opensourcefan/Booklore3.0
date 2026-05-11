@@ -51,6 +51,21 @@ describe('MultiSortPopoverComponent', () => {
     expect(popover.hide).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps the popover open by default when focus leaves the sort editor', async () => {
+    const outsideButton = document.createElement('button');
+    document.body.appendChild(outsideButton);
+    outsideButton.focus();
+
+    const container = fixture.nativeElement.querySelector('.multi-sort-container') as HTMLElement;
+    const focusOutEvent = new FocusEvent('focusout', {bubbles: true});
+    Object.defineProperty(focusOutEvent, 'relatedTarget', {value: outsideButton});
+
+    container.dispatchEvent(focusOutEvent);
+    await Promise.resolve();
+
+    expect(popover.hide).not.toHaveBeenCalled();
+  });
+
   it('closes the popover when focus leaves the sort editor', async () => {
     component.closeOnFocusOut = true;
     fixture.detectChanges();
