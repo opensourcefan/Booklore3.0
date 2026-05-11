@@ -4,6 +4,7 @@ import org.booklore.config.AppProperties;
 import org.booklore.config.security.JwtUtils;
 import org.booklore.exception.APIException;
 import org.booklore.model.dto.request.UserLoginRequest;
+import org.booklore.model.dto.response.AccessTokenResponse;
 import org.booklore.model.dto.settings.AppSettings;
 import org.booklore.model.entity.BookLoreUserEntity;
 import org.booklore.model.entity.RefreshTokenEntity;
@@ -29,9 +30,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -138,11 +137,13 @@ class AuthenticationServiceTest {
         request.setUsername("admin");
         request.setPassword("password");
 
-        ResponseEntity<Map<String, String>> response = authenticationService.loginUser(request);
+        ResponseEntity<AccessTokenResponse> response = authenticationService.loginUser(request);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).containsEntry("accessToken", "access-token");
-        assertThat(response.getBody()).containsEntry("refreshToken", "refresh-token");
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().accessToken()).isEqualTo("access-token");
+        assertThat(response.getBody().refreshToken()).isEqualTo("refresh-token");
+        assertThat(response.getBody().expires()).isGreaterThan(Instant.now().toEpochMilli());
     }
 
     @Test
@@ -169,10 +170,11 @@ class AuthenticationServiceTest {
         request.setUsername("normaluser");
         request.setPassword("password");
 
-        ResponseEntity<Map<String, String>> response = authenticationService.loginUser(request);
+        ResponseEntity<AccessTokenResponse> response = authenticationService.loginUser(request);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).containsEntry("accessToken", "access-token");
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().accessToken()).isEqualTo("access-token");
     }
 
     @Test
@@ -228,12 +230,15 @@ class AuthenticationServiceTest {
         when(jwtUtils.generateRefreshToken(user)).thenReturn("my-refresh-token");
         when(refreshTokenRepository.save(any(RefreshTokenEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        ResponseEntity<Map<String, String>> response = authenticationService.loginUser(user, 7200000L);
+        Instant before = Instant.now();
+        ResponseEntity<AccessTokenResponse> response = authenticationService.loginUser(user, 7200000L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody())
-                .containsEntry("accessToken", "my-access-token")
-                .containsEntry("refreshToken", "my-refresh-token")
-                .containsEntry("isDefaultPassword", "false");
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().accessToken()).isEqualTo("my-access-token");
+        assertThat(response.getBody().refreshToken()).isEqualTo("my-refresh-token");
+        assertThat(response.getBody().isDefaultPassword()).isFalse();
+        assertThat(response.getBody().expires())
+            .isCloseTo(before.plusMillis(JwtUtils.getAccessTokenExpirationMs()).toEpochMilli(), within(5_000L));
     }
 }

@@ -6,6 +6,12 @@ import {API_CONFIG} from '../../core/config/api-config';
 import {createRxStompConfig} from '../websocket/rx-stomp.config';
 import {Router} from '@angular/router';
 import {PostLoginInitializerService} from '../../core/services/post-login-initializer.service';
+import {AuthTokenResponse} from '../model/auth-token-response.model';
+
+const ACCESS_TOKEN_STORAGE_KEY = 'accessToken_Internal';
+const REFRESH_TOKEN_STORAGE_KEY = 'refreshToken_Internal';
+const ACCESS_TOKEN_EXPIRY_STORAGE_KEY = 'accessToken_Internal_Expires';
+const DEFAULT_PASSWORD_STORAGE_KEY = 'isDefaultPassword_Internal';
 
 @Injectable({
   providedIn: 'root',
@@ -21,7 +27,7 @@ export class AuthService {
   private router = inject(Router);
   private postLoginInitializer = inject(PostLoginInitializerService);
 
-  public tokenSubject = new BehaviorSubject<string | null>(this.getInternalAccessToken());
+  public tokenSubject = new BehaviorSubject<string | null>(this.resolveInitialInternalAccessToken());
   public token$ = this.tokenSubject.asObservable();
 
   /**
@@ -33,11 +39,11 @@ export class AuthService {
   public isRefreshing = false;
   public readonly refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
-  internalLogin(credentials: { username: string; password: string }): Observable<{ accessToken: string; refreshToken: string, isDefaultPassword: string }> {
-    return this.http.post<{ accessToken: string; refreshToken: string, isDefaultPassword: string }>(`${this.apiUrl}/login`, credentials).pipe(
+  internalLogin(credentials: { username: string; password: string }): Observable<AuthTokenResponse> {
+    return this.http.post<AuthTokenResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap((response) => {
         if (response.accessToken && response.refreshToken) {
-          this.saveInternalTokens(response.accessToken, response.refreshToken);
+          this.saveInternalTokens(response);
           this.initializeWebSocketConnection();
           this.handleSuccessfulAuth();
         }
@@ -45,22 +51,22 @@ export class AuthService {
     );
   }
 
-  internalRefreshToken(): Observable<{ accessToken: string; refreshToken: string }> {
+  internalRefreshToken(): Observable<AuthTokenResponse> {
     const refreshToken = this.getInternalRefreshToken();
-    return this.http.post<{ accessToken: string; refreshToken: string }>(`${this.apiUrl}/refresh`, {refreshToken}).pipe(
+    return this.http.post<AuthTokenResponse>(`${this.apiUrl}/refresh`, {refreshToken}).pipe(
       tap((response) => {
         if (response.accessToken && response.refreshToken) {
-          this.saveInternalTokens(response.accessToken, response.refreshToken);
+          this.saveInternalTokens(response);
         }
       })
     );
   }
 
-  remoteLogin(): Observable<{ accessToken: string; refreshToken: string, isDefaultPassword: string }> {
-    return this.http.get<{ accessToken: string; refreshToken: string, isDefaultPassword: string }>(`${this.apiUrl}/remote`).pipe(
+  remoteLogin(): Observable<AuthTokenResponse> {
+    return this.http.get<AuthTokenResponse>(`${this.apiUrl}/remote`).pipe(
       tap((response) => {
         if (response.accessToken && response.refreshToken) {
-          this.saveInternalTokens(response.accessToken, response.refreshToken);
+          this.saveInternalTokens(response);
           this.initializeWebSocketConnection();
           this.handleSuccessfulAuth();
         }
@@ -68,18 +74,34 @@ export class AuthService {
     );
   }
 
-  saveInternalTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem('accessToken_Internal', accessToken);
-    localStorage.setItem('refreshToken_Internal', refreshToken);
-    this.tokenSubject.next(accessToken);
+  saveInternalTokens(tokenResponse: AuthTokenResponse): void {
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, tokenResponse.accessToken);
+    localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokenResponse.refreshToken);
+    localStorage.setItem(ACCESS_TOKEN_EXPIRY_STORAGE_KEY, tokenResponse.expires.toString());
+    localStorage.setItem(DEFAULT_PASSWORD_STORAGE_KEY, String(tokenResponse.isDefaultPassword));
+    this.tokenSubject.next(tokenResponse.accessToken);
   }
 
   getInternalAccessToken(): string | null {
-    return localStorage.getItem('accessToken_Internal');
+    return localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
   }
 
   getInternalRefreshToken(): string | null {
-    return localStorage.getItem('refreshToken_Internal');
+    return localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
+  }
+
+  getInternalAccessTokenExpiry(): number | null {
+    return this.readStoredNumber(ACCESS_TOKEN_EXPIRY_STORAGE_KEY);
+  }
+
+  getInternalDefaultPassword(): boolean | null {
+    return this.readStoredBoolean(DEFAULT_PASSWORD_STORAGE_KEY);
+  }
+
+  hasValidInternalAccessToken(): boolean {
+    const token = this.getInternalAccessToken();
+    const expires = this.getInternalAccessTokenExpiry();
+    return !!token && expires !== null && expires > Date.now();
   }
 
   logout(): void {
@@ -110,8 +132,7 @@ export class AuthService {
   }
 
   private clearSession(): void {
-    localStorage.removeItem('accessToken_Internal');
-    localStorage.removeItem('refreshToken_Internal');
+    this.clearStoredSessionData();
     this.tokenSubject.next(null);
     this.postLoginInitialized = false;
     this.getRxStompService().deactivate();
@@ -144,6 +165,50 @@ export class AuthService {
     this.postLoginInitializer.initialize().subscribe({
       error: (err) => console.error('AuthService: Post-login initialization failed:', err)
     });
+  }
+
+  private resolveInitialInternalAccessToken(): string | null {
+    const accessToken = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+    if (!accessToken) {
+      return null;
+    }
+
+    const expires = this.readStoredNumber(ACCESS_TOKEN_EXPIRY_STORAGE_KEY);
+    const isDefaultPassword = this.readStoredBoolean(DEFAULT_PASSWORD_STORAGE_KEY);
+    if (expires === null || isDefaultPassword === null || expires <= Date.now()) {
+      this.clearStoredSessionData();
+      return null;
+    }
+
+    return accessToken;
+  }
+
+  private clearStoredSessionData(): void {
+    localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+    localStorage.removeItem(ACCESS_TOKEN_EXPIRY_STORAGE_KEY);
+    localStorage.removeItem(DEFAULT_PASSWORD_STORAGE_KEY);
+  }
+
+  private readStoredNumber(key: string): number | null {
+    const value = localStorage.getItem(key);
+    if (value === null) {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private readStoredBoolean(key: string): boolean | null {
+    const value = localStorage.getItem(key);
+    if (value === 'true') {
+      return true;
+    }
+    if (value === 'false') {
+      return false;
+    }
+    return null;
   }
 }
 

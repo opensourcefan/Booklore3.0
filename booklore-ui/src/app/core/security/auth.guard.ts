@@ -7,26 +7,21 @@ export const AuthGuard: CanActivateFn = (_route, _state) => {
   const authService = inject(AuthService);
 
   const internalAccessToken = authService.getInternalAccessToken();
+  const internalAccessTokenExpiry = authService.getInternalAccessTokenExpiry();
+  const isDefaultPassword = authService.getInternalDefaultPassword();
 
-  if (internalAccessToken) {
-    try {
-      const payload = JSON.parse(atob(internalAccessToken.split('.')[1]));
-      if (payload.exp && payload.exp * 1000 < Date.now()) {
-        localStorage.removeItem('accessToken_Internal');
-        return router.createUrlTree(['/login']);
-      }
-      if (payload.isDefaultPassword) {
-        router.navigate(['/change-password']);
-        return false;
-      }
-      return true;
-    } catch (_e) {
-      localStorage.removeItem('accessToken_Internal');
-      router.navigate(['/login']);
-      return false;
-    }
+  if (!internalAccessToken) {
+    return router.createUrlTree(['/login']);
   }
 
-  router.navigate(['/login']);
-  return false;
+  if (internalAccessTokenExpiry === null || isDefaultPassword === null || internalAccessTokenExpiry <= Date.now()) {
+    authService.clearSessionOnLoginPage();
+    return router.createUrlTree(['/login']);
+  }
+
+  if (isDefaultPassword) {
+    return router.createUrlTree(['/change-password']);
+  }
+
+  return true;
 };

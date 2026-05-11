@@ -23,7 +23,7 @@ describe('initializeAuthFactory', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        {provide: AuthService, useValue: {tokenSubject: {next: vi.fn()}, getInternalAccessToken: vi.fn()}},
+        {provide: AuthService, useValue: {tokenSubject: {next: vi.fn()}, hasValidInternalAccessToken: vi.fn()}},
         {provide: AppSettingsService, useValue: {publicAppSettings$: publicSettingsSubject.asObservable()}},
         AuthInitializationService,
       ]

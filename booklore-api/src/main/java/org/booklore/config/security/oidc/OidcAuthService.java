@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.exception.ApiError;
+import org.booklore.model.dto.response.AccessTokenResponse;
 import org.booklore.model.dto.settings.OidcAutoProvisionDetails;
 import org.booklore.model.dto.settings.OidcProviderDetails;
 import org.booklore.model.entity.BookLoreUserEntity;
@@ -53,7 +54,7 @@ public class OidcAuthService {
     private static final ConcurrentMap<String, ReentrantLock> userLocks = new ConcurrentHashMap<>();
 
     @Transactional
-    public ResponseEntity<Map<String, String>> exchangeCodeForTokens(
+    public ResponseEntity<AccessTokenResponse> exchangeCodeForTokens(
             String code,
             String codeVerifier,
             String redirectUri,
@@ -99,7 +100,7 @@ public class OidcAuthService {
         persistOidcSession(user, userClaims.subject(), providerDetails.getIssuerUri(), tokenResponse, idToken, claims);
 
         String durationStr = appSettingService.getSettingValue("oidc_session_duration_hours");
-        ResponseEntity<Map<String, String>> response;
+        ResponseEntity<AccessTokenResponse> response;
         if (durationStr != null && !durationStr.isBlank()) {
             try {
                 long durationMs = Long.parseLong(durationStr) * 3_600_000L;

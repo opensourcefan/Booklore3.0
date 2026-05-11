@@ -37,7 +37,7 @@ export function initializeAuthFactory() {
               }
             });
           } else {
-            if (authService.getInternalAccessToken()) {
+            if (authService.hasValidInternalAccessToken()) {
               websocketInitializer(authService)();
             }
             authInitService.markAsInitialized();

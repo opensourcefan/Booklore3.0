@@ -5,6 +5,7 @@ import org.booklore.config.security.oidc.OidcAuthService;
 import org.booklore.config.security.oidc.OidcCallbackRequest;
 import org.booklore.config.security.oidc.OidcStateService;
 import org.booklore.exception.APIException;
+import org.booklore.model.dto.response.AccessTokenResponse;
 import org.booklore.service.audit.AuditService;
 import org.booklore.model.enums.AuditAction;
 import org.junit.jupiter.api.Test;
@@ -59,15 +60,16 @@ class OidcAuthControllerTest {
     @Test
     void handleCallback_validatesStateAndReturnsTokens() {
         var request = new OidcCallbackRequest("code1", "verifier1", "https://redirect", "nonce1", "state1");
-        var tokenResponse = ResponseEntity.ok(Map.of("accessToken", "at", "refreshToken", "rt"));
+        var tokenResponse = ResponseEntity.ok(new AccessTokenResponse("at", "rt", 123L, false));
         when(oidcAuthService.exchangeCodeForTokens("code1", "verifier1", "https://redirect", "nonce1", httpRequest))
                 .thenReturn(tokenResponse);
 
-        ResponseEntity<Map<String, String>> response = controller.handleCallback(request, httpRequest);
+        ResponseEntity<AccessTokenResponse> response = controller.handleCallback(request, httpRequest);
 
         verify(oidcStateService).validateAndConsume("state1");
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).containsEntry("accessToken", "at");
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().accessToken()).isEqualTo("at");
     }
 
     @Test
@@ -85,8 +87,7 @@ class OidcAuthControllerTest {
 
     @Test
     void handleRedirect_returns302WithFragmentContainingTokens() {
-        var tokens = Map.of("accessToken", "at123", "refreshToken", "rt456");
-        var tokenResponse = ResponseEntity.ok(tokens);
+        var tokenResponse = ResponseEntity.ok(new AccessTokenResponse("at123", "rt456", 789L, false));
         when(oidcAuthService.exchangeCodeForTokens("code", "verifier", "https://redir", "nonce", httpRequest))
                 .thenReturn(tokenResponse);
 
@@ -101,12 +102,13 @@ class OidcAuthControllerTest {
         assertThat(location).startsWith("https://app.example.com#");
         assertThat(location).contains("access_token=" + URLEncoder.encode("at123", StandardCharsets.UTF_8));
         assertThat(location).contains("refresh_token=" + URLEncoder.encode("rt456", StandardCharsets.UTF_8));
+        assertThat(location).contains("expires=789");
+        assertThat(location).contains("is_default_password=" + URLEncoder.encode("false", StandardCharsets.UTF_8));
     }
 
     @Test
     void handleRedirect_includesIsDefaultPasswordInFragmentWhenPresent() {
-        var tokens = Map.of("accessToken", "at", "refreshToken", "rt", "isDefaultPassword", "true");
-        var tokenResponse = ResponseEntity.ok(tokens);
+        var tokenResponse = ResponseEntity.ok(new AccessTokenResponse("at", "rt", 123L, true));
         when(oidcAuthService.exchangeCodeForTokens("code", "verifier", "https://redir", "nonce", httpRequest))
                 .thenReturn(tokenResponse);
 
@@ -134,7 +136,7 @@ class OidcAuthControllerTest {
 
     @Test
     void handleRedirect_throwsWhenTokenResponseBodyIsNull() {
-        ResponseEntity<Map<String, String>> tokenResponse = ResponseEntity.ok(null);
+        ResponseEntity<AccessTokenResponse> tokenResponse = ResponseEntity.ok(null);
         when(oidcAuthService.exchangeCodeForTokens("code", "verifier", "https://redir", "nonce", httpRequest))
                 .thenReturn(tokenResponse);
 
@@ -149,16 +151,17 @@ class OidcAuthControllerTest {
 
     @Test
     void handleMobileCallback_validatesStateAndReturnsTokens() {
-        var tokenResponse = ResponseEntity.ok(Map.of("accessToken", "at", "refreshToken", "rt"));
+        var tokenResponse = ResponseEntity.ok(new AccessTokenResponse("at", "rt", 123L, false));
         when(oidcAuthService.exchangeCodeForTokens("code", "verifier", "https://redir", "nonce", httpRequest))
                 .thenReturn(tokenResponse);
 
-        ResponseEntity<Map<String, String>> response = controller.handleMobileCallback(
+        ResponseEntity<AccessTokenResponse> response = controller.handleMobileCallback(
                 "code", "verifier", "https://redir", "nonce", "state", httpRequest);
 
         verify(oidcStateService).validateAndConsume("state");
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).containsEntry("accessToken", "at");
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().accessToken()).isEqualTo("at");
     }
 
     @Test

@@ -39,7 +39,7 @@ function handle401Error(authService: AuthService, request: HttpRequest<unknown>,
         authService.isRefreshing = false;
         const { accessToken, refreshToken } = response;
         if (accessToken && refreshToken) {
-          authService.saveInternalTokens(accessToken, refreshToken);
+          authService.saveInternalTokens(response);
           authService.refreshTokenSubject.next(accessToken);
         }
         return next(request.clone({

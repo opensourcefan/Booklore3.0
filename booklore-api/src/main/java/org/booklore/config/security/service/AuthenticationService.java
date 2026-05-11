@@ -9,6 +9,7 @@ import org.booklore.config.security.userdetails.OpdsUserDetails;
 import org.booklore.exception.ApiError;
 import org.booklore.model.dto.BookLoreUser;
 import org.booklore.model.dto.request.UserLoginRequest;
+import org.booklore.model.dto.response.AccessTokenResponse;
 import org.booklore.model.entity.BookLoreUserEntity;
 import org.booklore.model.entity.RefreshTokenEntity;
 import org.booklore.model.enums.ProvisioningMethod;
@@ -26,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.booklore.model.enums.AuditAction;
 import org.booklore.service.audit.AuditService;
@@ -124,7 +124,7 @@ public class AuthenticationService {
         throw new IllegalStateException("No OPDS user authenticated");
     }
 
-    public ResponseEntity<Map<String, String>> loginUser(UserLoginRequest loginRequest) {
+    public ResponseEntity<AccessTokenResponse> loginUser(UserLoginRequest loginRequest) {
         if (appSettingService.getAppSettings().isOidcForceOnlyMode()) {
             BookLoreUserEntity oidcCheckUser = userRepository.findByUsername(loginRequest.getUsername()).orElse(null);
             if (oidcCheckUser == null || !oidcCheckUser.getPermissions().isPermissionAdmin()) {
@@ -161,7 +161,7 @@ public class AuthenticationService {
         return loginUser(user);
     }
 
-    public ResponseEntity<Map<String, String>> loginRemote(String name, String username, String email, String groups) {
+    public ResponseEntity<AccessTokenResponse> loginRemote(String name, String username, String email, String groups) {
         if (username == null || username.isEmpty()) {
             throw ApiError.GENERIC_BAD_REQUEST.createException("Remote-User header is missing");
         }
@@ -178,11 +178,11 @@ public class AuthenticationService {
         return loginUser(user.get());
     }
 
-    public ResponseEntity<Map<String, String>> loginUser(BookLoreUserEntity user) {
+    public ResponseEntity<AccessTokenResponse> loginUser(BookLoreUserEntity user) {
         return loginUser(user, null);
     }
 
-    public ResponseEntity<Map<String, String>> loginUser(BookLoreUserEntity user, Long customRefreshTokenExpirationMs) {
+    public ResponseEntity<AccessTokenResponse> loginUser(BookLoreUserEntity user, Long customRefreshTokenExpirationMs) {
         String accessToken = jwtUtils.generateAccessToken(user);
         String refreshToken = jwtUtils.generateRefreshToken(user);
 
@@ -198,14 +198,10 @@ public class AuthenticationService {
         refreshTokenRepository.save(refreshTokenEntity);
         auditService.log(AuditAction.LOGIN_SUCCESS, "User", user.getId(), "Login successful for user: " + user.getUsername());
 
-        return ResponseEntity.ok(Map.of(
-                "accessToken", accessToken,
-                "refreshToken", refreshTokenEntity.getToken(),
-                "isDefaultPassword", String.valueOf(user.isDefaultPassword())
-        ));
+        return createTokenResponse(user, accessToken, refreshTokenEntity.getToken());
     }
 
-    public ResponseEntity<Map<String, String>> refreshToken(String token) {
+    public ResponseEntity<AccessTokenResponse> refreshToken(String token) {
         String ip = RequestUtils.getCurrentRequest().getRemoteAddr();
         authRateLimitService.checkRefreshRateLimit(ip);
 
@@ -229,7 +225,7 @@ public class AuthenticationService {
         RefreshTokenEntity newRefreshTokenEntity = RefreshTokenEntity.builder()
                 .user(user)
                 .token(newRefreshToken)
-            .expiryDate(Instant.now().plusMillis(JwtUtils.getRefreshTokenExpirationMs()))
+                .expiryDate(Instant.now().plusMillis(JwtUtils.getRefreshTokenExpirationMs()))
                 .revoked(false)
                 .build();
 
@@ -237,9 +233,16 @@ public class AuthenticationService {
 
         authRateLimitService.resetRefreshAttempts(ip);
 
-        return ResponseEntity.ok(Map.of(
-                "accessToken", jwtUtils.generateAccessToken(user),
-                "refreshToken", newRefreshToken
+        return createTokenResponse(user, jwtUtils.generateAccessToken(user), newRefreshToken);
+    }
+
+    private ResponseEntity<AccessTokenResponse> createTokenResponse(BookLoreUserEntity user, String accessToken, String refreshToken) {
+        long accessTokenExpiry = Instant.now().plusMillis(JwtUtils.getAccessTokenExpirationMs()).toEpochMilli();
+        return ResponseEntity.ok(new AccessTokenResponse(
+                accessToken,
+                refreshToken,
+                accessTokenExpiry,
+                user.isDefaultPassword()
         ));
     }
 }

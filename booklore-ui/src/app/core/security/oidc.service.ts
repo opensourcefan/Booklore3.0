@@ -3,17 +3,12 @@ import {HttpClient} from '@angular/common/http';
 import {firstValueFrom, Observable} from 'rxjs';
 import {API_CONFIG} from '../config/api-config';
 import {AppSettingsService} from '../../shared/service/app-settings.service';
+import {AuthTokenResponse} from '../../shared/model/auth-token-response.model';
 
 interface OidcPkceState {
   codeVerifier: string;
   state: string;
   nonce: string;
-}
-
-interface OidcTokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  isDefaultPassword: string;
 }
 
 @Injectable({providedIn: 'root'})
@@ -75,9 +70,9 @@ export class OidcService {
     return response.state;
   }
 
-  exchangeCode(code: string, codeVerifier: string, nonce: string, state: string): Observable<OidcTokenResponse> {
+  exchangeCode(code: string, codeVerifier: string, nonce: string, state: string): Observable<AuthTokenResponse> {
     const redirectUri = `${window.location.origin}/oauth2-callback`;
-    return this.http.post<OidcTokenResponse>(`${API_CONFIG.BASE_URL}/api/v1/auth/oidc/callback`, {
+    return this.http.post<AuthTokenResponse>(`${API_CONFIG.BASE_URL}/api/v1/auth/oidc/callback`, {
       code,
       codeVerifier,
       redirectUri,
