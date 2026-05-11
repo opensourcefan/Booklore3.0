@@ -6,6 +6,8 @@
 - After changes, check README.md, Familairization-Guide, and codespace.md for required updates.
 - "tag up" = least significant digit incremented by 1, usually v#.##.x
 
+- do not attempt to use http://localhost:4200 for verification or anything else. 
+
 ## Reporting: Whenever a report is requested:
 - it should be placed on the ~/Desktop in HTML format.
 - it should have a dark background unless otherwise stated.
