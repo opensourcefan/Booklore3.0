@@ -17,145 +17,151 @@
   </div>
 } @else {
   <div class="searcher-container" *transloco="let t; prefix: 'metadata.searcher'">
-    @if (book$ | async; as book) {
-      <div class="search-cover">
-        <p-image
-          [src]="getCoverUrl(book)"
-          alt="Book Cover"
-          width="120"
-          appendTo="body"
-          [preview]="true">
-        </p-image>
-      </div>
-    }
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="search-card">
-      <div class="search-grid">
-        <div class="search-field search-field-provider">
-          <label for="meta-search-providers">
-            <i class="pi pi-globe"></i>
-            {{ t('providersLabel') }}
-          </label>
-          <p-multiselect
-            [filter]="false"
-            showToggleAll="false"
-            [options]="providers"
-            formControlName="provider"
-            inputId="meta-search-providers"
-            [placeholder]="t('selectProviders')"
-            class="'custom-multiselect'">
-          </p-multiselect>
-        </div>
+      <div class="search-card-layout">
+        @if (book$ | async; as book) {
+          <div class="search-cover">
+            <div class="search-cover-shell">
+              <p-image
+                [src]="getCoverUrl(book)"
+                alt="Book Cover"
+                appendTo="body"
+                [preview]="true">
+              </p-image>
+            </div>
+          </div>
+        }
 
-        <div class="search-field">
-          <label for="meta-search-source-url">
-            <i class="pi pi-link"></i>
-            {{ t('sourceUrlLabel') }}
-            <i
-              class="pi pi-info-circle"
-              [pTooltip]="t('sourceUrlTooltip')"
-              tooltipPosition="right"
-              style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
-            ></i>
-          </label>
-          <input
-            pInputText
-            id="meta-search-source-url"
-            formControlName="sourceUrl"
-            [placeholder]="t('sourceUrlPlaceholder')"
-            class="custom-input"/>
-        </div>
+        <div class="search-form-content">
+          <div class="search-grid">
+            <div class="search-field search-field-provider">
+              <label for="meta-search-providers">
+                <i class="pi pi-globe"></i>
+                {{ t('providersLabel') }}
+              </label>
+              <p-multiselect
+                [filter]="false"
+                showToggleAll="false"
+                [options]="providers"
+                formControlName="provider"
+                inputId="meta-search-providers"
+                [placeholder]="t('selectProviders')"
+                class="'custom-multiselect'">
+              </p-multiselect>
+            </div>
 
-        <div class="search-field">
-          <label for="meta-search-issue-number">
-            <i class="pi pi-hashtag"></i>
-            {{ t('issueNumberLabel') }}
-            <i
-              class="pi pi-info-circle"
-              [pTooltip]="t('issueNumberTooltip')"
-              tooltipPosition="right"
-              style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
-            ></i>
-          </label>
-          <input
-            pInputText
-            id="meta-search-issue-number"
-            formControlName="issueNumber"
-            [placeholder]="t('issueNumberPlaceholder')"
-            class="custom-input"/>
-        </div>
+            <div class="search-field">
+              <label for="meta-search-source-url">
+                <i class="pi pi-link"></i>
+                {{ t('sourceUrlLabel') }}
+                <i
+                  class="pi pi-info-circle"
+                  [pTooltip]="t('sourceUrlTooltip')"
+                  tooltipPosition="right"
+                  style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
+                ></i>
+              </label>
+              <input
+                pInputText
+                id="meta-search-source-url"
+                formControlName="sourceUrl"
+                [placeholder]="t('sourceUrlPlaceholder')"
+                class="custom-input"/>
+            </div>
 
-        <div class="search-field">
-          <label for="meta-search-issue-range">
-            <i class="pi pi-sort-numeric-up"></i>
-            {{ t('issueRangeLabel') }}
-            <i
-              class="pi pi-info-circle"
-              [pTooltip]="t('issueRangeTooltip')"
-              tooltipPosition="right"
-              style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
-            ></i>
-          </label>
-          <input
-            pInputText
-            id="meta-search-issue-range"
-            formControlName="issueRange"
-            [placeholder]="t('issueRangePlaceholder')"
-            class="custom-input"/>
-        </div>
+            <div class="search-field">
+              <label for="meta-search-issue-number">
+                <i class="pi pi-hashtag"></i>
+                {{ t('issueNumberLabel') }}
+                <i
+                  class="pi pi-info-circle"
+                  [pTooltip]="t('issueNumberTooltip')"
+                  tooltipPosition="right"
+                  style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
+                ></i>
+              </label>
+              <input
+                pInputText
+                id="meta-search-issue-number"
+                formControlName="issueNumber"
+                [placeholder]="t('issueNumberPlaceholder')"
+                class="custom-input"/>
+            </div>
 
-        <div class="search-field">
-          <label for="meta-search-isbn">
-            <i class="pi pi-barcode"></i>
-            {{ t('isbnLabel') }}
-            <i
-              class="pi pi-info-circle"
-              [pTooltip]="t('isbnTooltip')"
-              tooltipPosition="right"
-              style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
-            ></i>
-          </label>
-          <input
-            pInputText
-            id="meta-search-isbn"
-            formControlName="isbn"
-            [placeholder]="t('isbnPlaceholder')"
-            class="custom-input"/>
-        </div>
+            <div class="search-field">
+              <label for="meta-search-issue-range">
+                <i class="pi pi-sort-numeric-up"></i>
+                {{ t('issueRangeLabel') }}
+                <i
+                  class="pi pi-info-circle"
+                  [pTooltip]="t('issueRangeTooltip')"
+                  tooltipPosition="right"
+                  style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
+                ></i>
+              </label>
+              <input
+                pInputText
+                id="meta-search-issue-range"
+                formControlName="issueRange"
+                [placeholder]="t('issueRangePlaceholder')"
+                class="custom-input"/>
+            </div>
 
-        <div class="search-field">
-          <label for="meta-search-title">
-            <i class="pi pi-book"></i>
-            {{ t('titleLabel') }}
-          </label>
-          <input
-            pInputText
-            id="meta-search-title"
-            formControlName="title"
-            [placeholder]="t('titlePlaceholder')"
-            class="custom-input"/>
-        </div>
+            <div class="search-field">
+              <label for="meta-search-isbn">
+                <i class="pi pi-barcode"></i>
+                {{ t('isbnLabel') }}
+                <i
+                  class="pi pi-info-circle"
+                  [pTooltip]="t('isbnTooltip')"
+                  tooltipPosition="right"
+                  style="margin-left: 0.25rem; color: var(--primary-color); cursor: pointer;"
+                ></i>
+              </label>
+              <input
+                pInputText
+                id="meta-search-isbn"
+                formControlName="isbn"
+                [placeholder]="t('isbnPlaceholder')"
+                class="custom-input"/>
+            </div>
 
-        <div class="search-field">
-          <label for="meta-search-author">
-            <i class="pi pi-user"></i>
-            {{ t('authorLabel') }}
-          </label>
-          <input
-            pInputText
-            id="meta-search-author"
-            formControlName="author"
-            [placeholder]="t('authorPlaceholder')"
-            class="custom-input"/>
-        </div>
+            <div class="search-field">
+              <label for="meta-search-title">
+                <i class="pi pi-book"></i>
+                {{ t('titleLabel') }}
+              </label>
+              <input
+                pInputText
+                id="meta-search-title"
+                formControlName="title"
+                [placeholder]="t('titlePlaceholder')"
+                class="custom-input"/>
+            </div>
 
-        <div class="search-field search-button-field">
-          <p-button
-            [label]="t('searchBtn')"
-            type="submit"
-            [disabled]="!isSearchEnabled || loading"
-            icon="pi pi-search"
-            class="'custom-search-button'">
-          </p-button>
+            <div class="search-field">
+              <label for="meta-search-author">
+                <i class="pi pi-user"></i>
+                {{ t('authorLabel') }}
+              </label>
+              <input
+                pInputText
+                id="meta-search-author"
+                formControlName="author"
+                [placeholder]="t('authorPlaceholder')"
+                class="custom-input"/>
+            </div>
+
+            <div class="search-field search-button-field">
+              <p-button
+                [label]="t('searchBtn')"
+                type="submit"
+                [disabled]="!isSearchEnabled || loading"
+                icon="pi pi-search"
+                class="'custom-search-button'">
+              </p-button>
+            </div>
+          </div>
         </div>
       </div>
 

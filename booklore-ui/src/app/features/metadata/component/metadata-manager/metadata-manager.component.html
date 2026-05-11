@@ -4,11 +4,9 @@
     <p-button
       icon="pi pi-arrow-left"
       [rounded]="true"
-      [outlined]="true"
+      [text]="true"
       severity="secondary"
-      [pTooltip]="'common.close' | transloco"
-      tooltipPosition="bottom"
-      (click)="closeAndReturn()"
+      (onClick)="closeAndReturn()"
       class="route-return-button">
     </p-button>
   </div>

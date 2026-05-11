@@ -202,6 +202,25 @@ describe('MetadataSearcherComponent control rail integration', () => {
 
     expect(emitSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('renders the current book cover inside the search card shell', () => {
+    const fixture = TestBed.createComponent(MetadataSearcherComponent);
+    const component = fixture.componentInstance;
+
+    component.book$ = of(createBook(1));
+
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const searchCard = host.querySelector('form.search-card');
+    const coverShell = searchCard?.querySelector('.search-cover-shell');
+    const coverImage = coverShell?.querySelector('img');
+
+    expect(searchCard).not.toBeNull();
+    expect(host.querySelector('.searcher-container > .search-cover')).toBeNull();
+    expect(coverShell).not.toBeNull();
+    expect(coverImage?.getAttribute('src')).toContain('test-cover.jpg');
+  });
 });
 
 function createBook(id: number): Book {
