@@ -10,7 +10,7 @@
   <app-directory-panel></app-directory-panel>
   <div class="layout-main-container">
     <div class="layout-main">
-      <router-outlet (attach)="onRouteAttach($event)"></router-outlet>
+      <router-outlet (attach)="onRouteAttach($event)" (detach)="onRouteDetach($event)"></router-outlet>
     </div>
   </div>
   <div class="layout-mask"></div>

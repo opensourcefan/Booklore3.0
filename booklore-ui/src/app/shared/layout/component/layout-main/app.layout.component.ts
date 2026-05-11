@@ -75,6 +75,14 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     queueMicrotask(() => component.onRouteReattached());
   }
 
+  onRouteDetach(component: unknown): void {
+    if (!this.isRouteDetachAware(component)) {
+      return;
+    }
+
+    queueMicrotask(() => component.onRouteDetached());
+  }
+
   isOutsideClicked(event: MouseEvent): boolean {
     const sidebarEl = document.querySelector('.layout-sidebar');
     const topbarEl = document.querySelector('.layout-menu-button');
@@ -132,6 +140,10 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
 
   private isRouteReattachAware(component: unknown): component is { onRouteReattached: () => void } {
     return !!component && typeof (component as { onRouteReattached?: unknown }).onRouteReattached === 'function';
+  }
+
+  private isRouteDetachAware(component: unknown): component is { onRouteDetached: () => void } {
+    return !!component && typeof (component as { onRouteDetached?: unknown }).onRouteDetached === 'function';
   }
 
   ngOnDestroy() {

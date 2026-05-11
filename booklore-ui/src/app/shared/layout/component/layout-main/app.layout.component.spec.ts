@@ -72,4 +72,18 @@ describe('AppLayoutComponent route reattach', () => {
     expect(() => component.onRouteAttach({})).not.toThrow();
     await Promise.resolve();
   });
+
+  it('should notify detach-aware components after router outlet detach', async () => {
+    const onRouteDetached = vi.fn();
+
+    component.onRouteDetach({onRouteDetached});
+    await Promise.resolve();
+
+    expect(onRouteDetached).toHaveBeenCalledTimes(1);
+  });
+
+  it('should ignore detached components without a detach hook', async () => {
+    expect(() => component.onRouteDetach({})).not.toThrow();
+    await Promise.resolve();
+  });
 });

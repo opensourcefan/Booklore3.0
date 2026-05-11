@@ -224,6 +224,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private settingFiltersFromUrl = false;
   private hasInitializedFilterMode = false;
+  private isRouteAttached = true;
   private destroy$ = new Subject<void>();
   private lastEntityKey: string | null = null;
   private previousSelectedCount = 0;
@@ -571,16 +572,31 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  onRouteDetached(): void {
+    this.isRouteAttached = false;
+    this.bookStateSubscription?.unsubscribe();
+    this.bookStateSubscription = undefined;
+  }
+
   onRouteReattached(): void {
+    this.isRouteAttached = true;
     this.bookFilterComponents?.forEach(component => component.refreshAfterRouteAttach());
-    this.pagedGridPilotService.refreshActiveState();
-    this.syncSelectionState(this.bookSelectionService.selectedBooks);
-    this.bookTableComponent?.refreshSelectionFromInputs();
-    this.restoreSavedScrollPosition();
 
     if (this.entityType !== EntityType.ALL_BOOKS) {
       this.pagedBookBrowserStateService.invalidateEntity('ALL_BOOKS');
     }
+
+    const effectiveSortCriteria = this.getEffectiveSortCriteria(
+      this.lastAppliedSortCriteria.length > 0
+        ? this.lastAppliedSortCriteria
+        : this.bookSorter.selectedSortCriteria
+    );
+    this.lastAppliedSortCriteria = [...effectiveSortCriteria];
+    this.applySortCriteria(effectiveSortCriteria);
+
+    this.syncSelectionState(this.bookSelectionService.selectedBooks);
+    this.bookTableComponent?.refreshSelectionFromInputs();
+    this.restoreSavedScrollPosition();
 
     this.cdr.detectChanges();
   }
@@ -1127,6 +1143,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   applySortCriteria(sortCriteria: SortOption[]): void {
+    if (!this.isRouteAttached) {
+      return;
+    }
+
     const primarySort = sortCriteria[0] ?? {field: 'addedOn', direction: 'DESCENDING', label: 'Added On'};
     const nextViewportContext = this.createGridViewportContext(sortCriteria);
 
