@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - develop
-    tags:
-      - 'v*'
   pull_request:
     branches:
       - '**'
@@ -43,9 +41,11 @@ jobs:
       - name: Execute Backend Tests
         id: backend_tests
         working-directory: ./booklore-api
+        env:
+          BOOKLORE_TEST_MAX_HEAP: 3g
         run: |
-          echo "Running backend tests..."
-          ./gradlew test --no-daemon --parallel --build-cache
+          echo "Running backend tests with heap ${BOOKLORE_TEST_MAX_HEAP}..."
+          ./gradlew test --no-daemon --build-cache
         continue-on-error: true
 
       - name: Publish Backend Test Results

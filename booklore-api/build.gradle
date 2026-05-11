@@ -156,6 +156,8 @@ hibernate {
 
 test {
     useJUnitPlatform()
+    minHeapSize = System.getenv('BOOKLORE_TEST_MIN_HEAP') ?: '512m'
+    maxHeapSize = System.getenv('BOOKLORE_TEST_MAX_HEAP') ?: '3g'
     jvmArgs("-XX:+EnableDynamicAgentLoading", "--enable-native-access=ALL-UNNAMED")
     finalizedBy jacocoTestReport
 }
