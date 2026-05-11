@@ -18,12 +18,13 @@ describe('ServerFilterAdapter', () => {
     const service = createService();
 
     expect(service.buildSortParams([
+      {field: 'fileName', label: 'File Name', direction: SortDirection.ASCENDING},
       {field: 'title', label: 'Title', direction: SortDirection.ASCENDING},
       {field: 'personalRating', label: 'Personal Rating', direction: SortDirection.DESCENDING},
       {field: 'publisher', label: 'Publisher', direction: SortDirection.DESCENDING},
       {field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING},
     ])).toEqual({
-      sorts: ['metadata.title,asc', 'personalRating,desc', 'metadata.publisher,desc', 'addedOn,desc'],
+      sorts: ['fileName,asc', 'metadata.title,asc', 'personalRating,desc', 'metadata.publisher,desc', 'addedOn,desc'],
     });
   });
 

@@ -62,6 +62,48 @@ import org.booklore.service.audit.AuditService;
 @Service
 public class BookService {
 
+    private static final Map<String, String> PAGED_SORT_FIELD_ALIASES = Map.ofEntries(
+        Map.entry("title", "metadata.title"),
+        Map.entry("seriesName", "metadata.seriesName"),
+        Map.entry("seriesNumber", "metadata.seriesNumber"),
+        Map.entry("publisher", "metadata.publisher"),
+        Map.entry("publishedDate", "metadata.publishedDate"),
+        Map.entry("pageCount", "metadata.pageCount"),
+        Map.entry("rating", "metadata.rating"),
+        Map.entry("amazonRating", "metadata.amazonRating"),
+        Map.entry("amazonReviewCount", "metadata.amazonReviewCount"),
+        Map.entry("goodreadsRating", "metadata.goodreadsRating"),
+        Map.entry("goodreadsReviewCount", "metadata.goodreadsReviewCount"),
+        Map.entry("hardcoverRating", "metadata.hardcoverRating"),
+        Map.entry("hardcoverReviewCount", "metadata.hardcoverReviewCount"),
+        Map.entry("ranobedbRating", "metadata.ranobedbRating"),
+        Map.entry("narrator", "metadata.narrator")
+    );
+
+    private static final Set<String> SUPPORTED_PAGED_SORT_FIELDS = Set.of(
+        "addedOn",
+        "fileName",
+        "metadata.title",
+        "metadata.seriesName",
+        "metadata.seriesNumber",
+        "metadata.publisher",
+        "metadata.publishedDate",
+        "metadata.pageCount",
+        "metadata.rating",
+        "metadata.amazonRating",
+        "metadata.amazonReviewCount",
+        "metadata.goodreadsRating",
+        "metadata.goodreadsReviewCount",
+        "metadata.hardcoverRating",
+        "metadata.hardcoverReviewCount",
+        "metadata.ranobedbRating",
+        "metadata.narrator",
+        "personalRating",
+        "lastReadTime",
+        "dateFinished",
+        "readStatus"
+    );
+
     public record MediaResource(Resource resource, MediaType mediaType) {
     }
 
@@ -694,7 +736,7 @@ public class BookService {
                 if (parts.length >= 2) {
                     Sort.Direction direction = "desc".equalsIgnoreCase(parts[1].trim())
                             ? Sort.Direction.DESC : Sort.Direction.ASC;
-                    orders.add(new Sort.Order(direction, parts[0].trim()));
+                    orders.add(createPagedSortOrder(parts[0].trim(), direction));
                 } else if (i + 1 < sorts.size()) {
                     // Spring may auto-split "field,dir" into two separate list entries
                     String next = sorts.get(i + 1);
@@ -702,7 +744,7 @@ public class BookService {
                     if ("asc".equals(trimmedNext) || "desc".equals(trimmedNext)) {
                         Sort.Direction direction = "desc".equals(trimmedNext)
                                 ? Sort.Direction.DESC : Sort.Direction.ASC;
-                        orders.add(new Sort.Order(direction, s.trim()));
+                        orders.add(createPagedSortOrder(s.trim(), direction));
                         i++; // skip the direction token
                     }
                 }
@@ -712,9 +754,18 @@ public class BookService {
         if (sortField != null && !sortField.isEmpty()) {
             Sort.Direction direction = "asc".equalsIgnoreCase(sortDir)
                     ? Sort.Direction.ASC : Sort.Direction.DESC;
-            return Sort.by(direction, sortField);
+            return Sort.by(createPagedSortOrder(sortField, direction));
         }
         return Sort.by(Sort.Direction.DESC, "addedOn");
+    }
+
+    private Sort.Order createPagedSortOrder(String rawField, Sort.Direction direction) {
+        String normalizedField = PAGED_SORT_FIELD_ALIASES.getOrDefault(rawField, rawField);
+        if (!SUPPORTED_PAGED_SORT_FIELDS.contains(normalizedField)) {
+            throw ApiError.GENERIC_BAD_REQUEST.createException("Unsupported sort field: " + rawField);
+        }
+
+        return new Sort.Order(direction, normalizedField);
     }
 
     @SuppressWarnings("unchecked")

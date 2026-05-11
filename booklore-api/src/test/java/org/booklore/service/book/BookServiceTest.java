@@ -32,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
@@ -546,7 +547,7 @@ class BookServiceTest {
         AppPageResponse<Book> result = bookService.getBooksPaged(
                 0,
                 50,
-                List.of("metadata.title,asc"),
+            List.of("title,asc"),
                 null,
                 null,
                 null,
@@ -569,6 +570,74 @@ class BookServiceTest {
         assertEquals(0, result.getTotalElements());
         verify(shelfRepository).findById(7L);
         verify(bookQueryService).findAllPaged(any(), eq(pageable), eq(testUser.getId()));
+    }
+
+    @Test
+    void getBooksPaged_withFileNameSort_usesMainPagedContract() {
+        PageRequest pageable = PageRequest.of(0, 50, Sort.by(Sort.Direction.ASC, "fileName"));
+
+        when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
+        when(bookQueryService.findAllPaged(any(), eq(pageable), eq(testUser.getId())))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+        when(readingProgressService.fetchUserProgress(anyLong(), anySet())).thenReturn(Map.of());
+        when(readingProgressService.fetchUserFileProgress(anyLong(), anySet())).thenReturn(Map.of());
+
+        AppPageResponse<Book> result = bookService.getBooksPaged(
+                0,
+                50,
+                List.of("fileName,asc"),
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "and"
+        );
+
+        assertEquals(0, result.getTotalElements());
+        verify(bookQueryService).findAllPaged(any(), eq(pageable), eq(testUser.getId()));
+    }
+
+    @Test
+    void getBooksPaged_withUnsupportedSort_throwsBadRequest() {
+        when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
+
+        APIException exception = assertThrows(APIException.class, () -> bookService.getBooksPaged(
+                0,
+                50,
+                List.of("random,asc"),
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "and"
+        ));
+
+        assertTrue(exception.getMessage().contains("Unsupported sort field: random"));
+        verify(bookQueryService, never()).findAllPaged(any(), any(Pageable.class), anyLong());
     }
 
     @Test

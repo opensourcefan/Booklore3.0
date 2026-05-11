@@ -362,6 +362,39 @@ describe('PagedGridPilotService', () => {
     }));
   });
 
+  it('uses the paged path for file name sorting when the server contract supports primary-file ordering', async () => {
+    const service = createService();
+
+    getBooksPaged.mockReturnValueOnce(of({
+      content: [createBook(21, 'Alpha File'), createBook(22, 'Bravo File')],
+      page: 0,
+      size: 80,
+      totalElements: 2,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    }));
+
+    const bookState$ = service.connect({
+      entity: 'ALL_BOOKS',
+      entityId: null,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'fileName', label: 'File Name', direction: SortDirection.ASCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, () => of(legacyState([createBook(90, 'Warm 90'), createBook(91, 'Warm 91')])));
+
+    const pagedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+    expect(pagedState.books?.map(book => book.id)).toEqual([21, 22]);
+    expect(service.isPagedActive()).toBe(true);
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      sorts: ['fileName,asc'],
+    }));
+  });
+
   it('uses the paged path for supported user-progress sorting', async () => {
     const service = createService();
 

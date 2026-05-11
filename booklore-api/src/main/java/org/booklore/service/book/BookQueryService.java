@@ -12,12 +12,16 @@ import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.booklore.mapper.v2.BookMapperV2;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.BookMetadata;
 import org.booklore.model.dto.ComicMetadata;
 import org.booklore.model.entity.BookEntity;
+import org.booklore.model.entity.BookFileEntity;
+import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.entity.UserBookProgressEntity;
+import org.booklore.model.enums.BookFileType;
 import org.booklore.model.enums.ReadStatus;
 import org.booklore.repository.BookRepository;
 import org.booklore.service.restriction.ContentRestrictionService;
@@ -39,6 +43,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class BookQueryService {
+
+    private static final String PRIMARY_FILE_NAME_SORT_FIELD = "fileName";
+    private static final int PRIMARY_FILE_FALLBACK_RANK = 1000;
 
     private static final Set<String> USER_PROGRESS_SORT_FIELDS = Set.of(
             "personalRating",
@@ -101,7 +108,7 @@ public class BookQueryService {
         if (predicate != null) {
             contentQuery.where(predicate);
         }
-        contentQuery.orderBy(buildSortOrders(pageable.getSort(), root, progressJoin, cb));
+        contentQuery.orderBy(buildSortOrders(pageable.getSort(), root, progressJoin, cb, contentQuery));
 
         TypedQuery<BookEntity> typedQuery = entityManager.createQuery(contentQuery);
         typedQuery.setFirstResult((int) pageable.getOffset());
@@ -143,7 +150,8 @@ public class BookQueryService {
             Sort sort,
             Root<BookEntity> root,
             Join<BookEntity, UserBookProgressEntity> progressJoin,
-            CriteriaBuilder cb) {
+            CriteriaBuilder cb,
+            CriteriaQuery<?> query) {
         List<Order> orders = new ArrayList<>();
         Map<String, From<?, ?>> joins = new HashMap<>();
 
@@ -154,11 +162,85 @@ public class BookQueryService {
                 continue;
             }
 
+            if (PRIMARY_FILE_NAME_SORT_FIELD.equals(property)) {
+                addPrimaryFileNameSort(orders, root, sortOrder.getDirection(), cb, query);
+                continue;
+            }
+
             Path<?> path = resolvePath(root, joins, property);
             orders.add(sortOrder.isAscending() ? cb.asc(path) : cb.desc(path));
         }
 
         return orders;
+    }
+
+    private void addPrimaryFileNameSort(
+            List<Order> orders,
+            Root<BookEntity> root,
+            Sort.Direction direction,
+            CriteriaBuilder cb,
+            CriteriaQuery<?> query) {
+        Join<BookEntity, BookFileEntity> primaryFileJoin = root.join("bookFiles", JoinType.LEFT);
+        primaryFileJoin.on(
+                cb.isTrue(primaryFileJoin.get("isBookFormat")),
+                cb.equal(primaryFileJoin.get("id"), buildPrimaryBookFileIdSubquery(root, cb, query))
+        );
+
+        Expression<String> fileNameExpression = cb.lower(primaryFileJoin.get("fileName"));
+        addNullAwareOrder(orders, fileNameExpression, cb.isNull(primaryFileJoin.get("fileName")), direction, cb);
+    }
+
+    private Subquery<Long> buildPrimaryBookFileIdSubquery(
+            Root<BookEntity> root,
+            CriteriaBuilder cb,
+            CriteriaQuery<?> query) {
+        Subquery<Integer> minRankSubquery = query.subquery(Integer.class);
+        Root<BookFileEntity> minRankFile = minRankSubquery.from(BookFileEntity.class);
+        Join<BookFileEntity, BookEntity> minRankBook = minRankFile.join("book");
+        Join<BookEntity, LibraryEntity> minRankLibrary = minRankBook.join("library", JoinType.LEFT);
+        Expression<Integer> minRankExpression = buildPrimaryFileRank(minRankFile, minRankLibrary, cb);
+
+        minRankSubquery.select(cb.min(minRankExpression));
+        minRankSubquery.where(
+                cb.equal(minRankBook.get("id"), root.get("id")),
+                cb.isTrue(minRankFile.get("isBookFormat"))
+        );
+
+        Subquery<Long> primaryFileIdSubquery = query.subquery(Long.class);
+        Root<BookFileEntity> primaryFile = primaryFileIdSubquery.from(BookFileEntity.class);
+        Join<BookFileEntity, BookEntity> primaryBook = primaryFile.join("book");
+        Join<BookEntity, LibraryEntity> primaryLibrary = primaryBook.join("library", JoinType.LEFT);
+        Expression<Integer> primaryRankExpression = buildPrimaryFileRank(primaryFile, primaryLibrary, cb);
+
+        primaryFileIdSubquery.select(cb.min(primaryFile.get("id")));
+        primaryFileIdSubquery.where(
+                cb.equal(primaryBook.get("id"), root.get("id")),
+                cb.isTrue(primaryFile.get("isBookFormat")),
+                cb.equal(primaryRankExpression, minRankSubquery)
+        );
+
+        return primaryFileIdSubquery;
+    }
+
+    private Expression<Integer> buildPrimaryFileRank(
+            Root<BookFileEntity> fileRoot,
+            Join<BookEntity, LibraryEntity> libraryJoin,
+            CriteriaBuilder cb) {
+        Expression<String> formatPriorityJson = libraryJoin.get("formatPriority").as(String.class);
+        Expression<String> bookType = fileRoot.get("bookType").as(String.class);
+        CriteriaBuilder.Case<Integer> rankCase = cb.selectCase();
+
+        BookFileType[] supportedTypes = BookFileType.values();
+        for (int index = 0; index < supportedTypes.length; index++) {
+            Expression<String> priorityAtIndex = cb.function(
+                    "JSON_UNQUOTE",
+                    String.class,
+                    cb.function("JSON_EXTRACT", String.class, formatPriorityJson, cb.literal("$[" + index + "]"))
+            );
+            rankCase = rankCase.when(cb.equal(priorityAtIndex, bookType), index);
+        }
+
+        return rankCase.otherwise(PRIMARY_FILE_FALLBACK_RANK);
     }
 
     private void addUserProgressSort(

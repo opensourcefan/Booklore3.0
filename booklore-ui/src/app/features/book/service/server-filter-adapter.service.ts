@@ -4,6 +4,7 @@ import { PagedBooksParams } from './book.service';
 
 const SUPPORTED_SORT_FIELD_MAP: Readonly<Record<string, string>> = {
   addedOn: 'addedOn',
+  fileName: 'fileName',
   title: 'metadata.title',
   seriesName: 'metadata.seriesName',
   seriesNumber: 'metadata.seriesNumber',
