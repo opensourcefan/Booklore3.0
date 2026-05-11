@@ -581,6 +581,16 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isRouteAttached = true;
     this.bookFilterComponents?.forEach(component => component.refreshAfterRouteAttach());
 
+    if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED) {
+      const currentPath = this.activatedRoute.snapshot.routeConfig?.path;
+      const fallbackTitle = currentPath === 'not-shelfed'
+        ? this.t.translate('book.browser.labels.unshelvedBooks')
+        : this.t.translate('book.browser.labels.allBooks');
+      this.pageTitle.setPageTitle(this.currentFilterLabel || fallbackTitle);
+    } else if (this.entity?.name) {
+      this.pageTitle.setPageTitle(this.entity.name);
+    }
+
     if (this.entityType !== EntityType.ALL_BOOKS) {
       this.pagedBookBrowserStateService.invalidateEntity('ALL_BOOKS');
     }

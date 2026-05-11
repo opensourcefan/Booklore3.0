@@ -67,4 +67,28 @@ describe('BookBrowserComponent route reuse lifecycle', () => {
     expect(restoreSavedScrollPosition).toHaveBeenCalledTimes(1);
     expect(detectChanges).toHaveBeenCalledTimes(1);
   });
+
+  it('restores the current library title when a cached browser route is reattached', () => {
+    const setPageTitle = vi.fn();
+
+    BookBrowserComponent.prototype.onRouteReattached.call({
+      isRouteAttached: false,
+      bookFilterComponents: [],
+      entityType: EntityType.LIBRARY,
+      entity: {name: 'Library B'},
+      pageTitle: {setPageTitle},
+      pagedBookBrowserStateService: {invalidateEntity: vi.fn()},
+      lastAppliedSortCriteria: [],
+      bookSorter: {selectedSortCriteria: []},
+      getEffectiveSortCriteria: vi.fn(() => []),
+      applySortCriteria: vi.fn(),
+      syncSelectionState: vi.fn(),
+      bookSelectionService: {selectedBooks: new Set()},
+      bookTableComponent: {refreshSelectionFromInputs: vi.fn()},
+      restoreSavedScrollPosition: vi.fn(),
+      cdr: {detectChanges: vi.fn()},
+    } as never);
+
+    expect(setPageTitle).toHaveBeenCalledWith('Library B');
+  });
 });
