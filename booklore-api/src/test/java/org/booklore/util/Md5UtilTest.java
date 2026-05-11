@@ -82,4 +82,24 @@ class Md5UtilTest {
         assertEquals(32, result.length()); // MD5 always produces 32 character hex string
         assertTrue(PATTERN.matcher(result).matches()); // Only lowercase hex characters
     }
+
+    @Test
+    void testConstantTimeEqualsHex_acceptsCaseInsensitiveHex() {
+        assertTrue(Md5Util.constantTimeEqualsHex(
+                "5F4DCC3B5AA765D61D8327DEB882CF99",
+                "5f4dcc3b5aa765d61d8327deb882cf99"
+        ));
+    }
+
+    @Test
+    void testConstantTimeEqualsHex_rejectsMalformedHex() {
+        assertFalse(Md5Util.constantTimeEqualsHex(
+                "5f4dcc3b5aa765d61d8327deb882cf99",
+                "not-hex"
+        ));
+        assertFalse(Md5Util.constantTimeEqualsHex(
+                "5f4dcc3b5aa765d61d8327deb882cf99",
+                "abc"
+        ));
+    }
 }

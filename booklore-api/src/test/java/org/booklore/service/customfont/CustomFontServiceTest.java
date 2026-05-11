@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.io.Resource;
@@ -95,6 +96,39 @@ class CustomFontServiceTest {
         Path userFontDir = tempDir.resolve("custom-fonts").resolve(String.valueOf(userId));
         assertThat(Files.exists(userFontDir)).isTrue();
         assertThat(Files.list(userFontDir).count()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("uploadFont_withMalformedHtmlLikeName_shouldPreserveSafeText")
+    void uploadFont_withMalformedHtmlLikeName_shouldPreserveSafeText() throws IOException {
+        Long userId = 1L;
+        byte[] fontContent = new byte[]{0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        MultipartFile file = new MockMultipartFile("font.ttf", "font.ttf", "font/ttf", fontContent);
+
+        BookLoreUserEntity user = new BookLoreUserEntity();
+        user.setId(userId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(customFontRepository.countByUserId(userId)).thenReturn(0);
+        when(customFontRepository.save(any(CustomFontEntity.class))).thenAnswer(invocation -> {
+            CustomFontEntity entity = invocation.getArgument(0);
+            entity.setId(1L);
+            return entity;
+        });
+        when(customFontMapper.toDto(any(CustomFontEntity.class))).thenAnswer(invocation -> {
+            CustomFontEntity entity = invocation.getArgument(0);
+            CustomFontDto dto = new CustomFontDto();
+            dto.setId(entity.getId());
+            dto.setFontName(entity.getFontName());
+            return dto;
+        });
+
+        CustomFontDto result = service.uploadFont(file, "Font <script<x>> Name", userId);
+
+        ArgumentCaptor<CustomFontEntity> entityCaptor = ArgumentCaptor.forClass(CustomFontEntity.class);
+        verify(customFontRepository).save(entityCaptor.capture());
+        assertThat(entityCaptor.getValue().getFontName()).isEqualTo("Font script Name");
+        assertThat(result.getFontName()).isEqualTo("Font script Name");
     }
 
     @Test

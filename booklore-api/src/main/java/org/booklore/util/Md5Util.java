@@ -25,4 +25,36 @@ public class Md5Util {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean constantTimeEqualsHex(String expectedHex, String providedHex) {
+        if (expectedHex == null || providedHex == null) {
+            return false;
+        }
+
+        byte[] expectedBytes = decodeHex(expectedHex);
+        byte[] providedBytes = decodeHex(providedHex);
+        if (expectedBytes == null || providedBytes == null) {
+            return false;
+        }
+
+        return MessageDigest.isEqual(expectedBytes, providedBytes);
+    }
+
+    private byte[] decodeHex(String hex) {
+        if ((hex.length() & 1) != 0) {
+            return null;
+        }
+
+        byte[] bytes = new byte[hex.length() / 2];
+        for (int index = 0; index < hex.length(); index += 2) {
+            int high = Character.digit(hex.charAt(index), 16);
+            int low = Character.digit(hex.charAt(index + 1), 16);
+            if (high < 0 || low < 0) {
+                return null;
+            }
+            bytes[index / 2] = (byte) ((high << 4) + low);
+        }
+
+        return bytes;
+    }
 }

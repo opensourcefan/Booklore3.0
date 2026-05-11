@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.booklore.util.Md5Util;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,7 +40,7 @@ public class KoreaderAuthFilter extends OncePerRequestFilter {
 
         if (username != null && key != null) {
             koreaderUserRepository.findByUsername(username).ifPresentOrElse(user -> {
-                if (user.getPasswordMD5().equalsIgnoreCase(key)) {
+                if (Md5Util.constantTimeEqualsHex(user.getPasswordMD5(), key)) {
                     Long bookLoreUserId = null;
                     if (user.getBookLoreUser() != null) {
                         bookLoreUserId = user.getBookLoreUser().getId();

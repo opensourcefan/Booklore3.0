@@ -73,6 +73,15 @@ class EntityEqualityTest {
     }
 
     @Test
+    void shelfEntity_shouldBeEqual_whenIdsAreSame() {
+        ShelfEntity s1 = ShelfEntity.builder().id(1L).name("Favorites").build();
+        ShelfEntity s2 = ShelfEntity.builder().id(1L).name("Archive").build();
+
+        assertEquals(s1, s2);
+        assertEquals(s1.hashCode(), s2.hashCode());
+    }
+
+    @Test
     void unsavedEntities_withNullIds_shouldNotBeEqual() {
         AuthorEntity a1 = AuthorEntity.builder().name("John").build();
         AuthorEntity a2 = AuthorEntity.builder().name("Jane").build();

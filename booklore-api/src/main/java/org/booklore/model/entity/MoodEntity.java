@@ -2,6 +2,7 @@ package org.booklore.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -30,13 +31,14 @@ public class MoodEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof MoodEntity that)) return false;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        MoodEntity that = (MoodEntity) o;
         return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Hibernate.getClass(this).hashCode();
     }
 }
 

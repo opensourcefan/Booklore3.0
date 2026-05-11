@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 @Service
 public class BookReviewUpdateService {
 
+    private static final int REVIEW_FIELD_MAX_LENGTH = 512;
+
     public void addReviewsToBook(List<BookReview> bookReviews, BookMetadataEntity e) {
         BookMetadata tempMetadata = BookMetadata.builder()
                 .bookReviews(bookReviews)
@@ -64,16 +66,24 @@ public class BookReviewUpdateService {
         return BookReviewEntity.builder()
                 .bookMetadata(entity)
                 .metadataProvider(review.getMetadataProvider())
-                .reviewerName(review.getReviewerName())
-                .title(review.getTitle())
+                .reviewerName(truncateReviewField(review.getReviewerName()))
+                .title(truncateReviewField(review.getTitle()))
                 .rating(review.getRating())
                 .date(review.getDate())
                 .body(review.getBody())
                 .spoiler(review.getSpoiler())
                 .followersCount(review.getFollowersCount())
                 .textReviewsCount(review.getTextReviewsCount())
-                .country(review.getCountry())
+                .country(truncateReviewField(review.getCountry()))
                 .build();
+    }
+
+    private String truncateReviewField(String value) {
+        if (value == null || value.length() <= REVIEW_FIELD_MAX_LENGTH) {
+            return value;
+        }
+
+        return value.substring(0, REVIEW_FIELD_MAX_LENGTH);
     }
 
     private void applyReviewLimitsAndUpdate(BookMetadataEntity entity) {

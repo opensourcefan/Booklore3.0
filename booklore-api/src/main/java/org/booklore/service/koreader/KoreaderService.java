@@ -11,6 +11,7 @@ import org.booklore.repository.UserBookFileProgressRepository;
 import org.booklore.repository.UserBookProgressRepository;
 import org.booklore.repository.UserRepository;
 import org.booklore.service.hardcover.HardcoverSyncService;
+import org.booklore.util.Md5Util;
 import org.booklore.util.koreader.EpubCfiService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -209,7 +210,7 @@ public class KoreaderService {
 
     private void validatePassword(KoreaderUserEntity koreaderUser, KoreaderUserDetails authDetails) {
         if (koreaderUser.getPasswordMD5() == null ||
-                !koreaderUser.getPasswordMD5().equalsIgnoreCase(authDetails.getPassword())) {
+                !Md5Util.constantTimeEqualsHex(koreaderUser.getPasswordMD5(), authDetails.getPassword())) {
             log.warn("Password mismatch for user '{}'", authDetails.getUsername());
             throw ApiError.GENERIC_UNAUTHORIZED.createException("Invalid credentials");
         }

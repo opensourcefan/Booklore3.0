@@ -318,4 +318,63 @@ class BookReviewUpdateServiceTest {
         assertThat(created.getCountry()).isEqualTo("US");
         assertThat(created.getBookMetadata()).isSameAs(entity);
     }
+
+    @Test
+    void reviewFieldsRemainNullWhenSourceValuesAreNull() {
+        BookMetadataEntity entity = entityWithReviews(new HashSet<>());
+        BookReview review = BookReview.builder()
+                .metadataProvider(MetadataProvider.Hardcover)
+                .reviewerName(null)
+                .title(null)
+                .country(null)
+                .build();
+
+        service.updateBookReviews(BookMetadata.builder().bookReviews(List.of(review)).build(), entity, new MetadataClearFlags(), true);
+
+        BookReviewEntity created = entity.getReviews().iterator().next();
+        assertThat(created.getReviewerName()).isNull();
+        assertThat(created.getTitle()).isNull();
+        assertThat(created.getCountry()).isNull();
+    }
+
+    @Test
+    void reviewFieldsPreserveExactLengthValues() {
+        String exactLength = "a".repeat(512);
+        BookMetadataEntity entity = entityWithReviews(new HashSet<>());
+        BookReview review = BookReview.builder()
+                .metadataProvider(MetadataProvider.Hardcover)
+                .reviewerName(exactLength)
+                .title(exactLength)
+                .country(exactLength)
+                .build();
+
+        service.updateBookReviews(BookMetadata.builder().bookReviews(List.of(review)).build(), entity, new MetadataClearFlags(), true);
+
+        BookReviewEntity created = entity.getReviews().iterator().next();
+        assertThat(created.getReviewerName()).isEqualTo(exactLength);
+        assertThat(created.getTitle()).isEqualTo(exactLength);
+        assertThat(created.getCountry()).isEqualTo(exactLength);
+    }
+
+    @Test
+    void reviewFieldsTruncateValuesBeyondColumnLimit() {
+        String oversized = "b".repeat(600);
+        BookMetadataEntity entity = entityWithReviews(new HashSet<>());
+        BookReview review = BookReview.builder()
+                .metadataProvider(MetadataProvider.Hardcover)
+                .reviewerName(oversized)
+                .title(oversized)
+                .country(oversized)
+                .build();
+
+        service.updateBookReviews(BookMetadata.builder().bookReviews(List.of(review)).build(), entity, new MetadataClearFlags(), true);
+
+        BookReviewEntity created = entity.getReviews().iterator().next();
+        assertThat(created.getReviewerName()).hasSize(512);
+        assertThat(created.getTitle()).hasSize(512);
+        assertThat(created.getCountry()).hasSize(512);
+        assertThat(created.getReviewerName()).isEqualTo(oversized.substring(0, 512));
+        assertThat(created.getTitle()).isEqualTo(oversized.substring(0, 512));
+        assertThat(created.getCountry()).isEqualTo(oversized.substring(0, 512));
+    }
 }
