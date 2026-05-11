@@ -20,6 +20,7 @@ import {
   DuplicateResolutionPlanEntry,
   UserService,
 } from '../../../settings/user-management/user.service';
+import {naturalCompareStrings} from '../../../../shared/util/natural-sort.util';
 
 type PresetMode = 'strict' | 'balanced' | 'aggressive' | 'custom';
 
@@ -396,7 +397,7 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
       if (right.id === group.suggestedTargetBookId) {
         return 1;
       }
-      return (left.metadata?.title ?? '').localeCompare(right.metadata?.title ?? '');
+      return naturalCompareStrings(left.metadata?.title ?? '', right.metadata?.title ?? '');
     });
   }
 

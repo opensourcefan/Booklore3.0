@@ -83,6 +83,7 @@ import {DirectoryPanelService} from '../../service/directory-panel.service';
 import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 import {isDirectoryScopeActive} from './book-browser-directory-scope.util';
+import {getDirectoryScopedSortCriteria} from './book-browser-directory-scope.util';
 import {
   buildGridViewportContext,
   GridViewportContext,
@@ -1137,6 +1138,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onMultiSortChange(sortCriteria: SortOption[]): void {
     if (this.isDirectoryScopedView) {
+      this.baseSortCriteria = [...sortCriteria];
       this.applyEffectiveSortCriteria();
       return;
     }
@@ -1398,6 +1400,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSortCriteriaChange(criteria: SortOption[]): void {
     if (this.isDirectoryScopedView) {
+      this.baseSortCriteria = [...criteria];
       this.applyEffectiveSortCriteria();
       return;
     }
@@ -1598,7 +1601,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return baseSortCriteria;
     }
 
-    return [this.getDirectoryDefaultSortOption()];
+    return getDirectoryScopedSortCriteria(baseSortCriteria, this.getDirectoryDefaultSortOption());
   }
 
   private applyEffectiveSortCriteria(): void {

@@ -28,6 +28,7 @@ import {ReadStatus} from '../../../book/model/book.model';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {SeriesScalePreferenceService} from '../../service/series-scale-preference.service';
 import {Router} from '@angular/router';
+import {naturalCompareStrings} from '../../../../shared/util/natural-sort.util';
 
 interface FilterOption {
   label: string;
@@ -279,9 +280,9 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
     const sorted = [...series];
     switch (sortBy) {
       case 'name-asc':
-        return sorted.sort((a, b) => a.seriesName.localeCompare(b.seriesName));
+        return sorted.sort((a, b) => naturalCompareStrings(a.seriesName, b.seriesName));
       case 'name-desc':
-        return sorted.sort((a, b) => b.seriesName.localeCompare(a.seriesName));
+        return sorted.sort((a, b) => naturalCompareStrings(b.seriesName, a.seriesName));
       case 'book-count':
         return sorted.sort((a, b) => b.bookCount - a.bookCount);
       case 'progress':

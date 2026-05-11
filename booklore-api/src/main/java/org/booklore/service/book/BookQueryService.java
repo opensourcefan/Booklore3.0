@@ -48,6 +48,19 @@ public class BookQueryService {
 
     private static final String PRIMARY_FILE_NAME_SORT_FIELD = "fileName";
     private static final int PRIMARY_FILE_FALLBACK_RANK = 1000;
+    private static final int MAX_NATURAL_SORT_SEGMENTS = 4;
+    private static final String NATURAL_PREFIX_PATTERN = "\\d.*$";
+    private static final String NATURAL_NUMBER_PATTERN = "\\d+";
+    private static final String NATURAL_LEADING_ZERO_PATTERN = "^0+";
+    private static final String NATURAL_REMAINDER_PATTERN = "^.*?\\d+";
+
+    private static final Set<String> NATURAL_STRING_SORT_FIELDS = Set.of(
+            PRIMARY_FILE_NAME_SORT_FIELD,
+            "metadata.title",
+            "metadata.seriesName",
+            "metadata.publisher",
+            "metadata.narrator"
+    );
 
     private static final Set<String> USER_PROGRESS_SORT_FIELDS = Set.of(
             "personalRating",
@@ -188,6 +201,11 @@ public class BookQueryService {
             }
 
             Path<?> path = resolvePath(root, joins, property);
+            if (NATURAL_STRING_SORT_FIELDS.contains(property)) {
+                addNaturalStringSort(orders, projections, path.as(String.class), cb.isNull(path), sortOrder.getDirection(), cb);
+                continue;
+            }
+
             orders.add(sortOrder.isAscending() ? cb.asc(path) : cb.desc(path));
             projections.add(path.alias(nextSortAlias(projections)));
         }
@@ -208,9 +226,46 @@ public class BookQueryService {
                 cb.equal(primaryFileJoin.get("id"), buildPrimaryBookFileIdSubquery(root, cb, query))
         );
 
-        Expression<String> fileNameExpression = cb.lower(primaryFileJoin.get("fileName"));
-        addNullAwareOrder(orders, projections, fileNameExpression, cb.isNull(primaryFileJoin.get("fileName")), direction, cb);
+        Expression<String> fileNameExpression = primaryFileJoin.get("fileName").as(String.class);
+        addNaturalStringSort(orders, projections, fileNameExpression, cb.isNull(primaryFileJoin.get("fileName")), direction, cb);
     }
+
+        private void addNaturalStringSort(
+            List<Order> orders,
+            List<Selection<?>> projections,
+            Expression<String> expression,
+            Predicate isNull,
+            Sort.Direction direction,
+            CriteriaBuilder cb) {
+        Expression<Integer> nullOrder = cb.<Integer>selectCase()
+            .when(isNull, direction.isAscending() ? 1 : 0)
+            .otherwise(direction.isAscending() ? 0 : 1);
+        projections.add(nullOrder.alias(nextSortAlias(projections)));
+        orders.add(cb.asc(nullOrder));
+
+        Expression<String> normalizedExpression = cb.coalesce(cb.lower(expression), "");
+        Expression<String> currentExpression = normalizedExpression;
+
+        for (int index = 0; index < MAX_NATURAL_SORT_SEGMENTS; index++) {
+            Expression<String> prefixExpression = regexReplace(cb, currentExpression, NATURAL_PREFIX_PATTERN, "");
+            addOrderedProjection(orders, projections, prefixExpression, direction, cb);
+
+            Expression<String> numberToken = regexSubstr(cb, currentExpression, NATURAL_NUMBER_PATTERN);
+            Expression<Integer> hasNumber = cb.<Integer>selectCase()
+                .when(cb.isNull(numberToken), 0)
+                .otherwise(1);
+            addOrderedProjection(orders, projections, hasNumber, direction, cb);
+
+            Expression<String> normalizedNumber = normalizeNumericToken(cb, numberToken);
+            Expression<Integer> normalizedNumberLength = cb.function("CHAR_LENGTH", Integer.class, normalizedNumber);
+            addOrderedProjection(orders, projections, normalizedNumberLength, direction, cb);
+            addOrderedProjection(orders, projections, normalizedNumber, direction, cb);
+
+            currentExpression = remainderAfterFirstNumber(cb, currentExpression, numberToken);
+        }
+
+        addOrderedProjection(orders, projections, normalizedExpression, direction, cb);
+        }
 
     private Subquery<Long> buildPrimaryBookFileIdSubquery(
             Root<BookEntity> root,
@@ -263,6 +318,51 @@ public class BookQueryService {
         }
 
         return rankCase.otherwise(PRIMARY_FILE_FALLBACK_RANK);
+    }
+
+    private void addOrderedProjection(
+            List<Order> orders,
+            List<Selection<?>> projections,
+            Expression<?> expression,
+            Sort.Direction direction,
+            CriteriaBuilder cb) {
+        projections.add(expression.alias(nextSortAlias(projections)));
+        orders.add(direction.isAscending() ? cb.asc(expression) : cb.desc(expression));
+    }
+
+    private Expression<String> regexReplace(
+            CriteriaBuilder cb,
+            Expression<String> source,
+            String pattern,
+            String replacement) {
+        return cb.function("REGEXP_REPLACE", String.class, source, cb.literal(pattern), cb.literal(replacement));
+    }
+
+    private Expression<String> regexSubstr(
+            CriteriaBuilder cb,
+            Expression<String> source,
+            String pattern) {
+        return cb.function("REGEXP_SUBSTR", String.class, source, cb.literal(pattern));
+    }
+
+    private Expression<String> normalizeNumericToken(
+            CriteriaBuilder cb,
+            Expression<String> numberToken) {
+        Expression<String> strippedNumber = regexReplace(cb, cb.coalesce(numberToken, ""), NATURAL_LEADING_ZERO_PATTERN, "");
+
+        return cb.<String>selectCase()
+                .when(cb.isNull(numberToken), "")
+                .when(cb.equal(strippedNumber, ""), "0")
+                .otherwise(strippedNumber);
+    }
+
+    private Expression<String> remainderAfterFirstNumber(
+            CriteriaBuilder cb,
+            Expression<String> source,
+            Expression<String> numberToken) {
+        return cb.<String>selectCase()
+                .when(cb.isNull(numberToken), "")
+                .otherwise(regexReplace(cb, source, NATURAL_REMAINDER_PATTERN, ""));
     }
 
     private void addUserProgressSort(

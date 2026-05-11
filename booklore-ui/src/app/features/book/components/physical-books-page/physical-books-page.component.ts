@@ -14,6 +14,7 @@ import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {ReadStatusHelper} from '../../helpers/read-status.helper';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
+import {naturalCompareStrings} from '../../../../shared/util/natural-sort.util';
 
 interface PhysicalBookGroup {
   key: string;
@@ -123,7 +124,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
           ...group,
           books: this.sortBooks(group.books),
         }))
-        .sort((left, right) => left.libraryName.localeCompare(right.libraryName));
+        .sort((left, right) => naturalCompareStrings(left.libraryName, right.libraryName));
 
       return {
         loading: false,
@@ -206,7 +207,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
     return [...books].sort((left, right) => {
       const leftTitle = (left.metadata?.title ?? left.fileName ?? '').trim();
       const rightTitle = (right.metadata?.title ?? right.fileName ?? '').trim();
-      return leftTitle.localeCompare(rightTitle) || left.id - right.id;
+      return naturalCompareStrings(leftTitle, rightTitle) || left.id - right.id;
     });
   }
 

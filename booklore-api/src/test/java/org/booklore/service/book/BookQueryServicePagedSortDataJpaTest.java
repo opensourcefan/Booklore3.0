@@ -5,6 +5,7 @@ import org.booklore.mapper.v2.BookMapperV2;
 import org.booklore.model.dto.Book;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookFileEntity;
+import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.model.enums.BookFileType;
@@ -15,24 +16,43 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = BookloreApplication.class)
+@SpringBootTest(classes = {
+        BookloreApplication.class,
+        BookQueryServicePagedSortDataJpaTest.TestConfig.class,
+})
 @ActiveProfiles("test")
 @Transactional
 public class BookQueryServicePagedSortDataJpaTest {
+
+    @TestConfiguration
+    static class TestConfig {
+
+        @Bean
+        @Primary
+        RestTemplate testRestTemplate() {
+            return new RestTemplate();
+        }
+    }
 
     @Autowired
     private EntityManager entityManager;
@@ -44,7 +64,7 @@ public class BookQueryServicePagedSortDataJpaTest {
 
     @BeforeEach
     void setUp() {
-        registerJsonAliases(entityManager);
+        registerHelperAliases(entityManager);
 
         BookMapperV2 bookMapperV2 = mock(BookMapperV2.class);
         when(bookMapperV2.toDTO(any(BookEntity.class))).thenAnswer(invocation -> {
@@ -82,7 +102,35 @@ public class BookQueryServicePagedSortDataJpaTest {
                 .containsExactly(zuluBookId, alphaBookId);
     }
 
+    @Test
+    void findAllPaged_sortsPrimaryFileNameNaturallyAscending() {
+        long issue10BookId = persistBookWithPrimaryFile("Issue 10.cbz");
+        long issue02BookId = persistBookWithPrimaryFile("Issue 02.cbz");
+        long issue01BookId = persistBookWithPrimaryFile("Issue 01.cbz");
+
+        Page<Book> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "fileName")), null);
+
+        assertThat(page.getContent()).extracting(Book::getId)
+                .containsExactly(issue01BookId, issue02BookId, issue10BookId);
+    }
+
+    @Test
+    void findAllPaged_sortsMetadataTitleNaturallyAscending() {
+        long title10BookId = persistBookWithPrimaryFileAndTitle("Archive 10", "archive-10.cbz");
+        long title02BookId = persistBookWithPrimaryFileAndTitle("Archive 02", "archive-02.cbz");
+        long title01BookId = persistBookWithPrimaryFileAndTitle("Archive 01", "archive-01.cbz");
+
+        Page<Book> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "metadata.title")), null);
+
+        assertThat(page.getContent()).extracting(Book::getId)
+                .containsExactly(title01BookId, title02BookId, title10BookId);
+    }
+
     private long persistBookWithPrimaryFile(String fileName) {
+        return persistBookWithPrimaryFileAndTitle(null, fileName);
+    }
+
+    private long persistBookWithPrimaryFileAndTitle(String title, String fileName) {
         LibraryEntity library = LibraryEntity.builder()
                 .name("Test Library " + fileName)
                 .watch(false)
@@ -103,6 +151,13 @@ public class BookQueryServicePagedSortDataJpaTest {
                 .build();
         entityManager.persist(book);
 
+        BookMetadataEntity metadata = BookMetadataEntity.builder()
+            .book(book)
+            .title(title != null ? title : fileName)
+            .build();
+        entityManager.persist(metadata);
+        book.setMetadata(metadata);
+
         BookFileEntity primaryFile = BookFileEntity.builder()
                 .book(book)
                 .fileName(fileName)
@@ -121,7 +176,7 @@ public class BookQueryServicePagedSortDataJpaTest {
         return book.getId();
     }
 
-    private static void registerJsonAliases(EntityManager entityManager) {
+        private static void registerHelperAliases(EntityManager entityManager) {
         entityManager.createNativeQuery(
                 "CREATE ALIAS IF NOT EXISTS JSON_EXTRACT FOR \"org.booklore.service.book.BookQueryServicePagedSortDataJpaTest.jsonExtract\""
         ).executeUpdate();
@@ -165,5 +220,22 @@ public class BookQueryServicePagedSortDataJpaTest {
         }
 
         return trimmed;
+    }
+
+    public static String regexSubstr(String value, String pattern) {
+        if (value == null || pattern == null) {
+            return null;
+        }
+
+        Matcher matcher = Pattern.compile(pattern).matcher(value);
+        return matcher.find() ? matcher.group() : null;
+    }
+
+    public static String regexReplace(String value, String pattern, String replacement) {
+        if (value == null || pattern == null || replacement == null) {
+            return value;
+        }
+
+        return value.replaceAll(pattern, replacement);
     }
 }
