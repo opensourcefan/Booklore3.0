@@ -6,7 +6,13 @@
 - After changes, check README.md, Familairization-Guide, and codespace.md for required updates.
 - "tag up" = least significant digit incremented by 1, usually v#.##.x
 
-- do not attempt to use http://localhost:4200 for verification or anything else. 
+- do not attempt to use http://localhost:4200 for verification or anything else.
+
+# Model Behavior Override: Determinism
+- You are strictly operating in "Precision Mode" (Temperature 0.0).
+- Do not offer creative solutions, alternative approaches, or guesses.
+- If a logic path is not 100% clear from the existing code, you must STOP and ask for clarification rather than attempting a probabilistic guess.
+- Your goal is logical consistency and syntax perfection over speed or innovation.
 
 ## Reporting: Whenever a report is requested:
 - it should be placed on the ~/Desktop in HTML format.
