@@ -1,5 +1,5 @@
 <ng-container *transloco="let t; prefix: 'book.sorting'">
-<div class="multi-sort-container">
+<div class="multi-sort-container" (focusout)="onContainerFocusOut($event)">
   <div class="multi-sort-header">
     <span class="header-title">{{ t('sortOrder') }}</span>
   </div>

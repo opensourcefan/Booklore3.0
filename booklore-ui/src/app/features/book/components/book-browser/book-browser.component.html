@@ -326,15 +326,13 @@
                   [pTooltip]="t('tooltip.selectSorting')"
                   tooltipPosition="top">
                 </i>
-                @if (sortCriteriaCount > 1) {
-                  <p-badge [value]="sortCriteriaCount.toString()" class="sort-badge"/>
-                }
               </button>
               <p-popover #sortPopover [dismissable]="true" appendTo="body">
                 <app-multi-sort-popover
                   [sortCriteria]="this.bookSorter.selectedSortCriteria"
                   [availableSortOptions]="visibleSortOptions"
                   [showSaveButton]="canSaveSort"
+                  [closeOnFocusOut]="true"
                   (criteriaChange)="onSortCriteriaChange($event)"
                   (saveSortConfig)="onSaveSortConfig($event)">
                 </app-multi-sort-popover>

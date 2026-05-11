@@ -52,7 +52,6 @@ import {Divider} from 'primeng/divider';
 import {MultiSelect} from 'primeng/multiselect';
 import {TableColumnPreferenceService} from './table-column-preference.service';
 import {TieredMenu} from 'primeng/tieredmenu';
-import {BadgeModule} from 'primeng/badge';
 import {BookMenuService} from '../../service/book-menu.service';
 import {MagicShelf} from '../../../magic-shelf/service/magic-shelf.service';
 import {SidebarFilterTogglePrefService} from './filters/sidebar-filter-toggle-pref.service';
@@ -107,7 +106,7 @@ export enum EntityType {
   imports: [
     Button, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule,
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, Popover,
-    Checkbox, Slider, Divider, MultiSelect, TieredMenu, BadgeModule, MultiSortPopoverComponent, TranslocoDirective,
+    Checkbox, Slider, Divider, MultiSelect, TieredMenu, MultiSortPopoverComponent, TranslocoDirective,
     ResizableDividerDirective, CoverPreviewComponent,
   ],
   providers: [SeriesCollapseFilter],
@@ -1609,10 +1608,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private getDirectoryDefaultSortOption(): SortOption {
     return this.bookSorter.sortOptions.find(option => option.field === 'fileName')
       ?? {field: 'fileName', direction: SortDirection.ASCENDING, label: 'File Name'};
-  }
-
-  get sortCriteriaCount(): number {
-    return this.bookSorter.selectedSortCriteria.length;
   }
 
   onSearchTermChange(term: string): void {
