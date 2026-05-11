@@ -15,8 +15,25 @@ jobs:
         uses: dependabot/fetch-metadata@v3
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Detect workflow file changes
+        id: changed-files
+        run: |
+          if gh pr view "$PR_URL" --json files --jq '.files[].path' | grep -q '^\.github/workflows/'; then
+            echo "has_workflow_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Workflow file changes detected. Skipping auto-merge because the default Actions token cannot merge PRs that modify workflow files." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "has_workflow_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Enable auto-merge for Dependabot PRs
+        if: steps.changed-files.outputs.has_workflow_changes != 'true'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Skip auto-merge for workflow changes
+        if: steps.changed-files.outputs.has_workflow_changes == 'true'
+        run: |
+          echo "Workflow file changes require manual merge or a dedicated token with workflow permissions."
