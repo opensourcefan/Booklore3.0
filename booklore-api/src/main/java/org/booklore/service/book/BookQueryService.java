@@ -1,6 +1,7 @@
 package org.booklore.service.book;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -12,6 +13,7 @@ import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
 import jakarta.persistence.criteria.Subquery;
 import org.booklore.mapper.v2.BookMapperV2;
 import org.booklore.model.dto.Book;
@@ -87,33 +89,35 @@ public class BookQueryService {
     private Page<Book> findAllPagedCustom(Specification<BookEntity> spec, Pageable pageable, Long userId) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
-        CriteriaQuery<BookEntity> contentQuery = cb.createQuery(BookEntity.class);
-        Root<BookEntity> root = contentQuery.from(BookEntity.class);
-
-        boolean needsMetadataFetch = pageable.getSort().stream()
-                .anyMatch(order -> order.getProperty().startsWith("metadata."));
-        if (needsMetadataFetch) {
-            root.fetch("metadata", JoinType.LEFT);
-        }
-
-        Predicate predicate = applySpecification(spec, root, contentQuery, cb);
+        CriteriaQuery<Tuple> idQuery = cb.createTupleQuery();
+        Root<BookEntity> idRoot = idQuery.from(BookEntity.class);
+        Predicate predicate = applySpecification(spec, idRoot, idQuery, cb);
         
         Join<BookEntity, UserBookProgressEntity> progressJoin = null;
         if (userId != null && requiresUserProgressSort(pageable.getSort())) {
-            progressJoin = root.join("userBookProgress", JoinType.LEFT);
+            progressJoin = idRoot.join("userBookProgress", JoinType.LEFT);
             progressJoin.on(cb.equal(progressJoin.get("user").get("id"), userId));
         }
 
-        contentQuery.select(root).distinct(true);
-        if (predicate != null) {
-            contentQuery.where(predicate);
-        }
-        contentQuery.orderBy(buildSortOrders(pageable.getSort(), root, progressJoin, cb, contentQuery));
+        SortPlan sortPlan = buildSortPlan(pageable.getSort(), idRoot, progressJoin, cb, idQuery);
+        List<Selection<?>> selections = new ArrayList<>();
+        selections.add(idRoot.get("id").alias("id"));
+        selections.addAll(sortPlan.projections());
 
-        TypedQuery<BookEntity> typedQuery = entityManager.createQuery(contentQuery);
-        typedQuery.setFirstResult((int) pageable.getOffset());
-        typedQuery.setMaxResults(pageable.getPageSize());
-        List<BookEntity> content = typedQuery.getResultList();
+        idQuery.multiselect(selections).distinct(true);
+        if (predicate != null) {
+            idQuery.where(predicate);
+        }
+        idQuery.orderBy(sortPlan.orders());
+
+        TypedQuery<Tuple> typedIdQuery = entityManager.createQuery(idQuery);
+        typedIdQuery.setFirstResult((int) pageable.getOffset());
+        typedIdQuery.setMaxResults(pageable.getPageSize());
+        List<Long> orderedIds = typedIdQuery.getResultList().stream()
+                .map(tuple -> tuple.get("id", Long.class))
+                .toList();
+
+        List<BookEntity> content = fetchOrderedPagedEntities(orderedIds);
 
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         Root<BookEntity> countRoot = countQuery.from(BookEntity.class);
@@ -128,6 +132,21 @@ public class BookQueryService {
                 .map(book -> mapBookToDto(book, false, null, true))
                 .toList();
         return new PageImpl<>(mapped, pageable, total);
+    }
+
+    private List<BookEntity> fetchOrderedPagedEntities(List<Long> orderedIds) {
+        if (orderedIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<BookEntity> entities = bookRepository.findAllWithMetadataByIds(new LinkedHashSet<>(orderedIds));
+        Map<Long, Integer> orderById = new HashMap<>();
+        for (int index = 0; index < orderedIds.size(); index++) {
+            orderById.put(orderedIds.get(index), index);
+        }
+
+        entities.sort(Comparator.comparingInt(entity -> orderById.getOrDefault(entity.getId(), Integer.MAX_VALUE)));
+        return entities;
     }
 
     private Predicate applySpecification(
@@ -146,36 +165,39 @@ public class BookQueryService {
         return sort.stream().anyMatch(order -> USER_PROGRESS_SORT_FIELDS.contains(order.getProperty()));
     }
 
-    private List<Order> buildSortOrders(
+    private SortPlan buildSortPlan(
             Sort sort,
             Root<BookEntity> root,
             Join<BookEntity, UserBookProgressEntity> progressJoin,
             CriteriaBuilder cb,
             CriteriaQuery<?> query) {
         List<Order> orders = new ArrayList<>();
+        List<Selection<?>> projections = new ArrayList<>();
         Map<String, From<?, ?>> joins = new HashMap<>();
 
         for (Sort.Order sortOrder : sort) {
             String property = sortOrder.getProperty();
             if (USER_PROGRESS_SORT_FIELDS.contains(property)) {
-                addUserProgressSort(orders, property, sortOrder.getDirection(), progressJoin, cb);
+                addUserProgressSort(orders, projections, property, sortOrder.getDirection(), progressJoin, cb);
                 continue;
             }
 
             if (PRIMARY_FILE_NAME_SORT_FIELD.equals(property)) {
-                addPrimaryFileNameSort(orders, root, sortOrder.getDirection(), cb, query);
+                addPrimaryFileNameSort(orders, projections, root, sortOrder.getDirection(), cb, query);
                 continue;
             }
 
             Path<?> path = resolvePath(root, joins, property);
             orders.add(sortOrder.isAscending() ? cb.asc(path) : cb.desc(path));
+            projections.add(path.alias(nextSortAlias(projections)));
         }
 
-        return orders;
+        return new SortPlan(orders, projections);
     }
 
     private void addPrimaryFileNameSort(
             List<Order> orders,
+            List<Selection<?>> projections,
             Root<BookEntity> root,
             Sort.Direction direction,
             CriteriaBuilder cb,
@@ -187,7 +209,7 @@ public class BookQueryService {
         );
 
         Expression<String> fileNameExpression = cb.lower(primaryFileJoin.get("fileName"));
-        addNullAwareOrder(orders, fileNameExpression, cb.isNull(primaryFileJoin.get("fileName")), direction, cb);
+        addNullAwareOrder(orders, projections, fileNameExpression, cb.isNull(primaryFileJoin.get("fileName")), direction, cb);
     }
 
     private Subquery<Long> buildPrimaryBookFileIdSubquery(
@@ -245,18 +267,19 @@ public class BookQueryService {
 
     private void addUserProgressSort(
             List<Order> orders,
+            List<Selection<?>> projections,
             String property,
             Sort.Direction direction,
             Join<BookEntity, UserBookProgressEntity> progressJoin,
             CriteriaBuilder cb) {
         if ("readStatus".equals(property)) {
             Expression<Integer> rank = buildReadStatusRank(progressJoin, cb);
-            addNullAwareOrder(orders, rank, cb.isNull(progressJoin.get("id")), direction, cb);
+            addNullAwareOrder(orders, projections, rank, cb.isNull(progressJoin.get("id")), direction, cb);
             return;
         }
 
         Expression<?> expression = progressJoin.get(property);
-        addNullAwareOrder(orders, expression, cb.isNull(progressJoin.get(property)), direction, cb);
+        addNullAwareOrder(orders, projections, expression, cb.isNull(progressJoin.get(property)), direction, cb);
     }
 
     private Expression<Integer> buildReadStatusRank(
@@ -278,6 +301,7 @@ public class BookQueryService {
 
     private void addNullAwareOrder(
             List<Order> orders,
+            List<Selection<?>> projections,
             Expression<?> expression,
             Predicate isNull,
             Sort.Direction direction,
@@ -285,8 +309,17 @@ public class BookQueryService {
         Expression<Integer> nullOrder = cb.<Integer>selectCase()
             .when(isNull, direction.isAscending() ? 1 : 0)
             .otherwise(direction.isAscending() ? 0 : 1);
+        projections.add(nullOrder.alias(nextSortAlias(projections)));
+        projections.add(expression.alias(nextSortAlias(projections)));
         orders.add(cb.asc(nullOrder));
         orders.add(direction.isAscending() ? cb.asc(expression) : cb.desc(expression));
+    }
+
+    private String nextSortAlias(List<Selection<?>> projections) {
+        return "sort_" + projections.size();
+    }
+
+    private record SortPlan(List<Order> orders, List<Selection<?>> projections) {
     }
 
     private Path<?> resolvePath(Root<BookEntity> root, Map<String, From<?, ?>> joins, String propertyPath) {
