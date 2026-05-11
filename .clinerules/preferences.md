@@ -10,7 +10,7 @@
 - Do not ask to do something if it has already been asked.
 - After changes, check README.md, Familairization-Guide, and codespace.md for required updates.
 - "tag up" = least significant digit incremented by 1
-- Whenever a report is requested, it should be placed on the desktop in HTML format unless otherwise stated.
+- Whenever a report is requested, it should be placed on the desktop in HTML format, with a dark background unless otherwise stated.
 - Always output code work (such as a git diff of the changes) to the terminal so the user can review it there.
 - Assume file changes are "auto accept" — execute file modifications directly or bypass IDE prompts whenever possible.
 - After each batch of changes or fixes, explicitly list specific edge cases and workflows the user should manually test to confirm there are no regressions.
@@ -21,3 +21,7 @@
 - Always clean up temporary or residual files (e.g., .patch, .orig, .rej) generated during the task before finishing.
 - Do Not use the term "grimmory" in build descriptions.
 - Use subagents when helpful.
+
+- Any work done that could be used by a following agent should be recorded into .ghcprules/memory_bank under the appropriate folder, PRIOR to losing information due to a context compact event AND after completion.
+
+- **Definition of Done Checklist:** Before declaring any task complete, the AI MUST output a point-by-point checklist of these preferences and explicitly confirm it has executed each one. This ensures the AI evaluates whether it has completed the push, generated the report, outputted the diff, and listed the edge cases before generating the final response.
