@@ -16,19 +16,28 @@
     </div>
 
     <div class="config-color-picker-row">
-      <label class="config-panel-subtitle" for="theme-primary-picker">Custom</label>
-      <input
-        id="theme-primary-picker"
-        class="config-color-input"
-        type="color"
-        [value]="primaryInputColor()"
-        (change)="updateCustomColor($event, 'primary')"
-      />
+      <label
+        class="config-color-picker-trigger"
+        [ngClass]="{ 'active-color': isCustomColorSelected('primary') }"
+      >
+        <span class="config-color-picker-swatch" [style.background-color]="primaryInputColor()"></span>
+        <span class="config-color-picker-text">Custom color</span>
+        <input
+          id="theme-primary-picker"
+          class="config-color-input"
+          type="color"
+          [value]="primaryInputColor()"
+          aria-label="Pick custom primary color"
+          (click)="$event.stopPropagation()"
+          (change)="updateCustomColor($event, 'primary')"
+        />
+      </label>
+      <span class="config-color-value">{{ primaryInputColor() }}</span>
     </div>
 
     @if (recentPrimaryColors().length > 0) {
       <div class="config-recent-colors">
-        <span class="config-panel-subtitle">Recent</span>
+        <span class="config-panel-subtitle">Recent custom colors</span>
         <div class="config-color-grid config-color-grid--recent">
           @for (color of recentPrimaryColors(); track color) {
             <button
@@ -59,19 +68,28 @@
     </div>
 
     <div class="config-color-picker-row">
-      <label class="config-panel-subtitle" for="theme-surface-picker">Custom</label>
-      <input
-        id="theme-surface-picker"
-        class="config-color-input"
-        type="color"
-        [value]="surfaceInputColor()"
-        (change)="updateCustomColor($event, 'surface')"
-      />
+      <label
+        class="config-color-picker-trigger"
+        [ngClass]="{ 'active-color': isCustomColorSelected('surface') }"
+      >
+        <span class="config-color-picker-swatch" [style.background-color]="surfaceInputColor()"></span>
+        <span class="config-color-picker-text">Custom color</span>
+        <input
+          id="theme-surface-picker"
+          class="config-color-input"
+          type="color"
+          [value]="surfaceInputColor()"
+          aria-label="Pick custom surface color"
+          (click)="$event.stopPropagation()"
+          (change)="updateCustomColor($event, 'surface')"
+        />
+      </label>
+      <span class="config-color-value">{{ surfaceInputColor() }}</span>
     </div>
 
     @if (recentSurfaceColors().length > 0) {
       <div class="config-recent-colors">
-        <span class="config-panel-subtitle">Recent</span>
+        <span class="config-panel-subtitle">Recent custom colors</span>
         <div class="config-color-grid config-color-grid--recent">
           @for (color of recentSurfaceColors(); track color) {
             <button

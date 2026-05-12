@@ -100,6 +100,10 @@ export class ThemeConfiguratorComponent {
     event.stopPropagation();
   }
 
+  isCustomColorSelected(type: ThemeColorType): boolean {
+    return normalizeHexColor(this.configService.appState()[type] ?? null) != null;
+  }
+
   isActiveRecentColor(type: ThemeColorType, color: string): boolean {
     return normalizeHexColor(this.configService.appState()[type] ?? null) === normalizeHexColor(color);
   }
