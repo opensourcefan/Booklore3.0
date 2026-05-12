@@ -328,26 +328,48 @@ export function generateShadeScale(baseHex: string): Record<number, string> {
     scale[shade] = rgbToHex(rgbColor.r, rgbColor.g, rgbColor.b);
   }
 
-  // Build darker shades (600-950) interpolating from base to near-black.
-  // For achromatic / very low-saturation base colors (e.g. #000000), the
-  // scale collapses to near-identical greys.  Force a minimum saturation
-  // floor so mid-dark shades (700) remain visibly distinct from deep-dark
-  // backgrounds (900) — critical for panel borders and content separation.
-  const SATURATION_FLOOR = 0.12;
-  const darkStops: [number, number, number][] = [
-    [600, 0.44, 1.0],
-    [700, 0.34, 1.0],
-    [800, 0.24, 1.0],
-    [900, 0.16, 1.0],
-    [950, 0.08, 1.0],
-  ];
-  for (const [shade, lTarget, sMultiplier] of darkStops) {
-    let s = hsl.s * sMultiplier;
-    if (s < SATURATION_FLOOR) {
-      s = SATURATION_FLOOR;
+  // Build darker shades (600-950) interpolating from base toward a deep
+  // floor.  For bases with adequate lightness (≥ 0.15) the fixed targets
+  // match hand-crafted preset palettes.  For very dark bases (e.g. #000000)
+  // the mid-dark 600/700 stops are pushed up to fixed minimum lightness
+  // values so --p-content-border-color (surface-700) stays visible against
+  // --p-content-background (surface-900).
+  //
+  // A tiny minimum saturation (0.03) keeps achromatic bases from going
+  // perfectly flat-grey; a slight warmth matches preset palette depth.
+  const MIN_L_700 = 0.18;
+  const MIN_L_600 = 0.28;
+  const DEEP_FLOOR = 0.04;
+  const MIN_SATURATION = 0.03;
+
+  if (hsl.l < MIN_L_700) {
+    const sFloor = Math.max(hsl.s, MIN_SATURATION);
+    const c600 = hslToRgb(hsl.h, sFloor, MIN_L_600);
+    scale[600] = rgbToHex(c600.r, c600.g, c600.b);
+    const c700 = hslToRgb(hsl.h, sFloor, MIN_L_700);
+    scale[700] = rgbToHex(c700.r, c700.g, c700.b);
+
+    const t800 = 0.55, t900 = 0.80, t950 = 0.95;
+    const c800 = hslToRgb(hsl.h, sFloor, hsl.l + (DEEP_FLOOR - hsl.l) * t800);
+    scale[800] = rgbToHex(c800.r, c800.g, c800.b);
+    const c900 = hslToRgb(hsl.h, sFloor, hsl.l + (DEEP_FLOOR - hsl.l) * t900);
+    scale[900] = rgbToHex(c900.r, c900.g, c900.b);
+    const c950 = hslToRgb(hsl.h, sFloor, hsl.l + (DEEP_FLOOR - hsl.l) * t950);
+    scale[950] = rgbToHex(c950.r, c950.g, c950.b);
+  } else {
+    const darkStops: [number, number, number][] = [
+      [600, 0.44, 1.0],
+      [700, 0.34, 1.0],
+      [800, 0.24, 1.0],
+      [900, 0.16, 1.0],
+      [950, 0.08, 1.0],
+    ];
+    for (const [shade, lTarget, sMultiplier] of darkStops) {
+      let s = hsl.s * sMultiplier;
+      if (s < MIN_SATURATION) s = MIN_SATURATION;
+      const rgbColor = hslToRgb(hsl.h, s, lTarget);
+      scale[shade] = rgbToHex(rgbColor.r, rgbColor.g, rgbColor.b);
     }
-    const rgbColor = hslToRgb(hsl.h, s, lTarget);
-    scale[shade] = rgbToHex(rgbColor.r, rgbColor.g, rgbColor.b);
   }
 
   return scale;
