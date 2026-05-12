@@ -177,6 +177,27 @@ jobs:
           echo "image_tag=$image_tag" >> $GITHUB_ENV
           echo "Image tag: $image_tag"
 
+          # Only promote 'latest' for stable releases (no pre-release suffix)
+          if echo "$image_tag" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            main_tags="ghcr.io/opensourcefan/booklore3:${image_tag}
+          ghcr.io/opensourcefan/booklore3:latest"
+            ai_tags="ghcr.io/opensourcefan/booklore-panel-ai:${image_tag}
+          ghcr.io/opensourcefan/booklore-panel-ai:latest"
+            echo "Tag type: stable (will also update latest)"
+          else
+            main_tags="ghcr.io/opensourcefan/booklore3:${image_tag}"
+            ai_tags="ghcr.io/opensourcefan/booklore-panel-ai:${image_tag}"
+            echo "Tag type: pre-release (latest will NOT be updated)"
+          fi
+
+          echo "main_tags<<EOF" >> $GITHUB_ENV
+          echo "$main_tags" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          echo "ai_tags<<EOF" >> $GITHUB_ENV
+          echo "$ai_tags" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       # ----------------------------------------
       # Native Angular build
       # ----------------------------------------
@@ -267,9 +288,7 @@ jobs:
           file: Dockerfile.ci
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ghcr.io/opensourcefan/booklore3:${{ env.image_tag }}
-            ghcr.io/opensourcefan/booklore3:latest
+          tags: ${{ env.main_tags }}
           build-args: |
             APP_VERSION=${{ env.image_tag }}
             APP_REVISION=${{ github.sha }}
@@ -287,9 +306,7 @@ jobs:
           file: ./docker/ai-panel/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ghcr.io/opensourcefan/booklore-panel-ai:${{ env.image_tag }}
-            ghcr.io/opensourcefan/booklore-panel-ai:latest
+          tags: ${{ env.ai_tags }}
           cache-from: |
             type=gha,scope=booklore-panel-ai
             type=registry,ref=ghcr.io/opensourcefan/booklore-panel-ai:buildcache
