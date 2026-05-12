@@ -21,7 +21,7 @@
           type="color"
           class="native-color-picker"
           [value]="customPrimaryHex()"
-          (change)="onColorPickerChange($event, 'primary')"
+          (input)="onColorPickerChange($event, 'primary')"
           title="Pick a custom primary color"
           aria-label="Custom primary color picker" />
         <input
@@ -72,7 +72,7 @@
           type="color"
           class="native-color-picker"
           [value]="customSurfaceHex()"
-          (change)="onColorPickerChange($event, 'surface')"
+          (input)="onColorPickerChange($event, 'surface')"
           title="Pick a custom surface color"
           aria-label="Custom surface color picker" />
         <input

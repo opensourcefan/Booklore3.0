@@ -70,6 +70,8 @@ export class ThemeConfiguratorComponent {
 
   readonly customPrimaryInput = signal('');
   readonly customSurfaceInput = signal('');
+  private lastAppliedPrimaryHex = '';
+  private lastAppliedSurfaceHex = '';
 
   readonly primaryParseError = computed(() => {
     const input = this.customPrimaryInput();
@@ -126,9 +128,13 @@ export class ThemeConfiguratorComponent {
     const input = event.target as HTMLInputElement;
     const hex = input.value;
     if (hex) {
+      const lastApplied = area === 'primary' ? this.lastAppliedPrimaryHex : this.lastAppliedSurfaceHex;
+      if (hex === lastApplied) return;
       if (area === 'primary') {
+        this.lastAppliedPrimaryHex = hex;
         this.customPrimaryInput.set(hex);
       } else {
+        this.lastAppliedSurfaceHex = hex;
         this.customSurfaceInput.set(hex);
       }
       this.applyCustomColor(area);
@@ -164,8 +170,10 @@ export class ThemeConfiguratorComponent {
     this.configService.clearCustomColor(area);
     if (area === 'primary') {
       this.customPrimaryInput.set('');
+      this.lastAppliedPrimaryHex = '';
     } else {
       this.customSurfaceInput.set('');
+      this.lastAppliedSurfaceHex = '';
     }
   }
 

@@ -328,7 +328,12 @@ export function generateShadeScale(baseHex: string): Record<number, string> {
     scale[shade] = rgbToHex(rgbColor.r, rgbColor.g, rgbColor.b);
   }
 
-  // Build darker shades (600-950) interpolating from base to near-black
+  // Build darker shades (600-950) interpolating from base to near-black.
+  // For achromatic / very low-saturation base colors (e.g. #000000), the
+  // scale collapses to near-identical greys.  Force a minimum saturation
+  // floor so mid-dark shades (700) remain visibly distinct from deep-dark
+  // backgrounds (900) — critical for panel borders and content separation.
+  const SATURATION_FLOOR = 0.12;
   const darkStops: [number, number, number][] = [
     [600, 0.44, 1.0],
     [700, 0.34, 1.0],
@@ -337,7 +342,10 @@ export function generateShadeScale(baseHex: string): Record<number, string> {
     [950, 0.08, 1.0],
   ];
   for (const [shade, lTarget, sMultiplier] of darkStops) {
-    const s = hsl.s * sMultiplier;
+    let s = hsl.s * sMultiplier;
+    if (s < SATURATION_FLOOR) {
+      s = SATURATION_FLOOR;
+    }
     const rgbColor = hslToRgb(hsl.h, s, lTarget);
     scale[shade] = rgbToHex(rgbColor.r, rgbColor.g, rgbColor.b);
   }
