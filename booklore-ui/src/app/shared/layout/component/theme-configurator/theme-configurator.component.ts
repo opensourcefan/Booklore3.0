@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {ChangeDetectionStrategy, Component, computed, effect, inject, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, signal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
 import {RadioButtonModule} from 'primeng/radiobutton';
@@ -9,7 +9,6 @@ import Aura from '../theme-palette-extend';
 
 import {AppConfigService} from '../../../service/app-config.service';
 import {TranslocoDirective} from '@jsverse/transloco';
-import {FaviconService} from './favicon-service';
 import {parseColorToHex} from '../../../util/color-utils';
 
 type ColorPalette = Record<string, string>;
@@ -38,7 +37,6 @@ interface Palette {
 })
 export class ThemeConfiguratorComponent {
   readonly configService = inject(AppConfigService);
-  readonly faviconService = inject(FaviconService);
 
   readonly surfaces = this.configService.surfaces;
 
@@ -50,21 +48,6 @@ export class ThemeConfiguratorComponent {
 
   readonly customPrimaryHex = computed(() => this.configService.appState().customPrimaryColor ?? '');
   readonly customSurfaceHex = computed(() => this.configService.appState().customSurfaceColor ?? '');
-
-  readonly faviconColor = computed(() => {
-    const state = this.configService.appState();
-    if (state.customPrimaryColor) {
-      return state.customPrimaryColor;
-    }
-    const name = state.primary ?? 'green';
-    const presetPalette = (Aura.primitive ?? {}) as Record<string, ColorPalette>;
-    const colorPalette = presetPalette[name];
-    return colorPalette?.[500] ?? name;
-  });
-
-  private readonly _faviconSyncEffect = effect(() => {
-    this.faviconService.updateFavicon(this.faviconColor());
-  });
 
   readonly primaryColors = computed<Palette[]>(() => {
     const presetPalette = (Aura.primitive ?? {}) as Record<string, ColorPalette>;

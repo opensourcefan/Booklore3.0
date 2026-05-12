@@ -309,25 +309,36 @@ export function generateShadeScale(baseHex: string): Record<number, string> {
   const rgb = hexToRgb(hex);
   const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
 
-  const shadeStops: [number, number, number][] = [
+  const scale: Record<number, string> = {};
+
+  // Shade 500 is the base color itself
+  scale[500] = hex;
+
+  // Build lighter shades (50-400) interpolating from base to near-white
+  const lightStops: [number, number, number][] = [
     [50, 0.96, 0.4],
     [100, 0.88, 0.6],
     [200, 0.78, 0.8],
     [300, 0.68, 0.9],
     [400, 0.58, 0.95],
-    [500, 0.50, 1.0],
+  ];
+  for (const [shade, lTarget, sMultiplier] of lightStops) {
+    const s = hsl.s * sMultiplier;
+    const rgbColor = hslToRgb(hsl.h, s, lTarget);
+    scale[shade] = rgbToHex(rgbColor.r, rgbColor.g, rgbColor.b);
+  }
+
+  // Build darker shades (600-950) interpolating from base to near-black
+  const darkStops: [number, number, number][] = [
     [600, 0.44, 1.0],
     [700, 0.34, 1.0],
     [800, 0.24, 1.0],
     [900, 0.16, 1.0],
     [950, 0.08, 1.0],
   ];
-
-  const scale: Record<number, string> = {};
-  for (const [shade, lTarget, sMultiplier] of shadeStops) {
+  for (const [shade, lTarget, sMultiplier] of darkStops) {
     const s = hsl.s * sMultiplier;
-    const l = lTarget;
-    const rgbColor = hslToRgb(hsl.h, s, l);
+    const rgbColor = hslToRgb(hsl.h, s, lTarget);
     scale[shade] = rgbToHex(rgbColor.r, rgbColor.g, rgbColor.b);
   }
 
