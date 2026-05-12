@@ -58,7 +58,8 @@
     "colorPlaceholder": "",
     "apply": "",
     "reset": "",
-    "activeCustom": ""
+    "activeCustom": "",
+    "resetTooltip": ""
   },
   "uploadDialog": {
     "chooseFile": "Escolher Arquivo:",

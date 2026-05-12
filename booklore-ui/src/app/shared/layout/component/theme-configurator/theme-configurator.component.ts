@@ -131,6 +131,7 @@ export class ThemeConfiguratorComponent {
   });
 
   updateColors(event: Event, type: 'primary' | 'surface', color: { name: string; palette?: ColorPalette }) {
+    this.configService.clearCustomColor(type);
     this.configService.appState.update((state) => ({
       ...state,
       [type]: color.name

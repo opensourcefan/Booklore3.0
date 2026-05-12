@@ -565,9 +565,6 @@ export class AppConfigService {
     const primaryGenerated = state.customPrimaryGenerated!;
 
     return {
-      primitive: {
-        primary: { ...primaryGenerated },
-      },
       semantic: {
         primary: primaryGenerated,
         colorScheme: {

@@ -97,7 +97,8 @@
     "colorPlaceholder": "#ff6600",
     "apply": "Apply",
     "reset": "Reset",
-    "activeCustom": "Custom color active"
+    "activeCustom": "Custom color active",
+    "resetTooltip": "Reset to default color"
   },
   "uploadDialog": {
     "chooseFile": "Choose File:",

@@ -255,16 +255,24 @@
       }
 
       .reset-btn {
+        width: 2rem;
         height: 2rem;
-        padding: 0 1rem;
+        padding: 0;
         border: 1px solid var(--border-color);
         border-radius: 4px;
         cursor: pointer;
         background: var(--overlay-background);
         color: var(--text-secondary-color);
-        font-size: 0.8rem;
-        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         transition: background-color 0.2s, color 0.2s;
+
+        i {
+          font-size: 1rem;
+          line-height: 1;
+        }
 
         &:hover {
           background: var(--ground-background);

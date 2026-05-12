@@ -44,8 +44,9 @@
         <button
           type="button"
           class="reset-btn"
-          (click)="resetCustomColor('primary')">
-          {{ t('reset') }}
+          (click)="resetCustomColor('primary')"
+          [title]="t('resetTooltip')">
+          <i class="pi pi-undo"></i>
         </button>
       }
     </div>
@@ -94,8 +95,9 @@
         <button
           type="button"
           class="reset-btn"
-          (click)="resetCustomColor('surface')">
-          {{ t('reset') }}
+          (click)="resetCustomColor('surface')"
+          [title]="t('resetTooltip')">
+          <i class="pi pi-undo"></i>
         </button>
       }
     </div>
