@@ -59,8 +59,8 @@ booklore-v3c/
 booklore_r730/
 patches/
 .continue/
-.clinerules/
+/home/michael/booklore_test/.clinerules/
 .ghcprules/
 .cursor/
 /home/michael/booklore_test/books/Books_General_Misc/
-.clinerules/preferences.md
+/home/michael/booklore_test/.clinerules/preferences.md
