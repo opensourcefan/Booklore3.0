@@ -160,7 +160,7 @@ function hclToRgb(h: number, c: number, l: number): { r: number; g: number; b: n
     const hh = ((h % 360) + 360) % 360;
     const hPrime = hh / 60;
     const x = t * (1 - Math.abs((hPrime % 2) - 1));
-    const m = l - t;
+    const m = l - t / 2;
 
     let r1 = 0, g1 = 0, b1 = 0;
     if (hPrime < 1) { r1 = t; g1 = x; }
