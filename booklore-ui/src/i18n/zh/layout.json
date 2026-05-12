@@ -44,7 +44,12 @@
   },
   "theme": {
     "primary": "主色",
-    "surface": "表面色"
+    "surface": "表面色",
+    "customColor": "",
+    "colorPlaceholder": "",
+    "apply": "",
+    "reset": "",
+    "activeCustom": ""
   },
   "uploadDialog": {
     "chooseFile": "选择文件：",

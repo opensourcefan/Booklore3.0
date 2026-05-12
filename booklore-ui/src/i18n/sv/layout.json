@@ -53,7 +53,12 @@
   },
   "theme": {
     "primary": "Primär",
-    "surface": "Yta"
+    "surface": "Yta",
+    "customColor": "",
+    "colorPlaceholder": "",
+    "apply": "",
+    "reset": "",
+    "activeCustom": ""
   },
   "uploadDialog": {
     "chooseFile": "Välj fil:",

@@ -44,7 +44,12 @@
   },
   "theme": {
     "primary": "Основной",
-    "surface": "Поверхность"
+    "surface": "Поверхность",
+    "customColor": "",
+    "colorPlaceholder": "",
+    "apply": "",
+    "reset": "",
+    "activeCustom": ""
   },
   "uploadDialog": {
     "chooseFile": "Выберите файл:",

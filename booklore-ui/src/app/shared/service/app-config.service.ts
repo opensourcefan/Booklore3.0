@@ -6,6 +6,7 @@ import { AppState } from '../model/app-state.model';
 import {UserService} from '../../features/settings/user-management/user.service';
 import {filter, takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
+import { generateShadeScale } from '../util/color-utils';
 
 type ColorPalette = Record<string, string>;
 
@@ -359,6 +360,33 @@ export class AppConfigService {
     });
   }
 
+  setCustomColor(area: 'primary' | 'surface', hex: string): void {
+    const normalizedHex = hex.startsWith('#') ? hex.toLowerCase() : '#' + hex.toLowerCase();
+    const colorKey = area === 'primary' ? 'customPrimaryColor' : 'customSurfaceColor';
+    const generatedKey = area === 'primary' ? 'customPrimaryGenerated' : 'customSurfaceGenerated';
+
+    const shadeScale = generateShadeScale(normalizedHex);
+
+    this.appState.update((state) => {
+      const updated = { ...state };
+      updated[colorKey] = normalizedHex;
+      updated[generatedKey] = shadeScale;
+      return updated;
+    });
+  }
+
+  clearCustomColor(area: 'primary' | 'surface'): void {
+    const colorKey = area === 'primary' ? 'customPrimaryColor' : 'customSurfaceColor';
+    const generatedKey = area === 'primary' ? 'customPrimaryGenerated' : 'customSurfaceGenerated';
+
+    this.appState.update((state) => {
+      const updated = { ...state };
+      delete updated[colorKey];
+      delete updated[generatedKey];
+      return updated;
+    });
+  }
+
   private bindUserThemeSettings(): void {
     this.userService.userState$
       .pipe(
@@ -433,11 +461,22 @@ export class AppConfigService {
       return null;
     }
 
-    return {
+    const normalized: AppState = {
       preset: state.preset ?? 'Aura',
       primary: state.primary ?? 'green',
       surface: state.surface ?? 'ash',
     };
+
+    if (state.customPrimaryColor) {
+      normalized.customPrimaryColor = state.customPrimaryColor;
+      normalized.customPrimaryGenerated = state.customPrimaryGenerated;
+    }
+    if (state.customSurfaceColor) {
+      normalized.customSurfaceColor = state.customSurfaceColor;
+      normalized.customSurfaceGenerated = state.customSurfaceGenerated;
+    }
+
+    return normalized;
   }
 
   private areThemeStatesEqual(a: AppState | null | undefined, b: AppState | null | undefined): boolean {
@@ -445,7 +484,9 @@ export class AppConfigService {
     const normalizedB = this.normalizeAppState(b);
     return normalizedA?.preset === normalizedB?.preset
       && normalizedA?.primary === normalizedB?.primary
-      && normalizedA?.surface === normalizedB?.surface;
+      && normalizedA?.surface === normalizedB?.surface
+      && normalizedA?.customPrimaryColor === normalizedB?.customPrimaryColor
+      && normalizedA?.customSurfaceColor === normalizedB?.customSurfaceColor;
   }
 
   private getDefaultAppState(): AppState {
@@ -462,6 +503,13 @@ export class AppConfigService {
 
   getPresetExt(): object {
     const surfacePalette = this.getSurfacePalette(this.appState().surface ?? 'neutral');
+
+    const state = this.appState();
+
+    if (state.customPrimaryColor && state.customPrimaryGenerated) {
+      return this.buildPresetWithCustomColors(state);
+    }
+
     const primaryName = this.appState().primary ?? 'green';
     const presetPalette = (Aura.primitive ?? {}) as Record<string, ColorPalette>;
     const color = presetPalette[primaryName] ?? {};
@@ -513,9 +561,44 @@ export class AppConfigService {
     };
   }
 
+  private buildPresetWithCustomColors(state: AppState): object {
+    const primaryGenerated = state.customPrimaryGenerated!;
+
+    return {
+      primitive: {
+        primary: { ...primaryGenerated },
+      },
+      semantic: {
+        primary: primaryGenerated,
+        colorScheme: {
+          dark: {
+            primary: {
+              color: '{primary.400}',
+              contrastColor: '{surface.900}',
+              hoverColor: '{primary.300}',
+              activeColor: '{primary.200}'
+            },
+            highlight: {
+              background: 'color-mix(in srgb, {primary.400}, transparent 84%)',
+              focusBackground: 'color-mix(in srgb, {primary.400}, transparent 76%)',
+              color: 'rgba(255,255,255,.87)',
+              focusColor: 'rgba(255,255,255,.87)'
+            }
+          }
+        }
+      }
+    };
+  }
+
   onPresetChange(): void {
-    const surfacePalette = this.getSurfacePalette(this.appState().surface ?? 'neutral');
+    const state = this.appState();
+    const surfacePalette = this.getSurfacePalette(state.surface ?? 'neutral');
     const preset = this.getPresetExt();
-    $t().preset(Aura).preset(preset).surfacePalette(surfacePalette).use({ useDefaultOptions: true });
+
+    const effectiveSurface: ColorPalette = state.customSurfaceGenerated
+      ? { 0: state.customSurfaceGenerated[50], ...state.customSurfaceGenerated }
+      : surfacePalette;
+
+    $t().preset(Aura).preset(preset).surfacePalette(effectiveSurface).use({ useDefaultOptions: true });
   }
 }

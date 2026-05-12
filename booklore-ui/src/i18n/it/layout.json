@@ -44,7 +44,12 @@
   },
   "theme": {
     "primary": "Primario",
-    "surface": "Superficie"
+    "surface": "Superficie",
+    "customColor": "",
+    "colorPlaceholder": "",
+    "apply": "",
+    "reset": "",
+    "activeCustom": ""
   },
   "uploadDialog": {
     "chooseFile": "Scegli file:",

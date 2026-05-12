@@ -44,7 +44,12 @@
   },
   "theme": {
     "primary": "Основна",
-    "surface": "Другорядна"
+    "surface": "Другорядна",
+    "customColor": "",
+    "colorPlaceholder": "",
+    "apply": "",
+    "reset": "",
+    "activeCustom": ""
   },
   "uploadDialog": {
     "chooseFile": "Виберіть файл:",

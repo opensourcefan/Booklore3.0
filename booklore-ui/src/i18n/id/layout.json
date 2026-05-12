@@ -53,7 +53,12 @@
   },
   "theme": {
     "primary": "",
-    "surface": ""
+    "surface": "",
+    "customColor": "",
+    "colorPlaceholder": "",
+    "apply": "",
+    "reset": "",
+    "activeCustom": ""
   },
   "uploadDialog": {
     "chooseFile": "",

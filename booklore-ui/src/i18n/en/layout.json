@@ -92,7 +92,12 @@
   },
   "theme": {
     "primary": "Primary",
-    "surface": "Surface"
+    "surface": "Surface",
+    "customColor": "Custom",
+    "colorPlaceholder": "#ff6600",
+    "apply": "Apply",
+    "reset": "Reset",
+    "activeCustom": "Custom color active"
   },
   "uploadDialog": {
     "chooseFile": "Choose File:",

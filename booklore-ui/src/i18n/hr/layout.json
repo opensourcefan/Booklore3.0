@@ -44,7 +44,12 @@
   },
   "theme": {
     "primary": "Primarna",
-    "surface": "Površina"
+    "surface": "Površina",
+    "customColor": "",
+    "colorPlaceholder": "",
+    "apply": "",
+    "reset": "",
+    "activeCustom": ""
   },
   "uploadDialog": {
     "chooseFile": "Odaberite datoteku:",
