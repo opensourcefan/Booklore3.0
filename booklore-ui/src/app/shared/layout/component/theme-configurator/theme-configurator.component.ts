@@ -147,6 +147,7 @@ export class ThemeConfiguratorComponent {
       } else {
         this.customSurfaceInput.set(hex);
       }
+      this.applyCustomColor(area);
     }
   }
 
@@ -155,6 +156,13 @@ export class ThemeConfiguratorComponent {
       this.customPrimaryInput.set(value);
     } else {
       this.customSurfaceInput.set(value);
+    }
+  }
+
+  onTextInputBlur(area: 'primary' | 'surface'): void {
+    const input = area === 'primary' ? this.customPrimaryInput() : this.customSurfaceInput();
+    if (input.trim()) {
+      this.applyCustomColor(area);
     }
   }
 

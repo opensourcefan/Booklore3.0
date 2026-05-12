@@ -254,65 +254,21 @@
         line-height: 1.2;
       }
 
-      .custom-color-actions {
-        display: flex;
-        gap: 0.5rem;
+      .reset-btn {
+        height: 2rem;
+        padding: 0 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        cursor: pointer;
+        background: var(--overlay-background);
+        color: var(--text-secondary-color);
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: background-color 0.2s, color 0.2s;
 
-        .apply-btn, .reset-btn {
-          height: 1.5rem;
-          padding: 0 0.75rem;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 0.7rem;
-          font-weight: 600;
-          letter-spacing: 0.03em;
-          text-transform: uppercase;
-          transition: background-color 0.2s;
-        }
-
-        .apply-btn {
-          background: var(--primary-color);
-          color: var(--primary-contrast-color);
-
-          &:hover:not(:disabled) {
-            background: color-mix(in srgb, var(--primary-color) 85%, white);
-          }
-
-          &:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-          }
-        }
-
-        .reset-btn {
-          background: var(--overlay-background);
-          color: var(--text-secondary-color);
-          border: 1px solid var(--border-color);
-
-          &:hover {
-            background: var(--ground-background);
-            color: var(--text-color);
-          }
-        }
-      }
-
-      .custom-active-indicator {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-
-        .active-dot {
-          width: 0.5rem;
-          height: 0.5rem;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-
-        .active-label {
-          font-size: 0.7rem;
-          color: var(--text-secondary-color);
-          font-style: italic;
+        &:hover {
+          background: var(--ground-background);
+          color: var(--text-color);
         }
       }
     }

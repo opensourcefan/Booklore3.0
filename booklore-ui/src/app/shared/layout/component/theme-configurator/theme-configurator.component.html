@@ -29,6 +29,7 @@
           class="custom-color-input"
           [value]="customPrimaryInput()"
           (input)="onTextInputChange($any($event.target).value, 'primary')"
+          (blur)="onTextInputBlur('primary')"
           [placeholder]="t('colorPlaceholder')"
           (keydown)="handleCustomPrimaryKeydown($event)"
           aria-label="Custom primary color text input" />
@@ -39,28 +40,13 @@
       @if (primaryParseError()) {
         <small class="color-parse-error">{{ primaryParseError() }}</small>
       }
-      <div class="custom-color-actions">
+      @if (hasCustomPrimary()) {
         <button
           type="button"
-          class="apply-btn"
-          (click)="applyCustomColor('primary')"
-          [disabled]="!primaryParsedColor()">
-          {{ t('apply') }}
+          class="reset-btn"
+          (click)="resetCustomColor('primary')">
+          {{ t('reset') }}
         </button>
-        @if (hasCustomPrimary()) {
-          <button
-            type="button"
-            class="reset-btn"
-            (click)="resetCustomColor('primary')">
-            {{ t('reset') }}
-          </button>
-        }
-      </div>
-      @if (hasCustomPrimary()) {
-        <div class="custom-active-indicator">
-          <span class="active-dot" [style.background-color]="customPrimaryHex()"></span>
-          <span class="active-label">{{ t('activeCustom') }}</span>
-        </div>
       }
     </div>
   </div>
@@ -93,6 +79,7 @@
           class="custom-color-input"
           [value]="customSurfaceInput()"
           (input)="onTextInputChange($any($event.target).value, 'surface')"
+          (blur)="onTextInputBlur('surface')"
           [placeholder]="t('colorPlaceholder')"
           (keydown)="handleCustomSurfaceKeydown($event)"
           aria-label="Custom surface color text input" />
@@ -103,28 +90,13 @@
       @if (surfaceParseError()) {
         <small class="color-parse-error">{{ surfaceParseError() }}</small>
       }
-      <div class="custom-color-actions">
+      @if (hasCustomSurface()) {
         <button
           type="button"
-          class="apply-btn"
-          (click)="applyCustomColor('surface')"
-          [disabled]="!surfaceParsedColor()">
-          {{ t('apply') }}
+          class="reset-btn"
+          (click)="resetCustomColor('surface')">
+          {{ t('reset') }}
         </button>
-        @if (hasCustomSurface()) {
-          <button
-            type="button"
-            class="reset-btn"
-            (click)="resetCustomColor('surface')">
-            {{ t('reset') }}
-          </button>
-        }
-      </div>
-      @if (hasCustomSurface()) {
-        <div class="custom-active-indicator">
-          <span class="active-dot" [style.background-color]="customSurfaceHex()"></span>
-          <span class="active-label">{{ t('activeCustom') }}</span>
-        </div>
       }
     </div>
   </div>
