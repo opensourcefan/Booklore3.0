@@ -6,13 +6,6 @@ import { AppState } from '../model/app-state.model';
 import {UserService} from '../../features/settings/user-management/user.service';
 import {filter, takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
-import {
-  createThemePaletteFromHex,
-  getRecentThemeColors,
-  isHexColor,
-  normalizeHexColor,
-  ThemeColorType,
-} from '../util/theme-color.util';
 
 type ColorPalette = Record<string, string>;
 
@@ -400,15 +393,14 @@ export class AppConfigService {
     if (isPlatformBrowser(this.platformId)) {
       const storedState = localStorage.getItem(this.STORAGE_KEY);
       if (storedState) {
-        try {
-          return this.normalizeAppState(JSON.parse(storedState)) ?? this.getDefaultAppState();
-        } catch {
-          return this.getDefaultAppState();
-        }
+        return JSON.parse(storedState);
       }
     }
-
-    return this.getDefaultAppState();
+    return {
+      preset: 'Aura',
+      primary: 'green',
+      surface: 'ash',
+    };
   }
 
   private saveAppState(state: AppState): void {
@@ -441,15 +433,10 @@ export class AppConfigService {
       return null;
     }
 
-    const recentPrimaryColors = this.normalizeRecentThemeColors(state.recentPrimaryColors);
-    const recentSurfaceColors = this.normalizeRecentThemeColors(state.recentSurfaceColors);
-
     return {
       preset: state.preset ?? 'Aura',
       primary: state.primary ?? 'green',
       surface: state.surface ?? 'ash',
-      ...(recentPrimaryColors ? {recentPrimaryColors} : {}),
-      ...(recentSurfaceColors ? {recentSurfaceColors} : {}),
     };
   }
 
@@ -469,77 +456,15 @@ export class AppConfigService {
     };
   }
 
-  private normalizeRecentThemeColors(colors: string[] | null | undefined): string[] | undefined {
-    const normalizedColors = (colors ?? []).reduce<string[]>((recentColors, color) => {
-      return getRecentThemeColors(recentColors, color);
-    }, []);
-
-    return normalizedColors.length > 0 ? normalizedColors : undefined;
-  }
-
   private getSurfacePalette(surface: string): ColorPalette {
-    if (isHexColor(surface)) {
-      return createThemePaletteFromHex(surface, 'surface');
-    }
-
     return this.surfaces.find(s => s.name === surface)?.palette ?? {};
-  }
-
-  private getPrimaryPalette(primary: string): ColorPalette {
-    if (isHexColor(primary)) {
-      return createThemePaletteFromHex(primary, 'primary');
-    }
-
-    const presetPalette = (Aura.primitive ?? {}) as Record<string, ColorPalette>;
-    return presetPalette[primary] ?? {};
-  }
-
-  getThemeInputColor(type: ThemeColorType): string {
-    const value = this.appState()[type];
-    const normalized = normalizeHexColor(value);
-    if (normalized) {
-      return normalized;
-    }
-
-    if (type === 'surface') {
-      return this.getSurfacePalette(value ?? 'ash')['500'] ?? '#71717a';
-    }
-
-    return this.getPrimaryPalette(value ?? 'green')['500'] ?? '#22c55e';
-  }
-
-  getRecentThemeColors(type: ThemeColorType): string[] {
-    return type === 'primary'
-      ? this.appState().recentPrimaryColors ?? []
-      : this.appState().recentSurfaceColors ?? [];
-  }
-
-  setThemeSelection(type: ThemeColorType, value: string): void {
-    const normalizedHex = normalizeHexColor(value);
-    const nextValue = normalizedHex ?? value;
-
-    this.appState.update((state) => {
-      const nextState: AppState = {
-        ...state,
-        [type]: nextValue,
-      };
-
-      if (normalizedHex) {
-        if (type === 'primary') {
-          nextState.recentPrimaryColors = getRecentThemeColors(state.recentPrimaryColors, normalizedHex);
-        } else {
-          nextState.recentSurfaceColors = getRecentThemeColors(state.recentSurfaceColors, normalizedHex);
-        }
-      }
-
-      return nextState;
-    });
   }
 
   getPresetExt(): object {
     const surfacePalette = this.getSurfacePalette(this.appState().surface ?? 'neutral');
     const primaryName = this.appState().primary ?? 'green';
-    const color = this.getPrimaryPalette(primaryName);
+    const presetPalette = (Aura.primitive ?? {}) as Record<string, ColorPalette>;
+    const color = presetPalette[primaryName] ?? {};
 
     if (primaryName === 'noir') {
       return {
