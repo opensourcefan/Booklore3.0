@@ -168,9 +168,9 @@ jobs:
             image_tag="${{ github.ref_name }}"
           fi
 
-          # Validate semver format
-          if ! echo "$image_tag" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "❌ Invalid tag format: $image_tag (expected vX.Y.Z)"
+          # Validate semver format (allow optional pre-release suffix, e.g. -milestone.7)
+          if ! echo "$image_tag" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+            echo "❌ Invalid tag format: $image_tag (expected vX.Y.Z or vX.Y.Z-pre.N)"
             exit 1
           fi
 
