@@ -504,12 +504,6 @@ export class AppConfigService {
   getPresetExt(): object {
     const surfacePalette = this.getSurfacePalette(this.appState().surface ?? 'neutral');
 
-    const state = this.appState();
-
-    if (state.customPrimaryColor && state.customPrimaryGenerated) {
-      return this.buildPresetWithCustomColors(state);
-    }
-
     const primaryName = this.appState().primary ?? 'green';
     const presetPalette = (Aura.primitive ?? {}) as Record<string, ColorPalette>;
     const color = presetPalette[primaryName] ?? {};
@@ -561,12 +555,17 @@ export class AppConfigService {
     };
   }
 
-  private buildPresetWithCustomColors(state: AppState): object {
-    const primaryGenerated = state.customPrimaryGenerated!;
-
+  private buildPrimaryPreset(generated: Record<number, string>): object {
     return {
       semantic: {
-        primary: primaryGenerated,
+        primary: generated,
+      },
+    };
+  }
+
+  private buildColorSchemePreset(): object {
+    return {
+      semantic: {
         colorScheme: {
           dark: {
             primary: {
@@ -583,7 +582,7 @@ export class AppConfigService {
             }
           }
         }
-      }
+      },
     };
   }
 
@@ -596,6 +595,12 @@ export class AppConfigService {
       ? { 0: state.customSurfaceGenerated[50], ...state.customSurfaceGenerated }
       : surfacePalette;
 
-    $t().preset(Aura).preset(preset).surfacePalette(effectiveSurface).use({ useDefaultOptions: true });
+    if (state.customPrimaryColor && state.customPrimaryGenerated) {
+      const primaryPreset = this.buildPrimaryPreset(state.customPrimaryGenerated);
+      const schemePreset = this.buildColorSchemePreset();
+      $t().preset(Aura).preset(primaryPreset).preset(schemePreset).surfacePalette(effectiveSurface).use({ useDefaultOptions: true });
+    } else {
+      $t().preset(Aura).preset(preset).surfacePalette(effectiveSurface).use({ useDefaultOptions: true });
+    }
   }
 }
