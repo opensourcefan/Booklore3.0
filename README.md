@@ -58,6 +58,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 - **ComicVine Batch Issue Sequencing** — In custom metadata fetch for multi-book selections, you can use the same ComicVine source URL plus issue number/range inputs and BookLore will assign sequential issues across the selected books while keeping review-mode workflows.
 - **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views, then use the reset button beside the folder toggle to clear the active folder scope while keeping the larger book view available.
 - **Adjustable Cover Preview Panel** — Toggle the right-side cover preview on or off in Settings.
+- **Theme Color Customizer** — Pick named or custom Primary and Surface colors from the topbar theme popover, with recent custom colors available for quick reuse.
 - **Customizable Upper Toolbar** — Add, remove, and reorder toolbar buttons; insert separators. Drag-and-drop support.
 - **Adjustable Side Panels** — Resizable left and right sidebars.
 - **Drag-and-Drop Sidebar Sorting** — Turn on Re-order mode to drag left sidebar headings and rows on desktop or mobile without affecting normal sidebar navigation.

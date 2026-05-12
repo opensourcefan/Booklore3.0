@@ -3,7 +3,7 @@
 
   <div class="config-panel-colors">
     <span class="config-panel-label">{{ t('primary') }}</span>
-    <div>
+    <div class="config-color-grid">
       @for (primaryColor of primaryColors(); track primaryColor.name) {
         <button
           type="button"
@@ -14,11 +14,39 @@
         ></button>
       }
     </div>
+
+    <div class="config-color-picker-row">
+      <label class="config-panel-subtitle" for="theme-primary-picker">Custom</label>
+      <input
+        id="theme-primary-picker"
+        class="config-color-input"
+        type="color"
+        [value]="primaryInputColor()"
+        (change)="updateCustomColor($event, 'primary')"
+      />
+    </div>
+
+    @if (recentPrimaryColors().length > 0) {
+      <div class="config-recent-colors">
+        <span class="config-panel-subtitle">Recent</span>
+        <div class="config-color-grid config-color-grid--recent">
+          @for (color of recentPrimaryColors(); track color) {
+            <button
+              type="button"
+              [title]="color"
+              (click)="applyRecentColor($event, 'primary', color)"
+              [ngClass]="{ 'active-color': isActiveRecentColor('primary', color) }"
+              [style.background-color]="color"
+            ></button>
+          }
+        </div>
+      </div>
+    }
   </div>
 
   <div class="config-panel-colors">
     <span class="config-panel-label">{{ t('surface') }}</span>
-    <div>
+    <div class="config-color-grid">
       @for (surface of surfaces; track surface.name) {
         <button
           type="button"
@@ -29,6 +57,34 @@
         </button>
       }
     </div>
+
+    <div class="config-color-picker-row">
+      <label class="config-panel-subtitle" for="theme-surface-picker">Custom</label>
+      <input
+        id="theme-surface-picker"
+        class="config-color-input"
+        type="color"
+        [value]="surfaceInputColor()"
+        (change)="updateCustomColor($event, 'surface')"
+      />
+    </div>
+
+    @if (recentSurfaceColors().length > 0) {
+      <div class="config-recent-colors">
+        <span class="config-panel-subtitle">Recent</span>
+        <div class="config-color-grid config-color-grid--recent">
+          @for (color of recentSurfaceColors(); track color) {
+            <button
+              type="button"
+              [title]="color"
+              (click)="applyRecentColor($event, 'surface', color)"
+              [ngClass]="{ 'active-color': isActiveRecentColor('surface', color) }"
+              [style.background-color]="color"
+            ></button>
+          }
+        </div>
+      </div>
+    }
   </div>
 
 </div>

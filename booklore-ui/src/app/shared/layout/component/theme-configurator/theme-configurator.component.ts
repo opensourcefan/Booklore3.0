@@ -10,6 +10,7 @@ import Aura from '../theme-palette-extend';
 import {AppConfigService} from '../../../service/app-config.service';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {FaviconService} from './favicon-service';
+import {normalizeHexColor, ThemeColorType} from '../../../util/theme-color.util';
 
 type ColorPalette = Record<string, string>;
 
@@ -43,6 +44,10 @@ export class ThemeConfiguratorComponent {
 
   readonly selectedPrimaryColor = computed(() => this.configService.appState().primary);
   readonly selectedSurfaceColor = computed(() => this.configService.appState().surface);
+  readonly primaryInputColor = computed(() => this.configService.getThemeInputColor('primary'));
+  readonly surfaceInputColor = computed(() => this.configService.getThemeInputColor('surface'));
+  readonly recentPrimaryColors = computed(() => this.configService.getRecentThemeColors('primary'));
+  readonly recentSurfaceColors = computed(() => this.configService.getRecentThemeColors('surface'));
 
   readonly faviconColor = computed(() => {
     const name = this.selectedPrimaryColor() ?? 'green';
@@ -75,10 +80,27 @@ export class ThemeConfiguratorComponent {
   });
 
   updateColors(event: Event, type: 'primary' | 'surface', color: { name: string; palette?: ColorPalette }) {
-    this.configService.appState.update((state) => ({
-      ...state,
-      [type]: color.name
-    }));
+    this.configService.setThemeSelection(type, color.name);
     event.stopPropagation();
+  }
+
+  updateCustomColor(event: Event, type: ThemeColorType): void {
+    const input = event.target as HTMLInputElement | null;
+    const normalized = normalizeHexColor(input?.value ?? null);
+    if (!normalized) {
+      return;
+    }
+
+    this.configService.setThemeSelection(type, normalized);
+    event.stopPropagation();
+  }
+
+  applyRecentColor(event: Event, type: ThemeColorType, color: string): void {
+    this.configService.setThemeSelection(type, color);
+    event.stopPropagation();
+  }
+
+  isActiveRecentColor(type: ThemeColorType, color: string): boolean {
+    return normalizeHexColor(this.configService.appState()[type] ?? null) === normalizeHexColor(color);
   }
 }
