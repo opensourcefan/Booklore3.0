@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {ChangeDetectionStrategy, Component, computed, effect, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, signal, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
 import {RadioButtonModule} from 'primeng/radiobutton';
@@ -40,6 +40,9 @@ export class ThemeConfiguratorComponent {
   readonly configService = inject(AppConfigService);
   readonly faviconService = inject(FaviconService);
 
+  @ViewChild('primaryColorInput') private primaryColorInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('surfaceColorInput') private surfaceColorInput?: ElementRef<HTMLInputElement>;
+
   readonly surfaces = this.configService.surfaces;
 
   readonly selectedPrimaryColor = computed(() => this.configService.appState().primary);
@@ -58,6 +61,11 @@ export class ThemeConfiguratorComponent {
 
   private readonly _faviconSyncEffect = effect(() => {
     this.faviconService.updateFavicon(this.faviconColor());
+  });
+
+  private readonly customPickerInvoked = signal<Record<ThemeColorType, boolean>>({
+    primary: false,
+    surface: false,
   });
 
   readonly primaryColors = computed<Palette[]>(() => {
@@ -91,13 +99,38 @@ export class ThemeConfiguratorComponent {
       return;
     }
 
+    this.customPickerInvoked.update(state => ({...state, [type]: true}));
     this.configService.setThemeSelection(type, normalized);
     event.stopPropagation();
+  }
+
+  openCustomColorPicker(event: Event, type: ThemeColorType): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.customPickerInvoked.update(state => ({...state, [type]: true}));
+
+    const input = this.getColorInput(type);
+    if (!input) {
+      return;
+    }
+
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+      return;
+    }
+
+    input.click();
   }
 
   applyRecentColor(event: Event, type: ThemeColorType, color: string): void {
     this.configService.setThemeSelection(type, color);
     event.stopPropagation();
+  }
+
+  isCustomMode(type: ThemeColorType): boolean {
+    return this.customPickerInvoked()[type]
+      || this.getRecentColors(type).length > 0
+      || this.isCustomColorSelected(type);
   }
 
   isCustomColorSelected(type: ThemeColorType): boolean {
@@ -106,5 +139,15 @@ export class ThemeConfiguratorComponent {
 
   isActiveRecentColor(type: ThemeColorType, color: string): boolean {
     return normalizeHexColor(this.configService.appState()[type] ?? null) === normalizeHexColor(color);
+  }
+
+  private getColorInput(type: ThemeColorType): HTMLInputElement | null {
+    return type === 'primary'
+      ? this.primaryColorInput?.nativeElement ?? null
+      : this.surfaceColorInput?.nativeElement ?? null;
+  }
+
+  private getRecentColors(type: ThemeColorType): string[] {
+    return this.configService.getRecentThemeColors(type);
   }
 }

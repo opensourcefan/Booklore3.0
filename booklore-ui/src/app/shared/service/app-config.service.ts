@@ -400,14 +400,15 @@ export class AppConfigService {
     if (isPlatformBrowser(this.platformId)) {
       const storedState = localStorage.getItem(this.STORAGE_KEY);
       if (storedState) {
-        return JSON.parse(storedState);
+        try {
+          return this.normalizeAppState(JSON.parse(storedState)) ?? this.getDefaultAppState();
+        } catch {
+          return this.getDefaultAppState();
+        }
       }
     }
-    return {
-      preset: 'Aura',
-      primary: 'green',
-      surface: 'ash',
-    };
+
+    return this.getDefaultAppState();
   }
 
   private saveAppState(state: AppState): void {
@@ -440,10 +441,15 @@ export class AppConfigService {
       return null;
     }
 
+    const recentPrimaryColors = this.normalizeRecentThemeColors(state.recentPrimaryColors);
+    const recentSurfaceColors = this.normalizeRecentThemeColors(state.recentSurfaceColors);
+
     return {
       preset: state.preset ?? 'Aura',
       primary: state.primary ?? 'green',
       surface: state.surface ?? 'ash',
+      ...(recentPrimaryColors ? {recentPrimaryColors} : {}),
+      ...(recentSurfaceColors ? {recentSurfaceColors} : {}),
     };
   }
 
@@ -461,6 +467,14 @@ export class AppConfigService {
       primary: 'green',
       surface: 'ash',
     };
+  }
+
+  private normalizeRecentThemeColors(colors: string[] | null | undefined): string[] | undefined {
+    const normalizedColors = (colors ?? []).reduce<string[]>((recentColors, color) => {
+      return getRecentThemeColors(recentColors, color);
+    }, []);
+
+    return normalizedColors.length > 0 ? normalizedColors : undefined;
   }
 
   private getSurfacePalette(surface: string): ColorPalette {

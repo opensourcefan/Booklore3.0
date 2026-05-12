@@ -11,131 +11,55 @@
 	gap: 0.65rem;
 }
 
-.config-recent-colors {
-	display: flex;
-	flex-direction: column;
-	gap: 0.45rem;
-}
-
-.config-panel-label,
-.config-panel-subtitle {
+.config-panel-label {
 	color: var(--p-surface-100);
 	font-size: 0.85rem;
 }
 
-.config-panel-subtitle {
-	color: var(--p-surface-400);
-}
-
-.config-color-value {
-	color: var(--p-surface-200);
-	font-size: 0.8rem;
-	font-family: "Cascadia Code", "Consolas", monospace;
-	text-transform: lowercase;
-}
-
 .config-color-grid {
+	position: relative;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.45rem;
 }
 
-.config-color-grid button {
+.config-color-button {
 	width: 1.5rem;
 	height: 1.5rem;
 	padding: 0;
-	border-radius: 999px;
-	border: 1px solid color-mix(in srgb, var(--p-surface-100) 20%, transparent);
-	cursor: pointer;
-	transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-.config-color-grid button:hover {
-	transform: translateY(-1px);
-}
-
-.config-color-grid button.active-color {
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--p-primary-color) 70%, transparent);
-	border-color: var(--p-primary-color);
-}
-
-.config-color-picker-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0.75rem;
-}
-
-.config-color-picker-trigger {
-	position: relative;
 	display: inline-flex;
 	align-items: center;
-	gap: 0.5rem;
-	min-width: 7.5rem;
-	padding: 0.35rem 0.65rem 0.35rem 0.35rem;
+	justify-content: center;
 	border-radius: 999px;
 	border: 1px solid color-mix(in srgb, var(--p-surface-100) 20%, transparent);
-	background: color-mix(in srgb, var(--p-surface-900) 76%, transparent);
 	cursor: pointer;
 	transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.config-color-picker-trigger:hover {
+.config-color-button:hover {
 	transform: translateY(-1px);
 }
 
-.config-color-picker-trigger.active-color {
+.config-color-button.active-color {
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--p-primary-color) 70%, transparent);
 	border-color: var(--p-primary-color);
 }
 
-.config-color-picker-swatch {
-	width: 1.2rem;
-	height: 1.2rem;
-	border-radius: 999px;
-	border: 1px solid color-mix(in srgb, var(--p-surface-0) 18%, transparent);
-	flex: 0 0 auto;
-}
-
-.config-color-picker-text {
-	color: var(--p-surface-200);
-	font-size: 0.8rem;
+.config-color-button--custom-trigger {
+	background: color-mix(in srgb, var(--p-surface-900) 76%, transparent);
+	color: var(--p-surface-100);
+	font-size: 1rem;
+	font-weight: 600;
 	line-height: 1;
 }
 
 .config-color-input {
 	position: absolute;
-	inset: 0;
-	width: 100%;
-	height: 100%;
+	width: 0;
+	height: 0;
 	padding: 0;
 	opacity: 0;
 	border: 0;
 	background: transparent;
-	cursor: pointer;
-}
-
-.config-color-input::-webkit-color-swatch-wrapper {
-	padding: 0.15rem;
-}
-
-.config-color-input::-webkit-color-swatch {
-	border: none;
-	border-radius: 0.45rem;
-}
-
-.config-color-input::-moz-color-swatch {
-	border: none;
-	border-radius: 0.45rem;
-}
-
-.config-recent-colors {
-	display: flex;
-	flex-direction: column;
-	gap: 0.45rem;
-}
-
-.config-color-grid--recent button {
-	width: 1.2rem;
-	height: 1.2rem;
+	pointer-events: none;
 }
