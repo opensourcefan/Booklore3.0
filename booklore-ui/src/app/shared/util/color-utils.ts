@@ -153,7 +153,7 @@ export class ColorParseError extends Error {
 }
 
 function hclToRgb(h: number, c: number, l: number): { r: number; g: number; b: number } {
-  const t = c / 255;
+  const t = c;
   let r: number, g: number, b: number;
 
   if (t !== 0) {
