@@ -57,6 +57,8 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 - **ComicVine URL Issue Navigation** — In metadata search, paste a ComicVine volume or issue URL and optionally provide an issue number or inclusive range (for example `46` or `43-171`) to resolve exact ComicVine issue matches.
 - **ComicVine Batch Issue Sequencing** — In custom metadata fetch for multi-book selections, you can use the same ComicVine source URL plus issue number/range inputs and BookLore will assign sequential issues across the selected books while keeping review-mode workflows.
 - **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views, then use the reset button beside the folder toggle to clear the active folder scope while keeping the larger book view available.
+- **Currently Reading Dashboard Panel** — Add an optional Currently Reading scroller from Dashboard Settings and populate it from a book's More Actions menu to keep a hand-picked reading shortlist on the home screen.
+- **Custom Theme Colors** — Use preset palettes or set custom primary and surface colors with a color picker or pasted hex value; theme preferences are saved per user.
 - **Adjustable Cover Preview Panel** — Toggle the right-side cover preview on or off in Settings.
 - **Customizable Upper Toolbar** — Add, remove, and reorder toolbar buttons; insert separators. Drag-and-drop support.
 - **Adjustable Side Panels** — Resizable left and right sidebars.
@@ -276,12 +278,14 @@ tar -czf booklore-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 
 New to BookLore? A complete **Familiarization Guide** is available in the `docs/` folder:
 
-- **[BookLore-Familiarization-Guide.pdf](docs/BookLore-Familiarization-Guide.pdf)** — 26-page printable PDF
+- **[BookLore-Familiarization-Guide.pdf](docs/BookLore-Familiarization-Guide.pdf)** — Printable PDF version
 - **[BookLore-Familiarization-Guide.html](docs/BookLore-Familiarization-Guide.html)** — Browser-viewable HTML version
 
 The guide is written for users of all experience levels and covers every feature — libraries, importing, reading, shelves, metadata, search, AI panel detection, OPDS, user management, settings, backups, and more. Each section includes what you can do, what you can't do, and things to be careful about.
 
-The current HTML guide also documents the directory explorer workflow, including opening the folder panel, expanding folders, filtering the book grid by top-level folders or subfolders, and using the reset button beside the folder toggle to clear the active folder scope.
+The app's footer PDF button links to this same guide file directly. If you want the guide to behave like a normal imported PDF in the built-in reader, copy the PDF into a library or into BookDrop and import it like any other asset.
+
+Maintenance rule: the HTML guide is the source of truth. When the guide changes, regenerate the PDF from that HTML and update this README section in the same change so the repository docs stay in sync.
 
 ---
 

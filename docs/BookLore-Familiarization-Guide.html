@@ -5,62 +5,119 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BookLore 3.0 — Familiarization Guide</title>
 <style>
+  :root {
+    color-scheme: dark;
+    --outer-bg: #17120d;
+    --outer-bg-glow: #2c2117;
+    --paper: #f4ecd9;
+    --paper-deep: #e8dcc2;
+    --paper-edge: rgba(104, 77, 49, 0.35);
+    --ink: #2a2118;
+    --muted: #675846;
+    --heading: #6c4927;
+    --heading-soft: #b58d61;
+    --table-head: #e8d9be;
+    --table-border: rgba(84, 63, 39, 0.2);
+    --table-alt: rgba(108, 73, 39, 0.06);
+    --callout-base: rgba(255, 255, 255, 0.38);
+    --callout-warning: #f2ddd5;
+    --callout-info: #dde9e1;
+    --callout-tip: #deead7;
+    --code-bg: #2a241f;
+    --code-ink: #f4efe6;
+  }
   @page {
     size: A4;
-    margin: 2cm 2.2cm;
+    margin: 1.8cm 2cm;
+    background: var(--outer-bg);
     @bottom-center {
       content: "BookLore 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
       font-size: 8pt;
-      color: #888;
-      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #c8b59c;
+      font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
     }
   }
   * { box-sizing: border-box; }
-  body {
-    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-    font-size: 10.5pt;
-    line-height: 1.55;
-    color: #222;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 1em;
+  html {
+    min-height: 100%;
+    background: radial-gradient(circle at top, var(--outer-bg-glow) 0%, var(--outer-bg) 42%, #100c08 100%);
   }
+  body {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-size: 10.6pt;
+    line-height: 1.68;
+    color: var(--ink);
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 1.75rem 2.25rem 3rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.04) 12%, rgba(255, 255, 255, 0.04) 88%, rgba(255, 255, 255, 0.24)),
+      linear-gradient(180deg, #f7f0df 0%, var(--paper) 54%, var(--paper-deep) 100%);
+    border-left: 1px solid var(--paper-edge);
+    border-right: 1px solid var(--paper-edge);
+  }
+  p { margin: 0.5em 0 0.85em; }
+  a { color: var(--heading); }
 
   /* Cover / title block */
   .cover {
     text-align: center;
-    padding: 4em 1em 3em;
+    padding: 4.2em 2em 3.4em;
+    margin: 0.4rem 0 2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.1)),
+      linear-gradient(180deg, #efe2ca 0%, #e4d3b5 100%);
     page-break-after: always;
   }
   .cover h1 {
-    font-size: 28pt;
-    color: #1a5276;
+    font-size: 29pt;
+    color: var(--heading);
     margin-bottom: 0.1em;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.3px;
   }
   .cover .subtitle {
     font-size: 14pt;
-    color: #555;
+    color: var(--muted);
     margin-bottom: 2em;
   }
   .cover .meta {
     font-size: 10pt;
-    color: #777;
+    color: var(--muted);
     line-height: 1.8;
   }
 
   /* Headings */
-  h1 { font-size: 20pt; color: #1a5276; margin-top: 1.5em; page-break-after: avoid; }
-  h2 { font-size: 15pt; color: #1a5276; border-bottom: 2px solid #d4e6f1; padding-bottom: 4px; margin-top: 1.8em; page-break-after: avoid; }
-  h3 { font-size: 12pt; color: #2e86c1; margin-top: 1.3em; page-break-after: avoid; }
-  h4 { font-size: 10.5pt; color: #2e86c1; margin-top: 1em; page-break-after: avoid; }
+  h1, h2, h3, h4 {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    page-break-after: avoid;
+  }
+  h1 { font-size: 20pt; color: var(--heading); margin-top: 1.5em; }
+  h2 {
+    font-size: 15pt;
+    color: var(--heading);
+    border-bottom: 2px solid var(--heading-soft);
+    padding-bottom: 4px;
+    margin-top: 1.9em;
+    letter-spacing: 0.02em;
+  }
+  h3 { font-size: 12pt; color: #80572f; margin-top: 1.3em; }
+  h4 { font-size: 10.5pt; color: #80572f; margin-top: 1em; }
 
   /* Table of contents */
-  .toc { page-break-after: always; }
+  .toc {
+    page-break-after: always;
+    margin: 0 0 2rem;
+    padding: 2rem 2.2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.28);
+  }
   .toc h2 { font-size: 18pt; border: none; }
   .toc ol { padding-left: 1.5em; }
   .toc li { margin-bottom: 0.3em; font-size: 10.5pt; }
-  .toc a { color: #1a5276; text-decoration: none; }
+  .toc a { color: var(--heading); text-decoration: none; }
   .toc a:hover { text-decoration: underline; }
 
   /* Tables */
@@ -69,61 +126,73 @@
     border-collapse: collapse;
     margin: 0.8em 0 1.2em;
     font-size: 10pt;
+    background: rgba(255, 255, 255, 0.18);
   }
   th, td {
-    border: 1px solid #ccc;
+    border: 1px solid var(--table-border);
     padding: 6px 10px;
     text-align: left;
     vertical-align: top;
   }
   th {
-    background: #eaf2f8;
-    color: #1a5276;
+    background: var(--table-head);
+    color: var(--heading);
     font-weight: 600;
   }
-  tr:nth-child(even) { background: #fafafa; }
+  tr:nth-child(even) { background: var(--table-alt); }
 
   /* Callout boxes */
   .callout {
-    border-left: 4px solid #e67e22;
-    background: #fef9e7;
+    border-left: 4px solid #9a6a3a;
+    background: var(--callout-base);
     padding: 10px 14px;
     margin: 1em 0;
     border-radius: 0 4px 4px 0;
     font-size: 10pt;
   }
   .callout.warning {
-    border-left-color: #e74c3c;
-    background: #fdedec;
+    border-left-color: #9f5144;
+    background: var(--callout-warning);
   }
   .callout.info {
-    border-left-color: #2e86c1;
-    background: #eaf2f8;
+    border-left-color: #587c68;
+    background: var(--callout-info);
   }
   .callout.tip {
-    border-left-color: #27ae60;
-    background: #eafaf1;
+    border-left-color: #63804b;
+    background: var(--callout-tip);
   }
   .callout strong:first-child { display: inline; }
 
   /* Code */
   code {
-    background: #f0f0f0;
+    background: rgba(42, 36, 31, 0.09);
     padding: 1px 5px;
     border-radius: 3px;
     font-size: 9.5pt;
     font-family: 'Consolas', 'Courier New', monospace;
   }
   pre {
-    background: #2c3e50;
-    color: #ecf0f1;
+    background: var(--code-bg);
+    color: var(--code-ink);
     padding: 12px 16px;
     border-radius: 4px;
     font-size: 9pt;
-    overflow-x: auto;
     line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
   pre code { background: none; color: inherit; padding: 0; }
+
+  @media screen {
+    body {
+      box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+    }
+
+    .cover {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+    }
+  }
 
   /* Lists */
   ul, ol { padding-left: 1.5em; }
@@ -132,7 +201,7 @@
   /* Section breaks */
   hr {
     border: none;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid rgba(108, 73, 39, 0.22);
     margin: 2em 0;
   }
 
@@ -155,7 +224,7 @@
     A friendly, complete walkthrough of everything BookLore can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.95 &mdash; April 20, 2026<br>
+    Version 1.1.98 &mdash; May 13, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -263,8 +332,10 @@
 <h3>What You Can Do</h3>
 <ul>
   <li>See library statistics at a glance (total books, reading status, etc.)</li>
-  <li>Access recently added books</li>
-  <li>Configure dashboard sections from <strong>Dashboard Settings</strong> on the left sidebar&rsquo;s <strong>Dashboard</strong> row, including adding up to <strong>20</strong> scrolling panels for libraries, shelves, series, authors, or other supported dashboard content</li>
+  <li>Access recently added books, continue-reading shortcuts, and other quick-start scrollers from one screen</li>
+  <li>Configure dashboard sections from <strong>Dashboard Settings</strong> on the left sidebar&rsquo;s <strong>Dashboard</strong> row, including up to <strong>20</strong> scrollers such as <strong>Continue Reading</strong>, <strong>Continue Listening</strong>, <strong>Recently Added</strong>, <strong>Discover Something New</strong>, <strong>Magic Shelf</strong>, and <strong>Currently Reading</strong></li>
+  <li>Set each scroller&rsquo;s library filter, width, and item count, then lock the layout if you want to prevent accidental drag reordering</li>
+  <li>Add books to the optional <strong>Currently Reading</strong> panel from a book&rsquo;s <strong>More Actions &rarr; Currently Reading</strong> menu item</li>
   <li>Refresh the page on mobile without the dashboard cards stretching into tall broken columns; the dashboard now recalculates its grid width after the page finishes loading</li>
   <li>Jump to any section using the sidebar navigation</li>
 </ul>
@@ -291,6 +362,7 @@
   <tr><td><strong>Series</strong></td><td>Browse books grouped by series</td></tr>
   <tr><td><strong>Authors</strong></td><td>Browse books by author</td></tr>
   <tr><td><strong>Magic Shelves</strong></td><td>Your smart filtered collections</td></tr>
+  <tr><td><strong>User Guide</strong> (bottom)</td><td>Open the familiarization guide PDF from the footer link</td></tr>
   <tr><td><strong>Settings</strong> (bottom)</td><td>Application configuration</td></tr>
   <tr><td><strong>Language</strong> (bottom)</td><td>Switch the interface language</td></tr>
 </table>
@@ -303,6 +375,7 @@
   <li><strong>Hide or show sidebar headings per user</strong> &mdash; Heading visibility is now saved with your account, so the same layout follows you across sessions</li>
   <li><strong>Choose which HOME shortcuts appear</strong> &mdash; Use the sidebar show/hide controls to decide whether entries like Dashboard, All Books, Physical Books, Series, Authors, and Notebook appear under HOME for your account</li>
   <li><strong>Keep Media Type labels and ordering per user</strong> &mdash; Custom media types, recent choices, and the Media Type sidebar order now follow your account instead of staying in one browser only</li>
+  <li><strong>Open the User Guide from the footer PDF button</strong> &mdash; Use the footer PDF link to open the guide directly; if you want it to behave like a normal imported PDF in the built-in reader, copy it into a library or into BookDrop and import it like any other PDF</li>
   <li><strong>Open the folder panel while browsing books</strong> &mdash; Use the folder button in <strong>All Books</strong> or a library view to browse by real library directories</li>
   <li><strong>Toggle browser fullscreen from the topbar</strong> &mdash; Add or keep the fullscreen button in your toolbar, or use the same action from the mobile topbar menu when you want the interface to take over the whole screen</li>
 </ul>
@@ -392,6 +465,7 @@
   <tr><td>Add to a shelf</td><td>Right-click &rarr; Add to Shelf, or use the book detail page</td></tr>
   <tr><td>Remove from shelf</td><td>Right-click &rarr; Remove from Shelf</td></tr>
   <tr><td>Change reading status</td><td>Set to: Not Started, Reading, Completed, or Abandoned</td></tr>
+  <tr><td>Pin a book to Currently Reading</td><td>Use <strong>More Actions &rarr; Currently Reading</strong> to add or remove a book from the optional dashboard panel</td></tr>
   <tr><td>Rate a book</td><td>Give it 1&ndash;5 stars on the detail page</td></tr>
   <tr><td>Edit metadata</td><td>Update title, author, description, cover, etc.</td></tr>
   <tr><td>Delete a book</td><td>Right-click &rarr; Delete (with optional disk deletion)</td></tr>
@@ -1110,7 +1184,7 @@
   <tr><td>Tasks</td><td>Background task scheduling (cron jobs)</td></tr>
   <tr><td>Audit Logs</td><td>View user activity logs</td></tr>
   <tr><td>AI Panel Detection</td><td>Enable/disable and manage comic panel AI</td></tr>
-  <tr><td>Global Preferences</td><td>Theme (light/dark), language, timezone, settings backup</td></tr>
+  <tr><td>Global Preferences</td><td>Theme palette, custom primary/surface colors, language, timezone, settings backup</td></tr>
 </table>
 
 <h4>Customizable Toolbar</h4>
@@ -1119,6 +1193,14 @@
   <li><strong>Reorder buttons</strong> &mdash; Drag and drop to rearrange</li>
   <li><strong>Add separators</strong> &mdash; Insert visual dividers between button groups</li>
   <li><strong>Keep a fullscreen toggle in the toolbar</strong> &mdash; Show or hide the fullscreen action like any other topbar button, and place it where it fits your layout best</li>
+</ul>
+
+<h4>Theme Colors</h4>
+<ul>
+  <li><strong>Choose preset colors for the interface</strong> &mdash; The theme configurator lets you pick the accent color and the surface palette independently</li>
+  <li><strong>Use a color picker or paste a value</strong> &mdash; Both color controls accept a native color picker or a typed/pasted color such as <code>#ff6600</code></li>
+  <li><strong>Reset one side without resetting the other</strong> &mdash; Clear the custom primary or custom surface color independently if you want to go back to presets</li>
+  <li><strong>Keep your theme with your account</strong> &mdash; Theme selections are saved to your user settings so they return on later sign-ins</li>
 </ul>
 
 <div class="callout warning">
@@ -1315,11 +1397,13 @@
 <h2 id="sec29">29. Document Maintenance Log</h2>
 
 <div class="callout info">
-  <strong>Important:</strong> This guide must be updated whenever features are added, changed, or removed from BookLore. After any fix, feature addition, or removal, review this guide and update the relevant sections. Record changes below to track guide accuracy over time.
+  <strong>Important:</strong> This guide must be updated whenever features are added, changed, or removed from BookLore. This HTML file is the source of truth. After any guide change, regenerate the PDF from this HTML and update the README&rsquo;s <strong>Familiarization Guide</strong> section in the same change so the repository docs and maintenance notes stay aligned. Record changes below to track guide accuracy over time.
 </div>
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-05-13</td><td>1.1.98</td><td>Reformatted the guide into a darker, more book-like reading presentation for both HTML and PDF output, clarified that users who want regular built-in reader behavior can copy or import the PDF into a library or BookDrop manually, and made the maintenance rule explicit: update this HTML source, regenerate the PDF, and refresh the README guide section together</td></tr>
+  <tr><td>2026-05-13</td><td>1.1.97</td><td>Updated the guide for the current dashboard workflow: documented the supported scroller types, per-panel layout controls, and the optional <strong>Currently Reading</strong> panel plus the <strong>More Actions &rarr; Currently Reading</strong> shortcut that feeds it, and added the <strong>Global Preferences</strong> theme-configurator workflow for preset or custom primary/surface colors that persist per user</td></tr>
   <tr><td>2026-04-22</td><td>1.1.96</td><td>Clarified that <strong>Manage Directories</strong> and the directory picker now show imported-state badges not only for exact library paths but also for parent directories that already contain imported subdirectories, and recorded that the <strong>Book Details</strong> metadata search tab now flexes to the dialog height so footer actions remain reachable without extra viewport scrolling</td></tr>
   <tr><td>2026-04-20</td><td>1.1.95</td><td>Documented ComicVine issue-navigation assist in metadata search: when a ComicVine volume URL is provided, optional issue number or issue-range inputs can now resolve exact issue results directly (for example issue 46 or range 43-171) to preserve issue-title formatting accuracy</td></tr>
   <tr><td>2026-04-20</td><td>1.1.94</td><td>Documented metadata-search URL assist: the search form now accepts provider page URLs (including ComicVine volume and issue links), can auto-seed search text from supported URL slugs, and for supported URL ID formats can resolve a direct provider item fetch instead of relying on broad term matching alone</td></tr>
