@@ -93,6 +93,7 @@ describe('SseStreamService', () => {
 
     subscription.unsubscribe();
 
-    expect(request?.signal.aborted).toBe(true);
+    expect(request).toBeDefined();
+    expect(request?.signal?.aborted).toBe(true);
   });
 });
