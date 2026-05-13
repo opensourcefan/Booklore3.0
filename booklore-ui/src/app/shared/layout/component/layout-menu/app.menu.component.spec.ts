@@ -209,6 +209,33 @@ describe('AppMenuComponent reorder mode', () => {
     expect(localStorageMock.set).toHaveBeenCalledWith('sidebarLatestStableVersion', 'v3.11.2');
   });
 
+  it('caches milestone tags for future fallbacks', () => {
+    versionServiceMock.getVersion.mockReturnValue(of({current: 'develop-abc123', latest: 'v3.17.15-milestone.8'}));
+
+    component.ngOnInit();
+
+    expect(localStorageMock.set).toHaveBeenCalledWith('sidebarLatestStableVersion', 'v3.17.15-milestone.8');
+  });
+
+  it('shows only the current tag in the sidebar label when running a tagged build', () => {
+    expect(component.getDisplayVersion('v3.17.15-milestone.8', 'v3.17.15')).toBe('v3.17.15-milestone.8');
+  });
+
+  it('falls back to the latest tag in the sidebar label when the current build is untagged', () => {
+    expect(component.getDisplayVersion('develop-abc123', 'v3.17.15-milestone.8')).toBe('v3.17.15-milestone.8');
+  });
+
+  it('keeps full version details in the tooltip while showing only a single tag in the label', () => {
+    expect(component.getVersionTooltip('develop-abc123', 'v3.17.15-milestone.8'))
+      .toBe('Current build: develop-abc123. Latest tag: v3.17.15-milestone.8.');
+  });
+
+  it('treats milestone tags as semantic versions for linking and update checks', () => {
+    expect(component.isSemanticVersion('v3.17.15-milestone.8', 'v3.17.15-milestone.8')).toBe(true);
+    expect(component.shouldShowUpdateLink('v3.17.15-milestone.8', 'v3.17.15')).toBe(true);
+    expect(component.shouldShowUpdateLink('v3.17.15', 'v3.17.15-milestone.8')).toBe(false);
+  });
+
   it('stops reacting to long-lived streams after destroy', () => {
     localStorageMock.get.mockImplementation((key: string) => {
       if (key === 'sidebarSectionOrder') {

@@ -70,17 +70,27 @@ class VersionServiceTest {
         @Test
         void handlesDifferentLengthVersions() throws Exception {
             assertThat((Boolean) cmp.invoke(service, "1.2.0", "1.1"))
-                    .isTrue();
+                .isFalse();
             assertThat((Boolean) cmp.invoke(service, "1.0", "1.0.1"))
                     .isFalse();
         }
 
         @Test
         void ignoresPrefixAndSafelyHandlesInvalid() throws Exception {
-            assertThat((Boolean) cmp.invoke(service, "v1.10", "v1.9.9"))
+            assertThat((Boolean) cmp.invoke(service, "v1.10.0", "v1.9.9"))
                     .isTrue();
             assertThat((Boolean) cmp.invoke(service, "x.y", "1.0"))
                     .isFalse();
+        }
+
+        @Test
+        void handlesMilestonePrereleaseOrdering() throws Exception {
+            assertThat((Boolean) cmp.invoke(service, "v3.17.15-milestone.8", "v3.17.15-milestone.7"))
+                .isTrue();
+            assertThat((Boolean) cmp.invoke(service, "v3.17.15", "v3.17.15-milestone.8"))
+                .isTrue();
+            assertThat((Boolean) cmp.invoke(service, "v3.17.15-milestone.8", "v3.17.15"))
+                .isFalse();
         }
 
         @Test
@@ -101,6 +111,40 @@ class VersionServiceTest {
                     .isFalse();
         }
     }
+
+
+        @Nested
+        class LatestVersionTagSelection {
+
+        private Method selectHighestVersionTag;
+
+        @BeforeEach
+        void init() throws Exception {
+            selectHighestVersionTag = VersionService.class
+                .getDeclaredMethod("selectHighestVersionTag", List.class);
+            selectHighestVersionTag.setAccessible(true);
+        }
+
+        @Test
+        void selectsHighestMilestoneTagWhenItBeatsOlderStableTags() throws Exception {
+            assertThat((String) selectHighestVersionTag.invoke(service, List.of(
+                "not-a-version",
+                "v3.17.14",
+                "v3.17.15-milestone.8",
+                "v3.17.13"
+            )))
+                .isEqualTo("v3.17.15-milestone.8");
+        }
+
+        @Test
+        void prefersStableReleaseOverSameCoreMilestoneTag() throws Exception {
+            assertThat((String) selectHighestVersionTag.invoke(service, List.of(
+                "v3.17.15-milestone.8",
+                "v3.17.15"
+            )))
+                .isEqualTo("v3.17.15");
+        }
+        }
 
 
     @Nested

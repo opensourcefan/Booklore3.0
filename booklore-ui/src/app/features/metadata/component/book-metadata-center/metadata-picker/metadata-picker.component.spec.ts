@@ -94,6 +94,17 @@ describe('MetadataPickerComponent save button state', () => {
     const component = fixture.componentInstance;
 
     component.reviewMode = false;
+    component.metadataFieldsTop = [];
+    component.metadataChips = [];
+    component.metadataDescription = [];
+    component.metadataSeriesFields = [];
+    component.metadataBookDetailsFields = [];
+    component.metadataProviderFields = [];
+    component.metadataFieldsBottom = [];
+    component.audiobookMetadataFields = [];
+    component.comicTextFields = [];
+    component.comicArrayFields = [];
+    component.comicTextareaFields = [];
     component.fetchedMetadata = createMetadata({
       title: 'Fetched Title',
       provider: 'Google',
@@ -112,24 +123,25 @@ describe('MetadataPickerComponent save button state', () => {
     return fixture.nativeElement.querySelector('.rail-right button[type="submit"]') as HTMLButtonElement;
   }
 
-  it('shows Saved after successful save and resets to Save Changes on next edit', async () => {
+  it('shows Saved after successful save and resets to Save Changes on next edit', () => {
     const {fixture, component} = createComponent();
+    vi.useFakeTimers();
 
-    expect(getSaveButton(fixture).textContent).toContain('Save Changes');
+    try {
+      expect(getSaveButton(fixture).textContent).toContain('Save Changes');
 
-    getSaveButton(fixture).click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+      getSaveButton(fixture).click();
+      fixture.detectChanges();
 
-    expect(updateBookMetadata).toHaveBeenCalledTimes(1);
-          await vi.waitFor(() => {
-        expect(getSaveButton(fixture).textContent).toContain('Saved');
-      });
+      expect(updateBookMetadata).toHaveBeenCalledTimes(1);
+      expect(getSaveButton(fixture).textContent).toContain('Saved');
 
-    component.metadataForm.get('title')?.setValue('Edited title');
-    await vi.waitFor(() => {
+      component.metadataForm.get('title')?.setValue('Edited title');
+      vi.runAllTimers();
+
       expect(component.showSavedState).toBe(false);
-    });
-  });
+    } finally {
+      vi.useRealTimers();
+    }
+  }, 10000);
 });

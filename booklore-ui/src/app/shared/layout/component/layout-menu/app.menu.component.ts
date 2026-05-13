@@ -777,90 +777,61 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   }
 
   getVersionUrl(current: string | undefined, latest?: string | undefined): string {
-    if (this.shouldShowCombinedVersion(current, latest)) {
-      const stableVersion = this.getNormalizedSemanticVersion(latest);
-      return stableVersion
-        ? `https://github.com/booklore-app/booklore/releases/tag/${stableVersion}`
-        : '#';
+    const displayedTag = this.getDisplayedTag(current, latest);
+    if (displayedTag) {
+      return `https://github.com/booklore-app/booklore/releases/tag/${displayedTag}`;
     }
 
-    const version = this.getPreferredDisplayVersion(current, latest);
+    const version = this.getNormalizedDisplayVersion(current);
     if (!version) return '#';
-    const normalizedVersion = this.getNormalizedSemanticVersion(version);
-    return normalizedVersion
-      ? `https://github.com/booklore-app/booklore/releases/tag/${normalizedVersion}`
-      : `https://github.com/booklore-app/booklore/commit/${version}`;
+    return `https://github.com/booklore-app/booklore/commit/${version}`;
   }
 
   isSemanticVersion(current: string | undefined, latest?: string | undefined): boolean {
-    if (this.shouldShowCombinedVersion(current, latest)) {
-      return false;
-    }
-    return !!this.getNormalizedSemanticVersion(this.getPreferredDisplayVersion(current, latest));
+    return !!this.getDisplayedTag(current, latest);
   }
 
   shouldShowUpdateLink(current: string | undefined, latest?: string | undefined): boolean {
-    const normalizedCurrent = this.getNormalizedSemanticVersion(current);
-    const normalizedLatest = this.getNormalizedSemanticVersion(latest);
-    return !!normalizedCurrent && !!normalizedLatest && normalizedCurrent !== normalizedLatest;
+    const comparison = this.compareSemanticVersions(current, latest);
+    return comparison !== null && comparison < 0;
   }
 
   getDisplayVersion(current: string | undefined, latest?: string | undefined): string {
-    if (this.shouldShowCombinedVersion(current, latest)) {
-      const buildLabel = this.getNormalizedDisplayVersion(current);
-      const stableLabel = this.getNormalizedSemanticVersion(latest);
-      if (buildLabel && stableLabel) {
-        return `${buildLabel} · latest ${stableLabel}`;
-      }
-    }
-
-    const version = this.getPreferredDisplayVersion(current, latest);
-    return this.getNormalizedSemanticVersion(version) ?? this.getNormalizedDisplayVersion(version) ?? 'unknown';
+    return this.getDisplayedTag(current, latest)
+      ?? this.getNormalizedDisplayVersion(current)
+      ?? this.getNormalizedDisplayVersion(latest)
+      ?? 'unknown';
   }
 
   getVersionTooltip(current: string | undefined, latest?: string | undefined): string {
     const normalizedCurrent = this.getNormalizedDisplayVersion(current);
     const normalizedLatest = this.getNormalizedSemanticVersion(latest);
+    const normalizedCurrentTag = this.getNormalizedSemanticVersion(current);
+    const comparison = this.compareSemanticVersions(current, latest);
 
-    if (this.shouldShowCombinedVersion(current, latest) && normalizedCurrent && normalizedLatest) {
-      return `Current build: ${normalizedCurrent}. Latest stable release: ${normalizedLatest}.`;
+    if (normalizedCurrentTag && normalizedLatest) {
+      return comparison !== null && comparison < 0
+        ? `Current tag: ${normalizedCurrentTag}. Latest tag: ${normalizedLatest}. Update available.`
+        : `Current tag: ${normalizedCurrentTag}. Latest tag: ${normalizedLatest}.`;
     }
 
-    const semanticCurrent = this.getNormalizedSemanticVersion(current);
-    if (semanticCurrent) {
-      return `Current release: ${semanticCurrent}.`;
+    if (normalizedCurrentTag) {
+      return `Current tag: ${normalizedCurrentTag}.`;
+    }
+
+    if (normalizedCurrent && normalizedLatest) {
+      return `Current build: ${normalizedCurrent}. Latest tag: ${normalizedLatest}.`;
     }
 
     if (normalizedCurrent) {
-      return `Current build: ${normalizedCurrent}.`;
+      return `Current build: ${normalizedCurrent}. Latest tag unavailable.`;
+    }
+
+    if (normalizedLatest) {
+      return `Latest tag: ${normalizedLatest}.`;
     }
 
     return 'Version information is temporarily unavailable.';
-  }
-
-  private getPreferredDisplayVersion(current: string | undefined, latest?: string | undefined): string | undefined {
-    const normalizedCurrent = this.getNormalizedDisplayVersion(current);
-    const normalizedLatest = this.getNormalizedDisplayVersion(latest);
-
-    if (this.getNormalizedSemanticVersion(normalizedCurrent)) {
-      return normalizedCurrent;
-    }
-    if (this.getNormalizedSemanticVersion(normalizedLatest)) {
-      return normalizedLatest;
-    }
-    return normalizedCurrent ?? normalizedLatest;
-  }
-
-  private shouldShowCombinedVersion(current: string | undefined, latest?: string | undefined): boolean {
-    const normalizedCurrent = this.getNormalizedDisplayVersion(current);
-    const normalizedLatest = this.getNormalizedDisplayVersion(latest);
-    if (!normalizedCurrent || !normalizedLatest) {
-      return false;
-    }
-
-    return !this.getNormalizedSemanticVersion(normalizedCurrent)
-      && !!this.getNormalizedSemanticVersion(normalizedLatest)
-      && normalizedCurrent !== normalizedLatest;
   }
 
   private getNormalizedDisplayVersion(version: string | undefined): string | undefined {
@@ -873,10 +844,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   }
 
   private getNormalizedSemanticVersion(version: string | undefined): string | null {
-    if (!version) return null;
-    const semanticVersionPattern = /^v?(\d+\.\d+\.\d+)$/;
-    const match = version.trim().match(semanticVersionPattern);
-    return match ? `v${match[1]}` : null;
+    return this.parseSemanticVersion(version)?.normalized ?? null;
   }
 
   private resolveVersionInfoWithCache(versionInfo: AppVersion): AppVersion {
@@ -908,6 +876,106 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   private getCachedLatestStableVersion(): string | null {
     const cached = this.localStorageService.get<string>(this.versionLatestCacheKey);
     return this.getNormalizedSemanticVersion(cached ?? undefined);
+  }
+
+  private getDisplayedTag(current: string | undefined, latest?: string | undefined): string | null {
+    return this.getNormalizedSemanticVersion(current) ?? this.getNormalizedSemanticVersion(latest);
+  }
+
+  private parseSemanticVersion(version: string | undefined): { major: number; minor: number; patch: number; preRelease: string[]; normalized: string } | null {
+    if (!version) {
+      return null;
+    }
+
+    const match = version.trim().match(/^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+([0-9A-Za-z.-]+))?$/);
+    if (!match) {
+      return null;
+    }
+
+    const normalized = `v${match[1]}.${match[2]}.${match[3]}`
+      + (match[4] ? `-${match[4]}` : '')
+      + (match[5] ? `+${match[5]}` : '');
+
+    return {
+      major: Number(match[1]),
+      minor: Number(match[2]),
+      patch: Number(match[3]),
+      preRelease: match[4] ? match[4].split('.') : [],
+      normalized,
+    };
+  }
+
+  private compareSemanticVersions(version1: string | undefined, version2: string | undefined): number | null {
+    const parsedVersion1 = this.parseSemanticVersion(version1);
+    const parsedVersion2 = this.parseSemanticVersion(version2);
+    if (!parsedVersion1 || !parsedVersion2) {
+      return null;
+    }
+
+    const majorComparison = parsedVersion1.major - parsedVersion2.major;
+    if (majorComparison !== 0) {
+      return majorComparison;
+    }
+
+    const minorComparison = parsedVersion1.minor - parsedVersion2.minor;
+    if (minorComparison !== 0) {
+      return minorComparison;
+    }
+
+    const patchComparison = parsedVersion1.patch - parsedVersion2.patch;
+    if (patchComparison !== 0) {
+      return patchComparison;
+    }
+
+    const version1HasPreRelease = parsedVersion1.preRelease.length > 0;
+    const version2HasPreRelease = parsedVersion2.preRelease.length > 0;
+    if (!version1HasPreRelease && !version2HasPreRelease) {
+      return 0;
+    }
+    if (!version1HasPreRelease) {
+      return 1;
+    }
+    if (!version2HasPreRelease) {
+      return -1;
+    }
+
+    const maxIdentifiers = Math.max(parsedVersion1.preRelease.length, parsedVersion2.preRelease.length);
+    for (let index = 0; index < maxIdentifiers; index += 1) {
+      const identifier1 = parsedVersion1.preRelease[index];
+      const identifier2 = parsedVersion2.preRelease[index];
+
+      if (identifier1 === undefined) {
+        return -1;
+      }
+      if (identifier2 === undefined) {
+        return 1;
+      }
+
+      const identifierComparison = this.comparePreReleaseIdentifier(identifier1, identifier2);
+      if (identifierComparison !== 0) {
+        return identifierComparison;
+      }
+    }
+
+    return 0;
+  }
+
+  private comparePreReleaseIdentifier(identifier1: string, identifier2: string): number {
+    const numericIdentifierPattern = /^\d+$/;
+    const identifier1IsNumeric = numericIdentifierPattern.test(identifier1);
+    const identifier2IsNumeric = numericIdentifierPattern.test(identifier2);
+
+    if (identifier1IsNumeric && identifier2IsNumeric) {
+      return Number(identifier1) - Number(identifier2);
+    }
+    if (identifier1IsNumeric) {
+      return -1;
+    }
+    if (identifier2IsNumeric) {
+      return 1;
+    }
+
+    return identifier1.localeCompare(identifier2);
   }
 
   private sortArray<T>(array: T[], field: 'name' | 'id', order: 'asc' | 'desc'): T[] {

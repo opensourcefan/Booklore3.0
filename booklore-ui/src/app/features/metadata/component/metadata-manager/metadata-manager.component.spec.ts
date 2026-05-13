@@ -31,6 +31,19 @@ describe('MetadataManagerComponent route return button', () => {
   const navigate = vi.fn();
   const back = vi.fn();
 
+  function createComponent() {
+    const fixture = TestBed.createComponent(MetadataManagerComponent);
+    const component = fixture.componentInstance;
+
+    vi.spyOn(component, 'loadMetadata').mockImplementation(() => {
+      component.loading = false;
+    });
+    component.tabConfigs = [];
+
+    fixture.detectChanges();
+    return fixture;
+  }
+
   beforeEach(async () => {
     vi.stubGlobal('ResizeObserver', ResizeObserverMock);
     navigate.mockReset();
@@ -148,9 +161,7 @@ describe('MetadataManagerComponent route return button', () => {
   });
 
   it('renders the shared text-style back arrow button', () => {
-    const fixture = TestBed.createComponent(MetadataManagerComponent);
-
-    fixture.detectChanges();
+    const fixture = createComponent();
 
     const button = (fixture.nativeElement as HTMLElement).querySelector('.route-return-control button');
 
@@ -160,9 +171,7 @@ describe('MetadataManagerComponent route return button', () => {
   });
 
   it('navigates back when the route return button is clicked', () => {
-    const fixture = TestBed.createComponent(MetadataManagerComponent);
-
-    fixture.detectChanges();
+    const fixture = createComponent();
 
     const button = (fixture.nativeElement as HTMLElement).querySelector('.route-return-control button') as HTMLButtonElement;
     button.click();
