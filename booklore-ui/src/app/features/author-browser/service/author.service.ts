@@ -1,11 +1,11 @@
 import {inject, Injectable} from '@angular/core';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
-import {SseClient} from 'ngx-sse-client';
+import {tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {AuthorSummary, AuthorDetails, AuthorSearchResult, AuthorMatchRequest, AuthorUpdateRequest, AuthorPhotoResult} from '../model/author.model';
 import {AuthService} from '../../../shared/service/auth.service';
+import {SseStreamService} from '../../../shared/service/sse-stream.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +14,7 @@ export class AuthorService {
 
   private http = inject(HttpClient);
   private authService = inject(AuthService);
-  private sseClient = inject(SseClient);
+  private sseStreamService = inject(SseStreamService);
   private readonly baseUrl = `${API_CONFIG.BASE_URL}/api/v1/authors`;
   private readonly mediaBaseUrl = `${API_CONFIG.BASE_URL}/api/v1/media`;
 
@@ -57,22 +57,16 @@ export class AuthorService {
 
   autoMatchAuthors(authorIds: number[]): Observable<AuthorSummary> {
     const token = this.authService.getInternalAccessToken();
-    const headers = new HttpHeaders()
-      .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${token}`);
 
-    return this.sseClient.stream(
+    return this.sseStreamService.streamJson<AuthorSummary>(
       `${this.baseUrl}/auto-match`,
-      {keepAlive: false, reconnectionDelay: 1000, responseType: 'event'},
-      {headers, body: authorIds, withCredentials: true},
-      'POST'
-    ).pipe(
-      map(event => {
-        if (event.type === 'error') {
-          throw new Error((event as ErrorEvent).message);
-        }
-        return JSON.parse((event as MessageEvent).data) as AuthorSummary;
-      })
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: authorIds
+      }
     );
   }
 

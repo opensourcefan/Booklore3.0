@@ -4,9 +4,8 @@ import {API_CONFIG} from '../../../core/config/api-config';
 import {FetchMetadataRequest} from '../../metadata/model/request/fetch-metadata-request.model';
 import {BookMetadata} from '../model/book.model';
 import {AuthService} from '../../../shared/service/auth.service';
-import {SseClient} from 'ngx-sse-client';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {filter, map} from 'rxjs/operators';
+import {HttpClient} from '@angular/common/http';
+import {SseStreamService} from '../../../shared/service/sse-stream.service';
 
 @Injectable({providedIn: 'root'})
 export class BookMetadataService {
@@ -14,7 +13,7 @@ export class BookMetadataService {
   private readonly metadataUrl = `${API_CONFIG.BASE_URL}/api/v1/metadata`;
   private http = inject(HttpClient);
   private authService = inject(AuthService);
-  private sseClient = inject(SseClient);
+  private sseStreamService = inject(SseStreamService);
 
   fetchBookMetadata(bookId: number, request: FetchMetadataRequest): Observable<BookMetadata> {
     const token = this.authService.getInternalAccessToken();
@@ -23,29 +22,15 @@ export class BookMetadataService {
       throw new Error('No authentication token available');
     }
 
-    const headers = new HttpHeaders()
-      .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${token}`);
-
-    return this.sseClient.stream(
+    return this.sseStreamService.streamJson<BookMetadata>(
       `${this.booksUrl}/${bookId}/metadata/prospective`,
       {
-        keepAlive: false,
-        reconnectionDelay: 1000,
-        responseType: 'event'
-      },
-      {
-        headers,
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: request,
-        withCredentials: true
-      },
-      'POST'
-    ).pipe(
-      filter((event) => event.type !== 'error'),
-      map((event) => {
-        const messageEvent = event as MessageEvent;
-        return JSON.parse(messageEvent.data) as BookMetadata;
-      })
+      }
     );
   }
 
