@@ -1,3 +1,4 @@
+import {BehaviorSubject} from 'rxjs';
 import {describe, expect, it, vi} from 'vitest';
 import {BookBrowserComponent, EntityType} from './book-browser.component';
 import {SortDirection} from '../../model/sort.model';
@@ -90,5 +91,69 @@ describe('BookBrowserComponent route reuse lifecycle', () => {
     } as never);
 
     expect(setPageTitle).toHaveBeenCalledWith('Library B');
+  });
+
+  it('reapplies the library data source immediately when sidebar filters change', () => {
+    const sortCriteria = [{field: 'title', label: 'Title', direction: SortDirection.ASCENDING}];
+    const applySortCriteria = vi.fn();
+    const getEffectiveSortCriteria = vi.fn(() => sortCriteria);
+    const updateFilters = vi.fn();
+    const selectedFilterNext = vi.fn();
+
+    const componentLike = {
+      settingFiltersFromUrl: false,
+      selectedFilter: {next: selectedFilterNext},
+      rawFilterParamFromUrl: 'author:old',
+      parsedFilters: {},
+      currentFilterLabel: null,
+      computedFilterLabel: 'Author: Frank Herbert',
+      t: {translate: vi.fn(() => 'All Books')},
+      queryParamsService: {updateFilters},
+      activatedRoute: {},
+      entityType: EntityType.LIBRARY,
+      getEffectiveSortCriteria,
+      bookSorter: {selectedSortCriteria: sortCriteria},
+      applySortCriteria,
+    };
+
+    BookBrowserComponent.prototype.onFilterSelected.call(componentLike as never, {author: ['Frank Herbert']});
+
+    expect(selectedFilterNext).toHaveBeenCalledWith({author: ['Frank Herbert']});
+    expect(componentLike.parsedFilters).toEqual({author: ['Frank Herbert']});
+    expect(updateFilters).toHaveBeenCalledWith(componentLike.activatedRoute, {author: ['Frank Herbert']});
+    expect(getEffectiveSortCriteria).toHaveBeenCalledWith(sortCriteria);
+    expect(applySortCriteria).toHaveBeenCalledWith(sortCriteria);
+  });
+
+  it('reapplies the shelf data source immediately when filter mode changes', () => {
+    const sortCriteria = [{field: 'title', label: 'Title', direction: SortDirection.ASCENDING}];
+    const applySortCriteria = vi.fn();
+    const getEffectiveSortCriteria = vi.fn(() => sortCriteria);
+    const clearSidebarFiltersState = vi.fn();
+    const updateFilterMode = vi.fn();
+    const persistFilterModePreference = vi.fn();
+    const selectedFilterMode = new BehaviorSubject<'and' | 'or' | 'single'>('and');
+
+    const componentLike = {
+      settingFiltersFromUrl: false,
+      selectedFilterMode,
+      clearSidebarFiltersState,
+      queryParamsService: {updateFilterMode},
+      activatedRoute: {},
+      persistFilterModePreference,
+      entityType: EntityType.SHELF,
+      getEffectiveSortCriteria,
+      bookSorter: {selectedSortCriteria: sortCriteria},
+      applySortCriteria,
+    };
+
+    BookBrowserComponent.prototype.onFilterModeChanged.call(componentLike as never, 'or');
+
+    expect(clearSidebarFiltersState).toHaveBeenCalledWith(true);
+    expect(selectedFilterMode.getValue()).toBe('or');
+    expect(updateFilterMode).toHaveBeenCalledWith(componentLike.activatedRoute, 'or', {}, true);
+    expect(persistFilterModePreference).toHaveBeenCalledWith('or');
+    expect(getEffectiveSortCriteria).toHaveBeenCalledWith(sortCriteria);
+    expect(applySortCriteria).toHaveBeenCalledWith(sortCriteria);
   });
 });

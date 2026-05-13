@@ -939,7 +939,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.queryParamsService.updateFilters(this.activatedRoute, filters);
 
-    if (this.entityType === EntityType.ALL_BOOKS) {
+    if (this.entityType) {
       this.applySortCriteria(this.getEffectiveSortCriteria(this.bookSorter.selectedSortCriteria));
     }
   }
@@ -953,7 +953,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.queryParamsService.updateFilterMode(this.activatedRoute, safe, {}, true);
     this.persistFilterModePreference(safe);
 
-    if (this.entityType === EntityType.ALL_BOOKS) {
+    if (this.entityType) {
       this.applySortCriteria(this.getEffectiveSortCriteria(this.bookSorter.selectedSortCriteria));
     }
   }
