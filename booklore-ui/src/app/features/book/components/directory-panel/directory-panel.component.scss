@@ -11,6 +11,7 @@
   --dir-tree-row-padding-inline: 0.65rem;
   --dir-tree-indent: 1rem;
   --dir-tree-hover-background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
+  --dir-tree-branch-background: color-mix(in srgb, var(--p-primary-color) 5%, transparent);
   --dir-tree-selected-background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
 }
 
@@ -134,6 +135,10 @@
   user-select: none;
   transition: background 0.12s, color 0.12s;
 
+  &--branch {
+    background: var(--dir-tree-branch-background);
+  }
+
   &:hover {
     background: var(--dir-tree-hover-background);
     color: var(--p-text-color);
@@ -158,16 +163,6 @@
 .dir-tree-root__libname {
   color: var(--p-text-muted-color, #6b7280);
   font-weight: 400;
-}
-
-.dir-tree-root__status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-  color: var(--p-text-muted-color, #6b7280);
-  font-size: 0.72rem;
-  opacity: 0.7;
 }
 
 // Shared tree children list

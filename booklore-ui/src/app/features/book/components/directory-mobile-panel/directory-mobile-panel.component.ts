@@ -39,6 +39,7 @@ import {BookState} from '../../model/state/book-state.model';
 
               <button type="button"
                       class="dir-tree-root__header"
+                      [class.dir-tree-root__header--branch]="root.children && root.children.length > 0"
                       [class.dir-tree-root__header--selected]="isRootSelected(root)"
                       (click)="onRootRowClick(root, $event)">
                 <span class="dir-tree-root__label">
@@ -46,11 +47,6 @@ import {BookState} from '../../model/state/book-state.model';
                     <span class="dir-tree-root__libname">{{ root.libraryName }}: </span>
                   }{{ getShortPath(root.rootPath) }}
                 </span>
-                @if (!root.hasRootBooks) {
-                  <span class="dir-tree-root__status" aria-hidden="true">
-                    <i class="pi pi-ban"></i>
-                  </span>
-                }
               </button>
             </div>
 
@@ -82,6 +78,7 @@ import {BookState} from '../../model/state/book-state.model';
       --dir-tree-row-padding-inline: 0.65rem;
       --dir-tree-indent: 1rem;
       --dir-tree-hover-background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
+      --dir-tree-branch-background: color-mix(in srgb, var(--p-primary-color) 5%, transparent);
       --dir-tree-selected-background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
     }
 
@@ -148,6 +145,10 @@ import {BookState} from '../../model/state/book-state.model';
       font-weight: 600;
       text-align: left;
       cursor: pointer;
+
+      &--branch {
+        background: var(--dir-tree-branch-background);
+      }
     }
 
     .dir-tree-root__header:hover {
@@ -173,16 +174,6 @@ import {BookState} from '../../model/state/book-state.model';
     .dir-tree-root__libname {
       color: var(--p-text-muted-color, #6b7280);
       font-weight: 400;
-    }
-
-    .dir-tree-root__status {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-left: auto;
-      color: var(--p-text-muted-color, #6b7280);
-      font-size: 0.72rem;
-      opacity: 0.7;
     }
 
     .dir-tree-children {

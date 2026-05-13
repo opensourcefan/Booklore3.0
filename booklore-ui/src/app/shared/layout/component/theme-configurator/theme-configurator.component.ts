@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {ChangeDetectionStrategy, Component, computed, inject, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, effect, inject, signal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
 import {RadioButtonModule} from 'primeng/radiobutton';
@@ -39,6 +39,7 @@ export class ThemeConfiguratorComponent {
   readonly configService = inject(AppConfigService);
 
   readonly surfaces = this.configService.surfaces;
+  private readonly presetPalettes = (Aura.primitive ?? {}) as Record<string, ColorPalette>;
 
   readonly selectedPrimaryColor = computed(() => this.configService.appState().primary);
   readonly selectedSurfaceColor = computed(() => this.configService.appState().surface);
@@ -46,11 +47,7 @@ export class ThemeConfiguratorComponent {
   readonly hasCustomPrimary = computed(() => !!this.configService.appState().customPrimaryColor);
   readonly hasCustomSurface = computed(() => !!this.configService.appState().customSurfaceColor);
 
-  readonly customPrimaryHex = computed(() => this.configService.appState().customPrimaryColor ?? '');
-  readonly customSurfaceHex = computed(() => this.configService.appState().customSurfaceColor ?? '');
-
   readonly primaryColors = computed<Palette[]>(() => {
-    const presetPalette = (Aura.primitive ?? {}) as Record<string, ColorPalette>;
     const colors = [
       'emerald', 'green', 'lime', 'orange', 'amber', 'yellow',
       'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet',
@@ -63,7 +60,7 @@ export class ThemeConfiguratorComponent {
     return [{name: 'noir', palette: {}}].concat(
       colors.map(name => ({
         name,
-        palette: presetPalette[name] ?? {}
+        palette: this.presetPalettes[name] ?? {}
       }))
     );
   });
@@ -72,6 +69,9 @@ export class ThemeConfiguratorComponent {
   readonly customSurfaceInput = signal('');
   private lastAppliedPrimaryHex = '';
   private lastAppliedSurfaceHex = '';
+
+  readonly effectivePrimaryHex = computed(() => this.resolvePrimaryHex());
+  readonly effectiveSurfaceHex = computed(() => this.resolveSurfaceHex());
 
   readonly primaryParseError = computed(() => {
     const input = this.customPrimaryInput();
@@ -115,12 +115,31 @@ export class ThemeConfiguratorComponent {
     }
   });
 
+  readonly primaryPickerHex = computed(() => this.primaryParsedColor() ?? this.effectivePrimaryHex());
+  readonly surfacePickerHex = computed(() => this.surfaceParsedColor() ?? this.effectiveSurfaceHex());
+
+  constructor() {
+    effect(() => {
+      const primaryHex = this.effectivePrimaryHex();
+      const surfaceHex = this.effectiveSurfaceHex();
+
+      if (primaryHex && primaryHex !== this.lastAppliedPrimaryHex) {
+        this.syncDraftInput('primary', primaryHex);
+      }
+
+      if (surfaceHex && surfaceHex !== this.lastAppliedSurfaceHex) {
+        this.syncDraftInput('surface', surfaceHex);
+      }
+    });
+  }
+
   updateColors(event: Event, type: 'primary' | 'surface', color: { name: string; palette?: ColorPalette }) {
     this.configService.clearCustomColor(type);
     this.configService.appState.update((state) => ({
       ...state,
       [type]: color.name
     }));
+    this.syncDraftInput(type, this.resolvePresetHex(type, color));
     event.stopPropagation();
   }
 
@@ -160,6 +179,7 @@ export class ThemeConfiguratorComponent {
     const input = area === 'primary' ? this.customPrimaryInput() : this.customSurfaceInput();
     try {
       const hex = parseColorToHex(input);
+      this.syncDraftInput(area, hex);
       this.configService.setCustomColor(area, hex);
     } catch {
       // validation prevents reaching here
@@ -168,13 +188,6 @@ export class ThemeConfiguratorComponent {
 
   resetCustomColor(area: 'primary' | 'surface'): void {
     this.configService.clearCustomColor(area);
-    if (area === 'primary') {
-      this.customPrimaryInput.set('');
-      this.lastAppliedPrimaryHex = '';
-    } else {
-      this.customSurfaceInput.set('');
-      this.lastAppliedSurfaceHex = '';
-    }
   }
 
   handleCustomPrimaryKeydown(event: KeyboardEvent): void {
@@ -187,5 +200,72 @@ export class ThemeConfiguratorComponent {
     if (event.key === 'Enter') {
       this.applyCustomColor('surface');
     }
+  }
+
+  private resolvePrimaryHex(): string {
+    const state = this.configService.appState();
+
+    if (state.customPrimaryColor) {
+      return state.customPrimaryColor;
+    }
+
+    const primaryName = state.primary ?? 'green';
+    if (primaryName === 'noir') {
+      return this.resolveSurfacePaletteValue('0') || '#ffffff';
+    }
+
+    return this.presetPalettes[primaryName]?.['500'] ?? '';
+  }
+
+  private resolveSurfaceHex(): string {
+    const state = this.configService.appState();
+
+    if (state.customSurfaceColor) {
+      return state.customSurfaceColor;
+    }
+
+    return this.resolveSurfacePaletteValue('500');
+  }
+
+  private resolveSurfacePaletteValue(shade: string): string {
+    const state = this.configService.appState();
+
+    if (state.customSurfaceGenerated) {
+      const customPalette = {
+        0: state.customSurfaceGenerated[50],
+        ...state.customSurfaceGenerated,
+      } as Record<string | number, string>;
+      return customPalette[shade] ?? customPalette[Number(shade)] ?? state.customSurfaceColor ?? '';
+    }
+
+    const surfaceName = state.surface ?? 'ash';
+    return this.surfaces.find(surface => surface.name === surfaceName)?.palette[shade] ?? '';
+  }
+
+  private resolvePresetHex(area: 'primary' | 'surface', color: { name: string; palette?: ColorPalette }): string {
+    if (area === 'surface') {
+      return color.palette?.['500'] ?? '';
+    }
+
+    if (color.name === 'noir') {
+      return this.resolveSurfacePaletteValue('0') || '#ffffff';
+    }
+
+    return color.palette?.['500'] ?? '';
+  }
+
+  private syncDraftInput(area: 'primary' | 'surface', hex: string): void {
+    if (!hex) {
+      return;
+    }
+
+    if (area === 'primary') {
+      this.customPrimaryInput.set(hex);
+      this.lastAppliedPrimaryHex = hex;
+      return;
+    }
+
+    this.customSurfaceInput.set(hex);
+    this.lastAppliedSurfaceHex = hex;
   }
 }

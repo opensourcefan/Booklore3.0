@@ -20,6 +20,7 @@ import {DirectoryNode} from '../../service/directory-tree.service';
         }
         <button type="button"
                 class="dir-tree-node__body"
+          [class.dir-tree-node__body--branch]="hasChildren"
                 [class.dir-tree-node__body--selected]="isSelected"
                 (click)="onSelect()">
           <span class="dir-tree-node__label">{{ node.name }}</span>
@@ -51,6 +52,7 @@ import {DirectoryNode} from '../../service/directory-tree.service';
       --dir-tree-row-padding-inline: 0.65rem;
       --dir-tree-indent: 1rem;
       --dir-tree-hover-background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
+      --dir-tree-branch-background: color-mix(in srgb, var(--p-primary-color) 5%, transparent);
       --dir-tree-selected-background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
     }
 
@@ -101,6 +103,10 @@ import {DirectoryNode} from '../../service/directory-tree.service';
       text-align: left;
       cursor: pointer;
       transition: background 0.12s, color 0.12s;
+
+      &--branch {
+        background: var(--dir-tree-branch-background);
+      }
     }
 
     .dir-tree-node__body:hover {
@@ -138,6 +144,10 @@ export class DirectoryTreeNodeComponent {
   @Output() nodeSelected = new EventEmitter<{libraryPathId: number; fileSubPath: string}>();
 
   expanded = false;
+
+  get hasChildren(): boolean {
+    return !!this.node.children?.length;
+  }
 
   get isSelected(): boolean {
     return this.selectedLibraryPathId === this.libraryPathId && this.selectedPath === this.node.path;

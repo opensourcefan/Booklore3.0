@@ -40,6 +40,7 @@
 
               <button type="button"
                       class="dir-tree-root__header"
+                      [class.dir-tree-root__header--branch]="root.children && root.children.length > 0"
                       [class.dir-tree-root__header--selected]="isRootSelected(root)"
                       (click)="onRootRowClick(root, $event)">
                 <span class="dir-tree-root__label">
@@ -47,11 +48,6 @@
                     <span class="dir-tree-root__libname">{{ root.libraryName }}: </span>
                   }{{ getShortPath(root.rootPath) }}
                 </span>
-                @if (!root.hasRootBooks) {
-                  <span class="dir-tree-root__status" aria-hidden="true">
-                    <i class="pi pi-ban"></i>
-                  </span>
-                }
               </button>
             </div>
 
