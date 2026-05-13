@@ -2,7 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {AppComponent} from './app.component';
 import {AuthInitializationService} from './core/security/auth-initialization-service';
-import {BehaviorSubject, of} from 'rxjs';
+import {BehaviorSubject, of, Subject} from 'rxjs';
 import {RxStompService} from './shared/websocket/rx-stomp.service';
 import {BookService} from './features/book/service/book.service';
 import {NotificationEventService} from './shared/websocket/notification-event.service';
@@ -15,6 +15,10 @@ import {LibraryHealthService} from './features/book/service/library-health.servi
 import {LibraryLoadingService} from './features/library-creator/library-loading.service';
 import {TranslocoTestingModule} from '@jsverse/transloco';
 import {MessageService} from 'primeng/api';
+import {AuthService} from './shared/service/auth.service';
+import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progress.service';
+import {PagedGridPilotService} from './features/book/service/paged-grid-pilot.service';
+import {TaskStatus, TaskType} from './features/settings/task-management/task.service';
 
 describe('AppComponent offline detection', () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -38,6 +42,9 @@ describe('AppComponent offline detection', () => {
         {provide: LibraryService, useValue: {largeLibraryLoading$: of({isLoading: false, expectedCount: 0})}},
         {provide: LibraryHealthService, useValue: {initialize: vi.fn()}},
         {provide: LibraryLoadingService, useValue: {hide: vi.fn()}},
+        {provide: AuthService, useValue: {forceLogout: vi.fn()}},
+        {provide: AiPanelScanProgressService, useValue: {handleIncomingProgress: vi.fn()}},
+        {provide: PagedGridPilotService, useValue: {invalidateAllBooksCache: vi.fn()}},
         MessageService,
       ]
     });
@@ -109,5 +116,104 @@ describe('AppComponent offline detection', () => {
     await vi.waitFor(() => {
       expect(component.offline).toBe(true);
     });
+  });
+});
+
+describe('AppComponent task progress refresh handling', () => {
+  let authInitSubject: BehaviorSubject<boolean>;
+  let taskProgressSubject: Subject<{body: string}>;
+  let rxStompServiceMock: {watch: ReturnType<typeof vi.fn>};
+  let bookServiceMock: {refreshBooks: ReturnType<typeof vi.fn>};
+  let taskServiceMock: {handleTaskProgress: ReturnType<typeof vi.fn>};
+  let pagedGridPilotServiceMock: {invalidateAllBooksCache: ReturnType<typeof vi.fn>};
+
+  beforeEach(() => {
+    authInitSubject = new BehaviorSubject<boolean>(false);
+    taskProgressSubject = new Subject<{body: string}>();
+    rxStompServiceMock = {
+      watch: vi.fn((destination: string) => destination === '/user/queue/task-progress' ? taskProgressSubject.asObservable() : of()),
+    };
+    bookServiceMock = {
+      refreshBooks: vi.fn(() => of([])),
+    };
+    taskServiceMock = {
+      handleTaskProgress: vi.fn(),
+    };
+    pagedGridPilotServiceMock = {
+      invalidateAllBooksCache: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      imports: [TranslocoTestingModule.forRoot({langs: {}})],
+      providers: [
+        {provide: AuthInitializationService, useValue: {initialized$: authInitSubject.asObservable()}},
+        {provide: RxStompService, useValue: rxStompServiceMock},
+        {provide: BookService, useValue: bookServiceMock},
+        {provide: NotificationEventService, useValue: {handleNewNotification: vi.fn()}},
+        {provide: AppConfigService, useValue: {}},
+        {provide: MetadataProgressService, useValue: {handleIncomingProgress: vi.fn()}},
+        {provide: BookdropFileService, useValue: {handleIncomingFile: vi.fn()}},
+        {provide: TaskService, useValue: taskServiceMock},
+        {provide: LibraryService, useValue: {largeLibraryLoading$: of({isLoading: false, expectedCount: 0}), setLargeLibraryLoading: vi.fn()}},
+        {provide: LibraryHealthService, useValue: {initialize: vi.fn()}},
+        {provide: LibraryLoadingService, useValue: {hide: vi.fn(), showBookLoadingProgress: vi.fn()}},
+        {provide: AuthService, useValue: {forceLogout: vi.fn()}},
+        {provide: AiPanelScanProgressService, useValue: {handleIncomingProgress: vi.fn()}},
+        {provide: PagedGridPilotService, useValue: pagedGridPilotServiceMock},
+        MessageService,
+      ]
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('refreshes books and invalidates paged browser caches when a library sync task completes', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    authInitSubject.next(true);
+
+    taskProgressSubject.next({
+      body: JSON.stringify({
+        taskId: 'task-1',
+        taskType: TaskType.SYNC_LIBRARY_FILES,
+        message: 'Completed',
+        progress: 100,
+        taskStatus: TaskStatus.COMPLETED,
+      }),
+    });
+
+    expect(taskServiceMock.handleTaskProgress).toHaveBeenCalledWith(expect.objectContaining({
+      taskType: TaskType.SYNC_LIBRARY_FILES,
+      taskStatus: TaskStatus.COMPLETED,
+    }));
+    expect(bookServiceMock.refreshBooks).toHaveBeenCalledTimes(1);
+    expect(pagedGridPilotServiceMock.invalidateAllBooksCache).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not refresh paged browser state for unrelated task completions', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    authInitSubject.next(true);
+
+    taskProgressSubject.next({
+      body: JSON.stringify({
+        taskId: 'task-2',
+        taskType: TaskType.REFRESH_LIBRARY_METADATA,
+        message: 'Completed',
+        progress: 100,
+        taskStatus: TaskStatus.COMPLETED,
+      }),
+    });
+
+    expect(taskServiceMock.handleTaskProgress).toHaveBeenCalledWith(expect.objectContaining({
+      taskType: TaskType.REFRESH_LIBRARY_METADATA,
+      taskStatus: TaskStatus.COMPLETED,
+    }));
+    expect(bookServiceMock.refreshBooks).not.toHaveBeenCalled();
+    expect(pagedGridPilotServiceMock.invalidateAllBooksCache).not.toHaveBeenCalled();
   });
 });

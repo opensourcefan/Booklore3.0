@@ -329,6 +329,124 @@ describe('PagedGridPilotService', () => {
     expect(getBooksPaged).toHaveBeenCalledTimes(2);
   });
 
+  it('uses unshelved request keys and refetches the active Not Shelfed query after invalidation', async () => {
+    const service = createService();
+    const pagedStateService = getPagedStateService();
+
+    getBooksPaged
+      .mockReturnValueOnce(of({
+        content: [createBook(51, 'Unshelved One')],
+        page: 0,
+        size: 80,
+        totalElements: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }))
+      .mockReturnValueOnce(of({
+        content: [createBook(61, 'Unshelved Refetch')],
+        page: 0,
+        size: 80,
+        totalElements: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }));
+
+    const context = {
+      entity: 'NOT_SHELFED' as const,
+      entityId: null,
+      viewMode: 'grid' as const,
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    };
+
+    const bookState$ = service.connect(context, () => of(legacyState([createBook(90, 'Warm 90')])));
+    const initialState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+
+    expect(initialState.books?.map(book => book.id)).toEqual([51]);
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      unshelved: true,
+      page: 0,
+      size: 80,
+      sorts: ['addedOn,desc'],
+    }));
+
+    const cachedEntries = Object.values(pagedStateService.getCurrentState().cache);
+    expect(cachedEntries).toHaveLength(1);
+    expect(cachedEntries[0]?.key.entity).toBe('NOT_SHELFED');
+    expect(cachedEntries[0]?.key.entityId).toBeNull();
+
+    service.invalidateAllBooksCache();
+
+    const refreshedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && state.books?.[0]?.id === 61)));
+    expect(refreshedState.books?.map(book => book.id)).toEqual([61]);
+    expect(getBooksPaged).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses shelf-specific request keys and refetches the active shelf query after invalidation', async () => {
+    const service = createService();
+    const pagedStateService = getPagedStateService();
+
+    getBooksPaged
+      .mockReturnValueOnce(of({
+        content: [createBook(71, 'Shelf One')],
+        page: 0,
+        size: 80,
+        totalElements: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }))
+      .mockReturnValueOnce(of({
+        content: [createBook(81, 'Shelf Refetch')],
+        page: 0,
+        size: 80,
+        totalElements: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      }));
+
+    const context = {
+      entity: 'SHELF' as const,
+      entityId: 12,
+      viewMode: 'grid' as const,
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    };
+
+    const bookState$ = service.connect(context, () => of(legacyState([createBook(90, 'Warm 90')])));
+    const initialState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+
+    expect(initialState.books?.map(book => book.id)).toEqual([71]);
+    expect(getBooksPaged).toHaveBeenCalledWith(expect.objectContaining({
+      shelfId: 12,
+      page: 0,
+      size: 80,
+      sorts: ['addedOn,desc'],
+    }));
+
+    const cachedEntries = Object.values(pagedStateService.getCurrentState().cache);
+    expect(cachedEntries).toHaveLength(1);
+    expect(cachedEntries[0]?.key.entity).toBe('SHELF');
+    expect(cachedEntries[0]?.key.entityId).toBe(12);
+
+    service.invalidateAllBooksCache();
+
+    const refreshedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && state.books?.[0]?.id === 81)));
+    expect(refreshedState.books?.map(book => book.id)).toEqual([81]);
+    expect(getBooksPaged).toHaveBeenCalledTimes(2);
+  });
+
   it('uses the paged path for title sorting when the server contract supports it', async () => {
     const service = createService();
 

@@ -21,6 +21,7 @@ import {scan, withLatestFrom} from 'rxjs/operators';
 import {AuthService} from './shared/service/auth.service';
 import {AiPanelScanProgressPayload} from './shared/model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progress.service';
+import {PagedGridPilotService} from './features/book/service/paged-grid-pilot.service';
 
 @Component({
   selector: 'app-root',
@@ -49,6 +50,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private libraryLoadingService = inject(LibraryLoadingService);
   private authService = inject(AuthService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
+  private pagedGridPilotService = inject(PagedGridPilotService);
 
   ngOnInit(): void {
     window.addEventListener('online', this.onOnline);
@@ -82,6 +84,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   reload(): void {
     window.location.reload();
+  }
+
+  private refreshBookStateAndPagedViews(): void {
+    this.bookService.refreshBooks().subscribe(() => {
+      this.pagedGridPilotService.invalidateAllBooksCache();
+    });
   }
 
   private setupWebSocketSubscriptions(): void {
@@ -158,7 +166,7 @@ export class AppComponent implements OnInit, OnDestroy {
             progress.taskType === TaskType.BOOKDROP_PERIODIC_SCANNING) &&
           progress.taskStatus === TaskStatus.COMPLETED
         ) {
-          this.bookService.refreshBooks().subscribe();
+          this.refreshBookStateAndPagedViews();
         }
       })
     );
