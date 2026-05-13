@@ -236,6 +236,19 @@ describe('AppMenuComponent reorder mode', () => {
     expect(component.shouldShowUpdateLink('v3.17.15', 'v3.17.15-milestone.8')).toBe(false);
   });
 
+  it('treats plain semantic build versions as builds instead of tagged releases', () => {
+    expect(component.getDisplayVersion('3.17.17', 'v3.17.17-milestone.8')).toBe('v3.17.17-milestone.8');
+    expect(component.getVersionTooltip('3.17.17', 'v3.17.17-milestone.8'))
+      .toBe('Current build: 3.17.17. Latest tag: v3.17.17-milestone.8.');
+  });
+
+  it('builds version links against this fork repository', () => {
+    expect(component.getVersionUrl('3.17.17', 'v3.17.17-milestone.8'))
+      .toBe('https://github.com/opensourcefan/Booklore3.0/releases/tag/v3.17.17-milestone.8');
+    expect(component.getVersionUrl('develop-abc123'))
+      .toBe('https://github.com/opensourcefan/Booklore3.0/commit/develop-abc123');
+  });
+
   it('stops reacting to long-lived streams after destroy', () => {
     localStorageMock.get.mockImplementation((key: string) => {
       if (key === 'sidebarSectionOrder') {

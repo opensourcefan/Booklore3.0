@@ -779,12 +779,12 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   getVersionUrl(current: string | undefined, latest?: string | undefined): string {
     const displayedTag = this.getDisplayedTag(current, latest);
     if (displayedTag) {
-      return `https://github.com/booklore-app/booklore/releases/tag/${displayedTag}`;
+      return `https://github.com/opensourcefan/Booklore3.0/releases/tag/${displayedTag}`;
     }
 
     const version = this.getNormalizedDisplayVersion(current);
     if (!version) return '#';
-    return `https://github.com/booklore-app/booklore/commit/${version}`;
+    return `https://github.com/opensourcefan/Booklore3.0/commit/${version}`;
   }
 
   isSemanticVersion(current: string | undefined, latest?: string | undefined): boolean {
@@ -806,7 +806,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   getVersionTooltip(current: string | undefined, latest?: string | undefined): string {
     const normalizedCurrent = this.getNormalizedDisplayVersion(current);
     const normalizedLatest = this.getNormalizedSemanticVersion(latest);
-    const normalizedCurrentTag = this.getNormalizedSemanticVersion(current);
+    const normalizedCurrentTag = this.getNormalizedCurrentTagVersion(current);
     const comparison = this.compareSemanticVersions(current, latest);
 
     if (normalizedCurrentTag && normalizedLatest) {
@@ -879,7 +879,15 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   }
 
   private getDisplayedTag(current: string | undefined, latest?: string | undefined): string | null {
-    return this.getNormalizedSemanticVersion(current) ?? this.getNormalizedSemanticVersion(latest);
+    return this.getNormalizedCurrentTagVersion(current) ?? this.getNormalizedSemanticVersion(latest);
+  }
+
+  private getNormalizedCurrentTagVersion(version: string | undefined): string | null {
+    if (!version || !version.trim().match(/^[vV]/)) {
+      return null;
+    }
+
+    return this.getNormalizedSemanticVersion(version);
   }
 
   private parseSemanticVersion(version: string | undefined): { major: number; minor: number; patch: number; preRelease: string[]; normalized: string } | null {
