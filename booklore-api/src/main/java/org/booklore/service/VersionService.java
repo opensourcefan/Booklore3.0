@@ -31,7 +31,7 @@ public class VersionService {
     private static final String GITHUB_API_BASE = "https://api.github.com/repos/";
     private static final String GITHUB_TAGS_REF_PREFIX = "refs/tags/";
     private static final int MAX_RELEASES = 15;
-    private static final Pattern VERSION_TAG_PATTERN = Pattern.compile("^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?(?:\\+([0-9A-Za-z.-]+))?$");
+    private static final Pattern VERSION_TAG_PATTERN = Pattern.compile("^[vV]?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?(?:\\+([0-9A-Za-z.-]+))?$");
     private static final RestClient REST_CLIENT = RestClient.builder()
             .defaultHeader("Accept", "application/vnd.github+json")
             .defaultHeader("User-Agent", "BookLore-Version-Checker")
@@ -196,7 +196,7 @@ public class VersionService {
                 .map(this::parseVersionTag)
                 .filter(Objects::nonNull)
                 .max(VersionTag::compareTo)
-                .map(VersionTag::normalizedTag)
+                .map(VersionTag::tagValue)
                 .orElse(null);
     }
 
@@ -205,7 +205,8 @@ public class VersionService {
             return null;
         }
 
-        Matcher matcher = VERSION_TAG_PATTERN.matcher(version.trim());
+        String trimmedVersion = version.trim();
+        Matcher matcher = VERSION_TAG_PATTERN.matcher(trimmedVersion);
         if (!matcher.matches()) {
             return null;
         }
@@ -219,31 +220,16 @@ public class VersionService {
             }
         }
 
-        StringBuilder normalizedTag = new StringBuilder()
-                .append('v')
-                .append(matcher.group(1))
-                .append('.')
-                .append(matcher.group(2))
-                .append('.')
-                .append(matcher.group(3));
-
-        if (preRelease != null && !preRelease.isBlank()) {
-            normalizedTag.append('-').append(preRelease);
-        }
-        if (buildMetadata != null && !buildMetadata.isBlank()) {
-            normalizedTag.append('+').append(buildMetadata);
-        }
-
         return new VersionTag(
                 Integer.parseInt(matcher.group(1)),
                 Integer.parseInt(matcher.group(2)),
                 Integer.parseInt(matcher.group(3)),
                 preReleaseIdentifiers,
-                normalizedTag.toString()
+                trimmedVersion
         );
     }
 
-    private record VersionTag(int major, int minor, int patch, List<VersionIdentifier> preReleaseIdentifiers, String normalizedTag) implements Comparable<VersionTag> {
+    private record VersionTag(int major, int minor, int patch, List<VersionIdentifier> preReleaseIdentifiers, String tagValue) implements Comparable<VersionTag> {
         @Override
         public int compareTo(VersionTag other) {
             int majorComparison = Integer.compare(major, other.major);

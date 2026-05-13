@@ -79,6 +79,8 @@ class VersionServiceTest {
         void ignoresPrefixAndSafelyHandlesInvalid() throws Exception {
             assertThat((Boolean) cmp.invoke(service, "v1.10.0", "v1.9.9"))
                     .isTrue();
+            assertThat((Boolean) cmp.invoke(service, "V3.17.17-milestone.8", "v3.17.16-milestone.8"))
+                .isTrue();
             assertThat((Boolean) cmp.invoke(service, "x.y", "1.0"))
                     .isFalse();
         }
@@ -143,6 +145,15 @@ class VersionServiceTest {
                 "v3.17.15"
             )))
                 .isEqualTo("v3.17.15");
+        }
+
+        @Test
+        void selectsUppercaseMilestoneTagAndPreservesItsGitHubValue() throws Exception {
+            assertThat((String) selectHighestVersionTag.invoke(service, List.of(
+                "v3.17.16-milestone.8",
+                "V3.17.17-milestone.8"
+            )))
+                .isEqualTo("V3.17.17-milestone.8");
         }
         }
 

@@ -805,30 +805,30 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
   getVersionTooltip(current: string | undefined, latest?: string | undefined): string {
     const normalizedCurrent = this.getNormalizedDisplayVersion(current);
-    const normalizedLatest = this.getNormalizedSemanticVersion(latest);
-    const normalizedCurrentTag = this.getNormalizedCurrentTagVersion(current);
+    const latestTagValue = this.getSemanticTagValue(latest);
+    const currentTagValue = this.getCurrentTagValue(current);
     const comparison = this.compareSemanticVersions(current, latest);
 
-    if (normalizedCurrentTag && normalizedLatest) {
+    if (currentTagValue && latestTagValue) {
       return comparison !== null && comparison < 0
-        ? `Current tag: ${normalizedCurrentTag}. Latest tag: ${normalizedLatest}. Update available.`
-        : `Current tag: ${normalizedCurrentTag}. Latest tag: ${normalizedLatest}.`;
+        ? `Current tag: ${currentTagValue}. Latest tag: ${latestTagValue}. Update available.`
+        : `Current tag: ${currentTagValue}. Latest tag: ${latestTagValue}.`;
     }
 
-    if (normalizedCurrentTag) {
-      return `Current tag: ${normalizedCurrentTag}.`;
+    if (currentTagValue) {
+      return `Current tag: ${currentTagValue}.`;
     }
 
-    if (normalizedCurrent && normalizedLatest) {
-      return `Current build: ${normalizedCurrent}. Latest tag: ${normalizedLatest}.`;
+    if (normalizedCurrent && latestTagValue) {
+      return `Current build: ${normalizedCurrent}. Latest tag: ${latestTagValue}.`;
     }
 
     if (normalizedCurrent) {
       return `Current build: ${normalizedCurrent}. Latest tag unavailable.`;
     }
 
-    if (normalizedLatest) {
-      return `Latest tag: ${normalizedLatest}.`;
+    if (latestTagValue) {
+      return `Latest tag: ${latestTagValue}.`;
     }
 
     return 'Version information is temporarily unavailable.';
@@ -847,15 +847,19 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     return this.parseSemanticVersion(version)?.normalized ?? null;
   }
 
+  private getSemanticTagValue(version: string | undefined): string | null {
+    return this.parseSemanticVersion(version)?.raw ?? null;
+  }
+
   private resolveVersionInfoWithCache(versionInfo: AppVersion): AppVersion {
     const normalizedCurrent = this.getNormalizedDisplayVersion(versionInfo.current) ?? 'unknown';
-    const normalizedLatest = this.getNormalizedSemanticVersion(versionInfo.latest);
+    const latestTagValue = this.getSemanticTagValue(versionInfo.latest);
 
-    if (normalizedLatest) {
-      this.localStorageService.set(this.versionLatestCacheKey, normalizedLatest);
+    if (latestTagValue) {
+      this.localStorageService.set(this.versionLatestCacheKey, latestTagValue);
       return {
         current: normalizedCurrent,
-        latest: normalizedLatest,
+        latest: latestTagValue,
       };
     }
 
@@ -875,27 +879,28 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
   private getCachedLatestStableVersion(): string | null {
     const cached = this.localStorageService.get<string>(this.versionLatestCacheKey);
-    return this.getNormalizedSemanticVersion(cached ?? undefined);
+    return this.getSemanticTagValue(cached ?? undefined);
   }
 
   private getDisplayedTag(current: string | undefined, latest?: string | undefined): string | null {
-    return this.getNormalizedCurrentTagVersion(current) ?? this.getNormalizedSemanticVersion(latest);
+    return this.getCurrentTagValue(current) ?? this.getSemanticTagValue(latest);
   }
 
-  private getNormalizedCurrentTagVersion(version: string | undefined): string | null {
+  private getCurrentTagValue(version: string | undefined): string | null {
     if (!version || !version.trim().match(/^[vV]/)) {
       return null;
     }
 
-    return this.getNormalizedSemanticVersion(version);
+    return this.getSemanticTagValue(version);
   }
 
-  private parseSemanticVersion(version: string | undefined): { major: number; minor: number; patch: number; preRelease: string[]; normalized: string } | null {
+  private parseSemanticVersion(version: string | undefined): { major: number; minor: number; patch: number; preRelease: string[]; normalized: string; raw: string } | null {
     if (!version) {
       return null;
     }
 
-    const match = version.trim().match(/^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+([0-9A-Za-z.-]+))?$/);
+    const raw = version.trim();
+    const match = raw.match(/^[vV]?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+([0-9A-Za-z.-]+))?$/);
     if (!match) {
       return null;
     }
@@ -910,6 +915,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       patch: Number(match[3]),
       preRelease: match[4] ? match[4].split('.') : [],
       normalized,
+      raw,
     };
   }
 

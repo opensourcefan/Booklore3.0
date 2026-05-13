@@ -217,6 +217,15 @@ describe('AppMenuComponent reorder mode', () => {
     expect(localStorageMock.set).toHaveBeenCalledWith('sidebarLatestStableVersion', 'v3.17.15-milestone.8');
   });
 
+  it('preserves uppercase milestone tags for future fallbacks', () => {
+    versionServiceMock.getVersion.mockReturnValue(of({current: 'develop-abc123', latest: 'V3.17.17-milestone.8'}));
+
+    component.ngOnInit();
+
+    expect(localStorageMock.set).toHaveBeenCalledWith('sidebarLatestStableVersion', 'V3.17.17-milestone.8');
+    expect(component.versionInfo).toEqual({current: 'develop-abc123', latest: 'V3.17.17-milestone.8'});
+  });
+
   it('shows only the current tag in the sidebar label when running a tagged build', () => {
     expect(component.getDisplayVersion('v3.17.15-milestone.8', 'v3.17.15')).toBe('v3.17.15-milestone.8');
   });
@@ -237,14 +246,14 @@ describe('AppMenuComponent reorder mode', () => {
   });
 
   it('treats plain semantic build versions as builds instead of tagged releases', () => {
-    expect(component.getDisplayVersion('3.17.17', 'v3.17.17-milestone.8')).toBe('v3.17.17-milestone.8');
-    expect(component.getVersionTooltip('3.17.17', 'v3.17.17-milestone.8'))
-      .toBe('Current build: 3.17.17. Latest tag: v3.17.17-milestone.8.');
+    expect(component.getDisplayVersion('3.17.17', 'V3.17.17-milestone.8')).toBe('V3.17.17-milestone.8');
+    expect(component.getVersionTooltip('3.17.17', 'V3.17.17-milestone.8'))
+      .toBe('Current build: 3.17.17. Latest tag: V3.17.17-milestone.8.');
   });
 
   it('builds version links against this fork repository', () => {
-    expect(component.getVersionUrl('3.17.17', 'v3.17.17-milestone.8'))
-      .toBe('https://github.com/opensourcefan/Booklore3.0/releases/tag/v3.17.17-milestone.8');
+    expect(component.getVersionUrl('3.17.17', 'V3.17.17-milestone.8'))
+      .toBe('https://github.com/opensourcefan/Booklore3.0/releases/tag/V3.17.17-milestone.8');
     expect(component.getVersionUrl('develop-abc123'))
       .toBe('https://github.com/opensourcefan/Booklore3.0/commit/develop-abc123');
   });
