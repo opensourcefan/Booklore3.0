@@ -25,6 +25,7 @@ services:
       - ./data:/app/data       # Application data (settings, metadata, cache, etc.). Persist this folder to retain your library state across container restarts.
       - ./books:/books         # Primary book library folder. Mount your collection here so BookLore can access and organize your books.
       - ./bookdrop:/bookdrop   # BookDrop folder. Files placed here are automatically detected and prepared for import.
+      - ./docker/rar:/opt/booklore-rar:ro  # Optional: place a compatible Linux rar binary at ./docker/rar/rar to preserve CBR files during metadata writes.
     healthcheck:
       test: wget -q -O - http://localhost:6060/api/v1/healthcheck
       interval: 60s

@@ -33,6 +33,7 @@ services:
       - ./data:/app/data
       - ./books:/books
       - ./bookdrop:/bookdrop
+      - ./docker/rar:/opt/booklore-rar:ro
     restart: unless-stopped
 
   mariadb:

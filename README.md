@@ -109,6 +109,14 @@ docker compose pull booklore-ai-panel
 docker compose up -d booklore-ai-panel
 ```
 
+### Optional RAR Binary For CBR Metadata Writes
+
+If you want BookLore to preserve `.cbr` files during metadata writes instead of falling back to a slower `.cbz` conversion, place a compatible Linux `rar` binary at `./docker/rar/rar` before starting the container.
+
+- The repository `docker-compose.yml` now mounts `./docker/rar` into the container at `/opt/booklore-rar`.
+- The container entrypoint automatically exports `BOOKLORE_RAR_BIN=/opt/booklore-rar/rar` when that file exists and is executable.
+- If no `rar` binary is provided, BookLore keeps its current fallback behavior and may convert `.cbr` to `.cbz` when writing embedded metadata.
+
 ### Install Without AI
 
 Omit `COMPOSE_PROFILES=ai` from your `.env`. No AI image will be pulled and no model files will be downloaded. AI features can be left disabled in **Settings > AI Panel Detection**.
@@ -186,6 +194,7 @@ services:
       - ./books:/books
       - ./data:/app-data
       - ./bookdrop:/bookdrop
+      - ./docker/rar:/opt/booklore-rar:ro  # Optional: mount a compatible Linux rar binary at ./docker/rar/rar for in-place CBR metadata writes
     networks:
       - booklore-net
 

@@ -58,7 +58,7 @@ ENV JAVA_TOOL_OPTIONS="--enable-native-access=ALL-UNNAMED -XX:+UseG1GC -XX:+UseC
 
 ARG TARGETARCH
 RUN apk update && apk add --no-cache su-exec libstdc++ libgcc && \
-    mkdir -p /bookdrop
+    mkdir -p /bookdrop /opt/booklore-rar
 
 COPY docker/unrar/unrar-${TARGETARCH} /usr/local/bin/unrar
 RUN chmod 755 /usr/local/bin/unrar

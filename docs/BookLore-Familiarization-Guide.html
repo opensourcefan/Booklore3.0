@@ -683,6 +683,8 @@
   <strong>Be Careful:</strong> CBR files (RAR format) may extract more slowly than CBZ files (ZIP format). Very high-resolution scans can use significant memory.
 </div>
 
+<p><strong>Metadata note:</strong> If your deployment enables <strong>Save to Original File</strong> for CBR comics, mounting a compatible Linux <code>rar</code> binary into the BookLore container lets metadata writes stay in the original <code>.cbr</code>. Without that binary, BookLore may fall back to converting the file to <code>.cbz</code>, which takes longer.</p>
+
 <!-- 10d: Audiobook -->
 <h3 id="sec10d">d) Audiobook Player</h3>
 <p>Plays audiobooks &mdash; collections of audio files organized in a folder.</p>
@@ -1186,6 +1188,8 @@
   <tr><td>AI Panel Detection</td><td>Enable/disable and manage comic panel AI</td></tr>
   <tr><td>Global Preferences</td><td>Theme palette, custom primary/surface colors, language, timezone, settings backup</td></tr>
 </table>
+
+<p><strong>Good to Know:</strong> For CBR comics, embedded metadata writes are fastest when the BookLore container has access to a compatible Linux <code>rar</code> binary. Without it, BookLore may convert the archive to <code>.cbz</code> during a save-to-original-file operation.</p>
 
 <h4>Customizable Toolbar</h4>
 <ul>
