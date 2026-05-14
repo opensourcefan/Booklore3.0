@@ -8,7 +8,7 @@ Security support is tracked against the actively maintained branch line rather t
 | --- | --- |
 | develop | Yes |
 
-The current source on `develop` declares version `3.17.19` in both the API and UI build metadata.
+The current source on `develop` declares version `3.17.21` in both the API and UI build metadata.
 
 ## Reporting a Vulnerability
 

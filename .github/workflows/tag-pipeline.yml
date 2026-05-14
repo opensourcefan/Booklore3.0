@@ -120,7 +120,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2
         if: always()
         with:
-          files: booklore-ui/vitest-results.xml
+          files: booklore-ui/test-results/vitest-results.xml
           check_name: Frontend Test Results
 
       - name: Upload Frontend Test Reports
@@ -129,6 +129,7 @@ jobs:
         with:
           name: frontend-test-reports
           path: |
+            booklore-ui/test-results/vitest-results.xml
             booklore-ui/coverage/
           retention-days: 30
 
@@ -174,19 +175,23 @@ jobs:
             exit 1
           fi
 
-          echo "image_tag=$image_tag" >> $GITHUB_ENV
+          echo "image_tag=$image_tag" >> "$GITHUB_OUTPUT"
           echo "Image tag: $image_tag"
 
           # Always push both versioned tag and latest
-          echo "main_tags<<EOF" >> $GITHUB_ENV
-          echo "ghcr.io/opensourcefan/booklore3:${image_tag}" >> $GITHUB_ENV
-          echo "ghcr.io/opensourcefan/booklore3:latest" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          {
+            echo "main_tags<<EOF"
+            echo "ghcr.io/opensourcefan/booklore3:${image_tag}"
+            echo "ghcr.io/opensourcefan/booklore3:latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-          echo "ai_tags<<EOF" >> $GITHUB_ENV
-          echo "ghcr.io/opensourcefan/booklore-panel-ai:${image_tag}" >> $GITHUB_ENV
-          echo "ghcr.io/opensourcefan/booklore-panel-ai:latest" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          {
+            echo "ai_tags<<EOF"
+            echo "ghcr.io/opensourcefan/booklore-panel-ai:${image_tag}"
+            echo "ghcr.io/opensourcefan/booklore-panel-ai:latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       # ----------------------------------------
       # Native Angular build
@@ -229,7 +234,7 @@ jobs:
 
       - name: Inject Version into application.yaml
         env:
-          APP_VERSION: ${{ env.image_tag }}
+          APP_VERSION: ${{ steps.resolve_tag.outputs.image_tag }}
         run: |
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.52.2/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
@@ -278,9 +283,9 @@ jobs:
           file: Dockerfile.ci
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.main_tags }}
+          tags: ${{ steps.resolve_tag.outputs.main_tags }}
           build-args: |
-            APP_VERSION=${{ env.image_tag }}
+            APP_VERSION=${{ steps.resolve_tag.outputs.image_tag }}
             APP_REVISION=${{ github.sha }}
           cache-from: |
             type=gha
@@ -296,7 +301,7 @@ jobs:
           file: ./docker/ai-panel/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.ai_tags }}
+          tags: ${{ steps.resolve_tag.outputs.ai_tags }}
           cache-from: |
             type=gha,scope=booklore-panel-ai
             type=registry,ref=ghcr.io/opensourcefan/booklore-panel-ai:buildcache

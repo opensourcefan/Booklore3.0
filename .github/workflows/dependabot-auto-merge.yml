@@ -1,39 +1,167 @@
-name: Dependabot auto-merge
-on: pull_request_target
+name: Dependabot automation
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+  workflow_run:
+    workflows:
+      - Develop & PR – Build, Test, and Container Publish
+    types:
+      - completed
 
 permissions:
-  pull-requests: write
   contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
-  dependabot:
+  triage:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: ${{ github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]' }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_URL: ${{ github.event.pull_request.html_url }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v3
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+
       - name: Detect workflow file changes
         id: changed-files
         run: |
           if gh pr view "$PR_URL" --json files --jq '.files[].path' | grep -q '^\.github/workflows/'; then
             echo "has_workflow_changes=true" >> "$GITHUB_OUTPUT"
-            echo "Workflow file changes detected. Skipping auto-merge because the default Actions token cannot merge PRs that modify workflow files." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "has_workflow_changes=false" >> "$GITHUB_OUTPUT"
           fi
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Enable auto-merge for Dependabot PRs
-        if: steps.changed-files.outputs.has_workflow_changes != 'true'
-        run: gh pr merge --auto --squash "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - name: Skip auto-merge for workflow changes
-        if: steps.changed-files.outputs.has_workflow_changes == 'true'
+
+      - name: Determine merge policy
+        id: policy
         run: |
-          echo "Workflow file changes require manual merge or a dedicated token with workflow permissions."
+          update_type="${{ steps.dependabot-metadata.outputs.update-type }}"
+          workflow_changes="${{ steps.changed-files.outputs.has_workflow_changes }}"
+          auto_merge=false
+          review_reason=""
+
+          case "$update_type" in
+            version-update:semver-patch|version-update:semver-minor)
+              auto_merge=true
+              ;;
+            *)
+              review_reason="Requires manual review because Dependabot marked it as ${update_type:-unknown}."
+              ;;
+          esac
+
+          if [[ "$auto_merge" == "true" && "$workflow_changes" == "true" ]]; then
+            auto_merge=false
+            review_reason="Requires manual review because workflow file changes are not auto-merged by the default Actions token."
+          fi
+
+          echo "auto_merge=$auto_merge" >> "$GITHUB_OUTPUT"
+          echo "review_reason=$review_reason" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Dependabot policy"
+            echo "- Update type: ${update_type:-unknown}"
+            echo "- Workflow file changes: $workflow_changes"
+            echo "- Auto-merge eligible: $auto_merge"
+            if [[ -n "$review_reason" ]]; then
+              echo "- Reason: $review_reason"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Label PR for auto-merge
+        if: steps.policy.outputs.auto_merge == 'true'
+        run: |
+          existing_labels=$(gh pr view "$PR_URL" --json labels --jq '.labels[].name')
+          if grep -Fxq 'dependabot:manual-review' <<< "$existing_labels"; then
+            gh pr edit "$PR_URL" --remove-label 'dependabot:manual-review'
+          fi
+          if ! grep -Fxq 'dependabot:automerge' <<< "$existing_labels"; then
+            gh pr edit "$PR_URL" --add-label 'dependabot:automerge'
+          fi
+
+      - name: Label PR for manual review
+        if: steps.policy.outputs.auto_merge != 'true'
+        run: |
+          existing_labels=$(gh pr view "$PR_URL" --json labels --jq '.labels[].name')
+          if grep -Fxq 'dependabot:automerge' <<< "$existing_labels"; then
+            gh pr edit "$PR_URL" --remove-label 'dependabot:automerge'
+          fi
+          if ! grep -Fxq 'dependabot:manual-review' <<< "$existing_labels"; then
+            gh pr edit "$PR_URL" --add-label 'dependabot:manual-review'
+          fi
+
+      - name: Approve eligible Dependabot PRs
+        if: steps.policy.outputs.auto_merge == 'true'
+        run: gh pr review --approve "$PR_URL"
+
+  merge-after-ci:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WORKFLOW_RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Resolve pull request number
+        id: pr
+        run: |
+          pr_number=$(jq -r '.[0].number // empty' <<< '${{ toJson(github.event.workflow_run.pull_requests) }}')
+          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Inspect pull request state
+        id: pr-state
+        if: steps.pr.outputs.number != ''
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          pr_json=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}")
+          issue_json=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}")
+
+          author=$(jq -r '.user.login' <<< "$pr_json")
+          state=$(jq -r '.state' <<< "$pr_json")
+          draft=$(jq -r '.draft' <<< "$pr_json")
+          mergeable=$(jq -r '.mergeable' <<< "$pr_json")
+          head_sha=$(jq -r '.head.sha' <<< "$pr_json")
+          pr_url=$(jq -r '.html_url' <<< "$pr_json")
+          labels=$(jq -r '.labels[].name' <<< "$issue_json")
+
+          eligible=false
+          reason=""
+
+          if [[ "$author" != "dependabot[bot]" ]]; then
+            reason="Skipped because the PR author is $author."
+          elif [[ "$state" != "open" ]]; then
+            reason="Skipped because the PR is $state."
+          elif [[ "$draft" == "true" ]]; then
+            reason="Skipped because the PR is a draft."
+          elif [[ "$head_sha" != "$WORKFLOW_RUN_SHA" ]]; then
+            reason="Skipped because a newer commit exists on the PR branch."
+          elif ! grep -Fxq 'dependabot:automerge' <<< "$labels"; then
+            reason="Skipped because the PR is not labeled dependabot:automerge."
+          elif [[ "$mergeable" != "true" ]]; then
+            reason="Skipped because GitHub does not currently report the PR as mergeable."
+          else
+            eligible=true
+          fi
+
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
+          echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Dependabot merge"
+            echo "- PR: $pr_url"
+            echo "- Eligible: $eligible"
+            if [[ -n "$reason" ]]; then
+              echo "- Reason: $reason"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Merge approved Dependabot PR
+        if: steps.pr-state.outputs.eligible == 'true'
+        run: gh pr merge --squash "${{ steps.pr-state.outputs.pr_url }}"

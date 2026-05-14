@@ -307,4 +307,4 @@ Maintenance rule: the HTML guide is the source of truth. When the guide changes,
 <img src="assets/booklore3.0-screenshot3.png" width="800">
 
 ## Automated Maintenance
-Dependabot is configured to automatically keep dependencies updated. Safe, non-breaking pull requests will be auto-merged by GitHub Actions.
+Dependabot is configured to watch the Gradle backend, the root and UI npm manifests, the AI panel's pip requirements, the Dockerfiles, the Docker Compose files, and GitHub Actions workflows. Patch and minor Dependabot pull requests are auto-approved and merged only after the develop CI workflow succeeds, so routine maintenance does not depend on manual PR handling or branch protection. Repository-side GitHub vulnerability alerts and automated security fixes should remain enabled. Workflow-file dependency updates are still surfaced automatically, but GitHub's default Actions token does not auto-merge them, so those updates remain the one part of the maintenance flow that still needs a workflow-capable automation token or GitHub App if you want them merged unattended as well.
