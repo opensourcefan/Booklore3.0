@@ -4,6 +4,6 @@ fastapi==0.116.1
 uvicorn==0.35.0
 torch==2.11.0+cpu
 torchvision==0.26.0+cpu
-ultralytics==8.3.170
+ultralytics==8.4.50
 pillow==11.3.0
 numpy==2.4.4
