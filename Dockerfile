@@ -13,7 +13,7 @@ COPY ./booklore-ui /angular-app/
 RUN npm run build --configuration=production
 
 # Stage 2: Build the Spring Boot app with Gradle
-FROM gradle:9.4.1-jdk25-alpine AS springboot-build
+FROM gradle:9.5.1-jdk25-alpine AS springboot-build
 
 WORKDIR /springboot-app
 
