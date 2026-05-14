@@ -18,6 +18,8 @@ updates:
       gradle-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "com.github.RouHim:jaudiotagger"
 
   # Frontend – npm (Angular)
   - package-ecosystem: "npm"
