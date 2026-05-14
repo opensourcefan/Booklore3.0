@@ -11,7 +11,7 @@ plugins {
 }
 
 group = 'org.booklore'
-version = '3.17.19'
+version = '3.17.20'
 
 java {
     toolchain {

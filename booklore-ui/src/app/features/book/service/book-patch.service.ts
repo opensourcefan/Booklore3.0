@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Injectable, Injector} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable, Subject} from 'rxjs';
 import {distinctUntilChanged, exhaustMap, share, tap} from 'rxjs/operators';
@@ -7,6 +7,8 @@ import {BookStateService} from './book-state.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {ResetProgressType, ResetProgressTypes} from '../../../shared/constants/reset-progress-type';
 import {BookStatusUpdateResponse, PersonalRatingUpdateResponse} from '../model/book.model';
+import {PagedGridPilotService} from './paged-grid-pilot.service';
+import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +17,7 @@ export class BookPatchService {
   private readonly url = `${API_CONFIG.BASE_URL}/api/v1/books`;
 
   private http = inject(HttpClient);
+  private injector = inject(Injector);
   private bookStateService = inject(BookStateService);
 
   private epubProgressSubject = new Subject<{ bookId: number; cfi: string; href: string; percentage: number; bookFileId?: number }>();
@@ -71,9 +74,15 @@ export class BookPatchService {
           const updatedBookMap = new Map(updatedBooks.map(b => [b.id, b]));
           const newBooks = currentState.books.map(book => updatedBookMap.get(book.id) ?? book);
           this.bookStateService.updateBookState({...currentState, books: newBooks});
+          this.syncPagedBrowsersAfterStateMutation();
         }
       })
     );
+  }
+
+  private syncPagedBrowsersAfterStateMutation(): void {
+    this.injector.get(PagedBookBrowserStateService).syncCacheFromSharedState();
+    this.injector.get(PagedGridPilotService).refreshActiveState();
   }
 
   updateFileType(bookIds: Set<number | undefined>, fileType: string | null): Observable<Book[]> {
