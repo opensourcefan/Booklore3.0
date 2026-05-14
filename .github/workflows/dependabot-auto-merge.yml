@@ -97,10 +97,6 @@ jobs:
             gh pr edit "$PR_URL" --add-label 'dependabot:manual-review'
           fi
 
-      - name: Approve eligible Dependabot PRs
-        if: steps.policy.outputs.auto_merge == 'true'
-        run: gh pr review --approve "$PR_URL"
-
   merge-after-ci:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
