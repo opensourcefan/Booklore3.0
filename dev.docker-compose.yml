@@ -49,7 +49,7 @@ services:
       retries: 5
 
   ui:
-    image: node:22-alpine
+    image: node:26-alpine
     command: sh -c "cd /angular-app && npm install -g @angular/cli --force && npm install --force && ng serve --host 0.0.0.0"
     environment:
       - NODE_ENV=development
