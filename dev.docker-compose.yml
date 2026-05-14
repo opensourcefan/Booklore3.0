@@ -30,7 +30,7 @@ services:
       - ./shared/bookdrop:/bookdrop
 
   backend_db:
-    image: mariadb:11.4
+    image: mariadb:12.2
     container_name: backend_db
     volumes:
       - backend_db:/var/lib/mysql
