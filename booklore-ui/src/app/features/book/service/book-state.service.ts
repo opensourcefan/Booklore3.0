@@ -163,6 +163,7 @@ export class BookStateService {
 
     const nextPagedCache = this.invalidatePagedCacheEntries(entry => (
       entry.key.entity === 'ALL_BOOKS'
+      || entry.key.entity === 'NOT_SHELFED'
       || (entry.key.entity === 'LIBRARY' && entry.key.entityId === book.libraryId)
     ));
 
@@ -180,6 +181,7 @@ export class BookStateService {
     const nextBooks = (currentState.books ?? []).filter(book => !idSet.has(book.id));
     const nextPagedCache = this.invalidatePagedCacheEntries(entry => (
       entry.key.entity === 'ALL_BOOKS'
+      || entry.key.entity === 'NOT_SHELFED'
       || (entry.key.entity === 'LIBRARY' && entry.key.entityId !== null && impactedLibraryIds.has(entry.key.entityId))
     ));
 

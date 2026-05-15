@@ -197,6 +197,7 @@ export class PagedGridPilotService {
 
   invalidateAllBooksCache(): void {
     this.pagedBookBrowserStateService.invalidateEntity('ALL_BOOKS');
+    this.pagedBookBrowserStateService.invalidateEntity('NOT_SHELFED');
 
     if (this.activeQuery) {
       this.pagedBookBrowserStateService.invalidateEntity(
