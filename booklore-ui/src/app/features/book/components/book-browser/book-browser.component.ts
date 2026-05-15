@@ -1235,6 +1235,15 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         map(state => state.books || [])
       )
       .subscribe(books => {
+        // Auto-clear filters when a state change (e.g. shelf assignment) causes
+        // the active filter to produce zero matching books. Without this, the
+        // filter stays "stuck" in the URL and component state even though it no
+        // longer matches anything, forcing the user to manually switch filters.
+        if (books.length === 0 && this.isFilterActive) {
+          this.clearFilter();
+          return;
+        }
+
         this.gridItemCountSig.set(books.length);
         this.cardWidthSig.set(this.currentCardSize.width);
         this.cardHeightSig.set(this.getUniformCardHeight());
