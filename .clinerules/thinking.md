@@ -1,3 +1,7 @@
+---
+paths: ["**/*"]
+---
+
 ## 1. Thinking & Context Management
 - **Reading Files:** When browsing, keep "Thinking" minimal and provide high-level summaries.
 - **Problem Solving:** Use "Think Max" reasoning depth for debugging and new feature creation.

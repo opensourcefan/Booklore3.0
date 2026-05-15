@@ -1,3 +1,7 @@
+---
+paths: ["**/*"]
+---
+
 - After pushing, provide a numbered fix summary matching the user’s task order, in the built in browser.
 - For frontend interaction regressions, prefer DOM-backed mock tests that verify real click behavior and the presence or absence of directives, not only component state.
 - Do not push unless advised to push.
