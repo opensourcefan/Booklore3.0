@@ -102,7 +102,7 @@ export class AppComponent implements OnInit, OnDestroy {
             const newCount = acc.count + 1;
             this.libraryLoadingService.showBookLoadingProgress(book.metadata?.title || 'Unknown Book', newCount, loadingState.expectedCount);
             this.bookService.handleNewlyCreatedBook(book);
-            this.pagedGridPilotService.invalidateAllBooksCache();
+            this.pagedGridPilotService.appendNewBook(book);
             if (newCount >= loadingState.expectedCount) {
               this.libraryService.setLargeLibraryLoading(false, 0);
               return {count: 0};
@@ -110,7 +110,7 @@ export class AppComponent implements OnInit, OnDestroy {
             return {count: newCount};
           } else {
             this.bookService.handleNewlyCreatedBook(book);
-            this.pagedGridPilotService.invalidateAllBooksCache();
+            this.pagedGridPilotService.appendNewBook(book);
             return {count: 0};
           }
         }, {count: 0})

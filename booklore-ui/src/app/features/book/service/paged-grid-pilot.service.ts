@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, filter, Observable, Subscription, take } from 'rxjs';
+import { Book } from '../model/book.model';
 import { BookState } from '../model/state/book-state.model';
 import { SortDirection, SortOption } from '../model/sort.model';
 import { PagedBookBrowserEntity, PagedBookBrowserPage, PagedBookBrowserRequestKey } from '../model/state/paged-book-browser-state.model';
@@ -220,6 +221,31 @@ export class PagedGridPilotService {
     });
 
     this.fetchPage(this.activeQuery, 0);
+  }
+
+  /**
+   * Append a newly imported book to the active paged grid without
+   * resetting state to null — avoids screen flash during bulk import.
+   * Only applies when the default sort is active (addedOn,desc) and
+   * no search/filters are applied (new books always match unshelved).
+   */
+  appendNewBook(book: Book): void {
+    if (!this.pagedActive || !this.activeQuery) {
+      return;
+    }
+
+    const currentState = this.bookStateSubject.getValue();
+    const currentBooks = currentState.books ?? [];
+    if (currentState.error || currentBooks.some(b => b.id === book.id)) {
+      return;
+    }
+
+    const nextBooks = [book, ...currentBooks];
+    this.bookStateSubject.next({
+      books: nextBooks,
+      loaded: true,
+      error: null,
+    });
   }
 
   loadNextPageIfNeeded(scrollTop: number, clientHeight: number, scrollHeight: number): void {
