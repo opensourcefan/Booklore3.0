@@ -111,6 +111,13 @@
     "checks": "checks",
     "error": "Failed to test OIDC connection."
   },
+  "redirectUris": {
+    "sectionTitle": "Mobile Redirect URIs",
+    "sectionDesc": "Whitelist of mobile app redirect URIs allowed for OIDC authentication. The default booklore://oauth2-callback is always allowed when the list is empty. Use * to allow any mobile redirect URI.",
+    "inputPlaceholder": "e.g. myapp://oauth2-callback",
+    "addButton": "Add",
+    "emptyHint": "No custom redirect URIs configured. Only booklore://oauth2-callback is allowed."
+  },
   "oidcOnly": {
     "sectionTitle": "OIDC-Only Mode",
     "sectionDesc": "When enabled, local login is hidden and users are automatically redirected to the OIDC provider. Admins can still access local login via /login?local=true.",
@@ -137,6 +144,8 @@
     "syncModeError": "Failed to save group sync mode.",
     "groupMappingSaved": "Group mapping saved.",
     "groupMappingDeleted": "Group mapping deleted.",
-    "groupMappingError": "Failed to save group mapping."
+    "groupMappingError": "Failed to save group mapping.",
+    "redirectUrisSaved": "Mobile redirect URIs saved.",
+    "redirectUrisError": "Failed to save mobile redirect URIs."
   }
 }

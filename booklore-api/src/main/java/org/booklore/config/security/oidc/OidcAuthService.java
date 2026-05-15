@@ -26,6 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.net.URI;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -122,18 +123,16 @@ public class OidcAuthService {
             throw ApiError.OIDC_INVALID_REDIRECT_URI.createException();
         }
 
-        if (redirectUri.startsWith(MOBILE_SCHEME)) {
-            if (!redirectUri.equals(MOBILE_SCHEME + "oauth2-callback")) {
-                throw ApiError.OIDC_INVALID_REDIRECT_URI.createException();
-            }
-            return;
-        }
-
         try {
             URI uri = URI.create(redirectUri);
             String scheme = uri.getScheme();
-            if (!"https".equals(scheme) && !"http".equals(scheme)) {
+            if (scheme == null) {
                 throw ApiError.OIDC_INVALID_REDIRECT_URI.createException();
+            }
+
+            if (!"https".equals(scheme) && !"http".equals(scheme)) {
+                validateMobileRedirectUri(redirectUri);
+                return;
             }
             if (uri.getPath() == null || !uri.getPath().endsWith(OAUTH2_CALLBACK_PATH)) {
                 throw ApiError.OIDC_INVALID_REDIRECT_URI.createException();
@@ -164,6 +163,27 @@ public class OidcAuthService {
             return scheme + "://" + host;
         }
         return scheme + "://" + host + ":" + port;
+    }
+
+    private void validateMobileRedirectUri(String redirectUri) {
+        List<String> whitelist = appSettingService.getAppSettings().getOidcRedirectUris();
+        if (whitelist == null || whitelist.isEmpty()) {
+            if (!redirectUri.equals(MOBILE_SCHEME + "oauth2-callback")) {
+                throw ApiError.OIDC_INVALID_REDIRECT_URI.createException();
+            }
+            return;
+        }
+
+        if (whitelist.contains("*")) {
+            if (whitelist.size() > 1) {
+                throw ApiError.OIDC_INVALID_REDIRECT_URI.createException();
+            }
+            return;
+        }
+
+        if (!whitelist.contains(redirectUri)) {
+            throw ApiError.OIDC_INVALID_REDIRECT_URI.createException();
+        }
     }
 
     public void validateAppRedirectUri(String appRedirectUri) {

@@ -198,6 +198,7 @@ export interface AppSettings {
   oidcSessionDurationHours: number | null;
   oidcGroupSyncMode: string | null;
   oidcForceOnlyMode: boolean;
+  oidcRedirectUris: string[];
   diskType: string;
   libraryHealthCheckIntervalSeconds: number;
   allowFileDeletion: boolean;
@@ -250,6 +251,7 @@ export enum AppSettingKey {
   OIDC_SESSION_DURATION_HOURS = 'OIDC_SESSION_DURATION_HOURS',
   OIDC_GROUP_SYNC_MODE = 'OIDC_GROUP_SYNC_MODE',
   OIDC_FORCE_ONLY_MODE = 'OIDC_FORCE_ONLY_MODE',
+  OIDC_REDIRECT_URIS = 'OIDC_REDIRECT_URIS',
   LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS = 'LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS',
   AI_PANEL_DETECTION_ENABLED = 'AI_PANEL_DETECTION_ENABLED',
   ALLOW_FILE_DELETION = 'ALLOW_FILE_DELETION',

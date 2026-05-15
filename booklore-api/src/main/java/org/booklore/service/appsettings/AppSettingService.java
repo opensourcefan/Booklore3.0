@@ -344,6 +344,9 @@ public class AppSettingService {
 
         builder.oidcForceOnlyMode(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.OIDC_FORCE_ONLY_MODE, "false")));
 
+        builder.oidcRedirectUris(settingPersistenceHelper.getJsonSetting(settingsMap, AppSettingKey.OIDC_REDIRECT_URIS, new TypeReference<>() {
+        }, List.of("booklore://oauth2-callback"), true));
+
         builder.diskType(appProperties.getDiskType());
 
         return builder.build();

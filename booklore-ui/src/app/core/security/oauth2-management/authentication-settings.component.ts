@@ -69,6 +69,8 @@ export class AuthenticationSettingsComponent implements OnInit {
   sessionDurationHours: number | null = null;
   backchannelLogoutUri = `${window.location.origin}/api/v1/auth/oidc/backchannel-logout`;
   oidcForceOnlyMode = false;
+  oidcRedirectUris: string[] = ['booklore://oauth2-callback'];
+  redirectUriInput = '';
 
   infoItems = [
     {labelKey: 'infoPanel.redirectUri', value: `${window.location.origin}/oauth2-callback`},
@@ -152,6 +154,7 @@ export class AuthenticationSettingsComponent implements OnInit {
     this.sessionDurationHours = settings.oidcSessionDurationHours ?? null;
     this.groupSyncMode = settings.oidcGroupSyncMode ?? 'DISABLED';
     this.oidcForceOnlyMode = settings.oidcForceOnlyMode ?? false;
+    this.oidcRedirectUris = settings.oidcRedirectUris ?? ['booklore://oauth2-callback'];
 
     this.oidcProvider = {
       providerName: settings.oidcProviderDetails?.providerName || '',
@@ -426,6 +429,41 @@ export class AuthenticationSettingsComponent implements OnInit {
           severity: 'error',
           summary: this.t.translate('common.error'),
           detail: err?.error?.message || this.t.translate('settingsAuth.oidcOnly.error')
+        });
+      }
+    });
+  }
+
+  addRedirectUri(uri: string): void {
+    const trimmed = uri.trim();
+    if (!trimmed || this.oidcRedirectUris.includes(trimmed)) return;
+    this.oidcRedirectUris = [...this.oidcRedirectUris, trimmed];
+    this.saveRedirectUris();
+  }
+
+  removeRedirectUri(index: number): void {
+    this.oidcRedirectUris = this.oidcRedirectUris.filter((_, i) => i !== index);
+    this.saveRedirectUris();
+  }
+
+  saveRedirectUris(): void {
+    const payload = [
+      {
+        key: AppSettingKey.OIDC_REDIRECT_URIS,
+        newValue: this.oidcRedirectUris
+      }
+    ];
+    this.appSettingsService.saveSettings(payload).subscribe({
+      next: () => this.messageService.add({
+        severity: 'success',
+        summary: this.t.translate('settingsAuth.toast.saved'),
+        detail: this.t.translate('settingsAuth.toast.redirectUrisSaved')
+      }),
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('common.error'),
+          detail: err?.error?.message || this.t.translate('settingsAuth.toast.redirectUrisError')
         });
       }
     });

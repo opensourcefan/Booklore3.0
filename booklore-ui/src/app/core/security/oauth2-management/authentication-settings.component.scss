@@ -496,3 +496,68 @@
   color: var(--p-text-color);
   word-break: break-all;
 }
+
+// Redirect URIs
+.redirect-uris-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+
+  input {
+    flex: 1;
+  }
+}
+
+.redirect-uris-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.redirect-uri-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  background: color-mix(in srgb, var(--p-primary-color) 15%, var(--ground-background) 70%);
+  border: 1px solid color-mix(in srgb, var(--p-primary-color) 30%, var(--p-content-border-color) 70%);
+  border-radius: 4px;
+  font-size: 0.8125rem;
+}
+
+.redirect-uri-chip-text {
+  font-size: 0.8125rem;
+  color: var(--p-text-color);
+  background: none;
+  padding: 0;
+}
+
+.redirect-uri-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--p-text-muted-color);
+  cursor: pointer;
+  padding: 0.125rem;
+  border-radius: 50%;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  .pi {
+    font-size: 0.625rem;
+  }
+
+  &:hover {
+    color: var(--p-red-400);
+    background: color-mix(in srgb, var(--p-red-500) 15%, transparent);
+  }
+}
+
+.no-entries-hint {
+  font-size: 0.8125rem;
+  color: var(--p-text-muted-color);
+  font-style: italic;
+  margin: 0;
+}

@@ -316,6 +316,53 @@
     <div class="settings-card">
       <div class="section-header">
         <h3 class="section-title">
+          <i class="pi pi-mobile"></i>
+          {{ t('redirectUris.sectionTitle') }}
+        </h3>
+        <p class="section-description">
+          {{ t('redirectUris.sectionDesc') }}
+        </p>
+      </div>
+
+      <div class="section-body">
+        <div class="redirect-uris-input-row">
+          <input
+            pInputText
+            pSize="small"
+            #redirectUriInput
+            [placeholder]="t('redirectUris.inputPlaceholder')"
+            (keydown.enter)="addRedirectUri(redirectUriInput.value); redirectUriInput.value = ''"
+            style="flex: 1;">
+          <p-button
+            [outlined]="true"
+            icon="pi pi-plus"
+            [label]="t('redirectUris.addButton')"
+            severity="success"
+            size="small"
+            (click)="addRedirectUri(redirectUriInput.value); redirectUriInput.value = ''">
+          </p-button>
+        </div>
+        @if (oidcRedirectUris.length > 0) {
+          <div class="redirect-uris-chips">
+            @for (uri of oidcRedirectUris; track uri; let idx = $index) {
+              <div class="redirect-uri-chip">
+                <code class="redirect-uri-chip-text">{{ uri }}</code>
+                <button class="redirect-uri-chip-remove" (click)="removeRedirectUri(idx)" [attr.aria-label]="'Remove ' + uri">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            }
+          </div>
+        }
+        @if (oidcRedirectUris.length === 0) {
+          <p class="no-entries-hint">{{ t('redirectUris.emptyHint') }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="section-header">
+        <h3 class="section-title">
           <i class="pi pi-ban"></i>
           {{ t('oidcOnly.sectionTitle') }}
         </h3>
