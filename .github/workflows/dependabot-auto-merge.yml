@@ -6,11 +6,6 @@ on:
       - opened
       - reopened
       - synchronize
-  workflow_run:
-    workflows:
-      - Develop & PR – Build, Test, and Container Publish
-    types:
-      - completed
 
 permissions:
   contents: write
@@ -97,67 +92,3 @@ jobs:
             gh pr edit "$PR_URL" --add-label 'dependabot:manual-review'
           fi
 
-  merge-after-ci:
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
-    env:
-      GH_TOKEN: ${{ github.token }}
-      WORKFLOW_RUN_SHA: ${{ github.event.workflow_run.head_sha }}
-    steps:
-      - name: Resolve pull request number
-        id: pr
-        run: |
-          pr_number=$(jq -r '.[0].number // empty' <<< '${{ toJson(github.event.workflow_run.pull_requests) }}')
-          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
-
-      - name: Inspect pull request state
-        id: pr-state
-        if: steps.pr.outputs.number != ''
-        env:
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
-        run: |
-          pr_json=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}")
-          issue_json=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}")
-
-          author=$(jq -r '.user.login' <<< "$pr_json")
-          state=$(jq -r '.state' <<< "$pr_json")
-          draft=$(jq -r '.draft' <<< "$pr_json")
-          mergeable=$(jq -r '.mergeable' <<< "$pr_json")
-          head_sha=$(jq -r '.head.sha' <<< "$pr_json")
-          pr_url=$(jq -r '.html_url' <<< "$pr_json")
-          labels=$(jq -r '.labels[].name' <<< "$issue_json")
-
-          eligible=false
-          reason=""
-
-          if [[ "$author" != "dependabot[bot]" ]]; then
-            reason="Skipped because the PR author is $author."
-          elif [[ "$state" != "open" ]]; then
-            reason="Skipped because the PR is $state."
-          elif [[ "$draft" == "true" ]]; then
-            reason="Skipped because the PR is a draft."
-          elif [[ "$head_sha" != "$WORKFLOW_RUN_SHA" ]]; then
-            reason="Skipped because a newer commit exists on the PR branch."
-          elif ! grep -Fxq 'dependabot:automerge' <<< "$labels"; then
-            reason="Skipped because the PR is not labeled dependabot:automerge."
-          elif [[ "$mergeable" != "true" ]]; then
-            reason="Skipped because GitHub does not currently report the PR as mergeable."
-          else
-            eligible=true
-          fi
-
-          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
-          echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
-
-          {
-            echo "### Dependabot merge"
-            echo "- PR: $pr_url"
-            echo "- Eligible: $eligible"
-            if [[ -n "$reason" ]]; then
-              echo "- Reason: $reason"
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Merge approved Dependabot PR
-        if: steps.pr-state.outputs.eligible == 'true'
-        run: gh pr merge --squash "${{ steps.pr-state.outputs.pr_url }}"
