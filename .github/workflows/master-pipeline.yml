@@ -179,7 +179,7 @@ jobs:
       - name: Retrieve Latest Master Version Tag
         id: get_version
         run: |
-          latest_tag=$(git tag --list --sort=-v:refname | grep -E '^[v]?[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          latest_tag=$(git tag --list --sort=-v:refname | grep -E '^[v]?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$' | head -n 1)
           latest_tag=${latest_tag:-"0.0.0"}
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
           echo "Latest master tag: $latest_tag"
@@ -220,8 +220,8 @@ jobs:
             fi
           fi
 
-          # Calculate next version
-          semver=$(echo ${{ env.latest_tag }} | sed 's/^v//')
+          # Calculate next version (strip pre-release suffix for base version)
+          semver=$(echo ${{ env.latest_tag }} | sed 's/^v//' | sed 's/-.*//')
           major=$(echo $semver | cut -d. -f1)
           minor=$(echo $semver | cut -d. -f2)
           patch=$(echo $semver | cut -d. -f3)
@@ -313,7 +313,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/opensourcefan/booklore3:${{ env.new_tag }}
-            ghcr.io/opensourcefan/booklore3:latest
+            ghcr.io/opensourcefan/booklore3:stable
           build-args: |
             APP_VERSION=${{ env.new_tag }}
             APP_REVISION=${{ github.sha }}
@@ -333,7 +333,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/opensourcefan/booklore-panel-ai:${{ env.new_tag }}
-            ghcr.io/opensourcefan/booklore-panel-ai:latest
+            ghcr.io/opensourcefan/booklore-panel-ai:stable
           cache-from: |
             type=gha,scope=booklore-panel-ai
             type=registry,ref=ghcr.io/opensourcefan/booklore-panel-ai:buildcache

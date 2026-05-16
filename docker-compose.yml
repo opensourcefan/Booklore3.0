@@ -1,11 +1,18 @@
 services:
   booklore:
-    # M6 NOTE: image:latest is mutable — the same tag may resolve to a different image
-    # after 'docker compose pull'.  For reproducible deployments pin to a specific
-    # semantic-version tag or SHA digest, e.g.:
-    #   image: ghcr.io/opensourcefan/booklore3:3.2.1
+    # M6 NOTE: floating tags are mutable — the same tag may resolve to a different image
+    # after 'docker compose pull'.
+    #
+    # Channel strategy:
+    #   :stable  – last tagged release (conservative, default)
+    #   :latest  – bleeding-edge develop build (may contain unfinished work)
+    #   :vX.Y.Z  – pinned semver release (immutable, best for reproducibility)
+    #   @sha256: – digest-pinned (most reproducible, immune to tag overwrites)
+    #
+    # For reproducible deployments pin to a specific semver tag or SHA digest:
+    #   image: ghcr.io/opensourcefan/booklore3:v3.15.46
     #   image: ghcr.io/opensourcefan/booklore3@sha256:<digest>
-    image: ghcr.io/opensourcefan/booklore3:latest
+    image: ghcr.io/opensourcefan/booklore3:stable
     container_name: booklore
     environment:
       - USER_ID=${APP_USER_ID}
@@ -61,7 +68,7 @@ services:
       retries: 10
 
   booklore-ai-panel:
-    image: ${AI_PANEL_IMAGE:-ghcr.io/opensourcefan/booklore-panel-ai:latest}
+    image: ${AI_PANEL_IMAGE:-ghcr.io/opensourcefan/booklore-panel-ai:stable}
     container_name: booklore-ai-panel
     profiles: ["ai"]
     environment:

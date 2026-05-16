@@ -66,7 +66,13 @@ template: |
 
   ## 🐳 Docker Images
 
-  - **Docker Hub:** `booklore/booklore:v$RESOLVED_VERSION`
-  - **GitHub Container Registry:** `ghcr.io/booklore-app/booklore:v$RESOLVED_VERSION`
+  - **GitHub Container Registry:** `ghcr.io/opensourcefan/booklore3:v$RESOLVED_VERSION`
+  - **Docker Tags:** `:stable`, `:v$RESOLVED_VERSION`
+  
+  | Channel | Tag | Risk | Purpose |
+  |---|---|---|---|
+  | Stable | `:stable` | Low | Production-ready, tested release |
+  | Bleeding Edge | `:latest` | Higher | Daily develop builds (separate channel) |
+  | Pinned | `:v$RESOLVED_VERSION` | Lowest | Immutable, reproducible |
 
-  **Full Changelog**: https://github.com/booklore-app/booklore/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Full Changelog**: https://github.com/opensourcefan/Booklore3.0/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
