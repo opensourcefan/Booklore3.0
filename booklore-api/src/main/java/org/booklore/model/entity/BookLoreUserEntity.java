@@ -58,7 +58,7 @@ public class BookLoreUserEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private UserPermissionsEntity permissions;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private Set<ShelfEntity> shelves = new HashSet<>();
 
@@ -70,7 +70,7 @@ public class BookLoreUserEntity {
     )
     private List<LibraryEntity> libraries;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private Set<UserSettingEntity> settings = new HashSet<>();
 
