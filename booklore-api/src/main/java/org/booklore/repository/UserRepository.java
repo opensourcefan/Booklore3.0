@@ -33,7 +33,8 @@ public interface UserRepository extends JpaRepository<BookLoreUserEntity, Long> 
      */
     @Query("SELECT DISTINCT u FROM BookLoreUserEntity u "
          + "LEFT JOIN FETCH u.settings "
-         + "LEFT JOIN FETCH u.libraries "
+         + "LEFT JOIN FETCH u.libraries lib "
+         + "LEFT JOIN FETCH lib.libraryPaths "
          + "WHERE u.id = :id")
     Optional<BookLoreUserEntity> fetchByIdWithSettingsAndLibraries(@Param("id") Long id);
 }
