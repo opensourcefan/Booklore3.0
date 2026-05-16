@@ -2,7 +2,7 @@
 paths: ["**/*"]
 ---
 
-- After pushing, provide a numbered fix summary matching the user’s task order, in the built in browser.
+- After pushing, provide a numbered fix summary matching the user's task order, in the built in browser.
 - For frontend interaction regressions, prefer DOM-backed mock tests that verify real click behavior and the presence or absence of directives, not only component state.
 - Do not push unless advised to push.
 - Do not use 'milestone' within a tag unless explicitly advised.
@@ -29,3 +29,11 @@ paths: ["**/*"]
 - **Consistency:** Ensure all naming conventions (camelCase vs snake_case) and architectural styles match the current codebase perfectly.
 
 - **Definition of Done Checklist:** Before declaring any task complete, the AI MUST output a point-by-point checklist of these preferences and explicitly confirm it has executed each one. This ensures the AI evaluates whether it has completed the push, generated the report, outputted the diff, and listed the edge cases before generating the final response.
+
+## Always Check For Downstream Impacts
+- **Before recommending OR implementing any code change**, you MUST trace all callers, consumers, and dependents of the affected code.
+- For JPA entity changes (fetch type, cascade, relationship mapping): grep for all references to the field's getter and all methods that load or traverse the entity. Verify whether each call site runs inside a transaction/session.
+- For repository method changes: grep for all callers in both service and controller layers. Verify pagination, transaction boundaries, and expected return types at each call site.
+- For config changes: verify that the setting is supported by the current version of the dependency (driver, ORM, pool). Check for conflicts with existing settings.
+- For Flyway migrations: always list existing migrations first (`ls -1 .../db/migration/ | sort -V | tail -20`) and use the next available version number. Never assume version numbers are free.
+- For any recommendation, answer: "If we make this change, could any existing feature break at runtime?" If the answer is "yes" or "maybe," explain exactly how and either add a mitigation step or mark the recommendation as RISKY with a warning.
