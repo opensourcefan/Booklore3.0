@@ -3,7 +3,6 @@ package org.booklore.repository;
 import org.booklore.model.entity.BookLoreUserEntity;
 import org.booklore.model.enums.ProvisioningMethod;
 import org.jspecify.annotations.NonNull;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,8 +32,7 @@ public interface UserRepository extends JpaRepository<BookLoreUserEntity, Long> 
      */
     @Query("SELECT DISTINCT u FROM BookLoreUserEntity u "
          + "LEFT JOIN FETCH u.settings "
-         + "LEFT JOIN FETCH u.libraries lib "
-         + "LEFT JOIN FETCH lib.libraryPaths "
+         + "LEFT JOIN FETCH u.libraries "
          + "WHERE u.id = :id")
     Optional<BookLoreUserEntity> fetchByIdWithSettingsAndLibraries(@Param("id") Long id);
 }
