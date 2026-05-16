@@ -59,14 +59,18 @@ export class LibraryService {
   libraryState$ = this.libraryStateSubject.asObservable().pipe(
     tap(state => {
       if (!state.loaded && !state.error && !this.loading$) {
-        this.loading$ = this.fetchLibraries().pipe(
-          shareReplay(1),
-          finalize(() => (this.loading$ = null))
-        );
-        this.loading$.subscribe();
+        this.startLibraryLoading();
       }
     })
   );
+
+  private startLibraryLoading(): void {
+    this.loading$ = this.fetchLibraries().pipe(
+      shareReplay(1),
+      finalize(() => (this.loading$ = null))
+    );
+    this.loading$.subscribe();
+  }
 
   private fetchLibraries(): Observable<Library[]> {
     return this.http.get<Library[]>(this.url).pipe(

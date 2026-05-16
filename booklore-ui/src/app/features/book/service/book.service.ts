@@ -95,14 +95,18 @@ export class BookService {
   bookState$ = this.bookStateService.bookState$.pipe(
     tap(state => {
       if (!state.loaded && !state.error && !this.loading$) {
-        this.loading$ = this.fetchBooks().pipe(
-          shareReplay(1),
-          finalize(() => (this.loading$ = null))
-        );
-        this.loading$.subscribe();
+        this.startBookLoading();
       }
     })
   );
+
+  private startBookLoading(): void {
+    this.loading$ = this.fetchBooks().pipe(
+      shareReplay(1),
+      finalize(() => (this.loading$ = null))
+    );
+    this.loading$.subscribe();
+  }
 
   getCurrentBookState(): BookState {
     return this.bookStateService.getCurrentBookState();

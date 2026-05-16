@@ -53,6 +53,8 @@ export function injectVirtualGrid(
   const scrollElementRef = signal<HTMLElement | null>(null);
   const containerWidth = signal(0);
 
+  let resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
   const columnCount = computed(() => {
     const {cardWidth, gap} = optionsFactory();
     const width = containerWidth();
@@ -94,7 +96,12 @@ export function injectVirtualGrid(
   }
 
   function setContainerWidth(width: number): void {
-    containerWidth.set(width);
+    if (resizeDebounceTimer) {
+      clearTimeout(resizeDebounceTimer);
+    }
+    resizeDebounceTimer = setTimeout(() => {
+      containerWidth.set(width);
+    }, 100);
   }
 
   return {

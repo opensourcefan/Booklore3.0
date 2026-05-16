@@ -17,6 +17,7 @@ export class NotificationEventService {
   notificationHighlight$ = this.notificationHighlightSubject.asObservable();
 
   private highlightTimeout: ReturnType<typeof setTimeout> | undefined;
+  private clearTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
 
   handleNewNotification(notification: LogNotification): void {
     this.latestNotificationSubject.next(notification);
@@ -30,7 +31,11 @@ export class NotificationEventService {
       this.notificationHighlightSubject.next(false);
     }, 7500);
 
-    setTimeout(() => {
+    if (this.clearTimeoutHandle) {
+      clearTimeout(this.clearTimeoutHandle);
+    }
+
+    this.clearTimeoutHandle = setTimeout(() => {
       if (!this.notificationHighlightSubject.value) {
         this.latestNotificationSubject.next(null);
       }
@@ -41,6 +46,11 @@ export class NotificationEventService {
     if (this.highlightTimeout) {
       clearTimeout(this.highlightTimeout);
       this.highlightTimeout = undefined;
+    }
+
+    if (this.clearTimeoutHandle) {
+      clearTimeout(this.clearTimeoutHandle);
+      this.clearTimeoutHandle = undefined;
     }
 
     this.notificationHighlightSubject.next(false);

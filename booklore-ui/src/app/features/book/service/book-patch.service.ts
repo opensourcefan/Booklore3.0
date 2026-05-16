@@ -58,6 +58,10 @@ export class BookPatchService {
   );
 
   constructor() {
+    this.initializeEpubProgressPipeline();
+  }
+
+  private initializeEpubProgressPipeline(): void {
     this.epubProgress$.subscribe();
   }
 

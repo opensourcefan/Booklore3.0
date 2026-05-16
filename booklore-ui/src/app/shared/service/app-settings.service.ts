@@ -38,14 +38,18 @@ export class AppSettingsService {
   appSettings$ = this.appSettingsSubject.asObservable().pipe(
     tap(state => {
       if (!state && !this.loading$) {
-        this.loading$ = this.fetchAppSettings().pipe(
-          shareReplay(1),
-          finalize(() => (this.loading$ = null))
-        );
-        this.loading$.subscribe();
+        this.startAppSettingsLoading();
       }
     })
   );
+
+  private startAppSettingsLoading(): void {
+    this.loading$ = this.fetchAppSettings().pipe(
+      shareReplay(1),
+      finalize(() => (this.loading$ = null))
+    );
+    this.loading$.subscribe();
+  }
 
   private publicLoading$: Observable<PublicAppSettings> | null = null;
   private publicAppSettingsSubject = new BehaviorSubject<PublicAppSettings | null>(null);
@@ -53,14 +57,18 @@ export class AppSettingsService {
   publicAppSettings$ = this.publicAppSettingsSubject.asObservable().pipe(
     tap(state => {
       if (!state && !this.publicLoading$) {
-        this.publicLoading$ = this.fetchPublicSettings().pipe(
-          shareReplay(1),
-          finalize(() => (this.publicLoading$ = null))
-        );
-        this.publicLoading$.subscribe();
+        this.startPublicSettingsLoading();
       }
     })
   );
+
+  private startPublicSettingsLoading(): void {
+    this.publicLoading$ = this.fetchPublicSettings().pipe(
+      shareReplay(1),
+      finalize(() => (this.publicLoading$ = null))
+    );
+    this.publicLoading$.subscribe();
+  }
 
   get currentPublicSettings(): PublicAppSettings | null {
     return this.publicAppSettingsSubject.value;

@@ -28,14 +28,18 @@ export class ShelfService {
   shelfState$ = this.shelfStateSubject.asObservable().pipe(
     tap(state => {
       if (!state.loaded && !state.error && !this.loading$) {
-        this.loading$ = this.fetchShelves().pipe(
-          shareReplay(1),
-          finalize(() => (this.loading$ = null))
-        );
-        this.loading$.subscribe();
+        this.startShelfLoading();
       }
     })
   );
+
+  private startShelfLoading(): void {
+    this.loading$ = this.fetchShelves().pipe(
+      shareReplay(1),
+      finalize(() => (this.loading$ = null))
+    );
+    this.loading$.subscribe();
+  }
 
   private fetchShelves(): Observable<Shelf[]> {
     return this.http.get<Shelf[]>(this.url).pipe(
