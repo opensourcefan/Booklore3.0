@@ -70,7 +70,7 @@ public class BookLoreUserEntity {
     )
     private List<LibraryEntity> libraries;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<UserSettingEntity> settings = new HashSet<>();
 

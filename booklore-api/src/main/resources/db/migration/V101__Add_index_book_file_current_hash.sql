@@ -1,0 +1,1 @@
+CREATE INDEX idx_book_file_current_hash ON book_file(current_hash);
