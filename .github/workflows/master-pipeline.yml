@@ -191,6 +191,15 @@ jobs:
         run: |
           echo "Determining version bump from PR labels..."
 
+          # If current HEAD is already tagged, reuse the tag verbatim
+          current_tag=$(git tag --points-at HEAD | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+          if [ -n "$current_tag" ]; then
+            echo "HEAD is already tagged with: $current_tag — using verbatim (no bump)"
+            echo "bump=none" >> $GITHUB_ENV
+            echo "new_tag=$current_tag" >> $GITHUB_ENV
+            exit 0
+          fi
+
           # Extract PR number from merge commit
           pr_number=$(git log -1 --pretty=%B | grep -oE 'Merge pull request #[0-9]+' | grep -oE '[0-9]+') || true
           if [ -z "$pr_number" ]; then
