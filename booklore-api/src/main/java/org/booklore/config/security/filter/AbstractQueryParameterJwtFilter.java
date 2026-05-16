@@ -1,11 +1,11 @@
 package org.booklore.config.security.filter;
 
 import org.booklore.config.security.JwtUtils;
+import org.booklore.config.security.service.AuthenticatedUserEntityService;
 import org.booklore.config.security.userdetails.UserAuthenticationDetails;
 import org.booklore.mapper.custom.BookLoreUserTransformer;
 import org.booklore.model.dto.BookLoreUser;
 import org.booklore.model.entity.BookLoreUserEntity;
-import org.booklore.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +22,7 @@ import java.io.IOException;
 public abstract class AbstractQueryParameterJwtFilter extends OncePerRequestFilter {
 
     protected final JwtUtils jwtUtils;
-    protected final UserRepository userRepository;
+    protected final AuthenticatedUserEntityService authenticatedUserEntityService;
     protected final BookLoreUserTransformer bookLoreUserTransformer;
 
     @Override
@@ -51,8 +51,7 @@ public abstract class AbstractQueryParameterJwtFilter extends OncePerRequestFilt
 
     protected void authenticateUser(String token, HttpServletRequest request) {
         Long userId = jwtUtils.extractUserId(token);
-        BookLoreUserEntity entity = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId));
+        BookLoreUserEntity entity = authenticatedUserEntityService.loadForAuthentication(userId);
         BookLoreUser user = bookLoreUserTransformer.toDTO(entity);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(user, null, null);

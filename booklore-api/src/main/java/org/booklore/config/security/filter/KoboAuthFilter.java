@@ -1,11 +1,11 @@
 package org.booklore.config.security.filter;
 
+import org.booklore.config.security.service.AuthenticatedUserEntityService;
 import org.booklore.config.security.userdetails.UserAuthenticationDetails;
 import org.booklore.mapper.custom.BookLoreUserTransformer;
 import org.booklore.model.dto.BookLoreUser;
 import org.booklore.model.entity.UserPermissionsEntity;
 import org.booklore.repository.KoboUserSettingsRepository;
-import org.booklore.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -29,7 +30,7 @@ import java.util.List;
 public class KoboAuthFilter extends OncePerRequestFilter {
 
     private final KoboUserSettingsRepository koboUserSettingsRepository;
-    private final UserRepository userRepository;
+    private final AuthenticatedUserEntityService authenticatedUserEntityService;
     private final BookLoreUserTransformer bookLoreUserTransformer;
 
     @Override
@@ -62,15 +63,11 @@ public class KoboAuthFilter extends OncePerRequestFilter {
         }
 
         var userToken = userTokenOpt.get();
-        var userOpt = userRepository.findById(userToken.getUserId());
-
-        if (userOpt.isEmpty()) {
-            log.warn("User not found for token: {}", token);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
+        var entity = loadAuthenticatedUser(response, userToken.getUserId());
+        if (entity == null) {
             return;
         }
 
-        var entity = userOpt.get();
         if (entity.getPermissions() == null || !entity.getPermissions().isPermissionSyncKobo()) {
             log.warn("User {} does not have syncKobo permission", entity.getId());
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Insufficient permissions");
@@ -102,6 +99,16 @@ public class KoboAuthFilter extends OncePerRequestFilter {
     private void addAuthorityIfPermissionGranted(List<GrantedAuthority> authorities, String role, boolean permissionGranted) {
         if (permissionGranted) {
             authorities.add(new SimpleGrantedAuthority(role));
+        }
+    }
+
+    private org.booklore.model.entity.BookLoreUserEntity loadAuthenticatedUser(HttpServletResponse response, Long userId) throws IOException {
+        try {
+            return authenticatedUserEntityService.loadForAuthentication(userId);
+        } catch (UsernameNotFoundException ex) {
+            log.warn("User not found for KOBO token user ID: {}", userId);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
+            return null;
         }
     }
 }
