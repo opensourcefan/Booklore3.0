@@ -1,5 +1,5 @@
 ---
-models: ["deepseek-v4-pro", "deepseek-r1"]
+paths: ["**/*"]
 ---
 
 ## 1. Thinking & Context Management

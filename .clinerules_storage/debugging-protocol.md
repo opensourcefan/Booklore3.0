@@ -1,6 +1,5 @@
 ---
-models: ["deepseek-v4-pro", "deepseek-r1"]
-paths: ["src/**/*", "lib/**/*", "tests/**/*"]
+paths: ["**/*"]
 ---
 
 # Debugging & The "Circuit Breaker"
