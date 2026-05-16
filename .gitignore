@@ -64,3 +64,6 @@ patches/
 .cursor/
 /home/michael/booklore_test/books/Books_General_Misc/
 /home/michael/booklore_test/.clinerules/preferences.md
+docker-compose.yml
+dev.docker-compose.yml
+
