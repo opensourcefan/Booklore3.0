@@ -1,5 +1,5 @@
 ---
-paths: ["src/**/*", "lib/**/*", "app/**/*"]
+paths: ["**/*"]
 ---
 
 # Architectural & Dependency Awareness Rules

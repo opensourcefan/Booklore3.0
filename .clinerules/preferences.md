@@ -37,3 +37,7 @@ paths: ["**/*"]
 - For config changes: verify that the setting is supported by the current version of the dependency (driver, ORM, pool). Check for conflicts with existing settings.
 - For Flyway migrations: always list existing migrations first (`ls -1 .../db/migration/ | sort -V | tail -20`) and use the next available version number. Never assume version numbers are free.
 - For any recommendation, answer: "If we make this change, could any existing feature break at runtime?" If the answer is "yes" or "maybe," explain exactly how and either add a mitigation step or mark the recommendation as RISKY with a warning.
+
+- Before making a code change, you must list your top 3 assumptions and prove them by reading the specific file lines.
+
+- If a project uses multi-stage builds or generated code, you must locate the outputs of those builds before declaring a task complete.

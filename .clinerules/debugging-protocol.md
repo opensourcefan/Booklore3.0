@@ -1,6 +1,7 @@
 ---
-paths: ["src/**/*", "lib/**/*", "tests/**/*"]
+paths: ["**/*"]
 ---
+
 # Debugging & The "Circuit Breaker"
 - **The 2-Strike Rule:** If a fix fails twice, STOP. You are in a "Tunnel Vision" loop. 
 - **The Reset:** On the 3rd attempt, you must discard your previous hypothesis. Search the files that provide data *to* the failing code instead of the failing code itself.
