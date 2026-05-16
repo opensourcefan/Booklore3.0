@@ -62,7 +62,7 @@ public class BookLoreUserEntity {
     @Builder.Default
     private Set<ShelfEntity> shelves = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_library_mapping",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -70,7 +70,7 @@ public class BookLoreUserEntity {
     )
     private List<LibraryEntity> libraries;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<UserSettingEntity> settings = new HashSet<>();
 
