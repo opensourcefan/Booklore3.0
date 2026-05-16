@@ -1,1 +1,0 @@
-CREATE INDEX idx_book_metadata_series_name ON book_metadata(series_name);
