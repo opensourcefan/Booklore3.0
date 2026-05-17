@@ -10,6 +10,7 @@ import org.booklore.model.entity.BookLoreUserEntity;
 import org.booklore.model.entity.ShelfEntity;
 import org.booklore.model.enums.IconType;
 import org.booklore.repository.BookRepository;
+import org.booklore.repository.BookShelfMappingRepository;
 import org.booklore.repository.ShelfRepository;
 import org.booklore.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,8 @@ class ShelfServiceTest {
     private UserRepository userRepository;
     @Mock
     private AuditService auditService;
+    @Mock
+    private BookShelfMappingRepository bookShelfMappingRepository;
 
     @InjectMocks
     private ShelfService shelfService;
@@ -123,6 +126,7 @@ class ShelfServiceTest {
         when(shelfRepository.findById(1L)).thenReturn(Optional.of(existingShelf));
         when(shelfRepository.save(any(ShelfEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(shelfMapper.toShelf(any(ShelfEntity.class))).thenReturn(Shelf.builder().name("Updated Shelf").build());
+        when(bookShelfMappingRepository.countByShelfId(1L)).thenReturn(0L);
 
         shelfService.updateShelf(1L, request);
 
@@ -155,6 +159,7 @@ class ShelfServiceTest {
         when(shelfRepository.save(any(ShelfEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(shelfMapper.toShelf(any(ShelfEntity.class))).thenReturn(
                 Shelf.builder().name("Updated Shelf").icon("bookmark").iconType(IconType.CUSTOM_SVG).build());
+        when(bookShelfMappingRepository.countByShelfId(1L)).thenReturn(3L);
 
         shelfService.updateShelf(1L, request);
 

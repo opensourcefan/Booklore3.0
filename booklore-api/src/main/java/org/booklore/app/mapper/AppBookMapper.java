@@ -8,16 +8,18 @@ import org.booklore.app.dto.AppMagicShelfSummary;
 import org.booklore.app.dto.AppShelfSummary;
 import org.booklore.model.entity.*;
 import org.booklore.model.enums.BookFileType;
+import org.booklore.repository.BookShelfMappingRepository;
 import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface AppBookMapper {
+public abstract class AppBookMapper {
+
+    @Autowired
+    protected BookShelfMappingRepository bookShelfMappingRepository;
 
     @Mapping(target = "id", source = "book.id")
     @Mapping(target = "title", source = "book.metadata.title")
@@ -62,7 +64,7 @@ public interface AppBookMapper {
     @Mapping(target = "contentRating", source = "book.metadata.contentRating")
     @Mapping(target = "metadataMatchScore", source = "book.metadataMatchScore")
     @Mapping(target = "fileSizeKb", source = "book", qualifiedByName = "mapFileSizeKb")
-    AppBookSummary toSummary(BookEntity book, UserBookProgressEntity progress);
+    public abstract AppBookSummary toSummary(BookEntity book, UserBookProgressEntity progress);
 
     @Mapping(target = "id", source = "book.id")
     @Mapping(target = "title", source = "book.metadata.title")
@@ -99,10 +101,10 @@ public interface AppBookMapper {
     @Mapping(target = "cbxProgress", source = "progress", qualifiedByName = "mapCbxProgress")
     @Mapping(target = "audiobookProgress", source = "fileProgress", qualifiedByName = "mapAudiobookProgress")
     @Mapping(target = "koreaderProgress", source = "progress", qualifiedByName = "mapKoreaderProgress")
-    AppBookDetail toDetail(BookEntity book, UserBookProgressEntity progress, UserBookFileProgressEntity fileProgress);
+    public abstract AppBookDetail toDetail(BookEntity book, UserBookProgressEntity progress, UserBookFileProgressEntity fileProgress);
 
     @Named("mapAuthors")
-    default List<String> mapAuthors(List<AuthorEntity> authors) {
+    public List<String> mapAuthors(List<AuthorEntity> authors) {
         if (authors == null || authors.isEmpty()) {
             return Collections.emptyList();
         }
@@ -112,7 +114,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapCategories")
-    default Set<String> mapCategories(Set<CategoryEntity> categories) {
+    public Set<String> mapCategories(Set<CategoryEntity> categories) {
         if (categories == null || categories.isEmpty()) {
             return Collections.emptySet();
         }
@@ -122,7 +124,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapCategoryNames")
-    default List<String> mapCategoryNames(Set<CategoryEntity> categories) {
+    public List<String> mapCategoryNames(Set<CategoryEntity> categories) {
         if (categories == null || categories.isEmpty()) {
             return Collections.emptyList();
         }
@@ -133,7 +135,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapTagNames")
-    default List<String> mapTagNames(Set<TagEntity> tags) {
+    public List<String> mapTagNames(Set<TagEntity> tags) {
         if (tags == null || tags.isEmpty()) {
             return Collections.emptyList();
         }
@@ -144,7 +146,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapMoodNames")
-    default List<String> mapMoodNames(Set<MoodEntity> moods) {
+    public List<String> mapMoodNames(Set<MoodEntity> moods) {
         if (moods == null || moods.isEmpty()) {
             return Collections.emptyList();
         }
@@ -155,7 +157,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapAllMetadataLocked")
-    default Boolean mapAllMetadataLocked(BookMetadataEntity metadata) {
+    public Boolean mapAllMetadataLocked(BookMetadataEntity metadata) {
         if (metadata == null) {
             return null;
         }
@@ -163,7 +165,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapPrimaryFileId")
-    default Long mapPrimaryFileId(BookEntity book) {
+    public Long mapPrimaryFileId(BookEntity book) {
         if (book == null) {
             return null;
         }
@@ -175,7 +177,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapPrimaryFileName")
-    default String mapPrimaryFileName(BookEntity book) {
+    public String mapPrimaryFileName(BookEntity book) {
         if (book == null) {
             return null;
         }
@@ -187,7 +189,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapFileSizeKb")
-    default Long mapFileSizeKb(BookEntity book) {
+    public Long mapFileSizeKb(BookEntity book) {
         if (book == null) {
             return null;
         }
@@ -199,7 +201,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapThumbnailUrl")
-    default String mapThumbnailUrl(BookEntity book) {
+    public String mapThumbnailUrl(BookEntity book) {
         if (book == null || book.getId() == null) {
             return null;
         }
@@ -207,16 +209,34 @@ public interface AppBookMapper {
     }
 
     @Named("mapShelves")
-    default List<AppShelfSummary> mapShelves(Set<ShelfEntity> shelves) {
+    public List<AppShelfSummary> mapShelves(Set<ShelfEntity> shelves) {
         if (shelves == null || shelves.isEmpty()) {
             return Collections.emptyList();
         }
+        List<Long> shelfIds = shelves.stream()
+                .map(ShelfEntity::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, Long> countMap = Collections.emptyMap();
+        if (!shelfIds.isEmpty()) {
+            List<Object[]> results = bookShelfMappingRepository.countByShelfIdIn(shelfIds);
+            countMap = new HashMap<>();
+            for (Object[] row : results) {
+                countMap.put((Long) row[0], (Long) row[1]);
+            }
+        }
+        final Map<Long, Long> finalCountMap = countMap;
         return shelves.stream()
-                .map(this::toShelfSummary)
+                .map(shelf -> {
+                    long count = finalCountMap.getOrDefault(shelf.getId(), 0L);
+                    return toShelfSummary(shelf, count);
+                })
                 .collect(Collectors.toList());
     }
 
-    default AppShelfSummary toShelfSummary(ShelfEntity shelf) {
+    public AppShelfSummary toShelfSummary(ShelfEntity shelf, long bookCount) {
         if (shelf == null) {
             return null;
         }
@@ -224,13 +244,13 @@ public interface AppBookMapper {
                 .id(shelf.getId())
                 .name(shelf.getName())
                 .icon(shelf.getIcon())
-                .bookCount(shelf.getBookEntities() != null ? shelf.getBookEntities().size() : 0)
+                .bookCount((int) bookCount)
                 .publicShelf(shelf.isPublic())
                 .build();
     }
 
     @Named("mapReadProgress")
-    default Float mapReadProgress(UserBookProgressEntity progress) {
+    public Float mapReadProgress(UserBookProgressEntity progress) {
         if (progress == null) {
             return null;
         }
@@ -253,7 +273,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapEpubProgress")
-    default AppBookDetail.EpubProgress mapEpubProgress(UserBookProgressEntity progress) {
+    public AppBookDetail.EpubProgress mapEpubProgress(UserBookProgressEntity progress) {
         if (progress == null || progress.getEpubProgress() == null) {
             return null;
         }
@@ -266,7 +286,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapPdfProgress")
-    default AppBookDetail.PdfProgress mapPdfProgress(UserBookProgressEntity progress) {
+    public AppBookDetail.PdfProgress mapPdfProgress(UserBookProgressEntity progress) {
         if (progress == null || progress.getPdfProgress() == null) {
             return null;
         }
@@ -278,7 +298,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapCbxProgress")
-    default AppBookDetail.CbxProgress mapCbxProgress(UserBookProgressEntity progress) {
+    public AppBookDetail.CbxProgress mapCbxProgress(UserBookProgressEntity progress) {
         if (progress == null || progress.getCbxProgress() == null) {
             return null;
         }
@@ -290,7 +310,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapKoreaderProgress")
-    default AppBookDetail.KoreaderProgress mapKoreaderProgress(UserBookProgressEntity progress) {
+    public AppBookDetail.KoreaderProgress mapKoreaderProgress(UserBookProgressEntity progress) {
         if (progress == null || progress.getKoreaderProgressPercent() == null) {
             return null;
         }
@@ -303,7 +323,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapAudiobookProgress")
-    default AppBookDetail.AudiobookProgress mapAudiobookProgress(UserBookFileProgressEntity fileProgress) {
+    public AppBookDetail.AudiobookProgress mapAudiobookProgress(UserBookFileProgressEntity fileProgress) {
         if (fileProgress == null) return null;
         if (fileProgress.getBookFile() == null ||
             fileProgress.getBookFile().getBookType() != BookFileType.AUDIOBOOK) {
@@ -318,7 +338,7 @@ public interface AppBookMapper {
                 .build();
     }
 
-    default Long parseLongOrNull(String value) {
+    public Long parseLongOrNull(String value) {
         if (value == null) return null;
         try {
             return Long.parseLong(value);
@@ -327,7 +347,7 @@ public interface AppBookMapper {
         }
     }
 
-    default Integer parseIntOrNull(String value) {
+    public Integer parseIntOrNull(String value) {
         if (value == null) return null;
         try {
             return Integer.parseInt(value);
@@ -337,7 +357,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapPrimaryFileType")
-    default String mapPrimaryFileType(BookEntity book) {
+    public String mapPrimaryFileType(BookEntity book) {
         if (book == null) {
             return null;
         }
@@ -349,7 +369,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapFileTypes")
-    default List<String> mapFileTypes(BookEntity book) {
+    public List<String> mapFileTypes(BookEntity book) {
         if (book == null || book.getBookFiles() == null || book.getBookFiles().isEmpty()) {
             return Collections.emptyList();
         }
@@ -361,7 +381,7 @@ public interface AppBookMapper {
     }
 
     @Named("mapFiles")
-    default List<AppBookFile> mapFiles(BookEntity book) {
+    public List<AppBookFile> mapFiles(BookEntity book) {
         if (book == null || book.getBookFiles() == null || book.getBookFiles().isEmpty()) {
             return Collections.emptyList();
         }
@@ -399,7 +419,7 @@ public interface AppBookMapper {
                 .collect(Collectors.toList());
     }
 
-    default AppLibrarySummary toLibrarySummary(LibraryEntity library, long bookCount) {
+    public AppLibrarySummary toLibrarySummary(LibraryEntity library, long bookCount) {
         if (library == null) {
             return null;
         }
@@ -422,7 +442,7 @@ public interface AppBookMapper {
                 .build();
     }
 
-    default AppShelfSummary toShelfSummaryFromEntity(ShelfEntity shelf) {
+    public AppShelfSummary toShelfSummaryFromEntity(ShelfEntity shelf, long bookCount) {
         if (shelf == null) {
             return null;
         }
@@ -430,12 +450,12 @@ public interface AppBookMapper {
                 .id(shelf.getId())
                 .name(shelf.getName())
                 .icon(shelf.getIcon())
-                .bookCount(shelf.getBookEntities() != null ? shelf.getBookEntities().size() : 0)
+                .bookCount((int) bookCount)
                 .publicShelf(shelf.isPublic())
                 .build();
     }
 
-    default AppMagicShelfSummary toMagicShelfSummary(MagicShelfEntity magicShelf) {
+    public AppMagicShelfSummary toMagicShelfSummary(MagicShelfEntity magicShelf) {
         if (magicShelf == null) {
             return null;
         }

@@ -10,16 +10,14 @@ import org.booklore.app.service.AppBookService;
 import org.booklore.model.dto.BookLoreUser;
 import org.booklore.model.entity.MagicShelfEntity;
 import org.booklore.model.entity.ShelfEntity;
+import org.booklore.repository.BookShelfMappingRepository;
 import org.booklore.repository.MagicShelfRepository;
 import org.booklore.repository.ShelfRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -30,6 +28,7 @@ public class AppShelfController {
     private final AuthenticationService authenticationService;
     private final ShelfRepository shelfRepository;
     private final MagicShelfRepository magicShelfRepository;
+    private final BookShelfMappingRepository bookShelfMappingRepository;
     private final AppBookMapper mobileBookMapper;
     private final AppBookService mobileBookService;
 
@@ -40,8 +39,27 @@ public class AppShelfController {
 
         List<ShelfEntity> shelves = shelfRepository.findByUserIdOrPublicShelfTrue(userId);
 
+        List<Long> shelfIds = shelves.stream()
+                .map(ShelfEntity::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, Long> countMap = Collections.emptyMap();
+        if (!shelfIds.isEmpty()) {
+            List<Object[]> results = bookShelfMappingRepository.countByShelfIdIn(shelfIds);
+            countMap = new HashMap<>();
+            for (Object[] row : results) {
+                countMap.put((Long) row[0], (Long) row[1]);
+            }
+        }
+        final Map<Long, Long> finalCountMap = countMap;
+
         List<AppShelfSummary> summaries = shelves.stream()
-                .map(mobileBookMapper::toShelfSummaryFromEntity)
+                .map(shelf -> {
+                    long count = finalCountMap.getOrDefault(shelf.getId(), 0L);
+                    return mobileBookMapper.toShelfSummaryFromEntity(shelf, count);
+                })
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(summaries);
