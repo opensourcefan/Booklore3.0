@@ -73,7 +73,7 @@ spring:
       pool-name: BookloreHikariPool
       max-lifetime: 580000         # 9.6 minutes (avoid DB-side connection cuts)
       connection-test-query: SELECT 1
-      connection-timeout: 30000    # 30s to acquire a connection before timeout
+      connection-timeout: 10000    # 10s to acquire a connection before timeout
       maximum-pool-size: 20        # Higher ceiling for virtual-thread bursts
       minimum-idle: 5              # Keep warm connections ready
       idle-timeout: 300000         # 5 minutes before idle connections are closed
@@ -85,7 +85,7 @@ spring:
     properties:
       hibernate:
         query:
-          timeout: 30              # 30s max for any HQL/JPQL query
+          timeout: 10              # 10s max for any HQL/JPQL query
           fail_on_pagination_over_collection_fetch: true
         jdbc:
           time_zone: UTC
