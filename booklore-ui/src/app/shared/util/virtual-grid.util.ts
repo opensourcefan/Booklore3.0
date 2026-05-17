@@ -98,6 +98,13 @@ export function injectVirtualGrid(
   function setContainerWidth(width: number): void {
     if (resizeDebounceTimer) {
       clearTimeout(resizeDebounceTimer);
+      resizeDebounceTimer = null;
+    }
+    // Apply immediately on first paint to avoid a brief single-column flash.
+    // Subsequent resizes are debounced to avoid redundant recomputation.
+    if (containerWidth() <= 0) {
+      containerWidth.set(width);
+      return;
     }
     resizeDebounceTimer = setTimeout(() => {
       containerWidth.set(width);
