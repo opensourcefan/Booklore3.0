@@ -14,7 +14,7 @@ export class LoadingService {
     // The message is inserted via textContent so no HTML escaping is required and
     // no user-controlled or server-sourced content can be interpreted as markup.
     const icon = document.createElement('i');
-    icon.className = 'pi pi-spin pi-spinner';
+    icon.className = 'pi pi-spin pi-spinner bl-standalone-spinner';
     icon.style.cssText = 'font-size: 3rem; color: var(--primary-color);';
 
     const msgEl = document.createElement('p');

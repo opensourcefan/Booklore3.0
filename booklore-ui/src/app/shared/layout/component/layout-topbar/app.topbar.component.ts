@@ -602,7 +602,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get iconClass(): string {
-    if (this.progressHighlight) return 'pi-spinner spin';
+    if (this.progressHighlight) return 'pi-spinner';
     if (this.iconPulsating) return 'pi-wave-pulse';
     if (this.completedTaskCount > 0 || this.hasPendingBookdropFiles) return 'pi-bell';
     return 'pi-wave-pulse';

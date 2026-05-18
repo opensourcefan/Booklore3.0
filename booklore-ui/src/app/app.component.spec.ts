@@ -69,7 +69,7 @@ describe('AppComponent offline detection', () => {
     expect(loaderIndicator).not.toBeNull();
     expect(loaderIndicator?.getAttribute('aria-hidden')).toBe('true');
     expect(loaderImage).not.toBeNull();
-    expect(loaderImage?.getAttribute('src')).toBe('assets/images/loaders/loading3-transparent.gif');
+    expect(loaderImage?.getAttribute('src')).toBe('assets/images/loaders/loading3-transparent.webp');
   });
 
   it('should set offline to false when online event fires', () => {

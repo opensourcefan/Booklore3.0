@@ -4,14 +4,12 @@ import {Component, Input} from '@angular/core';
   selector: 'app-loading-indicator',
   standalone: true,
   template: `
-    <picture class="loading-indicator">
-      <source srcset="assets/images/loaders/loading3-transparent.webp" type="image/webp">
-      <img
-        src="assets/images/loaders/loading3-transparent.gif"
-        [attr.alt]="decorative ? '' : alt"
-        decoding="async"
-        loading="eager">
-    </picture>
+    <img
+      class="loading-indicator"
+      src="assets/images/loaders/loading3-transparent.webp"
+      [attr.alt]="decorative ? '' : alt"
+      decoding="async"
+      loading="eager">
   `,
   styles: [`
     :host {
@@ -19,8 +17,7 @@ import {Component, Input} from '@angular/core';
       line-height: 0;
     }
 
-    .loading-indicator,
-    .loading-indicator img {
+    .loading-indicator {
       display: block;
       width: 100%;
       height: 100%;
