@@ -74,8 +74,6 @@ public class BookMetadataService {
         BookEntity bookEntity = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
         Book book = bookMapper.toBook(bookEntity);
 
-        BookUtils.cleanFetchMetadataRequest(request);
-
         return Flux.fromIterable(request.getProviders())
                 .flatMap(provider ->
                     Mono.fromCallable(() -> fetchMetadataListFromAProvider(provider, book, request))
@@ -89,7 +87,24 @@ public class BookMetadataService {
     }
 
     public List<BookMetadata> fetchMetadataListFromAProvider(MetadataProvider provider, Book book, FetchMetadataRequest request) {
-        return getParser(provider).fetchMetadata(book, request);
+        FetchMetadataRequest requestCopy = copyAndCleanFetchMetadataRequest(request, provider);
+        return getParser(provider).fetchMetadata(book, requestCopy);
+    }
+
+    private FetchMetadataRequest copyAndCleanFetchMetadataRequest(FetchMetadataRequest request, MetadataProvider provider) {
+        FetchMetadataRequest requestCopy = FetchMetadataRequest.builder()
+                .bookId(request.getBookId())
+                .providers(request.getProviders())
+                .isbn(request.getIsbn())
+                .title(request.getTitle())
+                .author(request.getAuthor())
+                .asin(request.getAsin())
+                .sourceUrl(request.getSourceUrl())
+                .issueNumber(request.getIssueNumber())
+                .issueRange(request.getIssueRange())
+                .build();
+        BookUtils.cleanFetchMetadataRequest(requestCopy, provider);
+        return requestCopy;
     }
 
 

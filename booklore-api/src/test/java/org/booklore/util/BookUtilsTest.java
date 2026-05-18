@@ -1,6 +1,7 @@
 package org.booklore.util;
 
 import org.booklore.model.dto.request.FetchMetadataRequest;
+import org.booklore.model.enums.MetadataProvider;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -61,5 +62,17 @@ public class BookUtilsTest {
         req.setTitle("Stitched Terror #001");
         BookUtils.cleanFetchMetadataRequest(req);
         assertEquals("Stitched Terror #1", req.getTitle());
+
+        req = new FetchMetadataRequest();
+        req.setTitle("comicvine - test");
+        BookUtils.cleanFetchMetadataRequest(req, MetadataProvider.Comicvine);
+        assertEquals("comicvine test", req.getTitle());
+        assertNull(req.getAuthor());
+
+        req = new FetchMetadataRequest();
+        req.setTitle("comicvine-test");
+        BookUtils.cleanFetchMetadataRequest(req, MetadataProvider.Comicvine);
+        assertEquals("comicvine-test", req.getTitle());
+        assertNull(req.getAuthor());
     }
 }

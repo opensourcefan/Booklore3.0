@@ -1020,6 +1020,22 @@ class MetadataRefreshServiceTest {
 
             verify(parser).fetchTopMetadata(eq(book), argThat(req -> "9781234567890".equals(req.getIsbn())));
         }
+
+        @Test
+        void normalizesComicvineSpacedDashInProviderScopedFetchRequest() {
+            BookParser parser = mock(BookParser.class);
+            when(parserMap.get(MetadataProvider.Comicvine)).thenReturn(parser);
+            when(parser.fetchTopMetadata(any(), any())).thenReturn(null);
+
+            Book book = Book.builder().id(1L)
+                    .metadata(BookMetadata.builder().title("comicvine - test").build())
+                    .build();
+
+            service.fetchTopMetadataFromAProvider(MetadataProvider.Comicvine, book);
+
+            verify(parser).fetchTopMetadata(eq(book), argThat(req ->
+                    "comicvine test".equals(req.getTitle()) && req.getAuthor() == null));
+        }
     }
 
     @Nested

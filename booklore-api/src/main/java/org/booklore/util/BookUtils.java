@@ -3,6 +3,7 @@ package org.booklore.util;
 import org.booklore.model.entity.AuthorEntity;
 import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.model.dto.request.FetchMetadataRequest;
+import org.booklore.model.enums.MetadataProvider;
 import lombok.experimental.UtilityClass;
 
 import java.util.regex.Matcher;
@@ -15,6 +16,7 @@ public class BookUtils {
     private static final Pattern SPECIAL_CHARACTERS_PATTERN = Pattern.compile("[!@$%^&*_=|~`<>?/\"]");
     private static final Pattern DIACRITICAL_MARKS_PATTERN = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
     private static final Pattern PARENTHESIS_PATTERN = Pattern.compile("\\s?\\([^()]*\\)");
+    private static final Pattern SPACED_DASH_PATTERN = Pattern.compile("\\s+-\\s+");
 
     public static String buildSearchText(BookMetadataEntity e) {
         if (e == null) return null;
@@ -146,9 +148,15 @@ public class BookUtils {
     }
 
     public static void cleanFetchMetadataRequest(FetchMetadataRequest request) {
+        cleanFetchMetadataRequest(request, null);
+    }
+
+    public static void cleanFetchMetadataRequest(FetchMetadataRequest request, MetadataProvider provider) {
         if (request == null) return;
         String title = request.getTitle();
         if (title == null || title.isBlank()) return;
+
+        title = normalizeProviderSearchTitle(title, provider);
 
         // Remove any bracketed or parenthesized tags that are NOT 4-digit years
         Matcher nonYearTags = Pattern.compile("\\s*[\\(\\[](?!\\d{4}[\\)\\]])[^\\)\\]]*[\\)\\]]").matcher(title);
@@ -173,10 +181,17 @@ public class BookUtils {
         if (request.getAuthor() != null && !request.getAuthor().isBlank()) {
             Matcher m = Pattern.compile("^(.*?)\\s*[\\(\\[](\\d{4})[\\)\\]]\\s*$").matcher(title);
             if (m.matches()) {
-                request.setTitle(m.group(1).trim());
+                request.setTitle(normalizeProviderSearchTitle(m.group(1).trim(), provider));
             } else {
-                request.setTitle(title.trim());
+                request.setTitle(normalizeProviderSearchTitle(title.trim(), provider));
             }
+            return;
+        }
+
+        if (provider == MetadataProvider.Comicvine) {
+            Matcher m = Pattern.compile("^(.*?)\\s*[\\(\\[](\\d{4})[\\)\\]]\\s*$").matcher(title);
+            String normalizedTitle = m.matches() ? m.group(1).trim() : title.trim();
+            request.setTitle(normalizeProviderSearchTitle(normalizedTitle, provider));
             return;
         }
 
@@ -196,5 +211,18 @@ public class BookUtils {
         }
 
         request.setTitle(title.trim());
+    }
+
+    private static String normalizeProviderSearchTitle(String title, MetadataProvider provider) {
+        if (title == null) {
+            return null;
+        }
+
+        String normalizedTitle = title;
+        if (provider == MetadataProvider.Comicvine) {
+            normalizedTitle = SPACED_DASH_PATTERN.matcher(normalizedTitle).replaceAll(" ");
+        }
+
+        return WHITESPACE_PATTERN.matcher(normalizedTitle).replaceAll(" ").trim();
     }
 }

@@ -656,9 +656,10 @@ public class MetadataRefreshService {
 
     private BookMetadata fetchMetadataFromProvider(MetadataProvider provider, Book book, FetchMetadataRequest request) {
         BookParser parser = getParser(provider);
+        FetchMetadataRequest requestCopy = copyAndCleanFetchMetadataRequest(request, provider);
 
         try {
-            BookMetadata topMetadata = parser.fetchTopMetadata(book, request);
+            BookMetadata topMetadata = parser.fetchTopMetadata(book, requestCopy);
             if (topMetadata != null) {
                 return topMetadata;
             }
@@ -672,7 +673,7 @@ public class MetadataRefreshService {
         }
 
         try {
-            List<BookMetadata> metadataList = parser.fetchMetadata(book, request);
+            List<BookMetadata> metadataList = parser.fetchMetadata(book, requestCopy);
             if (metadataList == null || metadataList.isEmpty()) {
                 return null;
             }
@@ -684,6 +685,22 @@ public class MetadataRefreshService {
                     provider, getBookIdentifier(book), e.getMessage());
             return null;
         }
+    }
+
+    private FetchMetadataRequest copyAndCleanFetchMetadataRequest(FetchMetadataRequest request, MetadataProvider provider) {
+        FetchMetadataRequest requestCopy = FetchMetadataRequest.builder()
+                .bookId(request.getBookId())
+                .providers(request.getProviders())
+                .isbn(request.getIsbn())
+                .title(request.getTitle())
+                .author(request.getAuthor())
+                .asin(request.getAsin())
+                .sourceUrl(request.getSourceUrl())
+                .issueNumber(request.getIssueNumber())
+                .issueRange(request.getIssueRange())
+                .build();
+        BookUtils.cleanFetchMetadataRequest(requestCopy, provider);
+        return requestCopy;
     }
 
     public BookMetadata fetchTopMetadataFromAProvider(MetadataProvider provider, Book book) {
@@ -752,7 +769,6 @@ public class MetadataRefreshService {
                     .build();
         }
 
-        BookUtils.cleanFetchMetadataRequest(request);
         return request;
     }
 

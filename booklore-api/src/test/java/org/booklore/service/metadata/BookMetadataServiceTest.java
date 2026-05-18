@@ -84,12 +84,31 @@ class BookMetadataServiceTest {
             Book book = Book.builder().build();
             FetchMetadataRequest request = FetchMetadataRequest.builder().build();
             List<BookMetadata> expected = List.of(BookMetadata.builder().title("Test").build());
-            when(parser.fetchMetadata(book, request)).thenReturn(expected);
+                        when(parser.fetchMetadata(eq(book), any())).thenReturn(expected);
 
             List<BookMetadata> result = service.fetchMetadataListFromAProvider(MetadataProvider.Google, book, request);
 
             assertThat(result).isEqualTo(expected);
         }
+
+                @Test
+                void normalizesComicvineSpacedDashWithoutMutatingOriginalRequest() {
+                        BookParser parser = mock(BookParser.class);
+                        parserMap.put(MetadataProvider.Comicvine, parser);
+                        Book book = Book.builder().build();
+                        FetchMetadataRequest request = FetchMetadataRequest.builder()
+                                        .title("comicvine - test")
+                                        .build();
+                        when(parser.fetchMetadata(eq(book), any())).thenReturn(List.of());
+
+                        service.fetchMetadataListFromAProvider(MetadataProvider.Comicvine, book, request);
+
+                        verify(parser).fetchMetadata(eq(book), argThat(cleanedRequest ->
+                                        "comicvine test".equals(cleanedRequest.getTitle())
+                                                        && cleanedRequest.getAuthor() == null));
+                        assertThat(request.getTitle()).isEqualTo("comicvine - test");
+                        assertThat(request.getAuthor()).isNull();
+                }
 
         @Test
         void throwsWhenProviderNotInMap() {
