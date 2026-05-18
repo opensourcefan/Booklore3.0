@@ -4,6 +4,38 @@ import {BookBrowserComponent, EntityType} from './book-browser.component';
 import {SortDirection} from '../../model/sort.model';
 
 describe('BookBrowserComponent route reuse lifecycle', () => {
+  it('does not reapply effective sort before the browser context is initialized', () => {
+    const setSortCriteria = vi.fn();
+    const getEffectiveSortCriteria = vi.fn();
+    const areSortCriteriaEqual = vi.fn();
+    const applySortCriteria = vi.fn();
+
+    const componentLike = {
+      entityType: undefined,
+      currentViewMode: undefined,
+      baseSortCriteria: [],
+      bookSorter: {
+        selectedSortCriteria: [{field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING}],
+        setSortCriteria,
+      },
+      lastAppliedSortCriteria: [],
+      getEffectiveSortCriteria,
+      areSortCriteriaEqual,
+      applySortCriteria,
+    };
+
+    const applyEffectiveSortCriteria = (BookBrowserComponent.prototype as unknown as {
+      applyEffectiveSortCriteria: () => void;
+    }).applyEffectiveSortCriteria;
+
+    applyEffectiveSortCriteria.call(componentLike as never);
+
+    expect(getEffectiveSortCriteria).not.toHaveBeenCalled();
+    expect(areSortCriteriaEqual).not.toHaveBeenCalled();
+    expect(setSortCriteria).not.toHaveBeenCalled();
+    expect(applySortCriteria).not.toHaveBeenCalled();
+  });
+
   it('marks the route detached and unsubscribes from shared paged state updates', () => {
     const unsubscribe = vi.fn();
     const componentLike = {

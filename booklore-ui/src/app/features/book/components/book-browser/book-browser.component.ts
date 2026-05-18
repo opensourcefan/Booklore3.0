@@ -1614,6 +1614,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private applyEffectiveSortCriteria(): void {
+    if (this.entityType === undefined || !this.currentViewMode) {
+      return;
+    }
+
     const baseSortCriteria = this.baseSortCriteria.length > 0 ? this.baseSortCriteria : this.bookSorter.selectedSortCriteria;
     const effectiveSortCriteria = this.getEffectiveSortCriteria(baseSortCriteria);
 
