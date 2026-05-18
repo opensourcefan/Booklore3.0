@@ -12,7 +12,7 @@
   @if (isLoading) {
     <div class="loader-overlay">
       <div class="loader-content">
-        <div class="spinner"></div>
+        <app-loading-indicator class="loader-indicator" [decorative]="true"></app-loading-indicator>
         <p class="loader-text">{{ 'readerEbook.reader.loadingBook' | transloco }}</p>
       </div>
     </div>

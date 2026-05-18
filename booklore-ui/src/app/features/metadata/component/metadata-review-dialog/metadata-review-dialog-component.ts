@@ -6,7 +6,6 @@ import {BookService} from '../../../book/service/book.service';
 import {Book} from '../../../book/model/book.model';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {finalize, map, switchMap, tap} from 'rxjs/operators';
-import {ProgressSpinner} from 'primeng/progressspinner';
 import {Button} from 'primeng/button';
 import {ProgressBar} from 'primeng/progressbar';
 import {Tooltip} from 'primeng/tooltip';
@@ -15,6 +14,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MetadataPickerComponent} from '../book-metadata-center/metadata-picker/metadata-picker.component';
 import {BookMetadataManageService} from '../../../book/service/book-metadata-manage.service';
 import {NotificationEventService} from '../../../../shared/websocket/notification-event.service';
+import {LoadingIndicatorComponent} from '../../../../shared/components/loading-indicator/loading-indicator.component';
 
 const METADATA_FOLLOW_UP_TAG = 'Metadata Follow-Up Req';
 
@@ -23,7 +23,7 @@ const METADATA_FOLLOW_UP_TAG = 'Metadata Follow-Up Req';
   standalone: true,
   templateUrl: './metadata-review-dialog-component.html',
   styleUrls: ['./metadata-review-dialog-component.scss'],
-  imports: [CommonModule, MetadataPickerComponent, ProgressSpinner, Button, ProgressBar, Tooltip],
+  imports: [CommonModule, MetadataPickerComponent, LoadingIndicatorComponent, Button, ProgressBar, Tooltip],
 })
 export class MetadataReviewDialogComponent implements OnInit {
 

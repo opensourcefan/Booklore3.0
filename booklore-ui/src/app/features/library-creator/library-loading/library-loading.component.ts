@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {TranslocoDirective} from '@jsverse/transloco';
+import {LoadingIndicatorComponent} from '../../../shared/components/loading-indicator/loading-indicator.component';
 
 @Component({
   selector: 'app-library-loading',
   standalone: true,
-  imports: [CommonModule, TranslocoDirective],
+  imports: [CommonModule, TranslocoDirective, LoadingIndicatorComponent],
   templateUrl: './library-loading.component.html',
   styleUrl: './library-loading.component.scss'
 })

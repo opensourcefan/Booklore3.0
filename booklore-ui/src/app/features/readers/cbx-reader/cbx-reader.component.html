@@ -88,7 +88,7 @@
     @if (isAiPanelDetectionWorking) {
       <div class="ai-scan-overlay" aria-live="polite">
         <div class="ai-scan-card">
-          <div class="ai-scan-spinner"></div>
+          <app-loading-indicator class="ai-scan-loading-indicator" [decorative]="true" [width]="44" [height]="34"></app-loading-indicator>
           <div class="ai-scan-title">{{ 'readerCbx.reader.aiScanTitle' | transloco }}</div>
           <div class="ai-scan-status">{{ aiScanStatusText || ('readerCbx.reader.aiScanStatusRunning' | transloco) }}</div>
         </div>
@@ -204,7 +204,7 @@
     } @else {
       <div class="loader-overlay">
         <div class="loader-content">
-          <div class="spinner"></div>
+          <app-loading-indicator class="loader-indicator" [decorative]="true"></app-loading-indicator>
           <p class="loader-text">{{ 'readerCbx.reader.loadingBook' | transloco }}</p>
         </div>
       </div>

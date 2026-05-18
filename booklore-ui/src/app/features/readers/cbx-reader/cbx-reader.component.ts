@@ -32,6 +32,7 @@ import {ComicPanelFlowService} from '../../../shared/service/comic-panel-flow.se
 import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
+import {LoadingIndicatorComponent} from '../../../shared/components/loading-indicator/loading-indicator.component';
 
 interface CbxPanelRegion {
   x: number;
@@ -70,6 +71,7 @@ type CbxJoystickAxisIntent = 'none' | 'horizontal' | 'vertical';
     ProgressSpinner,
     FormsModule,
     TranslocoPipe,
+    LoadingIndicatorComponent,
     CbxHeaderComponent,
     CbxSidebarComponent,
     CbxFooterComponent,

@@ -26,9 +26,8 @@
     border-radius: 0 0 10px 10px;
   }
 
-  .spinner {
-    width: 2rem;
-    height: 2rem;
+  .metadata-review-loading-indicator {
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.14));
   }
 }
 

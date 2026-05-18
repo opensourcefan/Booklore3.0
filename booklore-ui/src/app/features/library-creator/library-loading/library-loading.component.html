@@ -32,9 +32,7 @@
 
         @if (!isComplete) {
           <div class="loader-animation">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
+            <app-loading-indicator class="library-loader-indicator" [decorative]="true"></app-loading-indicator>
           </div>
         }
       </div>

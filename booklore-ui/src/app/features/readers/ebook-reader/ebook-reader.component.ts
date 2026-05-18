@@ -33,6 +33,7 @@ import {NoteDialogData, NoteDialogResult, ReaderNoteDialogComponent} from './dia
 import {EbookShortcutsHelpComponent} from './dialogs/shortcuts-help.component';
 import {TranslocoPipe} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
+import {LoadingIndicatorComponent} from '../../../shared/components/loading-indicator/loading-indicator.component';
 
 type EbookMobileSurface =
   | 'sidebar'
@@ -58,7 +59,8 @@ type EbookMobileSurface =
     TextSelectionPopupComponent,
     ReaderNoteDialogComponent,
     EbookShortcutsHelpComponent,
-    TranslocoPipe
+    TranslocoPipe,
+    LoadingIndicatorComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
