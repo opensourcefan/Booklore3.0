@@ -22,13 +22,14 @@ import {AuthService} from './shared/service/auth.service';
 import {AiPanelScanProgressPayload} from './shared/model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progress.service';
 import {PagedGridPilotService} from './features/book/service/paged-grid-pilot.service';
+import {LoadingIndicatorComponent} from './shared/components/loading-indicator/loading-indicator.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   standalone: true,
-  imports: [ConfirmDialog, Toast, RouterOutlet, TranslocoDirective, TranslocoPipe]
+  imports: [ConfirmDialog, Toast, RouterOutlet, TranslocoDirective, TranslocoPipe, LoadingIndicatorComponent]
 })
 export class AppComponent implements OnInit, OnDestroy {
 

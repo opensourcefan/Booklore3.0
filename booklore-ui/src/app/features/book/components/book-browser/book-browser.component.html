@@ -629,12 +629,7 @@
       <div>
         @if (!bookState?.loaded && !bookState?.error) {
           <div class="book-browser-loading-state">
-            <p-progressSpinner
-              class="book-browser-loading-spinner"
-              strokeWidth="3"
-              [style]="{'width': '60px', 'height': '60px'}"
-              ariaLabel="Loading books">
-            </p-progressSpinner>
+            <app-loading-indicator class="book-browser-loading-spinner" alt="Loading books"></app-loading-indicator>
           </div>
         }
         <div class="book-state-wrapper">

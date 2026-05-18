@@ -63,8 +63,11 @@ describe('AppComponent offline detection', () => {
   });
 
   it('should render the animated splash loader asset while initializing', () => {
-    const loaderImage = fixture.nativeElement.querySelector('.loader') as HTMLImageElement | null;
+    const loaderIndicator = fixture.nativeElement.querySelector('app-loading-indicator') as HTMLElement | null;
+    const loaderImage = loaderIndicator?.querySelector('img') as HTMLImageElement | null;
 
+    expect(loaderIndicator).not.toBeNull();
+    expect(loaderIndicator?.getAttribute('aria-hidden')).toBe('true');
     expect(loaderImage).not.toBeNull();
     expect(loaderImage?.getAttribute('src')).toBe('assets/images/loaders/loading3-transparent.gif');
   });

@@ -32,7 +32,6 @@ import {animate, style, transition, trigger} from '@angular/animations';
 import {Button} from 'primeng/button';
 import {AsyncPipe, NgClass} from '@angular/common';
 import {BookCardComponent} from './book-card/book-card.component';
-import {ProgressSpinner} from 'primeng/progressspinner';
 import {Menu} from 'primeng/menu';
 import {InputText} from 'primeng/inputtext';
 import {FormsModule} from '@angular/forms';
@@ -77,6 +76,7 @@ import {PagedBookBrowserStateService} from '../../service/paged-book-browser-sta
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ResizableDividerDirective} from '../../../../shared/directives/resizable-divider.directive';
 import {CoverPreviewComponent} from '../../../../shared/components/cover-preview/cover-preview.component';
+import {LoadingIndicatorComponent} from '../../../../shared/components/loading-indicator/loading-indicator.component';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {DirectoryFilterService} from '../../service/directory-filter.service';
 import {DirectoryPanelService} from '../../service/directory-panel.service';
@@ -105,10 +105,10 @@ export enum EntityType {
   templateUrl: './book-browser.component.html',
   styleUrls: ['./book-browser.component.scss'],
   imports: [
-    Button, BookCardComponent, AsyncPipe, ProgressSpinner, Menu, InputText, FormsModule,
+    Button, BookCardComponent, AsyncPipe, Menu, InputText, FormsModule,
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, Popover,
     Checkbox, Slider, Divider, MultiSelect, TieredMenu, MultiSortPopoverComponent, TranslocoDirective,
-    ResizableDividerDirective, CoverPreviewComponent,
+    ResizableDividerDirective, CoverPreviewComponent, LoadingIndicatorComponent,
   ],
   providers: [SeriesCollapseFilter],
   animations: [
