@@ -249,7 +249,14 @@ describe('PagedGridPilotService', () => {
       searchTerm: '',
     };
 
+    const loadedStates: number[][] = [];
     const bookState$ = service.connect(context, () => of(legacyState([createBook(90, 'Warm 90'), createBook(91, 'Warm 91')])));
+    const subscription = bookState$
+      .pipe(filter(state => state.loaded))
+      .subscribe(state => {
+        loadedStates.push((state.books ?? []).map(book => book.id));
+      });
+
     const warmState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
     expect(warmState.books?.map(book => book.id)).toEqual([90, 91]);
 
@@ -257,11 +264,22 @@ describe('PagedGridPilotService', () => {
     const reconnectedState = await firstValueFrom(sameQueryState$);
     expect(reconnectedState.loaded).toBe(true);
     expect(reconnectedState.books?.map(book => book.id)).toEqual([90, 91]);
+    expect(loadedStates).toEqual([[90, 91]]);
     expect(getBooksPaged).toHaveBeenCalledTimes(1);
+    subscription.unsubscribe();
   });
 
   it('refetches page zero after the All Books cache is invalidated', async () => {
     const service = createService();
+    const refreshedResponse$ = new Subject<{
+      content: Book[];
+      page: number;
+      size: number;
+      totalElements: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrevious: boolean;
+    }>();
 
     getBooksPaged
       .mockReturnValueOnce(of({
@@ -273,15 +291,7 @@ describe('PagedGridPilotService', () => {
         hasNext: false,
         hasPrevious: false,
       }))
-      .mockReturnValueOnce(of({
-        content: [createBook(10), createBook(11)],
-        page: 0,
-        size: 80,
-        totalElements: 2,
-        totalPages: 1,
-        hasNext: false,
-        hasPrevious: false,
-      }));
+      .mockReturnValueOnce(refreshedResponse$);
 
     const context = {
       entity: 'ALL_BOOKS' as const,
@@ -299,11 +309,33 @@ describe('PagedGridPilotService', () => {
     const initialState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
     expect(initialState.books?.map(book => book.id)).toEqual([1, 2]);
 
+    const postInvalidationStates: {loaded: boolean; ids: number[] | null}[] = [];
+    const subscription = bookState$.subscribe(state => {
+      postInvalidationStates.push({
+        loaded: state.loaded,
+        ids: state.books?.map(book => book.id) ?? null,
+      });
+    });
+
     service.invalidateAllBooksCache();
+
+    expect(postInvalidationStates.every(state => state.loaded && state.ids !== null)).toBe(true);
+
+    refreshedResponse$.next({
+      content: [createBook(10), createBook(11)],
+      page: 0,
+      size: 80,
+      totalElements: 2,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    });
+    refreshedResponse$.complete();
 
     const refreshedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && state.books?.[0]?.id === 10)));
     expect(refreshedState.books?.map(book => book.id)).toEqual([10, 11]);
     expect(getBooksPaged).toHaveBeenCalledTimes(2);
+    subscription.unsubscribe();
   });
 
   it('surfaces explicit legacy status for legacy-only routes', () => {

@@ -214,11 +214,7 @@ export class PagedGridPilotService {
     this.requestSubscription?.unsubscribe();
     this.requestSubscription = null;
 
-    this.bookStateSubject.next({
-      books: null,
-      loaded: false,
-      error: null,
-    });
+    this.seedFromLegacyState(this.activeQuery);
 
     this.fetchPage(this.activeQuery, 0);
   }
@@ -455,11 +451,17 @@ export class PagedGridPilotService {
         return;
       }
 
-      this.bookStateSubject.next({
+      const nextState: BookState = {
         books: warmBooks,
         loaded: true,
         error: null,
-      });
+      };
+
+      if (this.isEquivalentBookState(this.bookStateSubject.getValue(), nextState)) {
+        return;
+      }
+
+      this.bookStateSubject.next(nextState);
     });
   }
 
