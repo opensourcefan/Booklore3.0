@@ -1,6 +1,6 @@
 import {Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {LibraryService} from '../../../book/service/library.service';
-import {Observable} from 'rxjs';
+import {combineLatest, Observable} from 'rxjs';
 import {map, shareReplay, switchMap} from 'rxjs/operators';
 import {Button} from 'primeng/button';
 import {AsyncPipe} from '@angular/common';
@@ -70,6 +70,30 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
 
   bookState$ = this.bookService.bookState$;
   dashboardConfig$ = this.dashboardConfigService.config$;
+  viewModel$ = combineLatest({
+    bookState: this.bookState$,
+    userState: this.userService.userState$,
+    libraryState: this.libraryService.libraryState$,
+    config: this.dashboardConfig$,
+    shelvesState: this.magicShelfService.shelvesState$
+  }).pipe(
+    map(({bookState, userState, libraryState, config, shelvesState}) => {
+      const enabledScrollers = this.getEnabledScrollers(config);
+      const requiresMagicShelves = enabledScrollers.some(scroller => scroller.type === ScrollerType.MAGIC_SHELF);
+
+      return {
+        config,
+        enabledScrollers,
+        userState,
+        librariesEmpty: libraryState.loaded && (libraryState.libraries?.length ?? 0) === 0,
+        ready: bookState.loaded
+          && userState.loaded
+          && libraryState.loaded
+          && (!requiresMagicShelves || shelvesState.loaded),
+      };
+    }),
+    shareReplay(1)
+  );
 
   private scrollerBooksCache = new Map<string, Observable<Book[]>>();
   private resizeObserver?: ResizeObserver;
@@ -79,10 +103,6 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
   workspaceWidth = 1200;
   gridColumns = MAX_DASHBOARD_GRID_COLUMNS;
 
-  isLibrariesEmpty$: Observable<boolean> = this.libraryService.libraryState$.pipe(
-    map(state => !state.libraries || state.libraries.length === 0)
-  );
-
   ScrollerType = ScrollerType;
 
   ngOnInit(): void {
@@ -91,14 +111,8 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
     this.dashboardConfig$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(config => {
+        this.invalidateScrollerCacheForConfigChange(config);
         this.currentConfig = cloneDashboardConfig(config);
-        this.scrollerBooksCache.clear();
-      });
-
-    this.magicShelfService.shelvesState$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.scrollerBooksCache.clear();
       });
   }
 
@@ -459,6 +473,32 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled.slice(0, maxItems);
+  }
+
+  private invalidateScrollerCacheForConfigChange(nextConfig: DashboardConfig): void {
+    const nextScrollersById = new Map(nextConfig.scrollers.map(scroller => [scroller.id, scroller]));
+
+    for (const currentScroller of this.currentConfig.scrollers) {
+      const nextScroller = nextScrollersById.get(currentScroller.id);
+
+      if (!nextScroller) {
+        this.scrollerBooksCache.delete(currentScroller.id);
+        continue;
+      }
+
+      if (this.didScrollerBookSourceChange(currentScroller, nextScroller)) {
+        this.scrollerBooksCache.delete(currentScroller.id);
+      }
+    }
+  }
+
+  private didScrollerBookSourceChange(currentScroller: ScrollerConfig, nextScroller: ScrollerConfig): boolean {
+    return currentScroller.type !== nextScroller.type
+      || currentScroller.maxItems !== nextScroller.maxItems
+      || (currentScroller.libraryId ?? null) !== (nextScroller.libraryId ?? null)
+      || (currentScroller.magicShelfId ?? null) !== (nextScroller.magicShelfId ?? null)
+      || (currentScroller.sortField ?? null) !== (nextScroller.sortField ?? null)
+      || (currentScroller.sortDirection ?? null) !== (nextScroller.sortDirection ?? null);
   }
 
   openDashboardSettings(): void {

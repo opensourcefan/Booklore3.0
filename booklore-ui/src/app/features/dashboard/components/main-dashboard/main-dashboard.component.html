@@ -1,64 +1,62 @@
 <ng-container *transloco="let t; prefix: 'dashboard.main'">
-  <div class="dashboard-container">
-    @if ((bookState$ | async)?.loaded === false) {
-      <div class="loading-state">
-        <p-progressSpinner
-          class="spinner center-spinner"
-          [style]="{'width': '60px', 'height': '60px'}"
-          strokeWidth="3"
-          fill="transparent"
-          animationDuration="1.5s">
-        </p-progressSpinner>
-      </div>
-    }
-    @if ((bookState$ | async)?.loaded === true) {
-      <div class="dashboard">
-        <div class="dashboard-inner">
-          @if (isLibrariesEmpty$ | async) {
-            <div class="dashboard-no-library">
-              @if ((userService.userState$ | async)?.user?.permissions; as permissions) {
-                <div>
-                  @if (permissions.admin || permissions.canManageLibrary) {
-                    <div>
-                      <h1 class="no-library-header">
-                        {{ t('welcomeTitle') }}<br>
-                        {{ t('welcomeSubtitle') }}
-                      </h1>
-                      <p class="welcome-description">
-                        {{ t('welcomeDescription') }}
-                      </p>
-                      <p-button
-                        [label]="t('createLibrary')"
-                        icon="pi pi-plus"
-                        class="p-button-rounded p-button-outlined"
-                        (click)="createNewLibrary()">
-                      </p-button>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          } @else {
-            @if (dashboardConfig$ | async; as config) {
+  @if (viewModel$ | async; as vm) {
+    <div class="dashboard-container">
+      @if (!vm.ready) {
+        <div class="loading-state">
+          <p-progressSpinner
+            class="spinner center-spinner"
+            [style]="{'width': '60px', 'height': '60px'}"
+            strokeWidth="3"
+            fill="transparent"
+            animationDuration="1.5s">
+          </p-progressSpinner>
+        </div>
+      } @else {
+        <div class="dashboard">
+          <div class="dashboard-inner">
+            @if (vm.librariesEmpty) {
+              <div class="dashboard-no-library">
+                @if (vm.userState.user?.permissions; as permissions) {
+                  <div>
+                    @if (permissions.admin || permissions.canManageLibrary) {
+                      <div>
+                        <h1 class="no-library-header">
+                          {{ t('welcomeTitle') }}<br>
+                          {{ t('welcomeSubtitle') }}
+                        </h1>
+                        <p class="welcome-description">
+                          {{ t('welcomeDescription') }}
+                        </p>
+                        <p-button
+                          [label]="t('createLibrary')"
+                          icon="pi pi-plus"
+                          class="p-button-rounded p-button-outlined"
+                          (click)="createNewLibrary()">
+                        </p-button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
               <div class="dashboard-workspace">
-                @let enabledScrollers = getEnabledScrollers(config);
                 <div
                   #dashboardGrid
                   class="dashboard-grid"
-                  [class.dashboard-grid--unlocked]="!config.layoutLocked"
+                  [class.dashboard-grid--unlocked]="!vm.config.layoutLocked"
                   [style.--dashboard-columns]="gridColumns"
                   cdkDropList
                   cdkDropListOrientation="mixed"
-                  [cdkDropListData]="enabledScrollers"
-                  [cdkDropListDisabled]="config.layoutLocked"
-                  (cdkDropListDropped)="onDashboardDrop($event, config)">
-                  @for (scroller of enabledScrollers; track scroller.id) {
+                  [cdkDropListData]="vm.enabledScrollers"
+                  [cdkDropListDisabled]="vm.config.layoutLocked"
+                  (cdkDropListDropped)="onDashboardDrop($event, vm.config)">
+                  @for (scroller of vm.enabledScrollers; track scroller.id) {
                     <div
                       class="dashboard-panel"
                       cdkDrag
-                      [cdkDragDisabled]="config.layoutLocked"
+                      [cdkDragDisabled]="vm.config.layoutLocked"
                       [style.grid-column]="'span ' + getScrollerColumnSpan(scroller)">
-                      @if (!config.layoutLocked) {
+                      @if (!vm.config.layoutLocked) {
                         <div class="dashboard-panel-handle" cdkDragHandle [attr.aria-label]="t('dragPanel')">
                           <i class="pi pi-arrows-alt"></i>
                         </div>
@@ -76,9 +74,9 @@
                 </div>
               </div>
             }
-          }
+          </div>
         </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  }
 </ng-container>
