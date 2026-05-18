@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, filter, Observable, Subscription, take } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Book } from '../model/book.model';
 import { BookState } from '../model/state/book-state.model';
 import { SortDirection, SortOption } from '../model/sort.model';
@@ -76,7 +76,6 @@ export class PagedGridPilotService {
   private pagedActive = false;
   private requestSubscription: Subscription | null = null;
   private legacySubscription: Subscription | null = null;
-  private warmStartSubscription: Subscription | null = null;
 
   connect(context: PagedGridPilotContext, legacyFactory: () => Observable<BookState>): Observable<BookState> {
     const blockers = this.getEligibilityBlockers(context);
@@ -129,7 +128,6 @@ export class PagedGridPilotService {
         this.emitCachedState(this.activeQuery);
         this.ensurePrefetchedRunway(this.activeQuery);
       } else {
-        this.seedFromLegacyState(this.activeQuery);
         this.fetchPage(this.activeQuery, 0);
       }
       return this.bookState$;
@@ -162,7 +160,6 @@ export class PagedGridPilotService {
 
     const cachedPages = this.getCachedPages(this.activeQuery.requestKey);
     if (cachedPages.length === 0) {
-      this.seedFromLegacyState(this.activeQuery);
       this.fetchPage(this.activeQuery, 0);
       return this.bookState$;
     }
@@ -188,7 +185,6 @@ export class PagedGridPilotService {
 
     const cachedPages = this.getCachedPages(this.activeQuery.requestKey);
     if (cachedPages.length === 0) {
-      this.seedFromLegacyState(this.activeQuery);
       this.fetchPage(this.activeQuery, 0);
       return;
     }
@@ -213,8 +209,6 @@ export class PagedGridPilotService {
 
     this.requestSubscription?.unsubscribe();
     this.requestSubscription = null;
-
-    this.seedFromLegacyState(this.activeQuery);
 
     this.fetchPage(this.activeQuery, 0);
   }
@@ -426,45 +420,6 @@ export class PagedGridPilotService {
     this.requestSubscription = requestSubscription.closed ? null : requestSubscription;
   }
 
-  private seedFromLegacyState(query: ActivePagedQuery): void {
-    if (!this.canWarmStart(query)) {
-      return;
-    }
-
-    this.warmStartSubscription?.unsubscribe();
-    this.warmStartSubscription = query.legacyFactory().pipe(
-      filter(state => state.loaded && !state.error),
-      take(1),
-    ).subscribe(state => {
-      this.warmStartSubscription = null;
-
-      if (!this.activeQuery || this.activeQuery.signature !== query.signature) {
-        return;
-      }
-
-      if (this.getCachedPages(query.requestKey).length > 0) {
-        return;
-      }
-
-      const warmBooks = state.books?.slice(0, query.params.size ?? PagedGridPilotService.PAGE_SIZE) ?? [];
-      if (warmBooks.length === 0) {
-        return;
-      }
-
-      const nextState: BookState = {
-        books: warmBooks,
-        loaded: true,
-        error: null,
-      };
-
-      if (this.isEquivalentBookState(this.bookStateSubject.getValue(), nextState)) {
-        return;
-      }
-
-      this.bookStateSubject.next(nextState);
-    });
-  }
-
   private ensurePrefetchedRunway(query: ActivePagedQuery): void {
     if (this.requestSubscription || !this.activeQuery || this.activeQuery.signature !== query.signature) {
       return;
@@ -564,11 +519,6 @@ export class PagedGridPilotService {
     });
   }
 
-  private canWarmStart(_query: ActivePagedQuery): boolean {
-    const currentState = this.bookService.getCurrentBookState();
-    return currentState.loaded && !currentState.error && Array.isArray(currentState.books);
-  }
-
   private isEquivalentBookState(currentState: BookState, nextState: BookState): boolean {
     if (currentState.loaded !== nextState.loaded || currentState.error !== nextState.error) {
       return false;
@@ -628,7 +578,5 @@ export class PagedGridPilotService {
     this.requestSubscription = null;
     this.legacySubscription?.unsubscribe();
     this.legacySubscription = null;
-    this.warmStartSubscription?.unsubscribe();
-    this.warmStartSubscription = null;
   }
 }
