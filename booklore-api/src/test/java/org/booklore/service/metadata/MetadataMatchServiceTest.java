@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -386,13 +387,16 @@ class MetadataMatchServiceTest {
             BookEntity book1 = bookWith(BookMetadataEntity.builder().title("Book 1").build());
             BookEntity book2 = bookWith(BookMetadataEntity.builder().build());
 
-            when(bookQueryService.getAllFullBookEntities()).thenReturn(List.of(book1, book2));
+            when(bookQueryService.getAllFullBookEntitiesBatch(PageRequest.of(0, 500))).thenReturn(List.of(book1, book2));
+            when(bookQueryService.getAllFullBookEntitiesBatch(PageRequest.of(1, 500))).thenReturn(List.of());
 
-            service.recalculateAllMatchScores();
+            int processed = service.recalculateAllMatchScores();
 
+            assertThat(processed).isEqualTo(2);
             assertThat(book1.getMetadataMatchScore()).isGreaterThan(0f);
             assertThat(book2.getMetadataMatchScore()).isEqualTo(0f);
             verify(bookQueryService).saveAll(List.of(book1, book2));
+            verify(bookQueryService, never()).getAllFullBookEntities();
         }
     }
 }

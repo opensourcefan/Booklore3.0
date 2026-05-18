@@ -11,10 +11,10 @@ import org.booklore.repository.BookRepository;
 import org.booklore.service.book.BookQueryService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 @Service
 public class BookRecommendationService {
 
+    private record ScoredCandidate(Long bookId, double score, Set<String> authorNames) {}
+
     private final BookSimilarityService similarityService;
     private final BookRepository bookRepository;
     private final BookQueryService bookQueryService;
@@ -30,6 +32,7 @@ public class BookRecommendationService {
     private final AuthenticationService authenticationService;
 
     private static final int MAX_BOOKS_PER_AUTHOR = 3;
+    private static final int FULL_BOOK_BATCH_SIZE = 500;
 
     public List<BookRecommendation> getRecommendations(Long bookId, int limit) {
         BookEntity book = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
@@ -89,44 +92,83 @@ public class BookRecommendationService {
     protected List<BookRecommendation> findSimilarBooks(Long bookId, int limit) {
         BookEntity target = bookRepository.findById(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
 
-        List<BookEntity> candidates = bookQueryService.getAllFullBookEntities();
-
         String targetSeriesName = Optional.ofNullable(target.getMetadata())
                 .map(BookMetadataEntity::getSeriesName)
                 .map(String::toLowerCase)
                 .orElse(null);
 
-        List<SimpleEntry<BookEntity, Double>> scored = candidates.stream()
-                .filter(candidate -> !candidate.getId().equals(bookId))
-                .filter(candidate -> {
-                    String candidateSeriesName = Optional.ofNullable(candidate.getMetadata())
-                            .map(BookMetadataEntity::getSeriesName)
-                            .map(String::toLowerCase)
-                            .orElse(null);
-                    return targetSeriesName == null || !targetSeriesName.equals(candidateSeriesName);
-                })
-                .map(candidate -> new SimpleEntry<>(candidate, similarityService.calculateSimilarity(target, candidate)))
-                .filter(entry -> entry.getValue() > 0.0)
-                .sorted(Map.Entry.<BookEntity, Double>comparingByValue().reversed())
-                .toList();
+        List<ScoredCandidate> scoredCandidates = new ArrayList<>();
+        for (int batchPage = 0; ; batchPage++) {
+            List<BookEntity> candidates = bookQueryService.getAllFullBookEntitiesBatch(PageRequest.of(batchPage, FULL_BOOK_BATCH_SIZE));
+            if (candidates.isEmpty()) {
+                break;
+            }
 
-        Map<String, Integer> authorCounts = new HashMap<>();
-        List<BookRecommendation> recommendations = new ArrayList<>();
+            for (BookEntity candidate : candidates) {
+                if (candidate.getId().equals(bookId)) {
+                    continue;
+                }
 
-        for (SimpleEntry<BookEntity, Double> entry : scored) {
-            if (recommendations.size() >= limit) break;
-            BookEntity book = entry.getKey();
-            Set<String> authorNames = getAuthorNames(book);
-            boolean allowed = authorNames.stream()
-                    .allMatch(name -> authorCounts.getOrDefault(name, 0) < MAX_BOOKS_PER_AUTHOR);
-            if (allowed) {
-                Book dto = bookMapper.toBookWithDescription(book, false);
-                recommendations.add(new BookRecommendation(dto, entry.getValue()));
-                authorNames.forEach(name -> authorCounts.merge(name, 1, Integer::sum));
+                String candidateSeriesName = Optional.ofNullable(candidate.getMetadata())
+                        .map(BookMetadataEntity::getSeriesName)
+                        .map(String::toLowerCase)
+                        .orElse(null);
+                if (targetSeriesName != null && targetSeriesName.equals(candidateSeriesName)) {
+                    continue;
+                }
+
+                double similarity = similarityService.calculateSimilarity(target, candidate);
+                if (similarity > 0.0) {
+                    scoredCandidates.add(new ScoredCandidate(candidate.getId(), similarity, getAuthorNames(candidate)));
+                }
             }
         }
 
-        return recommendations;
+        scoredCandidates.sort(Comparator.comparingDouble(ScoredCandidate::score).reversed());
+
+        Map<String, Integer> authorCounts = new HashMap<>();
+        List<Long> selectedBookIds = new ArrayList<>();
+        Map<Long, Double> similarityByBookId = new LinkedHashMap<>();
+
+        for (ScoredCandidate candidate : scoredCandidates) {
+            if (selectedBookIds.size() >= limit) {
+                break;
+            }
+
+            boolean allowed = candidate.authorNames().stream()
+                    .allMatch(name -> getAuthorCount(authorCounts, name) < MAX_BOOKS_PER_AUTHOR);
+            if (allowed) {
+                selectedBookIds.add(candidate.bookId());
+                similarityByBookId.put(candidate.bookId(), candidate.score());
+                candidate.authorNames().forEach(name ->
+                        authorCounts.put(name, getAuthorCount(authorCounts, name) + 1));
+            }
+        }
+
+        if (selectedBookIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, BookEntity> booksById = bookQueryService.findAllWithMetadataByIds(new LinkedHashSet<>(selectedBookIds)).stream()
+                .collect(Collectors.toMap(BookEntity::getId, Function.identity()));
+
+        return selectedBookIds.stream()
+                .map(selectedBookId -> {
+                    BookEntity selectedBook = booksById.get(selectedBookId);
+                    if (selectedBook == null) {
+                        return null;
+                    }
+
+                    Book dto = bookMapper.toBookWithDescription(selectedBook, false);
+                    return new BookRecommendation(dto, similarityByBookId.get(selectedBookId));
+                })
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private int getAuthorCount(Map<String, Integer> authorCounts, String authorName) {
+        Integer count = authorCounts.get(authorName);
+        return count != null ? count : 0;
     }
 
     private Set<String> getAuthorNames(BookEntity book) {

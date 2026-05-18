@@ -7,6 +7,7 @@ import org.booklore.model.entity.BookMetadataEntity;
 import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.service.book.BookQueryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,16 +16,30 @@ import java.util.List;
 @Service
 public class MetadataMatchService {
 
+    private static final int FULL_BOOK_BATCH_SIZE = 500;
+
     private final AppSettingService appSettingsService;
     private final BookQueryService bookQueryService;
 
-    public void recalculateAllMatchScores() {
-        List<BookEntity> allBooks = bookQueryService.getAllFullBookEntities();
-        for (BookEntity book : allBooks) {
-            Float score = calculateMatchScore(book);
-            book.setMetadataMatchScore(score);
+    public int recalculateAllMatchScores() {
+        int processedBooks = 0;
+
+        for (int batchPage = 0; ; batchPage++) {
+            List<BookEntity> batch = bookQueryService.getAllFullBookEntitiesBatch(PageRequest.of(batchPage, FULL_BOOK_BATCH_SIZE));
+            if (batch.isEmpty()) {
+                break;
+            }
+
+            for (BookEntity book : batch) {
+                Float score = calculateMatchScore(book);
+                book.setMetadataMatchScore(score);
+            }
+
+            bookQueryService.saveAll(batch);
+            processedBooks += batch.size();
         }
-        bookQueryService.saveAll(allBooks);
+
+        return processedBooks;
     }
 
     public Float calculateMatchScore(BookEntity book) {
