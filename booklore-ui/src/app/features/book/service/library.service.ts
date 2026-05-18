@@ -8,6 +8,7 @@ import {LibraryState} from '../model/state/library-state.model';
 import {BookService} from './book.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {AuthService} from '../../../shared/service/auth.service';
+import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 
 @Injectable({providedIn: 'root'})
 export class LibraryService {
@@ -15,6 +16,7 @@ export class LibraryService {
   private http = inject(HttpClient);
   private bookService = inject(BookService);
   private authService = inject(AuthService);
+  private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
 
   private libraryStateSubject = new BehaviorSubject<LibraryState>({
     libraries: null,
@@ -121,6 +123,7 @@ export class LibraryService {
         const curr = this.libraryStateSubject.value;
         const filtered = curr.libraries?.filter(l => l.id !== id) || [];
         this.libraryStateSubject.next({...curr, libraries: filtered});
+        this.sidebarBadgeRefresh.requestRefresh();
       }),
       catchError(err => {
         const curr = this.libraryStateSubject.value;

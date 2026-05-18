@@ -8,6 +8,7 @@ import {MessageService} from 'primeng/api';
 import {FileDownloadService} from '../../../shared/service/file-download.service';
 import {BookStateService} from './book-state.service';
 import {TranslocoService} from '@jsverse/transloco';
+import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +22,7 @@ export class BookFileService {
   private fileDownloadService = inject(FileDownloadService);
   private bookStateService = inject(BookStateService);
   private readonly t = inject(TranslocoService);
+  private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
 
   getFileContent(bookId: number, bookType?: string): Observable<Blob> {
     let url = `${this.url}/${bookId}/content`;
@@ -63,6 +65,8 @@ export class BookFileService {
           ...currentState,
           books: updatedBooks
         });
+
+        this.sidebarBadgeRefresh.requestRefresh();
 
         this.messageService.add({
           severity: 'success',
@@ -259,6 +263,8 @@ export class BookFileService {
           ...currentState,
           books: updatedBooks
         });
+
+        this.sidebarBadgeRefresh.requestRefresh();
 
         const fileCount = sourceBookIds.length;
         this.messageService.add({

@@ -13,6 +13,7 @@ import {BookStateService} from './book-state.service';
 import {BookSocketService} from './book-socket.service';
 import {BookPatchService} from './book-patch.service';
 import {TranslocoService} from '@jsverse/transloco';
+import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 
 export type RemoveFromLibraryMode = 'REMOVE_FOREVER' | 'REMOVE_UNTIL_NEXT_SCAN';
 
@@ -66,6 +67,7 @@ export class BookService {
   private bookSocketService = inject(BookSocketService);
   private bookPatchService = inject(BookPatchService);
   private readonly t = inject(TranslocoService);
+  private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
 
   private loading$: Observable<Book[]> | null = null;
 
@@ -286,6 +288,10 @@ export class BookService {
           error: null,
         });
 
+        if (deletedIds.size > 0) {
+          this.sidebarBadgeRefresh.requestRefresh();
+        }
+
         if (deleteFromDisk && response.failedFileDeletions?.length > 0) {
           this.messageService.add({
             severity: 'warn',
@@ -364,6 +370,7 @@ export class BookService {
         const currentState = this.bookStateService.getCurrentBookState();
         const updatedBooks = (currentState.books || []).map(b => b.id === bookId ? {...b, isPhysical: physical} : b);
         this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        this.sidebarBadgeRefresh.requestRefresh();
       })
     );
   }

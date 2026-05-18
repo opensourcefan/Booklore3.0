@@ -9,6 +9,7 @@ import {ResetProgressType, ResetProgressTypes} from '../../../shared/constants/r
 import {BookStatusUpdateResponse, PersonalRatingUpdateResponse} from '../model/book.model';
 import {PagedGridPilotService} from './paged-grid-pilot.service';
 import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
+import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +20,7 @@ export class BookPatchService {
   private http = inject(HttpClient);
   private injector = inject(Injector);
   private bookStateService = inject(BookStateService);
+  private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
 
   private epubProgressSubject = new Subject<{ bookId: number; cfi: string; href: string; percentage: number; bookFileId?: number }>();
 
@@ -80,6 +82,10 @@ export class BookPatchService {
           this.bookStateService.updateBookState({...currentState, books: newBooks});
           this.syncPagedBrowsersAfterStateMutation();
         }
+
+        if (updatedBooks.length > 0) {
+          this.sidebarBadgeRefresh.requestRefresh();
+        }
       })
     );
   }
@@ -102,6 +108,10 @@ export class BookPatchService {
           const updatedBookMap = new Map(updatedBooks.map(b => [b.id, b]));
           const newBooks = currentState.books.map(book => updatedBookMap.get(book.id) ?? book);
           this.bookStateService.updateBookState({...currentState, books: newBooks});
+        }
+
+        if (updatedBooks.length > 0) {
+          this.sidebarBadgeRefresh.requestRefresh();
         }
       })
     );

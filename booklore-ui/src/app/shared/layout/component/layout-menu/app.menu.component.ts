@@ -5,7 +5,7 @@ import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
 import {BehaviorSubject, combineLatest, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, map, switchMap} from 'rxjs/operators';
+import {catchError, filter, map, shareReplay, startWith, switchMap} from 'rxjs/operators';
 import {ShelfService} from '../../../../features/book/service/shelf.service';
 import {BookService} from '../../../../features/book/service/book.service';
 import {LibraryShelfMenuService} from '../../../../features/book/service/library-shelf-menu.service';
@@ -30,6 +30,7 @@ import {LocalStorageService} from '../../../service/local-storage.service';
 import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
 import {MediaTypePreferencesService} from '../../../../features/book/service/media-type-preferences.service';
+import {SidebarBadgeRefreshService} from '../../../../features/book/service/sidebar-badge-refresh.service';
 
 type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'series' | 'authors' | 'notebook';
 
@@ -68,6 +69,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   private bookDialogHelperService = inject(BookDialogHelperService);
   private messageService = inject(MessageService);
   private mediaTypePreferences = inject(MediaTypePreferencesService);
+  private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
 
   activeLang = '';
   langMenuItems: MenuItem[] = [];
@@ -194,13 +196,14 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         this.initMenus();
       }));
 
+    const allBooksCount$ = this.createRefreshableCount$(() => this.bookService.getBooksCount());
+    const physicalBooksCount$ = this.createRefreshableCount$(() => this.bookService.getBooksCount({bookType: 'PHYSICAL'}));
+
     this.homeMenu$ = combineLatest([
-      this.bookService.getBooksCount().pipe(catchError(() => of(0))),
-      this.bookService.getBooksCount({bookType: 'PHYSICAL'}).pipe(catchError(() => of(0))),
       this.t.langChanges$,
       this.homeItemVisibilitySubject,
     ]).pipe(
-      map(([allBooksCount, physicalBooksCount]) => {
+      map(() => {
         const items: AppMenuItem[] = [
           {
             label: this.t.translate('layout.menu.dashboard'),
@@ -219,7 +222,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             type: 'All Books',
             icon: 'pi pi-fw pi-book',
             routerLink: ['/all-books'],
-            bookCount$: of(allBooksCount),
+            bookCount$: allBooksCount$,
           },
           {
             label: this.t.translate('layout.menu.physicalBooks'),
@@ -227,7 +230,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             type: 'Physical Books',
             icon: 'pi pi-fw pi-box',
             routerLink: ['/physical-books'],
-            bookCount$: of(physicalBooksCount),
+            bookCount$: physicalBooksCount$,
           },
           {
             label: this.t.translate('layout.menu.series'),
@@ -284,10 +287,13 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         }
 
         return combineLatest(
-          mediaTypes.map(label => this.bookService.getBooksCount({mediaTypes: [label]}).pipe(
-            map(count => ({label, count})),
-            catchError(() => of({label, count: 0}))
-          ))
+          mediaTypes.map(label => {
+            const count$ = this.createRefreshableCount$(() => this.bookService.getBooksCount({mediaTypes: [label]}));
+
+            return count$.pipe(
+              map(count => ({label, count, count$}))
+            );
+          })
         ).pipe(
           map(entries => {
             const sortedBookTypes = entries
@@ -302,7 +308,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
                 hasCreate: true,
                 onCreate: () => this.openMediaTypeCreatorDialog(),
                 onItemsReorder: (items: AppMenuItem[]) => this.mediaTypePreferences.setSidebarOrder(items.map(item => item.label ?? '')),
-                items: orderedBookTypes.map(entry => this.createMediaTypeMenuItem(entry.label, entry.count)),
+                items: orderedBookTypes.map(entry => this.createMediaTypeMenuItem(entry.label, entry.count$)),
               }
             ];
           })
@@ -565,7 +571,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     this.mediaTypePreferences.setCustomTypes(types);
   }
 
-  private createMediaTypeMenuItem(label: string, count: number): AppMenuItem {
+  private createMediaTypeMenuItem(label: string, count$: Observable<number>): AppMenuItem {
     return {
       label,
       type: 'MediaType',
@@ -576,8 +582,16 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         filter: `customMediaType:${encodeURIComponent(label)}`,
       },
       activeMatch: () => this.isBookTypeFilterActive(label),
-      bookCount$: of(count),
+      bookCount$: count$,
     };
+  }
+
+  private createRefreshableCount$(countFactory: () => Observable<number>): Observable<number> {
+    return this.sidebarBadgeRefresh.refresh$.pipe(
+      startWith(void 0),
+      switchMap(() => countFactory().pipe(catchError(() => of(0)))),
+      shareReplay({bufferSize: 1, refCount: true})
+    );
   }
 
   private getNavigationMediaType(book: { fileType?: string | null; isPhysical?: boolean }): string | null {
@@ -691,7 +705,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
               iconType: (library.iconType || undefined) as 'PRIME_NG' | 'CUSTOM_SVG' | undefined,
               routerLink: [`/library/${library.id}/books`],
               prefetchLibraryId: library.id ?? undefined,
-              bookCount$: this.libraryService.getBookCount(library.id ?? 0),
+              bookCount$: this.createRefreshableCount$(() => this.libraryService.getBookCount(library.id ?? 0)),
               unhealthy$: this.libraryHealthService.isUnhealthy$(library.id ?? 0),
             })),
           },
@@ -717,7 +731,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
               iconType: (shelf.iconType || undefined) as 'PRIME_NG' | 'CUSTOM_SVG' | undefined,
               menu: this.libraryShelfMenuService.initializeMagicShelfMenuItems(shelf),
               routerLink: [`/magic-shelf/${shelf.id}/books`],
-              bookCount$: this.magicShelfService.getBookCount(shelf.id ?? 0),
+              bookCount$: this.createRefreshableCount$(() => this.magicShelfService.getBookCount(shelf.id ?? 0)),
             })),
           },
         ];
@@ -743,7 +757,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
           icon: shelf.icon || undefined,
           iconType: (shelf.iconType || undefined) as 'PRIME_NG' | 'CUSTOM_SVG' | undefined,
           routerLink: [`/shelf/${shelf.id}/books`],
-          bookCount$: this.shelfService.getBookCount(shelf.id ?? 0),
+          bookCount$: this.createRefreshableCount$(() => this.shelfService.getBookCount(shelf.id ?? 0)),
         }));
 
         const notShelfedItem = {
@@ -752,7 +766,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
           icon: 'pi pi-inbox',
           iconType: 'PRIME_NG' as 'PRIME_NG' | 'CUSTOM_SVG',
           routerLink: ['/not-shelfed'],
-          bookCount$: this.shelfService.getUnshelvedBookCount?.() ?? of(0),
+          bookCount$: this.createRefreshableCount$(() => this.shelfService.getUnshelvedBookCount?.() ?? of(0)),
           showBookCount: true,
         };
 
@@ -764,7 +778,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             icon: koboShelf.icon || undefined,
             iconType: (koboShelf.iconType || undefined) as 'PRIME_NG' | 'CUSTOM_SVG' | undefined,
             routerLink: [`/shelf/${koboShelf.id}/books`],
-            bookCount$: this.shelfService.getBookCount(koboShelf.id ?? 0),
+            bookCount$: this.createRefreshableCount$(() => this.shelfService.getBookCount(koboShelf.id ?? 0)),
           });
         }
         items.push(...shelfItems);
@@ -1170,13 +1184,13 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     });
   }
 
-  private applyBookTypeOrder(bookTypes: {label: string; count: number}[], savedOrder: string[]): {label: string; count: number}[] {
+  private applyBookTypeOrder<T extends {label: string}>(bookTypes: T[], savedOrder: string[]): T[] {
     if (!savedOrder.length) {
       return bookTypes;
     }
 
     const lookup = new Map(bookTypes.map(type => [type.label, type]));
-    const ordered: {label: string; count: number}[] = [];
+    const ordered: T[] = [];
 
     for (const label of savedOrder) {
       const match = lookup.get(label);

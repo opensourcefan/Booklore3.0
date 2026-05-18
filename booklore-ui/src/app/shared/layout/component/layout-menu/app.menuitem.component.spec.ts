@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {of, Subject} from 'rxjs';
+import {BehaviorSubject, of, Subject} from 'rxjs';
 import {provideRouter} from '@angular/router';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {By} from '@angular/platform-browser';
@@ -144,6 +144,33 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
 
     expect(badge).not.toBeNull();
     expect(badge.textContent?.trim()).toBe('7');
+  });
+
+  it('updates the /not-shelfed badge text when the count observable emits again', async () => {
+    const count$ = new BehaviorSubject<number>(7);
+    const fixture = TestBed.createComponent(AppMenuitemComponent);
+
+    fixture.componentRef.setInput('item', {
+      label: 'Not Shelfed',
+      type: 'Shelf',
+      routerLink: ['/not-shelfed'],
+      bookCount$: count$.asObservable(),
+      showBookCount: true,
+    });
+    fixture.componentRef.setInput('index', 0);
+    fixture.componentRef.setInput('root', false);
+    fixture.componentRef.setInput('parentKey', 'shelf');
+    fixture.componentRef.setInput('menuKey', 'shelf');
+    fixture.componentRef.setInput('reorderMode', false);
+
+    fixture.detectChanges();
+    expect((fixture.nativeElement.querySelector('.non-interactive-badge') as HTMLElement).textContent?.trim()).toBe('7');
+
+    count$.next(4);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement.querySelector('.non-interactive-badge') as HTMLElement).textContent?.trim()).toBe('4');
   });
 
   it('stops bubbling click events when touch interaction is treated as a swipe', () => {

@@ -1,9 +1,10 @@
 import {TestBed} from '@angular/core/testing';
-import {beforeEach, describe, expect, it} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {Book, BookMetadata} from '../model/book.model';
 import {PagedBookBrowserCacheEntry} from '../model/state/paged-book-browser-state.model';
 import {BookSocketService} from './book-socket.service';
 import {BookStateService} from './book-state.service';
+import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 
 function createBook(id: number, title = `Book ${id}`, libraryId = 1): Book {
   return {
@@ -60,9 +61,22 @@ function createCacheEntry(
 }
 
 describe('BookSocketService', () => {
+  let requestRefreshSpy: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
+    requestRefreshSpy = vi.fn();
+
     TestBed.configureTestingModule({
-      providers: [BookSocketService, BookStateService],
+      providers: [
+        BookSocketService,
+        BookStateService,
+        {
+          provide: SidebarBadgeRefreshService,
+          useValue: {
+            requestRefresh: requestRefreshSpy,
+          },
+        },
+      ],
     });
   });
 
@@ -95,6 +109,7 @@ describe('BookSocketService', () => {
     expect(state.books?.map(book => book.id)).toEqual([11, 22]);
     expect(Object.keys(state.pagedCache ?? {})).toEqual(['otherLibrary']);
     expect(state.totalCount).toBe(2);
+    expect(requestRefreshSpy).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates impacted caches when books are removed', () => {
@@ -120,6 +135,7 @@ describe('BookSocketService', () => {
     expect(state.books).toEqual([]);
     expect(Object.keys(state.pagedCache ?? {})).toEqual(['otherLibrary']);
     expect(state.totalCount).toBe(0);
+    expect(requestRefreshSpy).toHaveBeenCalledTimes(1);
   });
 
   it('patches cached pages in place for realtime book updates', () => {
@@ -142,6 +158,31 @@ describe('BookSocketService', () => {
     expect(state.books?.[0].metadata?.title).toBe('New Title');
     expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.title).toBe('New Title');
     expect(state.totalCount).toBe(12);
+    expect(requestRefreshSpy).not.toHaveBeenCalled();
+  });
+
+  it('requests a sidebar badge refresh when realtime book updates change count-relevant fields', () => {
+    const {socketService, bookStateService} = createServices();
+
+    bookStateService.updateBookState({
+      books: [{
+        ...createBook(55, 'Old Book', 1),
+        fileType: 'PDF',
+        isPhysical: false,
+        shelves: [{id: 3, name: 'Shelf 3'}],
+      }],
+      loaded: true,
+      error: null,
+    });
+
+    socketService.handleBookUpdate({
+      ...createBook(55, 'Old Book', 2),
+      fileType: 'CBZ',
+      isPhysical: true,
+      shelves: [{id: 9, name: 'Shelf 9'}],
+    });
+
+    expect(requestRefreshSpy).toHaveBeenCalledTimes(1);
   });
 
   it('patches metadata and cover updates without clearing the paged cache', () => {

@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, firstValueFrom, Observable, Subject} from 'rxjs';
 import {NEVER, of} from 'rxjs';
 import {MessageService} from 'primeng/api';
 import {Router} from '@angular/router';
@@ -21,6 +21,7 @@ import {AuthorService} from '../../../../features/author-browser/service/author.
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
 import {MediaTypePreferencesService} from '../../../../features/book/service/media-type-preferences.service';
+import {SidebarBadgeRefreshService} from '../../../../features/book/service/sidebar-badge-refresh.service';
 
 describe('AppMenuComponent reorder mode', () => {
   let component: AppMenuComponent;
@@ -28,12 +29,13 @@ describe('AppMenuComponent reorder mode', () => {
   let localStorageMock: {get: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; keyChanges$: typeof NEVER};
   let mediaTypePreferencesMock: {setSidebarOrder: ReturnType<typeof vi.fn>; settings$: Observable<{customTypes: string[]; sidebarOrder: string[]}>};
   let versionServiceMock: {getVersion: ReturnType<typeof vi.fn>};
-  let libraryServiceMock: {libraryState$: Observable<{libraries: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
-  let magicShelfServiceMock: {shelvesState$: Observable<{shelves: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
-  let shelfServiceMock: {shelfState$: Observable<{shelves: never[]}>; getUnshelvedBookCount: ReturnType<typeof vi.fn>; getBookCount: ReturnType<typeof vi.fn>};
+  let libraryServiceMock: {libraryState$: Observable<{libraries: {id?: number; name: string; watch: boolean; paths: never[]}[]}>; getBookCount: ReturnType<typeof vi.fn>};
+  let magicShelfServiceMock: {shelvesState$: Observable<{shelves: {id?: number; name: string; filterJson: string}[]}>; getBookCount: ReturnType<typeof vi.fn>};
+  let shelfServiceMock: {shelfState$: Observable<{shelves: {id?: number; name: string}[]}>; getUnshelvedBookCount: ReturnType<typeof vi.fn>; getBookCount: ReturnType<typeof vi.fn>};
   let getBooksCount: ReturnType<typeof vi.fn>;
   let langChanges$: BehaviorSubject<string>;
   let keyChanges$: Subject<string>;
+  let sidebarBadgeRefreshService: SidebarBadgeRefreshService;
 
   beforeEach(() => {
     langChanges$ = new BehaviorSubject<string>('en');
@@ -83,11 +85,15 @@ describe('AppMenuComponent reorder mode', () => {
       providers: [
         {provide: Router, useValue: routerMock},
         {provide: LibraryService, useValue: libraryServiceMock},
-        {provide: LibraryHealthService, useValue: {}},
+        {provide: LibraryHealthService, useValue: {isUnhealthy$: vi.fn(() => of(false))}},
         {provide: ShelfService, useValue: shelfServiceMock},
         {provide: BookService, useValue: {getBooksCount}},
         {provide: VersionService, useValue: versionServiceMock},
-        {provide: LibraryShelfMenuService, useValue: {}},
+        {provide: LibraryShelfMenuService, useValue: {
+          initializeLibraryMenuItems: vi.fn(() => []),
+          initializeMagicShelfMenuItems: vi.fn(() => []),
+          initializeShelfMenuItems: vi.fn(() => []),
+        }},
         {provide: DialogLauncherService, useValue: {openAcknowledgementsDialog: vi.fn()}},
         {provide: UserService, useValue: {userState$: NEVER}},
         {provide: MagicShelfService, useValue: magicShelfServiceMock},
@@ -102,6 +108,7 @@ describe('AppMenuComponent reorder mode', () => {
     });
 
     component = TestBed.runInInjectionContext(() => new AppMenuComponent());
+    sidebarBadgeRefreshService = TestBed.inject(SidebarBadgeRefreshService);
     component.sectionOrder = ['home', 'library', 'shelf'];
     component.sectionVisibility = {home: true, library: true, shelf: false, magicShelf: false, bookType: false};
   });
@@ -200,17 +207,117 @@ describe('AppMenuComponent reorder mode', () => {
   it('builds home counts from paged totals instead of shared full-state books', async () => {
     component.ngOnInit();
 
-    const menu = await new Promise<AppMenuItem[]>((resolve) => {
-      component.homeMenu$?.subscribe(resolve);
-    });
+    const menu = await firstValueFrom(component.homeMenu$!);
 
     const allBooksItem = menu[0].items?.find(item => item.routerLink?.[0] === '/all-books');
     const physicalBooksItem = menu[0].items?.find(item => item.routerLink?.[0] === '/physical-books');
+    const subscriptions = [
+      allBooksItem?.bookCount$?.subscribe(),
+      physicalBooksItem?.bookCount$?.subscribe(),
+    ];
 
     expect(allBooksItem?.bookCount$).toBeDefined();
     expect(physicalBooksItem?.bookCount$).toBeDefined();
     expect(getBooksCount).toHaveBeenCalledWith();
     expect(getBooksCount).toHaveBeenCalledWith({bookType: 'PHYSICAL'});
+
+    subscriptions.forEach(subscription => subscription?.unsubscribe());
+  });
+
+  it('refreshes home and media type badge counts after sidebar badge invalidation', async () => {
+    const allBooksResponses = [9, 10];
+    const physicalResponses = [3, 4];
+    const mediaTypeResponses = [5, 6];
+
+    getBooksCount.mockReset();
+    getBooksCount.mockImplementation((params?: {bookType?: string; mediaTypes?: string[]}) => {
+      if (params?.bookType === 'PHYSICAL') {
+        return of(physicalResponses.shift() ?? 4);
+      }
+
+      if (params?.mediaTypes?.[0] === 'CBZ') {
+        return of(mediaTypeResponses.shift() ?? 6);
+      }
+
+      return of(allBooksResponses.shift() ?? 10);
+    });
+
+    component.ngOnInit();
+
+    const homeMenu = await firstValueFrom(component.homeMenu$!);
+    let bookTypeMenu: AppMenuItem[] | undefined;
+    const bookTypeMenuSubscription = component.bookTypeMenu$?.subscribe(menu => {
+      bookTypeMenu = menu;
+    });
+    const allBooksValues: number[] = [];
+    const physicalBooksValues: number[] = [];
+    const mediaTypeValues: number[] = [];
+    const allBooksItem = homeMenu[0].items?.find(item => item.routerLink?.[0] === '/all-books');
+    const physicalBooksItem = homeMenu[0].items?.find(item => item.routerLink?.[0] === '/physical-books');
+    const mediaTypeItem = bookTypeMenu?.[0].items?.find(item => item.label === 'CBZ');
+    const subscriptions = [
+      allBooksItem?.bookCount$?.subscribe(value => allBooksValues.push(value)),
+      physicalBooksItem?.bookCount$?.subscribe(value => physicalBooksValues.push(value)),
+      mediaTypeItem?.bookCount$?.subscribe(value => mediaTypeValues.push(value)),
+    ];
+
+    expect(allBooksValues.at(-1)).toBe(9);
+    expect(physicalBooksValues.at(-1)).toBe(3);
+    expect(mediaTypeValues.at(-1)).toBe(5);
+
+    sidebarBadgeRefreshService.requestRefresh();
+
+    expect(allBooksValues.at(-1)).toBe(10);
+    expect(physicalBooksValues.at(-1)).toBe(4);
+    expect(mediaTypeValues.at(-1)).toBe(6);
+
+    bookTypeMenuSubscription?.unsubscribe();
+    subscriptions.forEach(subscription => subscription?.unsubscribe());
+  });
+
+  it('refreshes library, shelf, unshelved, and magic shelf badge counts after sidebar badge invalidation', async () => {
+    const libraryResponses = [2, 3];
+    const magicShelfResponses = [4, 5];
+    const shelfResponses = [6, 7];
+    const unshelvedResponses = [8, 9];
+
+    libraryServiceMock.libraryState$ = of({libraries: [{id: 11, name: 'Library A', watch: true, paths: []}]});
+    libraryServiceMock.getBookCount = vi.fn(() => of(libraryResponses.shift() ?? 3));
+    magicShelfServiceMock.shelvesState$ = of({shelves: [{id: 21, name: 'Magic A', filterJson: '{}'}]});
+    magicShelfServiceMock.getBookCount = vi.fn(() => of(magicShelfResponses.shift() ?? 5));
+    shelfServiceMock.shelfState$ = of({shelves: [{id: 31, name: 'Shelf A'}]});
+    shelfServiceMock.getBookCount = vi.fn(() => of(shelfResponses.shift() ?? 7));
+    shelfServiceMock.getUnshelvedBookCount = vi.fn(() => of(unshelvedResponses.shift() ?? 9));
+
+    (component as unknown as { initMenus: () => void }).initMenus();
+
+    const libraryMenu = await firstValueFrom(component.libraryMenu$!);
+    const magicShelfMenu = await firstValueFrom(component.magicShelfMenu$!);
+    const shelfMenu = await firstValueFrom(component.shelfMenu$!);
+    const libraryValues: number[] = [];
+    const magicShelfValues: number[] = [];
+    const shelfValues: number[] = [];
+    const unshelvedValues: number[] = [];
+    const subscriptions = [
+      libraryMenu[0].items?.[0].bookCount$?.subscribe(value => libraryValues.push(value)),
+      magicShelfMenu[0].items?.[0].bookCount$?.subscribe(value => magicShelfValues.push(value)),
+      shelfMenu[0].items?.find(item => item.routerLink?.[0] === '/shelf/31/books')?.bookCount$?.subscribe(value => shelfValues.push(value)),
+      shelfMenu[0].items?.find(item => item.routerLink?.[0] === '/not-shelfed')?.bookCount$?.subscribe(value => unshelvedValues.push(value)),
+    ];
+
+    expect(libraryValues.at(-1)).toBe(2);
+    expect(magicShelfValues.at(-1)).toBe(4);
+    expect(shelfValues.at(-1)).toBe(6);
+    expect(unshelvedValues.at(-1)).toBe(8);
+
+    sidebarBadgeRefreshService.requestRefresh();
+
+    expect(libraryValues.at(-1)).toBe(3);
+    expect(magicShelfValues.at(-1)).toBe(5);
+    expect(shelfValues.at(-1)).toBe(7);
+    expect(unshelvedValues.at(-1)).toBe(9);
+
+    subscriptions.forEach(subscription => subscription?.unsubscribe());
   });
 
   it('reuses cached stable tag when latest tag is temporarily unavailable', () => {

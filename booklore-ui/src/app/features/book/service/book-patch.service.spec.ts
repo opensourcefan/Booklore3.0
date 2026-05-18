@@ -7,6 +7,7 @@ import {BookPatchService} from './book-patch.service';
 import {BookStateService} from './book-state.service';
 import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 import {PagedGridPilotService} from './paged-grid-pilot.service';
+import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 
 function createBook(id: number, shelfIds: number[] = []): Book {
   return {
@@ -21,11 +22,13 @@ describe('BookPatchService', () => {
   let httpPostSpy: ReturnType<typeof vi.fn>;
   let syncCacheFromSharedStateSpy: ReturnType<typeof vi.fn>;
   let refreshActiveStateSpy: ReturnType<typeof vi.fn>;
+  let requestRefreshSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     httpPostSpy = vi.fn();
     syncCacheFromSharedStateSpy = vi.fn();
     refreshActiveStateSpy = vi.fn();
+    requestRefreshSpy = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
@@ -48,6 +51,12 @@ describe('BookPatchService', () => {
           provide: PagedGridPilotService,
           useValue: {
             refreshActiveState: refreshActiveStateSpy,
+          },
+        },
+        {
+          provide: SidebarBadgeRefreshService,
+          useValue: {
+            requestRefresh: requestRefreshSpy,
           },
         },
       ],
@@ -108,5 +117,26 @@ describe('BookPatchService', () => {
     expect(bookStateService.getCurrentBookState().pagedCache).toEqual({});
     expect(syncCacheFromSharedStateSpy).toHaveBeenCalledTimes(1);
     expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
+    expect(requestRefreshSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('requests a sidebar badge refresh after media type updates', async () => {
+    const service = createService();
+    const bookStateService = getBookStateService();
+
+    bookStateService.updateBookState({
+      books: [createBook(99)],
+      loaded: true,
+      error: null,
+    });
+
+    httpPostSpy.mockReturnValue(of([{
+      ...createBook(99),
+      fileType: 'CBZ',
+    }]));
+
+    await firstValueFrom(service.updateFileType(new Set([99]), 'CBZ'));
+
+    expect(requestRefreshSpy).toHaveBeenCalledTimes(1);
   });
 });
