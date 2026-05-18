@@ -114,6 +114,59 @@ describe('PagedGridPilotService', () => {
     expect(pagedState.books?.map(book => book.id)).toEqual([1, 2]);
   });
 
+  it('does not re-emit the first page when the paged response matches the warm-start books', async () => {
+    const service = createService();
+    const pagedResponse$ = new Subject<{
+      content: Book[];
+      page: number;
+      size: number;
+      totalElements: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrevious: boolean;
+    }>();
+
+    getBooksPaged.mockReturnValue(pagedResponse$);
+
+    const warmBooks = [createBook(90, 'Warm 90'), createBook(91, 'Warm 91')];
+    const loadedStates: number[][] = [];
+
+    const bookState$ = service.connect({
+      entity: 'LIBRARY',
+      entityId: 7,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, () => of(legacyState(warmBooks)));
+
+    const subscription = bookState$
+      .pipe(filter(state => state.loaded))
+      .subscribe(state => {
+        loadedStates.push((state.books ?? []).map(book => book.id));
+      });
+
+    const warmState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
+    expect(warmState.books?.map(book => book.id)).toEqual([90, 91]);
+
+    pagedResponse$.next({
+      content: [createBook(90, 'Warm 90'), createBook(91, 'Warm 91')],
+      page: 0,
+      size: 80,
+      totalElements: 2,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    });
+    pagedResponse$.complete();
+
+    expect(loadedStates).toEqual([[90, 91]]);
+    subscription.unsubscribe();
+  });
+
   it('keeps a larger runway prefetched and appends another page on scroll', async () => {
     const service = createService();
 

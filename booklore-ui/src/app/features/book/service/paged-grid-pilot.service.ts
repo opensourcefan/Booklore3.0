@@ -505,11 +505,17 @@ export class PagedGridPilotService {
       nextPage: lastPage.hasNext ? lastPage.page + 1 : null,
     };
 
-    this.bookStateSubject.next({
+    const nextState: BookState = {
       books,
       loaded: true,
       error: null,
-    });
+    };
+
+    if (this.isEquivalentBookState(this.bookStateSubject.getValue(), nextState)) {
+      return;
+    }
+
+    this.bookStateSubject.next(nextState);
   }
 
   private getCachedPages(baseRequestKey: PagedBookBrowserRequestKey): PagedBookBrowserPage[] {
@@ -558,6 +564,26 @@ export class PagedGridPilotService {
 
   private canWarmStart(_query: ActivePagedQuery): boolean {
     return true;
+  }
+
+  private isEquivalentBookState(currentState: BookState, nextState: BookState): boolean {
+    if (currentState.loaded !== nextState.loaded || currentState.error !== nextState.error) {
+      return false;
+    }
+
+    if (currentState.books === nextState.books) {
+      return true;
+    }
+
+    if (!currentState.books || !nextState.books) {
+      return currentState.books === nextState.books;
+    }
+
+    if (currentState.books.length !== nextState.books.length) {
+      return false;
+    }
+
+    return JSON.stringify(currentState.books) === JSON.stringify(nextState.books);
   }
 
   private getPagedSearchTerm(searchTerm: string): string | null {
