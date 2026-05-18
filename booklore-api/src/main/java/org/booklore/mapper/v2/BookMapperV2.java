@@ -28,6 +28,15 @@ public interface BookMapperV2 {
     @Mapping(target = "metadata", qualifiedByName = "mapMetadata")
     Book toDTO(BookEntity bookEntity);
 
+    @Mapping(source = "library.id", target = "libraryId")
+    @Mapping(source = "library.name", target = "libraryName")
+    @Mapping(source = "libraryPath", target = "libraryPath", qualifiedByName = "mapLibraryPathIdOnly")
+    @Mapping(source = "bookFiles", target = "primaryFile", qualifiedByName = "mapPrimaryFile")
+    @Mapping(source = "bookFiles", target = "alternativeFormats", qualifiedByName = "mapAlternativeFormats")
+    @Mapping(source = "bookFiles", target = "supplementaryFiles", qualifiedByName = "mapSupplementaryFiles")
+    @Mapping(target = "metadata", qualifiedByName = "mapSummaryMetadata")
+    Book toSummaryDTO(BookEntity bookEntity);
+
     @Named("mapMetadata")
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "authors", source = "authors", qualifiedByName = "mapAuthors")
@@ -35,6 +44,15 @@ public interface BookMapperV2 {
     @Mapping(target = "moods", source = "moods", qualifiedByName = "mapMoods")
     @Mapping(target = "tags", source = "tags", qualifiedByName = "mapTags")
     BookMetadata mapMetadata(BookMetadataEntity metadataEntity);
+
+    @Named("mapSummaryMetadata")
+    @Mapping(target = "description", ignore = true)
+    @Mapping(target = "comicMetadata", ignore = true)
+    @Mapping(target = "authors", source = "authors", qualifiedByName = "mapAuthors")
+    @Mapping(target = "categories", source = "categories", qualifiedByName = "mapCategories")
+    @Mapping(target = "moods", source = "moods", qualifiedByName = "mapMoods")
+    @Mapping(target = "tags", source = "tags", qualifiedByName = "mapTags")
+    BookMetadata mapSummaryMetadata(BookMetadataEntity metadataEntity);
 
     @AfterMapping
     default void mapAudiobookMetadata(BookEntity bookEntity, @MappingTarget Book book) {

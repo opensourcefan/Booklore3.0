@@ -10,6 +10,7 @@ import org.booklore.model.entity.LibraryEntity;
 import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.model.enums.BookFileType;
 import org.booklore.BookloreApplication;
+import org.booklore.config.BookmarkProperties;
 import org.booklore.repository.BookRepository;
 import org.booklore.service.restriction.ContentRestrictionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,12 @@ public class BookQueryServicePagedSortDataJpaTest {
         RestTemplate testRestTemplate() {
             return new RestTemplate();
         }
+
+        @Bean
+        @Primary
+        BookmarkProperties bookmarkProperties() {
+            return new BookmarkProperties();
+        }
     }
 
     @Autowired
@@ -68,6 +75,10 @@ public class BookQueryServicePagedSortDataJpaTest {
 
         BookMapperV2 bookMapperV2 = mock(BookMapperV2.class);
         when(bookMapperV2.toDTO(any(BookEntity.class))).thenAnswer(invocation -> {
+            BookEntity entity = invocation.getArgument(0);
+            return Book.builder().id(entity.getId()).build();
+        });
+        when(bookMapperV2.toSummaryDTO(any(BookEntity.class))).thenAnswer(invocation -> {
             BookEntity entity = invocation.getArgument(0);
             return Book.builder().id(entity.getId()).build();
         });

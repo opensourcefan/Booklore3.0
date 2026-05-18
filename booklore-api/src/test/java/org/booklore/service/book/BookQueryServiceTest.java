@@ -13,6 +13,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,13 +39,16 @@ class BookQueryServiceTest {
                         .build())
                 .build();
 
-        when(bookRepository.findAllWithMetadata()).thenReturn(List.of(entity));
-        when(bookMapperV2.toDTO(entity)).thenReturn(dto);
+        when(bookRepository.findAllWithSummaryMetadata()).thenReturn(List.of(entity));
+        when(bookMapperV2.toSummaryDTO(entity)).thenReturn(dto);
 
         Book result = service.getAllBooks(false, true).getFirst();
 
         assertEquals("Existing Title", result.getMetadata().getTitle());
         assertEquals("TEST", result.getMetadata().getSubtitle());
         assertNull(result.getMetadata().getDescription());
+        verify(bookRepository).findAllWithSummaryMetadata();
+        verify(bookMapperV2).toSummaryDTO(entity);
+        verify(bookMapperV2, never()).toDTO(entity);
     }
 }

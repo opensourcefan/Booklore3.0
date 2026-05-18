@@ -75,18 +75,22 @@ public class BookQueryService {
     private final EntityManager entityManager;
 
     public List<Book> getAllBooks(boolean includeDescription, boolean stripForListView) {
-        List<BookEntity> books = bookRepository.findAllWithMetadata();
+        List<BookEntity> books = stripForListView
+                ? bookRepository.findAllWithSummaryMetadata()
+                : bookRepository.findAllWithMetadata();
         return mapBooksToDto(books, includeDescription, null, stripForListView);
     }
 
     public List<Book> getAllBooksByLibraryIds(Set<Long> libraryIds, boolean includeDescription, boolean stripForListView, Long userId) {
-        List<BookEntity> books = bookRepository.findAllWithMetadataByLibraryIds(libraryIds);
+        List<BookEntity> books = stripForListView
+                ? bookRepository.findAllWithSummaryMetadataByLibraryIds(libraryIds)
+                : bookRepository.findAllWithMetadataByLibraryIds(libraryIds);
         books = contentRestrictionService.applyRestrictions(books, userId);
         return mapBooksToDto(books, includeDescription, userId, stripForListView);
     }
 
     public Page<Book> getAllBooksPaged(Pageable pageable) {
-        Page<BookEntity> page = bookRepository.findAllWithMetadataPage(pageable);
+        Page<BookEntity> page = bookRepository.findAllWithSummaryMetadataPage(pageable);
         return page.map(book -> mapBookToDto(book, false, null, true));
     }
 
@@ -152,7 +156,7 @@ public class BookQueryService {
             return List.of();
         }
 
-        List<BookEntity> entities = bookRepository.findAllWithMetadataByIds(new LinkedHashSet<>(orderedIds));
+        List<BookEntity> entities = bookRepository.findAllWithSummaryMetadataByIds(new LinkedHashSet<>(orderedIds));
         Map<Long, Integer> orderById = new HashMap<>();
         for (int index = 0; index < orderedIds.size(); index++) {
             orderById.put(orderedIds.get(index), index);
@@ -450,7 +454,7 @@ public class BookQueryService {
     }
 
     public Page<Book> getAllBooksByLibraryIdsPaged(Collection<Long> libraryIds, Long userId, Pageable pageable) {
-        Page<BookEntity> page = bookRepository.findAllWithMetadataByLibraryIdsPage(libraryIds, pageable);
+        Page<BookEntity> page = bookRepository.findAllWithSummaryMetadataByLibraryIdsPage(libraryIds, pageable);
         List<BookEntity> filtered = contentRestrictionService.applyRestrictions(page.getContent(), userId);
         List<Book> dtos = filtered.stream()
                 .map(book -> mapBookToDto(book, false, userId, true))
@@ -527,7 +531,9 @@ public class BookQueryService {
     }
 
     private Book mapBookToDto(BookEntity bookEntity, boolean includeDescription, Long userId, boolean stripForListView) {
-        Book dto = bookMapperV2.toDTO(bookEntity);
+        Book dto = stripForListView
+                ? bookMapperV2.toSummaryDTO(bookEntity)
+                : bookMapperV2.toDTO(bookEntity);
 
         if (includeDescription && dto.getMetadata() != null && bookEntity.getMetadata() != null) {
             dto.getMetadata().setDescription(bookEntity.getMetadata().getDescription());

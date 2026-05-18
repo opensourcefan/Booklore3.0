@@ -16,12 +16,15 @@ import org.booklore.repository.LibraryRepository;
 import org.booklore.service.MagicShelfService;
 import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.service.reader.CbxReaderService;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -68,6 +71,7 @@ class KomgaServiceTest {
         AppSettings appSettings = new AppSettings();
         appSettings.setKomgaGroupUnknown(true);
         lenient().when(appSettingService.getAppSettings()).thenReturn(appSettings);
+        lenient().when(komgaMapper.getUnknownSeriesName()).thenReturn("Unknown Series");
 
         // Create multiple books for testing pagination
         seriesBooks = new ArrayList<>();
@@ -102,12 +106,10 @@ class KomgaServiceTest {
     @Test
     void shouldReturnAllBooksWhenUnpagedIsTrue() {
         // Given
-        when(bookRepository.findAllWithMetadataByLibraryId(anyLong())).thenReturn(seriesBooks);
-        
-        // Mock mapper.getBookSeriesName to return "test-series" for all books
-        for (BookEntity book : seriesBooks) {
-            when(komgaMapper.getBookSeriesName(book)).thenReturn("test-series");
-        }
+        when(bookRepository.findDistinctSeriesNamesGroupedByLibraryId(1L, "Unknown Series"))
+            .thenReturn(List.of("Test Series"));
+        when(bookRepository.findBooksBySeriesNameGroupedByLibraryId("Test Series", 1L, "Unknown Series"))
+            .thenReturn(seriesBooks);
         
         // Mock the mapper to return DTOs
         for (BookEntity book : seriesBooks) {
@@ -128,17 +130,18 @@ class KomgaServiceTest {
         assertThat(result.getTotalPages()).isEqualTo(1);
         assertThat(result.getSize()).isEqualTo(50);
         assertThat(result.getNumber()).isEqualTo(0);
+        verify(bookRepository).findDistinctSeriesNamesGroupedByLibraryId(1L, "Unknown Series");
+        verify(bookRepository).findBooksBySeriesNameGroupedByLibraryId("Test Series", 1L, "Unknown Series");
+        verify(bookRepository, never()).findAllWithMetadataByLibraryId(anyLong());
     }
 
     @Test
     void shouldReturnPagedBooksWhenUnpagedIsFalse() {
         // Given
-        when(bookRepository.findAllWithMetadataByLibraryId(anyLong())).thenReturn(seriesBooks);
-        
-        // Mock mapper.getBookSeriesName to return "test-series" for all books
-        for (BookEntity book : seriesBooks) {
-            when(komgaMapper.getBookSeriesName(book)).thenReturn("test-series");
-        }
+        when(bookRepository.findDistinctSeriesNamesGroupedByLibraryId(1L, "Unknown Series"))
+            .thenReturn(List.of("Test Series"));
+        when(bookRepository.findBooksBySeriesNameGroupedByLibraryId("Test Series", 1L, "Unknown Series"))
+            .thenReturn(seriesBooks);
         
         // Mock the mapper to return DTOs (only for the books that will be used)
         for (int i = 0; i < 20; i++) {
@@ -160,6 +163,9 @@ class KomgaServiceTest {
         assertThat(result.getTotalPages()).isEqualTo(3);
         assertThat(result.getSize()).isEqualTo(20);
         assertThat(result.getNumber()).isEqualTo(0);
+        verify(bookRepository).findDistinctSeriesNamesGroupedByLibraryId(1L, "Unknown Series");
+        verify(bookRepository).findBooksBySeriesNameGroupedByLibraryId("Test Series", 1L, "Unknown Series");
+        verify(bookRepository, never()).findAllWithMetadataByLibraryId(anyLong());
     }
 
     @Test
@@ -224,7 +230,6 @@ class KomgaServiceTest {
         when(bookRepository.findBooksBySeriesNameGroupedByLibraryId("Series B", 1L, "Unknown Series"))
                 .thenReturn(seriesBBooks);
         
-        when(komgaMapper.getUnknownSeriesName()).thenReturn("Unknown Series");
         when(komgaMapper.toKomgaSeriesDto(eq("Series A"), anyLong(), any()))
                 .thenReturn(KomgaSeriesDto.builder().id("1-series-a").name("Series A").booksCount(2).build());
         when(komgaMapper.toKomgaSeriesDto(eq("Series B"), anyLong(), any()))
@@ -245,5 +250,45 @@ class KomgaServiceTest {
         // Verify that only books for Series A and B were loaded (optimization check)
         verify(bookRepository, never()).findAllWithMetadataByLibraryId(anyLong());
         verify(bookRepository, never()).findAllWithMetadata();
+    }
+
+    @Test
+    void shouldGetAllSeriesAcrossLibrariesWithoutFullTableScan() {
+        List<String> seriesNames = List.of("Series A", "Series B", "Series C");
+        List<BookEntity> seriesABooks = List.of(seriesBooks.get(0), seriesBooks.get(1));
+
+        when(bookRepository.findDistinctSeriesNamesGrouped("Unknown Series"))
+                .thenReturn(seriesNames);
+        when(bookRepository.findBooksBySeriesNameGrouped("Series A", "Unknown Series"))
+                .thenReturn(seriesABooks);
+        when(komgaMapper.toKomgaSeriesDto(eq("Series A"), anyLong(), any()))
+                .thenReturn(KomgaSeriesDto.builder().id("1-series-a").name("Series A").booksCount(2).build());
+
+        KomgaPageableDto<KomgaSeriesDto> result = komgaService.getAllSeries(null, 0, 1, false);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getTotalElements()).isEqualTo(3);
+        verify(bookRepository).findDistinctSeriesNamesGrouped("Unknown Series");
+        verify(bookRepository).findBooksBySeriesNameGrouped("Series A", "Unknown Series");
+        verify(bookRepository, never()).findAllWithMetadata();
+    }
+
+    @Test
+    void shouldPageAllBooksWithRepositoryPagination() {
+        when(bookRepository.findAllWithSummaryMetadataByLibraryIdsPage(eq(List.of(1L)), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(seriesBooks.subList(0, 10), PageRequest.of(0, 10), seriesBooks.size()));
+
+        for (int i = 0; i < 10; i++) {
+            BookEntity book = seriesBooks.get(i);
+            when(komgaMapper.toKomgaBookDto(book)).thenReturn(
+                    KomgaBookDto.builder().id(book.getId().toString()).name(book.getMetadata().getTitle()).build());
+        }
+
+        KomgaPageableDto<KomgaBookDto> result = komgaService.getAllBooks(1L, 0, 10);
+
+        assertThat(result.getContent()).hasSize(10);
+        assertThat(result.getTotalElements()).isEqualTo(50);
+        assertThat(result.getTotalPages()).isEqualTo(5);
+        verify(bookRepository, never()).findAllWithMetadataByLibraryId(anyLong());
     }
 }
