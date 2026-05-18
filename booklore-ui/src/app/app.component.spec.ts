@@ -62,6 +62,13 @@ describe('AppComponent offline detection', () => {
     expect(component.offline).toBe(false);
   });
 
+  it('should render the animated splash loader asset while initializing', () => {
+    const loaderImage = fixture.nativeElement.querySelector('.loader') as HTMLImageElement | null;
+
+    expect(loaderImage).not.toBeNull();
+    expect(loaderImage?.getAttribute('src')).toBe('assets/images/loaders/loading3-transparent.gif');
+  });
+
   it('should set offline to false when online event fires', () => {
     component.offline = true;
     window.dispatchEvent(new Event('online'));

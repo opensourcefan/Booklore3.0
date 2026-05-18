@@ -13,7 +13,10 @@
       } @else {
         <h1>{{ t('loading') }}</h1>
         <p>{{ t('loadingDescription') }}</p>
-        <div class="loader"></div>
+        <picture class="loader-picture" aria-hidden="true">
+          <source srcset="assets/images/loaders/loading3-transparent.webp" type="image/webp">
+          <img class="loader" src="assets/images/loaders/loading3-transparent.gif" alt="">
+        </picture>
       }
     </div>
   </div>
