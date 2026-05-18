@@ -186,8 +186,8 @@ export class LibraryService {
   }
 
   getBookCount(libraryId: number): Observable<number> {
-    return this.bookService.bookState$.pipe(
-      map(state => (state.books || []).filter(b => b.libraryId === libraryId).length)
+    return this.bookService.getBooksCount({libraryId}).pipe(
+      catchError(() => of(0))
     );
   }
 

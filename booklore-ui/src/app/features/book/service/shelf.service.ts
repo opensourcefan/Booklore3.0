@@ -1,6 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject, combineLatest, Observable, of} from 'rxjs';
+import {BehaviorSubject, Observable, of} from 'rxjs';
 import {tap, catchError, map, shareReplay, finalize} from 'rxjs/operators';
 
 import {Shelf} from '../model/shelf.model';
@@ -8,14 +8,12 @@ import {ShelfState} from '../model/state/shelf-state.model';
 import {BookService} from './book.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {Book} from '../model/book.model';
-import {UserService} from '../../settings/user-management/user.service';
 
 @Injectable({providedIn: 'root'})
 export class ShelfService {
   private readonly url = `${API_CONFIG.BASE_URL}/api/v1/shelves`;
   private http = inject(HttpClient);
   private bookService = inject(BookService);
-  private userService = inject(UserService);
 
   private shelfStateSubject = new BehaviorSubject<ShelfState>({
     shelves: null,
@@ -110,23 +108,8 @@ export class ShelfService {
   }
 
   getBookCount(shelfId: number): Observable<number> {
-    return combineLatest([
-      this.shelfState$,
-      this.userService.userState$,
-      this.bookService.bookState$
-    ]).pipe(
-      map(([shelfState, userState, bookState]) => {
-        const shelf = shelfState.shelves?.find(s => s.id === shelfId);
-        if (!shelf) return 0;
-
-        const isOwner = userState.user?.id === shelf.userId;
-
-        if (isOwner) {
-          return (bookState.books || []).filter(b => b.shelves?.some(s => s.id === shelfId)).length;
-        } else {
-          return shelf.bookCount || 0;
-        }
-      })
+    return this.bookService.getBooksCount({shelfId}).pipe(
+      catchError(() => of(0))
     );
   }
 
@@ -135,10 +118,8 @@ export class ShelfService {
   }
 
   getUnshelvedBookCount(): Observable<number> {
-    return this.bookService.bookState$.pipe(
-      map(state =>
-        (state.books || []).filter(b => !b.shelves || b.shelves.length === 0).length
-      )
+    return this.bookService.getBooksCount({unshelved: true}).pipe(
+      catchError(() => of(0))
     );
   }
 }

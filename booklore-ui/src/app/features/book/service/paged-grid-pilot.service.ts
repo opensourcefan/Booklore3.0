@@ -565,7 +565,8 @@ export class PagedGridPilotService {
   }
 
   private canWarmStart(_query: ActivePagedQuery): boolean {
-    return true;
+    const currentState = this.bookService.getCurrentBookState();
+    return currentState.loaded && !currentState.error && Array.isArray(currentState.books);
   }
 
   private isEquivalentBookState(currentState: BookState, nextState: BookState): boolean {

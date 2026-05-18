@@ -272,7 +272,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   @ViewChild('mobileRightSidebarPop')
   mobileRightSidebarPop: Popover | undefined;
-  private isMobileRightSidebarOpen = false;
+  isMobileRightSidebarOpen = false;
   private mobileRightSidebarBackHandle: MobileBackHandle | null = null;
 
   @HostListener('window:resize')

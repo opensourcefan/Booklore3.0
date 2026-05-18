@@ -5,7 +5,7 @@ import {MenuModule} from 'primeng/menu';
 import {LibraryService} from '../../../../features/book/service/library.service';
 import {LibraryHealthService} from '../../../../features/book/service/library-health.service';
 import {BehaviorSubject, combineLatest, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, map} from 'rxjs/operators';
+import {catchError, filter, map, switchMap} from 'rxjs/operators';
 import {ShelfService} from '../../../../features/book/service/shelf.service';
 import {BookService} from '../../../../features/book/service/book.service';
 import {LibraryShelfMenuService} from '../../../../features/book/service/library-shelf-menu.service';
@@ -194,8 +194,13 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         this.initMenus();
       }));
 
-    this.homeMenu$ = combineLatest([this.bookService.bookState$, this.t.langChanges$, this.homeItemVisibilitySubject]).pipe(
-      map(([bookState]) => {
+    this.homeMenu$ = combineLatest([
+      this.bookService.getBooksCount().pipe(catchError(() => of(0))),
+      this.bookService.getBooksCount({bookType: 'PHYSICAL'}).pipe(catchError(() => of(0))),
+      this.t.langChanges$,
+      this.homeItemVisibilitySubject,
+    ]).pipe(
+      map(([allBooksCount, physicalBooksCount]) => {
         const items: AppMenuItem[] = [
           {
             label: this.t.translate('layout.menu.dashboard'),
@@ -214,7 +219,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             type: 'All Books',
             icon: 'pi pi-fw pi-book',
             routerLink: ['/all-books'],
-            bookCount$: of(bookState.books ? bookState.books.length : 0),
+            bookCount$: of(allBooksCount),
           },
           {
             label: this.t.translate('layout.menu.physicalBooks'),
@@ -222,7 +227,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             type: 'Physical Books',
             icon: 'pi pi-fw pi-box',
             routerLink: ['/physical-books'],
-            bookCount$: of((bookState.books ?? []).filter(book => book.isPhysical).length),
+            bookCount$: of(physicalBooksCount),
           },
           {
             label: this.t.translate('layout.menu.series'),
@@ -258,44 +263,50 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       map(menuItems => this.applyNestedItemOrder('home', menuItems))
     );
 
-    this.bookTypeMenu$ = combineLatest([this.bookService.bookState$, this.mediaTypePreferences.settings$]).pipe(
-      map(([bookState, mediaTypeSettings]) => {
-        const counts = new Map<string, number>();
-        for (const book of bookState.books ?? []) {
-          const type = this.getNavigationMediaType(book);
-          if (!type) {
-            continue;
-          }
-          counts.set(type, (counts.get(type) ?? 0) + 1);
+    this.bookTypeMenu$ = this.mediaTypePreferences.settings$.pipe(
+      switchMap(mediaTypeSettings => {
+        const mediaTypes = mediaTypeSettings.customTypes
+          .map(type => type.trim())
+          .filter(type => type.length > 0 && type.toUpperCase() !== 'PHYSICAL');
+
+        if (mediaTypes.length === 0) {
+          return of([
+            {
+              label: this.t.translate('layout.menu.mediaType'),
+              type: 'mediaType',
+              hasDropDown: true,
+              hasCreate: true,
+              onCreate: () => this.openMediaTypeCreatorDialog(),
+              onItemsReorder: (items: AppMenuItem[]) => this.mediaTypePreferences.setSidebarOrder(items.map(item => item.label ?? '')),
+              items: [],
+            }
+          ]);
         }
 
-        for (const savedType of mediaTypeSettings.customTypes) {
-          const normalizedSavedType = savedType.trim();
-          if (!normalizedSavedType || normalizedSavedType.toUpperCase() === 'PHYSICAL') {
-            continue;
-          }
+        return combineLatest(
+          mediaTypes.map(label => this.bookService.getBooksCount({mediaTypes: [label]}).pipe(
+            map(count => ({label, count})),
+            catchError(() => of({label, count: 0}))
+          ))
+        ).pipe(
+          map(entries => {
+            const sortedBookTypes = entries
+              .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+            const orderedBookTypes = this.applyBookTypeOrder(sortedBookTypes, mediaTypeSettings.sidebarOrder);
 
-          if (!counts.has(normalizedSavedType)) {
-            counts.set(normalizedSavedType, 0);
-          }
-        }
-
-        const sortedBookTypes = [...counts.entries()]
-          .map(([label, count]) => ({label, count}))
-          .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-
-        const orderedBookTypes = this.applyBookTypeOrder(sortedBookTypes, mediaTypeSettings.sidebarOrder);
-        return [
-          {
-            label: this.t.translate('layout.menu.mediaType'),
-            type: 'mediaType',
-            hasDropDown: true,
-            hasCreate: true,
-            onCreate: () => this.openMediaTypeCreatorDialog(),
-            onItemsReorder: (items: AppMenuItem[]) => this.mediaTypePreferences.setSidebarOrder(items.map(item => item.label ?? '')),
-            items: orderedBookTypes.map(entry => this.createMediaTypeMenuItem(entry.label, entry.count)),
-          }
-        ];
+            return [
+              {
+                label: this.t.translate('layout.menu.mediaType'),
+                type: 'mediaType',
+                hasDropDown: true,
+                hasCreate: true,
+                onCreate: () => this.openMediaTypeCreatorDialog(),
+                onItemsReorder: (items: AppMenuItem[]) => this.mediaTypePreferences.setSidebarOrder(items.map(item => item.label ?? '')),
+                items: orderedBookTypes.map(entry => this.createMediaTypeMenuItem(entry.label, entry.count)),
+              }
+            ];
+          })
+        );
       })
     );
   }

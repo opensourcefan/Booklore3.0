@@ -96,6 +96,7 @@ export class AppTopBarComponent implements OnDestroy {
   hasPendingBookdropFiles = false;
   showMobileBookFilterTrigger = false;
   showMobileDirTrigger = false;
+  mobileDirectoryPopoverOpen = false;
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
   metadataFlushProgress: TaskProgressPayload | null = null;
   importScanProgress: TaskProgressPayload | null = null;
@@ -374,6 +375,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   onMobileDirectoryPopoverShow(): void {
+    this.mobileDirectoryPopoverOpen = true;
     if (this.mobileDirectoryBackHandle) {
       return;
     }
@@ -384,6 +386,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   onMobileDirectoryPopoverHide(): void {
+    this.mobileDirectoryPopoverOpen = false;
     this.mobileDirectoryBackHandle?.release();
     this.mobileDirectoryBackHandle = null;
   }
@@ -414,6 +417,7 @@ export class AppTopBarComponent implements OnDestroy {
     this.mobileSidebarPop?.hide();
     this.mobileDirPop?.hide();
     this.mobileMenuPop?.hide();
+    this.mobileDirectoryPopoverOpen = false;
   }
 
 

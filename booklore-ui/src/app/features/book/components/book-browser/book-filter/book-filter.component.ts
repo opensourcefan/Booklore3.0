@@ -39,7 +39,17 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   @Input() entity$: Observable<Library | Shelf | MagicShelf | null> | undefined;
   @Input() entityType$: Observable<EntityType> | undefined;
   @Input() resetFilter$!: Subject<void>;
-  @Input() showFilter = false;
+  @Input()
+  set showFilter(value: boolean) {
+    const nextValue = !!value;
+    const becameVisible = nextValue && !this._showFilter;
+    this._showFilter = nextValue;
+
+    if (becameVisible && this.initialized) {
+      this.initializeFilterStreams();
+      this.cdr.markForCheck();
+    }
+  }
   @Input() urlFilter$: Observable<Record<string, string[]> | null> | undefined;
   @Input()
   set filterMode(mode: BookFilterMode | null | undefined) {
@@ -78,6 +88,8 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   private _visibleFilters: VisibleFilterType[] = [...DEFAULT_VISIBLE_FILTERS];
   private readonly filterSort$ = new BehaviorSubject<UserFilterSort>('count');
   private currentUserId: number | null = null;
+  private _showFilter = false;
+  private initialized = false;
 
   readonly filterLabelKeys = FILTER_LABEL_KEYS;
 
@@ -108,8 +120,11 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadLegacyPreferences();
     this.subscribeToUserSettings();
-    this.initializeFilterStreams();
+    if (this._showFilter) {
+      this.initializeFilterStreams();
+    }
     this.subscribeToReset();
+    this.initialized = true;
   }
 
   ngOnDestroy(): void {
@@ -118,6 +133,10 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   refreshAfterRouteAttach(): void {
+    if (!this._showFilter) {
+      return;
+    }
+
     this.initializeFilterStreams();
     this.cdr.markForCheck();
   }

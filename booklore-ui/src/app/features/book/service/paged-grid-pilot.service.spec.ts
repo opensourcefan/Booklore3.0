@@ -22,9 +22,11 @@ function createBook(id: number, title = `Book ${id}`): Book {
 
 describe('PagedGridPilotService', () => {
   let getBooksPaged: ReturnType<typeof vi.fn>;
+  let getCurrentBookState: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     getBooksPaged = vi.fn();
+    getCurrentBookState = vi.fn(() => ({books: [], loaded: true, error: null}));
 
     TestBed.configureTestingModule({
       providers: [
@@ -35,6 +37,7 @@ describe('PagedGridPilotService', () => {
           provide: BookService,
           useValue: {
             getBooksPaged,
+            getCurrentBookState,
             getBookByIdFromState: vi.fn(),
             getBooksByIdsFromState: vi.fn(() => []),
             getBookByIdFromAPI: vi.fn(),
@@ -111,6 +114,53 @@ describe('PagedGridPilotService', () => {
     pagedResponse$.complete();
 
     const pagedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && state.books?.[0]?.id === 1)));
+    expect(pagedState.books?.map(book => book.id)).toEqual([1, 2]);
+  });
+
+  it('skips the legacy warm-start when the shared full-state library is still cold', async () => {
+    const service = createService();
+    const pagedResponse$ = new Subject<{
+      content: Book[];
+      page: number;
+      size: number;
+      totalElements: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrevious: boolean;
+    }>();
+    const legacyFactory = vi.fn(() => of(legacyState([createBook(90, 'Warm 90')])));
+
+    getCurrentBookState.mockReturnValue({books: null, loaded: false, error: null});
+    getBooksPaged.mockReturnValue(pagedResponse$);
+
+    const bookState$ = service.connect({
+      entity: 'ALL_BOOKS',
+      entityId: null,
+      viewMode: 'grid',
+      sortCriteria: [{ field: 'addedOn', label: 'Added On', direction: SortDirection.DESCENDING }],
+      filters: {},
+      filterMode: 'and',
+      isDirectoryScopedView: false,
+      isSeriesCollapsed: false,
+      searchTerm: '',
+    }, legacyFactory);
+
+    const initialState = await firstValueFrom(bookState$);
+    expect(initialState).toMatchObject({loaded: false, books: null, error: null});
+    expect(legacyFactory).not.toHaveBeenCalled();
+
+    pagedResponse$.next({
+      content: [createBook(1), createBook(2)],
+      page: 0,
+      size: 80,
+      totalElements: 2,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    });
+    pagedResponse$.complete();
+
+    const pagedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded)));
     expect(pagedState.books?.map(book => book.id)).toEqual([1, 2]);
   });
 

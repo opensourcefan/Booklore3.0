@@ -31,6 +31,7 @@ describe('AppMenuComponent reorder mode', () => {
   let libraryServiceMock: {libraryState$: Observable<{libraries: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
   let magicShelfServiceMock: {shelvesState$: Observable<{shelves: never[]}>; getBookCount: ReturnType<typeof vi.fn>};
   let shelfServiceMock: {shelfState$: Observable<{shelves: never[]}>; getUnshelvedBookCount: ReturnType<typeof vi.fn>; getBookCount: ReturnType<typeof vi.fn>};
+  let getBooksCount: ReturnType<typeof vi.fn>;
   let langChanges$: BehaviorSubject<string>;
   let keyChanges$: Subject<string>;
 
@@ -52,6 +53,15 @@ describe('AppMenuComponent reorder mode', () => {
       setSidebarOrder: vi.fn(),
       settings$: of({customTypes: ['CBZ', 'PHYSICAL'], sidebarOrder: []})
     };
+    getBooksCount = vi.fn((params?: {bookType?: string; mediaTypes?: string[]}) => {
+      if (params?.bookType === 'PHYSICAL') {
+        return of(3);
+      }
+      if (params?.mediaTypes?.[0] === 'CBZ') {
+        return of(5);
+      }
+      return of(9);
+    });
     versionServiceMock = {
       getVersion: vi.fn().mockReturnValue(of({current: '3.9.7', latest: '3.9.7'}))
     };
@@ -75,7 +85,7 @@ describe('AppMenuComponent reorder mode', () => {
         {provide: LibraryService, useValue: libraryServiceMock},
         {provide: LibraryHealthService, useValue: {}},
         {provide: ShelfService, useValue: shelfServiceMock},
-        {provide: BookService, useValue: {bookState$: of({books: []})}},
+        {provide: BookService, useValue: {getBooksCount}},
         {provide: VersionService, useValue: versionServiceMock},
         {provide: LibraryShelfMenuService, useValue: {}},
         {provide: DialogLauncherService, useValue: {openAcknowledgementsDialog: vi.fn()}},
@@ -185,6 +195,22 @@ describe('AppMenuComponent reorder mode', () => {
     expect(dashboardItem?.endActionIcon).toBe('pi pi-cog');
     expect(dashboardItem?.endActionClass).toBe('dashboard-row-end-action');
     expect(dashboardItem?.endActionCommand).toBeTypeOf('function');
+  });
+
+  it('builds home counts from paged totals instead of shared full-state books', async () => {
+    component.ngOnInit();
+
+    const menu = await new Promise<AppMenuItem[]>((resolve) => {
+      component.homeMenu$?.subscribe(resolve);
+    });
+
+    const allBooksItem = menu[0].items?.find(item => item.routerLink?.[0] === '/all-books');
+    const physicalBooksItem = menu[0].items?.find(item => item.routerLink?.[0] === '/physical-books');
+
+    expect(allBooksItem?.bookCount$).toBeDefined();
+    expect(physicalBooksItem?.bookCount$).toBeDefined();
+    expect(getBooksCount).toHaveBeenCalledWith();
+    expect(getBooksCount).toHaveBeenCalledWith({bookType: 'PHYSICAL'});
   });
 
   it('reuses cached stable tag when latest tag is temporarily unavailable', () => {

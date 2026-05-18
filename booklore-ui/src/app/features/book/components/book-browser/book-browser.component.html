@@ -410,16 +410,18 @@
               appendTo="body"
               (onShow)="onMobileRightSidebarShow()"
               (onHide)="onMobileRightSidebarHide()">
-              <app-book-filter
-                [showFilter]="true"
-                [entity$]="entity$"
-                [entityType$]="entityType$"
-                [filterMode]="selectedFilterMode | async"
-                [urlFilter$]="selectedFilter"
-                [resetFilter$]="resetFilterSubject"
-                (filterSelected)="onFilterSelected($event)"
-                (filterModeChanged)="onFilterModeChanged($event)">
-              </app-book-filter>
+              @if (isMobileRightSidebarOpen) {
+                <app-book-filter
+                  [showFilter]="isMobileRightSidebarOpen"
+                  [entity$]="entity$"
+                  [entityType$]="entityType$"
+                  [filterMode]="selectedFilterMode | async"
+                  [urlFilter$]="selectedFilter"
+                  [resetFilter$]="resetFilterSubject"
+                  (filterSelected)="onFilterSelected($event)"
+                  (filterModeChanged)="onFilterModeChanged($event)">
+                </app-book-filter>
+              }
             </p-popover>
           }
           <div class="desktop-right-sidebar-trigger">

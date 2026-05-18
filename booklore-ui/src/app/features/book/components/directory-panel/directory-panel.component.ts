@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit, inject} from '@angular/core';
-import {filter, Subject} from 'rxjs';
+import {filter, Subject, Subscription} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {NavigationEnd, Router} from '@angular/router';
 import {ProgressSpinner} from 'primeng/progressspinner';
@@ -32,6 +32,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   private pendingReload = false;
 
   private destroy$ = new Subject<void>();
+  private bookStateSubscription: Subscription | null = null;
 
   private router = inject(Router);
   private treeService = inject(DirectoryTreeService);
@@ -45,6 +46,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
       const wasVisible = this.visible;
       this.visible = v;
       if (v && !wasVisible) {
+        this.subscribeToBookStateIfNeeded();
         const saved = localStorage.getItem('bl-dir-panel-width');
         const width = saved ? parseInt(saved, 10) : 200;
         document.documentElement.style.setProperty('--dir-panel-width', width + 'px');
@@ -52,6 +54,7 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
           this.loadTree();
         }
       } else if (!v) {
+        this.unsubscribeFromBookState();
         document.documentElement.style.setProperty('--dir-panel-width', '0px');
       }
     });
@@ -59,10 +62,6 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     // Track selected filter
     this.filterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(f => {
       this.syncSelectionFromFilter(f);
-    });
-
-    this.bookService.bookState$.pipe(takeUntil(this.destroy$)).subscribe(state => {
-      this.handleBookStateChanged(state);
     });
 
     // Track route changes
@@ -77,6 +76,8 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.bookStateSubscription?.unsubscribe();
+    this.bookStateSubscription = null;
     document.documentElement.style.setProperty('--dir-panel-width', '0px');
   }
 
@@ -149,6 +150,23 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
     }
 
     this.syncSelectionFromFilter(this.filterService.currentFilter);
+  }
+
+  private subscribeToBookStateIfNeeded(): void {
+    if (this.bookStateSubscription) {
+      return;
+    }
+
+    this.bookStateSubscription = this.bookService.bookState$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(state => {
+      this.handleBookStateChanged(state);
+    });
+  }
+
+  private unsubscribeFromBookState(): void {
+    this.bookStateSubscription?.unsubscribe();
+    this.bookStateSubscription = null;
   }
 
   private handleBookStateChanged(state: BookState): void {

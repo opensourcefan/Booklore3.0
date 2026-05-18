@@ -878,7 +878,7 @@
 <h2 id="sec16">16. Search and Filtering</h2>
 
 <h3>Global Search</h3>
-<p>Type in the search bar to find books across your entire collection by title, author name, description, or ISBN.</p>
+<p>Type in the search bar to find books across your entire collection by title, author name, description, or ISBN. The topbar search now pulls lightweight server results as you type, so it stays responsive even before a large browser view has finished warming up.</p>
 
 <h3>Filters</h3>
 <table>
@@ -904,6 +904,7 @@
   <li>Hover the filter-mode buttons to see what each mode does: <strong>AND</strong> requires every selected filter to match, <strong>OR</strong> accepts any selected match, <strong>NOT</strong> hides matches, and <strong>1</strong> keeps only one active selection at a time</li>
   <li>Scroll the desktop filter sidebar as one continuous panel instead of fighting a second nested scrollbar inside long filter groups</li>
   <li>Keep the desktop filter panel anchored flush to the right edge of its sidebar while you scroll and expand filter groups</li>
+  <li>Open <strong>All Books</strong>, a library, a shelf, or <strong>Not Shelfed</strong> and start browsing from the first paged results immediately instead of waiting for BookLore to preload the whole catalog in the background</li>
   <li>Switch between libraries and shelves, including cached views reopened from the left sidebar, without manually refreshing or toggling the filter sort to repopulate metadata-backed sidebar filters such as authors, tags, series, publishers, and languages</li>
   <li>Apply tag and other metadata edits without needing repeated browser refreshes before the right sidebar selections and facet counts catch up</li>
   <li>Use the <strong>Date Added</strong> and <strong>Folder</strong> sidebar filters to narrow or exclude books by when they were imported or which directory they reside in, under every filter mode (AND, OR, NOT, 1)</li>
@@ -1406,6 +1407,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-05-18</td><td>1.1.99</td><td>Documented the paged-first browser startup flow so <strong>All Books</strong>, library, shelf, and <strong>Not Shelfed</strong> views can render from the first server page without waiting for a full catalog bootstrap, and clarified that topbar search now stays responsive on large libraries by querying lightweight server-backed results</td></tr>
   <tr><td>2026-05-13</td><td>1.1.98</td><td>Reformatted the guide into a darker, more book-like reading presentation for both HTML and PDF output, clarified that users who want regular built-in reader behavior can copy or import the PDF into a library or BookDrop manually, and made the maintenance rule explicit: update this HTML source, regenerate the PDF, and refresh the README guide section together</td></tr>
   <tr><td>2026-05-13</td><td>1.1.97</td><td>Updated the guide for the current dashboard workflow: documented the supported scroller types, per-panel layout controls, and the optional <strong>Currently Reading</strong> panel plus the <strong>More Actions &rarr; Currently Reading</strong> shortcut that feeds it, and added the <strong>Global Preferences</strong> theme-configurator workflow for preset or custom primary/surface colors that persist per user</td></tr>
   <tr><td>2026-04-22</td><td>1.1.96</td><td>Clarified that <strong>Manage Directories</strong> and the directory picker now show imported-state badges not only for exact library paths but also for parent directories that already contain imported subdirectories, and recorded that the <strong>Book Details</strong> metadata search tab now flexes to the dialog height so footer actions remain reachable without extra viewport scrolling</td></tr>

@@ -173,6 +173,16 @@ export class BookService {
     return this.http.get<AppPageResponse<Book>>(`${this.url}/paged`, { params: httpParams });
   }
 
+  getBooksCount(params: Omit<PagedBooksParams, 'page' | 'size'> = {}): Observable<number> {
+    return this.getBooksPaged({
+      ...params,
+      page: 0,
+      size: 1,
+    }).pipe(
+      map(response => response.totalElements)
+    );
+  }
+
   refreshBooks(): Observable<Book[]> {
     return this.http.get<Book[]>(this.url).pipe(
       tap(bookList => {

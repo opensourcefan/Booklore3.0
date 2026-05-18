@@ -1,12 +1,9 @@
 import {inject, Injectable} from '@angular/core';
 import {API_CONFIG} from '../../../core/config/api-config';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
-import {catchError, distinctUntilChanged, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
-import {BookService} from '../../book/service/book.service';
-import {BookRuleEvaluatorService} from './book-rule-evaluator.service';
+import {catchError, distinctUntilChanged, finalize, map, shareReplay, tap} from 'rxjs/operators';
 import {AuthService} from '../../../shared/service/auth.service';
-import {GroupRule} from '../component/magic-shelf-component';
 
 export interface MagicShelf {
   id?: number | null;
@@ -28,10 +25,9 @@ export interface MagicShelfState {
 })
 export class MagicShelfService {
   private readonly url = `${API_CONFIG.BASE_URL}/api/magic-shelves`;
+  private readonly appShelvesUrl = `${API_CONFIG.BASE_URL}/api/v1/app/shelves`;
 
   private readonly http = inject(HttpClient);
-  private readonly bookService = inject(BookService);
-  private readonly ruleEvaluatorService = inject(BookRuleEvaluatorService);
   private readonly authService = inject(AuthService);
 
   private readonly shelvesStateSubject = new BehaviorSubject<MagicShelfState>({
@@ -150,26 +146,13 @@ export class MagicShelfService {
   }
 
   getBookCount(shelfId: number): Observable<number> {
-    return this.getShelf(shelfId).pipe(
-      switchMap((shelf) => {
-        if (!shelf) return of(0);
-        let group: GroupRule;
-        try {
-          group = JSON.parse(shelf.filterJson);
-        } catch (e) {
-          console.error('Invalid filter JSON', e);
-          return of(0);
-        }
+    const params = new HttpParams()
+      .set('page', '0')
+      .set('size', '1');
 
-        return this.bookService.bookState$.pipe(
-          map((state) => {
-            const allBooks = state.books ?? [];
-            return allBooks.filter((book) =>
-              this.ruleEvaluatorService.evaluateGroup(book, group, allBooks)
-            ).length;
-          })
-        );
-      })
+    return this.http.get<{totalElements: number}>(`${this.appShelvesUrl}/magic/${shelfId}/books`, {params}).pipe(
+      map(response => response.totalElements),
+      catchError(() => of(0))
     );
   }
 }

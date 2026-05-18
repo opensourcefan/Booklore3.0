@@ -19,7 +19,9 @@
         tooltipPosition="bottom">
       </p-button>
       <p-popover #mobileDirPop [dismissable]="true" styleClass="dir-mobile-panel-popover" (onShow)="onMobileDirectoryPopoverShow()" (onHide)="onMobileDirectoryPopoverHide()">
-        <app-directory-mobile-panel></app-directory-mobile-panel>
+        @if (mobileDirectoryPopoverOpen) {
+          <app-directory-mobile-panel></app-directory-mobile-panel>
+        }
       </p-popover>
     }
     <p-popover #mobileSidebarPop [dismissable]="true" styleClass="mobile-sidebar-popover" (onShow)="onMobileSidebarPopoverShow()" (onHide)="onMobileSidebarPopoverHide()">

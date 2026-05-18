@@ -1,6 +1,6 @@
 import {Component, ElementRef, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
 import {BehaviorSubject, of, Subscription} from 'rxjs';
-import {catchError, debounceTime, distinctUntilChanged, switchMap, tap} from 'rxjs/operators';
+import {catchError, debounceTime, distinctUntilChanged, map, switchMap} from 'rxjs/operators';
 import {Book} from '../../model/book.model';
 import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
@@ -12,7 +12,6 @@ import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Router} from '@angular/router';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
-import {HeaderFilter} from '../book-browser/filters/HeaderFilter';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
 @Component({
@@ -45,27 +44,34 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   protected urlHelper = inject(UrlHelperService);
   private readonly t = inject(TranslocoService);
   private elRef = inject(ElementRef);
-  private headerFilter = new HeaderFilter(
-    this.#searchSubject.pipe(debounceTime(200), distinctUntilChanged())
-  );
 
   ngOnInit(): void {
-    this.#subscription = this.bookService.bookState$.pipe(
-      tap(() => {
-        if (this.searchQuery.trim().length >= 2) {
-          this.isLoading = true;
+    this.#subscription = this.#searchSubject.pipe(
+      debounceTime(200),
+      distinctUntilChanged(),
+      switchMap(term => {
+        const normalizedTerm = term.trim();
+        if (normalizedTerm.length < 2) {
+          this.isLoading = false;
+          return of([] as Book[]);
         }
-      }),
-      switchMap(bookState => this.headerFilter.filter(bookState)),
-      catchError(() => of({books: [], loaded: true, error: null}))
+
+        this.isLoading = true;
+
+        return this.bookService.getBooksPaged({
+          search: normalizedTerm,
+          page: 0,
+          size: 50,
+        }).pipe(
+          map(response => response.content),
+          catchError(() => of([] as Book[]))
+        );
+      })
     ).subscribe({
-      next: (filteredState) => {
+      next: books => {
         this.isLoading = false;
         this.activeIndex = -1;
-        const term = this.searchQuery.trim();
-        this.books = term.length >= 2
-          ? (filteredState.books || []).slice(0, 50)
-          : [];
+        this.books = books;
       }
     });
   }
