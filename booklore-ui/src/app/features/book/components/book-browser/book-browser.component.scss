@@ -716,6 +716,14 @@
 }
 
 // Book state container
+.book-browser-loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: clamp(16rem, 40dvh, 28rem);
+}
+
 .book-state-wrapper {
   position: relative;
 }
