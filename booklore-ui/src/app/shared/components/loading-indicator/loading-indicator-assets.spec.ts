@@ -14,6 +14,8 @@ describe('Loading indicator asset mapping', () => {
     const progressSpinnerBlock = styles.match(/p-progressspinner::before,[\s\S]*?\.p-progress-spinner::before\s*\{[\s\S]*?\}/)?.[0] ?? '';
 
     expect(component).toContain('src="assets/images/loaders/loading3-transparent.webp"');
+    expect(component).not.toContain('loading="eager"');
+    expect(component).toContain('animation: bl-loader-reveal 0s step-end var(--bl-loader-delay, 200ms) forwards;');
     expect(styles).toContain("--bl-loader-standalone-image: url('assets/images/loaders/loading3-transparent.webp');");
     expect(standaloneSpinnerBlock).toContain('background-image: var(--bl-loader-standalone-image);');
     expect(progressSpinnerBlock).toContain('background-image: var(--bl-loader-standalone-image);');
@@ -24,7 +26,7 @@ describe('Loading indicator asset mapping', () => {
     const iconSpinnerBlock = styles.match(/\.pi\.pi-spinner\s*\{[\s\S]*?\}/)?.[0] ?? '';
 
     expect(styles).toContain("--bl-loader-inline-image: url('assets/images/loaders/loading-icons-buttons.webp');");
-    expect(iconSpinnerBlock).toContain('animation: none !important;');
+    expect(iconSpinnerBlock).toContain('animation: bl-loader-reveal 0s step-end var(--bl-loader-delay) forwards !important;');
     expect(iconSpinnerBlock).toContain('background-image: var(--bl-loader-inline-image);');
   });
 
@@ -39,5 +41,19 @@ describe('Loading indicator asset mapping', () => {
     expect(styles).toContain("svg[data-p-icon='spinner'] > *");
     expect(standaloneSvgSpinnerBlock).toContain('width: var(--bl-loader-size);');
     expect(standaloneSvgSpinnerBlock).toContain('background-image: var(--bl-loader-standalone-image);');
+  });
+
+  it('delays loader reveal and darkens inline loaders only on filled green buttons', () => {
+    const styles = readWorkspaceFile('src/styles.scss');
+    const delayedOverlayBlock = styles.match(/\.fullscreen-loader,[\s\S]*?\.p-virtualscroller-loader-mask\s*\{[\s\S]*?\}/)?.[0] ?? '';
+    const iconSpinnerBlock = styles.match(/\.pi\.pi-spinner\s*\{[\s\S]*?\}/)?.[0] ?? '';
+
+    expect(styles).toContain('--bl-loader-delay: 200ms;');
+    expect(styles).toContain('@keyframes bl-loader-reveal');
+    expect(delayedOverlayBlock).toContain('animation: bl-loader-reveal 0s step-end var(--bl-loader-delay) forwards;');
+    expect(iconSpinnerBlock).toContain('animation: bl-loader-reveal 0s step-end var(--bl-loader-delay) forwards !important;');
+    expect(iconSpinnerBlock).toContain('filter: var(--bl-loader-inline-filter);');
+    expect(styles).toContain('.p-button.p-button-primary:not(.p-button-outlined):not(.p-button-text):not(.p-button-link),');
+    expect(styles).toContain('--bl-loader-inline-filter: brightness(0.82) saturate(0.9);');
   });
 });

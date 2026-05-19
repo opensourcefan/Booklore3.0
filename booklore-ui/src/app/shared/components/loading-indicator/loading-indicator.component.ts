@@ -8,8 +8,7 @@ import {Component, Input} from '@angular/core';
       class="loading-indicator"
       src="assets/images/loaders/loading3-transparent.webp"
       [attr.alt]="decorative ? '' : alt"
-      decoding="async"
-      loading="eager">
+      decoding="async">
   `,
   styles: [`
     :host {
@@ -21,6 +20,8 @@ import {Component, Input} from '@angular/core';
       display: block;
       width: 100%;
       height: 100%;
+      opacity: 0;
+      animation: bl-loader-reveal 0s step-end var(--bl-loader-delay, 200ms) forwards;
     }
   `],
   host: {
