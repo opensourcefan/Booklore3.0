@@ -51,7 +51,7 @@ export class PagedGridPilotService {
   private static readonly PAGE_SIZE = 80;
   private static readonly LOAD_MORE_THRESHOLD_PX = 600;
   private static readonly LOAD_MORE_THRESHOLD_VIEWPORTS = 3;
-  private static readonly PREFETCHED_PAGE_COUNT = 4;
+  private static readonly PREFETCHED_PAGE_COUNT = 2;
 
   private readonly bookService = inject(BookService);
   private readonly pagedBookBrowserStateService = inject(PagedBookBrowserStateService);

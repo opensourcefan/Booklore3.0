@@ -163,15 +163,26 @@ describe('PagedGridPilotService', () => {
       authors: ['Jane Doe'],
       filterMode: 'and',
     }));
-    expect(getBooksPaged).toHaveBeenCalledTimes(4);
+    // PREFETCHED_PAGE_COUNT = 2: page 0 + prefetch page 1 = 2 calls
+    expect(getBooksPaged).toHaveBeenCalledTimes(2);
 
-    const prefetchedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && (state.books?.length ?? 0) === 8)));
-    expect(prefetchedState.books?.map(book => book.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    const prefetchedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && (state.books?.length ?? 0) === 4)));
+    expect(prefetchedState.books?.map(book => book.id)).toEqual([1, 2, 3, 4]);
 
+    // Scroll triggers page 2 (3rd call), prefetch stops (3 pages >= 2)
     service.loadNextPageIfNeeded(1900, 500, 2800);
+    const secondLoadedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && (state.books?.length ?? 0) === 6)));
+    expect(secondLoadedState.books?.map(book => book.id)).toEqual([1, 2, 3, 4, 5, 6]);
 
-    const secondLoadedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && (state.books?.length ?? 0) === 10)));
-    expect(secondLoadedState.books?.map(book => book.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    // Scroll triggers page 3 (4th call)
+    service.loadNextPageIfNeeded(1900, 500, 2800);
+    const thirdLoadedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && (state.books?.length ?? 0) === 8)));
+    expect(thirdLoadedState.books?.map(book => book.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    // Scroll triggers page 4 (5th call)
+    service.loadNextPageIfNeeded(1900, 500, 2800);
+    const fourthLoadedState = await firstValueFrom(bookState$.pipe(filter(state => state.loaded && (state.books?.length ?? 0) === 10)));
+    expect(fourthLoadedState.books?.map(book => book.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     expect(getBooksPaged).toHaveBeenCalledTimes(5);
   });
 
