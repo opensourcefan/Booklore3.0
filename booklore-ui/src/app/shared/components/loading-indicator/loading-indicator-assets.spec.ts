@@ -35,7 +35,7 @@ describe('Loading indicator asset mapping', () => {
     const svgSpinnerBlock = styles.match(/svg\[data-p-icon='spinner'\],\s*\.p-button-loading-icon svg\.p-icon-spin\s*\{[\s\S]*?\}/)?.[0] ?? '';
     const standaloneSvgSpinnerBlock = styles.match(/svg\[data-p-icon='spinner'\]\.p-datatable-loading-icon,[\s\S]*?svg\[data-p-icon='spinner'\]\.p-virtualscroller-loading-icon\s*\{[\s\S]*?\}/)?.[0] ?? '';
 
-    expect(svgSpinnerBlock).toContain('animation: none !important;');
+    expect(svgSpinnerBlock).toContain('animation: bl-loader-reveal 0s step-end var(--bl-loader-delay) forwards !important;');
     expect(svgSpinnerBlock).toContain('background-image: var(--bl-loader-inline-image);');
     expect(svgSpinnerBlock).toContain('color: transparent !important;');
     expect(styles).toContain("svg[data-p-icon='spinner'] > *");
