@@ -163,24 +163,15 @@ public class AppBookService {
                 AppBookSpecification.notDeleted(),
             AppBookSpecification.hasDigitalFileOrIsPhysical(),
                 AppBookSpecification.inLibraries(accessibleLibraryIds),
-                AppBookSpecification.inProgress(userId),
+                AppBookSpecification.inProgressWithProgressJoin(userId),
                 AppBookSpecification.hasNonAudiobookFile()
         );
 
-        List<BookEntity> books = bookRepository.findAll(spec);
-        Map<Long, UserBookProgressEntity> progressMap = getProgressMapForBooks(userId, books);
+        Pageable pageable = PageRequest.of(0, maxItems, Sort.by(Sort.Direction.DESC, "userBookProgress.lastReadTime"));
+        Page<BookEntity> bookPage = bookRepository.findAll(spec, pageable);
+        Map<Long, UserBookProgressEntity> progressMap = getProgressMapForBooks(userId, bookPage.getContent());
 
-        return books.stream()
-                .filter(book -> progressMap.containsKey(book.getId()))
-                .sorted((b1, b2) -> {
-                    Instant t1 = progressMap.get(b1.getId()).getLastReadTime();
-                    Instant t2 = progressMap.get(b2.getId()).getLastReadTime();
-                    if (t1 == null && t2 == null) return 0;
-                    if (t1 == null) return 1;
-                    if (t2 == null) return -1;
-                    return t2.compareTo(t1);
-                })
-                .limit(maxItems)
+        return bookPage.getContent().stream()
                 .map(book -> mobileBookMapper.toSummary(book, progressMap.get(book.getId())))
                 .collect(Collectors.toList());
     }
@@ -197,24 +188,15 @@ public class AppBookService {
                 AppBookSpecification.notDeleted(),
             AppBookSpecification.hasDigitalFileOrIsPhysical(),
                 AppBookSpecification.inLibraries(accessibleLibraryIds),
-                AppBookSpecification.inProgress(userId),
+                AppBookSpecification.inProgressWithProgressJoin(userId),
                 AppBookSpecification.hasAudiobookFile()
         );
 
-        List<BookEntity> books = bookRepository.findAll(spec);
-        Map<Long, UserBookProgressEntity> progressMap = getProgressMapForBooks(userId, books);
+        Pageable pageable = PageRequest.of(0, maxItems, Sort.by(Sort.Direction.DESC, "userBookProgress.lastReadTime"));
+        Page<BookEntity> bookPage = bookRepository.findAll(spec, pageable);
+        Map<Long, UserBookProgressEntity> progressMap = getProgressMapForBooks(userId, bookPage.getContent());
 
-        return books.stream()
-                .filter(book -> progressMap.containsKey(book.getId()))
-                .sorted((b1, b2) -> {
-                    Instant t1 = progressMap.get(b1.getId()).getLastReadTime();
-                    Instant t2 = progressMap.get(b2.getId()).getLastReadTime();
-                    if (t1 == null && t2 == null) return 0;
-                    if (t1 == null) return 1;
-                    if (t2 == null) return -1;
-                    return t2.compareTo(t1);
-                })
-                .limit(maxItems)
+        return bookPage.getContent().stream()
                 .map(book -> mobileBookMapper.toSummary(book, progressMap.get(book.getId())))
                 .collect(Collectors.toList());
     }

@@ -50,7 +50,21 @@ export interface PagedBookBrowserState {
 }
 
 export const DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS: Readonly<BookBrowserRolloutGuardrails> = Object.freeze({
-  activeMode: 'legacy-full-state',
+  activeMode: 'paged-browse' as BookBrowserDataSourceMode,
+  fallbackMode: 'legacy-full-state',
+  allowPagedGridView: true,
+  allowPagedTableView: true,
+  enabledEntities: ['ALL_BOOKS', 'LIBRARY', 'SHELF', 'NOT_SHELFED'] as PagedBookBrowserEntity[],
+});
+
+/**
+ * Legacy fallback guardrails used by {@link PagedBookBrowserStateService#resetToLegacyMode}
+ * and {@link PagedBookBrowserStateService#reset}.  Must remain pinned to
+ * {@code legacy-full-state} so that error-recovery and explicit fallback paths
+ * correctly revert to the full-state data source.
+ */
+export const LEGACY_FALLBACK_GUARDRAILS: Readonly<BookBrowserRolloutGuardrails> = Object.freeze({
+  activeMode: 'legacy-full-state' as BookBrowserDataSourceMode,
   fallbackMode: 'legacy-full-state',
   allowPagedGridView: false,
   allowPagedTableView: false,

@@ -96,6 +96,27 @@ public class AppBookSpecification {
         };
     }
 
+    /**
+     * Variant of {@link #inProgress(Long)} that uses an INNER JOIN to
+     * {@code UserBookProgressEntity} instead of a subquery, making
+     * {@code userBookProgress.lastReadTime} available for {@code Sort.by()}
+     * in paginated queries.  Use this when you need database-level ordering
+     * by last-read time (e.g. continue-reading / continue-listening).
+     */
+    public static Specification<BookEntity> inProgressWithProgressJoin(Long userId) {
+        return (root, query, cb) -> {
+            if (userId == null) {
+                return cb.conjunction();
+            }
+            Join<BookEntity, UserBookProgressEntity> progressJoin = root.join("userBookProgress", JoinType.INNER);
+            query.distinct(true);
+            return cb.and(
+                    cb.equal(progressJoin.get("user").get("id"), userId),
+                    progressJoin.get("readStatus").in(ReadStatus.READING, ReadStatus.RE_READING)
+            );
+        };
+    }
+
     public static Specification<BookEntity> addedWithinDays(int days) {
         return (root, query, cb) -> {
             Instant cutoff = Instant.now().minus(days, ChronoUnit.DAYS);

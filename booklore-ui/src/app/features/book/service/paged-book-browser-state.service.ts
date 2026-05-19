@@ -6,7 +6,7 @@ import {BookStateService} from './book-state.service';
 import {
   BookBrowserViewMode,
   DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS,
-  DEFAULT_PAGED_BOOK_BROWSER_STATE,
+  LEGACY_FALLBACK_GUARDRAILS,
   PagedBookBrowserCacheEntry,
   PagedBookBrowserEntity,
   PagedBookBrowserPage,
@@ -46,7 +46,7 @@ export class PagedBookBrowserStateService {
   resetToLegacyMode(): void {
     this.updateState({
       ...this.getCurrentState(),
-      guardrails: DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS,
+      guardrails: LEGACY_FALLBACK_GUARDRAILS,
     });
   }
 
@@ -217,7 +217,7 @@ export class PagedBookBrowserStateService {
 
   reset(): void {
     this.updateState({
-      guardrails: DEFAULT_PAGED_BOOK_BROWSER_STATE.guardrails,
+      guardrails: LEGACY_FALLBACK_GUARDRAILS,
       cache: {},
     });
   }

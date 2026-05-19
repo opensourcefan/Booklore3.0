@@ -5,7 +5,9 @@ import org.booklore.model.entity.LibraryPathEntity;
 import org.booklore.model.enums.BookFileType;
 import org.booklore.repository.projection.BookCoverUpdateProjection;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -516,6 +518,17 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @EntityGraph(attributePaths = {"metadata", "metadata.authors", "metadata.categories", "metadata.moods", "metadata.tags", "libraryPath", "library", "bookFiles"})
     @Query("SELECT b FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
     org.springframework.data.domain.Page<BookEntity> findAllWithSummaryMetadataPage(Pageable pageable);
+
+    /**
+     * Overrides {@link JpaSpecificationExecutor#findAll(Specification, Pageable)} with an
+     * {@link EntityGraph} that eagerly fetches all relationships needed by
+     * {@link org.booklore.app.mapper.AppBookMapper#toSummary(BookEntity, UserBookProgressEntity)}.
+     * Eliminates N+1 lazy-load queries for metadata, authors, categories, moods, tags,
+     * shelves, libraryPath, library, and bookFiles during paginated book listing.
+     */
+    @EntityGraph(attributePaths = {"metadata", "metadata.authors", "metadata.categories", "metadata.moods", "metadata.tags", "shelves", "libraryPath", "library", "bookFiles"})
+    @Override
+    Page<BookEntity> findAll(Specification<BookEntity> spec, Pageable pageable);
 
     @EntityGraph(attributePaths = {"metadata", "metadata.comicMetadata", "libraryPath", "library"})
     @Query("SELECT b FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")

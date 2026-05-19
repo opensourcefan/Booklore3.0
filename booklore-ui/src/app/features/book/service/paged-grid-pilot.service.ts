@@ -529,14 +529,14 @@ export class PagedGridPilotService {
     }
 
     if (!currentState.books || !nextState.books) {
-      return currentState.books === nextState.books;
+      return false;
     }
 
     if (currentState.books.length !== nextState.books.length) {
       return false;
     }
 
-    return JSON.stringify(currentState.books) === JSON.stringify(nextState.books);
+    return currentState.books.every((book, i) => book.id === nextState.books![i].id);
   }
 
   private getPagedSearchTerm(searchTerm: string): string | null {
