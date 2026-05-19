@@ -55,7 +55,9 @@ describe('Loading indicator asset mapping', () => {
     expect(buttonBlock).toContain('--bl-loader-delay: 0ms;');
     expect(iconSpinnerBlock).toContain('animation: bl-loader-reveal 0s step-end var(--bl-loader-delay) forwards !important;');
     expect(iconSpinnerBlock).toContain('filter: var(--bl-loader-inline-filter);');
-    expect(styles).toContain('.p-button.p-button-primary:not(.p-button-outlined):not(.p-button-text):not(.p-button-link),');
+    expect(styles).toContain('.p-button.p-button-primary:not(.p-button-outlined):not(.p-button-text):not(.p-button-link) {');
     expect(styles).toContain('--bl-loader-inline-filter: brightness(0.82) saturate(0.9);');
+    expect(styles).toContain('.p-button.p-button-success:not(.p-button-outlined):not(.p-button-text):not(.p-button-link) {');
+    expect(styles).toContain('--bl-loader-inline-filter: grayscale(1) brightness(0.35);');
   });
 });
