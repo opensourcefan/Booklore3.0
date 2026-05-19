@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {BehaviorSubject, of} from 'rxjs';
+import {BehaviorSubject, of, Subject} from 'rxjs';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {TranslocoTestingModule} from '@jsverse/transloco';
 import {MessageService} from 'primeng/api';
@@ -144,4 +144,21 @@ describe('MetadataPickerComponent save button state', () => {
       vi.useRealTimers();
     }
   }, 10000);
+
+  it('renders a loading icon and loading state while a save is in progress', () => {
+    const pendingSave = new Subject<unknown>();
+    updateBookMetadata.mockReturnValueOnce(pendingSave);
+
+    const {fixture} = createComponent();
+    const saveButton = getSaveButton(fixture);
+
+    saveButton.click();
+    fixture.detectChanges();
+
+    const loadingIcon = saveButton.querySelector('.p-button-loading-icon, svg[data-p-icon="spinner"]');
+    expect(loadingIcon).not.toBeNull();
+    expect(saveButton.classList.contains('p-button-loading')).toBe(true);
+
+    pendingSave.complete();
+  });
 });

@@ -46,11 +46,13 @@ describe('Loading indicator asset mapping', () => {
   it('delays loader reveal and darkens inline loaders only on filled green buttons', () => {
     const styles = readWorkspaceFile('src/styles.scss');
     const delayedOverlayBlock = styles.match(/\.fullscreen-loader,[\s\S]*?\.p-virtualscroller-loader-mask\s*\{[\s\S]*?\}/)?.[0] ?? '';
+    const buttonBlock = styles.match(/\.p-button\s*\{[\s\S]*?\}/)?.[0] ?? '';
     const iconSpinnerBlock = styles.match(/\.pi\.pi-spinner\s*\{[\s\S]*?\}/)?.[0] ?? '';
 
     expect(styles).toContain('--bl-loader-delay: 200ms;');
     expect(styles).toContain('@keyframes bl-loader-reveal');
     expect(delayedOverlayBlock).toContain('animation: bl-loader-reveal 0s step-end var(--bl-loader-delay) forwards;');
+    expect(buttonBlock).toContain('--bl-loader-delay: 0ms;');
     expect(iconSpinnerBlock).toContain('animation: bl-loader-reveal 0s step-end var(--bl-loader-delay) forwards !important;');
     expect(iconSpinnerBlock).toContain('filter: var(--bl-loader-inline-filter);');
     expect(styles).toContain('.p-button.p-button-primary:not(.p-button-outlined):not(.p-button-text):not(.p-button-link),');
