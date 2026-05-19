@@ -52,9 +52,9 @@ describe('PagedBookBrowserStateService', () => {
     const service = createService();
     const state = service.getCurrentState();
 
-    expect(state.guardrails.activeMode).toBe('legacy-full-state');
-    expect(state.guardrails.allowPagedGridView).toBe(false);
-    expect(state.guardrails.allowPagedTableView).toBe(false);
+    expect(state.guardrails.activeMode).toBe('paged-browse');
+    expect(state.guardrails.allowPagedGridView).toBe(true);
+    expect(state.guardrails.allowPagedTableView).toBe(true);
     expect(state.cache).toEqual({});
   });
 
