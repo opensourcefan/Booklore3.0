@@ -609,7 +609,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get iconColor(): string {
-    if (this.progressHighlight) return 'gold';
+    if (this.progressHighlight) return 'white';
     if (this.showPulse) {
       switch (this.latestNotificationSeverity) {
         case Severity.ERROR:
