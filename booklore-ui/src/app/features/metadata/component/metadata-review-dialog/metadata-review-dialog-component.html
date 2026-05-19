@@ -108,6 +108,7 @@
           severity="success"
           [outlined]="true"
           [loading]="processingAction === 'save'"
+          loadingIcon="pi pi-spin pi-spinner"
           [disabled]="isBusy && processingAction !== 'save'"
           (click)="onSave()">
         </p-button>

@@ -146,7 +146,7 @@ describe('MetadataPickerComponent save button state', () => {
   }, 10000);
 
   it('renders a loading icon and loading state while a save is in progress', () => {
-    const pendingSave = new Subject<unknown>();
+    const pendingSave = new Subject<object>();
     updateBookMetadata.mockReturnValueOnce(pendingSave);
 
     const {fixture} = createComponent();
@@ -155,8 +155,11 @@ describe('MetadataPickerComponent save button state', () => {
     saveButton.click();
     fixture.detectChanges();
 
-    const loadingIcon = saveButton.querySelector('.p-button-loading-icon, svg[data-p-icon="spinner"]');
+    const loadingIcon = saveButton.querySelector('.p-button-loading-icon.pi.pi-spin.pi-spinner');
+    const svgSpinner = saveButton.querySelector('svg[data-p-icon="spinner"]');
+
     expect(loadingIcon).not.toBeNull();
+    expect(svgSpinner).toBeNull();
     expect(saveButton.classList.contains('p-button-loading')).toBe(true);
 
     pendingSave.complete();

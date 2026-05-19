@@ -35,6 +35,7 @@
           severity="success"
           [outlined]="true"
           [loading]="runningAction === 'scanNewFiles'"
+          loadingIcon="pi pi-spin pi-spinner"
           [disabled]="runningAction !== null"
           (onClick)="confirmScanNewFiles()">
         </p-button>
@@ -77,6 +78,7 @@
           icon="pi pi-refresh"
           severity="warn"
           [loading]="runningAction === 'reconcile'"
+          loadingIcon="pi pi-spin pi-spinner"
           [disabled]="!reconcileAcknowledged || (runningAction !== null && runningAction !== 'reconcile')"
           (onClick)="confirmReconcile()">
         </p-button>
@@ -94,6 +96,7 @@
         severity="secondary"
         [outlined]="true"
         [loading]="runningAction === 'sidecarExport'"
+        loadingIcon="pi pi-spin pi-spinner"
         [disabled]="runningAction !== null && runningAction !== 'sidecarExport'"
         (onClick)="confirmSidecarExport()">
       </p-button>
@@ -110,6 +113,7 @@
         severity="secondary"
         [outlined]="true"
         [loading]="runningAction === 'sidecarBackup'"
+        loadingIcon="pi pi-spin pi-spinner"
         [disabled]="runningAction !== null && runningAction !== 'sidecarBackup'"
         (onClick)="confirmSidecarBackup()">
       </p-button>
@@ -126,6 +130,7 @@
         severity="warn"
         [outlined]="true"
         [loading]="runningAction === 'sidecarImport'"
+        loadingIcon="pi pi-spin pi-spinner"
         [disabled]="runningAction !== null && runningAction !== 'sidecarImport'"
         (onClick)="confirmSidecarImport()">
       </p-button>

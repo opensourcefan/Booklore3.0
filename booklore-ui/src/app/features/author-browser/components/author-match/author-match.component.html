@@ -26,6 +26,7 @@
             icon="pi pi-search"
             (onClick)="search()"
             [loading]="searching"
+            loadingIcon="pi pi-spin pi-spinner"
             [disabled]="!canSearch">
           </p-button>
         </div>
@@ -89,6 +90,7 @@
                 icon="pi pi-link"
                 severity="success"
                 [loading]="matching"
+                loadingIcon="pi pi-spin pi-spinner"
                 (onClick)="matchAuthor(result)">
               </p-button>
             </div>

@@ -168,6 +168,7 @@
           size="small"
           severity="primary"
           [loading]="loading"
+          loadingIcon="pi pi-spin pi-spinner"
           [disabled]="reviewsLocked || !reviewDownloadEnabled || loading"
           (click)="fetchNewReviews()"
           [pTooltip]="loading ? t('tooltip.pleaseWait') : (!reviewDownloadEnabled ? t('tooltip.enableDownloads') : (reviewsLocked ? t('tooltip.reviewsLocked') : t('tooltip.fetchNewReviews')))"

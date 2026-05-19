@@ -103,6 +103,7 @@
                 (onClick)="fetchMetadataByIsbn()"
                 [disabled]="!isbn.trim() || isFetchingMetadata"
                 [loading]="isFetchingMetadata"
+                loadingIcon="pi pi-spin pi-spinner"
                 [pTooltip]="t('fetchMetadataTooltip')"
                 tooltipPosition="top"/>
             </div>
@@ -274,6 +275,7 @@
         severity="success"
         (onClick)="createBook()"
         [disabled]="!canCreate() || isLoading"
+        loadingIcon="pi pi-spin pi-spinner"
         [loading]="isLoading"/>
     </div>
   </div>

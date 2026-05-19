@@ -238,6 +238,7 @@
                               [label]="t('settingsMeta.persistence.sidecarBackupBtn')"
                               icon="pi pi-save"
                               [loading]="isSidecarBackupRunning"
+                              loadingIcon="pi pi-spin pi-spinner"
                               [disabled]="selectedBackupLibraryId === null || isSidecarBackupRunning"
                               (onClick)="backupLibrarySidecars()"
                               severity="secondary">

@@ -99,6 +99,7 @@
             [label]="showSavedState ? 'Saved' : t('saveChangesBtn')"
             [icon]="isSaving ? 'pi pi-spin pi-spinner' : (showSavedState ? 'pi pi-check-circle' : 'pi pi-check')"
             [loading]="isSaving"
+            loadingIcon="pi pi-spin pi-spinner"
             [disabled]="isSaving"
             severity="primary"
             size="small"
@@ -113,6 +114,7 @@
               severity="warn"
               styleClass="review-quick-action-btn"
               [loading]="reviewActionBusy"
+              loadingIcon="pi pi-spin pi-spinner"
               [disabled]="reviewActionDisabled"
               (onClick)="reviewQuickAction.emit()"
             />
@@ -122,6 +124,7 @@
                 severity="secondary"
                 styleClass="review-secondary-action-btn"
                 [loading]="reviewSecondaryActionBusy"
+                loadingIcon="pi pi-spin pi-spinner"
                 [disabled]="reviewSecondaryActionDisabled"
                 (onClick)="reviewSecondaryAction.emit()"
               />

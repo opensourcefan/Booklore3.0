@@ -276,6 +276,7 @@
             [label]="t('flushBtn')"
             icon="pi pi-upload"
             [loading]="isFlushRunning"
+            loadingIcon="pi pi-spin pi-spinner"
             [disabled]="isNetworkStorage || isFlushRunning"
             (onClick)="flushMetadataToFiles()"
             severity="secondary">

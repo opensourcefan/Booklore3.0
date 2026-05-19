@@ -34,6 +34,7 @@
           icon="pi pi-refresh"
           [label]="t('status.refresh')"
           [loading]="statusLoading"
+          loadingIcon="pi pi-spin pi-spinner"
           [disabled]="!aiEnabled"
           outlined
           (onClick)="refreshStatus()">
@@ -91,6 +92,7 @@
                 icon="pi pi-refresh"
                 [label]="t('status.reload')"
                 [loading]="reloadRunning"
+                loadingIcon="pi pi-spin pi-spinner"
                 [disabled]="reloadRunning"
                 outlined
                 size="small"
@@ -115,6 +117,7 @@
             icon="pi pi-bolt"
             [label]="t('prescan.action')"
             [loading]="preScanRunning"
+            loadingIcon="pi pi-spin pi-spinner"
             [disabled]="!aiEnabled || !selectedLibraryPathIds.length"
             (onClick)="preScanMissing()">
           </p-button>
@@ -182,6 +185,7 @@
           severity="danger"
           [label]="t('cleanup.action')"
           [loading]="cleanupRunning"
+          loadingIcon="pi pi-spin pi-spinner"
           [disabled]="!aiEnabled"
           (onClick)="showDeleteConfirm = true">
         </p-button>
