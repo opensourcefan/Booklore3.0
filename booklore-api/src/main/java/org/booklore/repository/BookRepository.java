@@ -526,7 +526,7 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
      * Eliminates N+1 lazy-load queries for metadata, authors, categories, moods, tags,
      * shelves, libraryPath, library, and bookFiles during paginated book listing.
      */
-    @EntityGraph(attributePaths = {"metadata", "metadata.authors", "metadata.categories", "metadata.moods", "metadata.tags", "libraryPath", "library", "bookFiles"})
+    @EntityGraph(attributePaths = {"metadata", "libraryPath", "library"})
     @Override
     Page<BookEntity> findAll(Specification<BookEntity> spec, Pageable pageable);
 

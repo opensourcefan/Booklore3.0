@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.LazyGroup;
 
 @Entity
@@ -102,6 +103,7 @@ public class BookEntity {
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("id ASC")
+    @BatchSize(size = 20)
     @Builder.Default
     private List<BookFileEntity> bookFiles = new ArrayList<>();
 
