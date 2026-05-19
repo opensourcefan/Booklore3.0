@@ -27,4 +27,17 @@ describe('Loading indicator asset mapping', () => {
     expect(iconSpinnerBlock).toContain('animation: none !important;');
     expect(iconSpinnerBlock).toContain('background-image: var(--bl-loader-inline-image);');
   });
+
+  it('covers PrimeNG SVG spinner fallbacks for inline and standalone loaders', () => {
+    const styles = readWorkspaceFile('src/styles.scss');
+    const svgSpinnerBlock = styles.match(/svg\[data-p-icon='spinner'\],\s*\.p-button-loading-icon svg\.p-icon-spin\s*\{[\s\S]*?\}/)?.[0] ?? '';
+    const standaloneSvgSpinnerBlock = styles.match(/svg\[data-p-icon='spinner'\]\.p-datatable-loading-icon,[\s\S]*?svg\[data-p-icon='spinner'\]\.p-virtualscroller-loading-icon\s*\{[\s\S]*?\}/)?.[0] ?? '';
+
+    expect(svgSpinnerBlock).toContain('animation: none !important;');
+    expect(svgSpinnerBlock).toContain('background-image: var(--bl-loader-inline-image);');
+    expect(svgSpinnerBlock).toContain('color: transparent !important;');
+    expect(styles).toContain("svg[data-p-icon='spinner'] > *");
+    expect(standaloneSvgSpinnerBlock).toContain('width: var(--bl-loader-size);');
+    expect(standaloneSvgSpinnerBlock).toContain('background-image: var(--bl-loader-standalone-image);');
+  });
 });

@@ -58,6 +58,41 @@ html {
   animation: none !important;
 }
 
+/* PrimeNG emits SVG spinner icons for button, table, and loader states. */
+svg[data-p-icon='spinner'],
+.p-button-loading-icon svg.p-icon-spin {
+  display: inline-block;
+  width: 1em;
+  min-width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  line-height: 1;
+  vertical-align: middle;
+  animation: none !important;
+  transform: none !important;
+  color: transparent !important;
+  background-image: var(--bl-loader-inline-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+svg[data-p-icon='spinner'] > *,
+.p-button-loading-icon svg.p-icon-spin > * {
+  display: none !important;
+}
+
+svg[data-p-icon='spinner'].p-datatable-loading-icon,
+svg[data-p-icon='spinner'].p-dataview-loading-icon,
+svg[data-p-icon='spinner'].p-tree-loading-icon,
+svg[data-p-icon='spinner'].p-treetable-loading-icon,
+svg[data-p-icon='spinner'].p-virtualscroller-loading-icon {
+  width: var(--bl-loader-size);
+  min-width: var(--bl-loader-size);
+  height: var(--bl-loader-size);
+  background-image: var(--bl-loader-standalone-image);
+}
+
 p-progressspinner,
 p-progress-spinner,
 .p-progressspinner,
