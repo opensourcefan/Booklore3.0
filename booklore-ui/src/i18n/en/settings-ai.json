@@ -52,8 +52,7 @@
     "rescan": "Rescan",
     "alreadyScanned": "Already Scanned",
     "notScanned": "Not Scanned",
-    "confirmSelection": "Confirm Selection",
-    "confirmCancel": "Cancel",
+    "close": "Close",
     "noDirectories": "Select one or more libraries above to view directories."
   },
   "cleanup": {

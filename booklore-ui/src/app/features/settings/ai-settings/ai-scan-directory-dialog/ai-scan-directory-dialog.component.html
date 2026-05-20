@@ -95,15 +95,11 @@
 
     <div class="dialog-footer">
       <p-button
-        [label]="t('confirmCancel')"
+        icon="pi pi-times"
+        [label]="t('close')"
         severity="secondary"
         outlined
-        (onClick)="onCancel()">
-      </p-button>
-      <p-button
-        icon="pi pi-check"
-        [label]="t('confirmSelection')"
-        (onClick)="onConfirm()">
+        (onClick)="onClose()">
       </p-button>
     </div>
   </div>

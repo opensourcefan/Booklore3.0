@@ -1,4 +1,5 @@
 import {inject, Injectable, Type} from '@angular/core';
+import {Subject} from 'rxjs';
 import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {GithubSupportDialog} from '../components/github-support-dialog/github-support-dialog';
 import {LibraryCreatorComponent} from '../../features/library-creator/library-creator.component';
@@ -261,14 +262,15 @@ export class DialogLauncherService {
     });
   }
 
-  openAiScanDirectoryDialog(selectedLibraryPathIds: number[] = [], selectedLibraryFilterIds: number[] = []): DynamicDialogRef | null {
+  openAiScanDirectoryDialog(selectedLibraryPathIds: number[] = [], selectedLibraryFilterIds: number[] = [], liveSelection$?: Subject<number[]>): DynamicDialogRef | null {
     const size = this.isCompactViewport(991) ? DialogSize.FULL : DialogSize.MD;
     return this.openDialog(AiScanDirectoryDialogComponent, {
       showHeader: false,
       styleClass: `${size} ${DialogStyle.MINIMAL}`,
       data: {
         selectedLibraryPathIds,
-        selectedLibraryFilterIds
+        selectedLibraryFilterIds,
+        liveSelection$
       },
     });
   }

@@ -116,15 +116,24 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   openDirectoryDialog(): void {
-    const ref = this.dialogLauncherService.openAiScanDirectoryDialog(this.selectedLibraryPathIds, this.selectedLibraryFilterIds);
-    if (!ref) return;
+    const liveSelection$ = new Subject<number[]>();
+    const liveSelectionSub = liveSelection$.pipe(takeUntil(this.destroy$)).subscribe(pathIds => {
+      this.selectedLibraryPathIds = pathIds;
+      this.userExplicitlySetPathIds = true;
+    });
 
-    ref.onClose.pipe(take(1)).subscribe((result: { pathIds: number[]; libraryFilterIds: number[] } | null) => {
-      if (result !== null) {
-        this.selectedLibraryPathIds = result.pathIds;
-        this.selectedLibraryFilterIds = result.libraryFilterIds;
-        this.userExplicitlySetPathIds = true;
-      }
+    const ref = this.dialogLauncherService.openAiScanDirectoryDialog(
+      this.selectedLibraryPathIds,
+      this.selectedLibraryFilterIds,
+      liveSelection$
+    );
+    if (!ref) {
+      liveSelectionSub.unsubscribe();
+      return;
+    }
+
+    ref.onClose.pipe(take(1)).subscribe(() => {
+      liveSelectionSub.unsubscribe();
     });
   }
 
