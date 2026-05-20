@@ -63,6 +63,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   status: AiServiceStatus | null = null;
   selectedLibraryPathIds: number[] = [];
   selectedLibraryFilterIds: number[] = [];
+  private userExplicitlySetPathIds = false;
   batchProgress: AiPanelScanProgressPayload | null = null;
   panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];
@@ -90,9 +91,9 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           }
         }
 
-        if (!this.selectedLibraryPathIds.length) {
+        if (!this.userExplicitlySetPathIds && !this.selectedLibraryPathIds.length) {
           this.selectedLibraryPathIds = Array.from(validPathIds);
-        } else {
+        } else if (this.selectedLibraryPathIds.length > 0) {
           this.selectedLibraryPathIds = this.selectedLibraryPathIds.filter(id => validPathIds.has(id));
         }
       });
@@ -120,10 +121,9 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
     ref.onClose.pipe(take(1)).subscribe((result: { pathIds: number[]; libraryFilterIds: number[] } | null) => {
       if (result !== null) {
-        if (result.pathIds.length > 0) {
-          this.selectedLibraryPathIds = result.pathIds;
-        }
+        this.selectedLibraryPathIds = result.pathIds;
         this.selectedLibraryFilterIds = result.libraryFilterIds;
+        this.userExplicitlySetPathIds = true;
       }
     });
   }
