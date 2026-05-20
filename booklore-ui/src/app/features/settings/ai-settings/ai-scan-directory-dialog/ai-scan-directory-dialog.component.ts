@@ -12,6 +12,7 @@ import {takeUntil} from 'rxjs/operators';
 import {Library} from '../../../book/model/library.model';
 import {LibraryService} from '../../../book/service/library.service';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
+import {AiPanelFlowDirectoryScanStatus} from '../../../../shared/model/app-settings.model';
 
 interface DirectoryEntry {
   libraryId: number;
@@ -19,6 +20,7 @@ interface DirectoryEntry {
   pathId: number;
   path: string;
   scanning: boolean;
+  scanned: boolean;
 }
 
 @Component({
@@ -65,6 +67,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
         this.applyIncomingSelection();
         this.applyIncomingLibraryFilter();
         this.applyFilter();
+        this.fetchScanStatusForSelectedLibraries();
       });
   }
 
@@ -75,6 +78,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
 
   onLibraryFilterChange(): void {
     this.applyFilter();
+    this.fetchScanStatusForSelectedLibraries();
   }
 
   toggleAllLibraries(): void {
@@ -84,6 +88,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
       this.selectedLibraryIds = this.libraryOptions.map(o => o.value);
     }
     this.applyFilter();
+    this.fetchScanStatusForSelectedLibraries();
   }
 
   toggleAllDirectories(): void {
@@ -121,6 +126,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     this.appSettingsService.scanMissingAiPanelData([entry.pathId]).subscribe({
       next: () => {
         entry.scanning = false;
+        entry.scanned = true;
         this.rescanningPathId = null;
       },
       error: () => {
@@ -166,7 +172,8 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
           libraryName: library.name,
           pathId: path.id,
           path: path.path,
-          scanning: false
+          scanning: false,
+          scanned: false
         });
       }
     }
@@ -191,15 +198,13 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     if (this.incomingPathIds.length === 0) return;
     if (this.allDirectories.length === 0) return;
 
-    const incomingPathSet = new Set(this.incomingPathIds);
-
     for (const pathId of this.incomingPathIds) {
       this.selectedPathIds.add(pathId);
     }
 
     const libraryIdsForIncomingPaths = new Set<number>();
     for (const entry of this.allDirectories) {
-      if (incomingPathSet.has(entry.pathId)) {
+      if (this.selectedPathIds.has(entry.pathId)) {
         libraryIdsForIncomingPaths.add(entry.libraryId);
       }
     }
@@ -225,6 +230,32 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
       this.filteredDirectories = this.allDirectories.filter(
         d => selectedIds.has(d.libraryId)
       );
+    }
+  }
+
+  private fetchScanStatusForSelectedLibraries(): void {
+    if (this.selectedLibraryIds.length === 0) return;
+
+    for (const libraryId of this.selectedLibraryIds) {
+      this.appSettingsService.getAiPanelFlowDirectoryScanStatus(libraryId).subscribe({
+        next: (statuses: AiPanelFlowDirectoryScanStatus[]) => {
+          const scannedPathIds = new Set<number>();
+          for (const status of statuses) {
+            if (status.scannedComicCount > 0) {
+              scannedPathIds.add(status.libraryPathId);
+            }
+          }
+
+          for (const entry of this.allDirectories) {
+            if (entry.libraryId === libraryId) {
+              entry.scanned = scannedPathIds.has(entry.pathId);
+            }
+          }
+        },
+        error: () => {
+          // If the endpoint fails, leave scanned status as false
+        }
+      });
     }
   }
 }

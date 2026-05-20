@@ -285,3 +285,8 @@ export interface AiPanelFlowStats {
   comicWithMostPanelsMapped: AiPanelFlowBookHighlight | null;
   comicWithHighestPanelsPerPage: AiPanelFlowBookHighlight | null;
 }
+
+export interface AiPanelFlowDirectoryScanStatus {
+  libraryPathId: number;
+  scannedComicCount: number;
+}

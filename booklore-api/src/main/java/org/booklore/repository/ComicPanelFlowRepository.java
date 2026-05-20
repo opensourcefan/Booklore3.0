@@ -50,4 +50,15 @@ public interface ComicPanelFlowRepository extends JpaRepository<ComicPanelFlowEn
         """)
     AiPanelFlowStatsProjection findStatsByUserIdAndLibraryId(@Param("userId") Long userId,
                                                              @Param("libraryId") Long libraryId);
+
+    @Query("""
+        SELECT cpf.book.libraryPath.id as libraryPathId,
+               COUNT(DISTINCT cpf.book.id) as scannedComicCount
+        FROM ComicPanelFlowEntity cpf
+        WHERE cpf.user.id = :userId
+            AND cpf.book.library.id = :libraryId
+        GROUP BY cpf.book.libraryPath.id
+        """)
+    List<Object[]> findScannedCountsByLibraryPath(@Param("userId") Long userId,
+                                                  @Param("libraryId") Long libraryId);
 }

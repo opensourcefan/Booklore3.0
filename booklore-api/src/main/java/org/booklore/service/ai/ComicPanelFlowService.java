@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.model.dto.ai.AiBulkScanResponse;
 import org.booklore.model.dto.ai.AiPanelFlowBookHighlightResponse;
+import org.booklore.model.dto.ai.AiPanelFlowDirectoryScanStatus;
 import org.booklore.model.dto.ai.AiPanelFlowStatsResponse;
 import org.booklore.model.dto.ai.AiPanelScanProgressPayload;
 import org.booklore.model.dto.BookLoreUser;
@@ -153,6 +154,19 @@ public class ComicPanelFlowService {
                 .comicWithMostPanelsMapped(mostPanelsMapped)
                 .comicWithHighestPanelsPerPage(highestPanelsPerPage)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AiPanelFlowDirectoryScanStatus> getDirectoryScanStatus(Long libraryId) {
+        Long userId = getCurrentUserId();
+        List<Object[]> rows = comicPanelFlowRepository.findScannedCountsByLibraryPath(userId, libraryId);
+
+        return rows.stream()
+                .map(row -> AiPanelFlowDirectoryScanStatus.builder()
+                        .libraryPathId(((Number) row[0]).longValue())
+                        .scannedComicCount(((Number) row[1]).longValue())
+                        .build())
+                .toList();
     }
 
     public String scanAndSavePanelFlow(Long bookId, String bookType) {

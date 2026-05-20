@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.booklore.config.security.annotation.CheckBookAccess;
 import org.booklore.model.dto.ai.AiBulkScanRequest;
 import org.booklore.model.dto.ai.AiBulkScanResponse;
+import org.booklore.model.dto.ai.AiPanelFlowDirectoryScanStatus;
 import org.booklore.model.dto.ai.AiPanelFlowStatsResponse;
 import org.booklore.service.ai.ComicPanelFlowService;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -88,6 +90,11 @@ public class ComicPanelFlowController {
     @GetMapping("/stats")
     public ResponseEntity<AiPanelFlowStatsResponse> getPanelFlowStats(@RequestParam(required = false) Long libraryId) {
         return ResponseEntity.ok(comicPanelFlowService.getPanelFlowStatsForCurrentUser(libraryId));
+    }
+
+    @GetMapping("/directory-scan-status")
+    public ResponseEntity<List<AiPanelFlowDirectoryScanStatus>> getDirectoryScanStatus(@RequestParam Long libraryId) {
+        return ResponseEntity.ok(comicPanelFlowService.getDirectoryScanStatus(libraryId));
     }
 
     @PostMapping("/scan-missing")

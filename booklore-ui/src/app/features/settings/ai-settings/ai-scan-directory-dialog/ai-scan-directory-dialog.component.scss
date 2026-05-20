@@ -223,6 +223,33 @@
   padding-left: 1.3rem;
 }
 
+.directory-scan-status {
+  flex-shrink: 0;
+}
+
+.scan-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.scan-badge.scanned {
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.scan-badge.not-scanned {
+  color: var(--text-color-secondary);
+  border: 1px solid var(--border-color);
+  background: transparent;
+}
+
 .directory-actions {
   flex-shrink: 0;
 }

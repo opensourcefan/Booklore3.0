@@ -50,6 +50,8 @@
     "selectAll": "Select All",
     "deselectAll": "Deselect All",
     "rescan": "Rescan",
+    "alreadyScanned": "Already Scanned",
+    "notScanned": "Not Scanned",
     "confirmSelection": "Confirm Selection",
     "confirmCancel": "Cancel",
     "noDirectories": "Select one or more libraries above to view directories."

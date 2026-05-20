@@ -4,7 +4,7 @@ import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
 import {AiBulkScanResponse} from '../model/ai-panel-scan-progress.model';
-import {AiPanelFlowStats, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
 
 export interface SettingsTransferEntry {
   name: string;
@@ -112,6 +112,11 @@ export class AppSettingsService {
       : new HttpParams().set('libraryId', libraryId.toString());
 
     return this.http.get<AiPanelFlowStats>(`${API_CONFIG.BASE_URL}/api/v1/ai/panel-flow/stats`, {params});
+  }
+
+  getAiPanelFlowDirectoryScanStatus(libraryId: number): Observable<AiPanelFlowDirectoryScanStatus[]> {
+    const params = new HttpParams().set('libraryId', libraryId.toString());
+    return this.http.get<AiPanelFlowDirectoryScanStatus[]>(`${API_CONFIG.BASE_URL}/api/v1/ai/panel-flow/directory-scan-status`, {params});
   }
 
   cleanupAiPanelData(): Observable<{ deletedCount: number }> {

@@ -69,6 +69,13 @@
               </label>
               <span class="directory-library">{{ entry.libraryName }}</span>
             </div>
+            <div class="directory-scan-status">
+              @if (entry.scanned) {
+                <span class="scan-badge scanned">{{ t('alreadyScanned') }}</span>
+              } @else {
+                <span class="scan-badge not-scanned">{{ t('notScanned') }}</span>
+              }
+            </div>
             <div class="directory-actions">
               <button
                 class="rescan-btn"
