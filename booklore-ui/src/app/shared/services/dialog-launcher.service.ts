@@ -11,6 +11,7 @@ import {CreateUserDialogComponent} from '../../features/settings/user-management
 import {CreateEmailRecipientDialogComponent} from '../../features/settings/email-v2/create-email-recipient-dialog/create-email-recipient-dialog.component';
 import {CreateEmailProviderDialogComponent} from '../../features/settings/email-v2/create-email-provider-dialog/create-email-provider-dialog.component';
 import {DirectoryPickerComponent} from '../components/directory-picker/directory-picker.component';
+import {AiScanDirectoryDialogComponent} from '../../features/settings/ai-settings/ai-scan-directory-dialog/ai-scan-directory-dialog.component';
 import {BookdropFinalizeResultDialogComponent} from '../../features/bookdrop/component/bookdrop-finalize-result-dialog/bookdrop-finalize-result-dialog.component';
 import {BookdropFinalizeResult} from '../../features/bookdrop/service/bookdrop.service';
 import {MetadataReviewDialogComponent} from '../../features/metadata/component/metadata-review-dialog/metadata-review-dialog-component';
@@ -257,6 +258,17 @@ export class DialogLauncherService {
     return this.openDialog(AcknowledgementsDialogComponent, {
       showHeader: false,
       styleClass: `${DialogSize.SM} ${DialogStyle.MINIMAL}`,
+    });
+  }
+
+  openAiScanDirectoryDialog(selectedLibraryPathIds: number[] = []): DynamicDialogRef | null {
+    const size = this.isCompactViewport(991) ? DialogSize.FULL : DialogSize.MD;
+    return this.openDialog(AiScanDirectoryDialogComponent, {
+      showHeader: false,
+      styleClass: `${size} ${DialogStyle.MINIMAL}`,
+      data: {
+        selectedLibraryPathIds
+      },
     });
   }
 }

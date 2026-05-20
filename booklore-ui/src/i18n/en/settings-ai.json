@@ -38,7 +38,19 @@
     "currentBook": "Current Book",
     "savedDataTitle": "Saved AI Panel Data",
     "savedComicCount": "Comics scanned",
-    "savedDiskUsage": "Disk usage"
+    "savedDiskUsage": "Disk usage",
+    "chooseDirectories": "Choose Directories",
+    "directoriesSelected": "{{count}} directories selected",
+    "dialogTitle": "Choose Directories for AI Scan",
+    "dialogDescription": "Select which library directories to scan for AI panel detection.",
+    "libraryFilter": "Library",
+    "allLibraries": "All Libraries",
+    "alreadyScanned": "Already Scanned",
+    "notScanned": "Not Scanned",
+    "rescan": "Rescan",
+    "confirmSelection": "Confirm Selection",
+    "confirmCancel": "Cancel",
+    "noDirectories": "No directories available for the selected library."
   },
   "cleanup": {
     "title": "Generated Data Cleanup",

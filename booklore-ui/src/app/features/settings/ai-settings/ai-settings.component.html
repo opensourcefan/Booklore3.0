@@ -27,8 +27,8 @@
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
       <div class="setting-row">
         <div>
-          <h3>{{ t('status.title') }}</h3>
-          <p>{{ t('status.description') }}</p>
+          <h3>{{ t('prescan.title') }}</h3>
+          <p>{{ t('prescan.description') }}</p>
         </div>
         <p-button
           icon="pi pi-refresh"
@@ -58,61 +58,74 @@
 
       @if (showStartupActivity) {
         <div class="startup-panel" [ngClass]="startupPanelTone">
-          <div class="status-title">{{ t('status.startupPanelTitle') }}</div>
-          <div class="status-line startup-panel-copy">{{ t('status.startupPanelDescription') }}</div>
-          @if (lastStatusCheckedAt) {
-            <div class="startup-meta-row">
-              <strong>{{ t('status.lastChecked') }}</strong>: {{ lastStatusCheckedAt }}
-            </div>
-          }
-          @if (status?.modelPath) {
-            <div class="startup-meta-row">
-              <strong>{{ t('status.modelPath') }}</strong>: {{ status?.modelPath }}
-            </div>
-          }
-          @if (status?.modelExists !== null && status?.modelExists !== undefined) {
-            <div class="startup-meta-row">
-              <strong>{{ t('status.modelFile') }}</strong>: {{ status?.modelExists ? t('status.modelDetected') : t('status.modelMissing') }}
-            </div>
-          }
-          <div class="startup-event-list">
-            @for (startupEvent of startupEvents; track startupEvent.timestamp + startupEvent.text) {
-              <div class="startup-event" [ngClass]="startupEvent.level">
-                <span class="startup-event-time">{{ startupEvent.timestamp }}</span>
-                <span class="startup-event-text">{{ startupEvent.text }}</span>
-              </div>
-            }
+          <div class="startup-panel-toggle" (click)="startupExpanded = !startupExpanded" (keydown.enter)="startupExpanded = !startupExpanded" (keydown.space)="startupExpanded = !startupExpanded; $event.preventDefault()" tabindex="0" role="button" [attr.aria-expanded]="startupExpanded">
+            <i class="pi" [class.pi-chevron-right]="!startupExpanded" [class.pi-chevron-down]="startupExpanded"></i>
+            <span class="status-title">{{ t('status.startupPanelTitle') }}</span>
           </div>
-          @if (!startupEvents.length) {
-            <div class="status-line">{{ t('status.startupWaiting') }}</div>
-          }
-          @if (status?.status !== 'READY') {
-            <div class="startup-reload-row">
-              <p-button
-                icon="pi pi-refresh"
-                [label]="t('status.reload')"
-                [loading]="reloadRunning"
-                loadingIcon="pi pi-spin pi-spinner"
-                [disabled]="reloadRunning"
-                outlined
-                size="small"
-                (onClick)="reloadAiService()">
-              </p-button>
+          @if (startupExpanded) {
+            <div class="startup-panel-body">
+              <div class="status-line startup-panel-copy">{{ t('status.startupPanelDescription') }}</div>
+              @if (lastStatusCheckedAt) {
+                <div class="startup-meta-row">
+                  <strong>{{ t('status.lastChecked') }}</strong>: {{ lastStatusCheckedAt }}
+                </div>
+              }
+              @if (status?.modelPath) {
+                <div class="startup-meta-row">
+                  <strong>{{ t('status.modelPath') }}</strong>: {{ status?.modelPath }}
+                </div>
+              }
+              @if (status?.modelExists !== null && status?.modelExists !== undefined) {
+                <div class="startup-meta-row">
+                  <strong>{{ t('status.modelFile') }}</strong>: {{ status?.modelExists ? t('status.modelDetected') : t('status.modelMissing') }}
+                </div>
+              }
+              <div class="startup-event-list">
+                @for (startupEvent of startupEvents; track startupEvent.timestamp + startupEvent.text) {
+                  <div class="startup-event" [ngClass]="startupEvent.level">
+                    <span class="startup-event-time">{{ startupEvent.timestamp }}</span>
+                    <span class="startup-event-text">{{ startupEvent.text }}</span>
+                  </div>
+                }
+              </div>
+              @if (!startupEvents.length) {
+                <div class="status-line">{{ t('status.startupWaiting') }}</div>
+              }
+              @if (status?.status !== 'READY') {
+                <div class="startup-reload-row">
+                  <p-button
+                    icon="pi pi-refresh"
+                    [label]="t('status.reload')"
+                    [loading]="reloadRunning"
+                    loadingIcon="pi pi-spin pi-spinner"
+                    [disabled]="reloadRunning"
+                    outlined
+                    size="small"
+                    (onClick)="reloadAiService()">
+                  </p-button>
+                </div>
+              }
             </div>
           }
         </div>
       }
-    </div>
 
-    <div class="section-divider"><hr></div>
-
-    <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
-      <div class="setting-row scan-row">
-        <div>
-          <h3>{{ t('prescan.title') }}</h3>
-          <p>{{ t('prescan.description') }}</p>
+      <div class="scan-section">
+        <div class="scan-directory-row">
+          <p-button
+            icon="pi pi-folder-open"
+            [label]="t('prescan.chooseDirectories')"
+            [disabled]="!aiEnabled || preScanRunning"
+            outlined
+            (onClick)="openDirectoryDialog()">
+          </p-button>
+          <span class="selected-count-chip" [ngClass]="{ 'visible': selectedLibraryPathIds.length > 0 }">
+            <i class="pi pi-folder"></i>
+            {{ t('prescan.directoriesSelected', { count: selectedLibraryPathIds.length }) }}
+          </span>
         </div>
-        <div class="prescan-action-group">
+
+        <div class="scan-action-row">
           <p-button
             icon="pi pi-bolt"
             [label]="t('prescan.action')"
@@ -132,21 +145,6 @@
             </p-button>
           }
         </div>
-      </div>
-
-      <div class="prescan-controls">
-        <label class="prescan-label" for="ai-prescan-paths">{{ t('prescan.pathsLabel') }}</label>
-        <p-multiSelect
-          [options]="libraryPathOptions"
-          [(ngModel)]="selectedLibraryPathIds"
-          optionLabel="label"
-          optionValue="value"
-          inputId="ai-prescan-paths"
-          [placeholder]="t('prescan.pathsPlaceholder')"
-          display="chip"
-          appendTo="body"
-          [disabled]="!aiEnabled || preScanRunning">
-        </p-multiSelect>
       </div>
 
       @if (batchProgress) {

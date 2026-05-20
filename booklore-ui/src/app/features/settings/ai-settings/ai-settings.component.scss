@@ -124,6 +124,29 @@
   background: color-mix(in srgb, var(--surface-card) 88%, #ef4444 12%);
 }
 
+.startup-panel-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0;
+
+  i {
+    font-size: 0.85rem;
+    color: var(--text-color-secondary);
+    transition: transform 0.2s;
+  }
+
+  .status-title {
+    margin-bottom: 0;
+  }
+}
+
+.startup-panel-body {
+  margin-top: 0.75rem;
+}
+
 .startup-panel-copy {
   margin-bottom: 0.75rem;
 }
@@ -174,25 +197,44 @@
   color: #dbeafe;
 }
 
-.scan-row {
-  align-items: flex-start;
+.scan-section {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.85rem;
 }
 
-.prescan-action-group {
+.scan-directory-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.selected-count-chip {
+  display: none;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 25%, transparent);
+
+  &.visible {
+    display: inline-flex;
+  }
+
+  i {
+    font-size: 0.78rem;
+  }
+}
+
+.scan-action-row {
   display: flex;
   align-items: center;
   gap: 1.25rem;
-}
-
-.prescan-controls {
-  margin-top: 1rem;
-  display: grid;
-  gap: 0.45rem;
-}
-
-.prescan-label {
-  font-size: 0.9rem;
-  font-weight: 600;
 }
 
 .progress-box {
@@ -255,8 +297,7 @@
 
   .setting-row p-button,
   .setting-row p-toggleswitch,
-  .setting-row .p-button,
-  .prescan-controls p-multiselect {
+  .setting-row .p-button {
     width: 100%;
   }
 
@@ -267,5 +308,15 @@
   .progress-title-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .scan-directory-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .scan-action-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

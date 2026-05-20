@@ -4,7 +4,6 @@ import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {Dialog} from 'primeng/dialog';
 import {ToggleSwitch} from 'primeng/toggleswitch';
-import {MultiSelect} from 'primeng/multiselect';
 import {MessageService} from 'primeng/api';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {Subject} from 'rxjs';
@@ -16,6 +15,7 @@ import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
 import {LibraryService} from '../../book/service/library.service';
 import {BookService} from '../../book/service/book.service';
+import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
 
 interface AiStartupEvent {
   timestamp: string;
@@ -30,7 +30,6 @@ interface AiStartupEvent {
     Button,
     Dialog,
     FormsModule,
-    MultiSelect,
     NgClass,
     ToggleSwitch,
     TranslocoDirective
@@ -47,6 +46,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   private libraryService = inject(LibraryService);
   private bookService = inject(BookService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
+  private dialogLauncherService = inject(DialogLauncherService);
   private destroy$ = new Subject<void>();
 
   appSettings$ = this.appSettingsService.appSettings$;
@@ -58,10 +58,10 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   showDeleteConfirm = false;
   preScanRunning = false;
   reloadRunning = false;
+  startupExpanded = false;
 
   status: AiServiceStatus | null = null;
   selectedLibraryPathIds: number[] = [];
-  libraryPathOptions: {label: string; value: number}[] = [];
   batchProgress: AiPanelScanProgressPayload | null = null;
   panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];
@@ -80,21 +80,19 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     this.libraryService.libraryState$
       .pipe(takeUntil(this.destroy$))
       .subscribe(state => {
-        const options = (state.libraries ?? []).flatMap(library =>
-          (library.paths ?? [])
-            .filter(path => typeof path.id === 'number')
-            .map(path => ({
-              label: `${library.name} · ${path.path}`,
-              value: path.id as number
-            }))
-        );
+        const validPathIds = new Set<number>();
+        for (const library of state.libraries ?? []) {
+          for (const path of library.paths ?? []) {
+            if (typeof path.id === 'number') {
+              validPathIds.add(path.id);
+            }
+          }
+        }
 
-        this.libraryPathOptions = options;
         if (!this.selectedLibraryPathIds.length) {
-          this.selectedLibraryPathIds = options.map(option => option.value);
+          this.selectedLibraryPathIds = Array.from(validPathIds);
         } else {
-          const validOptionIds = new Set(options.map(option => option.value));
-          this.selectedLibraryPathIds = this.selectedLibraryPathIds.filter(id => validOptionIds.has(id));
+          this.selectedLibraryPathIds = this.selectedLibraryPathIds.filter(id => validPathIds.has(id));
         }
       });
 
@@ -113,6 +111,17 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     this.clearStartupPolling();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  openDirectoryDialog(): void {
+    const ref = this.dialogLauncherService.openAiScanDirectoryDialog(this.selectedLibraryPathIds);
+    if (!ref) return;
+
+    ref.onClose.pipe(take(1)).subscribe((result: number[] | null) => {
+      if (result !== null) {
+        this.selectedLibraryPathIds = result;
+      }
+    });
   }
 
   onToggleAiEnabled(checked: boolean): void {
