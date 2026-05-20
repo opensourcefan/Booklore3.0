@@ -3,7 +3,7 @@
 .scan-dialog {
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+  height: 85vh;
   min-height: 0;
   background: var(--card-background);
   border: 1px solid var(--border-color);
@@ -141,15 +141,16 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+.directory-list-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
 .directory-count {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-color-secondary);
-}
-
-.directory-list-actions {
-  display: flex;
-  gap: 0.4rem;
 }
 
 .empty-hint {

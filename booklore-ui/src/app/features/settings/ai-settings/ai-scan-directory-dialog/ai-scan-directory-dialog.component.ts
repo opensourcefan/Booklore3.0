@@ -49,7 +49,11 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
   selectedPathIds = new Set<number>();
   rescanningPathId: number | null = null;
 
+  private incomingPathIds: number[] = [];
+
   ngOnInit(): void {
+    this.incomingPathIds = this.dynamicDialogConfig.data?.selectedLibraryPathIds ?? [];
+
     this.libraryService.libraryState$
       .pipe(takeUntil(this.destroy$))
       .subscribe(state => {
@@ -168,6 +172,23 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
         label: l.name,
         value: l.id!
       }));
+
+    const validIds = new Set(this.libraryOptions.map(o => o.value));
+    this.selectedLibraryIds = this.selectedLibraryIds.filter(id => validIds.has(id));
+
+    if (this.selectedLibraryIds.length === 0 && this.incomingPathIds.length > 0) {
+      const incomingPathSet = new Set(this.incomingPathIds);
+      const libraryIdsForIncomingPaths = new Set<number>();
+      for (const entry of this.allDirectories) {
+        if (incomingPathSet.has(entry.pathId)) {
+          libraryIdsForIncomingPaths.add(entry.libraryId);
+        }
+      }
+      if (libraryIdsForIncomingPaths.size > 0) {
+        this.selectedLibraryIds = Array.from(libraryIdsForIncomingPaths);
+        this.incomingPathIds = [];
+      }
+    }
   }
 
   private applyFilter(): void {
