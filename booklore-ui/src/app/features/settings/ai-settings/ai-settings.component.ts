@@ -17,6 +17,8 @@ import {LibraryService} from '../../book/service/library.service';
 import {BookService} from '../../book/service/book.service';
 import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
 
+const LS_KEY_AI_SCAN_PATH_IDS = 'booklore.aiScanSelectedPathIds';
+
 interface AiStartupEvent {
   timestamp: string;
   level: 'info' | 'success' | 'warning' | 'error';
@@ -63,7 +65,6 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   status: AiServiceStatus | null = null;
   selectedLibraryPathIds: number[] = [];
   selectedLibraryFilterIds: number[] = [];
-  private userExplicitlySetPathIds = false;
   batchProgress: AiPanelScanProgressPayload | null = null;
   panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];
@@ -91,9 +92,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           }
         }
 
-        if (!this.userExplicitlySetPathIds && !this.selectedLibraryPathIds.length) {
+        const stored = this.loadPersistedPathIds();
+        if (stored !== null) {
+          this.selectedLibraryPathIds = stored.filter(id => validPathIds.has(id));
+        } else if (!this.selectedLibraryPathIds.length) {
           this.selectedLibraryPathIds = Array.from(validPathIds);
-        } else if (this.selectedLibraryPathIds.length > 0) {
+        } else {
           this.selectedLibraryPathIds = this.selectedLibraryPathIds.filter(id => validPathIds.has(id));
         }
       });
@@ -119,7 +123,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     const liveSelection$ = new Subject<number[]>();
     const liveSelectionSub = liveSelection$.pipe(takeUntil(this.destroy$)).subscribe(pathIds => {
       this.selectedLibraryPathIds = pathIds;
-      this.userExplicitlySetPathIds = true;
+      this.persistPathIds(pathIds);
     });
 
     const ref = this.dialogLauncherService.openAiScanDirectoryDialog(
@@ -362,6 +366,28 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   get panelFlowStorageLabel(): string {
     return this.formatBytes(this.panelFlowStats?.storedBytes ?? 0);
+  }
+
+  private loadPersistedPathIds(): number[] | null {
+    try {
+      const raw = localStorage.getItem(LS_KEY_AI_SCAN_PATH_IDS);
+      if (raw === null) return null;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.every((v: unknown) => typeof v === 'number')) {
+        return parsed as number[];
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private persistPathIds(pathIds: number[]): void {
+    try {
+      localStorage.setItem(LS_KEY_AI_SCAN_PATH_IDS, JSON.stringify(pathIds));
+    } catch {
+      // localStorage may be unavailable (e.g. private browsing), silently ignore
+    }
   }
 
   private applyStatus(status: AiServiceStatus, fromPolling: boolean): void {
