@@ -3,6 +3,7 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {Checkbox} from 'primeng/checkbox';
+import {MultiSelect} from 'primeng/multiselect';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {Subject} from 'rxjs';
@@ -20,12 +21,6 @@ interface DirectoryEntry {
   scanning: boolean;
 }
 
-interface LibraryToggle {
-  libraryId: number;
-  libraryName: string;
-  selected: boolean;
-}
-
 @Component({
   selector: 'app-ai-scan-directory-dialog',
   standalone: true,
@@ -33,6 +28,7 @@ interface LibraryToggle {
     Button,
     Checkbox,
     FormsModule,
+    MultiSelect,
     Tooltip,
     TranslocoDirective
   ],
@@ -48,7 +44,8 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
 
   allDirectories: DirectoryEntry[] = [];
   filteredDirectories: DirectoryEntry[] = [];
-  libraryToggles: LibraryToggle[] = [];
+  libraryOptions: { label: string; value: number }[] = [];
+  selectedLibraryIds: number[] = [];
   selectedPathIds = new Set<number>();
   rescanningPathId: number | null = null;
 
@@ -58,7 +55,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
       .subscribe(state => {
         const libraries = state.libraries ?? [];
         this.buildDirectoryList(libraries);
-        this.buildLibraryToggles(libraries);
+        this.buildLibraryOptions(libraries);
         this.applyFilter();
       });
   }
@@ -68,37 +65,28 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  toggleLibrary(libraryId: number): void {
-    const toggle = this.libraryToggles.find(t => t.libraryId === libraryId);
-    if (toggle) {
-      toggle.selected = !toggle.selected;
+  onLibraryFilterChange(): void {
+    this.applyFilter();
+  }
+
+  toggleAllLibraries(): void {
+    if (this.allLibrariesSelected) {
+      this.selectedLibraryIds = [];
+    } else {
+      this.selectedLibraryIds = this.libraryOptions.map(o => o.value);
     }
     this.applyFilter();
   }
 
-  selectAllLibraries(): void {
-    for (const toggle of this.libraryToggles) {
-      toggle.selected = true;
-    }
-    this.applyFilter();
-  }
-
-  deselectAllLibraries(): void {
-    for (const toggle of this.libraryToggles) {
-      toggle.selected = false;
-    }
-    this.applyFilter();
-  }
-
-  selectAllDirectories(): void {
-    for (const entry of this.filteredDirectories) {
-      this.selectedPathIds.add(entry.pathId);
-    }
-  }
-
-  deselectAllDirectories(): void {
-    for (const entry of this.filteredDirectories) {
-      this.selectedPathIds.delete(entry.pathId);
+  toggleAllDirectories(): void {
+    if (this.allFilteredSelected) {
+      for (const entry of this.filteredDirectories) {
+        this.selectedPathIds.delete(entry.pathId);
+      }
+    } else {
+      for (const entry of this.filteredDirectories) {
+        this.selectedPathIds.add(entry.pathId);
+      }
     }
   }
 
@@ -141,11 +129,11 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
   }
 
   get selectedLibraryCount(): number {
-    return this.libraryToggles.filter(t => t.selected).length;
+    return this.selectedLibraryIds.length;
   }
 
   get allLibrariesSelected(): boolean {
-    return this.libraryToggles.length > 0 && this.libraryToggles.every(t => t.selected);
+    return this.libraryOptions.length > 0 && this.selectedLibraryIds.length === this.libraryOptions.length;
   }
 
   get allFilteredSelected(): boolean {
@@ -173,29 +161,20 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     this.allDirectories = entries;
   }
 
-  private buildLibraryToggles(libraries: Library[]): void {
-    const existingSelection = new Map<number, boolean>();
-    for (const t of this.libraryToggles) {
-      existingSelection.set(t.libraryId, t.selected);
-    }
-
-    this.libraryToggles = libraries
+  private buildLibraryOptions(libraries: Library[]): void {
+    this.libraryOptions = libraries
       .filter(l => typeof l.id === 'number')
       .map(l => ({
-        libraryId: l.id!,
-        libraryName: l.name,
-        selected: existingSelection.has(l.id!) ? existingSelection.get(l.id!)! : false
+        label: l.name,
+        value: l.id!
       }));
   }
 
   private applyFilter(): void {
-    const selectedIds = new Set(
-      this.libraryToggles.filter(t => t.selected).map(t => t.libraryId)
-    );
-
-    if (selectedIds.size === 0) {
+    if (this.selectedLibraryIds.length === 0) {
       this.filteredDirectories = [];
     } else {
+      const selectedIds = new Set(this.selectedLibraryIds);
       this.filteredDirectories = this.allDirectories.filter(
         d => selectedIds.has(d.libraryId)
       );

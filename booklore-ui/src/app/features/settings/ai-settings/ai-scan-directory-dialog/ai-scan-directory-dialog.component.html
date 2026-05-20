@@ -16,27 +16,19 @@
           <span class="filter-label">{{ t('libraryFilter') }}</span>
           <span class="filter-count">{{ t('librariesSelected', { count: selectedLibraryCount }) }}</span>
         </div>
-        <div class="library-toggle-list">
-          @for (lib of libraryToggles; track lib.libraryId) {
-            <div class="library-toggle-row">
-              <p-checkbox
-                [binary]="true"
-                [ngModel]="lib.selected"
-                (onChange)="toggleLibrary(lib.libraryId)"
-                [inputId]="'lib-' + lib.libraryId">
-              </p-checkbox>
-              <label class="library-toggle-label" [for]="'lib-' + lib.libraryId">{{ lib.libraryName }}</label>
-            </div>
-          }
-        </div>
-        <div class="library-toggle-actions">
-          <button class="toggle-all-btn" (click)="selectAllLibraries()" type="button" [disabled]="allLibrariesSelected">
-            <i class="pi pi-check-square"></i>
-            <span>{{ t('selectAllLibraries') }}</span>
-          </button>
-          <button class="toggle-all-btn" (click)="deselectAllLibraries()" type="button" [disabled]="selectedLibraryCount === 0">
-            <i class="pi pi-stop"></i>
-            <span>{{ t('deselectAllLibraries') }}</span>
+        <div class="library-select-row">
+          <p-multiSelect
+            [options]="libraryOptions"
+            [(ngModel)]="selectedLibraryIds"
+            (onChange)="onLibraryFilterChange()"
+            [placeholder]="t('libraryPlaceholder')"
+            [showToggleAll]="false"
+            styleClass="library-multiselect"
+            display="chip">
+          </p-multiSelect>
+          <button class="toggle-all-btn" (click)="toggleAllLibraries()" type="button">
+            <i [class]="allLibrariesSelected ? 'pi pi-stop' : 'pi pi-check-square'"></i>
+            <span>{{ allLibrariesSelected ? t('deselectAll') : t('selectAll') }}</span>
           </button>
         </div>
       </div>
@@ -45,13 +37,9 @@
         <div class="directory-list-header">
           <span class="directory-count">{{ t('directoriesSelected', { count: selectedCount }) }}</span>
           <div class="directory-list-actions">
-            <button class="toggle-all-btn" (click)="selectAllDirectories()" type="button" [disabled]="allFilteredSelected || filteredDirectories.length === 0">
-              <i class="pi pi-check-square"></i>
-              <span>{{ t('selectAll') }}</span>
-            </button>
-            <button class="toggle-all-btn" (click)="deselectAllDirectories()" type="button" [disabled]="selectedCount === 0">
-              <i class="pi pi-stop"></i>
-              <span>{{ t('deselectAll') }}</span>
+            <button class="toggle-all-btn" (click)="toggleAllDirectories()" type="button" [disabled]="filteredDirectories.length === 0">
+              <i [class]="allFilteredSelected ? 'pi pi-stop' : 'pi pi-check-square'"></i>
+              <span>{{ allFilteredSelected ? t('deselectAll') : t('selectAll') }}</span>
             </button>
           </div>
         </div>

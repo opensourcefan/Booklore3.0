@@ -83,40 +83,15 @@
   color: var(--primary-color);
 }
 
-.library-toggle-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.65rem;
-}
-
-.library-toggle-row {
+.library-select-row {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.65rem;
-  border: 1px solid var(--surface-border);
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--surface-card) 60%, transparent);
-  cursor: pointer;
-  transition: border-color 0.15s;
-
-  &:hover {
-    border-color: var(--primary-color);
-  }
-}
-
-.library-toggle-label {
-  font-size: 0.84rem;
-  font-weight: 500;
-  color: var(--text-color);
-  cursor: pointer;
-  user-select: none;
-}
-
-.library-toggle-actions {
-  display: flex;
   gap: 0.5rem;
+}
+
+.library-select-row ::ng-deep .library-multiselect {
+  flex: 1;
+  min-width: 0;
 }
 
 .toggle-all-btn {
@@ -124,7 +99,7 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.3rem 0.6rem;
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   background: transparent;
   color: var(--text-color-secondary);
@@ -132,6 +107,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
 
   &:hover:not(:disabled) {
     border-color: var(--primary-color);
@@ -150,7 +127,7 @@
 }
 
 .directory-list {
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -161,7 +138,7 @@
   justify-content: space-between;
   padding: 0.65rem 1rem;
   background: color-mix(in srgb, var(--surface-card) 92%, var(--surface-ground) 8%);
-  border-bottom: 1px solid var(--surface-border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .directory-count {
@@ -190,7 +167,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.7rem 1rem;
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--border-color);
   margin: 0.35rem 0.5rem;
   border-radius: 8px;
   background: var(--surface-card);
@@ -253,7 +230,7 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.35rem 0.65rem;
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   background: transparent;
   color: var(--text-color-secondary);
@@ -301,8 +278,9 @@
     padding: 0.75rem 1rem;
   }
 
-  .library-toggle-list {
+  .library-select-row {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .directory-row {
