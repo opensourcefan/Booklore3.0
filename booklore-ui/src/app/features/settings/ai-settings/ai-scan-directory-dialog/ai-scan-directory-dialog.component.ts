@@ -50,9 +50,11 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
   rescanningPathId: number | null = null;
 
   private incomingPathIds: number[] = [];
+  private incomingLibraryFilterIds: number[] = [];
 
   ngOnInit(): void {
     this.incomingPathIds = this.dynamicDialogConfig.data?.selectedLibraryPathIds ?? [];
+    this.incomingLibraryFilterIds = this.dynamicDialogConfig.data?.selectedLibraryFilterIds ?? [];
 
     this.libraryService.libraryState$
       .pipe(takeUntil(this.destroy$))
@@ -61,6 +63,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
         this.buildDirectoryList(libraries);
         this.buildLibraryOptions(libraries);
         this.applyIncomingSelection();
+        this.applyIncomingLibraryFilter();
         this.applyFilter();
       });
   }
@@ -96,11 +99,17 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
   }
 
   onConfirm(): void {
-    this.dynamicDialogRef.close(Array.from(this.selectedPathIds));
+    this.dynamicDialogRef.close({
+      pathIds: Array.from(this.selectedPathIds),
+      libraryFilterIds: this.selectedLibraryIds
+    });
   }
 
   onCancel(): void {
-    this.dynamicDialogRef.close(null);
+    this.dynamicDialogRef.close({
+      pathIds: Array.from(this.selectedPathIds),
+      libraryFilterIds: this.selectedLibraryIds
+    });
   }
 
   onRescan(entry: DirectoryEntry): void {
@@ -199,6 +208,13 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     }
 
     this.incomingPathIds = [];
+  }
+
+  private applyIncomingLibraryFilter(): void {
+    if (this.incomingLibraryFilterIds.length === 0) return;
+    const validIds = new Set(this.libraryOptions.map(o => o.value));
+    this.selectedLibraryIds = this.incomingLibraryFilterIds.filter(id => validIds.has(id));
+    this.incomingLibraryFilterIds = [];
   }
 
   private applyFilter(): void {

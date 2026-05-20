@@ -127,11 +127,10 @@
 
         <div class="scan-action-row">
           <p-button
-            icon="pi pi-bolt"
-            [label]="t('prescan.action')"
-            [loading]="preScanRunning"
-            loadingIcon="pi pi-spin pi-spinner"
-            [disabled]="!aiEnabled || !selectedLibraryPathIds.length"
+            [icon]="preScanRunning ? 'pi pi-spin pi-spinner' : 'pi pi-bolt'"
+            [label]="preScanRunning ? t('prescan.scanning') : t('prescan.action')"
+            [severity]="preScanRunning ? 'warn' : 'success'"
+            [disabled]="!aiEnabled || !selectedLibraryPathIds.length || preScanRunning"
             (onClick)="preScanMissing()">
           </p-button>
           @if (isActivelyScanning) {
@@ -151,7 +150,6 @@
         <div class="status-box progress-box" [ngClass]="batchProgressTone">
           <div class="progress-title-row">
             <div class="status-title">{{ t('prescan.progressTitle') }}</div>
-            <span class="progress-state-pill" [ngClass]="batchProgressTone">{{ batchProgressStateLabel }}</span>
           </div>
           @if (batchProgress.bookTitle) {
             <div class="status-line"><strong>{{ t('prescan.currentBook') }}</strong>: {{ batchProgress.bookTitle }}</div>

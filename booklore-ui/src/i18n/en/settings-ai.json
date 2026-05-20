@@ -31,6 +31,7 @@
     "title": "Manual Panel Detection Scan",
     "description": "Scan selected library paths in the background and only generate AI panel data for comics that do not already have saved results.",
     "action": "Scan Now",
+    "scanning": "Scanning",
     "stopAction": "Stop Scan",
     "pathsLabel": "Library Paths",
     "pathsPlaceholder": "Select library paths",

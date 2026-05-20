@@ -261,13 +261,14 @@ export class DialogLauncherService {
     });
   }
 
-  openAiScanDirectoryDialog(selectedLibraryPathIds: number[] = []): DynamicDialogRef | null {
+  openAiScanDirectoryDialog(selectedLibraryPathIds: number[] = [], selectedLibraryFilterIds: number[] = []): DynamicDialogRef | null {
     const size = this.isCompactViewport(991) ? DialogSize.FULL : DialogSize.MD;
     return this.openDialog(AiScanDirectoryDialogComponent, {
       showHeader: false,
       styleClass: `${size} ${DialogStyle.MINIMAL}`,
       data: {
-        selectedLibraryPathIds
+        selectedLibraryPathIds,
+        selectedLibraryFilterIds
       },
     });
   }

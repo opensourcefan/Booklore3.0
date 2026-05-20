@@ -62,6 +62,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   status: AiServiceStatus | null = null;
   selectedLibraryPathIds: number[] = [];
+  selectedLibraryFilterIds: number[] = [];
   batchProgress: AiPanelScanProgressPayload | null = null;
   panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];
@@ -114,12 +115,15 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   openDirectoryDialog(): void {
-    const ref = this.dialogLauncherService.openAiScanDirectoryDialog(this.selectedLibraryPathIds);
+    const ref = this.dialogLauncherService.openAiScanDirectoryDialog(this.selectedLibraryPathIds, this.selectedLibraryFilterIds);
     if (!ref) return;
 
-    ref.onClose.pipe(take(1)).subscribe((result: number[] | null) => {
+    ref.onClose.pipe(take(1)).subscribe((result: { pathIds: number[]; libraryFilterIds: number[] } | null) => {
       if (result !== null) {
-        this.selectedLibraryPathIds = result;
+        if (result.pathIds.length > 0) {
+          this.selectedLibraryPathIds = result.pathIds;
+        }
+        this.selectedLibraryFilterIds = result.libraryFilterIds;
       }
     });
   }
