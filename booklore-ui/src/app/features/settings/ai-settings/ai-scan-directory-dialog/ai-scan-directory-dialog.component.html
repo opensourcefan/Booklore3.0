@@ -39,9 +39,9 @@
         </div>
 
         <div class="directory-toggle-row">
-          <button class="toggle-all-btn" (click)="toggleAllDirectories()" type="button" [disabled]="filteredDirectories.length === 0">
-            <i [class]="allFilteredSelected ? 'pi pi-stop' : 'pi pi-check-square'"></i>
-            <span>{{ allFilteredSelected ? t('deselectAll') : t('selectAll') }}</span>
+          <button class="toggle-all-btn" (click)="toggleAllDirectories()" type="button" [disabled]="allDirectories.length === 0">
+            <i [class]="allDirectoriesSelected ? 'pi pi-stop' : 'pi pi-check-square'"></i>
+            <span>{{ allDirectoriesSelected ? t('deselectAll') : t('selectAll') }}</span>
           </button>
         </div>
 

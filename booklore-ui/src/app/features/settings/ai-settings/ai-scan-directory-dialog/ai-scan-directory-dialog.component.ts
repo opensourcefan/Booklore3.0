@@ -94,12 +94,10 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
   }
 
   toggleAllDirectories(): void {
-    if (this.allFilteredSelected) {
-      for (const entry of this.filteredDirectories) {
-        this.selectedPathIds.delete(entry.pathId);
-      }
+    if (this.allDirectoriesSelected) {
+      this.selectedPathIds.clear();
     } else {
-      for (const entry of this.filteredDirectories) {
+      for (const entry of this.allDirectories) {
         this.selectedPathIds.add(entry.pathId);
       }
     }
@@ -150,8 +148,8 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     return this.libraryOptions.length > 0 && this.selectedLibraryIds.length === this.libraryOptions.length;
   }
 
-  get allFilteredSelected(): boolean {
-    return this.filteredDirectories.length > 0 && this.filteredDirectories.every(d => this.selectedPathIds.has(d.pathId));
+  get allDirectoriesSelected(): boolean {
+    return this.allDirectories.length > 0 && this.allDirectories.every(d => this.selectedPathIds.has(d.pathId));
   }
 
   private buildDirectoryList(libraries: Library[]): void {
