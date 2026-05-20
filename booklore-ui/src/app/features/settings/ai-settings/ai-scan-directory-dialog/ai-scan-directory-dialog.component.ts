@@ -60,6 +60,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
         const libraries = state.libraries ?? [];
         this.buildDirectoryList(libraries);
         this.buildLibraryOptions(libraries);
+        this.applyIncomingSelection();
         this.applyFilter();
       });
   }
@@ -175,20 +176,29 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
 
     const validIds = new Set(this.libraryOptions.map(o => o.value));
     this.selectedLibraryIds = this.selectedLibraryIds.filter(id => validIds.has(id));
+  }
 
-    if (this.selectedLibraryIds.length === 0 && this.incomingPathIds.length > 0) {
-      const incomingPathSet = new Set(this.incomingPathIds);
-      const libraryIdsForIncomingPaths = new Set<number>();
-      for (const entry of this.allDirectories) {
-        if (incomingPathSet.has(entry.pathId)) {
-          libraryIdsForIncomingPaths.add(entry.libraryId);
-        }
-      }
-      if (libraryIdsForIncomingPaths.size > 0) {
-        this.selectedLibraryIds = Array.from(libraryIdsForIncomingPaths);
-        this.incomingPathIds = [];
+  private applyIncomingSelection(): void {
+    if (this.incomingPathIds.length === 0) return;
+    if (this.allDirectories.length === 0) return;
+
+    const incomingPathSet = new Set(this.incomingPathIds);
+
+    for (const pathId of this.incomingPathIds) {
+      this.selectedPathIds.add(pathId);
+    }
+
+    const libraryIdsForIncomingPaths = new Set<number>();
+    for (const entry of this.allDirectories) {
+      if (incomingPathSet.has(entry.pathId)) {
+        libraryIdsForIncomingPaths.add(entry.libraryId);
       }
     }
+    if (libraryIdsForIncomingPaths.size > 0) {
+      this.selectedLibraryIds = Array.from(libraryIdsForIncomingPaths);
+    }
+
+    this.incomingPathIds = [];
   }
 
   private applyFilter(): void {

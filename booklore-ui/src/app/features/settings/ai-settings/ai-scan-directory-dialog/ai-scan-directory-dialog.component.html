@@ -35,13 +35,14 @@
 
       <div class="directory-list">
         <div class="directory-list-header">
-          <div class="directory-list-header-left">
-            <span class="directory-count">{{ t('directoriesSelected', { count: selectedCount }) }}</span>
-            <button class="toggle-all-btn" (click)="toggleAllDirectories()" type="button" [disabled]="filteredDirectories.length === 0">
-              <i [class]="allFilteredSelected ? 'pi pi-stop' : 'pi pi-check-square'"></i>
-              <span>{{ allFilteredSelected ? t('deselectAll') : t('selectAll') }}</span>
-            </button>
-          </div>
+          <span class="directory-count">{{ t('directoriesSelected', { count: selectedCount }) }}</span>
+        </div>
+
+        <div class="directory-toggle-row">
+          <button class="toggle-all-btn" (click)="toggleAllDirectories()" type="button" [disabled]="filteredDirectories.length === 0">
+            <i [class]="allFilteredSelected ? 'pi pi-stop' : 'pi pi-check-square'"></i>
+            <span>{{ allFilteredSelected ? t('deselectAll') : t('selectAll') }}</span>
+          </button>
         </div>
 
         @if (filteredDirectories.length === 0) {
