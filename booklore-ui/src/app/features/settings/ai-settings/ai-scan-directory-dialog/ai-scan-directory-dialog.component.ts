@@ -1,10 +1,8 @@
 import {Component, inject, OnInit, OnDestroy} from '@angular/core';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {FormsModule} from '@angular/forms';
-import {NgClass} from '@angular/common';
 import {Button} from 'primeng/button';
 import {Checkbox} from 'primeng/checkbox';
-import {Select} from 'primeng/select';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {Subject} from 'rxjs';
@@ -13,20 +11,19 @@ import {takeUntil} from 'rxjs/operators';
 import {Library} from '../../../book/model/library.model';
 import {LibraryService} from '../../../book/service/library.service';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
-import {AiPanelFlowStats} from '../../../../shared/model/app-settings.model';
 
 interface DirectoryEntry {
   libraryId: number;
   libraryName: string;
   pathId: number;
   path: string;
-  scanned: boolean;
   scanning: boolean;
 }
 
-interface LibraryOption {
-  label: string;
-  value: number | 'all';
+interface LibraryToggle {
+  libraryId: number;
+  libraryName: string;
+  selected: boolean;
 }
 
 @Component({
@@ -36,8 +33,6 @@ interface LibraryOption {
     Button,
     Checkbox,
     FormsModule,
-    NgClass,
-    Select,
     Tooltip,
     TranslocoDirective
   ],
@@ -53,28 +48,18 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
 
   allDirectories: DirectoryEntry[] = [];
   filteredDirectories: DirectoryEntry[] = [];
-  libraryOptions: LibraryOption[] = [];
-  selectedLibraryId: number | 'all' = 'all';
+  libraryToggles: LibraryToggle[] = [];
   selectedPathIds = new Set<number>();
   rescanningPathId: number | null = null;
 
   ngOnInit(): void {
-    const preselectedIds: number[] = this.dynamicDialogConfig.data?.selectedLibraryPathIds ?? [];
-    preselectedIds.forEach(id => this.selectedPathIds.add(id));
-
     this.libraryService.libraryState$
       .pipe(takeUntil(this.destroy$))
       .subscribe(state => {
         const libraries = state.libraries ?? [];
         this.buildDirectoryList(libraries);
-        this.buildLibraryOptions(libraries);
-
-        if (this.selectedLibraryId === undefined) {
-          this.selectedLibraryId = libraries.length > 0 ? libraries[0].id! : 'all';
-        }
-
+        this.buildLibraryToggles(libraries);
         this.applyFilter();
-        this.fetchScanStatuses(libraries);
       });
   }
 
@@ -83,8 +68,38 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  onLibraryChange(): void {
+  toggleLibrary(libraryId: number): void {
+    const toggle = this.libraryToggles.find(t => t.libraryId === libraryId);
+    if (toggle) {
+      toggle.selected = !toggle.selected;
+    }
     this.applyFilter();
+  }
+
+  selectAllLibraries(): void {
+    for (const toggle of this.libraryToggles) {
+      toggle.selected = true;
+    }
+    this.applyFilter();
+  }
+
+  deselectAllLibraries(): void {
+    for (const toggle of this.libraryToggles) {
+      toggle.selected = false;
+    }
+    this.applyFilter();
+  }
+
+  selectAllDirectories(): void {
+    for (const entry of this.filteredDirectories) {
+      this.selectedPathIds.add(entry.pathId);
+    }
+  }
+
+  deselectAllDirectories(): void {
+    for (const entry of this.filteredDirectories) {
+      this.selectedPathIds.delete(entry.pathId);
+    }
   }
 
   onConfirm(): void {
@@ -125,6 +140,18 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     return this.selectedPathIds.size;
   }
 
+  get selectedLibraryCount(): number {
+    return this.libraryToggles.filter(t => t.selected).length;
+  }
+
+  get allLibrariesSelected(): boolean {
+    return this.libraryToggles.length > 0 && this.libraryToggles.every(t => t.selected);
+  }
+
+  get allFilteredSelected(): boolean {
+    return this.filteredDirectories.length > 0 && this.filteredDirectories.every(d => this.selectedPathIds.has(d.pathId));
+  }
+
   private buildDirectoryList(libraries: Library[]): void {
     const entries: DirectoryEntry[] = [];
 
@@ -137,7 +164,6 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
           libraryName: library.name,
           pathId: path.id,
           path: path.path,
-          scanned: false,
           scanning: false
         });
       }
@@ -147,48 +173,32 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     this.allDirectories = entries;
   }
 
-  private buildLibraryOptions(libraries: Library[]): void {
-    const options: LibraryOption[] = [
-      {label: 'All Libraries', value: 'all'}
-    ];
-
-    for (const library of libraries) {
-      if (!library.id) continue;
-      options.push({
-        label: library.name,
-        value: library.id
-      });
+  private buildLibraryToggles(libraries: Library[]): void {
+    const existingSelection = new Map<number, boolean>();
+    for (const t of this.libraryToggles) {
+      existingSelection.set(t.libraryId, t.selected);
     }
 
-    this.libraryOptions = options;
+    this.libraryToggles = libraries
+      .filter(l => typeof l.id === 'number')
+      .map(l => ({
+        libraryId: l.id!,
+        libraryName: l.name,
+        selected: existingSelection.has(l.id!) ? existingSelection.get(l.id!)! : false
+      }));
   }
 
   private applyFilter(): void {
-    if (this.selectedLibraryId === 'all') {
-      this.filteredDirectories = [...this.allDirectories];
+    const selectedIds = new Set(
+      this.libraryToggles.filter(t => t.selected).map(t => t.libraryId)
+    );
+
+    if (selectedIds.size === 0) {
+      this.filteredDirectories = [];
     } else {
       this.filteredDirectories = this.allDirectories.filter(
-        d => d.libraryId === this.selectedLibraryId
+        d => selectedIds.has(d.libraryId)
       );
-    }
-  }
-
-  private fetchScanStatuses(libraries: Library[]): void {
-    for (const library of libraries) {
-      if (!library.id) continue;
-      this.appSettingsService.getAiPanelFlowStats(library.id).subscribe({
-        next: (stats: AiPanelFlowStats) => {
-          const hasScanned = stats.scannedComicCount > 0;
-          for (const entry of this.allDirectories) {
-            if (entry.libraryId === library.id) {
-              entry.scanned = hasScanned;
-            }
-          }
-        },
-        error: () => {
-          // If stats fail, leave scanned as false
-        }
-      });
     }
   }
 }

@@ -3,15 +3,22 @@
 .scan-dialog {
   display: flex;
   flex-direction: column;
-  max-height: 80vh;
+  max-height: 90vh;
+  min-height: 0;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .dialog-header {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 1.5rem 1.5rem 1rem;
-  border-bottom: 1px solid var(--surface-border);
+  padding: 1.25rem 1.5rem;
+  background: var(--overlay-background);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .dialog-header-icon {
@@ -50,19 +57,96 @@
   flex: 1;
   overflow-y: auto;
   padding: 1.25rem 1.5rem;
+  min-height: 0;
 }
 
 .library-filter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
   margin-bottom: 1.25rem;
+}
+
+.filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
 }
 
 .filter-label {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-color-secondary);
+}
+
+.filter-count {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.library-toggle-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.library-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--surface-card) 60%, transparent);
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: var(--primary-color);
+  }
+}
+
+.library-toggle-label {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--text-color);
+  cursor: pointer;
+  user-select: none;
+}
+
+.library-toggle-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toggle-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-color-secondary);
+  font-size: 0.76rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: color-mix(in srgb, var(--primary-color) 6%, transparent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  i {
+    font-size: 0.75rem;
+  }
 }
 
 .directory-list {
@@ -86,6 +170,11 @@
   color: var(--text-color-secondary);
 }
 
+.directory-list-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
 .empty-hint {
   display: flex;
   align-items: center;
@@ -101,19 +190,22 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.7rem 1rem;
-  border-bottom: 1px solid var(--surface-border);
+  border: 1px solid var(--surface-border);
+  margin: 0.35rem 0.5rem;
+  border-radius: 8px;
+  background: var(--surface-card);
   transition: background 0.15s;
 
+  &:first-child {
+    margin-top: 0.5rem;
+  }
+
   &:last-child {
-    border-bottom: none;
+    margin-bottom: 0.5rem;
   }
 
   &:hover {
     background: color-mix(in srgb, var(--surface-hover) 60%, transparent);
-  }
-
-  &.scanned {
-    background: color-mix(in srgb, var(--surface-card) 94%, #22c55e 6%);
   }
 }
 
@@ -150,33 +242,6 @@
   font-size: 0.76rem;
   color: var(--text-color-secondary);
   padding-left: 1.3rem;
-}
-
-.directory-badges {
-  flex-shrink: 0;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.18rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.badge-scanned {
-  color: #22c55e;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.badge-not-scanned {
-  color: var(--text-color-secondary);
-  background: color-mix(in srgb, var(--surface-ground) 60%, transparent);
-  border: 1px solid var(--surface-border);
 }
 
 .directory-actions {
@@ -218,7 +283,9 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--surface-border);
+  border-top: 1px solid var(--border-color);
+  background: var(--overlay-background);
+  flex-shrink: 0;
 }
 
 @media (max-width: 767px) {
@@ -234,20 +301,26 @@
     padding: 0.75rem 1rem;
   }
 
+  .library-toggle-list {
+    flex-direction: column;
+  }
+
   .directory-row {
     flex-wrap: wrap;
     gap: 0.5rem;
     padding: 0.6rem 0.75rem;
-  }
+    margin: 0.25rem 0.35rem;
 
-  .directory-badges {
-    order: 3;
-    width: 100%;
-    padding-left: 2.2rem;
+    &:first-child {
+      margin-top: 0.35rem;
+    }
+
+    &:last-child {
+      margin-bottom: 0.35rem;
+    }
   }
 
   .directory-actions {
-    order: 4;
     width: 100%;
     padding-left: 2.2rem;
   }

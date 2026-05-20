@@ -12,20 +12,48 @@
 
     <div class="dialog-body">
       <div class="library-filter">
-        <span class="filter-label">{{ t('libraryFilter') }}</span>
-        <p-select
-          [options]="libraryOptions"
-          [(ngModel)]="selectedLibraryId"
-          optionLabel="label"
-          optionValue="value"
-          (onChange)="onLibraryChange()"
-          appendTo="body">
-        </p-select>
+        <div class="filter-header">
+          <span class="filter-label">{{ t('libraryFilter') }}</span>
+          <span class="filter-count">{{ t('librariesSelected', { count: selectedLibraryCount }) }}</span>
+        </div>
+        <div class="library-toggle-list">
+          @for (lib of libraryToggles; track lib.libraryId) {
+            <div class="library-toggle-row">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="lib.selected"
+                (onChange)="toggleLibrary(lib.libraryId)"
+                [inputId]="'lib-' + lib.libraryId">
+              </p-checkbox>
+              <label class="library-toggle-label" [for]="'lib-' + lib.libraryId">{{ lib.libraryName }}</label>
+            </div>
+          }
+        </div>
+        <div class="library-toggle-actions">
+          <button class="toggle-all-btn" (click)="selectAllLibraries()" type="button" [disabled]="allLibrariesSelected">
+            <i class="pi pi-check-square"></i>
+            <span>{{ t('selectAllLibraries') }}</span>
+          </button>
+          <button class="toggle-all-btn" (click)="deselectAllLibraries()" type="button" [disabled]="selectedLibraryCount === 0">
+            <i class="pi pi-stop"></i>
+            <span>{{ t('deselectAllLibraries') }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="directory-list">
         <div class="directory-list-header">
           <span class="directory-count">{{ t('directoriesSelected', { count: selectedCount }) }}</span>
+          <div class="directory-list-actions">
+            <button class="toggle-all-btn" (click)="selectAllDirectories()" type="button" [disabled]="allFilteredSelected || filteredDirectories.length === 0">
+              <i class="pi pi-check-square"></i>
+              <span>{{ t('selectAll') }}</span>
+            </button>
+            <button class="toggle-all-btn" (click)="deselectAllDirectories()" type="button" [disabled]="selectedCount === 0">
+              <i class="pi pi-stop"></i>
+              <span>{{ t('deselectAll') }}</span>
+            </button>
+          </div>
         </div>
 
         @if (filteredDirectories.length === 0) {
@@ -36,7 +64,7 @@
         }
 
         @for (entry of filteredDirectories; track entry.pathId) {
-          <div class="directory-row" [ngClass]="{ 'scanned': entry.scanned }">
+          <div class="directory-row">
             <div class="directory-check">
               <p-checkbox
                 [binary]="true"
@@ -51,19 +79,6 @@
                 <span>{{ entry.path }}</span>
               </label>
               <span class="directory-library">{{ entry.libraryName }}</span>
-            </div>
-            <div class="directory-badges">
-              @if (entry.scanned) {
-                <span class="badge badge-scanned">
-                  <i class="pi pi-check-circle"></i>
-                  {{ t('alreadyScanned') }}
-                </span>
-              } @else {
-                <span class="badge badge-not-scanned">
-                  <i class="pi pi-circle"></i>
-                  {{ t('notScanned') }}
-                </span>
-              }
             </div>
             <div class="directory-actions">
               <button

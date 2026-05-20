@@ -43,14 +43,16 @@
     "directoriesSelected": "{{count}} directories selected",
     "dialogTitle": "Choose Directories for AI Scan",
     "dialogDescription": "Select which library directories to scan for AI panel detection.",
-    "libraryFilter": "Library",
-    "allLibraries": "All Libraries",
-    "alreadyScanned": "Already Scanned",
-    "notScanned": "Not Scanned",
+    "libraryFilter": "Libraries",
+    "librariesSelected": "{{count}} selected",
+    "selectAllLibraries": "Select All",
+    "deselectAllLibraries": "Deselect All",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
     "rescan": "Rescan",
     "confirmSelection": "Confirm Selection",
     "confirmCancel": "Cancel",
-    "noDirectories": "No directories available for the selected library."
+    "noDirectories": "Select one or more libraries above to view directories."
   },
   "cleanup": {
     "title": "Generated Data Cleanup",
