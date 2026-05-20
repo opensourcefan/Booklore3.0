@@ -18,6 +18,7 @@ import {BookService} from '../../book/service/book.service';
 import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
 
 const LS_KEY_AI_SCAN_PATH_IDS = 'booklore.aiScanSelectedPathIds';
+const LS_KEY_AI_SCAN_LIBRARY_FILTER_IDS = 'booklore.aiScanLibraryFilterIds';
 
 interface AiStartupEvent {
   timestamp: string;
@@ -84,7 +85,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(state => {
         const validPathIds = new Set<number>();
+        const validLibraryIds = new Set<number>();
         for (const library of state.libraries ?? []) {
+          if (typeof library.id === 'number') {
+            validLibraryIds.add(library.id);
+          }
           for (const path of library.paths ?? []) {
             if (typeof path.id === 'number') {
               validPathIds.add(path.id);
@@ -99,6 +104,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           this.selectedLibraryPathIds = Array.from(validPathIds);
         } else {
           this.selectedLibraryPathIds = this.selectedLibraryPathIds.filter(id => validPathIds.has(id));
+        }
+
+        const storedLibraryFilter = this.loadPersistedLibraryFilterIds();
+        if (storedLibraryFilter !== null) {
+          this.selectedLibraryFilterIds = storedLibraryFilter.filter(id => validLibraryIds.has(id));
         }
       });
 
@@ -126,18 +136,27 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       this.persistPathIds(pathIds);
     });
 
+    const liveLibraryFilter$ = new Subject<number[]>();
+    const liveLibraryFilterSub = liveLibraryFilter$.pipe(takeUntil(this.destroy$)).subscribe(libraryIds => {
+      this.selectedLibraryFilterIds = libraryIds;
+      this.persistLibraryFilterIds(libraryIds);
+    });
+
     const ref = this.dialogLauncherService.openAiScanDirectoryDialog(
       this.selectedLibraryPathIds,
       this.selectedLibraryFilterIds,
-      liveSelection$
+      liveSelection$,
+      liveLibraryFilter$
     );
     if (!ref) {
       liveSelectionSub.unsubscribe();
+      liveLibraryFilterSub.unsubscribe();
       return;
     }
 
     ref.onClose.pipe(take(1)).subscribe(() => {
       liveSelectionSub.unsubscribe();
+      liveLibraryFilterSub.unsubscribe();
     });
   }
 
@@ -385,6 +404,28 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   private persistPathIds(pathIds: number[]): void {
     try {
       localStorage.setItem(LS_KEY_AI_SCAN_PATH_IDS, JSON.stringify(pathIds));
+    } catch {
+      // localStorage may be unavailable (e.g. private browsing), silently ignore
+    }
+  }
+
+  private loadPersistedLibraryFilterIds(): number[] | null {
+    try {
+      const raw = localStorage.getItem(LS_KEY_AI_SCAN_LIBRARY_FILTER_IDS);
+      if (raw === null) return null;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.every((v: unknown) => typeof v === 'number')) {
+        return parsed as number[];
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private persistLibraryFilterIds(libraryIds: number[]): void {
+    try {
+      localStorage.setItem(LS_KEY_AI_SCAN_LIBRARY_FILTER_IDS, JSON.stringify(libraryIds));
     } catch {
       // localStorage may be unavailable (e.g. private browsing), silently ignore
     }

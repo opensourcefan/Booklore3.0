@@ -54,11 +54,13 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
   private incomingPathIds: number[] = [];
   private incomingLibraryFilterIds: number[] = [];
   private liveSelection$: Subject<number[]> | null = null;
+  private liveLibraryFilter$: Subject<number[]> | null = null;
 
   ngOnInit(): void {
     this.incomingPathIds = this.dynamicDialogConfig.data?.selectedLibraryPathIds ?? [];
     this.incomingLibraryFilterIds = this.dynamicDialogConfig.data?.selectedLibraryFilterIds ?? [];
     this.liveSelection$ = this.dynamicDialogConfig.data?.liveSelection$ ?? null;
+    this.liveLibraryFilter$ = this.dynamicDialogConfig.data?.liveLibraryFilter$ ?? null;
 
     this.libraryService.libraryState$
       .pipe(takeUntil(this.destroy$))
@@ -81,6 +83,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
   onLibraryFilterChange(): void {
     this.applyFilter();
     this.fetchScanStatusForSelectedLibraries();
+    this.emitLiveLibraryFilter();
   }
 
   toggleAllLibraries(): void {
@@ -91,6 +94,7 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
     }
     this.applyFilter();
     this.fetchScanStatusForSelectedLibraries();
+    this.emitLiveLibraryFilter();
   }
 
   toggleAllDirectories(): void {
@@ -228,6 +232,12 @@ export class AiScanDirectoryDialogComponent implements OnInit, OnDestroy {
   private emitLiveSelection(): void {
     if (this.liveSelection$) {
       this.liveSelection$.next(Array.from(this.selectedPathIds));
+    }
+  }
+
+  private emitLiveLibraryFilter(): void {
+    if (this.liveLibraryFilter$) {
+      this.liveLibraryFilter$.next([...this.selectedLibraryIds]);
     }
   }
 

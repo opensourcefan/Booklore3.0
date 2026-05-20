@@ -262,7 +262,7 @@ export class DialogLauncherService {
     });
   }
 
-  openAiScanDirectoryDialog(selectedLibraryPathIds: number[] = [], selectedLibraryFilterIds: number[] = [], liveSelection$?: Subject<number[]>): DynamicDialogRef | null {
+  openAiScanDirectoryDialog(selectedLibraryPathIds: number[] = [], selectedLibraryFilterIds: number[] = [], liveSelection$?: Subject<number[]>, liveLibraryFilter$?: Subject<number[]>): DynamicDialogRef | null {
     const size = this.isCompactViewport(991) ? DialogSize.FULL : DialogSize.MD;
     return this.openDialog(AiScanDirectoryDialogComponent, {
       showHeader: false,
@@ -270,7 +270,8 @@ export class DialogLauncherService {
       data: {
         selectedLibraryPathIds,
         selectedLibraryFilterIds,
-        liveSelection$
+        liveSelection$,
+        liveLibraryFilter$
       },
     });
   }
