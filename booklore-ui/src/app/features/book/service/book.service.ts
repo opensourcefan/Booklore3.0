@@ -2,7 +2,7 @@ import {inject, Injectable, Injector} from '@angular/core';
 import {first, Observable, of, throwError} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {catchError, distinctUntilChanged, filter, finalize, map, shareReplay, tap} from 'rxjs/operators';
-import {Book, BookDeletionResponse, BookRecommendation, BookSetting, BookStatusUpdateResponse, BookType, CreatePhysicalBookRequest, PersonalRatingUpdateResponse, ReadStatus} from '../model/book.model';
+import {AppBookGridSummary, Book, BookDeletionResponse, BookRecommendation, BookSetting, BookStatusUpdateResponse, BookType, CreatePhysicalBookRequest, PersonalRatingUpdateResponse, ReadStatus} from '../model/book.model';
 import {BookState} from '../model/state/book-state.model';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {MessageService} from 'primeng/api';
@@ -165,8 +165,9 @@ export class BookService {
   /**
    * Fetch paginated books with server-side sort and filter support.
    * Corresponds to GET /api/v1/books/paged.
+   * Returns the lightweight AppBookGridSummary DTO (Phase Two optimization).
    */
-  getBooksPaged(params: PagedBooksParams = {}): Observable<AppPageResponse<Book>> {
+  getBooksPaged(params: PagedBooksParams = {}): Observable<AppPageResponse<AppBookGridSummary>> {
     let httpParams = new HttpParams()
       .set('page', String(params.page ?? 0))
       .set('size', String(params.size ?? 50));
@@ -198,7 +199,78 @@ export class BookService {
     if (params.contentRating) httpParams = httpParams.set('contentRating', params.contentRating);
     if (params.filterMode) httpParams = httpParams.set('filterMode', params.filterMode);
 
-    return this.http.get<AppPageResponse<Book>>(`${this.url}/paged`, { params: httpParams });
+    return this.http.get<AppPageResponse<AppBookGridSummary>>(`${this.url}/paged`, { params: httpParams });
+  }
+
+  /**
+   * Adapt a lightweight AppBookGridSummary DTO to the full Book interface
+   * for backward compatibility with existing UI components.
+   */
+  adaptGridSummaryToBook(summary: AppBookGridSummary): Book {
+    return {
+      id: summary.id,
+      fileName: summary.fileName,
+      fileType: summary.fileType,
+      isPhysical: summary.isPhysical,
+      hasAiPanelData: summary.hasAiPanelData,
+      lastReadTime: summary.lastReadTime,
+      addedOn: summary.addedOn,
+      libraryId: 0,
+      libraryName: '',
+      primaryFile: summary.primaryFileType ? {
+        id: 0,
+        bookId: summary.id,
+        bookType: summary.primaryFileType as BookType,
+        extension: summary.primaryFileExtension,
+        fileSizeKb: summary.primaryFileSizeKb,
+      } : undefined,
+      metadata: {
+        bookId: summary.id,
+        title: summary.title,
+        subtitle: summary.subtitle,
+        authors: summary.authors,
+        publisher: summary.publisher,
+        publishedDate: summary.publishedDate,
+        seriesName: summary.seriesName,
+        seriesNumber: summary.seriesNumber,
+        isbn13: summary.isbn13,
+        isbn10: summary.isbn10,
+        pageCount: summary.pageCount,
+        language: summary.language,
+        categories: summary.categories,
+        amazonRating: summary.amazonRating,
+        amazonReviewCount: summary.amazonReviewCount,
+        goodreadsRating: summary.goodreadsRating,
+        goodreadsReviewCount: summary.goodreadsReviewCount,
+        hardcoverRating: summary.hardcoverRating,
+        hardcoverReviewCount: summary.hardcoverReviewCount,
+        ranobedbRating: summary.ranobedbRating,
+        coverUpdatedOn: summary.coverUpdatedOn,
+        audiobookCoverUpdatedOn: summary.audiobookCoverUpdatedOn,
+        comicMetadata: summary.comicIssueNumber ? {
+          issueNumber: summary.comicIssueNumber,
+        } : undefined,
+      },
+      epubProgress: summary.epubProgressPercent != null ? {
+        cfi: '',
+        percentage: summary.epubProgressPercent,
+      } : undefined,
+      pdfProgress: summary.pdfProgressPercent != null ? {
+        page: 0,
+        percentage: summary.pdfProgressPercent,
+      } : undefined,
+      cbxProgress: summary.cbxProgressPercent != null ? {
+        page: 0,
+        percentage: summary.cbxProgressPercent,
+      } : undefined,
+      koreaderProgress: summary.koreaderProgressPercent != null ? {
+        percentage: summary.koreaderProgressPercent,
+      } : undefined,
+      koboProgress: summary.koboProgressPercent != null ? {
+        percentage: summary.koboProgressPercent,
+      } : undefined,
+      readStatus: summary.readStatus as ReadStatus,
+    };
   }
 
   getBooksCount(params: Omit<PagedBooksParams, 'page' | 'size'> = {}): Observable<number> {

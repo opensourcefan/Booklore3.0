@@ -2,6 +2,7 @@ package org.booklore.controller;
 
 import org.booklore.config.security.annotation.CheckBookAccess;
 import org.booklore.exception.ApiError;
+import org.booklore.app.dto.AppBookGridSummary;
 import org.booklore.app.dto.AppPageResponse;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.BookRecommendation;
@@ -80,7 +81,7 @@ public class BookController {
     @Operation(summary = "Get books with pagination", description = "Retrieve a paginated list of books. Supports multi-field sorting, text search, and server-side filters.")
     @ApiResponse(responseCode = "200", description = "Paginated list of books returned successfully")
     @GetMapping("/paged")
-    public ResponseEntity<AppPageResponse<Book>> getBooksPaged(
+    public ResponseEntity<AppPageResponse<AppBookGridSummary>> getBooksPaged(
             @Parameter(description = "Page number (zero-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "50") int size,
             @Parameter(description = "Sort fields as field,direction pairs (e.g. sorts=title,asc&sorts=addedOn,desc)") @RequestParam(required = false) List<String> sorts,

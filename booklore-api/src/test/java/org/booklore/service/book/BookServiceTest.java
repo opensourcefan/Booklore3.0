@@ -1,5 +1,6 @@
 package org.booklore.service.book;
 
+import org.booklore.app.dto.AppBookGridSummary;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.app.dto.AppPageResponse;
 import org.booklore.exception.APIException;
@@ -540,11 +541,11 @@ class BookServiceTest {
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
         when(shelfRepository.findById(7L)).thenReturn(Optional.of(shelf));
         when(bookQueryService.findAllPaged(any(), eq(pageable), eq(testUser.getId())))
-                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+                .thenReturn(new PageImpl<AppBookGridSummary>(List.of(), pageable, 0));
         when(readingProgressService.fetchUserProgress(anyLong(), anySet())).thenReturn(Map.of());
         when(readingProgressService.fetchUserFileProgress(anyLong(), anySet())).thenReturn(Map.of());
 
-        AppPageResponse<Book> result = bookService.getBooksPaged(
+        AppPageResponse<AppBookGridSummary> result = bookService.getBooksPaged(
                 0,
                 50,
             List.of("title,asc"),
@@ -578,11 +579,11 @@ class BookServiceTest {
 
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
         when(bookQueryService.findAllPaged(any(), eq(pageable), eq(testUser.getId())))
-                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+                .thenReturn(new PageImpl<AppBookGridSummary>(List.of(), pageable, 0));
         when(readingProgressService.fetchUserProgress(anyLong(), anySet())).thenReturn(Map.of());
         when(readingProgressService.fetchUserFileProgress(anyLong(), anySet())).thenReturn(Map.of());
 
-        AppPageResponse<Book> result = bookService.getBooksPaged(
+        AppPageResponse<AppBookGridSummary> result = bookService.getBooksPaged(
                 0,
                 50,
                 List.of("fileName,asc"),
@@ -615,11 +616,11 @@ class BookServiceTest {
 
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
         when(bookQueryService.findAllPaged(any(), eq(pageable), eq(testUser.getId())))
-                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+                .thenReturn(new PageImpl<AppBookGridSummary>(List.of(), pageable, 0));
         when(readingProgressService.fetchUserProgress(anyLong(), anySet())).thenReturn(Map.of());
         when(readingProgressService.fetchUserFileProgress(anyLong(), anySet())).thenReturn(Map.of());
 
-        AppPageResponse<Book> result = bookService.getBooksPaged(
+        AppPageResponse<AppBookGridSummary> result = bookService.getBooksPaged(
                 0,
                 50,
                 List.of("fileName,desc"),
@@ -683,11 +684,11 @@ class BookServiceTest {
 
         when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
         when(bookQueryService.findAllPaged(any(), eq(pageable), eq(testUser.getId())))
-                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+                .thenReturn(new PageImpl<AppBookGridSummary>(List.of(), pageable, 0));
         when(readingProgressService.fetchUserProgress(anyLong(), anySet())).thenReturn(Map.of());
         when(readingProgressService.fetchUserFileProgress(anyLong(), anySet())).thenReturn(Map.of());
 
-        AppPageResponse<Book> result = bookService.getBooksPaged(
+        AppPageResponse<AppBookGridSummary> result = bookService.getBooksPaged(
                 0,
                 50,
                 List.of("addedOn,desc"),

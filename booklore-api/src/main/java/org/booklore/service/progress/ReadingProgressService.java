@@ -1,5 +1,6 @@
 package org.booklore.service.progress;
 
+import org.booklore.app.dto.AppBookGridSummary;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.exception.ApiError;
 import org.booklore.model.dto.*;
@@ -104,6 +105,55 @@ public class ReadingProgressService {
                      fileProgress.getLastReadTime().isAfter(progress.getLastReadTime()))) {
                 book.setLastReadTime(fileProgress.getLastReadTime());
             }
+        }
+    }
+
+    public void enrichGridSummaryWithProgress(AppBookGridSummary summary, UserBookProgressEntity progress,
+                                              UserBookFileProgressEntity fileProgress) {
+        if (progress != null) {
+            summary.setReadStatus(progress.getReadStatus() == null ?
+                    String.valueOf(ReadStatus.UNSET) : String.valueOf(progress.getReadStatus()));
+            summary.setLastReadTime(progress.getLastReadTime());
+
+            if (progress.getEpubProgressPercent() != null) {
+                summary.setEpubProgressPercent(roundToOneDecimal(progress.getEpubProgressPercent()));
+            }
+            if (progress.getPdfProgressPercent() != null) {
+                summary.setPdfProgressPercent(roundToOneDecimal(progress.getPdfProgressPercent()));
+            }
+            if (progress.getCbxProgressPercent() != null) {
+                summary.setCbxProgressPercent(roundToOneDecimal(progress.getCbxProgressPercent()));
+            }
+            if (progress.getKoreaderProgressPercent() != null) {
+                summary.setKoreaderProgressPercent(roundToOneDecimal(progress.getKoreaderProgressPercent() * 100));
+            }
+            if (progress.getKoboProgressPercent() != null) {
+                summary.setKoboProgressPercent(roundToOneDecimal(progress.getKoboProgressPercent()));
+            }
+        }
+
+        if (fileProgress != null) {
+            setGridSummaryProgressFromFileProgress(summary, fileProgress);
+            if (progress == null || fileProgress.getLastReadTime() != null &&
+                    (progress.getLastReadTime() == null ||
+                     fileProgress.getLastReadTime().isAfter(progress.getLastReadTime()))) {
+                summary.setLastReadTime(fileProgress.getLastReadTime());
+            }
+        }
+    }
+
+    private void setGridSummaryProgressFromFileProgress(AppBookGridSummary summary,
+                                                        UserBookFileProgressEntity fileProgress) {
+        BookFileType type = fileProgress.getBookFile() != null ? fileProgress.getBookFile().getBookType() : null;
+        if (type == null) return;
+
+        switch (type) {
+            case EPUB, FB2, MOBI, AZW3 ->
+                summary.setEpubProgressPercent(roundToOneDecimal(fileProgress.getProgressPercent()));
+            case PDF ->
+                summary.setPdfProgressPercent(roundToOneDecimal(fileProgress.getProgressPercent()));
+            case CBX ->
+                summary.setCbxProgressPercent(roundToOneDecimal(fileProgress.getProgressPercent()));
         }
     }
 

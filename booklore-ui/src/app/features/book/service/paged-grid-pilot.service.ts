@@ -401,7 +401,11 @@ export class PagedGridPilotService {
           return;
         }
 
-        this.pagedBookBrowserStateService.storePage(requestKey, response);
+        const adaptedResponse = {
+          ...response,
+          content: response.content.map(s => this.bookService.adaptGridSummaryToBook(s)),
+        };
+        this.pagedBookBrowserStateService.storePage(requestKey, adaptedResponse);
         this.emitCachedState(this.activeQuery);
         this.ensurePrefetchedRunway(this.activeQuery);
       },

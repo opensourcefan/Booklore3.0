@@ -5,6 +5,48 @@ import {ZoomType} from 'ngx-extended-pdf-viewer';
 
 export type BookType = "PDF" | "EPUB" | "CBX" | "FB2" | "MOBI" | "AZW3" | "AUDIOBOOK";
 
+/** Lightweight DTO returned by GET /api/v1/books/paged (Phase Two optimization) */
+export interface AppBookGridSummary {
+  id: number;
+  fileName?: string;
+  fileType?: string;
+  isPhysical?: boolean;
+  primaryFileType?: string;
+  primaryFileExtension?: string;
+  primaryFileSizeKb?: number;
+  title?: string;
+  subtitle?: string;
+  authors?: string[];
+  publisher?: string;
+  publishedDate?: string;
+  seriesName?: string;
+  seriesNumber?: number;
+  isbn13?: string;
+  isbn10?: string;
+  pageCount?: number;
+  language?: string;
+  categories?: string[];
+  comicIssueNumber?: string;
+  amazonRating?: number;
+  amazonReviewCount?: number;
+  goodreadsRating?: number;
+  goodreadsReviewCount?: number;
+  hardcoverRating?: number;
+  hardcoverReviewCount?: number;
+  ranobedbRating?: number;
+  coverUpdatedOn?: string;
+  audiobookCoverUpdatedOn?: string;
+  epubProgressPercent?: number;
+  pdfProgressPercent?: number;
+  cbxProgressPercent?: number;
+  koreaderProgressPercent?: number;
+  koboProgressPercent?: number;
+  readStatus?: string;
+  hasAiPanelData?: boolean;
+  lastReadTime?: string;
+  addedOn?: string;
+}
+
 export enum AdditionalFileType {
   ALTERNATIVE_FORMAT = 'ALTERNATIVE_FORMAT',
   SUPPLEMENTARY = 'SUPPLEMENTARY'

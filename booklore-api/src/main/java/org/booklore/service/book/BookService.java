@@ -24,6 +24,7 @@ import org.booklore.service.FileStreamingService;
 import org.booklore.util.FileService;
 import org.booklore.util.FileUtils;
 import org.booklore.service.appsettings.AppSettingService;
+import org.booklore.app.dto.AppBookGridSummary;
 import org.booklore.app.dto.AppPageResponse;
 import org.booklore.app.specification.AppBookSpecification;
 import org.springframework.data.domain.Page;
@@ -248,6 +249,27 @@ public class BookService {
         );
 
         books.forEach(book -> book.setHasAiPanelData(book.getId() != null && scannedBookIds.contains(book.getId())));
+    }
+
+    private void applyAiPanelFlagsToGridSummaries(List<AppBookGridSummary> summaries, Long userId) {
+        if (summaries == null || summaries.isEmpty()) {
+            return;
+        }
+
+        Set<Long> bookIds = summaries.stream()
+                .map(AppBookGridSummary::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (bookIds.isEmpty()) {
+            return;
+        }
+
+        Set<Long> scannedBookIds = new HashSet<>(
+                comicPanelFlowRepository.findScannedBookIdsByUserIdAndBookIdIn(userId, bookIds)
+        );
+
+        summaries.forEach(summary -> summary.setHasAiPanelData(summary.getId() != null && scannedBookIds.contains(summary.getId())));
     }
 
 
@@ -666,7 +688,7 @@ public class BookService {
                 .collect(Collectors.toSet());
     }
 
-    public AppPageResponse<Book> getBooksPaged(int page, int size, List<String> sorts,
+    public AppPageResponse<AppBookGridSummary> getBooksPaged(int page, int size, List<String> sorts,
             String sortField, String sortDir, Long libraryId,
             Long shelfId, boolean unshelved, List<String> mediaTypes, String search, List<String> authors, List<String> categories,
             String series, String publisher, String language, String isbn,
@@ -699,25 +721,23 @@ public class BookService {
                 filterSpec
         );
 
-        Page<Book> bookPage = bookQueryService.findAllPaged(combined, pageable, user.getId());
+        Page<AppBookGridSummary> bookPage = bookQueryService.findAllPaged(combined, pageable, user.getId());
 
-        Set<Long> bookIds = bookPage.getContent().stream().map(Book::getId).collect(Collectors.toSet());
+        Set<Long> bookIds = bookPage.getContent().stream().map(AppBookGridSummary::getId).collect(Collectors.toSet());
         Map<Long, UserBookProgressEntity> progressMap =
                 readingProgressService.fetchUserProgress(user.getId(), bookIds);
         Map<Long, UserBookFileProgressEntity> fileProgressMap =
                 readingProgressService.fetchUserFileProgress(user.getId(), bookIds);
 
-        bookPage.getContent().forEach(book -> {
-            readingProgressService.enrichBookWithProgress(
-                    book,
-                    progressMap.get(book.getId()),
-                    fileProgressMap.get(book.getId())
+        bookPage.getContent().forEach(summary -> {
+            readingProgressService.enrichGridSummaryWithProgress(
+                    summary,
+                    progressMap.get(summary.getId()),
+                    fileProgressMap.get(summary.getId())
             );
-            Set<Shelf> filtered = filterShelvesByUserId(book.getShelves(), user.getId());
-            book.setShelves(filtered != null && filtered.isEmpty() ? null : filtered);
         });
 
-        applyAiPanelFlags(bookPage.getContent(), user.getId());
+        applyAiPanelFlagsToGridSummaries(bookPage.getContent(), user.getId());
 
         return AppPageResponse.of(
                 bookPage.getContent(),

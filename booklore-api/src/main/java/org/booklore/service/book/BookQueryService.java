@@ -15,9 +15,11 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Selection;
 import jakarta.persistence.criteria.Subquery;
+import org.booklore.app.dto.AppBookGridSummary;
 import org.booklore.mapper.v2.BookMapperV2;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.BookMetadata;
+import org.booklore.model.dto.BookFile;
 import org.booklore.model.dto.ComicMetadata;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookFileEntity;
@@ -94,16 +96,16 @@ public class BookQueryService {
         return page.map(book -> mapBookToDto(book, false, null, true));
     }
 
-    public Page<Book> findAllPaged(Specification<BookEntity> spec, Pageable pageable) {
+    public Page<AppBookGridSummary> findAllPaged(Specification<BookEntity> spec, Pageable pageable) {
         return findAllPaged(spec, pageable, null);
     }
 
     @Transactional(readOnly = true)
-    public Page<Book> findAllPaged(Specification<BookEntity> spec, Pageable pageable, Long userId) {
+    public Page<AppBookGridSummary> findAllPaged(Specification<BookEntity> spec, Pageable pageable, Long userId) {
         return findAllPagedCustom(spec, pageable, userId);
     }
 
-    private Page<Book> findAllPagedCustom(Specification<BookEntity> spec, Pageable pageable, Long userId) {
+    private Page<AppBookGridSummary> findAllPagedCustom(Specification<BookEntity> spec, Pageable pageable, Long userId) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<Tuple> idQuery = cb.createTupleQuery();
@@ -145,8 +147,8 @@ public class BookQueryService {
         }
 
         long total = entityManager.createQuery(countQuery).getSingleResult();
-        List<Book> mapped = content.stream()
-                .map(book -> mapBookToDto(book, false, null, true))
+        List<AppBookGridSummary> mapped = content.stream()
+                .map(this::mapBookToGridSummary)
                 .toList();
         return new PageImpl<>(mapped, pageable, total);
     }
@@ -528,6 +530,55 @@ public class BookQueryService {
         return books.stream()
                 .map(book -> mapBookToDto(book, includeDescription, userId, stripForListView))
                 .collect(Collectors.toList());
+    }
+
+    AppBookGridSummary mapBookToGridSummary(BookEntity bookEntity) {
+        BookFileEntity primaryFile = bookMapperV2.getPrimaryBookFile(bookEntity.getBookFiles());
+        BookFile primaryFileDto = bookMapperV2.toBookFile(primaryFile);
+
+        AppBookGridSummary.AppBookGridSummaryBuilder builder = AppBookGridSummary.builder()
+                .id(bookEntity.getId())
+                .fileType(bookEntity.getFileType())
+                .isPhysical(bookEntity.getIsPhysical())
+                .addedOn(bookEntity.getAddedOn());
+
+        if (primaryFileDto != null) {
+            builder.fileName(primaryFileDto.getFileName())
+                    .primaryFileType(primaryFileDto.getBookType() != null ? primaryFileDto.getBookType().name() : null)
+                    .primaryFileExtension(primaryFileDto.getExtension())
+                    .primaryFileSizeKb(primaryFileDto.getFileSizeKb());
+        }
+
+        if (bookEntity.getMetadata() != null) {
+            var m = bookEntity.getMetadata();
+            builder.title(m.getTitle())
+                    .subtitle(m.getSubtitle())
+                    .authors(m.getAuthors() != null ? m.getAuthors().stream().map(a -> a.getName()).toList() : null)
+                    .publisher(m.getPublisher())
+                    .publishedDate(m.getPublishedDate())
+                    .seriesName(m.getSeriesName())
+                    .seriesNumber(m.getSeriesNumber())
+                    .isbn13(m.getIsbn13())
+                    .isbn10(m.getIsbn10())
+                    .pageCount(m.getPageCount())
+                    .language(m.getLanguage())
+                    .categories(m.getCategories() != null ? new ArrayList<>(m.getCategories().stream().map(c -> c.getName()).collect(Collectors.toSet())) : null)
+                    .amazonRating(m.getAmazonRating())
+                    .amazonReviewCount(m.getAmazonReviewCount())
+                    .goodreadsRating(m.getGoodreadsRating())
+                    .goodreadsReviewCount(m.getGoodreadsReviewCount())
+                    .hardcoverRating(m.getHardcoverRating())
+                    .hardcoverReviewCount(m.getHardcoverReviewCount())
+                    .ranobedbRating(m.getRanobedbRating())
+                    .coverUpdatedOn(m.getCoverUpdatedOn())
+                    .audiobookCoverUpdatedOn(m.getAudiobookCoverUpdatedOn());
+
+            if (m.getComicMetadata() != null) {
+                builder.comicIssueNumber(m.getComicMetadata().getIssueNumber());
+            }
+        }
+
+        return builder.build();
     }
 
     private Book mapBookToDto(BookEntity bookEntity, boolean includeDescription, Long userId, boolean stripForListView) {

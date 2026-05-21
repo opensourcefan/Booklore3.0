@@ -1,8 +1,9 @@
 package org.booklore.service.book;
 
 import jakarta.persistence.EntityManager;
+import org.booklore.app.dto.AppBookGridSummary;
 import org.booklore.mapper.v2.BookMapperV2;
-import org.booklore.model.dto.Book;
+import org.booklore.model.dto.BookFile;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookFileEntity;
 import org.booklore.model.entity.BookMetadataEntity;
@@ -74,13 +75,19 @@ public class BookQueryServicePagedSortDataJpaTest {
         registerHelperAliases(entityManager);
 
         BookMapperV2 bookMapperV2 = mock(BookMapperV2.class);
-        when(bookMapperV2.toDTO(any(BookEntity.class))).thenAnswer(invocation -> {
-            BookEntity entity = invocation.getArgument(0);
-            return Book.builder().id(entity.getId()).build();
+        when(bookMapperV2.getPrimaryBookFile(any())).thenAnswer(invocation -> {
+            List<BookFileEntity> files = invocation.getArgument(0);
+            return files != null && !files.isEmpty() ? files.get(0) : null;
         });
-        when(bookMapperV2.toSummaryDTO(any(BookEntity.class))).thenAnswer(invocation -> {
-            BookEntity entity = invocation.getArgument(0);
-            return Book.builder().id(entity.getId()).build();
+        when(bookMapperV2.toBookFile(any(BookFileEntity.class))).thenAnswer(invocation -> {
+            BookFileEntity entity = invocation.getArgument(0);
+            return BookFile.builder()
+                    .fileName(entity.getFileName())
+                    .bookType(entity.getBookType())
+                    .extension(entity.getFileName() != null && entity.getFileName().contains(".")
+                            ? entity.getFileName().substring(entity.getFileName().lastIndexOf('.') + 1)
+                            : null)
+                    .build();
         });
 
         service = new BookQueryService(
@@ -96,9 +103,9 @@ public class BookQueryServicePagedSortDataJpaTest {
         long alphaBookId = persistBookWithPrimaryFile("Alpha.cbz");
         long zuluBookId = persistBookWithPrimaryFile("Zulu.cbz");
 
-        Page<Book> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "fileName")), null);
+        Page<AppBookGridSummary> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "fileName")), null);
 
-        assertThat(page.getContent()).extracting(Book::getId)
+        assertThat(page.getContent()).extracting(AppBookGridSummary::getId)
                 .containsExactly(alphaBookId, zuluBookId);
     }
 
@@ -107,9 +114,9 @@ public class BookQueryServicePagedSortDataJpaTest {
         long alphaBookId = persistBookWithPrimaryFile("Alpha.cbz");
         long zuluBookId = persistBookWithPrimaryFile("Zulu.cbz");
 
-        Page<Book> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "fileName")), null);
+        Page<AppBookGridSummary> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "fileName")), null);
 
-        assertThat(page.getContent()).extracting(Book::getId)
+        assertThat(page.getContent()).extracting(AppBookGridSummary::getId)
                 .containsExactly(zuluBookId, alphaBookId);
     }
 
@@ -119,9 +126,9 @@ public class BookQueryServicePagedSortDataJpaTest {
         long issue02BookId = persistBookWithPrimaryFile("Issue 02.cbz");
         long issue01BookId = persistBookWithPrimaryFile("Issue 01.cbz");
 
-        Page<Book> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "fileName")), null);
+        Page<AppBookGridSummary> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "fileName")), null);
 
-        assertThat(page.getContent()).extracting(Book::getId)
+        assertThat(page.getContent()).extracting(AppBookGridSummary::getId)
                 .containsExactly(issue01BookId, issue02BookId, issue10BookId);
     }
 
@@ -131,9 +138,9 @@ public class BookQueryServicePagedSortDataJpaTest {
         long title02BookId = persistBookWithPrimaryFileAndTitle("Archive 02", "archive-02.cbz");
         long title01BookId = persistBookWithPrimaryFileAndTitle("Archive 01", "archive-01.cbz");
 
-        Page<Book> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "metadata.title")), null);
+        Page<AppBookGridSummary> page = service.findAllPaged(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "metadata.title")), null);
 
-        assertThat(page.getContent()).extracting(Book::getId)
+        assertThat(page.getContent()).extracting(AppBookGridSummary::getId)
                 .containsExactly(title01BookId, title02BookId, title10BookId);
     }
 

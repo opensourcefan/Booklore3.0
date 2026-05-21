@@ -63,7 +63,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
           page: 0,
           size: 50,
         }).pipe(
-          map(response => response.content),
+          map(response => response.content.map(s => this.bookService.adaptGridSummaryToBook(s))),
           catchError(() => of([] as Book[]))
         );
       })
