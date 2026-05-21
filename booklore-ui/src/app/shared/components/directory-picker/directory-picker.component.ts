@@ -45,12 +45,9 @@ export class DirectoryPickerComponent implements OnInit {
   isLoading = false;
   breadcrumbItems: MenuItem[] = [];
   home: MenuItem = {icon: 'pi pi-home', command: () => this.navigateToRoot()};
-  recentPaths: string[] = [];
   importedFolders: string[] = [];
   importedFoldersMap: Record<string, boolean> = {};
 
-  private readonly RECENT_DIRS_KEY = 'BOOKLORE_RECENT_DIRS';
-  private readonly MAX_RECENT = 5;
   private utilityService = inject(UtilityService);
   private dynamicDialogRef = inject(DynamicDialogRef);
   private dynamicDialogConfig = inject(DynamicDialogConfig);
@@ -61,35 +58,8 @@ export class DirectoryPickerComponent implements OnInit {
       acc[folder] = true;
       return acc;
     }, {});
-    this.loadRecentPaths();
     const initialPath = '/';
     this.getFolders(initialPath);
-  }
-
-  private loadRecentPaths(): void {
-    try {
-      const stored = localStorage.getItem(this.RECENT_DIRS_KEY);
-      this.recentPaths = stored ? JSON.parse(stored) : [];
-    } catch {
-      this.recentPaths = [];
-    }
-  }
-
-  private saveRecentPaths(paths: string[]): void {
-    paths.forEach(path => {
-      this.recentPaths = [path, ...this.recentPaths.filter(p => p !== path)].slice(0, this.MAX_RECENT);
-    });
-    try {
-      localStorage.setItem(this.RECENT_DIRS_KEY, JSON.stringify(this.recentPaths));
-    } catch {
-      // localStorage unavailable — recent paths not persisted
-    }
-  }
-
-  navigateToRecent(path: string): void {
-    this.selectedProductName = path;
-    this.getFolders(path);
-    this.searchQuery = '';
   }
 
   getFolders(path: string): void {
@@ -184,9 +154,6 @@ export class DirectoryPickerComponent implements OnInit {
   }
 
   onSelect(): void {
-    if (this.selectedFolders.length > 0) {
-      this.saveRecentPaths(this.selectedFolders);
-    }
     this.dynamicDialogRef.close(this.selectedFolders);
   }
 
