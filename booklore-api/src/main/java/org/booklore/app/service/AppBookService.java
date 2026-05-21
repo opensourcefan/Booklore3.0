@@ -152,17 +152,19 @@ public class AppBookService {
     }
 
     @Transactional(readOnly = true)
-    public List<AppBookSummary> getContinueReading(Integer limit) {
+    public List<AppBookSummary> getContinueReading(Integer limit, Long libraryId) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
         Long userId = user.getId();
         Set<Long> accessibleLibraryIds = getAccessibleLibraryIds(user);
 
         int maxItems = validateLimit(limit, 10);
 
+        Specification<BookEntity> librarySpec = resolveLibrarySpec(accessibleLibraryIds, libraryId);
+
         Specification<BookEntity> spec = AppBookSpecification.combine(
                 AppBookSpecification.notDeleted(),
             AppBookSpecification.hasDigitalFileOrIsPhysical(),
-                AppBookSpecification.inLibraries(accessibleLibraryIds),
+                librarySpec,
                 AppBookSpecification.inProgressWithProgressJoin(userId),
                 AppBookSpecification.hasNonAudiobookFile()
         );
@@ -177,17 +179,19 @@ public class AppBookService {
     }
 
     @Transactional(readOnly = true)
-    public List<AppBookSummary> getContinueListening(Integer limit) {
+    public List<AppBookSummary> getContinueListening(Integer limit, Long libraryId) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
         Long userId = user.getId();
         Set<Long> accessibleLibraryIds = getAccessibleLibraryIds(user);
 
         int maxItems = validateLimit(limit, 10);
 
+        Specification<BookEntity> librarySpec = resolveLibrarySpec(accessibleLibraryIds, libraryId);
+
         Specification<BookEntity> spec = AppBookSpecification.combine(
                 AppBookSpecification.notDeleted(),
             AppBookSpecification.hasDigitalFileOrIsPhysical(),
-                AppBookSpecification.inLibraries(accessibleLibraryIds),
+                librarySpec,
                 AppBookSpecification.inProgressWithProgressJoin(userId),
                 AppBookSpecification.hasAudiobookFile()
         );
@@ -514,6 +518,19 @@ public class AppBookService {
                 .user(BookLoreUserEntity.builder().id(userId).build())
                 .book(book)
                 .build();
+    }
+
+    private Specification<BookEntity> resolveLibrarySpec(Set<Long> accessibleLibraryIds, Long libraryId) {
+        if (libraryId != null) {
+            if (accessibleLibraryIds != null && !accessibleLibraryIds.contains(libraryId)) {
+                throw ApiError.FORBIDDEN.createException("Access denied to library " + libraryId);
+            }
+            return AppBookSpecification.inLibrary(libraryId);
+        }
+        if (accessibleLibraryIds != null) {
+            return AppBookSpecification.inLibraries(accessibleLibraryIds);
+        }
+        return (root, query, cb) -> cb.conjunction();
     }
 
     private Set<Long> getAccessibleLibraryIds(BookLoreUser user) {

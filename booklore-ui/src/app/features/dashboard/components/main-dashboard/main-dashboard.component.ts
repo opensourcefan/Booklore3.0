@@ -6,9 +6,9 @@ import {Button} from 'primeng/button';
 import {AsyncPipe} from '@angular/common';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {DashboardScrollerComponent} from '../dashboard-scroller/dashboard-scroller.component';
-import {BookService} from '../../../book/service/book.service';
+import {AppBookSummary, BookService} from '../../../book/service/book.service';
 import {BookState} from '../../../book/model/state/book-state.model';
-import {Book, ReadStatus} from '../../../book/model/book.model';
+import {Book, BookType, ReadStatus} from '../../../book/model/book.model';
 import {UserService} from '../../../settings/user-management/user.service';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {TooltipModule} from 'primeng/tooltip';
@@ -195,46 +195,48 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
     return books.filter(book => book.libraryId === libraryId);
   }
 
-  private getLastReadBooks(maxItems: number, libraryId: number | null, _sortBy?: string): Observable<Book[]> {
-    return this.bookService.bookState$.pipe(
-      map((state: BookState) => {
-        let books = (state.books || []).filter(book =>
-          book.lastReadTime &&
-          (book.readStatus === ReadStatus.READING || book.readStatus === ReadStatus.RE_READING || book.readStatus === ReadStatus.PAUSED) &&
-          this.hasEbookProgress(book)
-        );
-        books = this.filterBooksByLibrary(books, libraryId);
-        books = books.sort((a, b) => {
-          const aTime = new Date(a.lastReadTime!).getTime();
-          const bTime = new Date(b.lastReadTime!).getTime();
-          return bTime - aTime;
-        });
-        return books.slice(0, maxItems);
-      })
+  private getLastReadBooks(maxItems: number, libraryId: number | null): Observable<Book[]> {
+    return this.bookService.getContinueReading(maxItems, libraryId ?? undefined).pipe(
+      map(summaries => summaries.map(s => this.mapSummaryToBook(s)))
     );
   }
 
   private getLastListenedBooks(maxItems: number, libraryId: number | null): Observable<Book[]> {
-    return this.bookService.bookState$.pipe(
-      map((state: BookState) => {
-        let books = (state.books || []).filter(book =>
-          book.lastReadTime &&
-          (book.readStatus === ReadStatus.READING || book.readStatus === ReadStatus.RE_READING || book.readStatus === ReadStatus.PAUSED) &&
-          book.audiobookProgress
-        );
-        books = this.filterBooksByLibrary(books, libraryId);
-        books = books.sort((a, b) => {
-          const aTime = new Date(a.lastReadTime!).getTime();
-          const bTime = new Date(b.lastReadTime!).getTime();
-          return bTime - aTime;
-        });
-        return books.slice(0, maxItems);
-      })
+    return this.bookService.getContinueListening(maxItems, libraryId ?? undefined).pipe(
+      map(summaries => summaries.map(s => this.mapSummaryToBook(s)))
     );
   }
 
-  private hasEbookProgress(book: Book): boolean {
-    return !!(book.epubProgress || book.pdfProgress || book.cbxProgress || book.koreaderProgress || book.koboProgress);
+  /**
+   * Maps the lightweight AppBookSummary DTO from the paginated API to the Book interface
+   * expected by BookCardComponent. Only populates fields actually used by the card.
+   */
+  private mapSummaryToBook(summary: AppBookSummary): Book {
+    return {
+      id: summary.id,
+      libraryId: summary.libraryId,
+      libraryName: '',
+      metadata: {
+        bookId: summary.id,
+        title: summary.title,
+        seriesName: summary.seriesName,
+        seriesNumber: summary.seriesNumber ?? null,
+        coverUpdatedOn: summary.coverUpdatedOn,
+        audiobookCoverUpdatedOn: summary.audiobookCoverUpdatedOn,
+      },
+      readStatus: summary.readStatus as ReadStatus,
+      lastReadTime: summary.lastReadTime,
+      addedOn: summary.addedOn,
+      primaryFile: summary.primaryFileId ? {
+        id: summary.primaryFileId,
+        bookId: summary.id,
+        bookType: summary.primaryFileType as BookType,
+        fileName: summary.primaryFileName,
+      } : undefined,
+      fileName: summary.primaryFileName,
+      epubProgress: summary.readProgress != null ? { cfi: '', percentage: summary.readProgress } : undefined,
+      isPhysical: summary.isPhysical,
+    };
   }
 
   private getLatestAddedBooks(maxItems: number, libraryId: number | null, _sortBy?: string): Observable<Book[]> {

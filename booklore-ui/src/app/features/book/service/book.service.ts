@@ -17,6 +17,28 @@ import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 import {PagedGridPilotService} from './paged-grid-pilot.service';
 
+/** DTO returned by /api/v1/app/books/continue-reading and continue-listening */
+export interface AppBookSummary {
+  id: number;
+  title: string;
+  authors: string[];
+  thumbnailUrl: string;
+  readStatus: string;
+  personalRating: number;
+  seriesName: string;
+  seriesNumber: number;
+  libraryId: number;
+  addedOn: string;
+  lastReadTime: string;
+  readProgress: number;
+  primaryFileType: string;
+  coverUpdatedOn: string;
+  audiobookCoverUpdatedOn: string;
+  isPhysical: boolean;
+  primaryFileId: number;
+  primaryFileName: string;
+}
+
 export type RemoveFromLibraryMode = 'REMOVE_FOREVER' | 'REMOVE_UNTIL_NEXT_SCAN';
 
 /** Paginated response from GET /api/v1/books/paged */
@@ -60,6 +82,7 @@ export interface PagedBooksParams {
 export class BookService {
 
   private readonly url = `${API_CONFIG.BASE_URL}/api/v1/books`;
+  private readonly appUrl = `${API_CONFIG.BASE_URL}/api/v1/app/books`;
 
   private http = inject(HttpClient);
   private messageService = inject(MessageService);
@@ -186,6 +209,30 @@ export class BookService {
     }).pipe(
       map(response => response.totalElements)
     );
+  }
+
+  /**
+   * Fetch continue-reading books from the dedicated paginated endpoint.
+   * GET /api/v1/app/books/continue-reading?limit=N&libraryId=X
+   */
+  getContinueReading(limit: number = 10, libraryId?: number): Observable<AppBookSummary[]> {
+    let params = new HttpParams().set('limit', String(limit));
+    if (libraryId != null) {
+      params = params.set('libraryId', String(libraryId));
+    }
+    return this.http.get<AppBookSummary[]>(`${this.appUrl}/continue-reading`, { params });
+  }
+
+  /**
+   * Fetch continue-listening books from the dedicated paginated endpoint.
+   * GET /api/v1/app/books/continue-listening?limit=N&libraryId=X
+   */
+  getContinueListening(limit: number = 10, libraryId?: number): Observable<AppBookSummary[]> {
+    let params = new HttpParams().set('limit', String(limit));
+    if (libraryId != null) {
+      params = params.set('libraryId', String(libraryId));
+    }
+    return this.http.get<AppBookSummary[]>(`${this.appUrl}/continue-listening`, { params });
   }
 
   refreshBooks(): Observable<Book[]> {

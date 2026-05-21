@@ -66,16 +66,18 @@ public class AppBookController {
 
     @GetMapping("/continue-reading")
     public ResponseEntity<List<AppBookSummary>> getContinueReading(
-            @RequestParam(required = false, defaultValue = "10") Integer limit) {
+            @RequestParam(required = false, defaultValue = "10") Integer limit,
+            @RequestParam(required = false) Long libraryId) {
 
-        return ResponseEntity.ok(mobileBookService.getContinueReading(limit));
+        return ResponseEntity.ok(mobileBookService.getContinueReading(limit, libraryId));
     }
 
     @GetMapping("/continue-listening")
     public ResponseEntity<List<AppBookSummary>> getContinueListening(
-            @RequestParam(required = false, defaultValue = "10") Integer limit) {
+            @RequestParam(required = false, defaultValue = "10") Integer limit,
+            @RequestParam(required = false) Long libraryId) {
 
-        return ResponseEntity.ok(mobileBookService.getContinueListening(limit));
+        return ResponseEntity.ok(mobileBookService.getContinueListening(limit, libraryId));
     }
 
     @GetMapping("/recently-added")
