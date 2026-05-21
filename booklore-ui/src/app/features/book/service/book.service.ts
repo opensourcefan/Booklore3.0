@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Injectable, Injector} from '@angular/core';
 import {first, Observable, of, throwError} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {catchError, distinctUntilChanged, filter, finalize, map, shareReplay, tap} from 'rxjs/operators';
@@ -14,6 +14,8 @@ import {BookSocketService} from './book-socket.service';
 import {BookPatchService} from './book-patch.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
+import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
+import {PagedGridPilotService} from './paged-grid-pilot.service';
 
 export type RemoveFromLibraryMode = 'REMOVE_FOREVER' | 'REMOVE_UNTIL_NEXT_SCAN';
 
@@ -68,6 +70,7 @@ export class BookService {
   private bookPatchService = inject(BookPatchService);
   private readonly t = inject(TranslocoService);
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
+  private injector = inject(Injector);
 
   private loading$: Observable<Book[]> | null = null;
 
@@ -287,6 +290,9 @@ export class BookService {
           loaded: true,
           error: null,
         });
+
+        this.injector.get(PagedBookBrowserStateService).syncCacheFromSharedState();
+        this.injector.get(PagedGridPilotService).refreshActiveState();
 
         if (deletedIds.size > 0) {
           this.sidebarBadgeRefresh.requestRefresh();
