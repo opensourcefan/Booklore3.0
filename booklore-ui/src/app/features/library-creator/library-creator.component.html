@@ -121,6 +121,10 @@
           <i class="pi pi-folder-open"></i>
           <span>{{ t(getFoldersTitleKey()) }}</span>
           <span class="section-badge">{{ folders.length }}</span>
+          <button class="add-folder-trigger" (click)="openDirectoryPicker()" type="button" [disabled]="isSubmitting">
+            <i class="pi pi-plus-circle"></i>
+            <span>{{ t(getAddFolderKey()) }}</span>
+          </button>
         </div>
 
         <div class="folders-zone">
@@ -140,11 +144,6 @@
               </span>
             </div>
           }
-
-          <button class="add-folder-trigger" (click)="openDirectoryPicker()" type="button" [disabled]="isSubmitting">
-            <i class="pi pi-plus-circle"></i>
-            <span>{{ t(getAddFolderKey()) }}</span>
-          </button>
 
           @if (folders.length > 0) {
             <div class="folders-list">
