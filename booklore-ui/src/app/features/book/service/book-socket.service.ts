@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Injectable, Injector} from '@angular/core';
 import {BookStateService} from './book-state.service';
 import {Book, BookMetadata} from '../model/book.model';
 import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
@@ -11,8 +11,7 @@ import {PagedGridPilotService} from './paged-grid-pilot.service';
 export class BookSocketService {
   private bookStateService = inject(BookStateService);
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
-  private pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
-  private pagedGridPilotService = inject(PagedGridPilotService);
+  private injector = inject(Injector);
 
   handleNewlyCreatedBook(book: Book): void {
     this.bookStateService.upsertBookAndInvalidatePagedCaches(book);
@@ -55,8 +54,12 @@ export class BookSocketService {
     // with the new coverUpdatedOn timestamps. Without this, the paged grid
     // pilot's own bookStateSubject never reflects cover changes, and
     // OnPush book-card components never recompute their cover URLs.
-    this.pagedBookBrowserStateService.syncCacheFromSharedState();
-    this.pagedGridPilotService.refreshActiveState();
+    // Use Injector for lazy resolution to avoid a circular dependency:
+    // BookSocketService → PagedGridPilotService → BookService → BookSocketService
+    const pagedBookBrowserStateService = this.injector.get(PagedBookBrowserStateService);
+    const pagedGridPilotService = this.injector.get(PagedGridPilotService);
+    pagedBookBrowserStateService.syncCacheFromSharedState();
+    pagedGridPilotService.refreshActiveState();
   }
 
   private affectsSidebarCounts(previousBook: Book | undefined, nextBook: Book): boolean {

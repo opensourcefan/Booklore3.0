@@ -1,3 +1,4 @@
+import {Injector} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {Book, BookMetadata} from '../model/book.model';
@@ -66,11 +67,29 @@ describe('BookSocketService', () => {
   let requestRefreshSpy: ReturnType<typeof vi.fn>;
   let syncCacheSpy: ReturnType<typeof vi.fn>;
   let refreshActiveStateSpy: ReturnType<typeof vi.fn>;
+  let injectorGetSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     requestRefreshSpy = vi.fn();
     syncCacheSpy = vi.fn();
     refreshActiveStateSpy = vi.fn();
+
+    const mockPagedBookBrowserStateService = {
+      syncCacheFromSharedState: syncCacheSpy,
+    };
+    const mockPagedGridPilotService = {
+      refreshActiveState: refreshActiveStateSpy,
+    };
+
+    injectorGetSpy = vi.fn((token: unknown) => {
+      if (token === PagedBookBrowserStateService) {
+        return mockPagedBookBrowserStateService;
+      }
+      if (token === PagedGridPilotService) {
+        return mockPagedGridPilotService;
+      }
+      return undefined;
+    });
 
     TestBed.configureTestingModule({
       providers: [
@@ -83,15 +102,9 @@ describe('BookSocketService', () => {
           },
         },
         {
-          provide: PagedBookBrowserStateService,
+          provide: Injector,
           useValue: {
-            syncCacheFromSharedState: syncCacheSpy,
-          },
-        },
-        {
-          provide: PagedGridPilotService,
-          useValue: {
-            refreshActiveState: refreshActiveStateSpy,
+            get: injectorGetSpy,
           },
         },
       ],
@@ -230,5 +243,7 @@ describe('BookSocketService', () => {
     expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.title).toBe('Updated Title');
     expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.coverUpdatedOn).toBe('2025-05-05T12:00:00Z');
     expect(state.totalCount).toBe(6);
+    expect(syncCacheSpy).toHaveBeenCalledTimes(1);
+    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
   });
 });

@@ -536,7 +536,11 @@ export class PagedGridPilotService {
       return false;
     }
 
-    return currentState.books.every((book, i) => book.id === nextState.books![i].id);
+    return currentState.books.every((book, i) => {
+      const nextBook = nextState.books![i];
+      return book.id === nextBook.id
+        && book.metadata?.coverUpdatedOn === nextBook.metadata?.coverUpdatedOn;
+    });
   }
 
   private getPagedSearchTerm(searchTerm: string): string | null {
