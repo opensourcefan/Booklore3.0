@@ -358,10 +358,6 @@ export class LibraryCreatorComponent implements OnInit {
     return this.isDirectoryManagementMode() ? 'directoriesTitle' : 'bookFolders';
   }
 
-  getFoldersHintKey(): string {
-    return this.isDirectoryManagementMode() ? 'directoryManagementHint' : 'folderStructureHint';
-  }
-
   getAddFolderKey(): string {
     return this.isDirectoryManagementMode() ? 'addDirectory' : 'addFolder';
   }
