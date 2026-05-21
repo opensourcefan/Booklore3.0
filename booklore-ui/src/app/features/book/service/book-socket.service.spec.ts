@@ -5,6 +5,8 @@ import {PagedBookBrowserCacheEntry} from '../model/state/paged-book-browser-stat
 import {BookSocketService} from './book-socket.service';
 import {BookStateService} from './book-state.service';
 import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
+import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
+import {PagedGridPilotService} from './paged-grid-pilot.service';
 
 function createBook(id: number, title = `Book ${id}`, libraryId = 1): Book {
   return {
@@ -62,9 +64,13 @@ function createCacheEntry(
 
 describe('BookSocketService', () => {
   let requestRefreshSpy: ReturnType<typeof vi.fn>;
+  let syncCacheSpy: ReturnType<typeof vi.fn>;
+  let refreshActiveStateSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     requestRefreshSpy = vi.fn();
+    syncCacheSpy = vi.fn();
+    refreshActiveStateSpy = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
@@ -74,6 +80,18 @@ describe('BookSocketService', () => {
           provide: SidebarBadgeRefreshService,
           useValue: {
             requestRefresh: requestRefreshSpy,
+          },
+        },
+        {
+          provide: PagedBookBrowserStateService,
+          useValue: {
+            syncCacheFromSharedState: syncCacheSpy,
+          },
+        },
+        {
+          provide: PagedGridPilotService,
+          useValue: {
+            refreshActiveState: refreshActiveStateSpy,
           },
         },
       ],

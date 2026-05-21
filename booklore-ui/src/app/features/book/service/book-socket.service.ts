@@ -2,6 +2,8 @@ import {inject, Injectable} from '@angular/core';
 import {BookStateService} from './book-state.service';
 import {Book, BookMetadata} from '../model/book.model';
 import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
+import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
+import {PagedGridPilotService} from './paged-grid-pilot.service';
 
 @Injectable({
   providedIn: 'root',
@@ -9,6 +11,8 @@ import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 export class BookSocketService {
   private bookStateService = inject(BookStateService);
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
+  private pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
+  private pagedGridPilotService = inject(PagedGridPilotService);
 
   handleNewlyCreatedBook(book: Book): void {
     this.bookStateService.upsertBookAndInvalidatePagedCaches(book);
@@ -47,6 +51,12 @@ export class BookSocketService {
 
   handleMultipleBookCoverPatches(patches: { id: number; coverUpdatedOn: string }[]): void {
     this.bookStateService.patchBookCoverUpdatesAcrossState(patches ?? []);
+    // Sync the updated paged cache so the paged grid pilot can re-emit
+    // with the new coverUpdatedOn timestamps. Without this, the paged grid
+    // pilot's own bookStateSubject never reflects cover changes, and
+    // OnPush book-card components never recompute their cover URLs.
+    this.pagedBookBrowserStateService.syncCacheFromSharedState();
+    this.pagedGridPilotService.refreshActiveState();
   }
 
   private affectsSidebarCounts(previousBook: Book | undefined, nextBook: Book): boolean {
