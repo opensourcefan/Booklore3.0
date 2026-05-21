@@ -417,8 +417,9 @@
 .folders-list {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   gap: 0.625rem;
-  max-height: 180px;
   overflow-y: auto;
 }
 
