@@ -156,6 +156,8 @@ export class BookBrowserEntityService {
     return this.fetchBooks(book => book.shelves?.some(s => s.id === shelfId) ?? false, sortOption, `shelf:${shelfId}`);
   }
 
+  private static readonly MAX_MAGIC_SHELF_BOOKS = 500;
+
   private fetchMagicShelfBooks(magicShelfId: number, sortOption: SortOption): Observable<BookState> {
     return combineLatest([
       this.bookService.bookState$,
@@ -169,7 +171,14 @@ export class BookBrowserEntityService {
         const filteredBooks = allBooks.filter(book =>
           this.bookRuleEvaluatorService.evaluateGroup(book, JSON.parse(magicShelf.filterJson!) as GroupRule, allBooks)
         );
-        return this.processBookState({...bookState, books: filteredBooks}, sortOption);
+        if (filteredBooks.length > BookBrowserEntityService.MAX_MAGIC_SHELF_BOOKS) {
+          console.warn(
+            `[MAGIC_SHELF] Truncating results from ${filteredBooks.length} to ${BookBrowserEntityService.MAX_MAGIC_SHELF_BOOKS} books for stability. ` +
+            `Consider refining your magic shelf rules to reduce the result set.`
+          );
+        }
+        const cappedBooks = filteredBooks.slice(0, BookBrowserEntityService.MAX_MAGIC_SHELF_BOOKS);
+        return this.processBookState({...bookState, books: cappedBooks}, sortOption);
       })
     );
   }

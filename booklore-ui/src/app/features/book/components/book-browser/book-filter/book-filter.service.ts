@@ -233,11 +233,20 @@ export class BookFilterService {
     return aName.localeCompare(bName);
   }
 
+  private static readonly MAX_MAGIC_SHELF_BOOKS = 500;
+
   private filterByMagicShelf(books: Book[], magicShelf: MagicShelf): Book[] {
     if (!magicShelf.filterJson) return [];
     try {
       const groupRule = JSON.parse(magicShelf.filterJson) as GroupRule;
-      return books.filter(book => this.bookRuleEvaluatorService.evaluateGroup(book, groupRule, books));
+      const filtered = books.filter(book => this.bookRuleEvaluatorService.evaluateGroup(book, groupRule, books));
+      if (filtered.length > BookFilterService.MAX_MAGIC_SHELF_BOOKS) {
+        console.warn(
+          `[MAGIC_SHELF] Filter sidebar truncating results from ${filtered.length} to ${BookFilterService.MAX_MAGIC_SHELF_BOOKS} books for stability. ` +
+          `Filter facet counts may be incomplete.`
+        );
+      }
+      return filtered.slice(0, BookFilterService.MAX_MAGIC_SHELF_BOOKS);
     } catch {
       console.warn('Invalid filterJson for MagicShelf');
       return [];

@@ -279,6 +279,8 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
+  private static readonly MAX_MAGIC_SHELF_BOOKS = 500;
+
   private getMagicShelfBooks(shelfId: number, libraryId: number | null, maxItems?: number, _sortBy?: string): Observable<Book[]> {
     return this.magicShelfService.getShelf(shelfId).pipe(
       switchMap((shelf) => {
@@ -301,7 +303,14 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
 
             const libraryFilteredBooks = this.filterBooksByLibrary(filteredBooks, libraryId);
 
-            return maxItems ? libraryFilteredBooks.slice(0, maxItems) : libraryFilteredBooks;
+            if (libraryFilteredBooks.length > MainDashboardComponent.MAX_MAGIC_SHELF_BOOKS) {
+              console.warn(
+                `[MAGIC_SHELF] Dashboard scroller truncating results from ${libraryFilteredBooks.length} to ${MainDashboardComponent.MAX_MAGIC_SHELF_BOOKS} books for stability.`
+              );
+            }
+            const cappedBooks = libraryFilteredBooks.slice(0, MainDashboardComponent.MAX_MAGIC_SHELF_BOOKS);
+
+            return maxItems ? cappedBooks.slice(0, maxItems) : cappedBooks;
           })
         );
       })
