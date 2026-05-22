@@ -76,6 +76,7 @@ export class PagedGridPilotService {
   private pagedActive = false;
   private requestSubscription: Subscription | null = null;
   private legacySubscription: Subscription | null = null;
+  private deferInitialEmit = false;
 
   connect(context: PagedGridPilotContext, legacyFactory: () => Observable<BookState>): Observable<BookState> {
     const blockers = this.getEligibilityBlockers(context);
@@ -160,6 +161,7 @@ export class PagedGridPilotService {
 
     const cachedPages = this.getCachedPages(this.activeQuery.requestKey);
     if (cachedPages.length === 0) {
+      this.deferInitialEmit = true;
       this.fetchPage(this.activeQuery, 0);
       return this.bookState$;
     }
@@ -406,12 +408,28 @@ export class PagedGridPilotService {
           content: response.content.map(s => this.bookService.adaptGridSummaryToBook(s)),
         };
         this.pagedBookBrowserStateService.storePage(requestKey, adaptedResponse);
-        this.emitCachedState(this.activeQuery);
-        this.ensurePrefetchedRunway(this.activeQuery);
+
+        if (this.deferInitialEmit) {
+          const cachedPages = this.getCachedPages(this.activeQuery.requestKey);
+          if (cachedPages.length >= PagedGridPilotService.PREFETCHED_PAGE_COUNT || !response.hasNext) {
+            this.deferInitialEmit = false;
+            this.emitCachedState(this.activeQuery);
+          }
+          this.ensurePrefetchedRunway(this.activeQuery);
+        } else {
+          this.emitCachedState(this.activeQuery);
+          this.ensurePrefetchedRunway(this.activeQuery);
+        }
       },
       error: error => {
         this.requestSubscription = null;
         this.pagedBookBrowserStateService.markError(requestKey, error, 'stage-3-legacy-fallback');
+
+        if (this.deferInitialEmit && this.activeQuery && this.activeQuery.signature === query.signature) {
+          this.deferInitialEmit = false;
+          this.emitCachedState(this.activeQuery);
+        }
+
         this.setLegacyStatus(['paged request failed'], 'The paged request failed, so the browser fell back to the legacy full-state path.');
 
         if (!this.activeQuery || this.activeQuery.signature !== query.signature) {
