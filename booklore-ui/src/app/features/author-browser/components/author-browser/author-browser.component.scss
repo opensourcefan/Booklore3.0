@@ -224,8 +224,10 @@
 .selection-panel-content {
   display: flex;
   align-items: center;
+  justify-content: center;
   min-width: 0;
   flex: 1;
+  gap: 1rem;
 }
 
 .selection-panel-left {
@@ -235,19 +237,11 @@
   gap: 0.25rem;
   padding-left: 0.5rem;
   flex-shrink: 0;
-  width: auto;
-  min-width: 10.5rem;
-
-  @media (max-width: 768px) {
-    width: auto;
-    min-width: 7.5rem;
-  }
 }
 
 .selection-panel-center {
   display: flex;
   justify-content: center;
-  flex: 1;
   min-width: 0;
   gap: 0.5rem;
   overflow-x: auto;
@@ -272,13 +266,6 @@
   justify-content: flex-end;
   padding-right: 0.5rem;
   flex-shrink: 0;
-  width: auto;
-  min-width: 10.5rem;
-
-  @media (max-width: 768px) {
-    width: auto;
-    min-width: 7.5rem;
-  }
 }
 
 .selected-count-badge {

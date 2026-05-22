@@ -448,14 +448,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
   }
 
   closePage(): void {
-    this.router.navigate(['/all-books'], {
-      queryParams: {
-        view: 'grid',
-        sort: 'title',
-        direction: 'asc',
-        sidebar: true
-      }
-    });
+    this.router.navigate(['/series']);
   }
 
   goToAuthorBooks(author: string): void {
