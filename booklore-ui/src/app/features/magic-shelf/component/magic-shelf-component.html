@@ -160,7 +160,7 @@
     </div>
     <div class="footer-center">
       <div class="match-count-badge" [class.over-cap]="isOverCap$ | async">
-        @if (matchCount$ | async; as count) {
+        @if ((matchCount$ | async) !== null; as count) {
           <i class="pi" [class.pi-check-circle]="(isOverCap$ | async) === false" [class.pi-exclamation-triangle]="isOverCap$ | async"></i>
           <span>{{ count }} {{ t('matchCount.booksMatch') }}</span>
           @if (isOverCap$ | async) {

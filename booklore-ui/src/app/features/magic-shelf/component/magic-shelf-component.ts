@@ -28,7 +28,7 @@ import {TextareaModule} from 'primeng/textarea';
 import {SHELF_TEMPLATES, SHELF_TEMPLATE_CATEGORIES, ShelfTemplate, ShelfTemplateCategory} from '../service/magic-shelf-templates';
 import {BookRuleEvaluatorService} from '../service/book-rule-evaluator.service';
 import {MagicShelfCapService} from '../service/magic-shelf-cap.service';
-import {combineLatest, map, startWith, debounceTime, Observable} from 'rxjs';
+import {combineLatest, map, startWith, debounceTime, Observable, BehaviorSubject, switchMap, shareReplay} from 'rxjs';
 
 export type RuleOperator =
   | 'equals'
@@ -487,13 +487,16 @@ export class MagicShelfComponent implements OnInit {
 
   readonly maxCap$: Observable<number> = this.capService.cap$;
 
-  readonly matchCount$: Observable<number | null> = combineLatest([
-    this.bookService.bookState$,
-    this.form.valueChanges.pipe(startWith(null), debounceTime(500))
-  ]).pipe(
+  private formRef$ = new BehaviorSubject<FormGroup>(this.form);
+
+  readonly matchCount$: Observable<number | null> = this.formRef$.pipe(
+    switchMap(form => combineLatest([
+      this.bookService.bookState$,
+      form.valueChanges.pipe(startWith(null), debounceTime(500))
+    ])),
     map(([state]) => {
       if (!state.loaded || !state.books) return null;
-      const group = this.form.value.group as GroupRule;
+      const group = this.formRef$.value.value.group as GroupRule;
       if (!group?.rules?.length) return 0;
       try {
         const cleaned = removeNulls(serializeDateRules(group)) as GroupRule;
@@ -504,7 +507,8 @@ export class MagicShelfComponent implements OnInit {
       } catch {
         return null;
       }
-    })
+    }),
+    shareReplay(1)
   );
 
   readonly isOverCap$: Observable<boolean> = combineLatest([this.matchCount$, this.maxCap$]).pipe(
@@ -555,6 +559,7 @@ export class MagicShelfComponent implements OnInit {
           isPublic: new FormControl<boolean>(data?.isPublic ?? false),
           group: data?.filterJson ? this.buildGroupFromData(JSON.parse(data.filterJson)) : this.createGroup()
         });
+        this.formRef$.next(this.form);
 
         if (iconValue) {
           this.selectedIcon = iconValue.startsWith('pi ')
@@ -569,6 +574,7 @@ export class MagicShelfComponent implements OnInit {
         isPublic: new FormControl<boolean>(false),
         group: this.createGroup()
       });
+      this.formRef$.next(this.form);
     }
 
     this.libraries = this.libraryService.getLibrariesFromState();
