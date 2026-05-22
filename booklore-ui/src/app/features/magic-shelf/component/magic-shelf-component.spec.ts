@@ -7,11 +7,13 @@ import {LibraryService} from '../../book/service/library.service';
 import {ShelfService} from '../../book/service/shelf.service';
 import {BookService} from '../../book/service/book.service';
 import {MagicShelfService} from '../service/magic-shelf.service';
+import {BookRuleEvaluatorService} from '../service/book-rule-evaluator.service';
+import {MagicShelfCapService} from '../service/magic-shelf-cap.service';
 import {MessageService} from 'primeng/api';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {UserService} from '../../settings/user-management/user.service';
 import {IconPickerService} from '../../../shared/service/icon-picker.service';
-import {of} from 'rxjs';
+import {of, BehaviorSubject} from 'rxjs';
 
 describe('MagicShelfComponent (Part 3)', () => {
   let component: MagicShelfComponent;
@@ -31,6 +33,8 @@ describe('MagicShelfComponent (Part 3)', () => {
         {provide: ShelfService, useValue: {getShelvesFromState: vi.fn(() => [])}},
         {provide: BookService, useValue: {bookState$: of({loaded: false, books: []})}},
         {provide: MagicShelfService, useValue: {}},
+        {provide: BookRuleEvaluatorService, useValue: {evaluateGroup: vi.fn(() => true)}},
+        {provide: MagicShelfCapService, useValue: {cap$: new BehaviorSubject(500), getCap: vi.fn(() => 500), setCap: vi.fn()}},
         {provide: MessageService, useValue: {add: vi.fn()}},
         {provide: DynamicDialogRef, useValue: {close: vi.fn()}},
         {provide: DynamicDialogConfig, useValue: {data: null}},

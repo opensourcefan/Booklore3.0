@@ -398,5 +398,12 @@
       "audiobooks": "Audiobooks",
       "powerUser": "Advanced Combos"
     }
+  },
+  "matchCount": {
+    "booksMatch": "books match",
+    "calculating": "Calculating…",
+    "overCapWarning": "Exceeds {{max}} book limit. Refine your rules to avoid truncated results.",
+    "capLabel": "Result Cap",
+    "capHint": "1–1000"
   }
 }

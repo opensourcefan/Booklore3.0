@@ -158,6 +158,36 @@
         />
       }
     </div>
+    <div class="footer-center">
+      <div class="match-count-badge" [class.over-cap]="isOverCap$ | async">
+        @if (matchCount$ | async; as count) {
+          <i class="pi" [class.pi-check-circle]="(isOverCap$ | async) === false" [class.pi-exclamation-triangle]="isOverCap$ | async"></i>
+          <span>{{ count }} {{ t('matchCount.booksMatch') }}</span>
+          @if (isOverCap$ | async) {
+            <span class="cap-warning">{{ t('matchCount.overCapWarning', { max: maxCap$ | async }) }}</span>
+          }
+        } @else {
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>{{ t('matchCount.calculating') }}</span>
+        }
+      </div>
+      <div class="cap-slider">
+        <label for="capInput">{{ t('matchCount.capLabel') }}</label>
+        <p-inputNumber
+          inputId="capInput"
+          [ngModel]="maxCap$ | async"
+          (ngModelChange)="onCapChange($event)"
+          [ngModelOptions]="{standalone: true}"
+          [min]="1"
+          [max]="1000"
+          [step]="50"
+          [showButtons]="true"
+          styleClass="cap-input"
+          size="small"
+        />
+        <span class="cap-hint">{{ t('matchCount.capHint') }}</span>
+      </div>
+    </div>
     <div class="footer-actions">
       <p-button
         [label]="t('actions.cancel')"

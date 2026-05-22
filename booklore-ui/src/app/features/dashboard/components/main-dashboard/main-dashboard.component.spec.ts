@@ -9,6 +9,7 @@ import {UserService} from '../../../settings/user-management/user.service';
 import {DashboardConfigService} from '../../services/dashboard-config.service';
 import {MagicShelfService} from '../../../magic-shelf/service/magic-shelf.service';
 import {BookRuleEvaluatorService} from '../../../magic-shelf/service/book-rule-evaluator.service';
+import {MagicShelfCapService} from '../../../magic-shelf/service/magic-shelf-cap.service';
 import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 import {SortService} from '../../../book/service/sort.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
@@ -122,6 +123,7 @@ describe('MainDashboardComponent', () => {
           }
         },
         {provide: BookRuleEvaluatorService, useValue: {evaluateGroup: vi.fn().mockReturnValue(true)}},
+        {provide: MagicShelfCapService, useValue: {cap$: new BehaviorSubject(500), getCap: vi.fn(() => 500), setCap: vi.fn()}},
         {provide: DialogLauncherService, useValue: {openDashboardSettingsDialog: vi.fn(), openLibraryCreateDialog: vi.fn()}},
         {provide: SortService, useValue: {applySort: (books: unknown[]) => books}},
         {provide: PageTitleService, useValue: {setPageTitle: vi.fn()}},

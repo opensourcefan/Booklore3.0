@@ -7,6 +7,7 @@ import {MagicShelf} from '../../../../magic-shelf/service/magic-shelf.service';
 import {BookService} from '../../../service/book.service';
 import {LibraryService} from '../../../service/library.service';
 import {BookRuleEvaluatorService} from '../../../../magic-shelf/service/book-rule-evaluator.service';
+import {MagicShelfCapService} from '../../../../magic-shelf/service/magic-shelf-cap.service';
 import {GroupRule} from '../../../../magic-shelf/component/magic-shelf-component';
 import {EntityType} from '../book-browser.component';
 import {Filter, FILTER_CONFIGS, FILTER_EXTRACTORS, FilterType, FilterValue, NUMERIC_ID_FILTER_TYPES, SortMode, UserFilterSort} from './book-filter.config';
@@ -28,6 +29,7 @@ export class BookFilterService {
   private readonly bookService = inject(BookService);
   private readonly libraryService = inject(LibraryService);
   private readonly bookRuleEvaluatorService = inject(BookRuleEvaluatorService);
+  private readonly capService = inject(MagicShelfCapService);
 
   createFilterStreams(
     entity$: Observable<Library | Shelf | MagicShelf | null>,
@@ -233,20 +235,19 @@ export class BookFilterService {
     return aName.localeCompare(bName);
   }
 
-  private static readonly MAX_MAGIC_SHELF_BOOKS = 500;
-
   private filterByMagicShelf(books: Book[], magicShelf: MagicShelf): Book[] {
     if (!magicShelf.filterJson) return [];
     try {
       const groupRule = JSON.parse(magicShelf.filterJson) as GroupRule;
       const filtered = books.filter(book => this.bookRuleEvaluatorService.evaluateGroup(book, groupRule, books));
-      if (filtered.length > BookFilterService.MAX_MAGIC_SHELF_BOOKS) {
+      const cap = this.capService.getCap();
+      if (filtered.length > cap) {
         console.warn(
-          `[MAGIC_SHELF] Filter sidebar truncating results from ${filtered.length} to ${BookFilterService.MAX_MAGIC_SHELF_BOOKS} books for stability. ` +
+          `[MAGIC_SHELF] Filter sidebar truncating results from ${filtered.length} to ${cap} books for stability. ` +
           `Filter facet counts may be incomplete.`
         );
       }
-      return filtered.slice(0, BookFilterService.MAX_MAGIC_SHELF_BOOKS);
+      return filtered.slice(0, cap);
     } catch {
       console.warn('Invalid filterJson for MagicShelf');
       return [];

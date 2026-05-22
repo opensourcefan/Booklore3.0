@@ -13,6 +13,7 @@ import {ShelfService} from '../../service/shelf.service';
 import {SortService} from '../../service/sort.service';
 import {MagicShelf, MagicShelfService} from '../../../magic-shelf/service/magic-shelf.service';
 import {BookRuleEvaluatorService} from '../../../magic-shelf/service/book-rule-evaluator.service';
+import {MagicShelfCapService} from '../../../magic-shelf/service/magic-shelf-cap.service';
 import {GroupRule} from '../../../magic-shelf/component/magic-shelf-component';
 import {EntityType} from './book-browser.component';
 import {DirectoryFilterService, DirectorySelection} from '../../service/directory-filter.service';
@@ -30,6 +31,7 @@ export class BookBrowserEntityService {
   private sortService = inject(SortService);
   private magicShelfService = inject(MagicShelfService);
   private bookRuleEvaluatorService = inject(BookRuleEvaluatorService);
+  private capService = inject(MagicShelfCapService);
   private directoryFilterService = inject(DirectoryFilterService);
 
   getEntityInfoFromRoute(activatedRoute: ActivatedRoute): Observable<EntityInfo> {
@@ -156,8 +158,6 @@ export class BookBrowserEntityService {
     return this.fetchBooks(book => book.shelves?.some(s => s.id === shelfId) ?? false, sortOption, `shelf:${shelfId}`);
   }
 
-  private static readonly MAX_MAGIC_SHELF_BOOKS = 500;
-
   private fetchMagicShelfBooks(magicShelfId: number, sortOption: SortOption): Observable<BookState> {
     return combineLatest([
       this.bookService.bookState$,
@@ -171,13 +171,14 @@ export class BookBrowserEntityService {
         const filteredBooks = allBooks.filter(book =>
           this.bookRuleEvaluatorService.evaluateGroup(book, JSON.parse(magicShelf.filterJson!) as GroupRule, allBooks)
         );
-        if (filteredBooks.length > BookBrowserEntityService.MAX_MAGIC_SHELF_BOOKS) {
+        const cap = this.capService.getCap();
+        if (filteredBooks.length > cap) {
           console.warn(
-            `[MAGIC_SHELF] Truncating results from ${filteredBooks.length} to ${BookBrowserEntityService.MAX_MAGIC_SHELF_BOOKS} books for stability. ` +
+            `[MAGIC_SHELF] Truncating results from ${filteredBooks.length} to ${cap} books for stability. ` +
             `Consider refining your magic shelf rules to reduce the result set.`
           );
         }
-        const cappedBooks = filteredBooks.slice(0, BookBrowserEntityService.MAX_MAGIC_SHELF_BOOKS);
+        const cappedBooks = filteredBooks.slice(0, cap);
         return this.processBookState({...bookState, books: cappedBooks}, sortOption);
       })
     );

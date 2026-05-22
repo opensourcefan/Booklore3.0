@@ -1,7 +1,7 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {AbstractControl, FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Button} from 'primeng/button';
-import {NgTemplateOutlet} from '@angular/common';
+import {AsyncPipe, NgTemplateOutlet} from '@angular/common';
 import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {DatePicker} from 'primeng/datepicker';
@@ -26,6 +26,9 @@ import {Shelf} from '../../book/model/shelf.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {TextareaModule} from 'primeng/textarea';
 import {SHELF_TEMPLATES, SHELF_TEMPLATE_CATEGORIES, ShelfTemplate, ShelfTemplateCategory} from '../service/magic-shelf-templates';
+import {BookRuleEvaluatorService} from '../service/book-rule-evaluator.service';
+import {MagicShelfCapService} from '../service/magic-shelf-cap.service';
+import {combineLatest, map, startWith, debounceTime, Observable} from 'rxjs';
 
 export type RuleOperator =
   | 'equals'
@@ -235,6 +238,7 @@ const READ_STATUS_KEYS: Record<string, string> = {
   imports: [
     ReactiveFormsModule,
     FormsModule,
+    AsyncPipe,
     NgTemplateOutlet,
     InputText,
     Select,
@@ -476,8 +480,42 @@ export class MagicShelfComponent implements OnInit {
   config = inject(DynamicDialogConfig);
   userService = inject(UserService);
   private iconPicker = inject(IconPickerService);
+  private ruleEvaluator = inject(BookRuleEvaluatorService);
+  private capService = inject(MagicShelfCapService);
 
   selectedIcon: IconSelection | null = null;
+
+  readonly maxCap$: Observable<number> = this.capService.cap$;
+
+  readonly matchCount$: Observable<number | null> = combineLatest([
+    this.bookService.bookState$,
+    this.form.valueChanges.pipe(startWith(null), debounceTime(500))
+  ]).pipe(
+    map(([state]) => {
+      if (!state.loaded || !state.books) return null;
+      const group = this.form.value.group as GroupRule;
+      if (!group?.rules?.length) return 0;
+      try {
+        const cleaned = removeNulls(serializeDateRules(group)) as GroupRule;
+        const filtered = state.books.filter(b =>
+          this.ruleEvaluator.evaluateGroup(b, cleaned, state.books!)
+        );
+        return filtered.length;
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  readonly isOverCap$: Observable<boolean> = combineLatest([this.matchCount$, this.maxCap$]).pipe(
+    map(([count, cap]) => count !== null && count > cap)
+  );
+
+  onCapChange(value: number | null): void {
+    if (value != null) {
+      this.capService.setCap(value);
+    }
+  }
 
   trackByFn(ruleCtrl: AbstractControl, _index: number): unknown {
     return ruleCtrl;

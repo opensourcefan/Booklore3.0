@@ -17,6 +17,7 @@ import {DashboardConfigService} from '../../services/dashboard-config.service';
 import {cloneDashboardConfig, DashboardConfig, DEFAULT_DASHBOARD_CONFIG, DEFAULT_MAX_ITEMS, getDefaultScrollerTitleKey, MAX_DASHBOARD_GRID_COLUMNS, ScrollerConfig, ScrollerType} from '../../models/dashboard-config.model';
 import {MagicShelfService} from '../../../magic-shelf/service/magic-shelf.service';
 import {BookRuleEvaluatorService} from '../../../magic-shelf/service/book-rule-evaluator.service';
+import {MagicShelfCapService} from '../../../magic-shelf/service/magic-shelf-cap.service';
 import {GroupRule} from '../../../magic-shelf/component/magic-shelf-component';
 import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 import {SortService} from '../../../book/service/sort.service';
@@ -62,6 +63,7 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
   private dashboardConfigService = inject(DashboardConfigService);
   private magicShelfService = inject(MagicShelfService);
   private ruleEvaluatorService = inject(BookRuleEvaluatorService);
+  private capService = inject(MagicShelfCapService);
   private sortService = inject(SortService);
   private pageTitle = inject(PageTitleService);
   private libraryService = inject(LibraryService);
@@ -279,8 +281,6 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
-  private static readonly MAX_MAGIC_SHELF_BOOKS = 500;
-
   private getMagicShelfBooks(shelfId: number, libraryId: number | null, maxItems?: number, _sortBy?: string): Observable<Book[]> {
     return this.magicShelfService.getShelf(shelfId).pipe(
       switchMap((shelf) => {
@@ -302,13 +302,14 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
             );
 
             const libraryFilteredBooks = this.filterBooksByLibrary(filteredBooks, libraryId);
+            const cap = this.capService.getCap();
 
-            if (libraryFilteredBooks.length > MainDashboardComponent.MAX_MAGIC_SHELF_BOOKS) {
+            if (libraryFilteredBooks.length > cap) {
               console.warn(
-                `[MAGIC_SHELF] Dashboard scroller truncating results from ${libraryFilteredBooks.length} to ${MainDashboardComponent.MAX_MAGIC_SHELF_BOOKS} books for stability.`
+                `[MAGIC_SHELF] Dashboard scroller truncating results from ${libraryFilteredBooks.length} to ${cap} books for stability.`
               );
             }
-            const cappedBooks = libraryFilteredBooks.slice(0, MainDashboardComponent.MAX_MAGIC_SHELF_BOOKS);
+            const cappedBooks = libraryFilteredBooks.slice(0, cap);
 
             return maxItems ? cappedBooks.slice(0, maxItems) : cappedBooks;
           })

@@ -281,5 +281,12 @@
         "parseError": "Neveljaven JSON. Preveri sintakso in poskusi znova.",
         "structureError": "Neveljavna struktura. JSON mora imeti \"type\": \"group\" in polje \"rules\".",
         "successDetail": "Pravila so bila uspešno uvožena. Preglej in shrani, ko boš pripravljen."
+    },
+    "matchCount": {
+        "booksMatch": "",
+        "calculating": "",
+        "overCapWarning": "",
+        "capLabel": "",
+        "capHint": ""
     }
 }
