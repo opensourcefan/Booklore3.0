@@ -159,12 +159,15 @@
       }
     </div>
     <div class="footer-center">
-      <div class="match-count-badge" [class.over-cap]="isOverCap$ | async">
-        @if ((matchCount$ | async) !== null; as count) {
-          <i class="pi" [class.pi-check-circle]="(isOverCap$ | async) === false" [class.pi-exclamation-triangle]="isOverCap$ | async"></i>
+      @let count = (matchCount$ | async);
+      @let overCap = (isOverCap$ | async);
+      @let cap = (maxCap$ | async);
+      <div class="match-count-badge" [class.over-cap]="overCap">
+        @if (count !== null) {
+          <i class="pi" [class.pi-check-circle]="overCap === false" [class.pi-exclamation-triangle]="overCap"></i>
           <span>{{ count }} {{ t('matchCount.booksMatch') }}</span>
-          @if (isOverCap$ | async) {
-            <span class="cap-warning">{{ t('matchCount.overCapWarning', { max: maxCap$ | async }) }}</span>
+          @if (overCap) {
+            <span class="cap-warning">{{ t('matchCount.overCapWarning', { max: cap }) }}</span>
           }
         } @else {
           <i class="pi pi-spin pi-spinner"></i>
