@@ -65,7 +65,8 @@
 
 .display-settings-btn,
 .filter-btn,
-.sort-direction-btn {
+.sort-direction-btn,
+.hide-low-quality-btn {
   position: relative;
   display: flex;
   align-items: center;
@@ -82,6 +83,14 @@
   &:hover {
     color: #e2e8f0;
     border-color: var(--p-primary-400);
+  }
+}
+
+.hide-low-quality-btn {
+  &.active {
+    color: var(--p-primary-400);
+    border-color: var(--p-primary-400);
+    background: color-mix(in srgb, var(--p-primary-400), transparent 85%);
   }
 }
 

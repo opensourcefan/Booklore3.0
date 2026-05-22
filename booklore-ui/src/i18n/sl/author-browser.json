@@ -31,6 +31,14 @@
         "bookCount": "Število knjig",
         "library": "Knjižnica",
         "genre": "Žanr",
+        "nameQuality": "Kakovost imena",
+        "nameQualityValid": "Veljavno",
+        "nameQualityInitials": "Začetnice",
+        "nameQualitySymbols": "Simboli",
+        "nameQualityYears": "Letnice",
+        "nameQualitySingleChar": "En znak",
+        "nameQualityNumeric": "Številčno",
+        "hideLowQuality": "Skrij nizkokakovostne avtorje",
         "reset": "Ponastavi filtre"
     },
     "footer": {

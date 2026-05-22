@@ -31,6 +31,14 @@
         "bookCount": "Cantidad de libros",
         "library": "Biblioteca",
         "genre": "Género",
+        "nameQuality": "Calidad del nombre",
+        "nameQualityValid": "Válido",
+        "nameQualityInitials": "Iniciales",
+        "nameQualitySymbols": "Símbolos",
+        "nameQualityYears": "Años",
+        "nameQualitySingleChar": "Carácter único",
+        "nameQualityNumeric": "Numérico",
+        "hideLowQuality": "Ocultar autores de baja calidad",
         "reset": "Restablecer filtros"
     },
     "footer": {

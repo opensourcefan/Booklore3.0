@@ -28,7 +28,7 @@ import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
 import {BookBrowserScrollService} from '../../../book/components/book-browser/book-browser-scroll.service';
 import {MessageService} from 'primeng/api';
 import {AuthorService} from '../../service/author.service';
-import {AuthorSummary, EnrichedAuthor, AuthorFilters, DEFAULT_AUTHOR_FILTERS} from '../../model/author.model';
+import {AuthorSummary, EnrichedAuthor, AuthorFilters, NameQuality, DEFAULT_AUTHOR_FILTERS} from '../../model/author.model';
 import {AuthorCardComponent} from '../author-card/author-card.component';
 import {AuthorScalePreferenceService} from '../../service/author-scale-preference.service';
 import {AuthorSelectionService, AuthorCheckboxClickEvent} from '../../service/author-selection.service';
@@ -187,6 +187,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   sortOptions: SortOption[] = [];
   libraryOptions: FilterOption[] = [];
   genreOptions: FilterOption[] = [];
+  nameQualityOptions: FilterOption[] = [];
   activeFilterCount = 0;
 
   private readonly validSortValues = [
@@ -199,6 +200,16 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnInit(): void {
     this.pageTitle.setPageTitle(this.t.translate('authorBrowser.pageTitle'));
+
+    this.nameQualityOptions = [
+      {label: this.t.translate('authorBrowser.filters.all'), value: 'all'},
+      {label: this.t.translate('authorBrowser.filters.nameQualityValid'), value: 'valid'},
+      {label: this.t.translate('authorBrowser.filters.nameQualityInitials'), value: 'initials'},
+      {label: this.t.translate('authorBrowser.filters.nameQualitySymbols'), value: 'symbols'},
+      {label: this.t.translate('authorBrowser.filters.nameQualityYears'), value: 'years'},
+      {label: this.t.translate('authorBrowser.filters.nameQualitySingleChar'), value: 'single-char'},
+      {label: this.t.translate('authorBrowser.filters.nameQualityNumeric'), value: 'numeric'}
+    ];
 
     this.sortOptions = [
       {label: this.t.translate('authorBrowser.sort.name'), value: 'name'},
@@ -315,9 +326,15 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
     this.updateSortQueryParams(this.sortBy$.value, next);
   }
 
-  onFilterChange(key: keyof AuthorFilters, value: string): void {
+  onFilterChange(key: keyof AuthorFilters, value: string | boolean): void {
     const current = this.filters$.value;
     this.filters$.next({...current, [key]: value});
+    this.updateActiveFilterCount();
+  }
+
+  toggleHideLowQuality(): void {
+    const current = this.filters$.value;
+    this.filters$.next({...current, hideLowQuality: !current.hideLowQuality});
     this.updateActiveFilterCount();
   }
 
@@ -466,6 +483,8 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
     if (f.bookCount !== 'all') count++;
     if (f.library !== 'all') count++;
     if (f.genre !== 'all') count++;
+    if (f.nameQuality !== 'all') count++;
+    if (f.hideLowQuality) count++;
     this.activeFilterCount = count;
   }
 
@@ -572,6 +591,20 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
     });
   }
 
+  private classifyNameQuality(name: string): NameQuality {
+    if (/^[^a-zA-Z0-9\s]+$/.test(name)) return 'symbols';
+    if (/^\d{4}$/.test(name)) return 'years';
+    if (/^[A-Z]\.?[A-Z]?\.?\s*[A-Z]?\.?$/.test(name)) return 'initials';
+    if (/^.$/.test(name)) return 'single-char';
+    if (/^\d+$/.test(name)) return 'numeric';
+    return 'valid';
+  }
+
+  private isLowQualityName(name: string): boolean {
+    const quality = this.classifyNameQuality(name);
+    return quality !== 'valid';
+  }
+
   private applyFilters(authors: EnrichedAuthor[], filters: AuthorFilters): EnrichedAuthor[] {
     return authors.filter(a => {
       if (filters.matchStatus === 'matched' && !a.asin) return false;
@@ -591,6 +624,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
           case '3': if (c !== 3) return false; break;
           case '4': if (c !== 4) return false; break;
           case '5': if (c !== 5) return false; break;
+          case '2+': if (c < 2) return false; break;
           case '6-10': if (c < 6 || c > 10) return false; break;
           case '11-20': if (c < 11 || c > 20) return false; break;
           case '21-35': if (c < 21 || c > 35) return false; break;
@@ -600,6 +634,10 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
       if (filters.library !== 'all' && !a.libraryNames.includes(filters.library)) return false;
       if (filters.genre !== 'all' && !a.categories.includes(filters.genre)) return false;
+
+      if (filters.nameQuality !== 'all' && this.classifyNameQuality(a.name) !== filters.nameQuality) return false;
+
+      if (filters.hideLowQuality && this.isLowQualityName(a.name)) return false;
 
       return true;
     });

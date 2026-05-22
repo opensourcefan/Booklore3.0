@@ -40,6 +40,15 @@
             <i class="pi" [class.pi-arrow-up]="(sortDirection$ | async) === 'asc'" [class.pi-arrow-down]="(sortDirection$ | async) === 'desc'"></i>
           </button>
 
+          <button
+            class="hide-low-quality-btn"
+            [class.active]="(filters$ | async)?.hideLowQuality"
+            (click)="toggleHideLowQuality()"
+            [pTooltip]="t('filters.hideLowQuality')"
+            tooltipPosition="bottom">
+            <i class="pi pi-eye-slash"></i>
+          </button>
+
           <button class="filter-btn" (click)="filterPopover.toggle($event)">
             <i class="pi pi-filter"></i>
             @if (activeFilterCount > 0) {
@@ -132,6 +141,7 @@
                     {label: '3', value: '3'},
                     {label: '4', value: '4'},
                     {label: '5', value: '5'},
+                    {label: '2+', value: '2+'},
                     {label: '6-10', value: '6-10'},
                     {label: '11-20', value: '11-20'},
                     {label: '21-35', value: '21-35'},
@@ -139,6 +149,18 @@
                   ]"
                   [ngModel]="(filters$ | async)?.bookCount"
                   (ngModelChange)="onFilterChange('bookCount', $event)"
+                  optionLabel="label"
+                  optionValue="value"
+                  class="filter-dropdown">
+                </p-select>
+              </div>
+
+              <div class="filter-group">
+                <span class="filter-label">{{ t('filters.nameQuality') }}</span>
+                <p-select
+                  [options]="nameQualityOptions"
+                  [ngModel]="(filters$ | async)?.nameQuality"
+                  (ngModelChange)="onFilterChange('nameQuality', $event)"
                   optionLabel="label"
                   optionValue="value"
                   class="filter-dropdown">

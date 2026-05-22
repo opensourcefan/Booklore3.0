@@ -31,6 +31,14 @@
     "bookCount": "Book Count",
     "library": "Library",
     "genre": "Genre",
+    "nameQuality": "Name Quality",
+    "nameQualityValid": "Valid",
+    "nameQualityInitials": "Initials",
+    "nameQualitySymbols": "Symbols",
+    "nameQualityYears": "Years",
+    "nameQualitySingleChar": "Single Char",
+    "nameQualityNumeric": "Numeric",
+    "hideLowQuality": "Hide Low-Quality Authors",
     "reset": "Reset Filters"
   },
   "footer": {

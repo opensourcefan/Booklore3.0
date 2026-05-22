@@ -31,6 +31,14 @@
         "bookCount": "Кількість книг",
         "library": "Бібліотека",
         "genre": "Жанр",
+        "nameQuality": "Якість імені",
+        "nameQualityValid": "Дійсне",
+        "nameQualityInitials": "Ініціали",
+        "nameQualitySymbols": "Символи",
+        "nameQualityYears": "Роки",
+        "nameQualitySingleChar": "Один символ",
+        "nameQualityNumeric": "Числове",
+        "hideLowQuality": "Приховати низькоякісних авторів",
         "reset": "Скинути фільтри"
     },
     "footer": {

@@ -19,13 +19,17 @@ export interface EnrichedAuthor extends AuthorSummary {
   avgPersonalRating: number | null;
 }
 
+export type NameQuality = 'all' | 'valid' | 'initials' | 'symbols' | 'years' | 'single-char' | 'numeric';
+
 export interface AuthorFilters {
   matchStatus: 'all' | 'matched' | 'unmatched';
   photoStatus: 'all' | 'has-photo' | 'no-photo';
   readStatus: 'all' | 'all-read' | 'some-read' | 'in-progress' | 'unread';
-  bookCount: 'all' | '0' | '1' | '2' | '3' | '4' | '5' | '6-10' | '11-20' | '21-35' | '36+';
+  bookCount: 'all' | '0' | '1' | '2' | '3' | '4' | '5' | '2+' | '6-10' | '11-20' | '21-35' | '36+';
   library: string;
   genre: string;
+  nameQuality: NameQuality;
+  hideLowQuality: boolean;
 }
 
 export const DEFAULT_AUTHOR_FILTERS: AuthorFilters = {
@@ -34,7 +38,9 @@ export const DEFAULT_AUTHOR_FILTERS: AuthorFilters = {
   readStatus: 'all',
   bookCount: 'all',
   library: 'all',
-  genre: 'all'
+  genre: 'all',
+  nameQuality: 'all',
+  hideLowQuality: false
 };
 
 export interface AuthorDetails {
