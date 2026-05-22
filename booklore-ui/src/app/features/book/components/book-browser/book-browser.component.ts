@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -104,6 +105,7 @@ export enum EntityType {
   standalone: true,
   templateUrl: './book-browser.component.html',
   styleUrls: ['./book-browser.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     Button, BookCardComponent, AsyncPipe, Menu, InputText, FormsModule,
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, Popover,
@@ -1164,6 +1166,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (shouldResetGridViewport(this.lastGridViewportContext, nextViewportContext)) {
       this.pendingGridViewportReset = true;
       this.gridRenderVersion += 1;
+      this.cdr.markForCheck();
     }
 
     this.lastGridViewportContext = nextViewportContext;

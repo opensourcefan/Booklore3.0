@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -45,6 +46,7 @@ interface SortOption {
   standalone: true,
   templateUrl: './series-browser.component.html',
   styleUrls: ['./series-browser.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     FormsModule,

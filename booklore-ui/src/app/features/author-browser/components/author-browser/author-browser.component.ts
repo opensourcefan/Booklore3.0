@@ -1,5 +1,7 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   HostListener,
@@ -65,6 +67,7 @@ const DEFAULT_SORT_DIRECTIONS: Record<string, SortDirection> = {
   standalone: true,
   templateUrl: './author-browser.component.html',
   styleUrls: ['./author-browser.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     FormsModule,
@@ -98,6 +101,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   private activatedRoute = inject(ActivatedRoute);
   protected userService = inject(UserService);
   protected authorScaleService = inject(AuthorScalePreferenceService);
+  private cdr = inject(ChangeDetectorRef);
   protected selectionService = inject(AuthorSelectionService);
 
   private _scrollContainer?: ElementRef<HTMLElement>;
@@ -222,6 +226,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
         this.allAuthors$.next(authors);
         this.authorsLoaded = true;
         this.updateLoading();
+        this.cdr.markForCheck();
       })
     );
 
@@ -238,6 +243,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
         const enriched = this.enrichAuthors(authors, books);
         this.updateDynamicFilterOptions(enriched);
         this.enrichedAuthors$.next(enriched);
+        this.cdr.markForCheck();
       })
     );
 
@@ -267,6 +273,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
       this.selectionService.selectedAuthors$.subscribe(selected => {
         this.selectedCount = selected.size;
         this.isCheckboxEnabled = selected.size > 0;
+        this.cdr.markForCheck();
       })
     );
 

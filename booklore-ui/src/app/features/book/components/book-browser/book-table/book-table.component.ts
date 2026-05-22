@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {Table, TableModule} from 'primeng/table';
 import {DatePipe, NgClass} from '@angular/common';
 import {TooltipModule} from "primeng/tooltip";
@@ -26,6 +26,7 @@ export interface TableViewportMetrics {
   selector: 'app-book-table',
   standalone: true,
   templateUrl: './book-table.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TableModule,
     Button,

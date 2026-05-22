@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
 import {NgClass} from '@angular/common';
 import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {Tooltip} from 'primeng/tooltip';
@@ -15,6 +15,7 @@ import {AuthorService} from '../../service/author.service';
   standalone: true,
   templateUrl: './author-card.component.html',
   styleUrls: ['./author-card.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, TranslocoPipe, Tooltip, CheckboxModule, FormsModule, TieredMenu, Button]
 })
 export class AuthorCardComponent implements OnChanges {
