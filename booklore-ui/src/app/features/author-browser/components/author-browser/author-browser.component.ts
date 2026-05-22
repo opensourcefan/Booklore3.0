@@ -593,10 +593,16 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
   private classifyNameQuality(name: string): NameQuality {
     if (/^[^a-zA-Z0-9\s]+$/.test(name)) return 'symbols';
+    if (/^[\w.-]+\.[\w.-]+$/.test(name)) return 'symbols';
+    if (/^\d{4}\s*-\s*\d{4}$/.test(name)) return 'years';
     if (/^\d{4}$/.test(name)) return 'years';
+    if (/^\d{4}[\s-]/.test(name)) return 'years';
     if (/^[A-Z]\.?[A-Z]?\.?\s*[A-Z]?\.?$/.test(name)) return 'initials';
     if (/^.$/.test(name)) return 'single-char';
     if (/^\d+$/.test(name)) return 'numeric';
+    if (/^[a-zA-Z]+\d+.*$/.test(name)) return 'numeric';
+    if (/^[A-Za-z]+$/.test(name)) return 'initials';
+    if (!/\s/.test(name)) return 'initials';
     return 'valid';
   }
 

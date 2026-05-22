@@ -212,14 +212,7 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
   }
 
   closePage(): void {
-    this.router.navigate(['/all-books'], {
-      queryParams: {
-        view: 'grid',
-        sort: 'title',
-        direction: 'asc',
-        sidebar: true
-      }
-    });
+    this.router.navigate(['/authors']);
   }
 
   private loadAuthor(authorId: number): void {
