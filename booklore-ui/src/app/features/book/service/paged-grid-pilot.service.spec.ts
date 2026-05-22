@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { filter, firstValueFrom, of, Subject, throwError } from 'rxjs';
-import { Book } from '../model/book.model';
+import { AppBookGridSummary, Book } from '../model/book.model';
 import { BookState } from '../model/state/book-state.model';
 import { SortDirection } from '../model/sort.model';
 import { BookService } from './book.service';
@@ -41,6 +41,7 @@ describe('PagedGridPilotService', () => {
             getBookByIdFromState: vi.fn(),
             getBooksByIdsFromState: vi.fn(() => []),
             getBookByIdFromAPI: vi.fn(),
+            adaptGridSummaryToBook: vi.fn((s: AppBookGridSummary) => s as unknown as Book),
           },
         },
       ],
