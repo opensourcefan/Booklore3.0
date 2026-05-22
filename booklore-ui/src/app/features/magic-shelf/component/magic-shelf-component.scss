@@ -472,14 +472,6 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  flex: 1;
-  min-width: 0;
-
-  .field-select,
-  .operator-select {
-    flex: 1;
-    min-width: 0;
-  }
 }
 
 .field-help-icon {
