@@ -25,6 +25,7 @@ import {ShelfService} from '../../book/service/shelf.service';
 import {Shelf} from '../../book/model/shelf.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {TextareaModule} from 'primeng/textarea';
+import {SHELF_TEMPLATES, SHELF_TEMPLATE_CATEGORIES, ShelfTemplate, ShelfTemplateCategory} from '../service/magic-shelf-templates';
 
 export type RuleOperator =
   | 'equals'
@@ -112,7 +113,7 @@ type FieldType = 'number' | 'decimal' | 'date' | 'boolean' | undefined;
 export interface Rule {
   field: RuleField;
   operator: RuleOperator;
-  value: unknown;
+  value?: unknown;
   valueStart?: unknown;
   valueEnd?: unknown;
 }
@@ -123,7 +124,7 @@ export interface FieldConfig {
 }
 
 export interface GroupRule {
-  name: string;
+  name?: string;
   type: 'group';
   join: 'and' | 'or';
   rules: (Rule | GroupRule)[];
@@ -459,6 +460,13 @@ export class MagicShelfComponent implements OnInit {
   showImportPanel = false;
   importJson = '';
 
+  // Template browser state
+  showTemplatePanel = false;
+  templateSearch = '';
+  selectedTemplateCategory: ShelfTemplateCategory | 'all' = 'all';
+  readonly allTemplates = SHELF_TEMPLATES;
+  readonly templateCategories = SHELF_TEMPLATE_CATEGORIES;
+
   libraryService = inject(LibraryService);
   shelfService = inject(ShelfService);
   bookService = inject(BookService);
@@ -539,7 +547,7 @@ export class MagicShelfComponent implements OnInit {
   }
 
   buildGroupFromData(data: GroupRule): GroupFormGroup {
-    const rulesArray = new FormArray<FormGroup>([]);
+    const rulesArray = new FormArray<GroupFormGroup | RuleFormGroup>([]);
 
     data.rules.forEach(rule => {
       if ('type' in rule && rule.type === 'group') {
@@ -552,7 +560,7 @@ export class MagicShelfComponent implements OnInit {
     return new FormGroup({
       type: new FormControl<'group'>('group'),
       join: new FormControl(data.join),
-      rules: rulesArray as FormArray<GroupFormGroup | RuleFormGroup>
+      rules: rulesArray
     }) as GroupFormGroup;
   }
 
@@ -660,6 +668,40 @@ export class MagicShelfComponent implements OnInit {
     }
 
     return operators;
+  }
+
+  getFieldDescription(field: RuleField | null | undefined): string {
+    if (!field) return '';
+    const config = FIELD_CONFIGS[field];
+    const translationKey = field === 'categories' ? 'genre' : config.label;
+    return this.t.translate(`magicShelf.fieldDescriptions.${translationKey}`);
+  }
+
+  getOperatorDescription(operator: RuleOperator | null | undefined): string {
+    if (!operator) return '';
+    const keyMap: Record<string, string> = {
+      'equals': 'equals',
+      'not_equals': 'notEqual',
+      'is_empty': 'empty',
+      'is_not_empty': 'notEmpty',
+      'includes_any': 'includesAny',
+      'excludes_all': 'excludesAll',
+      'includes_all': 'includesAll',
+      'contains': 'contains',
+      'does_not_contain': 'doesNotContain',
+      'starts_with': 'startsWith',
+      'ends_with': 'endsWith',
+      'greater_than': 'greaterThan',
+      'greater_than_equal_to': 'greaterOrEqual',
+      'less_than': 'lessThan',
+      'less_than_equal_to': 'lessOrEqual',
+      'in_between': 'between',
+      'within_last': 'withinLast',
+      'older_than': 'olderThan',
+      'this_period': 'thisPeriod',
+    };
+    const key = keyMap[operator] || operator;
+    return this.t.translate(`magicShelf.operatorDescriptions.${key}`);
   }
 
   createRule(): RuleFormGroup {
@@ -856,6 +898,43 @@ export class MagicShelfComponent implements OnInit {
     this.showImportPanel = false;
     this.importJson = '';
     this.messageService.add({severity: 'success', summary: this.t.translate('magicShelf.toast.successSummary'), detail: this.t.translate('magicShelf.importJson.successDetail')});
+  }
+
+  // Template browser methods
+
+  toggleTemplatePanel() {
+    this.showTemplatePanel = !this.showTemplatePanel;
+    if (this.showTemplatePanel) {
+      this.templateSearch = '';
+      this.selectedTemplateCategory = 'all';
+    }
+  }
+
+  get filteredTemplates(): ShelfTemplate[] {
+    let templates = this.allTemplates;
+    if (this.selectedTemplateCategory !== 'all') {
+      templates = templates.filter(t => t.category === this.selectedTemplateCategory);
+    }
+    if (this.templateSearch.trim()) {
+      const query = this.templateSearch.toLowerCase().trim();
+      templates = templates.filter(t =>
+        t.name.toLowerCase().includes(query) ||
+        t.description.toLowerCase().includes(query) ||
+        t.tags.some(tag => tag.toLowerCase().includes(query))
+      );
+    }
+    return templates;
+  }
+
+  selectTemplateCategory(category: ShelfTemplateCategory | 'all') {
+    this.selectedTemplateCategory = category;
+  }
+
+  applyTemplate(template: ShelfTemplate) {
+    const builtGroup = this.buildGroupFromData(template.group);
+    this.form.setControl('group', builtGroup);
+    this.showTemplatePanel = false;
+    this.messageService.add({severity: 'success', summary: this.t.translate('magicShelf.toast.successSummary'), detail: `"${template.name}" template applied. Review and save when ready.`});
   }
 
   submit() {

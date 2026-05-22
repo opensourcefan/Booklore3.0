@@ -82,6 +82,49 @@
         </div>
       }
 
+      <!-- Template Browser Panel -->
+      @if (showTemplatePanel) {
+        <div class="template-panel">
+          <div class="template-panel-header">
+            <h3>{{ t('templates.panelTitle') }}</h3>
+            <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="toggleTemplatePanel()"/>
+          </div>
+          <div class="template-search-bar">
+            <span class="p-input-icon-left template-search-input-wrapper">
+              <i class="pi pi-search"></i>
+              <input pInputText [(ngModel)]="templateSearch" [ngModelOptions]="{standalone: true}" [placeholder]="t('templates.searchPlaceholder')" class="template-search-input"/>
+            </span>
+          </div>
+          <div class="template-categories">
+            <button class="template-category-chip" [class.active]="selectedTemplateCategory === 'all'" (click)="selectTemplateCategory('all')">{{ t('templates.categoryAll') }}</button>
+            @for (cat of templateCategories; track cat.key) {
+              <button class="template-category-chip" [class.active]="selectedTemplateCategory === cat.key" (click)="selectTemplateCategory(cat.key)">{{ t('templates.categories.' + cat.labelKey) }}</button>
+            }
+          </div>
+          <div class="template-list">
+            @for (tmpl of filteredTemplates; track tmpl.id) {
+              <div class="template-card">
+                <div class="template-card-body">
+                  <div class="template-card-name">{{ tmpl.name }}</div>
+                  <div class="template-card-desc">{{ tmpl.description }}</div>
+                  <div class="template-card-tags">
+                    @for (tag of tmpl.tags; track tag) {
+                      <span class="template-tag">{{ tag }}</span>
+                    }
+                  </div>
+                </div>
+                <div class="template-card-action">
+                  <p-button [label]="t('templates.useThisTemplate')" icon="pi pi-check" severity="success" size="small" (onClick)="applyTemplate(tmpl)"/>
+                </div>
+              </div>
+            }
+            @if (filteredTemplates.length === 0) {
+              <div class="template-no-results">{{ t('templates.noResults') }}</div>
+            }
+          </div>
+        </div>
+      }
+
       <div class="rules-container">
         <ng-container *ngTemplateOutlet="groupTemplate; context: { group: form.get('group') }"></ng-container>
       </div>
@@ -89,18 +132,32 @@
   </div>
 
   <div class="dialog-footer">
-    @if (!editMode) {
-      <p-button
-        icon="pi pi-file-import"
-        [label]="t('importJson.buttonLabel')"
-        [outlined]="true"
-        severity="info"
-        size="small"
-        [pTooltip]="t('importJson.buttonTooltip')"
-        tooltipPosition="top"
-        (onClick)="toggleImportPanel()"
-      />
-    }
+    <div class="footer-left-actions">
+      @if (!editMode) {
+        <p-button
+          icon="pi pi-book"
+          [label]="t('templates.browseButton')"
+          [outlined]="true"
+          severity="help"
+          size="small"
+          [pTooltip]="t('templates.browseTooltip')"
+          tooltipPosition="top"
+          (onClick)="toggleTemplatePanel()"
+        />
+      }
+      @if (!editMode) {
+        <p-button
+          icon="pi pi-file-import"
+          [label]="t('importJson.buttonLabel')"
+          [outlined]="true"
+          severity="info"
+          size="small"
+          [pTooltip]="t('importJson.buttonTooltip')"
+          tooltipPosition="top"
+          (onClick)="toggleImportPanel()"
+        />
+      }
+    </div>
     <div class="footer-actions">
       <p-button
         [label]="t('actions.cancel')"
@@ -141,8 +198,22 @@
                 <ng-container *ngTemplateOutlet="groupTemplate; context: { group: ruleCtrl }"></ng-container>
               </ng-container>
             } @else {
-              <p-select [options]="fieldOptions" [group]="true" optionGroupLabel="label" optionGroupChildren="items" [filter]="true" filterBy="label" formControlName="field" (onChange)="onFieldChange(ruleCtrl)" [placeholder]="t('placeholders.field')" appendTo="body" class="field-select"/>
-              <p-select [options]="getOperatorOptionsForField(ruleCtrl.get('field')?.value)" appendTo="body" formControlName="operator" [placeholder]="t('placeholders.operator')" class="operator-select" (onChange)="onOperatorChange(ruleCtrl)"/>
+              <div class="rule-field-wrapper">
+                <p-select [options]="fieldOptions" [group]="true" optionGroupLabel="label" optionGroupChildren="items" [filter]="true" filterBy="label" formControlName="field" (onChange)="onFieldChange(ruleCtrl)" [placeholder]="t('placeholders.field')" appendTo="body" class="field-select"/>
+                @if (ruleCtrl.get('field')?.value) {
+                  <span class="field-help-icon" [pTooltip]="getFieldDescription(ruleCtrl.get('field')?.value)" tooltipPosition="top">
+                    <i class="pi pi-question-circle"></i>
+                  </span>
+                }
+              </div>
+              <div class="rule-operator-wrapper">
+                <p-select [options]="getOperatorOptionsForField(ruleCtrl.get('field')?.value)" appendTo="body" formControlName="operator" [placeholder]="t('placeholders.operator')" class="operator-select" (onChange)="onOperatorChange(ruleCtrl)"/>
+                @if (ruleCtrl.get('operator')?.value) {
+                  <span class="field-help-icon" [pTooltip]="getOperatorDescription(ruleCtrl.get('operator')?.value)" tooltipPosition="top">
+                    <i class="pi pi-question-circle"></i>
+                  </span>
+                }
+              </div>
 
               @if (!['is_empty', 'is_not_empty'].includes(ruleCtrl.get('operator')?.value)) {
                 @if (['within_last', 'older_than'].includes(ruleCtrl.get('operator')?.value)) {
