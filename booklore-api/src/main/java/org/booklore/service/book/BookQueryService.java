@@ -123,7 +123,12 @@ public class BookQueryService {
         selections.add(idRoot.get("id").alias("id"));
         selections.addAll(sortPlan.projections());
 
-        idQuery.multiselect(selections).distinct(true);
+        // Remove unconditional distinct(true) — specs that require DISTINCT (searchText,
+        // withAuthor, withCategory, inShelf, etc.) already call query.distinct(true)
+        // internally.  When no such spec is active, omitting DISTINCT prevents Hibernate
+        // from implicitly joining every collection association to compute distinctness,
+        // which was the root cause of the cartesian-product explosion.
+        idQuery.multiselect(selections);
         if (predicate != null) {
             idQuery.where(predicate);
         }
@@ -138,10 +143,17 @@ public class BookQueryService {
 
         List<BookEntity> content = fetchOrderedPagedEntities(orderedIds);
 
+        // Lightweight COUNT: use COUNT(DISTINCT b.id) instead of COUNT(DISTINCT b).
+        // Counting a specific column rather than the root entity prevents Hibernate
+        // from implicitly joining every collection association to compute distinctness,
+        // which was the root cause of the cartesian-product explosion in the COUNT query.
+        // DISTINCT is retained so filter specs that create JOINs (searchText, withAuthor,
+        // withCategory, etc.) still produce correct counts even when JOINs create
+        // duplicate intermediate rows.
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         Root<BookEntity> countRoot = countQuery.from(BookEntity.class);
         Predicate countPredicate = applySpecification(spec, countRoot, countQuery, cb);
-        countQuery.select(cb.countDistinct(countRoot));
+        countQuery.select(cb.countDistinct(countRoot.get("id")));
         if (countPredicate != null) {
             countQuery.where(countPredicate);
         }
@@ -158,7 +170,7 @@ public class BookQueryService {
             return List.of();
         }
 
-        List<BookEntity> entities = bookRepository.findAllWithSummaryMetadataByIds(new LinkedHashSet<>(orderedIds));
+        List<BookEntity> entities = bookRepository.findAllGridSummaryByIds(new LinkedHashSet<>(orderedIds));
         Map<Long, Integer> orderById = new HashMap<>();
         for (int index = 0; index < orderedIds.size(); index++) {
             orderById.put(orderedIds.get(index), index);

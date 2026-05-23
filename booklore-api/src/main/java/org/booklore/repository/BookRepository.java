@@ -95,6 +95,18 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query("SELECT b FROM BookEntity b WHERE b.id IN :bookIds AND (b.deleted IS NULL OR b.deleted = false)")
     List<BookEntity> findAllWithSummaryMetadataByIds(@Param("bookIds") Set<Long> bookIds);
 
+    /**
+     * Lightweight variant of {@link #findAllWithSummaryMetadataByIds(Set)} for grid summaries.
+     * Omits {@code metadata.moods}, {@code metadata.tags}, and {@code shelves} from the
+     * EntityGraph — none of which are used by
+     * {@link org.booklore.service.book.BookQueryService#mapBookToGridSummary(BookEntity)}.
+     * Reducing the fetch graph from 9 to 6 associations cuts the cartesian product in the
+     * entity fetch, improving paged query performance.
+     */
+    @EntityGraph(attributePaths = {"metadata", "metadata.authors", "metadata.categories", "libraryPath", "library", "bookFiles"})
+    @Query("SELECT b FROM BookEntity b WHERE b.id IN :bookIds AND (b.deleted IS NULL OR b.deleted = false)")
+    List<BookEntity> findAllGridSummaryByIds(@Param("bookIds") Set<Long> bookIds);
+
     @EntityGraph(attributePaths = {"metadata", "metadata.comicMetadata", "metadata.tags", "shelves", "libraryPath", "bookFiles"})
     @Query("SELECT b FROM BookEntity b WHERE b.library.id = :libraryId AND b.id IN :bookIds AND (b.deleted IS NULL OR b.deleted = false)")
     List<BookEntity> findAllWithMetadataByLibraryIdAndIds(@Param("libraryId") Long libraryId, @Param("bookIds") Collection<Long> bookIds);
