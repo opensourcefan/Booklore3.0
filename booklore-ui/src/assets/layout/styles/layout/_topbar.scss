@@ -349,20 +349,26 @@
     right: 0.5rem !important;
   }
 
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+
   .p-popover-content {
     width: var(--bl-filter-panel-width, 16rem);
     max-height: calc(100dvh - 5rem);
     overflow: hidden;
     padding: 0;
+    background: transparent !important;
     
     app-book-filter {
       ::ng-deep .book-filter-container {
-        border: none !important;
-        border-radius: 0 !important;
-        background: transparent !important;
         max-height: calc(100dvh - 5rem) !important;
       }
     }
+  }
+
+  &::before, &::after {
+    display: none !important;
   }
 }
 

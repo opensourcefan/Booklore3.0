@@ -30,6 +30,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   private resizeObserver: ResizeObserver | null = null;
   private mutationObserver: MutationObserver | null = null;
   private updateScheduled = false;
+  private isTransitioning = false;
 
   private el = inject(ElementRef);
   private renderer = inject(Renderer2);
@@ -110,6 +111,34 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
         attributeFilter: ['class', 'style']
       });
     }
+
+    // Track CSS transitions so the handle stays attached while panels slide open/closed
+    const onTransitionStart = () => {
+      if (!this.isTransitioning) {
+        this.isTransitioning = true;
+        const loop = () => {
+          this.scheduleUpdateHandlePosition();
+          if (this.isTransitioning) {
+            requestAnimationFrame(loop);
+          }
+        };
+        requestAnimationFrame(loop);
+      }
+    };
+    const onTransitionEnd = () => {
+      this.isTransitioning = false;
+      this.scheduleUpdateHandlePosition();
+    };
+
+    this.target.addEventListener('transitionstart', onTransitionStart);
+    this.target.addEventListener('transitionend', onTransitionEnd);
+    this.target.addEventListener('transitioncancel', onTransitionEnd);
+
+    this.unlisten.push(
+      () => this.target.removeEventListener('transitionstart', onTransitionStart),
+      () => this.target.removeEventListener('transitionend', onTransitionEnd),
+      () => this.target.removeEventListener('transitioncancel', onTransitionEnd)
+    );
 
     // Hover styles
     this.handle.addEventListener('mouseenter', () => {
