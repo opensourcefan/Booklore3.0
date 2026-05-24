@@ -261,16 +261,11 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       this.renderer.setStyle(this.grip, 'height', '31px');
       this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, white 78%, var(--primary-color) 22%)');
       this.renderer.setStyle(this.grip, 'border-radius', '1px');
-      this.renderer.setStyle(this.grip, 'box-shadow', '0 0 0 2px color-mix(in srgb, var(--primary-color) 82%, white 18%), 0 0 0 4px color-mix(in srgb, var(--surface-card, white) 88%, transparent), 0 3px 8px rgba(0, 0, 0, 0.15)');
+      this.renderer.setStyle(this.grip, 'box-shadow', '0 0 0 2px color-mix(in srgb, var(--primary-color) 82%, white 18%), 0 3px 8px rgba(0, 0, 0, 0.15)');
       
       this.renderer.removeStyle(this.grip, 'transform');
       this.renderer.setStyle(this.grip, 'top', '8px');
-      
-      if (this.blResizable === 'right') {
-        this.renderer.setStyle(this.grip, 'left', '17px');
-      } else {
-        this.renderer.setStyle(this.grip, 'left', '11px');
-      }
+      this.renderer.setStyle(this.grip, 'left', '14px');
     } else {
       this.renderer.setStyle(this.handle, 'width', '6px');
       this.renderer.setStyle(this.handle, 'height', '100%');
