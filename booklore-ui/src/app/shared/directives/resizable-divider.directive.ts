@@ -208,12 +208,12 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
 
     if (this.isTouchHandleMode()) {
-      this.renderer.setStyle(this.handle, 'width', '12px');
-      this.renderer.setStyle(this.handle, 'height', '48px');
+      this.renderer.setStyle(this.handle, 'width', '6px');
+      this.renderer.setStyle(this.handle, 'height', '35px');
       this.renderer.setStyle(this.handle, 'cursor', 'grab');
       this.renderer.setStyle(this.handle, 'background', 'color-mix(in srgb, var(--primary-color) 82%, white 18%)');
       this.renderer.setStyle(this.handle, 'opacity', '1');
-      this.renderer.setStyle(this.handle, 'border-radius', '6px');
+      this.renderer.setStyle(this.handle, 'border-radius', '1px');
       this.renderer.setStyle(this.handle, 'box-shadow', '0 0 0 2px color-mix(in srgb, var(--surface-card, white) 88%, transparent), 0 3px 8px rgba(0, 0, 0, 0.15)');
       this.renderer.setStyle(this.grip, 'opacity', '1');
       this.renderer.setStyle(this.grip, 'width', '2px');
@@ -287,7 +287,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     this.renderer.removeStyle(this.handle, 'display');
     this.applyHandlePresentation();
     if (this.isTouchHandleMode()) {
-      const touchHandleHeight = 56;
+      const touchHandleHeight = 35;
       const top = rect.top + Math.max(12, (rect.height - touchHandleHeight) / 2);
       this.renderer.setStyle(this.handle, 'top', top + 'px');
       this.renderer.setStyle(this.handle, 'height', touchHandleHeight + 'px');
@@ -297,10 +297,10 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
 
     if (this.blResizable === 'right') {
-      const offset = this.isTouchHandleMode() ? 6 : 3;
+      const offset = 3;
       this.renderer.setStyle(this.handle, 'left', (rect.right - offset) + 'px');
     } else {
-      const offset = this.isTouchHandleMode() ? 6 : 3;
+      const offset = 3;
       this.renderer.setStyle(this.handle, 'left', (rect.left - offset) + 'px');
     }
   }
