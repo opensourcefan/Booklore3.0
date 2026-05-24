@@ -794,7 +794,7 @@
 }
 
 ::ng-deep .layout-phone, ::ng-deep .layout-tablet {
-  .selection-action-panel {
+  .selection-action-panel:not(.panel-hidden) {
     max-height: 6.5rem !important;
     opacity: 1 !important;
     pointer-events: auto !important;

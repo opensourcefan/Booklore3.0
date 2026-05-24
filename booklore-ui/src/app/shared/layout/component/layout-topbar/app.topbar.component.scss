@@ -571,6 +571,14 @@
   &:hover {
     background: var(--p-surface-700);
   }
+
+  &.quick-layout-btn--active {
+    background: var(--p-primary-color) !important;
+    color: var(--p-primary-contrast-color) !important;
+    .topbar-icon {
+      color: var(--p-primary-contrast-color) !important;
+    }
+  }
 }
 
 .highlight {

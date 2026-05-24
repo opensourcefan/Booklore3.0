@@ -357,6 +357,43 @@
             }
           }
 
+          @if (toolbarConfig.isVisible('layoutPhone')) {
+            <li>
+              <button
+                class="mobile-menu-item"
+                [class.quick-layout-btn--active]="mobileUx.layoutMode === 'phone'"
+                (click)="mobileUx.setLayoutMode('phone'); mobileMenu.hide()"
+              >
+                <i class="pi pi-mobile topbar-icon"></i>
+                Phone Mode
+              </button>
+            </li>
+          }
+          @if (toolbarConfig.isVisible('layoutTablet')) {
+            <li>
+              <button
+                class="mobile-menu-item"
+                [class.quick-layout-btn--active]="mobileUx.layoutMode === 'tablet'"
+                (click)="mobileUx.setLayoutMode('tablet'); mobileMenu.hide()"
+              >
+                <i class="pi pi-tablet topbar-icon"></i>
+                Tablet Mode
+              </button>
+            </li>
+          }
+          @if (toolbarConfig.isVisible('layoutAuto')) {
+            <li>
+              <button
+                class="mobile-menu-item"
+                [class.quick-layout-btn--active]="mobileUx.layoutMode === 'auto'"
+                (click)="mobileUx.setLayoutMode('auto'); mobileMenu.hide()"
+              >
+                <i class="pi pi-desktop topbar-icon"></i>
+                Auto Mode
+              </button>
+            </li>
+          }
+
           <li>
             <button
               class="mobile-menu-item"
@@ -370,42 +407,6 @@
       </p-popover>
     </div>
     </div>
-
-    <!-- Quick access buttons for mobile/tablet layout modes (when in any view other than desktop) -->
-    @if (!layoutService.isDesktop()) {
-      <div class="quick-layout-controls" style="display: flex; gap: 0.3rem; align-items: center; margin-right: 0.5rem;">
-        @if (toolbarConfig.isVisible('layoutPhone')) {
-          <button type="button"
-                  class="topbar-item quick-layout-btn"
-                  [class.quick-layout-btn--active]="mobileUx.layoutMode === 'phone'"
-                  (click)="mobileUx.setLayoutMode('phone')"
-                  pTooltip="Phone Layout"
-                  tooltipPosition="bottom">
-            <i class="pi pi-mobile"></i>
-          </button>
-        }
-        @if (toolbarConfig.isVisible('layoutTablet')) {
-          <button type="button"
-                  class="topbar-item quick-layout-btn"
-                  [class.quick-layout-btn--active]="mobileUx.layoutMode === 'tablet'"
-                  (click)="mobileUx.setLayoutMode('tablet')"
-                  pTooltip="Tablet Layout"
-                  tooltipPosition="bottom">
-            <i class="pi pi-tablet"></i>
-          </button>
-        }
-        @if (toolbarConfig.isVisible('layoutAuto')) {
-          <button type="button"
-                  class="topbar-item quick-layout-btn"
-                  [class.quick-layout-btn--active]="mobileUx.layoutMode === 'auto'"
-                  (click)="mobileUx.setLayoutMode('auto')"
-                  pTooltip="Auto Layout"
-                  tooltipPosition="bottom">
-            <i class="pi pi-desktop"></i>
-          </button>
-        }
-      </div>
-    }
 
     <!-- Toolbar editor -->
     <button type="button" class="topbar-item toolbar-editor-trigger"
