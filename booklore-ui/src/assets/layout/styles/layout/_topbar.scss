@@ -352,8 +352,17 @@
   .p-popover-content {
     width: var(--bl-filter-panel-width, 16rem);
     max-height: calc(100dvh - 5rem);
-    overflow-y: auto;
-    padding: 0 0.25rem 0 0.6rem;
+    overflow: hidden;
+    padding: 0;
+    
+    app-book-filter {
+      ::ng-deep .book-filter-container {
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        max-height: calc(100dvh - 5rem) !important;
+      }
+    }
   }
 }
 

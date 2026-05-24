@@ -61,7 +61,7 @@
   }
 }
 
-@media (max-width: 991px) {
+@mixin max-991-styles {
   .blocked-scroll {
     overflow: hidden;
   }
@@ -104,10 +104,30 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 991px) {
+  body:not(.layout-desktop) {
+    @include max-991-styles;
+  }
+}
+
+body.layout-phone, body.layout-tablet {
+  @include max-991-styles;
+}
+
+@mixin max-768-styles {
   .layout-wrapper {
     .layout-main-container {
       padding: 4.4rem 0 0;
     }
   }
+}
+
+@media (max-width: 768px) {
+  body:not(.layout-desktop) {
+    @include max-768-styles;
+  }
+}
+
+body.layout-phone {
+  @include max-768-styles;
 }

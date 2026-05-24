@@ -43,6 +43,10 @@
   @media (max-width: 767px) {
     display: none;
   }
+
+  :host-context(body.layout-phone) & {
+    display: none;
+  }
 }
 
 .topbar-ai-status {
@@ -503,6 +507,10 @@
   @media (min-width: 768px) {
     display: flex;
   }
+
+  :host-context(body.layout-phone) & {
+    display: none;
+  }
 }
 
 .topbar-action-group {
@@ -526,12 +534,30 @@
   @media (max-width: 767px) {
     display: block;
   }
+
+  :host-context(body.layout-phone) & {
+    display: block;
+  }
 }
 
 .mobile-center-bar {
   display: none;
 
   @media (max-width: 767px) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    .mobile-trigger {
+      margin-left: 0;
+    }
+  }
+
+  :host-context(body.layout-phone) & {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -643,6 +669,11 @@
   @media (max-width: 991px) {
     display: none;
   }
+
+  :host-context(body.layout-phone) &,
+  :host-context(body.layout-tablet) & {
+    display: none;
+  }
 }
 
 .mobile-sidebar-trigger {
@@ -650,6 +681,13 @@
   flex-shrink: 0;
 
   @media (max-width: 991px) {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  :host-context(body.layout-phone) &,
+  :host-context(body.layout-tablet) & {
     display: flex;
     align-items: center;
     gap: 0.15rem;
@@ -662,6 +700,12 @@
   margin-left: auto;
 
   @media (max-width: 991px) {
+    display: flex;
+    align-items: center;
+  }
+
+  :host-context(body.layout-phone) &,
+  :host-context(body.layout-tablet) & {
     display: flex;
     align-items: center;
   }
@@ -702,6 +746,11 @@
   }
 
   @media (max-width: 991px) {
+    display: none;
+  }
+
+  :host-context(body.layout-phone) &,
+  :host-context(body.layout-tablet) & {
     display: none;
   }
 }

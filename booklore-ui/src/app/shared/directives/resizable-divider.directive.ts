@@ -62,7 +62,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     this.renderer.setStyle(this.handle, 'position', 'fixed');
     this.renderer.setStyle(this.handle, 'width', '6px');
     this.renderer.setStyle(this.handle, 'cursor', 'col-resize');
-    this.renderer.setStyle(this.handle, 'z-index', '960');
+    this.renderer.setStyle(this.handle, 'z-index', '9999');
     this.renderer.setStyle(this.handle, 'background', 'transparent');
     this.renderer.setStyle(this.handle, 'transition', 'background 0.15s ease');
     this.renderer.setStyle(this.handle, 'touch-action', 'none');
@@ -191,14 +191,6 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   }
 
   private isTouchHandleMode(): boolean {
-    if (typeof window !== 'undefined') {
-      const hasTouch = 'ontouchstart' in window ||
-                       (navigator && navigator.maxTouchPoints > 0) ||
-                       window.matchMedia('(pointer: coarse)').matches;
-      if (hasTouch) {
-        return true;
-      }
-    }
     return this.mobileUx.isMobileOrTablet;
   }
 

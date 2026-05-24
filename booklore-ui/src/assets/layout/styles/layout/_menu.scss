@@ -37,6 +37,13 @@
   overflow: hidden;
 
   @media (max-width: 991px) {
+    body:not(.layout-desktop) & {
+      display: none;
+    }
+  }
+
+  body.layout-phone &,
+  body.layout-tablet & {
     display: none;
   }
 }
@@ -257,6 +264,12 @@
   z-index: 1001;
 
   @media (min-width: 992px) {
+    body:not(.layout-phone):not(.layout-tablet) & {
+      display: none;
+    }
+  }
+
+  body.layout-desktop & {
     display: none;
   }
 }
