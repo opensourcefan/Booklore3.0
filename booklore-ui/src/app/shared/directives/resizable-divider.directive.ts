@@ -1,4 +1,5 @@
 import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, inject } from '@angular/core';
+import { MobileUxService } from '../../core/services/mobile-ux.service';
 
 /**
  * Adds a drag handle to a panel so users can resize it by hover + click + drag.
@@ -32,6 +33,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
   private el = inject(ElementRef);
   private renderer = inject(Renderer2);
+  private mobileUx = inject(MobileUxService);
 
   ngOnInit(): void {
     this.target = this.el.nativeElement as HTMLElement;
@@ -189,7 +191,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   }
 
   private isTouchHandleMode(): boolean {
-    return window.innerWidth <= 991;
+    return this.mobileUx.isMobileOrTablet;
   }
 
   private applyHandlePresentation(): void {
@@ -198,16 +200,16 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
 
     if (this.isTouchHandleMode()) {
-      this.renderer.setStyle(this.handle, 'width', '28px');
-      this.renderer.setStyle(this.handle, 'height', '56px');
+      this.renderer.setStyle(this.handle, 'width', '12px');
+      this.renderer.setStyle(this.handle, 'height', '48px');
       this.renderer.setStyle(this.handle, 'cursor', 'grab');
       this.renderer.setStyle(this.handle, 'background', 'color-mix(in srgb, var(--primary-color) 82%, white 18%)');
       this.renderer.setStyle(this.handle, 'opacity', '1');
-      this.renderer.setStyle(this.handle, 'border-radius', '999px');
-      this.renderer.setStyle(this.handle, 'box-shadow', '0 0 0 3px color-mix(in srgb, var(--surface-card, white) 88%, transparent), 0 6px 16px rgba(0, 0, 0, 0.22)');
+      this.renderer.setStyle(this.handle, 'border-radius', '6px');
+      this.renderer.setStyle(this.handle, 'box-shadow', '0 0 0 2px color-mix(in srgb, var(--surface-card, white) 88%, transparent), 0 3px 8px rgba(0, 0, 0, 0.15)');
       this.renderer.setStyle(this.grip, 'opacity', '1');
-      this.renderer.setStyle(this.grip, 'width', '6px');
-      this.renderer.setStyle(this.grip, 'height', '26px');
+      this.renderer.setStyle(this.grip, 'width', '2px');
+      this.renderer.setStyle(this.grip, 'height', '20px');
       this.renderer.setStyle(this.grip, 'background', 'color-mix(in srgb, white 78%, var(--primary-color) 22%)');
       this.renderer.removeStyle(this.grip, 'box-shadow');
     } else {
@@ -287,10 +289,10 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
 
     if (this.blResizable === 'right') {
-      const offset = this.isTouchHandleMode() ? 18 : 3;
+      const offset = this.isTouchHandleMode() ? 6 : 3;
       this.renderer.setStyle(this.handle, 'left', (rect.right - offset) + 'px');
     } else {
-      const offset = this.isTouchHandleMode() ? 10 : 3;
+      const offset = this.isTouchHandleMode() ? 6 : 3;
       this.renderer.setStyle(this.handle, 'left', (rect.left - offset) + 'px');
     }
   }

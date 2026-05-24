@@ -412,6 +412,11 @@
               (onHide)="onMobileRightSidebarHide()">
               @if (isMobileRightSidebarOpen) {
                 <app-book-filter
+                  blResizable="left"
+                  storageKey="bl-filter-panel-width"
+                  cssVar="--bl-filter-panel-width"
+                  [minWidth]="200"
+                  [maxWidth]="520"
                   [showFilter]="isMobileRightSidebarOpen"
                   [entity$]="entity$"
                   [entityType$]="entityType$"

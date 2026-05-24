@@ -1,5 +1,6 @@
-import {Injectable, effect, signal} from '@angular/core';
+import {Injectable, effect, signal, inject} from '@angular/core';
 import {Subject} from 'rxjs';
+import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
 
 export interface AppConfig {
   inputStyle: string;
@@ -87,8 +88,10 @@ export class LayoutService {
     return this.config().menuMode === 'overlay';
   }
 
+  private mobileUx = inject(MobileUxService);
+
   isDesktop() {
-    return window.innerWidth > 991;
+    return this.mobileUx.isDesktop;
   }
 
   onConfigUpdate() {

@@ -44,5 +44,76 @@
         </div>
       </div>
     </div>
+
+    <div class="section-divider"><hr></div>
+
+    <div class="preferences-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="pi pi-mobile"></i>
+          Device Layout Mode
+        </h3>
+      </div>
+      <div class="settings-card">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label-row">
+              <span class="setting-label" style="min-width: 180px;">Layout Mode</span>
+              <p-select
+                size="small"
+                [options]="layoutModeOptions"
+                [(ngModel)]="selectedLayoutMode"
+                optionLabel="label"
+                optionValue="value"
+                (onChange)="onLayoutModeChange($event.value)"
+                appendTo="body">
+              </p-select>
+            </div>
+            <p class="setting-description">
+              <i class="pi pi-info-circle"></i>
+              Force the application layout to look like a phone, tablet, or automatically match your screen.
+            </p>
+          </div>
+        </div>
+
+        @if (selectedLayoutMode === 'auto') {
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label-row">
+                <span class="setting-label" style="min-width: 180px;">Phone Breakpoint (px)</span>
+                <input
+                  type="number"
+                  pInputText
+                  style="width: 100px;"
+                  [(ngModel)]="phoneBreakpoint"
+                  (ngModelChange)="onPhoneBreakpointChange($event)" />
+              </div>
+              <p class="setting-description">
+                <i class="pi pi-info-circle"></i>
+                Width threshold below which the phone layout is active.
+              </p>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label-row">
+                <span class="setting-label" style="min-width: 180px;">Tablet Breakpoint (px)</span>
+                <input
+                  type="number"
+                  pInputText
+                  style="width: 100px;"
+                  [(ngModel)]="tabletBreakpoint"
+                  (ngModelChange)="onTabletBreakpointChange($event)" />
+              </div>
+              <p class="setting-description">
+                <i class="pi pi-info-circle"></i>
+                Width threshold below which the tablet layout is active.
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
   </div>
 </ng-container>

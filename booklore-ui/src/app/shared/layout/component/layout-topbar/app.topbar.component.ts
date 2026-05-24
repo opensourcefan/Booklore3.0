@@ -41,6 +41,8 @@ import {WriteProgressPayload, WriteProgressService} from '../../../../shared/ser
 import {SidecarBackupProgressService} from '../../../service/sidecar-backup-progress.service';
 import {MetadataTaskLog, MetadataTaskService} from '../../../../features/book/service/metadata-task';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../service/mobile-back-navigation.service';
+import {MobileUxService} from '../../../../core/services/mobile-ux.service';
+import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
 
 @Component({
   selector: 'app-topbar',
@@ -69,6 +71,7 @@ import {MobileBackHandle, MobileBackNavigationService} from '../../../service/mo
     AppSidebarComponent,
     DirectoryMobilePanelComponent,
     Popover,
+    ResizableDividerDirective,
   ],
 })
 export class AppTopBarComponent implements OnDestroy {
@@ -146,6 +149,7 @@ export class AppTopBarComponent implements OnDestroy {
   private sidecarBackupProgressService = inject(SidecarBackupProgressService);
   private metadataTaskService = inject(MetadataTaskService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
+  public mobileUx = inject(MobileUxService);
 
   constructor() {
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -824,6 +828,11 @@ export class AppTopBarComponent implements OnDestroy {
     }
 
     switch (item.id) {
+      case 'layoutPhone':
+      case 'layoutTablet':
+      case 'layoutAuto':
+      case 'sep3':
+        return false;
       case 'bookdrop':
         return !!(user?.permissions?.canAccessBookdrop || user?.permissions?.admin);
       case 'createLibrary':

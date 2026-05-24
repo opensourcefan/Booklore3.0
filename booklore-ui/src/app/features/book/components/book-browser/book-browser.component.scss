@@ -373,6 +373,7 @@
 // Search section
 .mobile-search-wrapper {
   position: relative;
+  display: block;
 
   @media (min-width: 768px) {
     display: none;
@@ -385,6 +386,26 @@
 
   @media (min-width: 768px) {
     display: block;
+  }
+}
+
+::ng-deep {
+  .layout-phone, .layout-tablet {
+    .mobile-search-wrapper {
+      display: block !important;
+    }
+    .desktop-search-wrapper {
+      display: none !important;
+    }
+  }
+
+  .layout-desktop {
+    .mobile-search-wrapper {
+      display: none !important;
+    }
+    .desktop-search-wrapper {
+      display: block !important;
+    }
   }
 }
 
@@ -769,5 +790,59 @@
 
   .selection-action-panel ::ng-deep .p-divider-vertical {
     margin: 0 0.15rem;
+  }
+}
+
+::ng-deep .layout-phone, ::ng-deep .layout-tablet {
+  .selection-action-panel {
+    max-height: 6.5rem !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .selection-panel-content {
+    gap: 0.35rem !important;
+  }
+
+  .selection-panel-left {
+    padding-left: 0.15rem !important;
+    width: auto !important;
+    min-width: 7.5rem !important;
+  }
+
+  .selection-visibility-hint {
+    max-width: 9rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  .selection-panel-center {
+    justify-content: flex-start !important;
+    padding: 0 0.15rem !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+  }
+
+  .action-buttons-group {
+    gap: 0.3rem !important;
+  }
+
+  .destructive-actions-group {
+    gap: 0.4rem !important;
+  }
+
+  .selection-action-panel .p-button {
+    min-width: 2.3rem !important;
+    height: 2.3rem !important;
+    padding: 0.2rem !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .selection-action-panel .p-button .p-button-icon {
+    font-size: 1rem !important;
+  }
+
+  .selection-action-panel .p-divider-vertical {
+    margin: 0 0.15rem !important;
   }
 }

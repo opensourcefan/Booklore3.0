@@ -163,7 +163,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly dirPanelService = inject(DirectoryPanelService);
   private mediaTypePreferences = inject(MediaTypePreferencesService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
-  private mobileUx = inject(MobileUxService);
+  protected mobileUx = inject(MobileUxService);
   private pagedGridPilotService = inject(PagedGridPilotService);
   private pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
   readonly pagedGridPilotStatus$ = this.pagedGridPilotService.status$;
@@ -279,11 +279,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private mobileRightSidebarBackHandle: MobileBackHandle | null = null;
 
   get isMobile(): boolean {
-    return this.screenWidth <= this.MOBILE_BREAKPOINT;
+    return this.mobileUx.isPhone;
   }
 
   get showFilterAsPopover(): boolean {
-    return this.screenWidth <= 991;
+    return this.mobileUx.isMobileOrTablet;
   }
 
   get mobileCardSize(): { width: number; height: number } {
@@ -1026,6 +1026,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    if (!this.isMobileRightSidebarOpen) {
+      this.isMobileRightSidebarOpen = true;
+    }
     this.mobileRightSidebarPop.toggle(event);
   }
 

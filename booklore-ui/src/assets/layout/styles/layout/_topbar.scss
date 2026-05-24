@@ -38,7 +38,7 @@
 .mobile-sidebar-popover .p-popover-content {
   display: flex;
   flex-direction: column;
-  width: 16rem;
+  width: var(--sidebar-width, 16rem);
   max-height: calc(100dvh - 5rem);
   overflow: hidden;
   overscroll-behavior-y: contain;
@@ -350,7 +350,7 @@
   }
 
   .p-popover-content {
-    width: 16rem;
+    width: var(--bl-filter-panel-width, 16rem);
     max-height: calc(100dvh - 5rem);
     overflow-y: auto;
     padding: 0 0.25rem 0 0.6rem;
@@ -370,6 +370,14 @@
     max-height: calc(100dvh - 5rem);
     overflow-y: auto;
     padding: 0 0.25rem 0 0.6rem;
+  }
+}
+
+.quick-layout-btn--active {
+  background-color: var(--p-primary-color) !important;
+  border-color: var(--p-primary-color) !important;
+  i {
+    color: var(--p-primary-contrast-color) !important;
   }
 }
 
