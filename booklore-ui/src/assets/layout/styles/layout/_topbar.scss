@@ -342,3 +342,34 @@
 .animate-fadeout {
   animation: fadeout 0.15s ease-out forwards;
 }
+
+.mobile-right-sidebar-popover {
+  @media (max-width: 991px) {
+    left: auto !important;
+    right: 0.5rem !important;
+  }
+
+  .p-popover-content {
+    width: 16rem;
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    padding: 0 0.25rem 0 0.6rem;
+  }
+}
+
+.mobile-overflow-menu-popover {
+  @media (max-width: 767px) {
+    left: auto !important;
+    right: 0.5rem !important;
+  }
+}
+
+.dir-mobile-panel-popover {
+  .p-popover-content {
+    width: 16rem;
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    padding: 0 0.25rem 0 0.6rem;
+  }
+}
+

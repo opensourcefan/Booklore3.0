@@ -282,6 +282,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.screenWidth <= this.MOBILE_BREAKPOINT;
   }
 
+  get showFilterAsPopover(): boolean {
+    return this.screenWidth <= 991;
+  }
+
   get mobileCardSize(): { width: number; height: number } {
     const columns = this.mobileColumnCount;
     const totalGaps = (columns - 1) * this.MOBILE_GAP;
@@ -546,7 +550,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sidebarFilterTogglePrefService.mobileFilterToggle$
       .pipe(takeUntil(this.destroy$))
       .subscribe((event: MouseEvent) => {
-        if (!this.isMobile) {
+        if (!this.showFilterAsPopover) {
           return;
         }
         this.toggleMobileRightSidebar(event);

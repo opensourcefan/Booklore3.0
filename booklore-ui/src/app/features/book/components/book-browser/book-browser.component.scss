@@ -397,12 +397,7 @@
   width: 100%;
 }
 
-:host ::ng-deep .mobile-right-sidebar-popover .p-popover-content {
-  width: 16rem;
-  max-height: calc(100dvh - 5rem);
-  overflow-y: auto;
-  padding: 0 0.25rem 0 0.6rem;
-}
+
 
 .desktop-right-sidebar-trigger {
   display: none;

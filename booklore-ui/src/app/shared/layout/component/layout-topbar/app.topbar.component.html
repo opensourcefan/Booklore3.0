@@ -233,7 +233,7 @@
         outlined
         (click)="mobileMenu.toggle($event)"
       />
-      <p-popover #mobileMenu [dismissable]="true" (onShow)="onMobileOverflowPopoverShow()" (onHide)="onMobileOverflowPopoverHide()">
+      <p-popover #mobileMenu [dismissable]="true" styleClass="mobile-overflow-menu-popover" (onShow)="onMobileOverflowPopoverShow()" (onHide)="onMobileOverflowPopoverHide()">
         <ul class="mobile-menu-list">
           @if (userService.userState$ | async; as userState) {
             @if (userState.user?.permissions?.canAccessBookdrop || userState.user?.permissions?.admin) {

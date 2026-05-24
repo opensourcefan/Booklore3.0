@@ -402,7 +402,7 @@
             }
           </div>
 
-          @if (isMobile) {
+          @if (showFilterAsPopover) {
             <p-popover
               #mobileRightSidebarPop
               styleClass="mobile-right-sidebar-popover"
@@ -715,7 +715,7 @@
     }
   </div>
 
-  @if (this.showFilter && !isMobile) {
+  @if (this.showFilter && !showFilterAsPopover) {
     <div
       class="mobile-filter-mask"
       tabindex="0"
