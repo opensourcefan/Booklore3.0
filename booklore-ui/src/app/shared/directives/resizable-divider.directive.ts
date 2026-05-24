@@ -31,6 +31,8 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   private mutationObserver: MutationObserver | null = null;
   private updateScheduled = false;
   private isTransitioning = false;
+  private animationLoopId: number | null = null;
+  private animationLoopStart = 0;
 
   private el = inject(ElementRef);
   private renderer = inject(Renderer2);
@@ -103,7 +105,24 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
     // Watch DOM mutations so overlays/dialogs immediately hide the handle.
     if (typeof MutationObserver !== 'undefined') {
-      this.mutationObserver = new MutationObserver(() => this.scheduleUpdateHandlePosition());
+      this.mutationObserver = new MutationObserver(() => {
+        this.scheduleUpdateHandlePosition();
+        
+        // Kick off a fallback rAF loop for 400ms to track Angular animations
+        // that don't trigger native transitionstart events.
+        this.animationLoopStart = performance.now();
+        if (!this.animationLoopId) {
+          const loop = (now: number) => {
+            this.scheduleUpdateHandlePosition();
+            if (now - this.animationLoopStart < 400) {
+              this.animationLoopId = requestAnimationFrame(loop);
+            } else {
+              this.animationLoopId = null;
+            }
+          };
+          this.animationLoopId = requestAnimationFrame(loop);
+        }
+      });
       this.mutationObserver.observe(document.body, {
         childList: true,
         subtree: true,
@@ -257,6 +276,23 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
   }
 
+  private getAccumulatedOpacity(element: HTMLElement): number {
+    let opacity = 1;
+    let curr: HTMLElement | null = element;
+    while (curr && curr !== document.body && curr !== document.documentElement) {
+      const style = getComputedStyle(curr);
+      const val = parseFloat(style.opacity || '1');
+      if (val < 1) {
+        opacity *= val;
+      }
+      if (style.display === 'none' || style.visibility === 'hidden') {
+        return 0;
+      }
+      curr = curr.parentElement;
+    }
+    return opacity;
+  }
+
   private getScrollContainer(): HTMLElement | null {
     const candidates = [
       this.target,
@@ -324,6 +360,15 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       const offset = 3;
       this.renderer.setStyle(this.handle, 'left', (rect.left - offset) + 'px');
     }
+
+    // Apply accumulated opacity so the handle fades out synchronously with the panel
+    const accumulatedOpacity = this.getAccumulatedOpacity(this.target);
+    if (accumulatedOpacity < 1) {
+      this.renderer.setStyle(this.handle, 'opacity', String(accumulatedOpacity));
+      if (accumulatedOpacity <= 0) {
+        this.renderer.setStyle(this.handle, 'display', 'none');
+      }
+    }
   }
 
   private hasVisibleBlockingOverlay(): boolean {
@@ -350,6 +395,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.rafId) cancelAnimationFrame(this.rafId);
+    if (this.animationLoopId) cancelAnimationFrame(this.animationLoopId);
     this.resizeObserver?.disconnect();
     this.mutationObserver?.disconnect();
     this.unlisten.forEach(fn => fn());
