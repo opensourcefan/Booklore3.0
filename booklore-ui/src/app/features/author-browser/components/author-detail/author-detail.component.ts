@@ -3,7 +3,6 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  HostListener,
   inject,
   OnDestroy,
   OnInit,
@@ -33,6 +32,7 @@ import {UserService} from '../../../settings/user-management/user.service';
 import {AuthorMatchComponent} from '../author-match/author-match.component';
 import {AuthorEditorComponent} from '../author-editor/author-editor.component';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
+import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 
 @Component({
   selector: 'app-author-detail',
@@ -69,6 +69,7 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
   protected userService = inject(UserService);
   private pageTitle = inject(PageTitleService);
   private t = inject(TranslocoService);
+  private mobileUx = inject(MobileUxService);
 
   private readonly GRID_GAP_MOBILE = 8;
   private readonly GRID_GAP_DESKTOP = 20.8;
@@ -97,6 +98,7 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
 
   private authorBooksGridSub?: Subscription;
+  private resizeSub?: Subscription;
 
   private readonly gridItemCountSig = signal(0);
   private readonly cardWidthSig = signal(this.coverScalePreferenceService.currentCardSize.width);
@@ -130,15 +132,6 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
     return this.screenWidth <= 767;
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.screenWidth = window.innerWidth;
-    this.cardWidthSig.set(this.currentCardSize.width);
-    this.cardHeightSig.set(this.currentCardSize.height);
-    this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
-    this.updateVirtualGridDomBindings();
-  }
-
   get photoUrl(): string {
     if (!this.author) return '';
     return this.authorService.getAuthorPhotoUrl(this.author.id) + '&t=' + this.photoTimestamp;
@@ -156,6 +149,14 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
       this.tab = tabParam;
     }
     this.loadAuthor(authorId);
+
+    this.resizeSub = this.mobileUx.screenWidth$.subscribe(width => {
+      this.screenWidth = width;
+      this.cardWidthSig.set(this.currentCardSize.width);
+      this.cardHeightSig.set(this.currentCardSize.height);
+      this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+      this.updateVirtualGridDomBindings();
+    });
   }
 
   ngAfterViewInit(): void {
@@ -171,6 +172,7 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
 
   ngOnDestroy(): void {
     this.authorBooksGridSub?.unsubscribe();
+    this.resizeSub?.unsubscribe();
   }
 
   toggleExpand(): void {

@@ -4,7 +4,6 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  HostListener,
   inject,
   OnDestroy,
   OnInit,
@@ -37,6 +36,7 @@ import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {UserService} from '../../../settings/user-management/user.service';
 import {BookService} from '../../../book/service/book.service';
 import {Book, ReadStatus} from '../../../book/model/book.model';
+import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 
 type SortDirection = 'asc' | 'desc';
 
@@ -103,6 +103,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   protected authorScaleService = inject(AuthorScalePreferenceService);
   private cdr = inject(ChangeDetectorRef);
   protected selectionService = inject(AuthorSelectionService);
+  private mobileUx = inject(MobileUxService);
 
   private _scrollContainer?: ElementRef<HTMLElement>;
   @ViewChild('scrollContainer')
@@ -146,15 +147,6 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
     gap: this.gapSig(),
     overscan: 5,
   }));
-
-  @HostListener('window:resize')
-  onResize(): void {
-    this.screenWidth = window.innerWidth;
-    this.cardWidthSig.set(this.cardWidth);
-    this.cardHeightSig.set(this.cardHeight);
-    this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
-    this.updateVirtualGridDomBindings();
-  }
 
   get isMobile(): boolean {
     return this.screenWidth <= 767;
@@ -295,6 +287,16 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
         this.cardHeightSig.set(this.cardHeight);
         this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
         queueMicrotask(() => this.updateVirtualGridDomBindings());
+      })
+    );
+
+    this.subscriptions.push(
+      this.mobileUx.screenWidth$.subscribe(width => {
+        this.screenWidth = width;
+        this.cardWidthSig.set(this.cardWidth);
+        this.cardHeightSig.set(this.cardHeight);
+        this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+        this.updateVirtualGridDomBindings();
       })
     );
 

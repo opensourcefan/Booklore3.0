@@ -1,7 +1,7 @@
 import {Component, DoCheck, ElementRef, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
-import {forkJoin, Subject} from 'rxjs';
+import {forkJoin, Subject, Subscription} from 'rxjs';
 import {debounceTime, filter, first, map, switchMap, takeUntil, timeout} from 'rxjs/operators';
 import {PageTitleService} from "../../../shared/service/page-title.service";
 import {CbxReaderService} from '../../book/service/cbx-reader.service';
@@ -33,6 +33,7 @@ import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-pr
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 import {LoadingIndicatorComponent} from '../../../shared/components/loading-indicator/loading-indicator.component';
+import {MobileUxService} from '../../../core/services/mobile-ux.service';
 
 interface CbxPanelRegion {
   x: number;
@@ -276,6 +277,9 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private comicPanelFlowService = inject(ComicPanelFlowService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
+  private mobileUx = inject(MobileUxService);
+
+  screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
 
   protected readonly CbxScrollMode = CbxScrollMode;
   protected readonly CbxFitMode = CbxFitMode;
@@ -287,8 +291,13 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private static readonly SETTING_GLOBAL = 'Global';
   private mobileBackHandles: Partial<Record<CbxMobileSurface, MobileBackHandle>> = {};
 
+  private resizeSub?: Subscription;
+
   ngOnInit() {
     this.loadJoystickDevicePreferences();
+    this.resizeSub = this.mobileUx.screenWidth$.subscribe(width => {
+      this.screenWidth = width;
+    });
 
     this.visibilityManager = new ReaderHeaderFooterVisibilityManager(window.innerHeight);
     this.isHeaderFooterPinned = this.visibilityManager.getIsPinned();
@@ -1825,7 +1834,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   get isMobileViewport(): boolean {
-    return window.innerWidth < 768;
+    return this.screenWidth <= 767;
   }
 
   get showMobileJoystick(): boolean {
@@ -2893,6 +2902,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnDestroy(): void {
+    this.resizeSub?.unsubscribe();
     this.releaseAllMobileBackRegistrations(false);
     this.releaseJoystickInteraction();
     this.clearReaderTimeout(this.panelTouchHintTimeout);

@@ -4,7 +4,6 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  HostListener,
   inject,
   OnDestroy,
   OnInit,
@@ -84,6 +83,7 @@ import {DirectoryPanelService} from '../../service/directory-panel.service';
 import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 import {isDirectoryScopeActive} from './book-browser-directory-scope.util';
+import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 import {getDirectoryScopedSortCriteria} from './book-browser-directory-scope.util';
 import {
   buildGridViewportContext,
@@ -163,6 +163,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly dirPanelService = inject(DirectoryPanelService);
   private mediaTypePreferences = inject(MediaTypePreferencesService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
+  private mobileUx = inject(MobileUxService);
   private pagedGridPilotService = inject(PagedGridPilotService);
   private pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
   readonly pagedGridPilotStatus$ = this.pagedGridPilotService.status$;
@@ -213,7 +214,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private hoverPreviewTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingPreviewBookId: number | null = null;
 
-  private readonly MOBILE_BREAKPOINT = 768;
+  private readonly MOBILE_BREAKPOINT = 767;
   private readonly CARD_ASPECT_RATIO = 7 / 5;
   private readonly MOBILE_GAP = 8;
   private readonly MOBILE_PADDING = 48;
@@ -277,17 +278,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   isMobileRightSidebarOpen = false;
   private mobileRightSidebarBackHandle: MobileBackHandle | null = null;
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.screenWidth = window.innerWidth;
-    this.cardWidthSig.set(this.currentCardSize.width);
-    this.cardHeightSig.set(this.getUniformCardHeight());
-    this.gapSig.set(this.isMobile ? this.MOBILE_GAP : 20.8);
-    this.updateVirtualGridDomBindings();
-  }
-
   get isMobile(): boolean {
-    return this.screenWidth < this.MOBILE_BREAKPOINT;
+    return this.screenWidth <= this.MOBILE_BREAKPOINT;
   }
 
   get mobileCardSize(): { width: number; height: number } {
@@ -511,12 +503,22 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     overscan: 5,
   }));
 
+  private resizeSub?: Subscription;
+
   ngOnInit(): void {
     this.pageTitle.setPageTitle('');
     this.coverScalePreferenceService.scaleChange$.pipe(debounceTime(1000), takeUntil(this.destroy$)).subscribe();
     this.loadMobileColumnsPreference();
     this.loadTitleRowsPreference();
     this.loadSubtitlePreference();
+
+    this.resizeSub = this.mobileUx.screenWidth$.subscribe(width => {
+      this.screenWidth = width;
+      this.cardWidthSig.set(this.currentCardSize.width);
+      this.cardHeightSig.set(this.getUniformCardHeight());
+      this.gapSig.set(this.isMobile ? this.MOBILE_GAP : 20.8);
+      this.updateVirtualGridDomBindings();
+    });
 
     this.dirPanelService.visible$
       .pipe(takeUntil(this.destroy$))
@@ -567,6 +569,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.resizeSub?.unsubscribe();
     this.forceCloseMobileRightSidebar(false);
     this.clearHoverPreviewTimer();
     this.pagedGridPilotService.resetActiveQuery();

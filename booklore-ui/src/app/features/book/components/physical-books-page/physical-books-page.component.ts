@@ -1,7 +1,7 @@
 import {AsyncPipe} from '@angular/common';
-import {Component, HostListener, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject} from '@angular/core';
 import {ProgressSpinner} from 'primeng/progressspinner';
-import {combineLatest, Observable, Subject} from 'rxjs';
+import {combineLatest, Observable, Subject, Subscription} from 'rxjs';
 import {map, startWith, takeUntil} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {BookCardComponent} from '../book-browser/book-card/book-card.component';
@@ -15,6 +15,7 @@ import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {ReadStatusHelper} from '../../helpers/read-status.helper';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 import {naturalCompareStrings} from '../../../../shared/util/natural-sort.util';
+import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 
 interface PhysicalBookGroup {
   key: string;
@@ -54,6 +55,7 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   private readonly urlHelper = inject(UrlHelperService);
   private readonly readStatusHelper = inject(ReadStatusHelper);
   private readonly mobileBackNavigation = inject(MobileBackNavigationService);
+  private readonly mobileUx = inject(MobileUxService);
   private readonly destroy$ = new Subject<void>();
 
   readonly bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
@@ -135,12 +137,23 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
     })
   );
 
-  private readonly MOBILE_BREAKPOINT = 768;
+  private readonly MOBILE_BREAKPOINT = 767;
   private readonly MOBILE_TITLE_ROWS_STORAGE_KEY = 'mobileTitleRowsPreference';
   private readonly DESKTOP_TITLE_ROWS_STORAGE_KEY = 'desktopTitleRowsPreference';
 
+  private resizeSub?: Subscription;
+
   ngOnInit(): void {
     this.loadTitleRowsPreference();
+    this.resizeSub = this.mobileUx.screenWidth$.subscribe(width => {
+      this.screenWidth = width;
+    });
+    this.resizeSub.add(this.mobileUx.screenHeight$.subscribe(height => {
+      this.screenHeight = height;
+      if (!this.isMobileInteractionMode && this.isMobileViewerOpen) {
+        this.closeMobileBookViewer();
+      }
+    }));
     this.t.langChanges$
       .pipe(startWith(this.t.getActiveLang()), takeUntil(this.destroy$))
       .subscribe(() => {
@@ -149,25 +162,17 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.resizeSub?.unsubscribe();
     this.mobileViewerBackHandle?.release(false);
     this.mobileViewerBackHandle = null;
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.screenWidth = window.innerWidth;
-    this.screenHeight = window.innerHeight;
-    if (!this.isMobileInteractionMode && this.isMobileViewerOpen) {
-      this.closeMobileBookViewer();
-    }
-  }
-
   get isMobileInteractionMode(): boolean {
     const shortEdge = Math.min(this.screenWidth, this.screenHeight);
     const longEdge = Math.max(this.screenWidth, this.screenHeight);
-    return shortEdge < this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
+    return shortEdge <= this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
   }
 
   get titleRowsForViewport(): number {

@@ -14,7 +14,7 @@ interface MobileBackEntry {
   providedIn: 'root'
 })
 export class MobileBackNavigationService implements OnDestroy {
-  private readonly MOBILE_BREAKPOINT = 768;
+  private readonly MOBILE_BREAKPOINT = 767;
   private readonly MOBILE_LONG_EDGE_MAX_PX = 1200;
   private readonly STATE_KEY = 'bookloreMobileBackToken';
 
@@ -100,6 +100,6 @@ export class MobileBackNavigationService implements OnDestroy {
   private isMobileInteractionMode(): boolean {
     const shortEdge = Math.min(window.innerWidth, window.innerHeight);
     const longEdge = Math.max(window.innerWidth, window.innerHeight);
-    return shortEdge < this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
+    return shortEdge <= this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
   }
 }

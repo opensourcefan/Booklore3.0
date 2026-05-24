@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  HostListener,
   inject,
   OnDestroy,
   OnInit,
@@ -30,6 +29,7 @@ import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {SeriesScalePreferenceService} from '../../service/series-scale-preference.service';
 import {Router} from '@angular/router';
 import {naturalCompareStrings} from '../../../../shared/util/natural-sort.util';
+import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 
 interface FilterOption {
   label: string;
@@ -74,6 +74,7 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   private t = inject(TranslocoService);
   private router = inject(Router);
   protected seriesScaleService = inject(SeriesScalePreferenceService);
+  private mobileUx = inject(MobileUxService);
 
   bookState$ = this.bookService.bookState$;
 
@@ -100,6 +101,7 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private gridSub?: Subscription;
+  private resizeSub?: Subscription;
 
   private readonly gridItemCountSig = signal(0);
   private readonly cardWidthSig = signal(this.cardWidth);
@@ -113,15 +115,6 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
     gap: this.gapSig(),
     overscan: 5,
   }));
-
-  @HostListener('window:resize')
-  onResize(): void {
-    this.screenWidth = window.innerWidth;
-    this.cardWidthSig.set(this.cardWidth);
-    this.cardHeightSig.set(this.cardHeight);
-    this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
-    this.updateVirtualGridDomBindings();
-  }
 
   get isMobile(): boolean {
     return this.screenWidth <= 767;
@@ -207,6 +200,14 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
       this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
       queueMicrotask(() => this.updateVirtualGridDomBindings());
     });
+
+    this.resizeSub = this.mobileUx.screenWidth$.subscribe(width => {
+      this.screenWidth = width;
+      this.cardWidthSig.set(this.cardWidth);
+      this.cardHeightSig.set(this.cardHeight);
+      this.gapSig.set(this.isMobile ? this.GRID_GAP_MOBILE : this.GRID_GAP_DESKTOP);
+      this.updateVirtualGridDomBindings();
+    });
   }
 
   ngAfterViewInit(): void {
@@ -215,6 +216,7 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnDestroy(): void {
     this.gridSub?.unsubscribe();
+    this.resizeSub?.unsubscribe();
   }
 
   onSearchChange(value: string): void {

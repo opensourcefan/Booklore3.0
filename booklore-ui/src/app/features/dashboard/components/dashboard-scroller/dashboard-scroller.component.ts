@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnInit, ViewChild, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild, inject, OnDestroy} from '@angular/core';
 import {BookCardComponent} from '../../../book/components/book-browser/book-card/book-card.component';
 import {InfiniteScrollDirective} from 'ngx-infinite-scroll';
 import {NgClass} from '@angular/common';
@@ -9,6 +9,8 @@ import {ScrollerType} from '../../models/dashboard-config.model';
 import { BookCardOverlayPreferenceService } from '../../../book/components/book-browser/book-card-overlay-preference.service';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {LocalStorageService} from '../../../../shared/service/local-storage.service';
+import {MobileUxService} from '../../../../core/services/mobile-ux.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-scroller',
@@ -24,7 +26,7 @@ import {LocalStorageService} from '../../../../shared/service/local-storage.serv
   ],
   standalone: true
 })
-export class DashboardScrollerComponent implements OnInit {
+export class DashboardScrollerComponent implements OnInit, OnDestroy {
 
   @Input() bookListType: ScrollerType | null = null;
   @Input() title!: string;
@@ -38,24 +40,28 @@ export class DashboardScrollerComponent implements OnInit {
   mobileTitleRows = 2;
   desktopTitleRows = 2;
 
-  private readonly MOBILE_BREAKPOINT = 768;
+  private readonly MOBILE_BREAKPOINT = 767;
   private readonly MOBILE_TITLE_ROWS_STORAGE_KEY = 'mobileTitleRowsPreference';
   private readonly DESKTOP_TITLE_ROWS_STORAGE_KEY = 'desktopTitleRowsPreference';
 
   public bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
   private readonly localStorageService = inject(LocalStorageService);
+  private readonly mobileUx = inject(MobileUxService);
+  private resizeSub?: Subscription;
 
   ngOnInit(): void {
     this.loadTitleRowsPreference();
+    this.resizeSub = this.mobileUx.screenWidth$.subscribe(width => {
+      this.screenWidth = width;
+    });
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.screenWidth = window.innerWidth;
+  ngOnDestroy(): void {
+    this.resizeSub?.unsubscribe();
   }
 
   get titleRowsForViewport(): number {
-    return this.screenWidth < this.MOBILE_BREAKPOINT ? this.mobileTitleRows : this.desktopTitleRows;
+    return this.screenWidth <= this.MOBILE_BREAKPOINT ? this.mobileTitleRows : this.desktopTitleRows;
   }
 
   get forceEbookMode(): boolean {

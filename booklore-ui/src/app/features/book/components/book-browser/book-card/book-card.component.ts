@@ -1,4 +1,4 @@
-import {AfterViewInit, ApplicationRef, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, inject, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {AfterViewInit, ApplicationRef, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {CdkPortal, DomPortalOutlet, PortalModule} from '@angular/cdk/portal';
 import {TooltipModule} from "primeng/tooltip";
 import {AdditionalFile, Book, BookType, ReadStatus} from '../../../model/book.model';
@@ -31,6 +31,7 @@ import {BookCardOverlayPreferenceService} from '../book-card-overlay-preference.
 import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
 import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
+import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
 
 @Component({
   selector: 'app-book-card',
@@ -41,7 +42,7 @@ import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shar
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
-  private readonly MOBILE_BREAKPOINT = 768;
+  private readonly MOBILE_BREAKPOINT = 767;
   private readonly MOBILE_LONG_EDGE_MAX_PX = 1200;
   private readonly VIEWER_SWIPE_THRESHOLD_PX = 48;
   // TieredMenu computes final z-index as baseZIndex + PrimeNG menu z-index.
@@ -56,6 +57,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private previewPortalOutlet: DomPortalOutlet | null = null;
   private inlineMobilePreviewBackHandle: MobileBackHandle | null = null;
   private readonly mobileBackNavigation = inject(MobileBackNavigationService);
+  private readonly mobileUx = inject(MobileUxService);
 
   @Output() bookClicked = new EventEmitter<Book>();
   @Output() bookHoverEnded = new EventEmitter<number>();
@@ -152,8 +154,19 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   private overlayPrefSub?: Subscription;
 
+  private resizeSub?: Subscription;
+
   ngOnInit(): void {
     this.computeAllMemoizedValues();
+    this.resizeSub = this.mobileUx.screenWidth$.subscribe(width => {
+      this.screenWidth = width;
+    });
+    this.resizeSub.add(this.mobileUx.screenHeight$.subscribe(height => {
+      this.screenHeight = height;
+      if (!this.isMobileInteractionMode && this.isInlineMobilePreviewOpen) {
+        this.closeInlineMobilePreview();
+      }
+    }));
     this.userService.userState$
       .pipe(
         filter(userState => !!userState?.user && userState.loaded),
@@ -322,7 +335,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   get isMobileInteractionMode(): boolean {
     const shortEdge = Math.min(this.screenWidth, this.screenHeight);
     const longEdge = Math.max(this.screenWidth, this.screenHeight);
-    return shortEdge < this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
+    return shortEdge <= this.MOBILE_BREAKPOINT && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
   }
 
   get shouldAutoMobileTitlePreview(): boolean {
@@ -343,15 +356,6 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   get isInlineMobilePreviewOpen(): boolean {
     return this.activeInlineMobileViewerBook !== null;
-  }
-
-  @HostListener('window:resize')
-  onResize(): void {
-    this.screenWidth = window.innerWidth;
-    this.screenHeight = window.innerHeight;
-    if (!this.isMobileInteractionMode && this.isInlineMobilePreviewOpen) {
-      this.closeInlineMobilePreview();
-    }
   }
 
   private buildReadStatusMenuItems(book: Book = this.getMenuContextBook()): void {
@@ -1593,6 +1597,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   ngOnDestroy(): void {
+    this.resizeSub?.unsubscribe();
     this.inlineMobilePreviewBackHandle?.release(false);
     this.inlineMobilePreviewBackHandle = null;
     this.hideActiveTieredMenu();
