@@ -828,11 +828,6 @@ export class AppTopBarComponent implements OnDestroy {
     }
 
     switch (item.id) {
-      case 'layoutPhone':
-      case 'layoutTablet':
-      case 'layoutAuto':
-      case 'sep3':
-        return false;
       case 'bookdrop':
         return !!(user?.permissions?.canAccessBookdrop || user?.permissions?.admin);
       case 'createLibrary':

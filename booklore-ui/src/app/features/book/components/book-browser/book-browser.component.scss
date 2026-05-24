@@ -719,6 +719,10 @@
       display: flex;
       flex-direction: column;
       max-height: calc(100dvh - 4rem);
+      background: var(--card-background);
+      border: 1px solid var(--p-content-border-color);
+      border-radius: 0.75rem;
+      overflow: hidden;
 
       app-book-filter {
         flex: 1;
@@ -726,6 +730,22 @@
         width: 100%;
         overflow: hidden;
         min-height: 0;
+
+        ::ng-deep .book-filter-container {
+          border: none !important;
+          border-radius: 0 !important;
+          background: transparent !important;
+          max-height: none !important;
+        }
+      }
+
+      app-cover-preview {
+        ::ng-deep .cover-preview-panel {
+          border-left: none !important;
+          border-right: none !important;
+          border-bottom: none !important;
+          background: transparent !important;
+        }
       }
     }
   }

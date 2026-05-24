@@ -187,6 +187,39 @@
                 </p-popover>
               </li>
             }
+            @case ('layoutPhone') {
+              <li>
+                <button type="button" class="topbar-item"
+                        [class.quick-layout-btn--active]="mobileUx.layoutMode === 'phone'"
+                        (click)="mobileUx.setLayoutMode('phone')"
+                        [pTooltip]="item.label"
+                        tooltipPosition="bottom">
+                  <i class="pi pi-mobile topbar-icon"></i>
+                </button>
+              </li>
+            }
+            @case ('layoutTablet') {
+              <li>
+                <button type="button" class="topbar-item"
+                        [class.quick-layout-btn--active]="mobileUx.layoutMode === 'tablet'"
+                        (click)="mobileUx.setLayoutMode('tablet')"
+                        [pTooltip]="item.label"
+                        tooltipPosition="bottom">
+                  <i class="pi pi-tablet topbar-icon"></i>
+                </button>
+              </li>
+            }
+            @case ('layoutAuto') {
+              <li>
+                <button type="button" class="topbar-item"
+                        [class.quick-layout-btn--active]="mobileUx.layoutMode === 'auto'"
+                        (click)="mobileUx.setLayoutMode('auto')"
+                        [pTooltip]="item.label"
+                        tooltipPosition="bottom">
+                  <i class="pi pi-desktop topbar-icon"></i>
+                </button>
+              </li>
+            }
             @case ('fullscreen') {
               <li>
                 <button type="button" class="topbar-item" (click)="toggleFullscreen()" [pTooltip]="fullscreenTooltip" tooltipPosition="bottom">

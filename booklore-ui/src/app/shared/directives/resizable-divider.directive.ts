@@ -191,6 +191,14 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
   }
 
   private isTouchHandleMode(): boolean {
+    if (typeof window !== 'undefined') {
+      const hasTouch = 'ontouchstart' in window ||
+                       (navigator && navigator.maxTouchPoints > 0) ||
+                       window.matchMedia('(pointer: coarse)').matches;
+      if (hasTouch) {
+        return true;
+      }
+    }
     return this.mobileUx.isMobileOrTablet;
   }
 
