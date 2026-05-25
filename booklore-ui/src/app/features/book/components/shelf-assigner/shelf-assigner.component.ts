@@ -136,7 +136,6 @@ export class ShelfAssignerComponent implements OnInit {
     this.bookService.updateBookShelves(bookIds, idsToAssign, idsToUnassign)
       .subscribe({
         next: () => {
-          this.bookService.refreshBooks().subscribe();
           this.writeProgressService.complete(this.t.translate('book.shelfAssigner.toast.updateSuccessDetail'));
           this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfAssigner.toast.updateSuccessDetail')});
         },

@@ -15,11 +15,19 @@ export class BookSocketService {
 
   handleNewlyCreatedBook(book: Book): void {
     this.bookStateService.upsertBookAndInvalidatePagedCaches(book);
+    const pagedBookBrowserStateService = this.injector.get(PagedBookBrowserStateService);
+    const pagedGridPilotService = this.injector.get(PagedGridPilotService);
+    pagedBookBrowserStateService.syncCacheFromSharedState();
+    pagedGridPilotService.refreshActiveState();
     this.sidebarBadgeRefresh.requestRefresh();
   }
 
   handleRemovedBookIds(removedBookIds: number[]): void {
     this.bookStateService.removeBooksAndInvalidatePagedCaches(removedBookIds);
+    const pagedBookBrowserStateService = this.injector.get(PagedBookBrowserStateService);
+    const pagedGridPilotService = this.injector.get(PagedGridPilotService);
+    pagedBookBrowserStateService.syncCacheFromSharedState();
+    pagedGridPilotService.refreshActiveState();
     if (removedBookIds.length > 0) {
       this.sidebarBadgeRefresh.requestRefresh();
     }
@@ -28,6 +36,11 @@ export class BookSocketService {
   handleBookUpdate(updatedBook: Book): void {
     const existingBook = this.bookStateService.getBookById(updatedBook.id);
     this.bookStateService.replaceBookAcrossState(updatedBook);
+
+    const pagedBookBrowserStateService = this.injector.get(PagedBookBrowserStateService);
+    const pagedGridPilotService = this.injector.get(PagedGridPilotService);
+    pagedBookBrowserStateService.syncCacheFromSharedState();
+    pagedGridPilotService.refreshActiveState();
 
     if (this.affectsSidebarCounts(existingBook, updatedBook)) {
       this.sidebarBadgeRefresh.requestRefresh();
@@ -38,6 +51,11 @@ export class BookSocketService {
     const shouldRefresh = updatedBooks.some(updatedBook => this.affectsSidebarCounts(this.bookStateService.getBookById(updatedBook.id), updatedBook));
 
     updatedBooks.forEach(book => this.bookStateService.replaceBookAcrossState(book));
+
+    const pagedBookBrowserStateService = this.injector.get(PagedBookBrowserStateService);
+    const pagedGridPilotService = this.injector.get(PagedGridPilotService);
+    pagedBookBrowserStateService.syncCacheFromSharedState();
+    pagedGridPilotService.refreshActiveState();
 
     if (shouldRefresh) {
       this.sidebarBadgeRefresh.requestRefresh();

@@ -80,6 +80,9 @@ export class BookPatchService {
           const updatedBookMap = new Map(updatedBooks.map(b => [b.id, b]));
           const newBooks = currentState.books.map(book => updatedBookMap.get(book.id) ?? book);
           this.bookStateService.updateBookState({...currentState, books: newBooks});
+          for (const updatedBook of updatedBooks) {
+            this.bookStateService.patchPagedCacheBook(updatedBook);
+          }
           this.syncPagedBrowsersAfterStateMutation();
         }
 

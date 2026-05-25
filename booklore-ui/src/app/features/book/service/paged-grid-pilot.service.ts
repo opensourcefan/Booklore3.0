@@ -5,6 +5,7 @@ import { BookState } from '../model/state/book-state.model';
 import { SortDirection, SortOption } from '../model/sort.model';
 import { PagedBookBrowserEntity, PagedBookBrowserPage, PagedBookBrowserRequestKey } from '../model/state/paged-book-browser-state.model';
 import { BookService, PagedBooksParams } from './book.service';
+import { BookStateService } from './book-state.service';
 import { PagedBookBrowserStateService } from './paged-book-browser-state.service';
 import { ServerFilterAdapter } from './server-filter-adapter.service';
 
@@ -54,6 +55,7 @@ export class PagedGridPilotService {
   private static readonly PREFETCHED_PAGE_COUNT = 2;
 
   private readonly bookService = inject(BookService);
+  private readonly bookStateService = inject(BookStateService);
   private readonly pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
   private readonly serverFilterAdapter = inject(ServerFilterAdapter);
 
@@ -498,7 +500,7 @@ export class PagedGridPilotService {
   }
 
   private getCachedPages(baseRequestKey: PagedBookBrowserRequestKey): PagedBookBrowserPage[] {
-    const matchingEntries = Object.values(this.pagedBookBrowserStateService.getCurrentState().cache)
+    const matchingEntries = Object.values(this.bookStateService.getCurrentBookState().pagedCache ?? {})
       .filter(entry => this.isMatchingKey(entry.key, baseRequestKey) && entry.status === 'loaded' && entry.page)
       .sort((left, right) => left.key.page - right.key.page);
 
