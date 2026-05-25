@@ -19,6 +19,7 @@ import {AuthService} from './shared/service/auth.service';
 import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progress.service';
 import {PagedGridPilotService} from './features/book/service/paged-grid-pilot.service';
 import {TaskStatus, TaskType} from './features/settings/task-management/task.service';
+import {SwUpdate} from '@angular/service-worker';
 
 describe('AppComponent offline detection', () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -45,6 +46,7 @@ describe('AppComponent offline detection', () => {
         {provide: AuthService, useValue: {forceLogout: vi.fn()}},
         {provide: AiPanelScanProgressService, useValue: {handleIncomingProgress: vi.fn()}},
         {provide: PagedGridPilotService, useValue: {invalidateAllBooksCache: vi.fn()}},
+        {provide: SwUpdate, useValue: {isEnabled: true, versionUpdates: of({type: 'NO_NEW_VERSION_DETECTED'}), activateUpdate: vi.fn(() => Promise.resolve(true))}},
         MessageService,
       ]
     });
@@ -170,6 +172,7 @@ describe('AppComponent task progress refresh handling', () => {
         {provide: AuthService, useValue: {forceLogout: vi.fn()}},
         {provide: AiPanelScanProgressService, useValue: {handleIncomingProgress: vi.fn()}},
         {provide: PagedGridPilotService, useValue: pagedGridPilotServiceMock},
+        {provide: SwUpdate, useValue: {isEnabled: true, versionUpdates: of({type: 'NO_NEW_VERSION_DETECTED'}), activateUpdate: vi.fn(() => Promise.resolve(true))}},
         MessageService,
       ]
     });
