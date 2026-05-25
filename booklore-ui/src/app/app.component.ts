@@ -1,4 +1,5 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {SwUpdate, VersionReadyEvent} from '@angular/service-worker';
 import {RxStompService} from './shared/websocket/rx-stomp.service';
 import {BookService} from './features/book/service/book.service';
 import {NotificationEventService} from './shared/websocket/notification-event.service';
@@ -12,7 +13,7 @@ import {AppConfigService} from './shared/service/app-config.service';
 import {MetadataBatchProgressNotification} from './shared/model/metadata-batch-progress.model';
 import {MetadataProgressService} from './shared/service/metadata-progress.service';
 import {BookdropFileNotification, BookdropFileService} from './features/bookdrop/service/bookdrop-file.service';
-import {Subscription} from 'rxjs';
+import {Subscription, filter} from 'rxjs';
 import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from './features/settings/task-management/task.service';
 import {LibraryService} from './features/book/service/library.service';
 import {LibraryHealthService} from './features/book/service/library-health.service';
@@ -52,10 +53,13 @@ export class AppComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private pagedGridPilotService = inject(PagedGridPilotService);
+  private swUpdate = inject(SwUpdate);
 
   ngOnInit(): void {
     window.addEventListener('online', this.onOnline);
     window.addEventListener('offline', this.onOffline);
+
+    this.setupServiceWorkerAutoReload();
 
     this.authInit.initialized$.subscribe(ready => {
       this.loading = !ready;
@@ -65,6 +69,28 @@ export class AppComponent implements OnInit, OnDestroy {
         this.subscriptionsInitialized = true;
       }
     });
+  }
+
+  /**
+   * Subscribes to Angular Service Worker version updates.
+   * When a new version is detected and ready, activates it immediately
+   * and reloads the page so the user always runs the latest build.
+   * This prevents stale chunk 404s caused by cached index.html referencing
+   * JavaScript files from a previous deployment.
+   */
+  private setupServiceWorkerAutoReload(): void {
+    if (!this.swUpdate.isEnabled) {
+      return;
+    }
+    this.subscriptions.push(
+      this.swUpdate.versionUpdates.pipe(
+        filter((event): event is VersionReadyEvent => event.type === 'VERSION_READY')
+      ).subscribe(() => {
+        this.swUpdate.activateUpdate().then(() => {
+          document.location.reload();
+        });
+      })
+    );
   }
 
   private onOnline = () => {
