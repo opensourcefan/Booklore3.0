@@ -14,6 +14,72 @@ function createDefaultBookState(): BookState {
   };
 }
 
+function doesBookMatchEntity(book: Book, entity: PagedBookBrowserEntity, entityId: number | null): boolean {
+  switch (entity) {
+    case 'NOT_SHELFED':
+      return !book.shelves || book.shelves.length === 0;
+    case 'SHELF':
+      return !!book.shelves && book.shelves.some(s => s.id === entityId);
+    case 'LIBRARY':
+      return book.libraryId === entityId;
+    default:
+      return true;
+  }
+}
+
+function doesBookMatchFilters(book: Book, filters: Record<string, string[]>): boolean {
+  for (const [key, values] of Object.entries(filters)) {
+    if (!values || values.length === 0) {
+      continue;
+    }
+    let rawVal: unknown;
+    if (key === 'author') {
+      rawVal = book.metadata?.authors;
+    } else if (key === 'category') {
+      rawVal = book.metadata?.categories;
+    } else if (key === 'series') {
+      rawVal = book.metadata?.seriesName;
+    } else if (key === 'publisher') {
+      rawVal = book.metadata?.publisher;
+    } else if (key === 'language') {
+      rawVal = book.metadata?.language;
+    } else if (key === 'readStatus') {
+      rawVal = book.readStatus;
+    } else if (key === 'bookType') {
+      rawVal = book.primaryFile?.bookType;
+    } else if (key === 'contentRating') {
+      rawVal = book.metadata?.contentRating;
+    } else {
+      rawVal = book[key] !== undefined ? book[key] : book.metadata?.[key];
+    }
+
+    if (rawVal === undefined || rawVal === null) {
+      return false;
+    }
+
+    if (Array.isArray(rawVal)) {
+      const lowerVals = rawVal.map(v => String(v).toLowerCase());
+      if (!values.some(v => lowerVals.includes(v.toLowerCase()))) {
+        return false;
+      }
+    } else {
+      const valStr = String(rawVal).toLowerCase();
+      if (!values.some(v => v.toLowerCase() === valStr)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+function doesBookMatchSearch(book: Book, search: string): boolean {
+  const term = search.toLowerCase();
+  const title = (book.metadata?.title ?? '').toLowerCase();
+  const subtitle = (book.metadata?.subtitle ?? '').toLowerCase();
+  const authors = (book.metadata?.authors ?? []).map(a => a.toLowerCase());
+  return title.includes(term) || subtitle.includes(term) || authors.some(a => a.includes(term));
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -46,6 +112,30 @@ export class BookStateService {
             if (!entry.page) {
               return [cacheKey, entry];
             }
+
+            let shouldInvalidate = false;
+            for (const book of entry.page.content) {
+              const updatedBook = nextBooksMap.get(book.id);
+              if (updatedBook) {
+                if (!doesBookMatchEntity(updatedBook, entry.key.entity, entry.key.entityId)) {
+                  shouldInvalidate = true;
+                  break;
+                }
+                if (entry.key.filters && !doesBookMatchFilters(updatedBook, entry.key.filters)) {
+                  shouldInvalidate = true;
+                  break;
+                }
+                if (entry.key.search && !doesBookMatchSearch(updatedBook, entry.key.search)) {
+                  shouldInvalidate = true;
+                  break;
+                }
+              }
+            }
+
+            if (shouldInvalidate) {
+              return [];
+            }
+
             let pageChanged = false;
             const updatedContent = entry.page.content.map(book => {
               const updatedBook = nextBooksMap.get(book.id);
@@ -65,7 +155,7 @@ export class BookStateService {
               }];
             }
             return [cacheKey, entry];
-          })
+          }).filter(pair => pair.length > 0)
         );
       } else {
         nextPagedCache = {};
