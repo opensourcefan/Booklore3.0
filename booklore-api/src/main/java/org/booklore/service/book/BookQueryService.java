@@ -550,6 +550,7 @@ public class BookQueryService {
 
         AppBookGridSummary.AppBookGridSummaryBuilder builder = AppBookGridSummary.builder()
                 .id(bookEntity.getId())
+                .libraryId(bookEntity.getLibrary() != null ? bookEntity.getLibrary().getId() : null)
                 .fileType(bookEntity.getFileType())
                 .isPhysical(bookEntity.getIsPhysical())
                 .addedOn(bookEntity.getAddedOn());

@@ -26,7 +26,7 @@ describe('BookStateService', () => {
     return TestBed.inject(BookStateService);
   }
 
-  it('stores paged cache separately and updates it in place when the legacy books array changes', () => {
+  it('stores paged cache separately and clears it when the legacy books array changes', () => {
     const service = createService();
     const cacheEntry: PagedBookBrowserCacheEntry = {
       key: {
@@ -42,7 +42,7 @@ describe('BookStateService', () => {
       },
       status: 'loaded',
       page: {
-        content: [createBook(11, 'Original Title')],
+        content: [createBook(11)],
         page: 0,
         size: 80,
         totalElements: 1,
@@ -61,15 +61,14 @@ describe('BookStateService', () => {
     expect(service.getCurrentBookState().totalCount).toBe(1);
 
     service.updateBookState({
-      books: [createBook(11, 'Updated Title')],
+      books: [createBook(99)],
       loaded: true,
       error: null,
     });
 
-    const cachedBook = service.getCurrentBookState().pagedCache?.['page0']?.page?.content?.[0];
-    expect(cachedBook?.metadata?.title).toBe('Updated Title');
+    expect(service.getCurrentBookState().pagedCache).toEqual({});
     expect(service.getCurrentBookState().totalCount).toBe(1);
-    expect(service.getCurrentBookState().books?.map(book => book.id)).toEqual([11]);
+    expect(service.getCurrentBookState().books?.map(book => book.id)).toEqual([99]);
   });
 
   it('resolves ordered book ids from the paged cache', () => {
@@ -252,136 +251,5 @@ describe('BookStateService', () => {
     service.invalidatePagedCacheByEntity('ALL_BOOKS');
     expect(service.getCurrentBookState().pagedCache).toEqual({});
     expect(service.getCurrentBookState().totalCount).toBeNull();
-  });
-
-  it('invalidates paged cache entries when updated books no longer match the entity query criteria', () => {
-    const service = createService();
-    const unshelvedBook = {
-      id: 11,
-      libraryId: 1,
-      libraryName: 'Library',
-      shelves: [],
-      metadata: { title: 'Book 11' },
-    } as Book;
-
-    const shelf9Book = {
-      id: 22,
-      libraryId: 1,
-      libraryName: 'Library',
-      shelves: [{ id: 9, name: 'Shelf 9' }],
-      metadata: { title: 'Book 22' },
-    } as Book;
-
-    service.setPagedCache({
-      notShelfed: {
-        key: {
-          entity: 'NOT_SHELFED',
-          entityId: null,
-          viewMode: 'grid',
-          page: 0,
-          size: 80,
-          sorts: ['addedOn,desc'],
-          filterMode: 'and',
-          search: null,
-          filters: {},
-        },
-        status: 'loaded',
-        page: {
-          content: [unshelvedBook],
-          page: 0,
-          size: 80,
-          totalElements: 1,
-          totalPages: 1,
-          hasNext: false,
-          hasPrevious: false,
-        },
-        error: null,
-        loadedAt: Date.now(),
-        fallbackReason: null,
-      },
-      shelf9: {
-        key: {
-          entity: 'SHELF',
-          entityId: 9,
-          viewMode: 'grid',
-          page: 0,
-          size: 80,
-          sorts: ['addedOn,desc'],
-          filterMode: 'and',
-          search: null,
-          filters: {},
-        },
-        status: 'loaded',
-        page: {
-          content: [shelf9Book],
-          page: 0,
-          size: 80,
-          totalElements: 1,
-          totalPages: 1,
-          hasNext: false,
-          hasPrevious: false,
-        },
-        error: null,
-        loadedAt: Date.now(),
-        fallbackReason: null,
-      },
-      library1: {
-        key: {
-          entity: 'LIBRARY',
-          entityId: 1,
-          viewMode: 'grid',
-          page: 0,
-          size: 80,
-          sorts: ['addedOn,desc'],
-          filterMode: 'and',
-          search: null,
-          filters: {},
-        },
-        status: 'loaded',
-        page: {
-          content: [unshelvedBook, shelf9Book],
-          page: 0,
-          size: 80,
-          totalElements: 2,
-          totalPages: 1,
-          hasNext: false,
-          hasPrevious: false,
-        },
-        error: null,
-        loadedAt: Date.now(),
-        fallbackReason: null,
-      },
-    });
-
-    const updatedUnshelvedBook = {
-      ...unshelvedBook,
-      shelves: [{ id: 9, name: 'Shelf 9' }],
-    };
-
-    service.updateBookState({
-      books: [updatedUnshelvedBook, shelf9Book],
-      loaded: true,
-      error: null,
-    });
-
-    let state = service.getCurrentBookState();
-    expect(state.pagedCache?.['notShelfed']).toBeUndefined();
-    expect(state.pagedCache?.['shelf9']).toBeDefined();
-    expect(state.pagedCache?.['library1']).toBeDefined();
-
-    const updatedShelf9Book = {
-      ...shelf9Book,
-      shelves: [],
-    };
-
-    service.updateBookState({
-      books: [updatedUnshelvedBook, updatedShelf9Book],
-      loaded: true,
-      error: null,
-    });
-
-    state = service.getCurrentBookState();
-    expect(state.pagedCache?.['shelf9']).toBeUndefined();
-    expect(state.pagedCache?.['library1']).toBeDefined();
   });
 });

@@ -72,6 +72,12 @@ export class PagedGridPilotService {
   readonly bookState$ = this.bookStateSubject.asObservable();
   readonly status$ = this.statusSubject.asObservable();
 
+  constructor() {
+    this.pagedBookBrowserStateService.pagedBookBrowserState$.subscribe(() => {
+      this.refreshActiveState();
+    });
+  }
+
   private activeQuery: ActivePagedQuery | null = null;
   private pagedActive = false;
   private requestSubscription: Subscription | null = null;
@@ -560,22 +566,77 @@ export class PagedGridPilotService {
 
     return currentState.books.every((book, i) => {
       const nextBook = nextState.books![i];
-      return book.id === nextBook.id
-        && book.metadata?.title === nextBook.metadata?.title
-        && book.metadata?.authors?.join(',') === nextBook.metadata?.authors?.join(',')
-        && book.metadata?.coverUpdatedOn === nextBook.metadata?.coverUpdatedOn
-        && book.personalRating === nextBook.personalRating
-        && book.readStatus === nextBook.readStatus
-        && book.fileType === nextBook.fileType
-        && book.isPhysical === nextBook.isPhysical
-        && book.isCurrentlyReading === nextBook.isCurrentlyReading
-        && book.epubProgress?.percentage === nextBook.epubProgress?.percentage
-        && book.pdfProgress?.percentage === nextBook.pdfProgress?.percentage
-        && book.cbxProgress?.percentage === nextBook.cbxProgress?.percentage
-        && book.audiobookProgress?.percentage === nextBook.audiobookProgress?.percentage
-        && book.koreaderProgress?.percentage === nextBook.koreaderProgress?.percentage
-        && book.koboProgress?.percentage === nextBook.koboProgress?.percentage
-        && JSON.stringify(book.shelves) === JSON.stringify(nextBook.shelves);
+      if (book.id !== nextBook.id) {
+        return false;
+      }
+
+      if (
+        book.isPhysical !== nextBook.isPhysical
+        || book.isCurrentlyReading !== nextBook.isCurrentlyReading
+        || book.personalRating !== nextBook.personalRating
+        || book.readStatus !== nextBook.readStatus
+        || book.fileType !== nextBook.fileType
+        || book.lastReadTime !== nextBook.lastReadTime
+      ) {
+        return false;
+      }
+
+      if (
+        book.epubProgress?.percentage !== nextBook.epubProgress?.percentage
+        || book.pdfProgress?.percentage !== nextBook.pdfProgress?.percentage
+        || book.cbxProgress?.percentage !== nextBook.cbxProgress?.percentage
+        || book.koreaderProgress?.percentage !== nextBook.koreaderProgress?.percentage
+        || book.koboProgress?.percentage !== nextBook.koboProgress?.percentage
+        || book.audiobookProgress?.percentage !== nextBook.audiobookProgress?.percentage
+      ) {
+        return false;
+      }
+
+      const meta = book.metadata;
+      const nextMeta = nextBook.metadata;
+      if (!!meta !== !!nextMeta) {
+        return false;
+      }
+      if (meta && nextMeta) {
+        if (
+          meta.title !== nextMeta.title
+          || meta.subtitle !== nextMeta.subtitle
+          || meta.publisher !== nextMeta.publisher
+          || meta.publishedDate !== nextMeta.publishedDate
+          || meta.seriesName !== nextMeta.seriesName
+          || meta.seriesNumber !== nextMeta.seriesNumber
+          || meta.coverUpdatedOn !== nextMeta.coverUpdatedOn
+          || meta.audiobookCoverUpdatedOn !== nextMeta.audiobookCoverUpdatedOn
+          || meta.rating !== nextMeta.rating
+        ) {
+          return false;
+        }
+
+        const authors = meta.authors ?? [];
+        const nextAuthors = nextMeta.authors ?? [];
+        if (authors.length !== nextAuthors.length || !authors.every((auth, index) => auth === nextAuthors[index])) {
+          return false;
+        }
+
+        const categories = meta.categories ?? [];
+        const nextCategories = nextMeta.categories ?? [];
+        if (categories.length !== nextCategories.length || !categories.every((cat, index) => cat === nextCategories[index])) {
+          return false;
+        }
+      }
+
+      const shelves = book.shelves ?? [];
+      const nextShelves = nextBook.shelves ?? [];
+      if (shelves.length !== nextShelves.length) {
+        return false;
+      }
+      for (let sIndex = 0; sIndex < shelves.length; sIndex++) {
+        if (shelves[sIndex].id !== nextShelves[sIndex].id || shelves[sIndex].name !== nextShelves[sIndex].name) {
+          return false;
+        }
+      }
+
+      return true;
     });
   }
 

@@ -213,7 +213,7 @@ export class BookService {
       hasAiPanelData: summary.hasAiPanelData,
       lastReadTime: summary.lastReadTime,
       addedOn: summary.addedOn,
-      libraryId: 0,
+      libraryId: summary.libraryId ?? 0,
       libraryName: '',
       primaryFile: summary.primaryFileType ? {
         id: 0,
@@ -396,18 +396,10 @@ export class BookService {
 
     return this.http.delete<BookDeletionResponse>(this.url, {params}).pipe(
       tap(response => {
-        const deletedIds = new Set((response.deleted || []).map(id => Number(id)));
-        const currentState = this.bookStateService.getCurrentBookState();
-        const remainingBooks = (currentState.books || []).filter(
-          book => !deletedIds.has(book.id)
-        );
+        const deletedIds = (response.deleted || []).map(id => Number(id));
+        this.bookStateService.removeBooksAndInvalidatePagedCaches(deletedIds);
 
-        this.bookStateService.updateBookState({
-          books: remainingBooks,
-          loaded: true,
-          error: null,
-        });
-        if (deletedIds.size > 0) {
+        if (deletedIds.length > 0) {
           this.sidebarBadgeRefresh.requestRefresh();
         }
 
@@ -486,9 +478,13 @@ export class BookService {
   togglePhysicalFlag(bookId: number, physical: boolean): Observable<Book> {
     return this.http.patch<Book>(`${this.url}/${bookId}/physical`, null, {params: {physical}}).pipe(
       tap(_updatedBook => {
-        const currentState = this.bookStateService.getCurrentBookState();
-        const updatedBooks = (currentState.books || []).map(b => b.id === bookId ? {...b, isPhysical: physical} : b);
-        this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        const book = this.bookStateService.getBookById(bookId);
+        if (book) {
+          this.bookStateService.replaceBookAcrossState({
+            ...book,
+            isPhysical: physical,
+          });
+        }
         this.sidebarBadgeRefresh.requestRefresh();
       })
     );
@@ -590,9 +586,13 @@ export class BookService {
     const params = new HttpParams().set('isCurrentlyReading', isCurrentlyReading.toString());
     return this.http.patch<Book>(`${this.url}/${bookId}`, null, { params }).pipe(
       tap(_updatedBook => {
-        const currentState = this.bookStateService.getCurrentBookState();
-        const updatedBooks = (currentState.books || []).map(b => b.id === bookId ? {...b, isCurrentlyReading} : b);
-        this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        const book = this.bookStateService.getBookById(bookId);
+        if (book) {
+          this.bookStateService.replaceBookAcrossState({
+            ...book,
+            isCurrentlyReading,
+          });
+        }
       })
     );
   }

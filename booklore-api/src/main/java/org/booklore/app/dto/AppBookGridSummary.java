@@ -17,6 +17,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AppBookGridSummary {
     private Long id;
+    private Long libraryId;
     private String fileName;
     private String fileType;
     private Boolean isPhysical;

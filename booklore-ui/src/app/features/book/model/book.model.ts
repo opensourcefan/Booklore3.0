@@ -8,6 +8,7 @@ export type BookType = "PDF" | "EPUB" | "CBX" | "FB2" | "MOBI" | "AZW3" | "AUDIO
 /** Lightweight DTO returned by GET /api/v1/books/paged (Phase Two optimization) */
 export interface AppBookGridSummary {
   id: number;
+  libraryId?: number;
   fileName?: string;
   fileType?: string;
   isPhysical?: boolean;

@@ -110,7 +110,9 @@ describe('BookMetadataManageService', () => {
     });
 
     expect(handleBookMetadataUpdateSpy).toHaveBeenCalledWith(4, updatedMetadata);
+    expect(syncCacheFromSharedStateSpy).toHaveBeenCalledTimes(1);
     expect(invalidateAllBooksCacheSpy).not.toHaveBeenCalled();
+    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
     expect(refreshSubscriptions).toBe(0);
   });
 
@@ -126,7 +128,9 @@ describe('BookMetadataManageService', () => {
     });
 
     expect(handleBookMetadataUpdateSpy).toHaveBeenCalledWith(5, wipedMetadata);
+    expect(syncCacheFromSharedStateSpy).toHaveBeenCalledTimes(1);
     expect(invalidateAllBooksCacheSpy).not.toHaveBeenCalled();
+    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
     expect(refreshSubscriptions).toBe(0);
   });
 });

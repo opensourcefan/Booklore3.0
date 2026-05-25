@@ -7,6 +7,8 @@ import {BookStateService} from './book-state.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {ResetProgressType, ResetProgressTypes} from '../../../shared/constants/reset-progress-type';
 import {BookStatusUpdateResponse, PersonalRatingUpdateResponse} from '../model/book.model';
+import {PagedGridPilotService} from './paged-grid-pilot.service';
+import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 
 @Injectable({
@@ -80,11 +82,21 @@ export class BookPatchService {
           this.bookStateService.updateBookState({...currentState, books: newBooks});
         }
 
+        updatedBooks.forEach(book => {
+          this.bookStateService.replaceBookAcrossState(book);
+        });
+
         if (updatedBooks.length > 0) {
+          this.syncPagedBrowsersAfterStateMutation();
           this.sidebarBadgeRefresh.requestRefresh();
         }
       })
     );
+  }
+
+  private syncPagedBrowsersAfterStateMutation(): void {
+    this.injector.get(PagedBookBrowserStateService).syncCacheFromSharedState();
+    this.injector.get(PagedGridPilotService).refreshActiveState();
   }
 
   updateFileType(bookIds: Set<number | undefined>, fileType: string | null): Observable<Book[]> {
@@ -102,7 +114,12 @@ export class BookPatchService {
           this.bookStateService.updateBookState({...currentState, books: newBooks});
         }
 
+        updatedBooks.forEach(book => {
+          this.bookStateService.replaceBookAcrossState(book);
+        });
+
         if (updatedBooks.length > 0) {
+          this.syncPagedBrowsersAfterStateMutation();
           this.sidebarBadgeRefresh.requestRefresh();
         }
       })
@@ -191,6 +208,14 @@ export class BookPatchService {
             books: updatedBooks
           });
         }
+
+        const book = this.bookStateService.getBookById(bookId);
+        if (book) {
+          this.bookStateService.replaceBookAcrossState({
+            ...book,
+            dateFinished: dateFinished || undefined
+          });
+        }
       })
     );
   }
@@ -202,24 +227,43 @@ export class BookPatchService {
     return this.http.post<BookStatusUpdateResponse[]>(`${this.url}/reset-progress`, ids, {params}).pipe(
       tap(responses => {
         const currentState = this.bookStateService.getCurrentBookState();
-        const updatedBooks = (currentState.books || []).map(book => {
-          const response = responses.find(r => r.bookId === book.id);
-          if (response) {
+        if (currentState.books) {
+          const updatedBooks = (currentState.books || []).map(book => {
+            const response = responses.find(r => r.bookId === book.id);
+            if (response) {
+              const progressReset: Partial<Book> =
+                type === 'KOREADER' ? {koreaderProgress: undefined} :
+                type === 'KOBO' ? {koboProgress: undefined} :
+                {epubProgress: undefined, pdfProgress: undefined, cbxProgress: undefined, audiobookProgress: undefined};
+              return {
+                ...book,
+                ...progressReset,
+                readStatus: response.readStatus,
+                readStatusModifiedTime: response.readStatusModifiedTime,
+                dateFinished: response.dateFinished
+              };
+            }
+            return book;
+          });
+          this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        }
+
+        responses.forEach(response => {
+          const book = this.bookStateService.getBookById(response.bookId);
+          if (book) {
             const progressReset: Partial<Book> =
               type === 'KOREADER' ? {koreaderProgress: undefined} :
               type === 'KOBO' ? {koboProgress: undefined} :
               {epubProgress: undefined, pdfProgress: undefined, cbxProgress: undefined, audiobookProgress: undefined};
-            return {
+            this.bookStateService.replaceBookAcrossState({
               ...book,
               ...progressReset,
               readStatus: response.readStatus,
               readStatusModifiedTime: response.readStatusModifiedTime,
               dateFinished: response.dateFinished
-            };
+            });
           }
-          return book;
         });
-        this.bookStateService.updateBookState({...currentState, books: updatedBooks});
       })
     );
   }
@@ -234,19 +278,33 @@ export class BookPatchService {
     return this.http.post<BookStatusUpdateResponse[]>(`${this.url}/status`, requestBody).pipe(
       tap(responses => {
         const currentState = this.bookStateService.getCurrentBookState();
-        const updatedBooks = (currentState.books || []).map(book => {
-          const response = responses.find(r => r.bookId === book.id);
-          if (response) {
-            return {
+        if (currentState.books) {
+          const updatedBooks = (currentState.books || []).map(book => {
+            const response = responses.find(r => r.bookId === book.id);
+            if (response) {
+              return {
+                ...book,
+                readStatus: response.readStatus,
+                readStatusModifiedTime: response.readStatusModifiedTime,
+                dateFinished: response.dateFinished
+              };
+            }
+            return book;
+          });
+          this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        }
+
+        responses.forEach(response => {
+          const book = this.bookStateService.getBookById(response.bookId);
+          if (book) {
+            this.bookStateService.replaceBookAcrossState({
               ...book,
               readStatus: response.readStatus,
               readStatusModifiedTime: response.readStatusModifiedTime,
               dateFinished: response.dateFinished
-            };
+            });
           }
-          return book;
         });
-        this.bookStateService.updateBookState({...currentState, books: updatedBooks});
       })
     );
   }
@@ -257,17 +315,29 @@ export class BookPatchService {
     return this.http.post<PersonalRatingUpdateResponse[]>(`${this.url}/reset-personal-rating`, ids).pipe(
       tap(responses => {
         const currentState = this.bookStateService.getCurrentBookState();
-        const updatedBooks = (currentState.books || []).map(book => {
-          const response = responses.find(r => r.bookId === book.id);
-          if (response) {
-            return {
+        if (currentState.books) {
+          const updatedBooks = (currentState.books || []).map(book => {
+            const response = responses.find(r => r.bookId === book.id);
+            if (response) {
+              return {
+                ...book,
+                personalRating: response.personalRating
+              };
+            }
+            return book;
+          });
+          this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        }
+
+        responses.forEach(response => {
+          const book = this.bookStateService.getBookById(response.bookId);
+          if (book) {
+            this.bookStateService.replaceBookAcrossState({
               ...book,
               personalRating: response.personalRating
-            };
+            });
           }
-          return book;
         });
-        this.bookStateService.updateBookState({...currentState, books: updatedBooks});
       })
     );
   }
@@ -278,17 +348,29 @@ export class BookPatchService {
     return this.http.put<PersonalRatingUpdateResponse[]>(`${this.url}/personal-rating`, {ids, rating}).pipe(
       tap(responses => {
         const currentState = this.bookStateService.getCurrentBookState();
-        const updatedBooks = (currentState.books || []).map(book => {
-          const response = responses.find(r => r.bookId === book.id);
-          if (response) {
-            return {
+        if (currentState.books) {
+          const updatedBooks = (currentState.books || []).map(book => {
+            const response = responses.find(r => r.bookId === book.id);
+            if (response) {
+              return {
+                ...book,
+                personalRating: response.personalRating
+              };
+            }
+            return book;
+          });
+          this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        }
+
+        responses.forEach(response => {
+          const book = this.bookStateService.getBookById(response.bookId);
+          if (book) {
+            this.bookStateService.replaceBookAcrossState({
               ...book,
               personalRating: response.personalRating
-            };
+            });
           }
-          return book;
         });
-        this.bookStateService.updateBookState({...currentState, books: updatedBooks});
       })
     );
   }
@@ -296,9 +378,19 @@ export class BookPatchService {
   updateLastReadTime(bookId: number): void {
     const timestamp = new Date().toISOString();
     const currentState = this.bookStateService.getCurrentBookState();
-    const updatedBooks = (currentState.books || []).map(book =>
-      book.id === bookId ? {...book, lastReadTime: timestamp} : book
-    );
-    this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+    if (currentState.books) {
+      const updatedBooks = (currentState.books || []).map(book =>
+        book.id === bookId ? {...book, lastReadTime: timestamp} : book
+      );
+      this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+    }
+
+    const book = this.bookStateService.getBookById(bookId);
+    if (book) {
+      this.bookStateService.replaceBookAcrossState({
+        ...book,
+        lastReadTime: timestamp
+      });
+    }
   }
 }

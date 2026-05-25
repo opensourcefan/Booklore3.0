@@ -1,9 +1,8 @@
-import {Injectable, inject, Injector} from '@angular/core';
-import {BehaviorSubject, forkJoin, map, Observable, of} from 'rxjs';
+import {Injectable, inject} from '@angular/core';
+import {BehaviorSubject, distinctUntilChanged, forkJoin, map, Observable, of} from 'rxjs';
 import {AppPageResponse, BookService, PagedBooksParams} from './book.service';
 import {Book} from '../model/book.model';
 import {BookStateService} from './book-state.service';
-import {PagedGridPilotService} from './paged-grid-pilot.service';
 import {
   BookBrowserViewMode,
   DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS,
@@ -21,24 +20,28 @@ import {
 export class PagedBookBrowserStateService {
   private readonly bookService = inject(BookService);
   private readonly bookStateService = inject(BookStateService);
-  private readonly injector = inject(Injector);
 
   private readonly pagedBookBrowserStateSubject = new BehaviorSubject<PagedBookBrowserState>({
     guardrails: DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS,
     cache: {},
   });
 
+  readonly pagedBookBrowserState$ = this.pagedBookBrowserStateSubject.asObservable();
+
   constructor() {
-    this.bookStateService.bookState$.subscribe(state => {
-      if (state.loaded) {
-        this.syncCacheFromBookState();
-        const pagedGridPilotService = this.injector.get(PagedGridPilotService);
-        pagedGridPilotService.refreshActiveState();
+    this.bookStateService.bookState$.pipe(
+      map(state => state.pagedCache),
+      distinctUntilChanged()
+    ).subscribe(pagedCache => {
+      const currentState = this.getCurrentState();
+      if (currentState.cache !== pagedCache) {
+        this.pagedBookBrowserStateSubject.next({
+          ...currentState,
+          cache: pagedCache ?? {},
+        });
       }
     });
   }
-
-  readonly pagedBookBrowserState$ = this.pagedBookBrowserStateSubject.asObservable();
 
   getCurrentState(): PagedBookBrowserState {
     return this.pagedBookBrowserStateSubject.value;
@@ -220,6 +223,10 @@ export class PagedBookBrowserStateService {
     }
 
     this.bookStateService.invalidatePagedCacheByBookIds(bookIds);
+    this.syncCacheFromBookState();
+  }
+
+  syncCacheFromSharedState(): void {
     this.syncCacheFromBookState();
   }
 
