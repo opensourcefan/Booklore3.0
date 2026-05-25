@@ -30,6 +30,14 @@ paths: ["**/*"]
 
 - **Definition of Done Checklist:** Before declaring any task complete, the AI MUST output a point-by-point checklist of these preferences and explicitly confirm it has executed each one. This ensures the AI evaluates whether it has completed the push, generated the report, outputted the diff, and listed the edge cases before generating the final response.
 
+## Git Safety Protocol
+- **NEVER `git pull` or `git pull --rebase` without explicit user approval.**
+  If `git push` is rejected with "non-fast-forward," STOP immediately.
+  Run `git fetch origin && git log --oneline HEAD..origin/develop` to inspect
+  what is on the remote. Report the divergence to the user and ask how to proceed.
+  Never follow the git "use git pull" hint blindly.
+
+
 ## Always Check For Downstream Impacts
 - **Before recommending OR implementing any code change**, you MUST trace all callers, consumers, and dependents of the affected code.
 - For JPA entity changes (fetch type, cascade, relationship mapping): grep for all references to the field's getter and all methods that load or traverse the entity. Verify whether each call site runs inside a transaction/session.
