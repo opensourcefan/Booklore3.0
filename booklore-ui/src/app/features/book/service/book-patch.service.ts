@@ -7,8 +7,6 @@ import {BookStateService} from './book-state.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {ResetProgressType, ResetProgressTypes} from '../../../shared/constants/reset-progress-type';
 import {BookStatusUpdateResponse, PersonalRatingUpdateResponse} from '../model/book.model';
-import {PagedGridPilotService} from './paged-grid-pilot.service';
-import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 
 @Injectable({
@@ -80,7 +78,6 @@ export class BookPatchService {
           const updatedBookMap = new Map(updatedBooks.map(b => [b.id, b]));
           const newBooks = currentState.books.map(book => updatedBookMap.get(book.id) ?? book);
           this.bookStateService.updateBookState({...currentState, books: newBooks});
-          this.syncPagedBrowsersAfterStateMutation();
         }
 
         if (updatedBooks.length > 0) {
@@ -88,11 +85,6 @@ export class BookPatchService {
         }
       })
     );
-  }
-
-  private syncPagedBrowsersAfterStateMutation(): void {
-    this.injector.get(PagedBookBrowserStateService).syncCacheFromSharedState();
-    this.injector.get(PagedGridPilotService).refreshActiveState();
   }
 
   updateFileType(bookIds: Set<number | undefined>, fileType: string | null): Observable<Book[]> {

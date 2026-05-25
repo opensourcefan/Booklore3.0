@@ -1,8 +1,9 @@
-import {Injectable, inject} from '@angular/core';
+import {Injectable, inject, Injector} from '@angular/core';
 import {BehaviorSubject, forkJoin, map, Observable, of} from 'rxjs';
 import {AppPageResponse, BookService, PagedBooksParams} from './book.service';
 import {Book} from '../model/book.model';
 import {BookStateService} from './book-state.service';
+import {PagedGridPilotService} from './paged-grid-pilot.service';
 import {
   BookBrowserViewMode,
   DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS,
@@ -20,11 +21,22 @@ import {
 export class PagedBookBrowserStateService {
   private readonly bookService = inject(BookService);
   private readonly bookStateService = inject(BookStateService);
+  private readonly injector = inject(Injector);
 
   private readonly pagedBookBrowserStateSubject = new BehaviorSubject<PagedBookBrowserState>({
     guardrails: DEFAULT_BOOK_BROWSER_ROLLOUT_GUARDRAILS,
     cache: {},
   });
+
+  constructor() {
+    this.bookStateService.bookState$.subscribe(state => {
+      if (state.loaded) {
+        this.syncCacheFromBookState();
+        const pagedGridPilotService = this.injector.get(PagedGridPilotService);
+        pagedGridPilotService.refreshActiveState();
+      }
+    });
+  }
 
   readonly pagedBookBrowserState$ = this.pagedBookBrowserStateSubject.asObservable();
 
@@ -208,10 +220,6 @@ export class PagedBookBrowserStateService {
     }
 
     this.bookStateService.invalidatePagedCacheByBookIds(bookIds);
-    this.syncCacheFromBookState();
-  }
-
-  syncCacheFromSharedState(): void {
     this.syncCacheFromBookState();
   }
 

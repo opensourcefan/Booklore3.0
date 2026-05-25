@@ -14,8 +14,6 @@ import {BookSocketService} from './book-socket.service';
 import {BookPatchService} from './book-patch.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
-import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
-import {PagedGridPilotService} from './paged-grid-pilot.service';
 
 /** DTO returned by /api/v1/app/books/continue-reading and continue-listening */
 export interface AppBookSummary {
@@ -409,10 +407,6 @@ export class BookService {
           loaded: true,
           error: null,
         });
-
-        this.injector.get(PagedBookBrowserStateService).syncCacheFromSharedState();
-        this.injector.get(PagedGridPilotService).refreshActiveState();
-
         if (deletedIds.size > 0) {
           this.sidebarBadgeRefresh.requestRefresh();
         }

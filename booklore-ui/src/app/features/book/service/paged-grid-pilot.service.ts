@@ -561,7 +561,21 @@ export class PagedGridPilotService {
     return currentState.books.every((book, i) => {
       const nextBook = nextState.books![i];
       return book.id === nextBook.id
-        && book.metadata?.coverUpdatedOn === nextBook.metadata?.coverUpdatedOn;
+        && book.metadata?.title === nextBook.metadata?.title
+        && book.metadata?.authors?.join(',') === nextBook.metadata?.authors?.join(',')
+        && book.metadata?.coverUpdatedOn === nextBook.metadata?.coverUpdatedOn
+        && book.personalRating === nextBook.personalRating
+        && book.readStatus === nextBook.readStatus
+        && book.fileType === nextBook.fileType
+        && book.isPhysical === nextBook.isPhysical
+        && book.isCurrentlyReading === nextBook.isCurrentlyReading
+        && book.epubProgress?.percentage === nextBook.epubProgress?.percentage
+        && book.pdfProgress?.percentage === nextBook.pdfProgress?.percentage
+        && book.cbxProgress?.percentage === nextBook.cbxProgress?.percentage
+        && book.audiobookProgress?.percentage === nextBook.audiobookProgress?.percentage
+        && book.koreaderProgress?.percentage === nextBook.koreaderProgress?.percentage
+        && book.koboProgress?.percentage === nextBook.koboProgress?.percentage
+        && JSON.stringify(book.shelves) === JSON.stringify(nextBook.shelves);
     });
   }
 

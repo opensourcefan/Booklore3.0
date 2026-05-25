@@ -26,7 +26,7 @@ describe('BookStateService', () => {
     return TestBed.inject(BookStateService);
   }
 
-  it('stores paged cache separately and clears it when the legacy books array changes', () => {
+  it('stores paged cache separately and updates it in place when the legacy books array changes', () => {
     const service = createService();
     const cacheEntry: PagedBookBrowserCacheEntry = {
       key: {
@@ -42,7 +42,7 @@ describe('BookStateService', () => {
       },
       status: 'loaded',
       page: {
-        content: [createBook(11)],
+        content: [createBook(11, 'Original Title')],
         page: 0,
         size: 80,
         totalElements: 1,
@@ -61,14 +61,15 @@ describe('BookStateService', () => {
     expect(service.getCurrentBookState().totalCount).toBe(1);
 
     service.updateBookState({
-      books: [createBook(99)],
+      books: [createBook(11, 'Updated Title')],
       loaded: true,
       error: null,
     });
 
-    expect(service.getCurrentBookState().pagedCache).toEqual({});
+    const cachedBook = service.getCurrentBookState().pagedCache?.['page0']?.page?.content?.[0];
+    expect(cachedBook?.metadata?.title).toBe('Updated Title');
     expect(service.getCurrentBookState().totalCount).toBe(1);
-    expect(service.getCurrentBookState().books?.map(book => book.id)).toEqual([99]);
+    expect(service.getCurrentBookState().books?.map(book => book.id)).toEqual([11]);
   });
 
   it('resolves ordered book ids from the paged cache', () => {

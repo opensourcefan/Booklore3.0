@@ -10,7 +10,6 @@ import {BookSocketService} from './book-socket.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookService} from './book.service';
 import {PagedGridPilotService} from './paged-grid-pilot.service';
-import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +24,6 @@ export class BookMetadataManageService {
   private bookSocketService = inject(BookSocketService);
   private bookService = inject(BookService);
   private pagedGridPilotService = inject(PagedGridPilotService);
-  private pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
   private readonly t = inject(TranslocoService);
 
   private refreshBooksSnapshotAfter<T>(source$: Observable<T>): Observable<T> {
@@ -39,8 +37,6 @@ export class BookMetadataManageService {
     return this.http.put<BookMetadata>(`${this.url}/${bookId}/metadata`, wrapper, {params}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId!, updatedMetadata);
-        this.pagedBookBrowserStateService.syncCacheFromSharedState();
-        this.pagedGridPilotService.refreshActiveState();
         return updatedMetadata;
       })
     );
@@ -58,8 +54,6 @@ export class BookMetadataManageService {
     return this.http.post<BookMetadata>(`${this.url}/${bookId}/metadata/wipe`, {}).pipe(
       map(updatedMetadata => {
         this.bookSocketService.handleBookMetadataUpdate(bookId, updatedMetadata);
-        this.pagedBookBrowserStateService.syncCacheFromSharedState();
-        this.pagedGridPilotService.refreshActiveState();
         return updatedMetadata;
       })
     );

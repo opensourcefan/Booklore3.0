@@ -39,7 +39,37 @@ export class BookStateService {
     let nextTotalCount = hasTotalCount ? state.totalCount ?? null : currentState.totalCount ?? null;
 
     if (hasBooks && nextBooks !== currentState.books && (!hasPagedCache || state.pagedCache === currentState.pagedCache)) {
-      nextPagedCache = {};
+      if (nextBooks) {
+        const nextBooksMap = new Map(nextBooks.map(b => [b.id, b]));
+        nextPagedCache = Object.fromEntries(
+          Object.entries(nextPagedCache).map(([cacheKey, entry]) => {
+            if (!entry.page) {
+              return [cacheKey, entry];
+            }
+            let pageChanged = false;
+            const updatedContent = entry.page.content.map(book => {
+              const updatedBook = nextBooksMap.get(book.id);
+              if (updatedBook && updatedBook !== book) {
+                pageChanged = true;
+                return updatedBook;
+              }
+              return book;
+            });
+            if (pageChanged) {
+              return [cacheKey, {
+                ...entry,
+                page: {
+                  ...entry.page,
+                  content: updatedContent,
+                },
+              }];
+            }
+            return [cacheKey, entry];
+          })
+        );
+      } else {
+        nextPagedCache = {};
+      }
       if (Array.isArray(nextBooks)) {
         nextTotalCount = nextBooks.length;
       }
