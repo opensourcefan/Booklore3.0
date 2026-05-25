@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Book } from '../model/book.model';
 import { BookState } from '../model/state/book-state.model';
@@ -47,7 +47,7 @@ interface ActivePagedQuery {
 @Injectable({
   providedIn: 'root',
 })
-export class PagedGridPilotService {
+export class PagedGridPilotService implements OnDestroy {
   private static readonly PAGE_SIZE = 80;
   private static readonly LOAD_MORE_THRESHOLD_PX = 600;
   private static readonly LOAD_MORE_THRESHOLD_VIEWPORTS = 3;
@@ -72,10 +72,17 @@ export class PagedGridPilotService {
   readonly bookState$ = this.bookStateSubject.asObservable();
   readonly status$ = this.statusSubject.asObservable();
 
+  private readonly cacheSubscription: Subscription;
+
   constructor() {
-    this.pagedBookBrowserStateService.pagedBookBrowserState$.subscribe(() => {
+    this.cacheSubscription = this.pagedBookBrowserStateService.pagedBookBrowserState$.subscribe(() => {
       this.refreshActiveState();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.cacheSubscription?.unsubscribe();
+    this.clearActiveSubscriptions();
   }
 
   private activeQuery: ActivePagedQuery | null = null;

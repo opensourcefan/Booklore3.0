@@ -1,5 +1,5 @@
-import {Injectable, inject} from '@angular/core';
-import {BehaviorSubject, distinctUntilChanged, forkJoin, map, Observable, of} from 'rxjs';
+import {Injectable, inject, OnDestroy} from '@angular/core';
+import {BehaviorSubject, distinctUntilChanged, forkJoin, map, Observable, of, Subscription} from 'rxjs';
 import {AppPageResponse, BookService, PagedBooksParams} from './book.service';
 import {Book} from '../model/book.model';
 import {BookStateService} from './book-state.service';
@@ -17,7 +17,7 @@ import {
 @Injectable({
   providedIn: 'root',
 })
-export class PagedBookBrowserStateService {
+export class PagedBookBrowserStateService implements OnDestroy {
   private readonly bookService = inject(BookService);
   private readonly bookStateService = inject(BookStateService);
 
@@ -28,8 +28,10 @@ export class PagedBookBrowserStateService {
 
   readonly pagedBookBrowserState$ = this.pagedBookBrowserStateSubject.asObservable();
 
+  private readonly stateSubscription: Subscription;
+
   constructor() {
-    this.bookStateService.bookState$.pipe(
+    this.stateSubscription = this.bookStateService.bookState$.pipe(
       map(state => state.pagedCache),
       distinctUntilChanged()
     ).subscribe(pagedCache => {
@@ -41,6 +43,10 @@ export class PagedBookBrowserStateService {
         });
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.stateSubscription?.unsubscribe();
   }
 
   getCurrentState(): PagedBookBrowserState {
