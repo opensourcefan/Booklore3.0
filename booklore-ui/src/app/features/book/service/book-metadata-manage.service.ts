@@ -92,6 +92,8 @@ export class BookMetadataManageService {
           return updatedMetadata ? {...book, metadata: updatedMetadata} : book;
         });
         this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        this.pagedBookBrowserStateService.syncCacheFromSharedState();
+        this.pagedGridPilotService.refreshActiveState();
       }),
       map(() => void 0),
       catchError((error) => {
@@ -129,6 +131,8 @@ export class BookMetadataManageService {
           ...currentState,
           books: updatedBooks as Book[]
         });
+        this.pagedBookBrowserStateService.syncCacheFromSharedState();
+        this.pagedGridPilotService.refreshActiveState();
       }),
       catchError(error => {
         this.messageService.add({

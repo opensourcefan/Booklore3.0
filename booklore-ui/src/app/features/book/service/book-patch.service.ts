@@ -79,10 +79,10 @@ export class BookPatchService {
         if (currentState.books && updatedBooks.length > 0) {
           const updatedBookMap = new Map(updatedBooks.map(b => [b.id, b]));
           const newBooks = currentState.books.map(book => updatedBookMap.get(book.id) ?? book);
-          this.bookStateService.updateBookState({...currentState, books: newBooks});
           for (const updatedBook of updatedBooks) {
             this.bookStateService.patchPagedCacheBook(updatedBook);
           }
+          this.bookStateService.updateBookState({...currentState, books: newBooks});
           this.syncPagedBrowsersAfterStateMutation();
         }
 
@@ -111,6 +111,7 @@ export class BookPatchService {
           const updatedBookMap = new Map(updatedBooks.map(b => [b.id, b]));
           const newBooks = currentState.books.map(book => updatedBookMap.get(book.id) ?? book);
           this.bookStateService.updateBookState({...currentState, books: newBooks});
+          this.syncPagedBrowsersAfterStateMutation();
         }
 
         if (updatedBooks.length > 0) {
@@ -201,6 +202,7 @@ export class BookPatchService {
             ...currentState,
             books: updatedBooks
           });
+          this.syncPagedBrowsersAfterStateMutation();
         }
       })
     );
@@ -231,6 +233,7 @@ export class BookPatchService {
           return book;
         });
         this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        this.syncPagedBrowsersAfterStateMutation();
       })
     );
   }
@@ -258,6 +261,7 @@ export class BookPatchService {
           return book;
         });
         this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        this.syncPagedBrowsersAfterStateMutation();
       })
     );
   }
@@ -279,6 +283,7 @@ export class BookPatchService {
           return book;
         });
         this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        this.syncPagedBrowsersAfterStateMutation();
       })
     );
   }
@@ -300,6 +305,7 @@ export class BookPatchService {
           return book;
         });
         this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        this.syncPagedBrowsersAfterStateMutation();
       })
     );
   }

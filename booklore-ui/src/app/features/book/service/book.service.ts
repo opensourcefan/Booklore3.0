@@ -474,8 +474,6 @@ export class BookService {
     return this.http.post<Book>(`${this.url}/physical`, request).pipe(
       tap(newBook => {
         this.bookSocketService.handleNewlyCreatedBook(newBook);
-        this.injector.get(PagedBookBrowserStateService).syncCacheFromSharedState();
-        this.injector.get(PagedGridPilotService).refreshActiveState();
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('book.bookService.toast.physicalBookCreatedSummary'),
@@ -499,6 +497,8 @@ export class BookService {
         const currentState = this.bookStateService.getCurrentBookState();
         const updatedBooks = (currentState.books || []).map(b => b.id === bookId ? {...b, isPhysical: physical} : b);
         this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        this.injector.get(PagedBookBrowserStateService).syncCacheFromSharedState();
+        this.injector.get(PagedGridPilotService).refreshActiveState();
         this.sidebarBadgeRefresh.requestRefresh();
       })
     );
@@ -603,6 +603,8 @@ export class BookService {
         const currentState = this.bookStateService.getCurrentBookState();
         const updatedBooks = (currentState.books || []).map(b => b.id === bookId ? {...b, isCurrentlyReading} : b);
         this.bookStateService.updateBookState({...currentState, books: updatedBooks});
+        this.injector.get(PagedBookBrowserStateService).syncCacheFromSharedState();
+        this.injector.get(PagedGridPilotService).refreshActiveState();
       })
     );
   }
