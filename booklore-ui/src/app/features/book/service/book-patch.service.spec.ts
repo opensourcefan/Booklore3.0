@@ -114,8 +114,8 @@ describe('BookPatchService', () => {
     await firstValueFrom(service.updateBookShelves(new Set([51]), new Set([9]), new Set()));
 
     expect(bookStateService.getCurrentBookState().books?.[0]?.shelves?.map(shelf => shelf.id)).toEqual([9]);
-    const cachedBook = bookStateService.getCurrentBookState().pagedCache?.['unshelved']?.page?.content?.[0];
-    expect(cachedBook?.shelves?.map(shelf => shelf.id)).toEqual([9]);
+    const unshelvedCacheEntry = bookStateService.getCurrentBookState().pagedCache?.['unshelved'];
+    expect(unshelvedCacheEntry).toBeUndefined();
     expect(requestRefreshSpy).toHaveBeenCalledTimes(1);
   });
 

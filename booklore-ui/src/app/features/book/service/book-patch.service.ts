@@ -80,6 +80,8 @@ export class BookPatchService {
           this.bookStateService.updateBookState({...currentState, books: newBooks});
         }
 
+        this.bookStateService.invalidatePagedCacheByEntity('NOT_SHELFED');
+
         if (updatedBooks.length > 0) {
           this.sidebarBadgeRefresh.requestRefresh();
         }
