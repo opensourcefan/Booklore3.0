@@ -524,6 +524,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.updateVirtualGridDomBindings();
     });
 
+    this.mobileUx.breakpoint$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.cardWidthSig.set(this.currentCardSize.width);
+      this.cardHeightSig.set(this.getUniformCardHeight());
+      this.gapSig.set(this.isMobile ? this.MOBILE_GAP : 20.8);
+      this.updateVirtualGridDomBindings();
+      this.cdr.markForCheck();
+    });
+
     this.dirPanelService.visible$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
