@@ -103,31 +103,15 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       () => window.removeEventListener('scroll', updatePos, true)
     );
 
-    // Watch DOM mutations so overlays/dialogs immediately hide the handle.
+    // Watch DOM mutations on body so overlays/dialogs immediately hide the handle.
     if (typeof MutationObserver !== 'undefined') {
       this.mutationObserver = new MutationObserver(() => {
         this.scheduleUpdateHandlePosition();
-        
-        // Kick off a fallback rAF loop for 400ms to track Angular animations
-        // that don't trigger native transitionstart events.
-        this.animationLoopStart = performance.now();
-        if (!this.animationLoopId) {
-          const loop = (now: number) => {
-            this.scheduleUpdateHandlePosition();
-            if (now - this.animationLoopStart < 400) {
-              this.animationLoopId = requestAnimationFrame(loop);
-            } else {
-              this.animationLoopId = null;
-            }
-          };
-          this.animationLoopId = requestAnimationFrame(loop);
-        }
       });
       this.mutationObserver.observe(document.body, {
         childList: true,
-        subtree: true,
         attributes: true,
-        attributeFilter: ['class', 'style']
+        attributeFilter: ['class']
       });
     }
 
@@ -286,23 +270,6 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
     }
   }
 
-  private getAccumulatedOpacity(element: HTMLElement): number {
-    let opacity = 1;
-    let curr: HTMLElement | null = element;
-    while (curr && curr !== document.body && curr !== document.documentElement) {
-      const style = getComputedStyle(curr);
-      const val = parseFloat(style.opacity || '1');
-      if (val < 1) {
-        opacity *= val;
-      }
-      if (style.display === 'none' || style.visibility === 'hidden') {
-        return 0;
-      }
-      curr = curr.parentElement;
-    }
-    return opacity;
-  }
-
   private getScrollContainer(): HTMLElement | null {
     const candidates = [
       this.target,
@@ -370,37 +337,17 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
       const offset = this.isTouchHandleMode() ? 15 : 3;
       this.renderer.setStyle(this.handle, 'left', (rect.left - offset) + 'px');
     }
-
-    // Apply accumulated opacity so the handle fades out synchronously with the panel
-    const accumulatedOpacity = this.getAccumulatedOpacity(this.target);
-    if (accumulatedOpacity < 1) {
-      this.renderer.setStyle(this.handle, 'opacity', String(accumulatedOpacity));
-      if (accumulatedOpacity <= 0) {
-        this.renderer.setStyle(this.handle, 'display', 'none');
-      }
-    }
   }
 
   private hasVisibleBlockingOverlay(): boolean {
-    const overlays = document.querySelectorAll<HTMLElement>(
-      '.p-dialog-mask, .p-component-overlay, .p-overlay-mask, .dialog-overlay, .cdk-overlay-backdrop, .cdk-overlay-pane'
-    );
-
-    for (const overlay of overlays) {
-      if (overlay.contains(this.handle) || overlay === this.handle) {
-        continue;
-      }
-      const style = getComputedStyle(overlay);
-      if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
-        continue;
-      }
-      if (overlay.getBoundingClientRect().width <= 0 || overlay.getBoundingClientRect().height <= 0) {
-        continue;
-      }
+    if (document.body.classList.contains('p-overflow-hidden') || document.documentElement.classList.contains('cdk-global-scrollblock')) {
       return true;
     }
-
-    return false;
+    const overlay = document.querySelector('.p-dialog-mask, .p-component-overlay, .p-overlay-mask, .dialog-overlay, .cdk-overlay-backdrop, .cdk-overlay-pane');
+    if (overlay && (overlay.contains(this.handle) || overlay === this.handle)) {
+      return false;
+    }
+    return overlay !== null;
   }
 
   ngOnDestroy(): void {
