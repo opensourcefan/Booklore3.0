@@ -37,6 +37,7 @@ import {UserService} from '../../../settings/user-management/user.service';
 import {BookService} from '../../../book/service/book.service';
 import {Book, ReadStatus} from '../../../book/model/book.model';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
+import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 
 type SortDirection = 'asc' | 'desc';
 
@@ -104,6 +105,8 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   private cdr = inject(ChangeDetectorRef);
   protected selectionService = inject(AuthorSelectionService);
   private mobileUx = inject(MobileUxService);
+  private localStorage = inject(LocalStorageService);
+  private readonly STORAGE_KEY = 'authorBrowserState';
 
   private _scrollContainer?: ElementRef<HTMLElement>;
   @ViewChild('scrollContainer')
@@ -217,10 +220,33 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
     const sortParam = this.activatedRoute.snapshot.queryParamMap.get('sort');
     const dirParam = this.activatedRoute.snapshot.queryParamMap.get('dir') as SortDirection | null;
+    
+    // Load from local storage
+    const savedState = this.localStorage.get<{
+      searchTerm?: string;
+      sortBy?: string;
+      sortDirection?: SortDirection;
+      filters?: AuthorFilters;
+    }>(this.STORAGE_KEY);
+    
+    if (savedState) {
+      if (savedState.searchTerm) this.searchTerm$.next(savedState.searchTerm);
+      if (savedState.sortBy && this.validSortValues.includes(savedState.sortBy)) this.sortBy$.next(savedState.sortBy);
+      if (savedState.sortDirection) this.sortDirection$.next(savedState.sortDirection);
+      if (savedState.filters) this.filters$.next({...DEFAULT_AUTHOR_FILTERS, ...savedState.filters});
+    }
+
     if (sortParam && this.validSortValues.includes(sortParam)) {
       this.sortBy$.next(sortParam);
       this.sortDirection$.next(dirParam === 'asc' || dirParam === 'desc' ? dirParam : DEFAULT_SORT_DIRECTIONS[sortParam]);
     }
+    
+    this.updateActiveFilterCount();
+
+    // Ensure fresh authors are fetched on component init
+    this.subscriptions.push(
+      this.authorService.getAllAuthors().subscribe()
+    );
 
     this.subscriptions.push(
       this.authorService.allAuthors$.pipe(
@@ -258,6 +284,14 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
       this.filters$
     ]).pipe(
       map(([enriched, search, sortBy, sortDir, filters]) => {
+        // Save state on any change
+        this.localStorage.set(this.STORAGE_KEY, {
+          searchTerm: search,
+          sortBy,
+          sortDirection: sortDir,
+          filters
+        });
+
         let result = enriched;
 
         if (search.trim()) {

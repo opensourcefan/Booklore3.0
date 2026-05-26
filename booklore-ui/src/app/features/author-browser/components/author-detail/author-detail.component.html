@@ -114,6 +114,51 @@
                     <p>{{ t('noBooksFound') }}</p>
                   </div>
                 } @else {
+                  @if (selectedBooks.size > 0) {
+                    <div class="selection-action-panel">
+                      <div class="selection-panel-content">
+                        <div class="selection-panel-left">
+                          <div class="selected-count-badge">
+                            <i class="pi pi-check-circle"></i>
+                            <span class="selected-count">{{ selectedBooks.size }}</span>
+                            <span class="selected-label">{{ t('selected') }}</span>
+                          </div>
+                        </div>
+                        <div class="selection-panel-center">
+                          <div class="action-buttons-group">
+                            <p-button
+                              outlined="true"
+                              icon="pi pi-database"
+                              severity="info"
+                              (click)="openBulkMetadataEditor()"
+                              pTooltip="Bulk Edit Metadata"
+                              tooltipPosition="top">
+                            </p-button>
+                          </div>
+                          <p-divider layout="vertical"></p-divider>
+                          <div class="action-buttons-group utility-actions-group">
+                            <p-button
+                              outlined="true"
+                              icon="pi pi-check-square"
+                              severity="success"
+                              (click)="selectAllBooks()"
+                              pTooltip="Select All"
+                              tooltipPosition="top">
+                            </p-button>
+                            <p-button
+                              outlined="true"
+                              icon="pi pi-times"
+                              severity="warn"
+                              (click)="deselectAllBooks()"
+                              pTooltip="Deselect All"
+                              tooltipPosition="top">
+                            </p-button>
+                          </div>
+                        </div>
+                        <div class="selection-panel-right"></div>
+                      </div>
+                    </div>
+                  }
                   <div class="books-virtual-scroller" #scrollContainer>
                     <div class="virtual-grid" #gridContainer>
                       <div class="virtual-grid-spacer" [style.height.px]="virtualGrid.virtualizer.getTotalSize()"></div>
@@ -122,16 +167,19 @@
                           class="virtual-row"
                           [style.transform]="'translateY(' + row.start + 'px)'"
                           [style.height.px]="virtualGrid.rowHeight()">
-                          @for (book of virtualGrid.getRowItems(row.index, books); track book.id) {
+                          @for (book of virtualGrid.getRowItems(row.index, books); track book.id; let colIndex = $index) {
                             <div
                               class="virtual-cell"
                               [style.width.px]="currentCardSize.width"
                               [style.height.px]="currentCardSize.height">
                               <app-book-card
-                                [index]="books.indexOf(book)"
+                                [index]="row.index * virtualGrid.columnCount() + colIndex"
                                 [book]="book"
                                 [mobileViewerBooksContext]="books"
                                 [isSeriesCollapsed]="false"
+                                [isCheckboxEnabled]="true"
+                                [isSelected]="selectedBooks.has(book.id)"
+                                (checkboxClick)="onCheckboxClicked($event)"
                                 [overlayPreferenceService]="bookCardOverlayPreferenceService">
                               </app-book-card>
                             </div>

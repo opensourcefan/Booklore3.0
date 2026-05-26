@@ -33,6 +33,9 @@ import {AuthorMatchComponent} from '../author-match/author-match.component';
 import {AuthorEditorComponent} from '../author-editor/author-editor.component';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
+import {BookDialogHelperService} from '../../../book/components/book-browser/book-dialog-helper.service';
+import {CheckboxClickEvent} from '../../../book/components/book-browser/book-selection.service';
+import {Divider} from 'primeng/divider';
 
 @Component({
   selector: 'app-author-detail',
@@ -54,7 +57,8 @@ import {MobileUxService} from '../../../../core/services/mobile-ux.service';
     Tooltip,
     BookCardComponent,
     AuthorMatchComponent,
-    AuthorEditorComponent
+    AuthorEditorComponent,
+    Divider
   ]
 })
 export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewChecked, OnDestroy {
@@ -70,6 +74,7 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
   private pageTitle = inject(PageTitleService);
   private t = inject(TranslocoService);
   private mobileUx = inject(MobileUxService);
+  private bookDialogHelper = inject(BookDialogHelperService);
 
   private readonly GRID_GAP_MOBILE = 8;
   private readonly GRID_GAP_DESKTOP = 20.8;
@@ -121,6 +126,9 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
   hasPhoto = true;
   photoTimestamp = Date.now();
   quickMatching = false;
+  selectedBooks = new Set<number>();
+  private currentBooks: Book[] = [];
+  private lastSelectedIndex: number | null = null;
 
   authorBooks$!: Observable<Book[]>;
 
@@ -236,6 +244,7 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
           })
         );
         this.authorBooksGridSub = this.authorBooks$.subscribe(books => {
+          this.currentBooks = books;
           this.gridItemCountSig.set(books.length);
           this.cardWidthSig.set(this.currentCardSize.width);
           this.cardHeightSig.set(this.currentCardSize.height);
@@ -262,6 +271,53 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
         if (scrollEl) {
           scrollEl.dispatchEvent(new Event('scroll'));
         }
+      });
+    }
+  }
+
+  onCheckboxClicked(event: CheckboxClickEvent): void {
+    const {index, book, selected, shiftKey} = event;
+
+    if (!shiftKey || this.lastSelectedIndex === null) {
+      this.handleBookSelection(book, selected);
+      this.lastSelectedIndex = index;
+    } else {
+      const start = Math.min(this.lastSelectedIndex, index);
+      const end = Math.max(this.lastSelectedIndex, index);
+      const isUnselectingRange = !selected;
+
+      for (let i = start; i <= end; i++) {
+        const rangeBook = this.currentBooks[i];
+        if (!rangeBook) continue;
+        this.handleBookSelection(rangeBook, !isUnselectingRange);
+      }
+    }
+  }
+
+  private handleBookSelection(book: Book, selected: boolean): void {
+    if (selected) {
+      this.selectedBooks.add(book.id);
+    } else {
+      this.selectedBooks.delete(book.id);
+    }
+  }
+
+  selectAllBooks(): void {
+    if (!this.currentBooks || this.currentBooks.length === 0) return;
+    this.currentBooks.forEach(b => this.selectedBooks.add(b.id));
+  }
+
+  deselectAllBooks(): void {
+    this.selectedBooks.clear();
+    this.lastSelectedIndex = null;
+  }
+
+  openBulkMetadataEditor(): void {
+    if (this.selectedBooks.size === 0) return;
+    const dialogRef = this.bookDialogHelper.openBulkMetadataEditDialog(this.selectedBooks);
+    if (dialogRef) {
+      dialogRef.onClose.subscribe(() => {
+        this.deselectAllBooks();
       });
     }
   }
