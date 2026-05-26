@@ -7,7 +7,6 @@ import {ReaderIconComponent} from '../../../ebook-reader';
 import {CommonModule} from '@angular/common';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
 import {CbxJoystickSensitivity} from '../quick-settings/cbx-quick-settings.service';
-import { clamp } from '../../../../../core/utils/math.utils';
 
 type CbxHeaderMobileSurface = 'overflow' | 'aiMenu' | 'panelAdjust' | 'joystickMenu';
 
@@ -302,11 +301,11 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
       return min;
     }
 
-    return clamp(min, value, max);
+    return Math.min(max, Math.max(min, value));
   }
 
   onPanelTravelDelta(delta: number): void {
-    const next = clamp(0.4, this.panelTravelFactor + delta, 2.5);
+    const next = Math.min(2.5, Math.max(0.4, this.panelTravelFactor + delta));
     this.panelTravelFactorChange.emit(Number(next.toFixed(2)));
   }
 
@@ -314,7 +313,7 @@ export class CbxHeaderComponent implements OnInit, OnDestroy, DoCheck {
     const target = event.target as HTMLInputElement;
     const value = Number(target.value);
     if (Number.isFinite(value)) {
-      this.panelTravelFactorChange.emit(clamp(0.4, value, 2.5));
+      this.panelTravelFactorChange.emit(Math.min(2.5, Math.max(0.4, value)));
     }
   }
 

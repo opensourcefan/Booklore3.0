@@ -9,7 +9,6 @@ import {BookService} from '../../../../../book/service/book.service';
 import {BookState} from '../../../../../book/model/state/book-state.model';
 import {Book} from '../../../../../book/model/book.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import { clamp } from '../../../../../../core/utils/math.utils';
 
 interface MatrixDataPoint {
   x: number; // month (0-11)
@@ -189,7 +188,7 @@ export class ReadingHeatmapChartComponent implements OnInit, OnDestroy {
           if (!point?.v) return 'rgba(255, 255, 255, 0.05)';
 
           const intensity = point.v / this.maxBookCount;
-          const alpha = clamp(1.0, 0.2, intensity * 0.8 + 0.2);
+          const alpha = Math.max(0.2, Math.min(1.0, intensity * 0.8 + 0.2));
           return `rgba(239, 71, 111, ${alpha})`;
         },
         borderColor: 'rgba(255, 255, 255, 0.2)',

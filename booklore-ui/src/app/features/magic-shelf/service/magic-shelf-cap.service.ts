@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { clamp } from '../../../core/utils/math.utils';
 
 const DEFAULT_CAP = 500;
 const MIN_CAP = 1;
@@ -17,7 +16,7 @@ export class MagicShelfCapService {
   }
 
   setCap(value: number): void {
-    const clamped = clamp(MAX_CAP, MIN_CAP, Math.round(value));
+    const clamped = Math.max(MIN_CAP, Math.min(MAX_CAP, Math.round(value)));
     localStorage.setItem(STORAGE_KEY, String(clamped));
     this._cap$.next(clamped);
   }

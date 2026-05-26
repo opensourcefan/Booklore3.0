@@ -1,6 +1,5 @@
 import { Directive, ElementRef, Input, OnDestroy, OnInit, Renderer2, inject } from '@angular/core';
 import { MobileUxService } from '../../core/services/mobile-ux.service';
-import { clamp } from '../../core/utils/math.utils';
 
 /**
  * Adds a drag handle to a panel so users can resize it by hover + click + drag.
@@ -181,7 +180,7 @@ export class ResizableDividerDirective implements OnInit, OnDestroy {
         const delta = this.blResizable === 'right'
           ? e.clientX - this.startX
           : this.startX - e.clientX;
-        const newWidth = clamp(this.minWidth, this.startWidth + delta, this.maxWidth);
+        const newWidth = Math.min(this.maxWidth, Math.max(this.minWidth, this.startWidth + delta));
         this.renderer.setStyle(this.target, 'width', newWidth + 'px');
         if (this.storageKey) {
           localStorage.setItem(this.storageKey, String(newWidth));

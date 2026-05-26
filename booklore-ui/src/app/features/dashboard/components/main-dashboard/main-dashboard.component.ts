@@ -24,7 +24,6 @@ import {SortService} from '../../../book/service/sort.service';
 import {PageTitleService} from "../../../../shared/service/page-title.service";
 import {SortDirection, SortOption} from '../../../book/model/sort.model';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import { clamp } from '../../../../core/utils/math.utils';
 
 const DASHBOARD_GRID_GAP_PX = 20;
 const DASHBOARD_PANEL_HORIZONTAL_PADDING_PX = 64;
@@ -398,7 +397,7 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
     const activeGridColumns = this.getActiveGridColumns();
 
     if (config.columnSpan != null) {
-      return clamp(config.columnSpan, 1, activeGridColumns);
+      return Math.max(1, Math.min(config.columnSpan, activeGridColumns));
     }
 
     return this.getAutomaticScrollerColumnSpan(config);
@@ -413,11 +412,11 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
     const cellWidth = this.getGridCellWidth();
     const span = Math.ceil(contentWidth / Math.max(cellWidth, 1));
 
-    return clamp(span, 2, this.getActiveGridColumns());
+    return Math.max(2, Math.min(span, this.getActiveGridColumns()));
   }
 
   private getAutomaticScrollerContentWidth(config: ScrollerConfig): number {
-    const visibleItems = clamp(config.maxItems || DEFAULT_MAX_ITEMS, 1, 8);
+    const visibleItems = Math.max(1, Math.min(config.maxItems || DEFAULT_MAX_ITEMS, 8));
     const cardWidth = this.getScrollerCardWidth(config);
 
     return (visibleItems * cardWidth)
@@ -426,7 +425,7 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
   }
 
   private getGridSpanWidth(span: number): number {
-    const safeSpan = clamp(span, 1, this.getActiveGridColumns());
+    const safeSpan = Math.max(1, Math.min(span, this.getActiveGridColumns()));
 
     return (safeSpan * this.getGridCellWidth()) + (Math.max(safeSpan - 1, 0) * DASHBOARD_GRID_GAP_PX);
   }

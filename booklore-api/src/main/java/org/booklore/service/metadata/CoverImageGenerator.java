@@ -1,7 +1,5 @@
 package org.booklore.service.metadata;
 
-import org.booklore.util.MathUtils;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -598,7 +596,7 @@ public class CoverImageGenerator {
     }
 
     private static Color alpha(Color c, int a) {
-        return new Color(c.getRed(), c.getGreen(), c.getBlue(), MathUtils.clamp(0, a, 255));
+        return new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.min(255, Math.max(0, a)));
     }
 
     private static Color darken(Color c, float f) {

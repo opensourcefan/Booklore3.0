@@ -1,4 +1,3 @@
-import { clamp } from '../../../core/utils/math.utils';
 export enum ScrollerType {
   LAST_READ = 'lastRead',
   LAST_LISTENED = 'lastListened',
@@ -62,7 +61,7 @@ export function getDefaultScrollerTitleKey(type: ScrollerType): string {
 }
 
 function clamp(value: number, min: number, max: number): number {
-  return clamp(max, min, value);
+  return Math.max(min, Math.min(max, value));
 }
 
 function normalizeColumnSpan(value: number | null | undefined): number | null {

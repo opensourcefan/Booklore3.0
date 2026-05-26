@@ -1,7 +1,5 @@
 package org.booklore.service.metadata.parser;
 
-import org.booklore.util.MathUtils;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.booklore.model.dto.Book;
@@ -1115,7 +1113,7 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
                         .taskType(TaskType.REFRESH_METADATA_MANUAL)
                         .message(message)
                         .progress(taskContext.total() > 0
-                            ? MathUtils.clamp(0, (taskContext.completed() * 100) / taskContext.total(), 100)
+                            ? Math.min(100, Math.max(0, (taskContext.completed() * 100) / taskContext.total()))
                             : 0)
                         .currentStep(taskContext.completed())
                         .totalSteps(taskContext.total())

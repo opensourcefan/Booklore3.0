@@ -34,7 +34,6 @@ import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 import {LoadingIndicatorComponent} from '../../../shared/components/loading-indicator/loading-indicator.component';
 import {MobileUxService} from '../../../core/services/mobile-ux.service';
-import {clamp} from '../../../core/utils/math.utils';
 
 interface CbxPanelRegion {
   x: number;
@@ -1552,10 +1551,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     height += padY * 2;
 
     // Allow slight overflow so edge panels can still be centered properly.
-    const clampedX = clamp(expandedX, -0.25, 1.25);
-    const clampedY = clamp(expandedY, -0.25, 1.25);
-    const maxWidth = clamp(width, 0.02, 1.5);
-    const maxHeight = clamp(height, 0.02, 1.5);
+    const clampedX = this.clamp(expandedX, -0.25, 1.25);
+    const clampedY = this.clamp(expandedY, -0.25, 1.25);
+    const maxWidth = this.clamp(width, 0.02, 1.5);
+    const maxHeight = this.clamp(height, 0.02, 1.5);
 
     return {
       x: clampedX,
@@ -1610,6 +1609,9 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     return numeric;
   }
 
+  private clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+  }
 
   @HostListener('document:fullscreenchange')
   onFullscreenChange(): void {
@@ -1681,12 +1683,12 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
       if (this.pinchStartDistance > 0) {
         if (this.pinchGestureMode === 'panel') {
-          this.panelManualZoom = clamp(this.pinchStartZoom * (distance / this.pinchStartDistance), 0.6, 3.5);
+          this.panelManualZoom = this.clamp(this.pinchStartZoom * (distance / this.pinchStartDistance), 0.6, 3.5);
           this.panelPanX = this.pinchStartPanX + (centerX - this.pinchStartCenterX);
           this.panelPanY = this.pinchStartPanY + (centerY - this.pinchStartCenterY);
           this.applyPanelPanBounds();
         } else {
-          this.manualPageZoom = clamp(
+          this.manualPageZoom = this.clamp(
             this.pinchStartZoom * (distance / this.pinchStartDistance),
             CbxReaderComponent.MANUAL_PAGE_MIN_ZOOM,
             CbxReaderComponent.MANUAL_PAGE_MAX_ZOOM
@@ -1784,7 +1786,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
     const direction = event.deltaY < 0 ? 1 : -1;
     const step = 0.1;
-    this.panelManualZoom = clamp(this.panelManualZoom + (direction * step), 0.6, 3.5);
+    this.panelManualZoom = this.clamp(this.panelManualZoom + (direction * step), 0.6, 3.5);
     this.applyPanelPanBounds();
     event.preventDefault();
   }
@@ -1900,8 +1902,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private getPanelScale(panel: CbxPanelRegion): number {
-    const baseScale = clamp(Math.min(1 / panel.width, 1 / panel.height) * 0.92, 1, 6);
-    return clamp(baseScale * this.panelManualZoom, 1, 10);
+    const baseScale = this.clamp(Math.min(1 / panel.width, 1 / panel.height) * 0.92, 1, 6);
+    return this.clamp(baseScale * this.panelManualZoom, 1, 10);
   }
 
   get activePanelCenterX(): number {
@@ -2033,7 +2035,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   onPanelTravelFactorChange(value: number): void {
-    this.panelTravelFactor = clamp(value, 0.4, 2.5);
+    this.panelTravelFactor = this.clamp(value, 0.4, 2.5);
   }
 
   onPanelZoomOutRequested(): void {
@@ -2041,7 +2043,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
 
-    this.panelManualZoom = clamp(this.panelManualZoom - 0.2, 0.6, 3.5);
+    this.panelManualZoom = this.clamp(this.panelManualZoom - 0.2, 0.6, 3.5);
     this.revealTouchChrome();
   }
 
@@ -2050,7 +2052,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
 
-    this.panelManualZoom = clamp(this.panelManualZoom + 0.2, 0.6, 3.5);
+    this.panelManualZoom = this.clamp(this.panelManualZoom + 0.2, 0.6, 3.5);
     this.applyPanelPanBounds();
     this.revealTouchChrome();
   }
@@ -2100,7 +2102,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   onJoystickIndicatorOpacityChange(opacity: number): void {
-    const safeOpacity = clamp(this.toNormalizedPosition(opacity, this.joystickIndicatorOpacity), 0.1, 1);
+    const safeOpacity = this.clamp(this.toNormalizedPosition(opacity, this.joystickIndicatorOpacity), 0.1, 1);
     this.joystickIndicatorOpacity = safeOpacity;
     this.quickSettingsService.setJoystickIndicatorOpacity(safeOpacity);
     this.saveJoystickDevicePreferences();
@@ -2251,8 +2253,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     const normalizedY = (event.clientY - rect.top) / rect.height;
 
     if (!constrainToCurrentQuadrant) {
-      this.joystickAnchorX = clamp(normalizedX, marginX, 1 - marginX);
-      this.joystickAnchorY = clamp(normalizedY, marginY, 1 - marginY);
+      this.joystickAnchorX = this.clamp(normalizedX, marginX, 1 - marginX);
+      this.joystickAnchorY = this.clamp(normalizedY, marginY, 1 - marginY);
       return;
     }
 
@@ -2263,8 +2265,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     const minY = isBottomQuadrant ? 0.5 : marginY;
     const maxY = isBottomQuadrant ? 1 - marginY : 0.5;
 
-    this.joystickAnchorX = clamp(normalizedX, minX, maxX);
-    this.joystickAnchorY = clamp(normalizedY, minY, maxY);
+    this.joystickAnchorX = this.clamp(normalizedX, minX, maxX);
+    this.joystickAnchorY = this.clamp(normalizedY, minY, maxY);
   }
 
   private applyJoystickMotionStep(): void {
@@ -2272,7 +2274,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     const elapsed = this.joystickInteractionStartMs > 0
       ? Math.max(0, Date.now() - this.joystickInteractionStartMs)
       : CbxReaderComponent.JOYSTICK_STARTUP_RAMP_MS;
-    const startupProgress = clamp(elapsed / CbxReaderComponent.JOYSTICK_STARTUP_RAMP_MS, 0, 1);
+    const startupProgress = this.clamp(elapsed / CbxReaderComponent.JOYSTICK_STARTUP_RAMP_MS, 0, 1);
     const startupCurve = startupProgress * startupProgress;
     const startupSpeedScale = CbxReaderComponent.JOYSTICK_STARTUP_SPEED_FLOOR
       + ((1 - CbxReaderComponent.JOYSTICK_STARTUP_SPEED_FLOOR) * startupCurve);
@@ -2287,7 +2289,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
 
     if (magnitude > startupDeadzone && adjustedMagnitude > startupDeadzone) {
       const radius = CbxReaderComponent.JOYSTICK_RADIUS_PX;
-      const normalized = clamp(adjustedMagnitude / radius, 0, 1);
+      const normalized = this.clamp(adjustedMagnitude / radius, 0, 1);
       const smoothStep = normalized * normalized * (3 - (2 * normalized));
       const speed = (
         CbxReaderComponent.JOYSTICK_BASE_SPEED
@@ -2342,7 +2344,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     if (this.joystickAxisIntent === 'horizontal') {
       const ratio = absY <= 0.001 ? Number.POSITIVE_INFINITY : absX / absY;
       const dampingWindow = Math.max(0.001, CbxReaderComponent.JOYSTICK_AXIS_SWITCH_RATIO - CbxReaderComponent.JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO);
-      const dampingStrength = clamp(
+      const dampingStrength = this.clamp(
         (ratio - CbxReaderComponent.JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO) / dampingWindow,
         0,
         1
@@ -2357,7 +2359,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     if (this.joystickAxisIntent === 'vertical') {
       const ratio = absX <= 0.001 ? Number.POSITIVE_INFINITY : absY / absX;
       const dampingWindow = Math.max(0.001, CbxReaderComponent.JOYSTICK_AXIS_SWITCH_RATIO - CbxReaderComponent.JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO);
-      const dampingStrength = clamp(
+      const dampingStrength = this.clamp(
         (ratio - CbxReaderComponent.JOYSTICK_AXIS_DIAGONAL_RELEASE_RATIO) / dampingWindow,
         0,
         1
@@ -2413,8 +2415,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     const bounds = this.getImagePanBounds();
-    this.panelPanX = clamp(this.panelPanX, -bounds.maxX, bounds.maxX);
-    this.panelPanY = clamp(this.panelPanY, -bounds.maxY, bounds.maxY);
+    this.panelPanX = this.clamp(this.panelPanX, -bounds.maxX, bounds.maxX);
+    this.panelPanY = this.clamp(this.panelPanY, -bounds.maxY, bounds.maxY);
   }
 
   private applyManualPagePanBounds(): void {
@@ -2426,8 +2428,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     const bounds = this.getImagePanBounds();
-    this.manualPagePanX = clamp(this.manualPagePanX, -bounds.maxX, bounds.maxX);
-    this.manualPagePanY = clamp(this.manualPagePanY, -bounds.maxY, bounds.maxY);
+    this.manualPagePanX = this.clamp(this.manualPagePanX, -bounds.maxX, bounds.maxX);
+    this.manualPagePanY = this.clamp(this.manualPagePanY, -bounds.maxY, bounds.maxY);
   }
 
   private getImagePanBounds(): {maxX: number; maxY: number} {
@@ -2547,9 +2549,9 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       this.joystickPositionLocked = parsed.positionLocked !== false;
       this.joystickRecenterOnTouch = parsed.recenterOnTouch !== false;
       this.joystickIndicatorVisible = parsed.indicatorVisible !== false;
-      this.joystickIndicatorOpacity = clamp(this.toNormalizedPosition(parsed.indicatorOpacity, defaults.indicatorOpacity), 0.1, 1);
-      this.joystickAnchorX = clamp(this.toNormalizedPosition(parsed.anchorX, defaults.anchorX), 0.05, 0.95);
-      this.joystickAnchorY = clamp(this.toNormalizedPosition(parsed.anchorY, defaults.anchorY), 0.05, 0.95);
+      this.joystickIndicatorOpacity = this.clamp(this.toNormalizedPosition(parsed.indicatorOpacity, defaults.indicatorOpacity), 0.1, 1);
+      this.joystickAnchorX = this.clamp(this.toNormalizedPosition(parsed.anchorX, defaults.anchorX), 0.05, 0.95);
+      this.joystickAnchorY = this.clamp(this.toNormalizedPosition(parsed.anchorY, defaults.anchorY), 0.05, 0.95);
     } catch {
       this.joystickEnabled = defaults.enabled;
       this.joystickSensitivity = defaults.sensitivity;

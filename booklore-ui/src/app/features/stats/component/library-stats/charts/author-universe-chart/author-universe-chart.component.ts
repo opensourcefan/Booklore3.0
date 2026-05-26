@@ -9,7 +9,6 @@ import {BookService} from '../../../../../book/service/book.service';
 import {BookState} from '../../../../../book/model/state/book-state.model';
 import {Book, ReadStatus} from '../../../../../book/model/book.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import { clamp } from '../../../../../../core/utils/math.utils';
 
 interface AuthorStats {
   name: string;
@@ -331,7 +330,7 @@ export class AuthorUniverseChartComponent implements OnInit, OnDestroy {
       const point: BubbleDataPoint = {
         x: stats.bookCount,
         y: stats.avgRating || 2.5, // Default to 2.5 if no rating
-        r: clamp(25, 5, radius),
+        r: Math.max(5, Math.min(25, radius)),
         authorStats: stats
       };
 

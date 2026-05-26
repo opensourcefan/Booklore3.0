@@ -1,7 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {Subject} from 'rxjs';
 import {ReaderAnnotationService} from '../features/annotations/annotation-renderer.service';
-import { clamp } from '../../../../core/utils/math.utils';
 
 export interface ViewEvent {
   type: 'load' | 'relocate' | 'error' | 'middle-single-tap' | 'draw-annotation' | 'show-annotation' | 'text-selected' | 'toggle-fullscreen' | 'toggle-shortcuts-help' | 'escape-pressed' | 'go-first-section' | 'go-last-section' | 'toggle-toc' | 'toggle-search' | 'toggle-notes';
@@ -405,7 +404,7 @@ export class ReaderEventService {
           popupY = selectionTop - 50;
         }
 
-        popupX = clamp(popupX, 100, window.innerWidth - 150);
+        popupX = Math.max(100, Math.min(popupX, window.innerWidth - 150));
 
         this.eventSubject.next({
           type: 'text-selected',

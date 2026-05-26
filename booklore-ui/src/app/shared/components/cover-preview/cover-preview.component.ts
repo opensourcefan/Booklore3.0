@@ -1,5 +1,4 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, Renderer2, ViewChild, inject, OnChanges, SimpleChanges } from '@angular/core';
-import { clamp } from '../../../core/utils/math.utils';
 
 @Component({
   selector: 'app-cover-preview',
@@ -91,7 +90,7 @@ export class CoverPreviewComponent implements AfterViewInit, OnDestroy, OnChange
     const onMouseMove = (e: MouseEvent) => {
       if (!this.dragging) return;
       const delta = this.startY - e.clientY;
-      const newHeight = clamp(120, this.startHeight + delta, 900);
+      const newHeight = Math.min(900, Math.max(120, this.startHeight + delta));
       this.renderer.setStyle(panel, 'height', newHeight + 'px');
       localStorage.setItem(this.STORAGE_KEY, String(newHeight));
     };

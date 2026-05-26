@@ -9,7 +9,6 @@ import {BookService} from '../../../../../book/service/book.service';
 import {BookState} from '../../../../../book/model/state/book-state.model';
 import {Book, ReadStatus} from '../../../../../book/model/book.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import { clamp } from '../../../../../../core/utils/math.utils';
 
 interface BookScatterPoint extends ScatterDataPoint {
   bookTitle: string;
@@ -301,8 +300,8 @@ export class BookLengthChartComponent implements OnInit, OnDestroy {
     const maxX = Math.max(...points.map(p => p.x));
 
     return [
-      {x: minX, y: clamp(10, 0, slope * minX + intercept)},
-      {x: maxX, y: clamp(10, 0, slope * maxX + intercept)}
+      {x: minX, y: Math.max(0, Math.min(10, slope * minX + intercept))},
+      {x: maxX, y: Math.max(0, Math.min(10, slope * maxX + intercept))}
     ];
   }
 

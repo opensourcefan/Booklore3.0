@@ -1,7 +1,5 @@
 package org.booklore.service.metadata.sidecar;
 
-import org.booklore.util.MathUtils;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.booklore.exception.ApiError;
@@ -114,7 +112,7 @@ public class SidecarService {
         libraryRepository.findById(libraryId)
                 .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
 
-        int safeLimit = MathUtils.clamp(limit, 1, MAX_HISTORY_LIMIT);
+        int safeLimit = Math.max(1, Math.min(limit, MAX_HISTORY_LIMIT));
 
         return auditLogRepository.findByEntityTypeAndEntityIdAndActionInOrderByCreatedAtDesc(
                         LIBRARY_ENTITY_TYPE,

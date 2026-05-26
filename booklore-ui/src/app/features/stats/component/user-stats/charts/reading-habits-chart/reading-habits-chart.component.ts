@@ -9,7 +9,6 @@ import {BookService} from '../../../../../book/service/book.service';
 import {BookState} from '../../../../../book/model/state/book-state.model';
 import {Book, ReadStatus} from '../../../../../book/model/book.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import { clamp } from '../../../../../../core/utils/math.utils';
 
 interface ReadingHabitsProfile {
   consistency: number;
@@ -279,7 +278,7 @@ export class ReadingHabitsChartComponent implements OnInit, OnDestroy {
     const stdDev = Math.sqrt(variance);
     const cv = stdDev / meanGap; // coefficient of variation: < 0.5 = very regular, > 2 = very irregular
 
-    const regularityScore = clamp(70, 0, (1 - cv / 2) * 70);
+    const regularityScore = Math.max(0, Math.min(70, (1 - cv / 2) * 70));
     const volumeBonus = Math.min(30, completedBooks.length * 1.5);
 
     return Math.min(100, Math.round(regularityScore + volumeBonus));
@@ -360,7 +359,7 @@ export class ReadingHabitsChartComponent implements OnInit, OnDestroy {
     books.forEach(book => {
       if (book.metadata?.language) languages.add(book.metadata.language);
     });
-    const languageScore = clamp(Math.max(0, languages.size - 1) * 7.5, 0, 15);
+    const languageScore = Math.min(15, Math.max(0, languages.size - 1) * 7.5);
 
     return Math.min(100, Math.round(diversityScore + temporalScore + languageScore));
   }

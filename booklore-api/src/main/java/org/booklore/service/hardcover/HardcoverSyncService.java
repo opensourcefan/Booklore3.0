@@ -1,7 +1,5 @@
 package org.booklore.service.hardcover;
 
-import org.booklore.util.MathUtils;
-
 import org.booklore.model.dto.HardcoverSyncSettings;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookMetadataEntity;
@@ -128,7 +126,7 @@ public class HardcoverSyncService {
                 int progressPages = 0;
                 if (hardcoverBook.pages != null && hardcoverBook.pages > 0) {
                     progressPages = Math.round((progressPercent / 100.0f) * hardcoverBook.pages);
-                    progressPages = MathUtils.clamp(hardcoverBook.pages, 0, progressPages);
+                    progressPages = Math.max(0, Math.min(hardcoverBook.pages, progressPages));
                 }
                 log.info("Progress calculation: userId={}, progressPercent={}%, totalPages={}, progressPages={}", 
                         userId, progressPercent, hardcoverBook.pages, progressPages);

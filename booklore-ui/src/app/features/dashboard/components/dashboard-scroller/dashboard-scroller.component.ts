@@ -11,7 +11,6 @@ import {TranslocoDirective} from '@jsverse/transloco';
 import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 import {Subscription} from 'rxjs';
-import { clamp } from '../../../../core/utils/math.utils';
 
 @Component({
   selector: 'app-dashboard-scroller',
@@ -78,10 +77,10 @@ export class DashboardScrollerComponent implements OnInit, OnDestroy {
     const savedDesktopRows = this.localStorageService.get<number>(this.DESKTOP_TITLE_ROWS_STORAGE_KEY);
 
     if (savedMobileRows !== null) {
-      this.mobileTitleRows = clamp(1, savedMobileRows, 3);
+      this.mobileTitleRows = Math.min(3, Math.max(1, savedMobileRows));
     }
     if (savedDesktopRows !== null) {
-      this.desktopTitleRows = clamp(1, savedDesktopRows, 5);
+      this.desktopTitleRows = Math.min(5, Math.max(1, savedDesktopRows));
     }
   }
 }
