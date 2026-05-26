@@ -1,6 +1,6 @@
 import {Injector} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {Book, BookMetadata} from '../model/book.model';
 import {PagedBookBrowserCacheEntry} from '../model/state/paged-book-browser-state.model';
 import {BookSocketService} from './book-socket.service';
@@ -70,6 +70,7 @@ describe('BookSocketService', () => {
   let injectorGetSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     requestRefreshSpy = vi.fn();
     syncCacheSpy = vi.fn();
     refreshActiveStateSpy = vi.fn();
@@ -109,6 +110,11 @@ describe('BookSocketService', () => {
         },
       ],
     });
+  });
+
+  afterEach(() => {
+    vi.runAllTimers();
+    vi.useRealTimers();
   });
 
   function createServices() {
@@ -236,6 +242,8 @@ describe('BookSocketService', () => {
     socketService.handleBookMetadataUpdate(77, createMetadata(77, 'Updated Title', '2024-01-01T00:00:00Z'));
     socketService.handleMultipleBookCoverPatches([{id: 77, coverUpdatedOn: '2025-05-05T12:00:00Z'}]);
 
+    vi.advanceTimersByTime(200);
+
     const state = bookStateService.getCurrentBookState();
 
     expect(state.books?.[0].metadata?.title).toBe('Updated Title');
@@ -243,7 +251,7 @@ describe('BookSocketService', () => {
     expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.title).toBe('Updated Title');
     expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.coverUpdatedOn).toBe('2025-05-05T12:00:00Z');
     expect(state.totalCount).toBe(6);
-    expect(syncCacheSpy).toHaveBeenCalledTimes(2);
-    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(2);
+    expect(syncCacheSpy).toHaveBeenCalledTimes(1);
+    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
   });
 });
