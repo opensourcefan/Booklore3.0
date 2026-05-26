@@ -910,10 +910,7 @@ public class BookService {
         }
         
         // Use BookUpdateService to update the field
-        bookUpdateService.updateCurrentlyReadingStatus(bookId, isCurrentlyReading);
-        
-        // Return the updated book
-        return bookMapper.toBook(bookRepository.findById(bookId).get());
+        return bookUpdateService.updateCurrentlyReadingStatus(bookId, isCurrentlyReading);
     }
 
 }

@@ -171,17 +171,16 @@ public class BookMetadataService {
         return parser;
     }
 
-    public void toggleFieldLocks(List<Long> bookIds, Map<String, String> fieldActions) {
+    @BroadcastBookUpdate
+    @Transactional
+    public List<Book> toggleFieldLocks(List<Long> bookIds, Map<String, String> fieldActions) {
         Map<String, String> fieldMapping = Map.of(
                 "thumbnailLocked", "coverLocked"
         );
-        List<BookMetadataEntity> metadataEntities = bookMetadataRepository
-                .getMetadataForBookIds(bookIds)
-                .stream()
-                .distinct()
-                .toList();
+        List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(new HashSet<>(bookIds));
 
-        for (BookMetadataEntity metadataEntity : metadataEntities) {
+        for (BookEntity book : books) {
+            BookMetadataEntity metadataEntity = book.getMetadata();
             fieldActions.forEach((field, action) -> {
                 String entityField = fieldMapping.getOrDefault(field, field);
                 try {
@@ -194,18 +193,20 @@ public class BookMetadataService {
             });
         }
 
-        bookMetadataRepository.saveAll(metadataEntities);
+        bookRepository.saveAll(books);
+        return books.stream().map(b -> bookMapper.toBookWithDescription(b, true)).collect(Collectors.toList());
     }
 
+    @BroadcastBookUpdate
     @Transactional
-    public List<BookMetadata> toggleAllLock(ToggleAllLockRequest request) {
+    public List<Book> toggleAllLock(ToggleAllLockRequest request) {
         boolean lock = request.getLock() == Lock.LOCK;
         List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(request.getBookIds())
                 .stream()
                 .peek(book -> book.getMetadata().applyLockToAllFields(lock))
                 .toList();
         bookRepository.saveAll(books);
-        return books.stream().map(b -> bookMetadataMapper.toBookMetadata(b.getMetadata(), false)).collect(Collectors.toList());
+        return books.stream().map(b -> bookMapper.toBookWithDescription(b, true)).collect(Collectors.toList());
     }
 
     public BookMetadata getComicInfoMetadata(long bookId) {
@@ -227,6 +228,28 @@ public class BookMetadataService {
             throw ApiError.GENERIC_BAD_REQUEST.createException("Book has no file to extract metadata from");
         }
         return metadataExtractorFactory.extractMetadata(primaryFile.getBookType(), new File(FileUtils.getBookFullPath(bookEntity)));
+    }
+
+    @BroadcastBookUpdate
+    @Transactional
+    public Book updateMetadata(long bookId, MetadataUpdateWrapper metadataUpdateWrapper, boolean mergeCategories, org.booklore.model.enums.MetadataReplaceMode replaceMode) {
+        BookEntity bookEntity = bookRepository.findAllWithMetadataByIds(Collections.singleton(bookId)).stream()
+                .findFirst()
+                .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+
+        MetadataUpdateContext context = MetadataUpdateContext.builder()
+                .bookEntity(bookEntity)
+                .metadataUpdateWrapper(metadataUpdateWrapper)
+                .updateThumbnail(true)
+                .mergeCategories(mergeCategories)
+                .replaceMode(replaceMode)
+                .mergeMoods(false)
+                .mergeTags(false)
+                .build();
+
+        bookMetadataUpdater.setBookMetadata(context);
+        bookRepository.save(bookEntity);
+        return bookMapper.toBookWithDescription(bookEntity, true);
     }
 
     @BroadcastBookUpdate

@@ -55,36 +55,18 @@ class MetadataControllerTest {
         bookEntity.setId(bookId);
         bookEntity.setMetadata(new BookMetadataEntity());
 
-        when(bookRepository.findAllWithMetadataByIds(java.util.Collections.singleton(bookId))).thenReturn(java.util.List.of(bookEntity));
-        when(bookMetadataMapper.toBookMetadata(any(), anyBoolean())).thenReturn(new BookMetadata());
+        org.booklore.model.dto.Book mockBook = org.booklore.model.dto.Book.builder().metadata(new BookMetadata()).build();
+        when(bookMetadataService.updateMetadata(eq(bookId), eq(wrapper), eq(true), eq(replaceMode))).thenReturn(mockBook);
 
         metadataController.updateMetadata(wrapper, bookId, true, replaceMode);
 
-        ArgumentCaptor<MetadataUpdateContext> captor = ArgumentCaptor.forClass(MetadataUpdateContext.class);
-        verify(bookMetadataUpdater).setBookMetadata(captor.capture());
-        return captor.getValue();
+        verify(bookMetadataService).updateMetadata(eq(bookId), eq(wrapper), eq(true), eq(replaceMode));
+        return null;
     }
 
     @Test
-    void updateMetadata_shouldDisableMergingForTagsAndMoods() {
-        MetadataUpdateContext context = captureContextFromUpdate(MetadataReplaceMode.REPLACE_ALL);
-
-        assertFalse(context.isMergeTags(), "mergeTags should be false to allow deletion of tags");
-        assertFalse(context.isMergeMoods(), "mergeMoods should be false to allow deletion of moods");
-    }
-
-    @Test
-    void updateMetadata_shouldPassReplaceModeFromParam() {
-        MetadataUpdateContext context = captureContextFromUpdate(MetadataReplaceMode.REPLACE_WHEN_PROVIDED);
-
-        assertEquals(MetadataReplaceMode.REPLACE_WHEN_PROVIDED, context.getReplaceMode());
-    }
-
-    @Test
-    void updateMetadata_shouldDefaultToReplaceAll() {
-        MetadataUpdateContext context = captureContextFromUpdate(MetadataReplaceMode.REPLACE_ALL);
-
-        assertEquals(MetadataReplaceMode.REPLACE_ALL, context.getReplaceMode());
+    void updateMetadata_shouldDelegateToService() {
+        captureContextFromUpdate(MetadataReplaceMode.REPLACE_ALL);
     }
 
     @Test

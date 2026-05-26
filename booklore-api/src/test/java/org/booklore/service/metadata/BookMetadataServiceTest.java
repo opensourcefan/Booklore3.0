@@ -364,29 +364,35 @@ class BookMetadataServiceTest {
         @Test
         void locksSingleField() {
             BookMetadataEntity entity = BookMetadataEntity.builder().bookId(1L).titleLocked(false).build();
-            when(bookMetadataRepository.getMetadataForBookIds(List.of(1L))).thenReturn(List.of(entity));
+            BookEntity bookEntity = BookEntity.builder().id(1L).metadata(entity).build();
+            when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(bookEntity));
+            when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(Book.builder().build());
 
             service.toggleFieldLocks(List.of(1L), Map.of("titleLocked", "LOCK"));
 
             assertThat(entity.getTitleLocked()).isTrue();
-            verify(bookMetadataRepository).saveAll(List.of(entity));
+            verify(bookRepository).saveAll(List.of(bookEntity));
         }
 
         @Test
         void unlocksSingleField() {
             BookMetadataEntity entity = BookMetadataEntity.builder().bookId(1L).titleLocked(true).build();
-            when(bookMetadataRepository.getMetadataForBookIds(List.of(1L))).thenReturn(List.of(entity));
+            BookEntity bookEntity = BookEntity.builder().id(1L).metadata(entity).build();
+            when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(bookEntity));
+            when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(Book.builder().build());
 
             service.toggleFieldLocks(List.of(1L), Map.of("titleLocked", "UNLOCK"));
 
             assertThat(entity.getTitleLocked()).isFalse();
-            verify(bookMetadataRepository).saveAll(List.of(entity));
+            verify(bookRepository).saveAll(List.of(bookEntity));
         }
 
         @Test
         void mapsThumbnailLockedToCoverLocked() {
             BookMetadataEntity entity = BookMetadataEntity.builder().bookId(1L).coverLocked(false).build();
-            when(bookMetadataRepository.getMetadataForBookIds(List.of(1L))).thenReturn(List.of(entity));
+            BookEntity bookEntity = BookEntity.builder().id(1L).metadata(entity).build();
+            when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(bookEntity));
+            when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(Book.builder().build());
 
             service.toggleFieldLocks(List.of(1L), Map.of("thumbnailLocked", "LOCK"));
 
@@ -396,8 +402,11 @@ class BookMetadataServiceTest {
         @Test
         void handlesMultipleBooks() {
             BookMetadataEntity entity1 = BookMetadataEntity.builder().bookId(1L).titleLocked(false).build();
+            BookEntity bookEntity1 = BookEntity.builder().id(1L).metadata(entity1).build();
             BookMetadataEntity entity2 = BookMetadataEntity.builder().bookId(2L).titleLocked(false).build();
-            when(bookMetadataRepository.getMetadataForBookIds(List.of(1L, 2L))).thenReturn(List.of(entity1, entity2));
+            BookEntity bookEntity2 = BookEntity.builder().id(2L).metadata(entity2).build();
+            when(bookQueryService.findAllWithMetadataByIds(Set.of(1L, 2L))).thenReturn(List.of(bookEntity1, bookEntity2));
+            when(bookMapper.toBookWithDescription(any(), eq(true))).thenReturn(Book.builder().build());
 
             service.toggleFieldLocks(List.of(1L, 2L), Map.of("titleLocked", "LOCK"));
 
@@ -408,7 +417,8 @@ class BookMetadataServiceTest {
         @Test
         void throwsForInvalidField() {
             BookMetadataEntity entity = BookMetadataEntity.builder().bookId(1L).build();
-            when(bookMetadataRepository.getMetadataForBookIds(List.of(1L))).thenReturn(List.of(entity));
+            BookEntity bookEntity = BookEntity.builder().id(1L).metadata(entity).build();
+            when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(bookEntity));
 
             assertThatThrownBy(() -> service.toggleFieldLocks(List.of(1L), Map.of("nonExistentField", "LOCK")))
                     .isInstanceOf(RuntimeException.class)
@@ -424,14 +434,14 @@ class BookMetadataServiceTest {
             BookMetadataEntity metadata = BookMetadataEntity.builder().bookId(1L).build();
             BookEntity bookEntity = BookEntity.builder().id(1L).metadata(metadata).build();
             when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(bookEntity));
-            BookMetadata dto = BookMetadata.builder().build();
-            when(bookMetadataMapper.toBookMetadata(metadata, false)).thenReturn(dto);
+            Book dto = Book.builder().build();
+            when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(dto);
 
             ToggleAllLockRequest request = new ToggleAllLockRequest();
             request.setBookIds(Set.of(1L));
             request.setLock(Lock.LOCK);
 
-            List<BookMetadata> result = service.toggleAllLock(request);
+            List<Book> result = service.toggleAllLock(request);
 
             assertThat(result).hasSize(1);
             verify(bookRepository).saveAll(anyList());
@@ -443,14 +453,14 @@ class BookMetadataServiceTest {
             metadata.applyLockToAllFields(true);
             BookEntity bookEntity = BookEntity.builder().id(1L).metadata(metadata).build();
             when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(bookEntity));
-            BookMetadata dto = BookMetadata.builder().build();
-            when(bookMetadataMapper.toBookMetadata(metadata, false)).thenReturn(dto);
+            Book dto = Book.builder().build();
+            when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(dto);
 
             ToggleAllLockRequest request = new ToggleAllLockRequest();
             request.setBookIds(Set.of(1L));
             request.setLock(Lock.UNLOCK);
 
-            List<BookMetadata> result = service.toggleAllLock(request);
+            List<Book> result = service.toggleAllLock(request);
 
             assertThat(result).hasSize(1);
             assertThat(metadata.getTitleLocked()).isFalse();

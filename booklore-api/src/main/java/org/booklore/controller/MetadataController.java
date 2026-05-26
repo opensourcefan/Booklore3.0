@@ -67,25 +67,10 @@ public class MetadataController {
             @Parameter(description = "ID of the book") @PathVariable long bookId,
             @Parameter(description = "Merge categories") @RequestParam(defaultValue = "false") boolean mergeCategories,
             @Parameter(description = "Replace mode") @RequestParam(defaultValue = "REPLACE_ALL") MetadataReplaceMode replaceMode) {
-        BookEntity bookEntity = bookRepository.findAllWithMetadataByIds(java.util.Collections.singleton(bookId)).stream()
-                .findFirst()
-                .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
-
-        MetadataUpdateContext context = MetadataUpdateContext.builder()
-                .bookEntity(bookEntity)
-                .metadataUpdateWrapper(metadataUpdateWrapper)
-                .updateThumbnail(true)
-                .mergeCategories(mergeCategories)
-                .replaceMode(replaceMode)
-                .mergeMoods(false)
-                .mergeTags(false)
-                .build();
-
-        bookMetadataUpdater.setBookMetadata(context);
-        bookRepository.save(bookEntity);
-        auditService.log(AuditAction.METADATA_UPDATED, "Book", bookId, "Updated metadata for book: " + bookEntity.getMetadata().getTitle());
-        BookMetadata bookMetadata = bookMetadataMapper.toBookMetadata(bookEntity.getMetadata(), true);
-        return ResponseEntity.ok(bookMetadata);
+        
+        org.booklore.model.dto.Book book = bookMetadataService.updateMetadata(bookId, metadataUpdateWrapper, mergeCategories, replaceMode);
+        auditService.log(AuditAction.METADATA_UPDATED, "Book", bookId, "Updated metadata for book: " + book.getMetadata().getTitle());
+        return ResponseEntity.ok(book.getMetadata());
     }
 
     @Operation(summary = "Bulk edit book metadata", description = "Bulk update metadata for multiple books. Requires metadata edit permission or admin.")
@@ -136,7 +121,9 @@ public class MetadataController {
     @PutMapping("/metadata/toggle-all-lock")
     @PreAuthorize("@securityUtil.canBulkLockUnlockMetadata() or @securityUtil.isAdmin()")
     public ResponseEntity<List<BookMetadata>> toggleAllMetadata(@Parameter(description = "Toggle all lock request") @RequestBody ToggleAllLockRequest request) {
-        return ResponseEntity.ok(bookMetadataService.toggleAllLock(request));
+        List<org.booklore.model.dto.Book> books = bookMetadataService.toggleAllLock(request);
+        List<BookMetadata> metadataList = books.stream().map(org.booklore.model.dto.Book::getMetadata).collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(metadataList);
     }
 
     @Operation(summary = "Toggle field locks for metadata", description = "Toggle field locks for book metadata. Requires metadata edit permission or admin.")
@@ -144,8 +131,9 @@ public class MetadataController {
     @PutMapping("/metadata/toggle-field-locks")
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
     public ResponseEntity<List<BookMetadata>> toggleFieldLocks(@Parameter(description = "Toggle field locks request") @RequestBody ToggleFieldLocksRequest request) {
-        bookMetadataService.toggleFieldLocks(request.getBookIds(), request.getFieldActions());
-        return ResponseEntity.ok().build();
+        List<org.booklore.model.dto.Book> books = bookMetadataService.toggleFieldLocks(request.getBookIds(), request.getFieldActions());
+        List<BookMetadata> metadataList = books.stream().map(org.booklore.model.dto.Book::getMetadata).collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(metadataList);
     }
 
     @Operation(summary = "Recalculate metadata match scores", description = "Recalculate match scores for all metadata. Requires admin.")

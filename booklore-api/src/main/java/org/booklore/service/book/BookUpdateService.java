@@ -3,6 +3,7 @@ package org.booklore.service.book;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.exception.ApiError;
 import org.booklore.mapper.BookMapper;
+import org.booklore.service.event.aop.BroadcastBookUpdate;
 import org.booklore.model.dto.*;
 import org.booklore.model.dto.response.BookStatusUpdateResponse;
 import org.booklore.model.dto.response.PersonalRatingUpdateResponse;
@@ -99,6 +100,7 @@ public class BookUpdateService {
         return buildRatingUpdateResponses(bookIds, null);
     }
 
+    @BroadcastBookUpdate
     @Transactional
     public List<Book> assignShelvesToBooks(Set<Long> bookIds, Set<Long> shelfIdsToAssign, Set<Long> shelfIdsToUnassign) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
@@ -115,6 +117,7 @@ public class BookUpdateService {
         return buildBooksWithProgress(bookEntities, user.getId());
     }
 
+    @BroadcastBookUpdate
     @Transactional
     public List<Book> assignFileTypeToBooks(Set<Long> bookIds, String fileType) {
         BookLoreUser user = authenticationService.getAuthenticatedUser();
@@ -388,12 +391,14 @@ public class BookUpdateService {
                 .collect(Collectors.toSet());
     }
 
+    @BroadcastBookUpdate
     @Transactional
-    public void updateCurrentlyReadingStatus(long bookId, boolean isCurrentlyReading) {
+    public Book updateCurrentlyReadingStatus(long bookId, boolean isCurrentlyReading) {
         BookEntity book = bookRepository.findById(bookId)
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
         
         book.setCurrentlyReading(isCurrentlyReading);
         bookRepository.save(book);
+        return bookMapper.toBook(book);
     }
 }

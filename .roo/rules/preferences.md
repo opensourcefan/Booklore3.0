@@ -49,3 +49,9 @@ paths: ["**/*"]
 - Before making a code change, you must list your top 3 assumptions and prove them by reading the specific file lines.
 
 - If a project uses multi-stage builds or generated code, you must locate the outputs of those builds before declaring a task complete.
+
+## Versioning & Tagging Safety
+- **Always Verify Latest Remote Tag:** Before deciding on the next version number or pushing a new tag, you MUST run `git ls-remote --tags origin` or `git tag -l | sort -V` to find the actual latest tag on the repository. Do NOT rely solely on the version string found in local files (e.g., `build.gradle` or `package.json`), as they may be outdated. Sync the local files to the true latest remote version before incrementing and tagging.
+
+## Browser Updates & Broadcasting
+- **100% Reliable Refreshes via AOP:** Never use `notificationService.sendMessage` manually in a Controller for state changes (like metadata updates or shelf moves). All operations that mutate book state MUST delegate to a Service layer method that returns the modified `Book` or `Collection<Book>` and is annotated with `@BroadcastBookUpdate`. This ensures the websocket browser refresh is centrally enforced and impossible to bypass.

@@ -3,6 +3,7 @@ package org.booklore.service.book;
 import org.booklore.exception.ApiError;
 import org.booklore.exception.APIException;
 import org.booklore.mapper.BookMapper;
+import org.booklore.service.event.aop.BroadcastBookUpdate;
 import org.booklore.model.dto.Book;
 import org.booklore.model.dto.BookMetadata;
 import org.booklore.model.dto.request.CreatePhysicalBookRequest;
@@ -62,6 +63,7 @@ public class PhysicalBookService {
     private final SidecarMetadataMapper sidecarMetadataMapper;
     private final SidecarPathResolver sidecarPathResolver;
 
+    @BroadcastBookUpdate
     @Transactional
     public Book createPhysicalBook(CreatePhysicalBookRequest request) {
         LibraryEntity library = libraryRepository.findById(request.getLibraryId())
@@ -317,6 +319,7 @@ public class PhysicalBookService {
                 .forEach(catEntity -> bookEntity.getMetadata().getCategories().add(catEntity));
     }
 
+    @BroadcastBookUpdate
     @Transactional
     public Book togglePhysicalFlag(long bookId, boolean physical) {
         BookEntity book = bookRepository.findById(bookId)
