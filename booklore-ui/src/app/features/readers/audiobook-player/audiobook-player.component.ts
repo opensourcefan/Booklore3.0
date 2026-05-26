@@ -23,6 +23,7 @@ import {PageTitleService} from '../../../shared/service/page-title.service';
 import {AuthService} from '../../../shared/service/auth.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
+import { clamp } from '../../../core/utils/math.utils';
 
 type AudiobookMobileSurface = 'trackList' | 'bookmarkList';
 
@@ -546,7 +547,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
   seekRelative(seconds: number): void {
     const audio = this.audioElement?.nativeElement;
     if (audio) {
-      const newTime = Math.max(0, Math.min(this.duration, audio.currentTime + seconds));
+      const newTime = clamp(this.duration, 0, audio.currentTime + seconds);
       audio.currentTime = newTime;
       this.currentTime = newTime;
     }

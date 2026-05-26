@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import org.booklore.util.MathUtils;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -114,7 +116,7 @@ public class HardcoverBookSearchService {
             return Collections.emptyList();
         }
 
-        int sanitizedPerPage = Math.min(Math.max(perPage, 1), 100);
+        int sanitizedPerPage = MathUtils.clamp(perPage, 1, 100);
 
         GraphQLRequest body = new GraphQLRequest();
         body.setQuery("query BookSearch($q: String!, $limit: Int!) { search(query: $q, query_type: \"Book\", per_page: $limit, page: 1) { results } }");

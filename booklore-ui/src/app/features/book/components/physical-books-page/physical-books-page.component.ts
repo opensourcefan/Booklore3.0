@@ -16,6 +16,7 @@ import {ReadStatusHelper} from '../../helpers/read-status.helper';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 import {naturalCompareStrings} from '../../../../shared/util/natural-sort.util';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
+import { clamp } from '../../../../core/utils/math.utils';
 
 interface PhysicalBookGroup {
   key: string;
@@ -221,10 +222,10 @@ export class PhysicalBooksPageComponent implements OnInit, OnDestroy {
     const savedDesktopRows = this.localStorageService.get<number>(this.DESKTOP_TITLE_ROWS_STORAGE_KEY);
 
     if (savedMobileRows !== null) {
-      this.mobileTitleRows = Math.min(3, Math.max(1, savedMobileRows));
+      this.mobileTitleRows = clamp(1, savedMobileRows, 3);
     }
     if (savedDesktopRows !== null) {
-      this.desktopTitleRows = Math.min(5, Math.max(1, savedDesktopRows));
+      this.desktopTitleRows = clamp(1, savedDesktopRows, 5);
     }
   }
 

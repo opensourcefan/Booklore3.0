@@ -43,6 +43,7 @@ import {MetadataTaskLog, MetadataTaskService} from '../../../../features/book/se
 import {MobileBackHandle, MobileBackNavigationService} from '../../../service/mobile-back-navigation.service';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
+import { clamp } from '../../../../core/utils/math.utils';
 
 @Component({
   selector: 'app-topbar',
@@ -910,7 +911,7 @@ export class AppTopBarComponent implements OnDestroy {
     }
 
     const progress = activeTask.total > 0
-      ? Math.min(100, Math.max(0, Math.round((activeTask.completed * 100) / activeTask.total)))
+      ? clamp(0, Math.round((activeTask.completed * 100) / activeTask.total), 100)
       : 0;
 
     return {

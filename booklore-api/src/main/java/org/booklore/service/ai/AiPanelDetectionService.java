@@ -1,5 +1,7 @@
 package org.booklore.service.ai;
 
+import org.booklore.util.MathUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.booklore.config.AppProperties;
@@ -229,7 +231,7 @@ public class AiPanelDetectionService {
 
             int width = original.getWidth();
             int height = original.getHeight();
-            double scale = Math.min(1.0d, (double) MAX_IMAGE_DIMENSION / Math.max(width, height));
+            double scale = MathUtils.clamp(double) MAX_IMAGE_DIMENSION / Math.max(width, height, 1.0d);
 
             BufferedImage working = original;
             if (scale < 1.0d) {

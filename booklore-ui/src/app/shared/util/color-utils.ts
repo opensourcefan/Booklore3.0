@@ -1,3 +1,4 @@
+import { clamp } from '../../core/utils/math.utils';
 const CSS_NAMED_COLORS: Record<string, string> = {
   aliceblue: '#f0f8ff',
   antiquewhite: '#faebd7',
@@ -178,9 +179,9 @@ function hclToRgb(h: number, c: number, l: number): { r: number; g: number; b: n
   }
 
   return {
-    r: Math.max(0, Math.min(255, r)),
-    g: Math.max(0, Math.min(255, g)),
-    b: Math.max(0, Math.min(255, b)),
+    r: clamp(255, 0, r),
+    g: clamp(255, 0, g),
+    b: clamp(255, 0, b),
   };
 }
 
@@ -191,7 +192,7 @@ function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: n
 
 function rgbToHex(r: number, g: number, b: number): string {
   const toHex = (v: number) => {
-    const clamped = Math.max(0, Math.min(255, Math.round(v)));
+    const clamped = clamp(255, 0, Math.round(v));
     return clamped.toString(16).padStart(2, '0');
   };
   return '#' + toHex(r) + toHex(g) + toHex(b);

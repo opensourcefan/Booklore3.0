@@ -1,5 +1,7 @@
 package org.booklore.service.metadata.writer;
 
+import org.booklore.util.MathUtils;
+
 import com.github.junrar.Archive;
 import com.github.junrar.rarfile.FileHeader;
 import jakarta.xml.bind.JAXBContext;
@@ -294,7 +296,7 @@ public class CbxMetadataWriter implements MetadataWriter {
         // CommunityRating - normalized to 0-5 scale
         helper.copyRating(false, rating -> {
             if (rating != null) {
-                double normalized = Math.min(5.0, Math.max(0.0, rating / 2.0));
+                double normalized = MathUtils.clamp(0.0, rating / 2.0, 5.0);
                 info.setCommunityRating(String.format(Locale.US, "%.1f", normalized));
             } else {
                 info.setCommunityRating(null);

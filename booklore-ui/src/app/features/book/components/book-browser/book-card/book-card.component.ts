@@ -32,6 +32,7 @@ import {AppSettingsService} from '../../../../../shared/service/app-settings.ser
 import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
 import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
+import { clamp } from '../../../../../core/utils/math.utils';
 
 @Component({
   selector: 'app-book-card',
@@ -329,7 +330,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   get normalizedTitleRows(): number {
-    return Math.min(5, Math.max(1, this.titleRows || 1));
+    return clamp(1, this.titleRows || 1, 5);
   }
 
   get isMobileInteractionMode(): boolean {

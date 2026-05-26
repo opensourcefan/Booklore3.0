@@ -5,6 +5,7 @@ import {Theme, themes} from './themes.constant';
 import {BookService} from '../../../book/service/book.service';
 import {UserService} from '../../../settings/user-management/user.service';
 import {EpubCustomFontService} from '../features/fonts/custom-font.service';
+import { clamp } from '../../../../core/utils/math.utils';
 
 export interface ReaderState {
   lineHeight: number;
@@ -154,19 +155,19 @@ export class ReaderStateService {
 
   updateLineHeight(delta: number): void {
     const current = this.currentState.lineHeight;
-    const newValue = Math.max(0.8, Math.min(3, current + delta));
+    const newValue = clamp(3, 0.8, current + delta);
     this.updateState({lineHeight: newValue});
   }
 
   updateMaxColumnCount(delta: number): void {
     const current = this.currentState.maxColumnCount;
-    const newValue = Math.max(1, Math.min(10, current + delta));
+    const newValue = clamp(10, 1, current + delta);
     this.updateState({maxColumnCount: newValue});
   }
 
   updateGap(delta: number): void {
     const current = this.currentState.gap;
-    const newValue = Math.max(0, Math.min(0.5, current + delta));
+    const newValue = clamp(0.5, 0, current + delta);
     this.updateState({gap: newValue});
   }
 
@@ -179,7 +180,7 @@ export class ReaderStateService {
   }
 
   updateFontSize(delta: number): void {
-    const newFontSize = Math.max(10, Math.min(32, this.currentState.fontSize + delta));
+    const newFontSize = clamp(32, 10, this.currentState.fontSize + delta);
     this.updateState({fontSize: newFontSize});
   }
 
@@ -198,12 +199,12 @@ export class ReaderStateService {
   }
 
   updateMaxInlineSize(delta: number): void {
-    const newValue = Math.max(400, Math.min(1600, this.currentState.maxInlineSize + delta));
+    const newValue = clamp(1600, 400, this.currentState.maxInlineSize + delta);
     this.updateState({maxInlineSize: newValue});
   }
 
   updateMaxBlockSize(delta: number): void {
-    const newValue = Math.max(600, Math.min(2400, this.currentState.maxBlockSize + delta));
+    const newValue = clamp(2400, 600, this.currentState.maxBlockSize + delta);
     this.updateState({maxBlockSize: newValue});
   }
 

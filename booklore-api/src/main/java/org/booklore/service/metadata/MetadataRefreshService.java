@@ -1,5 +1,7 @@
 package org.booklore.service.metadata;
 
+import org.booklore.util.MathUtils;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.booklore.config.security.service.AuthenticationService;
@@ -469,7 +471,7 @@ public class MetadataRefreshService {
     private void sendTaskProgressNotification(String taskId, int current, int total, String message, MetadataFetchTaskStatus status) {
         int progress;
         if (total > 0) {
-            progress = Math.min(100, Math.max(0, (current * 100) / total));
+            progress = MathUtils.clamp(0, (current * 100) / total, 100);
         } else {
             progress = (status == MetadataFetchTaskStatus.COMPLETED
                     || status == MetadataFetchTaskStatus.CANCELLED

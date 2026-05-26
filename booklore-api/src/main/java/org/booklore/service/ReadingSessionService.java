@@ -1,5 +1,7 @@
 package org.booklore.service;
 
+import org.booklore.util.MathUtils;
+
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.exception.ApiError;
 import org.booklore.model.dto.BookLoreUser;
@@ -346,12 +348,12 @@ public class ReadingSessionService {
                             .mapToDouble(Double::doubleValue).average().orElse(0);
                     boolean finishBurst = lastQuarterAvg > firstThreeQuartersAvg;
 
-                    double accelScore = Math.min(1.0, Math.max(0.0, (sessionAcceleration + 50) / 100.0));
-                    double gapScore = Math.min(1.0, Math.max(0.0, (-gapReduction + 50) / 100.0));
+                    double accelScore = MathUtils.clamp(0.0, (sessionAcceleration + 50) / 100.0, 1.0);
+                    double gapScore = MathUtils.clamp(0.0, (-gapReduction + 50) / 100.0, 1.0);
                     double burstScore = finishBurst ? 1.0 : 0.0;
 
                     int gripScore = (int) Math.round(
-                            Math.min(100, Math.max(0, accelScore * 35 + gapScore * 35 + burstScore * 30)));
+                            MathUtils.clamp(0, accelScore * 35 + gapScore * 35 + burstScore * 30, 100));
 
                     double avgDuration = durations.stream().mapToDouble(Double::doubleValue).average().orElse(0);
 

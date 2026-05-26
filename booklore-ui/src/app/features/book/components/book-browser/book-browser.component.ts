@@ -91,6 +91,7 @@ import {
   shouldResetGridViewport,
 } from './book-browser-grid-reset.util';
 import { PagedBookBrowserEntity } from '../../model/state/paged-book-browser-state.model';
+import { clamp } from '../../../../core/utils/math.utils';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -2110,12 +2111,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setMobileTitleRows(rows: number): void {
-    this.mobileTitleRows = Math.min(3, Math.max(1, rows));
+    this.mobileTitleRows = clamp(1, rows, 3);
     this.localStorageService.set(this.MOBILE_TITLE_ROWS_STORAGE_KEY, this.mobileTitleRows);
   }
 
   setDesktopTitleRows(rows: number): void {
-    this.desktopTitleRows = Math.min(5, Math.max(1, rows));
+    this.desktopTitleRows = clamp(1, rows, 5);
     this.localStorageService.set(this.DESKTOP_TITLE_ROWS_STORAGE_KEY, this.desktopTitleRows);
   }
 

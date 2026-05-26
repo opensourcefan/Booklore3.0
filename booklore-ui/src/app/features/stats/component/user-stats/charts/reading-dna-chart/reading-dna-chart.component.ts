@@ -9,6 +9,7 @@ import {BookService} from '../../../../../book/service/book.service';
 import {BookState} from '../../../../../book/model/state/book-state.model';
 import {Book, ReadStatus} from '../../../../../book/model/book.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import { clamp } from '../../../../../../core/utils/math.utils';
 
 interface ReadingDNAProfile {
   adventurous: number;
@@ -271,7 +272,7 @@ export class ReadingDNAChartComponent implements OnInit, OnDestroy {
     const genreScore = Math.min(75, diversityRatio * 75);
 
     // Each language beyond the first adds 12.5 pts
-    const languageScore = Math.min(25, Math.max(0, languages.size - 1) * 12.5);
+    const languageScore = clamp(Math.max(0, languages.size - 1) * 12.5, 0, 25);
 
     return Math.min(100, Math.round(genreScore + languageScore));
   }

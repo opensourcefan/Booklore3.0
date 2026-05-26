@@ -8,6 +8,7 @@ import {BehaviorSubject, EMPTY, Observable, Subject} from 'rxjs';
 import {catchError, takeUntil} from 'rxjs/operators';
 import {ReadingSessionHeatmapResponse, UserStatsService} from '../../../../../settings/user-management/user-stats.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import { clamp } from '../../../../../../core/utils/math.utils';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -235,7 +236,7 @@ export class ReadingSessionHeatmapComponent implements OnInit, OnDestroy {
           if (!point?.v) return 'rgba(255, 255, 255, 0.05)';
 
           const intensity = point.v / this.maxSessionCount;
-          const alpha = Math.max(0.3, Math.min(0.9, intensity * 0.6 + 0.3));
+          const alpha = clamp(0.9, 0.3, intensity * 0.6 + 0.3);
           return `rgba(59, 130, 246, ${alpha})`;
         },
         borderColor: 'rgba(255, 255, 255, 0.1)',
