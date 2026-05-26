@@ -148,7 +148,7 @@
           @if (folders.length > 0) {
             <div class="folders-list">
               @for (folder of folders; track folder; let i = $index) {
-                <div class="folder-item">
+                <div class="folder-item" [class.marked-for-deletion]="isFolderMarkedForDeletion(folder)">
                   <div class="folder-info">
                     <i class="pi pi-folder"></i>
                     <div class="folder-name-row">
@@ -179,14 +179,15 @@
                     <button
                       class="folder-remove"
                       [class.folder-remove--labeled]="isDirectoryManagementMode()"
+                      [class.folder-remove--deleted]="isFolderMarkedForDeletion(folder)"
                     [attr.aria-label]="t(getRemoveFolderKey())"
                     [attr.title]="t(getRemoveFolderKey())"
-                    (click)="removeFolder(i)"
+                    (click)="removeFolder(i, folder)"
                     type="button"
                     [disabled]="isSubmitting">
-                    <i class="pi pi-times"></i>
+                    <i class="pi" [ngClass]="isFolderMarkedForDeletion(folder) ? 'pi-undo' : 'pi-times'"></i>
                     @if (isDirectoryManagementMode()) {
-                      <span>{{ t(getRemoveFolderKey()) }}</span>
+                      <span>{{ isFolderMarkedForDeletion(folder) ? 'Undo Remove' : t(getRemoveFolderKey()) }}</span>
                     }
                   </button>
                 </div>
@@ -410,7 +411,7 @@
             icon="pi pi-save"
             [loading]="isSubmitting && submissionState === 'updating'"
             loadingIcon="pi pi-spin pi-spinner"
-            severity="secondary"
+            [severity]="hasDeletionChanges() ? 'success' : 'secondary'"
             [disabled]="isSubmitting || !canSubmit()"
             (onClick)="createOrUpdateLibrary()"
           />

@@ -35,6 +35,7 @@ export class LibraryCreatorComponent implements OnInit {
   chosenLibraryName = '';
   folders: string[] = [];
   originalFolders: string[] = [];
+  foldersToDelete = new Set<string>();
   selectedIcon: IconSelection | null = null;
 
   mode: LibraryCreatorMode = 'create';
@@ -215,13 +216,16 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   openDirectoryPicker(): void {
+    const activeFolders = this.folders.filter(f => !this.isFolderMarkedForDeletion(f));
     const ref = this.dialogLauncherService.openDirectoryPickerDialog({
-      existingFolders: [...this.folders]
+      existingFolders: [...activeFolders]
     });
     ref?.onClose.subscribe((selectedFolders: string[] | null) => {
       if (selectedFolders && selectedFolders.length > 0) {
         selectedFolders.forEach(folder => {
-          if (!this.folders.includes(folder)) {
+          if (this.isFolderMarkedForDeletion(folder)) {
+            this.foldersToDelete.delete(folder);
+          } else if (!this.folders.includes(folder)) {
             this.addFolder(folder);
           }
         });
@@ -241,8 +245,20 @@ export class LibraryCreatorComponent implements OnInit {
     this.folders.push(folder);
   }
 
-  removeFolder(index: number): void {
-    this.folders.splice(index, 1);
+  removeFolder(index: number, folder: string): void {
+    if (this.isDirectoryManagementMode() && this.originalFolders.includes(folder)) {
+      if (this.foldersToDelete.has(folder)) {
+        this.foldersToDelete.delete(folder);
+      } else {
+        this.foldersToDelete.add(folder);
+      }
+    } else {
+      this.folders.splice(index, 1);
+    }
+  }
+
+  isFolderMarkedForDeletion(folder: string): boolean {
+    return this.foldersToDelete.has(folder);
   }
 
   rescanDirectory(path: string): void {
@@ -278,7 +294,8 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   isDirectorySelectionValid(): boolean {
-    return this.folders.length > 0;
+    const activeFolders = this.folders.filter(f => !this.isFolderMarkedForDeletion(f));
+    return activeFolders.length > 0;
   }
 
   isCreateMode(): boolean {
@@ -419,12 +436,19 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   hasDirectoryChanges(): boolean {
-    return this.normalizeFolderSet(this.folders) !== this.normalizeFolderSet(this.originalFolders);
+    const activeFolders = this.folders.filter(f => !this.isFolderMarkedForDeletion(f));
+    return this.normalizeFolderSet(activeFolders) !== this.normalizeFolderSet(this.originalFolders);
+  }
+
+  hasDeletionChanges(): boolean {
+    return this.foldersToDelete.size > 0;
   }
 
   getAddedDirectories(): string[] {
     const original = new Set(this.originalFolders.map(folder => this.normalizeFolderPath(folder)));
-    return this.folders.filter(folder => !original.has(this.normalizeFolderPath(folder)));
+    return this.folders
+      .filter(folder => !this.isFolderMarkedForDeletion(folder))
+      .filter(folder => !original.has(this.normalizeFolderPath(folder)));
   }
 
   isImportedDirectory(folder: string): boolean {
@@ -495,7 +519,7 @@ export class LibraryCreatorComponent implements OnInit {
       name: this.chosenLibraryName,
       icon: iconValue,
       iconType: iconType,
-      paths: this.folders.map(folder => ({path: folder})),
+      paths: this.folders.filter(f => !this.isFolderMarkedForDeletion(f)).map(folder => ({path: folder})),
       watch: this.watch,
       formatPriority: this.formatPriority.map(f => f.type),
       allowedFormats: selectedAllowedFormats,

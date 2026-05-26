@@ -207,7 +207,9 @@
       display: inline-flex;
       align-items: center;
       gap: 0.375rem;
-      padding: 0.375rem 0.75rem;
+      padding: 0.375rem 1.25rem;
+      min-width: 140px;
+      justify-content: center;
       background: var(--primary-color);
       border: none;
       border-radius: 6px;
@@ -433,7 +435,17 @@
   border-radius: 6px;
   transition: all 0.2s ease;
 
-  &:hover {
+  &.marked-for-deletion {
+    border-color: var(--p-red-400);
+    background: rgba(239, 68, 68, 0.05);
+
+    .folder-path, .folder-info i {
+      color: var(--p-red-400);
+      text-decoration: line-through;
+    }
+  }
+
+  &:hover:not(.marked-for-deletion) {
     border-color: var(--primary-color);
 
     .folder-info i {
