@@ -14,7 +14,11 @@ import {LoginGuard} from './shared/components/setup/login.guard';
 import {BookdropGuard} from './core/security/guards/bookdrop.guard';
 
 import {EditMetadataGuard} from './core/security/guards/edit-metdata.guard';
-
+import {PhysicalBooksPageComponent} from './features/book/components/physical-books-page/physical-books-page.component';
+import {SeriesBrowserComponent} from './features/series-browser/components/series-browser/series-browser.component';
+import {SeriesPageComponent} from './features/book/components/series-page/series-page.component';
+import {AuthorBrowserComponent} from './features/author-browser/components/author-browser/author-browser.component';
+import {AuthorDetailComponent} from './features/author-browser/components/author-detail/author-detail.component';
 export const routes: Routes = [
   {
     path: '',
@@ -34,15 +38,15 @@ export const routes: Routes = [
     children: [
       {path: 'dashboard', component: MainDashboardComponent, canActivate: [AuthGuard]},
       {path: 'all-books', component: BookBrowserComponent, canActivate: [AuthGuard]},
-      {path: 'physical-books', loadComponent: () => import('./features/book/components/physical-books-page/physical-books-page.component').then(m => m.PhysicalBooksPageComponent), canActivate: [AuthGuard]},
+      {path: 'physical-books', component: PhysicalBooksPageComponent, canActivate: [AuthGuard]},
       {path: 'settings', loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent), canActivate: [AuthGuard]},
       {path: 'library/:libraryId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},
       {path: 'shelf/:shelfId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},
       {path: 'not-shelfed', component: BookBrowserComponent, canActivate: [AuthGuard]},
-      {path: 'series', loadComponent: () => import('./features/series-browser/components/series-browser/series-browser.component').then(m => m.SeriesBrowserComponent), canActivate: [AuthGuard]},
-      {path: 'series/:seriesName', loadComponent: () => import('./features/book/components/series-page/series-page.component').then(m => m.SeriesPageComponent), canActivate: [AuthGuard]},
-      {path: 'authors', loadComponent: () => import('./features/author-browser/components/author-browser/author-browser.component').then(m => m.AuthorBrowserComponent), canActivate: [AuthGuard]},
-      {path: 'author/:authorId', loadComponent: () => import('./features/author-browser/components/author-detail/author-detail.component').then(m => m.AuthorDetailComponent), canActivate: [AuthGuard]},
+      {path: 'series', component: SeriesBrowserComponent, canActivate: [AuthGuard]},
+      {path: 'series/:seriesName', component: SeriesPageComponent, canActivate: [AuthGuard]},
+      {path: 'authors', component: AuthorBrowserComponent, canActivate: [AuthGuard]},
+      {path: 'author/:authorId', component: AuthorDetailComponent, canActivate: [AuthGuard]},
       {path: 'magic-shelf/:magicShelfId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},
       {path: 'book/:bookId', loadComponent: () => import('./features/metadata/component/book-metadata-center/book-metadata-center.component').then(m => m.BookMetadataCenterComponent), canActivate: [AuthGuard]},
       {path: 'bookdrop', loadComponent: () => import('./features/bookdrop/component/bookdrop-file-review/bookdrop-file-review.component').then(m => m.BookdropFileReviewComponent), canActivate: [BookdropGuard]},
