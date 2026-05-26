@@ -185,7 +185,7 @@
                     (click)="removeFolder(i, folder)"
                     type="button"
                     [disabled]="isSubmitting">
-                    <i class="pi" [ngClass]="isFolderMarkedForDeletion(folder) ? 'pi-undo' : 'pi-times'"></i>
+                    <i class="pi" [class.pi-undo]="isFolderMarkedForDeletion(folder)" [class.pi-times]="!isFolderMarkedForDeletion(folder)"></i>
                     @if (isDirectoryManagementMode()) {
                       <span>{{ isFolderMarkedForDeletion(folder) ? 'Undo Remove' : t(getRemoveFolderKey()) }}</span>
                     }
