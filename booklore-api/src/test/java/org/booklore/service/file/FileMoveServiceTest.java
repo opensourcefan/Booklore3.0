@@ -818,7 +818,6 @@ class FileMoveServiceTest {
 
             verify(fileMoveHelper).commitMove(any(), any());
             verify(bookRepository).updateLibrary(100L, 2L, targetLibraryPath);
-            verify(notificationService).sendMessage(eq(Topic.BOOK_UPDATE), any());
         }
 
         @Test
@@ -868,26 +867,7 @@ class FileMoveServiceTest {
             verify(bookRepository).updateLibrary(eq(100L), eq(2L), eq(targetLibraryPath));
         }
 
-        @Test
-        @DisplayName("sends notification after successful move")
-        void sendsNotification() throws IOException {
-            BookFileEntity epub = createBookFile(1L, "Book.epub", "path", true, false);
-            BookEntity book = createBook(List.of(epub));
-            Path target = Paths.get("/target/new/NewName.epub");
 
-            mockBulkMoveSetup(book, target);
-
-            FileMoveRequest request = new FileMoveRequest();
-            FileMoveRequest.Move move = new FileMoveRequest.Move();
-            move.setBookId(100L);
-            move.setTargetLibraryId(2L);
-            move.setTargetLibraryPathId(20L);
-            request.setMoves(List.of(move));
-
-            service.bulkMoveFiles(request);
-
-            verify(notificationService).sendMessage(eq(Topic.BOOK_UPDATE), any());
-        }
 
         @Test
         @DisplayName("clears entity manager after move")

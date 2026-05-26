@@ -537,7 +537,6 @@ class BookMetadataServiceTest {
             service.bulkUpdateMetadata(request, true, false, true);
 
             verify(bookMetadataUpdater, times(2)).setBookMetadata(any());
-            verify(notificationService, times(2)).sendMessage(any(), any());
         }
 
         @Test
@@ -638,7 +637,6 @@ class BookMetadataServiceTest {
 
                         when(bookRepository.findByIdWithBookFiles(1L)).thenReturn(Optional.of(bookEntity));
                         when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(Book.builder().build());
-                        when(bookMetadataMapper.toBookMetadata(metadataEntity, true)).thenReturn(BookMetadata.builder().bookId(1L).build());
 
                         service.wipeBookMetadata(1L);
 
@@ -676,7 +674,6 @@ class BookMetadataServiceTest {
 
                         when(bookRepository.findByIdWithBookFiles(1L)).thenReturn(Optional.of(bookEntity));
                         when(bookMapper.toBookWithDescription(bookEntity, true)).thenReturn(Book.builder().build());
-                        when(bookMetadataMapper.toBookMetadata(metadataEntity, true)).thenReturn(BookMetadata.builder().bookId(1L).build());
 
                         service.wipeBookMetadata(1L);
 
@@ -759,13 +756,13 @@ class BookMetadataServiceTest {
                         when(bookRepository.findByIdWithBookFiles(3L)).thenReturn(Optional.of(lockedBook));
                         when(bookMapper.toBookWithDescription(eq(restorableBook), eq(true))).thenReturn(Book.builder().id(1L).build());
 
-                        int restoredCount = service.restoreTitlesFromFilename(new HashSet<>(List.of(1L, 2L, 3L)));
+                        List<Book> restoredBooks = service.restoreTitlesFromFilename(new HashSet<>(List.of(1L, 2L, 3L)));
+                        int restoredCount = restoredBooks.size();
 
                         assertThat(restoredCount).isEqualTo(1);
                         verify(bookMetadataUpdater).setBookMetadata(argThat(context ->
                                 "Dune".equals(context.getMetadataUpdateWrapper().getMetadata().getTitle())
                         ));
-                        verify(notificationService, times(1)).sendMessage(eq(org.booklore.model.websocket.Topic.BOOK_UPDATE), any());
                 }
         }
 }

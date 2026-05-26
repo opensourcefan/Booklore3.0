@@ -89,7 +89,8 @@ class MetadataControllerTest {
 
     @Test
     void wipeMetadata_shouldDelegateToService() {
-        when(bookMetadataService.wipeBookMetadata(7L)).thenReturn(new BookMetadata());
+        org.booklore.model.dto.Book mockBook = org.booklore.model.dto.Book.builder().metadata(new BookMetadata()).build();
+        when(bookMetadataService.wipeBookMetadata(7L)).thenReturn(mockBook);
 
         metadataController.wipeMetadata(7L);
 
@@ -110,7 +111,7 @@ class MetadataControllerTest {
     void restoreTitlesFromFilenames_shouldDelegateToService() {
         BulkBookIdsRequest request = new BulkBookIdsRequest();
         request.setBookIds(new java.util.HashSet<>(java.util.List.of(1L, 2L)));
-        when(bookMetadataService.restoreTitlesFromFilename(request.getBookIds())).thenReturn(1);
+        when(bookMetadataService.restoreTitlesFromFilename(request.getBookIds())).thenReturn(java.util.List.of(org.booklore.model.dto.Book.builder().build()));
 
         var response = metadataController.restoreTitlesFromFilenames(request);
 

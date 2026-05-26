@@ -11,7 +11,7 @@ plugins {
 }
 
 group = 'org.booklore'
-version = '3.17.22'
+version = '3.17.23'
 
 java {
     toolchain {
@@ -64,6 +64,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.aspectj:aspectjweaver:1.9.22'
 
     // --- Reactive Streams ---
     implementation 'io.projectreactor:reactor-core'

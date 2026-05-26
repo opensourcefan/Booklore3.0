@@ -3,6 +3,7 @@ package org.booklore.service.metadata;
 import org.booklore.exception.ApiError;
 import org.booklore.mapper.BookMapper;
 import org.booklore.mapper.BookMetadataMapper;
+import org.booklore.service.event.aop.BroadcastBookUpdate;
 import org.booklore.mapper.MetadataClearFlagsMapper;
 import org.booklore.model.MetadataClearFlags;
 import org.booklore.model.MetadataUpdateContext;
@@ -228,8 +229,9 @@ public class BookMetadataService {
         return metadataExtractorFactory.extractMetadata(primaryFile.getBookType(), new File(FileUtils.getBookFullPath(bookEntity)));
     }
 
+    @BroadcastBookUpdate
     @Transactional
-    public void bulkUpdateMetadata(BulkMetadataUpdateRequest request, boolean mergeCategories, boolean mergeMoods, boolean mergeTags) {
+    public List<Book> bulkUpdateMetadata(BulkMetadataUpdateRequest request, boolean mergeCategories, boolean mergeMoods, boolean mergeTags) {
         MetadataClearFlags clearFlags = metadataClearFlagsMapper.toClearFlags(request);
 
         BookMetadata bookMetadata = BookMetadata.builder()
@@ -246,54 +248,63 @@ public class BookMetadataService {
                 .contentRating(request.getContentRating())
                 .build();
 
+        List<Book> updatedBooks = new ArrayList<>();
         for (Long bookId : request.getBookIds()) {
             try {
-                processSingleBookUpdate(bookId, bookMetadata, clearFlags, mergeCategories, mergeMoods, mergeTags);
+                Book book = processSingleBookUpdate(bookId, bookMetadata, clearFlags, mergeCategories, mergeMoods, mergeTags);
+                if (book != null) updatedBooks.add(book);
             } catch (Exception e) {
                 log.error("Failed to update metadata for book ID {}", bookId, e);
             }
         }
+        return updatedBooks;
     }
 
+    @BroadcastBookUpdate
     @Transactional
-    public BookMetadata wipeBookMetadata(long bookId) {
+    public Book wipeBookMetadata(long bookId) {
         BookEntity book = bookRepository.findByIdWithBookFiles(bookId)
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
 
         wipeBookMetadata(book);
-        notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(book, true));
-        return bookMetadataMapper.toBookMetadata(book.getMetadata(), true);
+        return bookMapper.toBookWithDescription(book, true);
     }
 
+    @BroadcastBookUpdate
     @Transactional
-    public void wipeBookMetadata(Set<Long> bookIds) {
+    public List<Book> wipeBookMetadata(Set<Long> bookIds) {
         if (bookIds == null || bookIds.isEmpty()) {
-            return;
+            return Collections.emptyList();
         }
 
+        List<Book> updatedBooks = new ArrayList<>();
         for (Long bookId : bookIds) {
-            processSingleBookWipe(bookId);
+            Book book = processSingleBookWipe(bookId);
+            if (book != null) updatedBooks.add(book);
         }
+        return updatedBooks;
     }
 
-    public int restoreTitlesFromFilename(Set<Long> bookIds) {
+    @BroadcastBookUpdate
+    public List<Book> restoreTitlesFromFilename(Set<Long> bookIds) {
         if (bookIds == null || bookIds.isEmpty()) {
-            return 0;
+            return Collections.emptyList();
         }
 
-        int restoredCount = 0;
+        List<Book> restoredBooks = new ArrayList<>();
         for (Long bookId : bookIds) {
-            if (processSingleTitleRestore(bookId)) {
-                restoredCount++;
+            Book book = processSingleTitleRestore(bookId);
+            if (book != null) {
+                restoredBooks.add(book);
             }
         }
-        return restoredCount;
+        return restoredBooks;
     }
 
-    private void processSingleBookUpdate(Long bookId, BookMetadata bookMetadata, MetadataClearFlags clearFlags, boolean mergeCategories, boolean mergeMoods, boolean mergeTags) {
+    private Book processSingleBookUpdate(Long bookId, BookMetadata bookMetadata, MetadataClearFlags clearFlags, boolean mergeCategories, boolean mergeMoods, boolean mergeTags) {
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        transactionTemplate.execute(status -> {
+        return transactionTemplate.execute(status -> {
             BookEntity book = bookRepository.findByIdWithBookFiles(bookId).orElse(null);
             if (book == null) {
                 log.warn("Book not found for metadata update: {}", bookId);
@@ -313,15 +324,14 @@ public class BookMetadataService {
                     .build();
 
             bookMetadataUpdater.setBookMetadata(context);
-            notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(book, true));
-            return null;
+            return bookMapper.toBookWithDescription(book, true);
         });
     }
 
-    private void processSingleBookWipe(Long bookId) {
+    private Book processSingleBookWipe(Long bookId) {
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        transactionTemplate.execute(status -> {
+        return transactionTemplate.execute(status -> {
             BookEntity book = bookRepository.findByIdWithBookFiles(bookId).orElse(null);
             if (book == null) {
                 log.warn("Book not found for metadata wipe: {}", bookId);
@@ -329,31 +339,30 @@ public class BookMetadataService {
             }
 
             wipeBookMetadata(book);
-            notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(book, true));
-            return null;
+            return bookMapper.toBookWithDescription(book, true);
         });
     }
 
-    private boolean processSingleTitleRestore(Long bookId) {
+    private Book processSingleTitleRestore(Long bookId) {
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        Boolean restored = transactionTemplate.execute(status -> {
+        return transactionTemplate.execute(status -> {
             BookEntity book = bookRepository.findByIdWithBookFiles(bookId).orElse(null);
             if (book == null) {
                 log.warn("Book not found for title restore: {}", bookId);
-                return false;
+                return null;
             }
 
             BookMetadataEntity metadata = book.getMetadata();
             String fallbackTitle = resolveFilenameFallbackTitle(book);
             if (metadata == null || fallbackTitle == null || fallbackTitle.isBlank()) {
-                return false;
+                return null;
             }
             if (Boolean.TRUE.equals(metadata.getTitleLocked())) {
-                return false;
+                return null;
             }
             if (metadata.getTitle() != null && !metadata.getTitle().isBlank()) {
-                return false;
+                return null;
             }
 
             MetadataUpdateContext context = MetadataUpdateContext.builder()
@@ -372,11 +381,8 @@ public class BookMetadataService {
                     .build();
 
             bookMetadataUpdater.setBookMetadata(context);
-            notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(book, true));
-            return true;
+            return bookMapper.toBookWithDescription(book, true);
         });
-
-        return Boolean.TRUE.equals(restored);
     }
 
     private void wipeBookMetadata(BookEntity book) {

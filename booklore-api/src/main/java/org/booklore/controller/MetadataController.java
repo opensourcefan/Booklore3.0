@@ -106,9 +106,9 @@ public class MetadataController {
     @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
     @CheckBookAccess(bookIdParam = "bookId")
     public ResponseEntity<BookMetadata> wipeMetadata(@Parameter(description = "ID of the book") @PathVariable long bookId) {
-        BookMetadata wipedMetadata = bookMetadataService.wipeBookMetadata(bookId);
+        org.booklore.model.dto.Book wipedBook = bookMetadataService.wipeBookMetadata(bookId);
         auditService.log(AuditAction.METADATA_UPDATED, "Book", bookId, "Wiped metadata for book ID: " + bookId);
-        return ResponseEntity.ok(wipedMetadata);
+        return ResponseEntity.ok(wipedBook.getMetadata());
     }
 
     @Operation(summary = "Wipe metadata for multiple books", description = "Delete editable metadata for multiple books. Requires bulk metadata edit permission or admin.")
@@ -126,9 +126,9 @@ public class MetadataController {
     @PostMapping("/metadata/restore-titles-from-filenames")
     @PreAuthorize("@securityUtil.canBulkEditMetadata() or @securityUtil.isAdmin()")
     public ResponseEntity<Integer> restoreTitlesFromFilenames(@Parameter(description = "List of book IDs") @RequestBody BulkBookIdsRequest request) {
-        int restoredCount = bookMetadataService.restoreTitlesFromFilename(request.getBookIds());
-        auditService.log(AuditAction.METADATA_UPDATED, "Book", null, "Restored titles from filenames for " + restoredCount + " of " + request.getBookIds().size() + " books");
-        return ResponseEntity.ok(restoredCount);
+        List<org.booklore.model.dto.Book> restoredBooks = bookMetadataService.restoreTitlesFromFilename(request.getBookIds());
+        auditService.log(AuditAction.METADATA_UPDATED, "Book", null, "Restored titles from filenames for " + restoredBooks.size() + " of " + request.getBookIds().size() + " books");
+        return ResponseEntity.ok(restoredBooks.size());
     }
 
     @Operation(summary = "Toggle all metadata locks", description = "Toggle all metadata locks for books. Requires metadata edit permission or admin.")

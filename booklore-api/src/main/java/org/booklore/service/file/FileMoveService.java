@@ -20,6 +20,8 @@ import org.booklore.repository.LibraryRepository;
 import org.booklore.service.NotificationService;
 import org.booklore.service.metadata.sidecar.SidecarMetadataWriter;
 import org.booklore.service.monitoring.MonitoringRegistrationService;
+import org.booklore.service.event.aop.BroadcastBookUpdate;
+import org.booklore.model.dto.Book;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -49,7 +51,8 @@ public class FileMoveService {
     private final SidecarMetadataWriter sidecarMetadataWriter;
 
 
-    public void bulkMoveFiles(FileMoveRequest request) {
+    @BroadcastBookUpdate
+    public List<Book> bulkMoveFiles(FileMoveRequest request) {
         List<FileMoveRequest.Move> moves = request.getMoves();
 
         validateLocalStorage();
@@ -61,9 +64,13 @@ public class FileMoveService {
         monitoringRegistrationService.unregisterLibraries(allAffectedLibraryIds);
         monitoringRegistrationService.waitForEventsDrainedByPaths(libraryPaths, EVENT_DRAIN_TIMEOUT_MS);
 
+        List<Book> movedBooks = new ArrayList<>();
         try {
             for (FileMoveRequest.Move move : moves) {
-                processSingleMove(move);
+                Book book = processSingleMove(move);
+                if (book != null) {
+                    movedBooks.add(book);
+                }
             }
             // Ensure any file system events from the moves are drained/ignored while we are still unregistered
             sleep(EVENT_DRAIN_TIMEOUT_MS);
@@ -73,6 +80,7 @@ public class FileMoveService {
                         .ifPresent(library -> monitoringRegistrationService.registerLibrary(libraryMapper.toLibrary(library)));
             }
         }
+        return movedBooks;
     }
 
     private Set<Long> collectAllAffectedLibraryIds(List<FileMoveRequest.Move> moves) {
@@ -87,7 +95,7 @@ public class FileMoveService {
         return libraryIds;
     }
 
-    private void processSingleMove(FileMoveRequest.Move move) {
+    private Book processSingleMove(FileMoveRequest.Move move) {
         Long bookId = move.getBookId();
         Long targetLibraryId = move.getTargetLibraryId();
         Long targetLibraryPathId = move.getTargetLibraryPathId();
@@ -102,11 +110,11 @@ public class FileMoveService {
             Optional<LibraryEntity> optionalLibrary = libraryRepository.findById(targetLibraryId);
             if (optionalBook.isEmpty()) {
                 log.warn("Book not found for move operation: bookId={}", bookId);
-                return;
+                return null;
             }
             if (optionalLibrary.isEmpty()) {
                 log.warn("Target library not found for move operation: libraryId={}", targetLibraryId);
-                return;
+                return null;
             }
             BookEntity bookEntity = optionalBook.get();
             LibraryEntity targetLibrary = optionalLibrary.get();
@@ -116,13 +124,13 @@ public class FileMoveService {
                     .findFirst();
             if (optionalLibraryPathEntity.isEmpty()) {
                 log.warn("Target library path not found for move operation: libraryId={}, pathId={}", targetLibraryId, targetLibraryPathId);
-                return;
+                return null;
             }
             LibraryPathEntity libraryPathEntity = optionalLibraryPathEntity.get();
 
             if (bookEntity.getBookFiles() == null || bookEntity.getBookFiles().isEmpty()) {
                 log.warn("Book has no files to move: bookId={}", bookId);
-                return;
+                return null;
             }
 
             List<BookFileEntity> bookFiles = bookEntity.getBookFiles().stream().distinct().toList();
@@ -132,7 +140,7 @@ public class FileMoveService {
             Path newFilePath = fileMoveHelper.generateNewFilePath(bookEntity, libraryPathEntity, pattern);
 
             if (currentPrimaryFilePath.equals(newFilePath)) {
-                return;
+                return null;
             }
 
             String newFileSubPath = fileMoveHelper.extractSubPath(newFilePath, libraryPathEntity);
@@ -140,7 +148,7 @@ public class FileMoveService {
 
             if (targetParentDir == null) {
                 log.warn("Target parent directory could not be determined for move operation: bookId={}", bookId);
-                return;
+                return null;
             }
 
             // Validate all source paths exist before attempting moves
@@ -149,7 +157,7 @@ public class FileMoveService {
                 if (!fileMoveHelper.validateSourceExists(sourcePath, bookFile.isFolderBased())) {
                     log.warn("Source {} not found: bookId={}, path={}",
                             bookFile.isFolderBased() ? "folder" : "file", bookId, sourcePath);
-                    return;
+                    return null;
                 }
             }
 
@@ -174,7 +182,7 @@ public class FileMoveService {
             }
 
             if (plannedMovesByBookFileId.isEmpty()) {
-                return;
+                return null;
             }
 
             List<PlannedMove> committedMoves = new ArrayList<>();
@@ -236,8 +244,7 @@ public class FileMoveService {
             entityManager.clear();
 
             BookEntity fresh = bookRepository.findById(bookId).orElseThrow();
-
-            notificationService.sendMessage(Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(fresh, false));
+            return bookMapper.toBookWithDescription(fresh, false);
 
         } catch (Exception e) {
             log.error("Error moving file for book ID {}: {}", bookId, e.getMessage(), e);
@@ -246,6 +253,7 @@ public class FileMoveService {
                 fileMoveHelper.rollbackMove(planned.temp(), planned.source());
             }
         }
+        return null;
     }
 
     public FileMoveResult moveSingleFile(BookEntity bookEntity) {
