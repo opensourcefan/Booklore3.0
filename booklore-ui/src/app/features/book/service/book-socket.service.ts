@@ -4,6 +4,8 @@ import {Book, BookMetadata} from '../model/book.model';
 import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
 import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
 import {PagedGridPilotService} from './paged-grid-pilot.service';
+import {Subject} from 'rxjs';
+import {debounceTime} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +14,13 @@ export class BookSocketService {
   private bookStateService = inject(BookStateService);
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
   private injector = inject(Injector);
+  private syncGridSubject = new Subject<void>();
+
+  constructor() {
+    this.syncGridSubject.pipe(debounceTime(150)).subscribe(() => {
+      this.executeSyncPagedGridPilot();
+    });
+  }
 
   handleNewlyCreatedBook(book: Book): void {
     this.bookStateService.upsertBookAndInvalidatePagedCaches(book);
@@ -59,6 +68,10 @@ export class BookSocketService {
   }
 
   private syncPagedGridPilot(): void {
+    this.syncGridSubject.next();
+  }
+
+  private executeSyncPagedGridPilot(): void {
     // Sync the updated paged cache so the paged grid pilot can re-emit
     // with the new data. Without this, the paged grid pilot's own 
     // bookStateSubject never reflects changes from the shared state, and
