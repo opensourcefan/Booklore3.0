@@ -32,6 +32,8 @@ export class BookSocketService {
     if (this.affectsSidebarCounts(existingBook, updatedBook)) {
       this.sidebarBadgeRefresh.requestRefresh();
     }
+    
+    this.syncPagedGridPilot();
   }
 
   handleMultipleBookUpdates(updatedBooks: Book[]): void {
@@ -42,18 +44,25 @@ export class BookSocketService {
     if (shouldRefresh) {
       this.sidebarBadgeRefresh.requestRefresh();
     }
+    
+    this.syncPagedGridPilot();
   }
 
   handleBookMetadataUpdate(bookId: number, updatedMetadata: BookMetadata): void {
     this.bookStateService.replaceBookMetadataAcrossState(bookId, updatedMetadata);
+    this.syncPagedGridPilot();
   }
 
   handleMultipleBookCoverPatches(patches: { id: number; coverUpdatedOn: string }[]): void {
     this.bookStateService.patchBookCoverUpdatesAcrossState(patches ?? []);
+    this.syncPagedGridPilot();
+  }
+
+  private syncPagedGridPilot(): void {
     // Sync the updated paged cache so the paged grid pilot can re-emit
-    // with the new coverUpdatedOn timestamps. Without this, the paged grid
-    // pilot's own bookStateSubject never reflects cover changes, and
-    // OnPush book-card components never recompute their cover URLs.
+    // with the new data. Without this, the paged grid pilot's own 
+    // bookStateSubject never reflects changes from the shared state, and
+    // OnPush book-card components never recompute their bindings.
     // Use Injector for lazy resolution to avoid a circular dependency:
     // BookSocketService → PagedGridPilotService → BookService → BookSocketService
     const pagedBookBrowserStateService = this.injector.get(PagedBookBrowserStateService);
