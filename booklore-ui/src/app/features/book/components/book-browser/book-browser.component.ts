@@ -1253,8 +1253,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(
         filter(state => state.loaded && !state.error),
         takeUntil(this.destroy$),
-        map(state => state.books || []),
-        map(books => this.sortService.applyMultiSort(books, sortCriteria))
+        map(state => state.books || [])
       )
       .subscribe(books => {
         // Auto-clear filters when a state change (e.g. shelf assignment) causes

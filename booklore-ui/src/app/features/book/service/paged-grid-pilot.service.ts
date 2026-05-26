@@ -7,6 +7,7 @@ import { PagedBookBrowserEntity, PagedBookBrowserPage, PagedBookBrowserRequestKe
 import { BookService, PagedBooksParams } from './book.service';
 import { PagedBookBrowserStateService } from './paged-book-browser-state.service';
 import { ServerFilterAdapter } from './server-filter-adapter.service';
+import { SortService } from './sort.service';
 
 const ENABLED_PAGED_ENTITIES: ReadonlySet<PagedBookBrowserEntity> = new Set([
   'ALL_BOOKS',
@@ -42,6 +43,7 @@ interface ActivePagedQuery {
   requestKey: PagedBookBrowserRequestKey;
   legacyFactory: () => Observable<BookState>;
   nextPage: number | null;
+  sortCriteria: SortOption[];
 }
 
 @Injectable({
@@ -56,6 +58,7 @@ export class PagedGridPilotService {
   private readonly bookService = inject(BookService);
   private readonly pagedBookBrowserStateService = inject(PagedBookBrowserStateService);
   private readonly serverFilterAdapter = inject(ServerFilterAdapter);
+  private readonly sortService = inject(SortService);
 
   private readonly bookStateSubject = new BehaviorSubject<BookState>({
     books: null,
@@ -151,6 +154,7 @@ export class PagedGridPilotService {
       requestKey,
       legacyFactory,
       nextPage: 0,
+      sortCriteria: context.sortCriteria,
     };
 
     this.bookStateSubject.next({
@@ -476,7 +480,10 @@ export class PagedGridPilotService {
       return;
     }
 
-    const books = cachedPages.flatMap(page => page.content);
+    let books = cachedPages.flatMap(page => page.content);
+    if (query.sortCriteria && query.sortCriteria.length > 0) {
+      books = this.sortService.applyMultiSort(books, query.sortCriteria);
+    }
     const lastPage = cachedPages[cachedPages.length - 1];
 
     this.activeQuery = {

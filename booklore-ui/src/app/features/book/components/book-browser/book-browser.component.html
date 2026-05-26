@@ -684,13 +684,13 @@
                         class="virtual-row"
                         [style.transform]="'translateY(' + row.start + 'px)'"
                         [style.height.px]="virtualGrid.rowHeight()">
-                        @for (book of virtualGrid.getRowItems(row.index, books); track book.id) {
+                        @for (book of virtualGrid.getRowItems(row.index, books); track book.id; let colIndex = $index) {
                           <div
                             class="virtual-cell"
                             [style.width.px]="currentCardSize.width"
                             [style.height.px]="getCardHeight(book)">
                             <app-book-card
-                              [index]="books.indexOf(book)"
+                              [index]="row.index * virtualGrid.columnCount() + colIndex"
                               [book]="book"
                               [titleRows]="isMobile ? mobileTitleRows : desktopTitleRows"
                               [mobileViewerBooksContext]="books"
