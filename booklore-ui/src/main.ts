@@ -15,8 +15,7 @@ import { AuthService, websocketInitializer } from './app/shared/service/auth.ser
 import { inject, isDevMode, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
 import { initializeAuthFactory } from './app/core/security/auth-initializer';
 import { StartupService } from './app/shared/service/startup.service';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideTransloco } from '@jsverse/transloco';
 import { AVAILABLE_LANGS, TranslocoInlineLoader } from './app/core/config/transloco-loader';
@@ -25,7 +24,6 @@ import { initializeLanguage } from './app/core/config/language-initializer';
 bootstrapApplication(AppComponent, {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
-    provideCharts(withDefaultRegisterables(), ChartDataLabels),
     provideAppInitializer(() => {
       const authService = inject(AuthService);
       return websocketInitializer(authService)();
