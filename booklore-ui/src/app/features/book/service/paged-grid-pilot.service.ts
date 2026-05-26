@@ -560,8 +560,7 @@ export class PagedGridPilotService {
 
     return currentState.books.every((book, i) => {
       const nextBook = nextState.books![i];
-      return book.id === nextBook.id
-        && book.metadata?.coverUpdatedOn === nextBook.metadata?.coverUpdatedOn;
+      return book === nextBook;
     });
   }
 
