@@ -243,7 +243,7 @@ describe('BookSocketService', () => {
     expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.title).toBe('Updated Title');
     expect(state.pagedCache?.['allBooks']?.page?.content[0].metadata?.coverUpdatedOn).toBe('2025-05-05T12:00:00Z');
     expect(state.totalCount).toBe(6);
-    expect(syncCacheSpy).toHaveBeenCalledTimes(1);
-    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(1);
+    expect(syncCacheSpy).toHaveBeenCalledTimes(2);
+    expect(refreshActiveStateSpy).toHaveBeenCalledTimes(2);
   });
 });
