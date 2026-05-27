@@ -385,8 +385,8 @@ export class AppConfigService {
   }
 
   private setFaviconColor(color: string): void {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-      <path d="M13 9H28C28 9 29 9 29 10V30C29 30 29 31 28 31H4C4 31 3 31 3 30V5M3 5C3 1 7 1 7 1H29M3 5C3 9 7 9 7 9M7 5V17L10 15L13 17V5H27" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2.5 0 19 19" fill="none">
+      <path d="M11.902 14.114V4.337l1.108 1.108v9.777H2.652A1.664 1.664 0 0 1 .99 13.559V4.9a1.665 1.665 0 0 1 1.662-1.663h.664V7.25l.874-.645.875.645V3.236h5.729v9.77h-7.85a.978.978 0 0 0-.626.111.56.56 0 0 0-.006.88.613.613 0 0 0 .39.117h9.2z" fill="${color}"/>
     </svg>`;
     const blob = new Blob([svg], {type: 'image/svg+xml'});
     const url = URL.createObjectURL(blob);
