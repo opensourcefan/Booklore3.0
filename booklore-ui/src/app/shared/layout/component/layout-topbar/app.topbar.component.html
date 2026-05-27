@@ -386,42 +386,36 @@
             }
           }
 
-          @if (toolbarConfig.isVisible('layoutPhone')) {
-            <li>
-              <button
-                class="mobile-menu-item"
-                [class.quick-layout-btn--active]="mobileUx.layoutMode === 'phone'"
-                (click)="mobileUx.setLayoutMode('phone'); mobileMenu.hide()"
-              >
-                <i class="pi pi-mobile topbar-icon"></i>
-                Phone Mode
-              </button>
-            </li>
-          }
-          @if (toolbarConfig.isVisible('layoutTablet')) {
-            <li>
-              <button
-                class="mobile-menu-item"
-                [class.quick-layout-btn--active]="mobileUx.layoutMode === 'tablet'"
-                (click)="mobileUx.setLayoutMode('tablet'); mobileMenu.hide()"
-              >
-                <i class="pi pi-tablet topbar-icon"></i>
-                Tablet Mode
-              </button>
-            </li>
-          }
-          @if (toolbarConfig.isVisible('layoutAuto')) {
-            <li>
-              <button
-                class="mobile-menu-item"
-                [class.quick-layout-btn--active]="mobileUx.layoutMode === 'auto'"
-                (click)="mobileUx.setLayoutMode('auto'); mobileMenu.hide()"
-              >
-                <i class="pi pi-desktop topbar-icon"></i>
-                Auto Mode
-              </button>
-            </li>
-          }
+          <li>
+            <button
+              class="mobile-menu-item"
+              [class.quick-layout-btn--active]="mobileUx.layoutMode === 'phone'"
+              (click)="mobileUx.setLayoutMode('phone'); mobileMenu.hide()"
+            >
+              <i class="pi pi-mobile topbar-icon"></i>
+              Phone Mode
+            </button>
+          </li>
+          <li>
+            <button
+              class="mobile-menu-item"
+              [class.quick-layout-btn--active]="mobileUx.layoutMode === 'tablet'"
+              (click)="mobileUx.setLayoutMode('tablet'); mobileMenu.hide()"
+            >
+              <i class="pi pi-tablet topbar-icon"></i>
+              Tablet Mode
+            </button>
+          </li>
+          <li>
+            <button
+              class="mobile-menu-item"
+              [class.quick-layout-btn--active]="mobileUx.layoutMode === 'auto'"
+              (click)="mobileUx.setLayoutMode('auto'); mobileMenu.hide()"
+            >
+              <i class="pi pi-desktop topbar-icon"></i>
+              Auto Mode
+            </button>
+          </li>
 
           <li>
             <button
@@ -444,8 +438,8 @@
        tooltipPosition="bottom">
       <i class="pi pi-sliders-h"></i>
     </button>
-    <p-popover #toolbarEditorPop [dismissable]="true" appendTo="body" styleClass="toolbar-editor-popover">
-      <app-toolbar-editor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
+    <p-popover #toolbarEditorPop [dismissable]="true" appendTo="body" styleClass="toolbar-editor-popover" (onShow)="toolbarEditor.syncItems()">
+      <app-toolbar-editor #toolbarEditor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
     </p-popover>
 
     @if (showMobileBookFilterTrigger) {

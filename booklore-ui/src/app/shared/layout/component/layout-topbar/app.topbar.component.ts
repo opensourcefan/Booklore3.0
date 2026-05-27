@@ -17,7 +17,7 @@ import {StyleClass} from 'primeng/styleclass';
 import {Divider} from 'primeng/divider';
 import {ThemeConfiguratorComponent} from '../theme-configurator/theme-configurator.component';
 import {AuthService} from '../../../service/auth.service';
-import {User, UserService} from '../../../../features/settings/user-management/user.service';
+import {UserService} from '../../../../features/settings/user-management/user.service';
 import {Popover} from 'primeng/popover';
 import {MetadataProgressService} from '../../../service/metadata-progress.service';
 import {filter, takeUntil} from 'rxjs/operators';
@@ -644,8 +644,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get visibleDesktopToolbarItems(): ToolbarItem[] {
-    const userState = this.userService.userStateSubject.value;
-    const filtered = this.toolbarConfig.items.filter(item => this.isToolbarItemVisible(item, userState.user));
+    const filtered = this.toolbarConfig.items.filter(item => this.isToolbarItemVisible(item));
     return this.normalizeToolbarSequence(filtered);
   }
 
@@ -818,7 +817,7 @@ export class AppTopBarComponent implements OnDestroy {
     });
   }
 
-  private isToolbarItemVisible(item: ToolbarItem, user: User | null | undefined): boolean {
+  private isToolbarItemVisible(item: ToolbarItem): boolean {
     if (!item.visible) {
       return false;
     }
@@ -827,30 +826,7 @@ export class AppTopBarComponent implements OnDestroy {
       return true;
     }
 
-    switch (item.id) {
-      case 'bookdrop':
-        return !!(user?.permissions?.canAccessBookdrop || user?.permissions?.admin);
-      case 'createLibrary':
-        return !!(user?.permissions?.canManageLibrary || user?.permissions?.admin);
-      case 'upload':
-        return !!(user?.permissions?.canUpload || user?.permissions?.admin);
-      case 'metadata':
-        return !!(user?.permissions?.canManageLibrary || user?.permissions?.admin);
-      case 'stats':
-        return this.hasStatsAccess;
-      case 'fullscreen':
-      case 'notifications':
-      case 'theme':
-        return true;
-      case 'dirExplorer':
-        return true;
-      case 'user':
-        return !user?.permissions?.demoUser;
-      case 'logout':
-        return true;
-      default:
-        return true;
-    }
+    return this.toolbarConfig.isAllowed(item.id);
   }
 
   private normalizeToolbarSequence(items: ToolbarItem[]): ToolbarItem[] {

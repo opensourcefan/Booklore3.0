@@ -99,6 +99,26 @@ export class ToolbarConfigService {
     return DEFAULT_ITEMS.map(item => ({...item}));
   }
 
+  isAllowed(id: string): boolean {
+    const user = this.userService.getCurrentUser();
+    switch (id) {
+      case 'bookdrop':
+        return !!(user?.permissions?.canAccessBookdrop || user?.permissions?.admin);
+      case 'createLibrary':
+        return !!(user?.permissions?.canManageLibrary || user?.permissions?.admin);
+      case 'upload':
+        return !!(user?.permissions?.canUpload || user?.permissions?.admin);
+      case 'metadata':
+        return !!(user?.permissions?.canManageLibrary || user?.permissions?.admin);
+      case 'stats':
+        return !!(user?.permissions?.canAccessLibraryStats || user?.permissions?.canAccessUserStats || user?.permissions?.admin);
+      case 'user':
+        return !user?.permissions?.demoUser;
+      default:
+        return true;
+    }
+  }
+
   isVisible(id: string): boolean {
     return this.items.find(i => i.id === id)?.visible ?? true;
   }
