@@ -1,0 +1,49 @@
+name: Stable Release (Merge Develop to Master)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "yes" to confirm merging develop to master'
+        required: true
+        default: 'yes'
+
+jobs:
+  merge-develop-to-master:
+    name: Merge Develop to Master
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'yes'
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Configure Git Identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge develop into master
+        run: |
+          echo "Fetching develop branch..."
+          git fetch origin develop
+
+          echo "Merging develop into master..."
+          git merge origin/develop --no-ff -m "chore: merge develop into master for stable release"
+
+      - name: Push changes to master
+        run: |
+          echo "Pushing updated master branch..."
+          git push origin master
+
+      - name: Update stable tag
+        run: |
+          echo "Force updating 'stable' tag to point to the new master..."
+          git tag -f stable
+          git push origin stable --force
