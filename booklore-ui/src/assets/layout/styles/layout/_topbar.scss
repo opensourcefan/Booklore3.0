@@ -41,9 +41,6 @@
   width: var(--sidebar-width, 16rem);
   max-height: calc(100dvh - 5rem);
   overflow: hidden;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
   padding: 0 0 0 0.6rem;
   scrollbar-width: none;
   -ms-overflow-style: none;

@@ -5,14 +5,15 @@
 }
 
 .logo-icon {
-  width: 1.875rem;
-  height: 1.875rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  transform: translate(2px, 0px);
 }
 
 .logo-text-wrapper {
   display: flex;
   align-items: center;
-  padding-top: 0.5rem;
 
   p {
     margin: 0;
@@ -20,8 +21,8 @@
 }
 
 .logo-text-lore {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
+  font-size: 1.75rem;
+  line-height: 2rem;
 }
 
 .topbar-content {

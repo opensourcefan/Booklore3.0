@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, Output} from '@angular/core';
+import {Component, EventEmitter, inject, Output, OnInit} from '@angular/core';
 import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 
 @Component({
@@ -44,11 +44,21 @@ import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
     .save-btn, .reset-btn { flex: 1; padding: 0.25rem; border-radius: 4px; border: 1px solid var(--p-content-border-color); cursor: pointer; font-size: 0.75rem; background: var(--p-surface-700); color: var(--p-surface-100); &:hover { border-color: var(--p-primary-color); } }
   `]
 })
-export class ToolbarEditorComponent {
+export class ToolbarEditorComponent implements OnInit {
   config = inject(ToolbarConfigService);
   @Output() saved = new EventEmitter<void>();
   private dragIndex = -1;
-  draftItems: ToolbarItem[] = this.config.items.map(item => ({...item}));
+  draftItems: ToolbarItem[] = [];
+
+  ngOnInit() {
+    this.syncItems();
+  }
+
+  syncItems() {
+    this.draftItems = this.config.items
+      .filter(item => item.type === 'separator' || this.config.isAllowed(item.id))
+      .map(item => ({...item}));
+  }
 
   onDragStart(i: number) { this.dragIndex = i; }
   onDragOver(e: DragEvent, _i: number) { e.preventDefault(); }
@@ -74,7 +84,7 @@ export class ToolbarEditorComponent {
   }
   reset() {
     this.config.reset();
-    this.draftItems = this.config.items.map(item => ({...item}));
+    this.syncItems();
     this.saved.emit();
   }
 }
