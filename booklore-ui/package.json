@@ -1,6 +1,6 @@
 {
   "name": "booklore",
-  "version": "3.21.21",
+  "version": "3.21.30",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
