@@ -83,6 +83,7 @@ public class BookLoreUserTransformer {
                         case SHOW_SIDEBAR_FILTER -> userSettings.setShowSidebarFilter(Boolean.parseBoolean(value));
                         case ENABLE_SERIES_VIEW -> userSettings.setEnableSeriesView(Boolean.parseBoolean(value));
                         case AUTO_SAVE_METADATA -> userSettings.setAutoSaveMetadata(Boolean.parseBoolean(value));
+                        case USE_DISTRACTION_LOADING_SCREEN -> userSettings.setUseDistractionLoadingScreen(Boolean.parseBoolean(value));
                         default -> {
                         }
                     }
