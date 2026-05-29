@@ -1261,7 +1261,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         tap((state: BookState) => {
           if (!state.loaded && !state.error && this.useDistractionLoadingScreen && !this.distractionCoverUrl && !this.isFetchingDistractionCover) {
             this.isFetchingDistractionCover = true;
-            const libId = this.entityType === EntityType.LIBRARY ? (this.entity as Library)?.id : undefined;
+            const libIdParam = this.activatedRoute.snapshot.paramMap.get('libraryId');
+            const libId = this.entityType === EntityType.LIBRARY && libIdParam ? Number(libIdParam) : undefined;
             this.bookService.getRandomBooks(0, 1, libId).subscribe({
               next: (res) => {
                 if (res.content && res.content.length > 0 && !state.loaded) {
