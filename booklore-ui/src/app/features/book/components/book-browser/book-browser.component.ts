@@ -18,7 +18,7 @@ import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {BookService, RemoveFromLibraryMode} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
-import {debounceTime, filter, map, switchMap, takeUntil} from 'rxjs/operators';
+import {debounceTime, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {BehaviorSubject, combineLatest, Observable, of, Subject, Subscription} from 'rxjs';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Library} from '../../model/library.model';
@@ -92,6 +92,8 @@ import {
 } from './book-browser-grid-reset.util';
 import { PagedBookBrowserEntity } from '../../model/state/paged-book-browser-state.model';
 
+import {ProgressBar} from 'primeng/progressbar';
+
 export enum EntityType {
   LIBRARY = 'Library',
   SHELF = 'Shelf',
@@ -110,7 +112,7 @@ export enum EntityType {
     Button, BookCardComponent, AsyncPipe, Menu, InputText, FormsModule,
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, Popover,
     Checkbox, Slider, Divider, MultiSelect, TieredMenu, MultiSortPopoverComponent, TranslocoDirective,
-    ResizableDividerDirective, CoverPreviewComponent, LoadingIndicatorComponent,
+    ResizableDividerDirective, CoverPreviewComponent, LoadingIndicatorComponent, ProgressBar,
   ],
   providers: [SeriesCollapseFilter],
   animations: [
@@ -238,6 +240,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected gridRenderVersion = 0;
 
   private sideBarFilter = new SideBarFilter(this.selectedFilter, this.selectedFilterMode);
+
+  useDistractionLoadingScreen = false;
+  distractionCoverUrl: string | null = null;
   private headerFilter = new HeaderFilter(this.searchTerm$);
   protected bookSorter = new BookSorter(
     sortCriteria => this.onMultiSortChange(sortCriteria),
@@ -742,6 +747,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       filter(u => !!u?.user && u.loaded),
       takeUntil(this.destroy$)
     ).subscribe(userState => {
+        this.useDistractionLoadingScreen = userState.user?.userSettings?.useDistractionLoadingScreen ?? false;
         this.metadataMenuItems = this.bookMenuService.getMetadataMenuItems(
           () => this.autoFetchMetadata(),
           () => this.fetchMetadata(),
@@ -1251,6 +1257,26 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.bookStateSubscription = this.bookState$
       .pipe(
+        tap((state: BookState) => {
+          if (!state.loaded && !state.error && this.useDistractionLoadingScreen && !this.distractionCoverUrl) {
+            const libId = this.entityType === EntityType.LIBRARY ? (this.entity as Library)?.id : undefined;
+            this.bookService.getRandomBooks(0, 1, libId).subscribe({
+              next: (res) => {
+                if (res.content && res.content.length > 0) {
+                  const book = res.content[0];
+                  const isAudiobook = book.primaryFileType === 'AUDIOBOOK';
+                  this.distractionCoverUrl = isAudiobook
+                    ? this.urlHelper.getAudiobookCoverUrl(book.id, book.audiobookCoverUpdatedOn)
+                    : this.urlHelper.getCoverUrl(book.id, book.coverUpdatedOn);
+                  this.cdr.markForCheck();
+                }
+              }
+            });
+          }
+          if (state.loaded) {
+            this.distractionCoverUrl = null;
+          }
+        }),
         filter(state => state.loaded && !state.error),
         takeUntil(this.destroy$),
         map(state => state.books || [])

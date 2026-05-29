@@ -634,7 +634,21 @@
       <div>
         @if (!bookState?.loaded && !bookState?.error) {
           <div class="book-browser-loading-state">
-            <app-loading-indicator class="book-browser-loading-spinner" alt="Loading books"></app-loading-indicator>
+            @if (useDistractionLoadingScreen) {
+              <div class="distraction-loading-popup">
+                <div class="distraction-header">Here's a random cover to distract you while your library is loading.</div>
+                <div class="distraction-content">
+                  @if (distractionCoverUrl) {
+                    <img [src]="distractionCoverUrl" class="distraction-cover" alt="Random cover" />
+                  } @else {
+                    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--text-color-secondary)"></i>
+                  }
+                </div>
+                <p-progressBar mode="indeterminate" [style]="{'height': '2px'}"></p-progressBar>
+              </div>
+            } @else {
+              <app-loading-indicator class="book-browser-loading-spinner" alt="Loading books"></app-loading-indicator>
+            }
           </div>
         }
         <div class="book-state-wrapper">

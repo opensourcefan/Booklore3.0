@@ -89,6 +89,7 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
   selectedSortDir: 'ASC' | 'DESC' = 'ASC';
   selectedView: 'GRID' | 'TABLE' = 'GRID';
   autoSaveMetadata = false;
+  useDistractionLoadingScreen = false;
   sortCriteria: SortCriterion[] = [];
 
   // SortOption[] versions for the multi-sort-popover component
@@ -153,6 +154,7 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
       this.selectedSortDir = global?.sortDir ?? 'ASC';
       this.selectedView = global?.view ?? 'GRID';
       this.autoSaveMetadata = userState.user?.userSettings?.autoSaveMetadata ?? false;
+      this.useDistractionLoadingScreen = userState.user?.userSettings?.useDistractionLoadingScreen ?? false;
 
       // Load multi-sort criteria, falling back to legacy single sort
       if (global?.sortCriteria && global.sortCriteria.length > 0) {
@@ -396,6 +398,7 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
 
     this.userService.updateUserSetting(this.user.id, 'entityViewPreferences', prefs);
     this.userService.updateUserSetting(this.user.id, 'autoSaveMetadata', this.autoSaveMetadata);
+    this.userService.updateUserSetting(this.user.id, 'useDistractionLoadingScreen', this.useDistractionLoadingScreen);
     this.userService.updateUserSetting(this.user.id, 'visibleSortFields', this.visibleSortFields);
 
     this.messageService.add({

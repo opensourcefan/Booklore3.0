@@ -84,6 +84,7 @@ public class BookLoreUser {
         public Boolean showSidebarFilter;
         public boolean enableSeriesView;
         public boolean autoSaveMetadata;
+        public boolean useDistractionLoadingScreen;
         public List<String> visibleFilters;
         public List<String> visibleSortFields;
         public DashboardConfig dashboardConfig;

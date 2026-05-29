@@ -103,6 +103,14 @@
       </div>
 
       <div class="setting-item">
+        <div class="setting-header">
+          <p-toggleswitch [(ngModel)]="useDistractionLoadingScreen"></p-toggleswitch>
+          <span class="setting-label">Use random cover for distraction during library load</span>
+        </div>
+        <p class="setting-description">If enabled, a popup with a random book cover will replace the loading spinner when the library is loading.</p>
+      </div>
+
+      <div class="setting-item">
         <div class="setting-header-standalone">
           <span class="setting-label">{{ t('overrideManagement') }}</span>
         </div>

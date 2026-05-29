@@ -351,6 +351,7 @@ export interface UserSettings {
   duplicateResolutionPlan?: DuplicateResolutionPlan | null;
   koReaderEnabled: boolean;
   autoSaveMetadata: boolean;
+  useDistractionLoadingScreen: boolean;
 }
 
 export interface User {

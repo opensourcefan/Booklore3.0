@@ -866,3 +866,56 @@
     margin: 0 0.15rem !important;
   }
 }
+
+.distraction-loading-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  max-width: 600px;
+  height: 400px;
+  background-color: var(--card-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+
+  .distraction-header {
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid var(--p-content-border-color);
+    background: color-mix(in srgb, var(--primary-color) 5%, var(--card-background));
+    color: var(--text-color);
+  }
+
+  .distraction-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 1rem;
+    background-color: color-mix(in srgb, var(--surface-b, #1e1e1e) 50%, var(--card-background));
+
+    .distraction-cover {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  ::ng-deep p-progressbar {
+    .p-progressbar {
+      border-radius: 0;
+      background: transparent;
+    }
+  }
+}

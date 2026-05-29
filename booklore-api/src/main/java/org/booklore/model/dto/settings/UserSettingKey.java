@@ -30,6 +30,7 @@ public enum UserSettingKey {
     HARDCOVER_API_KEY("hardcoverApiKey", false),
     HARDCOVER_SYNC_ENABLED("hardcoverSyncEnabled", false),
     AUTO_SAVE_METADATA("autoSaveMetadata", false),
+    USE_DISTRACTION_LOADING_SCREEN("useDistractionLoadingScreen", false),
     VISIBLE_FILTERS("visibleFilters", true),
     VISIBLE_SORT_FIELDS("visibleSortFields", true);
 

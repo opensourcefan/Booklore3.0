@@ -284,6 +284,20 @@ export class BookService {
   }
 
   /**
+   * Fetch random books from the dedicated endpoint.
+   * GET /api/v1/app/books/random?page=0&size=N&libraryId=X
+   */
+  getRandomBooks(page: number = 0, size: number = 20, libraryId?: number): Observable<AppPageResponse<AppBookSummary>> {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size));
+    if (libraryId != null) {
+      params = params.set('libraryId', String(libraryId));
+    }
+    return this.http.get<AppPageResponse<AppBookSummary>>(`${this.appUrl}/random`, { params });
+  }
+
+  /**
    * Fetch continue-reading books from the dedicated paginated endpoint.
    * GET /api/v1/app/books/continue-reading?limit=N&libraryId=X
    */
