@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.6'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.hibernate.orm' version '7.3.5.Final'
+    id 'org.hibernate.orm' version '7.4.0.Final'
     id 'com.github.ben-manes.versions' version '0.54.0'
     id 'jacoco'
     // OWASP Dependency-Check: scans Gradle dependencies for known CVEs (C2 / OWASP A06).
@@ -65,7 +65,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    implementation 'org.aspectj:aspectjweaver:1.9.22'
+    implementation 'org.aspectj:aspectjweaver:1.9.25.1'
 
     // --- Reactive Streams ---
     implementation 'io.projectreactor:reactor-core'
@@ -123,7 +123,7 @@ dependencies {
 
     // --- XML Support (JAXB) ---
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.5'
-    runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.8'
+    runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.9'
 
     // --- Template Engine ---
     implementation 'org.freemarker:freemarker:2.3.34'
