@@ -10,7 +10,9 @@ describe('Shared loading indicator adoption', () => {
   it('uses the shared loading indicator component in the splash and All Books loaders', () => {
     const appTemplate = readWorkspaceFile('src/app/app.component.html');
     const browserTemplate = readWorkspaceFile('src/app/features/book/components/book-browser/book-browser.component.html');
-    const loadingBlock = browserTemplate.match(/<div class="book-browser-loading-state">[\s\S]*?<\/div>/)?.[0] ?? '';
+    const loadingStartIndex = browserTemplate.indexOf('<div class="book-browser-loading-state">');
+    const loadingEndIndex = browserTemplate.indexOf('</app-loading-indicator>', loadingStartIndex);
+    const loadingBlock = loadingStartIndex >= 0 ? browserTemplate.substring(loadingStartIndex, loadingEndIndex + 24) : '';
 
     expect(appTemplate).toContain('<app-loading-indicator class="loader-picture" [decorative]="true"></app-loading-indicator>');
     expect(loadingBlock).toContain('<app-loading-indicator class="book-browser-loading-spinner" alt="Loading books"></app-loading-indicator>');
