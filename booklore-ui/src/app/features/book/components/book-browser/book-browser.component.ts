@@ -243,6 +243,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   useDistractionLoadingScreen = false;
   distractionCoverUrl: string | null = null;
+  private isFetchingDistractionCover = false;
   private headerFilter = new HeaderFilter(this.searchTerm$);
   protected bookSorter = new BookSorter(
     sortCriteria => this.onMultiSortChange(sortCriteria),
@@ -1258,23 +1259,29 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.bookStateSubscription = this.bookState$
       .pipe(
         tap((state: BookState) => {
-          if (!state.loaded && !state.error && this.useDistractionLoadingScreen && !this.distractionCoverUrl) {
+          if (!state.loaded && !state.error && this.useDistractionLoadingScreen && !this.distractionCoverUrl && !this.isFetchingDistractionCover) {
+            this.isFetchingDistractionCover = true;
             const libId = this.entityType === EntityType.LIBRARY ? (this.entity as Library)?.id : undefined;
             this.bookService.getRandomBooks(0, 1, libId).subscribe({
               next: (res) => {
-                if (res.content && res.content.length > 0) {
+                if (res.content && res.content.length > 0 && !state.loaded) {
                   const book = res.content[0];
                   const isAudiobook = book.primaryFileType === 'AUDIOBOOK';
                   this.distractionCoverUrl = isAudiobook
-                    ? this.urlHelper.getAudiobookCoverUrl(book.id, book.audiobookCoverUpdatedOn)
-                    : this.urlHelper.getCoverUrl(book.id, book.coverUpdatedOn);
+                    ? this.urlHelper.getAudiobookThumbnailUrl(book.id, book.audiobookCoverUpdatedOn)
+                    : this.urlHelper.getThumbnailUrl(book.id, book.coverUpdatedOn);
                   this.cdr.markForCheck();
                 }
+                this.isFetchingDistractionCover = false;
+              },
+              error: () => {
+                this.isFetchingDistractionCover = false;
               }
             });
           }
           if (state.loaded) {
             this.distractionCoverUrl = null;
+            this.isFetchingDistractionCover = false;
           }
         }),
         filter(state => state.loaded && !state.error),
