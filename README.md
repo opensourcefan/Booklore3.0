@@ -1,15 +1,15 @@
 <p align="center">
-  <a href="https://github.com/opensourcefan/Booklore3.0/tags"><img src="https://img.shields.io/github/v/tag/opensourcefan/Booklore3.0?label=last%20tag&style=flat-square&color=blue" alt="Last Tag"></a>
-  <a href="https://github.com/opensourcefan/Booklore3.0/actions/workflows/develop-pipeline.yml?query=branch%3Adevelop"><img src="https://img.shields.io/github/actions/workflow/status/opensourcefan/Booklore3.0/develop-pipeline.yml?branch=develop&label=develop%20pipeline&style=flat-square" alt="Develop pipeline"></a>
-  <a href="https://github.com/opensourcefan/Booklore3.0/blob/develop/LICENSE"><img src="https://img.shields.io/github/license/opensourcefan/Booklore3.0?style=flat-square" alt="License"></a>
-  <a href="https://github.com/opensourcefan/Booklore3.0/stargazers"><img src="https://img.shields.io/github/stars/opensourcefan/Booklore3.0?style=flat-square" alt="Stars"></a>
-  <a href="https://github.com/opensourcefan/Booklore3.0/issues"><img src="https://img.shields.io/github/issues/opensourcefan/Booklore3.0?style=flat-square" alt="Issues"></a>
+  <a href="https://github.com/opensourcefan/Fable/tags"><img src="https://img.shields.io/github/v/tag/opensourcefan/Fable?label=last%20tag&style=flat-square&color=blue" alt="Last Tag"></a>
+  <a href="https://github.com/opensourcefan/Fable/actions/workflows/develop-pipeline.yml?query=branch%3Adevelop"><img src="https://img.shields.io/github/actions/workflow/status/opensourcefan/Fable/develop-pipeline.yml?branch=develop&label=develop%20pipeline&style=flat-square" alt="Develop pipeline"></a>
+  <a href="https://github.com/opensourcefan/Fable/blob/develop/LICENSE"><img src="https://img.shields.io/github/license/opensourcefan/Fable?style=flat-square" alt="License"></a>
+  <a href="https://github.com/opensourcefan/Fable/stargazers"><img src="https://img.shields.io/github/stars/opensourcefan/Fable?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/opensourcefan/Fable/issues"><img src="https://img.shields.io/github/issues/opensourcefan/Fable?style=flat-square" alt="Issues"></a>
 </p>
 
 
-# Booklore 3.0
+# Fable
 
-A personal fork of [BookLore](https://github.com/adityachandelgit/BookLore) with extended features, UI customizations, and an optional AI-powered comic panel detection service.
+A personal fork of [Fable](https://github.com/adityachandelgit/Fable) with extended features, UI customizations, and an optional AI-powered comic panel detection service.
 
 > **Advisory:** This is a personal project, shared as-is. It is 100% vibe-coded. I am not a developer.
 > I may or may not update it. I may or may not read the Issues. I will not delete it if I get upset, I'm always upset.
@@ -57,7 +57,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 
 - **Comic Panel Detection AI** — Detects and saves panel flow data for CBZ/CBR comics using a bundled YOLO-based AI model. Enables panel-by-panel navigation in the reader.
 - **ComicVine URL Issue Navigation** — In metadata search, paste a ComicVine volume or issue URL and optionally provide an issue number or inclusive range (for example `46` or `43-171`) to resolve exact ComicVine issue matches.
-- **ComicVine Batch Issue Sequencing** — In custom metadata fetch for multi-book selections, you can use the same ComicVine source URL plus issue number/range inputs and BookLore will assign sequential issues across the selected books while keeping review-mode workflows.
+- **ComicVine Batch Issue Sequencing** — In custom metadata fetch for multi-book selections, you can use the same ComicVine source URL plus issue number/range inputs and Fable will assign sequential issues across the selected books while keeping review-mode workflows.
 - **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views, then use the reset button beside the folder toggle to clear the active folder scope while keeping the larger book view available.
 - **Currently Reading Dashboard Panel** — Add an optional Currently Reading scroller from Dashboard Settings and populate it from a book's More Actions menu to keep a hand-picked reading shortlist on the home screen.
 - **Custom Theme Colors** — Use preset palettes or set custom primary and surface colors with a color picker or pasted hex value; theme preferences are saved per user.
@@ -86,7 +86,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 
 ```bash
 # 1. Download the Compose file
-curl -O https://raw.githubusercontent.com/opensourcefan/Booklore3.0/develop/docker-compose.yml
+curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-compose.yml
 
 # 2. Create your .env file (see Sample .env below)
 
@@ -95,29 +95,29 @@ docker compose pull
 docker compose up -d
 
 # 4. If AI is enabled, pull and start the AI container separately
-docker compose pull booklore-ai-panel
-docker compose up -d booklore-ai-panel
+docker compose pull app-ai-panel
+docker compose up -d app-ai-panel
 ```
 
 ### Update Existing Install
 
 ```bash
-curl -O https://raw.githubusercontent.com/opensourcefan/Booklore3.0/develop/docker-compose.yml
+curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-compose.yml
 docker compose pull
 docker compose up -d
 
 # If AI is enabled:
-docker compose pull booklore-ai-panel
-docker compose up -d booklore-ai-panel
+docker compose pull app-ai-panel
+docker compose up -d app-ai-panel
 ```
 
 ### Optional RAR Binary For CBR Metadata Writes
 
-If you want BookLore to preserve `.cbr` files during metadata writes instead of falling back to a slower `.cbz` conversion, place a compatible Linux `rar` binary at `./docker/rar/rar` before starting the container.
+If you want Fable to preserve `.cbr` files during metadata writes instead of falling back to a slower `.cbz` conversion, place a compatible Linux `rar` binary at `./docker/rar/rar` before starting the container.
 
-- The repository `docker-compose.yml` now mounts `./docker/rar` into the container at `/opt/booklore-rar`.
-- The container entrypoint automatically exports `BOOKLORE_RAR_BIN=/opt/booklore-rar/rar` when that file exists and is executable.
-- If no `rar` binary is provided, BookLore keeps its current fallback behavior and may convert `.cbr` to `.cbz` when writing embedded metadata.
+- The repository `docker-compose.yml` now mounts `./docker/rar` into the container at `/opt/fable-rar`.
+- The container entrypoint automatically exports `FABLE_RAR_BIN=/opt/fable-rar/rar` when that file exists and is executable.
+- If no `rar` binary is provided, Fable keeps its current fallback behavior and may convert `.cbr` to `.cbz` when writing embedded metadata.
 
 ### Install Without AI
 
@@ -136,15 +136,15 @@ APP_GROUP_ID=1000
 TZ=America/Vancouver
 
 # Database connection
-DATABASE_URL=jdbc:mariadb://mariadb:3306/booklore
-DB_USER=booklore
+DATABASE_URL=jdbc:mariadb://mariadb:3306/fable
+DB_USER=fable
 DB_PASSWORD=ChangeMe@$@P
 
 # MariaDB container
 DB_USER_ID=1000
 DB_GROUP_ID=1000
 MYSQL_ROOT_PASSWORD=ChangeMe@$@P
-MYSQL_DATABASE=booklore
+MYSQL_DATABASE=fable
 REMOTE_USER_PASSWORD=ChangeMe@$@P
 
 # Storage type: LOCAL (default) or NETWORK (all data written to MariaDB only)
@@ -152,7 +152,7 @@ REMOTE_USER_PASSWORD=ChangeMe@$@P
 
 # AI Panel Detection (optional — remove or comment out to disable AI)
 COMPOSE_PROFILES=ai
-AI_SERVICE_BASE_URL=http://booklore-ai-panel:8080
+AI_SERVICE_BASE_URL=http://app-ai-panel:8080
 AI_PANEL_PORT=18080
 ```
 
@@ -164,7 +164,7 @@ AI_PANEL_PORT=18080
 services:
   mariadb:
     image: mariadb:11
-    container_name: booklore-db
+    container_name: fable-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -174,11 +174,11 @@ services:
     volumes:
       - db-data:/var/lib/mysql
     networks:
-      - booklore-net
+      - fable-net
 
-  booklore:
-    image: ghcr.io/opensourcefan/booklore3.0:latest
-    container_name: booklore
+  app-backend:
+    image: ghcr.io/opensourcefan/fable:latest
+    container_name: app-backend
     restart: unless-stopped
     depends_on:
       - mariadb
@@ -196,13 +196,13 @@ services:
       - ./books:/books
       - ./data:/app-data
       - ./bookdrop:/bookdrop
-      - ./docker/rar:/opt/booklore-rar:ro  # Optional: mount a compatible Linux rar binary at ./docker/rar/rar for in-place CBR metadata writes
+      - ./docker/rar:/opt/fable-rar:ro  # Optional: mount a compatible Linux rar binary at ./docker/rar/rar for in-place CBR metadata writes
     networks:
-      - booklore-net
+      - fable-net
 
-  booklore-ai-panel:
-    image: ghcr.io/opensourcefan/booklore-panel-ai:latest
-    container_name: booklore-ai-panel
+  app-ai-panel:
+    image: ghcr.io/opensourcefan/fable-panel-ai:latest
+    container_name: app-ai-panel
     restart: unless-stopped
     profiles:
       - ai
@@ -211,13 +211,13 @@ services:
     volumes:
       - ./data/ai-models:/models
     networks:
-      - booklore-net
+      - fable-net
 
 volumes:
   db-data:
 
 networks:
-  booklore-net:
+  fable-net:
 ```
 
 > **Note:** This is a representative sample. Always use the `docker-compose.yml` pulled from the repository for the most up-to-date configuration.
@@ -226,13 +226,13 @@ networks:
 
 ## Saving Your Data
 
-Booklore stores your data in two places. Back up both to ensure a complete recovery.
+Fable stores your data in two places. Back up both to ensure a complete recovery.
 
 ### Application Settings
 
 Your admin configuration (libraries, users, shelves, metadata settings, etc.) lives in the MariaDB database.
 
-**Export via the UI** — Go to **Settings → Global Preferences → Settings Transfer** and click **Export**. This downloads a `booklore-settings-*.json` file you can re-import on the same or a new instance.
+**Export via the UI** — Go to **Settings → Global Preferences → Settings Transfer** and click **Export**. This downloads a `fable-settings-*.json` file you can re-import on the same or a new instance.
 
 **Full database backup (recommended for complete protection)** — Exports everything including all book metadata, read progress, and shelf assignments:
 
@@ -241,7 +241,7 @@ Your admin configuration (libraries, users, shelves, metadata settings, etc.) li
 docker exec mariadb mariadb-dump \
   --single-transaction --quick --no-tablespaces \
   -u root -p"$MYSQL_ROOT_PASSWORD" \
-  booklore > "booklore_backup_$(date +%Y%m%d_%H%M%S).sql"
+  fable > "fable_backup_$(date +%Y%m%d_%H%M%S).sql"
 ```
 
 > See [docs/mariadb-backup-restore.html](docs/mariadb-backup-restore.html) for the full backup, restore, and automation guide.
@@ -259,7 +259,7 @@ Your actual book files, cover images, and thumbnails are **not** stored in the d
 A simple full backup copies all three:
 
 ```bash
-tar -czf booklore-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
+tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 ```
 
 ---
@@ -281,16 +281,16 @@ tar -czf booklore-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 - The AI compose profile is opt-in. Omitting `COMPOSE_PROFILES=ai` skips the AI image entirely.
 - The AI container uses CPU-only inference to keep the image size manageable.
 - If the model fails to load, use the **Reload Model** button in Settings.
-- If running Booklore outside Docker, set `AI_SERVICE_BASE_URL` to the host-mapped endpoint (e.g., `http://localhost:18080`).
+- If running Fable outside Docker, set `AI_SERVICE_BASE_URL` to the host-mapped endpoint (e.g., `http://localhost:18080`).
 
 ---
 
 ## Familiarization Guide
 
-New to BookLore? A complete **Familiarization Guide** is available in the `docs/` folder:
+New to Fable? A complete **Familiarization Guide** is available in the `docs/` folder:
 
-- **[BookLore-Familiarization-Guide.pdf](docs/BookLore-Familiarization-Guide.pdf)** — Printable PDF version
-- **[BookLore-Familiarization-Guide.html](docs/BookLore-Familiarization-Guide.html)** — Browser-viewable HTML version
+- **[Fable-Familiarization-Guide.pdf](docs/Fable-Familiarization-Guide.pdf)** — Printable PDF version
+- **[Fable-Familiarization-Guide.html](docs/Fable-Familiarization-Guide.html)** — Browser-viewable HTML version
 
 The guide is written for users of all experience levels and covers every feature — libraries, importing, reading, shelves, metadata, search, AI panel detection, OPDS, user management, settings, backups, and more. Each section includes what you can do, what you can't do, and things to be careful about.
 

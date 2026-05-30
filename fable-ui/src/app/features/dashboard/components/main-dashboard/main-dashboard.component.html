@@ -1,0 +1,82 @@
+<ng-container *transloco="let t; prefix: 'dashboard.main'">
+  @if (viewModel$ | async; as vm) {
+    <div class="dashboard-container">
+      @if (!vm.ready) {
+        <div class="loading-state">
+          <p-progressSpinner
+            class="spinner center-spinner"
+            [style]="{'width': '60px', 'height': '60px'}"
+            strokeWidth="3"
+            fill="transparent"
+            animationDuration="1.5s">
+          </p-progressSpinner>
+        </div>
+      } @else {
+        <div class="dashboard">
+          <div class="dashboard-inner">
+            @if (vm.librariesEmpty) {
+              <div class="dashboard-no-library">
+                @if (vm.userState.user?.permissions; as permissions) {
+                  <div>
+                    @if (permissions.admin || permissions.canManageLibrary) {
+                      <div>
+                        <h1 class="no-library-header">
+                          <span [innerHTML]="brandedWelcomeTitle()"></span><br>
+                          {{ t('welcomeSubtitle') }}
+                        </h1>
+                        <p class="welcome-description">
+                          {{ t('welcomeDescription') }}
+                        </p>
+                        <p-button
+                          [label]="t('createLibrary')"
+                          icon="pi pi-plus"
+                          class="p-button-rounded p-button-outlined"
+                          (click)="createNewLibrary()">
+                        </p-button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="dashboard-workspace">
+                <div
+                  #dashboardGrid
+                  class="dashboard-grid"
+                  [class.dashboard-grid--unlocked]="!vm.config.layoutLocked"
+                  [style.--dashboard-columns]="gridColumns"
+                  cdkDropList
+                  cdkDropListOrientation="mixed"
+                  [cdkDropListData]="vm.enabledScrollers"
+                  [cdkDropListDisabled]="vm.config.layoutLocked"
+                  (cdkDropListDropped)="onDashboardDrop($event, vm.config)">
+                  @for (scroller of vm.enabledScrollers; track scroller.id) {
+                    <div
+                      class="dashboard-panel"
+                      cdkDrag
+                      [cdkDragDisabled]="vm.config.layoutLocked"
+                      [style.grid-column]="'span ' + getScrollerColumnSpan(scroller)">
+                      @if (!vm.config.layoutLocked) {
+                        <div class="dashboard-panel-handle" cdkDragHandle [attr.aria-label]="t('dragPanel')">
+                          <i class="pi pi-arrows-alt"></i>
+                        </div>
+                      }
+
+                      <app-dashboard-scroller
+                        [bookListType]="scroller.type"
+                        [title]="getScrollerDisplayTitle(scroller)"
+                        [isMagicShelf]="scroller.type === ScrollerType.MAGIC_SHELF"
+                        [useSquareCovers]="scroller.type === ScrollerType.LAST_LISTENED"
+                        [books]="getBooksForScroller(scroller) | async">
+                      </app-dashboard-scroller>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ng-container>

@@ -2,7 +2,7 @@ version: 2
 updates:
   # Backend – Gradle (Java / Spring)
   - package-ecosystem: "gradle"
-    directory: "/booklore-api"
+    directory: "/fable-api"
     schedule:
       interval: "weekly"
       day: "friday"
@@ -23,7 +23,7 @@ updates:
 
   # Frontend – npm (Angular)
   - package-ecosystem: "npm"
-    directory: "/booklore-ui"
+    directory: "/fable-ui"
     schedule:
       interval: "weekly"
       day: "friday"

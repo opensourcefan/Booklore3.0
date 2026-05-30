@@ -29,8 +29,8 @@ release_name=$(jq -r '.name' <<< "$release_json")
 release_body=$(jq -r '.body' <<< "$release_json")
 release_url=$(jq -r '.url'  <<< "$release_json")
 
-dockerhub_image="https://hub.docker.com/r/booklore/booklore/tags/$NEW_TAG"
-ghcr_image="https://github.com/booklore-app/booklore/pkgs/container/booklore/$NEW_TAG"
+dockerhub_image="https://hub.docker.com/r/opensourcefan/fable/tags/$NEW_TAG"
+ghcr_image="https://github.com/opensourcefan/Fable/pkgs/container/fable/$NEW_TAG"
 
 # Clean up body for Discord
 clean_body=$(echo "$release_body" | tr -d '\r')

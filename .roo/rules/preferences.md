@@ -4,7 +4,7 @@ paths: ["**/*"]
 
 - After pushing, provide a numbered fix summary matching the user's task order, in the built in browser.
 - For frontend interaction regressions, prefer DOM-backed mock tests that verify real click behavior and the presence or absence of directives, not only component state.
-- Do not push unless advised to push.
+- Do not push unless explicitly stated to do so in the most recent task or subtask.
 - Do not use 'milestone' within a tag unless explicitly advised.
 - Do not ask to do something if it has already been asked.
 - After changes, check README.md, Familairization-Guide, and codespace.md for required updates.
@@ -39,6 +39,7 @@ paths: ["**/*"]
 
 
 ## Always Check For Downstream Impacts
+- **State Gap Analysis:** Whenever implementing deferral, lazy-loading, or asynchronous caching logic, you MUST explicitly perform a "State Gap Analysis". Trace every component that depends on the deferred data and verify exactly what its UI state will look like during the introduced loading gap, ensuring that the temporary state does not break critical user workflows (like navigating empty filters).
 - **Before recommending OR implementing any code change**, you MUST trace all callers, consumers, and dependents of the affected code.
 - For JPA entity changes (fetch type, cascade, relationship mapping): grep for all references to the field's getter and all methods that load or traverse the entity. Verify whether each call site runs inside a transaction/session.
 - For repository method changes: grep for all callers in both service and controller layers. Verify pagination, transaction boundaries, and expected return types at each call site.

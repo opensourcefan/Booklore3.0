@@ -3,12 +3,12 @@ FROM node:24-alpine AS angular-build
 
 WORKDIR /angular-app
 
-COPY ./booklore-ui/package.json ./booklore-ui/package-lock.json ./
+COPY ./fable-ui/package.json ./fable-ui/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
     npm config set registry https://registry.npmjs.org/ \
     && npm ci --force
 
-COPY ./booklore-ui /angular-app/
+COPY ./fable-ui /angular-app/
 
 RUN npm run build --configuration=production
 
@@ -18,16 +18,16 @@ FROM gradle:9.4.1-jdk25-alpine AS springboot-build
 WORKDIR /springboot-app
 
 # Copy only build files first to cache dependencies
-COPY ./booklore-api/build.gradle ./booklore-api/settings.gradle /springboot-app/
+COPY ./fable-api/build.gradle ./fable-api/settings.gradle /springboot-app/
 
 # Download dependencies (cached layer)
 RUN --mount=type=cache,target=/home/gradle/.gradle \
     gradle dependencies --no-daemon
 
-COPY ./booklore-api/src /springboot-app/src
+COPY ./fable-api/src /springboot-app/src
 
 # Copy Angular dist into Spring Boot static resources so it's embedded in the JAR
-COPY --from=angular-build /angular-app/dist/booklore/browser /springboot-app/src/main/resources/static
+COPY --from=angular-build /angular-app/dist/app/browser /springboot-app/src/main/resources/static
 
 # Inject version into application.yaml using yq
 ARG APP_VERSION
@@ -44,10 +44,10 @@ ARG APP_VERSION
 ARG APP_REVISION
 
 # Set OCI labels
-LABEL org.opencontainers.image.title="BookLore" \
-      org.opencontainers.image.description="BookLore: A self-hosted, multi-user digital library with smart shelves, auto metadata, Kobo & KOReader sync, BookDrop imports, OPDS support, and a built-in reader for EPUB, PDF, and comics." \
-      org.opencontainers.image.source="https://github.com/booklore-app/booklore" \
-      org.opencontainers.image.url="https://github.com/booklore-app/booklore" \
+LABEL org.opencontainers.image.title="Fable" \
+      org.opencontainers.image.description="Fable: A self-hosted, multi-user digital library with smart shelves, auto metadata, Kobo & KOReader sync, BookDrop imports, OPDS support, and a built-in reader for EPUB, PDF, and comics." \
+      org.opencontainers.image.source="https://github.com/opensourcefan/Fable" \
+      org.opencontainers.image.url="https://github.com/opensourcefan/Fable" \
       org.opencontainers.image.documentation="https://booklore.org/docs/getting-started" \
       org.opencontainers.image.version=$APP_VERSION \
       org.opencontainers.image.revision=$APP_REVISION \
@@ -58,22 +58,22 @@ ENV JAVA_TOOL_OPTIONS="--enable-native-access=ALL-UNNAMED -XX:+UseG1GC -XX:+UseC
 
 ARG TARGETARCH
 RUN apk update && apk add --no-cache su-exec libstdc++ libgcc && \
-    mkdir -p /bookdrop /opt/booklore-rar
+    mkdir -p /bookdrop /opt/fable-rar
 
 COPY docker/unrar/unrar-${TARGETARCH} /usr/local/bin/unrar
 RUN chmod 755 /usr/local/bin/unrar
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-COPY --from=springboot-build /springboot-app/build/libs/booklore-api-3.9.9.jar /app/app.jar
+COPY --from=springboot-build /springboot-app/build/libs/fable-api-3.9.9.jar /app/app.jar
 
-ARG BOOKLORE_PORT=6060
-EXPOSE ${BOOKLORE_PORT}
+ARG FABLE_PORT=6060
+EXPOSE ${FABLE_PORT}
 
 # Health check for container orchestration (Docker Compose, K8s readiness probes, etc.)
 # The /api/v1/healthcheck endpoint is unauthenticated and returns 200 when the app is ready.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD wget -qO- http://localhost:${BOOKLORE_PORT}/api/v1/healthcheck || exit 1
+    CMD wget -qO- http://localhost:${FABLE_PORT}/api/v1/healthcheck || exit 1
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["java", "-jar", "/app/app.jar"]

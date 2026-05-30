@@ -1,0 +1,27 @@
+[Unit]
+Description=fable container
+Requires=fable-db.container
+After=fable-db.container
+
+[Container]
+ContainerName=fable
+Image=ghcr.io/opensourcefan/fable:latest
+Pod=fable.pod
+AutoUpdate=registry
+Pull=always
+
+Volume=fable-data:/app/data
+# note the :z is important for selinux systems
+# Volume=YOUR MOUNTS:/books:z
+# Volume=YOUR MOUNTS:/bookdrop:z
+
+
+Environment=TZ=Etc/UTC
+Secret=fable_db_pass,type=env,target=DATABASE_PASSWORD
+Environment=DATABASE_URL=jdbc:mariadb://localhost:3306/fable
+Environment=DATABASE_USERNAME=fable
+HealthCmd=wget -q -O - http://localhost:6060/api/v1/healthcheck
+HealthInterval=1m
+HealthRetries=5
+HealthStartPeriod=1m
+HealthTimeout=10s

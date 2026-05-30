@@ -1,0 +1,137 @@
+{
+  "title": "Backups",
+  "description": "Centralize settings transfer, manual sidecar backup, and logical catalog backup.",
+  "tabs": {
+    "status": "Status",
+    "appSettings": "App Settings",
+    "sidecar": "Sidecar",
+    "databaseExport": "Database Export",
+    "databaseRestore": "Database Restore"
+  },
+  "common": {
+    "never": "Never",
+    "none": "None",
+    "notRecorded": "Not recorded"
+  },
+  "status": {
+    "notice": "Status shows the last known action for each backup surface available to your account.",
+    "idle": "Idle",
+    "done": "Done",
+    "partial": "Partial",
+    "failed": "Failed",
+    "pass": "Pass",
+    "fail": "Fail",
+    "labels": {
+      "action": "Last action",
+      "target": "Target",
+      "updated": "Updated"
+    },
+    "appSettings": {
+      "title": "App Settings",
+      "description": "Export or import BookLore application settings.",
+      "exported": "Settings exported",
+      "imported": "Settings imported"
+    },
+    "sidecar": {
+      "title": "Sidecar",
+      "description": "Manual sidecar backup for a selected library.",
+      "summary": "Backed up {count} of {attempted} sidecars"
+    },
+    "database": {
+      "title": "Database",
+      "description": "Logical catalog backup and restore preparation.",
+      "exportPrepared": "Export command copied",
+      "restorePrepared": "Restore command copied",
+      "preflightPassed": "Restore pre-flight passed",
+      "preflightBlocked": "Restore pre-flight blocked"
+    }
+  },
+  "appSettings": {
+    "description": "Reuse the live application settings export and import flow here so backup activity stays in the dedicated Backups area."
+  },
+  "sidecar": {
+    "notice": "Automatic sidecar writes stay in Metadata settings. This tab only keeps the manual per-library backup routine.",
+    "attempted": "Attempted",
+    "exported": "Exported",
+    "failed": "Failed",
+    "user": "Triggered by",
+    "historyTitle": "Recent runs",
+    "historyDescription": "The last 10 sidecar backup runs recorded for the selected library.",
+    "loading": "Loading recent sidecar backup runs.",
+    "loadFailed": "Could not load recent sidecar backup runs.",
+    "empty": "No sidecar backup runs have been recorded for this library yet."
+  },
+  "databaseExport": {
+    "title": "Logical Database Backup",
+    "description": "BookLore does not run database backup inside the app yet. This helper generates the supported MariaDB export command from the current docs.",
+    "warning": "A full recovery still requires both the SQL dump and copies of your media files and app data directory.",
+    "directory": "Backup directory",
+    "fileName": "Backup file name",
+    "regenerate": "Regenerate file name",
+    "copyCommand": "Copy export command",
+    "command": "Export command"
+  },
+  "databaseRestore": {
+    "title": "Logical Database Restore",
+    "description": "Use the current documented restore flow for an existing schema. Pre-flight stays blocked until the required operator checks are confirmed.",
+    "warning": "Restore to a new temporary schema is not supported with the current database grants. Restore only into the existing booklore schema.",
+    "sqlPath": "SQL backup path",
+    "appDataPath": "Mounted app data path",
+    "composePath": "Deployment config path",
+    "freeSpace": "Available free space (GB)",
+    "runPreflight": "Run pre-flight",
+    "reset": "Reset",
+    "copyCommand": "Copy restore command",
+    "command": "Restore command",
+    "missingSqlPath": "Select the SQL dump that will be restored.",
+    "missingAppDataPath": "Enter the mounted BookLore app-data path.",
+    "missingComposePath": "Enter the compose or deployment config path.",
+    "missingFreeSpace": "Enter the available free space on the target host before running pre-flight.",
+    "preflightBlocked": "Pre-flight blocked",
+    "preflightPassedDetail": "All required restore checks passed. The restore command can now be copied.",
+    "preflightBlockedDetail": "Resolve the failed checks before using the restore command.",
+    "helpLabel": "Explain {task}",
+    "confirmations": {
+      "packageFiles": "SQL dump and manifest or notes are present",
+      "mediaCopied": "Media files are already available on the target host",
+      "appDataReady": "Mounted app-data directory exists and is ready",
+      "composeReady": "Deployment config and path mapping details are available",
+      "versionReady": "Version compatibility has been confirmed",
+      "maintenanceReady": "Maintenance mode or an equivalent pause plan is ready"
+    },
+    "checks": {
+      "sqlPath": "SQL backup selected",
+      "media": "Media copied",
+      "appData": "App data ready",
+      "compose": "Deployment config available",
+      "version": "Version compatibility confirmed",
+      "maintenance": "Maintenance mode ready",
+      "freeSpace": "Sufficient free disk space"
+    },
+    "help": {
+      "packageFiles": "Confirm that the SQL dump you plan to restore is present and that you also have the manifest, release notes, or operator notes that explain what was backed up. Without those files, you can restore the database but still lose context about paths, versions, or missing companion data.",
+      "mediaCopied": "The SQL restore only recreates BookLore records. It does not bring your EPUB, PDF, CBZ, CBR, or audiobook files onto the new host. Check this only after the target machine already has the full library media in the correct folders.",
+      "appDataReady": "BookLore also depends on mounted app-data such as generated images, thumbnails, and runtime files. Confirm that the destination app-data folder exists, is mounted into the container, and matches the path you entered above.",
+      "composeReady": "You need the compose file, container config, or deployment notes that describe the MariaDB service name, volume mounts, and BookLore paths. This is what lets you rebuild the environment in the same shape before importing the SQL dump.",
+      "versionReady": "Make sure the destination BookLore and MariaDB versions can safely consume this backup. If the target is older, newer in an incompatible way, or missing required migrations, the import can succeed technically but still leave the app unstable.",
+      "maintenanceReady": "The restore should happen while writes are paused. Confirm you can stop scans, uploads, metadata edits, and any other background jobs so the database is not changing while the import is running."
+    },
+    "details": {
+      "mediaReady": "Media is present for restored records.",
+      "mediaMissing": "Database restore will not restore the actual media files.",
+      "versionReady": "Target version has been confirmed compatible.",
+      "versionBlocked": "Confirm version compatibility before restore.",
+      "maintenanceReady": "Writes can be paused during restore.",
+      "maintenanceBlocked": "Prepare maintenance mode before restore.",
+      "freeSpace": "{value} GB available. At least 15 GB is required."
+    }
+  },
+  "messages": {
+    "exportRecorded": "Backup activity updated",
+    "exportCommandCopied": "Export command copied",
+    "exportCommandCopiedDetail": "The logical database export command was copied and recorded in Backups status.",
+    "restoreCommandCopied": "Restore command copied",
+    "restoreCommandCopiedDetail": "The logical database restore command was copied and recorded in Backups status.",
+    "clipboardUnavailable": "Clipboard access is not available in this browser context."
+  }
+}

@@ -1,15 +1,15 @@
 # Runtime-only Dockerfile for CI builds.
-# Expects the pre-built JAR at booklore-api/build/libs/app.jar
+# Expects the pre-built JAR at fable-api/build/libs/app.jar
 # and entrypoint.sh in the build context.
 FROM eclipse-temurin:25-jre-alpine
 
 ARG APP_VERSION
 ARG APP_REVISION
 
-LABEL org.opencontainers.image.title="BookLore" \
-      org.opencontainers.image.description="BookLore: A self-hosted, multi-user digital library with smart shelves, auto metadata, Kobo & KOReader sync, BookDrop imports, OPDS support, and a built-in reader for EPUB, PDF, and comics." \
-      org.opencontainers.image.source="https://github.com/booklore-app/booklore" \
-      org.opencontainers.image.url="https://github.com/booklore-app/booklore" \
+LABEL org.opencontainers.image.title="Fable" \
+      org.opencontainers.image.description="Fable: A self-hosted, multi-user digital library with smart shelves, auto metadata, Kobo & KOReader sync, BookDrop imports, OPDS support, and a built-in reader for EPUB, PDF, and comics." \
+      org.opencontainers.image.source="https://github.com/opensourcefan/Fable" \
+      org.opencontainers.image.url="https://github.com/opensourcefan/Fable" \
       org.opencontainers.image.documentation="https://booklore.org/docs/getting-started" \
       org.opencontainers.image.version=$APP_VERSION \
       org.opencontainers.image.revision=$APP_REVISION \
@@ -26,10 +26,10 @@ RUN chmod 755 /usr/local/bin/unrar
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-COPY booklore-api/build/libs/app.jar /app/app.jar
+COPY fable-api/build/libs/app.jar /app/app.jar
 
-ARG BOOKLORE_PORT=6060
-EXPOSE ${BOOKLORE_PORT}
+ARG FABLE_PORT=6060
+EXPOSE ${FABLE_PORT}
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["java", "-jar", "/app/app.jar"]

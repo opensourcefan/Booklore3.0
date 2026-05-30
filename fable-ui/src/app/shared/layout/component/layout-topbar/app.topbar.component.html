@@ -1,0 +1,548 @@
+<ng-container *transloco="let t; prefix: 'layout.topbar'">
+<div class="layout-topbar">
+
+  <!-- Mobile only: left sidebar as popup -->
+  <div class="mobile-sidebar-trigger">
+    <p-button
+      icon="pi pi-ellipsis-v"
+      [text]="true"
+      (click)="mobileSidebarPop.toggle($event)"
+      pTooltip="Navigation"
+      tooltipPosition="bottom">
+    </p-button>
+    @if (showMobileDirTrigger) {
+      <p-button
+        icon="pi pi-folder"
+        [text]="true"
+        (click)="mobileDirPop.toggle($event)"
+        pTooltip="Folders"
+        tooltipPosition="bottom">
+      </p-button>
+      <p-popover #mobileDirPop [dismissable]="true" styleClass="dir-mobile-panel-popover" (onShow)="onMobileDirectoryPopoverShow()" (onHide)="onMobileDirectoryPopoverHide()">
+        @if (mobileDirectoryPopoverOpen) {
+          <app-directory-mobile-panel></app-directory-mobile-panel>
+        }
+      </p-popover>
+    }
+    <p-popover #mobileSidebarPop [dismissable]="true" styleClass="mobile-sidebar-popover" (onShow)="onMobileSidebarPopoverShow()" (onHide)="onMobileSidebarPopoverHide()">
+      <app-sidebar
+        blResizable="right"
+        storageKey="bl-sidebar-width"
+        cssVar="--sidebar-width"
+        [minWidth]="160"
+        [maxWidth]="420"
+        (click)="onMobileSidebarClick($event)"></app-sidebar>
+    </p-popover>
+  </div>
+
+  <a class="layout-topbar-logo topbar-logo" routerLink="">
+    <svg class="logo-icon half-title" viewBox="0.5 2.175 13 13" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11.902 14.114V4.337l1.108 1.108v9.777H2.652A1.664 1.664 0 0 1 .99 13.559V4.9a1.665 1.665 0 0 1 1.662-1.663h.664V7.25l.874-.645.875.645V3.236h5.729v9.77h-7.85a.978.978 0 0 0-.626.111.56.56 0 0 0-.006.88.613.613 0 0 0 .39.117h9.2z"/>
+    </svg>
+    <span class="logo-text-wrapper">
+      <span class="logo-text-fab">Fab</span>
+      <span class="half-title logo-text-l">l</span>
+      <span class="half-title logo-text-e">e</span>
+    </span>
+  </a>
+
+  <button type="button" class="topbar-item sidebar-toggle-btn"
+     #menubutton
+     (click)="toggleMenu()"
+     [pTooltip]="isMenuVisible ? 'Hide sidebar' : 'Show sidebar'"
+     tooltipPosition="bottom">
+    <i [ngClass]="isMenuVisible ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"></i>
+  </button>
+
+  <div class="topbar-content">
+    <app-book-searcher class="topbar-search"></app-book-searcher>
+    @if (showDesktopAiScanStatus) {
+      <button type="button" class="topbar-ai-status" (click)="navigateToAiSettings()">
+        <i class="pi pi-sparkles"></i>
+        <span class="topbar-ai-label">{{ t('aiScan') }}</span>
+        <span class="topbar-ai-summary">{{ aiScanSummary }}</span>
+      </button>
+    }
+    @if (showMetadataFlushStatus) {
+      <button type="button" class="topbar-flush-status" (click)="navigateToMetadataPersistenceSettings()">
+        <i class="pi pi-upload"></i>
+        <span class="topbar-flush-label">{{ t('metadataFlush') }}</span>
+        <span class="topbar-flush-summary">{{ metadataFlushSummary }}</span>
+      </button>
+    }
+    @if (showImportScanStatus) {
+      <button type="button" class="topbar-import-status">
+        <i class="pi pi-download"></i>
+        <span class="topbar-import-label">{{ t('importScan') }}</span>
+        <span class="topbar-import-summary">{{ importScanSummary }}</span>
+      </button>
+    }
+    @if (showDirectoryTaggingStatus) {
+      <button type="button" class="topbar-directory-tagging-status" (click)="navigateToTaskManagement()">
+        <i class="pi pi-tag"></i>
+        <span class="topbar-directory-tagging-label">{{ t('directoryTagging') }}</span>
+        <span class="topbar-directory-tagging-summary">{{ directoryTaggingSummary }}</span>
+      </button>
+    }
+    @if (showSidecarBackupStatus) {
+      <button type="button" class="topbar-sidecar-backup-status" (click)="navigateToMetadataPersistenceSettings()">
+        <i class="pi pi-box"></i>
+        <span class="topbar-sidecar-backup-label">{{ t('sidecarBackup') }}</span>
+        <span class="topbar-sidecar-backup-summary">{{ sidecarBackupSummary }}</span>
+      </button>
+    }
+    @if (showMetadataFetchStatus) {
+      <button type="button" class="topbar-metadata-fetch-status" [ngClass]="metadataFetchStatusClasses" (click)="openMetadataFetchLog()">
+        <i [ngClass]="metadataFetchIconClass"></i>
+        <span class="topbar-metadata-fetch-label">{{ t('metadataFetch') }}</span>
+        <span class="topbar-metadata-fetch-summary">{{ metadataFetchSummary }}</span>
+      </button>
+    }
+    @if (showWriteStatus) {
+      <div class="topbar-write-status" [class.topbar-write-complete]="writeProgress?.status === 'COMPLETED'" [class.topbar-write-failed]="writeProgress?.status === 'FAILED'">
+        @if (writeProgress?.status === 'IN_PROGRESS') {
+          <i class="pi pi-spin pi-spinner"></i>
+        } @else if (writeProgress?.status === 'COMPLETED') {
+          <i class="pi pi-check"></i>
+        } @else {
+          <i class="pi pi-times"></i>
+        }
+        <span class="topbar-write-label">{{ writeProgress?.status === 'IN_PROGRESS' ? 'UPDATING' : (writeProgress?.status === 'COMPLETED' ? 'DONE' : 'FAILED') }}</span>
+        <span class="topbar-write-summary">{{ writeStatusSummary }}</span>
+      </div>
+    }
+    <ul class="topbar-items topbar-desktop-items">
+      @for (item of visibleDesktopToolbarItems; track item.id) {
+        @if (item.type === 'separator') {
+          <p-divider layout="vertical"/>
+        } @else {
+          @switch (item.id) {
+            @case ('bookdrop') {
+              <li>
+                <button type="button" class="topbar-item" (click)="navigateToBookdrop()" [pTooltip]="t('bookdrop')" tooltipPosition="bottom">
+                  <i class="pi pi-inbox topbar-icon"></i>
+                </button>
+              </li>
+            }
+            @case ('createLibrary') {
+              <li>
+                <button type="button" class="topbar-item" (click)="openLibraryCreatorDialog()" [pTooltip]="t('createNewLibrary')" tooltipPosition="bottom">
+                  <i class="pi pi-plus-circle topbar-icon"></i>
+                </button>
+              </li>
+            }
+            @case ('upload') {
+              <li>
+                <button type="button" class="topbar-item" (click)="openFileUploadDialog()" [pTooltip]="t('uploadBook')" tooltipPosition="bottom">
+                  <i class="pi pi-upload topbar-icon"></i>
+                </button>
+              </li>
+            }
+
+            @case ('metadata') {
+              <li>
+                <button type="button" class="topbar-item" (click)="navigateToMetadataManager()" [pTooltip]="t('metadataManager')" tooltipPosition="bottom">
+                  <i class="pi pi-sparkles topbar-icon"></i>
+                </button>
+              </li>
+            }
+            @case ('stats') {
+              <li>
+                <button
+                  class="topbar-item"
+                  (click)="shouldShowStatsMenu ? statsMenu?.toggle($event) : handleStatsButtonClick($event)"
+                  [pTooltip]="statsTooltip"
+                  tooltipPosition="bottom">
+                  <svg class="multi-color-chart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1.25rem; height: 1.25rem;">
+                    <rect x="2" y="13" width="4" height="9" rx="1" fill="#ef4444"/>
+                    <rect x="7.5" y="3" width="4" height="19" rx="1" fill="#f59e0b"/>
+                    <rect x="13" y="9" width="4" height="13" rx="1" fill="#3b82f6"/>
+                    <rect x="18.5" y="5" width="4" height="17" rx="1" fill="#10b981"/>
+                  </svg>
+                </button>
+                @if (shouldShowStatsMenu) {
+                  <p-menu #statsMenu [model]="statsMenuItems" [popup]="true" appendTo="body"/>
+                }
+              </li>
+            }
+            @case ('notifications') {
+              <li class="topbar-item-relative">
+                <button type="button" class="topbar-item" (click)="notificationPopover.toggle($event)">
+                  <i
+                    class="pi"
+                    [ngClass]="iconClass"
+                    [ngStyle]="{ color: iconColor }"
+                    style="font-size: 1.25rem"
+                    [class.pulsating]="iconPulsating"
+                    [attr.aria-label]="t('notificationAriaLabel')"></i>
+                </button>
+                @if (shouldShowNotificationBadge) {
+                  <span class="notification-badge">{{ completedTaskCount }}</span>
+                }
+                <p-popover #notificationPopover [dismissable]="true">
+                  <app-unified-notification-popover-component></app-unified-notification-popover-component>
+                </p-popover>
+              </li>
+            }
+            @case ('layoutPhone') {
+              <li>
+                <button type="button" class="topbar-item"
+                        [class.quick-layout-btn--active]="mobileUx.layoutMode === 'phone'"
+                        (click)="mobileUx.setLayoutMode('phone')"
+                        [pTooltip]="item.label"
+                        tooltipPosition="bottom">
+                  <i class="pi pi-mobile topbar-icon"></i>
+                </button>
+              </li>
+            }
+            @case ('layoutTablet') {
+              <li>
+                <button type="button" class="topbar-item"
+                        [class.quick-layout-btn--active]="mobileUx.layoutMode === 'tablet'"
+                        (click)="mobileUx.setLayoutMode('tablet')"
+                        [pTooltip]="item.label"
+                        tooltipPosition="bottom">
+                  <i class="pi pi-tablet topbar-icon"></i>
+                </button>
+              </li>
+            }
+            @case ('layoutAuto') {
+              <li>
+                <button type="button" class="topbar-item"
+                        [class.quick-layout-btn--active]="mobileUx.layoutMode === 'auto'"
+                        (click)="mobileUx.setLayoutMode('auto')"
+                        [pTooltip]="item.label"
+                        tooltipPosition="bottom">
+                  <i class="pi pi-desktop topbar-icon"></i>
+                </button>
+              </li>
+            }
+            @case ('fullscreen') {
+              <li>
+                <button type="button" class="topbar-item" (click)="toggleFullscreen()" [pTooltip]="fullscreenTooltip" tooltipPosition="bottom">
+                  <i [ngClass]="fullscreenIconClass"></i>
+                </button>
+              </li>
+            }
+            @case ('theme') {
+              <li class="topbar-item-relative">
+                <button type="button"
+                        class="topbar-item config-item"
+                        enterActiveClass="animate-scalein"
+                        enterFromClass="hidden"
+                        leaveActiveClass="animate-fadeout"
+                        leaveToClass="hidden"
+                        pStyleClass="@next" [hideOnOutsideClick]="true">
+                  <i class="pi pi-palette"></i>
+                </button>
+                <app-theme-configurator></app-theme-configurator>
+              </li>
+            }
+            @case ('user') {
+              <li>
+                <button class="topbar-item" (click)="openUserProfileDialog()" [pTooltip]="t('profile')" tooltipPosition="bottom">
+                  <i class="pi pi-user topbar-icon"></i>
+                </button>
+              </li>
+            }
+            @case ('logout') {
+              <li>
+                <button class="topbar-item" (click)="logout()" [pTooltip]="t('logout')" tooltipPosition="left">
+                  <i class="pi pi-sign-out topbar-icon"></i>
+                </button>
+              </li>
+            }
+          }
+        }
+      }
+    </ul>
+    <!-- Mobile center bar: search + menu (mobile only) -->
+    <div class="mobile-center-bar">
+      <p-button
+        icon="pi pi-search"
+        outlined
+        (click)="openMobileSearch()"/>
+    <!-- Trigger Button -->
+    <div class="mobile-trigger">
+      <p-button
+        icon="pi pi-ellipsis-v"
+        outlined
+        (click)="mobileMenu.toggle($event)"
+      />
+      <p-popover #mobileMenu [dismissable]="true" styleClass="mobile-overflow-menu-popover" (onShow)="onMobileOverflowPopoverShow()" (onHide)="onMobileOverflowPopoverHide()">
+        <ul class="mobile-menu-list">
+          @if (userService.userState$ | async; as userState) {
+            @if (userState.user?.permissions?.canAccessBookdrop || userState.user?.permissions?.admin) {
+              <li>
+                <button
+                  class="mobile-menu-item"
+                  (click)="navigateToBookdrop(); mobileMenu.hide()"
+                >
+                  <i class="pi pi-inbox topbar-icon"></i>
+                  {{ t('bookdrop') }}
+                </button>
+              </li>
+            }
+            @if (userState.user?.permissions?.canManageLibrary || userState.user?.permissions?.admin) {
+              <li>
+                <button
+                  class="mobile-menu-item"
+                  (click)="openLibraryCreatorDialog(); mobileMenu.hide()"
+                >
+                  <i class="pi pi-plus-circle topbar-icon"></i>
+                  {{ t('createLibrary') }}
+                </button>
+              </li>
+            }
+            @if (userState.user?.permissions?.canUpload || userState.user?.permissions?.admin) {
+              <li>
+                <button
+                  class="mobile-menu-item"
+                  (click)="openFileUploadDialog(); mobileMenu.hide()"
+                >
+                  <i class="pi pi-upload topbar-icon"></i>
+                  {{ t('uploadBook') }}
+                </button>
+              </li>
+            }
+          }
+          @if (userService.userState$ | async; as statsUserState) {
+            @if (statsUserState.user?.permissions?.canAccessLibraryStats || statsUserState.user?.permissions?.admin) {
+              <li>
+                <button
+                  class="mobile-menu-item"
+                  (click)="navigateToStats(); mobileMenu.hide()"
+                >
+                  <i class="pi pi-chart-line topbar-icon"></i>
+                  {{ t('libraryStats') }}
+                </button>
+              </li>
+            }
+            @if (statsUserState.user?.permissions?.canAccessUserStats || statsUserState.user?.permissions?.admin) {
+              <li>
+                <button
+                  class="mobile-menu-item"
+                  (click)="navigateToUserStats(); mobileMenu.hide()"
+                >
+                  <i class="pi pi-users topbar-icon"></i>
+                  {{ t('readingStats') }}
+                </button>
+              </li>
+            }
+          }
+          @if (userService.userState$ | async; as userState) {
+            @if (userState.user?.permissions?.canManageLibrary || userState.user?.permissions?.admin) {
+              <li>
+                <button
+                  class="mobile-menu-item"
+                  (click)="navigateToMetadataManager(); mobileMenu.hide()"
+                >
+                  <i class="pi pi-sparkles topbar-icon"></i>
+                  {{ t('metadataManager') }}
+                </button>
+              </li>
+            }
+          }
+          <li>
+            <button
+              class="mobile-menu-item"
+              (click)="toggleFullscreen(); mobileMenu.hide()"
+            >
+              <i [ngClass]="fullscreenIconClass"></i>
+              {{ isFullscreen ? t('exitFullscreen') : t('fullscreen') }}
+            </button>
+          </li>
+          <li>
+            <button
+              class="mobile-menu-item"
+              (click)="navigateToSettings(); mobileMenu.hide()"
+            >
+              <i class="pi pi-cog topbar-icon"></i>
+              {{ t('settings') }}
+            </button>
+          </li>
+          <li>
+            <button
+              class="mobile-menu-item"
+              (click)="langMenuMobile.toggle($event)"
+            >
+              <i class="pi pi-language topbar-icon"></i>
+              {{ t('language') }}
+            </button>
+            <p-menu #langMenuMobile [model]="langMenuItems" [popup]="true"/>
+          </li>
+
+
+          @if (userService.userState$ | async; as userState) {
+            @if (!userState.user?.permissions?.demoUser) {
+              <li>
+                <button
+                  class="mobile-menu-item"
+                  (click)="openUserProfileDialog(); mobileMenu.hide()"
+                >
+                  <i class="pi pi-user topbar-icon"></i>
+                  {{ t('profile') }}
+                </button>
+              </li>
+            }
+          }
+
+          <li>
+            <button
+              class="mobile-menu-item"
+              [class.quick-layout-btn--active]="mobileUx.layoutMode === 'phone'"
+              (click)="mobileUx.setLayoutMode('phone'); mobileMenu.hide()"
+            >
+              <i class="pi pi-mobile topbar-icon"></i>
+              Phone Mode
+            </button>
+          </li>
+          <li>
+            <button
+              class="mobile-menu-item"
+              [class.quick-layout-btn--active]="mobileUx.layoutMode === 'tablet'"
+              (click)="mobileUx.setLayoutMode('tablet'); mobileMenu.hide()"
+            >
+              <i class="pi pi-tablet topbar-icon"></i>
+              Tablet Mode
+            </button>
+          </li>
+          <li>
+            <button
+              class="mobile-menu-item"
+              [class.quick-layout-btn--active]="mobileUx.layoutMode === 'auto'"
+              (click)="mobileUx.setLayoutMode('auto'); mobileMenu.hide()"
+            >
+              <i class="pi pi-desktop topbar-icon"></i>
+              Auto Mode
+            </button>
+          </li>
+
+          <li>
+            <button
+              class="mobile-menu-item"
+              (click)="logout(); mobileMenu.hide()"
+            >
+              <i class="pi pi-sign-out topbar-icon"></i>
+              {{ t('logout') }}
+            </button>
+          </li>
+        </ul>
+      </p-popover>
+    </div>
+    </div>
+
+    <!-- Toolbar editor -->
+    <button type="button" class="topbar-item toolbar-editor-trigger"
+       (click)="toolbarEditorPop.toggle($event)"
+       pTooltip="Customize toolbar"
+       tooltipPosition="bottom">
+      <i class="pi pi-sliders-h"></i>
+    </button>
+    <p-popover #toolbarEditorPop [dismissable]="true" appendTo="body" styleClass="toolbar-editor-popover" (onShow)="toolbarEditor.syncItems()">
+      <app-toolbar-editor #toolbarEditor (saved)="toolbarEditorPop.hide()"></app-toolbar-editor>
+    </p-popover>
+
+    @if (showMobileBookFilterTrigger) {
+      <div class="mobile-right-filter-trigger">
+        <p-button
+          icon="pi pi-ellipsis-v"
+          [text]="true"
+          (click)="toggleMobileBookFilter($event)"
+          pTooltip="Filters"
+          tooltipPosition="bottom">
+        </p-button>
+      </div>
+    }
+  </div>
+</div>
+
+<p-dialog
+  [(visible)]="mobileSearchVisible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [showHeader]="false"
+  position="top"
+  styleClass="mobile-search-dialog"
+  appendTo="body">
+  <div class="mobile-search-dialog-close-row">
+    <p-button
+      icon="pi pi-times"
+      [text]="true"
+      [rounded]="true"
+      (click)="mobileSearchVisible = false"
+      pTooltip="Close"
+      tooltipPosition="left">
+    </p-button>
+  </div>
+  <app-book-searcher></app-book-searcher>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="metadataFetchLogVisible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: 'min(52rem, 94vw)' }"
+  styleClass="metadata-fetch-log-dialog"
+  appendTo="body"
+  [header]="t('metadataFetchLogTitle')">
+  @if (metadataFetchLogLoading) {
+    <div class="metadata-fetch-log-empty">{{ t('metadataFetchLogLoading') }}</div>
+  } @else if (metadataFetchLogError) {
+    <div class="metadata-fetch-log-empty">{{ metadataFetchLogError }}</div>
+  } @else if (metadataFetchLog; as log) {
+    <div class="metadata-fetch-log-summary">
+      <div class="metadata-fetch-log-stat">
+        <span class="metadata-fetch-log-stat-label">{{ t('metadataFetchLogStatusLabel') }}</span>
+        <span class="metadata-fetch-log-stat-value">{{ metadataFetchLogStatus }}</span>
+      </div>
+      <div class="metadata-fetch-log-stat">
+        <span class="metadata-fetch-log-stat-label">{{ t('metadataFetchLogFetchedLabel') }}</span>
+        <span class="metadata-fetch-log-stat-value">{{ log.completed }}/{{ log.total }}</span>
+      </div>
+      <div class="metadata-fetch-log-stat">
+        <span class="metadata-fetch-log-stat-label">{{ t('metadataFetchLogRemainingLabel') }}</span>
+        <span class="metadata-fetch-log-stat-value">{{ log.pending }}</span>
+      </div>
+    </div>
+
+    <div class="metadata-fetch-log-message">{{ log.message }}</div>
+
+    <div class="metadata-fetch-log-columns">
+      <section class="metadata-fetch-log-column">
+        <h3>{{ t('metadataFetchLogFetchedTitle') }}</h3>
+        @if (log.fetchedBooks.length) {
+          <div class="metadata-fetch-log-list">
+            @for (book of log.fetchedBooks; track book.bookId) {
+              <div class="metadata-fetch-log-item">
+                <div class="metadata-fetch-log-item-title">{{ book.title }}</div>
+                <div class="metadata-fetch-log-item-file">{{ book.fileName }}</div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="metadata-fetch-log-empty">{{ t('metadataFetchLogFetchedEmpty') }}</div>
+        }
+      </section>
+
+      <section class="metadata-fetch-log-column">
+        <h3>{{ t('metadataFetchLogRemainingTitle') }}</h3>
+        @if (log.remainingBooks.length) {
+          <div class="metadata-fetch-log-list">
+            @for (book of log.remainingBooks; track book.bookId) {
+              <div class="metadata-fetch-log-item">
+                <div class="metadata-fetch-log-item-title">{{ book.title }}</div>
+                <div class="metadata-fetch-log-item-file">{{ book.fileName }}</div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="metadata-fetch-log-empty">{{ t('metadataFetchLogRemainingEmpty') }}</div>
+        }
+      </section>
+    </div>
+  }
+</p-dialog>
+</ng-container>

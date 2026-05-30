@@ -1,0 +1,768 @@
+<ng-container *transloco="let t; prefix: 'book.browser'">
+<div class="book-browser-container">
+  <div class="book-browser-main" [class.selection-panel-open]="isSelectionActionPanelOpen">
+
+    <div class="book-browser-header" [class.book-browser-header--selection-open]="isSelectionActionPanelOpen">
+      <div class="book-browser-toolbar">
+        @if (canShowDirectoryExplorer) {
+          <div class="header-leading-action">
+            <button type="button"
+                    class="topbar-items topbar-item"
+                    [class.topbar-item--active]="dirPanelService.isVisible"
+                    (click)="dirPanelService.toggle()"
+                    [pTooltip]="t('tooltip.dirExplorer')"
+                    tooltipPosition="top">
+              <i class="pi pi-folder"></i>
+            </button>
+            @if (shouldShowDirectoryReset) {
+              <button type="button"
+                      class="topbar-items topbar-item"
+                      (click)="resetDirectoryScope()"
+                      pTooltip="Reset directory scope"
+                      tooltipPosition="top"
+                      aria-label="Reset directory scope">
+                <i class="pi pi-undo"></i>
+              </button>
+            }
+          </div>
+        }
+
+        <div class="entity-info-wrapper">
+          @if (entityType$ | async; as entityType) {
+            <div class="entity-info">
+              <div class="entity-title-row">
+                <p class="entity-title">
+                  @if (entityType === EntityType.ALL_BOOKS) {
+                    @if (currentFilterLabel && rawFilterParamFromUrl) {
+                      {{ currentFilterLabel }}
+                    } @else if (isFilterActive || hasSearchTerm) {
+                      {{ computedFilterLabel }}
+                    } @else {
+                      {{ t('labels.allBooks') }}
+                    }
+                  } @else if (entityType === EntityType.NOT_SHELFED) {
+                    {{ (isFilterActive || hasSearchTerm) ? t('labels.unshelvedBooksFiltered') : t('labels.unshelvedBooks') }}
+                  } @else {
+                    {{ entityType }}: {{ (entity$ | async)?.name }}{{ (isFilterActive || hasSearchTerm) ? ' ' + t('labels.filteredSuffix') : '' }}
+                  }
+                </p>
+                @if (activeMediaTypeFilter) {
+                  <div class="entity-menu-wrapper media-type-menu-wrapper">
+                    <p-button
+                      icon="pi pi-ellipsis-v"
+                      [rounded]="true"
+                      [text]="true"
+                      severity="info"
+                      (onClick)="openMediaTypeActionsMenu($event, mediaTypeMenu)">
+                    </p-button>
+                    <p-menu #mediaTypeMenu [model]="mediaTypeActionsMenuItems" [popup]="true" appendTo="body"></p-menu>
+                  </div>
+                }
+              </div>
+              @if (seriesCollapseFilter.isSeriesCollapsed && (bookState$ | async)?.books; as books) {
+                <p class="series-collapsed-info">
+                  {{ t('labels.seriesCollapsedInfo', { count: books.length, itemWord: books.length === 1 ? t('labels.item') : t('labels.items') }) }}
+                </p>
+              }
+              @if (activeDirFilterPath !== null) {
+                <p class="dir-filter-breadcrumb">
+                  <i class="pi pi-folder"></i>
+                  {{ activeDirFilterPath === '' ? t('labels.rootFolder') : activeDirFilterPath }}
+                </p>
+              }
+            </div>
+
+            @if (userService.userState$ | async; as userState) {
+              @if (entityType !== EntityType.ALL_BOOKS && entityType !== EntityType.NOT_SHELFED &&
+              (userState.user!.permissions.admin || userState.user!.permissions.canManageLibrary)) {
+                <div class="entity-menu-wrapper">
+                  <p-button
+                    icon="pi pi-ellipsis-v"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="info"
+                    (click)="entitymenu.toggle($event)">
+                  </p-button>
+                  <p-menu #entitymenu [model]="entityOptions" [popup]="true" appendTo="body"></p-menu>
+                </div>
+              }
+            }
+          }
+        </div>
+        <div class="toolbar-actions">
+          <div class="toolbar-icons">
+            <button
+              type="button"
+              class="selection-panel-toggle"
+              [class.selection-panel-toggle--active]="isSelectionActionPanelOpen"
+              (click)="toggleSelectionActionPanel()">
+              <i class="pi pi-check-square"></i>
+              @if (selectedCount > 0) {
+                <span class="selection-toggle-count" [class.selection-toggle-count--warning]="hasHiddenSelections">
+                  {{ selectedCount }}
+                </span>
+              }
+              <i class="pi selection-toggle-chevron" [ngClass]="isSelectionActionPanelOpen ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+            </button>
+
+            @if (isFilterActive) {
+              <button type="button" class="topbar-items topbar-item" (click)="clearFilter()">
+                <i
+                  class="pi pi-filter-slash filter-clear-icon"
+                  [pTooltip]="t('tooltip.clearFilters')"
+                  tooltipPosition="top">
+                </i>
+              </button>
+            }
+
+            @if (currentViewMode === 'table') {
+              <div>
+                <button type="button" class="topbar-items topbar-item" (click)="columnPopover.toggle($event)">
+                  <i
+                    class="pi pi-eye"
+                    [pTooltip]="t('tooltip.visibleColumns')"
+                    tooltipPosition="top">
+                  </i>
+                </button>
+                <p-popover #columnPopover [dismissable]="true" appendTo="body">
+                  <div class="column-popover-content">
+                    <p-multiSelect
+                      optionLabel="header"
+                      [options]="columnPreferenceService.allColumns"
+                      [(ngModel)]="visibleColumns"
+                      (ngModelChange)="onVisibleColumnsChange($event)"
+                      display="chip"
+                      [placeholder]="t('placeholder.selectColumns')"
+                      [style]="{ width: '100%' }"
+                      [filter]="true"
+                      [showClear]="true"
+                    ></p-multiSelect>
+                  </div>
+                  <div class="column-popover-footer">
+                    <p>{{ t('labels.setAsDefault') }}</p>
+                    <p-button
+                      [label]="t('labels.save')"
+                      outlined
+                      size="small"
+                      (click)="columnPreferenceService.saveVisibleColumns(visibleColumns)"></p-button>
+                  </div>
+                </p-popover>
+              </div>
+            }
+            <div>
+              <button
+                type="button"
+                class="topbar-items topbar-item"
+                (click)="seriesCollapseOverlay.toggle($event)"
+                [pTooltip]="t('tooltip.displaySettings')"
+                tooltipPosition="top">
+                <i class="pi pi-cog"></i>
+              </button>
+              <p-popover #seriesCollapseOverlay [dismissable]="true" appendTo="body">
+                <div class="display-settings-popover">
+                  <div class="display-settings-header">
+                    <span class="display-settings-title">{{ t('labels.displaySettings') }}</span>
+                    <p-button
+                      icon="pi pi-arrow-left"
+                      [text]="true"
+                      [rounded]="true"
+                      styleClass="display-settings-close-btn"
+                      (onClick)="seriesCollapseOverlay.hide()"
+                      [ariaLabel]="t('labels.return')"
+                      [pTooltip]="t('labels.return')"
+                      tooltipPosition="top">
+                    </p-button>
+                  </div>
+                  <div class="display-settings-section">
+                    <div class="display-settings-checkbox-row">
+                      <p-checkbox
+                        inputId="collapse-series-checkbox"
+                        [binary]="true"
+                        [ngModel]="seriesCollapseFilter.isSeriesCollapsed"
+                        (onChange)="onSeriesCollapseCheckboxChange($event.checked)">
+                      </p-checkbox>
+                      <label for="collapse-series-checkbox" class="display-settings-label">{{ t('labels.collapseSeries') }}</label>
+                    </div>
+                  </div>
+                  <div class="display-settings-section">
+                    <div class="display-settings-checkbox-row">
+                      <p-checkbox
+                        inputId="show-subtitles-checkbox"
+                        [binary]="true"
+                        [ngModel]="showSubtitles"
+                        (onChange)="onShowSubtitlesChange($event.checked)">
+                      </p-checkbox>
+                      <label for="show-subtitles-checkbox" class="display-settings-label">{{ t('labels.showSubtitles') }}</label>
+                    </div>
+                  </div>
+                  @if (isMobile) {
+                    <div class="display-settings-section">
+                      <span class="display-settings-label">{{ t('labels.gridColumns') }}</span>
+                      <div class="column-options">
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="mobileColumnCount === 2"
+                          (click)="setMobileColumns(2)">2</button>
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="mobileColumnCount === 3"
+                          (click)="setMobileColumns(3)">3</button>
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="mobileColumnCount === 4"
+                          (click)="setMobileColumns(4)">4</button>
+                      </div>
+                    </div>
+                    <div class="display-settings-section">
+                      <span class="display-settings-label">{{ t('labels.textRows') }}</span>
+                      <div class="column-options">
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="mobileTitleRows === 1"
+                          (click)="setMobileTitleRows(1)">1</button>
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="mobileTitleRows === 2"
+                          (click)="setMobileTitleRows(2)">2</button>
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="mobileTitleRows === 3"
+                          (click)="setMobileTitleRows(3)">3</button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="display-settings-section">
+                      <span class="display-settings-label">{{ t('labels.gridItemSize') }}</span>
+                      <p-slider
+                        [(ngModel)]="coverScalePreferenceService.scaleFactor"
+                        [min]="0.5"
+                        [max]="1.5"
+                        [step]="0.01"
+                        [style]="{ width: '100%' }"
+                        (onChange)="updateScale()">
+                      </p-slider>
+                      <div class="scale-value-display">
+                        {{ coverScalePreferenceService.scaleFactor.toFixed(2) }}x
+                      </div>
+                    </div>
+                    <div class="display-settings-section">
+                      <span class="display-settings-label">{{ t('labels.textRows') }}</span>
+                      <div class="column-options">
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="desktopTitleRows === 1"
+                          (click)="setDesktopTitleRows(1)">1</button>
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="desktopTitleRows === 2"
+                          (click)="setDesktopTitleRows(2)">2</button>
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="desktopTitleRows === 3"
+                          (click)="setDesktopTitleRows(3)">3</button>
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="desktopTitleRows === 4"
+                          (click)="setDesktopTitleRows(4)">4</button>
+                        <button
+                          type="button"
+                          class="column-option-btn"
+                          [class.active]="desktopTitleRows === 5"
+                          (click)="setDesktopTitleRows(5)">5</button>
+                      </div>
+                    </div>
+                  }
+                  <div class="display-settings-section">
+                    <div class="display-settings-checkbox-row">
+                      <p-checkbox
+                        inputId="show-book-type-pill-checkbox"
+                        [binary]="true"
+                        [ngModel]="bookCardOverlayPreferenceService.showBookTypePill"
+                        (onChange)="bookCardOverlayPreferenceService.setShowBookTypePill($event.checked)">
+                      </p-checkbox>
+                      <label for="show-book-type-pill-checkbox" class="display-settings-label">{{ t('labels.bookTypeOverlay') }}</label>
+                    </div>
+                  </div>
+                  <div class="display-settings-section">
+                    <div class="display-settings-checkbox-row">
+                      <p-checkbox
+                        inputId="show-ai-panel-overlay-checkbox"
+                        [binary]="true"
+                        [ngModel]="bookCardOverlayPreferenceService.showAiPanelData"
+                        (onChange)="bookCardOverlayPreferenceService.setShowAiPanelData($event.checked)">
+                      </p-checkbox>
+                      <label for="show-ai-panel-overlay-checkbox" class="display-settings-label">{{ t('labels.aiOverlay') }}</label>
+                    </div>
+                  </div>
+                  <div class="display-settings-section">
+                    <div class="display-settings-checkbox-row">
+                      <p-checkbox
+                        inputId="show-issue-number-overlay-checkbox"
+                        [binary]="true"
+                        [ngModel]="bookCardOverlayPreferenceService.showIssueNumber"
+                        (onChange)="bookCardOverlayPreferenceService.setShowIssueNumber($event.checked)">
+                      </p-checkbox>
+                      <label for="show-issue-number-overlay-checkbox" class="display-settings-label">{{ t('labels.issueNumberOverlay') }}</label>
+                    </div>
+                  </div>
+                </div>
+              </p-popover>
+            </div>
+
+            <div class="sort-button-wrapper">
+              <button type="button" class="topbar-items topbar-item" (click)="sortPopover.toggle($event)">
+                <i
+                  class="pi pi-sort"
+                  [pTooltip]="t('tooltip.selectSorting')"
+                  tooltipPosition="top">
+                </i>
+              </button>
+              <p-popover #sortPopover [dismissable]="true" appendTo="body">
+                <app-multi-sort-popover
+                  [sortCriteria]="this.bookSorter.selectedSortCriteria"
+                  [availableSortOptions]="visibleSortOptions"
+                  [showSaveButton]="canSaveSort"
+                  (criteriaChange)="onSortCriteriaChange($event)"
+                  (saveSortConfig)="onSaveSortConfig($event)">
+                </app-multi-sort-popover>
+              </p-popover>
+            </div>
+
+            <button type="button" class="topbar-items topbar-item" (click)="toggleTableGrid()">
+              <i
+                [ngClass]="viewIcon"
+                [pTooltip]="t('tooltip.toggleView')"
+                tooltipPosition="top">
+              </i>
+            </button>
+          </div>
+
+          <div class="mobile-search-wrapper">
+            <button
+              type="button"
+              class="topbar-items topbar-item"
+              (click)="searchDropdown.toggle($event)"
+              [pTooltip]="t('tooltip.search')"
+              tooltipPosition="top"
+            >
+              <i class="pi pi-search"></i>
+            </button>
+
+            <p-popover #searchDropdown [dismissable]="true" appendTo="body" [style]="{ width: '24rem' }">
+              <div class="search-popover-content">
+                <input
+                  type="text"
+                  pInputText
+                  [placeholder]="t('placeholder.search')"
+                  [(ngModel)]="bookTitle"
+                  (ngModelChange)="onSearchTermChange($event)"
+                  class="search-input-full"
+                />
+                <p-button
+                  icon="pi pi-times"
+                  [text]="true"
+                  size="small"
+                  [rounded]="true"
+                  class="search-clear-btn"
+                  (click)="clearSearch(); searchDropdown.hide()"
+                ></p-button>
+              </div>
+            </p-popover>
+          </div>
+
+          <div class="desktop-search-wrapper">
+            <i class="pi pi-search search-icon"></i>
+            <input
+              type="text"
+              pInputText
+              [placeholder]="t('placeholder.search')"
+              [(ngModel)]="bookTitle"
+              (ngModelChange)="onSearchTermChange($event)"
+              class="search-input"
+            />
+            @if (bookTitle) {
+              <p-button
+                icon="pi pi-times"
+                [text]="true"
+                size="small"
+                [rounded]="true"
+                class="search-clear-btn"
+                (click)="clearSearch()"
+              ></p-button>
+            }
+          </div>
+
+          @if (showFilterAsPopover) {
+            <p-popover
+              #mobileRightSidebarPop
+              styleClass="mobile-right-sidebar-popover"
+              [dismissable]="true"
+              appendTo="body"
+              (onShow)="onMobileRightSidebarShow()"
+              (onHide)="onMobileRightSidebarHide()">
+              @if (isMobileRightSidebarOpen) {
+                <app-book-filter
+                  blResizable="left"
+                  storageKey="bl-filter-panel-width"
+                  cssVar="--bl-filter-panel-width"
+                  [minWidth]="200"
+                  [maxWidth]="520"
+                  [showFilter]="isMobileRightSidebarOpen"
+                  [entity$]="entity$"
+                  [entityType$]="entityType$"
+                  [filterMode]="selectedFilterMode | async"
+                  [urlFilter$]="selectedFilter"
+                  [resetFilter$]="resetFilterSubject"
+                  (filterSelected)="onFilterSelected($event)"
+                  (filterModeChanged)="onFilterModeChanged($event)">
+                </app-book-filter>
+              }
+            </p-popover>
+          }
+          <div class="desktop-right-sidebar-trigger">
+            <button type="button" class="topbar-items topbar-item" (click)="toggleSidebar()">
+              <i
+                [ngClass]="showFilter ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"
+                [pTooltip]="t('tooltip.toggleSidebar')"
+                tooltipPosition="top">
+              </i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      @if (userService.userState$ | async; as userState) {
+        <div class="selection-action-panel" [class.panel-hidden]="!isSelectionActionPanelOpen">
+          <div class="selection-panel-content">
+            <div class="selection-panel-left">
+              <div class="selected-count-badge">
+                <i class="pi pi-check-circle"></i>
+                <span class="selected-count">{{ selectedCount }}</span>
+                <span class="selected-label">{{ t('labels.selected') }}</span>
+              </div>
+              @if (hasHiddenSelections) {
+                <div class="selection-visibility-hint">
+                  <i class="pi pi-eye-slash"></i>
+                  <span>{{ t('labels.hiddenSelectionHint', { count: hiddenSelectedCount }) }}</span>
+                </div>
+              }
+            </div>
+            <div class="selection-panel-center">
+              @if (entityType$ | async; as entityType) {
+                <div class="action-buttons-group">
+                  @if (hasMetadataMenuItems) {
+                    <p-tieredMenu #metadataMenu [model]="metadataMenuItems" [popup]="true" appendTo="body" styleClass="footer-menu"/>
+                    <p-button
+                      (click)="metadataMenu.toggle($event)"
+                      [disabled]="selectedCount === 0"
+                      [pTooltip]="t('tooltip.metadataActions')"
+                      tooltipPosition="top"
+                      outlined="true"
+                      severity="info"
+                      icon="pi pi-database">
+                    </p-button>
+                  }
+                  <p-button
+                    icon="pi pi-bookmark-fill"
+                    outlined="true"
+                    severity="info"
+                    [disabled]="selectedCount === 0"
+                    (onClick)="openShelfAssigner()"
+                    [pTooltip]="t('tooltip.assignToShelf')"
+                    tooltipPosition="top">
+                  </p-button>
+                  <p-button
+                    icon="pi pi-file"
+                    outlined="true"
+                    severity="info"
+                    [disabled]="selectedCount === 0"
+                    (onClick)="openBookTypeAssigner()"
+                    pTooltip="Assign Media Type"
+                    tooltipPosition="top">
+                  </p-button>
+                  @if (entityType === EntityType.SHELF) {
+                    <p-button
+                      icon="pi pi-bookmark"
+                      outlined="true"
+                      severity="info"
+                      [disabled]="selectedCount === 0"
+                      (click)="unshelfBooks()"
+                      [pTooltip]="t('tooltip.removeFromShelf')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                  @if (userState.user!.permissions.canBulkLockUnlockMetadata) {
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-lock"
+                      severity="info"
+                      [disabled]="selectedCount === 0"
+                      (click)="lockUnlockMetadata()"
+                      [pTooltip]="t('tooltip.lockUnlockMetadata')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                  @if (userState.user!.permissions.canMoveOrganizeFiles && (appSettingsService.appSettings$ | async)?.diskType === 'LOCAL') {
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-arrows-h"
+                      severity="info"
+                      [disabled]="selectedCount === 0"
+                      (click)="moveFiles()"
+                      [pTooltip]="t('tooltip.organizeFiles')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                  @if (userState.user!.permissions.canManageLibrary || userState.user!.permissions.admin) {
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-link"
+                      severity="info"
+                      (click)="attachFilesToBook()"
+                      [disabled]="selectedCount === 0 || !canAttachFiles()"
+                      [pTooltip]="t('tooltip.attachToBook')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                  @if (hasMoreActionsItems) {
+                    <div class="more-actions-wrapper">
+                      <p-button
+                        (click)="moreActionsMenu.toggle($event)"
+                        [disabled]="selectedCount === 0"
+                        [pTooltip]="t('tooltip.moreActions')"
+                        tooltipPosition="top"
+                        outlined="true"
+                        severity="info"
+                        icon="pi pi-ellipsis-v">
+                      </p-button>
+                      <p-tieredMenu #moreActionsMenu [model]="moreActionsMenuItems" [popup]="true" appendTo="body" styleClass="footer-menu"/>
+                    </div>
+                  }
+                </div>
+              }
+              <p-divider layout="vertical"></p-divider>
+              <div class="action-buttons-group utility-actions-group">
+                <p-button
+                  outlined="true"
+                  icon="pi pi-check-square"
+                  severity="success"
+                  (click)="selectAllBooks()"
+                  [pTooltip]="t('tooltip.selectAll')"
+                  tooltipPosition="top">
+                </p-button>
+                <p-button
+                  outlined="true"
+                  icon="pi pi-times"
+                  severity="warn"
+                  [disabled]="selectedCount === 0"
+                  (click)="deselectAllBooks()"
+                  [pTooltip]="t('tooltip.deselectAll')"
+                  tooltipPosition="top">
+                </p-button>
+              </div>
+              @if (userState?.user?.permissions?.admin || userState?.user?.permissions?.canDeleteBook || userState?.user?.permissions?.canBulkEditMetadata) {
+                <p-divider layout="vertical"></p-divider>
+                <div class="action-buttons-group destructive-actions-group">
+                  @if (userState?.user?.permissions?.admin || userState?.user?.permissions?.canDeleteBook) {
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-minus-circle"
+                      severity="warn"
+                      [disabled]="selectedCount === 0"
+                      (click)="confirmDeleteBooksLibraryOnly()"
+                      pTooltip="Remove from library permanently"
+                      tooltipPosition="top">
+                    </p-button>
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-history"
+                      severity="warn"
+                      [disabled]="selectedCount === 0"
+                      (click)="confirmDeleteBooksLibraryUntilNextScan()"
+                      pTooltip="Remove from library until next scan"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                  @if ((userState?.user?.permissions?.admin || userState?.user?.permissions?.canDeleteBook) && (userState?.user?.permissions?.admin || userState?.user?.permissions?.canBulkEditMetadata || allowFileDeletion)) {
+                    <span class="destructive-action-separator" aria-hidden="true"></span>
+                  }
+                  @if (userState?.user?.permissions?.admin || userState?.user?.permissions?.canBulkEditMetadata) {
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-database"
+                      severity="danger"
+                      [disabled]="selectedCount === 0"
+                      (click)="wipeSelectedMetadata()"
+                      [pTooltip]="t('tooltip.wipeMetadata')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                  @if (allowFileDeletion) {
+                    @if (userState?.user?.permissions?.admin || userState?.user?.permissions?.canBulkEditMetadata) {
+                      <span class="destructive-action-separator" aria-hidden="true"></span>
+                    }
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      [disabled]="selectedCount === 0"
+                      (click)="confirmDeleteBooks()"
+                      [pTooltip]="t('tooltip.deleteSelected')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                </div>
+              }
+            </div>
+            <div class="selection-panel-right"></div>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (bookState$ | async; as bookState) {
+      <div>
+        @if (!bookState?.loaded && !bookState?.error) {
+          <div class="book-browser-loading-state">
+            @if (useDistractionLoadingScreen) {
+              <div class="distraction-loading-popup">
+                <div class="distraction-header">Here's a random cover to distract you while your library is loading.</div>
+                <div class="distraction-content">
+                  @if (distractionCoverUrl) {
+                    <img [src]="distractionCoverUrl" class="distraction-cover" alt="Random cover" />
+                  } @else {
+                    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--text-color-secondary)"></i>
+                  }
+                </div>
+                <p-progressBar mode="indeterminate" [style]="{'height': '2px'}"></p-progressBar>
+              </div>
+            } @else {
+              <app-loading-indicator class="book-browser-loading-spinner" alt="Loading books"></app-loading-indicator>
+            }
+          </div>
+        }
+        <div class="book-state-wrapper">
+          @if (bookState?.error) {
+            <div class="no-books-container">
+              <p class="no-books-text">
+                {{ entityType === EntityType.LIBRARY ? t('labels.failedLibrary') : t('labels.failedShelf') }}
+              </p>
+            </div>
+          }
+          @if (!bookState?.error && bookState?.loaded && isWaitingForDirectorySelection) {
+            <div class="no-books-container">
+              <p class="no-books-text">
+                Select a folder to view assets
+              </p>
+            </div>
+          }
+          @if (!bookState?.error && bookState?.loaded && bookState?.books?.length === 0 && !isWaitingForDirectorySelection && activeDirFilterPath === null) {
+            <div class="no-books-container">
+              <p class="no-books-text">
+                {{ t('labels.noBooks') }}
+              </p>
+            </div>
+          }
+          @if (!isWaitingForDirectorySelection) {
+            @if (bookState?.books; as books) {
+              @if (currentViewMode === 'table' && books.length > 0) {
+                <app-book-table
+                  [books]="books"
+                  [preselectedBookIds]="selectedBooks"
+                  (selectedBooksChange)="onSelectedBooksChange($event)"
+                  (viewportScroll)="onTableScroll($event)"
+                  [sortOption]="this.bookSorter.selectedSort!"
+                  [visibleColumns]="visibleColumns"
+                  [showSubtitle]="showSubtitles"
+                  [forceFileNameTitle]="isDirectoryScopedView"
+                  [pagedPilotActive]="isPagedPilotActive"
+                ></app-book-table>
+              }
+              @if (currentViewMode === 'grid') {
+                <div class="virtual-scroller" #scrollContainer (scroll)="onGridScroll($event)">
+                  <div class="virtual-grid" #gridContainer>
+                    <div class="virtual-grid-spacer" [style.height.px]="virtualGrid.virtualizer.getTotalSize()"></div>
+
+                    @for (row of virtualGrid.virtualizer.getVirtualItems(); track row.key + ':' + gridRenderVersion) {
+                      <div
+                        class="virtual-row"
+                        [style.transform]="'translateY(' + row.start + 'px)'"
+                        [style.height.px]="virtualGrid.rowHeight()">
+                        @for (book of virtualGrid.getRowItems(row.index, books); track book.id; let colIndex = $index) {
+                          <div
+                            class="virtual-cell"
+                            [style.width.px]="currentCardSize.width"
+                            [style.height.px]="getCardHeight(book)">
+                            <app-book-card
+                              [index]="row.index * virtualGrid.columnCount() + colIndex"
+                              [book]="book"
+                              [titleRows]="isMobile ? mobileTitleRows : desktopTitleRows"
+                              [mobileViewerBooksContext]="books"
+                              [isCheckboxEnabled]="true"
+                              [seriesViewEnabled]="seriesViewEnabled"
+                              [isSeriesCollapsed]="seriesCollapseFilter.isSeriesCollapsed"
+                              [showSubtitle]="showSubtitles"
+                              [forceFileNameTitle]="isDirectoryScopedView"
+                              (checkboxClick)="onCheckboxClicked($event)"
+                              (bookClicked)="onBookClicked($event)"
+                              (bookHoverEnded)="onBookHoverEnded($event)"
+                              [isSelected]="selectedBooks.has(book.id)"
+                              [useSquareCovers]="isAudiobookOnlyLibrary"
+                              [overlayPreferenceService]="bookCardOverlayPreferenceService">
+                            </app-book-card>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (this.showFilter && !showFilterAsPopover) {
+    <div
+      class="mobile-filter-mask"
+      tabindex="0"
+      (keydown.enter)="toggleSidebar()"
+      (click)="toggleSidebar()">
+    </div>
+    <div class="filter-overlay-container"
+         [ngClass]="{ 'active': showFilter }"
+         blResizable="left"
+         storageKey="bl-filter-panel-width"
+         [minWidth]="200"
+         [maxWidth]="520">
+      <app-book-filter
+        [showFilter]="showFilter"
+        [entity$]="entity$"
+        [entityType$]="entityType$"
+        [filterMode]="selectedFilterMode | async"
+        [urlFilter$]="selectedFilter"
+        [resetFilter$]="resetFilterSubject"
+        (filterSelected)="onFilterSelected($event)"
+        (filterModeChanged)="onFilterModeChanged($event)">
+      </app-book-filter>
+      <app-cover-preview
+        [coverUrl]="selectedCoverUrl"
+        [bookTitle]="selectedBookTitle">
+      </app-cover-preview>
+    </div>
+  }
+
+</div>
+</ng-container>
