@@ -9,7 +9,7 @@
 
 # Fable
 
-A personal fork of [Fable](https://github.com/adityachandelgit/Fable) with extended features, UI customizations, and an optional AI-powered comic panel detection service.
+A personal fork of [Booklore] with extended features, UI customizations, and an optional AI-powered comic panel detection service.
 
 > **Advisory:** This is a personal project, shared as-is. It is 100% vibe-coded. I am not a developer.
 > I may or may not update it. I may or may not read the Issues. I will not delete it if I get upset, I'm always upset.
@@ -302,11 +302,11 @@ Maintenance rule: the HTML guide is the source of truth. When the guide changes,
 
 ## Screenshots
 
-<img src="assets/fable3.0-screenshot1.png" width="800">
+<img src="assets/booklore3.0-screenshot1.png" width="800">
 
-<img src="assets/fable3.0-screenshot2.png" width="800">
+<img src="assets/booklore3.0-screenshot2.png" width="800">
 
-<img src="assets/fable3.0-screenshot3.png" width="800">
+<img src="assets/booklore3.0-screenshot3.png" width="800">
 
 ## Automated Maintenance
 Dependabot is configured to watch the Gradle backend, the UI npm manifest, the AI panel's pip requirements, the Dockerfiles, the Docker Compose files, and GitHub Actions workflows. Patch and minor Dependabot pull requests are labeled for unattended merge only after the develop CI workflow succeeds, so routine maintenance does not depend on manual PR handling or branch protection. Repository-side GitHub vulnerability alerts and automated security fixes should remain enabled. The Gradle automation intentionally ignores `com.github.RouHim:jaudiotagger` because that JitPack-hosted dependency currently triggers Dependabot source-authentication failures; it should be reviewed manually until it is replaced with a Dependabot-compatible source. The AI panel's `pillow` dependency now tracks secure 12.x releases directly, so future patch and minor updates can flow through the normal unattended Dependabot path. Workflow-file dependency updates are still surfaced automatically, but GitHub's default Actions token does not auto-merge them, so those updates remain the one part of the maintenance flow that still needs a workflow-capable automation token or GitHub App if you want them merged unattended as well.

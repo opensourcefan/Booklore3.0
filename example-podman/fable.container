@@ -5,7 +5,7 @@ After=fable-db.container
 
 [Container]
 ContainerName=fable
-Image=ghcr.io/fable-app/fable:latest
+Image=ghcr.io/opensourcefan/fable:latest
 Pod=fable.pod
 AutoUpdate=registry
 Pull=always
