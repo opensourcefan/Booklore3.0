@@ -21,7 +21,7 @@
                     @if (permissions.admin || permissions.canManageLibrary) {
                       <div>
                         <h1 class="no-library-header">
-                          {{ t('welcomeTitle') }}<br>
+                          <span [innerHTML]="brandedWelcomeTitle()"></span><br>
                           {{ t('welcomeSubtitle') }}
                         </h1>
                         <p class="welcome-description">
