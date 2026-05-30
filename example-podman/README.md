@@ -4,13 +4,13 @@ This directory contains an example of how to use a rootless Podman pod defined t
 # Setup
 1. Copy the files in this directory to a suitable location on your system.
   - For many systems Quadlet monitors `~/.config/containers/systemd`
-    - `mkdir -p ~/.config/containers/systemd && cp ./*lore* ~/.config/containers/systemd/`
+    - `mkdir -p ~/.config/containers/systemd && cp ./*fable* ~/.config/containers/systemd/`
 2. Edit the `fable.container` to set the correct mounts for `bookdrop` and your library
 3. Create the Podman Secrets for the database
    ```bash
    echo -n "YOUR PASSWORD" | podman secret create fable_db_pass -
    ```
-4. (Optional) `podman pull ghcr.io/fable-app/fable:latest` to pre-pull the image
+4. (Optional) `podman pull ghcr.io/opensourcefan/fable:latest` to pre-pull the image
   * If you have a slow connection, this is recommended because systemd will time out if the image pull takes too long.
 5. Run `systemctl --user daemon-reload` to pick up the new Quadlet unit.
 6. Start the pod with `systemctl --user start fable-pod.service`

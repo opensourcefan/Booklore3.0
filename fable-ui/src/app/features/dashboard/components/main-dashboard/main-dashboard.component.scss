@@ -70,6 +70,26 @@
   letter-spacing: -0.02em;
 }
 
+.branded-fable {
+  display: inline;
+}
+
+.branded-fab {
+  display: inline-block;
+}
+
+.branded-l {
+  display: inline-block;
+  transform: rotate(-20deg) translateY(-0.05em) translateX(0.10em);
+  transform-origin: right bottom;
+  margin-right: -0.12em;
+}
+
+.branded-e {
+  display: inline-block;
+  margin-left: -0.03em;
+}
+
 .dashboard-no-library {
   padding: 3rem;
   background: var(--p-surface-900);
