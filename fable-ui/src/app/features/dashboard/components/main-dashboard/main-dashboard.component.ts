@@ -520,4 +520,9 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
   createNewLibrary() {
     this.dialogLauncher.openLibraryCreateDialog();
   }
+
+  brandedWelcomeTitle(): string {
+    const title = this.t.translate('dashboard.main.welcomeTitle');
+    return title.replace('Fable', '<span class="branded-fable"><span class="branded-fab">Fab</span><span class="branded-l">l</span><span class="branded-e">e</span></span>');
+  }
 }

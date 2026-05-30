@@ -13,16 +13,31 @@
 
 .logo-text-wrapper {
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
 
-  p {
-    margin: 0;
+  span {
+    display: inline-block;
   }
 }
 
-.logo-text-lore {
+.logo-text-fab {
   font-size: 1.75rem;
   line-height: 2rem;
+  color: var(--text-color);
+}
+
+.logo-text-l {
+  font-size: 1.75rem;
+  line-height: 2rem;
+  transform: rotate(-20deg) translateY(-0.05em) translateX(0.10em);
+  transform-origin: right bottom;
+  margin-right: -0.12em;
+}
+
+.logo-text-e {
+  font-size: 1.75rem;
+  line-height: 2rem;
+  margin-left: -0.03em;
 }
 
 .topbar-content {

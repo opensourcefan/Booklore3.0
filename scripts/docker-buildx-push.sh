@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =======================
-# Multi-arch Docker Build & Push for Booklore
+# Multi-arch Docker Build & Push for Fable
 # =======================
 
 # Ensure a version/tag is passed
@@ -14,7 +14,7 @@ fi
 
 VERSION="$1"
 
-echo "Building Booklore App with multi-arch version: $VERSION"
+echo "Building Fable App with multi-arch version: $VERSION"
 
 # Ensure Docker Buildx builder exists and is used
 docker buildx create --use --name multiarch-builder || true
@@ -22,8 +22,8 @@ docker buildx create --use --name multiarch-builder || true
 # Build and push multi-arch Docker image
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -t retr0spect101/booklore:"$VERSION" \
+  -t ghcr.io/opensourcefan/fable:"$VERSION" \
   --push \
   .
 
-echo "Multi-arch Docker image retr0spect101/booklore:$VERSION pushed successfully!"
+echo "Multi-arch Docker image ghcr.io/opensourcefan/fable:$VERSION pushed successfully!"
