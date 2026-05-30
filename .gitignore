@@ -44,14 +44,14 @@ local/
 local-scripts/
 
 ### Dev config, books, and data ###
-booklore-ui/test-results/
-booklore-api/src/main/resources/application-local.yaml
-booklore-api/docs
+fable-ui/test-results/
+fable-api/src/main/resources/application-local.yaml
+fable-api/docs
 /shared/
-mariadb/
-data/
-books/
-bookdrop/
+/mariadb/
+/data/
+/books/
+/bookdrop/
 booklore-v3/
 booklore-v3b/
 booklore-v3c/
