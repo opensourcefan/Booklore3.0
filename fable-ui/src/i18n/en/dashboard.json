@@ -1,0 +1,78 @@
+{
+  "main": {
+    "pageTitle": "Dashboard",
+    "welcomeTitle": "Welcome to Fable, where your collection tells its own story.",
+    "welcomeSubtitle": "Let's create your first library",
+    "welcomeDescription": "A library is where all your books live. Start building your digital collection today!",
+    "createLibrary": "Create Your Library",
+    "customizeDashboard": "Customize Dashboard",
+    "dragPanel": "Drag panel"
+  },
+  "scroller": {
+    "noBooksFound": "No books found for this scroller.",
+    "loadError": "Failed to load books! Please try refreshing the page.",
+    "continueListening": "Continue Listening",
+    "continueReading": "Continue Reading",
+    "recentlyAdded": "Recently Added",
+    "discoverNew": "Discover Something New",
+    "magicShelf": "Magic Shelf",
+    "currentlyReading": "Currently Reading",
+    "default": "Scroller"
+  },
+  "settings": {
+    "title": "Dashboard Configuration",
+    "description": "Add up to {{ max }} scrollers from different book collections and customize their behavior",
+    "type": "Type",
+    "selectType": "Select type",
+    "magicShelf": "Magic Shelf",
+    "selectMagicShelf": "Select magic shelf",
+    "library": "Library",
+    "selectLibrary": "Select library",
+    "width": "Width",
+    "selectWidth": "Select width",
+    "layoutLockTitle": "Lock dashboard layout",
+    "layoutLockDescription": "When locked, dashboard panels stay in place and drag reordering is disabled.",
+    "sortField": "Sort Field",
+    "selectField": "Select field",
+    "direction": "Direction",
+    "selectDirection": "Select direction",
+    "maxItems": "Max Items",
+    "addScroller": "Add Scroller",
+    "resetToDefault": "Reset to Default",
+    "widthOptions": {
+      "auto": "Auto"
+    },
+    "scrollerTypes": {
+      "lastRead": "Continue Reading",
+      "lastListened": "Continue Listening",
+      "latestAdded": "Recently Added",
+      "random": "Discover Something New",
+      "magicShelf": "Magic Shelf",
+      "currentlyReading": "Currently Reading",
+      "default": "Scroller"
+    },
+    "sortFields": {
+      "title": "Title",
+      "fileName": "File Name",
+      "filePath": "File Path",
+      "addedOn": "Date Added",
+      "author": "Author",
+      "authorSurnameVorname": "Author (Surname)",
+      "seriesName": "Series Name",
+      "seriesNumber": "Series Number",
+      "personalRating": "Personal Rating",
+      "publisher": "Publisher",
+      "publishedDate": "Published Date",
+      "lastReadTime": "Last Read",
+      "readStatus": "Read Status",
+      "dateFinished": "Date Finished",
+      "readingProgress": "Reading Progress",
+      "bookType": "File Format",
+      "pageCount": "Pages"
+    },
+    "sortDirections": {
+      "asc": "Ascending",
+      "desc": "Descending"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+[Unit]
+Description=Fable Pod
+After=network-online.target
+
+[Pod]
+PodName=fable
+PublishPort=6060:6060

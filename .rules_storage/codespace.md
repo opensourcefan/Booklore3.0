@@ -1,14 +1,14 @@
-# Booklore3.0 Codebase Reference
+# Fable Codebase Reference
 
-The workspace root is `/home/michael/booklore_test`. When working with file paths, remember they are relative to this root unless stated otherwise.
+The workspace root is `/home/michael/fable_test`. When working with file paths, remember they are relative to this root unless stated otherwise.
 
 ## Workspace Layout
 
 | Path | Purpose |
 |---|---|
-| `booklore-api/` | Spring Boot 4.0 backend (Java 25) |
-| `booklore-ui/` | Angular 21 frontend |
-| `booklore-v3/`, `booklore-v3b/`, `booklore-v3c/` | Legacy snapshot copies (not part of active build) |
+| `fable-api/` | Spring Boot 4.0 backend (Java 25) |
+| `fable-ui/` | Angular 21 frontend |
+| `fable-v3/`, `fable-v3b/`, `fable-v3c/` | Legacy snapshot copies (not part of active build) |
 | `assets/` | Screenshots and static assets |
 | `bookdrop/` | Bookdrop inbox directory (mounted in Docker) |
 | `books/` | Book files directory (mounted in Docker) |
@@ -30,9 +30,9 @@ The workspace root is `/home/michael/booklore_test`. When working with file path
 
 | Detail | Value |
 |---|---|
-| Primary remote | `origin` → `https://github.com/opensourcefan/Booklore3.0.git` |
-| Alias remote | `booklore3` → same URL |
-| Scratch remote | `scratch_repo` → `/home/michael/booklore_test/scratch_repo` (local bare repo) |
+| Primary remote | `origin` → `https://github.com/opensourcefan/Fable.git` |
+| Alias remote | `fable3` → same URL |
+| Scratch remote | `scratch_repo` → `/home/michael/fable_test/scratch_repo` (local bare repo) |
 | Default branch | `develop` |
 | Current branch | `develop` |
 | Other local branches | `Experimental`, `ai-panel-test`, `sandbox-phase4`, `testing` |
@@ -102,7 +102,7 @@ The workspace root is `/home/michael/booklore_test`. When working with file path
 ### Backend Package Structure
 
 ```
-org.booklore
+org.fable
 ├── app/              — App-layer controllers, DTOs, services, specs
 ├── config/           — Spring config (security, filters, OIDC)
 ├── context/          — Application context helpers
@@ -154,7 +154,7 @@ org.booklore
 ### Frontend Package Structure
 
 ```
-booklore-ui/src/app/
+fable-ui/src/app/
 ├── core/             — App initialization, security guards, core services
 │   ├── config/       — App configuration
 │   ├── security/     — Auth guards, interceptors, secure-src directive
@@ -189,7 +189,7 @@ booklore-ui/src/app/
 
 ## Build & Run Commands
 
-### Backend (booklore-api/)
+### Backend (fable-api/)
 
 ```bash
 ./gradlew build              # Full build with tests
@@ -199,7 +199,7 @@ booklore-ui/src/app/
 ./gradlew dependencyCheckAnalyze  # OWASP CVE scan
 ```
 
-### Frontend (booklore-ui/)
+### Frontend (fable-ui/)
 
 ```bash
 npm run dev          # Development server with hot reload
@@ -218,7 +218,7 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 
 ### Version Numbers
 
-- Backend version: `3.9.9` (in both `booklore-api/build.gradle` and `booklore-ui/package.json`)
+- Backend version: `3.9.9` (in both `fable-api/build.gradle` and `fable-ui/package.json`)
 - Latest git tag: `v3.15.46` (tags are ahead of build version — build version updated separately)
 
 ## Code Conventions
@@ -245,7 +245,7 @@ docker compose -f testing-docker-compose.yml up -d  # Testing stack
 
 ### UI/Scrollbar Conventions
 
-- Global scrollbar styles live in `booklore-ui/src/styles.scss` — all per-component scrollbar overrides have been removed
+- Global scrollbar styles live in `fable-ui/src/styles.scss` — all per-component scrollbar overrides have been removed
 - Uses PrimeNG theme CSS variables for theme-aware colors:
   - Thumb: `var(--p-surface-600)`, Hover: `var(--p-surface-500)`
   - Track: `transparent`, Size: 8px (both width and height for horizontal support)
@@ -289,9 +289,9 @@ The app has a dedicated mobile UX system built around three services:
 
 ### Testing
 
-- API tests in `booklore-api/src/test/java/org/booklore/` — JUnit 5, focused on mappers, converters, utilities
-- UI tests in `booklore-ui/src/app/**/*.spec.ts` — Vitest + jsdom, component-level with DOM assertions
-- Test exclusions — `booklore-api/src/test/java/**` excluded from VS Code problem reporting
+- API tests in `fable-api/src/test/java/org/fable/` — JUnit 5, focused on mappers, converters, utilities
+- UI tests in `fable-ui/src/app/**/*.spec.ts` — Vitest + jsdom, component-level with DOM assertions
+- Test exclusions — `fable-api/src/test/java/**` excluded from VS Code problem reporting
 
 ## Security Architecture
 
@@ -322,8 +322,8 @@ Disabled on all security filter chains — by design. All API endpoints are stat
 ## Editable Files
 
 Always safe to edit:
-- Source files in `booklore-api/src/main/java/` and `booklore-ui/src/app/`
-- Test files in `booklore-api/src/test/` and `booklore-ui/src/**/*.spec.ts`
+- Source files in `fable-api/src/main/java/` and `fable-ui/src/app/`
+- Test files in `fable-api/src/test/` and `fable-ui/src/**/*.spec.ts`
 - Config files: `build.gradle`, `package.json`, `angular.json`, `.env`, docker compose files
 - CI files in `.github/workflows/`
 - Documentation in `docs/`
@@ -331,14 +331,14 @@ Always safe to edit:
 Do not edit without explicit instruction:
 - `.git/` — Git internals
 - `node_modules/` — npm dependencies
-- `booklore-v3/`, `booklore-v3b/`, `booklore-v3c/` — legacy snapshots
+- `fable-v3/`, `fable-v3b/`, `fable-v3c/` — legacy snapshots
 - `data/`, `books/`, `bookdrop/` — runtime data directories
 - Generated files: `build/`, `dist/`, `.gradle/`
 
 ## Repository Metadata
 
-- Source: fork of [adityachandelgit/BookLore](https://github.com/adityachandelgit/BookLore)
+- Source: fork of [adityachandelgit/Fable](https://github.com/adityachandelgit/Fable)
 - License: MIT (`LICENSE` file)
 - Security policy: `SECURITY.md`
-- Docker images: Published to `ghcr.io/opensourcefan/booklore3.0` and `ghcr.io/opensourcefan/booklore-panel-ai`
+- Docker images: Published to `ghcr.io/opensourcefan/fable` and `ghcr.io/opensourcefan/fable-panel-ai`
 - AI Panel Detection: Opt-in via `COMPOSE_PROFILES=ai`; uses bundled YOLO model

@@ -5,8 +5,8 @@ metadata:
   annotations:
     helm.sh/resource-policy: keep
   labels:
-    app.kubernetes.io/name: {{ include "booklore.fullname" . }}
-  name: {{ include "booklore.fullname" . }}-data
+    app.kubernetes.io/name: {{ include "fable.fullname" . }}
+  name: {{ include "fable.fullname" . }}-data
 spec:
   accessModes:
     - ReadWriteOnce
@@ -22,8 +22,8 @@ metadata:
   annotations:
     helm.sh/resource-policy: keep
   labels:
-    app.kubernetes.io/name: {{ include "booklore.fullname" . }}
-  name: {{ include "booklore.fullname" . }}-books
+    app.kubernetes.io/name: {{ include "fable.fullname" . }}
+  name: {{ include "fable.fullname" . }}-books
 spec:
   accessModes:
     - ReadWriteOnce

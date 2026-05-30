@@ -40,11 +40,11 @@ jobs:
 
       - name: Execute Backend Tests
         id: backend_tests
-        working-directory: ./booklore-api
+        working-directory: ./fable-api
         env:
-          BOOKLORE_TEST_MAX_HEAP: 3g
+          FABLE_TEST_MAX_HEAP: 3g
         run: |
-          echo "Running backend tests with heap ${BOOKLORE_TEST_MAX_HEAP}..."
+          echo "Running backend tests with heap ${FABLE_TEST_MAX_HEAP}..."
           ./gradlew test --no-daemon --build-cache
         continue-on-error: true
 
@@ -52,7 +52,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2
         if: always()
         with:
-          files: booklore-api/build/test-results/**/*.xml
+          files: fable-api/build/test-results/**/*.xml
           check_name: Backend Test Results
 
       - name: Upload Backend Test Reports
@@ -61,8 +61,8 @@ jobs:
         with:
           name: backend-test-reports
           path: |
-            booklore-api/build/reports/tests/
-            booklore-api/build/test-results/
+            fable-api/build/reports/tests/
+            fable-api/build/test-results/
           retention-days: 30
 
       - name: Validate Backend Test Results
@@ -91,24 +91,24 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: booklore-ui/package-lock.json
+          cache-dependency-path: fable-ui/package-lock.json
 
       - name: Install Frontend Dependencies
-        working-directory: ./booklore-ui
+        working-directory: ./fable-ui
         run: npm ci
 
       - name: Audit Frontend Dependencies
-        working-directory: ./booklore-ui
+        working-directory: ./fable-ui
         run: npm audit --omit=dev --audit-level=moderate
 
       - name: Validate Dependency Tree
-        working-directory: ./booklore-ui
+        working-directory: ./fable-ui
         run: npm ls --depth=0
 
 
       - name: Execute Frontend Tests
         id: frontend_tests
-        working-directory: ./booklore-ui
+        working-directory: ./fable-ui
         run: |
           echo "Running frontend tests..."
           npx vitest run
@@ -118,7 +118,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2
         if: always()
         with:
-          files: booklore-ui/test-results/vitest-results.xml
+          files: fable-ui/test-results/vitest-results.xml
           check_name: Frontend Test Results
 
       - name: Upload Frontend Test Reports
@@ -127,7 +127,7 @@ jobs:
         with:
           name: frontend-test-reports
           path: |
-            booklore-ui/test-results/vitest-results.xml
+            fable-ui/test-results/vitest-results.xml
           retention-days: 30
 
       - name: Validate Frontend Test Results
@@ -169,18 +169,18 @@ jobs:
 
           {
             echo "main_tags<<EOF"
-            echo "ghcr.io/opensourcefan/booklore3:${image_tag}"
+            echo "ghcr.io/opensourcefan/fable3:${image_tag}"
             if [ "${{ github.event_name }}" != "pull_request" ]; then
-              echo "ghcr.io/opensourcefan/booklore3:latest"
+              echo "ghcr.io/opensourcefan/fable3:latest"
             fi
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
           {
             echo "ai_tags<<EOF"
-            echo "ghcr.io/opensourcefan/booklore-panel-ai:${image_tag}"
+            echo "ghcr.io/opensourcefan/fable-panel-ai:${image_tag}"
             if [ "${{ github.event_name }}" != "pull_request" ]; then
-              echo "ghcr.io/opensourcefan/booklore-panel-ai:latest"
+              echo "ghcr.io/opensourcefan/fable-panel-ai:latest"
             fi
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
@@ -195,23 +195,23 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: booklore-ui/package-lock.json
+          cache-dependency-path: fable-ui/package-lock.json
 
       - name: Install Frontend Dependencies
-        working-directory: ./booklore-ui
+        working-directory: ./fable-ui
         run: npm ci
 
       - name: Audit Frontend Dependencies
-        working-directory: ./booklore-ui
+        working-directory: ./fable-ui
         run: npm audit --omit=dev --audit-level=moderate
 
       - name: Validate Dependency Tree
-        working-directory: ./booklore-ui
+        working-directory: ./fable-ui
         run: npm ls --depth=0
 
 
       - name: Build Angular App
-        working-directory: ./booklore-ui
+        working-directory: ./fable-ui
         run: npx ng build --configuration=production
 
       # ----------------------------------------
@@ -225,7 +225,7 @@ jobs:
           cache: gradle
 
       - name: Copy Angular Dist to Spring Boot Resources
-        run: cp -r booklore-ui/dist/booklore/browser/. booklore-api/src/main/resources/static/
+        run: cp -r fable-ui/dist/app/browser/. fable-api/src/main/resources/static/
 
       - name: Inject Version into application.yaml
         env:
@@ -233,20 +233,20 @@ jobs:
         run: |
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.52.2/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
-          yq eval '.app.version = strenv(APP_VERSION)' -i booklore-api/src/main/resources/application.yaml
+          yq eval '.app.version = strenv(APP_VERSION)' -i fable-api/src/main/resources/application.yaml
 
       - name: Build Spring Boot JAR
-        working-directory: ./booklore-api
+        working-directory: ./fable-api
         run: ./gradlew clean build -x test --no-daemon --parallel --build-cache
 
       - name: Prepare Spring Boot Artifact for Container Build
         run: |
-          jar_path=$(ls booklore-api/build/libs/booklore-api-*.jar | grep -v -- '-plain\.jar$' | head -n 1)
+          jar_path=$(ls fable-api/build/libs/fable-api-*.jar | grep -v -- '-plain\.jar$' | head -n 1)
           if [ -z "$jar_path" ]; then
-            echo "❌ No Spring Boot executable JAR found in booklore-api/build/libs"
+            echo "❌ No Spring Boot executable JAR found in fable-api/build/libs"
             exit 1
           fi
-          cp "$jar_path" booklore-api/build/libs/app.jar
+          cp "$jar_path" fable-api/build/libs/app.jar
           echo "Using JAR: $jar_path"
 
       # ----------------------------------------
@@ -287,10 +287,10 @@ jobs:
             APP_REVISION=${{ github.sha }}
           cache-from: |
             type=gha
-            type=registry,ref=ghcr.io/opensourcefan/booklore3:buildcache
+            type=registry,ref=ghcr.io/opensourcefan/fable3:buildcache
           cache-to: |
             type=gha,mode=max
-            type=registry,ref=ghcr.io/opensourcefan/booklore3:buildcache,mode=max
+            type=registry,ref=ghcr.io/opensourcefan/fable3:buildcache,mode=max
 
       - name: Build and push AI Docker image
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
@@ -302,8 +302,8 @@ jobs:
           push: true
           tags: ${{ steps.set_image_tag.outputs.ai_tags }}
           cache-from: |
-            type=gha,scope=booklore-panel-ai
-            type=registry,ref=ghcr.io/opensourcefan/booklore-panel-ai:buildcache
+            type=gha,scope=fable-panel-ai
+            type=registry,ref=ghcr.io/opensourcefan/fable-panel-ai:buildcache
           cache-to: |
-            type=gha,scope=booklore-panel-ai,mode=max
-            type=registry,ref=ghcr.io/opensourcefan/booklore-panel-ai:buildcache,mode=max
+            type=gha,scope=fable-panel-ai,mode=max
+            type=registry,ref=ghcr.io/opensourcefan/fable-panel-ai:buildcache,mode=max

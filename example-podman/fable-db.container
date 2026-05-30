@@ -1,0 +1,21 @@
+[Unit]
+Description=Fable Database Container Using MariaDB
+
+[Container]
+ContainerName=fable-db
+Image=lscr.io/linuxserver/mariadb:11.4.8
+Pod=fable.pod
+Pull=always
+
+Volume=fable-db:/config
+
+Environment=TZ=Etc/UTC
+Environment=PUID=0
+Environment=PGID=0
+Environment=MYSQL_USER=fable
+Secret=fable_db_pass,type=env,target=MYSQL_ROOT_PASSWORD
+Secret=fable_db_pass,type=env,target=MYSQL_PASSWORD
+Environment=MYSQL_DATABASE=fable
+
+DropCapability=all
+AddCapability=CAP_CHOWN CAP_SETUID CAP_SETGID CAP_FOWNER

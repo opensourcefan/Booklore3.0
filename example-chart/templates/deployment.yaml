@@ -1,13 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "booklore.fullname" . }}
+  name: {{ include "fable.fullname" . }}
   labels:
-    {{- include "booklore.labels" . | nindent 4 }}
+    {{- include "fable.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "booklore.selectorLabels" . | nindent 6 }}
+      {{- include "fable.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -15,7 +15,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "booklore.labels" . | nindent 8 }}
+        {{- include "fable.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -24,7 +24,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "booklore.serviceAccountName" . }}
+      serviceAccountName: {{ include "fable.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -109,7 +109,7 @@ spec:
             claimName: {{ if .Values.persistence.dataVolume.existingClaim }}
               {{- .Values.persistence.dataVolume.existingClaim }}
             {{ else }}
-              {{- include "booklore.fullname" . }}-data
+              {{- include "fable.fullname" . }}-data
             {{- end }}
         {{- end }}
         {{- if .Values.persistence.booksVolume.enabled }}
@@ -118,7 +118,7 @@ spec:
             claimName: {{ if .Values.persistence.booksVolume.existingClaim }}
               {{- .Values.persistence.booksVolume.existingClaim }}
             {{ else }}
-              {{- include "booklore.fullname" . }}-books
+              {{- include "fable.fullname" . }}-books
             {{- end }}
         {{- end }}
         {{- with .Values.extraVolumes }}
