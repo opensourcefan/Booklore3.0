@@ -1,6 +1,6 @@
 {
-  "name": "booklore",
-  "short_name": "booklore",
+  "name": "fable",
+  "short_name": "fable",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone", "browser"],
   "scope": "./",
