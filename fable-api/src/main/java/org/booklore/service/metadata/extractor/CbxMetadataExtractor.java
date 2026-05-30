@@ -377,9 +377,9 @@ public class CbxMetadataExtractor implements FileMetadataExtractor {
             );
             boolean hasDescription = existingDescription != null && !existingDescription.isBlank();
 
-            // If description is missing, use cleaned notes (removing BookLore tags)
+            // If description is missing, use cleaned notes (removing BookLore/Fable tags)
             if (!hasDescription) {
-                String cleanedNotes = notes.replaceAll("\\[BookLore:[^\\]]+\\][^\\n]*(\n|$)", "").trim();
+                String cleanedNotes = notes.replaceAll("\\[(?:BookLore|Fable):[^\\]]+\\][^\\n]*(\n|$)", "").trim();
                 if (!cleanedNotes.isEmpty()) {
                     builder.description(cleanedNotes);
                 }

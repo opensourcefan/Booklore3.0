@@ -202,7 +202,7 @@ class CbxMetadataWriterTest {
 
             String notesVal = text(doc, "Notes");
             assertNotNull(notesVal);
-            assertTrue(notesVal.contains("[BookLore:Tags]"));
+            assertTrue(notesVal.contains("[Fable:Tags]"));
             assertTrue(notesVal.contains("Fantasy"));
             assertTrue(notesVal.contains("Epic"));
 
@@ -222,7 +222,7 @@ class CbxMetadataWriterTest {
 
             String notes = text(doc, "Notes");
             assertNotNull(notes);
-            assertTrue(notes.contains("[BookLore:Moods]"));
+            assertTrue(notes.contains("[Fable:Moods]"));
             assertTrue(notes.contains("Dark"));
         }
     }

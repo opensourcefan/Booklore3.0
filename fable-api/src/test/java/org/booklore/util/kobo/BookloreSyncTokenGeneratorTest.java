@@ -39,8 +39,8 @@ class BookloreSyncTokenGeneratorTest {
 
         String result = generator.toBase64(token);
 
-        assertTrue(result.startsWith("BOOKLORE."));
-        String base64Part = result.substring("BOOKLORE.".length());
+        assertTrue(result.startsWith("FABLE."));
+        String base64Part = result.substring("FABLE.".length());
         String decodedJson = new String(Base64.getDecoder().decode(base64Part));
         assertEquals(json, decodedJson);
     }
@@ -54,7 +54,7 @@ class BookloreSyncTokenGeneratorTest {
 
         String result = generator.toBase64(token);
 
-        assertEquals("BOOKLORE.", result);
+        assertEquals("FABLE.", result);
     }
 
     @Test

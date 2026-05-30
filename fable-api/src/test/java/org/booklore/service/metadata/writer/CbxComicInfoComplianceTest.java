@@ -125,7 +125,7 @@ class CbxComicInfoComplianceTest {
         // assertFalse(xmlContent.contains(","), "Web field should not be comma separated"); // Removed as other fields may contain commas
         
         // 5. Verify Notes Format
-        assertTrue(xmlContent.contains("[BookLore:Moods] Dark"), "Notes should contain formatted custom metadata");
+        assertTrue(xmlContent.contains("[Fable:Moods] Dark"), "Notes should contain formatted custom metadata");
 
         
         // 6. Verify GTIN (v2.1)
