@@ -74,15 +74,15 @@ function rebrandString(val: string, appName: string): string {
     .replace(/BOOKLORE/g, appName.toUpperCase());
 }
 
-function rebrandTranslation(obj: any, appName: string): any {
+function rebrandTranslation(obj: unknown, appName: string): unknown {
   if (typeof obj === 'string') {
     return rebrandString(obj, appName);
   } else if (Array.isArray(obj)) {
     return obj.map(item => rebrandTranslation(item, appName));
   } else if (obj !== null && typeof obj === 'object') {
-    const result: any = {};
+    const result: Record<string, unknown> = {};
     for (const key of Object.keys(obj)) {
-      result[key] = rebrandTranslation(obj[key], appName);
+      result[key] = rebrandTranslation((obj as Record<string, unknown>)[key], appName);
     }
     return result;
   }
@@ -105,7 +105,7 @@ export class TranslocoInlineLoader implements TranslocoLoader {
       }
     }
     return translation$.pipe(
-      map(t => rebrandTranslation(t, appName))
+      map(t => rebrandTranslation(t, appName) as Translation)
     );
   }
 }
