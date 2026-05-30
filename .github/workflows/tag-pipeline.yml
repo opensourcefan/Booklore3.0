@@ -196,8 +196,8 @@ jobs:
           # Always push both versioned tag and latest
           {
             echo "main_tags<<EOF"
-            echo "ghcr.io/opensourcefan/fable3:${image_tag}"
-            echo "ghcr.io/opensourcefan/fable3:latest"
+            echo "ghcr.io/opensourcefan/fable:${image_tag}"
+            echo "ghcr.io/opensourcefan/fable:latest"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -304,10 +304,10 @@ jobs:
             APP_REVISION=${{ github.sha }}
           cache-from: |
             type=gha
-            type=registry,ref=ghcr.io/opensourcefan/fable3:buildcache
+            type=registry,ref=ghcr.io/opensourcefan/fable:buildcache
           cache-to: |
             type=gha,mode=max
-            type=registry,ref=ghcr.io/opensourcefan/fable3:buildcache,mode=max
+            type=registry,ref=ghcr.io/opensourcefan/fable:buildcache,mode=max
 
       - name: Build and push AI Docker image
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0

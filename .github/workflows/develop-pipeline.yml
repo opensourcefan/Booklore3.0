@@ -169,9 +169,9 @@ jobs:
 
           {
             echo "main_tags<<EOF"
-            echo "ghcr.io/opensourcefan/fable3:${image_tag}"
+            echo "ghcr.io/opensourcefan/fable:${image_tag}"
             if [ "${{ github.event_name }}" != "pull_request" ]; then
-              echo "ghcr.io/opensourcefan/fable3:latest"
+              echo "ghcr.io/opensourcefan/fable:latest"
             fi
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
@@ -287,10 +287,10 @@ jobs:
             APP_REVISION=${{ github.sha }}
           cache-from: |
             type=gha
-            type=registry,ref=ghcr.io/opensourcefan/fable3:buildcache
+            type=registry,ref=ghcr.io/opensourcefan/fable:buildcache
           cache-to: |
             type=gha,mode=max
-            type=registry,ref=ghcr.io/opensourcefan/fable3:buildcache,mode=max
+            type=registry,ref=ghcr.io/opensourcefan/fable:buildcache,mode=max
 
       - name: Build and push AI Docker image
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository

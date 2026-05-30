@@ -386,9 +386,9 @@ describe('AppMenuComponent reorder mode', () => {
 
   it('builds version links against this fork repository', () => {
     expect(component.getVersionUrl('3.17.17', 'V3.17.17-milestone.8'))
-      .toBe('https://github.com/opensourcefan/Booklore3.0/releases/tag/V3.17.17-milestone.8');
+      .toBe('https://github.com/opensourcefan/Fable/releases/tag/V3.17.17-milestone.8');
     expect(component.getVersionUrl('develop-abc123'))
-      .toBe('https://github.com/opensourcefan/Booklore3.0/commit/develop-abc123');
+      .toBe('https://github.com/opensourcefan/Fable/commit/develop-abc123');
   });
 
   it('stops reacting to long-lived streams after destroy', () => {

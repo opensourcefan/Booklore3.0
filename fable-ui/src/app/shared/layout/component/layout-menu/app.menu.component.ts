@@ -804,12 +804,12 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   getVersionUrl(current: string | undefined, latest?: string | undefined): string {
     const displayedTag = this.getDisplayedTag(current, latest);
     if (displayedTag) {
-      return `https://github.com/opensourcefan/Booklore3.0/releases/tag/${displayedTag}`;
+      return `https://github.com/opensourcefan/Fable/releases/tag/${displayedTag}`;
     }
 
     const version = this.getNormalizedDisplayVersion(current);
     if (!version) return '#';
-    return `https://github.com/opensourcefan/Booklore3.0/commit/${version}`;
+    return `https://github.com/opensourcefan/Fable/commit/${version}`;
   }
 
   isSemanticVersion(current: string | undefined, latest?: string | undefined): boolean {

@@ -1,9 +1,9 @@
 <p align="center">
-  <a href="https://github.com/opensourcefan/Fable3.0/tags"><img src="https://img.shields.io/github/v/tag/opensourcefan/Fable3.0?label=last%20tag&style=flat-square&color=blue" alt="Last Tag"></a>
-  <a href="https://github.com/opensourcefan/Fable3.0/actions/workflows/develop-pipeline.yml?query=branch%3Adevelop"><img src="https://img.shields.io/github/actions/workflow/status/opensourcefan/Fable3.0/develop-pipeline.yml?branch=develop&label=develop%20pipeline&style=flat-square" alt="Develop pipeline"></a>
-  <a href="https://github.com/opensourcefan/Fable3.0/blob/develop/LICENSE"><img src="https://img.shields.io/github/license/opensourcefan/Fable3.0?style=flat-square" alt="License"></a>
-  <a href="https://github.com/opensourcefan/Fable3.0/stargazers"><img src="https://img.shields.io/github/stars/opensourcefan/Fable3.0?style=flat-square" alt="Stars"></a>
-  <a href="https://github.com/opensourcefan/Fable3.0/issues"><img src="https://img.shields.io/github/issues/opensourcefan/Fable3.0?style=flat-square" alt="Issues"></a>
+  <a href="https://github.com/opensourcefan/Fable/tags"><img src="https://img.shields.io/github/v/tag/opensourcefan/Fable?label=last%20tag&style=flat-square&color=blue" alt="Last Tag"></a>
+  <a href="https://github.com/opensourcefan/Fable/actions/workflows/develop-pipeline.yml?query=branch%3Adevelop"><img src="https://img.shields.io/github/actions/workflow/status/opensourcefan/Fable/develop-pipeline.yml?branch=develop&label=develop%20pipeline&style=flat-square" alt="Develop pipeline"></a>
+  <a href="https://github.com/opensourcefan/Fable/blob/develop/LICENSE"><img src="https://img.shields.io/github/license/opensourcefan/Fable?style=flat-square" alt="License"></a>
+  <a href="https://github.com/opensourcefan/Fable/stargazers"><img src="https://img.shields.io/github/stars/opensourcefan/Fable?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/opensourcefan/Fable/issues"><img src="https://img.shields.io/github/issues/opensourcefan/Fable?style=flat-square" alt="Issues"></a>
 </p>
 
 
@@ -86,7 +86,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 
 ```bash
 # 1. Download the Compose file
-curl -O https://raw.githubusercontent.com/opensourcefan/Fable3.0/develop/docker-compose.yml
+curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-compose.yml
 
 # 2. Create your .env file (see Sample .env below)
 
@@ -102,7 +102,7 @@ docker compose up -d app-ai-panel
 ### Update Existing Install
 
 ```bash
-curl -O https://raw.githubusercontent.com/opensourcefan/Fable3.0/develop/docker-compose.yml
+curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-compose.yml
 docker compose pull
 docker compose up -d
 
@@ -116,7 +116,7 @@ docker compose up -d app-ai-panel
 If you want Fable to preserve `.cbr` files during metadata writes instead of falling back to a slower `.cbz` conversion, place a compatible Linux `rar` binary at `./docker/rar/rar` before starting the container.
 
 - The repository `docker-compose.yml` now mounts `./docker/rar` into the container at `/opt/fable-rar`.
-- The container entrypoint automatically exports `BOOKLORE_RAR_BIN=/opt/fable-rar/rar` when that file exists and is executable.
+- The container entrypoint automatically exports `FABLE_RAR_BIN=/opt/fable-rar/rar` when that file exists and is executable.
 - If no `rar` binary is provided, Fable keeps its current fallback behavior and may convert `.cbr` to `.cbz` when writing embedded metadata.
 
 ### Install Without AI
@@ -177,7 +177,7 @@ services:
       - fable-net
 
   app-backend:
-    image: ghcr.io/opensourcefan/fable3.0:latest
+    image: ghcr.io/opensourcefan/fable:latest
     container_name: app-backend
     restart: unless-stopped
     depends_on:

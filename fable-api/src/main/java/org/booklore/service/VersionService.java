@@ -25,7 +25,7 @@ public class VersionService {
     @Value("${app.version:unknown}")
     String appVersion;
 
-    @Value("${app.version.github-repo:opensourcefan/Booklore3.0}")
+    @Value("${app.version.github-repo:opensourcefan/Fable}")
     String githubRepo;
 
     private static final String GITHUB_API_BASE = "https://api.github.com/repos/";
