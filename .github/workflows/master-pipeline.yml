@@ -25,8 +25,6 @@ jobs:
   migration-check:
     name: Flyway Migration Check on Master
     needs: [ get-base-ref ]
-    permissions:
-      contents: read
     uses: ./.github/workflows/migrations-check.yml
     with:
       base_ref: ${{ needs.get-base-ref.outputs.base_ref }}

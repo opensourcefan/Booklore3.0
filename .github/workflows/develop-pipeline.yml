@@ -11,8 +11,6 @@ on:
 jobs:
   migration-check:
     name: Flyway Migration Check
-    permissions:
-      contents: read
     uses: ./.github/workflows/migrations-check.yml
     with:
       base_ref: 'develop'
