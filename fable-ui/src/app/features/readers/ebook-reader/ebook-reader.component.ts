@@ -191,7 +191,11 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
         this.subscribeToStateChanges();
       }),
       switchMap(() => this.loadBookFromAPI()),
-      tap(() => this.isLoading = false),
+      tap(() => {
+        this.isLoading = false;
+        this.isFullscreen = !!document.fullscreenElement;
+        this.headerService.setFullscreen(this.isFullscreen);
+      }),
       catchError(() => {
         this.isLoading = false;
         return of(null);

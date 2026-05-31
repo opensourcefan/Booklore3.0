@@ -686,6 +686,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       joystickIndicatorOpacity: this.joystickIndicatorOpacity
     });
 
+    this.isFullscreen = !!document.fullscreenElement;
     this.headerService.updateState({
       isFullscreen: this.isFullscreen,
       isSlideshowActive: this.isSlideshowActive,

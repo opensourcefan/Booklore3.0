@@ -38,6 +38,13 @@ a {
   background-size: auto 20rem;
 }
 
+/* Fullscreen: remove topbar padding so content stretches to top of screen */
+.layout-wrapper:fullscreen .layout-main-container,
+.layout-wrapper:-webkit-full-screen .layout-main-container,
+.layout-wrapper:-ms-fullscreen .layout-main-container {
+  padding-top: 0;
+}
+
 p {
   color: var(--text-color);
 }
