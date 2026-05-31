@@ -153,7 +153,7 @@ def health() -> dict[str, Any]:
         "modelExists": model_exists,
         "seedPath": MODEL_SEED_PATH,
         "seedExists": seed_exists,
-        "loadError": _load_error,
+        "loadError": "Model failed to load. Check server logs for details." if _load_error else None,
     }
 
 

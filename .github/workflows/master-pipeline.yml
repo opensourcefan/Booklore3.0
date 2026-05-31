@@ -9,6 +9,8 @@ jobs:
   get-base-ref:
     name: Get Base Ref
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       base_ref: ${{ steps.get_base.outputs.base_ref }}
     steps:
@@ -23,6 +25,8 @@ jobs:
   migration-check:
     name: Flyway Migration Check on Master
     needs: [ get-base-ref ]
+    permissions:
+      contents: read
     uses: ./.github/workflows/migrations-check.yml
     with:
       base_ref: ${{ needs.get-base-ref.outputs.base_ref }}

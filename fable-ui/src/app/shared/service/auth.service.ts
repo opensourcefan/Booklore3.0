@@ -78,7 +78,7 @@ export class AuthService {
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, tokenResponse.accessToken);
     localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokenResponse.refreshToken);
     localStorage.setItem(ACCESS_TOKEN_EXPIRY_STORAGE_KEY, tokenResponse.expires.toString());
-    localStorage.setItem(DEFAULT_PASSWORD_STORAGE_KEY, String(tokenResponse.isDefaultPassword));
+    sessionStorage.setItem(DEFAULT_PASSWORD_STORAGE_KEY, String(tokenResponse.isDefaultPassword));
     this.tokenSubject.next(tokenResponse.accessToken);
   }
 
@@ -95,7 +95,8 @@ export class AuthService {
   }
 
   getInternalDefaultPassword(): boolean | null {
-    return this.readStoredBoolean(DEFAULT_PASSWORD_STORAGE_KEY);
+    const val = sessionStorage.getItem(DEFAULT_PASSWORD_STORAGE_KEY);
+    return val !== null ? val === 'true' : null;
   }
 
   hasValidInternalAccessToken(): boolean {

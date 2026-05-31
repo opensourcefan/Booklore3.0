@@ -1497,6 +1497,10 @@ public class ComicvineBookParser implements BookParser, DetailedMetadataProvider
             }
         }
 
+        if (cleaned.length() > 1000) {
+            log.warn("Comic title too long ({} chars), using as-is to prevent ReDoS", cleaned.length());
+            return new SeriesAndIssue(cleaned, null, year, null, null);
+        }
         Matcher matcher = SERIES_ISSUE_PATTERN.matcher(cleaned);
         if (matcher.find()) {
             String series = matcher.group(1).trim();
