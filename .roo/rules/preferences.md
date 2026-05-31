@@ -14,6 +14,7 @@ paths: ["**/*"]
 
 ## Reporting: Whenever a report is requested:
 - it should be placed on the ~/Desktop in HTML format.
+- it should be named <Date>-<Task_Name>.html
 - it should have a dark background unless otherwise stated.
 
 - Assume file changes are "auto accept" — execute file modifications directly or bypass IDE prompts whenever possible.
