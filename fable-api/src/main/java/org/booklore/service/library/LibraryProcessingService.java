@@ -65,9 +65,10 @@ public class LibraryProcessingService {
         try {
             physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
             List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity);
-            importLibraryFiles(libraryEntity, libraryFiles);
+            int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
 
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished processing library: " + libraryEntity.getName()));
+            String dirNames = getDirectoryNames(libraryEntity.getLibraryPaths());
+            notificationService.sendMessage(Topic.LOG, LogNotification.info(importedCount + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
         } catch (IOException e) {
             log.error("Failed to process library {}: {}", libraryEntity.getName(), e.getMessage(), e);
             notificationService.sendMessage(Topic.LOG, LogNotification.error("Failed to process library: " + libraryEntity.getName() + " - " + e.getMessage()));
@@ -91,8 +92,9 @@ public class LibraryProcessingService {
         try {
             physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, pathEntities);
             List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity, pathEntities);
-            importLibraryFiles(libraryEntity, libraryFiles);
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished processing new library path(s) for: " + libraryEntity.getName()));
+            int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
+            String dirNames = getDirectoryNames(pathEntities);
+            notificationService.sendMessage(Topic.LOG, LogNotification.info(importedCount + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
         } catch (IOException e) {
             log.error("Failed to process new library paths for {}: {}", libraryEntity.getName(), e.getMessage(), e);
             notificationService.sendMessage(Topic.LOG, LogNotification.error("Failed to process new library path(s): " + libraryEntity.getName() + " - " + e.getMessage()));
@@ -120,10 +122,11 @@ public class LibraryProcessingService {
         physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, pathEntities);
 
         List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity, pathEntities);
-        importLibraryFiles(libraryEntity, libraryFiles);
+        int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
+        String dirNames = getDirectoryNames(pathEntities);
 
         notificationService.sendMessage(Topic.LOG,
-                LogNotification.info("Finished scanning selected library directories for new files: " + libraryEntity.getName()));
+                LogNotification.info(importedCount + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
     }
 
     @Transactional
@@ -136,9 +139,10 @@ public class LibraryProcessingService {
         physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
 
         List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity);
-        importLibraryFiles(libraryEntity, libraryFiles);
+        int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
+        String dirNames = getDirectoryNames(libraryEntity.getLibraryPaths());
 
-        notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished scanning library for new files: " + libraryEntity.getName()));
+        notificationService.sendMessage(Topic.LOG, LogNotification.info(importedCount + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
     }
 
     @Transactional
@@ -213,14 +217,15 @@ public class LibraryProcessingService {
         }
         scheduleLibraryDirectoryTaggingIfEnabled(libraryEntity);
 
-        notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished refreshing library: " + libraryEntity.getName()));
+        String dirNames = getDirectoryNames(libraryEntity.getLibraryPaths());
+        notificationService.sendMessage(Topic.LOG, LogNotification.info(total + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
     }
 
     public void processLibraryFiles(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
         fileAsBookProcessor.processLibraryFiles(libraryFiles, libraryEntity);
     }
 
-    private void importLibraryFiles(LibraryEntity libraryEntity, List<LibraryFile> libraryFiles) {
+    private int importLibraryFiles(LibraryEntity libraryEntity, List<LibraryFile> libraryFiles) {
         String taskId = UUID.randomUUID().toString();
         List<LibraryFile> newFiles = detectNewBookPaths(libraryFiles, libraryEntity);
 
@@ -237,6 +242,20 @@ public class LibraryProcessingService {
             fileAsBookProcessor.processLibraryFilesGrouped(groups, libraryEntity);
         }
         scheduleImportedBookTaggingIfEnabled(libraryEntity, newFiles);
+        return total;
+    }
+
+    private String getDirectoryNames(List<LibraryPathEntity> paths) {
+        if (paths == null || paths.isEmpty()) {
+            return "";
+        }
+        return paths.stream()
+                .filter(p -> p != null && p.getPath() != null)
+                .map(p -> {
+                    Path path = Path.of(p.getPath());
+                    return path.getFileName() != null ? path.getFileName().toString() : path.toString();
+                })
+                .collect(Collectors.joining(", "));
     }
 
     private void validateLibraryPathsAccessible(List<LibraryPathEntity> pathEntities) {
