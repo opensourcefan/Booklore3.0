@@ -69,8 +69,8 @@ public class FileService {
     private static final String JPEG_MIME_TYPE                = "image/jpeg";
     private static final String PNG_MIME_TYPE                 = "image/png";
     private static final long   MAX_FILE_SIZE_BYTES           = 5L * 1024 * 1024;
-    // 10 MP covers all legitimate book covers and author photos; halves worst-case BufferedImage heap vs 20 MP.
-    private static final long   MAX_IMAGE_PIXELS              = 10_000_000L;
+    // 20 MP covers all legitimate book covers and author photos (e.g., 2842×4221 ≈ 12 MP).
+    private static final long   MAX_IMAGE_PIXELS              = 20_000_000L;
     private static final int    THUMBNAIL_WIDTH               = 250;
     private static final int    THUMBNAIL_HEIGHT              = 350;
     private static final int    SQUARE_THUMBNAIL_SIZE         = 250;
