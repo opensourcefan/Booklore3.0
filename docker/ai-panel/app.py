@@ -93,7 +93,7 @@ def _load_model() -> YOLO:
         raise RuntimeError("Model is currently loading. Please try again shortly.")
     if _load_error:
         raise RuntimeError(
-            f"Model load failed: {_load_error}. Use the Reload button in AI settings to retry."
+            "Model failed to load. Check server logs for details."
         )
     raise RuntimeError(
         "Model is not loaded. Place best.pt in the ai-models folder and use "
