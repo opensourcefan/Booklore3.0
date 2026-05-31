@@ -134,6 +134,9 @@
         </div>
       }
     </div>
+    <button class="icon-btn mobile-only mobile-fullscreen-btn" (click)="onToggleFullscreen()" [title]="state.isFullscreen ? ('readerCbx.header.exitFullscreen' | transloco) : ('readerCbx.header.fullscreen' | transloco)">
+      <app-reader-icon [name]="state.isFullscreen ? 'fullscreen-exit' : 'fullscreen'" [size]="20" />
+    </button>
     <div class="mobile-joystick-menu">
       <button class="icon-btn joystick-menu-btn" (click)="onToggleJoystickMenu($event)" [title]="'readerCbx.quickSettings.joystick' | transloco" [class.active]="joystickMenuOpen || joystickEnabled">
         <i class="pi pi-bullseye joystick-bullseye-icon" aria-hidden="true"></i>
