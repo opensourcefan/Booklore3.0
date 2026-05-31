@@ -6,7 +6,7 @@ WORKDIR /angular-app
 COPY ./fable-ui/package.json ./fable-ui/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
     npm config set registry https://registry.npmjs.org/ \
-    && npm ci --force
+    && npm ci --force --ignore-scripts
 
 COPY ./fable-ui /angular-app/
 
@@ -65,7 +65,7 @@ RUN chmod 755 /usr/local/bin/unrar
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-COPY --from=springboot-build /springboot-app/build/libs/fable-api-3.9.9.jar /app/app.jar
+COPY --from=springboot-build /springboot-app/build/libs/fable-api-3.21.16.jar /app/app.jar
 
 ARG FABLE_PORT=6060
 EXPOSE ${FABLE_PORT}
