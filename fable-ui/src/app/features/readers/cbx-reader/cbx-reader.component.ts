@@ -96,8 +96,8 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private static readonly JOYSTICK_MARGIN_PX = 26;
   private static readonly JOYSTICK_EDGE_OVERSCAN_RATIO = 0.24;
   private static readonly JOYSTICK_EDGE_OVERSCAN_MAX_PX = 120;
-  private static readonly JOYSTICK_BASE_SPEED = 0.6;
-  private static readonly JOYSTICK_MAX_SPEED_DELTA = 4.6;
+  private static readonly JOYSTICK_BASE_SPEED_PER_SEC = 36;
+  private static readonly JOYSTICK_MAX_SPEED_DELTA_PER_SEC = 276;
   private static readonly JOYSTICK_INPUT_SMOOTHING = 0.2;
   private static readonly JOYSTICK_RELEASE_SMOOTHING = 0.38;
   private static readonly JOYSTICK_STARTUP_RAMP_MS = 360;
@@ -247,6 +247,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private joystickInteractionStartMs = 0;
   private joystickPointerId: number | null = null;
   private joystickAnimationFrame: number | null = null;
+  private joystickLastTickMs = 0;
 
   // Double page detection
   private pageDimensionsCache = new Map<number, {width: number, height: number}>();
@@ -685,6 +686,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       joystickIndicatorOpacity: this.joystickIndicatorOpacity
     });
 
+    this.isFullscreen = !!document.fullscreenElement;
     this.headerService.updateState({
       isFullscreen: this.isFullscreen,
       isSlideshowActive: this.isSlideshowActive,
@@ -2176,14 +2178,24 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
 
-    const tick = () => {
+    this.joystickLastTickMs = 0;
+
+    const tick = (timestampMs: number) => {
       this.joystickAnimationFrame = null;
 
       if (!this.joystickActive) {
         return;
       }
 
-      this.applyJoystickMotionStep();
+      if (this.joystickLastTickMs === 0) {
+        this.joystickLastTickMs = timestampMs;
+      }
+
+      const rawDeltaMs = timestampMs - this.joystickLastTickMs;
+      this.joystickLastTickMs = timestampMs;
+      const deltaSeconds = Math.min(rawDeltaMs / 1000, 0.1);
+
+      this.applyJoystickMotionStep(deltaSeconds);
       this.joystickAnimationFrame = requestAnimationFrame(tick);
     };
 
@@ -2269,7 +2281,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.joystickAnchorY = this.clamp(normalizedY, minY, maxY);
   }
 
-  private applyJoystickMotionStep(): void {
+  private applyJoystickMotionStep(deltaSeconds: number): void {
     const magnitude = Math.hypot(this.joystickKnobX, this.joystickKnobY);
     const elapsed = this.joystickInteractionStartMs > 0
       ? Math.max(0, Date.now() - this.joystickInteractionStartMs)
@@ -2291,10 +2303,11 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       const radius = CbxReaderComponent.JOYSTICK_RADIUS_PX;
       const normalized = this.clamp(adjustedMagnitude / radius, 0, 1);
       const smoothStep = normalized * normalized * (3 - (2 * normalized));
-      const speed = (
-        CbxReaderComponent.JOYSTICK_BASE_SPEED
-        + (smoothStep * CbxReaderComponent.JOYSTICK_MAX_SPEED_DELTA)
+      const speedPerSec = (
+        CbxReaderComponent.JOYSTICK_BASE_SPEED_PER_SEC
+        + (smoothStep * CbxReaderComponent.JOYSTICK_MAX_SPEED_DELTA_PER_SEC)
       ) * this.getJoystickSensitivityMultiplier() * startupSpeedScale;
+      const speed = speedPerSec * deltaSeconds;
 
       targetVelocityX = (adjustedKnob.x / adjustedMagnitude) * speed;
       targetVelocityY = (adjustedKnob.y / adjustedMagnitude) * speed;

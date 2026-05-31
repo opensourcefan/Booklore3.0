@@ -20,6 +20,8 @@ jobs:
   check-for-migrations:
     name: Check for DB Migrations
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       has_migrations: ${{ steps.check_migrations.outputs.has_migrations }}
     steps:
@@ -45,6 +47,9 @@ jobs:
     needs: [ check-for-migrations ]
     if: needs.check-for-migrations.outputs.has_migrations == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     services:
       mariadb:
         image: mariadb:10.6

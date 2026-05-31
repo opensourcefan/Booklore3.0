@@ -9,7 +9,7 @@
 
 # Fable
 
-A personal fork of [Fable](https://github.com/adityachandelgit/Fable) with extended features, UI customizations, and an optional AI-powered comic panel detection service.
+A personal fork of [Booklore] with extended features, UI customizations, and an optional AI-powered comic panel detection service.
 
 > **Advisory:** This is a personal project, shared as-is. It is 100% vibe-coded. I am not a developer.
 > I may or may not update it. I may or may not read the Issues. I will not delete it if I get upset, I'm always upset.

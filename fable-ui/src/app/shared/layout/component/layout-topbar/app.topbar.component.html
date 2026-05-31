@@ -430,6 +430,13 @@
         </ul>
       </p-popover>
     </div>
+    <p-button
+      [icon]="isFullscreen ? 'pi pi-window-minimize' : 'pi pi-window-maximize'"
+      outlined
+      (click)="toggleFullscreen()"
+      [pTooltip]="fullscreenTooltip"
+      tooltipPosition="bottom"
+    />
     </div>
 
     <!-- Toolbar editor -->

@@ -158,6 +158,11 @@ public class BookUtils {
 
         title = normalizeProviderSearchTitle(title, provider);
 
+        // Guard against ReDoS: truncate excessively long titles before regex processing
+        if (title.length() > 500) {
+            title = title.substring(0, 500);
+        }
+
         // Remove any bracketed or parenthesized tags that are NOT 4-digit years
         Matcher nonYearTags = Pattern.compile("\\s*[\\(\\[](?!\\d{4}[\\)\\]])[^\\)\\]]*[\\)\\]]").matcher(title);
         title = nonYearTags.replaceAll("");

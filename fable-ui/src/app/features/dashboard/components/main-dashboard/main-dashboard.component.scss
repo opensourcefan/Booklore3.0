@@ -70,26 +70,6 @@
   letter-spacing: -0.02em;
 }
 
-.branded-fable {
-  display: inline;
-}
-
-.branded-fab {
-  display: inline-block;
-}
-
-.branded-l {
-  display: inline-block;
-  transform: rotate(-20deg) translateY(-0.05em) translateX(0.10em);
-  transform-origin: right bottom;
-  margin-right: -0.12em;
-}
-
-.branded-e {
-  display: inline-block;
-  margin-left: -0.03em;
-}
-
 .dashboard-no-library {
   padding: 3rem;
   background: var(--p-surface-900);
@@ -99,28 +79,6 @@
   position: relative;
   overflow: hidden;
   text-align: center;
-}
-
-.dashboard .p-dialog {
-  max-width: 90%;
-}
-
-::ng-deep .p-dialog-mask {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-::ng-deep .p-dialog-mask {
-  backdrop-filter: blur(3px);
-}
-
-.dashboard-toolbar {
-  position: fixed;
-  top: 4.75rem;
-  right: 0.15rem;
-  z-index: 60;
-  display: flex;
-  justify-content: flex-end;
-  pointer-events: none;
 }
 
 .dashboard-grid {
@@ -172,42 +130,12 @@
   }
 }
 
-.dashboard-settings-button {
-  pointer-events: auto;
-  position: relative;
-
-  ::ng-deep .p-button {
-    width: 2.35rem;
-    height: 2.35rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    background: rgba(var(--p-surface-900-rgb), 0.8);
-    border: 1px solid var(--p-content-border-color);
-
-    &:hover {
-      background: rgba(var(--p-surface-800-rgb), 0.9);
-      transform: scale(1.05);
-      transition: all 0.2s ease;
-    }
-  }
-}
-
 @media (max-width: 768px) {
-  .dashboard-toolbar {
-    top: 4.15rem;
-    right: 0.1rem;
-  }
   .dashboard-grid {
     --dashboard-gap: 0.9rem;
   }
   .dashboard-panel-handle {
     top: 1rem;
     right: 1rem;
-  }
-  .dashboard-settings-button {
-    ::ng-deep .p-button {
-      width: 2.5rem;
-      height: 2.5rem;
-    }
   }
 }

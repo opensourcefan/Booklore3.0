@@ -9,6 +9,7 @@ import {PostLoginInitializerService} from '../../core/services/post-login-initia
 describe('AuthService token storage', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
 
     TestBed.configureTestingModule({
       providers: [
@@ -22,6 +23,7 @@ describe('AuthService token storage', () => {
 
   afterEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('stores and exposes token expiry and default-password metadata', () => {

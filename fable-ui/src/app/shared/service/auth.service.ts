@@ -78,7 +78,7 @@ export class AuthService {
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, tokenResponse.accessToken);
     localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokenResponse.refreshToken);
     localStorage.setItem(ACCESS_TOKEN_EXPIRY_STORAGE_KEY, tokenResponse.expires.toString());
-    localStorage.setItem(DEFAULT_PASSWORD_STORAGE_KEY, String(tokenResponse.isDefaultPassword));
+    sessionStorage.setItem(DEFAULT_PASSWORD_STORAGE_KEY, String(tokenResponse.isDefaultPassword));
     this.tokenSubject.next(tokenResponse.accessToken);
   }
 
@@ -95,7 +95,8 @@ export class AuthService {
   }
 
   getInternalDefaultPassword(): boolean | null {
-    return this.readStoredBoolean(DEFAULT_PASSWORD_STORAGE_KEY);
+    const val = sessionStorage.getItem(DEFAULT_PASSWORD_STORAGE_KEY);
+    return val !== null ? val === 'true' : null;
   }
 
   hasValidInternalAccessToken(): boolean {
@@ -174,7 +175,7 @@ export class AuthService {
     }
 
     const expires = this.readStoredNumber(ACCESS_TOKEN_EXPIRY_STORAGE_KEY);
-    const isDefaultPassword = this.readStoredBoolean(DEFAULT_PASSWORD_STORAGE_KEY);
+    const isDefaultPassword = this.getInternalDefaultPassword();
     if (expires === null || isDefaultPassword === null || expires <= Date.now()) {
       this.clearStoredSessionData();
       return null;
@@ -187,7 +188,7 @@ export class AuthService {
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(ACCESS_TOKEN_EXPIRY_STORAGE_KEY);
-    localStorage.removeItem(DEFAULT_PASSWORD_STORAGE_KEY);
+    sessionStorage.removeItem(DEFAULT_PASSWORD_STORAGE_KEY);
   }
 
   private readStoredNumber(key: string): number | null {

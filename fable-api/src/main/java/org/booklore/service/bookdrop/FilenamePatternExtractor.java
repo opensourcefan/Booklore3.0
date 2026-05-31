@@ -309,6 +309,10 @@ public class FilenamePatternExtractor {
         regexBuilder.append(Pattern.quote(literalTextAfterLastPlaceholder));
         
         try {
+            if (pattern.length() > 500) {
+                log.error("Pattern too long ({} chars), rejecting to prevent ReDoS", pattern.length());
+                return null;
+            }
             Pattern compiledPattern = Pattern.compile(regexBuilder.toString());
             return new ParsedPattern(compiledPattern, placeholderOrder);
         } catch (PatternSyntaxException e) {

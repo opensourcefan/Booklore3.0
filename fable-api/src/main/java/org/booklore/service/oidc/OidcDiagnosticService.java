@@ -36,6 +36,10 @@ public class OidcDiagnosticService {
         // 1. Fetch discovery document (uncached)
         Map<String, Object> doc;
         try {
+            if (providerDetails.getIssuerUri().length() > 500) {
+                checks.add(new OidcTestCheck("Discovery Document", CheckStatus.FAIL, "Issuer URI too long"));
+                return new OidcTestResult(false, checks);
+            }
             String issuerUri = providerDetails.getIssuerUri().replaceAll("/+$", "");
             String discoveryUrl = issuerUri + "/.well-known/openid-configuration";
 

@@ -787,11 +787,12 @@
 
   .mobile-zoom-slider {
     position: absolute;
-    bottom: 0;
+    bottom: env(safe-area-inset-bottom, 0);
     left: 0;
     right: 0;
-    height: 28px;
-    padding: 0 24px;
+    height: 36px;
+    padding: 4px 24px;
+    padding-bottom: calc(4px + env(safe-area-inset-bottom, 0));
     gap: 16px;
     background: rgba(20, 20, 20, 0.22);
     z-index: 1001;
@@ -811,9 +812,9 @@
 
     .zoom-range {
       flex: 1;
-      height: 4px;
+      height: 6px;
       background: rgba(255, 255, 255, 0.25);
-      border-radius: 2px;
+      border-radius: 3px;
       outline: none;
       -webkit-appearance: none;
       appearance: none;
@@ -821,8 +822,8 @@
       &::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 16px;
-        height: 16px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         background: #4a90e2;
         cursor: pointer;
@@ -830,8 +831,8 @@
       }
       
       &::-moz-range-thumb {
-        width: 16px;
-        height: 16px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         background: #4a90e2;
         cursor: pointer;
