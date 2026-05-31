@@ -12,7 +12,6 @@
       "installMode": "prefetch",
       "resources": {
         "files": [
-          "/favicon.ico",
           "/assets/favicon.svg",
           "/index.csr.html",
           "/index.html",

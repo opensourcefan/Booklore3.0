@@ -469,13 +469,13 @@ describe('CbxReaderComponent mobile panel interactions', () => {
       joystickVelocityX: number;
       joystickVelocityY: number;
       joystickInteractionStartMs: number;
-      applyJoystickMotionStep: () => void;
+      applyJoystickMotionStep: (deltaSeconds: number) => void;
     };
 
     joystickInternals.joystickVelocityX = 0;
     joystickInternals.joystickVelocityY = 0;
     joystickInternals.joystickInteractionStartMs = Date.now();
-    joystickInternals.applyJoystickMotionStep();
+    joystickInternals.applyJoystickMotionStep(1 / 60);
     const firstTouchDelta = Math.abs(component.manualPagePanX);
 
     component.manualPagePanX = 0;
@@ -483,7 +483,7 @@ describe('CbxReaderComponent mobile panel interactions', () => {
     joystickInternals.joystickVelocityX = 0;
     joystickInternals.joystickVelocityY = 0;
     joystickInternals.joystickInteractionStartMs = Date.now() - 500;
-    joystickInternals.applyJoystickMotionStep();
+    joystickInternals.applyJoystickMotionStep(1 / 60);
     const settledTouchDelta = Math.abs(component.manualPagePanX);
 
     expect(firstTouchDelta).toBeGreaterThan(0);
@@ -510,7 +510,7 @@ describe('CbxReaderComponent mobile panel interactions', () => {
       joystickVelocityY: number;
       joystickInteractionStartMs: number;
       joystickAxisIntent: 'none' | 'horizontal' | 'vertical';
-      applyJoystickMotionStep: () => void;
+      applyJoystickMotionStep: (deltaSeconds: number) => void;
     };
 
     component.joystickKnobX = 28;
@@ -519,7 +519,7 @@ describe('CbxReaderComponent mobile panel interactions', () => {
     joystickInternals.joystickVelocityY = 0;
     joystickInternals.joystickInteractionStartMs = Date.now() - 600;
     joystickInternals.joystickAxisIntent = 'none';
-    joystickInternals.applyJoystickMotionStep();
+    joystickInternals.applyJoystickMotionStep(1 / 60);
 
     expect(joystickInternals.joystickAxisIntent).toBe('horizontal');
     expect(Math.abs(component.manualPagePanX)).toBeGreaterThan(0);
@@ -547,7 +547,7 @@ describe('CbxReaderComponent mobile panel interactions', () => {
       joystickVelocityY: number;
       joystickInteractionStartMs: number;
       joystickAxisIntent: 'none' | 'horizontal' | 'vertical';
-      applyJoystickMotionStep: () => void;
+      applyJoystickMotionStep: (deltaSeconds: number) => void;
     };
 
     component.joystickKnobX = 22;
@@ -556,7 +556,7 @@ describe('CbxReaderComponent mobile panel interactions', () => {
     joystickInternals.joystickVelocityY = 0;
     joystickInternals.joystickInteractionStartMs = Date.now() - 600;
     joystickInternals.joystickAxisIntent = 'none';
-    joystickInternals.applyJoystickMotionStep();
+    joystickInternals.applyJoystickMotionStep(1 / 60);
 
     expect(Math.abs(component.manualPagePanX)).toBeGreaterThan(0);
     expect(Math.abs(component.manualPagePanY)).toBeGreaterThan(0);
@@ -581,7 +581,7 @@ describe('CbxReaderComponent mobile panel interactions', () => {
       joystickVelocityY: number;
       joystickInteractionStartMs: number;
       joystickAxisIntent: 'none' | 'horizontal' | 'vertical';
-      applyJoystickMotionStep: () => void;
+      applyJoystickMotionStep: (deltaSeconds: number) => void;
     };
 
     joystickInternals.joystickVelocityX = 0;
@@ -591,17 +591,17 @@ describe('CbxReaderComponent mobile panel interactions', () => {
 
     component.joystickKnobX = 28;
     component.joystickKnobY = 6;
-    joystickInternals.applyJoystickMotionStep();
+    joystickInternals.applyJoystickMotionStep(1 / 60);
     expect(joystickInternals.joystickAxisIntent).toBe('horizontal');
 
     component.joystickKnobX = 10;
     component.joystickKnobY = 14;
-    joystickInternals.applyJoystickMotionStep();
+    joystickInternals.applyJoystickMotionStep(1 / 60);
     expect(joystickInternals.joystickAxisIntent).toBe('horizontal');
 
     component.joystickKnobX = 6;
     component.joystickKnobY = 20;
-    joystickInternals.applyJoystickMotionStep();
+    joystickInternals.applyJoystickMotionStep(1 / 60);
     expect(joystickInternals.joystickAxisIntent).toBe('vertical');
   });
 
