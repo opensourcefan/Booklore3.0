@@ -1,11 +1,16 @@
 <div class="notification-container live-border">
   <div class="notification-header">
-    @if (latestNotification.severity) {
-      <app-tag [color]="getSeverityColor(latestNotification.severity)" size="3xs" class="tag-centered">
-        {{ latestNotification.severity }}
-      </app-tag>
-    }
-    <span class="notification-timestamp">{{ latestNotification.timestamp }}</span>
+    <div class="notification-header-info">
+      @if (latestNotification.severity) {
+        <app-tag [color]="getSeverityColor(latestNotification.severity)" size="3xs" class="tag-centered">
+          {{ latestNotification.severity }}
+        </app-tag>
+      }
+      <span class="notification-timestamp">{{ latestNotification.timestamp }}</span>
+    </div>
+    <button class="notification-close-btn" (click)="dismissNotification()" aria-label="Dismiss notification">
+      <i class="pi pi-times"></i>
+    </button>
   </div>
-  <p class="notification-message">{{ latestNotification.message }}</p>
+  <p class="notification-message" [innerHTML]="latestNotification.message"></p>
 </div>

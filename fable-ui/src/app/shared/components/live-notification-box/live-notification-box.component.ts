@@ -44,6 +44,10 @@ export class LiveNotificationBoxComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
+  dismissNotification(): void {
+    this.notificationService.clearNotification();
+  }
+
   getSeverityColor(severity?: string): 'red' | 'amber' | 'green' | 'gray' {
     switch (severity) {
       case 'ERROR':

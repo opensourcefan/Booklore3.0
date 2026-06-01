@@ -15,7 +15,33 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
+}
+
+.notification-header-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notification-close-btn {
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+
+  &:hover {
+    color: #e4e4e7;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .tag-centered {
@@ -32,4 +58,9 @@
   font-weight: 400;
   color: #e4e4e7;
   margin: 0;
+
+  ::ng-deep strong {
+    color: var(--primary-color);
+    font-weight: 600;
+  }
 }

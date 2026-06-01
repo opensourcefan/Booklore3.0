@@ -68,7 +68,7 @@ public class LibraryProcessingService {
             int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
 
             String dirNames = getDirectoryNames(libraryEntity.getLibraryPaths());
-            notificationService.sendMessage(Topic.LOG, LogNotification.info(importedCount + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
+            notificationService.sendMessage(Topic.LOG, LogNotification.info("<strong>" + importedCount + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
         } catch (IOException e) {
             log.error("Failed to process library {}: {}", libraryEntity.getName(), e.getMessage(), e);
             notificationService.sendMessage(Topic.LOG, LogNotification.error("Failed to process library: " + libraryEntity.getName() + " - " + e.getMessage()));
@@ -94,7 +94,7 @@ public class LibraryProcessingService {
             List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity, pathEntities);
             int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
             String dirNames = getDirectoryNames(pathEntities);
-            notificationService.sendMessage(Topic.LOG, LogNotification.info(importedCount + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
+            notificationService.sendMessage(Topic.LOG, LogNotification.info("<strong>" + importedCount + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
         } catch (IOException e) {
             log.error("Failed to process new library paths for {}: {}", libraryEntity.getName(), e.getMessage(), e);
             notificationService.sendMessage(Topic.LOG, LogNotification.error("Failed to process new library path(s): " + libraryEntity.getName() + " - " + e.getMessage()));
@@ -126,7 +126,7 @@ public class LibraryProcessingService {
         String dirNames = getDirectoryNames(pathEntities);
 
         notificationService.sendMessage(Topic.LOG,
-                LogNotification.info(importedCount + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
+                LogNotification.info("<strong>" + importedCount + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
     }
 
     @Transactional
@@ -142,7 +142,7 @@ public class LibraryProcessingService {
         int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
         String dirNames = getDirectoryNames(libraryEntity.getLibraryPaths());
 
-        notificationService.sendMessage(Topic.LOG, LogNotification.info(importedCount + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
+        notificationService.sendMessage(Topic.LOG, LogNotification.info("<strong>" + importedCount + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
     }
 
     @Transactional
@@ -218,7 +218,7 @@ public class LibraryProcessingService {
         scheduleLibraryDirectoryTaggingIfEnabled(libraryEntity);
 
         String dirNames = getDirectoryNames(libraryEntity.getLibraryPaths());
-        notificationService.sendMessage(Topic.LOG, LogNotification.info(total + " assets imported from " + dirNames + " to " + libraryEntity.getName() + "."));
+        notificationService.sendMessage(Topic.LOG, LogNotification.info("<strong>" + total + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
     }
 
     public void processLibraryFiles(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
