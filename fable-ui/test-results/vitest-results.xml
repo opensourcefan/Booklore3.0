@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="1" failures="0" errors="0" time="1.033614051">
-    <testsuite name="src/app/shared/components/directory-picker/directory-picker.component.spec.ts" timestamp="2026-06-01T02:35:43.336Z" hostname="booklore" tests="1" failures="0" errors="0" skipped="0" time="1.033614051">
-        <testcase classname="src/app/shared/components/directory-picker/directory-picker.component.spec.ts" name="DirectoryPickerComponent import badges &gt; shows a dedicated subdirectories-imported badge when only descendant folders are imported" time="1.028910262">
-        </testcase>
-    </testsuite>
-</testsuites>
