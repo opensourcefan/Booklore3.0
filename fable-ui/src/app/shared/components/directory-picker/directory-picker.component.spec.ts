@@ -105,8 +105,6 @@ describe('DirectoryPickerComponent import badges', () => {
   it('shows a dedicated subdirectories-imported badge when only descendant folders are imported', async () => {
     const fixture = TestBed.createComponent(DirectoryPickerComponent);
     fixture.detectChanges();
-    await new Promise(resolve => setTimeout(resolve, 150));
-    fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
     const libraryRow = Array.from(root.querySelectorAll('.directory-item')).find(item =>

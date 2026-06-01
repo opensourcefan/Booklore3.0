@@ -124,6 +124,7 @@ export class AppTopBarComponent implements OnDestroy {
   private latestTasks: Record<string, MetadataBatchProgressNotification> = {};
   private latestHasPendingFiles = false;
   private latestNotificationSeverity?: Severity;
+  hasActiveLogNotification = false;
   private mobileSidebarBackHandle: MobileBackHandle | null = null;
   private mobileDirectoryBackHandle: MobileBackHandle | null = null;
   private mobileOverflowBackHandle: MobileBackHandle | null = null;
@@ -532,11 +533,14 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   private subscribeToNotifications() {
-    this.notificationService.latestNotification$
+    this.notificationService.activeNotification$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((notification: LogNotification) => {
-        this.latestNotificationSeverity = notification.severity;
-        this.triggerPulseEffect();
+      .subscribe((notification: LogNotification | null) => {
+        this.hasActiveLogNotification = !!notification;
+        if (notification) {
+          this.latestNotificationSeverity = notification.severity;
+          this.triggerPulseEffect();
+        }
       });
   }
 
@@ -608,6 +612,7 @@ export class AppTopBarComponent implements OnDestroy {
   get iconClass(): string {
     if (this.progressHighlight) return 'pi-spinner';
     if (this.iconPulsating) return 'pi-wave-pulse';
+    if (this.hasActiveLogNotification) return 'pi-bell';
     if (this.completedTaskCount > 0 || this.hasPendingBookdropFiles) return 'pi-bell';
     return 'pi-wave-pulse';
   }
@@ -626,6 +631,7 @@ export class AppTopBarComponent implements OnDestroy {
           return 'orange';
       }
     }
+    if (this.hasActiveLogNotification) return 'limegreen';
     if (this.completedTaskCount > 0 || this.hasPendingBookdropFiles)
       return 'limegreen';
     return 'inherit';
@@ -637,7 +643,7 @@ export class AppTopBarComponent implements OnDestroy {
 
   get shouldShowNotificationBadge(): boolean {
     return (
-      (this.completedTaskCount > 0 || this.hasPendingBookdropFiles) &&
+      (this.hasActiveLogNotification || this.completedTaskCount > 0 || this.hasPendingBookdropFiles) &&
       !this.progressHighlight &&
       !this.showPulse
     );

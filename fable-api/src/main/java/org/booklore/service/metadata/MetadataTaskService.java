@@ -272,10 +272,19 @@ public class MetadataTaskService {
                                 : String.format("Metadata fetch cancelled after processing %d of %d books.", completedCount, total);
                         status = "CANCELLED";
                     } else {
-                        total = remaining.size();
-                        message = String.format("Metadata fetch completed! %d books need review.", fetchedCount);
-                        status = "COMPLETED";
-                        completedCount = (int) acceptedCount;
+                        if (remaining.isEmpty()) {
+                            total = task.getTotalBooksCount() != null ? task.getTotalBooksCount() : 0;
+                            message = StringUtils.hasText(task.getStatusMessage())
+                                    ? task.getStatusMessage()
+                                    : "Batch metadata fetch successfully completed!";
+                            status = "COMPLETED";
+                            completedCount = task.getCompletedBooks() != null ? task.getCompletedBooks() : 0;
+                        } else {
+                            total = remaining.size();
+                            message = String.format("Metadata fetch completed! %d books need review.", fetchedCount);
+                            status = "COMPLETED";
+                            completedCount = (int) acceptedCount;
+                        }
                     }
 
                     return new MetadataBatchProgressNotification(

@@ -490,7 +490,8 @@ class MetadataTaskServiceTest {
 
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().getTaskId()).isEqualTo("empty");
-            assertThat(result.getFirst().getTotal()).isZero();
+            assertThat(result.getFirst().getTotal()).isEqualTo(10);
+            assertThat(result.getFirst().getCompleted()).isEqualTo(5);
             assertThat(result.getFirst().getStatus()).isEqualTo("COMPLETED");
         }
 

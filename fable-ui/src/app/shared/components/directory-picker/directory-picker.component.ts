@@ -67,15 +67,13 @@ export class DirectoryPickerComponent implements OnInit {
     this.filteredPaths = [];
     this.utilityService.getFolders(path).subscribe({
       next: (folders: string[]) => {
-        setTimeout(() => {
-          this.paths = folders;
-          this.filteredPaths = folders;
-          this.isLoading = false;
-          this.updateBreadcrumb(path);
-          folders.forEach(folder => {
-            this.selectedFoldersMap[folder] = this.selectedFolders.includes(folder);
-          });
-        }, 100);
+        this.paths = folders;
+        this.filteredPaths = folders;
+        this.isLoading = false;
+        this.updateBreadcrumb(path);
+        folders.forEach(folder => {
+          this.selectedFoldersMap[folder] = this.selectedFolders.includes(folder);
+        });
       },
       error: (error) => {
         console.error('Error fetching folders:', error);
