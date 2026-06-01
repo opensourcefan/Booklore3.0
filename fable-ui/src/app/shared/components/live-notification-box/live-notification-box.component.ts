@@ -1,9 +1,5 @@
-import {Component, inject, OnDestroy} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {NotificationEventService} from '../../websocket/notification-event.service';
-import {LogNotification} from '../../websocket/model/log-notification.model';
-import {TranslocoService} from '@jsverse/transloco';
-import {Subject} from 'rxjs';
-import {takeUntil} from 'rxjs/operators';
 import {CommonModule} from '@angular/common';
 
 import {TagComponent} from '../tag/tag.component';
@@ -21,19 +17,9 @@ import {TagComponent} from '../tag/tag.component';
     TagComponent
   ]
 })
-export class LiveNotificationBoxComponent implements OnDestroy {
-  private readonly t = inject(TranslocoService);
-  private readonly destroy$ = new Subject<void>();
-  
+export class LiveNotificationBoxComponent {
   private notificationService = inject(NotificationEventService);
   activeNotification$ = this.notificationService.activeNotification$;
-
-  constructor() {}
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   dismissNotification(): void {
     this.notificationService.clearNotification();
