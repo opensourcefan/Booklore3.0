@@ -13,6 +13,8 @@ export class NotificationEventService {
     filter((event): event is LogNotification => event !== null)
   );
 
+  activeNotification$: Observable<LogNotification | null> = this.latestNotificationSubject.asObservable();
+
   private notificationHighlightSubject = new BehaviorSubject<boolean>(false);
   notificationHighlight$ = this.notificationHighlightSubject.asObservable();
 
@@ -22,37 +24,9 @@ export class NotificationEventService {
   handleNewNotification(notification: LogNotification): void {
     this.latestNotificationSubject.next(notification);
     this.notificationHighlightSubject.next(true);
-
-    if (this.highlightTimeout) {
-      clearTimeout(this.highlightTimeout);
-    }
-
-    this.highlightTimeout = setTimeout(() => {
-      this.notificationHighlightSubject.next(false);
-    }, 7500);
-
-    if (this.clearTimeoutHandle) {
-      clearTimeout(this.clearTimeoutHandle);
-    }
-
-    this.clearTimeoutHandle = setTimeout(() => {
-      if (!this.notificationHighlightSubject.value) {
-        this.latestNotificationSubject.next(null);
-      }
-    }, 20000);
   }
 
   clearNotification(): void {
-    if (this.highlightTimeout) {
-      clearTimeout(this.highlightTimeout);
-      this.highlightTimeout = undefined;
-    }
-
-    if (this.clearTimeoutHandle) {
-      clearTimeout(this.clearTimeoutHandle);
-      this.clearTimeoutHandle = undefined;
-    }
-
     this.notificationHighlightSubject.next(false);
     this.latestNotificationSubject.next(null);
   }

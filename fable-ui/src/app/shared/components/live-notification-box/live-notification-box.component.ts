@@ -4,6 +4,7 @@ import {LogNotification} from '../../websocket/model/log-notification.model';
 import {TranslocoService} from '@jsverse/transloco';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
+import {CommonModule} from '@angular/common';
 
 import {TagComponent} from '../tag/tag.component';
 
@@ -16,28 +17,18 @@ import {TagComponent} from '../tag/tag.component';
     class: 'config-panel'
   },
   imports: [
+    CommonModule,
     TagComponent
   ]
 })
 export class LiveNotificationBoxComponent implements OnDestroy {
   private readonly t = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
-  latestNotification: LogNotification = {message: this.t.translate('shared.liveNotification.defaultMessage')};
-  private hasReceivedNotification = false;
-
+  
   private notificationService = inject(NotificationEventService);
+  activeNotification$ = this.notificationService.activeNotification$;
 
-  constructor() {
-    this.notificationService.latestNotification$.pipe(takeUntil(this.destroy$)).subscribe(notification => {
-      this.hasReceivedNotification = true;
-      this.latestNotification = notification;
-    });
-    this.t.langChanges$.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      if (!this.hasReceivedNotification) {
-        this.latestNotification = {message: this.t.translate('shared.liveNotification.defaultMessage')};
-      }
-    });
-  }
+  constructor() {}
 
   ngOnDestroy(): void {
     this.destroy$.next();

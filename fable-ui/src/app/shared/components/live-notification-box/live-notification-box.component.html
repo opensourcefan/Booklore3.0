@@ -1,3 +1,4 @@
+@if (activeNotification$ | async; as latestNotification) {
 <div class="notification-container live-border">
   <div class="notification-header">
     <div class="notification-header-info">
@@ -14,3 +15,4 @@
   </div>
   <p class="notification-message" [innerHTML]="latestNotification.message"></p>
 </div>
+}
