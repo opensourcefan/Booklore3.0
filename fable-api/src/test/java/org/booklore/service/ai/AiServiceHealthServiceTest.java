@@ -148,7 +148,7 @@ class AiServiceHealthServiceTest {
     void fallsBackToLocalhostWhenConfiguredDockerHostIsNotReachable() throws Exception {
         startHealthServer(200, "{\"status\":\"ok\"}");
         int port = server.getAddress().getPort();
-        appProperties.getAi().setBaseUrl("http://booklore-ai-panel:" + port);
+        appProperties.getAi().setBaseUrl("http://app-ai-panel:" + port);
         when(appSettingService.getAppSettings()).thenReturn(AppSettings.builder()
                 .aiPanelDetectionEnabled(true)
                 .build());

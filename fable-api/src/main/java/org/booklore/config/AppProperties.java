@@ -53,7 +53,7 @@ public class AppProperties {
     @Getter
     @Setter
     public static class Ai {
-        private String baseUrl = "http://booklore-ai-panel:8080";
+        private String baseUrl = "http://app-ai-panel:8080";
         private int connectTimeoutMs = 3000;
         private int readTimeoutMs = 30000;
     }

@@ -362,7 +362,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
     try {
       const {host} = new URL(baseUrl);
-      if (host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel')) {
+      if (host.startsWith('app-ai-panel') || host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel')) {
         return 'Docker AI service';
       }
       return baseUrl;
@@ -379,7 +379,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
     try {
       const {host} = new URL(baseUrl);
-      return host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel');
+      return host.startsWith('app-ai-panel') || host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel');
     } catch {
       return false;
     }
@@ -408,7 +408,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
     try {
       const {host} = new URL(baseUrl);
-      return host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel');
+      return host.startsWith('app-ai-panel') || host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel');
     } catch {
       return false;
     }

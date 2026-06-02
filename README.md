@@ -204,67 +204,88 @@ AI_SEARCH_PORT=18081
 
 ```yaml
 services:
-  mariadb:
-    image: mariadb:11
-    container_name: fable-db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - db-data:/var/lib/mysql
-    networks:
-      - fable-net
-
-  app-backend:
-    image: ghcr.io/opensourcefan/fable:latest
-    container_name: app-backend
+  fable:
+    image: ghcr.io/opensourcefan/fable:stable
+    container_name: fable
     restart: unless-stopped
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      APP_USER_ID: ${APP_USER_ID:-1000}
-      APP_GROUP_ID: ${APP_GROUP_ID:-1000}
-      TZ: ${TZ:-UTC}
-      AI_SERVICE_BASE_URL: ${AI_SERVICE_BASE_URL:-}
-      AI_SEARCH_BASE_URL: ${AI_SEARCH_BASE_URL:-http://fable-ai-search:8080}
+      - USER_ID=${APP_USER_ID}
+      - GROUP_ID=${APP_GROUP_ID}
+      - TZ=${TZ}
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_USERNAME=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - DISK_TYPE=${DISK_TYPE}
+      - TELEMETRY_ENABLED=false
+      - AI_SERVICE_BASE_URL=${AI_SERVICE_BASE_URL:-http://app-ai-panel:8080}
+      - AI_SEARCH_BASE_URL=${AI_SEARCH_BASE_URL:-http://fable-ai-search:8080}
     ports:
       - "6060:6060"
     volumes:
+      - ./data:/app/data
       - ./books:/books
-      - ./data:/app-data
       - ./bookdrop:/bookdrop
-      - ./docker/rar:/opt/fable-rar:ro  # Optional: mount a compatible Linux rar binary at ./docker/rar/rar for in-place CBR metadata writes
+      - ./docker/rar:/opt/booklore-rar:ro  # Optional: mount a compatible Linux rar binary at ./docker/rar/rar for in-place CBR metadata writes
     networks:
-      - fable-net
+      - fable_shared
+
+  mariadb:
+    image: lscr.io/linuxserver/mariadb:11.4.11
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      - PUID=${DB_USER_ID}
+      - PGID=${DB_GROUP_ID}
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - REMOTE_USER_PASSWORD=${REMOTE_USER_PASSWORD}
+    volumes:
+      - ./mariadb/config:/config
+      - ./mariadb/conf.d:/config/mariadb/conf.d
+    ports:
+      - "3306:3306"
+    networks:
+      - fable_shared
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   app-ai-panel:
-    image: ghcr.io/opensourcefan/fable-panel-ai:latest
+    image: ${AI_PANEL_IMAGE:-ghcr.io/opensourcefan/fable-panel-ai:stable}
     container_name: app-ai-panel
+    profiles: ["ai"]
     restart: unless-stopped
-    profiles:
-      - ai
-    ports:
-      - "${AI_PANEL_PORT:-18080}:8080"
+    environment:
+      - TZ=${TZ}
+      - MODEL_ID=${AI_MODEL_ID:-mosesb/best-comic-panel-detection}
+      - HF_HOME=/models
     volumes:
       - ./data/ai-models:/models
+    ports:
+      - "${AI_PANEL_PORT:-18080}:8080"
     networks:
-      - fable-net
+      - fable_shared
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
   fable-ai-search:
-    image: ghcr.io/opensourcefan/fable-search-ai:stable
+    image: ${AI_SEARCH_IMAGE:-ghcr.io/opensourcefan/fable-search-ai:stable}
     container_name: fable-ai-search
     profiles: ["ai"]
     restart: unless-stopped
     environment:
-      # Pass time zone settings
       - TZ=${TZ}
-      # Model settings (these read the values you set in your .env file)
       - EMBEDDING_MODEL=${AI_SEARCH_EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
       - EMBEDDING_DIMENSIONS=${AI_SEARCH_EMBEDDING_DIMENSIONS:-384}
       - LLM_MODEL=${AI_SEARCH_LLM_MODEL:-qwen2.5:1.5b}
@@ -274,7 +295,6 @@ services:
       - SEARCH_SIMILARITY_THRESHOLD=${AI_SEARCH_SIMILARITY_THRESHOLD:-0.3}
       - EXTERNAL_LLM_BASE_URL=${AI_SEARCH_EXTERNAL_LLM_URL:-}
       - EXTERNAL_EMBEDDING_BASE_URL=${AI_SEARCH_EXTERNAL_EMBEDDING_URL:-}
-      # Database connection for storing embeddings
       - DB_HOST=mariadb
       - DB_PORT=3306
       - DB_NAME=${MYSQL_DATABASE}
@@ -288,16 +308,38 @@ services:
       mariadb:
         condition: service_healthy
     networks:
-      - fable-net
-
-volumes:
-  db-data:
+      - fable_shared
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
 networks:
-  fable-net:
+  fable_shared:
+    name: fable_shared
 ```
 
 > **Note:** This is a representative sample. Always use the `docker-compose.yml` pulled from the repository for the most up-to-date configuration.
+
+### Adding AI Search to an Existing Installation
+
+If you already have Fable running and want to add AI Semantic Search, add the `fable-ai-search` service block above to your existing `docker-compose.yml`, then add these lines to your `.env` file:
+
+```ini
+COMPOSE_PROFILES=ai
+AI_SEARCH_BASE_URL=http://fable-ai-search:8080
+AI_SEARCH_PORT=18081
+```
+
+Then pull and start the new service:
+
+```bash
+docker compose pull fable-ai-search
+docker compose up -d fable-ai-search
+```
+
+Your existing database and settings are not affected — the AI search service connects to the same MariaDB instance and stores embeddings in a separate table.
 
 ---
 
