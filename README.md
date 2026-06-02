@@ -351,7 +351,10 @@ tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
    - On first start they are automatically seeded to the mounted models folders
    - No manual file placement is required
 5. **For Panel Detection**: Open a comic in the reader and use the AI button to scan the current book. Optionally run a batch scan from settings.
-6. **For Semantic Search**: Click the three dots on any book card to run **Embed for AI Search**. Once embedded, you can search via the topbar AI Search icon.
+6. **AI Search Features**:
+   - **Global AI Search:** Click the sparkly blue **AI Search** icon in the topbar or library search fields to search your entire collection by concepts and themes.
+   - **Book-Specific AI Search:** Click the glowing **AIS** badge on any book card to ask questions specifically about that book.
+   - **Note:** Make sure you have embedded your books first (Click the three dots on any book card -> **Embed for AI Search**).
 
 ### AI Notes
 
