@@ -82,6 +82,7 @@ export class BookBrowserQueryParamsService {
       seriesCollapsed: false,
       overlayBookType: true,
       overlayAiPanelData: true,
+      overlayAiSearchData: true,
       overlayIssueNumber: true
     };
 
