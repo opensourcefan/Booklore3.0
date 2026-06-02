@@ -11,6 +11,7 @@ import {filter, take, takeUntil} from 'rxjs/operators';
 
 import {AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings} from '../../../shared/model/app-settings.model';
 import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-progress.model';
+import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
 import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../shared/service/ai-search-scan-progress.service';
 import {LibraryService} from '../../book/service/library.service';
@@ -49,6 +50,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
   private libraryService = inject(LibraryService);
+  private bookService = inject(BookService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private dialogLauncherService = inject(DialogLauncherService);
@@ -72,6 +74,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   aiSearchReloadRunning = false;
   aiSearchStartupExpanded = false;
   aiSearchStartupEvents: AiStartupEvent[] = [];
+  aiSearchLastStatusCheckedAt: string | null = null;
   selectedLibraryPathIds: number[] = [];
   selectedLibraryFilterIds: number[] = [];
   batchProgress: AiPanelScanProgressPayload | null = null;

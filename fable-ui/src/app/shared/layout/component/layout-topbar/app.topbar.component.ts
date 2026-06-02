@@ -833,21 +833,6 @@ export class AppTopBarComponent implements OnDestroy {
     return 'warning';
   }
 
-  get aiScanTone(): 'ok' | 'warning' | 'error' {
-    if (!this.aiBatchProgress) {
-      return 'warning';
-    }
-
-    if (this.aiBatchProgress.event === 'FAILED') {
-      return 'error';
-    }
-
-    if (this.aiBatchProgress.event === 'COMPLETED') {
-      return 'ok';
-    }
-
-    return 'warning';
-  }
 
   get aiSearchScanTone(): 'ok' | 'warning' | 'error' {
     if (!this.aiSearchBatchProgress) {
