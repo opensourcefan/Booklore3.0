@@ -44,6 +44,8 @@ import {MobileBackHandle, MobileBackNavigationService} from '../../../service/mo
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
 import {AiSearchDialogComponent} from '../../../../features/book/components/ai-search-dialog/ai-search-dialog.component';
+import {AppSettingsService} from '../../../service/app-settings.service';
+import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../service/ai-search-scan-progress.service';
 
 @Component({
   selector: 'app-topbar',
@@ -103,7 +105,9 @@ export class AppTopBarComponent implements OnDestroy {
   showMobileBookFilterTrigger = false;
   showMobileDirTrigger = false;
   mobileDirectoryPopoverOpen = false;
+  aiSearchEnabled = false;
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
+  aiSearchBatchProgress: AiSearchProgressPayload | null = null;
   metadataFlushProgress: TaskProgressPayload | null = null;
   importScanProgress: TaskProgressPayload | null = null;
   directoryTaggingProgress: TaskProgressPayload | null = null;
@@ -154,6 +158,8 @@ export class AppTopBarComponent implements OnDestroy {
   private metadataTaskService = inject(MetadataTaskService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
   public mobileUx = inject(MobileUxService);
+  private appSettingsService = inject(AppSettingsService);
+  private aiSearchScanProgressService = inject(AiSearchScanProgressService);
 
   constructor() {
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -190,6 +196,18 @@ export class AppTopBarComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(progress => {
         this.aiBatchProgress = progress?.mode === 'BATCH' ? progress : null;
+      });
+
+    this.aiSearchScanProgressService.progress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(progress => {
+        this.aiSearchBatchProgress = progress?.mode === 'BATCH' ? progress : null;
+      });
+
+    this.appSettingsService.appSettings$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(settings => {
+        this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
       });
 
     this.sidecarBackupProgressService.active$
@@ -665,6 +683,10 @@ export class AppTopBarComponent implements OnDestroy {
     return !!this.aiBatchProgress;
   }
 
+  get showDesktopAiSearchScanStatus(): boolean {
+    return !!this.aiSearchBatchProgress;
+  }
+
   get showMetadataFlushStatus(): boolean {
     return !!this.metadataFlushProgress;
   }
@@ -809,6 +831,42 @@ export class AppTopBarComponent implements OnDestroy {
     }
 
     return 'warning';
+  }
+
+  get aiScanTone(): 'ok' | 'warning' | 'error' {
+    if (!this.aiBatchProgress) {
+      return 'warning';
+    }
+
+    if (this.aiBatchProgress.event === 'FAILED') {
+      return 'error';
+    }
+
+    if (this.aiBatchProgress.event === 'COMPLETED') {
+      return 'ok';
+    }
+
+    return 'warning';
+  }
+
+  get aiSearchScanTone(): 'ok' | 'warning' | 'error' {
+    if (!this.aiSearchBatchProgress) {
+      return 'warning';
+    }
+
+    if (this.aiSearchBatchProgress.event === 'FAILED') {
+      return 'error';
+    }
+
+    if (this.aiSearchBatchProgress.event === 'COMPLETED') {
+      return 'ok';
+    }
+
+    return 'warning';
+  }
+
+  get aiSearchScanSummary(): string {
+    return this.aiSearchBatchProgress ? this.aiSearchScanProgressService.buildStatusText(this.aiSearchBatchProgress) : '';
   }
 
   get aiScanSummary(): string {

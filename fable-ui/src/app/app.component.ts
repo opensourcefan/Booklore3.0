@@ -23,6 +23,7 @@ import {scan, withLatestFrom} from 'rxjs/operators';
 import {AuthService} from './shared/service/auth.service';
 import {AiPanelScanProgressPayload} from './shared/model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progress.service';
+import {AiSearchProgressPayload, AiSearchScanProgressService} from './shared/service/ai-search-scan-progress.service';
 import {PagedGridPilotService} from './features/book/service/paged-grid-pilot.service';
 import {LoadingIndicatorComponent} from './shared/components/loading-indicator/loading-indicator.component';
 
@@ -54,6 +55,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private libraryLoadingService = inject(LibraryLoadingService);
   private authService = inject(AuthService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
+  private aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private pagedGridPilotService = inject(PagedGridPilotService);
 
   ngOnInit(): void {
@@ -181,6 +183,12 @@ export class AppComponent implements OnInit, OnDestroy {
       this.rxStompService.watch('/user/queue/ai-panel-scan-progress').subscribe(msg => {
         const progress = JSON.parse(msg.body) as AiPanelScanProgressPayload;
         this.aiPanelScanProgressService.handleIncomingProgress(progress);
+      })
+    );
+    this.subscriptions.push(
+      this.rxStompService.watch('/user/queue/ai-search-progress').subscribe(msg => {
+        const progress = JSON.parse(msg.body) as AiSearchProgressPayload;
+        this.aiSearchScanProgressService.handleIncomingProgress(progress);
       })
     );
     this.subscriptions.push(

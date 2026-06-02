@@ -161,6 +161,16 @@ export class AppSettingsService {
     return this.http.post<{triggered: boolean; reason: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/reload`, {});
   }
 
+  scanMissingAiSearchData(pathIds: number[]): Observable<{status: string}> {
+    return this.http.post<{status: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/scan-missing`, {
+      pathIds
+    });
+  }
+
+  stopAiSearchScan(): Observable<{status: string}> {
+    return this.http.post<{status: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/stop-scan`, {});
+  }
+
   exportSettings(): Observable<string> {
     return this.http.get<AppSettingsTransferFile>(`${this.apiUrl}/export`).pipe(
       map(payload => {

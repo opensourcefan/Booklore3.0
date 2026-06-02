@@ -11,8 +11,8 @@ import {filter, take, takeUntil} from 'rxjs/operators';
 
 import {AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings} from '../../../shared/model/app-settings.model';
 import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-progress.model';
-import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
+import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../shared/service/ai-search-scan-progress.service';
 import {LibraryService} from '../../book/service/library.service';
 import {BookService} from '../../book/service/book.service';
 import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
@@ -49,8 +49,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
   private libraryService = inject(LibraryService);
-  private bookService = inject(BookService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
+  private aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private dialogLauncherService = inject(DialogLauncherService);
   private destroy$ = new Subject<void>();
 
@@ -72,10 +72,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   aiSearchReloadRunning = false;
   aiSearchStartupExpanded = false;
   aiSearchStartupEvents: AiStartupEvent[] = [];
-  aiSearchLastStatusCheckedAt: string | null = null;
   selectedLibraryPathIds: number[] = [];
   selectedLibraryFilterIds: number[] = [];
   batchProgress: AiPanelScanProgressPayload | null = null;
+  aiSearchPreScanRunning = false;
+  aiSearchBatchProgress: AiSearchProgressPayload | null = null;
   panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];
   lastStatusCheckedAt: string | null = null;
@@ -133,6 +134,13 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
         if (progress.event === 'COMPLETED') {
           this.refreshPanelFlowStats();
         }
+      });
+
+    this.aiSearchScanProgressService.batchProgress$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(progress => {
+        this.aiSearchBatchProgress = progress;
+        this.aiSearchPreScanRunning = !['COMPLETED', 'FAILED', 'STOPPED'].includes(progress.event);
       });
   }
 
@@ -289,6 +297,58 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
         this.showMessage('error', 'Pre-scan failed', 'Could not start missing AI panel scanning.');
       }
     });
+  }
+
+  get isAiSearchActivelyScanning(): boolean {
+    if (!this.aiSearchBatchProgress) return false;
+    const event = this.aiSearchBatchProgress.event;
+    return event !== 'COMPLETED' && event !== 'FAILED' && event !== 'STOPPED';
+  }
+
+  stopAiSearchScan(): void {
+    this.appSettingsService.stopAiSearchScan().subscribe();
+  }
+
+  preScanMissingAiSearch(): void {
+    if (!this.aiSearchEnabled || !this.selectedLibraryPathIds.length || this.aiSearchPreScanRunning) {
+      return;
+    }
+
+    this.aiSearchPreScanRunning = true;
+    this.appSettingsService.scanMissingAiSearchData(this.selectedLibraryPathIds).subscribe({
+      next: result => {
+        this.aiSearchPreScanRunning = result.status === 'STARTED';
+        this.showMessage(
+          result.status === 'STARTED' ? 'success' : 'info',
+          result.status === 'STARTED' ? 'AI Search scan started' : 'Scan status',
+          'Batch scan ' + result.status
+        );
+      },
+      error: () => {
+        this.aiSearchPreScanRunning = false;
+        this.showMessage('error', 'Scan failed', 'Could not start AI Search scanning.');
+      }
+    });
+  }
+
+  get aiSearchBatchProgressText(): string {
+    return this.aiSearchBatchProgress ? this.aiSearchScanProgressService.buildStatusText(this.aiSearchBatchProgress) : '';
+  }
+
+  get aiSearchBatchProgressTone(): 'ok' | 'warning' | 'error' {
+    if (!this.aiSearchBatchProgress) {
+      return 'warning';
+    }
+
+    if (this.aiSearchBatchProgress.event === 'FAILED') {
+      return 'error';
+    }
+
+    if (this.aiSearchBatchProgress.event === 'COMPLETED') {
+      return 'ok';
+    }
+
+    return 'warning';
   }
 
   get statusEndpointLabel(): string {

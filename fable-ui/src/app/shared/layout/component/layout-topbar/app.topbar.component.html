@@ -56,9 +56,18 @@
 
   <div class="topbar-content">
     <app-book-searcher class="topbar-search"></app-book-searcher>
-    <button type="button" class="topbar-item topbar-ai-search-btn" (click)="openAiSearch()" [pTooltip]="t('aiSearch')" tooltipPosition="bottom">
-      <i class="pi pi-search topbar-icon"></i>
-    </button>
+    @if (aiSearchEnabled) {
+      <button type="button" class="topbar-item topbar-ai-search-btn" (click)="openAiSearch()" [pTooltip]="t('aiSearch')" tooltipPosition="bottom">
+        <i class="pi pi-search topbar-icon"></i>
+      </button>
+    }
+    @if (showDesktopAiSearchScanStatus) {
+      <button type="button" class="topbar-ai-status" (click)="navigateToAiSettings()">
+        <i class="pi pi-search"></i>
+        <span class="topbar-ai-label">{{ t('aiSearchScan') || 'AI Search Scan' }}</span>
+        <span class="topbar-ai-summary">{{ aiSearchScanSummary }}</span>
+      </button>
+    }
     @if (showDesktopAiScanStatus) {
       <button type="button" class="topbar-ai-status" (click)="navigateToAiSettings()">
         <i class="pi pi-sparkles"></i>

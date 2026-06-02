@@ -28,7 +28,7 @@
           AIP
         </div>
       }
-      @if (showAiSearchDataOverlay && book.hasAiSearchData) {
+      @if (showAiSearchDataOverlay && book.hasAiSearchData && aiSearchEnabled) {
         <div class="ai-search-overlay">
           AIS
         </div>
@@ -177,7 +177,7 @@
             @if (viewerBook.hasAiPanelData) {
               <div class="ai-panel-overlay">AIP</div>
             }
-            @if (viewerBook.hasAiSearchData) {
+            @if (viewerBook.hasAiSearchData && aiSearchEnabled) {
               <div class="ai-search-overlay">AIS</div>
             }
 

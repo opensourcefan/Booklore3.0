@@ -296,6 +296,57 @@
       }
     </div>
 
+    <!-- AI Search Scan Section -->
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+      <div class="scan-section">
+        <div class="scan-directory-row">
+          <p-button
+            icon="pi pi-folder-open"
+            [label]="t('prescan.chooseDirectories')"
+            [disabled]="!aiSearchEnabled || aiSearchPreScanRunning"
+            outlined
+            (onClick)="openDirectoryDialog()">
+          </p-button>
+          <span class="selected-count-chip" [ngClass]="{ 'visible': selectedLibraryPathIds.length > 0 }">
+            <i class="pi pi-folder"></i>
+            {{ t('prescan.directoriesSelected', { count: selectedLibraryPathIds.length }) }}
+          </span>
+        </div>
+
+        <div class="scan-action-row">
+          <p-button
+            [icon]="aiSearchPreScanRunning ? 'pi pi-spin pi-spinner' : 'pi pi-bolt'"
+            [label]="aiSearchPreScanRunning ? t('prescan.scanning') : t('prescan.action')"
+            [severity]="aiSearchPreScanRunning ? 'warn' : 'success'"
+            [disabled]="!aiSearchEnabled || !selectedLibraryPathIds.length || aiSearchPreScanRunning"
+            (onClick)="preScanMissingAiSearch()">
+          </p-button>
+          @if (isAiSearchActivelyScanning) {
+            <p-button
+              icon="pi pi-stop-circle"
+              label="Stop Scan"
+              severity="danger"
+              [outlined]="true"
+              [title]="t('prescan.stopAction')"
+              (onClick)="stopAiSearchScan()">
+            </p-button>
+          }
+        </div>
+      </div>
+
+      @if (aiSearchBatchProgress) {
+        <div class="status-box progress-box" [ngClass]="aiSearchBatchProgressTone">
+          <div class="progress-title-row">
+            <div class="status-title">{{ t('prescan.progressTitle') }}</div>
+          </div>
+          <div class="status-line">{{ aiSearchBatchProgressText }}</div>
+          @if (aiSearchBatchProgress.error) {
+            <div class="status-line error-text"><strong>{{ t('status.error') }}</strong>: {{ aiSearchBatchProgress.error }}</div>
+          }
+        </div>
+      }
+    </div>
+
     <p-dialog
       [(visible)]="showDeleteConfirm"
       [modal]="true"

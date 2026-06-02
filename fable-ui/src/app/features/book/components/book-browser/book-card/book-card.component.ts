@@ -144,6 +144,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private user: User | null = null;
   private diskType = 'LOCAL';
   private allowFileDeletion = false;
+  protected aiSearchEnabled = false;
   private menuInitialized = false;
   private menuContextBook: Book | null = null;
   private activeTieredMenu: TieredMenu | null = null;
@@ -188,6 +189,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       .subscribe(settings => {
         this.diskType = settings?.diskType ?? 'LOCAL';
         this.allowFileDeletion = settings?.allowFileDeletion ?? false;
+        this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
       });
 
     if (this.overlayPreferenceService) {
@@ -888,28 +890,30 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       });
     }
 
-    moreActions.push({
-      label: this.t.translate('book.card.menu.embedForAiSearch'),
-      icon: 'pi pi-search',
-      command: () => {
-        this.appSettingsService.extractAndEmbedBook(book.id).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: this.t.translate('common.success'),
-              detail: this.t.translate('book.card.toast.embedAiSearchSuccessDetail', {title: book.metadata?.title}),
-            });
-          },
-          error: (err) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('common.error'),
-              detail: err?.error?.message || this.t.translate('book.card.toast.embedAiSearchFailedDetail'),
-            });
-          },
-        });
-      },
-    });
+    if (this.aiSearchEnabled) {
+      moreActions.push({
+        label: this.t.translate('book.card.menu.embedForAiSearch'),
+        icon: 'pi pi-search',
+        command: () => {
+          this.appSettingsService.extractAndEmbedBook(book.id).subscribe({
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: this.t.translate('common.success'),
+                detail: this.t.translate('book.card.toast.embedAiSearchSuccessDetail', {title: book.metadata?.title}),
+              });
+            },
+            error: (err) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: this.t.translate('common.error'),
+                detail: err?.error?.message || this.t.translate('book.card.toast.embedAiSearchFailedDetail'),
+              });
+            },
+          });
+        },
+      });
+    }
 
     moreActions.push(
       {

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.booklore.model.dto.ai.AiServiceStatus;
 import org.booklore.service.ai.AiSearchHealthService;
 import org.booklore.service.ai.AiSearchService;
+import org.booklore.config.security.service.AuthenticationService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public class AiSearchController {
 
     private final AiSearchHealthService aiSearchHealthService;
     private final AiSearchService aiSearchService;
+    private final AuthenticationService authenticationService;
 
     @GetMapping("/status")
     public AiServiceStatus getStatus() {
@@ -73,7 +75,29 @@ public class AiSearchController {
 
     @PostMapping("/extract-and-embed/{bookId}")
     public Map<String, Object> extractAndEmbedBook(@PathVariable Long bookId) {
-        return aiSearchService.extractAndEmbedBook(bookId);
+        Long userId = authenticationService.getAuthenticatedUser().getId();
+        String username = authenticationService.getAuthenticatedUser().getUsername();
+        aiSearchService.extractAndEmbedBook(bookId, userId, username);
+        return Map.of("status", "STARTED");
+    }
+
+    @PostMapping("/scan-missing")
+    public Map<String, Object> scanMissing(@RequestBody Map<String, Object> payload) {
+        @SuppressWarnings("unchecked")
+        List<Long> pathIds = (List<Long>) payload.get("pathIds");
+        if (pathIds == null || pathIds.isEmpty()) {
+            throw new IllegalArgumentException("pathIds are required.");
+        }
+        Long userId = authenticationService.getAuthenticatedUser().getId();
+        String username = authenticationService.getAuthenticatedUser().getUsername();
+        aiSearchService.startScanMissingAiSearchEmbeddings(pathIds, userId, username);
+        return Map.of("status", "STARTED");
+    }
+
+    @PostMapping("/stop-scan")
+    public Map<String, Object> stopScan() {
+        aiSearchService.stopAiSearchScan();
+        return Map.of("status", "STOPPED");
     }
 
     private Long toLong(Object value) {
