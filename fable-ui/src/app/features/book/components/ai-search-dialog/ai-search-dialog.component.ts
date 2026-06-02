@@ -88,7 +88,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     const user = this.userService.getCurrentUser();
     if (!user) return;
 
-    let title = `${result.bookTitle} - ${this.searchQuery}`;
+    const title = `${result.bookTitle} - ${this.searchQuery}`;
 
     const request: CreateBookNoteRequest = {
       bookId: result.bookId,
