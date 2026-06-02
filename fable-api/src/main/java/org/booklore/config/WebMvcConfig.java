@@ -61,7 +61,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(aiPanelDetectionEnabledInterceptor)
             .addPathPatterns("/api/v1/ai/panel-flow/book/*/scan");
         registry.addInterceptor(aiSearchEnabledInterceptor)
-            .addPathPatterns("/api/v1/ai/search/**");
+            .addPathPatterns("/api/v1/ai/search/**")
+            .excludePathPatterns("/api/v1/ai/search/status");
         registry.addInterceptor(opdsEnabledInterceptor)
                 .addPathPatterns("/api/v1/opds/**", "/api/v2/opds/**");
         registry.addInterceptor(komgaEnabledInterceptor)
