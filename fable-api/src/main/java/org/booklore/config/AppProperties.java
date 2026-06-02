@@ -17,6 +17,7 @@ public class AppProperties {
     private Boolean forceDisableOidc = false;
     private Telemetry telemetry = new Telemetry();
     private Ai ai = new Ai();
+    private AiSearch aiSearch = new AiSearch();
 
     /**
      * Type of disk storage where library files are stored.
@@ -55,5 +56,13 @@ public class AppProperties {
         private String baseUrl = "http://booklore-ai-panel:8080";
         private int connectTimeoutMs = 3000;
         private int readTimeoutMs = 30000;
+    }
+
+    @Getter
+    @Setter
+    public static class AiSearch {
+        private String baseUrl = "http://fable-ai-search:8081";
+        private int connectTimeoutMs = 3000;
+        private int readTimeoutMs = 120000;
     }
 }

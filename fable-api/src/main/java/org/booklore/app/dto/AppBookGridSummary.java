@@ -58,6 +58,7 @@ public class AppBookGridSummary {
 
     private String readStatus;
     private Boolean hasAiPanelData;
+    private Boolean hasAiSearchData;
     private Instant lastReadTime;
     private Instant addedOn;
 }

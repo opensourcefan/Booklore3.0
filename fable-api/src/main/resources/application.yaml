@@ -36,6 +36,10 @@ app:
     base-url: ${AI_SERVICE_BASE_URL:http://app-ai-panel:8080}
     connect-timeout-ms: ${AI_SERVICE_CONNECT_TIMEOUT_MS:3000}
     read-timeout-ms: ${AI_SERVICE_READ_TIMEOUT_MS:30000}
+  ai-search:
+    base-url: ${AI_SEARCH_SERVICE_BASE_URL:http://fable-ai-search:8081}
+    connect-timeout-ms: ${AI_SEARCH_SERVICE_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-ms: ${AI_SEARCH_SERVICE_READ_TIMEOUT_MS:120000}
   disk-type: ${DISK_TYPE:LOCAL}
 
 server:

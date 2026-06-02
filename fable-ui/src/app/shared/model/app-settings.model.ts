@@ -175,6 +175,7 @@ export interface AppSettings {
   autoBookSearch: boolean;
   similarBookRecommendation: boolean;
   aiPanelDetectionEnabled: boolean;
+  aiSearchEnabled: boolean;
   defaultMetadataRefreshOptions: MetadataRefreshOptions;
   libraryMetadataRefreshOptions: MetadataRefreshOptions[];
   uploadPattern: string;
@@ -254,6 +255,7 @@ export enum AppSettingKey {
   OIDC_REDIRECT_URIS = 'OIDC_REDIRECT_URIS',
   LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS = 'LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS',
   AI_PANEL_DETECTION_ENABLED = 'AI_PANEL_DETECTION_ENABLED',
+  AI_SEARCH_ENABLED = 'AI_SEARCH_ENABLED',
   ALLOW_FILE_DELETION = 'ALLOW_FILE_DELETION',
 }
 
@@ -289,4 +291,22 @@ export interface AiPanelFlowStats {
 export interface AiPanelFlowDirectoryScanStatus {
   libraryPathId: number;
   scannedComicCount: number;
+}
+
+export interface AiSearchChunkResult {
+  chunkId: number;
+  bookId: number;
+  bookTitle: string;
+  chunkIndex: number;
+  chunkText: string;
+  pageNumber: number | null;
+  chapterTitle: string | null;
+  similarity: number;
+}
+
+export interface AiSearchResult {
+  query: string;
+  results: AiSearchChunkResult[];
+  answer: string | null;
+  totalChunksSearched: number;
 }

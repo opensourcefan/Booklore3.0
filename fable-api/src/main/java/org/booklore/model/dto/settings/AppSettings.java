@@ -28,6 +28,7 @@ public class AppSettings {
     private boolean oidcEnabled;
     private boolean telemetryEnabled;
     private boolean aiPanelDetectionEnabled;
+    private boolean aiSearchEnabled;
     private OidcProviderDetails oidcProviderDetails;
     private OidcAutoProvisionDetails oidcAutoProvisionDetails;
     private MetadataProviderSettings metadataProviderSettings;

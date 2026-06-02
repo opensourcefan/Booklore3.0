@@ -43,6 +43,7 @@ export interface AppBookGridSummary {
   koboProgressPercent?: number;
   readStatus?: string;
   hasAiPanelData?: boolean;
+  hasAiSearchData?: boolean;
   lastReadTime?: string;
   addedOn?: string;
 }
@@ -77,6 +78,7 @@ export interface Book extends FileInfo {
   id: number;
   fileType?: string;
   hasAiPanelData?: boolean;
+  hasAiSearchData?: boolean;
   primaryFile?: BookFile;
   libraryId: number;
   libraryName: string;

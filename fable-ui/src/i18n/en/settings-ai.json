@@ -63,5 +63,33 @@
     "confirmMessage": "This will permanently delete all saved AI panel-flow records for your account. This action cannot be undone.",
     "confirmAction": "Yes, Delete",
     "confirmCancel": "Cancel"
+  },
+  "aiSearch": {
+    "enable": {
+      "title": "Enable AI Semantic Search",
+      "description": "Turn AI-powered semantic search on or off. When enabled, book content can be embedded and searched using natural language queries."
+    },
+    "status": {
+      "title": "AI Search Service Status",
+      "description": "Shows whether the AI Search service is reachable and ready.",
+      "refresh": "Refresh",
+      "current": "Current Status",
+      "state": "State",
+      "messageLabel": "Message",
+      "endpoint": "Endpoint",
+      "error": "Error",
+      "unknown": "Unknown",
+      "noData": "No status data available.",
+      "dockerHint": "This AI Search endpoint is configured for Docker networking. If Fable is running outside Docker, point AI_SEARCH_BASE_URL to the host-mapped AI Search endpoint, for example http://localhost:18081.",
+      "startupPanelTitle": "Live Startup Activity",
+      "startupPanelDescription": "This panel auto-checks the AI Search service while it is starting and records the most recent startup events.",
+      "lastChecked": "Last checked",
+      "modelPath": "Model path",
+      "modelFile": "Model file",
+      "modelDetected": "Detected",
+      "modelMissing": "Not downloaded yet",
+      "startupWaiting": "Startup activity will appear here after the next status check.",
+      "reload": "Reload Model"
+    }
   }
 }

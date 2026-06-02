@@ -97,7 +97,10 @@
                 </div>
 
                 @if (viewerBook.hasAiPanelData) {
-                  <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--secondary">AI</div>
+                  <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--secondary">AIP</div>
+                }
+                @if (viewerBook.hasAiSearchData) {
+                  <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--secondary">AIS</div>
                 }
 
                 @if (getViewerIssueNumber(viewerBook); as issueNumber) {

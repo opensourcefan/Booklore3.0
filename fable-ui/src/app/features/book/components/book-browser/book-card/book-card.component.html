@@ -25,7 +25,12 @@
       }
       @if (showAiPanelDataOverlay && book.hasAiPanelData) {
         <div class="ai-panel-overlay">
-          AI
+          AIP
+        </div>
+      }
+      @if (showAiPanelDataOverlay && book.hasAiSearchData) {
+        <div class="ai-search-overlay">
+          AIS
         </div>
       }
       @if (showIssueNumberOverlay && getDisplayIssueNumber(); as displayIssueNumber) {
@@ -170,7 +175,10 @@
             </div>
 
             @if (viewerBook.hasAiPanelData) {
-              <div class="ai-panel-overlay">AI</div>
+              <div class="ai-panel-overlay">AIP</div>
+            }
+            @if (viewerBook.hasAiSearchData) {
+              <div class="ai-search-overlay">AIS</div>
             }
 
             @if (getInlineViewerIssueNumber(viewerBook); as issueNumber) {

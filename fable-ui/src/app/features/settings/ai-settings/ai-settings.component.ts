@@ -43,6 +43,8 @@ interface AiStartupEvent {
 export class AiSettingsComponent implements OnInit, OnDestroy {
   private startupPollHandle: ReturnType<typeof setTimeout> | null = null;
   private lastStartupFingerprint: string | null = null;
+  private aiSearchStartupPollHandle: ReturnType<typeof setTimeout> | null = null;
+  private lastAiSearchStartupFingerprint: string | null = null;
 
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
@@ -55,6 +57,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   appSettings$ = this.appSettingsService.appSettings$;
 
   aiEnabled = false;
+  aiSearchEnabled = false;
   saveRunning = false;
   statusLoading = false;
   cleanupRunning = false;
@@ -64,6 +67,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   startupExpanded = false;
 
   status: AiServiceStatus | null = null;
+  aiSearchStatus: AiServiceStatus | null = null;
+  aiSearchStatusLoading = false;
+  aiSearchReloadRunning = false;
+  aiSearchStartupExpanded = false;
+  aiSearchStartupEvents: AiStartupEvent[] = [];
+  aiSearchLastStatusCheckedAt: string | null = null;
   selectedLibraryPathIds: number[] = [];
   selectedLibraryFilterIds: number[] = [];
   batchProgress: AiPanelScanProgressPayload | null = null;
@@ -77,8 +86,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe(settings => {
       this.aiEnabled = settings.aiPanelDetectionEnabled ?? false;
+      this.aiSearchEnabled = settings.aiSearchEnabled ?? false;
       this.refreshStatus();
       this.refreshPanelFlowStats();
+      if (this.aiSearchEnabled) {
+        this.refreshAiSearchStatus();
+      }
     });
 
     this.libraryService.libraryState$
@@ -125,6 +138,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearStartupPolling();
+    this.clearAiSearchStartupPolling();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -550,6 +564,245 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
         this.panelFlowStats = null;
       }
     });
+  }
+
+  onToggleAiSearchEnabled(checked: boolean): void {
+    const previousValue = this.aiSearchEnabled;
+    this.aiSearchEnabled = checked;
+    this.saveRunning = true;
+
+    this.appSettingsService
+      .saveSettings([{key: AppSettingKey.AI_SEARCH_ENABLED, newValue: checked}])
+      .subscribe({
+        next: () => {
+          this.saveRunning = false;
+          this.showMessage('success', 'AI Search settings updated', checked ? 'AI semantic search is enabled.' : 'AI semantic search is disabled.');
+          if (checked) {
+            this.refreshAiSearchStatus();
+          } else {
+            this.aiSearchStatus = null;
+          }
+        },
+        error: () => {
+          this.saveRunning = false;
+          this.aiSearchEnabled = previousValue;
+          this.showMessage('error', 'Save failed', 'Could not update AI search setting.');
+        }
+      });
+  }
+
+  refreshAiSearchStatus(): void {
+    this.aiSearchStatusLoading = true;
+    this.appSettingsService.getAiSearchServiceStatus().subscribe({
+      next: status => {
+        this.applyAiSearchStatus(status, false);
+        this.aiSearchStatusLoading = false;
+      },
+      error: err => {
+        this.aiSearchStatusLoading = false;
+        this.applyAiSearchStatus({
+          enabled: this.aiSearchEnabled,
+          serviceReachable: false,
+          status: 'ERROR',
+          message: 'Failed to fetch AI Search service status.',
+          error: err?.message ?? 'Unknown error',
+          baseUrl: '',
+          modelExists: null,
+          modelPath: null
+        }, false);
+      }
+    });
+  }
+
+  reloadAiSearchService(): void {
+    this.aiSearchReloadRunning = true;
+    this.appSettingsService.reloadAiSearchService().subscribe({
+      next: result => {
+        this.aiSearchReloadRunning = false;
+        if (result.triggered) {
+          this.showMessage('success', 'AI Search reload triggered', 'Model load has started. Status will update shortly.');
+          setTimeout(() => this.refreshAiSearchStatus(), 1500);
+        } else {
+          this.showMessage('info', 'AI Search reload not started', result.reason);
+        }
+      },
+      error: () => {
+        this.aiSearchReloadRunning = false;
+        this.showMessage('error', 'AI Search reload failed', 'Could not contact the AI Search service.');
+      }
+    });
+  }
+
+  get aiSearchStatusEndpointLabel(): string {
+    const baseUrl = this.aiSearchStatus?.baseUrl?.trim();
+    if (!baseUrl) {
+      return '';
+    }
+
+    try {
+      const {host} = new URL(baseUrl);
+      if (host.startsWith('fable-ai-search') || host.startsWith('ai-search')) {
+        return 'Docker AI Search service';
+      }
+      return baseUrl;
+    } catch {
+      return baseUrl;
+    }
+  }
+
+  get showAiSearchDockerHint(): boolean {
+    const baseUrl = this.aiSearchStatus?.baseUrl?.trim();
+    if (!baseUrl || this.aiSearchStatus?.serviceReachable) {
+      return false;
+    }
+
+    try {
+      const {host} = new URL(baseUrl);
+      return host.startsWith('fable-ai-search') || host.startsWith('ai-search');
+    } catch {
+      return false;
+    }
+  }
+
+  get aiSearchStatusTone(): 'ok' | 'warning' | 'error' {
+    switch (this.aiSearchStatus?.status) {
+      case 'READY':
+        return 'ok';
+      case 'STARTING':
+        return 'warning';
+      default:
+        return 'error';
+    }
+  }
+
+  get showAiSearchStartupActivity(): boolean {
+    return this.isAiSearchDockerEndpoint && this.aiSearchEnabled;
+  }
+
+  get isAiSearchDockerEndpoint(): boolean {
+    const baseUrl = this.aiSearchStatus?.baseUrl?.trim();
+    if (!baseUrl) {
+      return false;
+    }
+
+    try {
+      const {host} = new URL(baseUrl);
+      return host.startsWith('fable-ai-search') || host.startsWith('ai-search');
+    } catch {
+      return false;
+    }
+  }
+
+  get aiSearchStartupPanelTone(): 'ok' | 'warning' | 'error' {
+    if (this.aiSearchStatus?.status === 'READY') {
+      return 'ok';
+    }
+    if (this.aiSearchStatus?.status === 'STARTING') {
+      return 'warning';
+    }
+    return 'error';
+  }
+
+  private applyAiSearchStatus(status: AiServiceStatus, fromPolling: boolean): void {
+    this.aiSearchStatus = status;
+    this.aiSearchLastStatusCheckedAt = this.formatTimestamp(new Date());
+    this.recordAiSearchStartupEvent(status, fromPolling);
+
+    if (status.status === 'STARTING') {
+      this.scheduleAiSearchStartupPolling();
+      return;
+    }
+
+    this.clearAiSearchStartupPolling();
+  }
+
+  private scheduleAiSearchStartupPolling(): void {
+    if (this.aiSearchStartupPollHandle) {
+      return;
+    }
+
+    this.aiSearchStartupPollHandle = setTimeout(() => {
+      this.aiSearchStartupPollHandle = null;
+      this.appSettingsService.getAiSearchServiceStatus().subscribe({
+        next: status => this.applyAiSearchStatus(status, true),
+        error: err => {
+          this.applyAiSearchStatus({
+            enabled: this.aiSearchEnabled,
+            serviceReachable: false,
+            status: 'ERROR',
+            message: 'Failed to refresh AI Search startup status.',
+            error: err?.message ?? 'Unknown error',
+            baseUrl: this.aiSearchStatus?.baseUrl ?? '',
+            modelExists: null,
+            modelPath: null
+          }, true);
+        }
+      });
+    }, 5000);
+  }
+
+  private clearAiSearchStartupPolling(): void {
+    if (!this.aiSearchStartupPollHandle) {
+      return;
+    }
+
+    clearTimeout(this.aiSearchStartupPollHandle);
+    this.aiSearchStartupPollHandle = null;
+  }
+
+  private recordAiSearchStartupEvent(status: AiServiceStatus, fromPolling: boolean): void {
+    if (!this.isAiSearchDockerEndpoint && !status.baseUrl) {
+      return;
+    }
+
+    const detailParts = [
+      `state=${status.status}`,
+      `reachable=${status.serviceReachable}`,
+      `modelExists=${status.modelExists ?? 'unknown'}`,
+      `modelPath=${status.modelPath ?? 'n/a'}`,
+      `message=${status.message}`,
+      `error=${status.error ?? 'none'}`
+    ];
+    const fingerprint = detailParts.join('|');
+
+    if (fromPolling && fingerprint === this.lastAiSearchStartupFingerprint) {
+      return;
+    }
+
+    this.lastAiSearchStartupFingerprint = fingerprint;
+    const prefix = fromPolling ? 'Auto-check' : 'Manual check';
+    const textParts = [`${prefix}: ${status.message}`];
+
+    if (status.modelPath) {
+      textParts.push(`model path ${status.modelPath}`);
+    }
+
+    if (status.modelExists === false) {
+      textParts.push('local model file not present yet');
+    } else if (status.modelExists === true) {
+      textParts.push('local model file detected');
+    }
+
+    if (status.error) {
+      textParts.push(`error ${status.error}`);
+    }
+
+    const level: AiStartupEvent['level'] = status.status === 'READY'
+      ? 'success'
+      : status.status === 'STARTING'
+        ? 'warning'
+        : status.status === 'ERROR' || status.status === 'UNAVAILABLE'
+          ? 'error'
+          : 'info';
+
+    this.aiSearchStartupEvents = [
+      {
+        timestamp: this.formatTimestamp(new Date()),
+        level,
+        text: textParts.join(' · ')
+      },
+      ...this.aiSearchStartupEvents
+    ].slice(0, 12);
   }
 
   private formatBytes(bytes: number): string {

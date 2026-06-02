@@ -4,7 +4,7 @@ import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
 import {AiBulkScanResponse} from '../model/ai-panel-scan-progress.model';
-import {AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiSearchResult, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
 
 export interface SettingsTransferEntry {
   name: string;
@@ -104,6 +104,26 @@ export class AppSettingsService {
 
   getAiServiceStatus(): Observable<AiServiceStatus> {
     return this.http.get<AiServiceStatus>(`${API_CONFIG.BASE_URL}/api/v1/ai/status`);
+  }
+
+  getAiSearchServiceStatus(): Observable<AiServiceStatus> {
+    return this.http.get<AiServiceStatus>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/status`);
+  }
+
+  reloadAiSearchService(): Observable<{triggered: boolean; reason: string}> {
+    return this.http.post<{triggered: boolean; reason: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/reload`, {});
+  }
+
+  embedBookForAiSearch(bookId: number, userId: number, chunks: {text: string; pageNumber?: number; chapterTitle?: string}[]): Observable<{jobId: string; status: string}> {
+    return this.http.post<{jobId: string; status: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/embed`, {bookId, userId, chunks});
+  }
+
+  searchWithAi(query: string, bookIds: number[], userId: number): Observable<AiSearchResult> {
+    return this.http.post<AiSearchResult>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/query`, {query, bookIds, userId});
+  }
+
+  getBookAiSearchEmbeddingStatus(bookId: number, userId: number): Observable<{bookId: number; hasEmbeddings: boolean; chunkCount: number}> {
+    return this.http.get<{bookId: number; hasEmbeddings: boolean; chunkCount: number}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/book-embeddings/${bookId}?userId=${userId}`);
   }
 
   getAiPanelFlowStats(libraryId?: number | null): Observable<AiPanelFlowStats> {

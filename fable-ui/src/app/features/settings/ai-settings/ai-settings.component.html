@@ -8,6 +8,7 @@
       <p class="settings-description">{{ t('description') }}</p>
     </div>
 
+    <!-- AI Panel Detection Toggle -->
     <div class="settings-card">
       <div class="setting-row">
         <div>
@@ -24,6 +25,7 @@
 
     <div class="section-divider"><hr></div>
 
+    <!-- AI Panel Detection Status & Controls -->
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
       <div class="setting-row">
         <div>
@@ -170,6 +172,7 @@
 
     <div class="section-divider"><hr></div>
 
+    <!-- AI Panel Detection Cleanup -->
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
       <div class="setting-row">
         <div>
@@ -186,6 +189,111 @@
           (onClick)="showDeleteConfirm = true">
         </p-button>
       </div>
+    </div>
+
+    <div class="section-divider"><hr></div>
+
+    <!-- AI Search Toggle -->
+    <div class="settings-card">
+      <div class="setting-row">
+        <div>
+          <h3>{{ t('aiSearch.enable.title') }}</h3>
+          <p>{{ t('aiSearch.enable.description') }}</p>
+        </div>
+        <p-toggleswitch
+          [(ngModel)]="aiSearchEnabled"
+          [disabled]="saveRunning"
+          (onChange)="onToggleAiSearchEnabled($event.checked)">
+        </p-toggleswitch>
+      </div>
+    </div>
+
+    <!-- AI Search Status & Controls -->
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+      <div class="setting-row">
+        <div>
+          <h3>{{ t('aiSearch.status.title') }}</h3>
+          <p>{{ t('aiSearch.status.description') }}</p>
+        </div>
+        <p-button
+          icon="pi pi-refresh"
+          [label]="t('aiSearch.status.refresh')"
+          [loading]="aiSearchStatusLoading"
+          loadingIcon="pi pi-spin pi-spinner"
+          [disabled]="!aiSearchEnabled"
+          outlined
+          (onClick)="refreshAiSearchStatus()">
+        </p-button>
+      </div>
+
+      <div class="status-box" [ngClass]="aiSearchStatusTone">
+        <div class="status-title">{{ t('aiSearch.status.current') }}</div>
+        <div class="status-line"><strong>{{ t('aiSearch.status.state') }}</strong>: <span class="state-value" [ngClass]="aiSearchStatusTone">{{ aiSearchStatus?.status || t('aiSearch.status.unknown') }}</span></div>
+        <div class="status-line"><strong>{{ t('aiSearch.status.messageLabel') }}</strong>: {{ aiSearchStatus?.message || t('aiSearch.status.noData') }}</div>
+        @if (aiSearchStatusEndpointLabel) {
+          <div class="status-line"><strong>{{ t('aiSearch.status.endpoint') }}</strong>: {{ aiSearchStatusEndpointLabel }}</div>
+        }
+        @if (aiSearchStatus?.error) {
+          <div class="status-line error-text"><strong>{{ t('aiSearch.status.error') }}</strong>: {{ aiSearchStatus?.error }}</div>
+        }
+        @if (showAiSearchDockerHint) {
+          <div class="status-line hint-text">{{ t('aiSearch.status.dockerHint') }}</div>
+        }
+      </div>
+
+      @if (showAiSearchStartupActivity) {
+        <div class="startup-panel" [ngClass]="aiSearchStartupPanelTone">
+          <div class="startup-panel-toggle" (click)="aiSearchStartupExpanded = !aiSearchStartupExpanded" (keydown.enter)="aiSearchStartupExpanded = !aiSearchStartupExpanded" (keydown.space)="aiSearchStartupExpanded = !aiSearchStartupExpanded; $event.preventDefault()" tabindex="0" role="button" [attr.aria-expanded]="aiSearchStartupExpanded">
+            <i class="pi" [class.pi-chevron-right]="!aiSearchStartupExpanded" [class.pi-chevron-down]="aiSearchStartupExpanded"></i>
+            <span class="status-title">{{ t('aiSearch.status.startupPanelTitle') }}</span>
+          </div>
+          @if (aiSearchStartupExpanded) {
+            <div class="startup-panel-body">
+              <div class="status-line startup-panel-copy">{{ t('aiSearch.status.startupPanelDescription') }}</div>
+              @if (aiSearchLastStatusCheckedAt) {
+                <div class="startup-meta-row">
+                  <strong>{{ t('aiSearch.status.lastChecked') }}</strong>: {{ aiSearchLastStatusCheckedAt }}
+                </div>
+              }
+              @if (aiSearchStatus?.modelPath) {
+                <div class="startup-meta-row">
+                  <strong>{{ t('aiSearch.status.modelPath') }}</strong>: {{ aiSearchStatus?.modelPath }}
+                </div>
+              }
+              @if (aiSearchStatus?.modelExists !== null && aiSearchStatus?.modelExists !== undefined) {
+                <div class="startup-meta-row">
+                  <strong>{{ t('aiSearch.status.modelFile') }}</strong>: {{ aiSearchStatus?.modelExists ? t('aiSearch.status.modelDetected') : t('aiSearch.status.modelMissing') }}
+                </div>
+              }
+              <div class="startup-event-list">
+                @for (startupEvent of aiSearchStartupEvents; track startupEvent.timestamp + startupEvent.text) {
+                  <div class="startup-event" [ngClass]="startupEvent.level">
+                    <span class="startup-event-time">{{ startupEvent.timestamp }}</span>
+                    <span class="startup-event-text">{{ startupEvent.text }}</span>
+                  </div>
+                }
+              </div>
+              @if (!aiSearchStartupEvents.length) {
+                <div class="status-line">{{ t('aiSearch.status.startupWaiting') }}</div>
+              }
+              @if (aiSearchStatus?.status !== 'READY') {
+                <div class="startup-reload-row">
+                  <p-button
+                    icon="pi pi-refresh"
+                    [label]="t('aiSearch.status.reload')"
+                    [loading]="aiSearchReloadRunning"
+                    loadingIcon="pi pi-spin pi-spinner"
+                    [disabled]="aiSearchReloadRunning"
+                    outlined
+                    size="small"
+                    (onClick)="reloadAiSearchService()">
+                  </p-button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
 
     <p-dialog
