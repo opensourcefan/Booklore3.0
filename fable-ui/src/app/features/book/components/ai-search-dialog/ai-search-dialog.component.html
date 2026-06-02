@@ -1,0 +1,89 @@
+<ng-container *transloco="let t; prefix: 'book.aiSearch'">
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '600px', maxWidth: '95vw' }"
+  styleClass="ai-search-dialog"
+  (onHide)="close()">
+  <ng-template pTemplate="header">
+    <div class="ai-search-header">
+      <i class="pi pi-search"></i>
+      <span>{{ t('title') }}</span>
+    </div>
+  </ng-template>
+
+  <div class="ai-search-body">
+    <div class="ai-search-input-row">
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="searchQuery"
+        (keydown)="onKeydown($event)"
+        [placeholder]="t('placeholder')"
+        class="ai-search-input"
+      />
+      <p-button
+        icon="pi pi-search"
+        [loading]="isLoading"
+        (onClick)="onSearch()"
+        [disabled]="searchQuery.trim().length < 2">
+      </p-button>
+    </div>
+
+    @if (isLoading) {
+      <div class="ai-search-loading">
+        @for (i of [1,2,3]; track i) {
+          <div class="ai-search-skeleton-item">
+            <p-skeleton width="50px" height="67px" borderRadius="4px"/>
+            <div class="ai-search-skeleton-details">
+              <p-skeleton width="80%" height="1rem"/>
+              <p-skeleton width="60%" height="0.8rem"/>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (!isLoading && hasSearched && results.length === 0) {
+      <div class="ai-search-empty">
+        <i class="pi pi-info-circle"></i>
+        <span>{{ t('noResults') }}</span>
+      </div>
+    }
+
+    @if (!isLoading && results.length > 0) {
+      <div class="ai-search-results">
+        @if (answer) {
+          <div class="ai-search-answer">
+            <div class="ai-search-answer-label">{{ t('answer') }}</div>
+            <p>{{ answer }}</p>
+          </div>
+        }
+        <div class="ai-search-results-label">{{ t('results', { count: results.length }) }}</div>
+        @for (result of results; track result.chunkId) {
+          <div class="ai-search-result-item" (click)="onResultClick(result)" tabindex="0" (keydown.enter)="onResultClick(result)">
+            <img
+              [attr.src]="urlHelper.getThumbnailUrl(result.bookId)"
+              [alt]="t('bookCoverAlt')"
+              class="ai-search-result-cover"
+            />
+            <div class="ai-search-result-details">
+              <div class="ai-search-result-title">{{ result.bookTitle }}</div>
+              <div class="ai-search-result-text">{{ result.chunkText | slice: 0:200 }}{{ result.chunkText.length > 200 ? '...' : '' }}</div>
+              <div class="ai-search-result-meta">
+                @if (result.pageNumber) {
+                  <span class="ai-search-result-page">{{ t('page') }} {{ result.pageNumber }}</span>
+                }
+                @if (result.similarity) {
+                  <span class="ai-search-result-similarity">{{ (result.similarity * 100).toFixed(1) }}% {{ t('match') }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</p-dialog>
+</ng-container>

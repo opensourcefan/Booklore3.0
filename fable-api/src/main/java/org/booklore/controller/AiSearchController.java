@@ -71,6 +71,11 @@ public class AiSearchController {
         return aiSearchService.getEmbedJobStatus(jobId);
     }
 
+    @PostMapping("/extract-and-embed/{bookId}")
+    public Map<String, Object> extractAndEmbedBook(@PathVariable Long bookId) {
+        return aiSearchService.extractAndEmbedBook(bookId);
+    }
+
     private Long toLong(Object value) {
         if (value instanceof Number n) {
             return n.longValue();

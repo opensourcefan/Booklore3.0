@@ -15,6 +15,12 @@ public class AiSearchEnabledInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // Always allow the /status endpoint so the UI can check service health
+        // even when AI Search is disabled.
+        if (request.getRequestURI().endsWith("/api/v1/ai/search/status")) {
+            return true;
+        }
+
         if (!appSettingService.getAppSettings().isAiSearchEnabled()) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "AI Search is disabled.");
             return false;

@@ -61,7 +61,7 @@ public class AppProperties {
     @Getter
     @Setter
     public static class AiSearch {
-        private String baseUrl = "http://fable-ai-search:8081";
+        private String baseUrl = "http://fable-ai-search:8080";
         private int connectTimeoutMs = 3000;
         private int readTimeoutMs = 120000;
     }

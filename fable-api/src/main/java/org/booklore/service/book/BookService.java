@@ -160,6 +160,7 @@ public class BookService {
         });
 
         applyAiPanelFlags(books, user.getId());
+        applyAiSearchFlags(books, user.getId());
 
         return books;
     }
@@ -201,6 +202,7 @@ public class BookService {
             return book;
         }).collect(Collectors.collectingAndThen(Collectors.toList(), books -> {
             applyAiPanelFlags(books, user.getId());
+            applyAiSearchFlags(books, user.getId());
             return books;
         }));
     }
@@ -226,6 +228,7 @@ public class BookService {
         }
 
         applyAiPanelFlags(List.of(book), user.getId());
+        applyAiSearchFlags(List.of(book), user.getId());
 
         return book;
     }
@@ -249,6 +252,48 @@ public class BookService {
         );
 
         books.forEach(book -> book.setHasAiPanelData(book.getId() != null && scannedBookIds.contains(book.getId())));
+    }
+
+    private void applyAiSearchFlags(List<Book> books, Long userId) {
+        if (books == null || books.isEmpty()) {
+            return;
+        }
+
+        Set<Long> bookIds = books.stream()
+                .map(Book::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (bookIds.isEmpty()) {
+            return;
+        }
+
+        Set<Long> embeddedBookIds = new HashSet<>(
+                bookRepository.findBookIdsWithAiSearchEmbeddings(userId, bookIds)
+        );
+
+        books.forEach(book -> book.setHasAiSearchData(book.getId() != null && embeddedBookIds.contains(book.getId())));
+    }
+
+    private void applyAiSearchFlagsToGridSummaries(List<AppBookGridSummary> summaries, Long userId) {
+        if (summaries == null || summaries.isEmpty()) {
+            return;
+        }
+
+        Set<Long> bookIds = summaries.stream()
+                .map(AppBookGridSummary::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (bookIds.isEmpty()) {
+            return;
+        }
+
+        Set<Long> embeddedBookIds = new HashSet<>(
+                bookRepository.findBookIdsWithAiSearchEmbeddings(userId, bookIds)
+        );
+
+        summaries.forEach(summary -> summary.setHasAiSearchData(summary.getId() != null && embeddedBookIds.contains(summary.getId())));
     }
 
     private void applyAiPanelFlagsToGridSummaries(List<AppBookGridSummary> summaries, Long userId) {
@@ -738,6 +783,7 @@ public class BookService {
         });
 
         applyAiPanelFlagsToGridSummaries(bookPage.getContent(), user.getId());
+        applyAiSearchFlagsToGridSummaries(bookPage.getContent(), user.getId());
 
         return AppPageResponse.of(
                 bookPage.getContent(),

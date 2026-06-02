@@ -126,6 +126,10 @@ export class AppSettingsService {
     return this.http.get<{bookId: number; hasEmbeddings: boolean; chunkCount: number}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/book-embeddings/${bookId}?userId=${userId}`);
   }
 
+  extractAndEmbedBook(bookId: number): Observable<{status: string; jobId?: string; error?: string}> {
+    return this.http.post<{status: string; jobId?: string; error?: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/extract-and-embed/${bookId}`, {});
+  }
+
   getAiPanelFlowStats(libraryId?: number | null): Observable<AiPanelFlowStats> {
     const params = libraryId == null
       ? undefined

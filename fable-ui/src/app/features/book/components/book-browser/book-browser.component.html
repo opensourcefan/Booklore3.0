@@ -307,6 +307,17 @@
                   <div class="display-settings-section">
                     <div class="display-settings-checkbox-row">
                       <p-checkbox
+                        inputId="show-ai-search-overlay-checkbox"
+                        [binary]="true"
+                        [ngModel]="bookCardOverlayPreferenceService.showAiSearchData"
+                        (onChange)="bookCardOverlayPreferenceService.setShowAiSearchData($event.checked)">
+                      </p-checkbox>
+                      <label for="show-ai-search-overlay-checkbox" class="display-settings-label">{{ t('labels.aiSearchOverlay') }}</label>
+                    </div>
+                  </div>
+                  <div class="display-settings-section">
+                    <div class="display-settings-checkbox-row">
+                      <p-checkbox
                         inputId="show-issue-number-overlay-checkbox"
                         [binary]="true"
                         [ngModel]="bookCardOverlayPreferenceService.showIssueNumber"

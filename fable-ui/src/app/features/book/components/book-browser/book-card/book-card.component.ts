@@ -150,6 +150,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   showBookTypePill = true;
   showAiPanelDataOverlay = true;
+  showAiSearchDataOverlay = true;
   showIssueNumberOverlay = true;
 
   private overlayPrefSub?: Subscription;
@@ -197,6 +198,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       }));
       this.overlayPrefSub.add(this.overlayPreferenceService.showAiPanelData$.subscribe(val => {
         this.showAiPanelDataOverlay = val;
+        this.cdr.markForCheck();
+      }));
+      this.overlayPrefSub.add(this.overlayPreferenceService.showAiSearchData$.subscribe(val => {
+        this.showAiSearchDataOverlay = val;
         this.cdr.markForCheck();
       }));
       this.overlayPrefSub.add(this.overlayPreferenceService.showIssueNumber$.subscribe(val => {
@@ -882,6 +887,29 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         }
       });
     }
+
+    moreActions.push({
+      label: this.t.translate('book.card.menu.embedForAiSearch'),
+      icon: 'pi pi-search',
+      command: () => {
+        this.appSettingsService.extractAndEmbedBook(book.id).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: this.t.translate('common.success'),
+              detail: this.t.translate('book.card.toast.embedAiSearchSuccessDetail', {title: book.metadata?.title}),
+            });
+          },
+          error: (err) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: this.t.translate('common.error'),
+              detail: err?.error?.message || this.t.translate('book.card.toast.embedAiSearchFailedDetail'),
+            });
+          },
+        });
+      },
+    });
 
     moreActions.push(
       {

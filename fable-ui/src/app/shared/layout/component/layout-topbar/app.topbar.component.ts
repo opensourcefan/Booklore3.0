@@ -43,6 +43,7 @@ import {MetadataTaskLog, MetadataTaskService} from '../../../../features/book/se
 import {MobileBackHandle, MobileBackNavigationService} from '../../../service/mobile-back-navigation.service';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
+import {AiSearchDialogComponent} from '../../../../features/book/components/ai-search-dialog/ai-search-dialog.component';
 
 @Component({
   selector: 'app-topbar',
@@ -72,6 +73,7 @@ import {ResizableDividerDirective} from '../../../directives/resizable-divider.d
     DirectoryMobilePanelComponent,
     Popover,
     ResizableDividerDirective,
+    AiSearchDialogComponent,
   ],
 })
 export class AppTopBarComponent implements OnDestroy {
@@ -85,6 +87,7 @@ export class AppTopBarComponent implements OnDestroy {
   @ViewChild('topbarmenubutton') topbarMenuButton!: ElementRef;
   @ViewChild('topbarmenu') menu!: ElementRef;
   @ViewChild('statsMenu') statsMenu: Menu | undefined;
+  @ViewChild('aiSearchDialog') aiSearchDialog!: AiSearchDialogComponent;
   @ViewChild('mobileSidebarPop') mobileSidebarPop: Popover | undefined;
   @ViewChild('mobileDirPop') mobileDirPop: Popover | undefined;
   @ViewChild('mobileMenu') mobileMenuPop: Popover | undefined;
@@ -444,6 +447,10 @@ export class AppTopBarComponent implements OnDestroy {
 
   navigateToAiSettings() {
     this.router.navigate(['/settings'], {queryParams: {tab: 'ai-settings', returnTo: this.router.url}});
+  }
+
+  openAiSearch(): void {
+    this.aiSearchDialog.open();
   }
 
   navigateToMetadataPersistenceSettings(): void {

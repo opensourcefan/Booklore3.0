@@ -580,7 +580,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           if (checked) {
             this.refreshAiSearchStatus();
           } else {
-            this.aiSearchStatus = null;
+            this.refreshAiSearchStatus();
           }
         },
         error: () => {
