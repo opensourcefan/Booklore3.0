@@ -221,7 +221,7 @@ services:
       - DISK_TYPE=${DISK_TYPE}
       - TELEMETRY_ENABLED=false
       - AI_SERVICE_BASE_URL=${AI_SERVICE_BASE_URL:-http://app-ai-panel:8080}
-      - AI_SEARCH_BASE_URL=${AI_SEARCH_BASE_URL:-http://fable-ai-search:8080}
+      - AI_SEARCH_SERVICE_BASE_URL=${AI_SEARCH_SERVICE_BASE_URL:-http://fable-ai-search:8080}
     ports:
       - "6060:6060"
     volumes:
@@ -328,7 +328,7 @@ If you already have Fable running and want to add AI Semantic Search, add the `f
 
 ```ini
 COMPOSE_PROFILES=ai
-AI_SEARCH_BASE_URL=http://fable-ai-search:8080
+AI_SEARCH_SERVICE_BASE_URL=http://fable-ai-search:8080
 AI_SEARCH_PORT=18081
 ```
 
