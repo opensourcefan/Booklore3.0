@@ -416,6 +416,35 @@
 
 .search-input-full {
   width: 100%;
+  
+  &.has-ai-btn {
+    padding-right: 4.5rem;
+  }
+}
+
+
+.ai-search-inner-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  ::ng-deep .p-button {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+
+    .p-button-icon {
+      font-size: 1.1rem;
+      color: #00d2ff !important;
+    }
+  }
+  
+  &:hover {
+    ::ng-deep .p-button-icon {
+      text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
+    }
+  }
 }
 
 
@@ -434,6 +463,16 @@
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
+
+  &.with-ai-btn {
+    right: 2.25rem;
+  }
+  
+  ::ng-deep .p-button {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+  }
 }
 
 .selection-action-panel {
@@ -688,6 +727,10 @@
   line-height: 2.5rem;
   font-size: 1rem;
   box-sizing: border-box;
+
+  &.has-ai-btn {
+    padding-right: 4.5rem;
+  }
 
   @media (max-width: 767px) {
     min-width: 0;

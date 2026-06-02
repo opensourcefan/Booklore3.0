@@ -56,11 +56,6 @@
 
   <div class="topbar-content">
     <app-book-searcher class="topbar-search"></app-book-searcher>
-    @if (aiSearchEnabled) {
-      <button type="button" class="topbar-item topbar-ai-search-btn" (click)="openAiSearch()" [pTooltip]="t('aiSearch')" tooltipPosition="bottom">
-        <i class="pi pi-search topbar-icon"></i>
-      </button>
-    }
     @if (showDesktopAiSearchScanStatus) {
       <button type="button" class="topbar-ai-status" (click)="navigateToAiSettings()">
         <i class="pi pi-search"></i>

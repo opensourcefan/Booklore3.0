@@ -29,9 +29,9 @@
         </div>
       }
       @if (showAiSearchDataOverlay && book.hasAiSearchData && aiSearchEnabled) {
-        <div class="ai-search-overlay">
+        <button type="button" class="ai-search-overlay" (click)="openAiSearch($event, book)" pTooltip="AI Search" tooltipPosition="top">
           AIS
-        </div>
+        </button>
       }
       @if (showIssueNumberOverlay && getDisplayIssueNumber(); as displayIssueNumber) {
         <div class="series-number-overlay">
@@ -178,7 +178,7 @@
               <div class="ai-panel-overlay">AIP</div>
             }
             @if (viewerBook.hasAiSearchData && aiSearchEnabled) {
-              <div class="ai-search-overlay">AIS</div>
+              <button type="button" class="ai-search-overlay" (click)="openAiSearch($event, viewerBook)" pTooltip="AI Search" tooltipPosition="top">AIS</button>
             }
 
             @if (getInlineViewerIssueNumber(viewerBook); as issueNumber) {

@@ -11,6 +11,7 @@
       (keydown)="onKeydown($event)"
       [placeholder]="t('placeholder')"
       class="search-input"
+      [class.has-ai-btn]="aiSearchEnabled"
     />
     @if (searchQuery) {
       <p-button
@@ -19,8 +20,20 @@
         [text]="true"
         [rounded]="true"
         class="clear-search-btn"
+        [class.with-ai-btn]="aiSearchEnabled"
         [attr.aria-label]="t('clearSearch')">
       </p-button>
+    }
+    @if (aiSearchEnabled) {
+      <p-button
+        icon="pi pi-sparkles"
+        class="ai-search-inner-btn"
+        [text]="true"
+        [rounded]="true"
+        (click)="openAiSearch()"
+        pTooltip="AI Search"
+        tooltipPosition="bottom"
+      ></p-button>
     }
   </p-iconfield>
 

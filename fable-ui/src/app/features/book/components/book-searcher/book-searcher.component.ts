@@ -13,6 +13,8 @@ import {Router} from '@angular/router';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {AiSearchDialogService} from '../ai-search-dialog/ai-search-dialog.component';
+import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 
 @Component({
   selector: 'app-book-searcher',
@@ -44,6 +46,11 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   protected urlHelper = inject(UrlHelperService);
   private readonly t = inject(TranslocoService);
   private elRef = inject(ElementRef);
+  private aiSearchDialogService = inject(AiSearchDialogService);
+  private appSettingsService = inject(AppSettingsService);
+
+  aiSearchEnabled = false;
+  private appSettingsSub?: Subscription;
 
   ngOnInit(): void {
     this.#subscription = this.#searchSubject.pipe(
@@ -73,6 +80,10 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
         this.activeIndex = -1;
         this.books = books;
       }
+    });
+
+    this.appSettingsSub = this.appSettingsService.appSettings$.subscribe(settings => {
+      this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
     });
   }
 
@@ -109,6 +120,10 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.books = [];
     this.isLoading = false;
+  }
+
+  openAiSearch(): void {
+    this.aiSearchDialogService.open();
   }
 
   get isDropdownOpen(): boolean {
@@ -150,6 +165,9 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.#subscription) {
       this.#subscription.unsubscribe();
+    }
+    if (this.appSettingsSub) {
+      this.appSettingsSub.unsubscribe();
     }
   }
 }

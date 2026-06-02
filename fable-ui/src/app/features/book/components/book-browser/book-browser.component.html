@@ -378,15 +378,30 @@
                   [(ngModel)]="bookTitle"
                   (ngModelChange)="onSearchTermChange($event)"
                   class="search-input-full"
+                  [class.has-ai-btn]="aiSearchEnabled"
                 />
-                <p-button
-                  icon="pi pi-times"
-                  [text]="true"
-                  size="small"
-                  [rounded]="true"
-                  class="search-clear-btn"
-                  (click)="clearSearch(); searchDropdown.hide()"
-                ></p-button>
+                @if (bookTitle) {
+                  <p-button
+                    icon="pi pi-times"
+                    [text]="true"
+                    size="small"
+                    [rounded]="true"
+                    class="search-clear-btn"
+                    [class.with-ai-btn]="aiSearchEnabled"
+                    (click)="clearSearch(); searchDropdown.hide()"
+                  ></p-button>
+                }
+                @if (aiSearchEnabled) {
+                  <p-button
+                    icon="pi pi-sparkles"
+                    class="ai-search-inner-btn"
+                    [text]="true"
+                    [rounded]="true"
+                    (click)="openAiSearch(); searchDropdown.hide()"
+                    pTooltip="AI Search"
+                    tooltipPosition="bottom"
+                  ></p-button>
+                }
               </div>
             </p-popover>
           </div>
@@ -400,6 +415,7 @@
               [(ngModel)]="bookTitle"
               (ngModelChange)="onSearchTermChange($event)"
               class="search-input"
+              [class.has-ai-btn]="aiSearchEnabled"
             />
             @if (bookTitle) {
               <p-button
@@ -408,7 +424,19 @@
                 size="small"
                 [rounded]="true"
                 class="search-clear-btn"
+                [class.with-ai-btn]="aiSearchEnabled"
                 (click)="clearSearch()"
+              ></p-button>
+            }
+            @if (aiSearchEnabled) {
+              <p-button
+                icon="pi pi-sparkles"
+                class="ai-search-inner-btn"
+                [text]="true"
+                [rounded]="true"
+                (click)="openAiSearch()"
+                pTooltip="AI Search"
+                tooltipPosition="bottom"
               ></p-button>
             }
           </div>

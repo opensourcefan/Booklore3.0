@@ -36,6 +36,10 @@
   height: 2.5rem;
   line-height: 2.5rem;
   font-size: 1rem;
+  
+  &.has-ai-btn {
+    padding-right: 4rem; // make room for both clear and AI buttons
+  }
 }
 
 .clear-search-btn {
@@ -43,10 +47,43 @@
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  display: none;
 
-  @media (min-width: 640px) {
-    display: inline-flex;
+  &.with-ai-btn {
+    right: 2.25rem;
+  }
+  
+  ::ng-deep .p-button {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+
+    .p-button-icon {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+.ai-search-inner-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  ::ng-deep .p-button {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+
+    .p-button-icon {
+      font-size: 1.1rem;
+      color: #00d2ff !important;
+    }
+  }
+  
+  &:hover {
+    ::ng-deep .p-button-icon {
+      text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
+    }
   }
 }
 

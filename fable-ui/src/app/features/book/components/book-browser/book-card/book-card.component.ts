@@ -431,6 +431,12 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.bookService.readBook(book.id);
   }
 
+  openAiSearch(event: Event, book: Book): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.aiSearchDialogService.open(book.id);
+  }
+
   private getEbookType(book: Book): BookType | undefined {
     if (book.epubProgress) return 'EPUB';
     if (book.pdfProgress) return 'PDF';

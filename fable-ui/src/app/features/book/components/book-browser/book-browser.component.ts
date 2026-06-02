@@ -90,9 +90,9 @@ import {
   GridViewportContext,
   shouldResetGridViewport,
 } from './book-browser-grid-reset.util';
+import { ProgressBar } from 'primeng/progressbar';
+import { AiSearchDialogService } from '../ai-search-dialog/ai-search-dialog.component';
 import { PagedBookBrowserEntity } from '../../model/state/paged-book-browser-state.model';
-
-import {ProgressBar} from 'primeng/progressbar';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -140,6 +140,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
   protected bookSelectionService = inject(BookSelectionService);
   protected appSettingsService = inject(AppSettingsService);
+  protected aiSearchDialogService = inject(AiSearchDialogService);
   private ngZone = inject(NgZone);
 
   private cdr = inject(ChangeDetectorRef);
@@ -208,6 +209,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   hiddenSelectedCount = 0;
   private visibleBookIds = new Set<number>();
   allowFileDeletion = false;
+  aiSearchEnabled = false;
   isSelectionActionPanelOpen = false;
 
   // Cover preview state
@@ -642,6 +644,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.hoverPreviewTimer = null;
   }
 
+  openAiSearch(): void {
+    this.aiSearchDialogService.open();
+  }
+
   private getScrollPositionKey(): string {
     const path = this.activatedRoute.snapshot.routeConfig?.path ?? '';
     return this.scrollService.createKey(path, this.activatedRoute.snapshot.params);
@@ -769,6 +775,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(settings => {
         this.allowFileDeletion = settings?.allowFileDeletion ?? false;
+        this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+        this.cdr.markForCheck();
       });
   }
 
