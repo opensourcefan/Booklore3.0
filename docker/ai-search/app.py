@@ -338,7 +338,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                        be.embedding_vector, be.page_number, be.chapter_title,
                        b.title as book_title
                 FROM book_embeddings be
-                JOIN book b ON b.id = be.book_id
+                JOIN book_metadata b ON b.book_id = be.book_id
                 WHERE be.user_id = %s AND be.book_id IN ({placeholders})""",
             [user_id] + list(book_ids),
         )
@@ -348,7 +348,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                       be.embedding_vector, be.page_number, be.chapter_title,
                       b.title as book_title
                FROM book_embeddings be
-               JOIN book b ON b.id = be.book_id
+               JOIN book_metadata b ON b.book_id = be.book_id
                WHERE be.user_id = %s""",
             (user_id,),
         )
