@@ -517,7 +517,7 @@ export class BookService {
 
   /*------------------ Reading & Viewer Settings ------------------*/
 
-  readBook(bookId: number, reader?: 'epub-streaming', explicitBookType?: BookType): void {
+  readBook(bookId: number, reader?: 'epub-streaming', explicitBookType?: BookType, targetPage?: number): void {
     const book = this.getBookByIdFromState(bookId);
 
     if (!book) {
@@ -529,7 +529,11 @@ export class BookService {
     const isAlternativeFormat = explicitBookType && explicitBookType !== book.primaryFile?.bookType;
 
     let baseUrl: string | null = null;
-    const queryParams: Record<string, string | boolean> = {};
+    const queryParams: Record<string, string | boolean | number> = {};
+
+    if (targetPage) {
+      queryParams['page'] = targetPage;
+    }
 
     switch (bookType) {
       case 'PDF':

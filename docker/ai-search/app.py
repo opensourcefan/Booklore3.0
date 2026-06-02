@@ -144,7 +144,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     return float(np.dot(a, b))
 
 
-def _generate_answer(prompt: str) -> str:
+def _generate_answer(query: str, context: str) -> str:
     """Generate an answer using the LLM (local Ollama or external)."""
     import requests
 
@@ -153,11 +153,22 @@ def _generate_answer(prompt: str) -> str:
     else:
         base_url = "http://localhost:11434"
 
+    system_prompt = (
+        "You are a helpful assistant. Answer the user's question using ONLY the provided book excerpts. "
+        "If the excerpts do not contain the answer, or if they only contain an index or table of contents, "
+        "reply exactly with 'I cannot find the answer in the provided text.' Do not guess."
+    )
+
+    user_prompt = f"Context:\n{context}\n\nQuestion: {query}"
+
     resp = requests.post(
-        f"{base_url}/api/generate",
+        f"{base_url}/api/chat",
         json={
             "model": LLM_MODEL_NAME,
-            "prompt": prompt,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
             "stream": False,
             "options": {
                 "num_predict": LLM_MAX_TOKENS,
@@ -167,7 +178,7 @@ def _generate_answer(prompt: str) -> str:
         timeout=120,
     )
     resp.raise_for_status()
-    return resp.json().get("response", "")
+    return resp.json().get("message", {}).get("content", "")
 
 
 # ---- API Endpoints ----
@@ -396,17 +407,11 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             f"[Source: {r['bookTitle']}, Page {r.get('pageNumber') or 'N/A'}]\n{r['chunkText']}"
             for r in top_results
         ])
-        prompt = (
-            f"Based on the following excerpts from books, answer the question.\n\n"
-            f"Context:\n{context}\n\n"
-            f"Question: {query}\n\n"
-            f"Answer:"
-        )
         try:
-            answer = _generate_answer(prompt)
+            answer = _generate_answer(query, context)
         except Exception as exc:
             logger.warning("LLM generation failed: %s", exc)
-            answer = None
+            answer = "I could not generate a summarized answer because the AI Search container failed to connect to the Language Model (Ollama). Please verify that your `AI_SEARCH_EXTERNAL_LLM_URL` is correctly configured in your `.env` file and that Ollama is running."
 
     return {
         "query": query,

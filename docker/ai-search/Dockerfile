@@ -9,7 +9,12 @@ ARG EMBEDDING_MODEL_ID=BAAI/bge-small-en-v1.5
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
+    curl \
+    zstd \
+    && curl -fsSL https://ollama.com/install.sh | sh \
     && rm -rf /var/lib/apt/lists/*
+
+ENV OLLAMA_MODELS=/models/ollama
 
 WORKDIR /app
 
@@ -27,7 +32,9 @@ RUN pip install huggingface_hub && \
     rm -rf /tmp/hf-build
 
 COPY app.py /app/app.py
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-EXPOSE 8080
+EXPOSE 8080 11434
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["/app/start.sh"]

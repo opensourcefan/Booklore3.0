@@ -103,7 +103,8 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
             this.spread = pdfPrefs.pdfSettings?.spread || myself.userSettings.pdfReaderSetting.pageSpread || 'odd';
           }
           this.canPrint = myself.permissions.canDownload || myself.permissions.admin;
-          this.page = pdfMeta.pdfProgress?.page || 1;
+          const targetPage = this.route.snapshot.queryParamMap.get('page');
+          this.page = targetPage ? Number(targetPage) : (pdfMeta.pdfProgress?.page || 1);
           this.bookData = this.altBookType
             ? `${API_CONFIG.BASE_URL}/api/v1/books/${this.bookId}/content?bookType=${this.altBookType}`
             : `${API_CONFIG.BASE_URL}/api/v1/books/${this.bookId}/content`;
