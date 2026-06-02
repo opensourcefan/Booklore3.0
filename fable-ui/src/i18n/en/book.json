@@ -885,7 +885,9 @@
     "results": "{{ count }} result(s)",
     "page": "Page",
     "match": "match",
-    "bookCoverAlt": "Book Cover"
+    "bookCoverAlt": "Book Cover",
+    "clearResults": "Clear Results",
+    "close": "Close"
   },
   "sender": {
     "title": "Send Book",

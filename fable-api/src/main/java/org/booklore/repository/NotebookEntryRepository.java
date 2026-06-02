@@ -14,6 +14,13 @@ import java.util.Set;
 
 public interface NotebookEntryRepository extends Repository<AnnotationEntity, Long> {
 
+    String COUNT_UNION =
+            "SELECT a.id FROM annotations a WHERE a.user_id = :userId " +
+            "UNION ALL " +
+            "SELECT n.id FROM book_notes_v2 n WHERE n.user_id = :userId " +
+            "UNION ALL " +
+            "SELECT b.id FROM book_marks b WHERE b.user_id = :userId";
+
     String ENTRIES_UNION =
             "SELECT a.id, 'HIGHLIGHT' AS type, a.user_id, a.book_id, bm.title AS book_title, " +
             "a.text, a.note, a.color, a.style, a.chapter_title, a.created_at, a.updated_at " +
@@ -124,4 +131,8 @@ public interface NotebookEntryRepository extends Repository<AnnotationEntity, Lo
     Page<BookWithCountProjection> findBooksWithAnnotationsPaginated(@Param("userId") Long userId,
                                                                     @Param("search") String search,
                                                                     Pageable pageable);
+
+    @Query(value = "SELECT COUNT(*) FROM (" + COUNT_UNION + ") t",
+           nativeQuery = true)
+    long countEntries(@Param("userId") Long userId);
 }

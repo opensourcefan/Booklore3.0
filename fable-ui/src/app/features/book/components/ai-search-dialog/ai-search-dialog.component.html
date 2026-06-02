@@ -2,14 +2,20 @@
 <p-dialog
   [(visible)]="visible"
   [modal]="true"
-  [dismissableMask]="true"
+  [dismissableMask]="false"
+  [closable]="false"
   [style]="{ width: '800px', maxWidth: '95vw' }"
-  styleClass="ai-search-dialog"
-  (onHide)="close()">
+  styleClass="ai-search-dialog">
   <ng-template pTemplate="header">
     <div class="ai-search-header">
       <i class="pi pi-search"></i>
       <span>{{ t('title') }}</span>
+    </div>
+    <div class="ai-search-header-actions">
+      @if (hasSearched) {
+        <p-button icon="pi pi-times" [text]="true" [rounded]="true" (onClick)="clearResults()" [pTooltip]="t('clearResults')"></p-button>
+      }
+      <p-button icon="pi pi-times" [text]="true" [rounded]="true" (onClick)="close()" [pTooltip]="t('close')"></p-button>
     </div>
   </ng-template>
 
@@ -45,37 +51,51 @@
       </div>
     }
 
-    @if (!isLoading && hasSearched && results.length === 0) {
+    @if (!isLoading && hasSearched && results.length === 0 && !answer) {
       <div class="ai-search-empty">
         <i class="pi pi-info-circle"></i>
         <span>{{ t('noResults') }}</span>
       </div>
     }
 
-    @if (!isLoading && results.length > 0) {
+    @if (!isLoading && answer) {
       <div class="ai-search-results">
-        @if (answer) {
-          <div class="ai-search-answer">
-            <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
-              {{ t('answer') }}
-              <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveAnswerToNotepad()" [pTooltip]="'Save Answer to Notepad'"></p-button>
-            </div>
-            <p>{{ answer }}</p>
+        <div class="ai-search-answer">
+          <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
+            {{ t('answer') }}
+            <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveAnswerToNotepad()" [pTooltip]="'Save Answer to Notepad'"></p-button>
           </div>
-        }
+          <p>{{ answer }}</p>
+        </div>
+      </div>
+    }
+
+    @if (!isLoading && results.length > 0 && !answer) {
+      <div class="ai-search-results">
         <div class="ai-search-results-label">{{ t('results', { count: results.length }) }}</div>
         @for (result of results; track result.chunkId) {
-          <div class="ai-search-result-item" (click)="onResultClick(result)" tabindex="0" (keydown.enter)="onResultClick(result)">
+          <div class="ai-search-result-item"
+               (click)="onResultClick(result)"
+               tabindex="0"
+               (keydown.enter)="onResultClick(result)">
+            
             <img
               [attr.src]="urlHelper.getThumbnailUrl(result.bookId)"
               [alt]="t('bookCoverAlt')"
               class="ai-search-result-cover"
             />
             <div class="ai-search-result-details">
-              <div class="ai-search-result-title">{{ result.bookTitle }}</div>
-              <div class="ai-search-result-text">{{ result.chunkText | slice: 0:200 }}{{ result.chunkText.length > 200 ? '...' : '' }}</div>
-              <div class="ai-search-result-meta" style="justify-content: space-between; align-items: center; margin-top: 0.25rem;">
-                <div style="display: flex; gap: 0.75rem;">
+              <div class="ai-search-result-title">
+                {{ result.bookTitle }}
+                @if (result.chapterTitle) {
+                  <span class="ai-search-chapter"> - {{ result.chapterTitle }}</span>
+                }
+              </div>
+              <div class="ai-search-result-text">
+                {{ result.chunkText | slice: 0:200 }}{{ result.chunkText.length > 200 ? '...' : '' }}
+              </div>
+              <div class="ai-search-result-meta" style="justify-content: space-between; align-items: center; margin-top: 0.5rem; display: flex;">
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
                   @if (result.pageNumber) {
                     <span class="ai-search-result-page">{{ t('page') }} {{ result.pageNumber }}</span>
                   }
@@ -83,7 +103,6 @@
                     <span class="ai-search-result-similarity">{{ (result.similarity * 100).toFixed(1) }}% {{ t('match') }}</span>
                   }
                 </div>
-                <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="$event.stopPropagation(); saveToNotepad(result)" [pTooltip]="'Save to Notepad'"></p-button>
               </div>
             </div>
           </div>
@@ -91,5 +110,41 @@
       </div>
     }
   </div>
+</p-dialog>
+
+<p-dialog
+  [visible]="!!selectedResult"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [header]="selectedResult?.bookTitle || 'Result Details'"
+  [style]="{ width: '90vw', maxWidth: '600px' }"
+  (onHide)="closeResultDetail()"
+  styleClass="ai-search-detail-dialog"
+>
+  @if (selectedResult) {
+    <div class="ai-search-detail-content" style="display: flex; flex-direction: column; gap: 1rem;">
+      @if (selectedResult.chapterTitle) {
+        <div class="ai-search-detail-chapter" style="font-weight: 500; color: var(--text-color-secondary);">
+          <i class="pi pi-list"></i> {{ selectedResult.chapterTitle }}
+        </div>
+      }
+      <div class="ai-search-detail-text" style="line-height: 1.6; background: var(--surface-hover); padding: 1rem; border-radius: 8px;">
+        {{ selectedResult.chunkText }}
+      </div>
+      <div class="ai-search-detail-meta" style="display: flex; gap: 1rem; color: var(--text-color-secondary); font-size: 0.9rem;">
+        @if (selectedResult.pageNumber) {
+          <span><i class="pi pi-file"></i> {{ t('page') }} {{ selectedResult.pageNumber }}</span>
+        }
+        @if (selectedResult.similarity) {
+          <span><i class="pi pi-percentage"></i> {{ (selectedResult.similarity * 100).toFixed(1) }}% {{ t('match') }}</span>
+        }
+      </div>
+    </div>
+    <div class="ai-search-detail-actions" style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem;">
+      <p-button icon="pi pi-file-edit" [label]="'Save Note'" [outlined]="true" (onClick)="saveToNotepad(selectedResult)"></p-button>
+      <p-button icon="pi pi-book" [label]="'Open in Reader'" severity="info" (onClick)="readBookAtPage(selectedResult)"></p-button>
+    </div>
+  }
 </p-dialog>
 </ng-container>

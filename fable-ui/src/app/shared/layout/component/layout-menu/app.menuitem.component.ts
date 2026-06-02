@@ -320,6 +320,7 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
       || this.item.type === 'Physical Books'
       || this.item.type === 'Series'
       || this.item.type === 'Authors'
+      || this.item.type === 'Notebook'
       || this.isUnshelvedItem()
       || this.item.label === 'Kobo';
   }

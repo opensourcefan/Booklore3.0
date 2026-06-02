@@ -14,7 +14,9 @@ import {AiSearchChunkResult} from '../../../../shared/model/app-settings.model';
 import {Subscription, Subject} from 'rxjs';
 import {TooltipModule} from 'primeng/tooltip';
 import {MessageService} from 'primeng/api';
-import {BookNoteService, CreateBookNoteRequest} from '../../../../shared/service/book-note.service';
+import {BookNoteService, CreateBookNoteV2Request} from '../../../../shared/service/book-note.service';
+import {BookService} from '../../service/book.service';
+import {SidebarBadgeRefreshService} from '../../service/sidebar-badge-refresh.service';
 
 @Injectable({providedIn: 'root'})
 export class AiSearchDialogService {
@@ -49,6 +51,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   isLoading = false;
   hasSearched = false;
   answer: string | null = null;
+  selectedResult: AiSearchChunkResult | null = null;
 
   private appSettingsService = inject(AppSettingsService);
   private userService = inject(UserService);
@@ -57,6 +60,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   private readonly t = inject(TranslocoService);
   private bookNoteService = inject(BookNoteService);
   private messageService = inject(MessageService);
+  private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
 
   private aiSearchDialogService = inject(AiSearchDialogService);
 
@@ -75,13 +79,18 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.singleBookId = bookId;
     this.visible = true;
     this.searchQuery = '';
-    this.results = [];
-    this.hasSearched = false;
-    this.answer = null;
   }
 
   close(): void {
     this.visible = false;
+  }
+
+  clearResults(): void {
+    this.results = [];
+    this.answer = null;
+    this.hasSearched = false;
+    this.selectedResult = null;
+    this.searchQuery = '';
   }
 
   saveToNotepad(result: AiSearchChunkResult): void {
@@ -89,15 +98,19 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     if (!user) return;
 
     const title = `${result.bookTitle} - ${this.searchQuery}`;
+    const dummyCfi = result.pageNumber ? `page=${result.pageNumber}` : 'ai-search-result';
 
-    const request: CreateBookNoteRequest = {
+    const request: CreateBookNoteV2Request = {
       bookId: result.bookId,
-      title: title,
-      content: result.chunkText
+      cfi: dummyCfi,
+      selectedText: result.chunkText,
+      noteContent: title,
+      chapterTitle: result.chapterTitle || undefined
     };
 
     this.bookNoteService.createOrUpdateNote(request).subscribe({
       next: () => {
+        this.sidebarBadgeRefresh.requestRefresh();
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('Saved to Notepad'),
@@ -123,14 +136,16 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     const bookId = this.singleBookId || (this.results.length > 0 ? this.results[0].bookId : 0);
     if (!bookId) return;
 
-    const request: CreateBookNoteRequest = {
+    const request: CreateBookNoteV2Request = {
       bookId: bookId,
-      title: `AI Search Answer: ${this.searchQuery}`,
-      content: this.answer
+      cfi: 'ai-search-answer',
+      selectedText: this.answer,
+      noteContent: `AI Search Answer: ${this.searchQuery}`
     };
 
     this.bookNoteService.createOrUpdateNote(request).subscribe({
       next: () => {
+        this.sidebarBadgeRefresh.requestRefresh();
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('Saved to Notepad'),
@@ -179,11 +194,23 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     });
   }
 
+  private bookService = inject(BookService);
+
   onResultClick(result: AiSearchChunkResult): void {
+    this.selectedResult = result;
+  }
+
+  closeResultDetail(): void {
+    this.selectedResult = null;
+  }
+
+  readBookAtPage(result: AiSearchChunkResult): void {
     this.close();
-    this.router.navigate(['/book', result.bookId], {
-      queryParams: {tab: 'view', returnTo: this.router.url}
-    });
+    if (result.pageNumber) {
+      this.bookService.readBook(result.bookId, undefined, undefined, result.pageNumber);
+    } else {
+      this.bookService.readBook(result.bookId);
+    }
   }
 
   onKeydown(event: KeyboardEvent): void {

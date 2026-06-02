@@ -51,4 +51,10 @@ public class NotebookController {
             @RequestParam(required = false) String search) {
         return notebookService.getBooksWithAnnotations(search);
     }
+
+    @Operation(summary = "Get total count of notebook entries for the current user")
+    @GetMapping("/count")
+    public long countEntries() {
+        return notebookService.countEntries();
+    }
 }

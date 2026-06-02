@@ -31,6 +31,7 @@ import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/d
 import {BookDialogHelperService} from '../../../../features/book/components/book-browser/book-dialog-helper.service';
 import {MediaTypePreferencesService} from '../../../../features/book/service/media-type-preferences.service';
 import {SidebarBadgeRefreshService} from '../../../../features/book/service/sidebar-badge-refresh.service';
+import {NotebookService} from '../../../../features/notebook/service/notebook.service';
 
 type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'series' | 'authors' | 'notebook';
 
@@ -70,6 +71,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private mediaTypePreferences = inject(MediaTypePreferencesService);
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
+  private notebookService = inject(NotebookService);
 
   activeLang = '';
   langMenuItems: MenuItem[] = [];
@@ -251,8 +253,10 @@ export class AppMenuComponent implements OnInit, OnDestroy {
           {
             label: this.t.translate('layout.menu.notebook'),
             visibilityKey: 'notebook',
+            type: 'Notebook',
             icon: 'pi pi-fw pi-pencil',
             routerLink: ['/notebook'],
+            bookCount$: this.createRefreshableCount$(() => this.notebookService.countEntries()),
           }
         ];
 
