@@ -1503,7 +1503,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }));
 
     const prefs: EntityViewPreferences = structuredClone(
-      user.userSettings.entityViewPreferences ?? {global: {sortKey: 'title', sortDir: 'ASC', view: 'GRID', coverSize: 1.0, seriesCollapsed: false, overlayBookType: true, overlayAiPanelData: true, overlayIssueNumber: true}, overrides: []}
+      user.userSettings.entityViewPreferences ?? {global: {sortKey: 'title', sortDir: 'ASC', view: 'GRID', coverSize: 1.0, seriesCollapsed: false, overlayBookType: true, overlayAiPanelData: true, overlayAiSearchData: true, overlayIssueNumber: true}, overrides: []}
     );
 
     if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED) {
@@ -1549,6 +1549,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
             seriesCollapsed: false,
             overlayBookType: true,
             overlayAiPanelData: true,
+            overlayAiSearchData: true,
             overlayIssueNumber: true
           }
         });

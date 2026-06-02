@@ -27,6 +27,7 @@ export interface EntityViewPreference {
   seriesCollapsed: boolean;
   overlayBookType: boolean;
   overlayAiPanelData: boolean;
+  overlayAiSearchData: boolean;
   overlayIssueNumber: boolean;
 }
 
