@@ -56,6 +56,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 ## Main Features
 
 - **Comic Panel Detection AI** — Detects and saves panel flow data for CBZ/CBR comics using a bundled YOLO-based AI model. Enables panel-by-panel navigation in the reader.
+- **AI Semantic Search** — Search your book collection using natural language queries. Uses a local HuggingFace embedding model to find books based on their actual content.
 - **ComicVine URL Issue Navigation** — In metadata search, paste a ComicVine volume or issue URL and optionally provide an issue number or inclusive range (for example `46` or `43-171`) to resolve exact ComicVine issue matches.
 - **ComicVine Batch Issue Sequencing** — In custom metadata fetch for multi-book selections, you can use the same ComicVine source URL plus issue number/range inputs and Fable will assign sequential issues across the selected books while keeping review-mode workflows.
 - **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views, then use the reset button beside the folder toggle to clear the active folder scope while keeping the larger book view available.
@@ -150,10 +151,51 @@ REMOTE_USER_PASSWORD=ChangeMe@$@P
 # Storage type: LOCAL (default) or NETWORK (all data written to MariaDB only)
 #DISK_TYPE=NETWORK
 
-# AI Panel Detection (optional — remove or comment out to disable AI)
+# AI Features: Panel Detection & Semantic Search
+# Optional — completely remove or comment out these lines to disable all AI features.
+# 1. Tell docker-compose to start the AI containers
 COMPOSE_PROFILES=ai
+
+# 2. Tell the main Fable app where to talk to the AI containers internally
 AI_SERVICE_BASE_URL=http://app-ai-panel:8080
+AI_SEARCH_BASE_URL=http://fable-ai-search:8080
+
+# 3. Expose the AI services to your host machine (for debugging or direct access)
 AI_PANEL_PORT=18080
+AI_SEARCH_PORT=18081
+
+#### ---- AI Search Model Presets ----
+#### AI Search uses models to understand your books (Embedding) and summarize text (LLM).
+#### You can pick a "preset" below depending on how powerful your computer/server is.
+#### To use a preset, simply remove the '#' symbol at the start of those 3 lines.
+#### Only uncomment ONE block at a time.
+
+#### --- Preset: Minimal (~1.2 GB) ---
+#### Best for: Raspberry Pi 5, older laptops, or low-resource NAS devices.
+# AI_SEARCH_EMBEDDING_MODEL=all-MiniLM-L6-v2
+# AI_SEARCH_LLM_MODEL=qwen2.5:0.5b
+# AI_SEARCH_EMBEDDING_DIMENSIONS=384
+
+#### --- Preset: Standard (~3.5 GB, DEFAULT — best balance) ---
+# AI_SEARCH_EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
+# AI_SEARCH_LLM_MODEL=qwen2.5:1.5b
+# AI_SEARCH_EMBEDDING_DIMENSIONS=384
+
+#### --- Preset: Enhanced (~5.5 GB, better quality) ---
+# AI_SEARCH_EMBEDDING_MODEL=BAAI/bge-base-en-v1.5
+# AI_SEARCH_LLM_MODEL=llama3.2:3b
+# AI_SEARCH_EMBEDDING_DIMENSIONS=768
+
+#### --- Preset: Premium (~7 GB, best quality, needs powerful hardware) ---
+# AI_SEARCH_EMBEDDING_MODEL=BAAI/bge-large-en-v1.5
+# AI_SEARCH_LLM_MODEL=phi3:mini
+# AI_SEARCH_EMBEDDING_DIMENSIONS=1024
+
+#### ---- External AI Provider (Bring Your Own AI) ----
+#### If you already run Ollama or an OpenAI-compatible API elsewhere,
+#### uncomment these to use it instead of the baked-in models.
+# AI_SEARCH_EXTERNAL_LLM_URL=http://192.168.1.50:11434/v1
+# AI_SEARCH_EXTERNAL_EMBEDDING_URL=http://192.168.1.50:11434/v1
 ```
 
 ---
@@ -190,6 +232,7 @@ services:
       APP_GROUP_ID: ${APP_GROUP_ID:-1000}
       TZ: ${TZ:-UTC}
       AI_SERVICE_BASE_URL: ${AI_SERVICE_BASE_URL:-}
+      AI_SEARCH_BASE_URL: ${AI_SEARCH_BASE_URL:-http://fable-ai-search:8080}
     ports:
       - "6060:6060"
     volumes:
@@ -210,6 +253,40 @@ services:
       - "${AI_PANEL_PORT:-18080}:8080"
     volumes:
       - ./data/ai-models:/models
+    networks:
+      - fable-net
+
+  fable-ai-search:
+    image: ghcr.io/opensourcefan/fable-search-ai:stable
+    container_name: fable-ai-search
+    profiles: ["ai"]
+    restart: unless-stopped
+    environment:
+      # Pass time zone settings
+      - TZ=${TZ}
+      # Model settings (these read the values you set in your .env file)
+      - EMBEDDING_MODEL=${AI_SEARCH_EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
+      - EMBEDDING_DIMENSIONS=${AI_SEARCH_EMBEDDING_DIMENSIONS:-384}
+      - LLM_MODEL=${AI_SEARCH_LLM_MODEL:-qwen2.5:1.5b}
+      - LLM_MAX_TOKENS=${AI_SEARCH_LLM_MAX_TOKENS:-512}
+      - LLM_TEMPERATURE=${AI_SEARCH_LLM_TEMPERATURE:-0.1}
+      - SEARCH_TOP_K=${AI_SEARCH_TOP_K:-3}
+      - SEARCH_SIMILARITY_THRESHOLD=${AI_SEARCH_SIMILARITY_THRESHOLD:-0.3}
+      - EXTERNAL_LLM_BASE_URL=${AI_SEARCH_EXTERNAL_LLM_URL:-}
+      - EXTERNAL_EMBEDDING_BASE_URL=${AI_SEARCH_EXTERNAL_EMBEDDING_URL:-}
+      # Database connection for storing embeddings
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_NAME=${MYSQL_DATABASE}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./data/ai-search-models:/models
+    ports:
+      - "${AI_SEARCH_PORT:-18081}:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
     networks:
       - fable-net
 
@@ -264,24 +341,26 @@ tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 
 ---
 
-## AI Panel Detection — Quick Start
+## AI Features — Quick Start
 
 1. Add `COMPOSE_PROFILES=ai` to your `.env`
 2. Pull and start all services (see [Installation](#installation) above)
-3. Open **Settings > AI Panel Detection**
-4. Enable **AI Panel Detection** and wait for status to show **READY**
-   - The model is bundled inside the AI container image
-   - On first start it is automatically seeded to `./data/ai-models/best.pt`
+3. Open **Settings > AI Tab**
+4. Enable **AI Panel Detection** and/or **AI Semantic Search** and wait for status to show **READY**
+   - The models are bundled inside the AI container images
+   - On first start they are automatically seeded to the mounted models folders
    - No manual file placement is required
-5. Open a comic in the reader and use the AI button to scan the current book
-6. Optionally run **Manual Panel Detection Scan** in AI settings to batch-process all comics
+5. **For Panel Detection**: Open a comic in the reader and use the AI button to scan the current book. Optionally run a batch scan from settings.
+6. **For Semantic Search**: Click the three dots on any book card to run **Embed for AI Search**. Once embedded, you can search via the topbar AI Search icon.
 
 ### AI Notes
 
-- The AI compose profile is opt-in. Omitting `COMPOSE_PROFILES=ai` skips the AI image entirely.
-- The AI container uses CPU-only inference to keep the image size manageable.
-- If the model fails to load, use the **Reload Model** button in Settings.
-- If running Fable outside Docker, set `AI_SERVICE_BASE_URL` to the host-mapped endpoint (e.g., `http://localhost:18080`).
+- **Advanced Configuration**: See [AI-Search-Configuration.md](docs/AI-Search-Configuration.md) for how to tune semantic search, change models, or use external providers (like Ollama).
+- The AI compose profile is opt-in. Omitting `COMPOSE_PROFILES=ai` skips the AI images entirely.
+- The AI containers use CPU-only inference to keep the image size manageable.
+- You can override the AI Search model by setting `AI_SEARCH_MODEL_ID` in your `.env`.
+- If the models fail to load, use the **Reload** buttons in Settings.
+- If running Fable outside Docker, set `AI_SERVICE_BASE_URL` and `AI_SEARCH_BASE_URL` to the host-mapped endpoints.
 
 ---
 

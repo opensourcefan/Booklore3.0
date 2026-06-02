@@ -193,6 +193,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         this.diskType = settings?.diskType ?? 'LOCAL';
         this.allowFileDeletion = settings?.allowFileDeletion ?? false;
         this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+        this.cdr.markForCheck();
       });
 
     if (this.overlayPreferenceService) {

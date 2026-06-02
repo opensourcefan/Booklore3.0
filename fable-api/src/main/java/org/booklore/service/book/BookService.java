@@ -272,6 +272,8 @@ public class BookService {
                 bookRepository.findBookIdsWithAiSearchEmbeddings(userId, bookIds)
         );
 
+        log.info("Checking AI Search Embeddings for user {}. Requested bookIds: {}. Found embeddedBookIds: {}", userId, bookIds, embeddedBookIds);
+
         books.forEach(book -> book.setHasAiSearchData(book.getId() != null && embeddedBookIds.contains(book.getId())));
     }
 
@@ -292,6 +294,8 @@ public class BookService {
         Set<Long> embeddedBookIds = new HashSet<>(
                 bookRepository.findBookIdsWithAiSearchEmbeddings(userId, bookIds)
         );
+
+        log.info("Checking AI Search Embeddings (Grid) for user {}. Requested bookIds: {}. Found embeddedBookIds: {}", userId, bookIds, embeddedBookIds);
 
         summaries.forEach(summary -> summary.setHasAiSearchData(summary.getId() != null && embeddedBookIds.contains(summary.getId())));
     }

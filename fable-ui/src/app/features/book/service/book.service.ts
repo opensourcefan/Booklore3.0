@@ -213,6 +213,7 @@ export class BookService {
       fileType: summary.fileType,
       isPhysical: summary.isPhysical,
       hasAiPanelData: summary.hasAiPanelData,
+      hasAiSearchData: summary.hasAiSearchData,
       lastReadTime: summary.lastReadTime,
       addedOn: summary.addedOn,
       libraryId: 0,

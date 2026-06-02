@@ -51,8 +51,8 @@
 .ai-search-results {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  max-height: 50vh;
+  gap: 1rem;
+  max-height: 65vh;
   overflow-y: auto;
 }
 
@@ -70,7 +70,8 @@
 
   p {
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.6;
+    font-size: 1.05rem;
   }
 }
 
@@ -113,18 +114,18 @@
 
 .ai-search-result-title {
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 1.1rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .ai-search-result-text {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-color-secondary);
-  line-height: 1.4;
+  line-height: 1.5;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -132,7 +133,7 @@
 .ai-search-result-meta {
   display: flex;
   gap: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--text-color-secondary);
 }
 

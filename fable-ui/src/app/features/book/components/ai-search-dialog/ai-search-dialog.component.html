@@ -3,7 +3,7 @@
   [(visible)]="visible"
   [modal]="true"
   [dismissableMask]="true"
-  [style]="{ width: '600px', maxWidth: '95vw' }"
+  [style]="{ width: '800px', maxWidth: '95vw' }"
   styleClass="ai-search-dialog"
   (onHide)="close()">
   <ng-template pTemplate="header">
@@ -56,7 +56,10 @@
       <div class="ai-search-results">
         @if (answer) {
           <div class="ai-search-answer">
-            <div class="ai-search-answer-label">{{ t('answer') }}</div>
+            <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
+              {{ t('answer') }}
+              <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveAnswerToNotepad()" [pTooltip]="'Save Answer to Notepad'"></p-button>
+            </div>
             <p>{{ answer }}</p>
           </div>
         }
@@ -71,13 +74,16 @@
             <div class="ai-search-result-details">
               <div class="ai-search-result-title">{{ result.bookTitle }}</div>
               <div class="ai-search-result-text">{{ result.chunkText | slice: 0:200 }}{{ result.chunkText.length > 200 ? '...' : '' }}</div>
-              <div class="ai-search-result-meta">
-                @if (result.pageNumber) {
-                  <span class="ai-search-result-page">{{ t('page') }} {{ result.pageNumber }}</span>
-                }
-                @if (result.similarity) {
-                  <span class="ai-search-result-similarity">{{ (result.similarity * 100).toFixed(1) }}% {{ t('match') }}</span>
-                }
+              <div class="ai-search-result-meta" style="justify-content: space-between; align-items: center; margin-top: 0.25rem;">
+                <div style="display: flex; gap: 0.75rem;">
+                  @if (result.pageNumber) {
+                    <span class="ai-search-result-page">{{ t('page') }} {{ result.pageNumber }}</span>
+                  }
+                  @if (result.similarity) {
+                    <span class="ai-search-result-similarity">{{ (result.similarity * 100).toFixed(1) }}% {{ t('match') }}</span>
+                  }
+                </div>
+                <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="$event.stopPropagation(); saveToNotepad(result)" [pTooltip]="'Save to Notepad'"></p-button>
               </div>
             </div>
           </div>

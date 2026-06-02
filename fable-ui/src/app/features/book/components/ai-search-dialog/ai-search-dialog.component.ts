@@ -12,6 +12,9 @@ import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Router} from '@angular/router';
 import {AiSearchChunkResult} from '../../../../shared/model/app-settings.model';
 import {Subscription, Subject} from 'rxjs';
+import {TooltipModule} from 'primeng/tooltip';
+import {MessageService} from 'primeng/api';
+import {BookNoteService, CreateBookNoteRequest} from '../../../../shared/service/book-note.service';
 
 @Injectable({providedIn: 'root'})
 export class AiSearchDialogService {
@@ -35,6 +38,7 @@ export class AiSearchDialogService {
     Skeleton,
     SlicePipe,
     TranslocoDirective,
+    TooltipModule
   ],
   standalone: true
 })
@@ -51,6 +55,8 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   protected urlHelper = inject(UrlHelperService);
   private router = inject(Router);
   private readonly t = inject(TranslocoService);
+  private bookNoteService = inject(BookNoteService);
+  private messageService = inject(MessageService);
 
   private aiSearchDialogService = inject(AiSearchDialogService);
 
@@ -76,6 +82,70 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
   close(): void {
     this.visible = false;
+  }
+
+  saveToNotepad(result: AiSearchChunkResult): void {
+    const user = this.userService.getCurrentUser();
+    if (!user) return;
+
+    let title = `${result.bookTitle} - ${this.searchQuery}`;
+
+    const request: CreateBookNoteRequest = {
+      bookId: result.bookId,
+      title: title,
+      content: result.chunkText
+    };
+
+    this.bookNoteService.createOrUpdateNote(request).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: this.t.translate('Saved to Notepad'),
+          detail: this.t.translate('The search result has been saved to your notepad.')
+        });
+      },
+      error: (err) => {
+        console.error('Failed to save to notepad:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('Save Failed'),
+          detail: this.t.translate('Failed to save to notepad.')
+        });
+      }
+    });
+  }
+
+  saveAnswerToNotepad(): void {
+    if (!this.answer) return;
+    const user = this.userService.getCurrentUser();
+    if (!user) return;
+
+    const bookId = this.singleBookId || (this.results.length > 0 ? this.results[0].bookId : 0);
+    if (!bookId) return;
+
+    const request: CreateBookNoteRequest = {
+      bookId: bookId,
+      title: `AI Search Answer: ${this.searchQuery}`,
+      content: this.answer
+    };
+
+    this.bookNoteService.createOrUpdateNote(request).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: this.t.translate('Saved to Notepad'),
+          detail: this.t.translate('The AI answer has been saved to your notepad.')
+        });
+      },
+      error: (err) => {
+        console.error('Failed to save answer to notepad:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('Save Failed'),
+          detail: this.t.translate('Failed to save answer to notepad.')
+        });
+      }
+    });
   }
 
   onSearch(): void {
