@@ -108,6 +108,7 @@ export class AppTopBarComponent implements OnDestroy {
   aiSearchEnabled = false;
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
   aiSearchBatchProgress: AiSearchProgressPayload | null = null;
+  aiSearchSingleProgress: AiSearchProgressPayload | null = null;
   metadataFlushProgress: TaskProgressPayload | null = null;
   importScanProgress: TaskProgressPayload | null = null;
   directoryTaggingProgress: TaskProgressPayload | null = null;
@@ -126,6 +127,7 @@ export class AppTopBarComponent implements OnDestroy {
   private directoryTagDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private metadataFetchDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private writeDismissTimer: ReturnType<typeof setTimeout> | undefined;
+  private aiSearchSingleDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private destroy$ = new Subject<void>();
 
   private latestTasks: Record<string, MetadataBatchProgressNotification> = {};
@@ -201,7 +203,22 @@ export class AppTopBarComponent implements OnDestroy {
     this.aiSearchScanProgressService.progress$
       .pipe(takeUntil(this.destroy$))
       .subscribe(progress => {
-        this.aiSearchBatchProgress = progress?.mode === 'BATCH' ? progress : null;
+        if (!progress) {
+          this.aiSearchBatchProgress = null;
+          this.aiSearchSingleProgress = null;
+        } else if (progress.mode === 'BATCH') {
+          this.aiSearchBatchProgress = progress;
+        } else if (progress.mode === 'SINGLE') {
+          this.aiSearchSingleProgress = progress;
+          if (progress.event === 'COMPLETED' || progress.event === 'FAILED') {
+            clearTimeout(this.aiSearchSingleDismissTimer);
+            this.aiSearchSingleDismissTimer = setTimeout(() => {
+              this.aiSearchSingleProgress = null;
+            }, 5000);
+          } else {
+            clearTimeout(this.aiSearchSingleDismissTimer);
+          }
+        }
       });
 
     this.appSettingsService.appSettings$
@@ -850,10 +867,6 @@ export class AppTopBarComponent implements OnDestroy {
     return 'warning';
   }
 
-  get aiSearchScanSummary(): string {
-    return this.aiSearchBatchProgress ? this.aiSearchScanProgressService.buildStatusText(this.aiSearchBatchProgress) : '';
-  }
-
   get aiScanSummary(): string {
     if (!this.aiBatchProgress) {
       return '';
@@ -871,6 +884,33 @@ export class AppTopBarComponent implements OnDestroy {
       completed: this.aiBatchProgress.completedBooks ?? 0,
       total: this.aiBatchProgress.totalBooks ?? 0
     });
+  }
+
+  get aiSearchSingleScanTone(): 'ok' | 'warning' | 'error' {
+    if (!this.aiSearchSingleProgress) {
+      return 'warning';
+    }
+    if (this.aiSearchSingleProgress.event === 'FAILED') return 'error';
+    if (this.aiSearchSingleProgress.event === 'COMPLETED') return 'ok';
+    return 'warning';
+  }
+
+  get showDesktopAiSearchSingleStatus(): boolean {
+    return !!this.aiSearchSingleProgress;
+  }
+
+  get aiSearchScanSummary(): string {
+    if (!this.aiSearchBatchProgress) {
+      return '';
+    }
+    return this.aiSearchBatchProgress.message || '';
+  }
+
+  get aiSearchSingleSummary(): string {
+    if (!this.aiSearchSingleProgress) {
+      return '';
+    }
+    return this.aiSearchSingleProgress.message || '';
   }
 
   private isToolbarItemVisible(item: ToolbarItem): boolean {

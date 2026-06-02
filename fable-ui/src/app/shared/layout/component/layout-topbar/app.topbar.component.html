@@ -68,6 +68,13 @@
         <span class="topbar-ai-summary">{{ aiSearchScanSummary }}</span>
       </button>
     }
+    @if (showDesktopAiSearchSingleStatus) {
+      <button type="button" class="topbar-ai-status">
+        <i class="pi pi-search"></i>
+        <span class="topbar-ai-label">{{ t('aiSearchExtraction') || 'AI Search' }}</span>
+        <span class="topbar-ai-summary">{{ aiSearchSingleSummary }}</span>
+      </button>
+    }
     @if (showDesktopAiScanStatus) {
       <button type="button" class="topbar-ai-status" (click)="navigateToAiSettings()">
         <i class="pi pi-sparkles"></i>

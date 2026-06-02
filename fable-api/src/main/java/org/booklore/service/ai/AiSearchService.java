@@ -209,9 +209,9 @@ public class AiSearchService {
 
         try {
             if (primaryFile.getBookType() == BookFileType.EPUB) {
-                extractEpubChunks(file, bookId, userId);
+                extractEpubChunks(file, bookId, userId, username, isBatch);
             } else if (primaryFile.getBookType() == BookFileType.PDF) {
-                extractPdfChunks(file, bookId, userId);
+                extractPdfChunks(file, bookId, userId, username, isBatch);
             } else {
                 throw new IllegalArgumentException("Unsupported book type for AI Search: " + primaryFile.getBookType());
             }
@@ -227,11 +227,16 @@ public class AiSearchService {
         }
     }
 
-    private void extractEpubChunks(File epubFile, Long bookId, Long userId) throws Exception {
+    private void extractEpubChunks(File epubFile, Long bookId, Long userId, String username, boolean isBatch) throws Exception {
         int spineSize = EpubContentReader.getSpineSize(epubFile);
         List<Map<String, Object>> chunkBatch = new ArrayList<>();
 
         for (int i = 0; i < spineSize; i++) {
+            if (!isBatch && i % 5 == 0) {
+                int percentage = (int)(((double)i / spineSize) * 100);
+                sendSearchProgress(username, "IN_PROGRESS", "Embedding... " + percentage + "%", null);
+            }
+
             String html = EpubContentReader.getSpineItemContent(epubFile, i);
             String text = Jsoup.parse(html).text();
             if (text.isBlank()) {
@@ -259,7 +264,7 @@ public class AiSearchService {
         }
     }
 
-    private void extractPdfChunks(File pdfFile, Long bookId, Long userId) throws Exception {
+    private void extractPdfChunks(File pdfFile, Long bookId, Long userId, String username, boolean isBatch) throws Exception {
         List<Map<String, Object>> chunkBatch = new ArrayList<>();
 
         try (PDDocument document = Loader.loadPDF(pdfFile)) {
@@ -267,6 +272,11 @@ public class AiSearchService {
             int pageCount = document.getNumberOfPages();
 
             for (int page = 1; page <= pageCount; page++) {
+                if (!isBatch && page % 5 == 0) {
+                    int percentage = (int)(((double)page / pageCount) * 100);
+                    sendSearchProgress(username, "IN_PROGRESS", "Embedding... " + percentage + "%", null);
+                }
+
                 stripper.setStartPage(page);
                 stripper.setEndPage(page);
                 String text = stripper.getText(document);
@@ -313,6 +323,11 @@ public class AiSearchService {
                 }
             }
             chunks.add(cleaned.substring(start, end).trim());
+            
+            if (end >= cleaned.length()) {
+                break;
+            }
+            
             start = end - CHUNK_OVERLAP;
             if (start < 0) start = 0;
             if (start >= cleaned.length()) break;

@@ -34,11 +34,11 @@ SEARCH_TOP_K = int(os.getenv("SEARCH_TOP_K", "3"))
 SEARCH_SIMILARITY_THRESHOLD = float(os.getenv("SEARCH_SIMILARITY_THRESHOLD", "0.3"))
 
 # Database config
-DB_HOST = os.getenv("DATABASE_HOST", "mariadb")
-DB_PORT = int(os.getenv("DATABASE_PORT", "3306"))
-DB_NAME = os.getenv("DATABASE_NAME", "fable")
-DB_USERNAME = os.getenv("DATABASE_USERNAME", "root")
-DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
+DB_HOST = os.getenv("DB_HOST", "mariadb")
+DB_PORT = int(os.getenv("DB_PORT", "3306"))
+DB_NAME = os.getenv("DB_NAME", "fable")
+DB_USERNAME = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "fable")
 
 # ---- State ----
 _embedding_model: SentenceTransformer | None = None

@@ -33,6 +33,8 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
 import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
 
+import {AiSearchDialogService} from '../../ai-search-dialog/ai-search-dialog.component';
+
 @Component({
   selector: 'app-book-card',
   templateUrl: './book-card.component.html',
@@ -119,6 +121,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private readonly t = inject(TranslocoService);
   private readonly appRef = inject(ApplicationRef);
   private readonly injector = inject(Injector);
+  private aiSearchDialogService = inject(AiSearchDialogService);
 
   protected _progressPercentage: number | null = null;
   protected _koProgressPercentage: number | null = null;
@@ -891,6 +894,13 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     }
 
     if (this.aiSearchEnabled) {
+      moreActions.push({
+        label: this.t.translate('layout.topbar.aiSearch') || 'AI Search',
+        icon: 'pi pi-sparkles',
+        command: () => {
+          this.aiSearchDialogService.open(book.id);
+        }
+      });
       moreActions.push({
         label: this.t.translate('book.card.menu.embedForAiSearch'),
         icon: 'pi pi-search',

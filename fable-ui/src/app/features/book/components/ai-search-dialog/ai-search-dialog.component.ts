@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy} from '@angular/core';
+import {Component, inject, OnDestroy, Injectable, OnInit} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
 import {Button} from 'primeng/button';
@@ -11,7 +11,17 @@ import {UserService} from '../../../settings/user-management/user.service';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Router} from '@angular/router';
 import {AiSearchChunkResult} from '../../../../shared/model/app-settings.model';
-import {Subscription} from 'rxjs';
+import {Subscription, Subject} from 'rxjs';
+
+@Injectable({providedIn: 'root'})
+export class AiSearchDialogService {
+  private openCommand = new Subject<number | null>();
+  openCommand$ = this.openCommand.asObservable();
+
+  open(bookId: number | null = null) {
+    this.openCommand.next(bookId);
+  }
+}
 
 @Component({
   selector: 'app-ai-search-dialog',
@@ -28,7 +38,7 @@ import {Subscription} from 'rxjs';
   ],
   standalone: true
 })
-export class AiSearchDialogComponent implements OnDestroy {
+export class AiSearchDialogComponent implements OnInit, OnDestroy {
   visible = false;
   searchQuery = '';
   results: AiSearchChunkResult[] = [];
@@ -42,9 +52,21 @@ export class AiSearchDialogComponent implements OnDestroy {
   private router = inject(Router);
   private readonly t = inject(TranslocoService);
 
-  private searchSub?: Subscription;
+  private aiSearchDialogService = inject(AiSearchDialogService);
 
-  open(): void {
+  private searchSub?: Subscription;
+  private openSub?: Subscription;
+
+  ngOnInit(): void {
+    this.openSub = this.aiSearchDialogService.openCommand$.subscribe(bookId => {
+      this.open(bookId);
+    });
+  }
+
+  private singleBookId: number | null = null;
+
+  open(bookId: number | null = null): void {
+    this.singleBookId = bookId;
     this.visible = true;
     this.searchQuery = '';
     this.results = [];
@@ -72,7 +94,9 @@ export class AiSearchDialogComponent implements OnDestroy {
       return;
     }
 
-    this.searchSub = this.appSettingsService.searchWithAi(query, [], user.id).subscribe({
+    const bookIds = this.singleBookId ? [this.singleBookId] : [];
+
+    this.searchSub = this.appSettingsService.searchWithAi(query, bookIds, user.id).subscribe({
       next: (result) => {
         this.isLoading = false;
         this.results = result.results || [];
@@ -100,5 +124,6 @@ export class AiSearchDialogComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.searchSub?.unsubscribe();
+    this.openSub?.unsubscribe();
   }
 }
