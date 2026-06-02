@@ -1,8 +1,21 @@
+.ai-search-header-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .ai-search-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
+}
+
+.ai-search-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .ai-search-body {

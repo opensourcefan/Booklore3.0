@@ -7,15 +7,17 @@
   [style]="{ width: '800px', maxWidth: '95vw' }"
   styleClass="ai-search-dialog">
   <ng-template pTemplate="header">
-    <div class="ai-search-header">
-      <i class="pi pi-search"></i>
-      <span>{{ t('title') }}</span>
-    </div>
-    <div class="ai-search-header-actions">
-      @if (hasSearched) {
-        <p-button icon="pi pi-times" [text]="true" [rounded]="true" (onClick)="clearResults()" [pTooltip]="t('clearResults')"></p-button>
-      }
-      <p-button icon="pi pi-times" [text]="true" [rounded]="true" (onClick)="close()" [pTooltip]="t('close')"></p-button>
+    <div class="ai-search-header-wrapper">
+      <div class="ai-search-header">
+        <i class="pi pi-search"></i>
+        <span>{{ t('title') }}</span>
+      </div>
+      <div class="ai-search-header-actions">
+        @if (hasSearched) {
+          <p-button icon="pi pi-undo" [text]="true" [rounded]="true" (onClick)="clearResults()" [pTooltip]="t('clearResults')"></p-button>
+        }
+        <p-button icon="pi pi-times" [text]="true" [rounded]="true" (onClick)="close()" [pTooltip]="t('close')"></p-button>
+      </div>
     </div>
   </ng-template>
 
