@@ -62,6 +62,7 @@ public class AppProperties {
     @Setter
     public static class AiSearch {
         private String baseUrl = "http://fable-ai-search:8080";
+        private String embeddingModel = "BAAI/bge-small-en-v1.5";
         private int connectTimeoutMs = 3000;
         private int readTimeoutMs = 120000;
     }

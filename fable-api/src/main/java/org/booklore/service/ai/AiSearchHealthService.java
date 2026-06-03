@@ -81,7 +81,8 @@ public class AiSearchHealthService {
         boolean modelExists = asBoolean(healthPayload.get("modelExists"));
         String modelPath = asNullableString(healthPayload.get("modelPath"));
         String loadError = asNullableString(healthPayload.get("loadError"));
-        String embeddingModel = asNullableString(healthPayload.get("embeddingModel"));
+        String payloadEmbeddingModel = asNullableString(healthPayload.get("embeddingModel"));
+        String embeddingModel = payloadEmbeddingModel != null ? payloadEmbeddingModel : appProperties.getAiSearch().getEmbeddingModel();
 
         return switch (rawStatus) {
             case "ok" -> AiServiceStatus.builder()

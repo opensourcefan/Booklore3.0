@@ -142,12 +142,15 @@ def _generate_answer(query: str, context: str) -> str:
         base_url = "http://localhost:11434"
 
     system_prompt = (
-        "You are a helpful AI assistant. You will be provided with some book excerpts as Context.\n"
-        "1. If the Context contains the answer, synthesize it.\n"
-        "2. If the Context does NOT contain the answer, COMPLETELY IGNORE the Context and provide a helpful, direct answer using your own general knowledge. Do not apologize for missing context, just answer the question."
+        "You are a helpful AI assistant answering questions STRICTLY based on the provided book excerpts.\n"
+        "Instructions:\n"
+        "1. Read the provided Context.\n"
+        "2. If the Context contains the answer to the Question, use it to answer.\n"
+        "3. If the Context does NOT contain the answer, you MUST say exactly: 'I cannot find the answer to this question in the text.' Do NOT use your own general knowledge.\n"
+        "Do not mention 'the context' in your answer."
     )
 
-    user_prompt = f"Context:\n{context}\n\nQuestion: {query}"
+    user_prompt = f"Context:\n<context>\n{context}\n</context>\n\nQuestion: {query}"
 
     resp = requests.post(
         f"{base_url}/api/chat",
@@ -227,6 +230,7 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
     book_id = payload.get("bookId")
     user_id = payload.get("userId")
     chunks = payload.get("chunks") or []
+    append = payload.get("append", False)
 
     if not book_id or not user_id:
         raise HTTPException(status_code=400, detail="bookId and userId are required.")
@@ -244,11 +248,18 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
     try:
-        # Delete existing embeddings for this book
         conn = _get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM book_embeddings WHERE book_id = %s AND user_id = %s", (book_id, user_id))
-        conn.commit()
+        
+        if not append:
+            # Delete existing embeddings for this book
+            cursor.execute("DELETE FROM book_embeddings WHERE book_id = %s AND user_id = %s", (book_id, user_id))
+            conn.commit()
+
+        # Get current chunk count for this book to continue indexing
+        cursor.execute("SELECT MAX(chunk_index) FROM book_embeddings WHERE book_id = %s AND user_id = %s", (book_id, user_id))
+        max_idx = cursor.fetchone()[0]
+        start_idx = (max_idx + 1) if max_idx is not None else 0
 
         # Embed each chunk and insert
         for i, chunk in enumerate(chunks):
@@ -267,7 +278,7 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
                 """INSERT INTO book_embeddings
                    (book_id, user_id, chunk_index, chunk_text, embedding_vector, page_number, chapter_title)
                    VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-                (book_id, user_id, i, chunk_text, vector_json, page_number, chapter_title),
+                (book_id, user_id, start_idx + i, chunk_text, vector_json, page_number, chapter_title),
             )
             _active_embed_jobs[job_id]["completedChunks"] = i + 1
 
@@ -362,9 +373,9 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         if not is_index_request:
             ch_title = (row["chapter_title"] or "").lower()
             text_prefix = row["chunk_text"][:200].lower()
-            if "index" in ch_title or "table of contents" in ch_title:
+            if "index" in ch_title or "table of contents" in ch_title or "glossary" in ch_title:
                 continue
-            if "i n d e x" in text_prefix:
+            if "i n d e x" in text_prefix or "g l o s s a r y" in text_prefix:
                 continue
             # Also skip if it seems to be just a huge list of numbers and words (typical of index/TOC pages)
             import re
@@ -386,7 +397,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                     "chapterTitle": row["chapter_title"],
                     "similarity": round(similarity, 4),
                 })
-        except (json.JSONDecodeError, TypeError):
+        except (json.JSONDecodeError, TypeError, ValueError):
             continue
 
     # Sort by similarity descending, take top K

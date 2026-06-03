@@ -43,7 +43,7 @@ public class AiSearchController {
             throw new IllegalArgumentException("chunks are required.");
         }
 
-        return aiSearchService.embedBook(bookId, userId, chunks);
+        return aiSearchService.embedBook(bookId, userId, chunks, false);
     }
 
     @PostMapping("/query")

@@ -69,9 +69,24 @@
         <div class="ai-search-answer">
           <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
             {{ t('answer') }}
-            <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveAnswerToNotepad()" [pTooltip]="'Save Answer to Notepad'"></p-button>
+            <div style="display: flex; gap: 0.5rem;">
+              <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader()" [pTooltip]="'Open Source in Reader'"></p-button>
+              <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveAnswerToNotepad()" [pTooltip]="'Save Answer to Notepad'"></p-button>
+            </div>
           </div>
           <p>{{ answer }}</p>
+          @if (results.length > 0) {
+            <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-color-secondary); border-top: 1px solid var(--surface-border); padding-top: 0.5rem;">
+              <em>Source: {{ results[0].bookTitle }} 
+                @if (results[0].chapterTitle) {
+                  - {{ results[0].chapterTitle }}
+                }
+                @if (results[0].pageNumber) {
+                  (Page {{ results[0].pageNumber }})
+                }
+              </em>
+            </div>
+          }
         </div>
       </div>
     }

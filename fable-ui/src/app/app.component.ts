@@ -189,6 +189,9 @@ export class AppComponent implements OnInit, OnDestroy {
       this.rxStompService.watch('/user/queue/ai-search-progress').subscribe(msg => {
         const progress = JSON.parse(msg.body) as AiSearchProgressPayload;
         this.aiSearchScanProgressService.handleIncomingProgress(progress);
+        if (progress.event === 'COMPLETED') {
+          this.refreshBookStateAndPagedViews();
+        }
       })
     );
     this.subscriptions.push(

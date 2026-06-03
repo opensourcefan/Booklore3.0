@@ -571,6 +571,11 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query(value = "SELECT DISTINCT be.book_id as bookId, be.embedding_model as embeddingModel FROM book_embeddings be WHERE be.user_id = :userId AND be.book_id IN :bookIds", nativeQuery = true)
     List<org.booklore.repository.projection.AiSearchBookStatusProjection> findBookIdsWithAiSearchEmbeddings(@Param("userId") Long userId, @Param("bookIds") Collection<Long> bookIds);
 
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @jakarta.transaction.Transactional
+    @Query(value = "UPDATE book_embeddings SET embedding_model = :model WHERE book_id = :bookId AND user_id = :userId", nativeQuery = true)
+    void updateAiSearchEmbeddingModel(@Param("bookId") Long bookId, @Param("userId") Long userId, @Param("model") String model);
+
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
     long countNonDeleted();
 }

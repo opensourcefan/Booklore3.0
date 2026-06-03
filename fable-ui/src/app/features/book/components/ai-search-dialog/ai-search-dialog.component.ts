@@ -23,6 +23,12 @@ export class AiSearchDialogService {
   private openCommand = new Subject<number | null>();
   openCommand$ = this.openCommand.asObservable();
 
+  cachedSearchQuery = '';
+  cachedResults: AiSearchChunkResult[] = [];
+  cachedHasSearched = false;
+  cachedAnswer: string | null = null;
+  cachedSingleBookId: number | null = null;
+
   open(bookId: number | null = null) {
     this.openCommand.next(bookId);
   }
@@ -68,6 +74,13 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   private openSub?: Subscription;
 
   ngOnInit(): void {
+    // Restore state from service
+    this.searchQuery = this.aiSearchDialogService.cachedSearchQuery;
+    this.results = this.aiSearchDialogService.cachedResults;
+    this.hasSearched = this.aiSearchDialogService.cachedHasSearched;
+    this.answer = this.aiSearchDialogService.cachedAnswer;
+    this.singleBookId = this.aiSearchDialogService.cachedSingleBookId;
+
     this.openSub = this.aiSearchDialogService.openCommand$.subscribe(bookId => {
       this.open(bookId);
     });
@@ -75,13 +88,25 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
   private singleBookId: number | null = null;
 
+  private saveStateToCache(): void {
+    this.aiSearchDialogService.cachedSearchQuery = this.searchQuery;
+    this.aiSearchDialogService.cachedResults = this.results;
+    this.aiSearchDialogService.cachedHasSearched = this.hasSearched;
+    this.aiSearchDialogService.cachedAnswer = this.answer;
+    this.aiSearchDialogService.cachedSingleBookId = this.singleBookId;
+  }
+
   open(bookId: number | null = null): void {
+    if (this.singleBookId !== bookId && bookId !== null) {
+      this.clearResults();
+    }
     this.singleBookId = bookId;
+    this.saveStateToCache();
     this.visible = true;
-    this.searchQuery = '';
   }
 
   close(): void {
+    this.saveStateToCache();
     this.visible = false;
   }
 
@@ -91,6 +116,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.hasSearched = false;
     this.selectedResult = null;
     this.searchQuery = '';
+    this.saveStateToCache();
   }
 
   saveToNotepad(result: AiSearchChunkResult): void {
@@ -172,6 +198,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.hasSearched = true;
     this.answer = null;
+    this.saveStateToCache();
 
     const user = this.userService.getCurrentUser();
     if (!user) {
@@ -186,10 +213,12 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.results = result.results || [];
         this.answer = result.answer || null;
+        this.saveStateToCache();
       },
       error: () => {
         this.isLoading = false;
         this.results = [];
+        this.saveStateToCache();
       },
     });
   }
@@ -223,13 +252,21 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     }
   }
 
+  openTopResultInReader(): void {
+    if (this.results.length > 0) {
+      this.readBookAtPage(this.results[0]);
+    }
+  }
+
   onKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
+      event.preventDefault();
       this.onSearch();
     }
   }
 
   ngOnDestroy(): void {
+    this.saveStateToCache();
     this.searchSub?.unsubscribe();
     this.openSub?.unsubscribe();
   }

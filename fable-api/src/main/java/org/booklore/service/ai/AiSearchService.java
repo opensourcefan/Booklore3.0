@@ -112,14 +112,15 @@ public class AiSearchService {
         }
     }
 
-    public Map<String, Object> embedBook(Long bookId, Long userId, List<Map<String, Object>> chunks) {
+    public Map<String, Object> embedBook(Long bookId, Long userId, List<Map<String, Object>> chunks, boolean append) {
         String baseUrl = appProperties.getAiSearch().getBaseUrl();
         RestClient restClient = buildRestClient();
 
         Map<String, Object> payload = Map.of(
                 "bookId", bookId,
                 "userId", userId,
-                "chunks", chunks
+                "chunks", chunks,
+                "append", append
         );
 
         @SuppressWarnings("unchecked")
@@ -218,6 +219,10 @@ public class AiSearchService {
             } else {
                 throw new IllegalArgumentException("Unsupported book type for AI Search: " + primaryFile.getBookType());
             }
+
+            String activeModel = appProperties.getAiSearch().getEmbeddingModel();
+            bookRepository.updateAiSearchEmbeddingModel(bookId, userId, activeModel);
+
             if (!isBatch) {
                 sendSearchProgress(username, "COMPLETED", "Book embedded successfully", null);
             }
@@ -233,6 +238,7 @@ public class AiSearchService {
     private void extractEpubChunks(File epubFile, Long bookId, Long userId, String username, boolean isBatch) throws Exception {
         int spineSize = EpubContentReader.getSpineSize(epubFile);
         List<Map<String, Object>> chunkBatch = new ArrayList<>();
+        boolean isFirstBatch = true;
 
         for (int i = 0; i < spineSize; i++) {
             if (!isBatch && i % 5 == 0) {
@@ -255,20 +261,22 @@ public class AiSearchService {
                 chunkBatch.add(chunk);
 
                 if (chunkBatch.size() >= CHUNK_BATCH_SIZE) {
-                    embedBook(bookId, userId, chunkBatch);
+                    embedBook(bookId, userId, chunkBatch, !isFirstBatch);
+                    isFirstBatch = false;
                     chunkBatch.clear();
                 }
             }
         }
 
         if (!chunkBatch.isEmpty()) {
-            embedBook(bookId, userId, chunkBatch);
+            embedBook(bookId, userId, chunkBatch, !isFirstBatch);
             chunkBatch.clear();
         }
     }
 
     private void extractPdfChunks(File pdfFile, Long bookId, Long userId, String username, boolean isBatch) throws Exception {
         List<Map<String, Object>> chunkBatch = new ArrayList<>();
+        boolean isFirstBatch = true;
 
         try (PDDocument document = Loader.loadPDF(pdfFile)) {
             PDFTextStripper stripper = new PDFTextStripper();
@@ -296,7 +304,8 @@ public class AiSearchService {
                     chunkBatch.add(chunk);
 
                     if (chunkBatch.size() >= CHUNK_BATCH_SIZE) {
-                        embedBook(bookId, userId, chunkBatch);
+                        embedBook(bookId, userId, chunkBatch, !isFirstBatch);
+                        isFirstBatch = false;
                         chunkBatch.clear();
                     }
                 }
@@ -304,7 +313,7 @@ public class AiSearchService {
         }
 
         if (!chunkBatch.isEmpty()) {
-            embedBook(bookId, userId, chunkBatch);
+            embedBook(bookId, userId, chunkBatch, !isFirstBatch);
             chunkBatch.clear();
         }
     }
