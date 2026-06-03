@@ -134,13 +134,19 @@
 }
 
 .ai-search-result-text {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--text-color-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  background: var(--surface-ground);
+  padding: 0.75rem;
+  border-radius: 6px;
+  border-left: 3px solid var(--primary-color);
+  font-style: italic;
+  margin-top: 0.25rem;
 }
 
 .ai-search-result-meta {

@@ -30,7 +30,7 @@ EXTERNAL_EMBEDDING_BASE_URL = os.getenv("EXTERNAL_EMBEDDING_BASE_URL", "")
 LLM_MODEL_NAME = os.getenv("LLM_MODEL", "qwen2.5:1.5b")
 LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "512"))
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
-SEARCH_TOP_K = int(os.getenv("SEARCH_TOP_K", "3"))
+SEARCH_TOP_K = int(os.getenv("SEARCH_TOP_K", "8"))
 SEARCH_SIMILARITY_THRESHOLD = float(os.getenv("SEARCH_SIMILARITY_THRESHOLD", "0.3"))
 
 # Database config
@@ -154,9 +154,9 @@ def _generate_answer(query: str, context: str) -> str:
         base_url = "http://localhost:11434"
 
     system_prompt = (
-        "You are a helpful assistant. Answer the user's question using ONLY the provided book excerpts. "
-        "If the excerpts do not contain the answer, or if they only contain an index or table of contents, "
-        "reply exactly with 'I cannot find the answer in the provided text.' Do not guess."
+        "You are a helpful AI assistant. You will be provided with some book excerpts as Context.\n"
+        "1. If the Context contains the answer, synthesize it.\n"
+        "2. If the Context does NOT contain the answer, COMPLETELY IGNORE the Context and provide a helpful, direct answer using your own general knowledge. Do not apologize for missing context, just answer the question."
     )
 
     user_prompt = f"Context:\n{context}\n\nQuestion: {query}"
@@ -376,9 +376,25 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             "totalChunksSearched": 0,
         }
 
+    is_index_request = "index" in query.lower() or "table of contents" in query.lower()
+
     # Compute similarities
     scored: list[dict[str, Any]] = []
     for row in rows:
+        # Heuristic: skip likely index pages if not requested
+        if not is_index_request:
+            ch_title = (row["chapter_title"] or "").lower()
+            text_prefix = row["chunk_text"][:200].lower()
+            if "index" in ch_title or "table of contents" in ch_title:
+                continue
+            if "i n d e x" in text_prefix:
+                continue
+            # Also skip if it seems to be just a huge list of numbers and words (typical of index/TOC pages)
+            import re
+            words = text_prefix.split()
+            numbers = [w for w in words if re.match(r'^\d+$', w)]
+            if len(words) > 0 and (len(numbers) / len(words)) > 0.15:
+                continue
         try:
             vector = json.loads(row["embedding_vector"])
             similarity = _cosine_similarity(query_vector, vector)
@@ -409,9 +425,9 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         ])
         try:
             answer = _generate_answer(query, context)
-        except Exception as exc:
-            logger.warning("LLM generation failed: %s", exc)
-            answer = "I could not generate a summarized answer because the AI Search container failed to connect to the Language Model (Ollama). Please verify that your `AI_SEARCH_EXTERNAL_LLM_URL` is correctly configured in your `.env` file and that Ollama is running."
+        except Exception as e:
+            print(f"Error generating LLM answer: {e}")
+            answer = "I could not generate a summarized answer because the internal AI model is still starting up or downloading. Please wait a moment and try your search again."
 
     return {
         "query": query,

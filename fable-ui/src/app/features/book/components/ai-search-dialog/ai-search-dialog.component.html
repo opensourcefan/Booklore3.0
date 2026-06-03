@@ -40,16 +40,20 @@
     </div>
 
     @if (isLoading) {
-      <div class="ai-search-loading">
-        @for (i of [1,2,3]; track i) {
-          <div class="ai-search-skeleton-item">
-            <p-skeleton width="50px" height="67px" borderRadius="4px"/>
-            <div class="ai-search-skeleton-details">
-              <p-skeleton width="80%" height="1rem"/>
-              <p-skeleton width="60%" height="0.8rem"/>
-            </div>
-          </div>
-        }
+      <div class="ai-search-loading" style="display: flex; justify-content: center; align-items: center; padding: 3rem; flex-direction: column; gap: 1rem; color: var(--text-color-secondary);">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2.5rem"></i>
+        <span>{{ t('searching') || 'Searching...' }}</span>
+      </div>
+    }
+
+    @if (!isLoading && !hasSearched) {
+      <div class="ai-search-empty" style="text-align: center; padding: 3rem 2rem; color: var(--text-color-secondary);">
+        <i class="pi pi-sparkles" style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--primary-color);"></i>
+        <h3 style="margin-top: 0;">AI Smart Search</h3>
+        <p style="line-height: 1.6; max-width: 450px; margin: 0 auto;">
+          Find specific concepts, entities, or themes hidden within your books.<br><br>
+          <strong>Pro tip:</strong> Try searching for general topics, ingredients, or themes (like <em>"cocktails with rum"</em> or <em>"space travel"</em>) to discover what your books have to offer, even if you aren't sure exactly what's inside!
+        </p>
       </div>
     }
 
@@ -72,7 +76,7 @@
       </div>
     }
 
-    @if (!isLoading && results.length > 0 && !answer) {
+    @if (!isLoading && results.length > 0) {
       <div class="ai-search-results">
         <div class="ai-search-results-label">{{ t('results', { count: results.length }) }}</div>
         @for (result of results; track result.chunkId) {
@@ -82,7 +86,7 @@
                (keydown.enter)="onResultClick(result)">
             
             <img
-              [attr.src]="urlHelper.getThumbnailUrl(result.bookId)"
+              [src]="getCover(result)"
               [alt]="t('bookCoverAlt')"
               class="ai-search-result-cover"
             />

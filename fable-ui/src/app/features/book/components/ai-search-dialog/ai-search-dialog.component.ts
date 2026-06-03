@@ -17,6 +17,7 @@ import {MessageService} from 'primeng/api';
 import {BookNoteService, CreateBookNoteV2Request} from '../../../../shared/service/book-note.service';
 import {BookService} from '../../service/book.service';
 import {SidebarBadgeRefreshService} from '../../service/sidebar-badge-refresh.service';
+import {CoverGeneratorComponent} from '../../../../shared/components/cover-generator/cover-generator.component';
 
 @Injectable({providedIn: 'root'})
 export class AiSearchDialogService {
@@ -204,8 +205,18 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.selectedResult = null;
   }
 
+  getCover(result: AiSearchChunkResult): string {
+    const book = this.bookService.getBookByIdFromState(result.bookId);
+    if (book && book.metadata?.coverUpdatedOn) {
+      return this.urlHelper.getThumbnailUrl(result.bookId, book.metadata.coverUpdatedOn);
+    }
+    const coverGenerator = new CoverGeneratorComponent();
+    coverGenerator.title = result.bookTitle || '';
+    coverGenerator.author = '';
+    return coverGenerator.generateCover();
+  }
+
   readBookAtPage(result: AiSearchChunkResult): void {
-    this.close();
     if (result.pageNumber) {
       this.bookService.readBook(result.bookId, undefined, undefined, result.pageNumber);
     } else {

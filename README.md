@@ -291,7 +291,7 @@ services:
       - LLM_MODEL=${AI_SEARCH_LLM_MODEL:-qwen2.5:1.5b}
       - LLM_MAX_TOKENS=${AI_SEARCH_LLM_MAX_TOKENS:-512}
       - LLM_TEMPERATURE=${AI_SEARCH_LLM_TEMPERATURE:-0.1}
-      - SEARCH_TOP_K=${AI_SEARCH_TOP_K:-3}
+      - SEARCH_TOP_K=${AI_SEARCH_TOP_K:-8}
       - SEARCH_SIMILARITY_THRESHOLD=${AI_SEARCH_SIMILARITY_THRESHOLD:-0.3}
       - EXTERNAL_LLM_BASE_URL=${AI_SEARCH_EXTERNAL_LLM_URL:-}
       - EXTERNAL_EMBEDDING_BASE_URL=${AI_SEARCH_EXTERNAL_EMBEDDING_URL:-}
@@ -397,9 +397,7 @@ tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
    - **Global AI Search:** Click the sparkly blue **AI Search** icon in the topbar or library search fields to search your entire collection by concepts and themes.
    - **Book-Specific AI Search:** Click the glowing **AIS** badge on any book card to ask questions specifically about that book.
    - **Note:** Make sure you have embedded your books first (Click the three dots on any book card -> **Embed for AI Search**).
-   - **Important setup for AI Answers (Ollama):** If you are running an AI model on your own computer to generate answers (like Ollama), Fable needs to know how to connect to it. Because Fable lives inside a "Docker container" (which acts like its own separate mini-computer), it cannot simply connect to `localhost`. 
-     * **Step 1:** Tell your AI (Ollama) to allow network connections. If you use Linux, edit your Ollama service to include `Environment="OLLAMA_HOST=0.0.0.0"`. If you use Mac/Windows, you can usually set this in the Ollama app settings.
-     * **Step 2:** Tell Fable where to find your AI. Open your `.env` file and look for `AI_SEARCH_EXTERNAL_LLM_URL`. Change it to your computer's local network IP address (for example: `http://192.168.1.50:11434`) or use the special Docker IP `http://172.17.0.1:11434`.
+   - **Zero Configuration Needed:** Fable comes with everything you need built-in! The AI search engine (powered by Ollama) runs automatically inside its own secure container. You don't need to install any external software or configure network settings to get started. Just pick a preset in your `.env` file and enjoy.
 
 ### AI Notes
 

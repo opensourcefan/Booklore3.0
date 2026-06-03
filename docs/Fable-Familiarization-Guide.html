@@ -888,13 +888,9 @@
   <li><strong>Save to Notepad:</strong> When you find a useful AI response, you can click the "Add to Notepad" button to save that snippet into your Fable Notepad for future reference.</li>
 </ul>
 
-<div class="callout warning">
-  <strong>Important setup for AI Answers (Ollama):</strong>
-  <p>If you are running an AI model on your own computer to generate answers (like Ollama), Fable needs to know how to connect to it. Because Fable lives inside a "Docker container" (which acts like its own separate mini-computer), it cannot simply connect to <code>localhost</code>.</p>
-  <ol>
-    <li><strong>Tell your AI (Ollama) to allow network connections.</strong> If you use Linux, edit your Ollama service to include <code>Environment="OLLAMA_HOST=0.0.0.0"</code>. If you use Mac/Windows, you can usually set this in the Ollama app settings.</li>
-    <li><strong>Tell Fable where to find your AI.</strong> Open your <code>.env</code> file and look for <code>AI_SEARCH_EXTERNAL_LLM_URL</code>. Change it to your computer's local network IP address (for example: <code>http://192.168.1.50:11434</code>) or use the special Docker IP <code>http://172.17.0.1:11434</code>.</li>
-  </ol>
+<div class="callout info">
+  <strong>Zero Configuration Needed:</strong>
+  <p>Fable comes with everything you need built-in! The AI search engine runs automatically inside its own secure container. You don't need to install any external software or configure network settings to get started. Just pick a preset in your <code>.env</code> file and enjoy.</p>
 </div>
 
 <h3>Filters</h3>

@@ -34,8 +34,8 @@ AI_SEARCH_EXTERNAL_EMBEDDING_URL=
 Fine-tune how search results are ranked and generated.
 
 ```ini
-# Number of top results to return and synthesize (Default: 3)
-AI_SEARCH_TOP_K=3
+# Number of top results to return and synthesize (Default: 8)
+AI_SEARCH_TOP_K=8
 
 # Minimum cosine similarity score to consider a match (Default: 0.3)
 AI_SEARCH_SIMILARITY_THRESHOLD=0.3
