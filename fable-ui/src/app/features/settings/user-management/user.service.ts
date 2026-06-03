@@ -260,7 +260,8 @@ export type VisibleFilterType =
   | 'ageRating' | 'contentRating'
   | 'narrator'
   | 'comicCharacter' | 'comicTeam' | 'comicLocation' | 'comicCreator'
-  | 'addedOn' | 'folderPath';
+  | 'addedOn' | 'folderPath'
+  | 'hasAiSearchData' | 'markedForAiSearch';
 
 export const DEFAULT_VISIBLE_FILTERS: VisibleFilterType[] = [
   'author', 'category', 'series', 'bookType', 'readStatus',
@@ -276,7 +277,7 @@ export const ALL_FILTER_OPTION_VALUES: VisibleFilterType[] = [
   'shelfStatus', 'language', 'pageCount', 'mood', 'amazonRating',
   'goodreadsRating', 'hardcoverRating', 'narrator',
   'comicCharacter', 'comicTeam', 'comicLocation', 'comicCreator',
-  'addedOn', 'folderPath'
+  'addedOn', 'folderPath', 'hasAiSearchData', 'markedForAiSearch'
 ];
 
 export const ALL_FILTER_OPTIONS: { label: string; value: VisibleFilterType }[] = [
@@ -308,7 +309,9 @@ export const ALL_FILTER_OPTIONS: { label: string; value: VisibleFilterType }[] =
   {label: 'Comic Location', value: 'comicLocation'},
   {label: 'Comic Creator', value: 'comicCreator'},
   {label: 'Date Added', value: 'addedOn'},
-  {label: 'Folder', value: 'folderPath'}
+  {label: 'Folder', value: 'folderPath'},
+  {label: 'Has AI Search', value: 'hasAiSearchData'},
+  {label: 'Marked for AI Search', value: 'markedForAiSearch'}
 ];
 
 export const DEFAULT_VISIBLE_SORT_FIELDS: string[] = [

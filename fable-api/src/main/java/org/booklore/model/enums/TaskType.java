@@ -72,8 +72,16 @@ public enum TaskType {
             true,
             false,
             false,
-            "Push Metadata to Files",
-            "Writes the current database metadata back to the original book files for all books where the file has not yet been updated. Only available in LOCAL storage mode."
+        "Push Metadata to Files",
+        "Writes the current database metadata back to the original book files for all books where the file has not yet been updated. Only available in LOCAL storage mode."
+    ),
+    AI_SEARCH_EMBED_MARKED(
+        false,
+        false,
+        true,
+        false,
+        "Scan Marked AI Search Embeddings",
+        "Extracts text and generates embeddings for books that have been marked for AI Search embedding."
     );
 
     @Getter

@@ -1,0 +1,1 @@
+ALTER TABLE book ADD COLUMN marked_for_ai_search BOOLEAN DEFAULT FALSE;

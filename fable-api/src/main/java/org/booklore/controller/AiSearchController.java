@@ -2,6 +2,7 @@ package org.booklore.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.booklore.model.dto.ai.AiServiceStatus;
+import org.booklore.repository.BookRepository;
 import org.booklore.service.ai.AiSearchHealthService;
 import org.booklore.service.ai.AiSearchService;
 import org.booklore.config.security.service.AuthenticationService;
@@ -18,6 +19,7 @@ public class AiSearchController {
     private final AiSearchHealthService aiSearchHealthService;
     private final AiSearchService aiSearchService;
     private final AuthenticationService authenticationService;
+    private final BookRepository bookRepository;
 
     @GetMapping("/status")
     public AiServiceStatus getStatus() {
@@ -81,16 +83,12 @@ public class AiSearchController {
         return Map.of("status", "STARTED");
     }
 
-    @PostMapping("/scan-missing")
-    public Map<String, Object> scanMissing(@RequestBody Map<String, Object> payload) {
-        @SuppressWarnings("unchecked")
-        List<Long> pathIds = (List<Long>) payload.get("pathIds");
-        if (pathIds == null || pathIds.isEmpty()) {
-            throw new IllegalArgumentException("pathIds are required.");
-        }
+    @PostMapping("/scan-marked")
+    public Map<String, Object> scanMarked() {
         Long userId = authenticationService.getAuthenticatedUser().getId();
         String username = authenticationService.getAuthenticatedUser().getUsername();
-        aiSearchService.startScanMissingAiSearchEmbeddings(pathIds, userId, username);
+        
+        aiSearchService.startScanMarkedAiSearchEmbeddings(userId, username);
         return Map.of("status", "STARTED");
     }
 
@@ -98,6 +96,21 @@ public class AiSearchController {
     public Map<String, Object> stopScan() {
         aiSearchService.stopAiSearchScan();
         return Map.of("status", "STOPPED");
+    }
+
+    @PostMapping("/mark")
+    public void markForAiSearch(@RequestBody Map<String, Object> payload) {
+        @SuppressWarnings("unchecked")
+        List<Number> rawBookIds = (List<Number>) payload.get("bookIds");
+        Boolean marked = (Boolean) payload.get("marked");
+        if (rawBookIds == null || rawBookIds.isEmpty()) {
+            throw new IllegalArgumentException("bookIds are required.");
+        }
+        if (marked == null) {
+            marked = true;
+        }
+        List<Long> bookIds = rawBookIds.stream().map(Number::longValue).toList();
+        bookRepository.updateMarkedForAiSearch(bookIds, marked);
     }
 
     private Long toLong(Object value) {

@@ -299,27 +299,13 @@
     <!-- AI Search Scan Section -->
     <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
       <div class="scan-section">
-        <div class="scan-directory-row">
-          <p-button
-            icon="pi pi-folder-open"
-            [label]="t('prescan.chooseDirectories')"
-            [disabled]="!aiSearchEnabled || aiSearchPreScanRunning"
-            outlined
-            (onClick)="openDirectoryDialog()">
-          </p-button>
-          <span class="selected-count-chip" [ngClass]="{ 'visible': selectedLibraryPathIds.length > 0 }">
-            <i class="pi pi-folder"></i>
-            {{ t('prescan.directoriesSelected', { count: selectedLibraryPathIds.length }) }}
-          </span>
-        </div>
-
         <div class="scan-action-row">
           <p-button
             [icon]="aiSearchPreScanRunning ? 'pi pi-spin pi-spinner' : 'pi pi-bolt'"
-            [label]="aiSearchPreScanRunning ? t('prescan.scanning') : t('prescan.action')"
+            [label]="aiSearchPreScanRunning ? t('prescan.scanning') : 'Scan Marked'"
             [severity]="aiSearchPreScanRunning ? 'warn' : 'success'"
-            [disabled]="!aiSearchEnabled || !selectedLibraryPathIds.length || aiSearchPreScanRunning"
-            (onClick)="preScanMissingAiSearch()">
+            [disabled]="!aiSearchEnabled || aiSearchPreScanRunning"
+            (onClick)="scanMarkedAiSearch()">
           </p-button>
           @if (isAiSearchActivelyScanning) {
             <p-button

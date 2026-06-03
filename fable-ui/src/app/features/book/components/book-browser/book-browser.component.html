@@ -304,17 +304,19 @@
                       <label for="show-ai-panel-overlay-checkbox" class="display-settings-label">{{ t('labels.aiOverlay') }}</label>
                     </div>
                   </div>
-                  <div class="display-settings-section">
-                    <div class="display-settings-checkbox-row">
-                      <p-checkbox
-                        inputId="show-ai-search-overlay-checkbox"
-                        [binary]="true"
-                        [ngModel]="bookCardOverlayPreferenceService.showAiSearchData"
-                        (onChange)="bookCardOverlayPreferenceService.setShowAiSearchData($event.checked)">
-                      </p-checkbox>
-                      <label for="show-ai-search-overlay-checkbox" class="display-settings-label">{{ t('labels.aiSearchOverlay') }}</label>
+                  @if (aiSearchEnabled) {
+                    <div class="display-settings-section">
+                      <div class="display-settings-checkbox-row">
+                        <p-checkbox
+                          inputId="show-ai-search-overlay-checkbox"
+                          [binary]="true"
+                          [ngModel]="bookCardOverlayPreferenceService.showAiSearchData"
+                          (onChange)="bookCardOverlayPreferenceService.setShowAiSearchData($event.checked)">
+                        </p-checkbox>
+                        <label for="show-ai-search-overlay-checkbox" class="display-settings-label">{{ t('labels.aiSearchOverlay') }}</label>
+                      </div>
                     </div>
-                  </div>
+                  }
                   <div class="display-settings-section">
                     <div class="display-settings-checkbox-row">
                       <p-checkbox
@@ -570,6 +572,17 @@
                       (click)="attachFilesToBook()"
                       [disabled]="selectedCount === 0 || !canAttachFiles()"
                       [pTooltip]="t('tooltip.attachToBook')"
+                      tooltipPosition="top">
+                    </p-button>
+                  }
+                  @if (aiSearchEnabled && (userState.user!.permissions.canManageLibrary || userState.user!.permissions.admin)) {
+                    <p-button
+                      outlined="true"
+                      icon="pi pi-sparkles"
+                      severity="info"
+                      (click)="markSelectedForAiSearch()"
+                      [disabled]="selectedCount === 0"
+                      [pTooltip]="'Mark for AI Search'"
                       tooltipPosition="top">
                     </p-button>
                   }

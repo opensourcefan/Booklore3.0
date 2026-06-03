@@ -578,4 +578,12 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
 
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
     long countNonDeleted();
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @jakarta.transaction.Transactional
+    @Query("UPDATE BookEntity b SET b.markedForAiSearch = :marked WHERE b.id IN :bookIds")
+    void updateMarkedForAiSearch(@Param("bookIds") Collection<Long> bookIds, @Param("marked") boolean marked);
+
+    @Query("SELECT b.id FROM BookEntity b WHERE b.markedForAiSearch = true AND (b.deleted IS NULL OR b.deleted = false)")
+    List<Long> findBookIdsByMarkedForAiSearchTrue();
 }

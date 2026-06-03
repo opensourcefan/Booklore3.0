@@ -312,13 +312,13 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     this.appSettingsService.stopAiSearchScan().subscribe();
   }
 
-  preScanMissingAiSearch(): void {
-    if (!this.aiSearchEnabled || !this.selectedLibraryPathIds.length || this.aiSearchPreScanRunning) {
+  scanMarkedAiSearch(): void {
+    if (!this.aiSearchEnabled || this.aiSearchPreScanRunning) {
       return;
     }
 
     this.aiSearchPreScanRunning = true;
-    this.appSettingsService.scanMissingAiSearchData(this.selectedLibraryPathIds).subscribe({
+    this.appSettingsService.scanMarkedAiSearchData().subscribe({
       next: result => {
         this.aiSearchPreScanRunning = result.status === 'STARTED';
         this.showMessage(

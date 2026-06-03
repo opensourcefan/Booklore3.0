@@ -91,45 +91,7 @@
       </div>
     }
 
-    @if (!isLoading && results.length > 0) {
-      <div class="ai-search-results">
-        <div class="ai-search-results-label">{{ t('results', { count: results.length }) }}</div>
-        @for (result of results; track result.chunkId) {
-          <div class="ai-search-result-item"
-               (click)="onResultClick(result)"
-               tabindex="0"
-               (keydown.enter)="onResultClick(result)">
-            
-            <img
-              [src]="getCover(result)"
-              [alt]="t('bookCoverAlt')"
-              class="ai-search-result-cover"
-            />
-            <div class="ai-search-result-details">
-              <div class="ai-search-result-title">
-                {{ result.bookTitle }}
-                @if (result.chapterTitle) {
-                  <span class="ai-search-chapter"> - {{ result.chapterTitle }}</span>
-                }
-              </div>
-              <div class="ai-search-result-text">
-                {{ result.chunkText | slice: 0:200 }}{{ result.chunkText.length > 200 ? '...' : '' }}
-              </div>
-              <div class="ai-search-result-meta" style="justify-content: space-between; align-items: center; margin-top: 0.5rem; display: flex;">
-                <div style="display: flex; gap: 0.75rem; align-items: center;">
-                  @if (result.pageNumber) {
-                    <span class="ai-search-result-page">{{ t('page') }} {{ result.pageNumber }}</span>
-                  }
-                  @if (result.similarity) {
-                    <span class="ai-search-result-similarity">{{ (result.similarity * 100).toFixed(1) }}% {{ t('match') }}</span>
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        }
-      </div>
-    }
+
   </div>
 </p-dialog>
 

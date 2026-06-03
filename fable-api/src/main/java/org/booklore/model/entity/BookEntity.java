@@ -83,6 +83,10 @@ public class BookEntity {
     @Builder.Default
     private Boolean removedFromLibrary = Boolean.FALSE;
 
+    @Column(name = "marked_for_ai_search")
+    @Builder.Default
+    private Boolean markedForAiSearch = Boolean.FALSE;
+
     @Column(name = "file_type", length = 120)
     private String fileType;
 

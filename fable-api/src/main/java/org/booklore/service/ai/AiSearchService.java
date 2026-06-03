@@ -39,6 +39,7 @@ public class AiSearchService {
     private final NotificationService notificationService;
     private final BookRepository bookRepository;
     private final AuthenticationService authenticationService;
+    private final AiSearchHealthService aiSearchHealthService;
 
     private static final int CHUNK_SIZE = 500;
     private static final int CHUNK_OVERLAP = 50;
@@ -107,6 +108,53 @@ public class AiSearchService {
         } catch (Exception e) {
             log.error("Batch AI Search scan failed", e);
             sendBatchProgress(username, "FAILED", "Scan failed: " + e.getMessage(), e.getMessage(), 0, 0);
+        } finally {
+            scanInProgress.set(false);
+        }
+    }
+
+    @Async
+    public void startScanMarkedAiSearchEmbeddings(Long userId, String username) {
+        if (!scanInProgress.compareAndSet(false, true)) {
+            log.warn("AI Search scan already in progress");
+            return;
+        }
+
+        try {
+            sendBatchProgress(username, "STARTED", "Finding marked books to scan...", null, 0, 0);
+
+            List<Long> markedBookIds = bookRepository.findBookIdsByMarkedForAiSearchTrue();
+
+            int total = markedBookIds.size();
+            if (total == 0) {
+                sendBatchProgress(username, "COMPLETED", "No books are marked for AI Search.", null, 0, 0);
+                return;
+            }
+
+            int current = 0;
+            sendBatchProgress(username, "IN_PROGRESS", "Starting extraction...", null, current, total);
+
+            for (Long bookId : markedBookIds) {
+                if (!scanInProgress.get()) {
+                    sendBatchProgress(username, "STOPPED", "Scan was manually stopped.", null, current, total);
+                    return;
+                }
+                
+                try {
+                    extractAndEmbedBookInternal(bookId, userId, username, true);
+                    // clear the flag
+                    bookRepository.updateMarkedForAiSearch(List.of(bookId), false);
+                } catch (Exception e) {
+                    log.error("Failed to embed book {} during marked scan: {}", bookId, e.getMessage());
+                }
+                current++;
+                sendBatchProgress(username, "IN_PROGRESS", "Extracted book " + current + " of " + total, null, current, total);
+            }
+
+            sendBatchProgress(username, "COMPLETED", "Scan completed.", null, total, total);
+
+        } catch (Exception e) {
+            log.error("Marked AI Search scan failed", e);
         } finally {
             scanInProgress.set(false);
         }
@@ -220,7 +268,7 @@ public class AiSearchService {
                 throw new IllegalArgumentException("Unsupported book type for AI Search: " + primaryFile.getBookType());
             }
 
-            String activeModel = appProperties.getAiSearch().getEmbeddingModel();
+            String activeModel = aiSearchHealthService.getStatus().getEmbeddingModel();
             bookRepository.updateAiSearchEmbeddingModel(bookId, userId, activeModel);
 
             if (!isBatch) {

@@ -2015,6 +2015,32 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dialogHelperService.openFileMoverDialog(this.selectedBooks);
   }
 
+  markSelectedForAiSearch(): void {
+    const selectedBookIds = Array.from(this.selectedBooks);
+    if (selectedBookIds.length === 0) return;
+
+    this.appSettingsService.markForAiSearch(selectedBookIds, true).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Marked for AI Search',
+          detail: `Successfully marked ${selectedBookIds.length} books for AI Search embedding.`,
+          life: 3000
+        });
+        this.deselectAllBooks();
+        this.bookService.refreshBooks();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to mark books for AI Search.',
+          life: 3000
+        });
+      }
+    });
+  }
+
   attachFilesToBook(): void {
     const currentState = this.bookService.getCurrentBookState();
     const selectedBookIds = Array.from(this.selectedBooks);
