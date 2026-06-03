@@ -81,10 +81,35 @@
     color: var(--primary-color);
   }
 
-  p {
-    margin: 0;
+  .ai-search-markdown-content {
     line-height: 1.6;
     font-size: 1.05rem;
+
+    p {
+      margin: 0 0 1rem 0;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    ul, ol {
+      margin: 0 0 1rem 0;
+      padding-left: 1.5rem;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    li {
+      margin-bottom: 0.25rem;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    strong {
+      font-weight: 600;
+    }
   }
 }
 

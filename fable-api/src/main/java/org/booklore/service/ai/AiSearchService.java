@@ -113,8 +113,13 @@ public class AiSearchService {
         }
     }
 
+
+    public List<org.booklore.repository.projection.MarkedBookProjection> getMarkedBooks() {
+        return bookRepository.findMarkedBooksInfo();
+    }
+
     @Async
-    public void startScanMarkedAiSearchEmbeddings(Long userId, String username) {
+    public void startScanMarkedAiSearchEmbeddings(Long userId, String username, boolean force) {
         if (!scanInProgress.compareAndSet(false, true)) {
             log.warn("AI Search scan already in progress");
             return;
@@ -132,26 +137,55 @@ public class AiSearchService {
             }
 
             int current = 0;
+            int scannedCount = 0;
+            int skippedCount = 0;
+            int errorCount = 0;
+
             sendBatchProgress(username, "IN_PROGRESS", "Starting extraction...", null, current, total);
+
+            String activeModel = aiSearchHealthService.getStatus().getEmbeddingModel();
+            
+            // Pre-fetch embedding status for all marked books to optimize skipping
+            List<org.booklore.repository.projection.AiSearchBookStatusProjection> embeddedStatuses = 
+                bookRepository.findBookIdsWithAiSearchEmbeddings(userId, markedBookIds);
+            
+            Map<Long, String> embeddedModelsMap = new java.util.HashMap<>();
+            for (var status : embeddedStatuses) {
+                embeddedModelsMap.put(status.getBookId(), status.getEmbeddingModel());
+            }
 
             for (Long bookId : markedBookIds) {
                 if (!scanInProgress.get()) {
-                    sendBatchProgress(username, "STOPPED", "Scan was manually stopped.", null, current, total);
+                    String stopMsg = String.format("Scan was manually stopped. %d scanned, %d skipped, %d failed.", scannedCount, skippedCount, errorCount);
+                    sendBatchProgress(username, "STOPPED", stopMsg, null, current, total);
                     return;
                 }
                 
                 try {
+                    String existingModel = embeddedModelsMap.get(bookId);
+                    if (!force && existingModel != null && existingModel.equals(activeModel)) {
+                        log.info("Skipping embedding for book {} because it is already embedded with model {}", bookId, activeModel);
+                        bookRepository.updateMarkedForAiSearch(List.of(bookId), false);
+                        skippedCount++;
+                        current++;
+                        sendBatchProgress(username, "IN_PROGRESS", "Skipped already scanned book " + current + " of " + total, null, current, total);
+                        continue;
+                    }
+
                     extractAndEmbedBookInternal(bookId, userId, username, true);
+                    scannedCount++;
                     // clear the flag
                     bookRepository.updateMarkedForAiSearch(List.of(bookId), false);
                 } catch (Exception e) {
+                    errorCount++;
                     log.error("Failed to embed book {} during marked scan: {}", bookId, e.getMessage());
                 }
                 current++;
                 sendBatchProgress(username, "IN_PROGRESS", "Extracted book " + current + " of " + total, null, current, total);
             }
 
-            sendBatchProgress(username, "COMPLETED", "Scan completed.", null, total, total);
+            String completionMsg = String.format("Scan completed. %d books scanned, %d skipped, %d failed.", scannedCount, skippedCount, errorCount);
+            sendBatchProgress(username, "COMPLETED", completionMsg, null, total, total);
 
         } catch (Exception e) {
             log.error("Marked AI Search scan failed", e);

@@ -83,6 +83,9 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];
   lastStatusCheckedAt: string | null = null;
+  markedBooks: {id: number, title: string, libraryName: string}[] = [];
+  markedBooksExpanded = false;
+  markedBooksLoading = false;
 
   ngOnInit(): void {
     this.appSettings$.pipe(
@@ -95,6 +98,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       this.refreshPanelFlowStats();
       if (this.aiSearchEnabled) {
         this.refreshAiSearchStatus();
+        this.fetchMarkedBooks();
       }
     });
 
@@ -207,6 +211,20 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
+  fetchMarkedBooks(): void {
+    this.markedBooksLoading = true;
+    this.appSettingsService.getMarkedForAiSearch().subscribe({
+      next: (books) => {
+        this.markedBooks = books;
+        this.markedBooksLoading = false;
+      },
+      error: () => {
+        this.markedBooksLoading = false;
+        this.showMessage('error', 'Failed to load', 'Could not load marked books list.');
+      }
+    });
+  }
+
   refreshStatus(): void {
     this.statusLoading = true;
     this.appSettingsService.getAiServiceStatus().subscribe({
@@ -312,13 +330,13 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     this.appSettingsService.stopAiSearchScan().subscribe();
   }
 
-  scanMarkedAiSearch(): void {
+  scanMarkedAiSearch(force: boolean = false): void {
     if (!this.aiSearchEnabled || this.aiSearchPreScanRunning) {
       return;
     }
 
     this.aiSearchPreScanRunning = true;
-    this.appSettingsService.scanMarkedAiSearchData().subscribe({
+    this.appSettingsService.scanMarkedAiSearchData(force).subscribe({
       next: result => {
         this.aiSearchPreScanRunning = result.status === 'STARTED';
         this.showMessage(

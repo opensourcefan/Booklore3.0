@@ -38,7 +38,7 @@ public class AiSearchEmbedMarkedTask implements Task {
         log.info("{}: Task started", getTaskType());
 
         try {
-            aiSearchService.startScanMarkedAiSearchEmbeddings(-1L, "System");
+            aiSearchService.startScanMarkedAiSearchEmbeddings(-1L, "System", false);
             builder.status(TaskStatus.COMPLETED);
         } catch (Exception e) {
             log.error("{}: Error embedding marked AI Search books", getTaskType(), e);

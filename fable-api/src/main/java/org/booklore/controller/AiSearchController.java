@@ -84,11 +84,11 @@ public class AiSearchController {
     }
 
     @PostMapping("/scan-marked")
-    public Map<String, Object> scanMarked() {
+    public Map<String, Object> scanMarked(@RequestParam(defaultValue = "false") boolean force) {
         Long userId = authenticationService.getAuthenticatedUser().getId();
         String username = authenticationService.getAuthenticatedUser().getUsername();
         
-        aiSearchService.startScanMarkedAiSearchEmbeddings(userId, username);
+        aiSearchService.startScanMarkedAiSearchEmbeddings(userId, username, force);
         return Map.of("status", "STARTED");
     }
 
@@ -96,6 +96,11 @@ public class AiSearchController {
     public Map<String, Object> stopScan() {
         aiSearchService.stopAiSearchScan();
         return Map.of("status", "STOPPED");
+    }
+
+    @GetMapping("/marked")
+    public List<org.booklore.repository.projection.MarkedBookProjection> getMarkedBooks() {
+        return aiSearchService.getMarkedBooks();
     }
 
     @PostMapping("/mark")

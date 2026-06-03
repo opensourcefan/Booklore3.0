@@ -24,6 +24,7 @@ import {ExternalDocLinkComponent} from '../../../shared/components/external-doc-
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import cronstrue from 'cronstrue';
 
 @Component({
   selector: 'app-task-management',
@@ -442,6 +443,15 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
 
     const num = Number(field);
     return !isNaN(num) && num >= min && num <= max;
+  }
+
+  getHumanReadableCron(expression: string | null | undefined): string {
+    if (!expression) return '';
+    try {
+      return cronstrue.toString(expression, { use24HourTimeFormat: true });
+    } catch (e) {
+      return 'Invalid cron expression';
+    }
   }
 
   // ============================================================================

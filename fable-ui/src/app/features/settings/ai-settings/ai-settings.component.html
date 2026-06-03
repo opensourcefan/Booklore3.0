@@ -299,13 +299,51 @@
     <!-- AI Search Scan Section -->
     <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
       <div class="scan-section">
+        <div class="startup-panel" style="margin-bottom: 1rem; border: 1px solid var(--surface-border); border-radius: 6px;">
+          <div class="startup-panel-toggle" (click)="markedBooksExpanded = !markedBooksExpanded" (keydown.enter)="markedBooksExpanded = !markedBooksExpanded" (keydown.space)="markedBooksExpanded = !markedBooksExpanded; $event.preventDefault()" tabindex="0" role="button" [attr.aria-expanded]="markedBooksExpanded">
+            <i class="pi" [class.pi-chevron-right]="!markedBooksExpanded" [class.pi-chevron-down]="markedBooksExpanded"></i>
+            <span class="status-title">
+              @if (markedBooksLoading) {
+                <i class="pi pi-spin pi-spinner" style="margin-right: 0.5rem"></i>
+                Loading marked books...
+              } @else {
+                {{ markedBooks.length }} books marked for AI Search
+              }
+            </span>
+          </div>
+          @if (markedBooksExpanded) {
+            <div class="startup-panel-body" style="max-height: 300px; overflow-y: auto;">
+              @if (markedBooks.length === 0) {
+                <div class="status-line">No books are currently marked for AI search embedding.</div>
+              } @else {
+                <div class="startup-event-list">
+                  @for (book of markedBooks; track book.id) {
+                    <div class="startup-event info">
+                      <span class="startup-event-time">[{{ book.libraryName }}]</span>
+                      <span class="startup-event-text">{{ book.title }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
         <div class="scan-action-row">
           <p-button
             [icon]="aiSearchPreScanRunning ? 'pi pi-spin pi-spinner' : 'pi pi-bolt'"
             [label]="aiSearchPreScanRunning ? t('prescan.scanning') : 'Scan Marked'"
             [severity]="aiSearchPreScanRunning ? 'warn' : 'success'"
             [disabled]="!aiSearchEnabled || aiSearchPreScanRunning"
-            (onClick)="scanMarkedAiSearch()">
+            (onClick)="scanMarkedAiSearch(false)">
+          </p-button>
+          <p-button
+            icon="pi pi-refresh"
+            label="Force Rescan"
+            [severity]="'warn'"
+            [outlined]="true"
+            [disabled]="!aiSearchEnabled || aiSearchPreScanRunning"
+            (onClick)="scanMarkedAiSearch(true)">
           </p-button>
           @if (isAiSearchActivelyScanning) {
             <p-button
