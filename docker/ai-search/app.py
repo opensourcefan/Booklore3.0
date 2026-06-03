@@ -23,8 +23,7 @@ app = FastAPI()
 # ---- Configuration ----
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
 EMBEDDING_DIMENSIONS = int(os.getenv("EMBEDDING_DIMENSIONS", "384"))
-MODEL_PATH = os.getenv("MODEL_PATH", "/models/embedding")
-MODEL_SEED_PATH = os.getenv("MODEL_SEED_PATH", "/app/model-seed/embedding")
+AUTO_CLEANUP_MODELS = os.getenv("AUTO_CLEANUP_MODELS", "false").lower() == "true"
 EXTERNAL_LLM_BASE_URL = os.getenv("EXTERNAL_LLM_BASE_URL", "")
 EXTERNAL_EMBEDDING_BASE_URL = os.getenv("EXTERNAL_EMBEDDING_BASE_URL", "")
 LLM_MODEL_NAME = os.getenv("LLM_MODEL", "qwen2.5:1.5b")
@@ -48,35 +47,26 @@ _load_lock = threading.Lock()
 _active_embed_jobs: dict[str, dict[str, Any]] = {}
 
 
-def _seed_model_if_available() -> bool:
-    """Copy baked-in model from image to persistent volume on first start."""
-    if os.path.exists(MODEL_PATH) and os.listdir(MODEL_PATH):
-        return True
-
-    if not os.path.exists(MODEL_SEED_PATH):
-        return False
-
-    model_dir = os.path.dirname(MODEL_PATH)
-    if model_dir:
-        os.makedirs(model_dir, exist_ok=True)
-
-    if os.path.abspath(MODEL_PATH) != os.path.abspath(MODEL_SEED_PATH):
-        if os.path.exists(MODEL_PATH):
-            shutil.rmtree(MODEL_PATH)
-        shutil.copytree(MODEL_SEED_PATH, MODEL_PATH)
-
-    return os.path.exists(MODEL_PATH) and bool(os.listdir(MODEL_PATH))
-
-
 def _do_load() -> None:
     """Background thread: loads the embedding model."""
     global _embedding_model, _loading, _load_error
-    logger.info("Embedding model load started from %s", MODEL_PATH)
+    logger.info("Embedding model load started for %s", EMBEDDING_MODEL_NAME)
     try:
-        if not _seed_model_if_available():
-            raise RuntimeError(f"Model not found at {MODEL_PATH}")
-        _embedding_model = SentenceTransformer(MODEL_PATH)
-        logger.info("Embedding model loaded successfully from %s", MODEL_PATH)
+        if AUTO_CLEANUP_MODELS:
+            hf_cache_dir = "/models/hf/hub"
+            if os.path.exists(hf_cache_dir):
+                target_folder = "models--" + EMBEDDING_MODEL_NAME.replace("/", "--")
+                for folder in os.listdir(hf_cache_dir):
+                    if folder.startswith("models--") and folder != target_folder:
+                        folder_path = os.path.join(hf_cache_dir, folder)
+                        logger.info("Removing unused HuggingFace model: %s", folder)
+                        try:
+                            shutil.rmtree(folder_path)
+                        except Exception as e:
+                            logger.error("Failed to remove unused model %s: %s", folder, e)
+
+        _embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+        logger.info("Embedding model loaded successfully: %s", EMBEDDING_MODEL_NAME)
     except Exception as exc:
         _load_error = str(exc)
         logger.error("Embedding model load failed: %s", exc)
@@ -95,9 +85,7 @@ def _ensure_loading() -> None:
     with _load_lock:
         if _embedding_model is not None or _loading or _load_error is not None:
             return
-        if not (os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)):
-            return
-        logger.info("Model file detected; triggering automatic background load.")
+        logger.info("Triggering automatic background load for %s", EMBEDDING_MODEL_NAME)
         _start_load_thread_locked()
 
 
@@ -185,17 +173,12 @@ def _generate_answer(query: str, context: str) -> str:
 
 @app.on_event("startup")
 def startup() -> None:
-    model_available = os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)
-    if model_available:
-        logger.info("Model file found at startup; beginning background load.")
+    if EXTERNAL_EMBEDDING_BASE_URL:
+        logger.info("Using external embedding model at %s", EXTERNAL_EMBEDDING_BASE_URL)
+    else:
+        logger.info("Beginning background load for local embedding model: %s", EMBEDDING_MODEL_NAME)
         with _load_lock:
             _start_load_thread_locked()
-    else:
-        logger.info(
-            "No model at %s and no seed at %s. Model will be loaded when available.",
-            MODEL_PATH,
-            MODEL_SEED_PATH,
-        )
 
 
 @app.get("/health")

@@ -22,14 +22,12 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && pip install -r /app/requirements.txt
 
 # Bake the embedding model into the image as a seed file.
-# On first container start, _seed_model_if_available() copies it to the
-# mounted volume (/models) so it persists across recreates.
-RUN pip install huggingface_hub && \
-    mkdir -p /app/model-seed/embedding && \
-    HF_HOME=/tmp/hf-build python -c \
-      "from huggingface_hub import snapshot_download; \
-       snapshot_download(repo_id='${EMBEDDING_MODEL_ID}', local_dir='/app/model-seed/embedding')" && \
-    rm -rf /tmp/hf-build
+# On first container start, start.sh copies it to the
+# mounted volume (/models/hf) so it persists across recreates.
+RUN mkdir -p /app/model-seed/hf && \
+    HF_HOME=/app/model-seed/hf python -c \
+      "from sentence_transformers import SentenceTransformer; \
+       SentenceTransformer('${EMBEDDING_MODEL_ID}')"
 
 COPY app.py /app/app.py
 COPY start.sh /app/start.sh
