@@ -290,7 +290,7 @@ export const FILTER_EXTRACTORS: Readonly<Record<Exclude<FilterType, 'library'>, 
     return [{id: subPath, name: subPath}];
   },
   hasAiSearchData: (book) => book.hasAiSearchData ? [{id: 'true', name: 'Yes'}] : [{id: 'false', name: 'No'}],
-  markedForAiSearch: (book) => (book as any)['markedForAiSearch'] ? [{id: 'true', name: 'markedForAiSearch.true'}] : [{id: 'false', name: 'markedForAiSearch.false'}],
+  markedForAiSearch: (book) => (book as Record<string, unknown>)['markedForAiSearch'] ? [{id: 'true', name: 'markedForAiSearch.true'}] : [{id: 'false', name: 'markedForAiSearch.false'}],
 };
 
 // Translation key for each FilterType — used by UI components to translate filter labels

@@ -449,7 +449,7 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
     if (!expression) return '';
     try {
       return cronstrue.toString(expression, { use24HourTimeFormat: true });
-    } catch (e) {
+    } catch (_e) {
       return 'Invalid cron expression';
     }
   }

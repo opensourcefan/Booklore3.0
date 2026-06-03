@@ -37,6 +37,9 @@ RUN apk add --no-cache yq && \
 RUN --mount=type=cache,target=/home/gradle/.gradle \
     gradle clean build -x test --no-daemon --parallel
 
+# Normalize JAR name so the final stage doesn't need to know the version
+RUN cp $(ls /springboot-app/build/libs/fable-api-*.jar | grep -v -- '-plain\.jar$' | head -n 1) /springboot-app/build/libs/app.jar
+
 # Stage 3: Final image
 FROM eclipse-temurin:25-jre-alpine
 
@@ -65,7 +68,7 @@ RUN chmod 755 /usr/local/bin/unrar
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-COPY --from=springboot-build /springboot-app/build/libs/fable-api-3.21.16.jar /app/app.jar
+COPY --from=springboot-build /springboot-app/build/libs/app.jar /app/app.jar
 
 ARG FABLE_PORT=6060
 EXPOSE ${FABLE_PORT}

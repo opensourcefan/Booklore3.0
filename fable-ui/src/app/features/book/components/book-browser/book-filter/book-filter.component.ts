@@ -256,7 +256,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   private updateVisibleFilterTypes(): void {
-    const aiSearchEnabled = (this.appSettingsService as any).appSettings$.value?.aiSearchEnabled ?? false;
+    const aiSearchEnabled = this.appSettingsService.appSettings$.value?.aiSearchEnabled ?? false;
     
     this.visibleFilterTypes = this._visibleFilters.filter(vf => {
       if (!this.filterTypes.includes(vf as FilterType)) return false;
