@@ -237,6 +237,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private previousSelectedCount = 0;
   protected metadataMenuItems: MenuItem[] | undefined;
   protected moreActionsMenuItems: MenuItem[] | undefined;
+  protected aiSearchMenuItems: MenuItem[] | undefined;
   mediaTypeActionsMenuItems: MenuItem[] = [];
   showSubtitles = false;
   protected gridRenderVersion = 0;
@@ -768,6 +769,18 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
+    this.aiSearchMenuItems = [
+      {
+        label: 'Embed Now',
+        icon: 'pi pi-bolt',
+        command: () => this.embedSelectedNow()
+      },
+      {
+        label: 'Mark for Embedding',
+        icon: 'pi pi-bookmark',
+        command: () => this.markSelectedForAiSearch()
+      }
+    ];
   }
 
   private setupAppSettingsSubscription(): void {
@@ -932,6 +945,18 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedCount = this.selectedBookIds.size;
     this.isDrawerVisible = this.selectedCount > 0;
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBookIds, this.user());
+    this.aiSearchMenuItems = [
+      {
+        label: 'Embed Now',
+        icon: 'pi pi-bolt',
+        command: () => this.embedSelectedNow()
+      },
+      {
+        label: 'Mark for Embedding',
+        icon: 'pi pi-bookmark',
+        command: () => this.markSelectedForAiSearch()
+      }
+    ];
     this.updateSelectionVisibility();
   }
 
@@ -2029,6 +2054,44 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         this.deselectAllBooks();
         this.bookService.refreshBooks();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to mark books for AI Search.',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  embedSelectedNow(): void {
+    const selectedBookIds = Array.from(this.selectedBooks);
+    if (selectedBookIds.length === 0) return;
+
+    this.appSettingsService.markForAiSearch(selectedBookIds, true).subscribe({
+      next: () => {
+        this.appSettingsService.scanMarkedAiSearchData().subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Embedding Started',
+              detail: `Started embedding ${selectedBookIds.length} books.`,
+              life: 3000
+            });
+            this.deselectAllBooks();
+            this.bookService.refreshBooks();
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to start embedding marked books.',
+              life: 3000
+            });
+          }
+        });
       },
       error: () => {
         this.messageService.add({

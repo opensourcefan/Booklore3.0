@@ -576,15 +576,18 @@
                     </p-button>
                   }
                   @if (aiSearchEnabled && (userState.user!.permissions.canManageLibrary || userState.user!.permissions.admin)) {
-                    <p-button
-                      outlined="true"
-                      icon="pi pi-sparkles"
-                      severity="info"
-                      (click)="markSelectedForAiSearch()"
-                      [disabled]="selectedCount === 0"
-                      [pTooltip]="'Mark for AI Search'"
-                      tooltipPosition="top">
-                    </p-button>
+                    <div class="more-actions-wrapper">
+                      <p-button
+                        outlined="true"
+                        icon="pi pi-sparkles"
+                        severity="info"
+                        (click)="aiSearchMenu.toggle($event)"
+                        [disabled]="selectedCount === 0"
+                        [pTooltip]="'AI Search Actions'"
+                        tooltipPosition="top">
+                      </p-button>
+                      <p-tieredMenu #aiSearchMenu [model]="aiSearchMenuItems" [popup]="true" appendTo="body" styleClass="footer-menu"/>
+                    </div>
                   }
                   @if (hasMoreActionsItems) {
                     <div class="more-actions-wrapper">
