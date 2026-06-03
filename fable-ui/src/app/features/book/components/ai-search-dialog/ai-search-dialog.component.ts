@@ -3,7 +3,6 @@ import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
 import {Button} from 'primeng/button';
 import {DialogModule} from 'primeng/dialog';
-import {Skeleton} from 'primeng/skeleton';
 import {SlicePipe} from '@angular/common';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
