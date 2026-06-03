@@ -345,6 +345,14 @@
     border-color: #00d2ff;
     box-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
   }
+
+  &.mismatched {
+    color: #ff8800;
+    &:hover {
+      border-color: #ff8800;
+      box-shadow: 0 0 8px rgba(255, 136, 0, 0.4);
+    }
+  }
 }
 
 .top-left-overlay-stack {

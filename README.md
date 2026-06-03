@@ -166,6 +166,8 @@ AI_SEARCH_PORT=18081
 
 #### ---- AI Search Model Presets ----
 #### AI Search uses models to understand your books (Embedding) and summarize text (LLM).
+
+> **WARNING**: If you change your `AI_SEARCH_EMBEDDING_MODEL`, any previously generated book embeddings will become mathematically incompatible with the new model and search will fail. Fable will display an orange warning badge on books with mismatched embeddings. You will need to re-click **Embed for AI Search** to regenerate them for the new model.
 #### You can pick a "preset" below depending on how powerful your computer/server is.
 #### To use a preset, simply remove the '#' symbol at the start of those 3 lines.
 #### Only uncomment ONE block at a time.

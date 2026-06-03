@@ -44,6 +44,7 @@ export interface AppBookGridSummary {
   readStatus?: string;
   hasAiPanelData?: boolean;
   hasAiSearchData?: boolean;
+  hasMismatchedAiSearchData?: boolean;
   lastReadTime?: string;
   addedOn?: string;
 }

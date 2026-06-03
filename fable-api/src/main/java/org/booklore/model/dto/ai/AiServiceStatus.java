@@ -18,4 +18,5 @@ public class AiServiceStatus {
     private String baseUrl;
     private Boolean modelExists;
     private String modelPath;
+    private String embeddingModel;
 }

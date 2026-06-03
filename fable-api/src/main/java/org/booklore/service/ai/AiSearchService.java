@@ -72,7 +72,10 @@ public class AiSearchService {
                 return;
             }
 
-            List<Long> embeddedIds = bookRepository.findBookIdsWithAiSearchEmbeddings(userId, allBookIds);
+            List<Long> embeddedIds = bookRepository.findBookIdsWithAiSearchEmbeddings(userId, allBookIds)
+                .stream()
+                .map(org.booklore.repository.projection.AiSearchBookStatusProjection::getBookId)
+                .toList();
             allBookIds.removeAll(embeddedIds);
 
             int total = allBookIds.size();

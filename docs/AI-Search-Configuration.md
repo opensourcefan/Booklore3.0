@@ -6,6 +6,8 @@ The `fable-ai-search` service reads several environment variables to control its
 
 ## Model Selection
 
+> **WARNING**: If you change your `AI_SEARCH_EMBEDDING_MODEL`, any previously generated book embeddings will become mathematically incompatible with the new model and search will fail. Fable will display an orange warning badge on books with mismatched embeddings. You will need to re-click **Embed for AI Search** to regenerate them for the new model.
+
 You can override the default models (which are lightweight and CPU-friendly) to use larger, more accurate ones if you have the hardware for it.
 
 ```ini

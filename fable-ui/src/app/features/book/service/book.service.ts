@@ -214,6 +214,7 @@ export class BookService {
       isPhysical: summary.isPhysical,
       hasAiPanelData: summary.hasAiPanelData,
       hasAiSearchData: summary.hasAiSearchData,
+      hasMismatchedAiSearchData: summary.hasMismatchedAiSearchData,
       lastReadTime: summary.lastReadTime,
       addedOn: summary.addedOn,
       libraryId: 0,

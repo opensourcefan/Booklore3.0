@@ -568,8 +568,8 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
             """)
     List<org.booklore.repository.projection.BookEmbeddingProjection> findAllEmbeddingsForRecommendation(@Param("excludeBookId") Long excludeBookId);
 
-    @Query(value = "SELECT DISTINCT be.book_id FROM book_embeddings be WHERE be.user_id = :userId AND be.book_id IN :bookIds", nativeQuery = true)
-    List<Long> findBookIdsWithAiSearchEmbeddings(@Param("userId") Long userId, @Param("bookIds") Collection<Long> bookIds);
+    @Query(value = "SELECT DISTINCT be.book_id as bookId, be.embedding_model as embeddingModel FROM book_embeddings be WHERE be.user_id = :userId AND be.book_id IN :bookIds", nativeQuery = true)
+    List<org.booklore.repository.projection.AiSearchBookStatusProjection> findBookIdsWithAiSearchEmbeddings(@Param("userId") Long userId, @Param("bookIds") Collection<Long> bookIds);
 
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
     long countNonDeleted();

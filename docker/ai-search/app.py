@@ -184,9 +184,8 @@ def startup() -> None:
 @app.get("/health")
 def health() -> dict[str, Any]:
     _ensure_loading()
-    model_exists = os.path.exists(MODEL_PATH) and bool(os.listdir(MODEL_PATH))
-    seed_exists = os.path.exists(MODEL_SEED_PATH) and bool(os.listdir(MODEL_SEED_PATH))
-    ready = _embedding_model is not None and model_exists
+    # Check if the model has successfully finished loading into memory
+    ready = _embedding_model is not None
 
     if ready:
         status = "ok"
@@ -194,21 +193,16 @@ def health() -> dict[str, Any]:
         status = "load_failed"
     elif _loading:
         status = "warming"
-    elif model_exists or seed_exists:
-        status = "warming"
     else:
-        status = "missing_model"
+        status = "warming"
 
     return {
         "status": status,
         "mock": False,
-        "modelPath": MODEL_PATH,
-        "modelExists": model_exists,
-        "seedPath": MODEL_SEED_PATH,
-        "seedExists": seed_exists,
+        "embeddingModel": EMBEDDING_MODEL_NAME,
         "loadError": _load_error,
         "externalLlmConfigured": bool(EXTERNAL_LLM_BASE_URL),
-        "externalEmbeddingConfigured": bool(EXTERNAL_EMBEDDING_BASE_URL),
+        "externalEmbeddingConfigured": bool(EXTERNAL_EMBEDDING_BASE_URL)
     }
 
 

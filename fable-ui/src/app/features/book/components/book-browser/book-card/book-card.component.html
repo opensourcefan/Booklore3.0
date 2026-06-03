@@ -29,7 +29,11 @@
         </div>
       }
       @if (showAiSearchDataOverlay && book.hasAiSearchData && aiSearchEnabled) {
-        <button type="button" class="ai-search-overlay" (click)="openAiSearch($event, book)" pTooltip="AI Search" tooltipPosition="top">
+        <button type="button" class="ai-search-overlay" 
+                [class.mismatched]="book['hasMismatchedAiSearchData']"
+                (click)="openAiSearch($event, book)" 
+                [pTooltip]="book['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model - Re-embed required' : 'AI Search'" 
+                tooltipPosition="top">
           AIS
         </button>
       }
@@ -178,7 +182,13 @@
               <div class="ai-panel-overlay">AIP</div>
             }
             @if (viewerBook.hasAiSearchData && aiSearchEnabled) {
-              <button type="button" class="ai-search-overlay" (click)="openAiSearch($event, viewerBook)" pTooltip="AI Search" tooltipPosition="top">AIS</button>
+              <button type="button" class="ai-search-overlay" 
+                      [class.mismatched]="viewerBook['hasMismatchedAiSearchData']"
+                      (click)="openAiSearch($event, viewerBook)" 
+                      [pTooltip]="viewerBook['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model - Re-embed required' : 'AI Search'" 
+                      tooltipPosition="top">
+                AIS
+              </button>
             }
 
             @if (getInlineViewerIssueNumber(viewerBook); as issueNumber) {

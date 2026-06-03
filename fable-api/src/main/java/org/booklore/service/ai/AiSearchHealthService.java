@@ -57,6 +57,7 @@ public class AiSearchHealthService {
                     .baseUrl(baseUrl)
                     .modelExists(null)
                     .modelPath(null)
+                    .embeddingModel(null)
                     .build();
         }
     }
@@ -72,6 +73,7 @@ public class AiSearchHealthService {
                     .baseUrl(baseUrl)
                     .modelExists(null)
                     .modelPath(null)
+                    .embeddingModel(null)
                     .build();
         }
 
@@ -79,6 +81,7 @@ public class AiSearchHealthService {
         boolean modelExists = asBoolean(healthPayload.get("modelExists"));
         String modelPath = asNullableString(healthPayload.get("modelPath"));
         String loadError = asNullableString(healthPayload.get("loadError"));
+        String embeddingModel = asNullableString(healthPayload.get("embeddingModel"));
 
         return switch (rawStatus) {
             case "ok" -> AiServiceStatus.builder()
@@ -90,6 +93,7 @@ public class AiSearchHealthService {
                     .baseUrl(baseUrl)
                     .modelExists(modelExists)
                     .modelPath(modelPath)
+                    .embeddingModel(embeddingModel)
                     .build();
             case "warming" -> AiServiceStatus.builder()
                     .enabled(true)
@@ -102,6 +106,7 @@ public class AiSearchHealthService {
                     .baseUrl(baseUrl)
                     .modelExists(modelExists)
                     .modelPath(modelPath)
+                    .embeddingModel(embeddingModel)
                     .build();
             case "load_failed" -> AiServiceStatus.builder()
                     .enabled(true)
@@ -112,6 +117,7 @@ public class AiSearchHealthService {
                     .baseUrl(baseUrl)
                     .modelExists(modelExists)
                     .modelPath(modelPath)
+                    .embeddingModel(embeddingModel)
                     .build();
             case "missing_model" -> AiServiceStatus.builder()
                     .enabled(true)
@@ -124,6 +130,7 @@ public class AiSearchHealthService {
                     .baseUrl(baseUrl)
                     .modelExists(modelExists)
                     .modelPath(modelPath)
+                    .embeddingModel(embeddingModel)
                     .build();
             default -> AiServiceStatus.builder()
                     .enabled(true)
@@ -134,6 +141,7 @@ public class AiSearchHealthService {
                     .baseUrl(baseUrl)
                     .modelExists(modelExists)
                     .modelPath(modelPath)
+                    .embeddingModel(embeddingModel)
                     .build();
         };
     }

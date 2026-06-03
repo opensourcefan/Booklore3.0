@@ -100,7 +100,9 @@
                   <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--secondary">AIP</div>
                 }
                 @if (viewerBook.hasAiSearchData) {
-                  <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--secondary">AIS</div>
+                  <div class="physical-mobile-viewer-badge physical-mobile-viewer-badge--secondary"
+                       [class.mismatched]="viewerBook['hasMismatchedAiSearchData']"
+                       [title]="viewerBook['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model - Re-embed required' : 'AI Search'">AIS</div>
                 }
 
                 @if (getViewerIssueNumber(viewerBook); as issueNumber) {

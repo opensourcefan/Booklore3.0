@@ -38,7 +38,7 @@ export class AiSearchDialogService {
     InputTextModule,
     Button,
     DialogModule,
-    Skeleton,
+    
     SlicePipe,
     TranslocoDirective,
     TooltipModule

@@ -17,6 +17,7 @@ public class Book {
     private String fileType;
     private Boolean hasAiPanelData;
     private Boolean hasAiSearchData;
+    private Boolean hasMismatchedAiSearchData;
     private Long libraryId;
     private String libraryName;
     private BookFile primaryFile;
