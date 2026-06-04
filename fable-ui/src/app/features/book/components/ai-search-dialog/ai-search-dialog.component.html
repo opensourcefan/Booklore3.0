@@ -100,7 +100,7 @@
             } @else if (msg.results && msg.results.length > 0) {
               <div class="ai-search-answer ai-search-local-results">
                 <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
-                  <span class="ai-search-answer-badge" style="background: linear-gradient(135deg, #059669, #10b981);">Local Results</span>
+                  <span class="ai-search-answer-badge">Local Results</span>
                   <div style="display: flex; gap: 0.5rem;">
                     <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
                   </div>
@@ -121,6 +121,7 @@
                       }
                       <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
                     </div>
+                    <div class="ai-search-local-chunk-text">{{ result.chunkText }}</div>
                   }
                 </div>
               </div>

@@ -435,7 +435,8 @@ public class AiSearchService {
         int end = boundary.next();
 
         StringBuilder currentChunk = new StringBuilder();
-        String lastSentence = "";
+        // Track the last few sentences for overlap when starting a new chunk
+        java.util.Deque<String> recentSentences = new java.util.ArrayDeque<>();
 
         while (end != BreakIterator.DONE) {
             String sentence = cleaned.substring(start, end).trim();
@@ -443,12 +444,33 @@ public class AiSearchService {
                 if (currentChunk.length() + sentence.length() > CHUNK_SIZE && currentChunk.length() > 0) {
                     chunks.add(currentChunk.toString().trim());
                     currentChunk = new StringBuilder();
-                    if (!lastSentence.isEmpty()) {
-                        currentChunk.append(lastSentence).append(" ");
+                    // Carry over enough recent sentences to achieve ~CHUNK_OVERLAP chars of overlap
+                    int overlapChars = 0;
+                    java.util.List<String> overlapSentences = new java.util.ArrayList<>();
+                    var it = recentSentences.descendingIterator();
+                    while (it.hasNext() && overlapChars < CHUNK_OVERLAP) {
+                        String s = it.next();
+                        overlapSentences.add(s);
+                        overlapChars += s.length() + 1;
+                    }
+                    // Reverse to restore original order
+                    java.util.Collections.reverse(overlapSentences);
+                    for (String s : overlapSentences) {
+                        currentChunk.append(s).append(" ");
                     }
                 }
                 currentChunk.append(sentence).append(" ");
-                lastSentence = sentence;
+                recentSentences.addLast(sentence);
+                // Keep only enough sentences to cover CHUNK_OVERLAP chars
+                int totalLen = 0;
+                while (recentSentences.size() > 1) {
+                    totalLen = recentSentences.stream().mapToInt(String::length).sum() + recentSentences.size();
+                    if (totalLen - recentSentences.peekFirst().length() > CHUNK_OVERLAP) {
+                        recentSentences.removeFirst();
+                    } else {
+                        break;
+                    }
+                }
             }
             start = end;
             end = boundary.next();
@@ -456,7 +478,7 @@ public class AiSearchService {
 
         if (currentChunk.length() > 0) {
             String finalChunk = currentChunk.toString().trim();
-            if (chunks.isEmpty() || !finalChunk.equals(lastSentence)) {
+            if (!finalChunk.isEmpty()) {
                 chunks.add(finalChunk);
             }
         }

@@ -144,6 +144,30 @@
   }
 }
 
+.ai-search-local-results {
+  border-left: 3px solid #059669;
+
+  .ai-search-answer-badge {
+    background: linear-gradient(135deg, #059669, #10b981);
+  }
+}
+
+.ai-search-local-chunk-text {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  color: var(--text-color-secondary);
+  background: var(--surface-card);
+  padding: 0.75rem;
+  border-radius: 6px;
+  border-left: 3px solid #059669;
+  font-style: italic;
+  margin-bottom: 0.75rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .ai-search-citations {
   margin-top: 1rem;
   border-top: 1px solid var(--surface-border);

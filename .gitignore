@@ -67,3 +67,5 @@ patches/
 docker-compose.yml
 dev.docker-compose.yml
 
+### Python ###
+__pycache__/

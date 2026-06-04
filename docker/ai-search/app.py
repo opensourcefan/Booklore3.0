@@ -433,8 +433,18 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         try:
             answer = _generate_answer(query, context, max_tokens, temperature, chat_history)
         except Exception as e:
-            print(f"Error generating LLM answer: {e}")
-            answer = "I could not generate a summarized answer because the internal AI model is still starting up or downloading. Please wait a moment and try your search again."
+            logger.error("Error generating LLM answer: %s", e)
+            answer = None
+
+    # If the LLM returned the "not found" sentinel but we DO have results,
+    # suppress the misleading answer so the frontend shows the raw matches.
+    if answer and "I could not find any relevant information" in answer and top_results:
+        logger.info(
+            "LLM returned 'not found' sentinel despite %d results. "
+            "Suppressing answer so frontend displays raw matches.",
+            len(top_results),
+        )
+        answer = None
 
     return {
         "query": query,
