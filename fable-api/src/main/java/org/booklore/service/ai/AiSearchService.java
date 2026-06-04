@@ -120,6 +120,16 @@ public class AiSearchService {
         return bookRepository.findMarkedBooksInfo();
     }
 
+    public int deleteBookEmbeddings(List<Long> bookIds, Long userId) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            throw new IllegalArgumentException("bookIds are required.");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("userId is required.");
+        }
+        return bookRepository.deleteBookEmbeddings(bookIds, userId);
+    }
+
     @Async
     public void startScanMarkedAiSearchEmbeddings(Long userId, String username, boolean force) {
         if (!scanInProgress.compareAndSet(false, true)) {

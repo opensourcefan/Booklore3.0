@@ -176,6 +176,12 @@ export class AppSettingsService {
     });
   }
 
+  deleteAiSearchEmbeddings(bookIds: number[]): Observable<{deletedCount: number}> {
+    return this.http.delete<{deletedCount: number}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/embeddings`, {
+      body: { bookIds }
+    });
+  }
+
   getMarkedForAiSearch(): Observable<{id: number, title: string, libraryName: string}[]> {
     return this.http.get<{id: number, title: string, libraryName: string}[]>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/marked`);
   }

@@ -779,6 +779,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         label: 'Mark for Embedding',
         icon: 'pi pi-bookmark',
         command: () => this.markSelectedForAiSearch()
+      },
+      {
+        separator: true
+      },
+      {
+        label: 'Delete Embeddings',
+        icon: 'pi pi-trash',
+        command: () => this.deleteSelectedEmbeddings()
       }
     ];
   }
@@ -955,6 +963,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         label: 'Mark for Embedding',
         icon: 'pi pi-bookmark',
         command: () => this.markSelectedForAiSearch()
+      },
+      {
+        separator: true
+      },
+      {
+        label: 'Delete Embeddings',
+        icon: 'pi pi-trash',
+        command: () => this.deleteSelectedEmbeddings()
       }
     ];
     this.updateSelectionVisibility();
@@ -2098,6 +2114,32 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           severity: 'error',
           summary: 'Error',
           detail: 'Failed to mark books for AI Search.',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  deleteSelectedEmbeddings(): void {
+    const selectedBookIds = Array.from(this.selectedBooks);
+    if (selectedBookIds.length === 0) return;
+
+    this.appSettingsService.deleteAiSearchEmbeddings(selectedBookIds).subscribe({
+      next: (result) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Embeddings Deleted',
+          detail: `Successfully deleted ${result.deletedCount} embedding records across ${selectedBookIds.length} books.`,
+          life: 3000
+        });
+        this.deselectAllBooks();
+        this.bookService.refreshBooks();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to delete embeddings.',
           life: 3000
         });
       }

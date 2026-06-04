@@ -576,6 +576,11 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query(value = "UPDATE book_embeddings SET embedding_model = :model WHERE book_id = :bookId AND user_id = :userId", nativeQuery = true)
     void updateAiSearchEmbeddingModel(@Param("bookId") Long bookId, @Param("userId") Long userId, @Param("model") String model);
 
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @jakarta.transaction.Transactional
+    @Query(value = "DELETE FROM book_embeddings WHERE book_id IN :bookIds AND user_id = :userId", nativeQuery = true)
+    int deleteBookEmbeddings(@Param("bookIds") Collection<Long> bookIds, @Param("userId") Long userId);
+
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
     long countNonDeleted();
 

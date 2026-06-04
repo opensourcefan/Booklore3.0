@@ -121,6 +121,19 @@ public class AiSearchController {
         bookRepository.updateMarkedForAiSearch(bookIds, marked);
     }
 
+    @DeleteMapping("/embeddings")
+    public Map<String, Object> deleteEmbeddings(@RequestBody Map<String, Object> payload) {
+        @SuppressWarnings("unchecked")
+        List<Number> rawBookIds = (List<Number>) payload.get("bookIds");
+        if (rawBookIds == null || rawBookIds.isEmpty()) {
+            throw new IllegalArgumentException("bookIds are required.");
+        }
+        Long userId = authenticationService.getAuthenticatedUser().getId();
+        List<Long> bookIds = rawBookIds.stream().map(Number::longValue).toList();
+        int deleted = aiSearchService.deleteBookEmbeddings(bookIds, userId);
+        return Map.of("deletedCount", deleted);
+    }
+
     private Long toLong(Object value) {
         if (value instanceof Number n) {
             return n.longValue();

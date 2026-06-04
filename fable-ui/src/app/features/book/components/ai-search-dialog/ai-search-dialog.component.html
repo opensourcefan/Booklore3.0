@@ -147,6 +147,8 @@
         [severity]="localOnly ? 'success' : 'info'"
         [outlined]="true"
         size="small"
+        [pTooltip]="localOnly ? 'Local Only: Search your library directly' : 'AI + Local: Search your library and generate an AI answer'"
+        tooltipPosition="top"
         (onClick)="localOnly = !localOnly">
       </p-button>
       <input
