@@ -19,7 +19,7 @@ echo "Waiting for Ollama to start..."
 timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null; do sleep 1; done'
 
 # If AUTO_CLEANUP_MODELS=true, remove old Ollama models
-if [ "$AUTO_CLEANUP_MODELS" = "true" ] && [ -n "$LLM_MODEL" ]; then
+if [ "$AUTO_CLEANUP_MODELS" = "true" ]; then
     echo "Checking for unused Ollama models to clean up..."
     # Get all installed models except the header, extract the first column (model name)
     installed_models=$(ollama list | tail -n +2 | awk '{print $1}')

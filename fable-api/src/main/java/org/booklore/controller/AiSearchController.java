@@ -55,6 +55,9 @@ public class AiSearchController {
         List<Long> bookIds = (List<Long>) payload.get("bookIds");
         Long userId = toLong(payload.get("userId"));
 
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> chatHistory = (List<Map<String, String>>) payload.get("chatHistory");
+
         if (query == null || query.isBlank()) {
             throw new IllegalArgumentException("query is required.");
         }
@@ -62,7 +65,7 @@ public class AiSearchController {
             throw new IllegalArgumentException("userId is required.");
         }
 
-        return aiSearchService.search(query, bookIds, userId);
+        return aiSearchService.search(query, bookIds, userId, chatHistory);
     }
 
     @GetMapping("/book-embeddings/{bookId}")

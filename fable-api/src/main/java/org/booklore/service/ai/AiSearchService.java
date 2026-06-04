@@ -20,6 +20,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.text.BreakIterator;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -216,21 +217,23 @@ public class AiSearchService {
         return result;
     }
 
-    public Map<String, Object> search(String query, List<Long> bookIds, Long userId) {
+    public Map<String, Object> search(String query, List<Long> bookIds, Long userId, List<Map<String, String>> chatHistory) {
         String baseUrl = appProperties.getAiSearch().getBaseUrl();
         RestClient restClient = buildRestClient();
 
         org.booklore.model.dto.settings.AiSearchSettings settings = appSettingService.getAppSettings().getAiSearchSettings();
 
-        Map<String, Object> payload = Map.of(
-                "query", query,
-                "bookIds", bookIds != null ? bookIds : List.of(),
-                "userId", userId,
-                "topK", settings.getTopK(),
-                "similarityThreshold", settings.getSimilarityThreshold(),
-                "maxTokens", settings.getMaxTokens(),
-                "temperature", settings.getTemperature()
-        );
+        Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("query", query);
+        payload.put("bookIds", bookIds != null ? bookIds : List.of());
+        payload.put("userId", userId);
+        payload.put("topK", settings.getTopK());
+        payload.put("similarityThreshold", settings.getSimilarityThreshold());
+        payload.put("maxTokens", settings.getMaxTokens());
+        payload.put("temperature", settings.getTemperature());
+        if (chatHistory != null) {
+            payload.put("chatHistory", chatHistory);
+        }
 
         @SuppressWarnings("unchecked")
         Map<String, Object> result = restClient.post()
@@ -414,24 +417,37 @@ public class AiSearchService {
             return chunks;
         }
 
-        int start = 0;
-        while (start < cleaned.length()) {
-            int end = Math.min(start + CHUNK_SIZE, cleaned.length());
-            if (end < cleaned.length()) {
-                int lastSpace = cleaned.lastIndexOf(' ', end);
-                if (lastSpace > start + CHUNK_SIZE / 2) {
-                    end = lastSpace;
+        BreakIterator boundary = BreakIterator.getSentenceInstance();
+        boundary.setText(cleaned);
+
+        int start = boundary.first();
+        int end = boundary.next();
+
+        StringBuilder currentChunk = new StringBuilder();
+        String lastSentence = "";
+
+        while (end != BreakIterator.DONE) {
+            String sentence = cleaned.substring(start, end).trim();
+            if (!sentence.isEmpty()) {
+                if (currentChunk.length() + sentence.length() > CHUNK_SIZE && currentChunk.length() > 0) {
+                    chunks.add(currentChunk.toString().trim());
+                    currentChunk = new StringBuilder();
+                    if (!lastSentence.isEmpty()) {
+                        currentChunk.append(lastSentence).append(" ");
+                    }
                 }
+                currentChunk.append(sentence).append(" ");
+                lastSentence = sentence;
             }
-            chunks.add(cleaned.substring(start, end).trim());
-            
-            if (end >= cleaned.length()) {
-                break;
+            start = end;
+            end = boundary.next();
+        }
+
+        if (currentChunk.length() > 0) {
+            String finalChunk = currentChunk.toString().trim();
+            if (chunks.isEmpty() || !finalChunk.equals(lastSentence)) {
+                chunks.add(finalChunk);
             }
-            
-            start = end - CHUNK_OVERLAP;
-            if (start < 0) start = 0;
-            if (start >= cleaned.length()) break;
         }
 
         return chunks;

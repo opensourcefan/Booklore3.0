@@ -21,16 +21,16 @@ logger = logging.getLogger("fable-ai-search")
 app = FastAPI()
 
 # ---- Configuration ----
-EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
-EMBEDDING_DIMENSIONS = int(os.getenv("EMBEDDING_DIMENSIONS", "384"))
-AUTO_CLEANUP_MODELS = os.getenv("AUTO_CLEANUP_MODELS", "false").lower() == "true"
+EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL", "")
+EMBEDDING_DIMENSIONS = int(os.getenv("EMBEDDING_DIMENSIONS", "") or "384")
+AUTO_CLEANUP_MODELS = os.getenv("AUTO_CLEANUP_MODELS", "true").lower() == "true"
 EXTERNAL_LLM_BASE_URL = os.getenv("EXTERNAL_LLM_BASE_URL", "")
 EXTERNAL_EMBEDDING_BASE_URL = os.getenv("EXTERNAL_EMBEDDING_BASE_URL", "")
-LLM_MODEL_NAME = os.getenv("LLM_MODEL", "qwen2.5:1.5b")
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "768"))
-LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
-SEARCH_TOP_K = int(os.getenv("SEARCH_TOP_K", "5"))
-SEARCH_SIMILARITY_THRESHOLD = float(os.getenv("SEARCH_SIMILARITY_THRESHOLD", "0.3"))
+LLM_MODEL_NAME = os.getenv("LLM_MODEL", "")
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "") or "768")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "") or "0.1")
+SEARCH_TOP_K = int(os.getenv("SEARCH_TOP_K", "") or "5")
+SEARCH_SIMILARITY_THRESHOLD = float(os.getenv("SEARCH_SIMILARITY_THRESHOLD", "") or "0.3")
 
 # Database config
 DB_HOST = os.getenv("DB_HOST", "mariadb")
@@ -50,6 +50,12 @@ _active_embed_jobs: dict[str, dict[str, Any]] = {}
 def _do_load() -> None:
     """Background thread: loads the embedding model."""
     global _embedding_model, _loading, _load_error
+
+    if not EMBEDDING_MODEL_NAME:
+        logger.info("No EMBEDDING_MODEL specified. Skipping local model load.")
+        _loading = False
+        return
+
     logger.info("Embedding model load started for %s", EMBEDDING_MODEL_NAME)
     try:
         if AUTO_CLEANUP_MODELS:
@@ -132,7 +138,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     return float(np.dot(a, b))
 
 
-def _generate_answer(query: str, context: str, max_tokens: int, temperature: float) -> str:
+def _generate_answer(query: str, context: str, max_tokens: int, temperature: float, chat_history: list[dict] = None) -> str:
     """Generate an answer using the LLM (local Ollama or external)."""
     import requests
 
@@ -142,25 +148,27 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         base_url = "http://localhost:11434"
 
     system_prompt = (
-        "You are a helpful AI assistant answering questions STRICTLY based on the provided book excerpts.\n"
-        "Instructions:\n"
-        "1. Read the provided Context carefully. Each excerpt is labeled with its source.\n"
-        "2. If the Context contains the answer to the Question, provide a thorough, detailed answer using all relevant information from the excerpts. Include specific facts, figures, names, and descriptions found in the text. Be comprehensive — do not summarize into a single sentence if more detail is available.\n"
-        "3. You MUST cite your sources inline using the format [Source: Book Title, Page N] exactly as they appear in the Context. Every factual claim must be backed by a citation.\n"
-        "4. If the Context does NOT contain the answer, you MUST say exactly: 'I cannot find the answer to this question in the text.' Do NOT use your own general knowledge.\n"
-        "Do not mention 'the context' or 'the excerpts' in your answer."
+        "You are an AI search assistant. Read the provided Context carefully.\n"
+        "Your task is to respond to the user's Query based ONLY on the Context.\n"
+        "If the Query is a question, answer it.\n"
+        "If the Query is a command (e.g., 'summarize', 'show me'), follow it.\n"
+        "If the Query is just keywords, summarize what the Context says about them.\n"
+        "You MUST cite your sources using the exact format [Source: Book Title, Page N].\n"
+        "If the context contains no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else."
     )
 
-    user_prompt = f"Context:\n<context>\n{context}\n</context>\n\nQuestion: {query}"
+    user_prompt = f"Context:\n{context}\n\nQuery: {query}"
+
+    messages = [{"role": "system", "content": system_prompt}]
+    if chat_history:
+        messages.extend(chat_history)
+    messages.append({"role": "user", "content": user_prompt})
 
     resp = requests.post(
         f"{base_url}/api/chat",
         json={
             "model": LLM_MODEL_NAME,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
+            "messages": messages,
             "stream": False,
             "options": {
                 "num_predict": max_tokens,
@@ -179,10 +187,12 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
 def startup() -> None:
     if EXTERNAL_EMBEDDING_BASE_URL:
         logger.info("Using external embedding model at %s", EXTERNAL_EMBEDDING_BASE_URL)
-    else:
+    elif EMBEDDING_MODEL_NAME:
         logger.info("Beginning background load for local embedding model: %s", EMBEDDING_MODEL_NAME)
         with _load_lock:
             _start_load_thread_locked()
+    else:
+        logger.info("No external or local embedding model configured.")
 
 
 @app.get("/health")
@@ -191,7 +201,9 @@ def health() -> dict[str, Any]:
     # Check if the model has successfully finished loading into memory
     ready = _embedding_model is not None
 
-    if ready:
+    if not EMBEDDING_MODEL_NAME and not EXTERNAL_EMBEDDING_BASE_URL:
+        status = "ok" # Missing config, but container is healthy
+    elif ready:
         status = "ok"
     elif _load_error is not None:
         status = "load_failed"
@@ -322,6 +334,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     similarity_threshold = float(payload.get("similarityThreshold") or SEARCH_SIMILARITY_THRESHOLD)
     max_tokens = int(payload.get("maxTokens") or LLM_MAX_TOKENS)
     temperature = float(payload.get("temperature") or LLM_TEMPERATURE)
+    chat_history = payload.get("chatHistory", [])
 
     if not query:
         raise HTTPException(status_code=400, detail="Query is required.")
@@ -417,7 +430,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             for r in top_results
         ])
         try:
-            answer = _generate_answer(query, context, max_tokens, temperature)
+            answer = _generate_answer(query, context, max_tokens, temperature, chat_history)
         except Exception as e:
             print(f"Error generating LLM answer: {e}")
             answer = "I could not generate a summarized answer because the internal AI model is still starting up or downloading. Please wait a moment and try your search again."
