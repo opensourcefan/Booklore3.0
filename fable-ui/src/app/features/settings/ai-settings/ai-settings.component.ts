@@ -60,6 +60,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   aiEnabled = false;
   aiSearchEnabled = false;
+  aiSearchSettings = {
+    topK: 5,
+    similarityThreshold: 0.3,
+    maxTokens: 768,
+    temperature: 0.1
+  };
   saveRunning = false;
   statusLoading = false;
   cleanupRunning = false;
@@ -94,6 +100,9 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     ).subscribe(settings => {
       this.aiEnabled = settings.aiPanelDetectionEnabled ?? false;
       this.aiSearchEnabled = settings.aiSearchEnabled ?? false;
+      if (settings.aiSearchSettings) {
+        this.aiSearchSettings = { ...settings.aiSearchSettings };
+      }
       this.refreshStatus();
       this.refreshPanelFlowStats();
       if (this.aiSearchEnabled) {
@@ -668,6 +677,22 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           this.saveRunning = false;
           this.aiSearchEnabled = previousValue;
           this.showMessage('error', 'Save failed', 'Could not update AI search setting.');
+        }
+      });
+  }
+
+  saveAiSearchSettings(): void {
+    this.saveRunning = true;
+    this.appSettingsService
+      .saveSettings([{key: AppSettingKey.AI_SEARCH_SETTINGS, newValue: this.aiSearchSettings}])
+      .subscribe({
+        next: () => {
+          this.saveRunning = false;
+          this.showMessage('success', 'AI Search settings updated', 'Tuning parameters have been saved.');
+        },
+        error: () => {
+          this.saveRunning = false;
+          this.showMessage('error', 'Save failed', 'Could not update AI search tuning settings.');
         }
       });
   }

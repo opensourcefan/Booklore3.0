@@ -203,6 +203,7 @@ export interface AppSettings {
   diskType: string;
   libraryHealthCheckIntervalSeconds: number;
   allowFileDeletion: boolean;
+  aiSearchSettings: AiSearchSettings;
 }
 
 export interface MetadataProviderSpecificFields {
@@ -256,7 +257,15 @@ export enum AppSettingKey {
   LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS = 'LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS',
   AI_PANEL_DETECTION_ENABLED = 'AI_PANEL_DETECTION_ENABLED',
   AI_SEARCH_ENABLED = 'AI_SEARCH_ENABLED',
+  AI_SEARCH_SETTINGS = 'AI_SEARCH_SETTINGS',
   ALLOW_FILE_DELETION = 'ALLOW_FILE_DELETION',
+}
+
+export interface AiSearchSettings {
+  topK: number;
+  similarityThreshold: number;
+  maxTokens: number;
+  temperature: number;
 }
 
 export interface AiServiceStatus {

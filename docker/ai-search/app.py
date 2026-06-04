@@ -27,9 +27,9 @@ AUTO_CLEANUP_MODELS = os.getenv("AUTO_CLEANUP_MODELS", "false").lower() == "true
 EXTERNAL_LLM_BASE_URL = os.getenv("EXTERNAL_LLM_BASE_URL", "")
 EXTERNAL_EMBEDDING_BASE_URL = os.getenv("EXTERNAL_EMBEDDING_BASE_URL", "")
 LLM_MODEL_NAME = os.getenv("LLM_MODEL", "qwen2.5:1.5b")
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "512"))
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "768"))
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
-SEARCH_TOP_K = int(os.getenv("SEARCH_TOP_K", "8"))
+SEARCH_TOP_K = int(os.getenv("SEARCH_TOP_K", "5"))
 SEARCH_SIMILARITY_THRESHOLD = float(os.getenv("SEARCH_SIMILARITY_THRESHOLD", "0.3"))
 
 # Database config
@@ -132,7 +132,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     return float(np.dot(a, b))
 
 
-def _generate_answer(query: str, context: str) -> str:
+def _generate_answer(query: str, context: str, max_tokens: int, temperature: float) -> str:
     """Generate an answer using the LLM (local Ollama or external)."""
     import requests
 
@@ -144,10 +144,11 @@ def _generate_answer(query: str, context: str) -> str:
     system_prompt = (
         "You are a helpful AI assistant answering questions STRICTLY based on the provided book excerpts.\n"
         "Instructions:\n"
-        "1. Read the provided Context.\n"
-        "2. If the Context contains the answer to the Question, use it to answer.\n"
-        "3. If the Context does NOT contain the answer, you MUST say exactly: 'I cannot find the answer to this question in the text.' Do NOT use your own general knowledge.\n"
-        "Do not mention 'the context' in your answer."
+        "1. Read the provided Context carefully. Each excerpt is labeled with its source.\n"
+        "2. If the Context contains the answer to the Question, provide a thorough, detailed answer using all relevant information from the excerpts. Include specific facts, figures, names, and descriptions found in the text. Be comprehensive — do not summarize into a single sentence if more detail is available.\n"
+        "3. You MUST cite your sources inline using the format [Source: Book Title, Page N] exactly as they appear in the Context. Every factual claim must be backed by a citation.\n"
+        "4. If the Context does NOT contain the answer, you MUST say exactly: 'I cannot find the answer to this question in the text.' Do NOT use your own general knowledge.\n"
+        "Do not mention 'the context' or 'the excerpts' in your answer."
     )
 
     user_prompt = f"Context:\n<context>\n{context}\n</context>\n\nQuestion: {query}"
@@ -162,8 +163,8 @@ def _generate_answer(query: str, context: str) -> str:
             ],
             "stream": False,
             "options": {
-                "num_predict": LLM_MAX_TOKENS,
-                "temperature": LLM_TEMPERATURE,
+                "num_predict": max_tokens,
+                "temperature": temperature,
             },
         },
         timeout=120,
@@ -317,6 +318,10 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     query = payload.get("query", "").strip()
     book_ids = payload.get("bookIds")  # Optional: limit to specific books
     user_id = payload.get("userId")
+    top_k = int(payload.get("topK") or SEARCH_TOP_K)
+    similarity_threshold = float(payload.get("similarityThreshold") or SEARCH_SIMILARITY_THRESHOLD)
+    max_tokens = int(payload.get("maxTokens") or LLM_MAX_TOKENS)
+    temperature = float(payload.get("temperature") or LLM_TEMPERATURE)
 
     if not query:
         raise HTTPException(status_code=400, detail="Query is required.")
@@ -386,7 +391,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         try:
             vector = json.loads(row["embedding_vector"])
             similarity = _cosine_similarity(query_vector, vector)
-            if similarity >= SEARCH_SIMILARITY_THRESHOLD:
+            if similarity >= similarity_threshold:
                 scored.append({
                     "chunkId": row["id"],
                     "bookId": row["book_id"],
@@ -402,7 +407,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
     # Sort by similarity descending, take top K
     scored.sort(key=lambda x: x["similarity"], reverse=True)
-    top_results = scored[:SEARCH_TOP_K]
+    top_results = scored[:top_k]
 
     # Generate answer using LLM if available
     answer = None
@@ -412,7 +417,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             for r in top_results
         ])
         try:
-            answer = _generate_answer(query, context)
+            answer = _generate_answer(query, context, max_tokens, temperature)
         except Exception as e:
             print(f"Error generating LLM answer: {e}")
             answer = "I could not generate a summarized answer because the internal AI model is still starting up or downloading. Please wait a moment and try your search again."

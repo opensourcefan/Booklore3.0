@@ -70,6 +70,10 @@ export class AppSettingsService {
     this.publicLoading$.subscribe();
   }
 
+  get currentAppSettings(): AppSettings | null {
+    return this.appSettingsSubject.value;
+  }
+
   get currentPublicSettings(): PublicAppSettings | null {
     return this.publicAppSettingsSubject.value;
   }

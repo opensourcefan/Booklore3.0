@@ -45,4 +45,5 @@ public class AppSettings {
     private String diskType;
     private Integer libraryHealthCheckIntervalSeconds;
     private boolean allowFileDeletion;
+    private AiSearchSettings aiSearchSettings;
 }

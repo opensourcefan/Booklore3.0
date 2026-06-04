@@ -40,6 +40,7 @@ public class AiSearchService {
     private final BookRepository bookRepository;
     private final AuthenticationService authenticationService;
     private final AiSearchHealthService aiSearchHealthService;
+    private final org.booklore.service.appsettings.AppSettingService appSettingService;
 
     private static final int CHUNK_SIZE = 500;
     private static final int CHUNK_OVERLAP = 50;
@@ -219,10 +220,16 @@ public class AiSearchService {
         String baseUrl = appProperties.getAiSearch().getBaseUrl();
         RestClient restClient = buildRestClient();
 
+        org.booklore.model.dto.settings.AiSearchSettings settings = appSettingService.getAppSettings().getAiSearchSettings();
+
         Map<String, Object> payload = Map.of(
                 "query", query,
                 "bookIds", bookIds != null ? bookIds : List.of(),
-                "userId", userId
+                "userId", userId,
+                "topK", settings.getTopK(),
+                "similarityThreshold", settings.getSimilarityThreshold(),
+                "maxTokens", settings.getMaxTokens(),
+                "temperature", settings.getTemperature()
         );
 
         @SuppressWarnings("unchecked")

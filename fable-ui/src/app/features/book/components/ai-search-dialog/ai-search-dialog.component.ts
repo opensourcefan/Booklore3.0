@@ -29,6 +29,7 @@ export class AiSearchDialogService {
   cachedHasSearched = false;
   cachedAnswer: string | null = null;
   cachedSingleBookId: number | null = null;
+  cachedVisible = false;
 
   open(bookId: number | null = null) {
     this.openCommand.next(bookId);
@@ -80,6 +81,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.hasSearched = this.aiSearchDialogService.cachedHasSearched;
     this.answer = this.aiSearchDialogService.cachedAnswer;
     this.singleBookId = this.aiSearchDialogService.cachedSingleBookId;
+    this.visible = this.aiSearchDialogService.cachedVisible;
 
     this.openSub = this.aiSearchDialogService.openCommand$.subscribe(bookId => {
       this.open(bookId);
@@ -108,20 +110,18 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.aiSearchDialogService.cachedHasSearched = this.hasSearched;
     this.aiSearchDialogService.cachedAnswer = this.answer;
     this.aiSearchDialogService.cachedSingleBookId = this.singleBookId;
+    this.aiSearchDialogService.cachedVisible = this.visible;
   }
 
   open(bookId: number | null = null): void {
-    if (this.singleBookId !== bookId && bookId !== null) {
-      this.clearResults();
-    }
     this.singleBookId = bookId;
-    this.saveStateToCache();
     this.visible = true;
+    this.saveStateToCache();
   }
 
   close(): void {
-    this.saveStateToCache();
     this.visible = false;
+    this.saveStateToCache();
   }
 
   clearResults(): void {
