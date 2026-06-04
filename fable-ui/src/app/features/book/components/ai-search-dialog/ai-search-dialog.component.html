@@ -63,7 +63,7 @@
           <div class="ai-search-results">
             <div class="ai-search-answer">
               <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
-                {{ t('answer') }}
+                <span class="ai-search-answer-badge">AI Generated Answer</span>
                 @if (msg.answer) {
                   <div style="display: flex; gap: 0.5rem;">
                     <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Source in Reader'"></p-button>
@@ -74,21 +74,29 @@
               
               @if (msg.isLoading) {
                 <div style="display: flex; align-items: center; gap: 0.5rem; padding: 1rem 0; color: var(--text-color-secondary);">
-                  <i class="pi pi-spin pi-sparkles" style="color: var(--primary-color);"></i>
+                  <i class="pi pi-spin pi-spinner" style="color: var(--primary-color);"></i>
                   <span>Generating answer...</span>
                 </div>
               } @else if (msg.answer) {
                 <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)"></div>
                 @if (msg.results && msg.results.length > 0) {
-                  <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-color-secondary); border-top: 1px solid var(--surface-border); padding-top: 0.5rem;">
-                    <em>Source: {{ msg.results[0].bookTitle }}
-                      @if (msg.results[0].chapterTitle) {
-                        - {{ msg.results[0].chapterTitle }}
-                      }
-                      @if (msg.results[0].pageNumber) {
-                        (Page {{ msg.results[0].pageNumber }})
-                      }
-                    </em>
+                  <div class="ai-search-citations">
+                    <div class="ai-search-citations-label">
+                      <i class="pi pi-book"></i> Sources from Your Library
+                    </div>
+                    @for (result of msg.results; track result.chunkId) {
+                      <div class="ai-search-citation-item">
+                        <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
+                        @if (result.chapterTitle) {
+                          <span class="ai-search-citation-separator">›</span>
+                          <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
+                        }
+                        @if (result.pageNumber) {
+                          <span class="ai-search-citation-page">Page {{ result.pageNumber }}</span>
+                        }
+                        <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
+                      </div>
+                    }
                   </div>
                 }
               } @else {
@@ -121,7 +129,6 @@
       <p-button
         icon="pi pi-search"
         [loading]="isLoading"
-        loadingIcon="pi pi-spin pi-sparkles"
         (onClick)="onSearch()"
         [disabled]="searchQuery.trim().length < 2">
       </p-button>
