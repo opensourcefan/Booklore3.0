@@ -153,6 +153,13 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     return DOMPurify.sanitize(html);
   }
 
+  /** Returns true if the LLM answer text references at least one of the source book titles. */
+  answerReferencesSources(msg: ChatMessage): boolean {
+    if (!msg.answer || !msg.results || msg.results.length === 0) return false;
+    const answerLower = msg.answer.toLowerCase();
+    return msg.results.some(r => answerLower.includes(r.bookTitle.toLowerCase()));
+  }
+
   private singleBookId: number | null = null;
 
   clearResults(): void {

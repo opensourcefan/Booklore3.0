@@ -74,6 +74,7 @@
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 0.5rem;
+  border-left: 3px solid #8b5cf6;
 
   .ai-search-answer-label {
     font-weight: 600;
@@ -155,7 +156,6 @@
   font-size: 0.8rem;
   background: var(--surface-card);
   border-radius: 6px;
-  border-left: 3px solid var(--green-400);
   margin-bottom: 0.3rem;
 
   &:last-child {

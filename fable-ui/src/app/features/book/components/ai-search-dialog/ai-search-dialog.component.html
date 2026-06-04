@@ -79,7 +79,7 @@
                 </div>
               } @else if (msg.answer) {
                 <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)"></div>
-                @if (msg.results && msg.results.length > 0) {
+                @if (msg.results && msg.results.length > 0 && answerReferencesSources(msg)) {
                   <div class="ai-search-citations">
                     <div class="ai-search-citations-label">
                       <i class="pi pi-book"></i> Sources from Your Library
