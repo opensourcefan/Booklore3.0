@@ -58,6 +58,8 @@ public class AiSearchController {
         @SuppressWarnings("unchecked")
         List<Map<String, String>> chatHistory = (List<Map<String, String>>) payload.get("chatHistory");
 
+        boolean localOnly = Boolean.TRUE.equals(payload.get("localOnly"));
+
         if (query == null || query.isBlank()) {
             throw new IllegalArgumentException("query is required.");
         }
@@ -65,7 +67,7 @@ public class AiSearchController {
             throw new IllegalArgumentException("userId is required.");
         }
 
-        return aiSearchService.search(query, bookIds, userId, chatHistory);
+        return aiSearchService.search(query, bookIds, userId, chatHistory, localOnly);
     }
 
     @GetMapping("/book-embeddings/{bookId}")

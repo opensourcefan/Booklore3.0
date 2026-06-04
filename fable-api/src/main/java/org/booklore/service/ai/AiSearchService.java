@@ -227,7 +227,7 @@ public class AiSearchService {
         return result;
     }
 
-    public Map<String, Object> search(String query, List<Long> bookIds, Long userId, List<Map<String, String>> chatHistory) {
+    public Map<String, Object> search(String query, List<Long> bookIds, Long userId, List<Map<String, String>> chatHistory, boolean localOnly) {
         String baseUrl = appProperties.getAiSearch().getBaseUrl();
         RestClient restClient = buildRestClient();
 
@@ -241,6 +241,7 @@ public class AiSearchService {
         payload.put("similarityThreshold", settings.getSimilarityThreshold());
         payload.put("maxTokens", settings.getMaxTokens());
         payload.put("temperature", settings.getTemperature());
+        payload.put("localOnly", localOnly);
         if (chatHistory != null) {
             payload.put("chatHistory", chatHistory);
         }
