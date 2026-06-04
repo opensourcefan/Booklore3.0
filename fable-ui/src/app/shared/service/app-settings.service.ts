@@ -122,8 +122,8 @@ export class AppSettingsService {
     return this.http.post<{jobId: string; status: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/embed`, {bookId, userId, chunks});
   }
 
-  searchWithAi(query: string, bookIds: number[], userId: number, chatHistory: {role: string, content: string}[] = []): Observable<AiSearchResult> {
-    return this.http.post<AiSearchResult>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/query`, {query, bookIds, userId, chatHistory});
+  searchWithAi(query: string, bookIds: number[], userId: number, chatHistory: {role: string, content: string}[] = [], localOnly: boolean = false): Observable<AiSearchResult> {
+    return this.http.post<AiSearchResult>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/query`, {query, bookIds, userId, chatHistory, localOnly});
   }
 
   getBookAiSearchEmbeddingStatus(bookId: number, userId: number): Observable<{bookId: number; hasEmbeddings: boolean; chunkCount: number}> {

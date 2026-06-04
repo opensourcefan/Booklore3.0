@@ -109,6 +109,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   answer: string | null = null;
   chatHistory: ChatMessage[] = [];
   selectedResult: AiSearchChunkResult | null = null;
+  localOnly = false;
 
   private appSettingsService = inject(AppSettingsService);
   private userService = inject(UserService);
@@ -325,7 +326,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         { role: 'assistant', content: m.answer! }
       ]);
 
-    this.searchSub = this.appSettingsService.searchWithAi(query, bookIds, user.id, historyPayload).subscribe({
+    this.searchSub = this.appSettingsService.searchWithAi(query, bookIds, user.id, historyPayload, this.localOnly).subscribe({
       next: (result) => {
         this.isLoading = false;
         currentMessage.isLoading = false;

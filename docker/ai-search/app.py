@@ -335,6 +335,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     max_tokens = int(payload.get("maxTokens") or LLM_MAX_TOKENS)
     temperature = float(payload.get("temperature") or LLM_TEMPERATURE)
     chat_history = payload.get("chatHistory", [])
+    local_only = payload.get("localOnly", False)
 
     if not query:
         raise HTTPException(status_code=400, detail="Query is required.")
@@ -422,9 +423,9 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     scored.sort(key=lambda x: x["similarity"], reverse=True)
     top_results = scored[:top_k]
 
-    # Generate answer using LLM if available
+    # Generate answer using LLM if available and not local-only mode
     answer = None
-    if top_results:
+    if top_results and not local_only:
         context = "\n\n".join([
             f"[Source: {r['bookTitle']}, Page {r.get('pageNumber') or 'N/A'}]\n{r['chunkText']}"
             for r in top_results

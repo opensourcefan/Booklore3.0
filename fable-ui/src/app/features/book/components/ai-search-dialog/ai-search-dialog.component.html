@@ -61,31 +61,28 @@
 
           <!-- AI Answer Bubble -->
           <div class="ai-search-results">
-            <div class="ai-search-answer">
-              <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="ai-search-answer-badge">AI Generated Answer</span>
-                @if (msg.answer) {
+            @if (msg.isLoading) {
+              <div class="ai-search-loading-box" style="display: flex; align-items: center; gap: 0.75rem; padding: 1.25rem; background: var(--surface-ground); border-radius: 8px; color: var(--text-color-secondary);">
+                <i class="pi pi-spin pi-spinner" style="font-size: 1.25rem; color: var(--primary-color);"></i>
+                <span>Searching your library and generating answer...</span>
+              </div>
+            } @else if (msg.answer) {
+              <div class="ai-search-answer">
+                <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="ai-search-answer-badge">AI Generated Answer</span>
                   <div style="display: flex; gap: 0.5rem;">
-                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Source in Reader'"></p-button>
+                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
                     <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
                   </div>
-                }
-              </div>
-              
-              @if (msg.isLoading) {
-                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 1rem 0; color: var(--text-color-secondary);">
-                  <i class="pi pi-spin pi-spinner" style="color: var(--primary-color);"></i>
-                  <span>Generating answer...</span>
                 </div>
-              } @else if (msg.answer) {
                 <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)"></div>
-                @if (msg.results && msg.results.length > 0 && answerReferencesSources(msg)) {
+                @if (msg.results && msg.results.length > 0) {
                   <div class="ai-search-citations">
                     <div class="ai-search-citations-label">
                       <i class="pi pi-book"></i> Sources from Your Library
                     </div>
                     @for (result of msg.results; track result.chunkId) {
-                      <div class="ai-search-citation-item">
+                      <div class="ai-search-citation-item" (click)="onResultClick(result)" (keydown.enter)="onResultClick(result)" (keydown.space)="onResultClick(result); $event.preventDefault()" tabindex="0" role="button" style="cursor: pointer;">
                         <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
                         @if (result.chapterTitle) {
                           <span class="ai-search-citation-separator">›</span>
@@ -99,12 +96,39 @@
                     }
                   </div>
                 }
-              } @else {
-                <div style="color: var(--pink-500); padding: 1rem 0;">
-                  <i class="pi pi-exclamation-triangle"></i> Failed to generate an answer.
+              </div>
+            } @else if (msg.results && msg.results.length > 0) {
+              <div class="ai-search-answer ai-search-local-results">
+                <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="ai-search-answer-badge" style="background: linear-gradient(135deg, #059669, #10b981);">Local Results</span>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
+                  </div>
                 </div>
-              }
-            </div>
+                <div class="ai-search-citations" style="margin-top: 0; border-top: none; padding-top: 0;">
+                  <div class="ai-search-citations-label">
+                    <i class="pi pi-book"></i> Matching Passages
+                  </div>
+                  @for (result of msg.results; track result.chunkId) {
+                    <div class="ai-search-citation-item" (click)="onResultClick(result)" (keydown.enter)="onResultClick(result)" (keydown.space)="onResultClick(result); $event.preventDefault()" tabindex="0" role="button" style="cursor: pointer;">
+                      <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
+                      @if (result.chapterTitle) {
+                        <span class="ai-search-citation-separator">›</span>
+                        <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
+                      }
+                      @if (result.pageNumber) {
+                        <span class="ai-search-citation-page">Page {{ result.pageNumber }}</span>
+                      }
+                      <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div style="color: var(--pink-500); padding: 1rem 0;">
+                <i class="pi pi-exclamation-triangle"></i> Failed to generate an answer.
+              </div>
+            }
           </div>
 
         }
@@ -116,7 +140,15 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <div class="ai-search-input-row" style="display: flex; gap: 0.5rem; width: 100%; padding-top: 0.5rem;">
+    <div class="ai-search-input-row" style="display: flex; gap: 0.5rem; width: 100%; padding-top: 0.5rem; align-items: center;">
+      <p-button
+        [label]="localOnly ? 'Local' : 'AI'"
+        [icon]="localOnly ? 'pi pi-map-marker' : 'pi pi-sparkles'"
+        [severity]="localOnly ? 'success' : 'info'"
+        [outlined]="true"
+        size="small"
+        (onClick)="localOnly = !localOnly">
+      </p-button>
       <input
         type="text"
         pInputText
