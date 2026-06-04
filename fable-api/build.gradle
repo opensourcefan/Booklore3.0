@@ -11,7 +11,7 @@ plugins {
 }
 
 group = 'org.booklore'
-version = '3.21.16'
+version = '4.1.25'
 description = 'booklore'
 
 java {

@@ -23,26 +23,11 @@
   </ng-template>
 
   <div class="ai-search-body">
-    <div class="ai-search-input-row">
-      <input
-        type="text"
-        pInputText
-        [(ngModel)]="searchQuery"
-        (keydown)="onKeydown($event)"
-        [placeholder]="t('placeholder')"
-        class="ai-search-input"
-      />
-      <p-button
-        icon="pi pi-search"
-        [loading]="isLoading"
-        (onClick)="onSearch()"
-        [disabled]="searchQuery.trim().length < 2">
-      </p-button>
-    </div>
 
-    @if (isLoading) {
+
+    @if (isLoading && chatHistory.length === 0) {
       <div class="ai-search-loading" style="display: flex; justify-content: center; align-items: center; padding: 3rem; flex-direction: column; gap: 1rem; color: var(--text-color-secondary);">
-        <i class="pi pi-spin pi-spinner" style="font-size: 2.5rem"></i>
+        <i class="pi pi-spin pi-sparkles" style="font-size: 2.5rem; color: var(--primary-color);"></i>
         <span>{{ t('searching') || 'Searching...' }}</span>
       </div>
     }
@@ -65,35 +50,83 @@
       </div>
     }
 
-    @if (!isLoading && answer) {
-      <div class="ai-search-results">
-        <div class="ai-search-answer">
-          <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
-            {{ t('answer') }}
-            <div style="display: flex; gap: 0.5rem;">
-              <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader()" [pTooltip]="'Open Source in Reader'"></p-button>
-              <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveAnswerToNotepad()" [pTooltip]="'Save Answer to Notepad'"></p-button>
+    @if (chatHistory.length > 0) {
+      <div class="ai-search-chat-container" style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
+        @for (msg of chatHistory; track $index) {
+          
+          <!-- User Query Bubble -->
+          <div class="ai-search-user-message" style="align-self: flex-end; background: #6b7280; color: white; padding: 0.75rem 1.25rem; border-radius: 18px 18px 2px 18px; max-width: 80%;">
+            {{ msg.query }}
+          </div>
+
+          <!-- AI Answer Bubble -->
+          <div class="ai-search-results">
+            <div class="ai-search-answer">
+              <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
+                {{ t('answer') }}
+                @if (msg.answer) {
+                  <div style="display: flex; gap: 0.5rem;">
+                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Source in Reader'"></p-button>
+                    <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
+                  </div>
+                }
+              </div>
+              
+              @if (msg.isLoading) {
+                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 1rem 0; color: var(--text-color-secondary);">
+                  <i class="pi pi-spin pi-sparkles" style="color: var(--primary-color);"></i>
+                  <span>Generating answer...</span>
+                </div>
+              } @else if (msg.answer) {
+                <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)"></div>
+                @if (msg.results && msg.results.length > 0) {
+                  <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-color-secondary); border-top: 1px solid var(--surface-border); padding-top: 0.5rem;">
+                    <em>Source: {{ msg.results[0].bookTitle }}
+                      @if (msg.results[0].chapterTitle) {
+                        - {{ msg.results[0].chapterTitle }}
+                      }
+                      @if (msg.results[0].pageNumber) {
+                        (Page {{ msg.results[0].pageNumber }})
+                      }
+                    </em>
+                  </div>
+                }
+              } @else {
+                <div style="color: var(--pink-500); padding: 1rem 0;">
+                  <i class="pi pi-exclamation-triangle"></i> Failed to generate an answer.
+                </div>
+              }
             </div>
           </div>
-          <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(answer)"></div>
-          @if (results.length > 0) {
-            <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-color-secondary); border-top: 1px solid var(--surface-border); padding-top: 0.5rem;">
-              <em>Source: {{ results[0].bookTitle }}
-                @if (results[0].chapterTitle) {
-                  - {{ results[0].chapterTitle }}
-                }
-                @if (results[0].pageNumber) {
-                  (Page {{ results[0].pageNumber }})
-                }
-              </em>
-            </div>
-          }
-        </div>
+
+        }
       </div>
     }
 
 
+
   </div>
+
+  <ng-template pTemplate="footer">
+    <div class="ai-search-input-row" style="display: flex; gap: 0.5rem; width: 100%; padding-top: 0.5rem;">
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="searchQuery"
+        (keydown)="onKeydown($event)"
+        [placeholder]="t('placeholder')"
+        class="ai-search-input"
+        style="flex: 1;"
+      />
+      <p-button
+        icon="pi pi-search"
+        [loading]="isLoading"
+        loadingIcon="pi pi-spin pi-sparkles"
+        (onClick)="onSearch()"
+        [disabled]="searchQuery.trim().length < 2">
+      </p-button>
+    </div>
+  </ng-template>
 </p-dialog>
 
 <p-dialog

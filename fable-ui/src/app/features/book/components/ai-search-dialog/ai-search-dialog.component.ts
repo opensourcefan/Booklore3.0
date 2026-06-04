@@ -19,17 +19,66 @@ import {CoverGeneratorComponent} from '../../../../shared/components/cover-gener
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 
+export interface ChatMessage {
+  query: string;
+  answer: string | null;
+  results: AiSearchChunkResult[];
+  isLoading: boolean;
+}
+
 @Injectable({providedIn: 'root'})
 export class AiSearchDialogService {
   private openCommand = new Subject<number | null>();
   openCommand$ = this.openCommand.asObservable();
 
+  private readonly STORAGE_KEY = 'fable_ai_search_cache';
+
   cachedSearchQuery = '';
   cachedResults: AiSearchChunkResult[] = [];
   cachedHasSearched = false;
   cachedAnswer: string | null = null;
+  cachedChatHistory: ChatMessage[] = [];
   cachedSingleBookId: number | null = null;
   cachedVisible = false;
+
+  constructor() {
+    this.loadFromStorage();
+  }
+
+  saveToStorage() {
+    try {
+      const data = {
+        q: this.cachedSearchQuery,
+        r: this.cachedResults,
+        h: this.cachedHasSearched,
+        a: this.cachedAnswer,
+        ch: this.cachedChatHistory,
+        bId: this.cachedSingleBookId,
+        v: this.cachedVisible
+      };
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error('Failed to save AI search state', e);
+    }
+  }
+
+  loadFromStorage() {
+    try {
+      const dataStr = localStorage.getItem(this.STORAGE_KEY);
+      if (dataStr) {
+        const data = JSON.parse(dataStr);
+        this.cachedSearchQuery = data.q || '';
+        this.cachedResults = data.r || [];
+        this.cachedHasSearched = !!data.h;
+        this.cachedAnswer = data.a || null;
+        this.cachedChatHistory = data.ch || [];
+        this.cachedSingleBookId = data.bId || null;
+        this.cachedVisible = !!data.v;
+      }
+    } catch (e) {
+      console.error('Failed to load AI search state', e);
+    }
+  }
 
   open(bookId: number | null = null) {
     this.openCommand.next(bookId);
@@ -58,6 +107,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   isLoading = false;
   hasSearched = false;
   answer: string | null = null;
+  chatHistory: ChatMessage[] = [];
   selectedResult: AiSearchChunkResult | null = null;
 
   private appSettingsService = inject(AppSettingsService);
@@ -80,6 +130,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.results = this.aiSearchDialogService.cachedResults;
     this.hasSearched = this.aiSearchDialogService.cachedHasSearched;
     this.answer = this.aiSearchDialogService.cachedAnswer;
+    this.chatHistory = this.aiSearchDialogService.cachedChatHistory || [];
     this.singleBookId = this.aiSearchDialogService.cachedSingleBookId;
     this.visible = this.aiSearchDialogService.cachedVisible;
 
@@ -104,13 +155,28 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
   private singleBookId: number | null = null;
 
+  clearResults(): void {
+    this.searchQuery = '';
+    this.results = [];
+    this.answer = null;
+    this.chatHistory = [];
+    this.hasSearched = false;
+    this.isLoading = false;
+    if (this.searchSub) {
+      this.searchSub.unsubscribe();
+    }
+    this.saveStateToCache();
+  }
+
   private saveStateToCache(): void {
     this.aiSearchDialogService.cachedSearchQuery = this.searchQuery;
     this.aiSearchDialogService.cachedResults = this.results;
     this.aiSearchDialogService.cachedHasSearched = this.hasSearched;
     this.aiSearchDialogService.cachedAnswer = this.answer;
+    this.aiSearchDialogService.cachedChatHistory = this.chatHistory;
     this.aiSearchDialogService.cachedSingleBookId = this.singleBookId;
     this.aiSearchDialogService.cachedVisible = this.visible;
+    this.aiSearchDialogService.saveToStorage();
   }
 
   open(bookId: number | null = null): void {
@@ -124,14 +190,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.saveStateToCache();
   }
 
-  clearResults(): void {
-    this.results = [];
-    this.answer = null;
-    this.hasSearched = false;
-    this.selectedResult = null;
-    this.searchQuery = '';
-    this.saveStateToCache();
-  }
+
 
   saveToNotepad(result: AiSearchChunkResult): void {
     const user = this.userService.getCurrentUser();
@@ -168,19 +227,23 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     });
   }
 
-  saveAnswerToNotepad(): void {
-    if (!this.answer) return;
+  saveAnswerToNotepad(msg?: ChatMessage): void {
+    const answerContent = msg ? msg.answer : this.answer;
+    const queryContent = msg ? msg.query : this.searchQuery;
+    const resultsData = msg ? msg.results : this.results;
+    
+    if (!answerContent) return;
     const user = this.userService.getCurrentUser();
     if (!user) return;
 
-    const bookId = this.singleBookId || (this.results.length > 0 ? this.results[0].bookId : 0);
+    const bookId = this.singleBookId || (resultsData && resultsData.length > 0 ? resultsData[0].bookId : 0);
     if (!bookId) return;
 
     const request: CreateBookNoteV2Request = {
       bookId: bookId,
       cfi: 'ai-search-answer',
-      selectedText: this.answer,
-      noteContent: `AI Search Answer: ${this.searchQuery}`
+      selectedText: answerContent,
+      noteContent: `AI Search Answer: ${queryContent}`
     };
 
     this.bookNoteService.createOrUpdateNote(request).subscribe({
@@ -211,27 +274,71 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     this.hasSearched = true;
-    this.answer = null;
+
+    // Create a new message block for the UI
+    const currentMessage: ChatMessage = {
+      query: query,
+      answer: null,
+      results: [],
+      isLoading: true
+    };
+    this.chatHistory.push(currentMessage);
+    
+    // Limit chat history to max 3 items
+    if (this.chatHistory.length > 3) {
+      this.chatHistory = this.chatHistory.slice(this.chatHistory.length - 3);
+    }
+    
+    // Clear the input box immediately to feel responsive
+    this.searchQuery = '';
     this.saveStateToCache();
+
+    // Scroll to bottom (simple timeout to wait for angular rendering)
+    setTimeout(() => {
+      const el = document.querySelector('.ai-search-dialog .p-dialog-content') || document.querySelector('.ai-search-body');
+      if (el) el.scrollTop = el.scrollHeight;
+    }, 50);
 
     const user = this.userService.getCurrentUser();
     if (!user) {
       this.isLoading = false;
+      currentMessage.isLoading = false;
       return;
     }
 
     const bookIds = this.singleBookId ? [this.singleBookId] : [];
 
-    this.searchSub = this.appSettingsService.searchWithAi(query, bookIds, user.id).subscribe({
+    // Extract the last 3 turns of history for context to avoid overloading the context window
+    const historyPayload = this.chatHistory
+      .slice(0, -1) // Exclude current ongoing query
+      .slice(-3) // Take max 3 previous turns
+      .filter(m => m.answer != null)
+      .flatMap(m => [
+        { role: 'user', content: m.query },
+        { role: 'assistant', content: m.answer! }
+      ]);
+
+    this.searchSub = this.appSettingsService.searchWithAi(query, bookIds, user.id, historyPayload).subscribe({
       next: (result) => {
         this.isLoading = false;
-        this.results = result.results || [];
-        this.answer = result.answer || null;
+        currentMessage.isLoading = false;
+        currentMessage.results = result.results || [];
+        currentMessage.answer = result.answer || null;
+        
+        // Update top-level variables for backward compatibility if needed in UI
+        this.results = currentMessage.results;
+        this.answer = currentMessage.answer;
+        
         this.saveStateToCache();
+        setTimeout(() => {
+          const el = document.querySelector('.ai-search-dialog .p-dialog-content') || document.querySelector('.ai-search-body');
+          if (el) el.scrollTop = el.scrollHeight;
+        }, 50);
       },
       error: () => {
         this.isLoading = false;
-        this.results = [];
+        currentMessage.isLoading = false;
+        currentMessage.results = [];
         this.saveStateToCache();
       },
     });
@@ -266,9 +373,10 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  openTopResultInReader(): void {
-    if (this.results.length > 0) {
-      this.readBookAtPage(this.results[0]);
+  openTopResultInReader(msg?: ChatMessage): void {
+    const resultsData = msg ? msg.results : this.results;
+    if (resultsData && resultsData.length > 0) {
+      this.readBookAtPage(resultsData[0]);
     }
   }
 
