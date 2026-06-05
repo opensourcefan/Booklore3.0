@@ -36,14 +36,14 @@ AI_SEARCH_EXTERNAL_EMBEDDING_URL=
 Fine-tune how search results are ranked and generated.
 
 ```ini
-# Number of top results to return and synthesize (Default: 8)
-AI_SEARCH_TOP_K=8
+# Number of top results to return and synthesize (Default: 5)
+AI_SEARCH_TOP_K=5
 
 # Minimum cosine similarity score to consider a match (Default: 0.3)
 AI_SEARCH_SIMILARITY_THRESHOLD=0.3
 
-# Maximum tokens for the LLM to generate (Default: 512)
-AI_SEARCH_LLM_MAX_TOKENS=512
+# Maximum tokens for the LLM to generate (Default: 768)
+AI_SEARCH_LLM_MAX_TOKENS=768
 
 # Temperature for the LLM generation (Default: 0.1 for factual synthesis)
 AI_SEARCH_LLM_TEMPERATURE=0.1

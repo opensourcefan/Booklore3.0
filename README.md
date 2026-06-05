@@ -158,7 +158,7 @@ COMPOSE_PROFILES=ai
 
 # 2. Tell the main Fable app where to talk to the AI containers internally
 AI_SERVICE_BASE_URL=http://app-ai-panel:8080
-AI_SEARCH_BASE_URL=http://fable-ai-search:8080
+AI_SEARCH_SERVICE_BASE_URL=http://fable-ai-search:8080
 
 # 3. Expose the AI services to your host machine (for debugging or direct access)
 AI_PANEL_PORT=18080
@@ -224,6 +224,7 @@ services:
       - TELEMETRY_ENABLED=false
       - AI_SERVICE_BASE_URL=${AI_SERVICE_BASE_URL:-http://app-ai-panel:8080}
       - AI_SEARCH_SERVICE_BASE_URL=${AI_SEARCH_SERVICE_BASE_URL:-http://fable-ai-search:8080}
+      - AI_SEARCH_EMBEDDING_MODEL=${AI_SEARCH_EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
     ports:
       - "6060:6060"
     volumes:
@@ -297,6 +298,7 @@ services:
       - SEARCH_SIMILARITY_THRESHOLD=${AI_SEARCH_SIMILARITY_THRESHOLD:-0.3}
       - EXTERNAL_LLM_BASE_URL=${AI_SEARCH_EXTERNAL_LLM_URL:-}
       - EXTERNAL_EMBEDDING_BASE_URL=${AI_SEARCH_EXTERNAL_EMBEDDING_URL:-}
+      - AUTO_CLEANUP_MODELS=${AI_SEARCH_AUTO_CLEANUP_MODELS:-false}
       - DB_HOST=mariadb
       - DB_PORT=3306
       - DB_NAME=${MYSQL_DATABASE}
@@ -406,9 +408,9 @@ tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 - **Advanced Configuration**: See [AI-Search-Configuration.md](docs/AI-Search-Configuration.md) for how to tune semantic search, change models, or use external providers (like Ollama).
 - The AI compose profile is opt-in. Omitting `COMPOSE_PROFILES=ai` skips the AI images entirely.
 - The AI containers use CPU-only inference to keep the image size manageable.
-- You can override the AI Search model by setting `AI_SEARCH_MODEL_ID` in your `.env`.
+- You can override the AI Search model by uncommenting # AI_Search_EMBEDDING or LLM in your `.env`.
 - If the models fail to load, use the **Reload** buttons in Settings.
-- If running Fable outside Docker, set `AI_SERVICE_BASE_URL` and `AI_SEARCH_BASE_URL` to the host-mapped endpoints.
+- If running Fable outside Docker, set `AI_SERVICE_BASE_URL` and `AI_SEARCH_SERVICE_BASE_URL` to the host-mapped endpoints.
 
 ---
 
