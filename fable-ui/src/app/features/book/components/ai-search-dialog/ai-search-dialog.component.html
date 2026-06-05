@@ -81,7 +81,7 @@
                       <i class="pi pi-book"></i> Sources from Your Library
                     </div>
                     @for (result of msg.results; track result.chunkId) {
-                      <div class="ai-search-citation-item" (click)="onResultClick(result)" (keydown.enter)="onResultClick(result)" (keydown.space)="onResultClick(result); $event.preventDefault()" tabindex="0" role="button">
+                      <div class="ai-search-citation-item" (click)="readBookAtPage(result)" (keydown.enter)="readBookAtPage(result)" (keydown.space)="readBookAtPage(result); $event.preventDefault()" tabindex="0" role="button" [title]="'Open ' + result.bookTitle + ' in reader'">
                         <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
                         @if (getContentTitle(result)) {
                           <span class="ai-search-citation-separator">›</span>
@@ -91,7 +91,7 @@
                           <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
                         }
                         @if (result.pageNumber) {
-                          <a class="ai-search-citation-page" tabindex="0" (click)="readBookAtPage(result); $event.stopPropagation()" (keydown.enter)="readBookAtPage(result); $event.stopPropagation()" (keydown.space)="readBookAtPage(result); $event.stopPropagation(); $event.preventDefault()" [title]="'Open page ' + result.pageNumber + ' in reader'">p.{{ result.pageNumber }}</a>
+                          <span class="ai-search-citation-page">p.{{ result.pageNumber }}</span>
                         }
                         <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
                       </div>
@@ -112,7 +112,7 @@
                     <i class="pi pi-book"></i> Matching Passages
                   </div>
                   @for (result of msg.results; track result.chunkId) {
-                    <div class="ai-search-citation-item" (click)="onResultClick(result)" (keydown.enter)="onResultClick(result)" (keydown.space)="onResultClick(result); $event.preventDefault()" tabindex="0" role="button">
+                    <div class="ai-search-citation-item" (click)="readBookAtPage(result)" (keydown.enter)="readBookAtPage(result)" (keydown.space)="readBookAtPage(result); $event.preventDefault()" tabindex="0" role="button" [title]="'Open ' + result.bookTitle + ' in reader'">
                       <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
                       @if (getContentTitle(result)) {
                         <span class="ai-search-citation-separator">›</span>
@@ -122,11 +122,17 @@
                         <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
                       }
                       @if (result.pageNumber) {
-                        <a class="ai-search-citation-page" tabindex="0" (click)="readBookAtPage(result); $event.stopPropagation()" (keydown.enter)="readBookAtPage(result); $event.stopPropagation()" (keydown.space)="readBookAtPage(result); $event.stopPropagation(); $event.preventDefault()" [title]="'Open page ' + result.pageNumber + ' in reader'">p.{{ result.pageNumber }}</a>
+                        <span class="ai-search-citation-page">p.{{ result.pageNumber }}</span>
                       }
                       <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
                     </div>
-                    <div class="ai-search-local-chunk-text">{{ getResultSnippet(result) }}</div>
+                    <div class="ai-search-local-chunk-text" [class.ai-search-local-chunk-text-expanded]="isChunkExpanded(result.chunkId)" (click)="toggleChunkExpanded(result.chunkId); $event.stopPropagation()" (keydown.enter)="toggleChunkExpanded(result.chunkId); $event.stopPropagation()" (keydown.space)="toggleChunkExpanded(result.chunkId); $event.stopPropagation(); $event.preventDefault()" tabindex="0" role="button" [title]="isChunkExpanded(result.chunkId) ? 'Collapse' : 'Expand to full view'">
+                      @if (isChunkExpanded(result.chunkId)) {
+                        {{ result.chunkText }}
+                      } @else {
+                        {{ getResultSnippet(result) }}
+                      }
+                    </div>
                   }
                 </div>
               </div>

@@ -110,6 +110,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   chatHistory: ChatMessage[] = [];
   selectedResult: AiSearchChunkResult | null = null;
   localOnly = false;
+  expandedChunks = new Set<string>();
 
   private appSettingsService = inject(AppSettingsService);
   private userService = inject(UserService);
@@ -391,6 +392,18 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
   closeResultDetail(): void {
     this.selectedResult = null;
+  }
+
+  toggleChunkExpanded(chunkId: string): void {
+    if (this.expandedChunks.has(chunkId)) {
+      this.expandedChunks.delete(chunkId);
+    } else {
+      this.expandedChunks.add(chunkId);
+    }
+  }
+
+  isChunkExpanded(chunkId: string): boolean {
+    return this.expandedChunks.has(chunkId);
   }
 
   getCover(result: AiSearchChunkResult): string {
