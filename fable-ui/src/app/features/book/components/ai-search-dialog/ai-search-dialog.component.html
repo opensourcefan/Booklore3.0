@@ -156,11 +156,21 @@
         [icon]="localOnly ? 'pi pi-map-marker' : 'pi pi-sparkles'"
         [severity]="localOnly ? 'success' : 'info'"
         [outlined]="true"
-        size="small"
         [pTooltip]="localOnly ? 'Local Only: Search your library directly' : 'AI + Local: Search your library and generate an AI answer'"
         tooltipPosition="top"
         (onClick)="localOnly = !localOnly">
       </p-button>
+      <button
+        type="button"
+        class="ai-search-info-btn"
+        (click)="infoPopover.toggle($event)"
+        pTooltip="About AI Search"
+        tooltipPosition="top">
+        <i class="pi pi-info-circle"></i>
+      </button>
+      <p-popover #infoPopover [dismissable]="true" appendTo="body" [style]="{ width: '520px', maxWidth: '90vw' }">
+        <div class="ai-search-info-popover-content" [innerHTML]="aiSearchInfoHtml"></div>
+      </p-popover>
       <input
         type="text"
         pInputText

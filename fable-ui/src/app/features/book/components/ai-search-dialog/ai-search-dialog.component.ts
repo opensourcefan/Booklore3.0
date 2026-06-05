@@ -11,6 +11,7 @@ import {Router} from '@angular/router';
 import {AiSearchChunkResult} from '../../../../shared/model/app-settings.model';
 import {Subscription, Subject} from 'rxjs';
 import {TooltipModule} from 'primeng/tooltip';
+import {Popover} from 'primeng/popover';
 import {MessageService} from 'primeng/api';
 import {BookNoteService, CreateBookNoteV2Request} from '../../../../shared/service/book-note.service';
 import {BookService} from '../../service/book.service';
@@ -94,9 +95,9 @@ export class AiSearchDialogService {
     InputTextModule,
     Button,
     DialogModule,
-    
     TranslocoDirective,
-    TooltipModule
+    TooltipModule,
+    Popover
   ],
   standalone: true
 })
@@ -111,6 +112,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   selectedResult: AiSearchChunkResult | null = null;
   localOnly = false;
   expandedChunks = new Set<number>();
+  aiSearchInfoHtml = '';
 
   private appSettingsService = inject(AppSettingsService);
   private userService = inject(UserService);
@@ -127,6 +129,9 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   private openSub?: Subscription;
 
   ngOnInit(): void {
+    // Pre-render the AI Search info content from markdown
+    this.aiSearchInfoHtml = this.markdownToHtml(this.getAiSearchInfoMarkdown());
+
     // Restore state from service
     this.searchQuery = this.aiSearchDialogService.cachedSearchQuery;
     this.results = this.aiSearchDialogService.cachedResults;
@@ -437,6 +442,67 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       event.preventDefault();
       this.onSearch();
     }
+  }
+
+  private getAiSearchInfoMarkdown(): string {
+    return `### The Real Value of Local Mode
+
+Local mode is for when you want to discover what your library contains without knowing the exact terminology an author used. You can search for broad concepts ("medieval warfare tactics", "cognitive biases in decision making", "cocktails with rum") and find relevant passages across dozens of books simultaneously — something Ctrl+F can never do because it doesn't understand that "rum-based drinks" and "cocktails with rum" are the same thing.
+
+The AI mode goes one step further by having an LLM read those matched passages and synthesize a coherent answer. Local mode stops at retrieval — it hands you the raw passages and lets you do the synthesis yourself.
+
+
+### The Real Value of AI Mode
+
+AI mode combines semantic search with LLM-powered synthesis. Instead of just retrieving matching passages like Local mode, AI mode reads those passages and generates a coherent, cited answer that connects information across multiple books. This is valuable when you want a direct answer rather than raw excerpts.
+
+For example, searching "What do my books say about the history of coffee?" will return a synthesized summary with citations to specific passages, saving you from manually piecing together information from dozens of individual chunks.
+
+AI mode is particularly useful for:
+- **Comparative questions:** "Compare how different authors approach mindfulness meditation"
+- **Summarization:** "Summarize the key arguments about climate change across my library"
+- **Fact-finding:** "What is the recipe for an Old Fashioned cocktail mentioned in my books?"
+- **Cross-reference discovery:** "Which books discuss both quantum mechanics and consciousness?"
+
+
+### Existing AI Mode Anti-Hallucination Safeguards
+
+Fable already has several layers of defense against fabricated responses. There is no single "disable hallucinations" toggle, but the combination of existing controls gives you strong protection:
+
+1. **System Prompt Grounding (Always Active)**
+The LLM is instructed at \`docker/ai-search/app.py:150-158\` to only answer from the provided context and to use a specific sentinel phrase when nothing is relevant:
+\`\`\`
+system_prompt = (
+    "You are an AI search assistant. Read the provided Context carefully.\\n"
+    "Your task is to respond to the user's Query based ONLY on the Context.\\n"
+    ...
+    "If the context contains no relevant information at all, reply EXACTLY with: "
+    "'I could not find any relevant information for this search.' and nothing else."
+)
+\`\`\`
+
+2. **Sentinel Phrase Detection (Always Active)**
+Even if the LLM ignores the system prompt and returns the "not found" sentinel when results do exist, the backend at \`docker/ai-search/app.py:467-473\` suppresses that misleading answer so the frontend falls back to showing raw matches instead.
+
+3. **Configurable Temperature (Settings → AI Search)**
+You can set Temperature from 0.0–1.0. The default is 0.1 (very deterministic). Setting it to 0.0 maximizes factual adherence — the LLM will pick the most probable token every time, minimizing creative fabrication.
+
+4. **Configurable Similarity Threshold (Settings → AI Search)**
+The Similarity Threshold (default 0.3, range 0.1–0.9) controls how strict the semantic match must be. Raising it (e.g., to 0.5–0.7) means only strongly relevant chunks reach the LLM, reducing the chance it fabricates from weak context.
+
+5. **Local-Only Mode (Per-Query Toggle)**
+The Local / AI toggle button in the search dialog completely bypasses the LLM. When toggled to "Local," the backend skips answer generation entirely. You get only the raw matching passages — zero hallucination risk.
+
+### Recommended Configuration for Maximum Integrity
+
+| Setting | Value | Effect |
+|---|---|---|
+| Temperature | 0.0 | Eliminates creative token selection |
+| Similarity Threshold | 0.5–0.7 | Only strongly relevant context reaches the LLM |
+| Top K | 3–5 | Less context = less room to confabulate |
+| Local-Only toggle | On | Zero LLM involvement, raw passages only |
+
+There is no additional "strict/grounded-only" mode beyond these controls. The system prompt grounding + low temperature + high similarity threshold + the local-only escape hatch form the complete anti-hallucination strategy.`;
   }
 
   ngOnDestroy(): void {

@@ -55,3 +55,8 @@ paths: ["**/*"]
 
 ## Browser Updates & Broadcasting
 - **100% Reliable Refreshes via AOP:** Never use `notificationService.sendMessage` manually in a Controller for state changes (like metadata updates or shelf moves). All operations that mutate book state MUST delegate to a Service layer method that returns the modified `Book` or `Collection<Book>` and is annotated with `@BroadcastBookUpdate`. This ensures the websocket browser refresh is centrally enforced and impossible to bypass.
+
+## Node.js Build Environment
+- The system default `node` (v18) is too old for Angular CLI. 
+- Always prepend Angular build commands with: `export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$PATH" &&`
+- Example: `export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$PATH" && cd fable-ui && npx ng build --configuration production`
