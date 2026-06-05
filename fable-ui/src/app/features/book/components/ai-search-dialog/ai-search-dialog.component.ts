@@ -354,6 +354,36 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
   private bookService = inject(BookService);
 
+  /**
+   * Derives a content result title from the chunk text.
+   * Looks for the first line that resembles a heading (short, standalone line).
+   * Falls back to chapterTitle, then null.
+   */
+  getContentTitle(result: AiSearchChunkResult): string | null {
+    // Only use the chapterTitle from the backend — this is populated from
+    // HTML headings (h1-h6) or the EPUB table of contents during embedding.
+    // Never fall back to chunk text, as that produces misleading "titles"
+    // that are just the first words of a sentence.
+    if (result.chapterTitle) {
+      return result.chapterTitle;
+    }
+    return null;
+  }
+
+  /**
+   * Returns a truncated snippet of the chunk text for display in result cards.
+   * When a content title exists, show less text since the title provides context.
+   */
+  getResultSnippet(result: AiSearchChunkResult): string {
+    const title = this.getContentTitle(result);
+    const text = result.chunkText || '';
+    const maxLen = title ? 150 : 300;
+    if (text.length <= maxLen) {
+      return text;
+    }
+    return text.substring(0, maxLen).trimEnd() + '...';
+  }
+
   onResultClick(result: AiSearchChunkResult): void {
     this.selectedResult = result;
   }

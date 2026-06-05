@@ -43,8 +43,8 @@ public class AiSearchService {
     private final AiSearchHealthService aiSearchHealthService;
     private final org.booklore.service.appsettings.AppSettingService appSettingService;
 
-    private static final int CHUNK_SIZE = 500;
-    private static final int CHUNK_OVERLAP = 50;
+    private static final int CHUNK_SIZE = 1500;
+    private static final int CHUNK_OVERLAP = 100;
     private static final int CHUNK_BATCH_SIZE = 50;
 
     private final AtomicBoolean scanInProgress = new AtomicBoolean(false);
@@ -343,6 +343,9 @@ public class AiSearchService {
         List<Map<String, Object>> chunkBatch = new ArrayList<>();
         boolean isFirstBatch = true;
 
+        // Build TOC title map for fallback when HTML headings are absent
+        Map<String, String> tocTitleMap = EpubContentReader.getTocTitleMap(epubFile);
+
         for (int i = 0; i < spineSize; i++) {
             if (!isBatch && i % 5 == 0) {
                 int percentage = (int)(((double)i / spineSize) * 100);
@@ -355,19 +358,40 @@ public class AiSearchService {
                 continue;
             }
 
-            List<String> textChunks = chunkText(text);
-            for (String tc : textChunks) {
-                Map<String, Object> chunk = new LinkedHashMap<>();
-                chunk.put("text", tc);
-                chunk.put("pageNumber", i + 1);
-                chunk.put("chapterTitle", null);
-                chunkBatch.add(chunk);
-
-                if (chunkBatch.size() >= CHUNK_BATCH_SIZE) {
-                    embedBook(bookId, userId, chunkBatch, !isFirstBatch);
-                    isFirstBatch = false;
-                    chunkBatch.clear();
+            // Get the spine item href for TOC lookup
+            String spineHref = EpubContentReader.getSpineItemHref(epubFile, i);
+            String tocTitle = null;
+            if (spineHref != null && tocTitleMap != null) {
+                // Normalize href for matching (strip leading path components)
+                String normalizedHref = spineHref.replaceFirst("#.*$", "");
+                if (normalizedHref.startsWith("/")) {
+                    normalizedHref = normalizedHref.substring(1);
                 }
+                tocTitle = tocTitleMap.get(normalizedHref);
+                // Try matching just the filename portion
+                if (tocTitle == null && normalizedHref.contains("/")) {
+                    String filename = normalizedHref.substring(normalizedHref.lastIndexOf('/') + 1);
+                    for (Map.Entry<String, String> entry : tocTitleMap.entrySet()) {
+                        if (entry.getKey().endsWith(filename)) {
+                            tocTitle = entry.getValue();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Extract ALL headings from this spine item and assign each chunk the nearest preceding heading
+            List<Map.Entry<Integer, String>> headings = extractAllHeadingsFromHtml(html);
+            List<String> textChunks = chunkText(text);
+            List<Map<String, Object>> headedChunks = assignHeadingsToChunks(textChunks, text, headings, i + 1, tocTitle);
+            chunkBatch.addAll(headedChunks);
+
+            // Flush batch when it gets large
+            while (chunkBatch.size() >= CHUNK_BATCH_SIZE) {
+                List<Map<String, Object>> batch = new ArrayList<>(chunkBatch.subList(0, CHUNK_BATCH_SIZE));
+                chunkBatch = new ArrayList<>(chunkBatch.subList(CHUNK_BATCH_SIZE, chunkBatch.size()));
+                embedBook(bookId, userId, batch, !isFirstBatch);
+                isFirstBatch = false;
             }
         }
 
@@ -398,12 +422,13 @@ public class AiSearchService {
                     continue;
                 }
 
+                String chapterTitle = extractHeadingFromPdfText(text);
                 List<String> textChunks = chunkText(text);
                 for (String tc : textChunks) {
                     Map<String, Object> chunk = new LinkedHashMap<>();
                     chunk.put("text", tc);
                     chunk.put("pageNumber", page);
-                    chunk.put("chapterTitle", null);
+                    chunk.put("chapterTitle", chapterTitle);
                     chunkBatch.add(chunk);
 
                     if (chunkBatch.size() >= CHUNK_BATCH_SIZE) {
@@ -419,6 +444,107 @@ public class AiSearchService {
             embedBook(bookId, userId, chunkBatch, !isFirstBatch);
             chunkBatch.clear();
         }
+    }
+
+    /**
+     * Extracts ALL headings (h1-h6) from EPUB HTML content with their text positions.
+     * Returns a list of (characterOffset, headingTitle) pairs in document order.
+     * This allows assigning each chunk the nearest preceding heading.
+     */
+    private List<Map.Entry<Integer, String>> extractAllHeadingsFromHtml(String html) {
+        List<Map.Entry<Integer, String>> headings = new ArrayList<>();
+        if (html == null || html.isBlank()) {
+            return headings;
+        }
+        org.jsoup.nodes.Document doc = Jsoup.parse(html);
+        String fullText = doc.text();
+        for (int level = 1; level <= 6; level++) {
+            for (org.jsoup.nodes.Element heading : doc.select("h" + level)) {
+                String title = heading.text().trim();
+                if (!title.isBlank() && title.length() <= 200) {
+                    // Find the character offset of this heading's text within the full text
+                    int offset = fullText.indexOf(title);
+                    if (offset >= 0) {
+                        headings.add(new java.util.AbstractMap.SimpleEntry<>(offset, title));
+                    }
+                }
+            }
+        }
+        // Sort by position in document
+        headings.sort(Map.Entry.comparingByKey());
+        return headings;
+    }
+
+    /**
+     * Assigns the nearest preceding heading to each chunk based on text position.
+     * For the first chunk, uses the first heading if it appears early enough.
+     */
+    private List<Map<String, Object>> assignHeadingsToChunks(
+            List<String> textChunks, String fullText, List<Map.Entry<Integer, String>> headings,
+            int pageNumber, String tocTitle) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        int searchFrom = 0;
+        for (String chunk : textChunks) {
+            int chunkPos = fullText.indexOf(chunk, searchFrom);
+            if (chunkPos < 0) {
+                chunkPos = searchFrom;
+            }
+            searchFrom = chunkPos + chunk.length();
+
+            // Find the last heading that appears before or at this chunk's position
+            String assignedHeading = null;
+            for (Map.Entry<Integer, String> heading : headings) {
+                if (heading.getKey() <= chunkPos + 50) { // 50 char tolerance
+                    assignedHeading = heading.getValue();
+                } else {
+                    break;
+                }
+            }
+
+            // Fall back to TOC title if no HTML heading was found
+            if (assignedHeading == null && tocTitle != null) {
+                assignedHeading = tocTitle;
+            }
+
+            Map<String, Object> chunkMap = new LinkedHashMap<>();
+            chunkMap.put("text", chunk);
+            chunkMap.put("pageNumber", pageNumber);
+            chunkMap.put("chapterTitle", assignedHeading);
+            result.add(chunkMap);
+        }
+        return result;
+    }
+
+    /**
+     * Extracts a likely heading from the first line(s) of PDF page text.
+     * Heuristic: if the first non-blank line is short (<=120 chars) and
+     * doesn't look like a regular sentence, treat it as a heading.
+     */
+    private String extractHeadingFromPdfText(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        String[] lines = text.split("\\n");
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            // Heading heuristic: short line, not ending with period, not all uppercase noise
+            if (trimmed.length() <= 120 && trimmed.length() >= 3) {
+                // Skip lines that look like page numbers or metadata
+                if (trimmed.matches("^\\d+$")) {
+                    continue;
+                }
+                // Skip lines that are just a single word in all caps (often author name)
+                if (trimmed.equals(trimmed.toUpperCase()) && trimmed.length() < 30) {
+                    continue;
+                }
+                return trimmed;
+            }
+            break; // Only check the first non-blank line
+        }
+        return null;
     }
 
     private List<String> chunkText(String text) {

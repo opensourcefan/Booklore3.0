@@ -423,6 +423,32 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     scored.sort(key=lambda x: x["similarity"], reverse=True)
     top_results = scored[:top_k]
 
+    # Fetch adjacent chunks for each top result to provide fuller context in the detail view
+    if top_results:
+        conn = _get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        for r in top_results:
+            book_id = r["bookId"]
+            chunk_idx = r["chunkIndex"]
+            # Fetch previous chunk (contextBefore)
+            cursor.execute(
+                """SELECT chunk_text FROM book_embeddings
+                   WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
+                (book_id, user_id, chunk_idx - 1),
+            )
+            prev_row = cursor.fetchone()
+            r["contextBefore"] = prev_row["chunk_text"] if prev_row else None
+            # Fetch next chunk (contextAfter)
+            cursor.execute(
+                """SELECT chunk_text FROM book_embeddings
+                   WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
+                (book_id, user_id, chunk_idx + 1),
+            )
+            next_row = cursor.fetchone()
+            r["contextAfter"] = next_row["chunk_text"] if next_row else None
+        cursor.close()
+        conn.close()
+
     # Generate answer using LLM if available and not local-only mode
     answer = None
     if top_results and not local_only:

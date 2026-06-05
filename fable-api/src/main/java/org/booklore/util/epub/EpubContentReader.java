@@ -5,6 +5,8 @@ import io.documentnode.epub4j.domain.MediaType;
 import io.documentnode.epub4j.domain.MediaTypes;
 import io.documentnode.epub4j.domain.Resource;
 import io.documentnode.epub4j.domain.Spine;
+import io.documentnode.epub4j.domain.TOCReference;
+import io.documentnode.epub4j.domain.TableOfContents;
 import io.documentnode.epub4j.epub.EpubReader;
 import lombok.extern.slf4j.Slf4j;
 import net.lingala.zip4j.ZipFile;
@@ -15,7 +17,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class EpubContentReader {
@@ -103,6 +107,51 @@ public class EpubContentReader {
             log.warn("Failed to get spine items from EPUB: {}", epubFile.getName(), e);
         }
         return hrefs;
+    }
+
+    /**
+     * Builds a map from spine resource href to TOC title by parsing the EPUB's
+     * table of contents. This provides chapter/section names for every spine item
+     * that appears in the TOC, which can be used as fallback when HTML headings
+     * are not found.
+     *
+     * @return Map of href (as stored in spine) → TOC title, or empty map if no TOC exists
+     */
+    public static Map<String, String> getTocTitleMap(File epubFile) {
+        Map<String, String> result = new LinkedHashMap<>();
+        try (ZipFile zip = new ZipFile(epubFile)) {
+            Book epub = new EpubReader().readEpubLazy(zip, "UTF-8", MEDIA_TYPES);
+            TableOfContents toc = epub.getTableOfContents();
+            if (toc != null) {
+                collectTocTitles(toc.getTocReferences(), result);
+            }
+        } catch (IOException e) {
+            log.warn("Failed to read TOC from EPUB: {}", epubFile.getName(), e);
+        }
+        return result;
+    }
+
+    private static void collectTocTitles(List<TOCReference> references, Map<String, String> result) {
+        if (references == null) return;
+        for (TOCReference ref : references) {
+            String title = ref.getTitle();
+            if (title != null && !title.isBlank()) {
+                Resource resource = ref.getResource();
+                if (resource != null) {
+                    String href = resource.getHref();
+                    if (href != null) {
+                        // Normalize: strip fragment and leading slashes for matching
+                        String normalized = href.replaceFirst("#.*$", "");
+                        if (normalized.startsWith("/")) {
+                            normalized = normalized.substring(1);
+                        }
+                        result.putIfAbsent(normalized, title.trim());
+                    }
+                }
+            }
+            // Recurse into children
+            collectTocTitles(ref.getChildren(), result);
+        }
     }
 
     public static class EpubReadException extends RuntimeException {

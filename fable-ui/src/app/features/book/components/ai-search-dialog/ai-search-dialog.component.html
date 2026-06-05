@@ -24,7 +24,6 @@
 
   <div class="ai-search-body">
 
-
     @if (isLoading && chatHistory.length === 0) {
       <div class="ai-search-loading" style="display: flex; justify-content: center; align-items: center; padding: 3rem; flex-direction: column; gap: 1rem; color: var(--text-color-secondary);">
         <i class="pi pi-spin pi-sparkles" style="font-size: 2.5rem; color: var(--primary-color);"></i>
@@ -82,14 +81,17 @@
                       <i class="pi pi-book"></i> Sources from Your Library
                     </div>
                     @for (result of msg.results; track result.chunkId) {
-                      <div class="ai-search-citation-item" (click)="onResultClick(result)" (keydown.enter)="onResultClick(result)" (keydown.space)="onResultClick(result); $event.preventDefault()" tabindex="0" role="button" style="cursor: pointer;">
+                      <div class="ai-search-citation-item" (click)="onResultClick(result)" (keydown.enter)="onResultClick(result)" (keydown.space)="onResultClick(result); $event.preventDefault()" tabindex="0" role="button">
                         <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
-                        @if (result.chapterTitle) {
+                        @if (getContentTitle(result)) {
+                          <span class="ai-search-citation-separator">›</span>
+                          <span class="ai-search-citation-content-title">{{ getContentTitle(result) }}</span>
+                        } @else if (result.chapterTitle) {
                           <span class="ai-search-citation-separator">›</span>
                           <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
                         }
                         @if (result.pageNumber) {
-                          <span class="ai-search-citation-page">Page {{ result.pageNumber }}</span>
+                          <a class="ai-search-citation-page" tabindex="0" (click)="readBookAtPage(result); $event.stopPropagation()" (keydown.enter)="readBookAtPage(result); $event.stopPropagation()" (keydown.space)="readBookAtPage(result); $event.stopPropagation(); $event.preventDefault()" [title]="'Open page ' + result.pageNumber + ' in reader'">p.{{ result.pageNumber }}</a>
                         }
                         <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
                       </div>
@@ -110,18 +112,21 @@
                     <i class="pi pi-book"></i> Matching Passages
                   </div>
                   @for (result of msg.results; track result.chunkId) {
-                    <div class="ai-search-citation-item" (click)="onResultClick(result)" (keydown.enter)="onResultClick(result)" (keydown.space)="onResultClick(result); $event.preventDefault()" tabindex="0" role="button" style="cursor: pointer;">
+                    <div class="ai-search-citation-item" (click)="onResultClick(result)" (keydown.enter)="onResultClick(result)" (keydown.space)="onResultClick(result); $event.preventDefault()" tabindex="0" role="button">
                       <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
-                      @if (result.chapterTitle) {
+                      @if (getContentTitle(result)) {
+                        <span class="ai-search-citation-separator">›</span>
+                        <span class="ai-search-citation-content-title">{{ getContentTitle(result) }}</span>
+                      } @else if (result.chapterTitle) {
                         <span class="ai-search-citation-separator">›</span>
                         <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
                       }
                       @if (result.pageNumber) {
-                        <span class="ai-search-citation-page">Page {{ result.pageNumber }}</span>
+                        <a class="ai-search-citation-page" tabindex="0" (click)="readBookAtPage(result); $event.stopPropagation()" (keydown.enter)="readBookAtPage(result); $event.stopPropagation()" (keydown.space)="readBookAtPage(result); $event.stopPropagation(); $event.preventDefault()" [title]="'Open page ' + result.pageNumber + ' in reader'">p.{{ result.pageNumber }}</a>
                       }
                       <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
                     </div>
-                    <div class="ai-search-local-chunk-text">{{ result.chunkText }}</div>
+                    <div class="ai-search-local-chunk-text">{{ getResultSnippet(result) }}</div>
                   }
                 </div>
               </div>
@@ -135,8 +140,6 @@
         }
       </div>
     }
-
-
 
   </div>
 
@@ -177,20 +180,34 @@
   [draggable]="false"
   [resizable]="false"
   [header]="selectedResult?.bookTitle || 'Result Details'"
-  [style]="{ width: '90vw', maxWidth: '600px' }"
+  [style]="{ width: '90vw', maxWidth: '700px' }"
   (onHide)="closeResultDetail()"
   styleClass="ai-search-detail-dialog"
 >
   @if (selectedResult) {
     <div class="ai-search-detail-content" style="display: flex; flex-direction: column; gap: 1rem;">
-      @if (selectedResult.chapterTitle) {
+      @if (getContentTitle(selectedResult)) {
+        <div class="ai-search-detail-content-title" style="font-weight: 600; font-size: 1.1rem; color: var(--text-color);">
+          {{ getContentTitle(selectedResult) }}
+        </div>
+      } @else if (selectedResult.chapterTitle) {
         <div class="ai-search-detail-chapter" style="font-weight: 500; color: var(--text-color-secondary);">
           <i class="pi pi-list"></i> {{ selectedResult.chapterTitle }}
         </div>
       }
-      <div class="ai-search-detail-text" style="line-height: 1.6; background: var(--surface-hover); padding: 1rem; border-radius: 8px;">
+      @if (selectedResult.contextBefore) {
+        <div class="ai-search-detail-context-before" style="line-height: 1.6; color: var(--text-color-secondary); font-size: 0.9rem; background: var(--surface-ground); padding: 0.75rem; border-radius: 6px; opacity: 0.8;">
+          ...{{ selectedResult.contextBefore }}...
+        </div>
+      }
+      <div class="ai-search-detail-text" style="line-height: 1.6; background: var(--surface-hover); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">
         {{ selectedResult.chunkText }}
       </div>
+      @if (selectedResult.contextAfter) {
+        <div class="ai-search-detail-context-after" style="line-height: 1.6; color: var(--text-color-secondary); font-size: 0.9rem; background: var(--surface-ground); padding: 0.75rem; border-radius: 6px; opacity: 0.8;">
+          ...{{ selectedResult.contextAfter }}...
+        </div>
+      }
       <div class="ai-search-detail-meta" style="display: flex; gap: 1rem; color: var(--text-color-secondary); font-size: 0.9rem;">
         @if (selectedResult.pageNumber) {
           <span><i class="pi pi-file"></i> {{ t('page') }} {{ selectedResult.pageNumber }}</span>

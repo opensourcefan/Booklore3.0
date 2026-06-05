@@ -221,6 +221,16 @@
   font-style: italic;
 }
 
+.ai-search-citation-content-title {
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 0.8rem;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ai-search-citation-page {
   background: var(--surface-hover);
   padding: 0.1rem 0.4rem;
@@ -228,6 +238,13 @@
   font-weight: 600;
   color: var(--primary-color);
   font-size: 0.75rem;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--primary-color);
+    color: #fff;
+  }
 }
 
 .ai-search-citation-relevance {

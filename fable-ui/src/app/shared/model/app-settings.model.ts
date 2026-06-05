@@ -311,6 +311,8 @@ export interface AiSearchChunkResult {
   pageNumber: number | null;
   chapterTitle: string | null;
   similarity: number;
+  contextBefore?: string | null;
+  contextAfter?: string | null;
 }
 
 export interface AiSearchResult {
