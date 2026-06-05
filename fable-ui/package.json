@@ -29,7 +29,7 @@
     "@primeuix/themes": "^2.0.3",
     "@stomp/rx-stomp": "^2.3.0",
     "@stomp/stompjs": "^7.3.0",
-    "@tanstack/angular-virtual": "5.0.2",
+    "@tanstack/angular-virtual": "5.0.4",
     "chart.js": "^4.5.1",
     "chartjs-chart-matrix": "^3.0.4",
     "chartjs-plugin-datalabels": "^2.2.0",
