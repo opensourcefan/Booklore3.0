@@ -154,7 +154,14 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         "If the Query is a command (e.g., 'summarize', 'show me'), follow it.\n"
         "If the Query is just keywords, summarize what the Context says about them.\n"
         "You MUST cite your sources using the exact format [Source: Book Title, Page N].\n"
-        "If the context contains no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else."
+        "If the context contains no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else.\n"
+        "\n"
+        "RESPONSE LENGTH: Adjust your answer's depth to match the user's request:\n"
+        "- If the user asks for 'detail', 'in depth', 'thorough', 'elaborate', or 'explain fully': "
+        "provide a comprehensive, multi-paragraph answer covering all relevant aspects from the Context.\n"
+        "- If the user asks for a 'summary', 'brief', 'short', 'concise', or 'tl;dr': "
+        "provide a compact 1-3 sentence answer.\n"
+        "- For neutral queries with no length cue: provide a balanced, moderate-length answer."
     )
 
     user_prompt = f"Context:\n{context}\n\nQuery: {query}"
