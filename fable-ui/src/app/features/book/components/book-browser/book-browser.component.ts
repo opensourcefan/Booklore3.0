@@ -2124,23 +2124,33 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const selectedBookIds = Array.from(this.selectedBooks);
     if (selectedBookIds.length === 0) return;
 
-    this.appSettingsService.deleteAiSearchEmbeddings(selectedBookIds).subscribe({
-      next: (result) => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Embeddings Deleted',
-          detail: `Successfully deleted ${result.deletedCount} embedding records across ${selectedBookIds.length} books.`,
-          life: 3000
-        });
-        this.deselectAllBooks();
-        this.bookService.refreshBooks();
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to delete embeddings.',
-          life: 3000
+    this.confirmationService.confirm({
+      message: `Are you sure you want to delete AI Search embeddings for ${selectedBookIds.length} book(s)? This will remove all embedded text data and the books will need to be re-embedded to use AI Search.`,
+      header: 'Delete AI Search Embeddings',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.appSettingsService.deleteAiSearchEmbeddings(selectedBookIds).subscribe({
+          next: (result) => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Embeddings Deleted',
+              detail: `Successfully deleted ${result.deletedCount} embedding records across ${selectedBookIds.length} books.`,
+              life: 3000
+            });
+            this.deselectAllBooks();
+            this.bookService.refreshBooks();
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to delete embeddings.',
+              life: 3000
+            });
+          }
         });
       }
     });

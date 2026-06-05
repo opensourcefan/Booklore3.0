@@ -301,9 +301,9 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.saveStateToCache();
 
-    // Scroll to bottom (simple timeout to wait for angular rendering)
+    // Scroll to bottom of results area to show loading indicator
     setTimeout(() => {
-      const el = document.querySelector('.ai-search-dialog .p-dialog-content') || document.querySelector('.ai-search-body');
+      const el = document.querySelector('.ai-search-body');
       if (el) el.scrollTop = el.scrollHeight;
     }, 50);
 
@@ -338,10 +338,11 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         this.answer = currentMessage.answer;
         
         this.saveStateToCache();
+        // Scroll to the new result at the bottom of the chat
         setTimeout(() => {
-          const el = document.querySelector('.ai-search-dialog .p-dialog-content') || document.querySelector('.ai-search-body');
+          const el = document.querySelector('.ai-search-body');
           if (el) el.scrollTop = el.scrollHeight;
-        }, 50);
+        }, 100);
       },
       error: () => {
         this.isLoading = false;

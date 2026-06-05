@@ -23,8 +23,7 @@ export type FilterType =
   | 'ageRating' | 'contentRating'
   | 'narrator'
   | 'comicCharacter' | 'comicTeam' | 'comicLocation' | 'comicCreator'
-  | 'addedOn' | 'folderPath'
-  | 'hasAiSearchData' | 'markedForAiSearch';
+  | 'addedOn' | 'folderPath';
 
 export type SortMode = 'count' | 'sortIndex';
 export type UserFilterSort = 'count' | 'az' | 'za';
@@ -168,9 +167,7 @@ export const FILTER_LABELS: Readonly<Record<FilterType, string>> = {
   comicLocation: 'Comic Location',
   comicCreator: 'Comic Creator',
   addedOn: 'Date Added',
-  folderPath: 'Folder',
-  hasAiSearchData: 'Has AI Search Data',
-  markedForAiSearch: 'Marked for AI Search'
+  folderPath: 'Folder'
 };
 
 // ============================================================================
@@ -289,8 +286,6 @@ export const FILTER_EXTRACTORS: Readonly<Record<Exclude<FilterType, 'library'>, 
     if (!subPath || subPath.trim() === '') return [];
     return [{id: subPath, name: subPath}];
   },
-  hasAiSearchData: (book) => book.hasAiSearchData ? [{id: 'true', name: 'Yes'}] : [{id: 'false', name: 'No'}],
-  markedForAiSearch: (book) => (book as Record<string, unknown>)['markedForAiSearch'] ? [{id: 'true', name: 'markedForAiSearch.true'}] : [{id: 'false', name: 'markedForAiSearch.false'}],
 };
 
 // Translation key for each FilterType — used by UI components to translate filter labels
@@ -323,9 +318,7 @@ export const FILTER_LABEL_KEYS: Readonly<Record<FilterType, string>> = {
   comicLocation: 'book.filter.labels.comicLocation',
   comicCreator: 'book.filter.labels.comicCreator',
   addedOn: 'book.filter.labels.addedOn',
-  folderPath: 'book.filter.labels.folderPath',
-  hasAiSearchData: 'book.filter.labels.hasAiSearchData',
-  markedForAiSearch: 'book.filter.labels.markedForAiSearch'
+  folderPath: 'book.filter.labels.folderPath'
 };
 
 export const READ_STATUS_LABEL_KEYS: Readonly<Record<ReadStatus, string>> = {
@@ -392,7 +385,5 @@ export const FILTER_CONFIGS: Readonly<Record<Exclude<FilterType, 'library'>, Omi
   comicLocation: {label: 'Comic Location', sortMode: 'count'},
   comicCreator: {label: 'Comic Creator', sortMode: 'count'},
   addedOn: {label: 'Date Added', sortMode: 'sortIndex', isNumericId: true},
-  folderPath: {label: 'Folder', sortMode: 'count'},
-  hasAiSearchData: {label: 'Has AI Search Data', sortMode: 'count'},
-  markedForAiSearch: {label: 'Marked for AI Search', sortMode: 'count'}
+  folderPath: {label: 'Folder', sortMode: 'count'}
 };

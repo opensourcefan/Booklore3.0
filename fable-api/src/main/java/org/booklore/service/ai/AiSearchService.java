@@ -10,6 +10,7 @@ import org.booklore.model.websocket.Topic;
 import org.booklore.repository.BookRepository;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.service.NotificationService;
+import org.booklore.service.book.BookCreatorService;
 import org.booklore.util.epub.EpubContentReader;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -42,6 +43,7 @@ public class AiSearchService {
     private final AuthenticationService authenticationService;
     private final AiSearchHealthService aiSearchHealthService;
     private final org.booklore.service.appsettings.AppSettingService appSettingService;
+    private final BookCreatorService bookCreatorService;
 
     private static final int CHUNK_SIZE = 1500;
     private static final int CHUNK_OVERLAP = 100;
@@ -325,6 +327,13 @@ public class AiSearchService {
 
             String activeModel = aiSearchHealthService.getStatus().getEmbeddingModel();
             bookRepository.updateAiSearchEmbeddingModel(bookId, userId, activeModel);
+
+            // Add 'AIS' metadata tag to indicate the book has AI Search embeddings
+            try {
+                bookCreatorService.addTagsToBook(Set.of("AIS"), book);
+            } catch (Exception tagEx) {
+                log.warn("Failed to add AIS tag to book {}: {}", bookId, tagEx.getMessage());
+            }
 
             if (!isBatch) {
                 sendSearchProgress(username, "COMPLETED", "Book embedded successfully", null);

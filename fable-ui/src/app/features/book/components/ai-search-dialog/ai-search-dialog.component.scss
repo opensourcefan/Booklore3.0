@@ -93,7 +93,7 @@
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 0.5rem;
-  border-left: 3px solid #8b5cf6;
+  border-left: 2px solid #8b5cf6;
 
   .ai-search-answer-label {
     font-weight: 600;
@@ -145,7 +145,7 @@
 }
 
 .ai-search-local-results {
-  border-left: 3px solid #059669;
+  border-left: 2px solid #059669;
 
   .ai-search-answer-badge {
     background: linear-gradient(135deg, #059669, #10b981);
@@ -159,7 +159,7 @@
   background: var(--surface-card);
   padding: 0.75rem;
   border-radius: 6px;
-  border-left: 3px solid #059669;
+  border-left: 2px solid #059669;
   font-style: italic;
   margin-bottom: 0.75rem;
   display: -webkit-box;
@@ -312,7 +312,7 @@
   background: var(--surface-ground);
   padding: 0.75rem;
   border-radius: 6px;
-  border-left: 3px solid var(--primary-color);
+  border-left: 2px solid var(--primary-color);
   font-style: italic;
   margin-top: 0.25rem;
 }
