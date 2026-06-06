@@ -731,6 +731,16 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
+  isAiSearchConfigValid(): boolean {
+    if (this.aiSearchSettings.embeddingProvider !== 'local' && !this.aiSearchSettings.externalEmbeddingUrl?.trim()) {
+      return false;
+    }
+    if (this.aiSearchSettings.llmProvider !== 'local' && !this.aiSearchSettings.externalLlmUrl?.trim()) {
+      return false;
+    }
+    return true;
+  }
+
   saveAiSearchSettings(): void {
     this.saveRunning = true;
     this.appSettingsService
@@ -748,25 +758,27 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   resetEmbeddingSettings(): void {
-    const settings = this.appSettingsService.appSettings$.getValue();
-    if (settings && settings.aiSearchSettings) {
-      this.aiSearchSettings.embeddingProvider = settings.aiSearchSettings.embeddingProvider ?? 'local';
-      this.aiSearchSettings.embeddingModel = settings.aiSearchSettings.embeddingModel ?? '';
-      this.aiSearchSettings.embeddingApiKey = settings.aiSearchSettings.embeddingApiKey ?? '';
-      this.aiSearchSettings.externalEmbeddingUrl = settings.aiSearchSettings.externalEmbeddingUrl ?? '';
-      this.showMessage('info', 'Settings Reset', 'Restored previously saved embedding configuration.');
-    }
+    this.appSettings$.pipe(take(1)).subscribe(settings => {
+      if (settings && settings.aiSearchSettings) {
+        this.aiSearchSettings.embeddingProvider = settings.aiSearchSettings.embeddingProvider ?? 'local';
+        this.aiSearchSettings.embeddingModel = settings.aiSearchSettings.embeddingModel ?? '';
+        this.aiSearchSettings.embeddingApiKey = settings.aiSearchSettings.embeddingApiKey ?? '';
+        this.aiSearchSettings.externalEmbeddingUrl = settings.aiSearchSettings.externalEmbeddingUrl ?? '';
+        this.showMessage('info', 'Settings Reset', 'Restored previously saved embedding configuration.');
+      }
+    });
   }
 
   resetLlmSettings(): void {
-    const settings = this.appSettingsService.appSettings$.getValue();
-    if (settings && settings.aiSearchSettings) {
-      this.aiSearchSettings.llmProvider = settings.aiSearchSettings.llmProvider ?? 'local';
-      this.aiSearchSettings.llmModel = settings.aiSearchSettings.llmModel ?? '';
-      this.aiSearchSettings.llmApiKey = settings.aiSearchSettings.llmApiKey ?? '';
-      this.aiSearchSettings.externalLlmUrl = settings.aiSearchSettings.externalLlmUrl ?? '';
-      this.showMessage('info', 'Settings Reset', 'Restored previously saved LLM configuration.');
-    }
+    this.appSettings$.pipe(take(1)).subscribe(settings => {
+      if (settings && settings.aiSearchSettings) {
+        this.aiSearchSettings.llmProvider = settings.aiSearchSettings.llmProvider ?? 'local';
+        this.aiSearchSettings.llmModel = settings.aiSearchSettings.llmModel ?? '';
+        this.aiSearchSettings.llmApiKey = settings.aiSearchSettings.llmApiKey ?? '';
+        this.aiSearchSettings.externalLlmUrl = settings.aiSearchSettings.externalLlmUrl ?? '';
+        this.showMessage('info', 'Settings Reset', 'Restored previously saved LLM configuration.');
+      }
+    });
   }
 
   refreshAiSearchStatus(): void {

@@ -264,12 +264,14 @@ export enum AppSettingKey {
 }
 
 export interface AiSearchSettings {
-  provider: string;
-  apiKey: string;
+  embeddingProvider: string;
+  embeddingApiKey: string;
   externalEmbeddingUrl: string;
+  embeddingModel: string;
+  llmProvider: string;
+  llmApiKey: string;
   externalLlmUrl: string;
   llmModel: string;
-  embeddingModel: string;
   topK: number;
   similarityThreshold: number;
   maxTokens: number;
