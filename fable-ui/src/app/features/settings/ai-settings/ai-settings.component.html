@@ -229,11 +229,16 @@
           
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label for="aiSearchProvider"><strong>AI Provider</strong></label>
-            <select id="aiSearchProvider" [(ngModel)]="aiSearchSettings.provider" (change)="saveAiSearchSettings()" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-              <option value="local">Local (In-container Ollama)</option>
-              <option value="ollama">External Ollama</option>
-              <option value="openai">OpenAI Compatible (OpenAI, Groq, Together)</option>
-            </select>
+            <p-select 
+              id="aiSearchProvider" 
+              [options]="providerOptions" 
+              [(ngModel)]="aiSearchSettings.provider" 
+              (onChange)="saveAiSearchSettings()" 
+              [disabled]="!aiSearchEnabled || saveRunning" 
+              optionLabel="label" 
+              optionValue="value" 
+              styleClass="w-full">
+            </p-select>
           </div>
 
           @if (aiSearchSettings.provider !== 'local') {

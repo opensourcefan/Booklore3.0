@@ -6,6 +6,7 @@ import {Dialog} from 'primeng/dialog';
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {MessageService} from 'primeng/api';
 import {TranslocoDirective} from '@jsverse/transloco';
+import {Select} from 'primeng/select';
 import {Subject, Subscription, timer} from 'rxjs';
 import {filter, take, takeUntil} from 'rxjs/operators';
 
@@ -36,7 +37,8 @@ interface AiStartupEvent {
     FormsModule,
     NgClass,
     ToggleSwitch,
-    TranslocoDirective
+    TranslocoDirective,
+    Select
   ],
   templateUrl: './ai-settings.component.html',
   styleUrl: './ai-settings.component.scss'
@@ -55,6 +57,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private dialogLauncherService = inject(DialogLauncherService);
+
+  providerOptions = [
+    { label: 'Local (In-container Ollama)', value: 'local' },
+    { label: 'External Ollama', value: 'ollama' },
+    { label: 'OpenAI Compatible (OpenAI, Groq, Together)', value: 'openai' }
+  ];
 
   appSettings$ = this.appSettingsService.appSettings$;
 
