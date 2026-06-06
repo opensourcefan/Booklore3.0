@@ -65,16 +65,16 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   ];
 
   embeddingModelOptions = [
-    { label: 'Minimal (all-MiniLM-L6-v2) - ~1.2GB RAM (System Default)', value: 'all-MiniLM-L6-v2', isDefault: true },
-    { label: 'Standard (BAAI/bge-small-en-v1.5) - ~3.5GB RAM', value: 'BAAI/bge-small-en-v1.5', isDefault: false },
+    { label: 'Minimal (all-MiniLM-L6-v2) - ~1.2GB RAM', value: 'all-MiniLM-L6-v2', isDefault: false },
+    { label: 'Standard (BAAI/bge-small-en-v1.5) - ~3.5GB RAM (System Default)', value: 'BAAI/bge-small-en-v1.5', isDefault: true },
     { label: 'Enhanced (BAAI/bge-base-en-v1.5) - ~5.5GB RAM', value: 'BAAI/bge-base-en-v1.5', isDefault: false },
     { label: 'Premium (BAAI/bge-large-en-v1.5) - ~7.0GB RAM', value: 'BAAI/bge-large-en-v1.5', isDefault: false }
   ];
 
   llmModelOptions = [
-    { label: 'Enhanced (llama3.2) - Detailed and smart (System Default)', value: 'llama3.2', isDefault: true },
     { label: 'Minimal (qwen2.5:0.5b) - Basic keyword search', value: 'qwen2.5:0.5b', isDefault: false },
-    { label: 'Standard (qwen2.5:1.5b) - Smart conversational answers', value: 'qwen2.5:1.5b', isDefault: false },
+    { label: 'Standard (qwen2.5:1.5b) - Smart conversational answers (System Default)', value: 'qwen2.5:1.5b', isDefault: true },
+    { label: 'Enhanced (llama3.2) - Detailed and smart', value: 'llama3.2', isDefault: false },
     { label: 'Premium (phi3:mini) - Deep expert-level answers', value: 'phi3:mini', isDefault: false }
   ];
 
