@@ -221,73 +221,43 @@
     <!-- AI Search Tuning -->
     <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
       <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 1rem;">
-        <div>
-          <h3>AI Search Tuning</h3>
-          <p>Adjust the parameters below to fine-tune the AI search behavior and summary generation.</p>
+        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+          <div>
+            <h3>AI Search Tuning</h3>
+            <p>Adjust the parameters below to fine-tune the AI search behavior and summary generation.</p>
+          </div>
+          <p-button label="Apply Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%; max-width: 600px; margin-top: 1rem;">
+        
+        <div style="display: flex; flex-direction: column; gap: 2.5rem; width: 100%; max-width: 600px; margin-top: 1rem;">
           
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label for="aiSearchProvider"><strong>AI Engine (Local / External)</strong></label>
-            <p-select 
-              id="aiSearchProvider" 
-              [options]="providerOptions" 
-              [(ngModel)]="aiSearchSettings.provider" 
-              (onChange)="saveAiSearchSettings()" 
-              [disabled]="!aiSearchEnabled || saveRunning" 
-              optionLabel="label" 
-              optionValue="value" 
-              styleClass="w-full">
-            </p-select>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label for="llmModel"><strong>LLM Model Name</strong></label>
-            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
-              @if (aiSearchSettings.provider === 'local') {
-                Select a preset, or type a custom model name to pull it automatically from the Ollama registry.
-              } @else if (aiSearchSettings.provider === 'ollama') {
-                Select a preset, or type the name of the model installed in your external Ollama instance.
-              } @else {
-                Enter the model name provided by your external API (e.g., gpt-4o-mini).
-              }
-            </p>
-            <div style="display: flex; gap: 0.5rem;">
-              @if (aiSearchSettings.provider === 'openai') {
-                <input type="text" id="aiSearchLlmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. gpt-4o-mini" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-              } @else {
-                <p-select
-                  id="aiSearchLlmModel"
-                  [options]="llmModelOptions"
-                  [(ngModel)]="aiSearchSettings.llmModel"
-                  [editable]="true"
-                  [disabled]="!aiSearchEnabled || saveRunning"
-                  placeholder="Using System Default (qwen2.5:1.5b)"
-                  optionLabel="label"
-                  optionValue="value"
-                  styleClass="w-full">
-                  <ng-template let-option pTemplate="item">
-                    <span [style.font-style]="option.isDefault ? 'italic' : 'normal'" [style.font-weight]="option.isDefault ? 'bold' : 'normal'">
-                      {{ option.label }}
-                    </span>
-                  </ng-template>
-                </p-select>
-              }
-              <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+          <!-- Embedding Configuration -->
+          <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
+            <h4 style="margin: 0; color: var(--primary-color);">Embedding Configuration</h4>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label for="embeddingProvider"><strong>Embedding Engine (Local / External)</strong></label>
+              <p-select 
+                id="embeddingProvider" 
+                [options]="providerOptions" 
+                [(ngModel)]="aiSearchSettings.embeddingProvider" 
+                [disabled]="!aiSearchEnabled || saveRunning" 
+                optionLabel="label" 
+                optionValue="value" 
+                styleClass="w-full">
+              </p-select>
             </div>
-          </div>
 
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label for="embeddingModel"><strong>Embedding Model Name</strong></label>
-            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
-              @if (aiSearchSettings.provider === 'local' || aiSearchSettings.provider === 'ollama') {
-                Select a preset, or type a custom HuggingFace model ID to download it automatically.
-              } @else {
-                Enter the embedding model provided by your external API (e.g., text-embedding-3-small).
-              }
-            </p>
-            <div style="display: flex; gap: 0.5rem;">
-              @if (aiSearchSettings.provider === 'openai') {
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label for="embeddingModel"><strong>Embedding Model Name</strong></label>
+              <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
+                @if (aiSearchSettings.embeddingProvider === 'local' || aiSearchSettings.embeddingProvider === 'ollama') {
+                  Select a preset, or type a custom HuggingFace model ID to download it automatically.
+                } @else {
+                  Enter the embedding model provided by your external API (e.g., text-embedding-3-small).
+                }
+              </p>
+              @if (aiSearchSettings.embeddingProvider === 'openai') {
                 <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. text-embedding-3-small" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
               } @else {
                 <p-select
@@ -307,44 +277,86 @@
                   </ng-template>
                 </p-select>
               }
-              <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
+
+            @if (aiSearchSettings.embeddingProvider !== 'local') {
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="embeddingApiKey"><strong>Embedding API Key</strong></label>
+                <input type="password" id="embeddingApiKey" [(ngModel)]="aiSearchSettings.embeddingApiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong></label>
+                <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
+                <input type="text" id="externalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              </div>
+            }
           </div>
 
-          @if (aiSearchSettings.provider !== 'local') {
-            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--surface-border);">
-              <h4 style="margin-top: 0; margin-bottom: 1rem;">External Provider Configuration</h4>
-              
-              <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                  <label for="aiSearchApiKey"><strong>API Key</strong></label>
-                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Will be redacted securely.</p>
-                  <div style="display: flex; gap: 0.5rem;">
-                    <input type="password" id="aiSearchApiKey" [(ngModel)]="aiSearchSettings.apiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-                    <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
-                  </div>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                  <label for="externalLlmUrl"><strong>External LLM URL</strong></label>
-                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
-                  <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" id="aiSearchExternalLlmUrl" [(ngModel)]="aiSearchSettings.externalLlmUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-                    <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
-                  </div>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                  <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong></label>
-                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
-                  <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" id="aiSearchExternalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-                    <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
-                  </div>
-                </div>
-              </div>
+          <!-- LLM Configuration -->
+          <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
+            <h4 style="margin: 0; color: var(--primary-color);">LLM Configuration</h4>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label for="llmProvider"><strong>LLM Engine (Local / External)</strong></label>
+              <p-select 
+                id="llmProvider" 
+                [options]="providerOptions" 
+                [(ngModel)]="aiSearchSettings.llmProvider" 
+                [disabled]="!aiSearchEnabled || saveRunning" 
+                optionLabel="label" 
+                optionValue="value" 
+                styleClass="w-full">
+              </p-select>
             </div>
-          }
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label for="llmModel"><strong>LLM Model Name</strong></label>
+              <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
+                @if (aiSearchSettings.llmProvider === 'local') {
+                  Select a preset, or type a custom model name to pull it automatically from the Ollama registry.
+                } @else if (aiSearchSettings.llmProvider === 'ollama') {
+                  Select a preset, or type the name of the model installed in your external Ollama instance.
+                } @else {
+                  Enter the model name provided by your external API (e.g., gpt-4o-mini).
+                }
+              </p>
+              @if (aiSearchSettings.llmProvider === 'openai') {
+                <input type="text" id="aiSearchLlmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. gpt-4o-mini" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              } @else {
+                <p-select
+                  id="aiSearchLlmModel"
+                  [options]="llmModelOptions"
+                  [(ngModel)]="aiSearchSettings.llmModel"
+                  [editable]="true"
+                  [disabled]="!aiSearchEnabled || saveRunning"
+                  placeholder="Using System Default (qwen2.5:1.5b)"
+                  optionLabel="label"
+                  optionValue="value"
+                  styleClass="w-full">
+                  <ng-template let-option pTemplate="item">
+                    <span [style.font-style]="option.isDefault ? 'italic' : 'normal'" [style.font-weight]="option.isDefault ? 'bold' : 'normal'">
+                      {{ option.label }}
+                    </span>
+                  </ng-template>
+                </p-select>
+              }
+            </div>
+
+            @if (aiSearchSettings.llmProvider !== 'local') {
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="llmApiKey"><strong>LLM API Key</strong></label>
+                <input type="password" id="llmApiKey" [(ngModel)]="aiSearchSettings.llmApiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="externalLlmUrl"><strong>External LLM URL</strong></label>
+                <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
+                <input type="text" id="externalLlmUrl" [(ngModel)]="aiSearchSettings.externalLlmUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              </div>
+            }
+          </div>
+
           <div class="section-divider" style="margin: 1rem 0;"><hr></div>
           
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -353,7 +365,7 @@
               <span>{{ aiSearchSettings.topK }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How many context chunks to retrieve (1–50). More chunks give the LLM more context but takes longer to process.</p>
-            <input type="range" id="topK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.topK" (change)="saveAiSearchSettings()" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+            <input type="range" id="topK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.topK" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -362,7 +374,7 @@
               <span>{{ aiSearchSettings.similarityThreshold }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How strict the search match should be (0.1–0.9). Lower values return more potential matches.</p>
-            <input type="range" id="similarityThreshold" min="0.1" max="0.9" step="0.05" [(ngModel)]="aiSearchSettings.similarityThreshold" (change)="saveAiSearchSettings()" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+            <input type="range" id="similarityThreshold" min="0.1" max="0.9" step="0.05" [(ngModel)]="aiSearchSettings.similarityThreshold" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -371,7 +383,7 @@
               <span>{{ aiSearchSettings.maxTokens }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">The maximum number of tokens (128–4096) the LLM can generate in its summary.</p>
-            <input type="range" id="maxTokens" min="128" max="4096" step="128" [(ngModel)]="aiSearchSettings.maxTokens" (change)="saveAiSearchSettings()" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+            <input type="range" id="maxTokens" min="128" max="4096" step="128" [(ngModel)]="aiSearchSettings.maxTokens" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -380,7 +392,7 @@
               <span>{{ aiSearchSettings.temperature }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Controls creativity vs determinism (0.0–1.0). Lower values (e.g. 0.1) are better for factual summaries.</p>
-            <input type="range" id="temperature" min="0.0" max="1.0" step="0.1" [(ngModel)]="aiSearchSettings.temperature" (change)="saveAiSearchSettings()" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+            <input type="range" id="temperature" min="0.0" max="1.0" step="0.1" [(ngModel)]="aiSearchSettings.temperature" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
           </div>
 
         </div>

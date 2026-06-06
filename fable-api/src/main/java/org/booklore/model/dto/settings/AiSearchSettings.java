@@ -23,15 +23,37 @@ public class AiSearchSettings {
 
     // Added for Zero-Config Architecture
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
-    private String provider = "local"; // local, ollama, openai
+    private String embeddingProvider = "local"; // local, ollama, openai
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
-    private String apiKey = "";
-    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
-    private String externalLlmUrl = "";
+    private String embeddingApiKey = "";
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String externalEmbeddingUrl = "";
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String embeddingModel = "BAAI/bge-base-en-v1.5";
+
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String llmProvider = "local"; // local, ollama, openai
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String llmApiKey = "";
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String externalLlmUrl = "";
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String llmModel = "qwen2.5:1.5b";
+
+    // Legacy fields mapped during deserialization for backward compatibility
+    @JsonSetter("provider")
+    public void setLegacyProvider(String provider) {
+        if (provider != null) {
+            this.embeddingProvider = provider;
+            this.llmProvider = provider;
+        }
+    }
+
+    @JsonSetter("apiKey")
+    public void setLegacyApiKey(String apiKey) {
+        if (apiKey != null) {
+            this.embeddingApiKey = apiKey;
+            this.llmApiKey = apiKey;
+        }
+    }
 }

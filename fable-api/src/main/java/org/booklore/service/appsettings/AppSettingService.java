@@ -174,7 +174,7 @@ public class AppSettingService {
 
     private void handleAiSearchSettingsUpdate(AiSearchSettings newSettings, AiSearchSettings oldSettings) {
         // Auto-heal sequence if embedding provider/model changed
-        boolean providerChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getProvider(), newSettings.getProvider());
+        boolean providerChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getEmbeddingProvider(), newSettings.getEmbeddingProvider());
         boolean modelChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getEmbeddingModel(), newSettings.getEmbeddingModel());
         boolean externalUrlChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getExternalEmbeddingUrl(), newSettings.getExternalEmbeddingUrl());
         

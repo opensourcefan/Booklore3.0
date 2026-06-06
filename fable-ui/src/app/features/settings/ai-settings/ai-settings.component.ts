@@ -83,12 +83,14 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   aiEnabled = false;
   aiSearchEnabled = false;
   aiSearchSettings = {
-    provider: 'local',
-    apiKey: '',
+    embeddingProvider: 'local',
+    embeddingApiKey: '',
     externalEmbeddingUrl: '',
+    embeddingModel: '',
+    llmProvider: 'local',
+    llmApiKey: '',
     externalLlmUrl: '',
     llmModel: '',
-    embeddingModel: '',
     topK: 5,
     similarityThreshold: 0.3,
     maxTokens: 768,
