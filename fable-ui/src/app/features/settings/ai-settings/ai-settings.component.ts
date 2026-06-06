@@ -747,11 +747,25 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
-  resetAiSearchSettings(): void {
+  resetEmbeddingSettings(): void {
     const settings = this.appSettingsService.appSettings$.getValue();
     if (settings && settings.aiSearchSettings) {
-      this.aiSearchSettings = { ...this.aiSearchSettings, ...settings.aiSearchSettings };
-      this.showMessage('info', 'Settings Reset', 'Restored previously saved configuration.');
+      this.aiSearchSettings.embeddingProvider = settings.aiSearchSettings.embeddingProvider ?? 'local';
+      this.aiSearchSettings.embeddingModel = settings.aiSearchSettings.embeddingModel ?? '';
+      this.aiSearchSettings.embeddingApiKey = settings.aiSearchSettings.embeddingApiKey ?? '';
+      this.aiSearchSettings.externalEmbeddingUrl = settings.aiSearchSettings.externalEmbeddingUrl ?? '';
+      this.showMessage('info', 'Settings Reset', 'Restored previously saved embedding configuration.');
+    }
+  }
+
+  resetLlmSettings(): void {
+    const settings = this.appSettingsService.appSettings$.getValue();
+    if (settings && settings.aiSearchSettings) {
+      this.aiSearchSettings.llmProvider = settings.aiSearchSettings.llmProvider ?? 'local';
+      this.aiSearchSettings.llmModel = settings.aiSearchSettings.llmModel ?? '';
+      this.aiSearchSettings.llmApiKey = settings.aiSearchSettings.llmApiKey ?? '';
+      this.aiSearchSettings.externalLlmUrl = settings.aiSearchSettings.externalLlmUrl ?? '';
+      this.showMessage('info', 'Settings Reset', 'Restored previously saved LLM configuration.');
     }
   }
 

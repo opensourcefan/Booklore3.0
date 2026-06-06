@@ -227,7 +227,6 @@
             <p>Adjust the parameters below to fine-tune the AI search behavior and summary generation.</p>
           </div>
           <div style="display: flex; gap: 0.5rem;">
-            <p-button label="Reset" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="resetAiSearchSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             <p-button label="Apply Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
           </div>
         </div>
@@ -236,7 +235,10 @@
           
           <!-- Embedding Configuration -->
           <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
-            <h4 style="margin: 0; color: var(--primary-color);">Embedding Configuration</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4 style="margin: 0; color: var(--primary-color);">Embedding Configuration</h4>
+              <p-button label="Reset" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="resetEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+            </div>
             
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
               <label for="embeddingProvider"><strong>Embedding Engine (Local / External)</strong></label>
@@ -300,7 +302,10 @@
 
           <!-- LLM Configuration -->
           <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
-            <h4 style="margin: 0; color: var(--primary-color);">LLM Configuration</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4 style="margin: 0; color: var(--primary-color);">LLM Configuration</h4>
+              <p-button label="Reset" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="resetLlmSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+            </div>
             
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
               <label for="llmProvider"><strong>LLM Engine (Local / External)</strong></label>
