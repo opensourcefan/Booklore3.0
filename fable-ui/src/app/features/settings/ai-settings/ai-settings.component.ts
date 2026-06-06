@@ -747,6 +747,14 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
+  resetAiSearchSettings(): void {
+    const settings = this.appSettingsService.appSettings$.getValue();
+    if (settings && settings.aiSearchSettings) {
+      this.aiSearchSettings = { ...this.aiSearchSettings, ...settings.aiSearchSettings };
+      this.showMessage('info', 'Settings Reset', 'Restored previously saved configuration.');
+    }
+  }
+
   refreshAiSearchStatus(): void {
     this.aiSearchStatusLoading = true;
     this.appSettingsService.getAiSearchServiceStatus().subscribe({

@@ -226,7 +226,10 @@
             <h3>AI Search Tuning</h3>
             <p>Adjust the parameters below to fine-tune the AI search behavior and summary generation.</p>
           </div>
-          <p-button label="Apply Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+          <div style="display: flex; gap: 0.5rem;">
+            <p-button label="Reset" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="resetAiSearchSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+            <p-button label="Apply Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+          </div>
         </div>
         
         <div style="display: flex; flex-direction: column; gap: 2.5rem; width: 100%; max-width: 600px; margin-top: 1rem;">
