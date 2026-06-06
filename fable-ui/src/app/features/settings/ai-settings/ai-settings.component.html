@@ -241,39 +241,6 @@
             </p-select>
           </div>
 
-          @if (aiSearchSettings.provider !== 'local') {
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <label for="aiSearchApiKey"><strong>API Key</strong></label>
-              <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Will be redacted securely.</p>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="password" id="aiSearchApiKey" [(ngModel)]="aiSearchSettings.apiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-                <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
-              </div>
-            </div>
-          }
-
-          @if (aiSearchSettings.provider !== 'local') {
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <label for="externalLlmUrl"><strong>External LLM URL</strong></label>
-              <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="aiSearchExternalLlmUrl" [(ngModel)]="aiSearchSettings.externalLlmUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-                <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
-              </div>
-            </div>
-          }
-
-          @if (aiSearchSettings.provider !== 'local') {
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong></label>
-              <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="aiSearchExternalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-                <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
-              </div>
-            </div>
-          }
-
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label for="llmModel"><strong>LLM Model Name</strong></label>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
@@ -331,6 +298,41 @@
               <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
           </div>
+
+          @if (aiSearchSettings.provider !== 'local') {
+            <div style="margin-top: 1rem; padding: 1rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-ground);">
+              <h4 style="margin-top: 0; margin-bottom: 1rem;">External Provider Configuration</h4>
+              
+              <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <label for="aiSearchApiKey"><strong>API Key</strong></label>
+                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Will be redacted securely.</p>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <input type="password" id="aiSearchApiKey" [(ngModel)]="aiSearchSettings.apiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                    <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+                  </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <label for="externalLlmUrl"><strong>External LLM URL</strong></label>
+                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="aiSearchExternalLlmUrl" [(ngModel)]="aiSearchSettings.externalLlmUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                    <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+                  </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong></label>
+                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="aiSearchExternalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                    <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
           <div class="section-divider" style="margin: 1rem 0;"><hr></div>
           
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
