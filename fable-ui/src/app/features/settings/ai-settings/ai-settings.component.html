@@ -25,7 +25,7 @@
         <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%; max-width: 600px;">
           <label for="panelModelId"><strong>HuggingFace Model ID</strong></label>
           <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Leave blank to use the local seed model, or provide a HuggingFace Model ID (e.g. mosesb/best-comic-panel-detection) to download at runtime.</p>
-          <input type="text" id="panelModelId" [(ngModel)]="aiPanelSettings.modelId" [disabled]="!aiEnabled || saveRunning" placeholder="e.g. mosesb/best-comic-panel-detection" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-card); color: var(--text-color);">
+          <input type="text" id="panelModelId" [(ngModel)]="aiPanelSettings.modelId" [disabled]="!aiEnabled || saveRunning" placeholder="e.g. mosesb/best-comic-panel-detection" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
           <div style="margin-top: 0.5rem;">
             <p-button label="Save Model ID" size="small" (onClick)="saveAiPanelSettings()" [loading]="saveRunning" [disabled]="!aiEnabled || saveRunning"></p-button>
           </div>
@@ -229,7 +229,7 @@
           
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label for="aiSearchProvider"><strong>AI Provider</strong></label>
-            <select id="aiSearchProvider" [(ngModel)]="aiSearchSettings.provider" (change)="saveAiSearchSettings()" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-card); color: var(--text-color);">
+            <select id="aiSearchProvider" [(ngModel)]="aiSearchSettings.provider" (change)="saveAiSearchSettings()" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
               <option value="local">Local (In-container Ollama)</option>
               <option value="ollama">External Ollama</option>
               <option value="openai">OpenAI Compatible (OpenAI, Groq, Together)</option>
@@ -241,7 +241,7 @@
               <label for="aiSearchApiKey"><strong>API Key</strong></label>
               <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Will be redacted securely.</p>
               <div style="display: flex; gap: 0.5rem;">
-                <input type="password" id="aiSearchApiKey" [(ngModel)]="aiSearchSettings.apiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-card); color: var(--text-color);">
+                <input type="password" id="aiSearchApiKey" [(ngModel)]="aiSearchSettings.apiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
                 <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
               </div>
             </div>
@@ -252,7 +252,7 @@
               <label for="externalLlmUrl"><strong>External LLM URL</strong></label>
               <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
               <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="externalLlmUrl" [(ngModel)]="aiSearchSettings.externalLlmUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-card); color: var(--text-color);">
+                <input type="text" id="aiSearchExternalLlmUrl" [(ngModel)]="aiSearchSettings.externalLlmUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
                 <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
               </div>
             </div>
@@ -263,7 +263,7 @@
               <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong></label>
               <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
               <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="externalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-card); color: var(--text-color);">
+                <input type="text" id="aiSearchExternalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
                 <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
               </div>
             </div>
@@ -273,7 +273,7 @@
             <label for="llmModel"><strong>LLM Model Name</strong></label>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g. gpt-4o-mini or llama3.2</p>
             <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="llmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-card); color: var(--text-color);">
+              <input type="text" id="aiSearchLlmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
               <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
           </div>
@@ -282,7 +282,7 @@
             <label for="embeddingModel"><strong>Embedding Model Name</strong></label>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g. text-embedding-ada-002 or all-MiniLM-L6-v2</p>
             <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="embeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-card); color: var(--text-color);">
+              <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
               <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
           </div>
