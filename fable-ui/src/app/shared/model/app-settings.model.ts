@@ -203,6 +203,7 @@ export interface AppSettings {
   diskType: string;
   libraryHealthCheckIntervalSeconds: number;
   allowFileDeletion: boolean;
+  aiPanelSettings: AiPanelSettings;
   aiSearchSettings: AiSearchSettings;
 }
 
@@ -258,14 +259,25 @@ export enum AppSettingKey {
   AI_PANEL_DETECTION_ENABLED = 'AI_PANEL_DETECTION_ENABLED',
   AI_SEARCH_ENABLED = 'AI_SEARCH_ENABLED',
   AI_SEARCH_SETTINGS = 'AI_SEARCH_SETTINGS',
+  AI_PANEL_SETTINGS = 'AI_PANEL_SETTINGS',
   ALLOW_FILE_DELETION = 'ALLOW_FILE_DELETION',
 }
 
 export interface AiSearchSettings {
+  provider: string;
+  apiKey: string;
+  externalEmbeddingUrl: string;
+  externalLlmUrl: string;
+  llmModel: string;
+  embeddingModel: string;
   topK: number;
   similarityThreshold: number;
   maxTokens: number;
   temperature: number;
+}
+
+export interface AiPanelSettings {
+  modelId: string;
 }
 
 export interface AiServiceStatus {

@@ -21,16 +21,29 @@ logger = logging.getLogger("fable-ai-search")
 app = FastAPI()
 
 # ---- Configuration ----
-EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL", "")
-EMBEDDING_DIMENSIONS = int(os.getenv("EMBEDDING_DIMENSIONS", "") or "384")
+CONFIG_PATH = "/models/config.json"
 AUTO_CLEANUP_MODELS = os.getenv("AUTO_CLEANUP_MODELS", "true").lower() == "true"
-EXTERNAL_LLM_BASE_URL = os.getenv("EXTERNAL_LLM_BASE_URL", "")
-EXTERNAL_EMBEDDING_BASE_URL = os.getenv("EXTERNAL_EMBEDDING_BASE_URL", "")
-LLM_MODEL_NAME = os.getenv("LLM_MODEL", "")
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "") or "768")
-LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "") or "0.1")
-SEARCH_TOP_K = int(os.getenv("SEARCH_TOP_K", "") or "5")
-SEARCH_SIMILARITY_THRESHOLD = float(os.getenv("SEARCH_SIMILARITY_THRESHOLD", "") or "0.3")
+
+def load_config():
+    if os.path.exists(CONFIG_PATH):
+        try:
+            with open(CONFIG_PATH, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error("Failed to load config.json: %s", e)
+    return {}
+
+_config = load_config()
+PROVIDER = _config.get("provider", "local")
+API_KEY = _config.get("apiKey", "")
+EMBEDDING_MODEL_NAME = _config.get("embeddingModel", "all-MiniLM-L6-v2")
+EXTERNAL_EMBEDDING_BASE_URL = _config.get("externalEmbeddingUrl", "")
+EXTERNAL_LLM_BASE_URL = _config.get("externalLlmUrl", "")
+LLM_MODEL_NAME = _config.get("llmModel", "llama3.2")
+LLM_MAX_TOKENS = int(_config.get("maxTokens", 768))
+LLM_TEMPERATURE = float(_config.get("temperature", 0.1))
+SEARCH_TOP_K = int(_config.get("topK", 5))
+SEARCH_SIMILARITY_THRESHOLD = float(_config.get("similarityThreshold", 0.3))
 
 # Database config
 DB_HOST = os.getenv("DB_HOST", "mariadb")
@@ -88,7 +101,7 @@ def _start_load_thread_locked() -> None:
 
 
 def _ensure_loading() -> None:
-    if not EMBEDDING_MODEL_NAME and not EXTERNAL_EMBEDDING_BASE_URL:
+    if not EMBEDDING_MODEL_NAME and PROVIDER == "local":
         return
     with _load_lock:
         if _embedding_model is not None or _loading or _load_error is not None:
@@ -121,15 +134,36 @@ def _get_db_connection():
 
 def _compute_embedding(text: str) -> list[float]:
     """Compute embedding vector for a text string."""
-    if EXTERNAL_EMBEDDING_BASE_URL:
+    if PROVIDER == "openai" or PROVIDER == "ollama":
         import requests
+        headers = {}
+        if API_KEY:
+            headers["Authorization"] = f"Bearer {API_KEY}"
+            
+        base_url = EXTERNAL_EMBEDDING_BASE_URL.rstrip("/")
+        if not base_url:
+            base_url = "https://api.openai.com/v1" if PROVIDER == "openai" else "http://localhost:11434/api"
+            
+        url = f"{base_url}/embeddings" if PROVIDER == "openai" else f"{base_url}/embeddings"
+        
+        if PROVIDER == "ollama" and "/api" not in base_url:
+            url = f"{base_url}/api/embeddings"
+            
+        json_payload = {"model": EMBEDDING_MODEL_NAME, "input": text}
+        if PROVIDER == "ollama":
+            json_payload = {"model": EMBEDDING_MODEL_NAME, "prompt": text}
+            
         resp = requests.post(
-            f"{EXTERNAL_EMBEDDING_BASE_URL}/embeddings",
-            json={"model": "text-embedding-ada-002", "input": text},
+            url,
+            headers=headers,
+            json=json_payload,
             timeout=30,
         )
         resp.raise_for_status()
-        return resp.json()["data"][0]["embedding"]
+        if PROVIDER == "ollama":
+            return resp.json()["embedding"]
+        else:
+            return resp.json()["data"][0]["embedding"]
 
     model = _get_embedding_model()
     return model.encode(text, normalize_embeddings=True).tolist()
@@ -142,15 +176,14 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
 
 def _generate_answer(query: str, context: str, max_tokens: int, temperature: float, chat_history: list[dict] = None) -> str:
     """Generate an answer using the LLM (local Ollama or external)."""
-    if not LLM_MODEL_NAME and not EXTERNAL_LLM_BASE_URL:
-        raise RuntimeError("No LLM model configured. Set LLM_MODEL or EXTERNAL_LLM_BASE_URL.")
+    if not LLM_MODEL_NAME and PROVIDER == "local":
+        raise RuntimeError("No LLM model configured.")
 
     import requests
 
-    if EXTERNAL_LLM_BASE_URL:
-        base_url = EXTERNAL_LLM_BASE_URL.rstrip("/")
-    else:
-        base_url = "http://localhost:11434"
+    headers = {}
+    if API_KEY:
+        headers["Authorization"] = f"Bearer {API_KEY}"
 
     system_prompt = (
         "You are an AI search assistant. Read the provided Context carefully.\n"
@@ -176,29 +209,47 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         messages.extend(chat_history)
     messages.append({"role": "user", "content": user_prompt})
 
-    resp = requests.post(
-        f"{base_url}/api/chat",
-        json={
-            "model": LLM_MODEL_NAME,
-            "messages": messages,
-            "stream": False,
-            "options": {
-                "num_predict": max_tokens,
+    if PROVIDER == "openai":
+        base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "https://api.openai.com/v1"
+        resp = requests.post(
+            f"{base_url}/chat/completions",
+            headers=headers,
+            json={
+                "model": LLM_MODEL_NAME,
+                "messages": messages,
+                "max_tokens": max_tokens,
                 "temperature": temperature,
             },
-        },
-        timeout=120,
-    )
-    resp.raise_for_status()
-    return resp.json().get("message", {}).get("content", "")
+            timeout=120,
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"]
+    else:
+        base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "http://localhost:11434"
+        resp = requests.post(
+            f"{base_url}/api/chat",
+            headers=headers,
+            json={
+                "model": LLM_MODEL_NAME,
+                "messages": messages,
+                "stream": False,
+                "options": {
+                    "num_predict": max_tokens,
+                    "temperature": temperature,
+                },
+            },
+            timeout=120,
+        )
+        resp.raise_for_status()
+        return resp.json().get("message", {}).get("content", "")
 
 
 # ---- API Endpoints ----
 
 @app.on_event("startup")
 def startup() -> None:
-    if EXTERNAL_EMBEDDING_BASE_URL:
-        logger.info("Using external embedding model at %s", EXTERNAL_EMBEDDING_BASE_URL)
+    if PROVIDER != "local":
+        logger.info("Using external provider %s", PROVIDER)
     elif EMBEDDING_MODEL_NAME:
         logger.info("Beginning background load for local embedding model: %s", EMBEDDING_MODEL_NAME)
         with _load_lock:
@@ -213,8 +264,8 @@ def health() -> dict[str, Any]:
     # Check if the model has successfully finished loading into memory
     ready = _embedding_model is not None
 
-    if not EMBEDDING_MODEL_NAME and not EXTERNAL_EMBEDDING_BASE_URL:
-        status = "ok" # Missing config, but container is healthy
+    if PROVIDER != "local":
+        status = "ok" 
     elif ready:
         status = "ok"
     elif _load_error is not None:
@@ -229,9 +280,43 @@ def health() -> dict[str, Any]:
         "mock": False,
         "embeddingModel": EMBEDDING_MODEL_NAME,
         "loadError": _load_error,
-        "externalLlmConfigured": bool(EXTERNAL_LLM_BASE_URL),
-        "externalEmbeddingConfigured": bool(EXTERNAL_EMBEDDING_BASE_URL)
+        "provider": PROVIDER
     }
+
+@app.post("/v1/config")
+def update_config(payload: dict[str, Any]) -> dict[str, Any]:
+    global _config, PROVIDER, API_KEY, EMBEDDING_MODEL_NAME, EXTERNAL_EMBEDDING_BASE_URL, EXTERNAL_LLM_BASE_URL, LLM_MODEL_NAME, LLM_MAX_TOKENS, LLM_TEMPERATURE, SEARCH_TOP_K, SEARCH_SIMILARITY_THRESHOLD, _embedding_model
+    
+    with _load_lock:
+        try:
+            os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+            with open(CONFIG_PATH, "w") as f:
+                json.dump(payload, f, indent=2)
+            _config = payload
+            PROVIDER = _config.get("provider", "local")
+            API_KEY = _config.get("apiKey", "")
+            
+            new_embedding_model = _config.get("embeddingModel", "all-MiniLM-L6-v2")
+            model_changed = (EMBEDDING_MODEL_NAME != new_embedding_model)
+            EMBEDDING_MODEL_NAME = new_embedding_model
+            
+            EXTERNAL_EMBEDDING_BASE_URL = _config.get("externalEmbeddingUrl", "")
+            EXTERNAL_LLM_BASE_URL = _config.get("externalLlmUrl", "")
+            LLM_MODEL_NAME = _config.get("llmModel", "llama3.2")
+            LLM_MAX_TOKENS = int(_config.get("maxTokens", 768))
+            LLM_TEMPERATURE = float(_config.get("temperature", 0.1))
+            SEARCH_TOP_K = int(_config.get("topK", 5))
+            SEARCH_SIMILARITY_THRESHOLD = float(_config.get("similarityThreshold", 0.3))
+            
+            if model_changed or PROVIDER != "local":
+                _embedding_model = None  # Force reload or switch to external
+                if PROVIDER == "local":
+                    _start_load_thread_locked()
+                    
+            return {"status": "success"}
+        except Exception as e:
+            logger.error("Failed to update config: %s", e)
+            raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/v1/reload")

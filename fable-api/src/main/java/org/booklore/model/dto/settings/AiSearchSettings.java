@@ -20,4 +20,18 @@ public class AiSearchSettings {
     private int maxTokens = 768;
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private double temperature = 0.1;
+
+    // Added for Zero-Config Architecture
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String provider = "local"; // local, ollama, openai
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String apiKey = "";
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String externalLlmUrl = "";
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String externalEmbeddingUrl = "";
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String embeddingModel = "all-MiniLM-L6-v2";
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String llmModel = "llama3.2";
 }

@@ -164,40 +164,10 @@ AI_SEARCH_SERVICE_BASE_URL=http://fable-ai-search:8080
 AI_PANEL_PORT=18080
 AI_SEARCH_PORT=18081
 
-#### ---- AI Search Model Presets ----
-#### AI Search uses models to understand your books (Embedding) and summarize text (LLM).
-
-> **WARNING**: If you change your `AI_SEARCH_EMBEDDING_MODEL`, any previously generated book embeddings will become mathematically incompatible with the new model and search will fail. Fable will display an orange warning badge on books with mismatched embeddings. You will need to re-click **Embed for AI Search** to regenerate them for the new model.
-#### You can pick a "preset" below depending on how powerful your computer/server is.
-#### To use a preset, simply remove the '#' symbol at the start of those 3 lines.
-#### Only uncomment ONE block at a time.
-
-#### --- Preset: Minimal (~1.2 GB) ---
-#### Best for: Raspberry Pi 5, older laptops, or low-resource NAS devices.
-# AI_SEARCH_EMBEDDING_MODEL=all-MiniLM-L6-v2
-# AI_SEARCH_LLM_MODEL=qwen2.5:0.5b
-# AI_SEARCH_EMBEDDING_DIMENSIONS=384
-
-#### --- Preset: Standard (~3.5 GB, DEFAULT — best balance) ---
-# AI_SEARCH_EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
-# AI_SEARCH_LLM_MODEL=qwen2.5:1.5b
-# AI_SEARCH_EMBEDDING_DIMENSIONS=384
-
-#### --- Preset: Enhanced (~5.5 GB, better quality) ---
-# AI_SEARCH_EMBEDDING_MODEL=BAAI/bge-base-en-v1.5
-# AI_SEARCH_LLM_MODEL=llama3.2:3b
-# AI_SEARCH_EMBEDDING_DIMENSIONS=768
-
-#### --- Preset: Premium (~7 GB, best quality, needs powerful hardware) ---
-# AI_SEARCH_EMBEDDING_MODEL=BAAI/bge-large-en-v1.5
-# AI_SEARCH_LLM_MODEL=phi3:mini
-# AI_SEARCH_EMBEDDING_DIMENSIONS=1024
-
-#### ---- External AI Provider (Bring Your Own AI) ----
-#### If you already run Ollama or an OpenAI-compatible API elsewhere,
-#### uncomment these to use it instead of the baked-in models.
-# AI_SEARCH_EXTERNAL_LLM_URL=http://192.168.1.50:11434/v1
-# AI_SEARCH_EXTERNAL_EMBEDDING_URL=http://192.168.1.50:11434/v1
+#### ---- AI Settings ----
+#### AI models are now configured directly inside the Fable UI!
+#### Go to Settings -> AI Panel Detection / AI Search to set your models,
+#### API keys, and external endpoints (Zero-Config Architecture).
 ```
 
 ---
@@ -224,7 +194,6 @@ services:
       - TELEMETRY_ENABLED=false
       - AI_SERVICE_BASE_URL=${AI_SERVICE_BASE_URL:-http://app-ai-panel:8080}
       - AI_SEARCH_SERVICE_BASE_URL=${AI_SEARCH_SERVICE_BASE_URL:-http://fable-ai-search:8080}
-      - AI_SEARCH_EMBEDDING_MODEL=${AI_SEARCH_EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
     ports:
       - "6060:6060"
     volumes:
@@ -268,7 +237,6 @@ services:
     restart: unless-stopped
     environment:
       - TZ=${TZ}
-      - MODEL_ID=${AI_MODEL_ID:-mosesb/best-comic-panel-detection}
       - HF_HOME=/models
     volumes:
       - ./data/ai-models:/models
@@ -289,16 +257,6 @@ services:
     restart: unless-stopped
     environment:
       - TZ=${TZ}
-      - EMBEDDING_MODEL=${AI_SEARCH_EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
-      - EMBEDDING_DIMENSIONS=${AI_SEARCH_EMBEDDING_DIMENSIONS:-384}
-      - LLM_MODEL=${AI_SEARCH_LLM_MODEL:-qwen2.5:1.5b}
-      - LLM_MAX_TOKENS=${AI_SEARCH_LLM_MAX_TOKENS:-512}
-      - LLM_TEMPERATURE=${AI_SEARCH_LLM_TEMPERATURE:-0.1}
-      - SEARCH_TOP_K=${AI_SEARCH_TOP_K:-8}
-      - SEARCH_SIMILARITY_THRESHOLD=${AI_SEARCH_SIMILARITY_THRESHOLD:-0.3}
-      - EXTERNAL_LLM_BASE_URL=${AI_SEARCH_EXTERNAL_LLM_URL:-}
-      - EXTERNAL_EMBEDDING_BASE_URL=${AI_SEARCH_EXTERNAL_EMBEDDING_URL:-}
-      - AUTO_CLEANUP_MODELS=${AI_SEARCH_AUTO_CLEANUP_MODELS:-false}
       - DB_HOST=mariadb
       - DB_PORT=3306
       - DB_NAME=${MYSQL_DATABASE}

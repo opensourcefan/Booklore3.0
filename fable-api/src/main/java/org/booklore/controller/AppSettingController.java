@@ -30,6 +30,8 @@ public class AppSettingController {
     private final AppSettingService appSettingService;
     private final OidcDiagnosticService oidcDiagnosticService;
     private final AuditService auditService;
+    private final org.booklore.config.AppProperties appProperties;
+    private final org.springframework.web.client.RestTemplate restTemplate;
 
     @Operation(summary = "Get application settings", description = "Retrieve all application settings.")
     @ApiResponse(responseCode = "200", description = "Application settings returned successfully")
@@ -87,5 +89,21 @@ public class AppSettingController {
         var result = oidcDiagnosticService.testConnection(providerDetails);
         auditService.log(AuditAction.OIDC_CONNECTION_TEST, "OIDC connection test: " + (result.success() ? "passed" : "failed"));
         return result;
+    }
+
+    @GetMapping("/ai/status")
+    public java.util.Map<String, Object> getAiStatus() {
+        java.util.Map<String, Object> status = new java.util.HashMap<>();
+        try {
+            status.put("search", restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/health", java.util.Map.class));
+        } catch (Exception e) {
+            status.put("search", java.util.Map.of("status", "offline"));
+        }
+        try {
+            status.put("panel", restTemplate.getForObject(appProperties.getAi().getBaseUrl() + "/health", java.util.Map.class));
+        } catch (Exception e) {
+            status.put("panel", java.util.Map.of("status", "offline"));
+        }
+        return status;
     }
 }

@@ -1,5 +1,6 @@
 import base64
 import io
+import json
 import logging
 import os
 import shutil
@@ -21,10 +22,22 @@ logger = logging.getLogger("booklore-ai-panel")
 
 app = FastAPI()
 
+CONFIG_PATH = "/models/config.json"
+def load_config():
+    if os.path.exists(CONFIG_PATH):
+        try:
+            with open(CONFIG_PATH, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error("Failed to load config.json: %s", e)
+    return {}
+
+_config = load_config()
 MODEL_PATH = os.getenv("MODEL_PATH", "/models/best.pt")
 MODEL_SEED_PATH = os.getenv("MODEL_SEED_PATH", "/app/model-seed/best.pt")
-CONF_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.20"))
-IOU_THRESHOLD = float(os.getenv("IOU_THRESHOLD", "0.50"))
+CONF_THRESHOLD = float(_config.get("confidenceThreshold", 0.20))
+IOU_THRESHOLD = float(_config.get("iouThreshold", 0.50))
+MODEL_ID = _config.get("modelId", "")
 
 _model: YOLO | None = None
 _loading: bool = False
@@ -49,16 +62,42 @@ def _seed_model_if_available() -> bool:
     return os.path.exists(MODEL_PATH)
 
 
+def _download_hf_model() -> str:
+    from huggingface_hub import hf_hub_download
+    logger.info("Downloading HF model: %s", MODEL_ID)
+    try:
+        hf_cache_dir = "/models/hf/hub"
+        if os.path.exists(hf_cache_dir):
+            target_folder = "models--" + MODEL_ID.replace("/", "--")
+            for folder in os.listdir(hf_cache_dir):
+                if folder.startswith("models--") and folder != target_folder:
+                    folder_path = os.path.join(hf_cache_dir, folder)
+                    logger.info("Removing unused HuggingFace model: %s", folder)
+                    try:
+                        shutil.rmtree(folder_path)
+                    except Exception as e:
+                        logger.error("Failed to remove unused model %s: %s", folder, e)
+
+        return hf_hub_download(repo_id=MODEL_ID, filename='best.pt')
+    except Exception as e:
+        logger.error("Failed to download HF model: %s", e)
+        raise e
+
 def _do_load() -> None:
     """Background thread: loads the YOLO model and updates global state."""
     global _model, _loading, _load_error
-    logger.info("Model load started from %s", MODEL_PATH)
     try:
-        if not _seed_model_if_available():
-            raise RuntimeError(f"Model file not found at {MODEL_PATH}")
-        loaded = YOLO(MODEL_PATH)
+        if MODEL_ID:
+            active_model_path = _download_hf_model()
+        else:
+            if not _seed_model_if_available():
+                raise RuntimeError(f"Model file not found at {MODEL_PATH}")
+            active_model_path = MODEL_PATH
+
+        logger.info("Model load started from %s", active_model_path)
+        loaded = YOLO(active_model_path)
         _model = loaded
-        logger.info("Model loaded successfully from %s", MODEL_PATH)
+        logger.info("Model loaded successfully from %s", active_model_path)
     except Exception as exc:
         _load_error = str(exc)
         logger.error("Model load failed: %s", exc)
@@ -79,9 +118,9 @@ def _ensure_loading() -> None:
     with _load_lock:
         if _model is not None or _loading or _load_error is not None:
             return
-        if not (os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)):
+        if not MODEL_ID and not (os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)):
             return
-        logger.info("Model file detected; triggering automatic background load.")
+        logger.info("Triggering automatic background load.")
         _start_load_thread_locked()
 
 
@@ -115,18 +154,18 @@ def _clamp(value: float, low: float, high: float) -> float:
 
 @app.on_event("startup")
 def startup() -> None:
-    model_available = os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)
-    if model_available:
-        logger.info("Model file found at startup; beginning background load.")
+    if MODEL_ID:
+        logger.info("HF Model ID configured; beginning background load.")
         with _load_lock:
             _start_load_thread_locked()
     else:
-        logger.info(
-            "No model file at %s and no seed at %s. "
-            "Place best.pt in ./data/ai-models/ and it will load automatically.",
-            MODEL_PATH,
-            MODEL_SEED_PATH,
-        )
+        model_available = os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)
+        if model_available:
+            logger.info("Model file found at startup; beginning background load.")
+            with _load_lock:
+                _start_load_thread_locked()
+        else:
+            logger.info("No model file and no MODEL_ID configured.")
 
 
 @app.get("/health")
@@ -134,14 +173,14 @@ def health() -> dict[str, Any]:
     _ensure_loading()
     model_exists = os.path.exists(MODEL_PATH)
     seed_exists = os.path.exists(MODEL_SEED_PATH)
-    ready = _model is not None and model_exists
+    ready = _model is not None
     if ready:
         status = "ok"
     elif _load_error is not None:
         status = "load_failed"
     elif _loading:
         status = "warming"
-    elif model_exists or seed_exists:
+    elif MODEL_ID or model_exists or seed_exists:
         status = "warming"
     else:
         status = "missing_model"
@@ -156,6 +195,30 @@ def health() -> dict[str, Any]:
         "loadError": "Model failed to load. Check server logs for details." if _load_error else None,
     }
 
+
+@app.post("/v1/config")
+def update_config(payload: dict[str, Any]) -> dict[str, Any]:
+    global _config, CONF_THRESHOLD, IOU_THRESHOLD, MODEL_ID, _model
+    
+    with _load_lock:
+        try:
+            os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+            with open(CONFIG_PATH, "w") as f:
+                json.dump(payload, f, indent=2)
+            _config = payload
+            CONF_THRESHOLD = float(_config.get("confidenceThreshold", 0.20))
+            IOU_THRESHOLD = float(_config.get("iouThreshold", 0.50))
+            
+            new_model_id = _config.get("modelId", "")
+            if MODEL_ID != new_model_id:
+                MODEL_ID = new_model_id
+                _model = None
+                _start_load_thread_locked()
+                
+            return {"status": "success"}
+        except Exception as e:
+            logger.error("Failed to update config: %s", e)
+            raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/v1/reload")
 def reload_model() -> dict[str, Any]:

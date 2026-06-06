@@ -6,7 +6,7 @@ import {Dialog} from 'primeng/dialog';
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {MessageService} from 'primeng/api';
 import {TranslocoDirective} from '@jsverse/transloco';
-import {Subject} from 'rxjs';
+import {Subject, Subscription, timer} from 'rxjs';
 import {filter, take, takeUntil} from 'rxjs/operators';
 
 import {AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings} from '../../../shared/model/app-settings.model';
@@ -42,9 +42,10 @@ interface AiStartupEvent {
   styleUrl: './ai-settings.component.scss'
 })
 export class AiSettingsComponent implements OnInit, OnDestroy {
-  private startupPollHandle: ReturnType<typeof setTimeout> | null = null;
+  private destroy$ = new Subject<void>();
+  private startupPollSubscription?: Subscription;
   private lastStartupFingerprint: string | null = null;
-  private aiSearchStartupPollHandle: ReturnType<typeof setTimeout> | null = null;
+  private aiSearchStartupPollSubscription?: Subscription;
   private lastAiSearchStartupFingerprint: string | null = null;
 
   private appSettingsService = inject(AppSettingsService);
@@ -54,17 +55,25 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private dialogLauncherService = inject(DialogLauncherService);
-  private destroy$ = new Subject<void>();
 
   appSettings$ = this.appSettingsService.appSettings$;
 
   aiEnabled = false;
   aiSearchEnabled = false;
   aiSearchSettings = {
+    provider: 'local',
+    apiKey: '',
+    externalEmbeddingUrl: '',
+    externalLlmUrl: '',
+    llmModel: '',
+    embeddingModel: '',
     topK: 5,
     similarityThreshold: 0.3,
     maxTokens: 768,
     temperature: 0.1
+  };
+  aiPanelSettings = {
+    modelId: ''
   };
   saveRunning = false;
   statusLoading = false;
@@ -101,7 +110,10 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       this.aiEnabled = settings.aiPanelDetectionEnabled ?? false;
       this.aiSearchEnabled = settings.aiSearchEnabled ?? false;
       if (settings.aiSearchSettings) {
-        this.aiSearchSettings = { ...settings.aiSearchSettings };
+        this.aiSearchSettings = { ...this.aiSearchSettings, ...settings.aiSearchSettings };
+      }
+      if (settings.aiPanelSettings) {
+        this.aiPanelSettings = { ...this.aiPanelSettings, ...settings.aiPanelSettings };
       }
       this.refreshStatus();
       this.refreshPanelFlowStats();
@@ -216,6 +228,23 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           this.aiEnabled = previousValue;
           this.refreshStatus();
           this.showMessage('error', 'Save failed', 'Could not update AI panel detection setting.');
+        }
+      });
+  }
+
+  saveAiPanelSettings(): void {
+    this.saveRunning = true;
+    this.appSettingsService
+      .saveSettings([{key: AppSettingKey.AI_PANEL_SETTINGS, newValue: this.aiPanelSettings}])
+      .subscribe({
+        next: () => {
+          this.saveRunning = false;
+          this.showMessage('success', 'AI Panel settings updated', 'Model ID has been saved.');
+          this.refreshStatus();
+        },
+        error: () => {
+          this.saveRunning = false;
+          this.showMessage('error', 'Save failed', 'Could not update AI panel settings.');
         }
       });
   }
@@ -549,12 +578,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   private scheduleStartupPolling(): void {
-    if (this.startupPollHandle) {
+    if (this.startupPollSubscription && !this.startupPollSubscription.closed) {
       return;
     }
 
-    this.startupPollHandle = setTimeout(() => {
-      this.startupPollHandle = null;
+    this.startupPollSubscription = timer(5000).subscribe(() => {
       this.appSettingsService.getAiServiceStatus().subscribe({
         next: status => this.applyStatus(status, true),
         error: err => {
@@ -570,16 +598,14 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           }, true);
         }
       });
-    }, 5000);
+    });
   }
 
   private clearStartupPolling(): void {
-    if (!this.startupPollHandle) {
-      return;
+    if (this.startupPollSubscription) {
+      this.startupPollSubscription.unsubscribe();
+      this.startupPollSubscription = undefined;
     }
-
-    clearTimeout(this.startupPollHandle);
-    this.startupPollHandle = null;
   }
 
   private recordStartupEvent(status: AiServiceStatus, fromPolling: boolean): void {
@@ -821,14 +847,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
     this.clearAiSearchStartupPolling();
   }
-
   private scheduleAiSearchStartupPolling(): void {
-    if (this.aiSearchStartupPollHandle) {
+    if (this.aiSearchStartupPollSubscription && !this.aiSearchStartupPollSubscription.closed) {
       return;
     }
 
-    this.aiSearchStartupPollHandle = setTimeout(() => {
-      this.aiSearchStartupPollHandle = null;
+    this.aiSearchStartupPollSubscription = timer(5000).subscribe(() => {
       this.appSettingsService.getAiSearchServiceStatus().subscribe({
         next: status => this.applyAiSearchStatus(status, true),
         error: err => {
@@ -844,16 +868,14 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           }, true);
         }
       });
-    }, 5000);
+    });
   }
 
   private clearAiSearchStartupPolling(): void {
-    if (!this.aiSearchStartupPollHandle) {
-      return;
+    if (this.aiSearchStartupPollSubscription) {
+      this.aiSearchStartupPollSubscription.unsubscribe();
+      this.aiSearchStartupPollSubscription = undefined;
     }
-
-    clearTimeout(this.aiSearchStartupPollHandle);
-    this.aiSearchStartupPollHandle = null;
   }
 
   private recordAiSearchStartupEvent(status: AiServiceStatus, fromPolling: boolean): void {
