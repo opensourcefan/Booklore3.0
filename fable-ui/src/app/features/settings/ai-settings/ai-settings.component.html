@@ -265,6 +265,11 @@
                   optionLabel="label"
                   optionValue="value"
                   styleClass="w-full">
+                  <ng-template let-option pTemplate="item">
+                    <span [ngStyle]="{'font-style': option.isDefault ? 'italic' : 'normal', 'font-weight': option.isDefault ? 'bold' : 'normal'}">
+                      {{ option.label }}
+                    </span>
+                  </ng-template>
                 </p-select>
               }
               <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
@@ -293,6 +298,11 @@
                   optionLabel="label"
                   optionValue="value"
                   styleClass="w-full">
+                  <ng-template let-option pTemplate="item">
+                    <span [ngStyle]="{'font-style': option.isDefault ? 'italic' : 'normal', 'font-weight': option.isDefault ? 'bold' : 'normal'}">
+                      {{ option.label }}
+                    </span>
+                  </ng-template>
                 </p-select>
               }
               <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
