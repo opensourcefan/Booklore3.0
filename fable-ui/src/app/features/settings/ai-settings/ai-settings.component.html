@@ -276,18 +276,58 @@
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label for="llmModel"><strong>LLM Model Name</strong></label>
-            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g. gpt-4o-mini or llama3.2</p>
+            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
+              @if (aiSearchSettings.provider === 'local') {
+                Select a preset, or type a custom model name to pull it automatically from the Ollama registry.
+              } @else if (aiSearchSettings.provider === 'ollama') {
+                Select a preset, or type the name of the model installed in your external Ollama instance.
+              } @else {
+                Enter the model name provided by your external API (e.g., gpt-4o-mini).
+              }
+            </p>
             <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="aiSearchLlmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              @if (aiSearchSettings.provider === 'openai') {
+                <input type="text" id="aiSearchLlmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              } @else {
+                <p-select
+                  id="aiSearchLlmModel"
+                  [options]="llmModelOptions"
+                  [(ngModel)]="aiSearchSettings.llmModel"
+                  [editable]="true"
+                  [disabled]="!aiSearchEnabled || saveRunning"
+                  optionLabel="label"
+                  optionValue="value"
+                  styleClass="w-full">
+                </p-select>
+              }
               <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label for="embeddingModel"><strong>Embedding Model Name</strong></label>
-            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g. text-embedding-ada-002 or all-MiniLM-L6-v2</p>
+            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
+              @if (aiSearchSettings.provider === 'local' || aiSearchSettings.provider === 'ollama') {
+                Select a preset, or type a custom HuggingFace model ID to download it automatically.
+              } @else {
+                Enter the embedding model provided by your external API (e.g., text-embedding-3-small).
+              }
+            </p>
             <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              @if (aiSearchSettings.provider === 'openai') {
+                <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              } @else {
+                <p-select
+                  id="aiSearchEmbeddingModel"
+                  [options]="embeddingModelOptions"
+                  [(ngModel)]="aiSearchSettings.embeddingModel"
+                  [editable]="true"
+                  [disabled]="!aiSearchEnabled || saveRunning"
+                  optionLabel="label"
+                  optionValue="value"
+                  styleClass="w-full">
+                </p-select>
+              }
               <p-button label="Save" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
           </div>
