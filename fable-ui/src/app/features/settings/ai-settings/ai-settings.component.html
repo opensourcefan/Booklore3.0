@@ -25,7 +25,7 @@
         <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%; max-width: 600px;">
           <label for="panelModelId"><strong>HuggingFace Model ID</strong></label>
           <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Leave blank to use the local seed model, or provide a HuggingFace Model ID (e.g. mosesb/best-comic-panel-detection) to download at runtime.</p>
-          <input type="text" id="panelModelId" [(ngModel)]="aiPanelSettings.modelId" [disabled]="!aiEnabled || saveRunning" placeholder="e.g. mosesb/best-comic-panel-detection" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+          <input type="text" id="panelModelId" [(ngModel)]="aiPanelSettings.modelId" [disabled]="!aiEnabled || saveRunning" placeholder="Using Local Default (mosesb/best-comic-panel-detection)" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
           <div style="margin-top: 0.5rem;">
             <p-button label="Save Model ID" size="small" (onClick)="saveAiPanelSettings()" [loading]="saveRunning" [disabled]="!aiEnabled || saveRunning"></p-button>
           </div>
@@ -254,7 +254,7 @@
             </p>
             <div style="display: flex; gap: 0.5rem;">
               @if (aiSearchSettings.provider === 'openai') {
-                <input type="text" id="aiSearchLlmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                <input type="text" id="aiSearchLlmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. gpt-4o-mini" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
               } @else {
                 <p-select
                   id="aiSearchLlmModel"
@@ -262,6 +262,7 @@
                   [(ngModel)]="aiSearchSettings.llmModel"
                   [editable]="true"
                   [disabled]="!aiSearchEnabled || saveRunning"
+                  placeholder="Using System Default (qwen2.5:1.5b)"
                   optionLabel="label"
                   optionValue="value"
                   styleClass="w-full">
@@ -287,7 +288,7 @@
             </p>
             <div style="display: flex; gap: 0.5rem;">
               @if (aiSearchSettings.provider === 'openai') {
-                <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. text-embedding-3-small" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
               } @else {
                 <p-select
                   id="aiSearchEmbeddingModel"
@@ -295,6 +296,7 @@
                   [(ngModel)]="aiSearchSettings.embeddingModel"
                   [editable]="true"
                   [disabled]="!aiSearchEnabled || saveRunning"
+                  placeholder="Using System Default (BAAI/bge-base-en-v1.5)"
                   optionLabel="label"
                   optionValue="value"
                   styleClass="w-full">
