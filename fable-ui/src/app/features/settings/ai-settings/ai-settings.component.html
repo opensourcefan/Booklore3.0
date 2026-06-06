@@ -228,7 +228,7 @@
         <div style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%; max-width: 600px; margin-top: 1rem;">
           
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label for="aiSearchProvider"><strong>AI Provider</strong></label>
+            <label for="aiSearchProvider"><strong>AI Engine (Local / External)</strong></label>
             <p-select 
               id="aiSearchProvider" 
               [options]="providerOptions" 
@@ -300,7 +300,7 @@
           </div>
 
           @if (aiSearchSettings.provider !== 'local') {
-            <div style="margin-top: 1rem; padding: 1rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-ground);">
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--surface-border);">
               <h4 style="margin-top: 0; margin-bottom: 1rem;">External Provider Configuration</h4>
               
               <div style="display: flex; flex-direction: column; gap: 1.5rem;">
