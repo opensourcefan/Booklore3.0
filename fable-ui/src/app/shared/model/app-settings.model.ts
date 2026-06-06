@@ -320,4 +320,5 @@ export interface AiSearchResult {
   results: AiSearchChunkResult[];
   answer: string | null;
   totalChunksSearched: number;
+  error?: string | null;
 }

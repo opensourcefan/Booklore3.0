@@ -16,7 +16,7 @@ ollama serve > /var/log/ollama.log 2>&1 &
 
 # Wait for Ollama to be available
 echo "Waiting for Ollama to start..."
-timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null; do sleep 1; done'
+timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null; do sleep 1; done' || echo "Warning: Ollama did not start within 60 seconds. AI-powered answers will be unavailable."
 
 # If AUTO_CLEANUP_MODELS=true, remove old Ollama models
 if [ "$AUTO_CLEANUP_MODELS" = "true" ]; then
@@ -34,7 +34,7 @@ fi
 # If LLM_MODEL is provided, ensure it is pulled
 if [ -n "$LLM_MODEL" ]; then
     echo "Ensuring LLM model '${LLM_MODEL}' is available (this may take a few minutes if not already downloaded)..."
-    ollama pull "$LLM_MODEL"
+    ollama pull "$LLM_MODEL" || echo "Warning: Failed to pull LLM model '${LLM_MODEL}'. AI-powered answers will be unavailable, but local-only search will still work."
 fi
 
 # Start the FastAPI application

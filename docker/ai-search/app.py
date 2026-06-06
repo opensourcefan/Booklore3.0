@@ -88,6 +88,8 @@ def _start_load_thread_locked() -> None:
 
 
 def _ensure_loading() -> None:
+    if not EMBEDDING_MODEL_NAME and not EXTERNAL_EMBEDDING_BASE_URL:
+        return
     with _load_lock:
         if _embedding_model is not None or _loading or _load_error is not None:
             return
@@ -140,6 +142,9 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
 
 def _generate_answer(query: str, context: str, max_tokens: int, temperature: float, chat_history: list[dict] = None) -> str:
     """Generate an answer using the LLM (local Ollama or external)."""
+    if not LLM_MODEL_NAME and not EXTERNAL_LLM_BASE_URL:
+        raise RuntimeError("No LLM model configured. Set LLM_MODEL or EXTERNAL_LLM_BASE_URL.")
+
     import requests
 
     if EXTERNAL_LLM_BASE_URL:
@@ -349,8 +354,18 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     if not user_id:
         raise HTTPException(status_code=400, detail="userId is required.")
 
-    # Compute query embedding
-    query_vector = _compute_embedding(query)
+    try:
+        # Compute query embedding
+        query_vector = _compute_embedding(query)
+    except RuntimeError as e:
+        logger.error("Embedding computation failed: %s", e)
+        return {
+            "query": query,
+            "results": [],
+            "answer": None,
+            "error": str(e),
+            "totalChunksSearched": 0,
+        }
 
     # Fetch embeddings from DB
     conn = _get_db_connection()
@@ -391,6 +406,34 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         }
 
     is_index_request = "index" in query.lower() or "table of contents" in query.lower()
+
+    # Early dimension-mismatch detection: compare query vector length to first stored embedding
+    query_dim = len(query_vector)
+    first_vector = None
+    for row in rows:
+        try:
+            first_vector = json.loads(row["embedding_vector"])
+            break
+        except (json.JSONDecodeError, TypeError, ValueError):
+            continue
+
+    if first_vector is not None and len(first_vector) != query_dim:
+        stored_dim = len(first_vector)
+        logger.error(
+            "Embedding dimension mismatch: query vector is %d-d but stored embeddings are %d-d. "
+            "The embedding model has changed since these books were embedded. "
+            "Re-embed your books to fix this.",
+            query_dim, stored_dim,
+        )
+        return {
+            "query": query,
+            "results": [],
+            "answer": None,
+            "error": f"Embedding dimension mismatch: the active model produces {query_dim}-d vectors "
+                     f"but your stored embeddings are {stored_dim}-d. "
+                     f"Your embedding model has changed. Please re-embed your books from Settings → AI Search.",
+            "totalChunksSearched": len(rows),
+        }
 
     # Compute similarities
     scored: list[dict[str, Any]] = []

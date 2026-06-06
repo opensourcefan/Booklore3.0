@@ -137,8 +137,16 @@
                 </div>
               </div>
             } @else {
-              <div style="color: var(--pink-500); padding: 1rem 0;">
-                <i class="pi pi-exclamation-triangle"></i> Failed to generate an answer.
+              <div style="padding: 1rem 0;">
+                @if (lastError) {
+                  <div style="color: var(--pink-500);">
+                    <i class="pi pi-exclamation-triangle"></i> {{ lastError }}
+                  </div>
+                } @else {
+                  <div style="color: var(--text-color-secondary);">
+                    <i class="pi pi-info-circle"></i> No matching results found. Try a different query or check that your books are embedded.
+                  </div>
+                }
               </div>
             }
           </div>

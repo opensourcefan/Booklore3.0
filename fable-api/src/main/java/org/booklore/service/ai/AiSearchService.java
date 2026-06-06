@@ -248,14 +248,25 @@ public class AiSearchService {
             payload.put("chatHistory", chatHistory);
         }
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> result = restClient.post()
-                .uri(baseUrl + "/v1/search")
-                .body(payload)
-                .retrieve()
-                .body(Map.class);
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> result = restClient.post()
+                    .uri(baseUrl + "/v1/search")
+                    .body(payload)
+                    .retrieve()
+                    .body(Map.class);
 
-        return result;
+            return result;
+        } catch (Exception e) {
+            log.error("AI Search query failed: {}", e.getMessage());
+            Map<String, Object> errorResult = new java.util.HashMap<>();
+            errorResult.put("query", query);
+            errorResult.put("results", List.of());
+            errorResult.put("answer", null);
+            errorResult.put("error", "Could not reach the AI Search service: " + e.getMessage());
+            errorResult.put("totalChunksSearched", 0);
+            return errorResult;
+        }
     }
 
     public Map<String, Object> getBookEmbeddingStatus(Long bookId, Long userId) {

@@ -113,6 +113,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   localOnly = false;
   expandedChunks = new Set<number>();
   aiSearchInfoHtml = '';
+  lastError: string | null = null;
 
   private appSettingsService = inject(AppSettingsService);
   private userService = inject(UserService);
@@ -339,6 +340,9 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         currentMessage.results = result.results || [];
         currentMessage.answer = result.answer || null;
         
+        // Capture backend diagnostic errors (e.g., dimension mismatch)
+        this.lastError = result.error || null;
+
         // Update top-level variables for backward compatibility if needed in UI
         this.results = currentMessage.results;
         this.answer = currentMessage.answer;
@@ -350,10 +354,11 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
           if (el) el.scrollTop = el.scrollHeight;
         }, 100);
       },
-      error: () => {
+      error: (err) => {
         this.isLoading = false;
         currentMessage.isLoading = false;
         currentMessage.results = [];
+        this.lastError = err?.error?.message || err?.message || 'Could not reach the AI Search service. Is the container running?';
         this.saveStateToCache();
       },
     });
