@@ -70,8 +70,8 @@
                 <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
                   <span class="ai-search-answer-badge">AI Generated Answer</span>
                   <div style="display: flex; gap: 0.5rem;">
-                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
-                    <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
+                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
+                    <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
                   </div>
                 </div>
                 <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)"></div>
@@ -104,34 +104,34 @@
                 <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
                   <span class="ai-search-answer-badge">Local Results</span>
                   <div style="display: flex; gap: 0.5rem;">
-                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
+                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
+                    <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
                   </div>
                 </div>
-                <div class="ai-search-citations" style="margin-top: 0; border-top: none; padding-top: 0;">
-                  <div class="ai-search-citations-label">
-                    <i class="pi pi-book"></i> Matching Passages
-                  </div>
+                <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 0.5rem;">
                   @for (result of msg.results; track result.chunkId) {
-                    <div class="ai-search-citation-item" (click)="readBookAtPage(result)" (keydown.enter)="readBookAtPage(result)" (keydown.space)="readBookAtPage(result); $event.preventDefault()" tabindex="0" role="button" [title]="'Open ' + result.bookTitle + ' in reader'">
-                      <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
-                      @if (getContentTitle(result)) {
-                        <span class="ai-search-citation-separator">›</span>
-                        <span class="ai-search-citation-content-title">{{ getContentTitle(result) }}</span>
-                      } @else if (result.chapterTitle) {
-                        <span class="ai-search-citation-separator">›</span>
-                        <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
-                      }
-                      @if (result.pageNumber) {
-                        <span class="ai-search-citation-page">p.{{ result.pageNumber }}</span>
-                      }
-                      <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
-                    </div>
-                    <div class="ai-search-local-chunk-text" [class.ai-search-local-chunk-text-expanded]="isChunkExpanded(result.chunkId)" (click)="toggleChunkExpanded(result.chunkId); $event.stopPropagation()" (keydown.enter)="toggleChunkExpanded(result.chunkId); $event.stopPropagation()" (keydown.space)="toggleChunkExpanded(result.chunkId); $event.stopPropagation(); $event.preventDefault()" tabindex="0" role="button" [title]="isChunkExpanded(result.chunkId) ? 'Collapse' : 'Expand to full view'">
-                      @if (isChunkExpanded(result.chunkId)) {
-                        {{ result.chunkText }}
-                      } @else {
-                        {{ getResultSnippet(result) }}
-                      }
+                    <div>
+                      <div class="ai-search-markdown-content">
+                        <p style="margin-bottom: 0;">
+                          {{ result.chunkText }}
+                        </p>
+                      </div>
+                      <div class="ai-search-citations">
+                        <div class="ai-search-citation-item" (click)="readBookAtPage(result)" (keydown.enter)="readBookAtPage(result)" (keydown.space)="readBookAtPage(result); $event.preventDefault()" tabindex="0" role="button" [title]="'Open ' + result.bookTitle + ' in reader'" style="margin-bottom: 0;">
+                          <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
+                          @if (getContentTitle(result)) {
+                            <span class="ai-search-citation-separator">›</span>
+                            <span class="ai-search-citation-content-title">{{ getContentTitle(result) }}</span>
+                          } @else if (result.chapterTitle) {
+                            <span class="ai-search-citation-separator">›</span>
+                            <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
+                          }
+                          @if (result.pageNumber) {
+                            <span class="ai-search-citation-page">p.{{ result.pageNumber }}</span>
+                          }
+                          <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
+                        </div>
+                      </div>
                     </div>
                   }
                 </div>

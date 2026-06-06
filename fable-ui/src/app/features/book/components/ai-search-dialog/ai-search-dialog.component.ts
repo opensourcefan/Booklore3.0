@@ -243,11 +243,17 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   }
 
   saveAnswerToNotepad(msg?: ChatMessage): void {
-    const answerContent = msg ? msg.answer : this.answer;
+    let answerContent = msg ? msg.answer : this.answer;
     const queryContent = msg ? msg.query : this.searchQuery;
     const resultsData = msg ? msg.results : this.results;
     
-    if (!answerContent) return;
+    if (!answerContent) {
+      if (resultsData && resultsData.length > 0) {
+        answerContent = resultsData.map(r => `Source: ${r.bookTitle}\n${r.chunkText}`).join('\n\n---\n\n');
+      } else {
+        return;
+      }
+    }
     const user = this.userService.getCurrentUser();
     if (!user) return;
 
