@@ -31,7 +31,7 @@ public class AiSearchSettings {
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String externalEmbeddingUrl = "";
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
-    private String embeddingModel = "BAAI/bge-small-en-v1.5";
+    private String embeddingModel = "BAAI/bge-base-en-v1.5";
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String llmModel = "qwen2.5:1.5b";
 }

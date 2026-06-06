@@ -66,8 +66,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   embeddingModelOptions = [
     { label: 'Minimal (all-MiniLM-L6-v2) - ~1.2GB RAM', value: 'all-MiniLM-L6-v2', isDefault: false },
-    { label: 'Standard (BAAI/bge-small-en-v1.5) - ~3.5GB RAM (System Default)', value: 'BAAI/bge-small-en-v1.5', isDefault: true },
-    { label: 'Enhanced (BAAI/bge-base-en-v1.5) - ~5.5GB RAM', value: 'BAAI/bge-base-en-v1.5', isDefault: false },
+    { label: 'Standard (BAAI/bge-small-en-v1.5) - ~3.5GB RAM', value: 'BAAI/bge-small-en-v1.5', isDefault: false },
+    { label: 'Enhanced (BAAI/bge-base-en-v1.5) - ~5.5GB RAM (System Default)', value: 'BAAI/bge-base-en-v1.5', isDefault: true },
     { label: 'Premium (BAAI/bge-large-en-v1.5) - ~7.0GB RAM', value: 'BAAI/bge-large-en-v1.5', isDefault: false }
   ];
 
