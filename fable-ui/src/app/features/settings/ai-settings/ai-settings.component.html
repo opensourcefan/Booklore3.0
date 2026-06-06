@@ -267,7 +267,7 @@
                   optionValue="value"
                   styleClass="w-full">
                   <ng-template let-option pTemplate="item">
-                    <span [ngStyle]="{'font-style': option.isDefault ? 'italic' : 'normal', 'font-weight': option.isDefault ? 'bold' : 'normal'}">
+                    <span [style.font-style]="option.isDefault ? 'italic' : 'normal'" [style.font-weight]="option.isDefault ? 'bold' : 'normal'">
                       {{ option.label }}
                     </span>
                   </ng-template>
@@ -301,7 +301,7 @@
                   optionValue="value"
                   styleClass="w-full">
                   <ng-template let-option pTemplate="item">
-                    <span [ngStyle]="{'font-style': option.isDefault ? 'italic' : 'normal', 'font-weight': option.isDefault ? 'bold' : 'normal'}">
+                    <span [style.font-style]="option.isDefault ? 'italic' : 'normal'" [style.font-weight]="option.isDefault ? 'bold' : 'normal'">
                       {{ option.label }}
                     </span>
                   </ng-template>
