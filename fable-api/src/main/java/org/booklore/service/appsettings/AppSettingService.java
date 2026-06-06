@@ -166,9 +166,13 @@ public class AppSettingService {
         auditService.log(action, "Updated setting: " + key);
 
         if (key == AppSettingKey.AI_SEARCH_SETTINGS) {
-            handleAiSearchSettingsUpdate((AiSearchSettings) deserializeSettingValue(key, settingPersistenceHelper.serializeSettingValue(key, val)), oldAiSearch);
+            String serialized = settingPersistenceHelper.serializeSettingValue(key, val);
+            AiSearchSettings newSettings = serialized != null ? objectMapper.readValue(serialized, AiSearchSettings.class) : null;
+            handleAiSearchSettingsUpdate(newSettings, oldAiSearch);
         } else if (key == AppSettingKey.AI_PANEL_SETTINGS) {
-            handleAiPanelSettingsUpdate((AiPanelSettings) deserializeSettingValue(key, settingPersistenceHelper.serializeSettingValue(key, val)));
+            String serialized = settingPersistenceHelper.serializeSettingValue(key, val);
+            AiPanelSettings newSettings = serialized != null ? objectMapper.readValue(serialized, AiPanelSettings.class) : null;
+            handleAiPanelSettingsUpdate(newSettings);
         }
     }
 
