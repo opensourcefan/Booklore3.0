@@ -10,7 +10,7 @@ import {Select} from 'primeng/select';
 import {Subject, Subscription, timer} from 'rxjs';
 import {filter, take, takeUntil} from 'rxjs/operators';
 
-import {AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings} from '../../../shared/model/app-settings.model';
+import {AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings, AiSearchSettings} from '../../../shared/model/app-settings.model';
 import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-progress.model';
 import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
@@ -81,6 +81,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   appSettings$ = this.appSettingsService.appSettings$;
 
   aiEnabled = false;
+  aiSearchEnabled = false;
   aiSearchSettings: AiSearchSettings = {
     embeddingProvider: 'local',
     embeddingApiKey: '',
