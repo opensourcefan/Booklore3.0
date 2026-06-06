@@ -293,7 +293,7 @@
               </div>
 
               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong></label>
+                <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong><span style="color: var(--red-500); margin-left: 0.25rem;">*</span></label>
                 <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
                 <input type="text" id="externalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
               </div>
@@ -360,7 +360,7 @@
               </div>
 
               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <label for="externalLlmUrl"><strong>External LLM URL</strong></label>
+                <label for="externalLlmUrl"><strong>External LLM URL</strong><span style="color: var(--red-500); margin-left: 0.25rem;">*</span></label>
                 <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
                 <input type="text" id="externalLlmUrl" [(ngModel)]="aiSearchSettings.externalLlmUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
               </div>
