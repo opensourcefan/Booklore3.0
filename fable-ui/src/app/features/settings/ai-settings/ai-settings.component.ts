@@ -81,8 +81,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   appSettings$ = this.appSettingsService.appSettings$;
 
   aiEnabled = false;
-  aiSearchEnabled = false;
-  aiSearchSettings = {
+  aiSearchSettings: AiSearchSettings = {
     embeddingProvider: 'local',
     embeddingApiKey: '',
     externalEmbeddingUrl: '',
@@ -91,11 +90,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     llmApiKey: '',
     externalLlmUrl: '',
     llmModel: '',
-    topK: 5,
-    similarityThreshold: 0.3,
-    maxTokens: 768,
-    temperature: 0.1
+    topK: 10,
+    similarityThreshold: 0.25,
+    maxTokens: 500,
+    temperature: 0.0
   };
+  originalAiSearchSettings: string = '';
   aiPanelSettings = {
     modelId: ''
   };
@@ -135,6 +135,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       this.aiSearchEnabled = settings.aiSearchEnabled ?? false;
       if (settings.aiSearchSettings) {
         this.aiSearchSettings = { ...this.aiSearchSettings, ...settings.aiSearchSettings };
+        this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
       }
       if (settings.aiPanelSettings) {
         this.aiPanelSettings = { ...this.aiPanelSettings, ...settings.aiPanelSettings };
@@ -741,6 +742,10 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     return true;
   }
 
+  isAiSearchSettingsDirty(): boolean {
+    return JSON.stringify(this.aiSearchSettings) !== this.originalAiSearchSettings;
+  }
+
   saveAiSearchSettings(): void {
     this.saveRunning = true;
     this.appSettingsService
@@ -748,6 +753,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.saveRunning = false;
+          this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
           this.showMessage('success', 'AI Search settings updated', 'Tuning parameters have been saved.');
         },
         error: () => {
