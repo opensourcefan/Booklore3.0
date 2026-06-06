@@ -445,4 +445,25 @@ public class AppSettingService {
         setting.setVal(value);
         settingPersistenceHelper.appSettingsRepository.save(setting);
     }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> testAiConnection(AiTestConnectionRequest request, String path) {
+        String url = appProperties.getAiSearch().getBaseUrl() + path;
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            Map<String, String> body = Map.of(
+                "provider", request.getProvider() != null ? request.getProvider() : "",
+                "url", request.getUrl() != null ? request.getUrl() : "",
+                "apiKey", request.getApiKey() != null ? request.getApiKey() : "",
+                "model", request.getModel() != null ? request.getModel() : ""
+            );
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
+            var response = restTemplate.postForEntity(url, entity, Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of("success", false, "message", "Empty response");
+        } catch (Exception e) {
+            logger.error("AI connection test failed for {}: {}", path, e.getMessage());
+            return Map.of("success", false, "message", "Could not reach AI Search service: " + e.getMessage());
+        }
+    }
 }

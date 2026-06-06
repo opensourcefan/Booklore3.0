@@ -300,6 +300,13 @@
                 <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong><span style="color: red; margin-left: 0.25rem;">*</span></label>
                 <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
                 <input type="text" id="externalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                @if (aiSearchSettings.embeddingProvider === 'ollama') {
+                  <p style="font-size: 0.8rem; color: var(--yellow-500); margin: 0.25rem 0 0 0;"><i class="pi pi-info-circle" style="margin-right: 0.25rem;"></i>If Ollama runs on your host machine, use <code>http://host.docker.internal:11434</code> or your LAN IP. Do not use <code>ollama.com</code> — that is not an API endpoint.</p>
+                }
+              </div>
+
+              <div style="margin-top: 0.5rem;">
+                <p-button label="Test Connection" icon="pi pi-bolt" severity="info" size="small" [outlined]="true" (onClick)="testEmbeddingConnection()" [loading]="testEmbeddingRunning" [disabled]="!aiSearchEnabled || saveRunning || testEmbeddingRunning || !aiSearchSettings.externalEmbeddingUrl.trim() || !aiSearchSettings.embeddingModel.trim()"></p-button>
               </div>
             }
           </div>
@@ -371,6 +378,13 @@
                 <label for="externalLlmUrl"><strong>External LLM URL</strong><span style="color: red; margin-left: 0.25rem;">*</span></label>
                 <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
                 <input type="text" id="externalLlmUrl" [(ngModel)]="aiSearchSettings.externalLlmUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                @if (aiSearchSettings.llmProvider === 'ollama') {
+                  <p style="font-size: 0.8rem; color: var(--yellow-500); margin: 0.25rem 0 0 0;"><i class="pi pi-info-circle" style="margin-right: 0.25rem;"></i>If Ollama runs on your host machine, use <code>http://host.docker.internal:11434</code> or your LAN IP. Do not use <code>ollama.com</code> — that is not an API endpoint.</p>
+                }
+              </div>
+
+              <div style="margin-top: 0.5rem;">
+                <p-button label="Test Connection" icon="pi pi-bolt" severity="info" size="small" [outlined]="true" (onClick)="testLlmConnection()" [loading]="testLlmRunning" [disabled]="!aiSearchEnabled || saveRunning || testLlmRunning || !aiSearchSettings.externalLlmUrl.trim() || !aiSearchSettings.llmModel.trim()"></p-button>
               </div>
             }
           </div>

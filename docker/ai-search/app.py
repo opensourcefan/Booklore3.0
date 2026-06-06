@@ -229,8 +229,9 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         return resp.json()["choices"][0]["message"]["content"]
     else:
         base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "http://localhost:11434"
+        url = f"{base_url}/api/chat" if "/api" not in base_url else f"{base_url}/chat"
         resp = requests.post(
-            f"{base_url}/api/chat",
+            url,
             headers=headers,
             json={
                 "model": LLM_MODEL_NAME,
@@ -639,3 +640,100 @@ def get_book_embeddings(book_id: int, user_id: int) -> dict[str, Any]:
         "hasEmbeddings": count > 0,
         "chunkCount": count,
     }
+
+@app.post("/v1/test-embedding")
+def test_embedding(payload: dict[str, Any]) -> dict[str, Any]:
+    """Test embedding provider connection."""
+    provider = payload.get("provider", "local")
+    api_key = payload.get("apiKey", "")
+    base_url = payload.get("url", "").rstrip("/")
+    model = payload.get("model", "")
+    
+    if provider == "local":
+        return {"success": True, "message": "Local provider selected. Tests pass by default as long as the service is running."}
+        
+    if not base_url:
+        return {"success": False, "message": "External URL is required for external providers."}
+        
+    import requests
+    headers = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+        
+    if provider == "openai":
+        url = f"{base_url}/embeddings"
+    else: # ollama
+        url = f"{base_url}/api/embeddings" if "/api" not in base_url else f"{base_url}/embeddings"
+        
+    json_payload = {"model": model, "input": "test"} if provider == "openai" else {"model": model, "prompt": "test"}
+    
+    try:
+        resp = requests.post(url, headers=headers, json=json_payload, timeout=10)
+        resp.raise_for_status()
+        return {"success": True, "message": "Connection successful! Model generated embeddings."}
+    except requests.exceptions.RequestException as e:
+        error_msg = str(e)
+        if hasattr(e, 'response') and e.response is not None:
+            try:
+                error_data = e.response.json()
+                if isinstance(error_data, dict) and "error" in error_data:
+                    err = error_data["error"]
+                    if isinstance(err, dict) and "message" in err:
+                        error_msg = f"{e.response.status_code} - {err['message']}"
+                    else:
+                        error_msg = f"{e.response.status_code} - {err}"
+                else:
+                    error_msg = f"{e.response.status_code} - {e.response.text}"
+            except Exception:
+                error_msg = f"{e.response.status_code} - {e.response.text}"
+        return {"success": False, "message": f"Connection failed: {error_msg}"}
+
+
+@app.post("/v1/test-llm")
+def test_llm(payload: dict[str, Any]) -> dict[str, Any]:
+    """Test LLM provider connection."""
+    provider = payload.get("provider", "local")
+    api_key = payload.get("apiKey", "")
+    base_url = payload.get("url", "").rstrip("/")
+    model = payload.get("model", "")
+    
+    if provider == "local":
+        return {"success": True, "message": "Local provider selected. Tests pass by default as long as the service is running."}
+        
+    if not base_url:
+        return {"success": False, "message": "External URL is required for external providers."}
+        
+    import requests
+    headers = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+        
+    messages = [{"role": "user", "content": "Say 'hello' briefly."}]
+    
+    try:
+        if provider == "openai":
+            url = f"{base_url}/chat/completions"
+            json_payload = {"model": model, "messages": messages, "max_tokens": 10}
+        else: # ollama
+            url = f"{base_url}/api/chat" if "/api" not in base_url else f"{base_url}/chat"
+            json_payload = {"model": model, "messages": messages, "stream": False}
+            
+        resp = requests.post(url, headers=headers, json=json_payload, timeout=15)
+        resp.raise_for_status()
+        return {"success": True, "message": "Connection successful! Model responded."}
+    except requests.exceptions.RequestException as e:
+        error_msg = str(e)
+        if hasattr(e, 'response') and e.response is not None:
+            try:
+                error_data = e.response.json()
+                if isinstance(error_data, dict) and "error" in error_data:
+                    err = error_data["error"]
+                    if isinstance(err, dict) and "message" in err:
+                        error_msg = f"{e.response.status_code} - {err['message']}"
+                    else:
+                        error_msg = f"{e.response.status_code} - {err}"
+                else:
+                    error_msg = f"{e.response.status_code} - {e.response.text}"
+            except Exception:
+                error_msg = f"{e.response.status_code} - {e.response.text}"
+        return {"success": False, "message": f"Connection failed: {error_msg}"}

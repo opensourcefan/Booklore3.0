@@ -106,6 +106,14 @@ export class AppSettingsService {
     return this.http.post<OidcTestResult>(`${this.apiUrl}/oidc/test`, providerDetails);
   }
 
+  testAiEmbeddingConnection(config: {provider: string; url: string; apiKey: string; model: string}): Observable<{success: boolean; message: string}> {
+    return this.http.post<{success: boolean; message: string}>(`${this.apiUrl}/ai/test-embedding`, config);
+  }
+
+  testAiLlmConnection(config: {provider: string; url: string; apiKey: string; model: string}): Observable<{success: boolean; message: string}> {
+    return this.http.post<{success: boolean; message: string}>(`${this.apiUrl}/ai/test-llm`, config);
+  }
+
   getAiServiceStatus(): Observable<AiServiceStatus> {
     return this.http.get<AiServiceStatus>(`${API_CONFIG.BASE_URL}/api/v1/ai/status`);
   }

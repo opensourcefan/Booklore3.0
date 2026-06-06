@@ -106,4 +106,18 @@ public class AppSettingController {
         }
         return status;
     }
+
+    @PostMapping("/ai/test-embedding")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> testEmbeddingConnection(
+            @RequestBody org.booklore.model.dto.settings.AiTestConnectionRequest request) {
+        return appSettingService.testAiConnection(request, "/v1/test-embedding");
+    }
+
+    @PostMapping("/ai/test-llm")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> testLlmConnection(
+            @RequestBody org.booklore.model.dto.settings.AiTestConnectionRequest request) {
+        return appSettingService.testAiConnection(request, "/v1/test-llm");
+    }
 }

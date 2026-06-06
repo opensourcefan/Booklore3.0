@@ -998,6 +998,50 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     ].slice(0, 12);
   }
 
+  // Test connection state
+  testEmbeddingRunning = false;
+  testLlmRunning = false;
+
+  testEmbeddingConnection(): void {
+    this.testEmbeddingRunning = true;
+    const config = {
+      provider: this.aiSearchSettings.embeddingProvider,
+      url: this.aiSearchSettings.externalEmbeddingUrl,
+      apiKey: this.aiSearchSettings.embeddingApiKey,
+      model: this.aiSearchSettings.embeddingModel
+    };
+    this.appSettingsService.testAiEmbeddingConnection(config).subscribe({
+      next: result => {
+        this.testEmbeddingRunning = false;
+        this.showMessage(result.success ? 'success' : 'error', 'Embedding Test', result.message);
+      },
+      error: () => {
+        this.testEmbeddingRunning = false;
+        this.showMessage('error', 'Embedding Test', 'Could not reach the backend to test embedding connection.');
+      }
+    });
+  }
+
+  testLlmConnection(): void {
+    this.testLlmRunning = true;
+    const config = {
+      provider: this.aiSearchSettings.llmProvider,
+      url: this.aiSearchSettings.externalLlmUrl,
+      apiKey: this.aiSearchSettings.llmApiKey,
+      model: this.aiSearchSettings.llmModel
+    };
+    this.appSettingsService.testAiLlmConnection(config).subscribe({
+      next: result => {
+        this.testLlmRunning = false;
+        this.showMessage(result.success ? 'success' : 'error', 'LLM Test', result.message);
+      },
+      error: () => {
+        this.testLlmRunning = false;
+        this.showMessage('error', 'LLM Test', 'Could not reach the backend to test LLM connection.');
+      }
+    });
+  }
+
   private formatBytes(bytes: number): string {
     if (!Number.isFinite(bytes) || bytes <= 0) {
       return '0 B';
