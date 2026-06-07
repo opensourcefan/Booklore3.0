@@ -228,7 +228,11 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
     else:
-        base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "http://localhost:11434"
+        if LLM_PROVIDER == "local":
+            base_url = "http://localhost:11434"
+        else:
+            base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "http://localhost:11434"
+            
         url = f"{base_url}/api/chat" if "/api" not in base_url else f"{base_url}/chat"
         resp = requests.post(
             url,
