@@ -162,18 +162,18 @@ REMOTE_USER_PASSWORD=ChangeMe@$@P
 ##################################################################
 
 # AI Features: Panel Detection & Semantic Search
-# Optional — completely remove or comment (#)out these lines to disable all AI features.
+# Optional — uncomment (delete # from the front) the 5 lines marked with (# <<) to enable all AI features.
 
-# 1. Tell docker-compose to start the AI containers
-COMPOSE_PROFILES=ai
+### 1. Tell docker-compose to start the AI containers
+# COMPOSE_PROFILES=ai  # <<
 
-# 2. Tell the main Fable app where to talk to the AI containers internally
-AI_SERVICE_BASE_URL=http://app-ai-panel:8080
-AI_SEARCH_SERVICE_BASE_URL=http://fable-ai-search:8080
+### 2. Tell the main Fable app where to talk to the AI containers internally
+# AI_SERVICE_BASE_URL=http://app-ai-panel:8080  # <<
+# AI_SEARCH_SERVICE_BASE_URL=http://fable-ai-search:8080  # <<
 
-# 3. Expose the AI services to your host machine (for debugging or direct access)
-AI_PANEL_PORT=18080
-AI_SEARCH_PORT=18081
+### 3. Expose the AI services to your host machine (for debugging or direct access)
+# AI_PANEL_PORT=18080  # <<
+# AI_SEARCH_PORT=18081  # <<
 
 #### ---- AI Settings ----
 #### AI models are now configured directly inside the Fable UI!
