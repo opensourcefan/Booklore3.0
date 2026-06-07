@@ -77,13 +77,39 @@
     .p-button-icon {
       font-size: 1.1rem;
       color: #00d2ff !important;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
   }
   
-  &:hover {
+  &.status-warming {
+    ::ng-deep .p-button-icon {
+      color: #ffa726 !important;
+      animation: pulse-orange 2s infinite ease-in-out;
+    }
+  }
+  
+  &.status-error {
+    ::ng-deep .p-button-icon {
+      color: #ef4444 !important;
+    }
+  }
+  
+  &:hover:not(.status-warming):not(.status-error) {
     ::ng-deep .p-button-icon {
       text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
     }
+  }
+}
+
+@keyframes pulse-orange {
+  0% {
+    text-shadow: 0 0 4px rgba(255, 167, 38, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(255, 167, 38, 0.8);
+  }
+  100% {
+    text-shadow: 0 0 4px rgba(255, 167, 38, 0.4);
   }
 }
 

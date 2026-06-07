@@ -56,9 +56,9 @@
     "noDirectories": "Select one or more libraries above to view directories."
   },
   "cleanup": {
-    "title": "Generated Data Cleanup",
-    "description": "Delete all saved AI panel-flow records for your user account.",
-    "action": "Delete Saved AI Data",
+    "title": "Panel Detection Data Cleanup",
+    "description": "Delete all saved AI panel detection records for your user account.",
+    "action": "Delete AI Panel Data",
     "confirmTitle": "Confirm Delete",
     "confirmMessage": "This will permanently delete all saved AI panel-flow records for your account. This action cannot be undone.",
     "confirmAction": "Yes, Delete",

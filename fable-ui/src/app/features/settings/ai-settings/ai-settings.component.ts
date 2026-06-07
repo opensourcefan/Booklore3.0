@@ -7,10 +7,11 @@ import {ToggleSwitch} from 'primeng/toggleswitch';
 import {MessageService} from 'primeng/api';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {Select} from 'primeng/select';
+import {TooltipModule} from 'primeng/tooltip';
 import {Subject, Subscription, timer} from 'rxjs';
 import {filter, take, takeUntil} from 'rxjs/operators';
 
-import {AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings, AiSearchSettings} from '../../../shared/model/app-settings.model';
+import {AiModel, AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings, AiSearchSettings} from '../../../shared/model/app-settings.model';
 import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-progress.model';
 import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
@@ -38,7 +39,8 @@ interface AiStartupEvent {
     NgClass,
     ToggleSwitch,
     TranslocoDirective,
-    Select
+    Select,
+    TooltipModule
   ],
   templateUrl: './ai-settings.component.html',
   styleUrl: './ai-settings.component.scss'
@@ -127,6 +129,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   markedBooksExpanded = false;
   markedBooksLoading = false;
 
+  embeddingModels: AiModel[] = [];
+  llmModels: AiModel[] = [];
+  loadingEmbeddingModels = false;
+  loadingLlmModels = false;
+
   ngOnInit(): void {
     this.appSettings$.pipe(
       filter((settings): settings is AppSettings => !!settings),
@@ -146,6 +153,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       if (this.aiSearchEnabled) {
         this.refreshAiSearchStatus();
         this.fetchMarkedBooks();
+        this.loadAiModels();
       }
     });
 
@@ -273,6 +281,56 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           this.showMessage('error', 'Save failed', 'Could not update AI panel settings.');
         }
       });
+  }
+
+  loadAiModels(): void {
+    if (this.aiSearchEnabled) {
+      this.loadingEmbeddingModels = true;
+      this.appSettingsService.getAiEmbeddingModels().pipe(take(1)).subscribe({
+        next: (res) => {
+          this.embeddingModels = res.models || [];
+          this.loadingEmbeddingModels = false;
+        },
+        error: () => {
+          this.loadingEmbeddingModels = false;
+        }
+      });
+
+      this.loadingLlmModels = true;
+      this.appSettingsService.getAiLlmModels().pipe(take(1)).subscribe({
+        next: (res) => {
+          this.llmModels = res.models || [];
+          this.loadingLlmModels = false;
+        },
+        error: () => {
+          this.loadingLlmModels = false;
+        }
+      });
+    }
+  }
+
+  deleteEmbeddingModel(model: AiModel): void {
+    const parts = model.id.split('/');
+    if (parts.length < 2) return;
+    const namespace = parts[0];
+    const name = parts.slice(1).join('/');
+    this.appSettingsService.deleteAiEmbeddingModel(namespace, name).pipe(take(1)).subscribe({
+      next: () => {
+        this.messageService.add({severity: 'success', summary: 'Deleted', detail: `Deleted ${model.name}`});
+        this.loadAiModels();
+      },
+      error: () => this.messageService.add({severity: 'error', summary: 'Error', detail: `Failed to delete ${model.name}`})
+    });
+  }
+
+  deleteLlmModel(model: AiModel): void {
+    this.appSettingsService.deleteAiLlmModel(model.id).pipe(take(1)).subscribe({
+      next: () => {
+        this.messageService.add({severity: 'success', summary: 'Deleted', detail: `Deleted ${model.name}`});
+        this.loadAiModels();
+      },
+      error: () => this.messageService.add({severity: 'error', summary: 'Error', detail: `Failed to delete ${model.name}`})
+    });
   }
 
   fetchMarkedBooks(): void {
@@ -1042,7 +1100,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private formatBytes(bytes: number): string {
+  formatBytes(bytes: number): string {
     if (!Number.isFinite(bytes) || bytes <= 0) {
       return '0 B';
     }

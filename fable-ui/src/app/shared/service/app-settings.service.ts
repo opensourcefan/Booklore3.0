@@ -4,7 +4,7 @@ import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
 import {AiBulkScanResponse} from '../model/ai-panel-scan-progress.model';
-import {AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiSearchResult, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {AiModel, AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiSearchResult, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
 
 export interface SettingsTransferEntry {
   name: string;
@@ -265,6 +265,24 @@ export class AppSettingsService {
       switchMap(() => this.fetchAppSettings()),
       map(() => void 0)
     );
+  }
+
+  getAiEmbeddingModels(): Observable<{models: AiModel[]}> {
+    return this.http.get<{models: AiModel[]}>(`${this.apiUrl}/ai/models/embedding`);
+  }
+
+  deleteAiEmbeddingModel(namespace: string, modelName: string): Observable<{status: string}> {
+    const params = new HttpParams().set('namespace', namespace).set('modelName', modelName);
+    return this.http.delete<{status: string}>(`${this.apiUrl}/ai/models/embedding`, {params});
+  }
+
+  getAiLlmModels(): Observable<{models: AiModel[]}> {
+    return this.http.get<{models: AiModel[]}>(`${this.apiUrl}/ai/models/llm`);
+  }
+
+  deleteAiLlmModel(modelName: string): Observable<{status: string}> {
+    const params = new HttpParams().set('modelName', modelName);
+    return this.http.delete<{status: string}>(`${this.apiUrl}/ai/models/llm`, {params});
   }
 
   toggleOidcEnabled(enabled: boolean): Observable<void> {

@@ -336,3 +336,9 @@ export interface AiSearchResult {
   totalChunksSearched: number;
   error?: string | null;
 }
+
+export interface AiModel {
+  id: string;
+  name: string;
+  sizeBytes: number;
+}

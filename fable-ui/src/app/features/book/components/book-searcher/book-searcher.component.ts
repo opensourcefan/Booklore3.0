@@ -1,12 +1,12 @@
 import {Component, ElementRef, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
-import {BehaviorSubject, of, Subscription} from 'rxjs';
+import {BehaviorSubject, interval, of, Subscription} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, map, switchMap} from 'rxjs/operators';
 import {Book} from '../../model/book.model';
 import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
 import {BookService} from '../../service/book.service';
 import {Button} from 'primeng/button';
-import {SlicePipe} from '@angular/common';
+import {SlicePipe, NgClass} from '@angular/common';
 import {Skeleton} from 'primeng/skeleton';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Router} from '@angular/router';
@@ -15,6 +15,7 @@ import {InputIcon} from 'primeng/inputicon';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AiSearchDialogService} from '../ai-search-dialog/ai-search-dialog.component';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
+import {TooltipModule} from 'primeng/tooltip';
 
 @Component({
   selector: 'app-book-searcher',
@@ -28,6 +29,8 @@ import {AppSettingsService} from '../../../../shared/service/app-settings.servic
     IconField,
     InputIcon,
     TranslocoDirective,
+    NgClass,
+    TooltipModule
   ],
   styleUrls: ['./book-searcher.component.scss'],
   standalone: true
@@ -50,7 +53,9 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   private appSettingsService = inject(AppSettingsService);
 
   aiSearchEnabled = false;
+  searchStatus: 'ok' | 'warming' | 'load_failed' = 'ok';
   private appSettingsSub?: Subscription;
+  private pollingSub?: Subscription;
 
   ngOnInit(): void {
     this.#subscription = this.#searchSubject.pipe(
@@ -84,7 +89,36 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
 
     this.appSettingsSub = this.appSettingsService.appSettings$.subscribe(settings => {
       this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+      if (this.aiSearchEnabled) {
+        this.startAiStatusPolling();
+      } else {
+        this.stopAiStatusPolling();
+      }
     });
+  }
+
+  private startAiStatusPolling(): void {
+    if (this.pollingSub) return;
+    
+    const fetchStatus = () => {
+      this.appSettingsService.getAiSearchServiceStatus().pipe(
+        catchError(() => of({ status: 'load_failed' }))
+      ).subscribe((res) => {
+        if (res && res.status) {
+          this.searchStatus = res.status as 'ok' | 'warming' | 'load_failed';
+        }
+      });
+    };
+    
+    fetchStatus();
+    this.pollingSub = interval(5000).subscribe(() => fetchStatus());
+  }
+
+  private stopAiStatusPolling(): void {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+      this.pollingSub = undefined;
+    }
   }
 
   getAuthorNames(authors: string[] | undefined): string {
@@ -169,5 +203,6 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     if (this.appSettingsSub) {
       this.appSettingsSub.unsubscribe();
     }
+    this.stopAiStatusPolling();
   }
 }

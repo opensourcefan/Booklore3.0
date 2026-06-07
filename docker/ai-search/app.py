@@ -59,6 +59,8 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "fable")
 _embedding_model: SentenceTransformer | None = None
 _loading: bool = False
 _load_error: str | None = None
+_llm_loading: bool = False
+_llm_load_error: str | None = None
 _load_lock = threading.Lock()
 _active_embed_jobs: dict[str, dict[str, Any]] = {}
 
@@ -105,7 +107,10 @@ def _start_load_thread_locked() -> None:
 
 def _do_llm_load() -> None:
     """Background thread: pulls the LLM model from Ollama if using local provider."""
+    global _llm_loading, _llm_load_error
+    
     if LLM_PROVIDER != "local" or not LLM_MODEL_NAME:
+        _llm_loading = False
         return
         
     logger.info("LLM model pull started for %s", LLM_MODEL_NAME)
@@ -119,10 +124,16 @@ def _do_llm_load() -> None:
         resp.raise_for_status()
         logger.info("LLM model pulled successfully: %s", LLM_MODEL_NAME)
     except Exception as exc:
+        _llm_load_error = str(exc)
         logger.error("LLM model pull failed: %s", exc)
+    finally:
+        _llm_loading = False
 
 
 def _start_llm_load_thread_locked() -> None:
+    global _llm_loading, _llm_load_error
+    _llm_loading = True
+    _llm_load_error = None
     threading.Thread(target=_do_llm_load, daemon=True).start()
 
 
@@ -298,23 +309,29 @@ def health() -> dict[str, Any]:
     _ensure_loading()
     # Check if the model has successfully finished loading into memory
     ready = _embedding_model is not None
+    
+    status = "ok"
+    error = None
 
-    if EMBEDDING_PROVIDER != "local":
-        status = "ok" 
-    elif ready:
-        status = "ok"
-    elif _load_error is not None:
-        status = "load_failed"
-    elif _loading:
-        status = "warming"
-    else:
-        status = "warming"
+    if EMBEDDING_PROVIDER == "local":
+        if _load_error is not None:
+            status = "load_failed"
+            error = _load_error
+        elif not ready or _loading:
+            status = "warming"
+
+    if LLM_PROVIDER == "local":
+        if _llm_load_error is not None:
+            status = "load_failed"
+            error = _llm_load_error
+        elif _llm_loading:
+            status = "warming"
 
     return {
         "status": status,
         "mock": False,
         "embeddingModel": EMBEDDING_MODEL_NAME,
-        "loadError": _load_error,
+        "loadError": error,
         "provider": EMBEDDING_PROVIDER
     }
 
@@ -775,3 +792,69 @@ def test_llm(payload: dict[str, Any]) -> dict[str, Any]:
             except Exception:
                 error_msg = f"{e.response.status_code} - {e.response.text}"
         return {"success": False, "message": f"Connection failed: {error_msg}"}
+
+
+@app.get("/v1/models/embedding")
+def list_embedding_models() -> dict[str, Any]:
+    models_dir = "/models"
+    result = []
+    if os.path.exists(models_dir):
+        for entry in os.listdir(models_dir):
+            if entry.startswith("models--"):
+                parts = entry.split("--")
+                if len(parts) >= 3:
+                    namespace = parts[1]
+                    name = "--".join(parts[2:])
+                    path = os.path.join(models_dir, entry)
+                    size = 0
+                    for dirpath, dirnames, filenames in os.walk(path):
+                        for f in filenames:
+                            fp = os.path.join(dirpath, f)
+                            if not os.path.islink(fp):
+                                size += os.path.getsize(fp)
+                    result.append({
+                        "id": f"{namespace}/{name}",
+                        "name": f"{namespace}/{name}",
+                        "sizeBytes": size
+                    })
+    return {"models": result}
+
+@app.delete("/v1/models/embedding/{namespace}/{model_name:path}")
+def delete_embedding_model(namespace: str, model_name: str) -> dict[str, Any]:
+    dir_name = f"models--{namespace}--{model_name}"
+    path = os.path.join("/models", dir_name)
+    if os.path.exists(path) and os.path.isdir(path):
+        import shutil
+        shutil.rmtree(path)
+        return {"status": "deleted"}
+    return {"status": "not_found"}
+
+@app.get("/v1/models/llm")
+def list_llm_models() -> dict[str, Any]:
+    import requests
+    try:
+        resp = requests.get("http://localhost:11434/api/tags", timeout=10)
+        if resp.status_code == 200:
+            data = resp.json().get("models", [])
+            result = []
+            for m in data:
+                result.append({
+                    "id": m.get("name"),
+                    "name": m.get("name"),
+                    "sizeBytes": m.get("size", 0)
+                })
+            return {"models": result}
+    except Exception as exc:
+        logger.error("Failed to list LLM models: %s", exc)
+    return {"models": []}
+
+@app.delete("/v1/models/llm/{model_name:path}")
+def delete_llm_model(model_name: str) -> dict[str, Any]:
+    import requests
+    try:
+        resp = requests.delete("http://localhost:11434/api/delete", json={"name": model_name}, timeout=10)
+        if resp.status_code == 200:
+            return {"status": "deleted"}
+    except Exception as exc:
+        logger.error("Failed to delete LLM model: %s", exc)
+    return {"status": "failed"}

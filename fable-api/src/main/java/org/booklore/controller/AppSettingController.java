@@ -120,4 +120,42 @@ public class AppSettingController {
             @RequestBody org.booklore.model.dto.settings.AiTestConnectionRequest request) {
         return appSettingService.testAiConnection(request, "/v1/test-llm");
     }
+
+    @GetMapping("/ai/models/embedding")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> getEmbeddingModels() {
+        return restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/v1/models/embedding", java.util.Map.class);
+    }
+
+    @DeleteMapping("/ai/models/embedding")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> deleteEmbeddingModel(@RequestParam String namespace, @RequestParam String modelName) {
+        org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.exchange(
+            appProperties.getAiSearch().getBaseUrl() + "/v1/models/embedding/{namespace}/{modelName}",
+            org.springframework.http.HttpMethod.DELETE,
+            null,
+            java.util.Map.class,
+            namespace, modelName
+        );
+        return response.getBody();
+    }
+
+    @GetMapping("/ai/models/llm")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> getLlmModels() {
+        return restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/v1/models/llm", java.util.Map.class);
+    }
+
+    @DeleteMapping("/ai/models/llm")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> deleteLlmModel(@RequestParam String modelName) {
+        org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.exchange(
+            appProperties.getAiSearch().getBaseUrl() + "/v1/models/llm/{modelName}",
+            org.springframework.http.HttpMethod.DELETE,
+            null,
+            java.util.Map.class,
+            modelName
+        );
+        return response.getBody();
+    }
 }
