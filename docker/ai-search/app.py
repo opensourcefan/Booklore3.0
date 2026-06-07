@@ -103,6 +103,29 @@ def _start_load_thread_locked() -> None:
     threading.Thread(target=_do_load, daemon=True).start()
 
 
+def _do_llm_load() -> None:
+    """Background thread: pulls the LLM model from Ollama if using local provider."""
+    if LLM_PROVIDER != "local" or not LLM_MODEL_NAME:
+        return
+        
+    logger.info("LLM model pull started for %s", LLM_MODEL_NAME)
+    try:
+        import requests
+        resp = requests.post(
+            "http://localhost:11434/api/pull",
+            json={"name": LLM_MODEL_NAME, "stream": False},
+            timeout=1800
+        )
+        resp.raise_for_status()
+        logger.info("LLM model pulled successfully: %s", LLM_MODEL_NAME)
+    except Exception as exc:
+        logger.error("LLM model pull failed: %s", exc)
+
+
+def _start_llm_load_thread_locked() -> None:
+    threading.Thread(target=_do_llm_load, daemon=True).start()
+
+
 def _ensure_loading() -> None:
     if not EMBEDDING_MODEL_NAME and EMBEDDING_PROVIDER == "local":
         return
@@ -228,7 +251,10 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
     else:
-        base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "http://localhost:11434"
+        if LLM_PROVIDER == "local":
+            base_url = "http://localhost:11434"
+        else:
+            base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "http://localhost:11434"
         url = f"{base_url}/api/chat" if "/api" not in base_url else f"{base_url}/chat"
         resp = requests.post(
             url,
@@ -260,6 +286,11 @@ def startup() -> None:
             _start_load_thread_locked()
     else:
         logger.info("No external or local embedding model configured.")
+
+    if LLM_PROVIDER == "local" and LLM_MODEL_NAME:
+        logger.info("Beginning background pull for local LLM model: %s", LLM_MODEL_NAME)
+        with _load_lock:
+            _start_llm_load_thread_locked()
 
 
 @app.get("/health")
@@ -308,7 +339,11 @@ def update_config(payload: dict[str, Any]) -> dict[str, Any]:
             
             EXTERNAL_EMBEDDING_BASE_URL = _config.get("externalEmbeddingUrl", "")
             EXTERNAL_LLM_BASE_URL = _config.get("externalLlmUrl", "")
-            LLM_MODEL_NAME = _config.get("llmModel", "llama3.2")
+            
+            new_llm_model = _config.get("llmModel", "llama3.2")
+            llm_model_changed = (LLM_MODEL_NAME != new_llm_model)
+            LLM_MODEL_NAME = new_llm_model
+            
             LLM_MAX_TOKENS = int(_config.get("maxTokens", 768))
             LLM_TEMPERATURE = float(_config.get("temperature", 0.1))
             SEARCH_TOP_K = int(_config.get("topK", 5))
@@ -318,6 +353,9 @@ def update_config(payload: dict[str, Any]) -> dict[str, Any]:
                 _embedding_model = None  # Force reload or switch to external
                 if EMBEDDING_PROVIDER == "local":
                     _start_load_thread_locked()
+                    
+            if llm_model_changed and LLM_PROVIDER == "local":
+                _start_llm_load_thread_locked()
                     
             return {"status": "success"}
         except Exception as e:
