@@ -185,6 +185,15 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+          {
+            echo "ai_search_tags<<EOF"
+            echo "ghcr.io/opensourcefan/fable-search-ai:${image_tag}"
+            if [ "${{ github.event_name }}" != "pull_request" ]; then
+              echo "ghcr.io/opensourcefan/fable-search-ai:latest"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
           echo "Image tag: $image_tag"
 
       # ----------------------------------------
@@ -307,3 +316,19 @@ jobs:
           cache-to: |
             type=gha,scope=fable-panel-ai,mode=max
             type=registry,ref=ghcr.io/opensourcefan/fable-panel-ai:buildcache,mode=max
+
+      - name: Build and push AI Search Docker image
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: ./docker/ai-search
+          file: ./docker/ai-search/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.set_image_tag.outputs.ai_search_tags }}
+          cache-from: |
+            type=gha,scope=fable-search-ai
+            type=registry,ref=ghcr.io/opensourcefan/fable-search-ai:buildcache
+          cache-to: |
+            type=gha,scope=fable-search-ai,mode=max
+            type=registry,ref=ghcr.io/opensourcefan/fable-search-ai:buildcache,mode=max
