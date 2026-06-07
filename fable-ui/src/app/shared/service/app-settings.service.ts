@@ -5,6 +5,7 @@ import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/opera
 import {API_CONFIG} from '../../core/config/api-config';
 import {AiBulkScanResponse} from '../model/ai-panel-scan-progress.model';
 import {AiModel, AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiSearchResult, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {Book} from '../../features/book/model/book.model';
 
 export interface SettingsTransferEntry {
   name: string;
@@ -173,15 +174,27 @@ export class AppSettingsService {
     return this.http.post<{triggered: boolean; reason: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/reload`, {});
   }
 
-  scanMarkedAiSearchData(force: boolean = false): Observable<{ status: string }> {
-    return this.http.post<{ status: string }>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/scan-marked?force=${force}`, {});
+  scanMissingAiSearchData(libraryPathIds: number[]): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/scan-missing`, {
+      libraryPathIds
+    });
   }
 
-  markForAiSearch(bookIds: number[], marked: boolean = true): Observable<void> {
-    return this.http.post<void>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/mark`, {
+  scanMarkedAiSearchData(forceRescan: boolean = false): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/scan-marked`, {
+      forceRescan
+    });
+  }
+
+  markForAiSearch(bookIds: number[], marked: boolean): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/mark`, {
       bookIds,
       marked
     });
+  }
+
+  getMarkedForAiSearch(): Observable<Book[]> {
+    return this.http.get<Book[]>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/marked`);
   }
 
   deleteAiSearchEmbeddings(bookIds: number[]): Observable<{deletedCount: number}> {
@@ -190,8 +203,8 @@ export class AppSettingsService {
     });
   }
 
-  getMarkedForAiSearch(): Observable<{id: number, title: string, libraryName: string}[]> {
-    return this.http.get<{id: number, title: string, libraryName: string}[]>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/marked`);
+  getAiSearchEmbeddingStats(): Observable<{model: string, count: number}[]> {
+    return this.http.get<{model: string, count: number}[]>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/stats`);
   }
 
   stopAiSearchScan(): Observable<{status: string}> {

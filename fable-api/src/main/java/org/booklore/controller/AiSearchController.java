@@ -88,12 +88,29 @@ public class AiSearchController {
         return Map.of("status", "STARTED");
     }
 
-    @PostMapping("/scan-marked")
-    public Map<String, Object> scanMarked(@RequestParam(defaultValue = "false") boolean force) {
+    @PostMapping("/scan-missing")
+    public Map<String, Object> scanMissing(@RequestBody Map<String, Object> payload) {
+        @SuppressWarnings("unchecked")
+        List<Integer> libraryPathIdsInt = (List<Integer>) payload.get("libraryPathIds");
+        if (libraryPathIdsInt == null || libraryPathIdsInt.isEmpty()) {
+            throw new IllegalArgumentException("libraryPathIds is required");
+        }
+        List<Long> libraryPathIds = libraryPathIdsInt.stream().map(Integer::longValue).toList();
+        
         Long userId = authenticationService.getAuthenticatedUser().getId();
         String username = authenticationService.getAuthenticatedUser().getUsername();
         
-        aiSearchService.startScanMarkedAiSearchEmbeddings(userId, username, force);
+        aiSearchService.startScanMissingAiSearchEmbeddings(libraryPathIds, userId, username);
+        return Map.of("status", "STARTED");
+    }
+
+    @PostMapping("/scan-marked")
+    public Map<String, Object> scanMarked(@RequestBody Map<String, Object> payload) {
+        Long userId = authenticationService.getAuthenticatedUser().getId();
+        String username = authenticationService.getAuthenticatedUser().getUsername();
+        boolean forceRescan = Boolean.TRUE.equals(payload.get("forceRescan"));
+        
+        aiSearchService.startScanMarkedAiSearchEmbeddings(userId, username, forceRescan);
         return Map.of("status", "STARTED");
     }
 
@@ -103,24 +120,35 @@ public class AiSearchController {
         return Map.of("status", "STOPPED");
     }
 
-    @GetMapping("/marked")
-    public List<org.booklore.repository.projection.MarkedBookProjection> getMarkedBooks() {
-        return aiSearchService.getMarkedBooks();
+    @PostMapping("/mark")
+    public Map<String, Object> markBooksForAiSearch(@RequestBody Map<String, Object> payload) {
+        @SuppressWarnings("unchecked")
+        List<Integer> bookIdsInt = (List<Integer>) payload.get("bookIds");
+        Boolean marked = (Boolean) payload.get("marked");
+
+        if (bookIdsInt == null || marked == null) {
+            throw new IllegalArgumentException("bookIds and marked status are required");
+        }
+
+        List<Long> bookIds = bookIdsInt.stream().map(Integer::longValue).toList();
+        bookRepository.updateMarkedForAiSearch(bookIds, marked);
+        return Map.of("status", "UPDATED", "count", bookIds.size());
     }
 
-    @PostMapping("/mark")
-    public void markForAiSearch(@RequestBody Map<String, Object> payload) {
-        @SuppressWarnings("unchecked")
-        List<Number> rawBookIds = (List<Number>) payload.get("bookIds");
-        Boolean marked = (Boolean) payload.get("marked");
-        if (rawBookIds == null || rawBookIds.isEmpty()) {
-            throw new IllegalArgumentException("bookIds are required.");
-        }
-        if (marked == null) {
-            marked = true;
-        }
-        List<Long> bookIds = rawBookIds.stream().map(Number::longValue).toList();
-        bookRepository.updateMarkedForAiSearch(bookIds, marked);
+    @GetMapping("/marked")
+    public List<org.booklore.model.dto.Book> getMarkedBooks() {
+        List<org.booklore.repository.projection.MarkedBookProjection> marked = bookRepository.findMarkedBooksInfo();
+        return marked.stream().map(p -> org.booklore.model.dto.Book.builder()
+                .id(p.getId())
+                .title(p.getTitle())
+                .libraryName(p.getLibraryName())
+                .build()).toList();
+    }
+
+    @GetMapping("/stats")
+    public List<org.booklore.repository.projection.EmbeddingStatsProjection> getEmbeddingStats() {
+        Long userId = authenticationService.getAuthenticatedUser().getId();
+        return aiSearchService.getEmbeddingStats(userId);
     }
 
     @DeleteMapping("/embeddings")

@@ -122,6 +122,10 @@ public class AiSearchService {
         return bookRepository.findMarkedBooksInfo();
     }
 
+    public List<org.booklore.repository.projection.EmbeddingStatsProjection> getEmbeddingStats(Long userId) {
+        return bookRepository.getEmbeddingStats(userId);
+    }
+
     public int deleteBookEmbeddings(List<Long> bookIds, Long userId) {
         if (bookIds == null || bookIds.isEmpty()) {
             throw new IllegalArgumentException("bookIds are required.");

@@ -21,6 +21,9 @@ public class AiSearchSettings {
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private double temperature = 0.1;
 
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private java.util.List<Long> autoEmbedLibraryIds = new java.util.ArrayList<>();
+
     // Added for Zero-Config Architecture
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String embeddingProvider = "local"; // local, ollama, openai

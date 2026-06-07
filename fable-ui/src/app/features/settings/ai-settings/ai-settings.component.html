@@ -338,12 +338,12 @@
           
           <!-- Embedding Configuration -->
           <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
               <h4 style="margin: 0; color: var(--primary-color);">Embedding Configuration</h4>
-              <p-button label="Reset" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="resetEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+              <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
             
-            <div style="display: flex; flex-direction: row; gap: 4rem; align-items: flex-start;">
+            <div style="display: flex; flex-direction: row; gap: 12rem; align-items: flex-start;">
               
               <!-- Left side: Configuration -->
               <div style="display: flex; flex-direction: column; gap: 1rem; flex: 1; min-width: 300px;">
@@ -421,7 +421,7 @@
               
               <!-- Right side: Downloaded Models -->
               <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding: 0 1rem;">
                   <h5 style="margin: 0; color: var(--text-color);">Downloaded Models</h5>
                   <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="loadAiModels()" pTooltip="Refresh List"></p-button>
                 </div>
@@ -448,12 +448,12 @@
 
           <!-- LLM Configuration -->
           <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
               <h4 style="margin: 0; color: var(--primary-color);">LLM Configuration</h4>
-              <p-button label="Reset" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="resetLlmSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+              <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetLlmSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
             
-            <div style="display: flex; flex-direction: row; gap: 4rem; align-items: flex-start;">
+            <div style="display: flex; flex-direction: row; gap: 12rem; align-items: flex-start;">
               
               <!-- Left side: Configuration -->
               <div style="display: flex; flex-direction: column; gap: 1rem; flex: 1; min-width: 300px;">
@@ -531,7 +531,7 @@
 
               <!-- Right side: Downloaded Models -->
               <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding: 0 1rem;">
                   <h5 style="margin: 0; color: var(--text-color);">Downloaded Models</h5>
                   <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="loadAiModels()" pTooltip="Refresh List"></p-button>
                 </div>
@@ -598,54 +598,90 @@
       </div>
     </div>
 
-    <!-- AI Search Scan Section -->
+    <!-- Auto-Embed Settings -->
     <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
-      <div class="scan-section">
-        <div class="startup-panel" style="margin-bottom: 1rem; border: 1px solid var(--surface-border); border-radius: 6px;">
-          <div class="startup-panel-toggle" (click)="markedBooksExpanded = !markedBooksExpanded" (keydown.enter)="markedBooksExpanded = !markedBooksExpanded" (keydown.space)="markedBooksExpanded = !markedBooksExpanded; $event.preventDefault()" tabindex="0" role="button" [attr.aria-expanded]="markedBooksExpanded">
-            <i class="pi" [class.pi-chevron-right]="!markedBooksExpanded" [class.pi-chevron-down]="markedBooksExpanded"></i>
-            <span class="status-title">
-              @if (markedBooksLoading) {
-                <i class="pi pi-spin pi-spinner" style="margin-right: 0.5rem"></i>
-                Loading marked books...
-              } @else {
-                {{ markedBooks.length }} books marked for AI Search
-              }
-            </span>
+      <div class="setting-row">
+        <div>
+          <h3>Auto-Embed Libraries</h3>
+          <p>Books imported into these libraries will automatically be queued for embedding in the background.</p>
+        </div>
+        <div>
+          <p-multiSelect
+            [options]="libraryOptions"
+            [(ngModel)]="aiSearchSettings.autoEmbedLibraryIds"
+            [disabled]="!aiSearchEnabled || saveRunning"
+            placeholder="Select libraries"
+            optionLabel="label"
+            optionValue="value"
+            display="chip"
+            styleClass="w-full"
+            (onChange)="saveAiSearchSettings()">
+          </p-multiSelect>
+        </div>
+      </div>
+    </div>
+
+    <!-- Embedding Statistics Section -->
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+      <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div>
+            <h3>Embedding Statistics</h3>
+            <p>Overview of the current AI search embeddings generated for your books.</p>
           </div>
-          @if (markedBooksExpanded) {
-            <div class="startup-panel-body" style="max-height: 300px; overflow-y: auto;">
-              @if (markedBooks.length === 0) {
-                <div class="status-line">No books are currently marked for AI search embedding.</div>
-              } @else {
-                <div class="startup-event-list">
-                  @for (book of markedBooks; track book.id) {
-                    <div class="startup-event info">
-                      <span class="startup-event-time">[{{ book.libraryName }}]</span>
-                      <span class="startup-event-text">{{ book.title }}</span>
-                    </div>
-                  }
+          <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="fetchEmbeddingStats()" pTooltip="Refresh Statistics"></p-button>
+        </div>
+        
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 1rem; border: 1px solid var(--surface-border); border-radius: 6px; padding: 1rem; background: var(--surface-card);">
+          @if (embeddingStatsLoading) {
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-color-secondary);">
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Loading statistics...</span>
+            </div>
+          } @else if (embeddingStats.length === 0) {
+            <div style="color: var(--text-color-secondary);">No books have been embedded yet.</div>
+          } @else {
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              @for (stat of embeddingStats; track stat.model) {
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid var(--surface-border);">
+                  <span style="font-weight: 500;">
+                    {{ stat.model }}
+                    @if (stat.model !== aiSearchSettings.embeddingModel) {
+                      <span style="color: var(--orange-500); font-size: 0.85rem; margin-left: 0.5rem; font-style: italic;">(Mismatch)</span>
+                    }
+                  </span>
+                  <span>{{ stat.count }} books</span>
                 </div>
               }
             </div>
           }
         </div>
+      </div>
+    </div>
+
+    <!-- AI Search Scan Section -->
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+      <div class="scan-section">
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <h3 style="margin: 0;">Manual Scan</h3>
+          <p style="margin: 0; color: var(--text-color-secondary);">Scan your selected libraries or paths immediately to embed missing books.</p>
+        </div>
 
         <div class="scan-action-row">
           <p-button
-            [icon]="aiSearchPreScanRunning ? 'pi pi-spin pi-spinner' : 'pi pi-bolt'"
-            [label]="aiSearchPreScanRunning ? t('prescan.scanning') : 'Scan Marked'"
-            [severity]="aiSearchPreScanRunning ? 'warn' : 'success'"
-            [disabled]="!aiSearchEnabled || aiSearchPreScanRunning"
-            (onClick)="scanMarkedAiSearch(false)">
-          </p-button>
-          <p-button
-            icon="pi pi-refresh"
-            label="Force Rescan"
-            [severity]="'warn'"
+            icon="pi pi-folder-open"
+            label="Select Paths to Scan"
+            severity="secondary"
             [outlined]="true"
             [disabled]="!aiSearchEnabled || aiSearchPreScanRunning"
-            (onClick)="scanMarkedAiSearch(true)">
+            (onClick)="openDirectoryDialog()">
+          </p-button>
+          <p-button
+            [icon]="aiSearchPreScanRunning ? 'pi pi-spin pi-spinner' : 'pi pi-bolt'"
+            [label]="aiSearchPreScanRunning ? t('prescan.scanning') : 'Scan Now'"
+            [severity]="aiSearchPreScanRunning ? 'warn' : 'success'"
+            [disabled]="!aiSearchEnabled || aiSearchPreScanRunning || selectedLibraryPathIds.length === 0"
+            (onClick)="scanMissingAiSearch()">
           </p-button>
           @if (isAiSearchActivelyScanning) {
             <p-button
@@ -658,6 +694,12 @@
             </p-button>
           }
         </div>
+        
+        @if (selectedLibraryPathIds.length > 0 && !aiSearchPreScanRunning) {
+          <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-color-secondary);">
+            {{ selectedLibraryPathIds.length }} path(s) selected for manual scanning.
+          </div>
+        }
       </div>
 
       @if (aiSearchBatchProgress) {

@@ -45,6 +45,7 @@ export interface AppBookGridSummary {
   hasAiPanelData?: boolean;
   hasAiSearchData?: boolean;
   hasMismatchedAiSearchData?: boolean;
+  aiSearchEmbeddingModel?: string;
   lastReadTime?: string;
   addedOn?: string;
 }

@@ -32,7 +32,7 @@
         <button type="button" class="ai-search-overlay" 
                 [class.mismatched]="book['hasMismatchedAiSearchData']"
                 (click)="openAiSearch($event, book)" 
-                [pTooltip]="book['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model - Re-embed required' : 'AI Search'" 
+                [pTooltip]="book['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model (' + book['aiSearchEmbeddingModel'] + ') - Re-embed required' : 'AI Search (' + book['aiSearchEmbeddingModel'] + ')'"
                 tooltipPosition="top">
           AIS
         </button>
@@ -185,7 +185,7 @@
               <button type="button" class="ai-search-overlay" 
                       [class.mismatched]="viewerBook['hasMismatchedAiSearchData']"
                       (click)="openAiSearch($event, viewerBook)" 
-                      [pTooltip]="viewerBook['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model - Re-embed required' : 'AI Search'" 
+                      [pTooltip]="viewerBook['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model (' + viewerBook['aiSearchEmbeddingModel'] + ') - Re-embed required' : 'AI Search (' + viewerBook['aiSearchEmbeddingModel'] + ')'"
                       tooltipPosition="top">
                 AIS
               </button>

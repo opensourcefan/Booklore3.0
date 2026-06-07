@@ -60,6 +60,7 @@ public class AppBookGridSummary {
     private Boolean hasAiPanelData;
     private Boolean hasAiSearchData;
     private Boolean hasMismatchedAiSearchData;
+    private String aiSearchEmbeddingModel;
     private Instant lastReadTime;
     private Instant addedOn;
 }

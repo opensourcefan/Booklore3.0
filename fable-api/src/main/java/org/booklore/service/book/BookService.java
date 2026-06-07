@@ -277,21 +277,30 @@ public class BookService {
                     (v1, v2) -> v1 // In case of duplicates, keep the first
                 ));
 
+        Map<Long, String> modelMap = statuses.stream()
+                .collect(Collectors.toMap(
+                    org.booklore.repository.projection.AiSearchBookStatusProjection::getBookId,
+                    org.booklore.repository.projection.AiSearchBookStatusProjection::getEmbeddingModel,
+                    (v1, v2) -> v1 // In case of duplicates, keep the first
+                ));
+
         final String activeModel = (aiSearchHealthService != null && aiSearchHealthService.getStatus() != null)
             ? aiSearchHealthService.getStatus().getEmbeddingModel()
             : null;
 
-        books.forEach(book -> {
-            if (book.getId() == null || !embeddedBookModels.containsKey(book.getId())) {
+        for (Book book : books) {
+            String embeddedModel = modelMap.get(book.getId());
+            if (embeddedModel == null) {
                 book.setHasAiSearchData(false);
                 book.setHasMismatchedAiSearchData(false);
+                book.setAiSearchEmbeddingModel(null);
             } else {
                 book.setHasAiSearchData(true);
-                String bookModel = embeddedBookModels.get(book.getId());
-                boolean isMismatch = activeModel != null && bookModel != null && !activeModel.equalsIgnoreCase(bookModel);
+                boolean isMismatch = activeModel != null && !activeModel.equals(embeddedModel);
                 book.setHasMismatchedAiSearchData(isMismatch);
+                book.setAiSearchEmbeddingModel(embeddedModel);
             }
-        });
+        }
     }
 
     private void applyAiSearchFlagsToGridSummaries(List<AppBookGridSummary> summaries, Long userId) {
@@ -323,11 +332,13 @@ public class BookService {
             if (summary.getId() == null || !embeddedBookModels.containsKey(summary.getId())) {
                 summary.setHasAiSearchData(false);
                 summary.setHasMismatchedAiSearchData(false);
+                summary.setAiSearchEmbeddingModel(null);
             } else {
                 summary.setHasAiSearchData(true);
                 String bookModel = embeddedBookModels.get(summary.getId());
                 boolean isMismatch = activeModel != null && bookModel != null && !activeModel.equalsIgnoreCase(bookModel);
                 summary.setHasMismatchedAiSearchData(isMismatch);
+                summary.setAiSearchEmbeddingModel(bookModel);
             }
         });
     }

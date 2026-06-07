@@ -238,6 +238,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected metadataMenuItems: MenuItem[] | undefined;
   protected moreActionsMenuItems: MenuItem[] | undefined;
   protected aiSearchMenuItems: MenuItem[] | undefined;
+
   mediaTypeActionsMenuItems: MenuItem[] = [];
   showSubtitles = false;
   protected gridRenderVersion = 0;
@@ -2155,6 +2156,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
   }
+
 
   attachFilesToBook(): void {
     const currentState = this.bookService.getCurrentBookState();

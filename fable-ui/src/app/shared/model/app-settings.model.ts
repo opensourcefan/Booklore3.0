@@ -276,6 +276,7 @@ export interface AiSearchSettings {
   similarityThreshold: number;
   maxTokens: number;
   temperature: number;
+  autoEmbedLibraryIds: number[];
 }
 
 export interface AiPanelSettings {

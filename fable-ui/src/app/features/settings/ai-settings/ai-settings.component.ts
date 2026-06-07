@@ -7,6 +7,7 @@ import {ToggleSwitch} from 'primeng/toggleswitch';
 import {MessageService} from 'primeng/api';
 import {TranslocoDirective} from '@jsverse/transloco';
 import {Select} from 'primeng/select';
+import {MultiSelect} from 'primeng/multiselect';
 import {TooltipModule} from 'primeng/tooltip';
 import {Subject, Subscription, timer} from 'rxjs';
 import {filter, take, takeUntil} from 'rxjs/operators';
@@ -40,6 +41,7 @@ interface AiStartupEvent {
     ToggleSwitch,
     TranslocoDirective,
     Select,
+    MultiSelect,
     TooltipModule
   ],
   templateUrl: './ai-settings.component.html',
@@ -96,7 +98,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     topK: 10,
     similarityThreshold: 0.25,
     maxTokens: 500,
-    temperature: 0.0
+    temperature: 0.0,
+    autoEmbedLibraryIds: []
   };
   originalAiSearchSettings: string = '';
   aiPanelSettings = {
@@ -125,9 +128,9 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];
   lastStatusCheckedAt: string | null = null;
-  markedBooks: {id: number, title: string, libraryName: string}[] = [];
-  markedBooksExpanded = false;
-  markedBooksLoading = false;
+  embeddingStats: {model: string, count: number}[] = [];
+  embeddingStatsLoading = false;
+  libraryOptions: {label: string, value: number}[] = [];
 
   embeddingModels: AiModel[] = [];
   llmModels: AiModel[] = [];
@@ -152,7 +155,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       this.refreshPanelFlowStats();
       if (this.aiSearchEnabled) {
         this.refreshAiSearchStatus();
-        this.fetchMarkedBooks();
+        this.fetchEmbeddingStats();
         this.loadAiModels();
       }
     });
@@ -162,9 +165,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       .subscribe(state => {
         const validPathIds = new Set<number>();
         const validLibraryIds = new Set<number>();
+        const libs: {label: string, value: number}[] = [];
         for (const library of state.libraries ?? []) {
           if (typeof library.id === 'number') {
             validLibraryIds.add(library.id);
+            libs.push({label: library.name, value: library.id});
           }
           for (const path of library.paths ?? []) {
             if (typeof path.id === 'number') {
@@ -172,6 +177,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
             }
           }
         }
+        this.libraryOptions = libs;
 
         const stored = this.loadPersistedPathIds();
         if (stored !== null) {
@@ -333,16 +339,16 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  fetchMarkedBooks(): void {
-    this.markedBooksLoading = true;
-    this.appSettingsService.getMarkedForAiSearch().subscribe({
-      next: (books) => {
-        this.markedBooks = books;
-        this.markedBooksLoading = false;
+  fetchEmbeddingStats(): void {
+    this.embeddingStatsLoading = true;
+    this.appSettingsService.getAiSearchEmbeddingStats().subscribe({
+      next: (stats) => {
+        this.embeddingStats = stats;
+        this.embeddingStatsLoading = false;
       },
       error: () => {
-        this.markedBooksLoading = false;
-        this.showMessage('error', 'Failed to load', 'Could not load marked books list.');
+        this.embeddingStatsLoading = false;
+        this.showMessage('error', 'Failed to load', 'Could not load embedding statistics.');
       }
     });
   }
@@ -452,13 +458,13 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     this.appSettingsService.stopAiSearchScan().subscribe();
   }
 
-  scanMarkedAiSearch(force: boolean = false): void {
-    if (!this.aiSearchEnabled || this.aiSearchPreScanRunning) {
+  scanMissingAiSearch(): void {
+    if (!this.aiSearchEnabled || !this.selectedLibraryPathIds.length || this.aiSearchPreScanRunning) {
       return;
     }
 
     this.aiSearchPreScanRunning = true;
-    this.appSettingsService.scanMarkedAiSearchData(force).subscribe({
+    this.appSettingsService.scanMissingAiSearchData(this.selectedLibraryPathIds).subscribe({
       next: result => {
         this.aiSearchPreScanRunning = result.status === 'STARTED';
         this.showMessage(

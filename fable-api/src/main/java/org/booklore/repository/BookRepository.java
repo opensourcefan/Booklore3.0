@@ -581,6 +581,9 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query(value = "DELETE FROM book_embeddings WHERE book_id IN :bookIds AND user_id = :userId", nativeQuery = true)
     int deleteBookEmbeddings(@Param("bookIds") Collection<Long> bookIds, @Param("userId") Long userId);
 
+    @Query(value = "SELECT e.embedding_model as model, count(distinct e.book_id) as count FROM book_embeddings e WHERE e.user_id = :userId GROUP BY e.embedding_model", nativeQuery = true)
+    List<org.booklore.repository.projection.EmbeddingStatsProjection> getEmbeddingStats(@Param("userId") Long userId);
+
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
     long countNonDeleted();
 

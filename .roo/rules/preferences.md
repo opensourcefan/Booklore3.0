@@ -2,6 +2,12 @@
 paths: ["**/*"]
 ---
 
+## Database Safety:
+
+- You are NEVER allowed to delete anything from any database WITHOUT asking for permission AND obtaining confirmation. 
+
+## General:
+
 - After pushing, provide a numbered fix summary matching the user's task order, in the built in browser.
 - For frontend interaction regressions, prefer DOM-backed mock tests that verify real click behavior and the presence or absence of directives, not only component state.
 - Do not push unless explicitly stated to do so in the most recent task or subtask.

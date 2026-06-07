@@ -151,8 +151,19 @@ REMOTE_USER_PASSWORD=ChangeMe@$@P
 # Storage type: LOCAL (default) or NETWORK (all data written to MariaDB only)
 #DISK_TYPE=NETWORK
 
+##################################################################
+#                                                                #
+#    ###  ###     #### ##### ##### ##### ### #   #  ###   ####   #
+#   #   #  #     #     #       #     #    #  ##  # #     #       #
+#   #####  #      ###  ####    #     #    #  # # # #  ##  ###    #
+#   #   #  #         # #       #     #    #  #  ## #   #     #   #
+#   #   # ###    ####  #####   #     #   ### #   #  ###  ####    #
+#                                                                # 
+##################################################################
+
 # AI Features: Panel Detection & Semantic Search
-# Optional — completely remove or comment out these lines to disable all AI features.
+# Optional — completely remove or comment (#)out these lines to disable all AI features.
+
 # 1. Tell docker-compose to start the AI containers
 COMPOSE_PROFILES=ai
 
@@ -166,7 +177,7 @@ AI_SEARCH_PORT=18081
 
 #### ---- AI Settings ----
 #### AI models are now configured directly inside the Fable UI!
-#### Go to Settings -> AI Panel Detection / AI Search to set your models,
+#### Go to Settings -> AI / AI Search to set your models,
 #### API keys, and external endpoints (Zero-Config Architecture).
 ```
 
