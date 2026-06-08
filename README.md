@@ -300,7 +300,36 @@ If you already have Fable running and want to add AI Semantic Search, follow the
 
 #### Step 1: Update your `docker-compose.yml`
 
-Add the `fable-ai-search` service block from the [sample compose file](#sample-docker-composeyml) to your existing `docker-compose.yml`.
+Copy the lines below into your existing `docker-compose.yml` file. Paste them under the `services:` section, right after the `app-ai-panel` entry (or after `mariadb` if you don't use panel detection):
+
+```yaml
+  fable-ai-search:
+    image: ${AI_SEARCH_IMAGE:-ghcr.io/opensourcefan/fable-search-ai:stable}
+    container_name: fable-ai-search
+    profiles: ["ai"]
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_NAME=${MYSQL_DATABASE}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./data/ai-search-models:/models
+    ports:
+      - "${AI_SEARCH_PORT:-18081}:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - fable_shared
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+```
 
 #### Step 2: Update your `.env` file
 
