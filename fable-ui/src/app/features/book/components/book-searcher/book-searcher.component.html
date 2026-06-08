@@ -28,11 +28,11 @@
       <p-button
         icon="pi pi-sparkles"
         class="ai-search-inner-btn"
-        [ngClass]="{'status-warming': searchStatus === 'warming', 'status-error': searchStatus === 'load_failed'}"
+        [ngClass]="{'status-starting': searchStatus === 'STARTING', 'status-error': searchStatus === 'ERROR'}"
         [text]="true"
         [rounded]="true"
         (click)="openAiSearch()"
-        [pTooltip]="searchStatus === 'warming' ? 'AI Search: Downloading Model...' : (searchStatus === 'load_failed' ? 'AI Search Unavailable' : 'AI Search')"
+        [pTooltip]="searchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (searchStatus === 'ERROR' ? 'AI Search Unavailable' : 'AI Search')"
         tooltipPosition="bottom"
       ></p-button>
     }

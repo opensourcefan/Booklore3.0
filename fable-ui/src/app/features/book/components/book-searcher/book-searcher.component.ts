@@ -53,7 +53,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   private appSettingsService = inject(AppSettingsService);
 
   aiSearchEnabled = false;
-  searchStatus: 'ok' | 'warming' | 'load_failed' = 'ok';
+  searchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
   private appSettingsSub?: Subscription;
   private pollingSub?: Subscription;
 
@@ -105,7 +105,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
         catchError(() => of({ status: 'load_failed' }))
       ).subscribe((res) => {
         if (res && res.status) {
-          this.searchStatus = res.status as 'ok' | 'warming' | 'load_failed';
+          this.searchStatus = res.status as 'READY' | 'STARTING' | 'ERROR';
         }
       });
     };

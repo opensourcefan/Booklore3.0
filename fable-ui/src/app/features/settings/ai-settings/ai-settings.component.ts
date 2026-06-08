@@ -72,14 +72,16 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     { label: 'Minimal (all-MiniLM-L6-v2) - ~1.2GB RAM', value: 'all-MiniLM-L6-v2', isDefault: false },
     { label: 'Standard (BAAI/bge-small-en-v1.5) - ~3.5GB RAM', value: 'BAAI/bge-small-en-v1.5', isDefault: false },
     { label: 'Enhanced (BAAI/bge-base-en-v1.5) - ~5.5GB RAM (System Default)', value: 'BAAI/bge-base-en-v1.5', isDefault: true },
-    { label: 'Premium (BAAI/bge-large-en-v1.5) - ~7.0GB RAM', value: 'BAAI/bge-large-en-v1.5', isDefault: false }
+    { label: 'Premium (BAAI/bge-large-en-v1.5) - ~7.0GB RAM', value: 'BAAI/bge-large-en-v1.5', isDefault: false },
+    { label: 'Custom (type your own model ID)', value: '__custom__', isDefault: false }
   ];
 
   llmModelOptions = [
     { label: 'Minimal (qwen2.5:0.5b) - Basic keyword search', value: 'qwen2.5:0.5b', isDefault: false },
     { label: 'Standard (qwen2.5:1.5b) - Smart conversational answers (System Default)', value: 'qwen2.5:1.5b', isDefault: true },
     { label: 'Enhanced (llama3.2) - Detailed and smart', value: 'llama3.2', isDefault: false },
-    { label: 'Premium (phi3:mini) - Deep expert-level answers', value: 'phi3:mini', isDefault: false }
+    { label: 'Premium (phi3:mini) - Deep expert-level answers', value: 'phi3:mini', isDefault: false },
+    { label: 'Custom (type your own model name)', value: '__custom__', isDefault: false }
   ];
 
   appSettings$ = this.appSettingsService.appSettings$;
@@ -812,6 +814,13 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   saveAiSearchSettings(): void {
+    // Normalize: '__custom__' means user hasn't typed a custom model yet
+    if (this.aiSearchSettings.embeddingModel === '__custom__') {
+      this.aiSearchSettings.embeddingModel = '';
+    }
+    if (this.aiSearchSettings.llmModel === '__custom__') {
+      this.aiSearchSettings.llmModel = '';
+    }
     this.saveRunning = true;
     this.appSettingsService
       .saveSettings([{key: AppSettingKey.AI_SEARCH_SETTINGS, newValue: this.aiSearchSettings}])

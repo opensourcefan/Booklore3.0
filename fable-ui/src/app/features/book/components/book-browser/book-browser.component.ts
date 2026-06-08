@@ -18,8 +18,8 @@ import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {BookService, RemoveFromLibraryMode} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
-import {debounceTime, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
-import {BehaviorSubject, combineLatest, Observable, of, Subject, Subscription} from 'rxjs';
+import {catchError, debounceTime, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, interval, Observable, of, Subject, Subscription} from 'rxjs';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Library} from '../../model/library.model';
 import {Shelf} from '../../model/shelf.model';
@@ -210,6 +210,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private visibleBookIds = new Set<number>();
   allowFileDeletion = false;
   aiSearchEnabled = false;
+  aiSearchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
+  private aiSearchPollingSub?: Subscription;
   isSelectionActionPanelOpen = false;
 
   // Cover preview state
@@ -595,6 +597,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.forceCloseMobileRightSidebar(false);
     this.clearHoverPreviewTimer();
     this.pagedGridPilotService.resetActiveQuery();
+    this.stopAiStatusPolling();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -648,6 +651,31 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
   openAiSearch(): void {
     this.aiSearchDialogService.open();
+  }
+
+  private startAiStatusPolling(): void {
+    if (this.aiSearchPollingSub) return;
+    
+    const fetchStatus = () => {
+      this.appSettingsService.getAiSearchServiceStatus().pipe(
+        catchError(() => of({ status: 'ERROR' }))
+      ).subscribe((res) => {
+        if (res && res.status) {
+          this.aiSearchStatus = res.status as 'READY' | 'STARTING' | 'ERROR';
+          this.cdr.markForCheck();
+        }
+      });
+    };
+    
+    fetchStatus();
+    this.aiSearchPollingSub = interval(5000).subscribe(() => fetchStatus());
+  }
+
+  private stopAiStatusPolling(): void {
+    if (this.aiSearchPollingSub) {
+      this.aiSearchPollingSub.unsubscribe();
+      this.aiSearchPollingSub = undefined;
+    }
   }
 
   private getScrollPositionKey(): string {
@@ -798,6 +826,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe(settings => {
         this.allowFileDeletion = settings?.allowFileDeletion ?? false;
         this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+        if (this.aiSearchEnabled) {
+          this.startAiStatusPolling();
+        } else {
+          this.stopAiStatusPolling();
+        }
         this.cdr.markForCheck();
       });
   }

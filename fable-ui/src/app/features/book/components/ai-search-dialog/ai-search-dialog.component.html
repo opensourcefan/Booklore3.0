@@ -100,9 +100,9 @@
                 }
               </div>
             } @else if (msg.results && msg.results.length > 0) {
-              <div class="ai-search-answer ai-search-local-results">
+              <div class="ai-search-answer ai-search-raw-results">
                 <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
-                  <span class="ai-search-answer-badge">Local Results</span>
+                  <span class="ai-search-answer-badge">Raw Results</span>
                   <div style="display: flex; gap: 0.5rem;">
                     <p-button icon="pi pi-book" [text]="true" [rounded]="true" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
                     <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
@@ -160,11 +160,11 @@
   <ng-template pTemplate="footer">
     <div class="ai-search-input-row" style="display: flex; gap: 0.5rem; width: 100%; padding-top: 0.5rem; align-items: center;">
       <p-button
-        [label]="localOnly ? 'Local' : 'AI'"
-        [icon]="localOnly ? 'pi pi-map-marker' : 'pi pi-sparkles'"
+        [label]="localOnly ? 'Raw' : 'AI'"
+        [icon]="localOnly ? 'pi pi-list' : 'pi pi-sparkles'"
         [severity]="localOnly ? 'success' : 'info'"
         [outlined]="true"
-        [pTooltip]="localOnly ? 'Local Only: Search your library directly' : 'AI + Local: Search your library and generate an AI answer'"
+        [pTooltip]="localOnly ? 'Raw: Search your library directly (no AI synthesis)' : 'AI + Raw: Search your library and generate an AI answer'"
         tooltipPosition="top"
         (onClick)="localOnly = !localOnly">
       </p-button>

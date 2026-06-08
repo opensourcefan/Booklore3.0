@@ -456,16 +456,16 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   }
 
   private getAiSearchInfoMarkdown(): string {
-    return `### The Real Value of Local Mode
+    return `### The Real Value of Raw Mode
 
-Local mode is for when you want to discover what your library contains without knowing the exact terminology an author used. You can search for broad concepts ("medieval warfare tactics", "cognitive biases in decision making", "cocktails with rum") and find relevant passages across dozens of books simultaneously — something Ctrl+F can never do because it doesn't understand that "rum-based drinks" and "cocktails with rum" are the same thing.
+Raw mode is for when you want to discover what your library contains without knowing the exact terminology an author used. You can search for broad concepts ("medieval warfare tactics", "cognitive biases in decision making", "cocktails with rum") and find relevant passages across dozens of books simultaneously — something Ctrl+F can never do because it doesn't understand that "rum-based drinks" and "cocktails with rum" are the same thing.
 
-The AI mode goes one step further by having an LLM read those matched passages and synthesize a coherent answer. Local mode stops at retrieval — it hands you the raw passages and lets you do the synthesis yourself.
+The AI mode goes one step further by having an LLM read those matched passages and synthesize a coherent answer. Raw mode stops at retrieval — it hands you the raw passages and lets you do the synthesis yourself.
 
 
 ### The Real Value of AI Mode
 
-AI mode combines semantic search with LLM-powered synthesis. Instead of just retrieving matching passages like Local mode, AI mode reads those passages and generates a coherent, cited answer that connects information across multiple books. This is valuable when you want a direct answer rather than raw excerpts.
+AI mode combines semantic search with LLM-powered synthesis. Instead of just retrieving matching passages like Raw mode, AI mode reads those passages and generates a coherent, cited answer that connects information across multiple books. This is valuable when you want a direct answer rather than raw excerpts.
 
 For example, searching "What do my books say about the history of coffee?" will return a synthesized summary with citations to specific passages, saving you from manually piecing together information from dozens of individual chunks.
 
@@ -501,8 +501,8 @@ You can set Temperature from 0.0–1.0. The default is 0.1 (very deterministic).
 4. **Configurable Similarity Threshold (Settings → AI Search)**
 The Similarity Threshold (default 0.3, range 0.1–0.9) controls how strict the semantic match must be. Raising it (e.g., to 0.5–0.7) means only strongly relevant chunks reach the LLM, reducing the chance it fabricates from weak context.
 
-5. **Local-Only Mode (Per-Query Toggle)**
-The Local / AI toggle button in the search dialog completely bypasses the LLM. When toggled to "Local," the backend skips answer generation entirely. You get only the raw matching passages — zero hallucination risk.
+5. **Raw-Only Mode (Per-Query Toggle)**
+The Raw / AI toggle button in the search dialog completely bypasses the LLM. When toggled to "Raw," the backend skips answer generation entirely. You get only the raw matching passages — zero hallucination risk.
 
 ### Recommended Configuration for Maximum Integrity
 
@@ -511,9 +511,9 @@ The Local / AI toggle button in the search dialog completely bypasses the LLM. W
 | Temperature | 0.0 | Eliminates creative token selection |
 | Similarity Threshold | 0.5–0.7 | Only strongly relevant context reaches the LLM |
 | Top K | 3–5 | Less context = less room to confabulate |
-| Local-Only toggle | On | Zero LLM involvement, raw passages only |
+| Raw-Only toggle | On | Zero LLM involvement, raw passages only |
 
-There is no additional "strict/grounded-only" mode beyond these controls. The system prompt grounding + low temperature + high similarity threshold + the local-only escape hatch form the complete anti-hallucination strategy.`;
+There is no additional "strict/grounded-only" mode beyond these controls. The system prompt grounding + low temperature + high similarity threshold + the raw-only escape hatch form the complete anti-hallucination strategy.`;
   }
 
   ngOnDestroy(): void {

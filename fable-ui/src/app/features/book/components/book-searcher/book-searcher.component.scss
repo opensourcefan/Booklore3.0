@@ -81,7 +81,7 @@
     }
   }
   
-  &.status-warming {
+  &.status-starting {
     ::ng-deep .p-button-icon {
       color: #ffa726 !important;
       animation: pulse-orange 2s infinite ease-in-out;
@@ -94,7 +94,7 @@
     }
   }
   
-  &:hover:not(.status-warming):not(.status-error) {
+  &:hover:not(.status-starting):not(.status-error) {
     ::ng-deep .p-button-icon {
       text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
     }

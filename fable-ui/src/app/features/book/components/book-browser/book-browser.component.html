@@ -397,10 +397,11 @@
                   <p-button
                     icon="pi pi-sparkles"
                     class="ai-search-inner-btn"
+                    [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR'}"
                     [text]="true"
                     [rounded]="true"
                     (click)="openAiSearch(); searchDropdown.hide()"
-                    pTooltip="AI Search"
+                    [pTooltip]="aiSearchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (aiSearchStatus === 'ERROR' ? 'AI Search Unavailable' : 'AI Search')"
                     tooltipPosition="bottom"
                   ></p-button>
                 }
@@ -434,10 +435,11 @@
               <p-button
                 icon="pi pi-sparkles"
                 class="ai-search-inner-btn"
+                [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR'}"
                 [text]="true"
                 [rounded]="true"
                 (click)="openAiSearch()"
-                pTooltip="AI Search"
+                [pTooltip]="aiSearchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (aiSearchStatus === 'ERROR' ? 'AI Search Unavailable' : 'AI Search')"
                 tooltipPosition="bottom"
               ></p-button>
             }
