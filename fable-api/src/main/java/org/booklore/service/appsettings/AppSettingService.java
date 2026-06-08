@@ -392,7 +392,6 @@ public class AppSettingService {
         builder.opdsServerEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.OPDS_SERVER_ENABLED, "false")));
         builder.komgaApiEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.KOMGA_API_ENABLED, "false")));
         builder.komgaGroupUnknown(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.KOMGA_GROUP_UNKNOWN, "true")));
-        builder.telemetryEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.TELEMETRY_ENABLED, "true")));
         builder.aiPanelDetectionEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.AI_PANEL_DETECTION_ENABLED, "false")));
         builder.aiSearchEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.AI_SEARCH_ENABLED, "false")));
         builder.aiPanelSettings(settingPersistenceHelper.getJsonSetting(settingsMap, AppSettingKey.AI_PANEL_SETTINGS, AiPanelSettings.class, new AiPanelSettings(), true));

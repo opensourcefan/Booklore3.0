@@ -202,7 +202,6 @@ services:
       - DATABASE_USERNAME=${DB_USER}
       - DATABASE_PASSWORD=${DB_PASSWORD}
       - DISK_TYPE=${DISK_TYPE}
-      - TELEMETRY_ENABLED=false
       - AI_SERVICE_BASE_URL=${AI_SERVICE_BASE_URL:-http://app-ai-panel:8080}
       - AI_SEARCH_SERVICE_BASE_URL=${AI_SEARCH_SERVICE_BASE_URL:-http://fable-ai-search:8080}
     ports:
@@ -297,7 +296,15 @@ networks:
 
 ### Adding AI Search to an Existing Installation
 
-If you already have Fable running and want to add AI Semantic Search, add the `fable-ai-search` service block above to your existing `docker-compose.yml`, then add these lines to your `.env` file:
+If you already have Fable running and want to add AI Semantic Search, follow these steps. Your existing database, books, and settings are preserved — the AI search service connects to the same MariaDB instance and stores embeddings in a separate table.
+
+#### Step 1: Update your `docker-compose.yml`
+
+Add the `fable-ai-search` service block from the [sample compose file](#sample-docker-composeyml) to your existing `docker-compose.yml`.
+
+#### Step 2: Update your `.env` file
+
+Add these lines to your `.env`:
 
 ```ini
 COMPOSE_PROFILES=ai
@@ -305,14 +312,50 @@ AI_SEARCH_SERVICE_BASE_URL=http://fable-ai-search:8080
 AI_SEARCH_PORT=18081
 ```
 
-Then pull and start the new service:
+#### Step 3: Pull and start the new service safely
+
+**If your existing containers are running**, use this approach to avoid "container already exists" and "port already bound" errors:
 
 ```bash
+# Pull the new AI search image
 docker compose pull fable-ai-search
-docker compose up -d fable-ai-search
+
+# Stop only the main Fable container (preserves MariaDB and your data)
+docker compose stop fable
+
+# Bring everything back up, including the new AI search service
+docker compose --profile ai up -d
+
+# Verify all containers are healthy
+docker compose ps
 ```
 
-Your existing database and settings are not affected — the AI search service connects to the same MariaDB instance and stores embeddings in a separate table.
+**If you get a "port is already allocated" error**, check if anything else is using port 18081:
+
+```bash
+# Check what's using the AI search port
+sudo ss -tlnp | grep 18081
+
+# If the port is in use, change AI_SEARCH_PORT in your .env to an available port:
+# AI_SEARCH_PORT=18082
+```
+
+**If you get a "container already exists" error**, remove the stale container reference:
+
+```bash
+# Remove the old container (data volumes are unaffected)
+docker rm fable-ai-search 2>/dev/null || true
+
+# Then start fresh
+docker compose --profile ai up -d
+```
+
+#### Step 4: Enable AI Search in the UI
+
+1. Open **Settings > AI**
+2. Enable **AI Semantic Search**
+3. Wait for the status to show **READY**
+4. Embed your books: Click the three dots on any book card → **Embed for AI Search**
 
 ---
 

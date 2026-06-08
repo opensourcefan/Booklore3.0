@@ -35,7 +35,6 @@ export class GlobalPreferencesComponent implements OnInit {
   toggles = {
     autoBookSearch: false,
     similarBookRecommendation: false,
-    enableTelemetry: true,
     allowFileDeletion: false,
   };
 
@@ -81,7 +80,6 @@ export class GlobalPreferencesComponent implements OnInit {
       }
       this.toggles.autoBookSearch = settings.autoBookSearch ?? false;
       this.toggles.similarBookRecommendation = settings.similarBookRecommendation ?? false;
-      this.toggles.enableTelemetry = settings?.telemetryEnabled ?? true;
       this.toggles.allowFileDeletion = settings?.allowFileDeletion ?? false;
     });
   }
@@ -91,7 +89,6 @@ export class GlobalPreferencesComponent implements OnInit {
     const toggleKeyMap: Record<string, AppSettingKey> = {
       autoBookSearch: AppSettingKey.AUTO_BOOK_SEARCH,
       similarBookRecommendation: AppSettingKey.SIMILAR_BOOK_RECOMMENDATION,
-      enableTelemetry: AppSettingKey.TELEMETRY_ENABLED,
       allowFileDeletion: AppSettingKey.ALLOW_FILE_DELETION,
     };
     const keyToSend = toggleKeyMap[settingKey];
