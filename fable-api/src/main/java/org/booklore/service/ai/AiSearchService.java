@@ -16,7 +16,9 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.jsoup.Jsoup;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -664,6 +666,16 @@ public class AiSearchService {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAiSearch().getReadTimeoutMs());
-        return RestClient.builder().requestFactory(factory).build();
+
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setSupportedMediaTypes(java.util.List.of(
+                MediaType.APPLICATION_JSON,
+                MediaType.APPLICATION_OCTET_STREAM
+        ));
+
+        return RestClient.builder()
+                .requestFactory(factory)
+                .messageConverters(converters -> converters.add(0, converter))
+                .build();
     }
 }

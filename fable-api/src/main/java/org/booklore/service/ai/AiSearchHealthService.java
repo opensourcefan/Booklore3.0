@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.booklore.config.AppProperties;
 import org.booklore.model.dto.ai.AiServiceStatus;
 import org.booklore.service.appsettings.AppSettingService;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -36,9 +38,7 @@ public class AiSearchHealthService {
         }
 
         try {
-            RestClient restClient = RestClient.builder()
-                    .requestFactory(buildRequestFactory())
-                    .build();
+            RestClient restClient = buildRestClient();
 
             @SuppressWarnings("unchecked")
             Map<String, Object> healthPayload = restClient.get()
@@ -178,9 +178,7 @@ public class AiSearchHealthService {
             return Map.of("triggered", false, "reason", "AI Search is disabled.");
         }
         try {
-            RestClient restClient = RestClient.builder()
-                    .requestFactory(buildRequestFactory())
-                    .build();
+            RestClient restClient = buildRestClient();
             String baseUrl = appProperties.getAiSearch().getBaseUrl();
             @SuppressWarnings("unchecked")
             Map<String, Object> result = restClient.post()
@@ -193,10 +191,20 @@ public class AiSearchHealthService {
         }
     }
 
-    private SimpleClientHttpRequestFactory buildRequestFactory() {
+    private RestClient buildRestClient() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAiSearch().getReadTimeoutMs());
-        return factory;
+
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setSupportedMediaTypes(java.util.List.of(
+                MediaType.APPLICATION_JSON,
+                MediaType.APPLICATION_OCTET_STREAM
+        ));
+
+        return RestClient.builder()
+                .requestFactory(factory)
+                .messageConverters(converters -> converters.add(0, converter))
+                .build();
     }
 }
