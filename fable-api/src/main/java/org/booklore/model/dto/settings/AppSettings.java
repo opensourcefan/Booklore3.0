@@ -26,6 +26,7 @@ public class AppSettings {
     private boolean remoteAuthEnabled;
     private boolean metadataDownloadOnBookdrop;
     private boolean oidcEnabled;
+    private boolean telemetryEnabled;
     private boolean aiPanelDetectionEnabled;
     private boolean aiSearchEnabled;
     private OidcProviderDetails oidcProviderDetails;
