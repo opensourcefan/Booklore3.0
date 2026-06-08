@@ -9,7 +9,7 @@ import {UserService} from '../../../settings/user-management/user.service';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Router} from '@angular/router';
 import {AiSearchChunkResult} from '../../../../shared/model/app-settings.model';
-import {Subscription, Subject} from 'rxjs';
+import {BehaviorSubject, Subscription, Subject} from 'rxjs';
 import {TooltipModule} from 'primeng/tooltip';
 import {Popover} from 'primeng/popover';
 import {MessageService} from 'primeng/api';
@@ -31,6 +31,9 @@ export interface ChatMessage {
 export class AiSearchDialogService {
   private openCommand = new Subject<number | null>();
   openCommand$ = this.openCommand.asObservable();
+
+  /** Emits true while a search HTTP request is in-flight, false when complete/errored. */
+  searchActive$ = new BehaviorSubject<boolean>(false);
 
   private readonly STORAGE_KEY = 'fable_ai_search_cache';
 
@@ -295,6 +298,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     this.hasSearched = true;
+    this.aiSearchDialogService.searchActive$.next(true);
 
     // Create a new message block for the UI
     const currentMessage: ChatMessage = {
@@ -345,6 +349,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         currentMessage.isLoading = false;
         currentMessage.results = result.results || [];
         currentMessage.answer = result.answer || null;
+        this.aiSearchDialogService.searchActive$.next(false);
         
         // Capture backend diagnostic errors (e.g., dimension mismatch)
         this.lastError = result.error || null;
@@ -365,6 +370,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         currentMessage.isLoading = false;
         currentMessage.results = [];
         this.lastError = err?.error?.message || err?.message || 'Could not reach the AI Search service. Is the container running?';
+        this.aiSearchDialogService.searchActive$.next(false);
         this.saveStateToCache();
       },
     });

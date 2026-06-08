@@ -211,6 +211,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   allowFileDeletion = false;
   aiSearchEnabled = false;
   aiSearchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
+  isAiSearchActive = false;
   private aiSearchPollingSub?: Subscription;
   isSelectionActionPanelOpen = false;
 
@@ -831,6 +832,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
           this.stopAiStatusPolling();
         }
+        this.cdr.markForCheck();
+      });
+
+    this.aiSearchDialogService.searchActive$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(active => {
+        this.isAiSearchActive = active;
         this.cdr.markForCheck();
       });
   }

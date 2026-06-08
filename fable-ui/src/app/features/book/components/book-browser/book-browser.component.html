@@ -397,7 +397,7 @@
                   <p-button
                     icon="pi pi-sparkles"
                     class="ai-search-inner-btn"
-                    [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR'}"
+                    [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive}"
                     [text]="true"
                     [rounded]="true"
                     (click)="openAiSearch(); searchDropdown.hide()"
@@ -435,7 +435,7 @@
               <p-button
                 icon="pi pi-sparkles"
                 class="ai-search-inner-btn"
-                [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR'}"
+                [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive}"
                 [text]="true"
                 [rounded]="true"
                 (click)="openAiSearch()"

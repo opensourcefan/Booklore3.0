@@ -43,6 +43,14 @@
   scrollbar-color: var(--p-surface-500) transparent;
 }
 
+.ai-search-detail-actions {
+  ::ng-deep .p-button:focus-visible,
+  ::ng-deep .p-button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
 .ai-search-input-row {
   display: flex;
   gap: 0.5rem;
@@ -209,6 +217,12 @@
   gap: 1rem;
   max-height: 65vh;
   overflow-y: auto;
+
+  ::ng-deep .p-button:focus-visible,
+  ::ng-deep .p-button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }
 
 .ai-search-answer {
@@ -222,6 +236,12 @@
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: #3b82f6;
+
+    ::ng-deep .p-button:focus-visible,
+    ::ng-deep .p-button:focus {
+      outline: none !important;
+      box-shadow: none !important;
+    }
   }
 
   .ai-search-answer-badge {

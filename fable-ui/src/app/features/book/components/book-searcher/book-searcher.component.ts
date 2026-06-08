@@ -54,8 +54,10 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
 
   aiSearchEnabled = false;
   searchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
+  isSearchActive = false;
   private appSettingsSub?: Subscription;
   private pollingSub?: Subscription;
+  private searchActiveSub?: Subscription;
 
   ngOnInit(): void {
     this.#subscription = this.#searchSubject.pipe(
@@ -85,6 +87,10 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
         this.activeIndex = -1;
         this.books = books;
       }
+    });
+
+    this.searchActiveSub = this.aiSearchDialogService.searchActive$.subscribe(active => {
+      this.isSearchActive = active;
     });
 
     this.appSettingsSub = this.appSettingsService.appSettings$.subscribe(settings => {
@@ -203,6 +209,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     if (this.appSettingsSub) {
       this.appSettingsSub.unsubscribe();
     }
+    this.searchActiveSub?.unsubscribe();
     this.stopAiStatusPolling();
   }
 }

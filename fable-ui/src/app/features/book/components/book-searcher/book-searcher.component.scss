@@ -76,8 +76,7 @@
 
     .p-button-icon {
       font-size: 1.1rem;
-      color: #00d2ff !important;
-      transition: color 0.3s ease, text-shadow 0.3s ease;
+      color: #00d2ff;
     }
   }
   
@@ -94,22 +93,44 @@
     }
   }
   
-  &:hover:not(.status-starting):not(.status-error) {
+  &.status-searching {
+    ::ng-deep .p-button-icon {
+      animation: pulse-blue 1.2s infinite ease-in-out;
+    }
+  }
+
+  &:hover:not(.status-starting):not(.status-error):not(.status-searching) {
     ::ng-deep .p-button-icon {
       text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
+      transition: text-shadow 0.3s ease;
     }
   }
 }
 
 @keyframes pulse-orange {
   0% {
-    text-shadow: 0 0 4px rgba(255, 167, 38, 0.4);
+    text-shadow: 0 0 3px rgba(255, 167, 38, 0.4);
   }
   50% {
-    text-shadow: 0 0 12px rgba(255, 167, 38, 0.8);
+    text-shadow: 0 0 8px rgba(255, 167, 38, 0.8);
   }
   100% {
-    text-shadow: 0 0 4px rgba(255, 167, 38, 0.4);
+    text-shadow: 0 0 3px rgba(255, 167, 38, 0.4);
+  }
+}
+
+@keyframes pulse-blue {
+  0% {
+    color: #00d2ff;
+    filter: drop-shadow(0 0 2px rgba(0, 210, 255, 0.3));
+  }
+  50% {
+    color: #2196F3;
+    filter: drop-shadow(0 0 14px rgba(33, 150, 243, 0.95)) drop-shadow(0 0 28px rgba(33, 150, 243, 0.4));
+  }
+  100% {
+    color: #00d2ff;
+    filter: drop-shadow(0 0 2px rgba(0, 210, 255, 0.3));
   }
 }
 

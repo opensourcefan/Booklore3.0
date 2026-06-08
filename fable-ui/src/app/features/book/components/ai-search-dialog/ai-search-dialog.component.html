@@ -2,6 +2,7 @@
 <p-dialog
   [(visible)]="visible"
   [modal]="true"
+  [focusOnShow]="false"
   [dismissableMask]="false"
   [closable]="false"
   [closeOnEscape]="false"
@@ -17,7 +18,7 @@
         @if (hasSearched) {
           <p-button icon="pi pi-undo" [text]="true" [rounded]="true" (onClick)="clearResults()" [pTooltip]="t('clearResults')"></p-button>
         }
-        <p-button icon="pi pi-times" [text]="true" [rounded]="true" (onClick)="close()" [pTooltip]="t('close')"></p-button>
+        <p-button icon="pi pi-chevron-down" [text]="true" [rounded]="true" (onClick)="close()" pTooltip="Minimize — search continues in background"></p-button>
       </div>
     </div>
   </ng-template>
@@ -201,6 +202,7 @@
 <p-dialog
   [visible]="!!selectedResult"
   [modal]="true"
+  [focusOnShow]="false"
   [draggable]="false"
   [resizable]="false"
   [header]="selectedResult?.bookTitle || 'Result Details'"
