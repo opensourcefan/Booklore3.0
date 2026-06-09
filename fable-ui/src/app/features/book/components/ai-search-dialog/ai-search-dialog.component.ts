@@ -35,6 +35,12 @@ export class AiSearchDialogService {
   /** Emits true while a search HTTP request is in-flight, false when complete/errored. */
   searchActive$ = new BehaviorSubject<boolean>(false);
 
+  /** Emits true when the last search resulted in an error or returned no results. */
+  searchError$ = new BehaviorSubject<boolean>(false);
+
+  /** Emits true when the AI search dialog is visible (open/focused). */
+  dialogVisible$ = new BehaviorSubject<boolean>(false);
+
   private readonly STORAGE_KEY = 'fable_ai_search_cache';
 
   cachedSearchQuery = '';
@@ -85,6 +91,8 @@ export class AiSearchDialogService {
   }
 
   open(bookId: number | null = null) {
+    this.searchError$.next(false);
+    this.dialogVisible$.next(true);
     this.openCommand.next(bookId);
   }
 }
@@ -200,11 +208,13 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   open(bookId: number | null = null): void {
     this.singleBookId = bookId;
     this.visible = true;
+    this.aiSearchDialogService.dialogVisible$.next(true);
     this.saveStateToCache();
   }
 
   close(): void {
     this.visible = false;
+    this.aiSearchDialogService.dialogVisible$.next(false);
     this.saveStateToCache();
   }
 
@@ -299,6 +309,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.hasSearched = true;
     this.aiSearchDialogService.searchActive$.next(true);
+    this.aiSearchDialogService.searchError$.next(false);
 
     // Create a new message block for the UI
     const currentMessage: ChatMessage = {
@@ -350,9 +361,12 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         currentMessage.results = result.results || [];
         currentMessage.answer = result.answer || null;
         this.aiSearchDialogService.searchActive$.next(false);
-        
-        // Capture backend diagnostic errors (e.g., dimension mismatch)
-        this.lastError = result.error || null;
+
+        // Emit search error if the backend returned an error or no results
+        const backendError = result.error || null;
+        this.lastError = backendError;
+        const hasResults = result.results && result.results.length > 0;
+        this.aiSearchDialogService.searchError$.next(!!(backendError || !hasResults));
 
         // Update top-level variables for backward compatibility if needed in UI
         this.results = currentMessage.results;
@@ -371,6 +385,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         currentMessage.results = [];
         this.lastError = err?.error?.message || err?.message || 'Could not reach the AI Search service. Is the container running?';
         this.aiSearchDialogService.searchActive$.next(false);
+        this.aiSearchDialogService.searchError$.next(true);
         this.saveStateToCache();
       },
     });

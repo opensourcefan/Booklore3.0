@@ -397,11 +397,11 @@
                   <p-button
                     icon="pi pi-sparkles"
                     class="ai-search-inner-btn"
-                    [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive}"
+                    [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive, 'status-search-error': isAiSearchError}"
                     [text]="true"
                     [rounded]="true"
-                    (click)="openAiSearch(); searchDropdown.hide()"
-                    [pTooltip]="aiSearchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (aiSearchStatus === 'ERROR' ? 'AI Search Unavailable' : 'AI Search')"
+                    (click)="openAiSearch(); searchDropdown.hide(); isAiSearchError = false"
+                    [pTooltip]="aiSearchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (aiSearchStatus === 'ERROR' ? 'AI Search Unavailable' : (isAiSearchActive ? 'AI Search: Searching...' : (isAiSearchError ? 'AI Search: No results - click to retry' : 'AI Search')))"
                     tooltipPosition="bottom"
                   ></p-button>
                 }
@@ -435,11 +435,11 @@
               <p-button
                 icon="pi pi-sparkles"
                 class="ai-search-inner-btn"
-                [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive}"
+                [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive, 'status-search-error': isAiSearchError}"
                 [text]="true"
                 [rounded]="true"
-                (click)="openAiSearch()"
-                [pTooltip]="aiSearchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (aiSearchStatus === 'ERROR' ? 'AI Search Unavailable' : 'AI Search')"
+                (click)="openAiSearch(); isAiSearchError = false"
+                [pTooltip]="aiSearchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (aiSearchStatus === 'ERROR' ? 'AI Search Unavailable' : (isAiSearchActive ? 'AI Search: Searching...' : (isAiSearchError ? 'AI Search: No results - click to retry' : 'AI Search')))"
                 tooltipPosition="bottom"
               ></p-button>
             }

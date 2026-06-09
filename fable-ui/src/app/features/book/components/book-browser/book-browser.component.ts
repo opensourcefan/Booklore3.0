@@ -212,6 +212,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   aiSearchEnabled = false;
   aiSearchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
   isAiSearchActive = false;
+  isAiSearchError = false;
+  aiSearchDialogVisible = false;
   private aiSearchPollingSub?: Subscription;
   isSelectionActionPanelOpen = false;
 
@@ -839,6 +841,20 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(active => {
         this.isAiSearchActive = active;
+        this.cdr.markForCheck();
+      });
+
+    this.aiSearchDialogService.searchError$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(error => {
+        this.isAiSearchError = error;
+        this.cdr.markForCheck();
+      });
+
+    this.aiSearchDialogService.dialogVisible$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(visible => {
+        this.aiSearchDialogVisible = visible;
         this.cdr.markForCheck();
       });
   }

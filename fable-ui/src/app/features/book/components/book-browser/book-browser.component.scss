@@ -442,24 +442,30 @@
 
   &.status-starting {
     ::ng-deep .p-button-icon {
-      color: #ffa726 !important;
-      animation: pulse-orange 2s infinite ease-in-out;
+      animation: pulse-orange 800ms infinite ease-in-out;
     }
   }
 
   &.status-searching {
     ::ng-deep .p-button-icon {
-      animation: pulse-blue 1.2s infinite ease-in-out;
+      animation: pulse-blue 800ms infinite ease-in-out;
+    }
+  }
+
+  &.status-search-error {
+    ::ng-deep .p-button-icon {
+      animation: pulse-red 800ms infinite ease-in-out;
     }
   }
 
   &.status-error {
     ::ng-deep .p-button-icon {
       color: #ef4444 !important;
+      animation: none;
     }
   }
 
-  &:hover:not(.status-starting):not(.status-error):not(.status-searching) {
+  &:hover:not(.status-starting):not(.status-error):not(.status-searching):not(.status-search-error) {
     ::ng-deep .p-button-icon {
       text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
       transition: text-shadow 0.3s ease;
@@ -467,7 +473,50 @@
   }
 }
 
+@keyframes pulse-orange {
+  0% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(255, 167, 38, 0));
+  }
+  50% {
+    color: #ffa726;
+    filter: drop-shadow(0 0 8px rgba(255, 167, 38, 0.9));
+  }
+  100% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(255, 167, 38, 0));
+  }
+}
 
+@keyframes pulse-blue {
+  0% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(0, 210, 255, 0));
+  }
+  50% {
+    color: #00d2ff;
+    filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.9));
+  }
+  100% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(0, 210, 255, 0));
+  }
+}
+
+@keyframes pulse-red {
+  0% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(239, 68, 68, 0));
+  }
+  50% {
+    color: #ef4444;
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.9));
+  }
+  100% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(239, 68, 68, 0));
+  }
+}
 
 .desktop-right-sidebar-trigger {
   display: none;
