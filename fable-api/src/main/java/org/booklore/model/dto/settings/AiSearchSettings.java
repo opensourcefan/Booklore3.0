@@ -41,7 +41,7 @@ public class AiSearchSettings {
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String externalLlmUrl = "";
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
-    private String llmModel = "qwen2.5:1.5b";
+    private String llmModel = "smollm2:360m";
 
     // Legacy fields mapped during deserialization for backward compatibility
     @JsonSetter("provider")

@@ -26,7 +26,7 @@ app = FastAPI()
 
 # ---- Default Constants (single source of truth) ----
 DEFAULT_EMBEDDING_MODEL = "BAAI/bge-base-en-v1.5"
-DEFAULT_LLM_MODEL = "qwen2.5:1.5b"
+DEFAULT_LLM_MODEL = "smollm2:360m"
 
 # ---- Configuration ----
 CONFIG_PATH = "/models/config.json"

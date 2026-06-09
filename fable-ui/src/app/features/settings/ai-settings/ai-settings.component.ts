@@ -77,8 +77,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   ];
 
   llmModelOptions = [
-    { label: 'Minimal (qwen2.5:0.5b) - Basic keyword search', value: 'qwen2.5:0.5b', isDefault: false },
-    { label: 'Standard (qwen2.5:1.5b) - Smart conversational answers (System Default)', value: 'qwen2.5:1.5b', isDefault: true },
+    { label: 'Minimal (smollm2:360m) - Lightweight quick answers (System Default)', value: 'smollm2:360m', isDefault: true },
+    { label: 'Standard (qwen2.5:1.5b) - Smart conversational answers', value: 'qwen2.5:1.5b', isDefault: false },
     { label: 'Enhanced (llama3.2) - Detailed and smart', value: 'llama3.2', isDefault: false },
     { label: 'Premium (phi3:mini) - Deep expert-level answers', value: 'phi3:mini', isDefault: false },
     { label: 'Custom (type your own model name)', value: '__custom__', isDefault: false }
