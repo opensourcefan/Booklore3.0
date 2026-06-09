@@ -677,10 +677,8 @@ public class AiSearchService {
 
         return RestClient.builder()
                 .requestFactory(factory)
-                .messageConverters(converters -> {
-                    converters.clear();
-                    converters.add(new org.springframework.http.converter.StringHttpMessageConverter());
-                })
+                .messageConverters(converters -> converters.add(0,
+                        new org.springframework.http.converter.StringHttpMessageConverter()))
                 .build();
     }
 }
