@@ -208,8 +208,15 @@ public class AppSettingService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Object> request = new HttpEntity<>(payload, headers);
-            // Fire in background to avoid blocking
+            // Fire in background with a brief delay to allow DB transaction to settle
+            // before the Python service begins reloading models
             java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
                 try {
                     restTemplate.postForEntity(url, request, String.class);
                     logger.info("Successfully pushed config to {}", url);

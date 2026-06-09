@@ -221,17 +221,12 @@ public class AiSearchHealthService {
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAiSearch().getReadTimeoutMs());
 
-        org.springframework.http.converter.StringHttpMessageConverter stringConverter =
-                new org.springframework.http.converter.StringHttpMessageConverter();
-        stringConverter.setSupportedMediaTypes(java.util.List.of(
-                org.springframework.http.MediaType.APPLICATION_JSON,
-                org.springframework.http.MediaType.APPLICATION_OCTET_STREAM,
-                org.springframework.http.MediaType.TEXT_PLAIN
-        ));
-
         return RestClient.builder()
                 .requestFactory(factory)
-                .messageConverters(converters -> converters.add(0, stringConverter))
+                .messageConverters(converters -> {
+                    converters.clear();
+                    converters.add(new org.springframework.http.converter.StringHttpMessageConverter());
+                })
                 .build();
     }
 }
