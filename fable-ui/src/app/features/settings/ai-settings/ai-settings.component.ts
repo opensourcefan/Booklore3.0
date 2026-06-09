@@ -104,6 +104,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     autoEmbedLibraryIds: []
   };
   originalAiSearchSettings: string = '';
+  originalEmbeddingSettings: string = '';
+  originalLlmSettings: string = '';
   aiPanelSettings = {
     modelId: ''
   };
@@ -149,6 +151,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       if (settings.aiSearchSettings) {
         this.aiSearchSettings = { ...this.aiSearchSettings, ...settings.aiSearchSettings };
         this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
+        this.snapshotEmbeddingSettings();
+        this.snapshotLlmSettings();
       }
       if (settings.aiPanelSettings) {
         this.aiPanelSettings = { ...this.aiPanelSettings, ...settings.aiPanelSettings };
@@ -809,6 +813,80 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
+  private snapshotEmbeddingSettings(): void {
+    this.originalEmbeddingSettings = JSON.stringify({
+      embeddingProvider: this.aiSearchSettings.embeddingProvider,
+      embeddingModel: this.aiSearchSettings.embeddingModel,
+      embeddingApiKey: this.aiSearchSettings.embeddingApiKey,
+      externalEmbeddingUrl: this.aiSearchSettings.externalEmbeddingUrl
+    });
+  }
+
+  private snapshotLlmSettings(): void {
+    this.originalLlmSettings = JSON.stringify({
+      llmProvider: this.aiSearchSettings.llmProvider,
+      llmModel: this.aiSearchSettings.llmModel,
+      llmApiKey: this.aiSearchSettings.llmApiKey,
+      externalLlmUrl: this.aiSearchSettings.externalLlmUrl
+    });
+  }
+
+  get isEmbeddingSettingsDirty(): boolean {
+    const current = JSON.stringify({
+      embeddingProvider: this.aiSearchSettings.embeddingProvider,
+      embeddingModel: this.aiSearchSettings.embeddingModel,
+      embeddingApiKey: this.aiSearchSettings.embeddingApiKey,
+      externalEmbeddingUrl: this.aiSearchSettings.externalEmbeddingUrl
+    });
+    return current !== this.originalEmbeddingSettings;
+  }
+
+  get isLlmSettingsDirty(): boolean {
+    const current = JSON.stringify({
+      llmProvider: this.aiSearchSettings.llmProvider,
+      llmModel: this.aiSearchSettings.llmModel,
+      llmApiKey: this.aiSearchSettings.llmApiKey,
+      externalLlmUrl: this.aiSearchSettings.externalLlmUrl
+    });
+    return current !== this.originalLlmSettings;
+  }
+
+  saveEmbeddingSettings(): void {
+    this.saveRunning = true;
+    this.appSettingsService
+      .saveSettings([{key: AppSettingKey.AI_SEARCH_SETTINGS, newValue: this.aiSearchSettings}])
+      .subscribe({
+        next: () => {
+          this.saveRunning = false;
+          this.snapshotEmbeddingSettings();
+          this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
+          this.showMessage('success', 'Embedding settings saved', 'Embedding configuration has been updated.');
+        },
+        error: () => {
+          this.saveRunning = false;
+          this.showMessage('error', 'Save failed', 'Could not update embedding settings.');
+        }
+      });
+  }
+
+  saveLlmSettings(): void {
+    this.saveRunning = true;
+    this.appSettingsService
+      .saveSettings([{key: AppSettingKey.AI_SEARCH_SETTINGS, newValue: this.aiSearchSettings}])
+      .subscribe({
+        next: () => {
+          this.saveRunning = false;
+          this.snapshotLlmSettings();
+          this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
+          this.showMessage('success', 'LLM settings saved', 'LLM configuration has been updated.');
+        },
+        error: () => {
+          this.saveRunning = false;
+          this.showMessage('error', 'Save failed', 'Could not update LLM settings.');
+        }
+      });
+  }
+
   isAiSearchConfigValid(): boolean {
     if (this.aiSearchSettings.embeddingProvider !== 'local' && !this.aiSearchSettings.externalEmbeddingUrl?.trim()) {
       return false;
@@ -838,6 +916,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
         next: () => {
           this.saveRunning = false;
           this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
+          this.snapshotEmbeddingSettings();
+          this.snapshotLlmSettings();
           this.showMessage('success', 'AI Search settings updated', 'Tuning parameters have been saved.');
         },
         error: () => {
