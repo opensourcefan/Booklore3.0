@@ -16,12 +16,11 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.jsoup.Jsoup;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.ObjectMapper;
 
 import java.text.BreakIterator;
 import java.io.File;
@@ -46,6 +45,7 @@ public class AiSearchService {
     private final AiSearchHealthService aiSearchHealthService;
     private final org.booklore.service.appsettings.AppSettingService appSettingService;
     private final BookCreatorService bookCreatorService;
+    private final ObjectMapper objectMapper;
 
     private static final int CHUNK_SIZE = 1500;
     private static final int CHUNK_OVERLAP = 100;
@@ -225,14 +225,7 @@ public class AiSearchService {
                 "append", append
         );
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> result = restClient.post()
-                .uri(baseUrl + "/v1/embed")
-                .body(payload)
-                .retrieve()
-                .body(Map.class);
-
-        return result;
+        return postForMap(restClient, baseUrl + "/v1/embed", payload);
     }
 
     public Map<String, Object> search(String query, List<Long> bookIds, Long userId, List<Map<String, String>> chatHistory, boolean localOnly) {
@@ -255,13 +248,7 @@ public class AiSearchService {
         }
 
         try {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> result = restClient.post()
-                    .uri(baseUrl + "/v1/search")
-                    .body(payload)
-                    .retrieve()
-                    .body(Map.class);
-
+            Map<String, Object> result = postForMap(restClient, baseUrl + "/v1/search", payload);
             return result;
         } catch (Exception e) {
             log.error("AI Search query failed: {}", e.getMessage());
@@ -279,26 +266,14 @@ public class AiSearchService {
         String baseUrl = appProperties.getAiSearch().getBaseUrl();
         RestClient restClient = buildRestClient();
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> result = restClient.get()
-                .uri(baseUrl + "/v1/book-embeddings/{bookId}?user_id={userId}", bookId, userId)
-                .retrieve()
-                .body(Map.class);
-
-        return result;
+        return getForMap(restClient, baseUrl + "/v1/book-embeddings/{bookId}?user_id={userId}", bookId, userId);
     }
 
     public Map<String, Object> getEmbedJobStatus(String jobId) {
         String baseUrl = appProperties.getAiSearch().getBaseUrl();
         RestClient restClient = buildRestClient();
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> result = restClient.get()
-                .uri(baseUrl + "/v1/embed-status/{jobId}", jobId)
-                .retrieve()
-                .body(Map.class);
-
-        return result;
+        return getForMap(restClient, baseUrl + "/v1/embed-status/{jobId}", jobId);
     }
 
     /**
@@ -662,20 +637,55 @@ public class AiSearchService {
         notificationService.sendMessageToUser(username, Topic.AI_SEARCH_PROGRESS, payload);
     }
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> postForMap(RestClient restClient, String uri, Object body) {
+        String json = restClient.post()
+                .uri(uri)
+                .body(body)
+                .retrieve()
+                .body(String.class);
+        if (json == null || json.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(json, Map.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse AI Search response: " + e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getForMap(RestClient restClient, String uri, Object... uriVariables) {
+        String json = restClient.get()
+                .uri(uri, uriVariables)
+                .retrieve()
+                .body(String.class);
+        if (json == null || json.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(json, Map.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse AI Search response: " + e.getMessage(), e);
+        }
+    }
+
     private RestClient buildRestClient() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAiSearch().getReadTimeoutMs());
 
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setSupportedMediaTypes(java.util.List.of(
-                MediaType.APPLICATION_JSON,
-                MediaType.APPLICATION_OCTET_STREAM
+        org.springframework.http.converter.StringHttpMessageConverter stringConverter =
+                new org.springframework.http.converter.StringHttpMessageConverter();
+        stringConverter.setSupportedMediaTypes(java.util.List.of(
+                org.springframework.http.MediaType.APPLICATION_JSON,
+                org.springframework.http.MediaType.APPLICATION_OCTET_STREAM,
+                org.springframework.http.MediaType.TEXT_PLAIN
         ));
 
         return RestClient.builder()
                 .requestFactory(factory)
-                .messageConverters(converters -> converters.add(0, converter))
+                .messageConverters(converters -> converters.add(0, stringConverter))
                 .build();
     }
 }

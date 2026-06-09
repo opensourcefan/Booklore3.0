@@ -4,11 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.booklore.config.AppProperties;
 import org.booklore.model.dto.ai.AiServiceStatus;
 import org.booklore.service.appsettings.AppSettingService;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -19,6 +18,7 @@ public class AiSearchHealthService {
     private final AppProperties appProperties;
     private final AppSettingService appSettingService;
     private final AiServiceEndpointResolver aiServiceEndpointResolver;
+    private final ObjectMapper objectMapper;
 
     public AiServiceStatus getStatus() {
         boolean enabled = appSettingService.getAppSettings().isAiSearchEnabled();
@@ -40,11 +40,7 @@ public class AiSearchHealthService {
         try {
             RestClient restClient = buildRestClient();
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> healthPayload = restClient.get()
-                    .uri(baseUrl + "/health")
-                    .retrieve()
-                    .body(Map.class);
+            Map<String, Object> healthPayload = getForMap(restClient, baseUrl + "/health");
 
             return mapHealthPayload(baseUrl, healthPayload);
         } catch (Exception ex) {
@@ -180,14 +176,43 @@ public class AiSearchHealthService {
         try {
             RestClient restClient = buildRestClient();
             String baseUrl = appProperties.getAiSearch().getBaseUrl();
-            @SuppressWarnings("unchecked")
-            Map<String, Object> result = restClient.post()
-                    .uri(baseUrl + "/v1/reload")
-                    .retrieve()
-                    .body(Map.class);
+            Map<String, Object> result = postForMap(restClient, baseUrl + "/v1/reload", null);
             return result != null ? result : Map.of("triggered", false, "reason", "Empty response from AI Search service.");
         } catch (Exception ex) {
             return Map.of("triggered", false, "reason", "Could not reach AI Search service: " + ex.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> postForMap(RestClient restClient, String uri, Object body) {
+        String json = restClient.post()
+                .uri(uri)
+                .body(body != null ? body : Map.of())
+                .retrieve()
+                .body(String.class);
+        if (json == null || json.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(json, Map.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse AI Search response: " + e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getForMap(RestClient restClient, String uri) {
+        String json = restClient.get()
+                .uri(uri)
+                .retrieve()
+                .body(String.class);
+        if (json == null || json.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(json, Map.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse AI Search response: " + e.getMessage(), e);
         }
     }
 
@@ -196,15 +221,17 @@ public class AiSearchHealthService {
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAiSearch().getReadTimeoutMs());
 
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setSupportedMediaTypes(java.util.List.of(
-                MediaType.APPLICATION_JSON,
-                MediaType.APPLICATION_OCTET_STREAM
+        org.springframework.http.converter.StringHttpMessageConverter stringConverter =
+                new org.springframework.http.converter.StringHttpMessageConverter();
+        stringConverter.setSupportedMediaTypes(java.util.List.of(
+                org.springframework.http.MediaType.APPLICATION_JSON,
+                org.springframework.http.MediaType.APPLICATION_OCTET_STREAM,
+                org.springframework.http.MediaType.TEXT_PLAIN
         ));
 
         return RestClient.builder()
                 .requestFactory(factory)
-                .messageConverters(converters -> converters.add(0, converter))
+                .messageConverters(converters -> converters.add(0, stringConverter))
                 .build();
     }
 }
