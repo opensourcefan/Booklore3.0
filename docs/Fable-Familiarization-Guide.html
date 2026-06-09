@@ -888,6 +888,15 @@
   <li><strong>Save to Notepad:</strong> When you find a useful AI response, you can click the "Add to Notepad" button to save that snippet into your Fable Notepad for future reference.</li>
 </ul>
 
+<p><strong>Sparkle Button Status Indicators</strong> — The sparkle (pi-sparkles) icon in the search bars uses color and animation to reflect the AI Search service state:</p>
+<ul>
+  <li><span style="color:#00d2ff;"><strong>Solid cyan</strong></span> — Service is ready. Click to open AI Search.</li>
+  <li><span style="color:#ffa726;"><strong>Flashing orange (800ms grey↔orange)</strong></span> — Service is warming up / downloading the embedding model. Wait for initialization.</li>
+  <li><span style="color:#ef4444;"><strong>Flashing red (800ms grey↔red)</strong></span> — Last search returned an error or no results. Click the sparkle to dismiss and retry.</li>
+  <li><span style="color:#ef4444;"><strong>Solid red</strong></span> — AI Search service is unreachable or encountered a fatal error. Check container logs.</li>
+  <li><span style="color:#00d2ff;"><strong>Flashing cyan (800ms grey↔cyan)</strong></span> — A search is currently in progress. Results will appear in the dialog when ready.</li>
+</ul>
+
 <div class="callout info">
   <strong>Zero Configuration Needed:</strong>
   <p>Fable comes with everything you need built-in! The AI search engine runs automatically inside its own secure container. You don't need to install any external software or configure network settings to get started. Just pick a preset in your <code>.env</code> file and enjoy.</p>
