@@ -639,16 +639,15 @@ public class AiSearchService {
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> postForMap(RestClient restClient, String uri, Object body) {
-        String json = restClient.post()
+        byte[] bytes = restClient.post()
                 .uri(uri)
                 .body(body)
-                .retrieve()
-                .body(String.class);
-        if (json == null || json.isBlank()) {
+                .exchange((request, response) -> response.getBody().readAllBytes());
+        if (bytes == null || bytes.length == 0) {
             return Map.of();
         }
         try {
-            return objectMapper.readValue(json, Map.class);
+            return objectMapper.readValue(bytes, Map.class);
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse AI Search response: " + e.getMessage(), e);
         }
@@ -656,15 +655,14 @@ public class AiSearchService {
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> getForMap(RestClient restClient, String uri, Object... uriVariables) {
-        String json = restClient.get()
+        byte[] bytes = restClient.get()
                 .uri(uri, uriVariables)
-                .retrieve()
-                .body(String.class);
-        if (json == null || json.isBlank()) {
+                .exchange((request, response) -> response.getBody().readAllBytes());
+        if (bytes == null || bytes.length == 0) {
             return Map.of();
         }
         try {
-            return objectMapper.readValue(json, Map.class);
+            return objectMapper.readValue(bytes, Map.class);
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse AI Search response: " + e.getMessage(), e);
         }
@@ -677,8 +675,6 @@ public class AiSearchService {
 
         return RestClient.builder()
                 .requestFactory(factory)
-                .messageConverters(converters -> converters.add(0,
-                        new org.springframework.http.converter.StringHttpMessageConverter()))
                 .build();
     }
 }
