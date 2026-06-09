@@ -97,10 +97,10 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     llmApiKey: '',
     externalLlmUrl: '',
     llmModel: '',
-    topK: 10,
-    similarityThreshold: 0.25,
-    maxTokens: 500,
-    temperature: 0.0,
+    topK: 5,
+    similarityThreshold: 0.3,
+    maxTokens: 768,
+    temperature: 0.1,
     autoEmbedLibraryIds: []
   };
   originalAiSearchSettings: string = '';

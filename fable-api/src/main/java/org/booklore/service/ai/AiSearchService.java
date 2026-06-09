@@ -318,7 +318,11 @@ public class AiSearchService {
             }
 
             String activeModel = aiSearchHealthService.getStatus().getEmbeddingModel();
-            bookRepository.updateAiSearchEmbeddingModel(bookId, userId, activeModel);
+            if (activeModel != null) {
+                bookRepository.updateAiSearchEmbeddingModel(bookId, userId, activeModel);
+            } else {
+                log.warn("Active embedding model is null (AI Search service may be unreachable). Skipping embedding_model update for book {}.", bookId);
+            }
 
             // Add 'AIS' metadata tag to indicate the book has AI Search embeddings
             try {

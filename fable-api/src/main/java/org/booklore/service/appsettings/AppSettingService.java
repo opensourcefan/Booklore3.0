@@ -177,7 +177,9 @@ public class AppSettingService {
     }
 
     private void handleAiSearchSettingsUpdate(AiSearchSettings newSettings, AiSearchSettings oldSettings) {
-        // Auto-heal sequence if embedding provider/model changed
+        // Auto-heal sequence if embedding provider/model changed.
+        // When the embedding model changes, ALL embeddings become invalid (different dimensions).
+        // Mark books with embeddings for re-embed, then delete all embeddings.
         boolean providerChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getEmbeddingProvider(), newSettings.getEmbeddingProvider());
         boolean modelChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getEmbeddingModel(), newSettings.getEmbeddingModel());
         boolean externalUrlChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getExternalEmbeddingUrl(), newSettings.getExternalEmbeddingUrl());
@@ -217,11 +219,29 @@ public class AppSettingService {
                     Thread.currentThread().interrupt();
                     return;
                 }
-                try {
-                    restTemplate.postForEntity(url, request, String.class);
-                    logger.info("Successfully pushed config to {}", url);
-                } catch (Exception e) {
-                    logger.warn("Failed to push config to {}: {}", url, e.getMessage());
+                // Retry up to 3 times with exponential backoff
+                int maxAttempts = 3;
+                for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+                    try {
+                        restTemplate.postForEntity(url, request, String.class);
+                        logger.info("Successfully pushed config to {}", url);
+                        return;
+                    } catch (Exception e) {
+                        if (attempt < maxAttempts) {
+                            long backoff = (long) Math.pow(2, attempt) * 1000; // 2s, 4s
+                            logger.warn("Failed to push config to {} (attempt {}/{}), retrying in {}ms: {}",
+                                    url, attempt, maxAttempts, backoff, e.getMessage());
+                            try {
+                                Thread.sleep(backoff);
+                            } catch (InterruptedException ie) {
+                                Thread.currentThread().interrupt();
+                                return;
+                            }
+                        } else {
+                            logger.error("Failed to push config to {} after {} attempts: {}",
+                                    url, maxAttempts, e.getMessage());
+                        }
+                    }
                 }
             });
         } catch (Exception e) {

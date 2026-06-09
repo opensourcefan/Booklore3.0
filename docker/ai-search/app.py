@@ -1,12 +1,16 @@
 import json
 import logging
 import os
+import re
+import requests
 import shutil
 import threading
 import time
 from datetime import datetime, timezone
 from typing import Any
 
+import mysql.connector
+import mysql.connector.pooling
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from sentence_transformers import SentenceTransformer
@@ -19,6 +23,10 @@ logging.basicConfig(
 logger = logging.getLogger("fable-ai-search")
 
 app = FastAPI()
+
+# ---- Default Constants (single source of truth) ----
+DEFAULT_EMBEDDING_MODEL = "BAAI/bge-base-en-v1.5"
+DEFAULT_LLM_MODEL = "qwen2.5:1.5b"
 
 # ---- Configuration ----
 CONFIG_PATH = "/models/config.json"
@@ -36,13 +44,13 @@ def load_config():
 _config = load_config()
 EMBEDDING_PROVIDER = _config.get("embeddingProvider", "local")
 EMBEDDING_API_KEY = _config.get("embeddingApiKey", "")
-EMBEDDING_MODEL_NAME = _config.get("embeddingModel", "BAAI/bge-base-en-v1.5")
+EMBEDDING_MODEL_NAME = _config.get("embeddingModel", DEFAULT_EMBEDDING_MODEL)
 EXTERNAL_EMBEDDING_BASE_URL = _config.get("externalEmbeddingUrl", "")
 
 LLM_PROVIDER = _config.get("llmProvider", "local")
 LLM_API_KEY = _config.get("llmApiKey", "")
 EXTERNAL_LLM_BASE_URL = _config.get("externalLlmUrl", "")
-LLM_MODEL_NAME = _config.get("llmModel", "qwen2.5:1.5b")
+LLM_MODEL_NAME = _config.get("llmModel", DEFAULT_LLM_MODEL)
 LLM_MAX_TOKENS = int(_config.get("maxTokens", 768))
 LLM_TEMPERATURE = float(_config.get("temperature", 0.1))
 SEARCH_TOP_K = int(_config.get("topK", 5))
@@ -63,11 +71,73 @@ _llm_loading: bool = False
 _llm_load_error: str | None = None
 _load_lock = threading.Lock()
 _active_embed_jobs: dict[str, dict[str, Any]] = {}
+_active_embed_jobs_lock = threading.Lock()
+_db_pool: mysql.connector.pooling.MySQLConnectionPool | None = None
+_db_pool_lock = threading.Lock()
+_load_retry_cooldown_secs = 60
+_last_load_attempt_time: float | None = None
 
+
+# ---- Database Connection Pool ----
+
+def _init_db_pool() -> None:
+    global _db_pool
+    if _db_pool is not None:
+        return
+    with _db_pool_lock:
+        if _db_pool is not None:
+            return
+        _db_pool = mysql.connector.pooling.MySQLConnectionPool(
+            pool_name="fable_ai_pool",
+            pool_size=5,
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME,
+            user=DB_USERNAME,
+            password=DB_PASSWORD,
+            charset="utf8mb4",
+            connection_timeout=5,
+        )
+
+
+def _get_db_connection():
+    _init_db_pool()
+    return _db_pool.get_connection()
+
+
+# ---- Embed Job Cleanup ----
+
+_embed_job_ttl_secs = 3600  # 1 hour
+
+def _cleanup_stale_embed_jobs() -> None:
+    """Remove embed jobs older than TTL to prevent memory leak."""
+    now = datetime.now(timezone.utc)
+    with _active_embed_jobs_lock:
+        stale_keys = [
+            job_id for job_id, job in _active_embed_jobs.items()
+            if "startedAt" in job
+            and (now - datetime.fromisoformat(job["startedAt"])).total_seconds() > _embed_job_ttl_secs
+        ]
+        for key in stale_keys:
+            _active_embed_jobs.pop(key, None)
+        if stale_keys:
+            logger.info("Cleaned up %d stale embed jobs", len(stale_keys))
+
+
+def _cleanup_loop() -> None:
+    """Background thread that periodically cleans up stale embed jobs."""
+    while True:
+        time.sleep(600)  # Run every 10 minutes
+        _cleanup_stale_embed_jobs()
+
+
+# ---- Model Loading ----
 
 def _do_load() -> None:
     """Background thread: loads the embedding model."""
-    global _embedding_model, _loading, _load_error
+    global _embedding_model, _loading, _load_error, _last_load_attempt_time
+
+    _last_load_attempt_time = time.time()
 
     if not EMBEDDING_MODEL_NAME:
         logger.info("No EMBEDDING_MODEL specified. Skipping local model load.")
@@ -108,14 +178,13 @@ def _start_load_thread_locked() -> None:
 def _do_llm_load() -> None:
     """Background thread: pulls the LLM model from Ollama if using local provider."""
     global _llm_loading, _llm_load_error
-    
+
     if LLM_PROVIDER != "local" or not LLM_MODEL_NAME:
         _llm_loading = False
         return
-        
+
     logger.info("LLM model pull started for %s", LLM_MODEL_NAME)
     try:
-        import requests
         resp = requests.post(
             "http://localhost:11434/api/pull",
             json={"name": LLM_MODEL_NAME, "stream": False},
@@ -138,10 +207,20 @@ def _start_llm_load_thread_locked() -> None:
 
 
 def _ensure_loading() -> None:
-    if not EMBEDDING_MODEL_NAME and EMBEDDING_PROVIDER == "local":
-        return
     with _load_lock:
-        if _embedding_model is not None or _loading or _load_error is not None:
+        if _embedding_model is not None or _loading:
+            return
+
+        # Self-heal: if previous load failed and cooldown passed, retry
+        if _load_error is not None:
+            if _last_load_attempt_time is not None:
+                elapsed = time.time() - _last_load_attempt_time
+                if elapsed < _load_retry_cooldown_secs:
+                    return  # Still in cooldown
+            _load_error = None  # Clear error to allow retry
+            logger.info("Clearing previous load error and retrying after cooldown.")
+
+        if not EMBEDDING_MODEL_NAME and EMBEDDING_PROVIDER == "local":
             return
         logger.info("Triggering automatic background load for %s", EMBEDDING_MODEL_NAME)
         _start_load_thread_locked()
@@ -157,50 +236,55 @@ def _get_embedding_model() -> SentenceTransformer:
     raise RuntimeError("Embedding model is not loaded.")
 
 
-def _get_db_connection():
-    import mysql.connector
-    return mysql.connector.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        database=DB_NAME,
-        user=DB_USERNAME,
-        password=DB_PASSWORD,
-        charset="utf8mb4",
-    )
+def _compute_embedding(text: str, retries: int = 3) -> list[float]:
+    """Compute embedding vector for a text string.
 
+    Retries with exponential backoff for external providers (openai/ollama).
+    Local provider failures are considered permanent and are not retried.
+    """
+    if EMBEDDING_PROVIDER in ("openai", "ollama"):
+        last_exception = None
+        for attempt in range(retries):
+            try:
+                headers = {}
+                if EMBEDDING_API_KEY:
+                    headers["Authorization"] = f"Bearer {EMBEDDING_API_KEY}"
 
-def _compute_embedding(text: str) -> list[float]:
-    """Compute embedding vector for a text string."""
-    if EMBEDDING_PROVIDER == "openai" or EMBEDDING_PROVIDER == "ollama":
-        import requests
-        headers = {}
-        if EMBEDDING_API_KEY:
-            headers["Authorization"] = f"Bearer {EMBEDDING_API_KEY}"
-            
-        base_url = EXTERNAL_EMBEDDING_BASE_URL.rstrip("/")
-        if not base_url:
-            base_url = "https://api.openai.com/v1" if EMBEDDING_PROVIDER == "openai" else "http://localhost:11434/api"
-            
-        url = f"{base_url}/embeddings" if EMBEDDING_PROVIDER == "openai" else f"{base_url}/embeddings"
-        
-        if EMBEDDING_PROVIDER == "ollama" and "/api" not in base_url:
-            url = f"{base_url}/api/embeddings"
-            
-        json_payload = {"model": EMBEDDING_MODEL_NAME, "input": text}
-        if EMBEDDING_PROVIDER == "ollama":
-            json_payload = {"model": EMBEDDING_MODEL_NAME, "prompt": text}
-            
-        resp = requests.post(
-            url,
-            headers=headers,
-            json=json_payload,
-            timeout=30,
-        )
-        resp.raise_for_status()
-        if EMBEDDING_PROVIDER == "ollama":
-            return resp.json()["embedding"]
-        else:
-            return resp.json()["data"][0]["embedding"]
+                base_url = EXTERNAL_EMBEDDING_BASE_URL.rstrip("/")
+                if not base_url:
+                    base_url = "https://api.openai.com/v1" if EMBEDDING_PROVIDER == "openai" else "http://localhost:11434/api"
+
+                url = f"{base_url}/embeddings" if EMBEDDING_PROVIDER == "openai" else f"{base_url}/embeddings"
+
+                if EMBEDDING_PROVIDER == "ollama" and "/api" not in base_url:
+                    url = f"{base_url}/api/embeddings"
+
+                json_payload = {"model": EMBEDDING_MODEL_NAME, "input": text}
+                if EMBEDDING_PROVIDER == "ollama":
+                    json_payload = {"model": EMBEDDING_MODEL_NAME, "prompt": text}
+
+                resp = requests.post(
+                    url,
+                    headers=headers,
+                    json=json_payload,
+                    timeout=30,
+                )
+                resp.raise_for_status()
+                if EMBEDDING_PROVIDER == "ollama":
+                    return resp.json()["embedding"]
+                else:
+                    return resp.json()["data"][0]["embedding"]
+            except Exception as exc:
+                last_exception = exc
+                if attempt < retries - 1:
+                    wait = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    logger.warning(
+                        "Embedding attempt %d/%d failed, retrying in %ds: %s",
+                        attempt + 1, retries, wait, exc,
+                    )
+                    time.sleep(wait)
+        # All retries exhausted
+        raise last_exception  # type: ignore[misc]
 
     model = _get_embedding_model()
     return model.encode(text, normalize_embeddings=True).tolist()
@@ -215,8 +299,6 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
     """Generate an answer using the LLM (local Ollama or external)."""
     if not LLM_MODEL_NAME and LLM_PROVIDER == "local":
         raise RuntimeError("No LLM model configured.")
-
-    import requests
 
     headers = {}
     if LLM_API_KEY:
@@ -289,6 +371,9 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
 
 @app.on_event("startup")
 def startup() -> None:
+    # Start stale embed job cleanup background thread
+    threading.Thread(target=_cleanup_loop, daemon=True).start()
+
     if EMBEDDING_PROVIDER != "local":
         logger.info("Using external provider %s for Embeddings", EMBEDDING_PROVIDER)
     elif EMBEDDING_MODEL_NAME:
@@ -309,7 +394,7 @@ def health() -> dict[str, Any]:
     _ensure_loading()
     # Check if the model has successfully finished loading into memory
     ready = _embedding_model is not None
-    
+
     status = "ok"
     error = None
 
@@ -335,10 +420,11 @@ def health() -> dict[str, Any]:
         "provider": EMBEDDING_PROVIDER
     }
 
+
 @app.post("/v1/config")
 def update_config(payload: dict[str, Any]) -> dict[str, Any]:
     global _config, EMBEDDING_PROVIDER, EMBEDDING_API_KEY, LLM_PROVIDER, LLM_API_KEY, EMBEDDING_MODEL_NAME, EXTERNAL_EMBEDDING_BASE_URL, EXTERNAL_LLM_BASE_URL, LLM_MODEL_NAME, LLM_MAX_TOKENS, LLM_TEMPERATURE, SEARCH_TOP_K, SEARCH_SIMILARITY_THRESHOLD, _embedding_model
-    
+
     with _load_lock:
         try:
             os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
@@ -349,31 +435,31 @@ def update_config(payload: dict[str, Any]) -> dict[str, Any]:
             EMBEDDING_API_KEY = _config.get("embeddingApiKey", "")
             LLM_PROVIDER = _config.get("llmProvider", "local")
             LLM_API_KEY = _config.get("llmApiKey", "")
-            
-            new_embedding_model = _config.get("embeddingModel", "all-MiniLM-L6-v2")
+
+            new_embedding_model = _config.get("embeddingModel", DEFAULT_EMBEDDING_MODEL)
             model_changed = (EMBEDDING_MODEL_NAME != new_embedding_model)
             EMBEDDING_MODEL_NAME = new_embedding_model
-            
+
             EXTERNAL_EMBEDDING_BASE_URL = _config.get("externalEmbeddingUrl", "")
             EXTERNAL_LLM_BASE_URL = _config.get("externalLlmUrl", "")
-            
-            new_llm_model = _config.get("llmModel", "llama3.2")
+
+            new_llm_model = _config.get("llmModel", DEFAULT_LLM_MODEL)
             llm_model_changed = (LLM_MODEL_NAME != new_llm_model)
             LLM_MODEL_NAME = new_llm_model
-            
+
             LLM_MAX_TOKENS = int(_config.get("maxTokens", 768))
             LLM_TEMPERATURE = float(_config.get("temperature", 0.1))
             SEARCH_TOP_K = int(_config.get("topK", 5))
             SEARCH_SIMILARITY_THRESHOLD = float(_config.get("similarityThreshold", 0.3))
-            
+
             if model_changed or EMBEDDING_PROVIDER != "local":
                 _embedding_model = None  # Force reload or switch to external
                 if EMBEDDING_PROVIDER == "local":
                     _start_load_thread_locked()
-                    
+
             if llm_model_changed and LLM_PROVIDER == "local":
                 _start_llm_load_thread_locked()
-                    
+
             return {"status": "success"}
         except Exception as e:
             logger.error("Failed to update config: %s", e)
@@ -387,9 +473,8 @@ def reload_model() -> dict[str, Any]:
             return {"triggered": False, "reason": "Load already in progress."}
         if _embedding_model is not None:
             return {"triggered": False, "reason": "Model is already loaded and ready."}
-        model_available = os.path.exists(MODEL_PATH) or os.path.exists(MODEL_SEED_PATH)
-        if not model_available:
-            return {"triggered": False, "reason": f"No model found at {MODEL_PATH}."}
+        # Clear error state and always attempt a reload
+        _load_error = None
         logger.info("Manual reload triggered via API.")
         _start_load_thread_locked()
     return {"triggered": True, "reason": "Background model load started."}
@@ -409,19 +494,20 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="No chunks provided.")
 
     job_id = f"embed-{book_id}-{int(time.time())}"
-    _active_embed_jobs[job_id] = {
-        "bookId": book_id,
-        "userId": user_id,
-        "totalChunks": len(chunks),
-        "completedChunks": 0,
-        "status": "STARTED",
-        "startedAt": datetime.now(timezone.utc).isoformat(),
-    }
+    with _active_embed_jobs_lock:
+        _active_embed_jobs[job_id] = {
+            "bookId": book_id,
+            "userId": user_id,
+            "totalChunks": len(chunks),
+            "completedChunks": 0,
+            "status": "STARTED",
+            "startedAt": datetime.now(timezone.utc).isoformat(),
+        }
 
     try:
         conn = _get_db_connection()
         cursor = conn.cursor()
-        
+
         if not append:
             # Delete existing embeddings for this book
             cursor.execute("DELETE FROM book_embeddings WHERE book_id = %s AND user_id = %s", (book_id, user_id))
@@ -439,7 +525,8 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
             chapter_title = chunk.get("chapterTitle")
 
             if not chunk_text.strip():
-                _active_embed_jobs[job_id]["completedChunks"] = i + 1
+                with _active_embed_jobs_lock:
+                    _active_embed_jobs[job_id]["completedChunks"] = i + 1
                 continue
 
             vector = _compute_embedding(chunk_text)
@@ -447,18 +534,20 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
 
             cursor.execute(
                 """INSERT INTO book_embeddings
-                   (book_id, user_id, chunk_index, chunk_text, embedding_vector, page_number, chapter_title)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-                (book_id, user_id, start_idx + i, chunk_text, vector_json, page_number, chapter_title),
+                   (book_id, user_id, chunk_index, chunk_text, embedding_vector, page_number, chapter_title, embedding_model)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                (book_id, user_id, start_idx + i, chunk_text, vector_json, page_number, chapter_title, EMBEDDING_MODEL_NAME),
             )
-            _active_embed_jobs[job_id]["completedChunks"] = i + 1
+            with _active_embed_jobs_lock:
+                _active_embed_jobs[job_id]["completedChunks"] = i + 1
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        _active_embed_jobs[job_id]["status"] = "COMPLETED"
-        _active_embed_jobs[job_id]["completedAt"] = datetime.now(timezone.utc).isoformat()
+        with _active_embed_jobs_lock:
+            _active_embed_jobs[job_id]["status"] = "COMPLETED"
+            _active_embed_jobs[job_id]["completedAt"] = datetime.now(timezone.utc).isoformat()
 
         return {
             "jobId": job_id,
@@ -468,15 +557,17 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
             "completedChunks": len(chunks),
         }
     except Exception as exc:
-        _active_embed_jobs[job_id]["status"] = "FAILED"
-        _active_embed_jobs[job_id]["error"] = str(exc)
+        with _active_embed_jobs_lock:
+            _active_embed_jobs[job_id]["status"] = "FAILED"
+            _active_embed_jobs[job_id]["error"] = str(exc)
         logger.error("Embed job %s failed: %s", job_id, exc)
         raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.get("/v1/embed-status/{job_id}")
 def embed_status(job_id: str) -> dict[str, Any]:
-    job = _active_embed_jobs.get(job_id)
+    with _active_embed_jobs_lock:
+        job = _active_embed_jobs.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found.")
     return job
@@ -513,7 +604,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             "totalChunksSearched": 0,
         }
 
-    # Fetch embeddings from DB
+    # Fetch embeddings from DB (single connection reused for adjacent chunks)
     conn = _get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -540,10 +631,10 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         )
 
     rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
 
     if not rows:
+        cursor.close()
+        conn.close()
         return {
             "query": query,
             "results": [],
@@ -571,6 +662,8 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             "Re-embed your books to fix this.",
             query_dim, stored_dim,
         )
+        cursor.close()
+        conn.close()
         return {
             "query": query,
             "results": [],
@@ -593,7 +686,6 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             if "i n d e x" in text_prefix or "g l o s s a r y" in text_prefix:
                 continue
             # Also skip if it seems to be just a huge list of numbers and words (typical of index/TOC pages)
-            import re
             words = text_prefix.split()
             numbers = [w for w in words if re.match(r'^\d+$', w)]
             if len(words) > 0 and (len(numbers) / len(words)) > 0.15:
@@ -619,18 +711,16 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     scored.sort(key=lambda x: x["similarity"], reverse=True)
     top_results = scored[:top_k]
 
-    # Fetch adjacent chunks for each top result to provide fuller context in the detail view
+    # Fetch adjacent chunks for each top result using the SAME connection
     if top_results:
-        conn = _get_db_connection()
-        cursor = conn.cursor(dictionary=True)
         for r in top_results:
-            book_id = r["bookId"]
+            book_id_val = r["bookId"]
             chunk_idx = r["chunkIndex"]
             # Fetch previous chunk (contextBefore)
             cursor.execute(
                 """SELECT chunk_text FROM book_embeddings
                    WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
-                (book_id, user_id, chunk_idx - 1),
+                (book_id_val, user_id, chunk_idx - 1),
             )
             prev_row = cursor.fetchone()
             r["contextBefore"] = prev_row["chunk_text"] if prev_row else None
@@ -638,12 +728,13 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             cursor.execute(
                 """SELECT chunk_text FROM book_embeddings
                    WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
-                (book_id, user_id, chunk_idx + 1),
+                (book_id_val, user_id, chunk_idx + 1),
             )
             next_row = cursor.fetchone()
             r["contextAfter"] = next_row["chunk_text"] if next_row else None
-        cursor.close()
-        conn.close()
+
+    cursor.close()
+    conn.close()
 
     # Generate answer using LLM if available and not local-only mode
     answer = None
@@ -696,6 +787,7 @@ def get_book_embeddings(book_id: int, user_id: int) -> dict[str, Any]:
         "chunkCount": count,
     }
 
+
 @app.post("/v1/test-embedding")
 def test_embedding(payload: dict[str, Any]) -> dict[str, Any]:
     """Test embedding provider connection."""
@@ -703,25 +795,24 @@ def test_embedding(payload: dict[str, Any]) -> dict[str, Any]:
     api_key = payload.get("apiKey", "")
     base_url = payload.get("url", "").rstrip("/")
     model = payload.get("model", "")
-    
+
     if provider == "local":
         return {"success": True, "message": "Local provider selected. Tests pass by default as long as the service is running."}
-        
+
     if not base_url:
         return {"success": False, "message": "External URL is required for external providers."}
-        
-    import requests
+
     headers = {}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
-        
+
     if provider == "openai":
         url = f"{base_url}/embeddings"
     else: # ollama
         url = f"{base_url}/api/embeddings" if "/api" not in base_url else f"{base_url}/embeddings"
-        
+
     json_payload = {"model": model, "input": "test"} if provider == "openai" else {"model": model, "prompt": "test"}
-    
+
     try:
         resp = requests.post(url, headers=headers, json=json_payload, timeout=10)
         resp.raise_for_status()
@@ -751,20 +842,19 @@ def test_llm(payload: dict[str, Any]) -> dict[str, Any]:
     api_key = payload.get("apiKey", "")
     base_url = payload.get("url", "").rstrip("/")
     model = payload.get("model", "")
-    
+
     if provider == "local":
         return {"success": True, "message": "Local provider selected. Tests pass by default as long as the service is running."}
-        
+
     if not base_url:
         return {"success": False, "message": "External URL is required for external providers."}
-        
-    import requests
+
     headers = {}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
-        
+
     messages = [{"role": "user", "content": "Say 'hello' briefly."}]
-    
+
     try:
         if provider == "openai":
             url = f"{base_url}/chat/completions"
@@ -772,7 +862,7 @@ def test_llm(payload: dict[str, Any]) -> dict[str, Any]:
         else: # ollama
             url = f"{base_url}/api/chat" if "/api" not in base_url else f"{base_url}/chat"
             json_payload = {"model": model, "messages": messages, "stream": False}
-            
+
         resp = requests.post(url, headers=headers, json=json_payload, timeout=15)
         resp.raise_for_status()
         return {"success": True, "message": "Connection successful! Model responded."}
@@ -819,19 +909,19 @@ def list_embedding_models() -> dict[str, Any]:
                     })
     return {"models": result}
 
+
 @app.delete("/v1/models/embedding/{namespace}/{model_name:path}")
 def delete_embedding_model(namespace: str, model_name: str) -> dict[str, Any]:
     dir_name = f"models--{namespace}--{model_name}"
     path = os.path.join("/models", dir_name)
     if os.path.exists(path) and os.path.isdir(path):
-        import shutil
         shutil.rmtree(path)
         return {"status": "deleted"}
     return {"status": "not_found"}
 
+
 @app.get("/v1/models/llm")
 def list_llm_models() -> dict[str, Any]:
-    import requests
     try:
         resp = requests.get("http://localhost:11434/api/tags", timeout=10)
         if resp.status_code == 200:
@@ -848,9 +938,9 @@ def list_llm_models() -> dict[str, Any]:
         logger.error("Failed to list LLM models: %s", exc)
     return {"models": []}
 
+
 @app.delete("/v1/models/llm/{model_name:path}")
 def delete_llm_model(model_name: str) -> dict[str, Any]:
-    import requests
     try:
         resp = requests.delete("http://localhost:11434/api/delete", json={"name": model_name}, timeout=10)
         if resp.status_code == 200:
