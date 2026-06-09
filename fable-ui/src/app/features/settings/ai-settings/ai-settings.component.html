@@ -441,7 +441,7 @@
                     @for (model of embeddingModels; track model.id) {
                       <div class="model-item">
                         <div class="model-info">
-                          <span class="model-name">{{ model.name }}</span>
+                          <span class="model-name model-name-clickable" (click)="selectEmbeddingModel(model)" (keydown.enter)="selectEmbeddingModel(model)" (keydown.space)="selectEmbeddingModel(model); $event.preventDefault()" tabindex="0" role="button" [pTooltip]="'Use ' + model.name" tooltipPosition="top">{{ model.name }}</span>
                           <span class="model-size">{{ formatBytes(model.sizeBytes) }}</span>
                         </div>
                         <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="deleteEmbeddingModel(model)" pTooltip="Delete from disk"></p-button>
@@ -558,7 +558,7 @@
                     @for (model of llmModels; track model.id) {
                       <div class="model-item">
                         <div class="model-info">
-                          <span class="model-name">{{ model.name }}</span>
+                          <span class="model-name model-name-clickable" (click)="selectLlmModel(model)" (keydown.enter)="selectLlmModel(model)" (keydown.space)="selectLlmModel(model); $event.preventDefault()" tabindex="0" role="button" [pTooltip]="'Use ' + model.name" tooltipPosition="top">{{ model.name }}</span>
                           <span class="model-size">{{ formatBytes(model.sizeBytes) }}</span>
                         </div>
                         <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="deleteLlmModel(model)" pTooltip="Delete from disk"></p-button>

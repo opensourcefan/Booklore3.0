@@ -291,6 +291,16 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
+  selectEmbeddingModel(model: AiModel): void {
+    this.aiSearchSettings.embeddingProvider = 'local';
+    this.aiSearchSettings.embeddingModel = model.id;
+  }
+
+  selectLlmModel(model: AiModel): void {
+    this.aiSearchSettings.llmProvider = 'local';
+    this.aiSearchSettings.llmModel = model.id;
+  }
+
   loadAiModels(): void {
     if (this.aiSearchEnabled) {
       this.loadingEmbeddingModels = true;
