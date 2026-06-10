@@ -224,7 +224,7 @@
     A friendly, complete walkthrough of everything Fable can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.98 &mdash; May 13, 2026<br>
+    Version 1.1.101 &mdash; June 10, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -1209,6 +1209,7 @@
   <tr><td>Tasks</td><td>Background task scheduling (cron jobs)</td></tr>
   <tr><td>Audit Logs</td><td>View user activity logs</td></tr>
   <tr><td>AI Panel Detection</td><td>Enable/disable and manage comic panel AI</td></tr>
+  <tr><td>AI Search Settings</td><td>AI model provider, API keys, external URL, and advanced embedding, chunking, and retrieval parameters (BM25, Matryoshka, Reranking)</td></tr>
   <tr><td>Global Preferences</td><td>Theme palette, custom primary/surface colors, language, timezone, settings backup</td></tr>
 </table>
 
@@ -1228,6 +1229,75 @@
   <li><strong>Use a color picker or paste a value</strong> &mdash; Both color controls accept a native color picker or a typed/pasted color such as <code>#ff6600</code></li>
   <li><strong>Reset one side without resetting the other</strong> &mdash; Clear the custom primary or custom surface color independently if you want to go back to presets</li>
   <li><strong>Keep your theme with your account</strong> &mdash; Theme selections are saved to your user settings so they return on later sign-ins</li>
+</ul>
+
+<h3>AI Search &amp; Embedding Tuning</h3>
+<p>Fable's search capabilities can be enhanced by configuring local or external AI model providers. In the settings panel under the <strong>Advanced Embedding &amp; Retrieval Tuning</strong> section, you can optimize the search engine's indexing behavior and retrieval performance—especially when running strictly on CPU-only hardware where vector operations can become a bottleneck.</p>
+
+<h4>Advanced Tuning &amp; CPU Optimization Manual</h4>
+<p>To maximize search accuracy and inference speed without overloading system resources, refer to the following recommended configurations based on the selected embedding model:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Model Configuration</th>
+      <th>Recommended Chunk Size</th>
+      <th>MRL Dimension</th>
+      <th>Hybrid Search (BM25)</th>
+      <th>Reranking</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <span style="display: inline-block; font-size: 8.5pt; font-family: monospace; font-weight: bold; background: rgba(59, 130, 246, 0.1); color: #1e3a8a; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(59, 130, 246, 0.2);">nomic-embed-text-v1.5</span><br>
+        <span style="font-size: 8pt; color: var(--muted);">The All-Rounder (8k context)</span>
+      </td>
+      <td><strong>3,000 – 8,000</strong> characters</td>
+      <td><strong>256</strong> or <strong>128</strong></td>
+      <td>Optional</td>
+      <td>Optional</td>
+    </tr>
+    <tr>
+      <td>
+        <span style="display: inline-block; font-size: 8.5pt; font-family: monospace; font-weight: bold; background: rgba(16, 185, 129, 0.1); color: #065f46; border: 1px solid rgba(16, 185, 129, 0.2); padding: 2px 6px; border-radius: 4px;">all-MiniLM-L6-v2</span><br>
+        <span style="font-size: 8pt; color: var(--muted);">The Speed Demon (512 context)</span>
+      </td>
+      <td><strong>1,000 – 1,500</strong> characters</td>
+      <td><strong>Disabled</strong> (0)</td>
+      <td>Recommended</td>
+      <td><strong>Enabled</strong> (Highly Recommended)</td>
+    </tr>
+    <tr>
+      <td>
+        <span style="display: inline-block; font-size: 8.5pt; font-family: monospace; font-weight: bold; background: rgba(139, 92, 246, 0.1); color: #5b21b6; border: 1px solid rgba(139, 92, 246, 0.2); padding: 2px 6px; border-radius: 4px;">bge-base-en-v1.5</span><br>
+        <span style="font-size: 8pt; color: var(--muted);">Standard/Enhanced (512 context)</span>
+      </td>
+      <td><strong>1,000 – 1,500</strong> characters</td>
+      <td><strong>Disabled</strong> (0)</td>
+      <td><strong>Enabled</strong></td>
+      <td>Optional</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>Tuning Parameters Explained</h4>
+<ul>
+  <li>
+    <strong>Chunk Size &amp; Chunk Overlap:</strong> Controls how books are split into smaller segments before vector indexing. Larger chunks are ideal for models with wide context windows (like Nomic), whereas smaller chunks offer finer search precision. The overlap ensures context boundaries and key sentences aren't cut in half.
+    <div class="callout warning">
+      <strong>Be Careful:</strong> Modifying <strong>Chunk Size</strong>, <strong>Chunk Overlap</strong>, or <strong>Matryoshka Dimensions</strong> changes how the embeddings are structured. Saving changes to these settings will <strong>automatically delete all existing book embeddings</strong> and mark all books to be re-embedded. Search-only parameters (Hybrid Search or Reranking) do not invalidate existing embeddings.
+    </div>
+  </li>
+  <li>
+    <strong>Matryoshka Representation Learning (MRL):</strong> Supported by advanced models like Nomic, MRL allows slicing high-dimensional vectors (e.g. from 768 down to 256 or 128 dimensions) with almost no impact on retrieval accuracy. Slicing vectors and re-normalizing them speeds up cosine similarity comparisons on CPU by up to <strong>3x</strong>, saving significant memory.
+  </li>
+  <li>
+    <strong>Hybrid Keyword Search (BM25 + Vector):</strong> Combines semantic vector similarity with traditional BM25 exact keyword matching. It uses Reciprocal Rank Fusion (RRF) with a rank constant <code>rrfK</code> (default 60) to merge the candidate lists. This is highly effective at finding specific names, numbers, or technical codes that vector models might overlook.
+  </li>
+  <li>
+    <strong>Cross-Encoder Reranking (The Secret Weapon):</strong> Runs a lightweight cross-encoder model (such as <code>BAAI/bge-reranker-base</code>) in a background thread. While standard bi-encoders retrieve candidate chunks quickly, a cross-encoder evaluates the exact match relation between the query and text for the top candidates (e.g. top 20). This brings GPU-grade search precision to CPU hardware in milliseconds because it only reranks a handful of candidates instead of the whole database.
+  </li>
 </ul>
 
 <div class="callout warning">
@@ -1429,6 +1499,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-06-10</td><td>1.1.101</td><td>Documented the new Advanced Embedding &amp; Retrieval Tuning settings, including Chunk Size and Overlap controls, Matryoshka representation learning vector truncation, dynamic L2-norm re-normalization, hybrid BM25 and vector search merging via RRF, and Cross-Encoder reranking using a background loader thread; detailed CPU-specific preset recommendations for nomic-embed-text-v1.5 and all-MiniLM-L6-v2 models</td></tr>
   <tr><td>2026-05-18</td><td>1.1.100</td><td>Recorded the AI panel security remediation: the bundled <strong>Pillow</strong> dependency now pins to the first non-vulnerable 12.2.0 release, the temporary Dependabot ignore on <strong>Pillow</strong> major updates was removed, and future 12.x AI-panel security updates can now flow back through the normal unattended maintenance path</td></tr>
   <tr><td>2026-05-18</td><td>1.1.99</td><td>Documented the paged-first browser startup flow so <strong>All Books</strong>, library, shelf, and <strong>Not Shelfed</strong> views can render from the first server page without waiting for a full catalog bootstrap, and clarified that topbar search now stays responsive on large libraries by querying lightweight server-backed results</td></tr>
   <tr><td>2026-05-13</td><td>1.1.98</td><td>Reformatted the guide into a darker, more book-like reading presentation for both HTML and PDF output, clarified that users who want regular built-in reader behavior can copy or import the PDF into a library or BookDrop manually, and made the maintenance rule explicit: update this HTML source, regenerate the PDF, and refresh the README guide section together</td></tr>
