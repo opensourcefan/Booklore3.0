@@ -442,19 +442,19 @@
 
   &.status-starting {
     ::ng-deep .p-button-icon {
-      animation: pulse-orange 800ms infinite ease-in-out;
+      animation: pulse-orange 900ms infinite ease-in-out;
     }
   }
 
   &.status-searching {
     ::ng-deep .p-button-icon {
-      animation: pulse-blue 800ms infinite ease-in-out;
+      animation: pulse-blue 900ms infinite ease-in-out;
     }
   }
 
   &.status-search-error {
     ::ng-deep .p-button-icon {
-      animation: pulse-red 800ms infinite ease-in-out;
+      animation: pulse-red 900ms infinite ease-in-out;
     }
   }
 
@@ -462,6 +462,12 @@
     ::ng-deep .p-button-icon {
       color: #ef4444 !important;
       animation: none;
+    }
+  }
+
+  &.status-embedding {
+    ::ng-deep .p-button-icon {
+      animation: pulse-green 900ms infinite ease-in-out;
     }
   }
 
@@ -515,6 +521,21 @@
   100% {
     color: #6b7280;
     filter: drop-shadow(0 0 1px rgba(239, 68, 68, 0));
+  }
+}
+
+@keyframes pulse-green {
+  0% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(34, 197, 94, 0));
+  }
+  50% {
+    color: #22c55e;
+    filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.9));
+  }
+  100% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(34, 197, 94, 0));
   }
 }
 

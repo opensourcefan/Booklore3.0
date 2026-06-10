@@ -65,7 +65,7 @@ public class AiSearchService {
         }
 
         try {
-            sendBatchProgress(username, "STARTED", "Finding books to scan...", null, 0, 0);
+            sendBatchProgress(username, "STARTED", "Finding books to scan...", null, 0, 0, null, null);
 
             List<Long> epubBookIds = bookRepository.findAllBookIdsByLibraryPathIdInAndBookType(libraryPathIds, BookFileType.EPUB);
             List<Long> pdfBookIds = bookRepository.findAllBookIdsByLibraryPathIdInAndBookType(libraryPathIds, BookFileType.PDF);
@@ -75,7 +75,7 @@ public class AiSearchService {
             allBookIds.addAll(pdfBookIds);
 
             if (allBookIds.isEmpty()) {
-                sendBatchProgress(username, "COMPLETED", "No EPUB or PDF books found in selected paths.", null, 0, 0);
+                sendBatchProgress(username, "COMPLETED", "No EPUB or PDF books found in selected paths.", null, 0, 0, null, null);
                 return;
             }
 
@@ -87,33 +87,39 @@ public class AiSearchService {
 
             int total = allBookIds.size();
             if (total == 0) {
-                sendBatchProgress(username, "COMPLETED", "All books in selected paths are already embedded.", null, 0, 0);
+                sendBatchProgress(username, "COMPLETED", "All books in selected paths are already embedded.", null, 0, 0, null, null);
                 return;
             }
 
             int current = 0;
-            sendBatchProgress(username, "IN_PROGRESS", "Starting extraction...", null, current, total);
+            sendBatchProgress(username, "IN_PROGRESS", "Starting extraction...", null, current, total, null, null);
+
+            List<String> importedBookTitles = new ArrayList<>();
+            List<String> failedBookTitles = new ArrayList<>();
 
             for (Long bookId : allBookIds) {
                 if (!scanInProgress.get()) {
-                    sendBatchProgress(username, "STOPPED", "Scan was manually stopped.", null, current, total);
+                    sendBatchProgress(username, "STOPPED", "Scan was manually stopped.", null, current, total, null, null);
                     return;
                 }
                 
                 try {
+                    String title = resolveBookTitle(bookId);
                     extractAndEmbedBookInternal(bookId, userId, username, true);
+                    importedBookTitles.add(title);
                 } catch (Exception e) {
                     log.error("Failed to embed book {} during batch scan: {}", bookId, e.getMessage());
+                    failedBookTitles.add(resolveBookTitle(bookId));
                 }
                 current++;
-                sendBatchProgress(username, "IN_PROGRESS", "Extracted book " + current + " of " + total, null, current, total);
+                sendBatchProgress(username, "IN_PROGRESS", "Extracted book " + current + " of " + total, null, current, total, null, null);
             }
 
-            sendBatchProgress(username, "COMPLETED", "Scan completed.", null, total, total);
+            sendBatchProgress(username, "COMPLETED", "Scan completed.", null, total, total, importedBookTitles, failedBookTitles);
 
         } catch (Exception e) {
             log.error("Batch AI Search scan failed", e);
-            sendBatchProgress(username, "FAILED", "Scan failed: " + e.getMessage(), e.getMessage(), 0, 0);
+            sendBatchProgress(username, "FAILED", "Scan failed: " + e.getMessage(), e.getMessage(), 0, 0, null, null);
         } finally {
             scanInProgress.set(false);
         }
@@ -138,6 +144,11 @@ public class AiSearchService {
         return bookRepository.deleteBookEmbeddings(bookIds, userId);
     }
 
+    private String resolveBookTitle(Long bookId) {
+        String title = bookRepository.findBookTitleById(bookId);
+        return title != null ? title : "Book #" + bookId;
+    }
+
     @Async
     public void startScanMarkedAiSearchEmbeddings(Long userId, String username, boolean force) {
         if (!scanInProgress.compareAndSet(false, true)) {
@@ -146,13 +157,16 @@ public class AiSearchService {
         }
 
         try {
-            sendBatchProgress(username, "STARTED", "Finding marked books to scan...", null, 0, 0);
+            sendBatchProgress(username, "STARTED", "Finding marked books to scan...", null, 0, 0, null, null);
 
             List<Long> markedBookIds = bookRepository.findBookIdsByMarkedForAiSearchTrue();
 
+            List<String> importedBookTitles = new ArrayList<>();
+            List<String> failedBookTitles = new ArrayList<>();
+
             int total = markedBookIds.size();
             if (total == 0) {
-                sendBatchProgress(username, "COMPLETED", "No books are marked for AI Search.", null, 0, 0);
+                sendBatchProgress(username, "COMPLETED", "No books are marked for AI Search.", null, 0, 0, null, null);
                 return;
             }
 
@@ -161,7 +175,7 @@ public class AiSearchService {
             int skippedCount = 0;
             int errorCount = 0;
 
-            sendBatchProgress(username, "IN_PROGRESS", "Starting extraction...", null, current, total);
+            sendBatchProgress(username, "IN_PROGRESS", "Starting extraction...", null, current, total, null, null);
 
             String activeModel = aiSearchHealthService.getStatus().getEmbeddingModel();
             
@@ -177,7 +191,7 @@ public class AiSearchService {
             for (Long bookId : markedBookIds) {
                 if (!scanInProgress.get()) {
                     String stopMsg = String.format("Scan was manually stopped. %d scanned, %d skipped, %d failed.", scannedCount, skippedCount, errorCount);
-                    sendBatchProgress(username, "STOPPED", stopMsg, null, current, total);
+                    sendBatchProgress(username, "STOPPED", stopMsg, null, current, total, null, null);
                     return;
                 }
                 
@@ -188,24 +202,27 @@ public class AiSearchService {
                         bookRepository.updateMarkedForAiSearch(List.of(bookId), false);
                         skippedCount++;
                         current++;
-                        sendBatchProgress(username, "IN_PROGRESS", "Skipped already scanned book " + current + " of " + total, null, current, total);
+                        sendBatchProgress(username, "IN_PROGRESS", "Skipped already scanned book " + current + " of " + total, null, current, total, null, null);
                         continue;
                     }
 
+                    String title = resolveBookTitle(bookId);
                     extractAndEmbedBookInternal(bookId, userId, username, true);
                     scannedCount++;
+                    importedBookTitles.add(title);
                     // clear the flag
                     bookRepository.updateMarkedForAiSearch(List.of(bookId), false);
                 } catch (Exception e) {
                     errorCount++;
                     log.error("Failed to embed book {} during marked scan: {}", bookId, e.getMessage());
+                    failedBookTitles.add(resolveBookTitle(bookId));
                 }
                 current++;
-                sendBatchProgress(username, "IN_PROGRESS", "Extracted book " + current + " of " + total, null, current, total);
+                sendBatchProgress(username, "IN_PROGRESS", "Extracted book " + current + " of " + total, null, current, total, null, null);
             }
 
             String completionMsg = String.format("Scan completed. %d books scanned, %d skipped, %d failed.", scannedCount, skippedCount, errorCount);
-            sendBatchProgress(username, "COMPLETED", completionMsg, null, total, total);
+            sendBatchProgress(username, "COMPLETED", completionMsg, null, total, total, importedBookTitles, failedBookTitles);
 
         } catch (Exception e) {
             log.error("Marked AI Search scan failed", e);
@@ -628,7 +645,8 @@ public class AiSearchService {
         notificationService.sendMessageToUser(username, Topic.AI_SEARCH_PROGRESS, payload);
     }
 
-    public void sendBatchProgress(String username, String event, String message, String error, int current, int total) {
+    public void sendBatchProgress(String username, String event, String message, String error, int current, int total,
+                                   List<String> importedBooks, List<String> failedBooks) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("mode", "BATCH");
         payload.put("event", event);
@@ -637,6 +655,12 @@ public class AiSearchService {
         payload.put("total", total);
         if (error != null) {
             payload.put("error", error);
+        }
+        if (importedBooks != null && !importedBooks.isEmpty()) {
+            payload.put("importedBooks", importedBooks);
+        }
+        if (failedBooks != null && !failedBooks.isEmpty()) {
+            payload.put("failedBooks", failedBooks);
         }
         notificationService.sendMessageToUser(username, Topic.AI_SEARCH_PROGRESS, payload);
     }
@@ -676,7 +700,6 @@ public class AiSearchService {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAiSearch().getReadTimeoutMs());
-
         return RestClient.builder()
                 .requestFactory(factory)
                 .build();

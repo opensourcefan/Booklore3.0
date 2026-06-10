@@ -28,7 +28,7 @@
       <p-button
         icon="pi pi-sparkles"
         class="ai-search-inner-btn"
-        [ngClass]="{'status-starting': searchStatus === 'STARTING', 'status-error': searchStatus === 'ERROR', 'status-searching': isSearchActive, 'status-search-error': isSearchError}"
+        [ngClass]="{'status-starting': searchStatus === 'STARTING', 'status-error': searchStatus === 'ERROR', 'status-searching': isSearchActive, 'status-search-error': isSearchError, 'status-embedding': isBatchEmbedding}"
         [text]="true"
         [rounded]="true"
         (click)="openAiSearch(); isSearchError = false"

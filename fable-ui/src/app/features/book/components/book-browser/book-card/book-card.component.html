@@ -28,10 +28,16 @@
           AIP
         </div>
       }
-      @if (showAiSearchDataOverlay && book.hasAiSearchData && aiSearchEnabled) {
-        <button type="button" class="ai-search-overlay" 
+      @if (showAiSearchDataOverlay && book.markedForAiSearch && aiSearchEnabled) {
+        <div class="ai-search-overlay ai-search-overlay--marked"
+             [pTooltip]="'Marked for embedding'"
+             tooltipPosition="top">
+          AIS
+        </div>
+      } @else if (showAiSearchDataOverlay && book.hasAiSearchData && aiSearchEnabled) {
+        <button type="button" class="ai-search-overlay"
                 [class.mismatched]="book['hasMismatchedAiSearchData']"
-                (click)="openAiSearch($event, book)" 
+                (click)="openAiSearch($event, book)"
                 [pTooltip]="book['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model (' + book['aiSearchEmbeddingModel'] + ') - Re-embed required' : 'AI Search (' + book['aiSearchEmbeddingModel'] + ')'"
                 tooltipPosition="top">
           AIS
@@ -181,10 +187,16 @@
             @if (viewerBook.hasAiPanelData) {
               <div class="ai-panel-overlay">AIP</div>
             }
-            @if (viewerBook.hasAiSearchData && aiSearchEnabled) {
-              <button type="button" class="ai-search-overlay" 
+            @if (showAiSearchDataOverlay && viewerBook.markedForAiSearch && aiSearchEnabled) {
+              <div class="ai-search-overlay ai-search-overlay--marked"
+                   [pTooltip]="'Marked for embedding'"
+                   tooltipPosition="top">
+                AIS
+              </div>
+            } @else if (viewerBook.hasAiSearchData && aiSearchEnabled) {
+              <button type="button" class="ai-search-overlay"
                       [class.mismatched]="viewerBook['hasMismatchedAiSearchData']"
-                      (click)="openAiSearch($event, viewerBook)" 
+                      (click)="openAiSearch($event, viewerBook)"
                       [pTooltip]="viewerBook['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model (' + viewerBook['aiSearchEmbeddingModel'] + ') - Re-embed required' : 'AI Search (' + viewerBook['aiSearchEmbeddingModel'] + ')'"
                       tooltipPosition="top">
                 AIS

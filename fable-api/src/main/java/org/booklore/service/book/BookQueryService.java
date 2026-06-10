@@ -552,7 +552,8 @@ public class BookQueryService {
                 .id(bookEntity.getId())
                 .fileType(bookEntity.getFileType())
                 .isPhysical(bookEntity.getIsPhysical())
-                .addedOn(bookEntity.getAddedOn());
+                .addedOn(bookEntity.getAddedOn())
+                .markedForAiSearch(Boolean.TRUE.equals(bookEntity.getMarkedForAiSearch()));
 
         if (primaryFileDto != null) {
             builder.fileName(primaryFileDto.getFileName())

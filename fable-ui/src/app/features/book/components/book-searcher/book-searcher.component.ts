@@ -1,6 +1,6 @@
 import {Component, ElementRef, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
 import {BehaviorSubject, interval, of, Subscription} from 'rxjs';
-import {catchError, debounceTime, distinctUntilChanged, map, switchMap} from 'rxjs/operators';
+import {catchError, debounceTime, distinctUntilChanged, map, switchMap, filter as rxFilter} from 'rxjs/operators';
 import {Book} from '../../model/book.model';
 import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
@@ -15,6 +15,7 @@ import {InputIcon} from 'primeng/inputicon';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AiSearchDialogService} from '../ai-search-dialog/ai-search-dialog.component';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
+import {AiSearchScanProgressService} from '../../../../shared/service/ai-search-scan-progress.service';
 import {TooltipModule} from 'primeng/tooltip';
 
 @Component({
@@ -56,10 +57,13 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   searchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
   isSearchActive = false;
   isSearchError = false;
+  isBatchEmbedding = false;
   private appSettingsSub?: Subscription;
   private pollingSub?: Subscription;
   private searchActiveSub?: Subscription;
   private searchErrorSub?: Subscription;
+  private embeddingProgressSub?: Subscription;
+  private aiSearchScanProgressService = inject(AiSearchScanProgressService);
 
   ngOnInit(): void {
     this.#subscription = this.#searchSubject.pipe(
@@ -98,6 +102,12 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     this.searchErrorSub = this.aiSearchDialogService.searchError$.subscribe(error => {
       this.isSearchError = error;
     });
+
+    this.embeddingProgressSub = this.aiSearchScanProgressService.progress$
+      .pipe(rxFilter((p): p is NonNullable<typeof p> => !!p))
+      .subscribe(progress => {
+        this.isBatchEmbedding = progress.mode === 'BATCH' && progress.event === 'IN_PROGRESS';
+      });
 
     this.appSettingsSub = this.appSettingsService.appSettings$.subscribe(settings => {
       this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
@@ -217,6 +227,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     }
     this.searchActiveSub?.unsubscribe();
     this.searchErrorSub?.unsubscribe();
+    this.embeddingProgressSub?.unsubscribe();
     this.stopAiStatusPolling();
   }
 }

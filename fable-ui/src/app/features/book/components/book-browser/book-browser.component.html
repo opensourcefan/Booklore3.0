@@ -397,7 +397,7 @@
                   <p-button
                     icon="pi pi-sparkles"
                     class="ai-search-inner-btn"
-                    [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive, 'status-search-error': isAiSearchError}"
+                    [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive, 'status-search-error': isAiSearchError, 'status-embedding': isBatchEmbedding}"
                     [text]="true"
                     [rounded]="true"
                     (click)="openAiSearch(); searchDropdown.hide(); isAiSearchError = false"
@@ -435,7 +435,7 @@
               <p-button
                 icon="pi pi-sparkles"
                 class="ai-search-inner-btn"
-                [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive, 'status-search-error': isAiSearchError}"
+                [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive, 'status-search-error': isAiSearchError, 'status-embedding': isBatchEmbedding}"
                 [text]="true"
                 [rounded]="true"
                 (click)="openAiSearch(); isAiSearchError = false"

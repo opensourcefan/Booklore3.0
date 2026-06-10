@@ -15,6 +15,7 @@ import {
 } from '@angular/core';
 import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
+import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../../shared/service/ai-search-scan-progress.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {BookService, RemoveFromLibraryMode} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
@@ -160,6 +161,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private filterOrchestrationService = inject(BookFilterOrchestrationService);
   private localStorageService = inject(LocalStorageService);
   private scrollService = inject(BookBrowserScrollService);
+  private readonly aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private readonly t = inject(TranslocoService);
   private urlHelper = inject(UrlHelperService);
   private directoryFilterService = inject(DirectoryFilterService);
@@ -213,6 +215,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   aiSearchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
   isAiSearchActive = false;
   isAiSearchError = false;
+  isBatchEmbedding = false;
   aiSearchDialogVisible = false;
   private aiSearchPollingSub?: Subscription;
   isSelectionActionPanelOpen = false;
@@ -855,6 +858,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(visible => {
         this.aiSearchDialogVisible = visible;
+        this.cdr.markForCheck();
+      });
+
+    this.aiSearchScanProgressService.progress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(progress => {
+        this.isBatchEmbedding = progress?.mode === 'BATCH' && progress?.event === 'IN_PROGRESS';
         this.cdr.markForCheck();
       });
   }

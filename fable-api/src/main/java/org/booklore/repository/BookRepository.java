@@ -597,4 +597,7 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
 
     @Query("SELECT b.id as id, m.title as title, l.name as libraryName FROM BookEntity b JOIN b.library l LEFT JOIN b.metadata m WHERE b.markedForAiSearch = true AND (b.deleted IS NULL OR b.deleted = false)")
     List<org.booklore.repository.projection.MarkedBookProjection> findMarkedBooksInfo();
+
+    @Query("SELECT COALESCE(m.title, '') FROM BookEntity b LEFT JOIN b.metadata m WHERE b.id = :bookId")
+    String findBookTitleById(@Param("bookId") Long bookId);
 }

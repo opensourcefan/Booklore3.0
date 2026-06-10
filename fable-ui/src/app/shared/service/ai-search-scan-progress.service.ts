@@ -10,15 +10,19 @@ export interface AiSearchProgressPayload {
   error?: string;
   current?: number;
   total?: number;
+  importedBooks?: string[];
+  failedBooks?: string[];
 }
 
 @Injectable({providedIn: 'root'})
 export class AiSearchScanProgressService {
   private readonly messageService = inject(MessageService);
   private readonly progressSubject = new BehaviorSubject<AiSearchProgressPayload | null>(null);
+  private readonly embeddingBookIdsSubject = new BehaviorSubject<Set<number>>(new Set());
   private clearTimer: ReturnType<typeof setTimeout> | undefined;
 
   readonly progress$ = this.progressSubject.asObservable();
+  readonly embeddingBookIds$ = this.embeddingBookIdsSubject.asObservable();
 
   handleIncomingProgress(progress: AiSearchProgressPayload): void {
     if (this.clearTimer) {
@@ -65,8 +69,31 @@ export class AiSearchScanProgressService {
     return progress.message;
   }
 
+  buildCompletionSummary(progress: AiSearchProgressPayload): string {
+    const imported = progress.importedBooks;
+    const failed = progress.failedBooks;
+    const parts: string[] = [];
+
+    if (imported && imported.length > 0) {
+      const count = imported.length;
+      const titles = imported.slice(0, 3).join(', ');
+      const suffix = imported.length > 3 ? ` and ${imported.length - 3} more` : '';
+      parts.push(`Imported (${count}): ${titles}${suffix}`);
+    }
+
+    if (failed && failed.length > 0) {
+      const count = failed.length;
+      const titles = failed.slice(0, 3).join(', ');
+      const suffix = failed.length > 3 ? ` and ${failed.length - 3} more` : '';
+      parts.push(`Failed (${count}): ${titles}${suffix}`);
+    }
+
+    return parts.length > 0 ? parts.join('. ') : '';
+  }
+
   updateReaderToast(progress: AiSearchProgressPayload): void {
     const detail = this.buildStatusText(progress);
+    const completionSummary = this.buildCompletionSummary(progress);
 
     if (progress.event === 'FAILED') {
       this.messageService.clear('ai-search-scan');
@@ -74,8 +101,8 @@ export class AiSearchScanProgressService {
         key: 'ai-search-scan',
         severity: 'warn',
         summary: 'AI Search Embeddings',
-        detail,
-        life: 5000
+        detail: completionSummary || detail,
+        life: 8000
       });
       return;
     }
@@ -86,8 +113,8 @@ export class AiSearchScanProgressService {
         key: 'ai-search-scan',
         severity: 'success',
         summary: 'AI Search Embeddings',
-        detail,
-        life: 3500
+        detail: completionSummary || detail,
+        life: 8000
       });
       return;
     }
