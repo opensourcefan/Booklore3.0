@@ -77,30 +77,35 @@
     .p-button-icon {
       font-size: 1.1rem;
       color: #00d2ff;
+      filter: drop-shadow(0 0 2px rgba(0, 210, 255, 0.4));
     }
   }
   
   &.status-starting {
     ::ng-deep .p-button-icon {
       animation: pulse-orange 900ms infinite ease-in-out;
+      color: #6b7280;
     }
   }
 
   &.status-searching {
     ::ng-deep .p-button-icon {
       animation: pulse-blue 900ms infinite ease-in-out;
+      color: #6b7280;
     }
   }
 
   &.status-search-error {
     ::ng-deep .p-button-icon {
       animation: pulse-red 900ms infinite ease-in-out;
+      color: #6b7280;
     }
   }
 
   &.status-embedding {
     ::ng-deep .p-button-icon {
       animation: pulse-green 900ms infinite ease-in-out;
+      color: #6b7280; // override base #00d2ff to prevent blue flash during animation
     }
   }
   
