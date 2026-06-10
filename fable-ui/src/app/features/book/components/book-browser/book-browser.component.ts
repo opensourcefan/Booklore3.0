@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
-import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../../shared/service/ai-search-scan-progress.service';
+import {AiSearchScanProgressService} from '../../../../shared/service/ai-search-scan-progress.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {BookService, RemoveFromLibraryMode} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
