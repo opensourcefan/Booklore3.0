@@ -87,7 +87,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 
 ```bash
 # 1. Download the Compose file
-curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-compose.yml
+curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-compose.yml ## Use the .env to enable AI.
 
 # 2. Create your .env file (see Sample .env below)
 
@@ -95,9 +95,7 @@ curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-com
 docker compose pull
 docker compose up -d
 
-# 4. If AI is enabled, pull and start the AI container separately
-docker compose pull app-ai-panel
-docker compose up -d app-ai-panel
+# 4. If AI is enabled, AI containers will install automatically as they should be inserted into your docker-compose.yml
 ```
 
 ### Update Existing Install
@@ -134,7 +132,7 @@ APP_USER_ID=1000
 APP_GROUP_ID=1000
 
 # Timezone
-TZ=America/Vancouver
+TZ=Etc/UTC
 
 # Database connection
 DATABASE_URL=jdbc:mariadb://mariadb:3306/fable
@@ -148,8 +146,8 @@ MYSQL_ROOT_PASSWORD=ChangeMe@$@P
 MYSQL_DATABASE=fable
 REMOTE_USER_PASSWORD=ChangeMe@$@P
 
-# Storage type: LOCAL (default) or NETWORK (all data written to MariaDB only)
-#DISK_TYPE=NETWORK
+# Storage type: LOCAL (default) or NETWORK (all data written to MariaDB only, using this is not usually required)
+DISK_TYPE=LOCAL
 
 ##################################################################
 #                                                                #
@@ -188,6 +186,15 @@ REMOTE_USER_PASSWORD=ChangeMe@$@P
 ```yaml
 services:
   fable:
+    # Channel strategy:
+    #   :stable  – last tagged release (conservative, default)
+    #   :latest  – bleeding-edge develop build (may contain unfinished work)
+    #   :vX.Y.Z  – pinned semver release (immutable, best for reproducibility)
+    #   @sha256: – digest-pinned (most reproducible, immune to tag overwrites)
+    #
+    # For reproducible deployments pin to a specific semver tag or SHA digest:
+    #   image: ghcr.io/opensourcefan/booklore3:v3.15.46
+    #   image: ghcr.io/opensourcefan/booklore3@sha256:<digest>
     image: ghcr.io/opensourcefan/fable:stable
     container_name: fable
     restart: unless-stopped
@@ -291,8 +298,6 @@ networks:
   fable_shared:
     name: fable_shared
 ```
-
-> **Note:** This is a representative sample. Always use the `docker-compose.yml` pulled from the repository for the most up-to-date configuration.
 
 ### Adding AI Search to an Existing Installation
 
