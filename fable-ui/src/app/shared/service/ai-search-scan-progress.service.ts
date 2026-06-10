@@ -96,9 +96,8 @@ export class AiSearchScanProgressService {
     const completionSummary = this.buildCompletionSummary(progress);
 
     if (progress.event === 'FAILED') {
-      this.messageService.clear('ai-search-scan');
+      this.messageService.clear();
       this.messageService.add({
-        key: 'ai-search-scan',
         severity: 'warn',
         summary: 'AI Search Embeddings',
         detail: completionSummary || detail,
@@ -108,9 +107,8 @@ export class AiSearchScanProgressService {
     }
 
     if (progress.event === 'COMPLETED') {
-      this.messageService.clear('ai-search-scan');
+      this.messageService.clear();
       this.messageService.add({
-        key: 'ai-search-scan',
         severity: 'success',
         summary: 'AI Search Embeddings',
         detail: completionSummary || detail,
@@ -119,9 +117,8 @@ export class AiSearchScanProgressService {
       return;
     }
 
-    this.messageService.clear('ai-search-scan');
+    this.messageService.clear();
     this.messageService.add({
-      key: 'ai-search-scan',
       severity: 'info',
       summary: 'AI Search is embedding books...',
       detail,
