@@ -216,6 +216,7 @@ export class BookService {
       hasAiSearchData: summary.hasAiSearchData,
       hasMismatchedAiSearchData: summary.hasMismatchedAiSearchData,
       aiSearchEmbeddingModel: summary.aiSearchEmbeddingModel,
+      markedForAiSearch: summary.markedForAiSearch,
       lastReadTime: summary.lastReadTime,
       addedOn: summary.addedOn,
       libraryId: 0,
