@@ -20,8 +20,8 @@ import {AuthService} from '../../../service/auth.service';
 import {UserService} from '../../../../features/settings/user-management/user.service';
 import {Popover} from 'primeng/popover';
 import {MetadataProgressService} from '../../../service/metadata-progress.service';
-import {filter, takeUntil} from 'rxjs/operators';
-import {Subject} from 'rxjs';
+import {filter, takeUntil, catchError} from 'rxjs/operators';
+import {Subject, Subscription, of, interval} from 'rxjs';
 import {MetadataBatchProgressNotification} from '../../../model/metadata-batch-progress.model';
 import {BookdropFileService} from '../../../../features/bookdrop/service/bookdrop-file.service';
 import {DialogLauncherService} from '../../../services/dialog-launcher.service';
@@ -43,7 +43,7 @@ import {MetadataTaskLog, MetadataTaskService} from '../../../../features/book/se
 import {MobileBackHandle, MobileBackNavigationService} from '../../../service/mobile-back-navigation.service';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
-import {AiSearchDialogComponent} from '../../../../features/book/components/ai-search-dialog/ai-search-dialog.component';
+import {AiSearchDialogComponent, AiSearchDialogService} from '../../../../features/book/components/ai-search-dialog/ai-search-dialog.component';
 import {AppSettingsService} from '../../../service/app-settings.service';
 import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../service/ai-search-scan-progress.service';
 
@@ -121,6 +121,15 @@ export class AppTopBarComponent implements OnDestroy {
   isSidecarBackupRunning = false;
   isFullscreen = false;
 
+  searchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
+  isSearchActive = false;
+  isSearchError = false;
+  isBatchEmbedding = false;
+  private pollingSub?: Subscription;
+  private searchActiveSub?: Subscription;
+  private searchErrorSub?: Subscription;
+  private embeddingProgressSub?: Subscription;
+
   private eventTimer: number | undefined;
   private flushDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private importDismissTimer: ReturnType<typeof setTimeout> | undefined;
@@ -162,6 +171,7 @@ export class AppTopBarComponent implements OnDestroy {
   public mobileUx = inject(MobileUxService);
   private appSettingsService = inject(AppSettingsService);
   private aiSearchScanProgressService = inject(AiSearchScanProgressService);
+  private aiSearchDialogService = inject(AiSearchDialogService);
 
   constructor() {
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -225,6 +235,28 @@ export class AppTopBarComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(settings => {
         this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+        if (this.aiSearchEnabled) {
+          this.startAiStatusPolling();
+        } else {
+          this.stopAiStatusPolling();
+        }
+      });
+
+    this.searchActiveSub = this.aiSearchDialogService.searchActive$.subscribe(active => {
+      this.isSearchActive = active;
+    });
+
+    this.searchErrorSub = this.aiSearchDialogService.searchError$.subscribe(error => {
+      this.isSearchError = error;
+    });
+
+    this.embeddingProgressSub = this.aiSearchScanProgressService.progress$
+      .pipe(
+        filter((p): p is NonNullable<typeof p> => !!p),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(progress => {
+        this.isBatchEmbedding = progress.mode === 'BATCH' && progress.event === 'IN_PROGRESS';
       });
 
     this.sidecarBackupProgressService.active$
@@ -361,8 +393,38 @@ export class AppTopBarComponent implements OnDestroy {
     clearTimeout(this.metadataFetchDismissTimer);
     clearTimeout(this.writeDismissTimer);
     document.removeEventListener('fullscreenchange', this.onFullscreenChange);
+
+    this.searchActiveSub?.unsubscribe();
+    this.searchErrorSub?.unsubscribe();
+    this.embeddingProgressSub?.unsubscribe();
+    this.stopAiStatusPolling();
+
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private startAiStatusPolling(): void {
+    if (this.pollingSub) return;
+    
+    const fetchStatus = () => {
+      this.appSettingsService.getAiSearchServiceStatus().pipe(
+        catchError(() => of({ status: 'load_failed' }))
+      ).subscribe((res) => {
+        if (res && res.status) {
+          this.searchStatus = res.status as 'READY' | 'STARTING' | 'ERROR';
+        }
+      });
+    };
+    
+    fetchStatus();
+    this.pollingSub = interval(5000).subscribe(() => fetchStatus());
+  }
+
+  private stopAiStatusPolling(): void {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+      this.pollingSub = undefined;
+    }
   }
 
   toggleMenu() {

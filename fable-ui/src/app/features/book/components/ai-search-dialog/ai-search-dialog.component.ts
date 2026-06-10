@@ -19,6 +19,7 @@ import {SidebarBadgeRefreshService} from '../../service/sidebar-badge-refresh.se
 import {CoverGeneratorComponent} from '../../../../shared/components/cover-generator/cover-generator.component';
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
+import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 
 export interface ChatMessage {
   query: string;
@@ -136,6 +137,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
 
   private aiSearchDialogService = inject(AiSearchDialogService);
+  public mobileUx = inject(MobileUxService);
 
   private searchSub?: Subscription;
   private openSub?: Subscription;

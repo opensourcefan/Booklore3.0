@@ -276,6 +276,17 @@
         icon="pi pi-search"
         outlined
         (click)="openMobileSearch()"/>
+      @if (aiSearchEnabled) {
+        <p-button
+          icon="pi pi-sparkles"
+          outlined
+          [ngClass]="{'status-starting': searchStatus === 'STARTING', 'status-error': searchStatus === 'ERROR', 'status-searching': isSearchActive, 'status-search-error': isSearchError, 'status-embedding': isBatchEmbedding}"
+          class="mobile-ai-search-btn"
+          (click)="openAiSearch(); isSearchError = false"
+          [pTooltip]="searchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (searchStatus === 'ERROR' ? 'AI Search Unavailable' : (isSearchActive ? 'AI Search: Searching...' : (isSearchError ? 'AI Search: No results - click to retry' : 'AI Search')))"
+          tooltipPosition="bottom"
+        />
+      }
     <!-- Trigger Button -->
     <div class="mobile-trigger">
       <p-button

@@ -6,7 +6,6 @@
   [dismissableMask]="false"
   [closable]="false"
   [closeOnEscape]="false"
-  [style]="{ width: '800px', maxWidth: '95vw' }"
   styleClass="ai-search-dialog">
   <ng-template pTemplate="header">
     <div class="ai-search-header-wrapper">
@@ -161,7 +160,7 @@
   <ng-template pTemplate="footer">
     <div class="ai-search-input-row" style="display: flex; gap: 0.5rem; width: 100%; padding-top: 0.5rem; align-items: center;">
       <p-button
-        [label]="localOnly ? 'Raw' : 'AI'"
+        [label]="mobileUx.isMobileOrTablet ? '' : (localOnly ? 'Raw' : 'AI')"
         [icon]="localOnly ? 'pi pi-list' : 'pi pi-sparkles'"
         [severity]="localOnly ? 'success' : 'info'"
         [outlined]="true"

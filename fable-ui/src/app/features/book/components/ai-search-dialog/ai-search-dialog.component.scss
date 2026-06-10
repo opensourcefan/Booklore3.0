@@ -44,10 +44,23 @@
 }
 
 .ai-search-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+
   ::ng-deep .p-button:focus-visible,
   ::ng-deep .p-button:focus {
     outline: none !important;
     box-shadow: none !important;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column-reverse;
+    
+    ::ng-deep .p-button {
+      width: 100%;
+    }
   }
 }
 
@@ -379,6 +392,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @media (max-width: 768px) {
+    max-width: 140px;
+  }
+  @media (max-width: 480px) {
+    max-width: 100px;
+  }
 }
 
 .ai-search-citation-page {
@@ -477,4 +497,73 @@
 .ai-search-result-similarity {
   color: var(--primary-color);
   font-weight: 600;
+}
+
+:host ::ng-deep {
+  .ai-search-dialog {
+    width: 800px;
+    max-width: 95vw;
+    
+    @media (max-width: 768px) {
+      width: 100vw !important;
+      max-width: 100vw !important;
+      height: 100dvh !important;
+      max-height: 100dvh !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      display: flex;
+      flex-direction: column;
+
+      .p-dialog-header {
+        border-radius: 0 !important;
+        padding: 0.75rem 1rem !important;
+      }
+
+      .p-dialog-content {
+        overflow: hidden !important;
+        display: flex;
+        flex-direction: column;
+        padding: 0.75rem 1rem !important;
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+
+      .p-dialog-footer {
+        border-radius: 0 !important;
+        padding: 0.75rem 1rem !important;
+      }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      width: 90vw !important;
+      max-width: 90vw !important;
+      height: 80dvh !important;
+      max-height: 80dvh !important;
+      display: flex;
+      flex-direction: column;
+
+      .p-dialog-content {
+        overflow: hidden !important;
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .ai-search-results {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .ai-search-body {
+    max-height: 100% !important;
+    height: 100% !important;
+    flex: 1 1 auto;
+  }
 }
