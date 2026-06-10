@@ -30,8 +30,6 @@ app:
     enabled: ${GEO_IP_ENABLED:false}
 
   force-disable-oidc: ${FORCE_DISABLE_OIDC:false}
-  telemetry:
-    base-url: ${TELEMETRY_BASE_URL:https://telemetry.fable.org}
   ai:
     base-url: ${AI_SERVICE_BASE_URL:http://app-ai-panel:8080}
     connect-timeout-ms: ${AI_SERVICE_CONNECT_TIMEOUT_MS:3000}

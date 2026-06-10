@@ -15,7 +15,6 @@ public class AppProperties {
     private String version;
     private RemoteAuth remoteAuth;
     private Boolean forceDisableOidc = false;
-    private Telemetry telemetry = new Telemetry();
     private Ai ai = new Ai();
     private AiSearch aiSearch = new AiSearch();
 
@@ -44,11 +43,7 @@ public class AppProperties {
         private String groupsDelimiter = "\\s+";  // Default to whitespace for backward compatibility
     }
 
-    @Getter
-    @Setter
-    public static class Telemetry {
-        private String baseUrl = "https://telemetry.booklore.org";
-    }
+
 
     @Getter
     @Setter
