@@ -84,6 +84,18 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     { label: 'Custom (type your own model name)', value: '__custom__', isDefault: false }
   ];
 
+  matryoshkaOptions = [
+    { label: 'Disabled (Keep Original Model Dimension)', value: 0 },
+    { label: '128 Dimensions (Fastest inference, lowest memory)', value: 128 },
+    { label: '256 Dimensions (Recommended for nomic-embed-text)', value: 256 },
+    { label: '512 Dimensions (Balanced accuracy and memory)', value: 512 }
+  ];
+
+  rerankerModelOptions = [
+    { label: 'Standard (BAAI/bge-reranker-base) - Accurate cross-encoder', value: 'BAAI/bge-reranker-base' },
+    { label: 'Minimal (cross-encoder/ms-marco-MiniLM-L-6-v2) - Lightweight and fast', value: 'cross-encoder/ms-marco-MiniLM-L-6-v2' }
+  ];
+
   appSettings$ = this.appSettingsService.appSettings$;
 
   aiEnabled = false;
@@ -101,11 +113,30 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     similarityThreshold: 0.3,
     maxTokens: 768,
     temperature: 0.1,
-    autoEmbedLibraryIds: []
+    autoEmbedLibraryIds: [],
+    chunkSize: 1500,
+    chunkOverlap: 100,
+    matryoshkaDimensions: 0,
+    hybridSearchEnabled: false,
+    rrfK: 60,
+    rerankingEnabled: false,
+    rerankerModel: 'BAAI/bge-reranker-base'
   };
   originalAiSearchSettings: string = '';
   originalEmbeddingSettings: string = '';
   originalLlmSettings: string = '';
+
+  advancedChunkSize = 1500;
+  advancedChunkOverlap = 100;
+  advancedMatryoshkaDimensions = 0;
+  advancedHybridSearchEnabled = false;
+  advancedRrfK = 60;
+  advancedRerankingEnabled = false;
+  advancedRerankerModel = 'BAAI/bge-reranker-base';
+
+  originalAdvancedSettings: string = '';
+  advancedEmbeddingExpanded = false;
+  showAdvancedConfirm = false;
   aiPanelSettings = {
     modelId: ''
   };
@@ -149,10 +180,20 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       this.aiEnabled = settings.aiPanelDetectionEnabled ?? false;
       this.aiSearchEnabled = settings.aiSearchEnabled ?? false;
       if (settings.aiSearchSettings) {
-        this.aiSearchSettings = { ...this.aiSearchSettings, ...settings.aiSearchSettings };
+        this.aiSearchSettings = {
+          ...settings.aiSearchSettings,
+          chunkSize: settings.aiSearchSettings.chunkSize ?? 1500,
+          chunkOverlap: settings.aiSearchSettings.chunkOverlap ?? 100,
+          matryoshkaDimensions: settings.aiSearchSettings.matryoshkaDimensions ?? 0,
+          hybridSearchEnabled: settings.aiSearchSettings.hybridSearchEnabled ?? false,
+          rrfK: settings.aiSearchSettings.rrfK ?? 60,
+          rerankingEnabled: settings.aiSearchSettings.rerankingEnabled ?? false,
+          rerankerModel: settings.aiSearchSettings.rerankerModel ?? 'BAAI/bge-reranker-base'
+        };
         this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
         this.snapshotEmbeddingSettings();
         this.snapshotLlmSettings();
+        this.initializeAdvancedSettingsFromSaved();
       }
       if (settings.aiPanelSettings) {
         this.aiPanelSettings = { ...this.aiPanelSettings, ...settings.aiPanelSettings };
@@ -923,6 +964,93 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
         error: () => {
           this.saveRunning = false;
           this.showMessage('error', 'Save failed', 'Could not update AI search tuning settings.');
+        }
+      });
+  }
+
+  initializeAdvancedSettingsFromSaved(): void {
+    this.advancedChunkSize = this.aiSearchSettings.chunkSize ?? 1500;
+    this.advancedChunkOverlap = this.aiSearchSettings.chunkOverlap ?? 100;
+    this.advancedMatryoshkaDimensions = this.aiSearchSettings.matryoshkaDimensions ?? 0;
+    this.advancedHybridSearchEnabled = this.aiSearchSettings.hybridSearchEnabled ?? false;
+    this.advancedRrfK = this.aiSearchSettings.rrfK ?? 60;
+    this.advancedRerankingEnabled = this.aiSearchSettings.rerankingEnabled ?? false;
+    this.advancedRerankerModel = this.aiSearchSettings.rerankerModel ?? 'BAAI/bge-reranker-base';
+    this.snapshotAdvancedEmbeddingSettings();
+  }
+
+  private snapshotAdvancedEmbeddingSettings(): void {
+    this.originalAdvancedSettings = JSON.stringify({
+      chunkSize: this.advancedChunkSize,
+      chunkOverlap: this.advancedChunkOverlap,
+      matryoshkaDimensions: this.advancedMatryoshkaDimensions,
+      hybridSearchEnabled: this.advancedHybridSearchEnabled,
+      rrfK: this.advancedRrfK,
+      rerankingEnabled: this.advancedRerankingEnabled,
+      rerankerModel: this.advancedRerankerModel
+    });
+  }
+
+  get isAdvancedEmbeddingSettingsDirty(): boolean {
+    const current = JSON.stringify({
+      chunkSize: this.advancedChunkSize,
+      chunkOverlap: this.advancedChunkOverlap,
+      matryoshkaDimensions: this.advancedMatryoshkaDimensions,
+      hybridSearchEnabled: this.advancedHybridSearchEnabled,
+      rrfK: this.advancedRrfK,
+      rerankingEnabled: this.advancedRerankingEnabled,
+      rerankerModel: this.advancedRerankerModel
+    });
+    return current !== this.originalAdvancedSettings;
+  }
+
+  resetAdvancedEmbeddingSettings(): void {
+    this.initializeAdvancedSettingsFromSaved();
+    this.showMessage('info', 'Settings Reset', 'Restored previously saved advanced tuning parameters.');
+  }
+
+  applyAdvancedEmbeddingSettings(): void {
+    // Check if the change requires database invalidation/auto-heal (chunk size, overlap, or matryoshka dimensions changed)
+    const requiresReindex = 
+      this.advancedChunkSize !== (this.aiSearchSettings.chunkSize ?? 1500) ||
+      this.advancedChunkOverlap !== (this.aiSearchSettings.chunkOverlap ?? 100) ||
+      this.advancedMatryoshkaDimensions !== (this.aiSearchSettings.matryoshkaDimensions ?? 0);
+
+    if (requiresReindex) {
+      // Show confirmation dialog warning user of data invalidation
+      this.showAdvancedConfirm = true;
+    } else {
+      // Just save directly as they only changed search-only settings (hybrid, reranking)
+      this.confirmSaveAdvancedEmbeddingSettings();
+    }
+  }
+
+  confirmSaveAdvancedEmbeddingSettings(): void {
+    this.showAdvancedConfirm = false;
+    this.saveRunning = true;
+
+    // Apply values to aiSearchSettings DTO
+    this.aiSearchSettings.chunkSize = this.advancedChunkSize;
+    this.aiSearchSettings.chunkOverlap = this.advancedChunkOverlap;
+    this.aiSearchSettings.matryoshkaDimensions = this.advancedMatryoshkaDimensions;
+    this.aiSearchSettings.hybridSearchEnabled = this.advancedHybridSearchEnabled;
+    this.aiSearchSettings.rrfK = this.advancedRrfK;
+    this.aiSearchSettings.rerankingEnabled = this.advancedRerankingEnabled;
+    this.aiSearchSettings.rerankerModel = this.advancedRerankerModel;
+
+    this.appSettingsService
+      .saveSettings([{key: AppSettingKey.AI_SEARCH_SETTINGS, newValue: this.aiSearchSettings}])
+      .subscribe({
+        next: () => {
+          this.saveRunning = false;
+          this.snapshotAdvancedEmbeddingSettings();
+          this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
+          this.showMessage('success', 'Advanced settings saved', 'Advanced tuning configuration has been updated.');
+          this.fetchEmbeddingStats();
+        },
+        error: () => {
+          this.saveRunning = false;
+          this.showMessage('error', 'Save failed', 'Could not update advanced tuning settings.');
         }
       });
   }

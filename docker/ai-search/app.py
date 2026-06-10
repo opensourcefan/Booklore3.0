@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import os
 import re
 import requests
@@ -56,6 +57,12 @@ LLM_TEMPERATURE = float(_config.get("temperature", 0.1))
 SEARCH_TOP_K = int(_config.get("topK", 5))
 SEARCH_SIMILARITY_THRESHOLD = float(_config.get("similarityThreshold", 0.3))
 
+MATRYOSHKA_DIMENSIONS = int(_config.get("matryoshkaDimensions", 0))
+HYBRID_SEARCH_ENABLED = _config.get("hybridSearchEnabled", False)
+RRF_K = int(_config.get("rrfK", 60))
+RERANKING_ENABLED = _config.get("rerankingEnabled", False)
+RERANKER_MODEL_NAME = _config.get("rerankerModel", "BAAI/bge-reranker-base")
+
 # Database config
 DB_HOST = os.getenv("DB_HOST", "mariadb")
 DB_PORT = int(os.getenv("DB_PORT", "3306"))
@@ -69,6 +76,9 @@ _loading: bool = False
 _load_error: str | None = None
 _llm_loading: bool = False
 _llm_load_error: str | None = None
+_reranker_model: Any | None = None
+_reranker_loading: bool = False
+_reranker_load_error: str | None = None
 _load_lock = threading.Lock()
 _active_embed_jobs: dict[str, dict[str, Any]] = {}
 _active_embed_jobs_lock = threading.Lock()
@@ -159,7 +169,7 @@ def _do_load() -> None:
                         except Exception as e:
                             logger.error("Failed to remove unused model %s: %s", folder, e)
 
-        _embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+        _embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME, trust_remote_code=True)
         logger.info("Embedding model loaded successfully: %s", EMBEDDING_MODEL_NAME)
     except Exception as exc:
         _load_error = str(exc)
@@ -206,8 +216,39 @@ def _start_llm_load_thread_locked() -> None:
     threading.Thread(target=_do_llm_load, daemon=True).start()
 
 
+def _do_reranker_load() -> None:
+    """Background thread: loads the reranker model."""
+    global _reranker_model, _reranker_loading, _reranker_load_error
+
+    if not RERANKING_ENABLED or not RERANKER_MODEL_NAME:
+        _reranker_loading = False
+        return
+
+    logger.info("Reranker model load started for %s", RERANKER_MODEL_NAME)
+    try:
+        from sentence_transformers import CrossEncoder
+        _reranker_model = CrossEncoder(RERANKER_MODEL_NAME, trust_remote_code=True)
+        logger.info("Reranker model loaded successfully: %s", RERANKER_MODEL_NAME)
+    except Exception as exc:
+        _reranker_load_error = str(exc)
+        logger.error("Reranker model load failed: %s", exc)
+    finally:
+        _reranker_loading = False
+
+
+def _start_reranker_load_thread_locked() -> None:
+    global _reranker_loading, _reranker_load_error
+    _reranker_loading = True
+    _reranker_load_error = None
+    threading.Thread(target=_do_reranker_load, daemon=True).start()
+
+
 def _ensure_loading() -> None:
     with _load_lock:
+        if RERANKING_ENABLED and _reranker_model is None and not _reranker_loading and not _reranker_load_error:
+            logger.info("Triggering automatic background load for reranker: %s", RERANKER_MODEL_NAME)
+            _start_reranker_load_thread_locked()
+
         if _embedding_model is not None or _loading:
             return
 
@@ -242,6 +283,7 @@ def _compute_embedding(text: str, retries: int = 3) -> list[float]:
     Retries with exponential backoff for external providers (openai/ollama).
     Local provider failures are considered permanent and are not retried.
     """
+    vector = None
     if EMBEDDING_PROVIDER in ("openai", "ollama"):
         last_exception = None
         for attempt in range(retries):
@@ -260,6 +302,9 @@ def _compute_embedding(text: str, retries: int = 3) -> list[float]:
                     url = f"{base_url}/api/embeddings"
 
                 json_payload = {"model": EMBEDDING_MODEL_NAME, "input": text}
+                if EMBEDDING_PROVIDER == "openai" and "text-embedding-3" in EMBEDDING_MODEL_NAME and MATRYOSHKA_DIMENSIONS > 0:
+                    json_payload["dimensions"] = MATRYOSHKA_DIMENSIONS
+
                 if EMBEDDING_PROVIDER == "ollama":
                     json_payload = {"model": EMBEDDING_MODEL_NAME, "prompt": text}
 
@@ -271,9 +316,10 @@ def _compute_embedding(text: str, retries: int = 3) -> list[float]:
                 )
                 resp.raise_for_status()
                 if EMBEDDING_PROVIDER == "ollama":
-                    return resp.json()["embedding"]
+                    vector = resp.json()["embedding"]
                 else:
-                    return resp.json()["data"][0]["embedding"]
+                    vector = resp.json()["data"][0]["embedding"]
+                break
             except Exception as exc:
                 last_exception = exc
                 if attempt < retries - 1:
@@ -284,10 +330,21 @@ def _compute_embedding(text: str, retries: int = 3) -> list[float]:
                     )
                     time.sleep(wait)
         # All retries exhausted
-        raise last_exception  # type: ignore[misc]
+        if vector is None:
+            raise last_exception  # type: ignore[misc]
 
-    model = _get_embedding_model()
-    return model.encode(text, normalize_embeddings=True).tolist()
+    else:
+        model = _get_embedding_model()
+        vector = model.encode(text, normalize_embeddings=True).tolist()
+
+    # Apply Matryoshka dimension truncation and L2 re-normalization if enabled
+    if MATRYOSHKA_DIMENSIONS > 0 and len(vector) > MATRYOSHKA_DIMENSIONS:
+        vector = vector[:MATRYOSHKA_DIMENSIONS]
+        norm = np.linalg.norm(vector)
+        if norm > 0:
+            vector = (vector / norm).tolist()
+
+    return vector
 
 
 def _cosine_similarity(a: list[float], b: list[float]) -> float:
@@ -388,6 +445,11 @@ def startup() -> None:
         with _load_lock:
             _start_llm_load_thread_locked()
 
+    if RERANKING_ENABLED and RERANKER_MODEL_NAME:
+        logger.info("Beginning background load for reranker: %s", RERANKER_MODEL_NAME)
+        with _load_lock:
+            _start_reranker_load_thread_locked()
+
 
 @app.get("/health")
 def health() -> dict[str, Any]:
@@ -412,6 +474,13 @@ def health() -> dict[str, Any]:
         elif _llm_loading:
             status = "warming"
 
+    if RERANKING_ENABLED:
+        if _reranker_load_error is not None:
+            status = "load_failed"
+            error = _reranker_load_error
+        elif _reranker_model is None or _reranker_loading:
+            status = "warming"
+
     return {
         "status": status,
         "mock": False,
@@ -423,7 +492,7 @@ def health() -> dict[str, Any]:
 
 @app.post("/v1/config")
 def update_config(payload: dict[str, Any]) -> dict[str, Any]:
-    global _config, EMBEDDING_PROVIDER, EMBEDDING_API_KEY, LLM_PROVIDER, LLM_API_KEY, EMBEDDING_MODEL_NAME, EXTERNAL_EMBEDDING_BASE_URL, EXTERNAL_LLM_BASE_URL, LLM_MODEL_NAME, LLM_MAX_TOKENS, LLM_TEMPERATURE, SEARCH_TOP_K, SEARCH_SIMILARITY_THRESHOLD, _embedding_model
+    global _config, EMBEDDING_PROVIDER, EMBEDDING_API_KEY, LLM_PROVIDER, LLM_API_KEY, EMBEDDING_MODEL_NAME, EXTERNAL_EMBEDDING_BASE_URL, EXTERNAL_LLM_BASE_URL, LLM_MODEL_NAME, LLM_MAX_TOKENS, LLM_TEMPERATURE, SEARCH_TOP_K, SEARCH_SIMILARITY_THRESHOLD, _embedding_model, MATRYOSHKA_DIMENSIONS, HYBRID_SEARCH_ENABLED, RRF_K, RERANKING_ENABLED, RERANKER_MODEL_NAME, _reranker_model
 
     with _load_lock:
         try:
@@ -452,6 +521,16 @@ def update_config(payload: dict[str, Any]) -> dict[str, Any]:
             SEARCH_TOP_K = int(_config.get("topK", 5))
             SEARCH_SIMILARITY_THRESHOLD = float(_config.get("similarityThreshold", 0.3))
 
+            MATRYOSHKA_DIMENSIONS = int(_config.get("matryoshkaDimensions", 0))
+            HYBRID_SEARCH_ENABLED = _config.get("hybridSearchEnabled", False)
+            RRF_K = int(_config.get("rrfK", 60))
+
+            new_reranker_model = _config.get("rerankerModel", "BAAI/bge-reranker-base")
+            new_reranking_enabled = _config.get("rerankingEnabled", False)
+            reranker_changed = (RERANKER_MODEL_NAME != new_reranker_model) or (RERANKING_ENABLED != new_reranking_enabled)
+            RERANKER_MODEL_NAME = new_reranker_model
+            RERANKING_ENABLED = new_reranking_enabled
+
             if model_changed or EMBEDDING_PROVIDER != "local":
                 _embedding_model = None  # Force reload or switch to external
                 if EMBEDDING_PROVIDER == "local":
@@ -459,6 +538,11 @@ def update_config(payload: dict[str, Any]) -> dict[str, Any]:
 
             if llm_model_changed and LLM_PROVIDER == "local":
                 _start_llm_load_thread_locked()
+
+            if reranker_changed:
+                _reranker_model = None
+                if RERANKING_ENABLED:
+                    _start_reranker_load_thread_locked()
 
             return {"status": "success"}
         except Exception as e:
@@ -573,6 +657,58 @@ def embed_status(job_id: str) -> dict[str, Any]:
     return job
 
 
+def compute_bm25_scores(query: str, documents: list[dict], k1: float = 1.5, b: float = 0.75) -> dict[int, float]:
+    from collections import Counter
+    # Tokenize query
+    query_tokens = [w.lower() for w in re.findall(r'\w+', query) if len(w) > 1]
+    if not query_tokens:
+        return {}
+
+    doc_tokens_list = []
+    doc_lengths = []
+    for doc in documents:
+        tokens = [w.lower() for w in re.findall(r'\w+', doc["chunkText"]) if len(w) > 1]
+        doc_tokens_list.append(tokens)
+        doc_lengths.append(len(tokens))
+
+    num_docs = len(documents)
+    if num_docs == 0:
+        return {}
+
+    avg_doc_len = sum(doc_lengths) / num_docs
+
+    # Document frequencies for query terms
+    df = Counter()
+    for tokens in doc_tokens_list:
+        unique_tokens = set(tokens)
+        for token in query_tokens:
+            if token in unique_tokens:
+                df[token] += 1
+
+    # Compute BM25 score for each doc
+    scores = {}
+    for idx, doc in enumerate(documents):
+        chunk_id = doc["chunkId"]
+        tokens = doc_tokens_list[idx]
+        tf = Counter(tokens)
+        doc_len = doc_lengths[idx]
+
+        score = 0.0
+        for token in query_tokens:
+            if token not in tf:
+                continue
+            # IDF with smoothing
+            idf = math.log((num_docs - df[token] + 0.5) / (df[token] + 0.5) + 1.0)
+            # Term frequency score
+            freq = tf[token]
+            num = freq * (k1 + 1)
+            denom = freq + k1 * (1 - b + b * (doc_len / avg_doc_len))
+            score += idf * (num / denom)
+        if score > 0:
+            scores[chunk_id] = score
+    return scores
+
+
 @app.post("/v1/search")
 def search(payload: dict[str, Any]) -> dict[str, Any]:
     """Search across embedded books using a natural language query."""
@@ -585,6 +721,10 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     temperature = float(payload.get("temperature") or LLM_TEMPERATURE)
     chat_history = payload.get("chatHistory", [])
     local_only = payload.get("localOnly", False)
+
+    hybrid_search_enabled = bool(payload.get("hybridSearchEnabled") if payload.get("hybridSearchEnabled") is not None else HYBRID_SEARCH_ENABLED)
+    rrf_k = int(payload.get("rrfK") or RRF_K)
+    reranking_enabled = bool(payload.get("rerankingEnabled") if payload.get("rerankingEnabled") is not None else RERANKING_ENABLED)
 
     if not query:
         raise HTTPException(status_code=400, detail="Query is required.")
@@ -674,10 +814,10 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             "totalChunksSearched": len(rows),
         }
 
-    # Compute similarities
-    scored: list[dict[str, Any]] = []
+    # Map database rows into structured documents, applying heuristic filtering
+    documents = []
+    row_map = {}
     for row in rows:
-        # Heuristic: skip likely index pages if not requested
         if not is_index_request:
             ch_title = (row["chapter_title"] or "").lower()
             text_prefix = row["chunk_text"][:200].lower()
@@ -685,31 +825,105 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 continue
             if "i n d e x" in text_prefix or "g l o s s a r y" in text_prefix:
                 continue
-            # Also skip if it seems to be just a huge list of numbers and words (typical of index/TOC pages)
             words = text_prefix.split()
             numbers = [w for w in words if re.match(r'^\d+$', w)]
             if len(words) > 0 and (len(numbers) / len(words)) > 0.15:
                 continue
+
+        doc = {
+            "chunkId": row["id"],
+            "bookId": row["book_id"],
+            "bookTitle": row["book_title"],
+            "chunkIndex": row["chunk_index"],
+            "chunkText": row["chunk_text"],
+            "pageNumber": row["page_number"],
+            "chapterTitle": row["chapter_title"],
+        }
+        documents.append(doc)
+        row_map[row["id"]] = row
+
+    # Compute dense vector similarities
+    scored_vector = []
+    for doc in documents:
         try:
+            row = row_map[doc["chunkId"]]
             vector = json.loads(row["embedding_vector"])
+            # Slice/re-normalize vector if MRL truncation is enabled in search
+            if MATRYOSHKA_DIMENSIONS > 0 and len(vector) > MATRYOSHKA_DIMENSIONS:
+                vector = vector[:MATRYOSHKA_DIMENSIONS]
+                norm = np.linalg.norm(vector)
+                if norm > 0:
+                    vector = (vector / norm).tolist()
+
             similarity = _cosine_similarity(query_vector, vector)
             if similarity >= similarity_threshold:
-                scored.append({
-                    "chunkId": row["id"],
-                    "bookId": row["book_id"],
-                    "bookTitle": row["book_title"],
-                    "chunkIndex": row["chunk_index"],
-                    "chunkText": row["chunk_text"],
-                    "pageNumber": row["page_number"],
-                    "chapterTitle": row["chapter_title"],
-                    "similarity": round(similarity, 4),
-                })
-        except (json.JSONDecodeError, TypeError, ValueError):
+                doc_copy = doc.copy()
+                doc_copy["similarity"] = round(similarity, 4)
+                scored_vector.append(doc_copy)
+        except Exception:
             continue
 
-    # Sort by similarity descending, take top K
-    scored.sort(key=lambda x: x["similarity"], reverse=True)
-    top_results = scored[:top_k]
+    scored_vector.sort(key=lambda x: x["similarity"], reverse=True)
+
+    candidates = []
+    if hybrid_search_enabled:
+        # Compute BM25 scores
+        bm25_scores = compute_bm25_scores(query, documents)
+        scored_bm25 = []
+        for doc in documents:
+            score = bm25_scores.get(doc["chunkId"], 0.0)
+            if score > 0:
+                doc_copy = doc.copy()
+                doc_copy["bm25_score"] = score
+                scored_bm25.append(doc_copy)
+        scored_bm25.sort(key=lambda x: x["bm25_score"], reverse=True)
+
+        # Merge using Reciprocal Rank Fusion (RRF)
+        vector_ranks = {d["chunkId"]: r for r, d in enumerate(scored_vector)}
+        bm25_ranks = {d["chunkId"]: r for r, d in enumerate(scored_bm25)}
+        all_candidate_chunk_ids = set(vector_ranks.keys()) | set(bm25_ranks.keys())
+
+        chunk_id_to_doc = {doc["chunkId"]: doc for doc in documents}
+        rrf_results = []
+        for chunk_id in all_candidate_chunk_ids:
+            score_vector = 1.0 / (rrf_k + vector_ranks[chunk_id]) if chunk_id in vector_ranks else 0.0
+            score_bm25 = 1.0 / (rrf_k + bm25_ranks[chunk_id]) if chunk_id in bm25_ranks else 0.0
+            rrf_score = score_vector + score_bm25
+
+            doc_copy = chunk_id_to_doc[chunk_id].copy()
+            doc_copy["rrf_score"] = round(rrf_score, 6)
+            # Use RRF score as a surrogate for sorting, but preserve the original vector similarity if available
+            doc_copy["similarity"] = scored_vector[vector_ranks[chunk_id]]["similarity"] if chunk_id in vector_ranks else round(rrf_score, 4)
+            rrf_results.append(doc_copy)
+
+        rrf_results.sort(key=lambda x: x["rrf_score"], reverse=True)
+        candidates = rrf_results
+    else:
+        candidates = scored_vector
+
+    # Apply Cross-Encoder Reranking if enabled and loaded
+    if reranking_enabled and _reranker_model is not None:
+        # Rerank the top candidates (up to 20 candidates for CPU efficiency)
+        rerank_pool_size = max(20, top_k * 2)
+        candidates_to_rerank = candidates[:rerank_pool_size]
+        if candidates_to_rerank:
+            pairs = [[query, c["chunkText"]] for c in candidates_to_rerank]
+            try:
+                scores = _reranker_model.predict(pairs)
+                if hasattr(scores, "tolist"):
+                    scores = scores.tolist()
+                if isinstance(scores, float):
+                    scores = [scores]
+                for idx, score in enumerate(scores):
+                    candidates_to_rerank[idx]["rerank_score"] = round(float(score), 4)
+                
+                # Sort by reranker score
+                candidates_to_rerank.sort(key=lambda x: x["rerank_score"], reverse=True)
+                candidates = candidates_to_rerank + candidates[rerank_pool_size:]
+            except Exception as e:
+                logger.error("Failed to run reranker: %s", e)
+
+    top_results = candidates[:top_k]
 
     # Fetch adjacent chunks for each top result using the SAME connection
     if top_results:

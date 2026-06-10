@@ -177,15 +177,18 @@ public class AppSettingService {
     }
 
     private void handleAiSearchSettingsUpdate(AiSearchSettings newSettings, AiSearchSettings oldSettings) {
-        // Auto-heal sequence if embedding provider/model changed.
-        // When the embedding model changes, ALL embeddings become invalid (different dimensions).
+        // Auto-heal sequence if embedding provider/model or chunking/dimension settings changed.
+        // When the embedding model or chunk parameters change, ALL embeddings become invalid or inconsistent.
         // Mark books with embeddings for re-embed, then delete all embeddings.
         boolean providerChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getEmbeddingProvider(), newSettings.getEmbeddingProvider());
         boolean modelChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getEmbeddingModel(), newSettings.getEmbeddingModel());
         boolean externalUrlChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getExternalEmbeddingUrl(), newSettings.getExternalEmbeddingUrl());
+        boolean chunkSizeChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getChunkSize(), newSettings.getChunkSize());
+        boolean chunkOverlapChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getChunkOverlap(), newSettings.getChunkOverlap());
+        boolean matryoshkaChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getMatryoshkaDimensions(), newSettings.getMatryoshkaDimensions());
         
-        if (providerChanged || modelChanged || externalUrlChanged) {
-            logger.info("Embedding model/provider changed, initiating auto-heal database sequence.");
+        if (providerChanged || modelChanged || externalUrlChanged || chunkSizeChanged || chunkOverlapChanged || matryoshkaChanged) {
+            logger.info("Embedding model/provider/chunking settings changed, initiating auto-heal database sequence.");
             try {
                 jdbcTemplate.update("UPDATE book SET marked_for_ai_search = true WHERE id IN (SELECT book_id FROM book_embeddings)");
                 jdbcTemplate.update("DELETE FROM book_embeddings");

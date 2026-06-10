@@ -275,6 +275,13 @@ export interface AiSearchSettings {
   maxTokens: number;
   temperature: number;
   autoEmbedLibraryIds: number[];
+  chunkSize: number;
+  chunkOverlap: number;
+  matryoshkaDimensions: number;
+  hybridSearchEnabled: boolean;
+  rrfK: number;
+  rerankingEnabled: boolean;
+  rerankerModel: string;
 }
 
 export interface AiPanelSettings {

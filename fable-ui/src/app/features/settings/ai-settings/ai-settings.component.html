@@ -371,6 +371,141 @@
             </div>
           </div>
 
+          <!-- Advanced Embedding & Retrieval Tuning -->
+          <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 1rem;">
+              <div (click)="advancedEmbeddingExpanded = !advancedEmbeddingExpanded" (keydown.enter)="advancedEmbeddingExpanded = !advancedEmbeddingExpanded" (keydown.space)="advancedEmbeddingExpanded = !advancedEmbeddingExpanded; $event.preventDefault()" tabindex="0" role="button" [attr.aria-expanded]="advancedEmbeddingExpanded" style="display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer;">
+                <div>
+                  <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+                    Advanced Embedding & Retrieval Tuning
+                    <i class="pi" [ngClass]="advancedEmbeddingExpanded ? 'pi-chevron-down' : 'pi-chevron-right'" style="font-size: 0.9rem; color: var(--text-color-secondary);"></i>
+                  </h3>
+                  <p style="margin: 0.25rem 0 0 0; color: var(--text-color-secondary);">Optimize text segment chunk sizes, slice dimensions, and configure hybrid search and reranking on CPU.</p>
+                </div>
+              </div>
+
+              @if (advancedEmbeddingExpanded) {
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem; border-top: 1px solid var(--surface-border); padding-top: 1.5rem;">
+                  
+                  <!-- Model Recommendations Info Box -->
+                  <div style="padding: 1rem; border-radius: 8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                      <i class="pi pi-info-circle"></i> CPU Inference Optimization Tips
+                    </div>
+                    <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.88rem; color: var(--text-color-secondary); display: flex; flex-direction: column; gap: 0.25rem;">
+                      <li><strong>For nomic-embed-text-v1.5:</strong> Set <em>Chunk Size</em> to 3000-8000 (supports 8192 context). Enable <em>Matryoshka Truncation</em> to 256 or 512 dimensions for up to 3x CPU speedup with near-zero accuracy loss.</li>
+                      <li><strong>For all-MiniLM-L6-v2:</strong> Set <em>Chunk Size</em> to 1000-1500. Disable <em>Matryoshka Truncation</em>. Enable <em>Cross-Encoder Reranking</em> to yield high accuracy at blazing CPU speeds.</li>
+                      <li><strong>For bge-base-en-v1.5:</strong> Set <em>Chunk Size</em> to 1000-1500. Disable <em>Matryoshka Truncation</em> (not supported). Toggle <em>Hybrid Search</em> to combine keyword search with semantic matching.</li>
+                    </ul>
+                  </div>
+
+                  <!-- 1. Chunk Size -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <label for="chunkSize"><strong>Chunk Size (characters)</strong></label>
+                      <span style="font-family: monospace; font-weight: bold; background: var(--surface-card); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--surface-border);">{{ advancedChunkSize }} chars</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Sets the max length of book text pieces to index. Larger chunks hold more context but dilute detail; smaller chunks are precise. Modifying this clears the index.</p>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                      <input type="range" id="chunkSize" min="500" max="8000" step="100" [(ngModel)]="advancedChunkSize" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+                    </div>
+                  </div>
+
+                  <!-- 2. Chunk Overlap -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <label for="chunkOverlap"><strong>Chunk Overlap (characters)</strong></label>
+                      <span style="font-family: monospace; font-weight: bold; background: var(--surface-card); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--surface-border);">{{ advancedChunkOverlap }} chars</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Ensures surrounding context is preserved at the boundaries of adjacent text chunks, preventing sentences from being sliced in half. Modifying this clears the index.</p>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                      <input type="range" id="chunkOverlap" min="0" max="1000" step="10" [(ngModel)]="advancedChunkOverlap" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+                    </div>
+                  </div>
+
+                  <!-- 3. Matryoshka Dimension Truncation -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label for="matryoshkaDimensions"><strong>Matryoshka Vector Dimensions (MRL)</strong></label>
+                    <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Truncates output vector size for supported models. Slicing vectors to 256 or 128 speeds up similarity computations on CPU. Modifying this clears the index.</p>
+                    <p-select 
+                      id="matryoshkaDimensions" 
+                      [options]="matryoshkaOptions" 
+                      [(ngModel)]="advancedMatryoshkaDimensions" 
+                      [disabled]="!aiSearchEnabled || saveRunning" 
+                      optionLabel="label" 
+                      optionValue="value" 
+                      styleClass="w-full">
+                    </p-select>
+                  </div>
+
+                  <!-- 4. Hybrid Search (BM25 + Vector) -->
+                  <div style="padding: 1.25rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div>
+                        <h4 style="margin: 0; font-weight: 600;">Enable Hybrid Keyword Search (BM25)</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Merges semantic vector retrieval with exact keyword matching using Reciprocal Rank Fusion (RRF).</p>
+                      </div>
+                      <p-toggleswitch
+                        [(ngModel)]="advancedHybridSearchEnabled"
+                        [disabled]="!aiSearchEnabled || saveRunning">
+                      </p-toggleswitch>
+                    </div>
+
+                    @if (advancedHybridSearchEnabled) {
+                      <div style="display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px dashed var(--surface-border); padding-top: 1rem; margin-top: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <label for="rrfK"><strong>RRF Rank Constant (k)</strong></label>
+                          <span style="font-family: monospace; font-weight: bold;">{{ advancedRrfK }}</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Controls the impact of low-ranked candidates. Higher values smooth ranks; 60 is standard.</p>
+                        <input type="range" id="rrfK" min="10" max="200" step="5" [(ngModel)]="advancedRrfK" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+                      </div>
+                    }
+                  </div>
+
+                  <!-- 5. Cross-Encoder Reranking -->
+                  <div style="padding: 1.25rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div>
+                        <h4 style="margin: 0; font-weight: 600;">Enable Cross-Encoder Reranking</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Passes candidate paragraphs to a secondary cross-encoder model to sort results with absolute precision.</p>
+                      </div>
+                      <p-toggleswitch
+                        [(ngModel)]="advancedRerankingEnabled"
+                        [disabled]="!aiSearchEnabled || saveRunning">
+                      </p-toggleswitch>
+                    </div>
+
+                    @if (advancedRerankingEnabled) {
+                      <div style="display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px dashed var(--surface-border); padding-top: 1rem; margin-top: 0.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                          <label for="rerankerModel"><strong>Reranker Model</strong></label>
+                          <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Select or enter the cross-encoder model name from HuggingFace to download and run locally in Python.</p>
+                          <p-select 
+                            id="rerankerModel" 
+                            [options]="rerankerModelOptions" 
+                            [(ngModel)]="advancedRerankerModel" 
+                            [editable]="true"
+                            [disabled]="!aiSearchEnabled || saveRunning" 
+                            optionLabel="label" 
+                            optionValue="value" 
+                            styleClass="w-full">
+                          </p-select>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Apply and Reset Buttons -->
+                  <div style="display: flex; justify-content: flex-start; gap: 0.75rem; margin-top: 0.5rem; border-top: 1px solid var(--surface-border); padding-top: 1.5rem;">
+                    <p-button label="Apply Advanced Settings" icon="pi pi-check" size="small" (onClick)="applyAdvancedEmbeddingSettings()" [loading]="saveRunning" [severity]="isAdvancedEmbeddingSettingsDirty ? 'success' : 'secondary'" [disabled]="!aiSearchEnabled || saveRunning || !isAdvancedEmbeddingSettingsDirty"></p-button>
+                    <p-button label="Reset Advanced Settings" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetAdvancedEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning || !isAdvancedEmbeddingSettingsDirty"></p-button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
           <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
           
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -758,6 +893,44 @@
           severity="danger"
           [label]="t('cleanup.confirmAction')"
           (onClick)="confirmCleanupAiData()">
+        </p-button>
+      </div>
+    </p-dialog>
+
+    <p-dialog
+      [(visible)]="showAdvancedConfirm"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [resizable]="false"
+      [style]="{ width: '32rem' }"
+      header="Confirm Advanced Tuning Changes">
+      <div style="display: flex; flex-direction: column; gap: 1rem; line-height: 1.5;">
+        <p style="margin: 0; color: var(--yellow-500); font-weight: bold; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="pi pi-exclamation-triangle" style="font-size: 1.25rem;"></i>
+          Warning: Existing embeddings will be deleted.
+        </p>
+        <p style="margin: 0; color: var(--text-color); font-size: 0.95rem;">
+          Changing advanced index properties (<strong>Chunk Size</strong>, <strong>Chunk Overlap</strong>, or <strong>Matryoshka Dimensions</strong>) modifies the underlying representation of your data.
+        </p>
+        <p style="margin: 0; color: var(--text-color-secondary); font-size: 0.9rem;">
+          To prevent search crashes and mathematical mismatches, Fable will automatically wipe all current embeddings from the database. All books will need to be re-embedded with the new settings.
+        </p>
+        <p style="margin: 0; font-weight: 500; font-size: 0.95rem;">
+          Are you sure you want to apply these changes and clear the index?
+        </p>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <p-button
+          label="Cancel"
+          severity="secondary"
+          (onClick)="showAdvancedConfirm = false">
+        </p-button>
+        <p-button
+          icon="pi pi-trash"
+          severity="danger"
+          label="Apply and Re-index"
+          (onClick)="confirmSaveAdvancedEmbeddingSettings()">
         </p-button>
       </div>
     </p-dialog>

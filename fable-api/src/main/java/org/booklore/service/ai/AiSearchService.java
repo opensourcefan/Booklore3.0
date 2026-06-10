@@ -47,8 +47,6 @@ public class AiSearchService {
     private final BookCreatorService bookCreatorService;
     private final ObjectMapper objectMapper;
 
-    private static final int CHUNK_SIZE = 1500;
-    private static final int CHUNK_OVERLAP = 100;
     private static final int CHUNK_BATCH_SIZE = 50;
 
     private final AtomicBoolean scanInProgress = new AtomicBoolean(false);
@@ -260,6 +258,11 @@ public class AiSearchService {
         payload.put("maxTokens", settings.getMaxTokens());
         payload.put("temperature", settings.getTemperature());
         payload.put("localOnly", localOnly);
+        payload.put("matryoshkaDimensions", settings.getMatryoshkaDimensions());
+        payload.put("hybridSearchEnabled", settings.isHybridSearchEnabled());
+        payload.put("rrfK", settings.getRrfK());
+        payload.put("rerankingEnabled", settings.isRerankingEnabled());
+        payload.put("rerankerModel", settings.getRerankerModel());
         if (chatHistory != null) {
             payload.put("chatHistory", chatHistory);
         }
@@ -570,6 +573,18 @@ public class AiSearchService {
     }
 
     private List<String> chunkText(String text) {
+        int chunkSizeSetting = 1500;
+        int chunkOverlapSetting = 100;
+        try {
+            org.booklore.model.dto.settings.AiSearchSettings settings = appSettingService.getAppSettings().getAiSearchSettings();
+            if (settings != null) {
+                chunkSizeSetting = settings.getChunkSize();
+                chunkOverlapSetting = settings.getChunkOverlap();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to retrieve chunk settings dynamically, falling back to defaults: {}", e.getMessage());
+        }
+
         List<String> chunks = new ArrayList<>();
         String cleaned = text.replaceAll("\\s+", " ").trim();
         if (cleaned.isEmpty()) {
@@ -589,14 +604,14 @@ public class AiSearchService {
         while (end != BreakIterator.DONE) {
             String sentence = cleaned.substring(start, end).trim();
             if (!sentence.isEmpty()) {
-                if (currentChunk.length() + sentence.length() > CHUNK_SIZE && currentChunk.length() > 0) {
+                if (currentChunk.length() + sentence.length() > chunkSizeSetting && currentChunk.length() > 0) {
                     chunks.add(currentChunk.toString().trim());
                     currentChunk = new StringBuilder();
                     // Carry over enough recent sentences to achieve ~CHUNK_OVERLAP chars of overlap
                     int overlapChars = 0;
                     java.util.List<String> overlapSentences = new java.util.ArrayList<>();
                     var it = recentSentences.descendingIterator();
-                    while (it.hasNext() && overlapChars < CHUNK_OVERLAP) {
+                    while (it.hasNext() && overlapChars < chunkOverlapSetting) {
                         String s = it.next();
                         overlapSentences.add(s);
                         overlapChars += s.length() + 1;
@@ -613,7 +628,7 @@ public class AiSearchService {
                 int totalLen = 0;
                 while (recentSentences.size() > 1) {
                     totalLen = recentSentences.stream().mapToInt(String::length).sum() + recentSentences.size();
-                    if (totalLen - recentSentences.peekFirst().length() > CHUNK_OVERLAP) {
+                    if (totalLen - recentSentences.peekFirst().length() > chunkOverlapSetting) {
                         recentSentences.removeFirst();
                     } else {
                         break;

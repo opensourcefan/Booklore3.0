@@ -24,6 +24,21 @@ public class AiSearchSettings {
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private java.util.List<Long> autoEmbedLibraryIds = new java.util.ArrayList<>();
 
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private int chunkSize = 1500;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private int chunkOverlap = 100;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private int matryoshkaDimensions = 0;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean hybridSearchEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private int rrfK = 60;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean rerankingEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String rerankerModel = "BAAI/bge-reranker-base";
+
     // Added for Zero-Config Architecture
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String embeddingProvider = "local"; // local, ollama, openai
