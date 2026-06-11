@@ -192,6 +192,7 @@ public class AppSettingService {
             try {
                 jdbcTemplate.update("UPDATE book SET marked_for_ai_search = true WHERE id IN (SELECT book_id FROM book_embeddings)");
                 jdbcTemplate.update("DELETE FROM book_embeddings");
+                jdbcTemplate.update("DELETE FROM book_metadata_tag_mapping WHERE tag_id IN (SELECT id FROM tag WHERE name = 'AIS')");
                 logger.info("Auto-heal sequence completed successfully.");
             } catch (Exception e) {
                 logger.error("Failed to execute auto-heal sequence", e);

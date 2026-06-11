@@ -11,6 +11,7 @@ import org.booklore.repository.BookRepository;
 import org.booklore.config.security.service.AuthenticationService;
 import org.booklore.service.NotificationService;
 import org.booklore.service.book.BookCreatorService;
+import org.booklore.service.metadata.BookMetadataService;
 import org.booklore.util.epub.EpubContentReader;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -45,6 +46,7 @@ public class AiSearchService {
     private final AiSearchHealthService aiSearchHealthService;
     private final org.booklore.service.appsettings.AppSettingService appSettingService;
     private final BookCreatorService bookCreatorService;
+    private final BookMetadataService bookMetadataService;
     private final ObjectMapper objectMapper;
 
     private static final int CHUNK_BATCH_SIZE = 50;
@@ -139,7 +141,13 @@ public class AiSearchService {
         if (userId == null) {
             throw new IllegalArgumentException("userId is required.");
         }
-        return bookRepository.deleteBookEmbeddings(bookIds, userId);
+        int deleted = bookRepository.deleteBookEmbeddings(bookIds, userId);
+        try {
+            bookMetadataService.removeAisTagFromBooks(bookIds);
+        } catch (Exception tagEx) {
+            log.warn("Failed to remove AIS tags from books {}: {}", bookIds, tagEx.getMessage());
+        }
+        return deleted;
     }
 
     private String resolveBookTitle(Long bookId) {
@@ -346,7 +354,7 @@ public class AiSearchService {
 
             // Add 'AIS' metadata tag to indicate the book has AI Search embeddings
             try {
-                bookCreatorService.addTagsToBook(Set.of("AIS"), book);
+                bookMetadataService.addAisTagToBooks(List.of(bookId));
             } catch (Exception tagEx) {
                 log.warn("Failed to add AIS tag to book {}: {}", bookId, tagEx.getMessage());
             }
