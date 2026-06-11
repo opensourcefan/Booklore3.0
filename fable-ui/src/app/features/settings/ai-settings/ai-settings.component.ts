@@ -182,13 +182,13 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       if (settings.aiSearchSettings) {
         this.aiSearchSettings = {
           ...settings.aiSearchSettings,
-          chunkSize: settings.aiSearchSettings.chunkSize ?? 1500,
-          chunkOverlap: settings.aiSearchSettings.chunkOverlap ?? 100,
+          chunkSize: settings.aiSearchSettings.chunkSize || 0,
+          chunkOverlap: settings.aiSearchSettings.chunkOverlap ?? 0,
           matryoshkaDimensions: settings.aiSearchSettings.matryoshkaDimensions ?? 0,
           hybridSearchEnabled: settings.aiSearchSettings.hybridSearchEnabled ?? false,
-          rrfK: settings.aiSearchSettings.rrfK ?? 60,
+          rrfK: settings.aiSearchSettings.rrfK || 0,
           rerankingEnabled: settings.aiSearchSettings.rerankingEnabled ?? false,
-          rerankerModel: settings.aiSearchSettings.rerankerModel ?? 'BAAI/bge-reranker-base'
+          rerankerModel: settings.aiSearchSettings.rerankerModel ?? ''
         };
         this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
         this.snapshotEmbeddingSettings();
@@ -969,14 +969,22 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   initializeAdvancedSettingsFromSaved(): void {
-    this.advancedChunkSize = this.aiSearchSettings.chunkSize ?? 1500;
-    this.advancedChunkOverlap = this.aiSearchSettings.chunkOverlap ?? 100;
-    this.advancedMatryoshkaDimensions = this.aiSearchSettings.matryoshkaDimensions ?? 0;
-    this.advancedHybridSearchEnabled = this.aiSearchSettings.hybridSearchEnabled ?? false;
-    this.advancedRrfK = this.aiSearchSettings.rrfK ?? 60;
-    this.advancedRerankingEnabled = this.aiSearchSettings.rerankingEnabled ?? false;
-    this.advancedRerankerModel = this.aiSearchSettings.rerankerModel ?? 'BAAI/bge-reranker-base';
-    this.snapshotAdvancedEmbeddingSettings();
+    const rawSaved = this.aiSearchSettings;
+    const isUninitialized = !rawSaved.chunkSize || rawSaved.chunkSize === 0;
+
+    this.advancedChunkSize = rawSaved.chunkSize || 1500;
+    this.advancedChunkOverlap = rawSaved.chunkOverlap !== undefined && rawSaved.chunkOverlap !== null && !isUninitialized ? rawSaved.chunkOverlap : 100;
+    this.advancedMatryoshkaDimensions = rawSaved.matryoshkaDimensions ?? 0;
+    this.advancedHybridSearchEnabled = rawSaved.hybridSearchEnabled ?? false;
+    this.advancedRrfK = rawSaved.rrfK || 60;
+    this.advancedRerankingEnabled = rawSaved.rerankingEnabled ?? false;
+    this.advancedRerankerModel = rawSaved.rerankerModel || 'BAAI/bge-reranker-base';
+
+    if (isUninitialized) {
+      this.originalAdvancedSettings = '';
+    } else {
+      this.snapshotAdvancedEmbeddingSettings();
+    }
   }
 
   private snapshotAdvancedEmbeddingSettings(): void {
@@ -1007,6 +1015,47 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   resetAdvancedEmbeddingSettings(): void {
     this.initializeAdvancedSettingsFromSaved();
     this.showMessage('info', 'Settings Reset', 'Restored previously saved advanced tuning parameters.');
+  }
+
+  loadModelPresets(): void {
+    const currentModel = (this.aiSearchSettings.embeddingModel || '').toLowerCase();
+    if (currentModel.includes('nomic')) {
+      this.advancedChunkSize = 3000;
+      this.advancedChunkOverlap = 200;
+      this.advancedMatryoshkaDimensions = 256;
+      this.advancedHybridSearchEnabled = false;
+      this.advancedRrfK = 60;
+      this.advancedRerankingEnabled = false;
+      this.advancedRerankerModel = 'BAAI/bge-reranker-base';
+      this.showMessage('info', 'Nomic Presets Loaded', 'Applied recommended chunking and Matryoshka parameters for nomic-embed-text.');
+    } else if (currentModel.includes('minilm') || currentModel.includes('all-minilm')) {
+      this.advancedChunkSize = 1000;
+      this.advancedChunkOverlap = 100;
+      this.advancedMatryoshkaDimensions = 0;
+      this.advancedHybridSearchEnabled = true;
+      this.advancedRrfK = 60;
+      this.advancedRerankingEnabled = true;
+      this.advancedRerankerModel = 'BAAI/bge-reranker-base';
+      this.showMessage('info', 'MiniLM Presets Loaded', 'Applied recommended chunking, hybrid search, and reranker settings for all-MiniLM-L6-v2.');
+    } else if (currentModel.includes('bge-base')) {
+      this.advancedChunkSize = 1000;
+      this.advancedChunkOverlap = 100;
+      this.advancedMatryoshkaDimensions = 0;
+      this.advancedHybridSearchEnabled = true;
+      this.advancedRrfK = 60;
+      this.advancedRerankingEnabled = false;
+      this.advancedRerankerModel = 'BAAI/bge-reranker-base';
+      this.showMessage('info', 'BGE Presets Loaded', 'Applied recommended chunking and hybrid search settings for bge-base-en-v1.5.');
+    } else {
+      this.advancedChunkSize = 1500;
+      this.advancedChunkOverlap = 100;
+      this.advancedMatryoshkaDimensions = 0;
+      this.advancedHybridSearchEnabled = false;
+      this.advancedRrfK = 60;
+      this.advancedRerankingEnabled = false;
+      this.advancedRerankerModel = 'BAAI/bge-reranker-base';
+      this.showMessage('info', 'Default Presets Loaded', 'Applied standard advanced settings defaults.');
+    }
   }
 
   applyAdvancedEmbeddingSettings(): void {
