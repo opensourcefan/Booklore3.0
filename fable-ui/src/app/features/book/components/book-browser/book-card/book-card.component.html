@@ -63,7 +63,7 @@
     }
 
     @if (!_isSeriesViewActive && hasDigitalFile()) {
-      <a [routerLink]="urlHelper.getBookPrimaryReadingUrl(book)" (click)="readBook(book)"><p-button [rounded]="true" [icon]="readButtonIcon" class="read-btn" (click)="readBook(book)"
+      <a class="read-btn" [routerLink]="urlHelper.getBookPrimaryReadingUrl(book)" (click)="readBook(book)"><p-button [rounded]="true" [icon]="readButtonIcon" (click)="readBook(book)"
         [pTooltip]="_isContinueReading ? ('book.card.alt.continueReading' | transloco) : ''"
         tooltipPosition="bottom"
         [ariaLabel]="_isContinueReading ? ('book.card.alt.continueReading' | transloco) : (_isAudiobook ? ('book.card.alt.playAudiobook' | transloco) : ('book.card.alt.readBook' | transloco))"></p-button></a>
