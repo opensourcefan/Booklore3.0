@@ -19,4 +19,5 @@ public class AiServiceStatus {
     private Boolean modelExists;
     private String modelPath;
     private String embeddingModel;
+    private Boolean llmWarmed;
 }

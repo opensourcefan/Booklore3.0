@@ -209,7 +209,19 @@ def _do_llm_load() -> None:
             timeout=1800
         )
         resp.raise_for_status()
-        logger.info("LLM model pulled successfully: %s", LLM_MODEL_NAME)
+        logger.info("LLM model pulled successfully: %s. Warming up LLM in memory...", LLM_MODEL_NAME)
+        
+        # Warm up Ollama by triggering a dummy generate request
+        try:
+            requests.post(
+                "http://localhost:11434/api/generate",
+                json={"model": LLM_MODEL_NAME, "prompt": ""},
+                timeout=300
+            )
+            logger.info("LLM model warmed up successfully: %s", LLM_MODEL_NAME)
+        except Exception as warm_exc:
+            logger.warning("LLM model warm-up failed: %s", warm_exc)
+
     except Exception as exc:
         _llm_load_error = str(exc)
         logger.error("LLM model pull failed: %s", exc)
@@ -489,12 +501,29 @@ def health() -> dict[str, Any]:
         elif _reranker_model is None or _reranker_loading:
             status = "warming"
 
+    llm_warmed = True
+    if LLM_PROVIDER == "local" and LLM_MODEL_NAME:
+        llm_warmed = False
+        try:
+            ps_resp = requests.get("http://localhost:11434/api/ps", timeout=5)
+            if ps_resp.status_code == 200:
+                loaded_models = [m.get("name") for m in ps_resp.json().get("models", [])]
+                llm_warmed = any(
+                    m == LLM_MODEL_NAME or 
+                    m.startswith(LLM_MODEL_NAME + ":") or 
+                    LLM_MODEL_NAME.startswith(m + ":") 
+                    for m in loaded_models
+                )
+        except Exception:
+            pass
+
     return {
         "status": status,
         "mock": False,
         "embeddingModel": EMBEDDING_MODEL_NAME,
         "loadError": error,
-        "provider": EMBEDDING_PROVIDER
+        "provider": EMBEDDING_PROVIDER,
+        "llmWarmed": llm_warmed
     }
 
 

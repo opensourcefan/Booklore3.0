@@ -300,6 +300,7 @@ export interface AiServiceStatus {
   baseUrl: string;
   modelExists: boolean | null;
   modelPath: string | null;
+  llmWarmed?: boolean | null;
 }
 
 export interface AiPanelFlowBookHighlight {

@@ -126,6 +126,8 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   expandedChunks = new Set<number>();
   aiSearchInfoHtml = '';
   lastError: string | null = null;
+  llmWarmed: boolean | null = null;
+  isCheckingLlmWarmed = false;
 
   private appSettingsService = inject(AppSettingsService);
   private userService = inject(UserService);
@@ -157,6 +159,21 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
     this.openSub = this.aiSearchDialogService.openCommand$.subscribe(bookId => {
       this.open(bookId);
+    });
+    this.checkLlmWarmedStatus();
+  }
+
+  checkLlmWarmedStatus(): void {
+    this.isCheckingLlmWarmed = true;
+    this.appSettingsService.getAiSearchServiceStatus().subscribe({
+      next: (res) => {
+        this.isCheckingLlmWarmed = false;
+        this.llmWarmed = res && res.serviceReachable && res.llmWarmed !== undefined ? res.llmWarmed : true;
+      },
+      error: () => {
+        this.isCheckingLlmWarmed = false;
+        this.llmWarmed = true;
+      }
     });
   }
 
@@ -211,6 +228,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.singleBookId = bookId;
     this.visible = true;
     this.aiSearchDialogService.dialogVisible$.next(true);
+    this.checkLlmWarmedStatus();
     this.saveStateToCache();
   }
 
@@ -375,6 +393,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         this.answer = currentMessage.answer;
         
         this.saveStateToCache();
+        this.checkLlmWarmedStatus();
         // Scroll to the new result at the bottom of the chat
         setTimeout(() => {
           const el = document.querySelector('.ai-search-body');
@@ -389,6 +408,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         this.aiSearchDialogService.searchActive$.next(false);
         this.aiSearchDialogService.searchError$.next(true);
         this.saveStateToCache();
+        this.checkLlmWarmedStatus();
       },
     });
   }

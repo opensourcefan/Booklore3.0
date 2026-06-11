@@ -79,6 +79,7 @@ public class AiSearchHealthService {
         String loadError = asNullableString(healthPayload.get("loadError"));
         String payloadEmbeddingModel = asNullableString(healthPayload.get("embeddingModel"));
         String embeddingModel = payloadEmbeddingModel != null ? payloadEmbeddingModel : appProperties.getAiSearch().getEmbeddingModel();
+        Boolean llmWarmed = healthPayload.containsKey("llmWarmed") ? asBoolean(healthPayload.get("llmWarmed")) : null;
 
         return switch (rawStatus) {
             case "ok" -> AiServiceStatus.builder()
@@ -91,6 +92,7 @@ public class AiSearchHealthService {
                     .modelExists(modelExists)
                     .modelPath(modelPath)
                     .embeddingModel(embeddingModel)
+                    .llmWarmed(llmWarmed)
                     .build();
             case "warming" -> AiServiceStatus.builder()
                     .enabled(true)
@@ -104,6 +106,7 @@ public class AiSearchHealthService {
                     .modelExists(modelExists)
                     .modelPath(modelPath)
                     .embeddingModel(embeddingModel)
+                    .llmWarmed(llmWarmed)
                     .build();
             case "load_failed" -> AiServiceStatus.builder()
                     .enabled(true)
@@ -115,6 +118,7 @@ public class AiSearchHealthService {
                     .modelExists(modelExists)
                     .modelPath(modelPath)
                     .embeddingModel(embeddingModel)
+                    .llmWarmed(llmWarmed)
                     .build();
             case "missing_model" -> AiServiceStatus.builder()
                     .enabled(true)
@@ -128,6 +132,7 @@ public class AiSearchHealthService {
                     .modelExists(modelExists)
                     .modelPath(modelPath)
                     .embeddingModel(embeddingModel)
+                    .llmWarmed(llmWarmed)
                     .build();
             default -> AiServiceStatus.builder()
                     .enabled(true)
@@ -139,6 +144,7 @@ public class AiSearchHealthService {
                     .modelExists(modelExists)
                     .modelPath(modelPath)
                     .embeddingModel(embeddingModel)
+                    .llmWarmed(llmWarmed)
                     .build();
         };
     }

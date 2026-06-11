@@ -1,6 +1,7 @@
 FROM python:3.12-slim
 
-ENV PYTHONUNBUFFERED=1 \
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     HF_HOME=/models/hf \
     SENTENCE_TRANSFORMERS_HOME=/models
@@ -23,14 +24,6 @@ WORKDIR /app
 
 COPY requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && pip install -r /app/requirements.txt
-
-# Bake the embedding model into the image as a seed file.
-# On first container start, start.sh copies it to the
-# mounted volume (/models/hf) so it persists across recreates.
-RUN mkdir -p /app/model-seed/hf && \
-    HF_HOME=/app/model-seed/hf python -c \
-      "from sentence_transformers import SentenceTransformer; \
-       SentenceTransformer('${EMBEDDING_MODEL_ID}')"
 
 COPY app.py /app/app.py
 COPY start.sh /app/start.sh
