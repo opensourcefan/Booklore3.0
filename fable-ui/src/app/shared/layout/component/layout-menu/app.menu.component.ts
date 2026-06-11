@@ -32,6 +32,7 @@ import {BookDialogHelperService} from '../../../../features/book/components/book
 import {MediaTypePreferencesService} from '../../../../features/book/service/media-type-preferences.service';
 import {SidebarBadgeRefreshService} from '../../../../features/book/service/sidebar-badge-refresh.service';
 import {NotebookService} from '../../../../features/notebook/service/notebook.service';
+import {environment} from '../../../../../environments/environment';
 
 type HomeItemVisibilityKey = 'dashboard' | 'allBooks' | 'physicalBooks' | 'series' | 'authors' | 'notebook';
 
@@ -171,6 +172,16 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       catchError(() => of(this.resolveVersionInfoWithCache({current: 'unknown', latest: 'unknown'})))
     ).subscribe((data) => {
       this.versionInfo = data;
+      const runningVersion = (environment as any).version || 'development';
+      const serverVersion = data.current;
+      if (runningVersion !== 'development' && serverVersion !== 'unknown' && runningVersion !== serverVersion) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Application Update Available',
+          detail: 'Fable has been upgraded. Please reload the page to ensure stability.',
+          sticky: true
+        });
+      }
     });
 
     this.authorService.getAllAuthors().subscribe();

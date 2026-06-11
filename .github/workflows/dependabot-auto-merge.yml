@@ -44,11 +44,11 @@ jobs:
           review_reason=""
 
           case "$update_type" in
-            version-update:semver-patch|version-update:semver-minor)
+            version-update:semver-patch)
               auto_merge=true
               ;;
             *)
-              review_reason="Requires manual review because Dependabot marked it as ${update_type:-unknown}."
+              review_reason="Requires manual review because Dependabot marked it as minor/major update (${update_type:-unknown})."
               ;;
           esac
 
@@ -70,8 +70,66 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Label PR for auto-merge
+      - name: Enforce Dependency Quarantine (7-Day Hold)
+        id: quarantine-check
         if: steps.policy.outputs.auto_merge == 'true'
+        run: |
+          dependency_names="${{ steps.dependabot-metadata.outputs.dependency-names }}"
+          new_version="${{ steps.dependabot-metadata.outputs.new-version }}"
+          package_ecosystem="${{ steps.dependabot-metadata.outputs.package-ecosystem }}"
+          
+          under_quarantine=false
+
+          # Convert comma-separated string to list and loop
+          IFS=',' read -ra ADDR <<< "$dependency_names"
+          for dep in "${ADDR[@]}"; do
+            # Trim whitespace
+            dep_trimmed=$(echo "$dep" | xargs)
+            echo "Checking release age of $dep_trimmed ($new_version) on ecosystem $package_ecosystem..."
+            
+            publish_date=""
+
+            if [ "$package_ecosystem" = "npm" ]; then
+              # Query NPM Registry for publish time
+              publish_date=$(npm view "$dep_trimmed" time."$new_version" || echo "")
+            elif [ "$package_ecosystem" = "gradle" ] || [ "$package_ecosystem" = "maven" ]; then
+              # Query Maven Central Search API for timestamp
+              group_id=$(echo "$dep_trimmed" | cut -d: -f1)
+              artifact_id=$(echo "$dep_trimmed" | cut -d: -f2)
+              query_url="https://search.maven.org/solrsearch/select?q=g:${group_id}+AND+a:${artifact_id}+AND+v:${new_version}&wt=json"
+              response=$(curl -s "$query_url" || echo "")
+              timestamp=$(echo "$response" | grep -oE '"timestamp":[0-9]+' | cut -d: -f2 || echo "")
+              if [ -n "$timestamp" ]; then
+                publish_date=$(date -d "@$((timestamp / 1000))" -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "")
+              fi
+            fi
+
+            if [ -n "$publish_date" ]; then
+              publish_ts=$(date -d "$publish_date" +%s)
+              current_ts=$(date +%s)
+              age_seconds=$((current_ts - publish_ts))
+              age_days=$((age_seconds / 86400))
+              echo "Package $dep_trimmed version $new_version was published on $publish_date ($age_days days ago)."
+              if [ "$age_days" -lt 7 ]; then
+                echo "⚠️ Package $dep_trimmed is under quarantine hold (7-day rule)."
+                under_quarantine=true
+              fi
+            else
+              echo "⚠️ Could not verify publication date for $dep_trimmed. Fail-safe quarantine activated."
+              under_quarantine=true
+            fi
+          done
+
+          if [ "$under_quarantine" = "true" ]; then
+            echo "⚠️ Auto-merge is blocked due to quarantine hold."
+          else
+            echo "✅ All packages have cleared the 7-day quarantine threshold."
+          fi
+
+          echo "under_quarantine=$under_quarantine" >> "$GITHUB_OUTPUT"
+
+      - name: Label PR for auto-merge
+        if: steps.policy.outputs.auto_merge == 'true' && steps.quarantine-check.outputs.under_quarantine != 'true'
         run: |
           existing_labels=$(gh pr view "$PR_URL" --json labels --jq '.labels[].name')
           if grep -Fxq 'dependabot:manual-review' <<< "$existing_labels"; then
@@ -82,7 +140,7 @@ jobs:
           fi
 
       - name: Label PR for manual review
-        if: steps.policy.outputs.auto_merge != 'true'
+        if: steps.policy.outputs.auto_merge != 'true' || steps.quarantine-check.outputs.under_quarantine == 'true'
         run: |
           existing_labels=$(gh pr view "$PR_URL" --json labels --jq '.labels[].name')
           if grep -Fxq 'dependabot:automerge' <<< "$existing_labels"; then
@@ -93,6 +151,6 @@ jobs:
           fi
 
       - name: Enable auto-merge
-        if: steps.policy.outputs.auto_merge == 'true'
+        if: steps.policy.outputs.auto_merge == 'true' && steps.quarantine-check.outputs.under_quarantine != 'true'
         run: |
           gh pr merge "$PR_URL" --auto --squash
