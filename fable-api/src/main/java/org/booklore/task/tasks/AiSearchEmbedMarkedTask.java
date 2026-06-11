@@ -8,6 +8,7 @@ import org.booklore.model.enums.TaskType;
 import org.booklore.model.enums.UserPermission;
 import org.booklore.service.ai.AiSearchService;
 import org.booklore.task.TaskStatus;
+import org.booklore.config.security.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class AiSearchEmbedMarkedTask implements Task {
 
     private final AiSearchService aiSearchService;
+    private final AuthenticationService authenticationService;
 
     @Override
     public void validatePermissions(BookLoreUser user, TaskCreateRequest request) {
@@ -38,7 +40,10 @@ public class AiSearchEmbedMarkedTask implements Task {
         log.info("{}: Task started", getTaskType());
 
         try {
-            aiSearchService.startScanMarkedAiSearchEmbeddings(-1L, "System", false);
+            BookLoreUser user = authenticationService.getAuthenticatedUser();
+            Long userId = (user != null) ? user.getId() : -1L;
+            String username = (user != null) ? user.getUsername() : "System";
+            aiSearchService.startScanMarkedAiSearchEmbeddings(userId, username, false);
             builder.status(TaskStatus.COMPLETED);
         } catch (Exception e) {
             log.error("{}: Error embedding marked AI Search books", getTaskType(), e);

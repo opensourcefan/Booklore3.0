@@ -20,7 +20,9 @@
     "validationPrefix": "Cron expression must have exactly 6 fields (seconds, minutes, hours, day, month, weekday)",
     "invalidField": "Invalid {{name}} field: {{value}}",
     "updateSuccess": "Scheduled task configuration has been updated successfully.",
-    "updateError": "Failed to update scheduled task configuration."
+    "updateError": "Failed to update scheduled task configuration.",
+    "notifications": "Notifications",
+    "notificationsTooltip": "Enable completion notifications"
   },
   "buttons": {
     "run": "Run",

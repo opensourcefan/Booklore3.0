@@ -649,6 +649,7 @@ export class AppTopBarComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((highlight: boolean) => {
         this.hasActiveLogNotification = highlight;
+        this.updateCompletedTaskCount();
         if (highlight) {
           this.triggerPulseEffect();
         }
@@ -666,7 +667,8 @@ export class AppTopBarComponent implements OnDestroy {
   private updateCompletedTaskCount() {
     const completedMetadataTasks = Object.values(this.latestTasks).length;
     const bookdropFileTaskCount = this.latestHasPendingFiles ? 1 : 0;
-    this.completedTaskCount = completedMetadataTasks + bookdropFileTaskCount;
+    const logNotificationCount = this.hasActiveLogNotification ? 1 : 0;
+    this.completedTaskCount = completedMetadataTasks + bookdropFileTaskCount + logNotificationCount;
   }
 
   private updateTaskVisibility(tasks: Record<string, MetadataBatchProgressNotification>) {

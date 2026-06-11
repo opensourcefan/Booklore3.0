@@ -30,6 +30,8 @@ class TaskServiceTest {
     private AuthenticationService authenticationService;
     private TaskHistoryService taskHistoryService;
     private TaskCronService taskCronService;
+    private org.booklore.service.user.UserService userService;
+    private org.booklore.service.NotificationService notificationService;
     private TaskCancellationManager cancellationManager;
     private Executor taskExecutor;
     private ObjectMapper objectMapper;
@@ -42,6 +44,8 @@ class TaskServiceTest {
         authenticationService = mock(AuthenticationService.class);
         taskHistoryService = mock(TaskHistoryService.class);
         taskCronService = mock(TaskCronService.class);
+        userService = mock(org.booklore.service.user.UserService.class);
+        notificationService = mock(org.booklore.service.NotificationService.class);
         cancellationManager = mock(TaskCancellationManager.class);
         taskExecutor = mock(Executor.class);
         objectMapper = mock(ObjectMapper.class);
@@ -54,6 +58,8 @@ class TaskServiceTest {
                 authenticationService,
                 taskHistoryService,
                 taskCronService,
+                userService,
+                notificationService,
                 List.of(mockTask),
                 cancellationManager,
                 taskExecutor,
@@ -141,6 +147,8 @@ class TaskServiceTest {
                 authenticationService,
                 taskHistoryService,
                 taskCronService,
+                userService,
+                notificationService,
                 List.of(nonParallelTask),
                 cancellationManager,
                 taskExecutor,
@@ -182,6 +190,8 @@ class TaskServiceTest {
                 authenticationService,
                 taskHistoryService,
                 taskCronService,
+                userService,
+                notificationService,
                 List.of(asyncTask),
                 cancellationManager,
                 taskExecutor,

@@ -72,6 +72,7 @@ export interface CronConfig {
   taskType: string;
   cronExpression: string | null;
   enabled: boolean;
+  notificationsEnabled: boolean;
   options: Record<string, unknown> | null;
   createdAt: string | null;
   updatedAt: string | null;
@@ -108,6 +109,7 @@ export interface TaskCancelResponse {
 export interface TaskCronConfigRequest {
   cronExpression?: string | null;
   enabled?: boolean | null;
+  notificationsEnabled?: boolean | null;
 }
 
 export interface TaskProgressPayload {

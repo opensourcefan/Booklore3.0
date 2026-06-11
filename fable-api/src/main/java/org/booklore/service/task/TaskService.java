@@ -13,6 +13,10 @@ import org.booklore.model.enums.TaskType;
 import org.booklore.task.TaskCancellationManager;
 import org.booklore.task.TaskStatus;
 import org.booklore.task.tasks.Task;
+import org.booklore.service.user.UserService;
+import org.booklore.service.NotificationService;
+import org.booklore.model.websocket.LogNotification;
+import org.booklore.model.websocket.Topic;
 import org.booklore.util.SecurityContextVirtualThread;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -42,6 +46,8 @@ public class TaskService {
     private final AuthenticationService authenticationService;
     private final TaskHistoryService taskHistoryService;
     private final TaskCronService taskCronService;
+    private final UserService userService;
+    private final NotificationService notificationService;
     private final Map<TaskType, Task> taskRegistry;
     private final ConcurrentMap<TaskType, String> runningTasks = new ConcurrentHashMap<>();
     private final TaskCancellationManager cancellationManager;
@@ -54,6 +60,8 @@ public class TaskService {
             AuthenticationService authenticationService,
             TaskHistoryService taskHistoryService,
             @Lazy TaskCronService taskCronService,
+            @Lazy UserService userService,
+            NotificationService notificationService,
             List<Task> tasks,
             TaskCancellationManager cancellationManager,
             Executor taskExecutor,
@@ -62,6 +70,8 @@ public class TaskService {
         this.authenticationService = authenticationService;
         this.taskHistoryService = taskHistoryService;
         this.taskCronService = taskCronService;
+        this.userService = userService;
+        this.notificationService = notificationService;
         this.taskRegistry = tasks.stream().collect(Collectors.toMap(Task::getTaskType, Function.identity()));
         this.cancellationManager = cancellationManager;
         this.taskExecutor = taskExecutor;
@@ -136,8 +146,20 @@ public class TaskService {
     public void executeCronTask(TaskType taskType) {
         log.info("Executing cron-scheduled task: {}", taskType);
         try {
-            BookLoreUser systemUser = authenticationService.getSystemUser();
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(systemUser, null, List.of());
+            BookLoreUser executionUser = authenticationService.getSystemUser();
+            var configOpt = taskCronService.getCronConfigEntity(taskType);
+            if (configOpt.isPresent()) {
+                Long createdBy = configOpt.get().getCreatedBy();
+                if (createdBy != null && createdBy != -1L) {
+                    try {
+                        executionUser = userService.getBookLoreUser(createdBy);
+                    } catch (Exception e) {
+                        log.warn("Could not find configuring user with ID {}, falling back to System User", createdBy);
+                    }
+                }
+            }
+
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(executionUser, null, List.of());
             SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
             securityContext.setAuthentication(authentication);
             SecurityContextHolder.setContext(securityContext);
@@ -147,7 +169,7 @@ public class TaskService {
                     .triggeredByCron(true)
                     .build();
 
-            runAsSystemUser(request);
+            runAsExecutionUser(request, executionUser);
         } catch (Exception e) {
             log.error("Failed to execute cron-scheduled task: {}", taskType, e);
         } finally {
@@ -168,16 +190,15 @@ public class TaskService {
         }
     }
 
-    private void runAsSystemUser(TaskCreateRequest request) {
+    private void runAsExecutionUser(TaskCreateRequest request, BookLoreUser user) {
         if (request == null || request.getTaskType() == null) {
             throw new APIException("Task request and task type cannot be null", HttpStatus.BAD_REQUEST);
         }
-        BookLoreUser systemUser = authenticationService.getSystemUser();
         TaskType taskType = request.getTaskType();
         if (taskType.isAsync()) {
-            runAsync(request, systemUser, taskType);
+            runAsync(request, user, taskType);
         } else {
-            runSync(request, systemUser, taskType);
+            runSync(request, user, taskType);
         }
     }
 
@@ -191,7 +212,7 @@ public class TaskService {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         taskExecutor.execute(() ->
                 SecurityContextVirtualThread.runWithSecurityContext(securityContext, () ->
-                        executeAsyncTask(taskId, request, taskType)
+                        executeAsyncTask(taskId, request, taskType, user)
                 )
         );
         return response;
@@ -217,7 +238,7 @@ public class TaskService {
         return runningTasks.containsValue(taskId);
     }
 
-    private void executeAsyncTask(String taskId, TaskCreateRequest request, TaskType taskType) {
+    private void executeAsyncTask(String taskId, TaskCreateRequest request, TaskType taskType, BookLoreUser user) {
         try {
             taskHistoryService.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS, "Task execution started");
             request.setTaskId(taskId);
@@ -232,10 +253,16 @@ public class TaskService {
                 taskHistoryService.updateTaskStatus(taskId, TaskStatus.CANCELLED, "Task was cancelled");
             } else {
                 taskHistoryService.updateTaskStatus(taskId, TaskStatus.COMPLETED, "Task completed successfully");
+                if (request.isTriggeredByCron()) {
+                    sendCronNotification(taskType, user, true, null);
+                }
             }
         } catch (Exception e) {
             log.error("Async task {} of type {} failed", taskId, taskType, e);
             taskHistoryService.updateTaskError(taskId, e.getMessage());
+            if (request.isTriggeredByCron()) {
+                sendCronNotification(taskType, user, false, e.getMessage());
+            }
         } finally {
             if (!taskType.isParallel()) {
                 runningTasks.remove(taskType);
@@ -252,15 +279,45 @@ public class TaskService {
             TaskCreateResponse response = executeTask(request);
             response.setTaskId(taskId);
             taskHistoryService.updateTaskStatus(taskId, TaskStatus.COMPLETED, "Task completed successfully");
+            if (request.isTriggeredByCron()) {
+                sendCronNotification(taskType, user, true, null);
+            }
             return response;
         } catch (Exception e) {
             log.error("Sync task {} of type {} failed", taskId, taskType, e);
             taskHistoryService.updateTaskError(taskId, e.getMessage());
+            if (request.isTriggeredByCron()) {
+                sendCronNotification(taskType, user, false, e.getMessage());
+            }
             throw e;
         } finally {
             if (!taskType.isParallel()) {
                 runningTasks.remove(taskType);
             }
+        }
+    }
+
+    private void sendCronNotification(TaskType taskType, BookLoreUser user, boolean success, String errorDetail) {
+        try {
+            var configOpt = taskCronService.getCronConfigEntity(taskType);
+            if (configOpt.isPresent() && !configOpt.get().getNotificationsEnabled()) {
+                return;
+            }
+
+            String status = success ? "completed successfully" : "failed" + (errorDetail != null ? ": " + errorDetail : "");
+            String message = "Cron task " + taskType + " " + status;
+            LogNotification logNotification = success 
+                    ? LogNotification.info(message) 
+                    : LogNotification.error(message);
+
+            if (user != null && user.getId() != null && user.getId() != -1L) {
+                notificationService.sendMessageToUser(user.getUsername(), Topic.LOG, logNotification);
+            } else {
+                notificationService.sendMessageToPermissions(Topic.LOG, logNotification,
+                        java.util.Set.of(org.booklore.model.enums.PermissionType.ADMIN, org.booklore.model.enums.PermissionType.MANAGE_LIBRARY));
+            }
+        } catch (Exception e) {
+            log.error("Failed to send cron notification for task type: {}", taskType, e);
         }
     }
 

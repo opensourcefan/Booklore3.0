@@ -30,6 +30,10 @@ public class TaskCronConfigurationEntity {
     @Column(name = "enabled", nullable = false)
     private Boolean enabled;
 
+    @Column(name = "notifications_enabled", nullable = false)
+    @Builder.Default
+    private Boolean notificationsEnabled = true;
+
     @Column(name = "created_by", nullable = false)
     private Long createdBy;
 

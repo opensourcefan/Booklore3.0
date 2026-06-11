@@ -295,14 +295,15 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
     return taskInfo?.cronSupported || false;
   }
 
-  getCronConfig(taskType: string): { enabled?: boolean; cronExpression?: string } | null | undefined {
+  getCronConfig(taskType: string): { enabled?: boolean; cronExpression?: string; notificationsEnabled?: boolean } | null | undefined {
     const taskInfo = this.taskInfos.find(t => t.taskType === taskType);
     if (!taskInfo?.cronConfig) return null;
 
     const cronConfig = taskInfo.cronConfig;
     return {
       enabled: cronConfig.enabled,
-      cronExpression: cronConfig.cronExpression ?? undefined
+      cronExpression: cronConfig.cronExpression ?? undefined,
+      notificationsEnabled: cronConfig.notificationsEnabled
     };
   }
 
@@ -312,6 +313,17 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
 
     const request: TaskCronConfigRequest = {
       enabled: !(cronConfig.enabled ?? false)
+    };
+
+    this.updateCronConfig(taskType, request);
+  }
+
+  toggleCronNotificationsEnabled(taskType: string): void {
+    const cronConfig = this.getCronConfig(taskType);
+    if (!cronConfig) return;
+
+    const request: TaskCronConfigRequest = {
+      notificationsEnabled: !(cronConfig.notificationsEnabled ?? true)
     };
 
     this.updateCronConfig(taskType, request);
@@ -473,7 +485,7 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
   }
 
   getTaskLabel(taskType: string): string {
-    return `${this.getTaskDisplayOrder(taskType)}. ${this.getTaskDisplayName(taskType)}`;
+    return this.getTaskDisplayName(taskType);
   }
 
   getTaskIcon(taskType: string): string {

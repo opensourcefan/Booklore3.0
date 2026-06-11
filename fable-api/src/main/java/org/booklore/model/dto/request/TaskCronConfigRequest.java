@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class TaskCronConfigRequest {
     private String cronExpression;
     private Boolean enabled;
+    private Boolean notificationsEnabled;
 }
 
