@@ -23,7 +23,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Get Base Ref
         id: get_base
         run: echo "base_ref=$(git rev-parse HEAD~1)" >> $GITHUB_OUTPUT
@@ -34,7 +34,7 @@ jobs:
     uses: ./.github/workflows/migrations-check.yml
     with:
       base_ref: ${{ needs.get-base-ref.outputs.base_ref }}
-      head_ref: ${{ github.sha }}
+      head_ref: ${{ github.ref }}
 
   backend-tests:
     name: Backend Tests

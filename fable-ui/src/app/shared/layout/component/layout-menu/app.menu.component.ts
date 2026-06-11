@@ -172,7 +172,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       catchError(() => of(this.resolveVersionInfoWithCache({current: 'unknown', latest: 'unknown'})))
     ).subscribe((data) => {
       this.versionInfo = data;
-      const runningVersion = (environment as any).version || 'development';
+      const runningVersion = environment.version || 'development';
       const serverVersion = data.current;
       if (runningVersion !== 'development' && serverVersion !== 'unknown' && runningVersion !== serverVersion) {
         this.messageService.add({
