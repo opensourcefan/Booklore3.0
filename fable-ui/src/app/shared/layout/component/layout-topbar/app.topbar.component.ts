@@ -20,8 +20,8 @@ import {AuthService} from '../../../service/auth.service';
 import {UserService} from '../../../../features/settings/user-management/user.service';
 import {Popover} from 'primeng/popover';
 import {MetadataProgressService} from '../../../service/metadata-progress.service';
-import {filter, takeUntil} from 'rxjs/operators';
-import {Subject} from 'rxjs';
+import {filter, takeUntil, catchError} from 'rxjs/operators';
+import {Subject, Subscription, of, interval} from 'rxjs';
 import {MetadataBatchProgressNotification} from '../../../model/metadata-batch-progress.model';
 import {BookdropFileService} from '../../../../features/bookdrop/service/bookdrop-file.service';
 import {DialogLauncherService} from '../../../services/dialog-launcher.service';
@@ -43,6 +43,9 @@ import {MetadataTaskLog, MetadataTaskService} from '../../../../features/book/se
 import {MobileBackHandle, MobileBackNavigationService} from '../../../service/mobile-back-navigation.service';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 import {ResizableDividerDirective} from '../../../directives/resizable-divider.directive';
+import {AiSearchDialogComponent, AiSearchDialogService} from '../../../../features/book/components/ai-search-dialog/ai-search-dialog.component';
+import {AppSettingsService} from '../../../service/app-settings.service';
+import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../service/ai-search-scan-progress.service';
 
 @Component({
   selector: 'app-topbar',
@@ -72,6 +75,7 @@ import {ResizableDividerDirective} from '../../../directives/resizable-divider.d
     DirectoryMobilePanelComponent,
     Popover,
     ResizableDividerDirective,
+    AiSearchDialogComponent,
   ],
 })
 export class AppTopBarComponent implements OnDestroy {
@@ -85,6 +89,7 @@ export class AppTopBarComponent implements OnDestroy {
   @ViewChild('topbarmenubutton') topbarMenuButton!: ElementRef;
   @ViewChild('topbarmenu') menu!: ElementRef;
   @ViewChild('statsMenu') statsMenu: Menu | undefined;
+  @ViewChild('aiSearchDialog') aiSearchDialog!: AiSearchDialogComponent;
   @ViewChild('mobileSidebarPop') mobileSidebarPop: Popover | undefined;
   @ViewChild('mobileDirPop') mobileDirPop: Popover | undefined;
   @ViewChild('mobileMenu') mobileMenuPop: Popover | undefined;
@@ -100,7 +105,10 @@ export class AppTopBarComponent implements OnDestroy {
   showMobileBookFilterTrigger = false;
   showMobileDirTrigger = false;
   mobileDirectoryPopoverOpen = false;
+  aiSearchEnabled = false;
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
+  aiSearchBatchProgress: AiSearchProgressPayload | null = null;
+  aiSearchSingleProgress: AiSearchProgressPayload | null = null;
   metadataFlushProgress: TaskProgressPayload | null = null;
   importScanProgress: TaskProgressPayload | null = null;
   directoryTaggingProgress: TaskProgressPayload | null = null;
@@ -113,12 +121,22 @@ export class AppTopBarComponent implements OnDestroy {
   isSidecarBackupRunning = false;
   isFullscreen = false;
 
+  searchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
+  isSearchActive = false;
+  isSearchError = false;
+  isBatchEmbedding = false;
+  private pollingSub?: Subscription;
+  private searchActiveSub?: Subscription;
+  private searchErrorSub?: Subscription;
+  private embeddingProgressSub?: Subscription;
+
   private eventTimer: number | undefined;
   private flushDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private importDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private directoryTagDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private metadataFetchDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private writeDismissTimer: ReturnType<typeof setTimeout> | undefined;
+  private aiSearchSingleDismissTimer: ReturnType<typeof setTimeout> | undefined;
   private destroy$ = new Subject<void>();
 
   private latestTasks: Record<string, MetadataBatchProgressNotification> = {};
@@ -151,6 +169,9 @@ export class AppTopBarComponent implements OnDestroy {
   private metadataTaskService = inject(MetadataTaskService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
   public mobileUx = inject(MobileUxService);
+  private appSettingsService = inject(AppSettingsService);
+  private aiSearchScanProgressService = inject(AiSearchScanProgressService);
+  private aiSearchDialogService = inject(AiSearchDialogService);
 
   constructor() {
     this.updateMobileBookFilterTriggerVisibility(this.router.url);
@@ -187,6 +208,55 @@ export class AppTopBarComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(progress => {
         this.aiBatchProgress = progress?.mode === 'BATCH' ? progress : null;
+      });
+
+    this.aiSearchScanProgressService.progress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(progress => {
+        if (!progress) {
+          this.aiSearchBatchProgress = null;
+          this.aiSearchSingleProgress = null;
+        } else if (progress.mode === 'BATCH') {
+          this.aiSearchBatchProgress = progress;
+        } else if (progress.mode === 'SINGLE') {
+          this.aiSearchSingleProgress = progress;
+          if (progress.event === 'COMPLETED' || progress.event === 'FAILED') {
+            clearTimeout(this.aiSearchSingleDismissTimer);
+            this.aiSearchSingleDismissTimer = setTimeout(() => {
+              this.aiSearchSingleProgress = null;
+            }, 5000);
+          } else {
+            clearTimeout(this.aiSearchSingleDismissTimer);
+          }
+        }
+      });
+
+    this.appSettingsService.appSettings$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(settings => {
+        this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+        if (this.aiSearchEnabled) {
+          this.startAiStatusPolling();
+        } else {
+          this.stopAiStatusPolling();
+        }
+      });
+
+    this.searchActiveSub = this.aiSearchDialogService.searchActive$.subscribe(active => {
+      this.isSearchActive = active;
+    });
+
+    this.searchErrorSub = this.aiSearchDialogService.searchError$.subscribe(error => {
+      this.isSearchError = error;
+    });
+
+    this.embeddingProgressSub = this.aiSearchScanProgressService.progress$
+      .pipe(
+        filter((p): p is NonNullable<typeof p> => !!p),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(progress => {
+        this.isBatchEmbedding = progress.mode === 'BATCH' && progress.event === 'IN_PROGRESS';
       });
 
     this.sidecarBackupProgressService.active$
@@ -323,8 +393,38 @@ export class AppTopBarComponent implements OnDestroy {
     clearTimeout(this.metadataFetchDismissTimer);
     clearTimeout(this.writeDismissTimer);
     document.removeEventListener('fullscreenchange', this.onFullscreenChange);
+
+    this.searchActiveSub?.unsubscribe();
+    this.searchErrorSub?.unsubscribe();
+    this.embeddingProgressSub?.unsubscribe();
+    this.stopAiStatusPolling();
+
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private startAiStatusPolling(): void {
+    if (this.pollingSub) return;
+    
+    const fetchStatus = () => {
+      this.appSettingsService.getAiSearchServiceStatus().pipe(
+        catchError(() => of({ status: 'load_failed' }))
+      ).subscribe((res) => {
+        if (res && res.status) {
+          this.searchStatus = res.status as 'READY' | 'STARTING' | 'ERROR';
+        }
+      });
+    };
+    
+    fetchStatus();
+    this.pollingSub = interval(5000).subscribe(() => fetchStatus());
+  }
+
+  private stopAiStatusPolling(): void {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+      this.pollingSub = undefined;
+    }
   }
 
   toggleMenu() {
@@ -446,6 +546,10 @@ export class AppTopBarComponent implements OnDestroy {
     this.router.navigate(['/settings'], {queryParams: {tab: 'ai-settings', returnTo: this.router.url}});
   }
 
+  openAiSearch(): void {
+    this.aiSearchDialog.open();
+  }
+
   navigateToMetadataPersistenceSettings(): void {
     this.router.navigate(['/settings'], {queryParams: {tab: 'metadata', returnTo: this.router.url}});
   }
@@ -536,9 +640,17 @@ export class AppTopBarComponent implements OnDestroy {
     this.notificationService.activeNotification$
       .pipe(takeUntil(this.destroy$))
       .subscribe((notification: LogNotification | null) => {
-        this.hasActiveLogNotification = !!notification;
         if (notification) {
           this.latestNotificationSeverity = notification.severity;
+        }
+      });
+
+    this.notificationService.notificationHighlight$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((highlight: boolean) => {
+        this.hasActiveLogNotification = highlight;
+        this.updateCompletedTaskCount();
+        if (highlight) {
           this.triggerPulseEffect();
         }
       });
@@ -555,7 +667,8 @@ export class AppTopBarComponent implements OnDestroy {
   private updateCompletedTaskCount() {
     const completedMetadataTasks = Object.values(this.latestTasks).length;
     const bookdropFileTaskCount = this.latestHasPendingFiles ? 1 : 0;
-    this.completedTaskCount = completedMetadataTasks + bookdropFileTaskCount;
+    const logNotificationCount = this.hasActiveLogNotification ? 1 : 0;
+    this.completedTaskCount = completedMetadataTasks + bookdropFileTaskCount + logNotificationCount;
   }
 
   private updateTaskVisibility(tasks: Record<string, MetadataBatchProgressNotification>) {
@@ -656,6 +769,10 @@ export class AppTopBarComponent implements OnDestroy {
 
   get showDesktopAiScanStatus(): boolean {
     return !!this.aiBatchProgress;
+  }
+
+  get showDesktopAiSearchScanStatus(): boolean {
+    return !!this.aiSearchBatchProgress;
   }
 
   get showMetadataFlushStatus(): boolean {
@@ -804,6 +921,23 @@ export class AppTopBarComponent implements OnDestroy {
     return 'warning';
   }
 
+
+  get aiSearchScanTone(): 'ok' | 'warning' | 'error' {
+    if (!this.aiSearchBatchProgress) {
+      return 'warning';
+    }
+
+    if (this.aiSearchBatchProgress.event === 'FAILED') {
+      return 'error';
+    }
+
+    if (this.aiSearchBatchProgress.event === 'COMPLETED') {
+      return 'ok';
+    }
+
+    return 'warning';
+  }
+
   get aiScanSummary(): string {
     if (!this.aiBatchProgress) {
       return '';
@@ -821,6 +955,67 @@ export class AppTopBarComponent implements OnDestroy {
       completed: this.aiBatchProgress.completedBooks ?? 0,
       total: this.aiBatchProgress.totalBooks ?? 0
     });
+  }
+
+  get aiSearchSingleScanTone(): 'ok' | 'warning' | 'error' {
+    if (!this.aiSearchSingleProgress) {
+      return 'warning';
+    }
+    if (this.aiSearchSingleProgress.event === 'FAILED') return 'error';
+    if (this.aiSearchSingleProgress.event === 'COMPLETED') return 'ok';
+    return 'warning';
+  }
+
+  get showDesktopAiSearchSingleStatus(): boolean {
+    return !!this.aiSearchSingleProgress;
+  }
+
+  get aiSearchScanSummary(): string {
+    return this.getConciseSummary(this.aiSearchBatchProgress);
+  }
+
+  get aiSearchSingleSummary(): string {
+    return this.getConciseSummary(this.aiSearchSingleProgress);
+  }
+
+  private getConciseSummary(progress: AiSearchProgressPayload | null): string {
+    if (!progress) return '';
+    
+    let detail = '';
+    const ocrMatch = progress.message.match(/OCR \(page (\d+\/\d+)\)/);
+    if (ocrMatch) {
+      detail = `OCR p. ${ocrMatch[1]}`;
+    } else {
+      const percentMatch = progress.message.match(/Embedding\.\.\. (\d+%)/);
+      if (percentMatch) {
+        detail = `${percentMatch[1]}`;
+      } else {
+        switch (progress.event) {
+          case 'STARTED':
+            detail = 'Started';
+            break;
+          case 'COMPLETED':
+            detail = 'Completed';
+            break;
+          case 'FAILED':
+            detail = 'Failed';
+            break;
+          case 'STOPPED':
+            detail = 'Stopped';
+            break;
+        }
+      }
+    }
+
+    if (progress.mode === 'BATCH') {
+      const current = progress.current ?? 0;
+      const total = progress.total ?? 0;
+      if (total > 0) {
+        return detail ? `${current}/${total} (${detail})` : `${current}/${total} books`;
+      }
+    }
+
+    return detail || progress.message || '';
   }
 
   private isToolbarItemVisible(item: ToolbarItem): boolean {

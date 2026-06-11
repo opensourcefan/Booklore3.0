@@ -175,6 +175,7 @@ export interface AppSettings {
   autoBookSearch: boolean;
   similarBookRecommendation: boolean;
   aiPanelDetectionEnabled: boolean;
+  aiSearchEnabled: boolean;
   defaultMetadataRefreshOptions: MetadataRefreshOptions;
   libraryMetadataRefreshOptions: MetadataRefreshOptions[];
   uploadPattern: string;
@@ -193,7 +194,6 @@ export interface AppSettings {
   koboSettings: KoboSettings;
   coverCroppingSettings: CoverCroppingSettings;
   metadataDownloadOnBookdrop: boolean;
-  telemetryEnabled: boolean;
   metadataProviderSpecificFields: MetadataProviderSpecificFields;
   oidcSessionDurationHours: number | null;
   oidcGroupSyncMode: string | null;
@@ -202,6 +202,8 @@ export interface AppSettings {
   diskType: string;
   libraryHealthCheckIntervalSeconds: number;
   allowFileDeletion: boolean;
+  aiPanelSettings: AiPanelSettings;
+  aiSearchSettings: AiSearchSettings;
 }
 
 export interface MetadataProviderSpecificFields {
@@ -246,7 +248,6 @@ export enum AppSettingKey {
   METADATA_PUBLIC_REVIEWS_SETTINGS = 'METADATA_PUBLIC_REVIEWS_SETTINGS',
   KOBO_SETTINGS = 'KOBO_SETTINGS',
   COVER_CROPPING_SETTINGS = 'COVER_CROPPING_SETTINGS',
-  TELEMETRY_ENABLED = 'TELEMETRY_ENABLED',
   METADATA_PROVIDER_SPECIFIC_FIELDS = 'METADATA_PROVIDER_SPECIFIC_FIELDS',
   OIDC_SESSION_DURATION_HOURS = 'OIDC_SESSION_DURATION_HOURS',
   OIDC_GROUP_SYNC_MODE = 'OIDC_GROUP_SYNC_MODE',
@@ -254,7 +255,40 @@ export enum AppSettingKey {
   OIDC_REDIRECT_URIS = 'OIDC_REDIRECT_URIS',
   LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS = 'LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS',
   AI_PANEL_DETECTION_ENABLED = 'AI_PANEL_DETECTION_ENABLED',
+  AI_SEARCH_ENABLED = 'AI_SEARCH_ENABLED',
+  AI_SEARCH_SETTINGS = 'AI_SEARCH_SETTINGS',
+  AI_PANEL_SETTINGS = 'AI_PANEL_SETTINGS',
   ALLOW_FILE_DELETION = 'ALLOW_FILE_DELETION',
+}
+
+export interface AiSearchSettings {
+  embeddingProvider: string;
+  embeddingApiKey: string;
+  externalEmbeddingUrl: string;
+  embeddingModel: string;
+  llmProvider: string;
+  llmApiKey: string;
+  externalLlmUrl: string;
+  llmModel: string;
+  topK: number;
+  similarityThreshold: number;
+  maxTokens: number;
+  temperature: number;
+  autoEmbedLibraryIds: number[];
+  chunkSize: number;
+  chunkOverlap: number;
+  matryoshkaDimensions: number;
+  hybridSearchEnabled: boolean;
+  rrfK: number;
+  rerankingEnabled: boolean;
+  rerankerModel: string;
+  ocrEnabled: boolean;
+  ocrFallbackOnly: boolean;
+  ocrLanguage: string;
+}
+
+export interface AiPanelSettings {
+  modelId: string;
 }
 
 export interface AiServiceStatus {
@@ -266,6 +300,7 @@ export interface AiServiceStatus {
   baseUrl: string;
   modelExists: boolean | null;
   modelPath: string | null;
+  llmWarmed?: boolean | null;
 }
 
 export interface AiPanelFlowBookHighlight {
@@ -289,4 +324,31 @@ export interface AiPanelFlowStats {
 export interface AiPanelFlowDirectoryScanStatus {
   libraryPathId: number;
   scannedComicCount: number;
+}
+
+export interface AiSearchChunkResult {
+  chunkId: number;
+  bookId: number;
+  bookTitle: string;
+  chunkIndex: number;
+  chunkText: string;
+  pageNumber: number | null;
+  chapterTitle: string | null;
+  similarity: number;
+  contextBefore?: string | null;
+  contextAfter?: string | null;
+}
+
+export interface AiSearchResult {
+  query: string;
+  results: AiSearchChunkResult[];
+  answer: string | null;
+  totalChunksSearched: number;
+  error?: string | null;
+}
+
+export interface AiModel {
+  id: string;
+  name: string;
+  sizeBytes: number;
 }

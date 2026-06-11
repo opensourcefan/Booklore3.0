@@ -94,7 +94,56 @@
 }
 
 .error-text {
-  color: #b91c1c;
+  color: var(--red-400);
+}
+
+.model-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.model-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.375rem 1rem;
+  background: var(--surface-ground);
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: var(--surface-hover);
+  }
+}
+
+.model-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .model-name {
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--text-color);
+
+    &.model-name-clickable {
+      cursor: pointer;
+      color: var(--primary-color);
+      transition: color 0.15s, text-decoration 0.15s;
+
+      &:hover {
+        text-decoration: underline;
+        color: var(--primary-500);
+      }
+    }
+  }
+
+  .model-size {
+    font-size: 0.85rem;
+    color: var(--text-color-secondary);
+  }
 }
 
 .hint-text {

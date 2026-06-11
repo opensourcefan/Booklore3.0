@@ -118,6 +118,7 @@ public class BookService {
     private final AuthenticationService authenticationService;
     private final BookQueryService bookQueryService;
     private final ReadingProgressService readingProgressService;
+    private final org.booklore.service.ai.AiSearchHealthService aiSearchHealthService;
     private final ComicPanelFlowRepository comicPanelFlowRepository;
     private final BookDownloadService bookDownloadService;
     private final MonitoringRegistrationService monitoringRegistrationService;
@@ -160,6 +161,7 @@ public class BookService {
         });
 
         applyAiPanelFlags(books, user.getId());
+        applyAiSearchFlags(books, user.getId());
 
         return books;
     }
@@ -201,6 +203,7 @@ public class BookService {
             return book;
         }).collect(Collectors.collectingAndThen(Collectors.toList(), books -> {
             applyAiPanelFlags(books, user.getId());
+            applyAiSearchFlags(books, user.getId());
             return books;
         }));
     }
@@ -226,6 +229,7 @@ public class BookService {
         }
 
         applyAiPanelFlags(List.of(book), user.getId());
+        applyAiSearchFlags(List.of(book), user.getId());
 
         return book;
     }
@@ -249,6 +253,94 @@ public class BookService {
         );
 
         books.forEach(book -> book.setHasAiPanelData(book.getId() != null && scannedBookIds.contains(book.getId())));
+    }
+
+    private void applyAiSearchFlags(List<Book> books, Long userId) {
+        if (books == null || books.isEmpty()) {
+            return;
+        }
+
+        Set<Long> bookIds = books.stream()
+                .map(Book::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (bookIds.isEmpty()) {
+            return;
+        }
+
+        List<org.booklore.repository.projection.AiSearchBookStatusProjection> statuses = bookRepository.findBookIdsWithAiSearchEmbeddings(userId, bookIds);
+        Map<Long, String> embeddedBookModels = statuses.stream()
+                .collect(Collectors.toMap(
+                    org.booklore.repository.projection.AiSearchBookStatusProjection::getBookId,
+                    org.booklore.repository.projection.AiSearchBookStatusProjection::getEmbeddingModel,
+                    (v1, v2) -> v1 // In case of duplicates, keep the first
+                ));
+
+        Map<Long, String> modelMap = statuses.stream()
+                .collect(Collectors.toMap(
+                    org.booklore.repository.projection.AiSearchBookStatusProjection::getBookId,
+                    org.booklore.repository.projection.AiSearchBookStatusProjection::getEmbeddingModel,
+                    (v1, v2) -> v1 // In case of duplicates, keep the first
+                ));
+
+        final String activeModel = (aiSearchHealthService != null && aiSearchHealthService.getStatus() != null)
+            ? aiSearchHealthService.getStatus().getEmbeddingModel()
+            : null;
+
+        for (Book book : books) {
+            String embeddedModel = modelMap.get(book.getId());
+            if (embeddedModel == null) {
+                book.setHasAiSearchData(false);
+                book.setHasMismatchedAiSearchData(false);
+                book.setAiSearchEmbeddingModel(null);
+            } else {
+                book.setHasAiSearchData(true);
+                boolean isMismatch = activeModel != null && !activeModel.equals(embeddedModel);
+                book.setHasMismatchedAiSearchData(isMismatch);
+                book.setAiSearchEmbeddingModel(embeddedModel);
+            }
+        }
+    }
+
+    private void applyAiSearchFlagsToGridSummaries(List<AppBookGridSummary> summaries, Long userId) {
+        if (summaries == null || summaries.isEmpty()) {
+            return;
+        }
+        Set<Long> bookIds = summaries.stream()
+                .map(AppBookGridSummary::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (bookIds.isEmpty()) {
+            return;
+        }
+
+        List<org.booklore.repository.projection.AiSearchBookStatusProjection> statuses = bookRepository.findBookIdsWithAiSearchEmbeddings(userId, bookIds);
+        Map<Long, String> embeddedBookModels = statuses.stream()
+                .collect(Collectors.toMap(
+                    org.booklore.repository.projection.AiSearchBookStatusProjection::getBookId,
+                    org.booklore.repository.projection.AiSearchBookStatusProjection::getEmbeddingModel,
+                    (v1, v2) -> v1 // In case of duplicates, keep the first
+                ));
+
+        final String activeModel = (aiSearchHealthService != null && aiSearchHealthService.getStatus() != null)
+            ? aiSearchHealthService.getStatus().getEmbeddingModel()
+            : null;
+
+        summaries.forEach(summary -> {
+            if (summary.getId() == null || !embeddedBookModels.containsKey(summary.getId())) {
+                summary.setHasAiSearchData(false);
+                summary.setHasMismatchedAiSearchData(false);
+                summary.setAiSearchEmbeddingModel(null);
+            } else {
+                summary.setHasAiSearchData(true);
+                String bookModel = embeddedBookModels.get(summary.getId());
+                boolean isMismatch = activeModel != null && bookModel != null && !activeModel.equalsIgnoreCase(bookModel);
+                summary.setHasMismatchedAiSearchData(isMismatch);
+                summary.setAiSearchEmbeddingModel(bookModel);
+            }
+        });
     }
 
     private void applyAiPanelFlagsToGridSummaries(List<AppBookGridSummary> summaries, Long userId) {
@@ -738,6 +830,7 @@ public class BookService {
         });
 
         applyAiPanelFlagsToGridSummaries(bookPage.getContent(), user.getId());
+        applyAiSearchFlagsToGridSummaries(bookPage.getContent(), user.getId());
 
         return AppPageResponse.of(
                 bookPage.getContent(),

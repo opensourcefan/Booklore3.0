@@ -17,7 +17,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AiServiceEndpointResolver {
 
-    private static final Set<String> DOCKER_INTERNAL_HOSTS = Set.of("booklore-ai-panel", "ai-panel");
+    private static final Set<String> DOCKER_INTERNAL_HOSTS = Set.of("app-ai-panel", "booklore-ai-panel", "ai-panel");
 
     private final AppProperties appProperties;
 

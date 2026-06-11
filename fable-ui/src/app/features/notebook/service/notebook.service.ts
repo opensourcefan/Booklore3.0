@@ -56,4 +56,8 @@ export class NotebookService {
     }
     return this.http.get<NotebookBookOption[]>(`${this.url}/books`, {params});
   }
+
+  countEntries(): Observable<number> {
+    return this.http.get<number>(`${this.url}/count`);
+  }
 }

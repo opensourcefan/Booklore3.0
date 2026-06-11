@@ -10,5 +10,6 @@ public interface ShelfMapper {
 
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "public", target = "publicShelf")
+    @Mapping(target = "bookCount", ignore = true)
     Shelf toShelf(ShelfEntity shelfEntity);
 }

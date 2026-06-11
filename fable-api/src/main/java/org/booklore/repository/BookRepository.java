@@ -568,6 +568,36 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
             """)
     List<org.booklore.repository.projection.BookEmbeddingProjection> findAllEmbeddingsForRecommendation(@Param("excludeBookId") Long excludeBookId);
 
+    @Query(value = "SELECT DISTINCT be.book_id as bookId, be.embedding_model as embeddingModel FROM book_embeddings be WHERE be.user_id = :userId AND be.book_id IN :bookIds", nativeQuery = true)
+    List<org.booklore.repository.projection.AiSearchBookStatusProjection> findBookIdsWithAiSearchEmbeddings(@Param("userId") Long userId, @Param("bookIds") Collection<Long> bookIds);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @jakarta.transaction.Transactional
+    @Query(value = "UPDATE book_embeddings SET embedding_model = :model WHERE book_id = :bookId AND user_id = :userId", nativeQuery = true)
+    void updateAiSearchEmbeddingModel(@Param("bookId") Long bookId, @Param("userId") Long userId, @Param("model") String model);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @jakarta.transaction.Transactional
+    @Query(value = "DELETE FROM book_embeddings WHERE book_id IN :bookIds AND user_id = :userId", nativeQuery = true)
+    int deleteBookEmbeddings(@Param("bookIds") Collection<Long> bookIds, @Param("userId") Long userId);
+
+    @Query(value = "SELECT e.embedding_model as model, count(distinct e.book_id) as count FROM book_embeddings e WHERE e.user_id = :userId GROUP BY e.embedding_model", nativeQuery = true)
+    List<org.booklore.repository.projection.EmbeddingStatsProjection> getEmbeddingStats(@Param("userId") Long userId);
+
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
     long countNonDeleted();
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @jakarta.transaction.Transactional
+    @Query("UPDATE BookEntity b SET b.markedForAiSearch = :marked WHERE b.id IN :bookIds")
+    void updateMarkedForAiSearch(@Param("bookIds") Collection<Long> bookIds, @Param("marked") boolean marked);
+
+    @Query("SELECT b.id FROM BookEntity b WHERE b.markedForAiSearch = true AND (b.deleted IS NULL OR b.deleted = false)")
+    List<Long> findBookIdsByMarkedForAiSearchTrue();
+
+    @Query("SELECT b.id as id, m.title as title, l.name as libraryName FROM BookEntity b JOIN b.library l LEFT JOIN b.metadata m WHERE b.markedForAiSearch = true AND (b.deleted IS NULL OR b.deleted = false)")
+    List<org.booklore.repository.projection.MarkedBookProjection> findMarkedBooksInfo();
+
+    @Query("SELECT COALESCE(m.title, '') FROM BookEntity b LEFT JOIN b.metadata m WHERE b.id = :bookId")
+    String findBookTitleById(@Param("bookId") Long bookId);
 }

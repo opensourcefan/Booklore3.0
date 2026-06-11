@@ -1,13 +1,770 @@
 <ng-container *transloco="let t; prefix: 'settingsAi'">
   <div class="ai-settings-container">
-    <div class="settings-header">
-      <h2 class="settings-title">
-        <i class="pi pi-sparkles"></i>
-        {{ t('title') }}
+
+
+    <!-- ============================================== -->
+    <!-- AI SEARCH ENGINE SETTINGS                      -->
+    <!-- ============================================== -->
+    <div style="margin: 2rem 0 2rem 0; text-align: center;">
+      <h2 style="font-size: 1.75rem; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+        <i class="pi pi-search" style="font-size: 1.5rem; margin-right: 0.5rem;"></i>
+        AI Search Engine
       </h2>
-      <p class="settings-description">{{ t('description') }}</p>
+      <p style="color: var(--text-color-secondary);">Configure local or cloud-based semantic search across your library.</p>
     </div>
 
+    <!-- AI Search Toggle -->
+    <div class="settings-card">
+      <div class="setting-row">
+        <div>
+          <h3>{{ t('aiSearch.enable.title') }}</h3>
+          <p>{{ t('aiSearch.enable.description') }}</p>
+        </div>
+        <p-toggleswitch
+          [(ngModel)]="aiSearchEnabled"
+          [disabled]="saveRunning"
+          (onChange)="onToggleAiSearchEnabled($event.checked)">
+        </p-toggleswitch>
+      </div>
+    </div>
+
+    <!-- AI Search Status & Controls -->
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+      <div class="setting-row">
+        <div>
+          <h3>{{ t('aiSearch.status.title') }}</h3>
+          <p>{{ t('aiSearch.status.description') }}</p>
+        </div>
+        <p-button
+          icon="pi pi-refresh"
+          [label]="t('aiSearch.status.refresh')"
+          [loading]="aiSearchStatusLoading"
+          loadingIcon="pi pi-spin pi-spinner"
+          [disabled]="!aiSearchEnabled"
+          outlined
+          (onClick)="refreshAiSearchStatus()">
+        </p-button>
+      </div>
+
+      <div class="status-box" [ngClass]="aiSearchStatusTone">
+        <div class="status-title">{{ t('aiSearch.status.current') }}</div>
+        <div class="status-line"><strong>{{ t('aiSearch.status.state') }}</strong>: <span class="state-value" [ngClass]="aiSearchStatusTone">{{ aiSearchStatus?.status || t('aiSearch.status.unknown') }}</span></div>
+        <div class="status-line"><strong>{{ t('aiSearch.status.messageLabel') }}</strong>: {{ aiSearchStatus?.message || t('aiSearch.status.noData') }}</div>
+        @if (aiSearchStatusEndpointLabel) {
+          <div class="status-line"><strong>{{ t('aiSearch.status.endpoint') }}</strong>: {{ aiSearchStatusEndpointLabel }}</div>
+        }
+        @if (aiSearchStatus?.error) {
+          <div class="status-line error-text"><strong>{{ t('aiSearch.status.error') }}</strong>: {{ aiSearchStatus?.error }}</div>
+        }
+        @if (showAiSearchDockerHint) {
+          <div class="status-line hint-text">{{ t('aiSearch.status.dockerHint') }}</div>
+        }
+      </div>
+
+      @if (showAiSearchStartupActivity) {
+        <div class="startup-panel" [ngClass]="aiSearchStartupPanelTone">
+          <div class="startup-panel-toggle" (click)="aiSearchStartupExpanded = !aiSearchStartupExpanded" (keydown.enter)="aiSearchStartupExpanded = !aiSearchStartupExpanded" (keydown.space)="aiSearchStartupExpanded = !aiSearchStartupExpanded; $event.preventDefault()" tabindex="0" role="button" [attr.aria-expanded]="aiSearchStartupExpanded">
+            <i class="pi" [class.pi-chevron-right]="!aiSearchStartupExpanded" [class.pi-chevron-down]="aiSearchStartupExpanded"></i>
+            <span class="status-title">{{ t('aiSearch.status.startupPanelTitle') }}</span>
+          </div>
+          @if (aiSearchStartupExpanded) {
+            <div class="startup-panel-body">
+              <div class="status-line startup-panel-copy">{{ t('aiSearch.status.startupPanelDescription') }}</div>
+              @if (aiSearchLastStatusCheckedAt) {
+                <div class="startup-meta-row">
+                  <strong>{{ t('aiSearch.status.lastChecked') }}</strong>: {{ aiSearchLastStatusCheckedAt }}
+                </div>
+              }
+              @if (aiSearchStatus?.modelPath) {
+                <div class="startup-meta-row">
+                  <strong>{{ t('aiSearch.status.modelPath') }}</strong>: {{ aiSearchStatus?.modelPath }}
+                </div>
+              }
+              @if (aiSearchStatus?.modelExists !== null && aiSearchStatus?.modelExists !== undefined) {
+                <div class="startup-meta-row">
+                  <strong>{{ t('aiSearch.status.modelFile') }}</strong>: {{ aiSearchStatus?.modelExists ? t('aiSearch.status.modelDetected') : t('aiSearch.status.modelMissing') }}
+                </div>
+              }
+              <div class="startup-event-list">
+                @for (startupEvent of aiSearchStartupEvents; track startupEvent.timestamp + startupEvent.text) {
+                  <div class="startup-event" [ngClass]="startupEvent.level">
+                    <span class="startup-event-time">{{ startupEvent.timestamp }}</span>
+                    <span class="startup-event-text">{{ startupEvent.text }}</span>
+                  </div>
+                }
+              </div>
+              @if (!aiSearchStartupEvents.length) {
+                <div class="status-line">{{ t('aiSearch.status.startupWaiting') }}</div>
+              }
+              @if (aiSearchStatus?.status !== 'READY') {
+                <div class="startup-reload-row">
+                  <p-button
+                    icon="pi pi-refresh"
+                    [label]="t('aiSearch.status.reload')"
+                    [loading]="aiSearchReloadRunning"
+                    loadingIcon="pi pi-spin pi-spinner"
+                    [disabled]="aiSearchReloadRunning"
+                    outlined
+                    size="small"
+                    (onClick)="reloadAiSearchService()">
+                  </p-button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+
+    <!-- AI Search Tuning -->
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+      <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 1rem;">
+        <div>
+          <h3>AI Search Tuning</h3>
+          <p>Adjust the parameters below to fine-tune the AI search behavior and summary generation.</p>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 2.5rem; width: 100%; max-width: 600px; margin-top: 1rem;">
+          
+          <!-- Embedding Configuration -->
+          <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <h4 style="margin: 0; color: var(--primary-color);">Embedding Configuration</h4>
+              <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+            </div>
+            
+            <div style="display: flex; flex-direction: row; gap: 12rem; align-items: flex-start;">
+              
+              <!-- Left side: Configuration -->
+              <div style="display: flex; flex-direction: column; gap: 1rem; flex: 1; min-width: 300px;">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <label for="embeddingProvider"><strong>Embedding Engine (Local / External)</strong></label>
+              <p-select 
+                id="embeddingProvider" 
+                [options]="providerOptions" 
+                [(ngModel)]="aiSearchSettings.embeddingProvider" 
+                [disabled]="!aiSearchEnabled || saveRunning" 
+                optionLabel="label" 
+                optionValue="value" 
+                styleClass="w-full">
+              </p-select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label for="embeddingModel"><strong>Embedding Model Name</strong>
+                @if (aiSearchSettings.embeddingProvider !== 'local') {
+                  <span style="color: red; margin-left: 0.25rem;">*</span>
+                }
+              </label>
+              <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
+                @if (aiSearchSettings.embeddingProvider === 'local') {
+                  Select a preset, choose "Custom" to type any HuggingFace model ID, or type directly in the dropdown.
+                } @else if (aiSearchSettings.embeddingProvider === 'ollama') {
+                  Enter the name of the model installed in your external Ollama instance.
+                } @else {
+                  Enter the embedding model provided by your external API (e.g., text-embedding-3-small).
+                }
+              </p>
+              @if (aiSearchSettings.embeddingProvider !== 'local') {
+                <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. text-embedding-3-small or nomic-embed-text" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              } @else if (aiSearchSettings.embeddingModel === '__custom__') {
+                <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. BAAI/bge-base-en-v1.5" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                <p style="font-size: 0.8rem; color: var(--text-color-secondary); margin: 0.25rem 0 0 0;">
+                  <i class="pi pi-external-link" style="margin-right: 0.25rem;"></i>
+                  Browse <a href="https://huggingface.co/models?pipeline_tag=sentence-similarity" target="_blank" rel="noopener">HuggingFace Sentence Similarity Models</a> to find model IDs.
+                  Format: <code>namespace/model-name</code> (e.g., <code>BAAI/bge-base-en-v1.5</code>, <code>sentence-transformers/all-MiniLM-L6-v2</code>).
+                </p>
+              } @else {
+                <p-select
+                  id="aiSearchEmbeddingModel"
+                  [options]="embeddingModelOptions"
+                  [(ngModel)]="aiSearchSettings.embeddingModel"
+                  [editable]="true"
+                  [disabled]="!aiSearchEnabled || saveRunning"
+                  placeholder="Using System Default (BAAI/bge-base-en-v1.5)"
+                  optionLabel="label"
+                  optionValue="value"
+                  styleClass="w-full">
+                  <ng-template let-option pTemplate="item">
+                    <span [style.font-style]="option.isDefault ? 'italic' : 'normal'" [style.font-weight]="option.isDefault ? 'bold' : 'normal'">
+                      {{ option.label }}
+                    </span>
+                  </ng-template>
+                </p-select>
+              }
+            </div>
+
+            @if (aiSearchSettings.embeddingProvider !== 'local') {
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="embeddingApiKey"><strong>Embedding API Key</strong></label>
+                <input type="password" id="embeddingApiKey" [(ngModel)]="aiSearchSettings.embeddingApiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong><span style="color: red; margin-left: 0.25rem;">*</span></label>
+                <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
+                <input type="text" id="externalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                @if (aiSearchSettings.embeddingProvider === 'ollama') {
+                  <p style="font-size: 0.8rem; color: var(--yellow-500); margin: 0.25rem 0 0 0;"><i class="pi pi-info-circle" style="margin-right: 0.25rem;"></i>If Ollama runs on your host machine, use <code>http://host.docker.internal:11434</code> or your LAN IP. Do not use <code>ollama.com</code> — that is not an API endpoint.</p>
+                }
+              </div>
+
+              <div style="margin-top: 0.5rem;">
+                <p-button label="Test Connection" icon="pi pi-bolt" severity="info" size="small" [outlined]="true" (onClick)="testEmbeddingConnection()" [loading]="testEmbeddingRunning" [disabled]="!aiSearchEnabled || saveRunning || testEmbeddingRunning || !aiSearchSettings.externalEmbeddingUrl.trim() || !aiSearchSettings.embeddingModel.trim()"></p-button>
+              </div>
+            }
+
+              </div>
+              
+              <!-- Right side: Downloaded Models -->
+              <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding: 0 1rem;">
+                  <h5 style="margin: 0; color: var(--text-color);">Downloaded Models</h5>
+                  <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="loadAiModels()" pTooltip="Refresh List"></p-button>
+                </div>
+                <p style="font-size: 0.78rem; color: var(--text-color-secondary); margin: -0.25rem 0 0.5rem 1rem; font-style: italic;">Click a model name to prefill the local embedding settings</p>
+                @if (loadingEmbeddingModels) {
+                  <div style="text-align: center; padding: 1rem;"><i class="pi pi-spin pi-spinner" style="font-size: 1.5rem"></i></div>
+                } @else if (embeddingModels.length === 0) {
+                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0; text-align: center; padding: 1rem; border: 1px dashed var(--surface-border); border-radius: 6px;">No models downloaded.</p>
+                } @else {
+                  <div class="model-list" style="max-height: 400px; overflow-y: auto;">
+                    @for (model of embeddingModels; track model.id) {
+                      <div class="model-item">
+                        <div class="model-info">
+                          <span class="model-name model-name-clickable" (click)="selectEmbeddingModel(model)" (keydown.enter)="selectEmbeddingModel(model)" (keydown.space)="selectEmbeddingModel(model); $event.preventDefault()" tabindex="0" role="button" [pTooltip]="'Use ' + model.name" tooltipPosition="top">{{ model.name }}</span>
+                          <span class="model-size">{{ formatBytes(model.sizeBytes) }}</span>
+                        </div>
+                        <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="deleteEmbeddingModel(model)" pTooltip="Delete from disk"></p-button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+            <div style="display: flex; justify-content: flex-start; margin-top: 1.5rem;">
+              <p-button label="Apply Embedding Settings" icon="pi pi-check" size="small" (onClick)="saveEmbeddingSettings()" [loading]="saveRunning" [severity]="isEmbeddingSettingsDirty ? 'success' : 'secondary'" [disabled]="!aiSearchEnabled || saveRunning || !isEmbeddingSettingsDirty"></p-button>
+            </div>
+          </div>
+
+          <div class="section-divider" style="margin: 0.5rem 0;"><hr></div>
+
+          <!-- LLM Configuration -->
+          <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <h4 style="margin: 0; color: var(--primary-color);">LLM Configuration</h4>
+              <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetLlmSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+            </div>
+            
+            <div style="display: flex; flex-direction: row; gap: 12rem; align-items: flex-start;">
+              
+              <!-- Left side: Configuration -->
+              <div style="display: flex; flex-direction: column; gap: 1rem; flex: 1; min-width: 300px;">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <label for="llmProvider"><strong>LLM Engine (Local / External)</strong></label>
+              <p-select 
+                id="llmProvider" 
+                [options]="providerOptions" 
+                [(ngModel)]="aiSearchSettings.llmProvider" 
+                [disabled]="!aiSearchEnabled || saveRunning" 
+                optionLabel="label" 
+                optionValue="value" 
+                styleClass="w-full">
+              </p-select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label for="llmModel"><strong>LLM Model Name</strong>
+                @if (aiSearchSettings.llmProvider !== 'local') {
+                  <span style="color: red; margin-left: 0.25rem;">*</span>
+                }
+              </label>
+              <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
+                @if (aiSearchSettings.llmProvider === 'local') {
+                  Select a preset, choose "Custom" to type any model name from the Ollama registry, or type directly in the dropdown.
+                } @else if (aiSearchSettings.llmProvider === 'ollama') {
+                  Enter the name of the model installed in your external Ollama instance.
+                } @else {
+                  Enter the model name provided by your external API (e.g., gpt-4o-mini).
+                }
+              </p>
+              @if (aiSearchSettings.llmProvider !== 'local') {
+                <input type="text" id="aiSearchLlmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. gpt-4o-mini or qwen2.5:1.5b" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              } @else if (aiSearchSettings.llmModel === '__custom__') {
+                <input type="text" id="aiSearchLlmModel" [(ngModel)]="aiSearchSettings.llmModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. qwen2.5:1.5b" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                <p style="font-size: 0.8rem; color: var(--text-color-secondary); margin: 0.25rem 0 0 0;">
+                  <i class="pi pi-external-link" style="margin-right: 0.25rem;"></i>
+                  Browse the <a href="https://ollama.com/search" target="_blank" rel="noopener">Ollama Registry</a> to find model names.
+                  Format: <code>name:size</code> (e.g., <code>qwen2.5:1.5b</code>, <code>llama3.2:3b</code>).
+                </p>
+              } @else {
+                <p-select
+                  id="aiSearchLlmModel"
+                  [options]="llmModelOptions"
+                  [(ngModel)]="aiSearchSettings.llmModel"
+                  [editable]="true"
+                  [disabled]="!aiSearchEnabled || saveRunning"
+                  placeholder="Using System Default (qwen2.5:1.5b)"
+                  optionLabel="label"
+                  optionValue="value"
+                  styleClass="w-full">
+                  <ng-template let-option pTemplate="item">
+                    <span [style.font-style]="option.isDefault ? 'italic' : 'normal'" [style.font-weight]="option.isDefault ? 'bold' : 'normal'">
+                      {{ option.label }}
+                    </span>
+                  </ng-template>
+                </p-select>
+              }
+            </div>
+
+            @if (aiSearchSettings.llmProvider !== 'local') {
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="llmApiKey"><strong>LLM API Key</strong></label>
+                <input type="password" id="llmApiKey" [(ngModel)]="aiSearchSettings.llmApiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="externalLlmUrl"><strong>External LLM URL</strong><span style="color: red; margin-left: 0.25rem;">*</span></label>
+                <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
+                <input type="text" id="externalLlmUrl" [(ngModel)]="aiSearchSettings.externalLlmUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                @if (aiSearchSettings.llmProvider === 'ollama') {
+                  <p style="font-size: 0.8rem; color: var(--yellow-500); margin: 0.25rem 0 0 0;"><i class="pi pi-info-circle" style="margin-right: 0.25rem;"></i>If Ollama runs on your host machine, use <code>http://host.docker.internal:11434</code> or your LAN IP. Do not use <code>ollama.com</code> — that is not an API endpoint.</p>
+                }
+              </div>
+
+              <div style="margin-top: 0.5rem;">
+                <p-button label="Test Connection" icon="pi pi-bolt" severity="info" size="small" [outlined]="true" (onClick)="testLlmConnection()" [loading]="testLlmRunning" [disabled]="!aiSearchEnabled || saveRunning || testLlmRunning || !aiSearchSettings.externalLlmUrl.trim() || !aiSearchSettings.llmModel.trim()"></p-button>
+              </div>
+            }
+
+              </div>
+
+              <!-- Right side: Downloaded Models -->
+              <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding: 0 1rem;">
+                  <h5 style="margin: 0; color: var(--text-color);">Downloaded Models</h5>
+                  <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="loadAiModels()" pTooltip="Refresh List"></p-button>
+                </div>
+                <p style="font-size: 0.78rem; color: var(--text-color-secondary); margin: -0.25rem 0 0.5rem 1rem; font-style: italic;">Click a model name to prefill the local LLM settings</p>
+                @if (loadingLlmModels) {
+                  <div style="text-align: center; padding: 1rem;"><i class="pi pi-spin pi-spinner" style="font-size: 1.5rem"></i></div>
+                } @else if (llmModels.length === 0) {
+                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0; text-align: center; padding: 1rem; border: 1px dashed var(--surface-border); border-radius: 6px;">No models downloaded.</p>
+                } @else {
+                  <div class="model-list" style="max-height: 400px; overflow-y: auto;">
+                    @for (model of llmModels; track model.id) {
+                      <div class="model-item">
+                        <div class="model-info">
+                          <span class="model-name model-name-clickable" (click)="selectLlmModel(model)" (keydown.enter)="selectLlmModel(model)" (keydown.space)="selectLlmModel(model); $event.preventDefault()" tabindex="0" role="button" [pTooltip]="'Use ' + model.name" tooltipPosition="top">{{ model.name }}</span>
+                          <span class="model-size">{{ formatBytes(model.sizeBytes) }}</span>
+                        </div>
+                        <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="deleteLlmModel(model)" pTooltip="Delete from disk"></p-button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+            <div style="display: flex; justify-content: flex-start; margin-top: 1.5rem;">
+              <p-button label="Apply LLM Settings" icon="pi pi-check" size="small" (onClick)="saveLlmSettings()" [loading]="saveRunning" [severity]="isLlmSettingsDirty ? 'success' : 'secondary'" [disabled]="!aiSearchEnabled || saveRunning || !isLlmSettingsDirty"></p-button>
+            </div>
+          </div>
+
+          <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
+          
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <label for="topK"><strong>Result Count (Top K)</strong></label>
+              <span>{{ aiSearchSettings.topK }}</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How many context chunks to retrieve (1–50). More chunks give the LLM more context but takes longer to process.</p>
+            <input type="range" id="topK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.topK" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <label for="similarityThreshold"><strong>Similarity Threshold</strong></label>
+              <span>{{ aiSearchSettings.similarityThreshold }}</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How strict the search match should be (0.1–0.9). Lower values return more potential matches.</p>
+            <input type="range" id="similarityThreshold" min="0.1" max="0.9" step="0.05" [(ngModel)]="aiSearchSettings.similarityThreshold" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <label for="maxTokens"><strong>Max Output Length</strong></label>
+              <span>{{ aiSearchSettings.maxTokens }}</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">The maximum number of tokens (128–4096) the LLM can generate in its summary.</p>
+            <input type="range" id="maxTokens" min="128" max="4096" step="128" [(ngModel)]="aiSearchSettings.maxTokens" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <label for="temperature"><strong>Temperature</strong></label>
+              <span>{{ aiSearchSettings.temperature }}</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Controls creativity vs determinism (0.0–1.0). Lower values (e.g. 0.1) are better for factual summaries.</p>
+            <input type="range" id="temperature" min="0.0" max="1.0" step="0.1" [(ngModel)]="aiSearchSettings.temperature" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+          </div>
+
+          <!-- OCR Configuration -->
+          <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
+          
+          <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <h4 style="margin: 0; color: var(--primary-color);">Automatic OCR Fallback</h4>
+            </div>
+
+            <!-- OCR Enabled Toggle -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; width: 100%;">
+              <div style="flex: 1;">
+                <label for="ocrEnabled"><strong>Enable Optical Character Recognition (OCR)</strong></label>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Automatically extract text from scanned or image-only PDF pages during book embedding.</p>
+              </div>
+              <p-toggleswitch
+                id="ocrEnabled"
+                style="flex-shrink: 0;"
+                [(ngModel)]="aiSearchSettings.ocrEnabled"
+                [disabled]="!aiSearchEnabled || saveRunning">
+              </p-toggleswitch>
+            </div>
+
+            <!-- Dependent OCR Settings -->
+            @if (aiSearchSettings.ocrEnabled) {
+              <div style="display: flex; flex-direction: column; gap: 1rem; border-top: 1px dashed var(--surface-border); padding-top: 1rem; margin-top: 0.5rem;">
+                
+                <!-- Fallback Only Toggle -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; width: 100%;">
+                  <div style="flex: 1;">
+                    <label for="ocrFallbackOnly"><strong>Smart Fallback Mode</strong></label>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Only run OCR if standard text extraction yields zero content (Recommended). Prevents unnecessary CPU overhead on digital PDFs.</p>
+                  </div>
+                  <p-toggleswitch
+                    id="ocrFallbackOnly"
+                    style="flex-shrink: 0;"
+                    [(ngModel)]="aiSearchSettings.ocrFallbackOnly"
+                    [disabled]="!aiSearchEnabled || saveRunning">
+                  </p-toggleswitch>
+                </div>
+
+                <!-- OCR Language -->
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+                  <label for="ocrLanguage"><strong>OCR Language</strong></label>
+                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Specify the Tesseract language training code (e.g. <code>eng</code>, <code>spa</code>, <code>fra</code>). Ensure the language package is installed in the container.</p>
+                  <input
+                    type="text"
+                    id="ocrLanguage"
+                    [(ngModel)]="aiSearchSettings.ocrLanguage"
+                    [disabled]="!aiSearchEnabled || saveRunning"
+                    placeholder="e.g. eng"
+                    class="p-inputtext p-component"
+                    style="width: 100%; max-width: 200px; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                </div>
+              </div>
+            }
+          </div>
+
+          <div style="display: flex; justify-content: flex-start; margin-top: 1rem;">
+            <p-button label="Apply Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [severity]="isAiSearchSettingsDirty() ? 'success' : 'secondary'" [disabled]="!aiSearchEnabled || saveRunning || !isAiSearchConfigValid() || !isAiSearchSettingsDirty()"></p-button>
+          </div>
+
+          <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
+
+          <!-- Advanced Embedding & Retrieval Tuning -->
+          <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 1rem;">
+              <div (click)="advancedEmbeddingExpanded = !advancedEmbeddingExpanded" (keydown.enter)="advancedEmbeddingExpanded = !advancedEmbeddingExpanded" (keydown.space)="advancedEmbeddingExpanded = !advancedEmbeddingExpanded; $event.preventDefault()" tabindex="0" role="button" [attr.aria-expanded]="advancedEmbeddingExpanded" style="display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer;">
+                <div>
+                  <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--orange-500, #ff9800) !important;">
+                    Advanced Embedding & Retrieval Tuning
+                    <i class="pi" [ngClass]="advancedEmbeddingExpanded ? 'pi-chevron-down' : 'pi-chevron-right'" style="font-size: 0.9rem; color: var(--text-color-secondary);"></i>
+                  </h3>
+                  <p style="margin: 0.25rem 0 0 0; color: var(--text-color-secondary);">Optimize text segment chunk sizes, slice dimensions, and configure hybrid search and reranking on CPU.</p>
+                </div>
+              </div>
+
+              @if (advancedEmbeddingExpanded) {
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem; border-top: 1px solid var(--surface-border); padding-top: 1.5rem;">
+                  
+                  <!-- Model Recommendations Info Box -->
+                  <div style="padding: 1rem; border-radius: 8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                      <i class="pi pi-info-circle"></i> CPU Inference Optimization Tips
+                    </div>
+                    <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.88rem; color: var(--text-color-secondary); display: flex; flex-direction: column; gap: 0.25rem;">
+                      <li><strong>For nomic-embed-text-v1.5:</strong> Set <em>Chunk Size</em> to 3000-8000 (supports 8192 context). Enable <em>Matryoshka Truncation</em> to 256 or 512 dimensions for up to 3x CPU speedup with near-zero accuracy loss.</li>
+                      <li><strong>For all-MiniLM-L6-v2:</strong> Set <em>Chunk Size</em> to 1000-1500. Disable <em>Matryoshka Truncation</em>. Enable <em>Cross-Encoder Reranking</em> to yield high accuracy at blazing CPU speeds.</li>
+                      <li><strong>For bge-base-en-v1.5:</strong> Set <em>Chunk Size</em> to 1000-1500. Disable <em>Matryoshka Truncation</em> (not supported). Toggle <em>Hybrid Search</em> to combine keyword search with semantic matching.</li>
+                    </ul>
+                  </div>
+
+                  <!-- 1. Chunk Size -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <label for="chunkSize"><strong>Chunk Size (characters)</strong></label>
+                      <span style="font-family: monospace; font-weight: bold; background: var(--surface-card); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--surface-border);">{{ advancedChunkSize }} chars</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Sets the max length of book text pieces to index. Larger chunks hold more context but dilute detail; smaller chunks are precise. Modifying this clears the index.</p>
+                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                      <strong>In other words:</strong> This breaks your books into bite-sized text pieces. Larger chunks read like whole pages (saving details), while smaller chunks read like single sentences (very precise). You will see more or less text in the search results depending on this.
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                      <input type="range" id="chunkSize" min="500" max="8000" step="100" [(ngModel)]="advancedChunkSize" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+                    </div>
+                  </div>
+
+                  <!-- 2. Chunk Overlap -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <label for="chunkOverlap"><strong>Chunk Overlap (characters)</strong></label>
+                      <span style="font-family: monospace; font-weight: bold; background: var(--surface-card); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--surface-border);">{{ advancedChunkOverlap }} chars</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Ensures surrounding context is preserved at the boundaries of adjacent text chunks, preventing sentences from being sliced in half. Modifying this clears the index.</p>
+                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                      <strong>In other words:</strong> This acts like tape between the text pieces, copying a few words from the end of one chunk to the start of the next. It makes sure sentences don't get cut in half at the edges, meaning you will see coherent context in the search answers.
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                      <input type="range" id="chunkOverlap" min="0" max="1000" step="10" [(ngModel)]="advancedChunkOverlap" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+                    </div>
+                  </div>
+
+                  <!-- 3. Matryoshka Dimension Truncation -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label for="matryoshkaDimensions"><strong>Matryoshka Vector Dimensions (MRL)</strong></label>
+                    <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Truncates output vector size for supported models. Slicing vectors to 256 or 128 speeds up similarity computations on CPU. Modifying this clears the index.</p>
+                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                      <strong>In other words:</strong> This cuts down the size of the mathematical files stored for each sentence. Slicing a model's size down speeds up calculations on your CPU significantly, meaning you will see search results load much faster with almost no loss in search quality.
+                    </div>
+                    <p-select 
+                      id="matryoshkaDimensions" 
+                      [options]="matryoshkaOptions" 
+                      [(ngModel)]="advancedMatryoshkaDimensions" 
+                      [disabled]="!aiSearchEnabled || saveRunning" 
+                      optionLabel="label" 
+                      optionValue="value" 
+                      styleClass="w-full">
+                    </p-select>
+                  </div>
+
+                  <!-- 4. Hybrid Search (BM25 + Vector) -->
+                  <div style="padding: 1.25rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; width: 100%;">
+                      <div style="flex: 1;">
+                        <h4 style="margin: 0; font-weight: 600;">Enable Hybrid Keyword Search (BM25)</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Merges semantic vector retrieval with exact keyword matching using Reciprocal Rank Fusion (RRF).</p>
+                      </div>
+                      <p-toggleswitch
+                        style="flex-shrink: 0;"
+                        [(ngModel)]="advancedHybridSearchEnabled"
+                        [disabled]="!aiSearchEnabled || saveRunning">
+                      </p-toggleswitch>
+                    </div>
+                    <div style="font-style: italic; color: var(--text-color-secondary); font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px; box-sizing: border-box; width: 100%;">
+                      <strong>In other words:</strong> This blends standard Google-like keyword matching with smart AI concept matching. When you search, it looks for both exact words and general meaning. You will see much better matches for specific names, numbers, or exact quotes.
+                    </div>
+
+                    @if (advancedHybridSearchEnabled) {
+                      <div style="display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px dashed var(--surface-border); padding-top: 1rem; margin-top: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <label for="rrfK"><strong>RRF Rank Constant (k)</strong></label>
+                          <span style="font-family: monospace; font-weight: bold;">{{ advancedRrfK }}</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Controls the impact of low-ranked candidates. Higher values smooth ranks; 60 is standard.</p>
+                        <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                          <strong>In other words:</strong> This balances the two search lists (keywords vs concepts). A value of 60 is the sweet spot; changing it shifts the weight between exact keyword matches and general AI similarity.
+                        </div>
+                        <input type="range" id="rrfK" min="10" max="200" step="5" [(ngModel)]="advancedRrfK" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+                      </div>
+                    }
+                  </div>
+
+                  <!-- 5. Cross-Encoder Reranking -->
+                  <div style="padding: 1.25rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; width: 100%;">
+                      <div style="flex: 1;">
+                        <h4 style="margin: 0; font-weight: 600;">Enable Cross-Encoder Reranking</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Passes candidate paragraphs to a secondary cross-encoder model to sort results with absolute precision.</p>
+                      </div>
+                      <p-toggleswitch
+                        style="flex-shrink: 0;"
+                        [(ngModel)]="advancedRerankingEnabled"
+                        [disabled]="!aiSearchEnabled || saveRunning">
+                      </p-toggleswitch>
+                    </div>
+                    <div style="font-style: italic; color: var(--text-color-secondary); font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px; box-sizing: border-box; width: 100%;">
+                      <strong>In other words:</strong> This is like a second-pass double check. First, a fast model grabs the top 20 candidate pages, then a smarter 'Reranker' model carefully reads them to sort them from best to worst. You will see extremely precise answers to your questions.
+                    </div>
+
+                    @if (advancedRerankingEnabled) {
+                      <div style="display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px dashed var(--surface-border); padding-top: 1rem; margin-top: 0.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                          <label for="rerankerModel"><strong>Reranker Model</strong></label>
+                          <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Select or enter the cross-encoder model name from HuggingFace to download and run locally in Python.</p>
+                          <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                            <strong>In other words:</strong> Choose which double-check model you want to run. Slower models are slightly more accurate, but lightweight models run much faster on low-spec CPUs.
+                          </div>
+                          <p-select 
+                            id="rerankerModel" 
+                            [options]="rerankerModelOptions" 
+                            [(ngModel)]="advancedRerankerModel" 
+                            [editable]="true"
+                            [disabled]="!aiSearchEnabled || saveRunning" 
+                            optionLabel="label" 
+                            optionValue="value" 
+                            styleClass="w-full">
+                          </p-select>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Apply and Reset Buttons -->
+                  <div style="display: flex; justify-content: flex-start; gap: 0.75rem; margin-top: 0.5rem; border-top: 1px solid var(--surface-border); padding-top: 1.5rem; align-items: center; flex-wrap: wrap; width: 100%;">
+                    <p-button label="Apply Advanced Settings" icon="pi pi-check" size="small" (onClick)="applyAdvancedEmbeddingSettings()" [loading]="saveRunning" [severity]="isAdvancedEmbeddingSettingsDirty ? 'success' : 'secondary'" [disabled]="!aiSearchEnabled || saveRunning || !isAdvancedEmbeddingSettingsDirty"></p-button>
+                    <p-button label="Reset Advanced Settings" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetAdvancedEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning || !isAdvancedEmbeddingSettingsDirty"></p-button>
+                    <div style="flex-grow: 1;"></div>
+                    <p-button label="Auto-Fill Recommended Presets" icon="pi pi-sparkles" severity="info" [outlined]="true" size="small" (onClick)="loadModelPresets()" [disabled]="!aiSearchEnabled || saveRunning" pTooltip="Load optimal chunking, hybrid search, and reranker settings for the selected embedding model."></p-button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto-Embed Settings -->
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+      <div class="setting-row">
+        <div>
+          <h3>Auto-Embed Libraries</h3>
+          <p>Books imported into these libraries will automatically be queued for embedding in the background.</p>
+        </div>
+        <div>
+          <p-multiSelect
+            [options]="libraryOptions"
+            [(ngModel)]="aiSearchSettings.autoEmbedLibraryIds"
+            [disabled]="!aiSearchEnabled || saveRunning"
+            placeholder="Select libraries"
+            optionLabel="label"
+            optionValue="value"
+            display="chip"
+            styleClass="w-full"
+            (onChange)="saveAiSearchSettings()">
+          </p-multiSelect>
+        </div>
+      </div>
+    </div>
+
+    <!-- Embedding Statistics Section -->
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+      <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div>
+            <h3>Embedding Statistics</h3>
+            <p>Overview of the current AI search embeddings generated for your books.</p>
+          </div>
+          <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="fetchEmbeddingStats()" pTooltip="Refresh Statistics"></p-button>
+        </div>
+        
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 1rem; border: 1px solid var(--surface-border); border-radius: 6px; padding: 1rem; background: var(--surface-card);">
+          @if (embeddingStatsLoading) {
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-color-secondary);">
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Loading statistics...</span>
+            </div>
+          } @else if (embeddingStats.length === 0) {
+            <div style="color: var(--text-color-secondary);">No books have been embedded yet.</div>
+          } @else {
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              @for (stat of embeddingStats; track stat.model) {
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid var(--surface-border);">
+                  <span style="font-weight: 500;">
+                    {{ stat.model }}
+                    @if (stat.model !== aiSearchSettings.embeddingModel) {
+                      <span style="color: var(--orange-500); font-size: 0.85rem; margin-left: 0.5rem; font-style: italic;">(Mismatch)</span>
+                    }
+                  </span>
+                  <span>{{ stat.count }} books</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Search Scan Section -->
+    <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+      <div class="scan-section">
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <h3 style="margin: 0;">Manual Scan</h3>
+          <p style="margin: 0; color: var(--text-color-secondary);">Scan your selected libraries or paths immediately to embed missing books.</p>
+        </div>
+
+        <div class="scan-action-row">
+          <p-button
+            icon="pi pi-folder-open"
+            label="Select Paths to Scan"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="!aiSearchEnabled || aiSearchPreScanRunning"
+            (onClick)="openDirectoryDialog()">
+          </p-button>
+          <p-button
+            [icon]="aiSearchPreScanRunning ? 'pi pi-spin pi-spinner' : 'pi pi-bolt'"
+            [label]="aiSearchPreScanRunning ? t('prescan.scanning') : 'Scan Now'"
+            [severity]="aiSearchPreScanRunning ? 'warn' : 'success'"
+            [disabled]="!aiSearchEnabled || aiSearchPreScanRunning || selectedLibraryPathIds.length === 0"
+            (onClick)="scanMissingAiSearch()">
+          </p-button>
+          @if (isAiSearchActivelyScanning) {
+            <p-button
+              icon="pi pi-stop-circle"
+              label="Stop Scan"
+              severity="danger"
+              [outlined]="true"
+              [title]="t('prescan.stopAction')"
+              (onClick)="stopAiSearchScan()">
+            </p-button>
+          }
+        </div>
+        
+        @if (selectedLibraryPathIds.length > 0 && !aiSearchPreScanRunning) {
+          <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-color-secondary);">
+            {{ selectedLibraryPathIds.length }} path(s) selected for manual scanning.
+          </div>
+        }
+      </div>
+
+      @if (aiSearchBatchProgress) {
+        <div class="status-box progress-box" [ngClass]="aiSearchBatchProgressTone">
+          <div class="progress-title-row">
+            <div class="status-title">{{ t('prescan.progressTitle') }}</div>
+          </div>
+          <div class="status-line">{{ aiSearchBatchProgressText }}</div>
+          @if (aiSearchBatchProgress.error) {
+            <div class="status-line error-text"><strong>{{ t('status.error') }}</strong>: {{ aiSearchBatchProgress.error }}</div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ============================================== -->
+    <!-- AI PANEL DETECTION SETTINGS                    -->
+    <!-- ============================================== -->
+    <div style="margin: 2rem 0 2rem 0; text-align: center;">
+      <h2 style="font-size: 1.75rem; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+        <i class="pi pi-images" style="font-size: 1.5rem; margin-right: 0.5rem;"></i>
+        AI Panel Detection
+      </h2>
+      <p style="color: var(--text-color-secondary);">Configure local machine learning to intelligently identify individual comic panels.</p>
+    </div>
+
+    <!-- AI Panel Detection Toggle -->
     <div class="settings-card">
       <div class="setting-row">
         <div>
@@ -20,10 +777,21 @@
           (onChange)="onToggleAiEnabled($event.checked)">
         </p-toggleswitch>
       </div>
+      <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 1rem; margin-top: 1rem;" [ngClass]="{ 'disabled': !aiEnabled }">
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%; max-width: 600px;">
+          <label for="panelModelId"><strong>HuggingFace Model ID</strong></label>
+          <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Leave blank to use the local seed model, or provide a HuggingFace Model ID (e.g. mosesb/best-comic-panel-detection) to download at runtime.</p>
+          <input type="text" id="panelModelId" [(ngModel)]="aiPanelSettings.modelId" [disabled]="!aiEnabled || saveRunning" placeholder="Using Local Default (mosesb/best-comic-panel-detection)" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+          <div style="margin-top: 0.5rem;">
+            <p-button label="Save Model ID" size="small" (onClick)="saveAiPanelSettings()" [loading]="saveRunning" [disabled]="!aiEnabled || saveRunning"></p-button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="section-divider"><hr></div>
 
+    <!-- AI Panel Detection Status & Controls -->
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
       <div class="setting-row">
         <div>
@@ -168,8 +936,9 @@
       </div>
     </div>
 
-    <div class="section-divider"><hr></div>
 
+
+    <!-- AI Panel Detection Cleanup -->
     <div class="settings-card" [ngClass]="{ 'disabled': !aiEnabled }">
       <div class="setting-row">
         <div>
@@ -208,6 +977,44 @@
           severity="danger"
           [label]="t('cleanup.confirmAction')"
           (onClick)="confirmCleanupAiData()">
+        </p-button>
+      </div>
+    </p-dialog>
+
+    <p-dialog
+      [(visible)]="showAdvancedConfirm"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [resizable]="false"
+      [style]="{ width: '32rem' }"
+      header="Confirm Advanced Tuning Changes">
+      <div style="display: flex; flex-direction: column; gap: 1rem; line-height: 1.5;">
+        <p style="margin: 0; color: var(--yellow-500); font-weight: bold; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="pi pi-exclamation-triangle" style="font-size: 1.25rem;"></i>
+          Warning: Existing embeddings will be deleted.
+        </p>
+        <p style="margin: 0; color: var(--text-color); font-size: 0.95rem;">
+          Changing advanced index properties (<strong>Chunk Size</strong>, <strong>Chunk Overlap</strong>, or <strong>Matryoshka Dimensions</strong>) modifies the underlying representation of your data.
+        </p>
+        <p style="margin: 0; color: var(--text-color-secondary); font-size: 0.9rem;">
+          To prevent search crashes and mathematical mismatches, Fable will automatically wipe all current embeddings from the database. All books will need to be re-embedded with the new settings.
+        </p>
+        <p style="margin: 0; font-weight: 500; font-size: 0.95rem;">
+          Are you sure you want to apply these changes and clear the index?
+        </p>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <p-button
+          label="Cancel"
+          severity="secondary"
+          (onClick)="showAdvancedConfirm = false">
+        </p-button>
+        <p-button
+          icon="pi pi-trash"
+          severity="danger"
+          label="Apply and Re-index"
+          (onClick)="confirmSaveAdvancedEmbeddingSettings()">
         </p-button>
       </div>
     </p-dialog>

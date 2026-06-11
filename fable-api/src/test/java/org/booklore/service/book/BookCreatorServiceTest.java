@@ -53,6 +53,7 @@ class BookCreatorServiceTest {
     @Mock private ComicTeamRepository comicTeamRepository;
     @Mock private ComicLocationRepository comicLocationRepository;
     @Mock private ComicCreatorRepository comicCreatorRepository;
+    @Mock private org.booklore.service.appsettings.AppSettingService appSettingService;
 
     @InjectMocks
     private BookCreatorService bookCreatorService;

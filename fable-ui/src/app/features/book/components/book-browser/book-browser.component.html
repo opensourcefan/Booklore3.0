@@ -304,6 +304,19 @@
                       <label for="show-ai-panel-overlay-checkbox" class="display-settings-label">{{ t('labels.aiOverlay') }}</label>
                     </div>
                   </div>
+                  @if (aiSearchEnabled) {
+                    <div class="display-settings-section">
+                      <div class="display-settings-checkbox-row">
+                        <p-checkbox
+                          inputId="show-ai-search-overlay-checkbox"
+                          [binary]="true"
+                          [ngModel]="bookCardOverlayPreferenceService.showAiSearchData"
+                          (onChange)="bookCardOverlayPreferenceService.setShowAiSearchData($event.checked)">
+                        </p-checkbox>
+                        <label for="show-ai-search-overlay-checkbox" class="display-settings-label">{{ t('labels.aiSearchOverlay') }}</label>
+                      </div>
+                    </div>
+                  }
                   <div class="display-settings-section">
                     <div class="display-settings-checkbox-row">
                       <p-checkbox
@@ -367,15 +380,31 @@
                   [(ngModel)]="bookTitle"
                   (ngModelChange)="onSearchTermChange($event)"
                   class="search-input-full"
+                  [class.has-ai-btn]="aiSearchEnabled"
                 />
-                <p-button
-                  icon="pi pi-times"
-                  [text]="true"
-                  size="small"
-                  [rounded]="true"
-                  class="search-clear-btn"
-                  (click)="clearSearch(); searchDropdown.hide()"
-                ></p-button>
+                @if (bookTitle) {
+                  <p-button
+                    icon="pi pi-times"
+                    [text]="true"
+                    size="small"
+                    [rounded]="true"
+                    class="search-clear-btn"
+                    [class.with-ai-btn]="aiSearchEnabled"
+                    (click)="clearSearch(); searchDropdown.hide()"
+                  ></p-button>
+                }
+                @if (aiSearchEnabled) {
+                  <p-button
+                    icon="pi pi-sparkles"
+                    class="ai-search-inner-btn"
+                    [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive, 'status-search-error': isAiSearchError, 'status-embedding': isBatchEmbedding}"
+                    [text]="true"
+                    [rounded]="true"
+                    (click)="openAiSearch(); searchDropdown.hide(); isAiSearchError = false"
+                    [pTooltip]="aiSearchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (aiSearchStatus === 'ERROR' ? 'AI Search Unavailable' : (isAiSearchActive ? 'AI Search: Searching...' : (isAiSearchError ? 'AI Search: No results - click to retry' : 'AI Search')))"
+                    tooltipPosition="bottom"
+                  ></p-button>
+                }
               </div>
             </p-popover>
           </div>
@@ -389,6 +418,7 @@
               [(ngModel)]="bookTitle"
               (ngModelChange)="onSearchTermChange($event)"
               class="search-input"
+              [class.has-ai-btn]="aiSearchEnabled"
             />
             @if (bookTitle) {
               <p-button
@@ -397,7 +427,20 @@
                 size="small"
                 [rounded]="true"
                 class="search-clear-btn"
+                [class.with-ai-btn]="aiSearchEnabled"
                 (click)="clearSearch()"
+              ></p-button>
+            }
+            @if (aiSearchEnabled) {
+              <p-button
+                icon="pi pi-sparkles"
+                class="ai-search-inner-btn"
+                [ngClass]="{'status-starting': aiSearchStatus === 'STARTING', 'status-error': aiSearchStatus === 'ERROR', 'status-searching': isAiSearchActive, 'status-search-error': isAiSearchError, 'status-embedding': isBatchEmbedding}"
+                [text]="true"
+                [rounded]="true"
+                (click)="openAiSearch(); isAiSearchError = false"
+                [pTooltip]="aiSearchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (aiSearchStatus === 'ERROR' ? 'AI Search Unavailable' : (isAiSearchActive ? 'AI Search: Searching...' : (isAiSearchError ? 'AI Search: No results - click to retry' : 'AI Search')))"
+                tooltipPosition="bottom"
               ></p-button>
             }
           </div>
@@ -534,6 +577,21 @@
                       tooltipPosition="top">
                     </p-button>
                   }
+                  @if (aiSearchEnabled && (userState.user!.permissions.canManageLibrary || userState.user!.permissions.admin)) {
+                    <div class="more-actions-wrapper">
+                      <p-button
+                        outlined="true"
+                        icon="pi pi-sparkles"
+                        severity="info"
+                        (click)="aiSearchMenu.toggle($event)"
+                        [disabled]="selectedCount === 0"
+                        [pTooltip]="'AI Search Actions'"
+                        tooltipPosition="top">
+                      </p-button>
+                      <p-tieredMenu #aiSearchMenu [model]="aiSearchMenuItems" [popup]="true" appendTo="body" styleClass="footer-menu"/>
+                    </div>
+                  }
+
                   @if (hasMoreActionsItems) {
                     <div class="more-actions-wrapper">
                       <p-button

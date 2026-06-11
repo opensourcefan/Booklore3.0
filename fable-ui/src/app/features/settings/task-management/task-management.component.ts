@@ -24,6 +24,7 @@ import {ExternalDocLinkComponent} from '../../../shared/components/external-doc-
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import cronstrue from 'cronstrue';
 
 @Component({
   selector: 'app-task-management',
@@ -294,14 +295,15 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
     return taskInfo?.cronSupported || false;
   }
 
-  getCronConfig(taskType: string): { enabled?: boolean; cronExpression?: string } | null | undefined {
+  getCronConfig(taskType: string): { enabled?: boolean; cronExpression?: string; notificationsEnabled?: boolean } | null | undefined {
     const taskInfo = this.taskInfos.find(t => t.taskType === taskType);
     if (!taskInfo?.cronConfig) return null;
 
     const cronConfig = taskInfo.cronConfig;
     return {
       enabled: cronConfig.enabled,
-      cronExpression: cronConfig.cronExpression ?? undefined
+      cronExpression: cronConfig.cronExpression ?? undefined,
+      notificationsEnabled: cronConfig.notificationsEnabled
     };
   }
 
@@ -311,6 +313,17 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
 
     const request: TaskCronConfigRequest = {
       enabled: !(cronConfig.enabled ?? false)
+    };
+
+    this.updateCronConfig(taskType, request);
+  }
+
+  toggleCronNotificationsEnabled(taskType: string): void {
+    const cronConfig = this.getCronConfig(taskType);
+    if (!cronConfig) return;
+
+    const request: TaskCronConfigRequest = {
+      notificationsEnabled: !(cronConfig.notificationsEnabled ?? true)
     };
 
     this.updateCronConfig(taskType, request);
@@ -444,6 +457,15 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
     return !isNaN(num) && num >= min && num <= max;
   }
 
+  getHumanReadableCron(expression: string | null | undefined): string {
+    if (!expression) return '';
+    try {
+      return cronstrue.toString(expression, { use24HourTimeFormat: true });
+    } catch (_e) {
+      return 'Invalid cron expression';
+    }
+  }
+
   // ============================================================================
   // UI Helper Methods - Task Information
   // ============================================================================
@@ -463,7 +485,7 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
   }
 
   getTaskLabel(taskType: string): string {
-    return `${this.getTaskDisplayOrder(taskType)}. ${this.getTaskDisplayName(taskType)}`;
+    return this.getTaskDisplayName(taskType);
   }
 
   getTaskIcon(taskType: string): string {

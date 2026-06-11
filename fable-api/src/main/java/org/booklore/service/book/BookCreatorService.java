@@ -8,6 +8,7 @@ import org.booklore.model.enums.ComicCreatorRole;
 import org.booklore.repository.*;
 import org.booklore.service.file.FileFingerprint;
 import org.booklore.util.FileUtils;
+import org.booklore.service.appsettings.AppSettingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ public class BookCreatorService {
     private final ComicTeamRepository comicTeamRepository;
     private final ComicLocationRepository comicLocationRepository;
     private final ComicCreatorRepository comicCreatorRepository;
+    private final AppSettingService appSettingService;
 
     // Temporary storage for comic metadata DTOs during processing
     private final Map<Long, ComicMetadata> pendingComicMetadata = new ConcurrentHashMap<>();
@@ -44,7 +46,8 @@ public class BookCreatorService {
                               ComicCharacterRepository comicCharacterRepository,
                               ComicTeamRepository comicTeamRepository,
                               ComicLocationRepository comicLocationRepository,
-                              ComicCreatorRepository comicCreatorRepository) {
+                              ComicCreatorRepository comicCreatorRepository,
+                              AppSettingService appSettingService) {
         this.authorRepository = authorRepository;
         this.categoryRepository = categoryRepository;
         this.moodRepository = moodRepository;
@@ -56,6 +59,7 @@ public class BookCreatorService {
         this.comicTeamRepository = comicTeamRepository;
         this.comicLocationRepository = comicLocationRepository;
         this.comicCreatorRepository = comicCreatorRepository;
+        this.appSettingService = appSettingService;
     }
 
     public BookEntity createShellBook(LibraryFile libraryFile, BookFileType bookFileType) {
@@ -86,11 +90,20 @@ public class BookCreatorService {
                 ? FileFingerprint.generateFolderHash(libraryFile.getFullPath())
                 : FileFingerprint.generateHash(libraryFile.getFullPath());
 
+        boolean autoEmbed = false;
+        if (appSettingService.getAppSettings().getAiSearchSettings() != null) {
+            List<Long> autoEmbedIds = appSettingService.getAppSettings().getAiSearchSettings().getAutoEmbedLibraryIds();
+            if (autoEmbedIds != null && autoEmbedIds.contains(libraryFile.getLibraryEntity().getId())) {
+                autoEmbed = true;
+            }
+        }
+
         BookEntity bookEntity = BookEntity.builder()
                 .library(libraryFile.getLibraryEntity())
                 .libraryPath(libraryFile.getLibraryPathEntity())
                 .addedOn(Instant.now())
                 .bookFiles(new ArrayList<>())
+                .markedForAiSearch(autoEmbed)
                 .build();
 
         BookFileEntity bookFileEntity = BookFileEntity.builder()

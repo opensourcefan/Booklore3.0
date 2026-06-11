@@ -44,6 +44,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import org.booklore.model.dto.request.IsbnLookupRequest;
+import org.booklore.service.book.BookCreatorService;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -69,6 +70,7 @@ public class BookMetadataService {
     private final MetadataClearFlagsMapper metadataClearFlagsMapper;
     private final PlatformTransactionManager transactionManager;
     private final AppSettingService appSettingService;
+    private final BookCreatorService bookCreatorService;
 
 
     public Flux<BookMetadata> getProspectiveMetadataListForBookId(long bookId, FetchMetadataRequest request) {
@@ -527,5 +529,37 @@ public class BookMetadataService {
                 .metadata(metadata)
                 .clearFlags(clearFlags)
                 .build();
+    }
+
+    @BroadcastBookUpdate
+    @Transactional
+    public List<Book> addAisTagToBooks(Collection<Long> bookIds) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(new HashSet<>(bookIds));
+        for (BookEntity book : books) {
+            if (book.getMetadata() != null) {
+                bookCreatorService.addTagsToBook(Set.of("AIS"), book);
+            }
+        }
+        bookRepository.saveAll(books);
+        return books.stream().map(b -> bookMapper.toBookWithDescription(b, true)).collect(Collectors.toList());
+    }
+
+    @BroadcastBookUpdate
+    @Transactional
+    public List<Book> removeAisTagFromBooks(Collection<Long> bookIds) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(new HashSet<>(bookIds));
+        for (BookEntity book : books) {
+            if (book.getMetadata() != null && book.getMetadata().getTags() != null) {
+                book.getMetadata().getTags().removeIf(tag -> "AIS".equals(tag.getName()));
+            }
+        }
+        bookRepository.saveAll(books);
+        return books.stream().map(b -> bookMapper.toBookWithDescription(b, true)).collect(Collectors.toList());
     }
 }

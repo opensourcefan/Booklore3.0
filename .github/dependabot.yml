@@ -87,19 +87,6 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  # Root Docker Compose files
-  - package-ecosystem: "docker-compose"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "03:00"
-      timezone: "UTC"
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "chore(deps)"
-
   # Example Docker Compose files
   - package-ecosystem: "docker-compose"
     directory: "/example-docker"

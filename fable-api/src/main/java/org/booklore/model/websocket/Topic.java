@@ -17,6 +17,7 @@ public enum Topic {
     LOG("/queue/log"),
     TASK_PROGRESS("/queue/task-progress"),
     AI_PANEL_SCAN_PROGRESS("/queue/ai-panel-scan-progress"),
+    AI_SEARCH_PROGRESS("/queue/ai-search-progress"),
     LIBRARY_HEALTH("/topic/library-health"),
     SESSION_REVOKED("/queue/session-revoked");
 

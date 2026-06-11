@@ -261,6 +261,11 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+
+  &.mismatched {
+    color: #ff8800;
+    border: 1px solid #ff8800;
+  }
 }
 
 .physical-mobile-viewer-badge--primary {

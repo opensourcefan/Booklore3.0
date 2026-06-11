@@ -13,6 +13,7 @@ import {BookFilterMode, DEFAULT_VISIBLE_FILTERS, UserService, VisibleFilterType}
 import {MagicShelf} from '../../../../magic-shelf/service/magic-shelf.service';
 import {Filter, FILTER_LABEL_KEYS, FilterType, UserFilterSort} from './book-filter.config';
 import {BookFilterService} from './book-filter.service';
+import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
 import {filter} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {normalizeFilterMode} from '../filters/sidebar-filter';
@@ -67,6 +68,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
 
   private readonly filterService = inject(BookFilterService);
   private readonly userService = inject(UserService);
+  private readonly appSettingsService = inject(AppSettingsService);
   private readonly t = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
@@ -254,9 +256,10 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   private updateVisibleFilterTypes(): void {
-    this.visibleFilterTypes = this._visibleFilters.filter(
-      vf => this.filterTypes.includes(vf as FilterType)
-    ) as FilterType[];
+    this.visibleFilterTypes = this._visibleFilters.filter(vf => {
+      if (!this.filterTypes.includes(vf as FilterType)) return false;
+      return true;
+    }) as FilterType[];
   }
 
   private subscribeToReset(): void {

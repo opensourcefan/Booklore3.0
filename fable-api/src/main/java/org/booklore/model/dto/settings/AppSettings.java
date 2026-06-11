@@ -26,8 +26,8 @@ public class AppSettings {
     private boolean remoteAuthEnabled;
     private boolean metadataDownloadOnBookdrop;
     private boolean oidcEnabled;
-    private boolean telemetryEnabled;
     private boolean aiPanelDetectionEnabled;
+    private boolean aiSearchEnabled;
     private OidcProviderDetails oidcProviderDetails;
     private OidcAutoProvisionDetails oidcAutoProvisionDetails;
     private MetadataProviderSettings metadataProviderSettings;
@@ -44,4 +44,6 @@ public class AppSettings {
     private String diskType;
     private Integer libraryHealthCheckIntervalSeconds;
     private boolean allowFileDeletion;
+    private AiPanelSettings aiPanelSettings;
+    private AiSearchSettings aiSearchSettings;
 }

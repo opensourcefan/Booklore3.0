@@ -56,6 +56,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 ## Main Features
 
 - **Comic Panel Detection AI** — Detects and saves panel flow data for CBZ/CBR comics using a bundled YOLO-based AI model. Enables panel-by-panel navigation in the reader.
+- **AI Semantic Search** — Search your book collection using natural language queries. Uses a local HuggingFace embedding model to find books based on their actual content.
 - **ComicVine URL Issue Navigation** — In metadata search, paste a ComicVine volume or issue URL and optionally provide an issue number or inclusive range (for example `46` or `43-171`) to resolve exact ComicVine issue matches.
 - **ComicVine Batch Issue Sequencing** — In custom metadata fetch for multi-book selections, you can use the same ComicVine source URL plus issue number/range inputs and Fable will assign sequential issues across the selected books while keeping review-mode workflows.
 - **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views, then use the reset button beside the folder toggle to clear the active folder scope while keeping the larger book view available.
@@ -86,7 +87,7 @@ This fork includes a number of targeted fixes to improve reliability, memory eff
 
 ```bash
 # 1. Download the Compose file
-curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-compose.yml
+curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-compose.yml ## Use the .env to enable AI.
 
 # 2. Create your .env file (see Sample .env below)
 
@@ -94,9 +95,7 @@ curl -O https://raw.githubusercontent.com/opensourcefan/Fable/develop/docker-com
 docker compose pull
 docker compose up -d
 
-# 4. If AI is enabled, pull and start the AI container separately
-docker compose pull app-ai-panel
-docker compose up -d app-ai-panel
+# 4. If AI is enabled, AI containers will install automatically as they should be inserted into your docker-compose.yml
 ```
 
 ### Update Existing Install
@@ -133,7 +132,7 @@ APP_USER_ID=1000
 APP_GROUP_ID=1000
 
 # Timezone
-TZ=America/Vancouver
+TZ=Etc/UTC
 
 # Database connection
 DATABASE_URL=jdbc:mariadb://mariadb:3306/fable
@@ -147,13 +146,37 @@ MYSQL_ROOT_PASSWORD=ChangeMe@$@P
 MYSQL_DATABASE=fable
 REMOTE_USER_PASSWORD=ChangeMe@$@P
 
-# Storage type: LOCAL (default) or NETWORK (all data written to MariaDB only)
-#DISK_TYPE=NETWORK
+# Storage type: LOCAL (default) or NETWORK (all data written to MariaDB only, using this is not usually required)
+DISK_TYPE=LOCAL
 
-# AI Panel Detection (optional — remove or comment out to disable AI)
-COMPOSE_PROFILES=ai
-AI_SERVICE_BASE_URL=http://app-ai-panel:8080
-AI_PANEL_PORT=18080
+##################################################################
+#                                                                #
+#    ###  ###     #### ##### ##### ##### ### #   #  ###   ####   #
+#   #   #  #     #     #       #     #    #  ##  # #     #       #
+#   #####  #      ###  ####    #     #    #  # # # #  ##  ###    #
+#   #   #  #         # #       #     #    #  #  ## #   #     #   #
+#   #   # ###    ####  #####   #     #   ### #   #  ###  ####    #
+#                                                                # 
+##################################################################
+
+# AI Features: Panel Detection & Semantic Search
+# Optional — uncomment (delete # from the front) the 5 lines marked with (# <<) to enable all AI features.
+
+### 1. Tell docker-compose to start the AI containers
+# COMPOSE_PROFILES=ai  # <<
+
+### 2. Tell the main Fable app where to talk to the AI containers internally
+# AI_SERVICE_BASE_URL=http://app-ai-panel:8080  # <<
+# AI_SEARCH_SERVICE_BASE_URL=http://fable-ai-search:8080  # <<
+
+### 3. Expose the AI services to your host machine (for debugging or direct access)
+# AI_PANEL_PORT=18080  # <<
+# AI_SEARCH_PORT=18081  # <<
+
+#### ---- AI Settings ----
+#### AI models are now configured directly inside the Fable UI!
+#### Go to Settings -> AI / AI Search to set your models,
+#### API keys, and external endpoints (Zero-Config Architecture).
 ```
 
 ---
@@ -162,65 +185,211 @@ AI_PANEL_PORT=18080
 
 ```yaml
 services:
-  mariadb:
-    image: mariadb:11
-    container_name: fable-db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - db-data:/var/lib/mysql
-    networks:
-      - fable-net
-
-  app-backend:
-    image: ghcr.io/opensourcefan/fable:latest
-    container_name: app-backend
+  fable:
+    # Channel strategy:
+    #   :stable  – last tagged release (conservative, default)
+    #   :latest  – bleeding-edge develop build (may contain unfinished work)
+    #   :vX.Y.Z  – pinned semver release (immutable, best for reproducibility)
+    #   @sha256: – digest-pinned (most reproducible, immune to tag overwrites)
+    #
+    # For reproducible deployments pin to a specific semver tag or SHA digest:
+    #   image: ghcr.io/opensourcefan/booklore3:v3.15.46
+    #   image: ghcr.io/opensourcefan/booklore3@sha256:<digest>
+    image: ghcr.io/opensourcefan/fable:stable
+    container_name: fable
     restart: unless-stopped
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      APP_USER_ID: ${APP_USER_ID:-1000}
-      APP_GROUP_ID: ${APP_GROUP_ID:-1000}
-      TZ: ${TZ:-UTC}
-      AI_SERVICE_BASE_URL: ${AI_SERVICE_BASE_URL:-}
+      - USER_ID=${APP_USER_ID}
+      - GROUP_ID=${APP_GROUP_ID}
+      - TZ=${TZ}
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_USERNAME=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - DISK_TYPE=${DISK_TYPE}
+      - AI_SERVICE_BASE_URL=${AI_SERVICE_BASE_URL:-http://app-ai-panel:8080}
+      - AI_SEARCH_SERVICE_BASE_URL=${AI_SEARCH_SERVICE_BASE_URL:-http://fable-ai-search:8080}
     ports:
       - "6060:6060"
     volumes:
+      - ./data:/app/data
       - ./books:/books
-      - ./data:/app-data
       - ./bookdrop:/bookdrop
-      - ./docker/rar:/opt/fable-rar:ro  # Optional: mount a compatible Linux rar binary at ./docker/rar/rar for in-place CBR metadata writes
+      - ./docker/rar:/opt/booklore-rar:ro  # Optional: mount a compatible Linux rar binary at ./docker/rar/rar for in-place CBR metadata writes
     networks:
-      - fable-net
+      - fable_shared
+
+  mariadb:
+    image: lscr.io/linuxserver/mariadb:11.4.11
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      - PUID=${DB_USER_ID}
+      - PGID=${DB_GROUP_ID}
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - REMOTE_USER_PASSWORD=${REMOTE_USER_PASSWORD}
+    volumes:
+      - ./mariadb/config:/config
+      - ./mariadb/conf.d:/config/mariadb/conf.d
+    ports:
+      - "3306:3306"
+    networks:
+      - fable_shared
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   app-ai-panel:
-    image: ghcr.io/opensourcefan/fable-panel-ai:latest
+    image: ${AI_PANEL_IMAGE:-ghcr.io/opensourcefan/fable-panel-ai:stable}
     container_name: app-ai-panel
+    profiles: ["ai"]
     restart: unless-stopped
-    profiles:
-      - ai
-    ports:
-      - "${AI_PANEL_PORT:-18080}:8080"
+    environment:
+      - TZ=${TZ}
+      - HF_HOME=/models
     volumes:
       - ./data/ai-models:/models
+    ports:
+      - "${AI_PANEL_PORT:-18080}:8080"
     networks:
-      - fable-net
+      - fable_shared
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
-volumes:
-  db-data:
+  fable-ai-search:
+    image: ${AI_SEARCH_IMAGE:-ghcr.io/opensourcefan/fable-search-ai:stable}
+    container_name: fable-ai-search
+    profiles: ["ai"]
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_NAME=${MYSQL_DATABASE}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./data/ai-search-models:/models
+    ports:
+      - "${AI_SEARCH_PORT:-18081}:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - fable_shared
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
 networks:
-  fable-net:
+  fable_shared:
+    name: fable_shared
 ```
 
-> **Note:** This is a representative sample. Always use the `docker-compose.yml` pulled from the repository for the most up-to-date configuration.
+### Adding AI Search to an Existing Installation
+
+If you already have Fable running and want to add AI Semantic Search, follow these steps. Your existing database, books, and settings are preserved — the AI search service connects to the same MariaDB instance and stores embeddings in a separate table.
+
+#### Step 1: Update your `docker-compose.yml`
+
+Copy the lines below into your existing `docker-compose.yml` file. Paste them under the `services:` section, right after the `app-ai-panel` entry (or after `mariadb` if you don't use panel detection):
+
+```yaml
+  fable-ai-search:
+    image: ${AI_SEARCH_IMAGE:-ghcr.io/opensourcefan/fable-search-ai:stable}
+    container_name: fable-ai-search
+    profiles: ["ai"]
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_NAME=${MYSQL_DATABASE}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./data/ai-search-models:/models
+    ports:
+      - "${AI_SEARCH_PORT:-18081}:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - fable_shared
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+```
+
+#### Step 2: Update your `.env` file
+
+Add these lines to your `.env`:
+
+```ini
+COMPOSE_PROFILES=ai
+AI_SEARCH_SERVICE_BASE_URL=http://fable-ai-search:8080
+AI_SEARCH_PORT=18081
+```
+
+#### Step 3: Pull and start the new service safely
+
+**If your existing containers are running**, use this approach to avoid "container already exists" and "port already bound" errors:
+
+```bash
+# Pull the new AI search image
+docker compose pull fable-ai-search
+
+# Stop only the main Fable container (preserves MariaDB and your data)
+docker compose stop fable
+
+# Bring everything back up, including the new AI search service
+docker compose --profile ai up -d
+
+# Verify all containers are healthy
+docker compose ps
+```
+
+**If you get a "port is already allocated" error**, check if anything else is using port 18081:
+
+```bash
+# Check what's using the AI search port
+sudo ss -tlnp | grep 18081
+
+# If the port is in use, change AI_SEARCH_PORT in your .env to an available port:
+# AI_SEARCH_PORT=18082
+```
+
+**If you get a "container already exists" error**, remove the stale container reference:
+
+```bash
+# Remove the old container (data volumes are unaffected)
+docker rm fable-ai-search 2>/dev/null || true
+
+# Then start fresh
+docker compose --profile ai up -d
+```
+
+#### Step 4: Enable AI Search in the UI
+
+1. Open **Settings > AI**
+2. Enable **AI Semantic Search**
+3. Wait for the status to show **READY**
+4. Embed your books: Click the three dots on any book card → **Embed for AI Search**
 
 ---
 
@@ -264,24 +433,30 @@ tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 
 ---
 
-## AI Panel Detection — Quick Start
+## AI Features — Quick Start
 
 1. Add `COMPOSE_PROFILES=ai` to your `.env`
 2. Pull and start all services (see [Installation](#installation) above)
-3. Open **Settings > AI Panel Detection**
-4. Enable **AI Panel Detection** and wait for status to show **READY**
-   - The model is bundled inside the AI container image
-   - On first start it is automatically seeded to `./data/ai-models/best.pt`
+3. Open **Settings > AI Tab**
+4. Enable **AI Panel Detection** and/or **AI Semantic Search** and wait for status to show **READY**
+   - The models are bundled inside the AI container images
+   - On first start they are automatically seeded to the mounted models folders
    - No manual file placement is required
-5. Open a comic in the reader and use the AI button to scan the current book
-6. Optionally run **Manual Panel Detection Scan** in AI settings to batch-process all comics
+5. **For Panel Detection**: Open a comic in the reader and use the AI button to scan the current book. Optionally run a batch scan from settings.
+6. **AI Search Features**:
+   - **Global AI Search:** Click the sparkly blue **AI Search** icon in the topbar or library search fields to search your entire collection by concepts and themes.
+   - **Book-Specific AI Search:** Click the glowing **AIS** badge on any book card to ask questions specifically about that book.
+   - **Note:** Make sure you have embedded your books first (Click the three dots on any book card -> **Embed for AI Search**).
+   - **Zero Configuration Needed:** Fable comes with everything you need built-in! The AI search engine (powered by Ollama) runs automatically inside its own secure container. You don't need to install any external software or configure network settings to get started. Just pick a preset in your `.env` file and enjoy.
 
 ### AI Notes
 
-- The AI compose profile is opt-in. Omitting `COMPOSE_PROFILES=ai` skips the AI image entirely.
-- The AI container uses CPU-only inference to keep the image size manageable.
-- If the model fails to load, use the **Reload Model** button in Settings.
-- If running Fable outside Docker, set `AI_SERVICE_BASE_URL` to the host-mapped endpoint (e.g., `http://localhost:18080`).
+- **Advanced Configuration**: See [AI-Search-Configuration.md](docs/AI-Search-Configuration.md) for how to tune semantic search, change models, or use external providers (like Ollama).
+- The AI compose profile is opt-in. Omitting `COMPOSE_PROFILES=ai` skips the AI images entirely.
+- The AI containers use CPU-only inference to keep the image size manageable.
+- You can override the AI Search model by uncommenting # AI_Search_EMBEDDING or LLM in your `.env`.
+- If the models fail to load, use the **Reload** buttons in Settings.
+- If running Fable outside Docker, set `AI_SERVICE_BASE_URL` and `AI_SEARCH_SERVICE_BASE_URL` to the host-mapped endpoints.
 
 ---
 

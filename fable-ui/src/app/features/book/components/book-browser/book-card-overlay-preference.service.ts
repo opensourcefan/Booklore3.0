@@ -11,9 +11,11 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
 
   private readonly _showBookTypePill = new BehaviorSubject<boolean>(true);
   private readonly _showAiPanelData = new BehaviorSubject<boolean>(true);
+  private readonly _showAiSearchData = new BehaviorSubject<boolean>(true);
   private readonly _showIssueNumber = new BehaviorSubject<boolean>(true);
   readonly showBookTypePill$ = this._showBookTypePill.asObservable();
   readonly showAiPanelData$ = this._showAiPanelData.asObservable();
+  readonly showAiSearchData$ = this._showAiSearchData.asObservable();
   readonly showIssueNumber$ = this._showIssueNumber.asObservable();
 
   private destroy$ = new Subject<void>();
@@ -61,6 +63,12 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
     this.savePreferences$.next();
   }
 
+  setShowAiSearchData(show: boolean): void {
+    this.hasUserToggled = true;
+    this._showAiSearchData.next(show);
+    this.savePreferences$.next();
+  }
+
   setShowIssueNumber(show: boolean): void {
     this.hasUserToggled = true;
     this._showIssueNumber.next(show);
@@ -75,6 +83,10 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
     return this._showAiPanelData.value;
   }
 
+  get showAiSearchData(): boolean {
+    return this._showAiSearchData.value;
+  }
+
   get showIssueNumber(): boolean {
     return this._showIssueNumber.value;
   }
@@ -85,11 +97,13 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
 
     let showBookType = true;
     let showAiPanelData = true;
+    let showAiSearchData = true;
     let showIssueNumber = true;
     if (prefs) {
       const globalAny = prefs.global as EntityViewPreference & { showBookTypePill?: boolean };
       showBookType = prefs.global?.overlayBookType ?? globalAny?.showBookTypePill ?? true;
       showAiPanelData = prefs.global?.overlayAiPanelData ?? true;
+      showAiSearchData = prefs.global?.overlayAiSearchData ?? true;
       showIssueNumber = prefs.global?.overlayIssueNumber ?? true;
 
       if (this.currentContext) {
@@ -106,6 +120,9 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
           if (override.preferences.overlayAiPanelData !== undefined) {
             showAiPanelData = override.preferences.overlayAiPanelData;
           }
+          if (override.preferences.overlayAiSearchData !== undefined) {
+            showAiSearchData = override.preferences.overlayAiSearchData;
+          }
           if (override.preferences.overlayIssueNumber !== undefined) {
             showIssueNumber = override.preferences.overlayIssueNumber;
           }
@@ -116,6 +133,7 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
     this.hasUserToggled = false;
     if (this._showBookTypePill.value !== showBookType) this._showBookTypePill.next(showBookType);
     if (this._showAiPanelData.value !== showAiPanelData) this._showAiPanelData.next(showAiPanelData);
+    if (this._showAiSearchData.value !== showAiSearchData) this._showAiSearchData.next(showAiSearchData);
     if (this._showIssueNumber.value !== showIssueNumber) this._showIssueNumber.next(showIssueNumber);
   }
 
@@ -125,6 +143,7 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
 
     const showBookType = this._showBookTypePill.value;
     const showAiPanelData = this._showAiPanelData.value;
+    const showAiSearchData = this._showAiSearchData.value;
     const showIssueNumber = this._showIssueNumber.value;
 
     const prefs = structuredClone(user.userSettings.entityViewPreferences ?? {
@@ -136,6 +155,7 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
         seriesCollapsed: false,
         overlayBookType: true,
         overlayAiPanelData: true,
+        overlayAiSearchData: true,
         overlayIssueNumber: true
       },
       overrides: []
@@ -158,6 +178,7 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
             ...prefs.global,
             overlayBookType: showBookType,
             overlayAiPanelData: showAiPanelData,
+            overlayAiSearchData: showAiSearchData,
             overlayIssueNumber: showIssueNumber
           }
         };
@@ -165,11 +186,13 @@ export class BookCardOverlayPreferenceService implements OnDestroy {
       } else {
         override.preferences.overlayBookType = showBookType;
         override.preferences.overlayAiPanelData = showAiPanelData;
+        override.preferences.overlayAiSearchData = showAiSearchData;
         override.preferences.overlayIssueNumber = showIssueNumber;
       }
     } else {
       prefs.global.overlayBookType = showBookType;
       prefs.global.overlayAiPanelData = showAiPanelData;
+      prefs.global.overlayAiSearchData = showAiSearchData;
       prefs.global.overlayIssueNumber = showIssueNumber;
     }
 

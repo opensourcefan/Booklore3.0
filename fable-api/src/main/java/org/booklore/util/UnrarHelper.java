@@ -37,6 +37,9 @@ public class UnrarHelper {
                     is.readAllBytes();
                 }
                 boolean finished = process.waitFor(5, TimeUnit.SECONDS);
+                if (!finished) {
+                    process.destroyForcibly();
+                }
                 cachedAvailability = finished;
             } catch (Exception e) {
                 log.debug("unrar binary not available: {}", e.getMessage());

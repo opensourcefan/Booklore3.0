@@ -4,7 +4,8 @@ import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
 import {AiBulkScanResponse} from '../model/ai-panel-scan-progress.model';
-import {AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {AiModel, AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiSearchResult, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {Book} from '../../features/book/model/book.model';
 
 export interface SettingsTransferEntry {
   name: string;
@@ -70,6 +71,10 @@ export class AppSettingsService {
     this.publicLoading$.subscribe();
   }
 
+  get currentAppSettings(): AppSettings | null {
+    return this.appSettingsSubject.value;
+  }
+
   get currentPublicSettings(): PublicAppSettings | null {
     return this.publicAppSettingsSubject.value;
   }
@@ -102,8 +107,40 @@ export class AppSettingsService {
     return this.http.post<OidcTestResult>(`${this.apiUrl}/oidc/test`, providerDetails);
   }
 
+  testAiEmbeddingConnection(config: {provider: string; url: string; apiKey: string; model: string}): Observable<{success: boolean; message: string}> {
+    return this.http.post<{success: boolean; message: string}>(`${this.apiUrl}/ai/test-embedding`, config);
+  }
+
+  testAiLlmConnection(config: {provider: string; url: string; apiKey: string; model: string}): Observable<{success: boolean; message: string}> {
+    return this.http.post<{success: boolean; message: string}>(`${this.apiUrl}/ai/test-llm`, config);
+  }
+
   getAiServiceStatus(): Observable<AiServiceStatus> {
     return this.http.get<AiServiceStatus>(`${API_CONFIG.BASE_URL}/api/v1/ai/status`);
+  }
+
+  getAiSearchServiceStatus(): Observable<AiServiceStatus> {
+    return this.http.get<AiServiceStatus>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/status`);
+  }
+
+  reloadAiSearchService(): Observable<{triggered: boolean; reason: string}> {
+    return this.http.post<{triggered: boolean; reason: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/reload`, {});
+  }
+
+  embedBookForAiSearch(bookId: number, userId: number, chunks: {text: string; pageNumber?: number; chapterTitle?: string}[]): Observable<{jobId: string; status: string}> {
+    return this.http.post<{jobId: string; status: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/embed`, {bookId, userId, chunks});
+  }
+
+  searchWithAi(query: string, bookIds: number[], userId: number, chatHistory: {role: string, content: string}[] = [], localOnly: boolean = false): Observable<AiSearchResult> {
+    return this.http.post<AiSearchResult>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/query`, {query, bookIds, userId, chatHistory, localOnly});
+  }
+
+  getBookAiSearchEmbeddingStatus(bookId: number, userId: number): Observable<{bookId: number; hasEmbeddings: boolean; chunkCount: number}> {
+    return this.http.get<{bookId: number; hasEmbeddings: boolean; chunkCount: number}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/book-embeddings/${bookId}?userId=${userId}`);
+  }
+
+  extractAndEmbedBook(bookId: number): Observable<{status: string; jobId?: string; error?: string}> {
+    return this.http.post<{status: string; jobId?: string; error?: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/extract-and-embed/${bookId}`, {});
   }
 
   getAiPanelFlowStats(libraryId?: number | null): Observable<AiPanelFlowStats> {
@@ -135,6 +172,43 @@ export class AppSettingsService {
 
   reloadAiService(): Observable<{triggered: boolean; reason: string}> {
     return this.http.post<{triggered: boolean; reason: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/reload`, {});
+  }
+
+  scanMissingAiSearchData(libraryPathIds: number[]): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/scan-missing`, {
+      libraryPathIds
+    });
+  }
+
+  scanMarkedAiSearchData(forceRescan: boolean = false): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/scan-marked`, {
+      forceRescan
+    });
+  }
+
+  markForAiSearch(bookIds: number[], marked: boolean): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/mark`, {
+      bookIds,
+      marked
+    });
+  }
+
+  getMarkedForAiSearch(): Observable<Book[]> {
+    return this.http.get<Book[]>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/marked`);
+  }
+
+  deleteAiSearchEmbeddings(bookIds: number[]): Observable<{deletedCount: number}> {
+    return this.http.delete<{deletedCount: number}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/embeddings`, {
+      body: { bookIds }
+    });
+  }
+
+  getAiSearchEmbeddingStats(): Observable<{model: string, count: number}[]> {
+    return this.http.get<{model: string, count: number}[]>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/stats`);
+  }
+
+  stopAiSearchScan(): Observable<{status: string}> {
+    return this.http.post<{status: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/stop-scan`, {});
   }
 
   exportSettings(): Observable<string> {
@@ -204,6 +278,24 @@ export class AppSettingsService {
       switchMap(() => this.fetchAppSettings()),
       map(() => void 0)
     );
+  }
+
+  getAiEmbeddingModels(): Observable<{models: AiModel[]}> {
+    return this.http.get<{models: AiModel[]}>(`${this.apiUrl}/ai/models/embedding`);
+  }
+
+  deleteAiEmbeddingModel(namespace: string, modelName: string): Observable<{status: string}> {
+    const params = new HttpParams().set('namespace', namespace).set('modelName', modelName);
+    return this.http.delete<{status: string}>(`${this.apiUrl}/ai/models/embedding`, {params});
+  }
+
+  getAiLlmModels(): Observable<{models: AiModel[]}> {
+    return this.http.get<{models: AiModel[]}>(`${this.apiUrl}/ai/models/llm`);
+  }
+
+  deleteAiLlmModel(modelName: string): Observable<{status: string}> {
+    const params = new HttpParams().set('modelName', modelName);
+    return this.http.delete<{status: string}>(`${this.apiUrl}/ai/models/llm`, {params});
   }
 
   toggleOidcEnabled(enabled: boolean): Observable<void> {

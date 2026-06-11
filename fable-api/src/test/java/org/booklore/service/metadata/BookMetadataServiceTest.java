@@ -23,6 +23,7 @@ import org.booklore.repository.BookMetadataRepository;
 import org.booklore.repository.BookRepository;
 import org.booklore.service.NotificationService;
 import org.booklore.service.appsettings.AppSettingService;
+import org.booklore.service.book.BookCreatorService;
 import org.booklore.service.book.BookQueryService;
 import org.booklore.service.metadata.extractor.CbxMetadataExtractor;
 import org.booklore.service.metadata.extractor.MetadataExtractorFactory;
@@ -59,6 +60,7 @@ class BookMetadataServiceTest {
     @Mock private MetadataClearFlagsMapper metadataClearFlagsMapper;
     @Mock private PlatformTransactionManager transactionManager;
     @Mock private AppSettingService appSettingService;
+    @Mock private BookCreatorService bookCreatorService;
 
     private Map<MetadataProvider, BookParser> parserMap;
     private BookMetadataService service;
@@ -70,7 +72,8 @@ class BookMetadataServiceTest {
                 bookRepository, bookMapper, bookMetadataMapper, bookMetadataUpdater,
                 notificationService, bookMetadataRepository, bookQueryService,
                 parserMap, cbxMetadataExtractor, metadataExtractorFactory,
-                metadataClearFlagsMapper, transactionManager, appSettingService
+                metadataClearFlagsMapper, transactionManager, appSettingService,
+                bookCreatorService
         );
     }
 
@@ -773,6 +776,41 @@ class BookMetadataServiceTest {
                         verify(bookMetadataUpdater).setBookMetadata(argThat(context ->
                                 "Dune".equals(context.getMetadataUpdateWrapper().getMetadata().getTitle())
                         ));
+                }
+        }
+
+        @Nested
+        class AisTags {
+
+                @Test
+                void addAisTagToBooks_addsTagAndSaves() {
+                        BookMetadataEntity metadata = BookMetadataEntity.builder().bookId(1L).build();
+                        BookEntity book = BookEntity.builder().id(1L).metadata(metadata).build();
+                        when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(book));
+                        when(bookMapper.toBookWithDescription(book, true)).thenReturn(Book.builder().id(1L).build());
+
+                        List<Book> result = service.addAisTagToBooks(List.of(1L));
+
+                        assertThat(result).hasSize(1);
+                        verify(bookCreatorService).addTagsToBook(Set.of("AIS"), book);
+                        verify(bookRepository).saveAll(List.of(book));
+                }
+
+                @Test
+                void removeAisTagFromBooks_removesTagAndSaves() {
+                        org.booklore.model.entity.TagEntity tag1 = org.booklore.model.entity.TagEntity.builder().name("AIS").build();
+                        org.booklore.model.entity.TagEntity tag2 = org.booklore.model.entity.TagEntity.builder().name("Other").build();
+                        Set<org.booklore.model.entity.TagEntity> tags = new HashSet<>(Set.of(tag1, tag2));
+                        BookMetadataEntity metadata = BookMetadataEntity.builder().bookId(1L).tags(tags).build();
+                        BookEntity book = BookEntity.builder().id(1L).metadata(metadata).build();
+                        when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(book));
+                        when(bookMapper.toBookWithDescription(book, true)).thenReturn(Book.builder().id(1L).build());
+
+                        List<Book> result = service.removeAisTagFromBooks(List.of(1L));
+
+                        assertThat(result).hasSize(1);
+                        assertThat(metadata.getTags()).containsExactly(tag2);
+                        verify(bookRepository).saveAll(List.of(book));
                 }
         }
 }

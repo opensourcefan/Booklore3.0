@@ -11,7 +11,7 @@ import {ProgressSpinner} from 'primeng/progressspinner';
 import {Tooltip} from 'primeng/tooltip';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {TranslocoService} from '@jsverse/transloco';
-import {BookNote, BookNoteService, CreateBookNoteRequest} from '../../../../shared/service/book-note.service';
+import {BookNoteService, CreateBookNoteV2Request, BookNote} from '../../../../shared/service/book-note.service';
 
 @Component({
   selector: 'app-book-notes-component',
@@ -45,16 +45,18 @@ export class BookNotesComponent implements OnInit, OnChanges {
   showEditDialog = false;
   selectedNote: BookNote | null = null;
 
-  newNote: CreateBookNoteRequest = {
+  newNote: CreateBookNoteV2Request = {
     bookId: 0,
-    title: '',
-    content: ''
+    cfi: 'book-notes-component',
+    noteContent: '',
+    selectedText: ''
   };
 
-  editNote: CreateBookNoteRequest = {
+  editNote: CreateBookNoteV2Request = {
     bookId: 0,
-    title: '',
-    content: ''
+    cfi: 'book-notes-component',
+    noteContent: '',
+    selectedText: ''
   };
 
   ngOnInit(): void {
@@ -97,8 +99,9 @@ export class BookNotesComponent implements OnInit, OnChanges {
   openCreateDialog(): void {
     this.newNote = {
       bookId: this.bookId,
-      title: '',
-      content: ''
+      cfi: 'book-notes-component',
+      noteContent: '',
+      selectedText: ''
     };
     this.showCreateDialog = true;
   }
@@ -106,16 +109,16 @@ export class BookNotesComponent implements OnInit, OnChanges {
   openEditDialog(note: BookNote): void {
     this.selectedNote = note;
     this.editNote = {
-      id: note.id,
       bookId: note.bookId,
-      title: note.title,
-      content: note.content
+      cfi: note.cfi,
+      noteContent: note.noteContent,
+      selectedText: note.selectedText
     };
     this.showEditDialog = true;
   }
 
   createNote(): void {
-    if (!this.newNote.title.trim() || !this.newNote.content.trim()) {
+    if (!this.newNote.noteContent.trim() || !(this.newNote.selectedText || '').trim()) {
       this.messageService.add({
         severity: 'warn',
         summary: this.t.translate('book.notes.toast.validationSummary'),
@@ -148,7 +151,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
   }
 
   updateNote(): void {
-    if (!this.editNote.title?.trim() || !this.editNote.content?.trim()) {
+    if (!this.editNote.noteContent.trim() || !(this.editNote.selectedText || '').trim()) {
       this.messageService.add({
         severity: 'warn',
         summary: this.t.translate('book.notes.toast.validationSummary'),
@@ -190,7 +193,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
   deleteNote(note: BookNote): void {
     this.confirmationService.confirm({
       key: 'deleteNote',
-      message: this.t.translate('book.notes.confirm.deleteMessage', {title: note.title}),
+      message: this.t.translate('book.notes.confirm.deleteMessage', {title: note.noteContent}),
       header: this.t.translate('book.notes.confirm.deleteHeader'),
       icon: 'pi pi-exclamation-triangle',
       acceptIcon: 'pi pi-trash',
@@ -228,8 +231,9 @@ export class BookNotesComponent implements OnInit, OnChanges {
     this.showCreateDialog = false;
     this.newNote = {
       bookId: this.bookId,
-      title: '',
-      content: ''
+      cfi: 'book-notes-component',
+      noteContent: '',
+      selectedText: ''
     };
   }
 
@@ -238,8 +242,9 @@ export class BookNotesComponent implements OnInit, OnChanges {
     this.selectedNote = null;
     this.editNote = {
       bookId: this.bookId,
-      title: '',
-      content: ''
+      cfi: 'book-notes-component',
+      noteContent: '',
+      selectedText: ''
     };
   }
 

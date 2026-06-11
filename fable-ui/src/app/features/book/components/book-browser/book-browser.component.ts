@@ -15,11 +15,12 @@ import {
 } from '@angular/core';
 import {ActivatedRoute, NavigationStart, Router} from '@angular/router';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
+import {AiSearchScanProgressService} from '../../../../shared/service/ai-search-scan-progress.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {BookService, RemoveFromLibraryMode} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
-import {debounceTime, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
-import {BehaviorSubject, combineLatest, Observable, of, Subject, Subscription} from 'rxjs';
+import {catchError, debounceTime, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, interval, Observable, of, Subject, Subscription} from 'rxjs';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Library} from '../../model/library.model';
 import {Shelf} from '../../model/shelf.model';
@@ -90,9 +91,9 @@ import {
   GridViewportContext,
   shouldResetGridViewport,
 } from './book-browser-grid-reset.util';
+import { ProgressBar } from 'primeng/progressbar';
+import { AiSearchDialogService } from '../ai-search-dialog/ai-search-dialog.component';
 import { PagedBookBrowserEntity } from '../../model/state/paged-book-browser-state.model';
-
-import {ProgressBar} from 'primeng/progressbar';
 
 export enum EntityType {
   LIBRARY = 'Library',
@@ -140,6 +141,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
   protected bookSelectionService = inject(BookSelectionService);
   protected appSettingsService = inject(AppSettingsService);
+  protected aiSearchDialogService = inject(AiSearchDialogService);
   private ngZone = inject(NgZone);
 
   private cdr = inject(ChangeDetectorRef);
@@ -159,6 +161,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private filterOrchestrationService = inject(BookFilterOrchestrationService);
   private localStorageService = inject(LocalStorageService);
   private scrollService = inject(BookBrowserScrollService);
+  private readonly aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private readonly t = inject(TranslocoService);
   private urlHelper = inject(UrlHelperService);
   private directoryFilterService = inject(DirectoryFilterService);
@@ -208,6 +211,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   hiddenSelectedCount = 0;
   private visibleBookIds = new Set<number>();
   allowFileDeletion = false;
+  aiSearchEnabled = false;
+  aiSearchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
+  isAiSearchActive = false;
+  isAiSearchError = false;
+  isBatchEmbedding = false;
+  aiSearchDialogVisible = false;
+  private aiSearchPollingSub?: Subscription;
   isSelectionActionPanelOpen = false;
 
   // Cover preview state
@@ -235,6 +245,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private previousSelectedCount = 0;
   protected metadataMenuItems: MenuItem[] | undefined;
   protected moreActionsMenuItems: MenuItem[] | undefined;
+  protected aiSearchMenuItems: MenuItem[] | undefined;
+
   mediaTypeActionsMenuItems: MenuItem[] = [];
   showSubtitles = false;
   protected gridRenderVersion = 0;
@@ -591,6 +603,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.forceCloseMobileRightSidebar(false);
     this.clearHoverPreviewTimer();
     this.pagedGridPilotService.resetActiveQuery();
+    this.stopAiStatusPolling();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -640,6 +653,35 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     clearTimeout(this.hoverPreviewTimer);
     this.hoverPreviewTimer = null;
+  }
+
+  openAiSearch(): void {
+    this.aiSearchDialogService.open();
+  }
+
+  private startAiStatusPolling(): void {
+    if (this.aiSearchPollingSub) return;
+    
+    const fetchStatus = () => {
+      this.appSettingsService.getAiSearchServiceStatus().pipe(
+        catchError(() => of({ status: 'ERROR' }))
+      ).subscribe((res) => {
+        if (res && res.status) {
+          this.aiSearchStatus = res.status as 'READY' | 'STARTING' | 'ERROR';
+          this.cdr.markForCheck();
+        }
+      });
+    };
+    
+    fetchStatus();
+    this.aiSearchPollingSub = interval(5000).subscribe(() => fetchStatus());
+  }
+
+  private stopAiStatusPolling(): void {
+    if (this.aiSearchPollingSub) {
+      this.aiSearchPollingSub.unsubscribe();
+      this.aiSearchPollingSub = undefined;
+    }
   }
 
   private getScrollPositionKey(): string {
@@ -762,6 +804,26 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
+    this.aiSearchMenuItems = [
+      {
+        label: 'Embed Now',
+        icon: 'pi pi-bolt',
+        command: () => this.embedSelectedNow()
+      },
+      {
+        label: 'Mark for Embedding',
+        icon: 'pi pi-bookmark',
+        command: () => this.markSelectedForAiSearch()
+      },
+      {
+        separator: true
+      },
+      {
+        label: 'Delete Embeddings',
+        icon: 'pi pi-trash',
+        command: () => this.deleteSelectedEmbeddings()
+      }
+    ];
   }
 
   private setupAppSettingsSubscription(): void {
@@ -769,6 +831,41 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(settings => {
         this.allowFileDeletion = settings?.allowFileDeletion ?? false;
+        this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+        if (this.aiSearchEnabled) {
+          this.startAiStatusPolling();
+        } else {
+          this.stopAiStatusPolling();
+        }
+        this.cdr.markForCheck();
+      });
+
+    this.aiSearchDialogService.searchActive$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(active => {
+        this.isAiSearchActive = active;
+        this.cdr.markForCheck();
+      });
+
+    this.aiSearchDialogService.searchError$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(error => {
+        this.isAiSearchError = error;
+        this.cdr.markForCheck();
+      });
+
+    this.aiSearchDialogService.dialogVisible$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(visible => {
+        this.aiSearchDialogVisible = visible;
+        this.cdr.markForCheck();
+      });
+
+    this.aiSearchScanProgressService.progress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(progress => {
+        this.isBatchEmbedding = progress?.mode === 'BATCH' && progress?.event === 'IN_PROGRESS';
+        this.cdr.markForCheck();
       });
   }
 
@@ -924,6 +1021,26 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedCount = this.selectedBookIds.size;
     this.isDrawerVisible = this.selectedCount > 0;
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBookIds, this.user());
+    this.aiSearchMenuItems = [
+      {
+        label: 'Embed Now',
+        icon: 'pi pi-bolt',
+        command: () => this.embedSelectedNow()
+      },
+      {
+        label: 'Mark for Embedding',
+        icon: 'pi pi-bookmark',
+        command: () => this.markSelectedForAiSearch()
+      },
+      {
+        separator: true
+      },
+      {
+        label: 'Delete Embeddings',
+        icon: 'pi pi-trash',
+        command: () => this.deleteSelectedEmbeddings()
+      }
+    ];
     this.updateSelectionVisibility();
   }
 
@@ -1503,7 +1620,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }));
 
     const prefs: EntityViewPreferences = structuredClone(
-      user.userSettings.entityViewPreferences ?? {global: {sortKey: 'title', sortDir: 'ASC', view: 'GRID', coverSize: 1.0, seriesCollapsed: false, overlayBookType: true, overlayAiPanelData: true, overlayIssueNumber: true}, overrides: []}
+      user.userSettings.entityViewPreferences ?? {global: {sortKey: 'title', sortDir: 'ASC', view: 'GRID', coverSize: 1.0, seriesCollapsed: false, overlayBookType: true, overlayAiPanelData: true, overlayAiSearchData: true, overlayIssueNumber: true}, overrides: []}
     );
 
     if (this.entityType === EntityType.ALL_BOOKS || this.entityType === EntityType.NOT_SHELFED) {
@@ -1549,6 +1666,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
             seriesCollapsed: false,
             overlayBookType: true,
             overlayAiPanelData: true,
+            overlayAiSearchData: true,
             overlayIssueNumber: true
           }
         });
@@ -2005,6 +2123,107 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   moveFiles(): void {
     this.dialogHelperService.openFileMoverDialog(this.selectedBooks);
   }
+
+  markSelectedForAiSearch(): void {
+    const selectedBookIds = Array.from(this.selectedBooks);
+    if (selectedBookIds.length === 0) return;
+
+    this.appSettingsService.markForAiSearch(selectedBookIds, true).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Marked for AI Search',
+          detail: `Successfully marked ${selectedBookIds.length} books for AI Search embedding.`,
+          life: 3000
+        });
+        this.deselectAllBooks();
+        this.bookService.refreshBooks();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to mark books for AI Search.',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  embedSelectedNow(): void {
+    const selectedBookIds = Array.from(this.selectedBooks);
+    if (selectedBookIds.length === 0) return;
+
+    this.appSettingsService.markForAiSearch(selectedBookIds, true).subscribe({
+      next: () => {
+        this.appSettingsService.scanMarkedAiSearchData().subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Embedding Started',
+              detail: `Started embedding ${selectedBookIds.length} books.`,
+              life: 3000
+            });
+            this.deselectAllBooks();
+            this.bookService.refreshBooks();
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to start embedding marked books.',
+              life: 3000
+            });
+          }
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to mark books for AI Search.',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  deleteSelectedEmbeddings(): void {
+    const selectedBookIds = Array.from(this.selectedBooks);
+    if (selectedBookIds.length === 0) return;
+
+    this.confirmationService.confirm({
+      message: `Are you sure you want to delete AI Search embeddings for ${selectedBookIds.length} book(s)? This will remove all embedded text data and the books will need to be re-embedded to use AI Search.`,
+      header: 'Delete AI Search Embeddings',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.appSettingsService.deleteAiSearchEmbeddings(selectedBookIds).subscribe({
+          next: (result) => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Embeddings Deleted',
+              detail: `Successfully deleted ${result.deletedCount} embedding records across ${selectedBookIds.length} books.`,
+              life: 3000
+            });
+            this.deselectAllBooks();
+            this.bookService.refreshBooks();
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to delete embeddings.',
+              life: 3000
+            });
+          }
+        });
+      }
+    });
+  }
+
 
   attachFilesToBook(): void {
     const currentState = this.bookService.getCurrentBookState();

@@ -391,6 +391,7 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
           seriesCollapsed: existing?.seriesCollapsed ?? false,
           overlayBookType: existing?.overlayBookType ?? true,
           overlayAiPanelData: existing?.overlayAiPanelData ?? true,
+          overlayAiSearchData: existing?.overlayAiSearchData ?? true,
           overlayIssueNumber: existing?.overlayIssueNumber ?? true
         }
       };

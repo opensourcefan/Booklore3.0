@@ -363,7 +363,12 @@ public class AudiobookMetadataExtractor implements FileMetadataExtractor {
                 }
             }
 
-            int exitCode = process.waitFor();
+            if (!process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                log.warn("FFprobe chapter extraction timed out for {}", audioFile.getName());
+                return null;
+            }
+            int exitCode = process.exitValue();
             if (exitCode != 0) {
                 log.debug("FFprobe exited with code {} for {}", exitCode, audioFile.getName());
                 return null;

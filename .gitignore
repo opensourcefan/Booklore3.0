@@ -67,3 +67,9 @@ patches/
 docker-compose.yml
 dev.docker-compose.yml
 
+### Python ###
+__pycache__/
+
+### Release Scripts ###
+push-and-tag.sh
+release-stable.sh

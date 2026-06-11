@@ -40,6 +40,7 @@ public class TaskCronService {
                 .orElse(CronConfig.builder()
                         .taskType(taskType)
                         .enabled(false)
+                        .notificationsEnabled(true)
                         .build());
     }
 
@@ -59,6 +60,9 @@ public class TaskCronService {
         }
         if (request.getEnabled() != null) {
             config.setEnabled(request.getEnabled());
+        }
+        if (request.getNotificationsEnabled() != null) {
+            config.setNotificationsEnabled(request.getNotificationsEnabled());
         }
         config = repository.save(config);
         log.info("Updated cron configuration for task type: {}", taskType);
@@ -89,12 +93,18 @@ public class TaskCronService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public java.util.Optional<TaskCronConfigurationEntity> getCronConfigEntity(TaskType taskType) {
+        return repository.findByTaskType(taskType);
+    }
+
     private CronConfig mapToResponse(TaskCronConfigurationEntity config) {
         return CronConfig.builder()
                 .id(config.getId())
                 .taskType(config.getTaskType())
                 .cronExpression(config.getCronExpression())
                 .enabled(config.getEnabled())
+                .notificationsEnabled(config.getNotificationsEnabled())
                 .createdAt(config.getCreatedAt())
                 .updatedAt(config.getUpdatedAt())
                 .build();

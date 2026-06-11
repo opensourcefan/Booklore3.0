@@ -352,6 +352,23 @@ jobs:
             type=gha,scope=fable-panel-ai,mode=max
             type=registry,ref=ghcr.io/opensourcefan/fable-panel-ai:buildcache,mode=max
 
+      - name: Build and push AI Search Docker image
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: ./docker/ai-search
+          file: ./docker/ai-search/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/opensourcefan/fable-search-ai:${{ env.new_tag }}
+            ghcr.io/opensourcefan/fable-search-ai:stable
+          cache-from: |
+            type=gha,scope=fable-search-ai
+            type=registry,ref=ghcr.io/opensourcefan/fable-search-ai:buildcache
+          cache-to: |
+            type=gha,scope=fable-search-ai,mode=max
+            type=registry,ref=ghcr.io/opensourcefan/fable-search-ai:buildcache,mode=max
+
       - name: Update GitHub Release Draft
         uses: release-drafter/release-drafter@693d20e7c1ce1a81d3a41962f85914253b518449 # v6
         with:

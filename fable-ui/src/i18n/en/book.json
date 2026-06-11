@@ -66,6 +66,7 @@
       "textRows": "Text rows",
       "bookTypeOverlay": "File format overlay",
       "aiOverlay": "AI overlay",
+      "aiSearchOverlay": "AI Search overlay",
       "issueNumberOverlay": "Issue number overlay",
       "noBooks": "This collection has no books!",
       "failedLibrary": "Failed to load library's books!",
@@ -118,6 +119,7 @@
       "regenerateCover": "Regenerate Cover (File)",
       "generateCustomCover": "Generate Custom Cover",
       "moreActions": "More Actions",
+      "embedForAiSearch": "Embed for AI Search",
       "organizeFile": "Organize File",
       "readStatus": "Read Status",
       "resetBookloreProgress": "Reset Reading Odyssey Progress",
@@ -157,7 +159,9 @@
       "coverRegenFailedDetail": "Failed to regenerate cover",
       "customCoverSuccessSummary": "Success",
       "customCoverSuccessDetail": "Cover generated successfully",
-      "customCoverFailedDetail": "Failed to generate cover"
+      "customCoverFailedDetail": "Failed to generate cover",
+      "embedAiSearchSuccessDetail": "AI Search embedding started for \"{{ title }}\"",
+      "embedAiSearchFailedDetail": "Failed to start AI Search embedding"
     },
     "alt": {
       "cover": "Cover of {{ title }}",
@@ -872,6 +876,18 @@
     "byPrefix": "by",
     "noResults": "No results found",
     "unknownAuthor": "Unknown Author"
+  },
+  "aiSearch": {
+    "title": "AI Search",
+    "placeholder": "Search your books semantically...",
+    "noResults": "No results found. Try a different query.",
+    "answer": "AI Answer",
+    "results": "{{ count }} result(s)",
+    "page": "Page",
+    "match": "match",
+    "bookCoverAlt": "Book Cover",
+    "clearResults": "Clear Results",
+    "close": "Close"
   },
   "sender": {
     "title": "Send Book",

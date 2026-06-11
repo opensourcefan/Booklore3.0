@@ -36,6 +36,10 @@
   height: 2.5rem;
   line-height: 2.5rem;
   font-size: 1rem;
+  
+  &.has-ai-btn {
+    padding-right: 4rem; // make room for both clear and AI buttons
+  }
 }
 
 .clear-search-btn {
@@ -43,10 +47,140 @@
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  display: none;
 
-  @media (min-width: 640px) {
-    display: inline-flex;
+  &.with-ai-btn {
+    right: 2.25rem;
+  }
+  
+  ::ng-deep .p-button {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+
+    .p-button-icon {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+.ai-search-inner-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  ::ng-deep .p-button {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+
+    .p-button-icon {
+      font-size: 1.1rem;
+      color: #00d2ff;
+      filter: drop-shadow(0 0 2px rgba(0, 210, 255, 0.4));
+    }
+  }
+  
+  &.status-starting {
+    ::ng-deep .p-button-icon {
+      animation: pulse-orange 900ms infinite ease-in-out;
+      color: #6b7280;
+    }
+  }
+
+  &.status-searching {
+    ::ng-deep .p-button-icon {
+      animation: pulse-blue 900ms infinite ease-in-out;
+      color: #6b7280;
+    }
+  }
+
+  &.status-search-error {
+    ::ng-deep .p-button-icon {
+      animation: pulse-red 900ms infinite ease-in-out;
+      color: #6b7280;
+    }
+  }
+
+  &.status-embedding {
+    ::ng-deep .p-button-icon {
+      animation: pulse-green 900ms infinite ease-in-out;
+      color: #6b7280; // override base #00d2ff to prevent blue flash during animation
+    }
+  }
+  
+  &.status-error {
+    ::ng-deep .p-button-icon {
+      color: #ef4444 !important;
+      animation: none;
+    }
+  }
+
+  &:hover:not(.status-starting):not(.status-error):not(.status-searching):not(.status-search-error) {
+    ::ng-deep .p-button-icon {
+      text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
+      transition: text-shadow 0.3s ease;
+    }
+  }
+}
+
+@keyframes pulse-orange {
+  0% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(255, 167, 38, 0));
+  }
+  50% {
+    color: #ffa726;
+    filter: drop-shadow(0 0 8px rgba(255, 167, 38, 0.9));
+  }
+  100% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(255, 167, 38, 0));
+  }
+}
+
+@keyframes pulse-blue {
+  0% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(0, 210, 255, 0));
+  }
+  50% {
+    color: #00d2ff;
+    filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.9));
+  }
+  100% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(0, 210, 255, 0));
+  }
+}
+
+@keyframes pulse-red {
+  0% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(239, 68, 68, 0));
+  }
+  50% {
+    color: #ef4444;
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.9));
+  }
+  100% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(239, 68, 68, 0));
+  }
+}
+
+@keyframes pulse-green {
+  0% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(34, 197, 94, 0));
+  }
+  50% {
+    color: #22c55e;
+    filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.9));
+  }
+  100% {
+    color: #6b7280;
+    filter: drop-shadow(0 0 1px rgba(34, 197, 94, 0));
   }
 }
 

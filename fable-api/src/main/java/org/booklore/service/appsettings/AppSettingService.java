@@ -24,6 +24,14 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -41,16 +49,21 @@ public class AppSettingService {
     private final AuthenticationService authenticationService;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
+    private final JdbcTemplate jdbcTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(AppSettingService.class);
 
     private volatile AppSettings appSettings;
     private final ReentrantLock lock = new ReentrantLock();
 
-    public AppSettingService(AppProperties appProperties, SettingPersistenceHelper settingPersistenceHelper, @Lazy AuthenticationService authenticationService, @Lazy AuditService auditService, ObjectMapper objectMapper) {
+    public AppSettingService(AppProperties appProperties, SettingPersistenceHelper settingPersistenceHelper, @Lazy AuthenticationService authenticationService, @Lazy AuditService auditService, ObjectMapper objectMapper, RestTemplate restTemplate, JdbcTemplate jdbcTemplate) {
         this.appProperties = appProperties;
         this.settingPersistenceHelper = settingPersistenceHelper;
         this.authenticationService = authenticationService;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
+        this.restTemplate = restTemplate;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public AppSettingsTransferFile exportSettings() {
@@ -132,6 +145,11 @@ public class AppSettingService {
         }
 
         var setting = settingPersistenceHelper.appSettingsRepository.findByName(key.toString());
+        AiSearchSettings oldAiSearch = null;
+        if (key == AppSettingKey.AI_SEARCH_SETTINGS) {
+            oldAiSearch = getAppSettings().getAiSearchSettings();
+        }
+
         if (setting == null) {
             setting = new AppSettingEntity();
             setting.setName(key.toString());
@@ -146,6 +164,93 @@ public class AppSettingService {
             default -> AuditAction.SETTINGS_UPDATED;
         };
         auditService.log(action, "Updated setting: " + key);
+
+        if (key == AppSettingKey.AI_SEARCH_SETTINGS) {
+            String serialized = settingPersistenceHelper.serializeSettingValue(key, val);
+            AiSearchSettings newSettings = serialized != null ? objectMapper.readValue(serialized, AiSearchSettings.class) : null;
+            handleAiSearchSettingsUpdate(newSettings, oldAiSearch);
+        } else if (key == AppSettingKey.AI_PANEL_SETTINGS) {
+            String serialized = settingPersistenceHelper.serializeSettingValue(key, val);
+            AiPanelSettings newSettings = serialized != null ? objectMapper.readValue(serialized, AiPanelSettings.class) : null;
+            handleAiPanelSettingsUpdate(newSettings);
+        }
+    }
+
+    private void handleAiSearchSettingsUpdate(AiSearchSettings newSettings, AiSearchSettings oldSettings) {
+        // Auto-heal sequence if embedding provider/model or chunking/dimension settings changed.
+        // When the embedding model or chunk parameters change, ALL embeddings become invalid or inconsistent.
+        // Mark books with embeddings for re-embed, then delete all embeddings.
+        boolean providerChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getEmbeddingProvider(), newSettings.getEmbeddingProvider());
+        boolean modelChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getEmbeddingModel(), newSettings.getEmbeddingModel());
+        boolean externalUrlChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getExternalEmbeddingUrl(), newSettings.getExternalEmbeddingUrl());
+        boolean chunkSizeChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getChunkSize(), newSettings.getChunkSize());
+        boolean chunkOverlapChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getChunkOverlap(), newSettings.getChunkOverlap());
+        boolean matryoshkaChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getMatryoshkaDimensions(), newSettings.getMatryoshkaDimensions());
+        
+        if (providerChanged || modelChanged || externalUrlChanged || chunkSizeChanged || chunkOverlapChanged || matryoshkaChanged) {
+            logger.info("Embedding model/provider/chunking settings changed, initiating auto-heal database sequence.");
+            try {
+                jdbcTemplate.update("UPDATE book SET marked_for_ai_search = true WHERE id IN (SELECT book_id FROM book_embeddings)");
+                jdbcTemplate.update("DELETE FROM book_embeddings");
+                jdbcTemplate.update("DELETE FROM book_metadata_tag_mapping WHERE tag_id IN (SELECT id FROM tag WHERE name = 'AIS')");
+                logger.info("Auto-heal sequence completed successfully.");
+            } catch (Exception e) {
+                logger.error("Failed to execute auto-heal sequence", e);
+            }
+        }
+
+        // Fire Webhook
+        String url = appProperties.getAiSearch().getBaseUrl() + "/v1/config";
+        fireWebhook(url, newSettings);
+    }
+
+    private void handleAiPanelSettingsUpdate(AiPanelSettings newSettings) {
+        String url = appProperties.getAi().getBaseUrl() + "/v1/config";
+        fireWebhook(url, newSettings);
+    }
+
+    private void fireWebhook(String url, Object payload) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> request = new HttpEntity<>(payload, headers);
+            // Fire in background with a brief delay to allow DB transaction to settle
+            // before the Python service begins reloading models
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+                // Retry up to 3 times with exponential backoff
+                int maxAttempts = 3;
+                for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+                    try {
+                        restTemplate.postForEntity(url, request, String.class);
+                        logger.info("Successfully pushed config to {}", url);
+                        return;
+                    } catch (Exception e) {
+                        if (attempt < maxAttempts) {
+                            long backoff = (long) Math.pow(2, attempt) * 1000; // 2s, 4s
+                            logger.warn("Failed to push config to {} (attempt {}/{}), retrying in {}ms: {}",
+                                    url, attempt, maxAttempts, backoff, e.getMessage());
+                            try {
+                                Thread.sleep(backoff);
+                            } catch (InterruptedException ie) {
+                                Thread.currentThread().interrupt();
+                                return;
+                            }
+                        } else {
+                            logger.error("Failed to push config to {} after {} attempts: {}",
+                                    url, maxAttempts, e.getMessage());
+                        }
+                    }
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Error setting up webhook to {}", url, e);
+        }
     }
 
     private void validateOidcForceOnlyMode(Object val) {
@@ -318,8 +423,10 @@ public class AppSettingService {
         builder.opdsServerEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.OPDS_SERVER_ENABLED, "false")));
         builder.komgaApiEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.KOMGA_API_ENABLED, "false")));
         builder.komgaGroupUnknown(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.KOMGA_GROUP_UNKNOWN, "true")));
-        builder.telemetryEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.TELEMETRY_ENABLED, "true")));
         builder.aiPanelDetectionEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.AI_PANEL_DETECTION_ENABLED, "false")));
+        builder.aiSearchEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.AI_SEARCH_ENABLED, "false")));
+        builder.aiPanelSettings(settingPersistenceHelper.getJsonSetting(settingsMap, AppSettingKey.AI_PANEL_SETTINGS, AiPanelSettings.class, new AiPanelSettings(), true));
+        builder.aiSearchSettings(settingPersistenceHelper.getJsonSetting(settingsMap, AppSettingKey.AI_SEARCH_SETTINGS, AiSearchSettings.class, new AiSearchSettings(), true));
         builder.pdfCacheSizeInMb(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.PDF_CACHE_SIZE_IN_MB, "5120")));
         builder.maxFileUploadSizeInMb(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.MAX_FILE_UPLOAD_SIZE_IN_MB, "100")));
         builder.metadataDownloadOnBookdrop(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.METADATA_DOWNLOAD_ON_BOOKDROP, "true")));
@@ -367,5 +474,26 @@ public class AppSettingService {
         }
         setting.setVal(value);
         settingPersistenceHelper.appSettingsRepository.save(setting);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> testAiConnection(AiTestConnectionRequest request, String path) {
+        String url = appProperties.getAiSearch().getBaseUrl() + path;
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            Map<String, String> body = Map.of(
+                "provider", request.getProvider() != null ? request.getProvider() : "",
+                "url", request.getUrl() != null ? request.getUrl() : "",
+                "apiKey", request.getApiKey() != null ? request.getApiKey() : "",
+                "model", request.getModel() != null ? request.getModel() : ""
+            );
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
+            var response = restTemplate.postForEntity(url, entity, Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of("success", false, "message", "Empty response");
+        } catch (Exception e) {
+            logger.error("AI connection test failed for {}: {}", path, e.getMessage());
+            return Map.of("success", false, "message", "Could not reach AI Search service: " + e.getMessage());
+        }
     }
 }

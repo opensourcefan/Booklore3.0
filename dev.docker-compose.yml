@@ -1,7 +1,8 @@
 services:
   backend:
     image: gradle:9.4.1-jdk25-alpine
-    command: sh -c "cd /booklore-api && ./gradlew bootRun"
+    container_name: app-backend
+    command: sh -c "cd /fable-api && ./gradlew bootRun"
     ports:
       - "${BACKEND_PORT:-6060}:6060"
       # SECURITY (L2): JDWP remote debugger is bound to 127.0.0.1 (loopback only).
@@ -10,21 +11,23 @@ services:
       # in any internet-facing / shared network environment.
       - "127.0.0.1:${REMOTE_DEBUG_PORT:-5005}:5005"
     environment:
-      - DATABASE_URL=jdbc:mariadb://backend_db:3306/booklore
-      - DATABASE_USERNAME=booklore
-      - DATABASE_PASSWORD=booklore
+      - APP_NAME=${APP_NAME:-Fable}
+      - DATABASE_URL=jdbc:mariadb://backend_db:3306/fable
+      - DATABASE_USERNAME=fable
+      - DATABASE_PASSWORD=fable
       - REMOTE_DEBUG_ENABLED=true
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:4200}
       - AI_SERVICE_BASE_URL=http://ai-panel:8080
+      - AI_SEARCH_SERVICE_BASE_URL=http://ai-search:8080
     stdin_open: true
     tty: true
     restart: unless-stopped
     depends_on:
       - backend_db
     volumes:
-      - './booklore-api:/booklore-api'
-      - /booklore-api/build
-      - /booklore-api/.gradle
+      - './fable-api:/fable-api'
+      - /fable-api/build
+      - /fable-api/.gradle
       - ./shared/data:/app/data
       - ./shared/books:/books
       - ./shared/bookdrop:/bookdrop
@@ -36,20 +39,21 @@ services:
       - backend_db:/var/lib/mysql
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=booklore
-      - MYSQL_DATABASE=booklore
-      - MYSQL_USER=booklore
-      - MYSQL_PASSWORD=booklore
+      - MYSQL_ROOT_PASSWORD=fable
+      - MYSQL_DATABASE=fable
+      - MYSQL_USER=fable
+      - MYSQL_PASSWORD=fable
     ports:
       - "${DB_PORT:-3366}:3306"
     healthcheck:
-      test: [ "CMD", "mariadb-admin", "ping", "-h", "localhost", "-uroot", "-pbooklore" ]
+      test: [ "CMD", "mariadb-admin", "ping", "-h", "localhost", "-uroot", "-pfable" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
   ui:
     image: node:22-alpine
+    container_name: app-ui
     command: sh -c "cd /angular-app && npm install -g @angular/cli --force && npm install --force && ng serve --host 0.0.0.0"
     environment:
       - NODE_ENV=development
@@ -57,7 +61,7 @@ services:
     tty: true
     restart: unless-stopped
     volumes:
-      - './booklore-ui:/angular-app'
+      - './fable-ui:/angular-app'
 
         # you can have node_modules in a volume. however, if you enable this, expect trouble in some IDEs, as the deps are not available anymore
         # - node_modules:/angular-app/node_modules
@@ -73,16 +77,49 @@ services:
     build:
       context: ./docker/ai-panel
       dockerfile: Dockerfile
-    image: booklore-ai-panel:local
+    image: fable-ai-panel:local
     profiles: [ "ai" ]
     pull_policy: never
     restart: unless-stopped
     environment:
-      - MODEL_ID=${AI_MODEL_ID:-mosesb/best-comic-panel-detection}
+      - TZ=${TZ}
+      - HF_HOME=/models
+    volumes:
+      - ./data/ai-models:/models
     ports:
       - "${AI_PANEL_PORT:-8080}:8080"
     healthcheck:
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:8080/health" ]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  ai-search:
+    build:
+      context: ./docker/ai-search
+      dockerfile: Dockerfile
+    image: fable-ai-search:local
+    profiles: [ "ai" ]
+    pull_policy: never
+    restart: unless-stopped
+    depends_on:
+      backend_db:
+        condition: service_healthy
+    environment:
+      - TZ=${TZ}
+      - HF_HOME=/models
+      - DB_HOST=backend_db
+      - DB_PORT=3306
+      - DB_NAME=fable
+      - DB_USER=fable
+      - DB_PASSWORD=fable
+    volumes:
+      - ./data/ai-search-models:/models
+      - ./docker/ai-search/app.py:/app/app.py
+    ports:
+      - "${AI_SEARCH_PORT:-8081}:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]
       interval: 30s
       timeout: 5s
       retries: 5

@@ -72,6 +72,7 @@ class BookServiceDeleteTests {
                 authenticationService,
                 bookQueryService,
                 readingProgressService,
+                Mockito.mock(org.booklore.service.ai.AiSearchHealthService.class),
                 comicPanelFlowRepository,
                 bookDownloadService,
                 monitoringRegistrationService,

@@ -25,8 +25,23 @@
       }
       @if (showAiPanelDataOverlay && book.hasAiPanelData) {
         <div class="ai-panel-overlay">
-          AI
+          AIP
         </div>
+      }
+      @if (showAiSearchDataOverlay && book.markedForAiSearch && aiSearchEnabled) {
+        <div class="ai-search-overlay ai-search-overlay--marked"
+             [pTooltip]="'Marked for embedding'"
+             tooltipPosition="top">
+          AIS
+        </div>
+      } @else if (showAiSearchDataOverlay && book.hasAiSearchData && aiSearchEnabled) {
+        <button type="button" class="ai-search-overlay"
+                [class.mismatched]="book['hasMismatchedAiSearchData']"
+                (click)="openAiSearch($event, book)"
+                [pTooltip]="book['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model (' + book['aiSearchEmbeddingModel'] + ') - Re-embed required' : 'AI Search (' + book['aiSearchEmbeddingModel'] + ')'"
+                tooltipPosition="top">
+          AIS
+        </button>
       }
       @if (showIssueNumberOverlay && getDisplayIssueNumber(); as displayIssueNumber) {
         <div class="series-number-overlay">
@@ -48,7 +63,7 @@
     }
 
     @if (!_isSeriesViewActive && hasDigitalFile()) {
-      <a [routerLink]="urlHelper.getBookPrimaryReadingUrl(book)" (click)="readBook(book)"><p-button [rounded]="true" [icon]="readButtonIcon" class="read-btn" (click)="readBook(book)"
+      <a class="read-btn" [routerLink]="urlHelper.getBookPrimaryReadingUrl(book)" (click)="readBook(book)"><p-button [rounded]="true" [icon]="readButtonIcon" (click)="readBook(book)"
         [pTooltip]="_isContinueReading ? ('book.card.alt.continueReading' | transloco) : ''"
         tooltipPosition="bottom"
         [ariaLabel]="_isContinueReading ? ('book.card.alt.continueReading' | transloco) : (_isAudiobook ? ('book.card.alt.playAudiobook' | transloco) : ('book.card.alt.readBook' | transloco))"></p-button></a>
@@ -170,7 +185,22 @@
             </div>
 
             @if (viewerBook.hasAiPanelData) {
-              <div class="ai-panel-overlay">AI</div>
+              <div class="ai-panel-overlay">AIP</div>
+            }
+            @if (showAiSearchDataOverlay && viewerBook.markedForAiSearch && aiSearchEnabled) {
+              <div class="ai-search-overlay ai-search-overlay--marked"
+                   [pTooltip]="'Marked for embedding'"
+                   tooltipPosition="top">
+                AIS
+              </div>
+            } @else if (viewerBook.hasAiSearchData && aiSearchEnabled) {
+              <button type="button" class="ai-search-overlay"
+                      [class.mismatched]="viewerBook['hasMismatchedAiSearchData']"
+                      (click)="openAiSearch($event, viewerBook)"
+                      [pTooltip]="viewerBook['hasMismatchedAiSearchData'] ? 'Mismatched Embedding Model (' + viewerBook['aiSearchEmbeddingModel'] + ') - Re-embed required' : 'AI Search (' + viewerBook['aiSearchEmbeddingModel'] + ')'"
+                      tooltipPosition="top">
+                AIS
+              </button>
             }
 
             @if (getInlineViewerIssueNumber(viewerBook); as issueNumber) {

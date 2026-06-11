@@ -17,6 +17,7 @@ public class CronConfig {
     private TaskType taskType;
     private String cronExpression;
     private Boolean enabled;
+    private Boolean notificationsEnabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

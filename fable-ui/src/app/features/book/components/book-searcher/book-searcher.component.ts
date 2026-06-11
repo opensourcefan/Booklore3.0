@@ -1,18 +1,22 @@
 import {Component, ElementRef, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
-import {BehaviorSubject, of, Subscription} from 'rxjs';
-import {catchError, debounceTime, distinctUntilChanged, map, switchMap} from 'rxjs/operators';
+import {BehaviorSubject, interval, of, Subscription} from 'rxjs';
+import {catchError, debounceTime, distinctUntilChanged, map, switchMap, filter as rxFilter} from 'rxjs/operators';
 import {Book} from '../../model/book.model';
 import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
 import {BookService} from '../../service/book.service';
 import {Button} from 'primeng/button';
-import {SlicePipe} from '@angular/common';
+import {SlicePipe, NgClass} from '@angular/common';
 import {Skeleton} from 'primeng/skeleton';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Router} from '@angular/router';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {AiSearchDialogService} from '../ai-search-dialog/ai-search-dialog.component';
+import {AppSettingsService} from '../../../../shared/service/app-settings.service';
+import {AiSearchScanProgressService} from '../../../../shared/service/ai-search-scan-progress.service';
+import {TooltipModule} from 'primeng/tooltip';
 
 @Component({
   selector: 'app-book-searcher',
@@ -26,6 +30,8 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
     IconField,
     InputIcon,
     TranslocoDirective,
+    NgClass,
+    TooltipModule
   ],
   styleUrls: ['./book-searcher.component.scss'],
   standalone: true
@@ -44,6 +50,20 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   protected urlHelper = inject(UrlHelperService);
   private readonly t = inject(TranslocoService);
   private elRef = inject(ElementRef);
+  private aiSearchDialogService = inject(AiSearchDialogService);
+  private appSettingsService = inject(AppSettingsService);
+
+  aiSearchEnabled = false;
+  searchStatus: 'READY' | 'STARTING' | 'ERROR' = 'READY';
+  isSearchActive = false;
+  isSearchError = false;
+  isBatchEmbedding = false;
+  private appSettingsSub?: Subscription;
+  private pollingSub?: Subscription;
+  private searchActiveSub?: Subscription;
+  private searchErrorSub?: Subscription;
+  private embeddingProgressSub?: Subscription;
+  private aiSearchScanProgressService = inject(AiSearchScanProgressService);
 
   ngOnInit(): void {
     this.#subscription = this.#searchSubject.pipe(
@@ -74,6 +94,53 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
         this.books = books;
       }
     });
+
+    this.searchActiveSub = this.aiSearchDialogService.searchActive$.subscribe(active => {
+      this.isSearchActive = active;
+    });
+
+    this.searchErrorSub = this.aiSearchDialogService.searchError$.subscribe(error => {
+      this.isSearchError = error;
+    });
+
+    this.embeddingProgressSub = this.aiSearchScanProgressService.progress$
+      .pipe(rxFilter((p): p is NonNullable<typeof p> => !!p))
+      .subscribe(progress => {
+        this.isBatchEmbedding = progress.mode === 'BATCH' && progress.event === 'IN_PROGRESS';
+      });
+
+    this.appSettingsSub = this.appSettingsService.appSettings$.subscribe(settings => {
+      this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+      if (this.aiSearchEnabled) {
+        this.startAiStatusPolling();
+      } else {
+        this.stopAiStatusPolling();
+      }
+    });
+  }
+
+  private startAiStatusPolling(): void {
+    if (this.pollingSub) return;
+    
+    const fetchStatus = () => {
+      this.appSettingsService.getAiSearchServiceStatus().pipe(
+        catchError(() => of({ status: 'load_failed' }))
+      ).subscribe((res) => {
+        if (res && res.status) {
+          this.searchStatus = res.status as 'READY' | 'STARTING' | 'ERROR';
+        }
+      });
+    };
+    
+    fetchStatus();
+    this.pollingSub = interval(5000).subscribe(() => fetchStatus());
+  }
+
+  private stopAiStatusPolling(): void {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+      this.pollingSub = undefined;
+    }
   }
 
   getAuthorNames(authors: string[] | undefined): string {
@@ -109,6 +176,10 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.books = [];
     this.isLoading = false;
+  }
+
+  openAiSearch(): void {
+    this.aiSearchDialogService.open();
   }
 
   get isDropdownOpen(): boolean {
@@ -151,5 +222,12 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     if (this.#subscription) {
       this.#subscription.unsubscribe();
     }
+    if (this.appSettingsSub) {
+      this.appSettingsSub.unsubscribe();
+    }
+    this.searchActiveSub?.unsubscribe();
+    this.searchErrorSub?.unsubscribe();
+    this.embeddingProgressSub?.unsubscribe();
+    this.stopAiStatusPolling();
   }
 }

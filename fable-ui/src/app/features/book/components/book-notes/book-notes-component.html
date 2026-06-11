@@ -33,7 +33,7 @@
               <div class="note-header">
                 <div class="note-header-inner">
                   <div class="note-title-group">
-                    <h4 class="note-title">{{ note.title }}</h4>
+                    <h4 class="note-title">{{ note.noteContent }}</h4>
                     <div class="note-meta">
                       <i class="pi pi-clock note-meta-icon"></i>
                       <span class="note-meta-text">
@@ -72,7 +72,7 @@
               </div>
 
               <div class="note-content-area">
-                <div class="note-body">{{ note.content }}</div>
+                <div class="note-body">{{ note.selectedText }}</div>
                 <div class="note-fade-overlay"></div>
               </div>
               <div class="note-bottom-glow"></div>
@@ -110,7 +110,7 @@
         <input
           id="create-title"
           pInputText
-          [(ngModel)]="newNote.title"
+          [(ngModel)]="newNote.noteContent"
           placeholder="Enter note title"
           class="field-input"
           maxlength="255"/>
@@ -121,7 +121,7 @@
         <textarea
           id="create-content"
           pTextarea
-          [(ngModel)]="newNote.content"
+          [(ngModel)]="newNote.selectedText"
           placeholder="Enter your note content..."
           [rows]="8"
           class="field-input"
@@ -163,7 +163,7 @@
         <input
           id="edit-title"
           pInputText
-          [(ngModel)]="editNote.title"
+          [(ngModel)]="editNote.noteContent"
           placeholder="Enter note title"
           class="field-input"
           maxlength="255"/>
@@ -174,7 +174,7 @@
         <textarea
           id="edit-content"
           pTextarea
-          [(ngModel)]="editNote.content"
+          [(ngModel)]="editNote.selectedText"
           placeholder="Enter your note content..."
           [rows]="8"
           class="field-input"

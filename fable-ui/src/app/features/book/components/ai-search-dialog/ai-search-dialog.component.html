@@ -1,0 +1,260 @@
+<ng-container *transloco="let t; prefix: 'book.aiSearch'">
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [focusOnShow]="false"
+  [dismissableMask]="false"
+  [closable]="false"
+  [closeOnEscape]="false"
+  styleClass="ai-search-dialog">
+  <ng-template pTemplate="header">
+    <div class="ai-search-header-wrapper">
+      <div class="ai-search-header">
+        <i class="pi pi-search"></i>
+        <span>{{ t('title') }}</span>
+      </div>
+      <div class="ai-search-header-actions">
+        @if (hasSearched) {
+          <p-button icon="pi pi-undo" [text]="true" [rounded]="true" (onClick)="clearResults()" [pTooltip]="t('clearResults')"></p-button>
+        }
+        <p-button icon="pi pi-chevron-down" [text]="true" [rounded]="true" (onClick)="close()" pTooltip="Minimize — search continues in background"></p-button>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="ai-search-body">
+
+    @if (llmWarmed === false && !localOnly) {
+      <div class="ai-search-warming-banner">
+        <i class="pi pi-spin pi-cog"></i>
+        <div class="ai-search-warming-text">
+          <strong>AI Model Warming Up:</strong> Ollama is currently loading the model for the first time. The first search query will take longer (up to 2-3 minutes) while it loads on CPU.
+        </div>
+      </div>
+    }
+
+    @if (isLoading && chatHistory.length === 0) {
+      <div class="ai-search-loading" style="display: flex; justify-content: center; align-items: center; padding: 3rem; flex-direction: column; gap: 1rem; color: var(--text-color-secondary);">
+        <i class="pi pi-spin pi-sparkles" style="font-size: 2.5rem; color: var(--primary-color);"></i>
+        <span>{{ t('searching') || 'Searching...' }}</span>
+      </div>
+    }
+
+    @if (!isLoading && !hasSearched) {
+      <div class="ai-search-empty" style="text-align: center; padding: 3rem 2rem; color: var(--text-color-secondary);">
+        <i class="pi pi-sparkles" style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--primary-color);"></i>
+        <h3 style="margin-top: 0;">AI Smart Search</h3>
+        <p style="line-height: 1.6; max-width: 450px; margin: 0 auto;">
+          Find specific concepts, entities, or themes hidden within your books.<br><br>
+          <strong>Pro tip:</strong> Try searching for general topics, ingredients, or themes (like <em>"cocktails with rum"</em> or <em>"space travel"</em>) to discover what your books have to offer, even if you aren't sure exactly what's inside!
+        </p>
+      </div>
+    }
+
+    @if (!isLoading && hasSearched && results.length === 0 && !answer) {
+      <div class="ai-search-empty">
+        <i class="pi pi-info-circle"></i>
+        <span>{{ t('noResults') }}</span>
+      </div>
+    }
+
+    @if (chatHistory.length > 0) {
+      <div class="ai-search-chat-container" style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
+        @for (msg of chatHistory; track $index) {
+          
+          <!-- User Query Bubble -->
+          <div class="ai-search-user-message" style="align-self: flex-end; background: #6b7280; color: white; padding: 0.75rem 1.25rem; border-radius: 18px 18px 2px 18px; max-width: 80%;">
+            {{ msg.query }}
+          </div>
+
+          <!-- AI Answer Bubble -->
+          <div class="ai-search-results">
+            @if (msg.isLoading) {
+              <div class="ai-search-loading-box" style="display: flex; align-items: center; gap: 0.75rem; padding: 1.25rem; background: var(--surface-ground); border-radius: 8px; color: var(--text-color-secondary);">
+                <i class="pi pi-spin pi-spinner" style="font-size: 1.25rem; color: var(--primary-color);"></i>
+                <span>Searching your library and generating answer...</span>
+              </div>
+            } @else if (msg.answer) {
+              <div class="ai-search-answer">
+                <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="ai-search-answer-badge">AI Generated Answer</span>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
+                    <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
+                  </div>
+                </div>
+                <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)"></div>
+                @if (msg.results && msg.results.length > 0) {
+                  <div class="ai-search-citations">
+                    <div class="ai-search-citations-label">
+                      <i class="pi pi-book"></i> Sources from Your Library
+                    </div>
+                    @for (result of msg.results; track result.chunkId) {
+                      <div class="ai-search-citation-item" (click)="readBookAtPage(result)" (keydown.enter)="readBookAtPage(result)" (keydown.space)="readBookAtPage(result); $event.preventDefault()" tabindex="0" role="button" [title]="'Open ' + result.bookTitle + ' in reader'">
+                        <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
+                        @if (getContentTitle(result)) {
+                          <span class="ai-search-citation-separator">›</span>
+                          <span class="ai-search-citation-content-title">{{ getContentTitle(result) }}</span>
+                        } @else if (result.chapterTitle) {
+                          <span class="ai-search-citation-separator">›</span>
+                          <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
+                        }
+                        @if (result.pageNumber) {
+                          <span class="ai-search-citation-page">p.{{ result.pageNumber }}</span>
+                        }
+                        <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else if (msg.results && msg.results.length > 0) {
+              <div class="ai-search-answer ai-search-raw-results">
+                <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="ai-search-answer-badge">Raw Results</span>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
+                    <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 0.5rem;">
+                  @for (result of msg.results; track result.chunkId) {
+                    <div>
+                      <div class="ai-search-markdown-content">
+                        <p style="margin-bottom: 0;">
+                          {{ result.chunkText }}
+                        </p>
+                      </div>
+                      <div class="ai-search-citations">
+                        <div class="ai-search-citation-item" (click)="readBookAtPage(result)" (keydown.enter)="readBookAtPage(result)" (keydown.space)="readBookAtPage(result); $event.preventDefault()" tabindex="0" role="button" [title]="'Open ' + result.bookTitle + ' in reader'" style="margin-bottom: 0;">
+                          <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
+                          @if (getContentTitle(result)) {
+                            <span class="ai-search-citation-separator">›</span>
+                            <span class="ai-search-citation-content-title">{{ getContentTitle(result) }}</span>
+                          } @else if (result.chapterTitle) {
+                            <span class="ai-search-citation-separator">›</span>
+                            <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
+                          }
+                          @if (result.pageNumber) {
+                            <span class="ai-search-citation-page">p.{{ result.pageNumber }}</span>
+                          }
+                          <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div style="padding: 1rem 0;">
+                @if (lastError) {
+                  <div style="color: var(--pink-500);">
+                    <i class="pi pi-exclamation-triangle"></i> {{ lastError }}
+                  </div>
+                } @else {
+                  <div style="color: var(--text-color-secondary);">
+                    <i class="pi pi-info-circle"></i> No matching results found. Try a different query or check that your books are embedded.
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+        }
+      </div>
+    }
+
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="ai-search-input-row" style="display: flex; gap: 0.5rem; width: 100%; padding-top: 0.5rem; align-items: center;">
+      <p-button
+        [label]="mobileUx.isMobileOrTablet ? '' : (localOnly ? 'Raw' : 'AI')"
+        [icon]="localOnly ? 'pi pi-list' : 'pi pi-sparkles'"
+        [severity]="localOnly ? 'success' : 'info'"
+        [outlined]="true"
+        [pTooltip]="localOnly ? 'Raw: Search your library directly (no AI synthesis)' : 'AI + Raw: Search your library and generate an AI answer'"
+        tooltipPosition="top"
+        (onClick)="localOnly = !localOnly">
+      </p-button>
+      <button
+        type="button"
+        class="ai-search-info-btn"
+        (click)="infoPopover.toggle($event)"
+        pTooltip="About AI Search"
+        tooltipPosition="top">
+        <i class="pi pi-info-circle"></i>
+      </button>
+      <p-popover #infoPopover [dismissable]="true" appendTo="body" [style]="{ width: '520px', maxWidth: '90vw' }">
+        <div class="ai-search-info-popover-content" [innerHTML]="aiSearchInfoHtml"></div>
+      </p-popover>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="searchQuery"
+        (keydown)="onKeydown($event)"
+        [placeholder]="t('placeholder')"
+        class="ai-search-input"
+        style="flex: 1;"
+      />
+      <p-button
+        icon="pi pi-search"
+        [loading]="isLoading"
+        (onClick)="onSearch()"
+        [disabled]="searchQuery.trim().length < 2">
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [visible]="!!selectedResult"
+  [modal]="true"
+  [focusOnShow]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [header]="selectedResult?.bookTitle || 'Result Details'"
+  [style]="{ width: '90vw', maxWidth: '700px' }"
+  (onHide)="closeResultDetail()"
+  styleClass="ai-search-detail-dialog"
+>
+  @if (selectedResult) {
+    <div class="ai-search-detail-content" style="display: flex; flex-direction: column; gap: 1rem;">
+      @if (getContentTitle(selectedResult)) {
+        <div class="ai-search-detail-content-title" style="font-weight: 600; font-size: 1.1rem; color: var(--text-color);">
+          {{ getContentTitle(selectedResult) }}
+        </div>
+      } @else if (selectedResult.chapterTitle) {
+        <div class="ai-search-detail-chapter" style="font-weight: 500; color: var(--text-color-secondary);">
+          <i class="pi pi-list"></i> {{ selectedResult.chapterTitle }}
+        </div>
+      }
+      @if (selectedResult.contextBefore) {
+        <div class="ai-search-detail-context-before" style="line-height: 1.6; color: var(--text-color-secondary); font-size: 0.9rem; background: var(--surface-ground); padding: 0.75rem; border-radius: 6px; opacity: 0.8;">
+          ...{{ selectedResult.contextBefore }}...
+        </div>
+      }
+      <div class="ai-search-detail-text" style="line-height: 1.6; background: var(--surface-hover); padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">
+        {{ selectedResult.chunkText }}
+      </div>
+      @if (selectedResult.contextAfter) {
+        <div class="ai-search-detail-context-after" style="line-height: 1.6; color: var(--text-color-secondary); font-size: 0.9rem; background: var(--surface-ground); padding: 0.75rem; border-radius: 6px; opacity: 0.8;">
+          ...{{ selectedResult.contextAfter }}...
+        </div>
+      }
+      <div class="ai-search-detail-meta" style="display: flex; gap: 1rem; color: var(--text-color-secondary); font-size: 0.9rem;">
+        @if (selectedResult.pageNumber) {
+          <span><i class="pi pi-file"></i> {{ t('page') }} {{ selectedResult.pageNumber }}</span>
+        }
+        @if (selectedResult.similarity) {
+          <span><i class="pi pi-percentage"></i> {{ (selectedResult.similarity * 100).toFixed(1) }}% {{ t('match') }}</span>
+        }
+      </div>
+    </div>
+    <div class="ai-search-detail-actions" style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem;">
+      <p-button icon="pi pi-file-edit" [label]="'Save Note'" [outlined]="true" (onClick)="saveToNotepad(selectedResult)"></p-button>
+      <p-button icon="pi pi-book" [label]="'Open in Reader'" severity="info" (onClick)="readBookAtPage(selectedResult)"></p-button>
+    </div>
+  }
+</p-dialog>
+</ng-container>

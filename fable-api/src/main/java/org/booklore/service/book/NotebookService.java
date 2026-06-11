@@ -52,6 +52,12 @@ public class NotebookService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public long countEntries() {
+        Long userId = authenticationService.getAuthenticatedUser().getId();
+        return repository.countEntries(userId);
+    }
+
     private String wrapSearch(String search) {
         if (search == null || search.isBlank()) return null;
         return "%" + escapeLike(search) + "%";

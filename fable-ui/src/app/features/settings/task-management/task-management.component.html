@@ -18,6 +18,13 @@
       <p class="section-description">
         {{ t('systemTasks.sectionDesc') }}
       </p>
+      <div class="cron-helper" style="margin-top: 1rem; padding: 1rem; background-color: var(--surface-ground); border-radius: 6px;">
+        <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem;"><i class="pi pi-info-circle"></i> Cron Formatting Guide</h4>
+        <p style="margin: 0; font-size: 0.85rem; color: var(--text-color-secondary);">
+          Tasks use standard 6-field cron expressions: <code>Second Minute Hour Day-of-Month Month Day-of-Week</code>.<br>
+          Need help? Use <a href="https://crontab.guru" target="_blank" style="color: var(--primary-color); text-decoration: none;">crontab.guru</a> (Note: Fable includes a seconds field at the start).
+        </p>
+      </div>
     </div>
 
     <div class="section-body">
@@ -74,7 +81,12 @@
                       <i class="pi pi-clock"></i>
                       @if (!isEditingCron(taskInfo.taskType)) {
                         @if (getCronConfig(taskInfo.taskType)?.cronExpression) {
-                          <code class="cron-value">{{ getCronConfig(taskInfo.taskType)!.cronExpression }}</code>
+                          <div class="cron-display">
+                            <code class="cron-value">{{ getCronConfig(taskInfo.taskType)!.cronExpression }}</code>
+                            <div class="cron-human-readable" style="font-size: 0.8rem; color: var(--text-color-secondary); margin-top: 0.25rem;">
+                              {{ getHumanReadableCron(getCronConfig(taskInfo.taskType)!.cronExpression) }}
+                            </div>
+                          </div>
                         } @else {
                           <span class="cron-empty">{{ t('cron.noSchedule') }}</span>
                         }
@@ -114,12 +126,28 @@
                             severity="secondary"
                             (onClick)="cancelEditingCron()">
                           </p-button>
+                          @if (editingCronExpression && !cronValidationError) {
+                            <div class="cron-human-readable" style="font-size: 0.8rem; color: var(--primary-color); margin-top: 0.25rem; width: 100%;">
+                              {{ getHumanReadableCron(editingCronExpression) }}
+                            </div>
+                          }
                         </div>
                       }
                       <p-toggleswitch
                         [ngModel]="getCronConfig(taskInfo.taskType)?.enabled ?? false"
                         [disabled]="isEditingCron(taskInfo.taskType) || cronUpdating"
                         (ngModelChange)="toggleCronEnabled(taskInfo.taskType)">
+                      </p-toggleswitch>
+                    </div>
+                    <div class="cron-row" style="margin-top: 0.5rem; justify-content: space-between;">
+                      <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="pi pi-bell" style="color: var(--p-primary-color); font-size: 0.875rem;"></i>
+                        <span style="font-size: 0.875rem; color: var(--p-text-muted-color);">{{ t('cron.notifications') }}</span>
+                      </div>
+                      <p-toggleswitch
+                        [ngModel]="getCronConfig(taskInfo.taskType)?.notificationsEnabled ?? true"
+                        [disabled]="cronUpdating"
+                        (ngModelChange)="toggleCronNotificationsEnabled(taskInfo.taskType)">
                       </p-toggleswitch>
                     </div>
                     @if (isEditingCron(taskInfo.taskType) && cronValidationError) {

@@ -55,11 +55,6 @@
     "importConfirmHeader": "Confirm Import",
     "importConfirmMessage": "Importing will overwrite matching application settings. Continue?"
   },
-  "telemetry": {
-    "sectionTitle": "",
-    "enableTelemetry": "",
-    "telemetryDesc": ""
-  },
   "settingsSaved": "",
   "settingsSavedDetail": "",
   "settingsError": "",

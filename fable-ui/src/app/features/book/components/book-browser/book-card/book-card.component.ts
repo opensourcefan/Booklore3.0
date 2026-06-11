@@ -33,6 +33,8 @@ import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
 import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
 
+import {AiSearchDialogService} from '../../ai-search-dialog/ai-search-dialog.component';
+
 @Component({
   selector: 'app-book-card',
   templateUrl: './book-card.component.html',
@@ -119,6 +121,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private readonly t = inject(TranslocoService);
   private readonly appRef = inject(ApplicationRef);
   private readonly injector = inject(Injector);
+  private aiSearchDialogService = inject(AiSearchDialogService);
 
   protected _progressPercentage: number | null = null;
   protected _koProgressPercentage: number | null = null;
@@ -144,12 +147,14 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private user: User | null = null;
   private diskType = 'LOCAL';
   private allowFileDeletion = false;
+  protected aiSearchEnabled = false;
   private menuInitialized = false;
   private menuContextBook: Book | null = null;
   private activeTieredMenu: TieredMenu | null = null;
 
   showBookTypePill = true;
   showAiPanelDataOverlay = true;
+  showAiSearchDataOverlay = true;
   showIssueNumberOverlay = true;
 
   private overlayPrefSub?: Subscription;
@@ -187,6 +192,8 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       .subscribe(settings => {
         this.diskType = settings?.diskType ?? 'LOCAL';
         this.allowFileDeletion = settings?.allowFileDeletion ?? false;
+        this.aiSearchEnabled = settings?.aiSearchEnabled ?? false;
+        this.cdr.markForCheck();
       });
 
     if (this.overlayPreferenceService) {
@@ -197,6 +204,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       }));
       this.overlayPrefSub.add(this.overlayPreferenceService.showAiPanelData$.subscribe(val => {
         this.showAiPanelDataOverlay = val;
+        this.cdr.markForCheck();
+      }));
+      this.overlayPrefSub.add(this.overlayPreferenceService.showAiSearchData$.subscribe(val => {
+        this.showAiSearchDataOverlay = val;
         this.cdr.markForCheck();
       }));
       this.overlayPrefSub.add(this.overlayPreferenceService.showIssueNumber$.subscribe(val => {
@@ -418,6 +429,12 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       }
     }
     this.bookService.readBook(book.id);
+  }
+
+  openAiSearch(event: Event, book: Book): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.aiSearchDialogService.open(book.id);
   }
 
   private getEbookType(book: Book): BookType | undefined {
@@ -880,6 +897,38 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         command: () => {
           this.bookDialogHelperService.openFileMoverDialog(new Set([book.id]));
         }
+      });
+    }
+
+    if (this.aiSearchEnabled) {
+      moreActions.push({
+        label: this.t.translate('layout.topbar.aiSearch') || 'AI Search',
+        icon: 'pi pi-sparkles',
+        command: () => {
+          this.aiSearchDialogService.open(book.id);
+        }
+      });
+      moreActions.push({
+        label: this.t.translate('book.card.menu.embedForAiSearch'),
+        icon: 'pi pi-search',
+        command: () => {
+          this.appSettingsService.extractAndEmbedBook(book.id).subscribe({
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: this.t.translate('common.success'),
+                detail: this.t.translate('book.card.toast.embedAiSearchSuccessDetail', {title: book.metadata?.title}),
+              });
+            },
+            error: (err) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: this.t.translate('common.error'),
+                detail: err?.error?.message || this.t.translate('book.card.toast.embedAiSearchFailedDetail'),
+              });
+            },
+          });
+        },
       });
     }
 

@@ -7,17 +7,22 @@ export interface BookNote {
   id: number;
   userId: number;
   bookId: number;
-  title: string;
-  content: string;
+  cfi: string;
+  selectedText?: string;
+  noteContent: string;
+  color?: string;
+  chapterTitle?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateBookNoteRequest {
-  id?: number;
+export interface CreateBookNoteV2Request {
   bookId: number;
-  title: string;
-  content: string;
+  cfi: string;
+  selectedText?: string;
+  noteContent: string;
+  color?: string;
+  chapterTitle?: string;
 }
 
 @Injectable({
@@ -25,14 +30,14 @@ export interface CreateBookNoteRequest {
 })
 export class BookNoteService {
 
-  private readonly url = `${API_CONFIG.BASE_URL}/api/v1/book-notes`;
+  private readonly url = `${API_CONFIG.BASE_URL}/api/v2/book-notes`;
   private readonly http = inject(HttpClient);
 
   getNotesForBook(bookId: number): Observable<BookNote[]> {
     return this.http.get<BookNote[]>(`${this.url}/book/${bookId}`);
   }
 
-  createOrUpdateNote(request: CreateBookNoteRequest): Observable<BookNote> {
+  createOrUpdateNote(request: CreateBookNoteV2Request): Observable<BookNote> {
     return this.http.post<BookNote>(this.url, request);
   }
 

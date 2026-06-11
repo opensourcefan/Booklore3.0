@@ -30,6 +30,8 @@ public class AppSettingController {
     private final AppSettingService appSettingService;
     private final OidcDiagnosticService oidcDiagnosticService;
     private final AuditService auditService;
+    private final org.booklore.config.AppProperties appProperties;
+    private final org.springframework.web.client.RestTemplate restTemplate;
 
     @Operation(summary = "Get application settings", description = "Retrieve all application settings.")
     @ApiResponse(responseCode = "200", description = "Application settings returned successfully")
@@ -87,5 +89,73 @@ public class AppSettingController {
         var result = oidcDiagnosticService.testConnection(providerDetails);
         auditService.log(AuditAction.OIDC_CONNECTION_TEST, "OIDC connection test: " + (result.success() ? "passed" : "failed"));
         return result;
+    }
+
+    @GetMapping("/ai/status")
+    public java.util.Map<String, Object> getAiStatus() {
+        java.util.Map<String, Object> status = new java.util.HashMap<>();
+        try {
+            status.put("search", restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/health", java.util.Map.class));
+        } catch (Exception e) {
+            status.put("search", java.util.Map.of("status", "offline"));
+        }
+        try {
+            status.put("panel", restTemplate.getForObject(appProperties.getAi().getBaseUrl() + "/health", java.util.Map.class));
+        } catch (Exception e) {
+            status.put("panel", java.util.Map.of("status", "offline"));
+        }
+        return status;
+    }
+
+    @PostMapping("/ai/test-embedding")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> testEmbeddingConnection(
+            @RequestBody org.booklore.model.dto.settings.AiTestConnectionRequest request) {
+        return appSettingService.testAiConnection(request, "/v1/test-embedding");
+    }
+
+    @PostMapping("/ai/test-llm")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> testLlmConnection(
+            @RequestBody org.booklore.model.dto.settings.AiTestConnectionRequest request) {
+        return appSettingService.testAiConnection(request, "/v1/test-llm");
+    }
+
+    @GetMapping("/ai/models/embedding")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> getEmbeddingModels() {
+        return restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/v1/models/embedding", java.util.Map.class);
+    }
+
+    @DeleteMapping("/ai/models/embedding")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> deleteEmbeddingModel(@RequestParam String namespace, @RequestParam String modelName) {
+        org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.exchange(
+            appProperties.getAiSearch().getBaseUrl() + "/v1/models/embedding/{namespace}/{modelName}",
+            org.springframework.http.HttpMethod.DELETE,
+            null,
+            java.util.Map.class,
+            namespace, modelName
+        );
+        return response.getBody();
+    }
+
+    @GetMapping("/ai/models/llm")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> getLlmModels() {
+        return restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/v1/models/llm", java.util.Map.class);
+    }
+
+    @DeleteMapping("/ai/models/llm")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> deleteLlmModel(@RequestParam String modelName) {
+        org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.exchange(
+            appProperties.getAiSearch().getBaseUrl() + "/v1/models/llm/{modelName}",
+            org.springframework.http.HttpMethod.DELETE,
+            null,
+            java.util.Map.class,
+            modelName
+        );
+        return response.getBody();
     }
 }

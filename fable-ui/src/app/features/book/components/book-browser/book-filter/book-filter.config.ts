@@ -285,7 +285,7 @@ export const FILTER_EXTRACTORS: Readonly<Record<Exclude<FilterType, 'library'>, 
     const subPath = book.primaryFile?.fileSubPath;
     if (!subPath || subPath.trim() === '') return [];
     return [{id: subPath, name: subPath}];
-  }
+  },
 };
 
 // Translation key for each FilterType — used by UI components to translate filter labels
