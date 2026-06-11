@@ -404,7 +404,7 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
                 "max_tokens": max_tokens,
                 "temperature": temperature,
             },
-            timeout=120,
+            timeout=300,
         )
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
@@ -426,7 +426,7 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
                     "temperature": temperature,
                 },
             },
-            timeout=120,
+            timeout=300,
         )
         resp.raise_for_status()
         return resp.json().get("message", {}).get("content", "")
