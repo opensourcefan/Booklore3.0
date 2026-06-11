@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  version: 'BUILD_VERSION',
   appName: 'Fable',
   API_CONFIG: {
     BASE_URL: window.location.origin,

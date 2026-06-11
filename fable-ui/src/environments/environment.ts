@@ -1,5 +1,6 @@
 export const environment = {
   production: false,
+  version: 'development',
   appName: 'Fable',
   API_CONFIG: {
     BASE_URL: 'http://localhost:6060',

@@ -4,11 +4,8 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/fable-api"
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "03:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
       - "backend"
@@ -25,11 +22,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/fable-ui"
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "03:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 2
     labels:
       - "dependencies"
       - "frontend"
@@ -39,6 +33,10 @@ updates:
       angular-framework:
         patterns:
           - "@angular/*"
+      other-npm-dependencies:
+        patterns:
+          - "*"
+          - "!@angular/*"
     ignore:
       - dependency-name: "ngx-extended-pdf-viewer"
         versions:
@@ -51,11 +49,8 @@ updates:
   - package-ecosystem: "pip"
     directory: "/docker/ai-panel"
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "03:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
     commit-message:
@@ -65,10 +60,8 @@ updates:
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "03:00"
-      timezone: "UTC"
+      interval: "monthly"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
     commit-message:
@@ -78,10 +71,8 @@ updates:
   - package-ecosystem: "docker"
     directory: "/docker/ai-panel"
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "03:00"
-      timezone: "UTC"
+      interval: "monthly"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
     commit-message:
@@ -91,10 +82,8 @@ updates:
   - package-ecosystem: "docker-compose"
     directory: "/example-docker"
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "03:00"
-      timezone: "UTC"
+      interval: "monthly"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
     commit-message:
@@ -105,6 +94,7 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
       - "ci"
