@@ -150,6 +150,10 @@ jobs:
           echo "❌ Frontend tests failed"
           exit 1
 
+      - name: Run ESLint
+        working-directory: ./fable-ui
+        run: npx ng lint
+
   build-and-release:
     needs: [ backend-tests, frontend-tests ]
     if: needs.backend-tests.result == 'success' && needs.frontend-tests.result == 'success'

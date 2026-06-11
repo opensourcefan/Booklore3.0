@@ -136,6 +136,10 @@ jobs:
           echo "❌ Frontend tests failed"
           exit 1
 
+      - name: Run ESLint
+        working-directory: ./fable-ui
+        run: npx ng lint
+
   build-and-push:
     name: Build and Push Container
     needs: [ backend-tests, frontend-tests ]
