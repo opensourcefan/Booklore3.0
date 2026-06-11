@@ -567,3 +567,49 @@
     flex: 1 1 auto;
   }
 }
+
+.ai-search-warming-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  
+  // Light Mode / Default
+  background: var(--p-yellow-50, #fefce8);
+  border: 1px solid var(--p-yellow-200, #fef08a);
+  color: #4b5563; // Elegant, readable grey text color
+  
+  i {
+    font-size: 1.2rem;
+    color: var(--p-yellow-600, #ca8a04);
+  }
+  
+  strong {
+    color: #1f2937; // Darker grey for emphasis
+  }
+}
+
+.ai-search-warming-text {
+  flex: 1;
+}
+
+:host-context(.p-dark) {
+  .ai-search-warming-banner {
+    background: rgba(234, 179, 8, 0.1);
+    border: 1px solid rgba(234, 179, 8, 0.3);
+    color: #d1d5db; // Beautiful light grey color in dark mode (extremely readable)
+    
+    i {
+      color: #facc15;
+    }
+    
+    strong {
+      color: #f3f4f6; // Off-white/light-grey for emphasis
+    }
+  }
+}

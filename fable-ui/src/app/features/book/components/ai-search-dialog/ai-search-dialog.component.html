@@ -25,9 +25,9 @@
   <div class="ai-search-body">
 
     @if (llmWarmed === false && !localOnly) {
-      <div class="ai-search-warming-banner" style="background: var(--yellow-500); color: black; padding: 0.75rem 1rem; border-radius: 6px; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <i class="pi pi-spin pi-cog" style="font-size: 1.2rem;"></i>
-        <div style="flex: 1;">
+      <div class="ai-search-warming-banner">
+        <i class="pi pi-spin pi-cog"></i>
+        <div class="ai-search-warming-text">
           <strong>AI Model Warming Up:</strong> Ollama is currently loading the model for the first time. The first search query will take longer (up to 2-3 minutes) while it loads on CPU.
         </div>
       </div>
