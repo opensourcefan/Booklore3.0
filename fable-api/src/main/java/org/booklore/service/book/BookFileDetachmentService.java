@@ -98,6 +98,7 @@ public class BookFileDetachmentService {
         sourceBook.getBookFiles().remove(targetFile);
         targetFile.setFileSubPath(newFileSubPath);
         targetFile.setBook(newBook);
+        newBook.setBookFiles(new ArrayList<>(java.util.List.of(targetFile)));
 
         newBook = bookRepository.saveAndFlush(newBook);
 
