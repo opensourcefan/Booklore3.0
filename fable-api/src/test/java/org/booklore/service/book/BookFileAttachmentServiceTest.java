@@ -98,6 +98,11 @@ class BookFileAttachmentServiceTest {
         Files.createDirectories(dir);
         Files.createFile(dir.resolve(fileName));
 
+        if (book.getBookFiles() == null) {
+            book.setBookFiles(new ArrayList<>());
+        }
+        book.getBookFiles().add(file);
+
         return file;
     }
 
@@ -112,8 +117,15 @@ class BookFileAttachmentServiceTest {
                 .folderBased(false)
                 .bookType(BookFileType.EPUB)
                 .build();
+
+        if (book.getBookFiles() == null) {
+            book.setBookFiles(new ArrayList<>());
+        }
+        book.getBookFiles().add(file);
+
         return file;
     }
+
 
     private void setupGetUpdatedBookMocks(Long bookId, BookEntity bookEntity) {
         BookLoreUser user = BookLoreUser.builder().id(1L).username("testuser").build();
@@ -826,6 +838,7 @@ class BookFileAttachmentServiceTest {
                     .folderBased(false)
                     .bookType(BookFileType.PDF)
                     .build();
+            source.getBookFiles().add(sourceFile);
             Path sourceDir = tempDir.resolve("other_root/source_dir");
             Files.createDirectories(sourceDir);
             Files.createFile(sourceDir.resolve("source.pdf"));
@@ -863,6 +876,7 @@ class BookFileAttachmentServiceTest {
                     .folderBased(false)
                     .bookType(BookFileType.EPUB)
                     .build();
+            source.getBookFiles().add(sourceFile);
             Files.createDirectories(tempDir.resolve("source_dir"));
             Files.createFile(tempDir.resolve("source_dir/noextension"));
 

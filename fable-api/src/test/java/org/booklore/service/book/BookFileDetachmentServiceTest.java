@@ -67,6 +67,7 @@ class BookFileDetachmentServiceTest {
                 .library(library)
                 .libraryPath(libraryPath)
                 .build();
+        book.setBookFiles(new ArrayList<>());
 
         BookMetadataEntity metadata = BookMetadataEntity.builder()
                 .book(book)
@@ -86,8 +87,15 @@ class BookFileDetachmentServiceTest {
                 .isBookFormat(isBookFormat)
                 .bookType(type)
                 .build();
+
+        if (book.getBookFiles() == null) {
+            book.setBookFiles(new ArrayList<>());
+        }
+        book.getBookFiles().add(file);
+
         return file;
     }
+
 
     private void setupMocksForGetUpdatedBook() {
         BookLoreUser user = new BookLoreUser();
