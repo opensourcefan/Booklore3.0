@@ -640,9 +640,16 @@ export class AppTopBarComponent implements OnDestroy {
     this.notificationService.activeNotification$
       .pipe(takeUntil(this.destroy$))
       .subscribe((notification: LogNotification | null) => {
-        this.hasActiveLogNotification = !!notification;
         if (notification) {
           this.latestNotificationSeverity = notification.severity;
+        }
+      });
+
+    this.notificationService.notificationHighlight$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((highlight: boolean) => {
+        this.hasActiveLogNotification = highlight;
+        if (highlight) {
           this.triggerPulseEffect();
         }
       });
@@ -962,17 +969,51 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get aiSearchScanSummary(): string {
-    if (!this.aiSearchBatchProgress) {
-      return '';
-    }
-    return this.aiSearchBatchProgress.message || '';
+    return this.getConciseSummary(this.aiSearchBatchProgress);
   }
 
   get aiSearchSingleSummary(): string {
-    if (!this.aiSearchSingleProgress) {
-      return '';
+    return this.getConciseSummary(this.aiSearchSingleProgress);
+  }
+
+  private getConciseSummary(progress: AiSearchProgressPayload | null): string {
+    if (!progress) return '';
+    
+    let detail = '';
+    const ocrMatch = progress.message.match(/OCR \(page (\d+\/\d+)\)/);
+    if (ocrMatch) {
+      detail = `OCR p. ${ocrMatch[1]}`;
+    } else {
+      const percentMatch = progress.message.match(/Embedding\.\.\. (\d+%)/);
+      if (percentMatch) {
+        detail = `${percentMatch[1]}`;
+      } else {
+        switch (progress.event) {
+          case 'STARTED':
+            detail = 'Started';
+            break;
+          case 'COMPLETED':
+            detail = 'Completed';
+            break;
+          case 'FAILED':
+            detail = 'Failed';
+            break;
+          case 'STOPPED':
+            detail = 'Stopped';
+            break;
+        }
+      }
     }
-    return this.aiSearchSingleProgress.message || '';
+
+    if (progress.mode === 'BATCH') {
+      const current = progress.current ?? 0;
+      const total = progress.total ?? 0;
+      if (total > 0) {
+        return detail ? `${current}/${total} (${detail})` : `${current}/${total} books`;
+      }
+    }
+
+    return detail || progress.message || '';
   }
 
   private isToolbarItemVisible(item: ToolbarItem): boolean {

@@ -39,6 +39,13 @@ public class AiSearchSettings {
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String rerankerModel = "BAAI/bge-reranker-base";
 
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean ocrEnabled = true;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean ocrFallbackOnly = true;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private String ocrLanguage = "eng";
+
     // Added for Zero-Config Architecture
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String embeddingProvider = "local"; // local, ollama, openai

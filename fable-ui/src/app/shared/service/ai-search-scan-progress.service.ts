@@ -2,6 +2,8 @@ import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {filter} from 'rxjs/operators';
 import {MessageService} from 'primeng/api';
+import {NotificationEventService} from '../websocket/notification-event.service';
+import {Severity} from '../websocket/model/log-notification.model';
 
 export interface AiSearchProgressPayload {
   mode: 'SINGLE' | 'BATCH';
@@ -17,6 +19,7 @@ export interface AiSearchProgressPayload {
 @Injectable({providedIn: 'root'})
 export class AiSearchScanProgressService {
   private readonly messageService = inject(MessageService);
+  private readonly notificationService = inject(NotificationEventService);
   private readonly progressSubject = new BehaviorSubject<AiSearchProgressPayload | null>(null);
   private readonly embeddingBookIdsSubject = new BehaviorSubject<Set<number>>(new Set());
   private clearTimer: ReturnType<typeof setTimeout> | undefined;
@@ -39,6 +42,24 @@ export class AiSearchScanProgressService {
         }
       }, 5000);
     }
+
+    // Instead of toast notifications, log to the system notification button dropdown
+    const detail = this.buildStatusText(progress);
+    const completionSummary = this.buildCompletionSummary(progress);
+    const messageText = completionSummary || detail;
+
+    let severity: Severity = Severity.INFO;
+    if (progress.event === 'FAILED') {
+      severity = Severity.ERROR;
+    } else if (progress.event === 'STOPPED') {
+      severity = Severity.WARN;
+    }
+
+    this.notificationService.handleNewNotification({
+      timestamp: new Date().toLocaleTimeString(),
+      message: messageText,
+      severity
+    });
 
     this.updateReaderToast(progress);
   }
@@ -63,6 +84,9 @@ export class AiSearchScanProgressService {
     if (progress.mode === 'BATCH') {
       const current = progress.current ?? 0;
       const total = progress.total ?? 0;
+      if (progress.event === 'STARTED' || total === 0) {
+        return progress.message;
+      }
       return `${current}/${total} books embedded. ${progress.message}`;
     }
 
@@ -91,38 +115,7 @@ export class AiSearchScanProgressService {
     return parts.length > 0 ? parts.join('. ') : '';
   }
 
-  updateReaderToast(progress: AiSearchProgressPayload): void {
-    const detail = this.buildStatusText(progress);
-    const completionSummary = this.buildCompletionSummary(progress);
-
-    if (progress.event === 'FAILED') {
-      this.messageService.clear();
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'AI Search Embeddings',
-        detail: completionSummary || detail,
-        life: 8000
-      });
-      return;
-    }
-
-    if (progress.event === 'COMPLETED') {
-      this.messageService.clear();
-      this.messageService.add({
-        severity: 'success',
-        summary: 'AI Search Embeddings',
-        detail: completionSummary || detail,
-        life: 8000
-      });
-      return;
-    }
-
-    this.messageService.clear();
-    this.messageService.add({
-      severity: 'info',
-      summary: 'AI Search is embedding books...',
-      detail,
-      sticky: true
-    });
+  updateReaderToast(_progress: AiSearchProgressPayload): void {
+    // Toast notifications are disabled as progress notifications are logged in the topbar dropdown instead.
   }
 }

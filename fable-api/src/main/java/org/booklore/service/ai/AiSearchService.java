@@ -17,6 +17,12 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.jsoup.Jsoup;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.rendering.ImageType;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -105,7 +111,7 @@ public class AiSearchService {
                 
                 try {
                     String title = resolveBookTitle(bookId);
-                    extractAndEmbedBookInternal(bookId, userId, username, true);
+                    extractAndEmbedBookInternal(bookId, userId, username, true, current, total);
                     importedBookTitles.add(title);
                 } catch (Exception e) {
                     log.error("Failed to embed book {} during batch scan: {}", bookId, e.getMessage());
@@ -213,7 +219,7 @@ public class AiSearchService {
                     }
 
                     String title = resolveBookTitle(bookId);
-                    extractAndEmbedBookInternal(bookId, userId, username, true);
+                    extractAndEmbedBookInternal(bookId, userId, username, true, current, total);
                     scannedCount++;
                     importedBookTitles.add(title);
                     // clear the flag
@@ -310,10 +316,10 @@ public class AiSearchService {
      */
     @Async
     public void extractAndEmbedBook(Long bookId, Long userId, String username) {
-        extractAndEmbedBookInternal(bookId, userId, username, false);
+        extractAndEmbedBookInternal(bookId, userId, username, false, 0, 1);
     }
 
-    private void extractAndEmbedBookInternal(Long bookId, Long userId, String username, boolean isBatch) {
+    private void extractAndEmbedBookInternal(Long bookId, Long userId, String username, boolean isBatch, Integer current, Integer total) {
         BookEntity book = bookRepository.findByIdWithBookFiles(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("Book not found: " + bookId));
 
@@ -338,9 +344,9 @@ public class AiSearchService {
 
         try {
             if (primaryFile.getBookType() == BookFileType.EPUB) {
-                extractEpubChunks(file, bookId, userId, username, isBatch);
+                extractEpubChunks(file, bookId, userId, username, isBatch, current, total);
             } else if (primaryFile.getBookType() == BookFileType.PDF) {
-                extractPdfChunks(file, bookId, userId, username, isBatch);
+                extractPdfChunks(file, bookId, userId, username, isBatch, current, total);
             } else {
                 throw new IllegalArgumentException("Unsupported book type for AI Search: " + primaryFile.getBookType());
             }
@@ -371,7 +377,7 @@ public class AiSearchService {
         }
     }
 
-    private void extractEpubChunks(File epubFile, Long bookId, Long userId, String username, boolean isBatch) throws Exception {
+    private void extractEpubChunks(File epubFile, Long bookId, Long userId, String username, boolean isBatch, Integer current, Integer total) throws Exception {
         int spineSize = EpubContentReader.getSpineSize(epubFile);
         List<Map<String, Object>> chunkBatch = new ArrayList<>();
         boolean isFirstBatch = true;
@@ -434,9 +440,14 @@ public class AiSearchService {
         }
     }
 
-    private void extractPdfChunks(File pdfFile, Long bookId, Long userId, String username, boolean isBatch) throws Exception {
+    private void extractPdfChunks(File pdfFile, Long bookId, Long userId, String username, boolean isBatch, Integer current, Integer total) throws Exception {
         List<Map<String, Object>> chunkBatch = new ArrayList<>();
         boolean isFirstBatch = true;
+
+        org.booklore.model.dto.settings.AiSearchSettings settings = appSettingService.getAppSettings().getAiSearchSettings();
+        if (settings == null) {
+            settings = new org.booklore.model.dto.settings.AiSearchSettings();
+        }
 
         try (PDDocument document = Loader.loadPDF(pdfFile)) {
             PDFTextStripper stripper = new PDFTextStripper();
@@ -451,6 +462,29 @@ public class AiSearchService {
                 stripper.setStartPage(page);
                 stripper.setEndPage(page);
                 String text = stripper.getText(document);
+
+                boolean needsOcr = false;
+                if (text == null || text.isBlank()) {
+                    needsOcr = true;
+                } else if (settings.isOcrEnabled() && !settings.isOcrFallbackOnly()) {
+                    needsOcr = true;
+                } else if (settings.isOcrEnabled() && text.trim().length() < 50) {
+                    needsOcr = true;
+                }
+
+                if (needsOcr && settings.isOcrEnabled()) {
+                    String title = resolveBookTitle(bookId);
+                    if (isBatch) {
+                        sendBatchProgress(username, "IN_PROGRESS", "No embeddable text found in \"" + title + "\", commencing OCR (page " + page + "/" + pageCount + ")...", null, current, total, null, null);
+                    } else {
+                        sendSearchProgress(username, "IN_PROGRESS", "No embeddable text found in \"" + title + "\", commencing OCR (page " + page + "/" + pageCount + ")...", null);
+                    }
+                    String ocrText = performOcrOnPage(document, page - 1, settings.getOcrLanguage());
+                    if (ocrText != null && !ocrText.isBlank()) {
+                        text = ocrText;
+                    }
+                }
+
                 if (text == null || text.isBlank()) {
                     continue;
                 }
@@ -477,6 +511,33 @@ public class AiSearchService {
             embedBook(bookId, userId, chunkBatch, !isFirstBatch);
             chunkBatch.clear();
         }
+    }
+
+    private String performOcrOnPage(PDDocument document, int pageIndex, String language) {
+        try {
+            PDFRenderer renderer = new PDFRenderer(document);
+            BufferedImage bufferedImage = renderer.renderImageWithDPI(pageIndex, 150, ImageType.RGB);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "jpg", baos);
+            byte[] imageBytes = baos.toByteArray();
+            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+
+            String baseUrl = appProperties.getAiSearch().getBaseUrl();
+            RestClient restClient = buildRestClient();
+
+            Map<String, Object> payload = Map.of(
+                    "image", base64Image,
+                    "lang", language != null ? language : "eng"
+            );
+
+            Map<String, Object> result = postForMap(restClient, baseUrl + "/v1/ocr", payload);
+            if (result != null && result.containsKey("text")) {
+                return (String) result.get("text");
+            }
+        } catch (Exception e) {
+            log.error("Failed to perform OCR on page index {}: {}", pageIndex, e.getMessage());
+        }
+        return null;
     }
 
     /**

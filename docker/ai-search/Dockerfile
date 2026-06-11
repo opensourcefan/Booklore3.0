@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     curl \
     zstd \
+    tesseract-ocr \
+    libtesseract-dev \
+    tesseract-ocr-eng \
     && curl -fsSL https://ollama.com/install.sh | sh \
     && rm -rf /var/lib/apt/lists/*
 

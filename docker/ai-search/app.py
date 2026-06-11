@@ -9,6 +9,10 @@ import threading
 import time
 from datetime import datetime, timezone
 from typing import Any
+import base64
+import io
+from PIL import Image
+import pytesseract
 
 import mysql.connector
 import mysql.connector.pooling
@@ -62,6 +66,10 @@ HYBRID_SEARCH_ENABLED = _config.get("hybridSearchEnabled", False)
 RRF_K = int(_config.get("rrfK", 60))
 RERANKING_ENABLED = _config.get("rerankingEnabled", False)
 RERANKER_MODEL_NAME = _config.get("rerankerModel", "BAAI/bge-reranker-base")
+
+OCR_ENABLED = _config.get("ocrEnabled", True)
+OCR_FALLBACK_ONLY = _config.get("ocrFallbackOnly", True)
+OCR_LANGUAGE = _config.get("ocrLanguage", "eng")
 
 # Database config
 DB_HOST = os.getenv("DB_HOST", "mariadb")
@@ -492,7 +500,7 @@ def health() -> dict[str, Any]:
 
 @app.post("/v1/config")
 def update_config(payload: dict[str, Any]) -> dict[str, Any]:
-    global _config, EMBEDDING_PROVIDER, EMBEDDING_API_KEY, LLM_PROVIDER, LLM_API_KEY, EMBEDDING_MODEL_NAME, EXTERNAL_EMBEDDING_BASE_URL, EXTERNAL_LLM_BASE_URL, LLM_MODEL_NAME, LLM_MAX_TOKENS, LLM_TEMPERATURE, SEARCH_TOP_K, SEARCH_SIMILARITY_THRESHOLD, _embedding_model, MATRYOSHKA_DIMENSIONS, HYBRID_SEARCH_ENABLED, RRF_K, RERANKING_ENABLED, RERANKER_MODEL_NAME, _reranker_model
+    global _config, EMBEDDING_PROVIDER, EMBEDDING_API_KEY, LLM_PROVIDER, LLM_API_KEY, EMBEDDING_MODEL_NAME, EXTERNAL_EMBEDDING_BASE_URL, EXTERNAL_LLM_BASE_URL, LLM_MODEL_NAME, LLM_MAX_TOKENS, LLM_TEMPERATURE, SEARCH_TOP_K, SEARCH_SIMILARITY_THRESHOLD, _embedding_model, MATRYOSHKA_DIMENSIONS, HYBRID_SEARCH_ENABLED, RRF_K, RERANKING_ENABLED, RERANKER_MODEL_NAME, _reranker_model, OCR_ENABLED, OCR_FALLBACK_ONLY, OCR_LANGUAGE
 
     with _load_lock:
         try:
@@ -531,6 +539,10 @@ def update_config(payload: dict[str, Any]) -> dict[str, Any]:
             RERANKER_MODEL_NAME = new_reranker_model
             RERANKING_ENABLED = new_reranking_enabled
 
+            OCR_ENABLED = _config.get("ocrEnabled", True)
+            OCR_FALLBACK_ONLY = _config.get("ocrFallbackOnly", True)
+            OCR_LANGUAGE = _config.get("ocrLanguage", "eng")
+
             if model_changed or EMBEDDING_PROVIDER != "local":
                 _embedding_model = None  # Force reload or switch to external
                 if EMBEDDING_PROVIDER == "local":
@@ -562,6 +574,24 @@ def reload_model() -> dict[str, Any]:
         logger.info("Manual reload triggered via API.")
         _start_load_thread_locked()
     return {"triggered": True, "reason": "Background model load started."}
+
+
+@app.post("/v1/ocr")
+def perform_ocr(payload: dict[str, Any]) -> dict[str, Any]:
+    """Perform local Tesseract OCR on a base64 encoded image."""
+    image_b64 = payload.get("image")
+    lang = payload.get("lang") or OCR_LANGUAGE or "eng"
+    if not image_b64:
+        raise HTTPException(status_code=400, detail="Image payload is required.")
+
+    try:
+        image_data = base64.b64decode(image_b64)
+        image = Image.open(io.BytesIO(image_data))
+        text = pytesseract.image_to_string(image, lang=lang)
+        return {"text": text}
+    except Exception as exc:
+        logger.error("OCR computation failed: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.post("/v1/embed")

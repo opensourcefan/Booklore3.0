@@ -21,9 +21,11 @@ export class NotificationEventService {
   private highlightTimeout: ReturnType<typeof setTimeout> | undefined;
   private clearTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
 
-  handleNewNotification(notification: LogNotification): void {
+  handleNewNotification(notification: LogNotification, highlight = true): void {
     this.latestNotificationSubject.next(notification);
-    this.notificationHighlightSubject.next(true);
+    if (highlight) {
+      this.notificationHighlightSubject.next(true);
+    }
   }
 
   clearNotification(): void {

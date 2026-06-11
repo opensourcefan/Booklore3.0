@@ -282,6 +282,9 @@ export interface AiSearchSettings {
   rrfK: number;
   rerankingEnabled: boolean;
   rerankerModel: string;
+  ocrEnabled: boolean;
+  ocrFallbackOnly: boolean;
+  ocrLanguage: string;
 }
 
 export interface AiPanelSettings {

@@ -120,7 +120,10 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     hybridSearchEnabled: false,
     rrfK: 60,
     rerankingEnabled: false,
-    rerankerModel: 'BAAI/bge-reranker-base'
+    rerankerModel: 'BAAI/bge-reranker-base',
+    ocrEnabled: true,
+    ocrFallbackOnly: true,
+    ocrLanguage: 'eng'
   };
   originalAiSearchSettings: string = '';
   originalEmbeddingSettings: string = '';
@@ -188,7 +191,10 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           hybridSearchEnabled: settings.aiSearchSettings.hybridSearchEnabled ?? false,
           rrfK: settings.aiSearchSettings.rrfK || 0,
           rerankingEnabled: settings.aiSearchSettings.rerankingEnabled ?? false,
-          rerankerModel: settings.aiSearchSettings.rerankerModel ?? ''
+          rerankerModel: settings.aiSearchSettings.rerankerModel ?? '',
+          ocrEnabled: settings.aiSearchSettings.ocrEnabled ?? true,
+          ocrFallbackOnly: settings.aiSearchSettings.ocrFallbackOnly ?? true,
+          ocrLanguage: settings.aiSearchSettings.ocrLanguage ?? 'eng'
         };
         this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
         this.snapshotEmbeddingSettings();
