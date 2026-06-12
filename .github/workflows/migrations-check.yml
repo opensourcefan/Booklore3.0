@@ -71,6 +71,17 @@ jobs:
           ref: ${{ inputs.base_ref }}
           fetch-depth: 0
 
+      - name: Filter Out New and Modified Migrations from Base Branch
+        run: |
+          echo "Identifying migration files changed/added between ${{ inputs.base_ref }} and ${{ inputs.head_ref }}..."
+          changed_files=$(git diff --name-only ${{ inputs.base_ref }}...${{ inputs.head_ref }} | grep "fable-api/src/main/resources/db/migration/V.*.sql" || true)
+          for file in $changed_files; do
+            if [ -f "$file" ]; then
+              echo "Removing new/modified migration file from base branch context: $file"
+              rm -f "$file"
+            fi
+          done
+
       - name: Apply Migrations from Base Branch
         run: |
           echo "Applying migrations from base ref (${{ inputs.base_ref }})..."
