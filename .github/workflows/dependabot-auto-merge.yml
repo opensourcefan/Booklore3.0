@@ -86,8 +86,9 @@ jobs:
             echo "Checking release age of $dep_name ($dep_version) on ecosystem $dep_ecosystem..."
             publish_date=""
 
-            if [ "$dep_ecosystem" = "npm" ]; then
-              publish_date=$(npm view "$dep_name" time."$dep_version" || echo "")
+            if [ "$dep_ecosystem" = "npm" ] || [ "$dep_ecosystem" = "npm_and_yarn" ]; then
+              # Query NPM Registry API for publish time
+              publish_date=$(curl -s "https://registry.npmjs.org/${dep_name}" | jq -r ".time[\"${dep_version}\"]" 2>/dev/null || echo "")
             elif [ "$dep_ecosystem" = "gradle" ] || [ "$dep_ecosystem" = "maven" ]; then
               group_id=$(echo "$dep_name" | cut -d: -f1)
               artifact_id=$(echo "$dep_name" | cut -d: -f2)
@@ -121,7 +122,7 @@ jobs:
                 under_quarantine=true
               fi
             else
-              if [ "$dep_ecosystem" = "npm" ] || [ "$dep_ecosystem" = "gradle" ] || [ "$dep_ecosystem" = "maven" ] || [ "$dep_ecosystem" = "pip" ]; then
+              if [ "$dep_ecosystem" = "npm" ] || [ "$dep_ecosystem" = "npm_and_yarn" ] || [ "$dep_ecosystem" = "gradle" ] || [ "$dep_ecosystem" = "maven" ] || [ "$dep_ecosystem" = "pip" ]; then
                 echo "⚠️ Could not verify publication date for supported package $dep_name. Fail-safe quarantine activated."
                 under_quarantine=true
               else
