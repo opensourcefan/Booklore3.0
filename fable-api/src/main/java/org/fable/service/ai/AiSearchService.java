@@ -641,8 +641,8 @@ public class AiSearchService {
         try {
             org.fable.model.dto.settings.AiSearchSettings settings = appSettingService.getAppSettings().getAiSearchSettings();
             if (settings != null) {
-                chunkSizeSetting = settings.getChunkSize();
-                chunkOverlapSetting = settings.getChunkOverlap();
+                chunkSizeSetting = settings.getChunkSize() > 0 ? settings.getChunkSize() : 1500;
+                chunkOverlapSetting = settings.getChunkOverlap() >= 0 ? settings.getChunkOverlap() : 100;
             }
         } catch (Exception e) {
             log.warn("Failed to retrieve chunk settings dynamically, falling back to defaults: {}", e.getMessage());
