@@ -4,14 +4,25 @@ import {filter} from 'rxjs/operators';
 import {MessageService} from 'primeng/api';
 
 import {AiPanelScanProgressPayload} from '../model/ai-panel-scan-progress.model';
+import {RxStompService} from '../websocket/rx-stomp.service';
+import {RxStompState} from '@stomp/rx-stomp';
 
 @Injectable({providedIn: 'root'})
 export class AiPanelScanProgressService {
   private readonly messageService = inject(MessageService);
+  private readonly rxStompService = inject(RxStompService);
   private readonly progressSubject = new BehaviorSubject<AiPanelScanProgressPayload | null>(null);
   private clearTimer: ReturnType<typeof setTimeout> | undefined;
 
   readonly progress$ = this.progressSubject.asObservable();
+
+  constructor() {
+    this.rxStompService?.connectionState$?.subscribe(state => {
+      if (state !== RxStompState.OPEN) {
+        this.progressSubject.next(null);
+      }
+    });
+  }
 
   handleIncomingProgress(progress: AiPanelScanProgressPayload): void {
     if (this.clearTimer) {

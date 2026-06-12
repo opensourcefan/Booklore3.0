@@ -473,12 +473,6 @@ public class AiSearchService {
                 }
 
                 if (needsOcr && settings.isOcrEnabled()) {
-                    String title = resolveBookTitle(bookId);
-                    if (isBatch) {
-                        sendBatchProgress(username, "IN_PROGRESS", "No embeddable text found in \"" + title + "\", commencing OCR (page " + page + "/" + pageCount + ")...", null, current, total, null, null);
-                    } else {
-                        sendSearchProgress(username, "IN_PROGRESS", "No embeddable text found in \"" + title + "\", commencing OCR (page " + page + "/" + pageCount + ")...", null);
-                    }
                     String ocrText = performOcrOnPage(document, page - 1, settings.getOcrLanguage());
                     if (ocrText != null && !ocrText.isBlank()) {
                         text = ocrText;
