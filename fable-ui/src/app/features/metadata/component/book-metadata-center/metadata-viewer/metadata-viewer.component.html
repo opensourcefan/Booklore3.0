@@ -373,7 +373,7 @@
             </div>
 
             <div class="metadata-item">
-              <span class="metadata-key">{{ t('bookloreProgressLabel') }}</span>
+              <span class="metadata-key">{{ t('fableProgressLabel') }}</span>
               <span class="metadata-value-group">
                 <app-tag size="3xs" variant="pill" [color]="getProgressColor(getProgressPercent(book))">
                   {{ getProgressPercent(book) !== null ? getProgressPercent(book) + '%' : 'N/A' }}
@@ -387,7 +387,7 @@
                     severity="danger"
                     text
                     class="inline-action-button"
-                    (onClick)="resetProgress(book, ResetProgressTypes.BOOKLORE)">
+                    (onClick)="resetProgress(book, ResetProgressTypes.FABLE)">
                   </p-button>
                 }
               </span>

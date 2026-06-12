@@ -388,7 +388,7 @@ export interface User {
     canBulkRegenerateCover: boolean;
     canMoveOrganizeFiles: boolean;
     canBulkLockUnlockMetadata: boolean;
-    canBulkResetBookloreReadProgress?: boolean;
+    canBulkResetFableReadProgress?: boolean;
     canBulkResetKoReaderReadProgress?: boolean;
     canBulkResetBookReadStatus?: boolean;
   };

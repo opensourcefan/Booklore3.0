@@ -1,0 +1,470 @@
+package org.fable.app.mapper;
+
+import org.fable.app.dto.AppBookDetail;
+import org.fable.app.dto.AppBookFile;
+import org.fable.app.dto.AppBookSummary;
+import org.fable.app.dto.AppLibrarySummary;
+import org.fable.app.dto.AppMagicShelfSummary;
+import org.fable.app.dto.AppShelfSummary;
+import org.fable.model.entity.*;
+import org.fable.model.enums.BookFileType;
+import org.fable.repository.BookShelfMappingRepository;
+import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public abstract class AppBookMapper {
+
+    @Autowired
+    protected BookShelfMappingRepository bookShelfMappingRepository;
+
+    @Mapping(target = "id", source = "book.id")
+    @Mapping(target = "title", source = "book.metadata.title")
+    @Mapping(target = "authors", source = "book.metadata.authors", qualifiedByName = "mapAuthors")
+    @Mapping(target = "thumbnailUrl", source = "book", qualifiedByName = "mapThumbnailUrl")
+    @Mapping(target = "readStatus", source = "progress.readStatus")
+    @Mapping(target = "personalRating", source = "progress.personalRating")
+    @Mapping(target = "seriesName", source = "book.metadata.seriesName")
+    @Mapping(target = "seriesNumber", source = "book.metadata.seriesNumber")
+    @Mapping(target = "libraryId", source = "book.library.id")
+    @Mapping(target = "addedOn", source = "book.addedOn")
+    @Mapping(target = "lastReadTime", source = "progress.lastReadTime")
+    @Mapping(target = "readProgress", source = "progress", qualifiedByName = "mapReadProgress")
+    @Mapping(target = "primaryFileType", source = "book", qualifiedByName = "mapPrimaryFileType")
+    @Mapping(target = "coverUpdatedOn", source = "book.metadata.coverUpdatedOn")
+    @Mapping(target = "audiobookCoverUpdatedOn", source = "book.metadata.audiobookCoverUpdatedOn")
+    @Mapping(target = "isPhysical", source = "book.isPhysical")
+    @Mapping(target = "primaryFileId", source = "book", qualifiedByName = "mapPrimaryFileId")
+    @Mapping(target = "primaryFileName", source = "book", qualifiedByName = "mapPrimaryFileName")
+    @Mapping(target = "publisher", source = "book.metadata.publisher")
+    @Mapping(target = "publishedDate", source = "book.metadata.publishedDate")
+    @Mapping(target = "pageCount", source = "book.metadata.pageCount")
+    @Mapping(target = "categories", source = "book.metadata.categories", qualifiedByName = "mapCategoryNames")
+    @Mapping(target = "tags", source = "book.metadata.tags", qualifiedByName = "mapTagNames")
+    @Mapping(target = "moods", source = "book.metadata.moods", qualifiedByName = "mapMoodNames")
+    @Mapping(target = "language", source = "book.metadata.language")
+    @Mapping(target = "narrator", source = "book.metadata.narrator")
+    @Mapping(target = "isbn13", source = "book.metadata.isbn13")
+    @Mapping(target = "isbn10", source = "book.metadata.isbn10")
+    @Mapping(target = "amazonRating", source = "book.metadata.amazonRating")
+    @Mapping(target = "amazonReviewCount", source = "book.metadata.amazonReviewCount")
+    @Mapping(target = "goodreadsRating", source = "book.metadata.goodreadsRating")
+    @Mapping(target = "goodreadsReviewCount", source = "book.metadata.goodreadsReviewCount")
+    @Mapping(target = "hardcoverRating", source = "book.metadata.hardcoverRating")
+    @Mapping(target = "hardcoverReviewCount", source = "book.metadata.hardcoverReviewCount")
+    @Mapping(target = "ranobedbRating", source = "book.metadata.ranobedbRating")
+    @Mapping(target = "lubimyczytacRating", source = "book.metadata.lubimyczytacRating")
+    @Mapping(target = "audibleRating", source = "book.metadata.audibleRating")
+    @Mapping(target = "audibleReviewCount", source = "book.metadata.audibleReviewCount")
+    @Mapping(target = "allMetadataLocked", source = "book.metadata", qualifiedByName = "mapAllMetadataLocked")
+    @Mapping(target = "ageRating", source = "book.metadata.ageRating")
+    @Mapping(target = "contentRating", source = "book.metadata.contentRating")
+    @Mapping(target = "metadataMatchScore", source = "book.metadataMatchScore")
+    @Mapping(target = "fileSizeKb", source = "book", qualifiedByName = "mapFileSizeKb")
+    public abstract AppBookSummary toSummary(BookEntity book, UserBookProgressEntity progress);
+
+    @Mapping(target = "id", source = "book.id")
+    @Mapping(target = "title", source = "book.metadata.title")
+    @Mapping(target = "authors", source = "book.metadata.authors", qualifiedByName = "mapAuthors")
+    @Mapping(target = "thumbnailUrl", source = "book", qualifiedByName = "mapThumbnailUrl")
+    @Mapping(target = "readStatus", source = "progress.readStatus")
+    @Mapping(target = "personalRating", source = "progress.personalRating")
+    @Mapping(target = "seriesName", source = "book.metadata.seriesName")
+    @Mapping(target = "seriesNumber", source = "book.metadata.seriesNumber")
+    @Mapping(target = "libraryId", source = "book.library.id")
+    @Mapping(target = "addedOn", source = "book.addedOn")
+    @Mapping(target = "lastReadTime", source = "progress.lastReadTime")
+    @Mapping(target = "subtitle", source = "book.metadata.subtitle")
+    @Mapping(target = "description", source = "book.metadata.description")
+    @Mapping(target = "categories", source = "book.metadata.categories", qualifiedByName = "mapCategories")
+    @Mapping(target = "publisher", source = "book.metadata.publisher")
+    @Mapping(target = "publishedDate", source = "book.metadata.publishedDate")
+    @Mapping(target = "pageCount", source = "book.metadata.pageCount")
+    @Mapping(target = "isbn13", source = "book.metadata.isbn13")
+    @Mapping(target = "language", source = "book.metadata.language")
+    @Mapping(target = "goodreadsRating", source = "book.metadata.goodreadsRating")
+    @Mapping(target = "goodreadsReviewCount", source = "book.metadata.goodreadsReviewCount")
+    @Mapping(target = "libraryName", source = "book.library.name")
+    @Mapping(target = "shelves", source = "book.shelves", qualifiedByName = "mapShelves")
+    @Mapping(target = "readProgress", source = "progress", qualifiedByName = "mapReadProgress")
+    @Mapping(target = "primaryFileType", source = "book", qualifiedByName = "mapPrimaryFileType")
+    @Mapping(target = "coverUpdatedOn", source = "book.metadata.coverUpdatedOn")
+    @Mapping(target = "audiobookCoverUpdatedOn", source = "book.metadata.audiobookCoverUpdatedOn")
+    @Mapping(target = "isPhysical", source = "book.isPhysical")
+    @Mapping(target = "fileTypes", source = "book", qualifiedByName = "mapFileTypes")
+    @Mapping(target = "files", source = "book", qualifiedByName = "mapFiles")
+    @Mapping(target = "epubProgress", source = "progress", qualifiedByName = "mapEpubProgress")
+    @Mapping(target = "pdfProgress", source = "progress", qualifiedByName = "mapPdfProgress")
+    @Mapping(target = "cbxProgress", source = "progress", qualifiedByName = "mapCbxProgress")
+    @Mapping(target = "audiobookProgress", source = "fileProgress", qualifiedByName = "mapAudiobookProgress")
+    @Mapping(target = "koreaderProgress", source = "progress", qualifiedByName = "mapKoreaderProgress")
+    public abstract AppBookDetail toDetail(BookEntity book, UserBookProgressEntity progress, UserBookFileProgressEntity fileProgress);
+
+    @Named("mapAuthors")
+    public List<String> mapAuthors(List<AuthorEntity> authors) {
+        if (authors == null || authors.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return authors.stream()
+                .map(AuthorEntity::getName)
+                .toList();
+    }
+
+    @Named("mapCategories")
+    public Set<String> mapCategories(Set<CategoryEntity> categories) {
+        if (categories == null || categories.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return categories.stream()
+                .map(CategoryEntity::getName)
+                .collect(Collectors.toSet());
+    }
+
+    @Named("mapCategoryNames")
+    public List<String> mapCategoryNames(Set<CategoryEntity> categories) {
+        if (categories == null || categories.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return categories.stream()
+                .map(CategoryEntity::getName)
+                .sorted()
+                .toList();
+    }
+
+    @Named("mapTagNames")
+    public List<String> mapTagNames(Set<TagEntity> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return tags.stream()
+                .map(TagEntity::getName)
+                .sorted()
+                .toList();
+    }
+
+    @Named("mapMoodNames")
+    public List<String> mapMoodNames(Set<MoodEntity> moods) {
+        if (moods == null || moods.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return moods.stream()
+                .map(MoodEntity::getName)
+                .sorted()
+                .toList();
+    }
+
+    @Named("mapAllMetadataLocked")
+    public Boolean mapAllMetadataLocked(BookMetadataEntity metadata) {
+        if (metadata == null) {
+            return null;
+        }
+        return metadata.areAllFieldsLocked();
+    }
+
+    @Named("mapPrimaryFileId")
+    public Long mapPrimaryFileId(BookEntity book) {
+        if (book == null) {
+            return null;
+        }
+        BookFileEntity primaryFile = book.getPrimaryBookFile();
+        if (primaryFile != null) {
+            return primaryFile.getId();
+        }
+        return null;
+    }
+
+    @Named("mapPrimaryFileName")
+    public String mapPrimaryFileName(BookEntity book) {
+        if (book == null) {
+            return null;
+        }
+        BookFileEntity primaryFile = book.getPrimaryBookFile();
+        if (primaryFile != null) {
+            return primaryFile.getFileName();
+        }
+        return null;
+    }
+
+    @Named("mapFileSizeKb")
+    public Long mapFileSizeKb(BookEntity book) {
+        if (book == null) {
+            return null;
+        }
+        BookFileEntity primaryFile = book.getPrimaryBookFile();
+        if (primaryFile != null) {
+            return primaryFile.getFileSizeKb();
+        }
+        return null;
+    }
+
+    @Named("mapThumbnailUrl")
+    public String mapThumbnailUrl(BookEntity book) {
+        if (book == null || book.getId() == null) {
+            return null;
+        }
+        return "/api/books/" + book.getId() + "/cover";
+    }
+
+    @Named("mapShelves")
+    public List<AppShelfSummary> mapShelves(Set<ShelfEntity> shelves) {
+        if (shelves == null || shelves.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> shelfIds = shelves.stream()
+                .map(ShelfEntity::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, Long> countMap = Collections.emptyMap();
+        if (!shelfIds.isEmpty()) {
+            List<Object[]> results = bookShelfMappingRepository.countByShelfIdIn(shelfIds);
+            countMap = new HashMap<>();
+            for (Object[] row : results) {
+                countMap.put((Long) row[0], (Long) row[1]);
+            }
+        }
+        final Map<Long, Long> finalCountMap = countMap;
+        return shelves.stream()
+                .map(shelf -> {
+                    long count = finalCountMap.getOrDefault(shelf.getId(), 0L);
+                    return toShelfSummary(shelf, count);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public AppShelfSummary toShelfSummary(ShelfEntity shelf, long bookCount) {
+        if (shelf == null) {
+            return null;
+        }
+        return AppShelfSummary.builder()
+                .id(shelf.getId())
+                .name(shelf.getName())
+                .icon(shelf.getIcon())
+                .bookCount((int) bookCount)
+                .publicShelf(shelf.isPublic())
+                .build();
+    }
+
+    @Named("mapReadProgress")
+    public Float mapReadProgress(UserBookProgressEntity progress) {
+        if (progress == null) {
+            return null;
+        }
+        if (progress.getKoreaderProgressPercent() != null) {
+            return progress.getKoreaderProgressPercent();
+        }
+        if (progress.getKoboProgressPercent() != null) {
+            return progress.getKoboProgressPercent();
+        }
+        if (progress.getEpubProgressPercent() != null) {
+            return progress.getEpubProgressPercent();
+        }
+        if (progress.getPdfProgressPercent() != null) {
+            return progress.getPdfProgressPercent();
+        }
+        if (progress.getCbxProgressPercent() != null) {
+            return progress.getCbxProgressPercent();
+        }
+        return null;
+    }
+
+    @Named("mapEpubProgress")
+    public AppBookDetail.EpubProgress mapEpubProgress(UserBookProgressEntity progress) {
+        if (progress == null || progress.getEpubProgress() == null) {
+            return null;
+        }
+        return AppBookDetail.EpubProgress.builder()
+                .cfi(progress.getEpubProgress())
+                .href(progress.getEpubProgressHref())
+                .percentage(progress.getEpubProgressPercent())
+                .updatedAt(progress.getLastReadTime())
+                .build();
+    }
+
+    @Named("mapPdfProgress")
+    public AppBookDetail.PdfProgress mapPdfProgress(UserBookProgressEntity progress) {
+        if (progress == null || progress.getPdfProgress() == null) {
+            return null;
+        }
+        return AppBookDetail.PdfProgress.builder()
+                .page(progress.getPdfProgress())
+                .percentage(progress.getPdfProgressPercent())
+                .updatedAt(progress.getLastReadTime())
+                .build();
+    }
+
+    @Named("mapCbxProgress")
+    public AppBookDetail.CbxProgress mapCbxProgress(UserBookProgressEntity progress) {
+        if (progress == null || progress.getCbxProgress() == null) {
+            return null;
+        }
+        return AppBookDetail.CbxProgress.builder()
+                .page(progress.getCbxProgress())
+                .percentage(progress.getCbxProgressPercent())
+                .updatedAt(progress.getLastReadTime())
+                .build();
+    }
+
+    @Named("mapKoreaderProgress")
+    public AppBookDetail.KoreaderProgress mapKoreaderProgress(UserBookProgressEntity progress) {
+        if (progress == null || progress.getKoreaderProgressPercent() == null) {
+            return null;
+        }
+        return AppBookDetail.KoreaderProgress.builder()
+                .percentage(progress.getKoreaderProgressPercent())
+                .device(progress.getKoreaderDevice())
+                .deviceId(progress.getKoreaderDeviceId())
+                .lastSyncTime(progress.getKoreaderLastSyncTime())
+                .build();
+    }
+
+    @Named("mapAudiobookProgress")
+    public AppBookDetail.AudiobookProgress mapAudiobookProgress(UserBookFileProgressEntity fileProgress) {
+        if (fileProgress == null) return null;
+        if (fileProgress.getBookFile() == null ||
+            fileProgress.getBookFile().getBookType() != BookFileType.AUDIOBOOK) {
+            return null;
+        }
+
+        return AppBookDetail.AudiobookProgress.builder()
+                .positionMs(parseLongOrNull(fileProgress.getPositionData()))
+                .trackIndex(parseIntOrNull(fileProgress.getPositionHref()))
+                .percentage(fileProgress.getProgressPercent())
+                .updatedAt(fileProgress.getLastReadTime())
+                .build();
+    }
+
+    public Long parseLongOrNull(String value) {
+        if (value == null) return null;
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public Integer parseIntOrNull(String value) {
+        if (value == null) return null;
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    @Named("mapPrimaryFileType")
+    public String mapPrimaryFileType(BookEntity book) {
+        if (book == null) {
+            return null;
+        }
+        BookFileEntity primaryFile = book.getPrimaryBookFile();
+        if (primaryFile != null && primaryFile.getBookType() != null) {
+            return primaryFile.getBookType().name();
+        }
+        return null;
+    }
+
+    @Named("mapFileTypes")
+    public List<String> mapFileTypes(BookEntity book) {
+        if (book == null || book.getBookFiles() == null || book.getBookFiles().isEmpty()) {
+            return Collections.emptyList();
+        }
+        return book.getBookFiles().stream()
+                .filter(bf -> bf.getBookType() != null)
+                .map(bf -> bf.getBookType().name())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    @Named("mapFiles")
+    public List<AppBookFile> mapFiles(BookEntity book) {
+        if (book == null || book.getBookFiles() == null || book.getBookFiles().isEmpty()) {
+            return Collections.emptyList();
+        }
+        BookFileEntity primaryFile = book.getPrimaryBookFile();
+        Long primaryId = primaryFile != null ? primaryFile.getId() : null;
+
+        return book.getBookFiles().stream()
+                .filter(bf -> bf.getBookType() != null && bf.isBook())
+                .map(bf -> {
+                    String extension = null;
+                    try {
+                        String fileName = bf.getFileName();
+                        int lastDot = fileName.lastIndexOf('.');
+                        if (lastDot > 0) {
+                            extension = fileName.substring(lastDot + 1);
+                        }
+                    } catch (Exception e) {
+                        // Handle case where extension cannot be extracted
+                    }
+
+                    return AppBookFile.builder()
+                            .id(bf.getId())
+                            .bookId(bf.getBook() != null ? bf.getBook().getId() : null)
+                            .fileName(bf.getFileName())
+                            .isBook(bf.isBook())
+                            .folderBased(bf.isFolderBased())
+                            .bookType(bf.getBookType().name())
+                            .archiveType(bf.getArchiveType() != null ? bf.getArchiveType().name() : null)
+                            .fileSizeKb(bf.getFileSizeKb())
+                            .extension(extension)
+                            .addedOn(bf.getAddedOn())
+                            .isPrimary(bf.getId().equals(primaryId))
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    public AppLibrarySummary toLibrarySummary(LibraryEntity library, long bookCount) {
+        if (library == null) {
+            return null;
+        }
+        List<AppLibrarySummary.PathSummary> paths = Collections.emptyList();
+        if (library.getLibraryPaths() != null && !library.getLibraryPaths().isEmpty()) {
+            paths = library.getLibraryPaths().stream()
+                    .map(lp -> AppLibrarySummary.PathSummary.builder()
+                            .id(lp.getId())
+                            .path(lp.getPath())
+                            .build())
+                    .collect(Collectors.toList());
+        }
+        return AppLibrarySummary.builder()
+                .id(library.getId())
+                .name(library.getName())
+                .icon(library.getIcon())
+                .bookCount(bookCount)
+                .allowedFormats(library.getAllowedFormats())
+                .paths(paths)
+                .build();
+    }
+
+    public AppShelfSummary toShelfSummaryFromEntity(ShelfEntity shelf, long bookCount) {
+        if (shelf == null) {
+            return null;
+        }
+        return AppShelfSummary.builder()
+                .id(shelf.getId())
+                .name(shelf.getName())
+                .icon(shelf.getIcon())
+                .bookCount((int) bookCount)
+                .publicShelf(shelf.isPublic())
+                .build();
+    }
+
+    public AppMagicShelfSummary toMagicShelfSummary(MagicShelfEntity magicShelf) {
+        if (magicShelf == null) {
+            return null;
+        }
+        return AppMagicShelfSummary.builder()
+                .id(magicShelf.getId())
+                .name(magicShelf.getName())
+                .icon(magicShelf.getIcon())
+                .iconType(magicShelf.getIconType() != null ? magicShelf.getIconType().name() : null)
+                .publicShelf(magicShelf.isPublic())
+                .build();
+    }
+}

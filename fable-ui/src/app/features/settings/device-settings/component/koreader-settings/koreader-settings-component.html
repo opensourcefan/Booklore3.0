@@ -49,16 +49,16 @@
             <div class="setting-item">
               <div class="setting-info">
                 <div class="setting-label-row">
-                  <label class="setting-label" for="syncWithBookloreReader">{{ t('koreader.syncWithBooklore') }}</label>
+                  <label class="setting-label" for="syncWithFableReader">{{ t('koreader.syncWithFable') }}</label>
                   <p-toggle-switch
-                    name="syncWithBookloreReader"
-                    [(ngModel)]="syncWithBookloreReader"
-                    (ngModelChange)="onToggleSyncWithBookloreReader($event)"
-                    inputId="syncWithBookloreReader"
+                    name="syncWithFableReader"
+                    [(ngModel)]="syncWithFableReader"
+                    (ngModelChange)="onToggleSyncWithFableReader($event)"
+                    inputId="syncWithFableReader"
                     [disabled]="!credentialsSaved || !koReaderSyncEnabled">
                   </p-toggle-switch>
                 </div>
-                <p class="setting-description" [innerHTML]="t('koreader.syncWithBookloreDesc')">
+                <p class="setting-description" [innerHTML]="t('koreader.syncWithFableDesc')">
                 </p>
               </div>
             </div>

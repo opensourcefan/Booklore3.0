@@ -267,7 +267,7 @@
     "primaryBadge": "PRIMARY",
     "firstAuthorBadge": "MAIN",
     "physicalBadge": "PHYSICAL",
-    "bookloreProgressLabel": "BookLore Progress:",
+    "fableProgressLabel": "Fable Progress:",
     "metadataMatchLabel": "Metadata Match:",
     "isbnLabel": "ISBN:",
     "readStatusLabel": "Read Status:",
@@ -432,7 +432,7 @@
     "exportBtn": "Export to Sidecar",
     "exportTooltip": "Export current book metadata to a sidecar (.metadata.json) file",
     "importBtn": "Import from Sidecar",
-    "importTooltip": "Import metadata from the sidecar file into BookLore",
+    "importTooltip": "Import metadata from the sidecar file into Fable",
     "noSidecarTitle": "No Sidecar File Found",
     "noSidecarDescription": "No sidecar metadata file exists for this book. Use the Export button to create one.",
     "generatedLabel": "Generated:",
@@ -654,9 +654,9 @@
       "detail": "Continue the most recent interrupted metadata batch with {{ count }} remaining books instead of rebuilding the selection manually.",
       "button": "Resume",
       "toastSummary": "Metadata Resume Started",
-      "toastDetail": "BookLore resumed the remaining {{ count }} books from the last stopped metadata batch.",
+      "toastDetail": "Fable resumed the remaining {{ count }} books from the last stopped metadata batch.",
       "toastErrorSummary": "Resume Failed",
-      "toastErrorDetail": "BookLore could not resume the last stopped metadata batch. Please try again."
+      "toastErrorDetail": "Fable could not resume the last stopped metadata batch. Please try again."
     }
   }
 }

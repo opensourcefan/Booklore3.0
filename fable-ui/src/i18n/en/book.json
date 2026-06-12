@@ -122,7 +122,7 @@
       "embedForAiSearch": "Embed for AI Search",
       "organizeFile": "Organize File",
       "readStatus": "Read Status",
-      "resetBookloreProgress": "Reset Reading Odyssey Progress",
+      "resetFableProgress": "Reset Reading Odyssey Progress",
       "resetKOReaderProgress": "Reset KOReader Progress",
       "currentlyReading": "Currently Reading",
       "book": "Book",
@@ -149,10 +149,10 @@
       "readStatusFailedSummary": "Update Failed",
       "readStatusFailedDetail": "Could not update read status.",
       "progressResetSummary": "Progress Reset",
-      "progressResetBookloreDetail": "Booklore reading progress has been reset.",
+      "progressResetFableDetail": "Fable reading progress has been reset.",
       "progressResetKOReaderDetail": "KOReader reading progress has been reset.",
       "progressResetFailedSummary": "Failed",
-      "progressResetBookloreFailedDetail": "Could not reset Booklore progress.",
+      "progressResetFableFailedDetail": "Could not reset Fable progress.",
       "progressResetKOReaderFailedDetail": "Could not reset KOReader progress.",
       "coverRegenSuccessSummary": "Success",
       "coverRegenSuccessDetail": "Cover regeneration started",
@@ -239,7 +239,7 @@
       "setContentRating": "Set Content Rating",
       "clearContentRating": "Clear Content Rating",
       "removeFromAllShelves": "Remove from all shelves",
-      "resetBookloreProgress": "Reset Reading Odyssey Progress",
+      "resetFableProgress": "Reset Reading Odyssey Progress",
       "resetKOReaderProgress": "Reset KOReader Progress"
     },
     "confirm": {
@@ -255,7 +255,7 @@
       "clearContentRatingHeader": "Confirm Clear Content Rating",
       "unshelveMessage": "Are you sure you want to remove {{ count }} book(s) from ALL their shelves?",
       "unshelveHeader": "Confirm Unshelve",
-      "resetBookloreMessage": "Are you sure you want to reset Booklore reading progress for {{ count }} book(s)?",
+      "resetFableMessage": "Are you sure you want to reset Fable reading progress for {{ count }} book(s)?",
       "resetKOReaderMessage": "Are you sure you want to reset KOReader reading progress for {{ count }} book(s)?",
       "resetHeader": "Confirm Reset"
     },
@@ -280,7 +280,7 @@
       "unshelveSuccessDetail": "Books removed from all shelves",
       "unshelveFailedDetail": "Failed to update books shelves",
       "progressResetSummary": "Progress Reset",
-      "bookloreProgressResetDetail": "Booklore reading progress has been reset.",
+      "fableProgressResetDetail": "Fable reading progress has been reset.",
       "koreaderProgressResetDetail": "KOReader reading progress has been reset.",
       "failedSummary": "Failed",
       "progressResetFailedDetail": "Could not reset progress."
@@ -292,7 +292,7 @@
       "settingContentRating": "Setting content rating for {{ count }} book(s)...",
       "clearingContentRating": "Clearing content rating for {{ count }} book(s)...",
       "removingFromShelves": "Removing {{ count }} book(s) from shelves...",
-      "resettingBookloreProgress": "Resetting Booklore progress for {{ count }} book(s)...",
+      "resettingFableProgress": "Resetting Fable progress for {{ count }} book(s)...",
       "resettingKOReaderProgress": "Resetting KOReader progress for {{ count }} book(s)..."
     }
   },
@@ -365,7 +365,7 @@
     },
     "confirm": {
       "header": "Library Maintenance",
-      "sidecarExportMessage": "Rewrite sidecar metadata files for all books in library {{ name }}? This may replace existing sidecar JSON contents with current BookLore metadata.",
+      "sidecarExportMessage": "Rewrite sidecar metadata files for all books in library {{ name }}? This may replace existing sidecar JSON contents with current Fable metadata.",
       "sidecarBackupMessage": "Create or refresh backup sidecar files for all books in library {{ name }}? This writes backup sidecar files across the library.",
       "sidecarImportMessage": "Import metadata from sidecar files for all books in library {{ name }}? This may overwrite current database metadata with sidecar values where they exist."
     },
@@ -378,7 +378,7 @@
       },
       "sidecarExport": {
         "title": "Export Sidecars",
-        "impact": "Rewrite .metadata.json files for all books in this library from the current BookLore metadata. Use this when the database should become the source of truth for sidecar files.",
+        "impact": "Rewrite .metadata.json files for all books in this library from the current Fable metadata. Use this when the database should become the source of truth for sidecar files.",
         "button": "Export Sidecars"
       },
       "sidecarBackup": {
@@ -388,7 +388,7 @@
       },
       "sidecarImport": {
         "title": "Import Sidecars",
-        "impact": "Read existing .metadata.json files across the library and apply their metadata back into BookLore. Use this when the sidecar files should become the source of truth for the database.",
+        "impact": "Read existing .metadata.json files across the library and apply their metadata back into Fable. Use this when the sidecar files should become the source of truth for the database.",
         "button": "Import Sidecars"
       }
     },
@@ -1084,7 +1084,7 @@
       "planCopiedSummary": "Plan Copied",
       "planCopiedDetail": "Copied {{ count }} queued duplicate group(s) to the clipboard.",
       "copyFailedSummary": "Copy Failed",
-      "copyFailedDetail": "BookLore could not copy the duplicate plan to your clipboard.",
+      "copyFailedDetail": "Fable could not copy the duplicate plan to your clipboard.",
       "copyUnavailableSummary": "Clipboard Unavailable",
       "copyUnavailableDetail": "Your browser does not currently allow clipboard writes for this action.",
       "planDownloadedSummary": "Plan Downloaded",
@@ -1097,7 +1097,7 @@
     "description": "Browse physical placeholders grouped by library so each collection reads like its own shelf.",
     "loading": "Loading physical books...",
     "errorTitle": "Physical books are unavailable",
-    "errorMessage": "BookLore could not load your physical-book shelf right now.",
+    "errorMessage": "Fable could not load your physical-book shelf right now.",
     "emptyTitle": "No physical books yet",
     "emptyMessage": "Create a physical placeholder from a library to have it appear here.",
     "libraryCaption": "{{ count }} placeholder",

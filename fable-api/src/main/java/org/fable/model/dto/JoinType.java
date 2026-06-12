@@ -1,0 +1,11 @@
+package org.fable.model.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public enum JoinType {
+    @JsonProperty("and")
+    AND,
+    @JsonProperty("or")
+    OR
+}
+

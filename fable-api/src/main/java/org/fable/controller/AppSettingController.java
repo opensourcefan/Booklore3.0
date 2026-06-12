@@ -1,0 +1,161 @@
+package org.fable.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
+import org.fable.model.dto.settings.AppSettingKey;
+import org.fable.model.dto.settings.AppSettingsTransferFile;
+import org.fable.model.dto.settings.AppSettings;
+import org.fable.model.dto.settings.OidcProviderDetails;
+import org.fable.model.dto.settings.SettingRequest;
+import org.fable.model.enums.AuditAction;
+import org.fable.service.appsettings.AppSettingService;
+import org.fable.service.audit.AuditService;
+import org.fable.service.oidc.OidcDiagnosticService;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import tools.jackson.core.JacksonException;
+
+import java.util.List;
+
+@Tag(name = "App Settings", description = "Endpoints for retrieving and updating application settings")
+@AllArgsConstructor
+@RestController
+@RequestMapping("/api/v1/settings")
+public class AppSettingController {
+
+    private final AppSettingService appSettingService;
+    private final OidcDiagnosticService oidcDiagnosticService;
+    private final AuditService auditService;
+    private final org.fable.config.AppProperties appProperties;
+    private final org.springframework.web.client.RestTemplate restTemplate;
+
+    @Operation(summary = "Get application settings", description = "Retrieve all application settings.")
+    @ApiResponse(responseCode = "200", description = "Application settings returned successfully")
+    @GetMapping
+    public AppSettings getAppSettings() {
+        return appSettingService.getAppSettings();
+    }
+
+    @Operation(summary = "Update application settings", description = "Update one or more application settings.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Settings updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request")
+    })
+    @PutMapping
+    public void updateSettings(@Parameter(description = "List of settings to update") @RequestBody List<SettingRequest> settingRequests) throws JacksonException {
+        for (SettingRequest settingRequest : settingRequests) {
+            if (settingRequest == null || settingRequest.getName() == null || settingRequest.getName().isBlank()) {
+                continue;
+            }
+            AppSettingKey key = AppSettingKey.valueOf(settingRequest.getName());
+            appSettingService.updateSetting(key, settingRequest.getValue());
+        }
+    }
+
+    @Operation(summary = "Export application settings", description = "Export all application-wide settings that the current user can manage.")
+    @ApiResponse(responseCode = "200", description = "Application settings export created successfully")
+    @GetMapping("/export")
+    public AppSettingsTransferFile exportSettings() {
+        AppSettingsTransferFile transferFile = appSettingService.exportSettings();
+        auditService.log(
+                AuditAction.SETTINGS_EXPORTED,
+                "Exported " + transferFile.getSettings().size() + " application setting(s)"
+        );
+        return transferFile;
+    }
+
+    @Operation(summary = "Import application settings", description = "Import a previously exported application settings file.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Settings imported successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid import file")
+    })
+    @PostMapping("/import")
+    public void importSettings(@RequestBody AppSettingsTransferFile transferFile) throws JacksonException {
+        appSettingService.importSettings(transferFile);
+        int importedCount = transferFile == null || transferFile.getSettings() == null ? 0 : transferFile.getSettings().size();
+        auditService.log(
+                AuditAction.SETTINGS_IMPORTED,
+                "Imported " + importedCount + " application setting(s) from a settings transfer file"
+        );
+    }
+
+    @PostMapping("/oidc/test")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public OidcDiagnosticService.OidcTestResult testOidcConnection(@RequestBody OidcProviderDetails providerDetails) {
+        var result = oidcDiagnosticService.testConnection(providerDetails);
+        auditService.log(AuditAction.OIDC_CONNECTION_TEST, "OIDC connection test: " + (result.success() ? "passed" : "failed"));
+        return result;
+    }
+
+    @GetMapping("/ai/status")
+    public java.util.Map<String, Object> getAiStatus() {
+        java.util.Map<String, Object> status = new java.util.HashMap<>();
+        try {
+            status.put("search", restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/health", java.util.Map.class));
+        } catch (Exception e) {
+            status.put("search", java.util.Map.of("status", "offline"));
+        }
+        try {
+            status.put("panel", restTemplate.getForObject(appProperties.getAi().getBaseUrl() + "/health", java.util.Map.class));
+        } catch (Exception e) {
+            status.put("panel", java.util.Map.of("status", "offline"));
+        }
+        return status;
+    }
+
+    @PostMapping("/ai/test-embedding")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> testEmbeddingConnection(
+            @RequestBody org.fable.model.dto.settings.AiTestConnectionRequest request) {
+        return appSettingService.testAiConnection(request, "/v1/test-embedding");
+    }
+
+    @PostMapping("/ai/test-llm")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> testLlmConnection(
+            @RequestBody org.fable.model.dto.settings.AiTestConnectionRequest request) {
+        return appSettingService.testAiConnection(request, "/v1/test-llm");
+    }
+
+    @GetMapping("/ai/models/embedding")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> getEmbeddingModels() {
+        return restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/v1/models/embedding", java.util.Map.class);
+    }
+
+    @DeleteMapping("/ai/models/embedding")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> deleteEmbeddingModel(@RequestParam String namespace, @RequestParam String modelName) {
+        org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.exchange(
+            appProperties.getAiSearch().getBaseUrl() + "/v1/models/embedding/{namespace}/{modelName}",
+            org.springframework.http.HttpMethod.DELETE,
+            null,
+            java.util.Map.class,
+            namespace, modelName
+        );
+        return response.getBody();
+    }
+
+    @GetMapping("/ai/models/llm")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> getLlmModels() {
+        return restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/v1/models/llm", java.util.Map.class);
+    }
+
+    @DeleteMapping("/ai/models/llm")
+    @PreAuthorize("@securityUtil.isAdmin()")
+    public java.util.Map<String, Object> deleteLlmModel(@RequestParam String modelName) {
+        org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.exchange(
+            appProperties.getAiSearch().getBaseUrl() + "/v1/models/llm/{modelName}",
+            org.springframework.http.HttpMethod.DELETE,
+            null,
+            java.util.Map.class,
+            modelName
+        );
+        return response.getBody();
+    }
+}

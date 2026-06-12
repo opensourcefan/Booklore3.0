@@ -94,7 +94,7 @@
       "moreActions": "その他の操作",
       "organizeFile": "ファイルを整理",
       "readStatus": "読書状態",
-      "resetBookloreProgress": "Booklore進捗をリセット",
+      "resetFableProgress": "Fable進捗をリセット",
       "resetKOReaderProgress": "KOReader進捗をリセット",
       "book": "本",
       "loading": "読み込み中..."
@@ -115,10 +115,10 @@
       "readStatusFailedSummary": "更新に失敗しました",
       "readStatusFailedDetail": "読書状態を更新できませんでした。",
       "progressResetSummary": "進捗をリセットしました",
-      "progressResetBookloreDetail": "Bookloreの読書進捗がリセットされました。",
+      "progressResetFableDetail": "Fableの読書進捗がリセットされました。",
       "progressResetKOReaderDetail": "KOReaderの読書進捗がリセットされました。",
       "progressResetFailedSummary": "失敗",
-      "progressResetBookloreFailedDetail": "Bookloreの進捗をリセットできませんでした。",
+      "progressResetFableFailedDetail": "Fableの進捗をリセットできませんでした。",
       "progressResetKOReaderFailedDetail": "KOReaderの進捗をリセットできませんでした。",
       "coverRegenSuccessSummary": "成功",
       "coverRegenSuccessDetail": "カバーの再生成を開始しました",
@@ -199,7 +199,7 @@
       "setContentRating": "コンテンツレーティングを設定",
       "clearContentRating": "コンテンツレーティングをクリア",
       "removeFromAllShelves": "すべてのシェルフから削除",
-      "resetBookloreProgress": "Booklore進捗をリセット",
+      "resetFableProgress": "Fable進捗をリセット",
       "resetKOReaderProgress": "KOReader進捗をリセット"
     },
     "confirm": {
@@ -215,7 +215,7 @@
       "clearContentRatingHeader": "コンテンツレーティングクリアの確認",
       "unshelveMessage": "{{ count }}冊の本をすべてのシェルフから削除してもよろしいですか？",
       "unshelveHeader": "シェルフ削除の確認",
-      "resetBookloreMessage": "{{ count }}冊の本のBooklore読書進捗をリセットしてもよろしいですか？",
+      "resetFableMessage": "{{ count }}冊の本のFable読書進捗をリセットしてもよろしいですか？",
       "resetKOReaderMessage": "{{ count }}冊の本のKOReader読書進捗をリセットしてもよろしいですか？",
       "resetHeader": "リセットの確認"
     },
@@ -240,7 +240,7 @@
       "unshelveSuccessDetail": "本がすべてのシェルフから削除されました",
       "unshelveFailedDetail": "本のシェルフの更新に失敗しました",
       "progressResetSummary": "進捗をリセットしました",
-      "bookloreProgressResetDetail": "Bookloreの読書進捗がリセットされました。",
+      "fableProgressResetDetail": "Fableの読書進捗がリセットされました。",
       "koreaderProgressResetDetail": "KOReaderの読書進捗がリセットされました。",
       "failedSummary": "失敗",
       "progressResetFailedDetail": "進捗をリセットできませんでした。"
@@ -252,7 +252,7 @@
       "settingContentRating": "{{ count }}冊の本のコンテンツレーティングを設定中...",
       "clearingContentRating": "{{ count }}冊の本のコンテンツレーティングをクリア中...",
       "removingFromShelves": "{{ count }}冊の本をシェルフから削除中...",
-      "resettingBookloreProgress": "{{ count }}冊の本のBooklore進捗をリセット中...",
+      "resettingFableProgress": "{{ count }}冊の本のFable進捗をリセット中...",
       "resettingKOReaderProgress": "{{ count }}冊の本のKOReader進捗をリセット中..."
     }
   },

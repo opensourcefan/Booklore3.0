@@ -68,10 +68,9 @@ function deepMerge(base: Record<string, unknown>, override: Record<string, unkno
 
 function rebrandString(val: string, appName: string): string {
   return val
-    .replace(/BookLore/g, appName)
-    .replace(/Booklore/g, appName)
-    .replace(/booklore/g, appName.toLowerCase())
-    .replace(/BOOKLORE/g, appName.toUpperCase());
+    .replace(/Fable/g, appName)
+    .replace(/fable/g, appName.toLowerCase())
+    .replace(/FABLE/g, appName.toUpperCase());
 }
 
 function rebrandTranslation(obj: unknown, appName: string): unknown {

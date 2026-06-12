@@ -59,6 +59,24 @@ export class AppComponent implements OnInit, OnDestroy {
   private pagedGridPilotService = inject(PagedGridPilotService);
 
   ngOnInit(): void {
+    // Migrate legacy local storage keys from Fable to Fable
+    const legacyKeys = [
+      { old: 'booklore.aiScanSelectedPathIds', new: 'fable.aiScanSelectedPathIds' },
+      { old: 'booklore.aiScanLibraryFilterIds', new: 'fable.aiScanLibraryFilterIds' },
+      { old: 'booklore.cbx.mobileJoystick.v1', new: 'fable.cbx.mobileJoystick.v1' }
+    ];
+    legacyKeys.forEach(key => {
+      try {
+        const value = localStorage.getItem(key.old);
+        if (value !== null) {
+          localStorage.setItem(key.new, value);
+          localStorage.removeItem(key.old);
+        }
+      } catch (e) {
+        console.warn(`Failed to migrate local storage key ${key.old}:`, e);
+      }
+    });
+
     this.titleService.setTitle(environment.appName || 'Fable');
     window.addEventListener('online', this.onOnline);
     window.addEventListener('offline', this.onOffline);

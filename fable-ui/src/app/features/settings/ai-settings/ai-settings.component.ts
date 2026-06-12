@@ -21,8 +21,8 @@ import {LibraryService} from '../../book/service/library.service';
 import {BookService} from '../../book/service/book.service';
 import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
 
-const LS_KEY_AI_SCAN_PATH_IDS = 'booklore.aiScanSelectedPathIds';
-const LS_KEY_AI_SCAN_LIBRARY_FILTER_IDS = 'booklore.aiScanLibraryFilterIds';
+const LS_KEY_AI_SCAN_PATH_IDS = 'fable.aiScanSelectedPathIds';
+const LS_KEY_AI_SCAN_LIBRARY_FILTER_IDS = 'fable.aiScanLibraryFilterIds';
 
 interface AiStartupEvent {
   timestamp: string;
@@ -571,7 +571,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
     try {
       const {host} = new URL(baseUrl);
-      if (host.startsWith('app-ai-panel') || host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel')) {
+      if (host.startsWith('app-ai-panel') || host.startsWith('fable-ai-panel') || host.startsWith('ai-panel')) {
         return 'Docker AI service';
       }
       return baseUrl;
@@ -588,7 +588,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
     try {
       const {host} = new URL(baseUrl);
-      return host.startsWith('app-ai-panel') || host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel');
+      return host.startsWith('app-ai-panel') || host.startsWith('fable-ai-panel') || host.startsWith('ai-panel');
     } catch {
       return false;
     }
@@ -617,7 +617,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
     try {
       const {host} = new URL(baseUrl);
-      return host.startsWith('app-ai-panel') || host.startsWith('booklore-ai-panel') || host.startsWith('ai-panel');
+      return host.startsWith('app-ai-panel') || host.startsWith('fable-ai-panel') || host.startsWith('ai-panel');
     } catch {
       return false;
     }

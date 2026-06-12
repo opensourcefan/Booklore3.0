@@ -1,0 +1,110 @@
+package org.fable.service.metadata;
+
+import org.fable.model.MetadataClearFlags;
+import org.fable.model.dto.BookMetadata;
+import org.fable.model.dto.BookReview;
+import org.fable.model.entity.BookMetadataEntity;
+import org.fable.model.entity.BookReviewEntity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+public class BookReviewUpdateService {
+
+    private static final int REVIEW_FIELD_MAX_LENGTH = 512;
+
+    public void addReviewsToBook(List<BookReview> bookReviews, BookMetadataEntity e) {
+        BookMetadata tempMetadata = BookMetadata.builder()
+                .bookReviews(bookReviews)
+                .build();
+        MetadataClearFlags clearFlags = new MetadataClearFlags();
+        updateBookReviews(tempMetadata, e, clearFlags, true);
+    }
+
+    public void updateBookReviews(BookMetadata metadata, BookMetadataEntity entity, MetadataClearFlags clearFlags, boolean mergeWithExisting) {
+        if (Boolean.TRUE.equals(entity.getReviewsLocked())) {
+            return;
+        }
+        if (clearFlags.isReviews()) {
+            entity.getReviews().clear();
+            return;
+        }
+        if (!isFieldUpdateAllowed(false, metadata.getBookReviews()) || metadata.getBookReviews() == null) {
+            return;
+        }
+        if (mergeWithExisting) {
+            addReviewsToEntity(metadata.getBookReviews(), entity);
+        } else {
+            replaceReviewsInEntity(metadata.getBookReviews(), entity);
+        }
+
+        applyReviewLimitsAndUpdate(entity);
+    }
+
+    private void addReviewsToEntity(List<BookReview> reviews, BookMetadataEntity entity) {
+        for (var review : reviews) {
+            if (review == null || review.getMetadataProvider() == null) continue;
+            BookReviewEntity reviewEntity = createReviewEntity(review, entity);
+            entity.getReviews().add(reviewEntity);
+        }
+    }
+
+    private void replaceReviewsInEntity(List<BookReview> reviews, BookMetadataEntity entity) {
+        entity.getReviews().clear();
+        Set<BookReviewEntity> newReviews = reviews.stream()
+                .filter(review -> review != null && review.getMetadataProvider() != null)
+                .map(review -> createReviewEntity(review, entity))
+                .collect(Collectors.toSet());
+        entity.getReviews().addAll(newReviews);
+    }
+
+    private BookReviewEntity createReviewEntity(BookReview review, BookMetadataEntity entity) {
+        return BookReviewEntity.builder()
+                .bookMetadata(entity)
+                .metadataProvider(review.getMetadataProvider())
+                .reviewerName(truncateReviewField(review.getReviewerName()))
+                .title(truncateReviewField(review.getTitle()))
+                .rating(review.getRating())
+                .date(review.getDate())
+                .body(review.getBody())
+                .spoiler(review.getSpoiler())
+                .followersCount(review.getFollowersCount())
+                .textReviewsCount(review.getTextReviewsCount())
+                .country(truncateReviewField(review.getCountry()))
+                .build();
+    }
+
+    private String truncateReviewField(String value) {
+        if (value == null || value.length() <= REVIEW_FIELD_MAX_LENGTH) {
+            return value;
+        }
+
+        return value.substring(0, REVIEW_FIELD_MAX_LENGTH);
+    }
+
+    private void applyReviewLimitsAndUpdate(BookMetadataEntity entity) {
+        Set<BookReviewEntity> limitedReviews = applyReviewLimitsPerProvider(entity.getReviews());
+        entity.getReviews().clear();
+        entity.getReviews().addAll(limitedReviews);
+    }
+
+    private Set<BookReviewEntity> applyReviewLimitsPerProvider(Set<BookReviewEntity> reviews) {
+        return reviews.stream()
+                .collect(Collectors.groupingBy(BookReviewEntity::getMetadataProvider))
+                .entrySet()
+                .stream()
+                .flatMap(entry -> entry.getValue().stream()
+                        .sorted(Comparator.comparing(BookReviewEntity::getDate,
+                                Comparator.nullsLast(Comparator.reverseOrder())))
+                        .limit(5))
+                .collect(Collectors.toSet());
+    }
+
+    private boolean isFieldUpdateAllowed(Boolean isLocked, Object fieldValue) {
+        return (isLocked == null || !isLocked) && fieldValue != null;
+    }
+}

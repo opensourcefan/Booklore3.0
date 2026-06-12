@@ -1,0 +1,7 @@
+package org.fable.service.metadata.parser;
+
+import org.jsoup.Connection;
+
+public interface JsoupConnectionFactory {
+    Connection connect(String url);
+}

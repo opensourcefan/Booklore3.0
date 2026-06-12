@@ -949,15 +949,15 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         }))
       },
       {
-        label: this.t.translate('book.card.menu.resetBookloreProgress'),
+        label: this.t.translate('book.card.menu.resetFableProgress'),
         icon: 'pi pi-undo',
         command: () => {
-          this.bookService.resetProgress(book.id, ResetProgressTypes.BOOKLORE).subscribe({
+          this.bookService.resetProgress(book.id, ResetProgressTypes.FABLE).subscribe({
             next: () => {
               this.messageService.add({
                 severity: 'success',
                 summary: this.t.translate('book.card.toast.progressResetSummary'),
-                detail: this.t.translate('book.card.toast.progressResetBookloreDetail'),
+                detail: this.t.translate('book.card.toast.progressResetFableDetail'),
                 life: 1500
               });
             },
@@ -965,7 +965,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
               this.messageService.add({
                 severity: 'error',
                 summary: this.t.translate('book.card.toast.progressResetFailedSummary'),
-                detail: this.t.translate('book.card.toast.progressResetBookloreFailedDetail'),
+                detail: this.t.translate('book.card.toast.progressResetFableFailedDetail'),
                 life: 1500
               });
             }

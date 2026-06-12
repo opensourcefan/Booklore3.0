@@ -16,7 +16,7 @@
     "error": "Error",
     "unknown": "Unknown",
     "noData": "No status data available.",
-    "dockerHint": "This AI endpoint is configured for Docker networking. If Booklore is running outside Docker, point AI_SERVICE_BASE_URL to the host-mapped AI endpoint, for example http://localhost:18080.",
+    "dockerHint": "This AI endpoint is configured for Docker networking. If Fable is running outside Docker, point AI_SERVICE_BASE_URL to the host-mapped AI endpoint, for example http://localhost:18080.",
     "startupPanelTitle": "Live Startup Activity",
     "startupPanelDescription": "This panel auto-checks the AI service while it is starting and records the most recent startup events.",
     "lastChecked": "Last checked",
