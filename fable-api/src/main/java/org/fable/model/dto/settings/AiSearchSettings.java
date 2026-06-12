@@ -81,4 +81,56 @@ public class AiSearchSettings {
             this.llmApiKey = apiKey;
         }
     }
+
+    public int getTopK() {
+        return topK <= 0 ? 5 : topK;
+    }
+
+    public double getSimilarityThreshold() {
+        return similarityThreshold <= 0.0 ? 0.3 : similarityThreshold;
+    }
+
+    public int getMaxTokens() {
+        return maxTokens <= 0 ? 768 : maxTokens;
+    }
+
+    public double getTemperature() {
+        return temperature < 0.0 || temperature > 1.0 ? 0.1 : temperature;
+    }
+
+    public int getChunkSize() {
+        return chunkSize <= 0 ? 1500 : chunkSize;
+    }
+
+    public int getChunkOverlap() {
+        return chunkOverlap < 0 ? 100 : chunkOverlap;
+    }
+
+    public int getRrfK() {
+        return rrfK <= 0 ? 60 : rrfK;
+    }
+
+    public String getRerankerModel() {
+        return rerankerModel == null || rerankerModel.isBlank() ? "BAAI/bge-reranker-base" : rerankerModel;
+    }
+
+    public String getEmbeddingProvider() {
+        return embeddingProvider == null || embeddingProvider.isBlank() ? "local" : embeddingProvider;
+    }
+
+    public String getLlmProvider() {
+        return llmProvider == null || llmProvider.isBlank() ? "local" : llmProvider;
+    }
+
+    public String getEmbeddingModel() {
+        return embeddingModel == null || embeddingModel.isBlank() ? "BAAI/bge-base-en-v1.5" : embeddingModel;
+    }
+
+    public String getLlmModel() {
+        return llmModel == null || llmModel.isBlank() ? "smollm2:360m" : llmModel;
+    }
+
+    public String getOcrLanguage() {
+        return ocrLanguage == null || ocrLanguage.isBlank() ? "eng" : ocrLanguage;
+    }
 }

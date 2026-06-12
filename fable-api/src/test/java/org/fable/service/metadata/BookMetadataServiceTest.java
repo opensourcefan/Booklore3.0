@@ -779,38 +779,4 @@ class BookMetadataServiceTest {
                 }
         }
 
-        @Nested
-        class AisTags {
-
-                @Test
-                void addAisTagToBooks_addsTagAndSaves() {
-                        BookMetadataEntity metadata = BookMetadataEntity.builder().bookId(1L).build();
-                        BookEntity book = BookEntity.builder().id(1L).metadata(metadata).build();
-                        when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(book));
-                        when(bookMapper.toBookWithDescription(book, true)).thenReturn(Book.builder().id(1L).build());
-
-                        List<Book> result = service.addAisTagToBooks(List.of(1L));
-
-                        assertThat(result).hasSize(1);
-                        verify(bookCreatorService).addTagsToBook(Set.of("AIS"), book);
-                        verify(bookRepository).saveAll(List.of(book));
-                }
-
-                @Test
-                void removeAisTagFromBooks_removesTagAndSaves() {
-                        org.fable.model.entity.TagEntity tag1 = org.fable.model.entity.TagEntity.builder().name("AIS").build();
-                        org.fable.model.entity.TagEntity tag2 = org.fable.model.entity.TagEntity.builder().name("Other").build();
-                        Set<org.fable.model.entity.TagEntity> tags = new HashSet<>(Set.of(tag1, tag2));
-                        BookMetadataEntity metadata = BookMetadataEntity.builder().bookId(1L).tags(tags).build();
-                        BookEntity book = BookEntity.builder().id(1L).metadata(metadata).build();
-                        when(bookQueryService.findAllWithMetadataByIds(Set.of(1L))).thenReturn(List.of(book));
-                        when(bookMapper.toBookWithDescription(book, true)).thenReturn(Book.builder().id(1L).build());
-
-                        List<Book> result = service.removeAisTagFromBooks(List.of(1L));
-
-                        assertThat(result).hasSize(1);
-                        assertThat(metadata.getTags()).containsExactly(tag2);
-                        verify(bookRepository).saveAll(List.of(book));
-                }
-        }
 }

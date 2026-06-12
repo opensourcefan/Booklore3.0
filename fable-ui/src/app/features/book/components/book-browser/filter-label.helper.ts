@@ -23,6 +23,14 @@ export class FilterLabelHelper {
     ranobedbRating: 'Ranobedb Rating',
     mood: 'Mood',
     tag: 'Tag',
+    narrator: 'Narrator',
+    comicCharacter: 'Comic Character',
+    comicTeam: 'Comic Team',
+    comicLocation: 'Comic Location',
+    comicCreator: 'Comic Creator',
+    addedOn: 'Date Added',
+    folderPath: 'Folder',
+    aiSearchStatus: 'AI Search Status'
   };
 
   static getFilterTypeName(filterType: string): string {
@@ -33,6 +41,13 @@ export class FilterLabelHelper {
     const numericValue = typeof value === 'string' ? Number(value) : value;
 
     switch (filterType.toLowerCase()) {
+      case 'aisearchstatus': {
+        if (value === 'marked') return 'Marked for embedding';
+        if (value === 'embedded') return 'Embedded';
+        if (value === 'not_embedded') return 'Not Embedded';
+        return String(value);
+      }
+
       case 'filesize': {
         const fileSizeRange = fileSizeRanges.find(r => r.id === numericValue);
         if (fileSizeRange) return fileSizeRange.label;

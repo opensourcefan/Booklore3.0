@@ -120,6 +120,9 @@
       "generateCustomCover": "Generate Custom Cover",
       "moreActions": "More Actions",
       "embedForAiSearch": "Embed for AI Search",
+      "markForEmbedding": "Mark for embedding",
+      "unmarkForEmbedding": "Unmark for embedding",
+      "deleteAiSearchEmbeddings": "Delete AI Search Embeddings",
       "organizeFile": "Organize File",
       "readStatus": "Read Status",
       "resetFableProgress": "Reset Reading Odyssey Progress",
@@ -137,7 +140,9 @@
       "deleteFileHeader": "Confirm File Deletion",
       "largeFileMessage": "This file exceeds 25MB. Some email providers may reject large attachments.\n\nDo you want to send it anyway?",
       "largeFileHeader": "Large File Warning",
-      "sendAnyway": "Send Anyway"
+      "sendAnyway": "Send Anyway",
+      "deleteAiSearchEmbeddingsMessage": "Are you sure you want to delete the AI Search embeddings for \"{{ title }}\"? This action will remove the ability to perform AI Search on this book.",
+      "deleteAiSearchEmbeddingsHeader": "Delete AI Search Embeddings"
     },
     "toast": {
       "quickSendSuccessDetail": "The book sending has been scheduled.",
@@ -161,7 +166,11 @@
       "customCoverSuccessDetail": "Cover generated successfully",
       "customCoverFailedDetail": "Failed to generate cover",
       "embedAiSearchSuccessDetail": "AI Search embedding started for \"{{ title }}\"",
-      "embedAiSearchFailedDetail": "Failed to start AI Search embedding"
+      "embedAiSearchFailedDetail": "Failed to start AI Search embedding",
+      "markAiSearchSuccessDetail": "Book successfully marked for AI Search embedding.",
+      "unmarkAiSearchSuccessDetail": "Book successfully unmarked for AI Search embedding.",
+      "deleteAiSearchEmbeddingsSuccessDetail": "AI Search embeddings deleted successfully for \"{{ title }}\".",
+      "deleteAiSearchEmbeddingsFailedDetail": "Failed to delete AI Search embeddings."
     },
     "alt": {
       "cover": "Cover of {{ title }}",
@@ -615,6 +624,7 @@
     "showingFirst100": "Showing first 100 items",
     "footerNote": "Note: Top 100 items are displayed per filter category",
     "labels": {
+      "aiSearchStatus": "AI Search Status",
       "author": "Author",
       "category": "Genre",
       "series": "Series",
@@ -697,6 +707,11 @@
     "shelfStatus": {
       "shelved": "Shelved",
       "unshelved": "Not Shelfed"
+    },
+    "aiSearchStatus": {
+      "marked": "Marked for embedding",
+      "embedded": "Embedded",
+      "not_embedded": "Not Embedded"
     },
     "comicRoles": {
       "penciller": "Penciller",

@@ -23,7 +23,8 @@ export type FilterType =
   | 'ageRating' | 'contentRating'
   | 'narrator'
   | 'comicCharacter' | 'comicTeam' | 'comicLocation' | 'comicCreator'
-  | 'addedOn' | 'folderPath';
+  | 'addedOn' | 'folderPath'
+  | 'aiSearchStatus';
 
 export type SortMode = 'count' | 'sortIndex';
 export type UserFilterSort = 'count' | 'az' | 'za';
@@ -167,7 +168,8 @@ export const FILTER_LABELS: Readonly<Record<FilterType, string>> = {
   comicLocation: 'Comic Location',
   comicCreator: 'Comic Creator',
   addedOn: 'Date Added',
-  folderPath: 'Folder'
+  folderPath: 'Folder',
+  aiSearchStatus: 'AI Search Status'
 };
 
 // ============================================================================
@@ -286,6 +288,15 @@ export const FILTER_EXTRACTORS: Readonly<Record<Exclude<FilterType, 'library'>, 
     if (!subPath || subPath.trim() === '') return [];
     return [{id: subPath, name: subPath}];
   },
+  aiSearchStatus: (book) => {
+    if (book.markedForAiSearch) {
+      return [{id: 'marked', name: 'Marked for embedding', sortIndex: 0}];
+    } else if (book.hasAiSearchData) {
+      return [{id: 'embedded', name: 'Embedded', sortIndex: 1}];
+    } else {
+      return [{id: 'not_embedded', name: 'Not Embedded', sortIndex: 2}];
+    }
+  },
 };
 
 // Translation key for each FilterType — used by UI components to translate filter labels
@@ -318,7 +329,8 @@ export const FILTER_LABEL_KEYS: Readonly<Record<FilterType, string>> = {
   comicLocation: 'book.filter.labels.comicLocation',
   comicCreator: 'book.filter.labels.comicCreator',
   addedOn: 'book.filter.labels.addedOn',
-  folderPath: 'book.filter.labels.folderPath'
+  folderPath: 'book.filter.labels.folderPath',
+  aiSearchStatus: 'book.filter.labels.aiSearchStatus'
 };
 
 export const READ_STATUS_LABEL_KEYS: Readonly<Record<ReadStatus, string>> = {
@@ -345,6 +357,12 @@ export const SHELF_STATUS_LABEL_KEYS: Readonly<Record<string, string>> = {
   'shelved': 'book.filter.shelfStatus.shelved',
   'unshelved': 'book.filter.shelfStatus.unshelved',
   'not-shelfed': 'book.filter.shelfStatus.unshelved'
+};
+
+export const AI_SEARCH_STATUS_LABEL_KEYS: Readonly<Record<string, string>> = {
+  'marked': 'book.filter.aiSearchStatus.marked',
+  'embedded': 'book.filter.aiSearchStatus.embedded',
+  'not_embedded': 'book.filter.aiSearchStatus.not_embedded'
 };
 
 
@@ -385,5 +403,6 @@ export const FILTER_CONFIGS: Readonly<Record<Exclude<FilterType, 'library'>, Omi
   comicLocation: {label: 'Comic Location', sortMode: 'count'},
   comicCreator: {label: 'Comic Creator', sortMode: 'count'},
   addedOn: {label: 'Date Added', sortMode: 'sortIndex', isNumericId: true},
-  folderPath: {label: 'Folder', sortMode: 'count'}
+  folderPath: {label: 'Folder', sortMode: 'count'},
+  aiSearchStatus: {label: 'AI Search Status', sortMode: 'sortIndex'}
 };

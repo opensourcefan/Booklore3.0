@@ -329,7 +329,11 @@
   color: #00d2ff;
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 1px 6px;
+  padding: 1px 4px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
   z-index: 3;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
@@ -339,6 +343,11 @@
   cursor: pointer;
   border: 1px solid transparent;
   transition: all 0.2s ease;
+
+  @media (max-width: 767px) {
+    font-size: 0.65rem;
+    padding: 1px 3px;
+  }
 
   &:hover {
     background: #111111;

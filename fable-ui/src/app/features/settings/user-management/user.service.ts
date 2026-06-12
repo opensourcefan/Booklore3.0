@@ -260,12 +260,14 @@ export type VisibleFilterType =
   | 'ageRating' | 'contentRating'
   | 'narrator'
   | 'comicCharacter' | 'comicTeam' | 'comicLocation' | 'comicCreator'
-  | 'addedOn' | 'folderPath';
+  | 'addedOn' | 'folderPath'
+  | 'aiSearchStatus';
 
 export const DEFAULT_VISIBLE_FILTERS: VisibleFilterType[] = [
   'author', 'category', 'series', 'bookType', 'readStatus',
   'personalRating', 'library', 'tag', 'ageRating', 'contentRating',
-  'matchScore', 'publisher', 'publishedDate', 'fileSize', 'addedOn'
+  'matchScore', 'publisher', 'publishedDate', 'fileSize', 'addedOn',
+  'aiSearchStatus'
 ];
 
 // Translation key for each filter option — use book.filter.labels.<value>
@@ -276,7 +278,7 @@ export const ALL_FILTER_OPTION_VALUES: VisibleFilterType[] = [
   'shelfStatus', 'language', 'pageCount', 'mood', 'amazonRating',
   'goodreadsRating', 'hardcoverRating', 'narrator',
   'comicCharacter', 'comicTeam', 'comicLocation', 'comicCreator',
-  'addedOn', 'folderPath'
+  'addedOn', 'folderPath', 'aiSearchStatus'
 ];
 
 export const ALL_FILTER_OPTIONS: { label: string; value: VisibleFilterType }[] = [
@@ -308,7 +310,8 @@ export const ALL_FILTER_OPTIONS: { label: string; value: VisibleFilterType }[] =
   {label: 'Comic Location', value: 'comicLocation'},
   {label: 'Comic Creator', value: 'comicCreator'},
   {label: 'Date Added', value: 'addedOn'},
-  {label: 'Folder', value: 'folderPath'}
+  {label: 'Folder', value: 'folderPath'},
+  {label: 'AI Search Status', value: 'aiSearchStatus'}
 ];
 
 export const DEFAULT_VISIBLE_SORT_FIELDS: string[] = [

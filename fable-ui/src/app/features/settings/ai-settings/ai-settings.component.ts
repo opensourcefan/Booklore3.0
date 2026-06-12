@@ -185,16 +185,25 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       if (settings.aiSearchSettings) {
         this.aiSearchSettings = {
           ...settings.aiSearchSettings,
-          chunkSize: settings.aiSearchSettings.chunkSize || 0,
-          chunkOverlap: settings.aiSearchSettings.chunkOverlap ?? 0,
+          embeddingProvider: settings.aiSearchSettings.embeddingProvider || 'local',
+          embeddingModel: settings.aiSearchSettings.embeddingModel || 'BAAI/bge-base-en-v1.5',
+          llmProvider: settings.aiSearchSettings.llmProvider || 'local',
+          llmModel: settings.aiSearchSettings.llmModel || 'smollm2:360m',
+          topK: settings.aiSearchSettings.topK || 5,
+          similarityThreshold: settings.aiSearchSettings.similarityThreshold !== undefined && settings.aiSearchSettings.similarityThreshold !== null ? settings.aiSearchSettings.similarityThreshold : 0.3,
+          maxTokens: settings.aiSearchSettings.maxTokens || 768,
+          temperature: settings.aiSearchSettings.temperature !== undefined && settings.aiSearchSettings.temperature !== null ? settings.aiSearchSettings.temperature : 0.1,
+          autoEmbedLibraryIds: settings.aiSearchSettings.autoEmbedLibraryIds || [],
+          chunkSize: settings.aiSearchSettings.chunkSize || 1500,
+          chunkOverlap: settings.aiSearchSettings.chunkOverlap !== undefined && settings.aiSearchSettings.chunkOverlap !== null ? settings.aiSearchSettings.chunkOverlap : 100,
           matryoshkaDimensions: settings.aiSearchSettings.matryoshkaDimensions ?? 0,
           hybridSearchEnabled: settings.aiSearchSettings.hybridSearchEnabled ?? false,
-          rrfK: settings.aiSearchSettings.rrfK || 0,
+          rrfK: settings.aiSearchSettings.rrfK || 60,
           rerankingEnabled: settings.aiSearchSettings.rerankingEnabled ?? false,
-          rerankerModel: settings.aiSearchSettings.rerankerModel ?? '',
+          rerankerModel: settings.aiSearchSettings.rerankerModel || 'BAAI/bge-reranker-base',
           ocrEnabled: settings.aiSearchSettings.ocrEnabled ?? true,
           ocrFallbackOnly: settings.aiSearchSettings.ocrFallbackOnly ?? true,
-          ocrLanguage: settings.aiSearchSettings.ocrLanguage ?? 'eng'
+          ocrLanguage: settings.aiSearchSettings.ocrLanguage || 'eng'
         };
         this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
         this.snapshotEmbeddingSettings();

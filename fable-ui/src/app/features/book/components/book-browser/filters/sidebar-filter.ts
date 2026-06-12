@@ -102,6 +102,10 @@ export function doesBookMatchFilter(
       const shelved = book.shelves && book.shelves.length > 0 ? 'shelved' : 'not-shelfed';
       return filterValues.includes(shelved);
     }
+    case 'aiSearchStatus': {
+      const status = book.markedForAiSearch ? 'marked' : (book.hasAiSearchData ? 'embedded' : 'not_embedded');
+      return filterValues.includes(status);
+    }
     case 'tag':
       return effectiveMode === 'or'
         ? filterValues.some(val => book.metadata?.tags?.includes(val as string))

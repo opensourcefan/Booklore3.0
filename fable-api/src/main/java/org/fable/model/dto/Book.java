@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
-@Builder
+@Builder(toBuilder = true)
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Book {

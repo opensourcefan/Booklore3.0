@@ -530,36 +530,4 @@ public class BookMetadataService {
                 .clearFlags(clearFlags)
                 .build();
     }
-
-    @BroadcastBookUpdate
-    @Transactional
-    public List<Book> addAisTagToBooks(Collection<Long> bookIds) {
-        if (bookIds == null || bookIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(new HashSet<>(bookIds));
-        for (BookEntity book : books) {
-            if (book.getMetadata() != null) {
-                bookCreatorService.addTagsToBook(Set.of("AIS"), book);
-            }
-        }
-        bookRepository.saveAll(books);
-        return books.stream().map(b -> bookMapper.toBookWithDescription(b, true)).collect(Collectors.toList());
-    }
-
-    @BroadcastBookUpdate
-    @Transactional
-    public List<Book> removeAisTagFromBooks(Collection<Long> bookIds) {
-        if (bookIds == null || bookIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(new HashSet<>(bookIds));
-        for (BookEntity book : books) {
-            if (book.getMetadata() != null && book.getMetadata().getTags() != null) {
-                book.getMetadata().getTags().removeIf(tag -> "AIS".equals(tag.getName()));
-            }
-        }
-        bookRepository.saveAll(books);
-        return books.stream().map(b -> bookMapper.toBookWithDescription(b, true)).collect(Collectors.toList());
-    }
 }

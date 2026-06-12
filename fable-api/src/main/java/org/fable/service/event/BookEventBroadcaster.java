@@ -3,19 +3,30 @@ package org.fable.service.event;
 import org.fable.model.dto.Book;
 import org.fable.model.websocket.LogNotification;
 import org.fable.model.websocket.Topic;
+import org.fable.service.book.BookService;
 import org.fable.service.user.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@AllArgsConstructor
 @Service
 public class BookEventBroadcaster {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final UserService userService;
+    private final BookService bookService;
+
+    public BookEventBroadcaster(
+            SimpMessagingTemplate messagingTemplate,
+            UserService userService,
+            @Lazy BookService bookService) {
+        this.messagingTemplate = messagingTemplate;
+        this.userService = userService;
+        this.bookService = bookService;
+    }
 
     public void broadcastBookAddEvent(Book book) {
         Long libraryId = book.getLibraryId();
@@ -24,8 +35,10 @@ public class BookEventBroadcaster {
                         .anyMatch(lib -> lib.getId().equals(libraryId)))
                 .forEach(u -> {
                     String username = u.getUsername();
-                    messagingTemplate.convertAndSendToUser(username, Topic.BOOK_ADD.getPath(), book);
-                    messagingTemplate.convertAndSendToUser(username, Topic.LOG.getPath(), LogNotification.info("Book added: " + (book.getPrimaryFile() != null ? book.getPrimaryFile().getFileName() : "unknown")));
+                    Book enrichedBook = book.toBuilder().build();
+                    bookService.enrichBooksWithAiFlags(java.util.List.of(enrichedBook), u.getId());
+                    messagingTemplate.convertAndSendToUser(username, Topic.BOOK_ADD.getPath(), enrichedBook);
+                    messagingTemplate.convertAndSendToUser(username, Topic.LOG.getPath(), LogNotification.info("Book added: " + (enrichedBook.getPrimaryFile() != null ? enrichedBook.getPrimaryFile().getFileName() : "unknown")));
                 });
     }
 
@@ -36,7 +49,9 @@ public class BookEventBroadcaster {
                         .anyMatch(lib -> lib.getId().equals(libraryId)))
                 .forEach(u -> {
                     String username = u.getUsername();
-                    messagingTemplate.convertAndSendToUser(username, Topic.BOOK_UPDATE.getPath(), book);
+                    Book enrichedBook = book.toBuilder().build();
+                    bookService.enrichBooksWithAiFlags(java.util.List.of(enrichedBook), u.getId());
+                    messagingTemplate.convertAndSendToUser(username, Topic.BOOK_UPDATE.getPath(), enrichedBook);
                 });
     }
 
@@ -52,7 +67,11 @@ public class BookEventBroadcaster {
                         .anyMatch(lib -> libraryIds.contains(lib.getId())))
                 .forEach(u -> {
                     String username = u.getUsername();
-                    messagingTemplate.convertAndSendToUser(username, Topic.BOOK_METADATA_BATCH_UPDATE.getPath(), books);
+                    java.util.List<Book> enrichedBooks = books.stream()
+                            .map(b -> b.toBuilder().build())
+                            .collect(java.util.stream.Collectors.toList());
+                    bookService.enrichBooksWithAiFlags(enrichedBooks, u.getId());
+                    messagingTemplate.convertAndSendToUser(username, Topic.BOOK_METADATA_BATCH_UPDATE.getPath(), enrichedBooks);
                 });
     }
 }
