@@ -131,7 +131,7 @@ public class AiSearchController {
         }
 
         List<Long> bookIds = bookIdsInt.stream().map(Integer::longValue).toList();
-        bookRepository.updateMarkedForAiSearch(bookIds, marked);
+        aiSearchService.markBooksForAiSearch(bookIds, marked);
         return Map.of("status", "UPDATED", "count", bookIds.size());
     }
 

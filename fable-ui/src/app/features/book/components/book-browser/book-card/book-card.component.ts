@@ -930,6 +930,76 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
           });
         },
       });
+      if (book.markedForAiSearch) {
+        moreActions.push({
+          label: this.t.translate('book.card.menu.unmarkForEmbedding') || 'Unmark for embedding',
+          icon: 'pi pi-bookmark-fill',
+          command: () => {
+            this.appSettingsService.markForAiSearch([book.id], false).subscribe({
+              next: () => {
+                this.messageService.add({
+                  severity: 'success',
+                  summary: this.t.translate('common.success'),
+                  detail: this.t.translate('book.card.toast.unmarkAiSearchSuccessDetail')
+                });
+              }
+            });
+          }
+        });
+      } else if (!book.hasAiSearchData) {
+        moreActions.push({
+          label: this.t.translate('book.card.menu.markForEmbedding') || 'Mark for embedding',
+          icon: 'pi pi-bookmark',
+          command: () => {
+            this.appSettingsService.markForAiSearch([book.id], true).subscribe({
+              next: () => {
+                this.messageService.add({
+                  severity: 'success',
+                  summary: this.t.translate('common.success'),
+                  detail: this.t.translate('book.card.toast.markAiSearchSuccessDetail')
+                });
+              }
+            });
+          }
+        });
+      }
+      if (book.hasAiSearchData) {
+        moreActions.push({
+          label: this.t.translate('book.card.menu.deleteAiSearchEmbeddings') || 'Delete AI Search Embeddings',
+          icon: 'pi pi-trash',
+          command: () => {
+            this.confirmationService.confirm({
+              message: this.t.translate('book.card.confirm.deleteAiSearchEmbeddingsMessage', {title: book.metadata?.title}),
+              header: this.t.translate('book.card.confirm.deleteAiSearchEmbeddingsHeader'),
+              icon: 'pi pi-exclamation-triangle',
+              acceptIcon: 'pi pi-trash',
+              rejectIcon: 'pi pi-times',
+              acceptLabel: this.t.translate('common.delete'),
+              rejectLabel: this.t.translate('common.cancel'),
+              acceptButtonStyleClass: 'p-button-danger',
+              rejectButtonStyleClass: 'p-button-outlined',
+              accept: () => {
+                this.appSettingsService.deleteAiSearchEmbeddings([book.id]).subscribe({
+                  next: () => {
+                    this.messageService.add({
+                      severity: 'success',
+                      summary: this.t.translate('common.success'),
+                      detail: this.t.translate('book.card.toast.deleteAiSearchEmbeddingsSuccessDetail', {title: book.metadata?.title})
+                    });
+                  },
+                  error: (err) => {
+                    this.messageService.add({
+                      severity: 'error',
+                      summary: this.t.translate('common.error'),
+                      detail: err?.error?.message || this.t.translate('book.card.toast.deleteAiSearchEmbeddingsFailedDetail')
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
     }
 
     moreActions.push(

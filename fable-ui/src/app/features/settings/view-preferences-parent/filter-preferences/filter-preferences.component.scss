@@ -64,10 +64,14 @@
   flex-direction: column;
   gap: 0.5rem;
   min-height: 40px;
-  max-height: 320px;
+  max-height: 330px;
   max-width: 350px;
   overflow-y: auto;
   margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--ground-background) 80%, var(--p-surface-800) 20%);
 }
 
 .filter-order-row {

@@ -234,6 +234,11 @@ public class BookService {
         return book;
     }
 
+    public void enrichBooksWithAiFlags(List<Book> books, Long userId) {
+        applyAiPanelFlags(books, userId);
+        applyAiSearchFlags(books, userId);
+    }
+
     private void applyAiPanelFlags(List<Book> books, Long userId) {
         if (books == null || books.isEmpty()) {
             return;

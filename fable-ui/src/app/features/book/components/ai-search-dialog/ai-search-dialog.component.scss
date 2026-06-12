@@ -25,22 +25,6 @@
   overflow-y: auto;
   max-height: 60vh;
   padding-right: 0.25rem;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--p-surface-500);
-    border-radius: 3px;
-  }
-
-  scrollbar-width: thin;
-  scrollbar-color: var(--p-surface-500) transparent;
 }
 
 .ai-search-detail-actions {
@@ -179,21 +163,7 @@
     }
   }
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--p-surface-500);
-    border-radius: 3px;
-  }
-
-  scrollbar-width: thin;
-  scrollbar-color: var(--p-surface-500) transparent;
 }
 
 .ai-search-loading {

@@ -54,6 +54,8 @@ public class AiSearchService {
     private final BookCreatorService bookCreatorService;
     private final BookMetadataService bookMetadataService;
     private final ObjectMapper objectMapper;
+    private final org.fable.service.book.BookService bookService;
+    private final org.fable.service.event.BookEventBroadcaster bookEventBroadcaster;
 
     private static final int CHUNK_BATCH_SIZE = 50;
 
@@ -149,11 +151,26 @@ public class AiSearchService {
         }
         int deleted = bookRepository.deleteBookEmbeddings(bookIds, userId);
         try {
-            bookMetadataService.removeAisTagFromBooks(bookIds);
-        } catch (Exception tagEx) {
-            log.warn("Failed to remove AIS tags from books {}: {}", bookIds, tagEx.getMessage());
+            List<org.fable.model.dto.Book> books = bookService.getBooksByIds(new HashSet<>(bookIds), true);
+            bookEventBroadcaster.broadcastBookBatchUpdateEvent(books);
+        } catch (Exception e) {
+            log.warn("Failed to broadcast book updates after deleting embeddings: {}", e.getMessage());
         }
         return deleted;
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void markBooksForAiSearch(List<Long> bookIds, boolean marked) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            return;
+        }
+        bookRepository.updateMarkedForAiSearch(bookIds, marked);
+        try {
+            List<org.fable.model.dto.Book> books = bookService.getBooksByIds(new HashSet<>(bookIds), true);
+            bookEventBroadcaster.broadcastBookBatchUpdateEvent(books);
+        } catch (Exception e) {
+            log.warn("Failed to broadcast book updates after marking: {}", e.getMessage());
+        }
     }
 
     private String resolveBookTitle(Long bookId) {
@@ -358,11 +375,12 @@ public class AiSearchService {
                 log.warn("Active embedding model is null (AI Search service may be unreachable). Skipping embedding_model update for book {}.", bookId);
             }
 
-            // Add 'AIS' metadata tag to indicate the book has AI Search embeddings
+            // Broadcast the update so the UI gets immediate updates
             try {
-                bookMetadataService.addAisTagToBooks(List.of(bookId));
-            } catch (Exception tagEx) {
-                log.warn("Failed to add AIS tag to book {}: {}", bookId, tagEx.getMessage());
+                List<org.fable.model.dto.Book> books = bookService.getBooksByIds(Set.of(bookId), true);
+                bookEventBroadcaster.broadcastBookBatchUpdateEvent(books);
+            } catch (Exception broadcastEx) {
+                log.warn("Failed to broadcast book update for embedded book {}: {}", bookId, broadcastEx.getMessage());
             }
 
             if (!isBatch) {

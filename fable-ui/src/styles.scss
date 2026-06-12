@@ -178,26 +178,28 @@ p-progress-spinner svg,
 
 * {
   &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   &::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 10px;
+    background: color-mix(in srgb, var(--text-color) 8%, transparent);
+    border-radius: 3px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--p-surface-600);
-    border-radius: 10px;
+    background: var(--p-primary-color, var(--primary-color, #818cf8));
+    border-radius: 3px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
 
     &:hover {
-      background: var(--p-surface-500);
+      background: var(--p-primary-hover-color, #6366f1);
     }
   }
 
   scrollbar-width: thin;
-  scrollbar-color: var(--p-surface-600) transparent;
+  scrollbar-color: var(--p-primary-color, var(--primary-color, #818cf8)) color-mix(in srgb, var(--text-color) 8%, transparent);
 }
 
 .chart-info-tooltip.p-tooltip {
