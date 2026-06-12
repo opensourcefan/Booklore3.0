@@ -73,35 +73,41 @@ jobs:
       - name: Enforce Dependency Quarantine (7-Day Hold)
         id: quarantine-check
         if: steps.policy.outputs.auto_merge == 'true'
+        env:
+          DEPS_JSON: ${{ steps.dependabot-metadata.outputs.updated-dependencies-json }}
         run: |
-          dependency_names="${{ steps.dependabot-metadata.outputs.dependency-names }}"
-          new_version="${{ steps.dependabot-metadata.outputs.new-version }}"
-          package_ecosystem="${{ steps.dependabot-metadata.outputs.package-ecosystem }}"
-          
           under_quarantine=false
 
-          # Convert comma-separated string to list and loop
-          IFS=',' read -ra ADDR <<< "$dependency_names"
-          for dep in "${ADDR[@]}"; do
-            # Trim whitespace
-            dep_trimmed=$(echo "$dep" | xargs)
-            echo "Checking release age of $dep_trimmed ($new_version) on ecosystem $package_ecosystem..."
+          while read -r dep_name dep_version dep_ecosystem; do
+            if [ -z "$dep_name" ] || [ "$dep_name" = "null" ]; then
+              continue
+            fi
             
+            echo "Checking release age of $dep_name ($dep_version) on ecosystem $dep_ecosystem..."
             publish_date=""
 
-            if [ "$package_ecosystem" = "npm" ]; then
-              # Query NPM Registry for publish time
-              publish_date=$(npm view "$dep_trimmed" time."$new_version" || echo "")
-            elif [ "$package_ecosystem" = "gradle" ] || [ "$package_ecosystem" = "maven" ]; then
-              # Query Maven Central Search API for timestamp
-              group_id=$(echo "$dep_trimmed" | cut -d: -f1)
-              artifact_id=$(echo "$dep_trimmed" | cut -d: -f2)
-              query_url="https://search.maven.org/solrsearch/select?q=g:${group_id}+AND+a:${artifact_id}+AND+v:${new_version}&wt=json"
+            if [ "$dep_ecosystem" = "npm" ]; then
+              publish_date=$(npm view "$dep_name" time."$dep_version" || echo "")
+            elif [ "$dep_ecosystem" = "gradle" ] || [ "$dep_ecosystem" = "maven" ]; then
+              group_id=$(echo "$dep_name" | cut -d: -f1)
+              artifact_id=$(echo "$dep_name" | cut -d: -f2)
+              query_url="https://search.maven.org/solrsearch/select?q=g:${group_id}+AND+a:${artifact_id}+AND+v:${dep_version}&wt=json"
               response=$(curl -s "$query_url" || echo "")
               timestamp=$(echo "$response" | grep -oE '"timestamp":[0-9]+' | cut -d: -f2 || echo "")
               if [ -n "$timestamp" ]; then
                 publish_date=$(date -d "@$((timestamp / 1000))" -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "")
               fi
+            elif [ "$dep_ecosystem" = "pip" ]; then
+              query_url="https://pypi.org/pypi/${dep_name}/json"
+              response=$(curl -s "$query_url" || echo "")
+              publish_date=$(echo "$response" | jq -r ".releases[\"${dep_version}\"][0].upload_time_iso_8601" 2>/dev/null || echo "")
+              if [ -z "$publish_date" ] || [ "$publish_date" = "null" ]; then
+                publish_date=$(echo "$response" | jq -r ".releases[\"${dep_version}\"][0].upload_time" 2>/dev/null || echo "")
+              fi
+            fi
+
+            if [ "$publish_date" = "null" ]; then
+              publish_date=""
             fi
 
             if [ -n "$publish_date" ]; then
@@ -109,16 +115,20 @@ jobs:
               current_ts=$(date +%s)
               age_seconds=$((current_ts - publish_ts))
               age_days=$((age_seconds / 86400))
-              echo "Package $dep_trimmed version $new_version was published on $publish_date ($age_days days ago)."
+              echo "Package $dep_name version $dep_version was published on $publish_date ($age_days days ago)."
               if [ "$age_days" -lt 7 ]; then
-                echo "⚠️ Package $dep_trimmed is under quarantine hold (7-day rule)."
+                echo "⚠️ Package $dep_name is under quarantine hold (7-day rule)."
                 under_quarantine=true
               fi
             else
-              echo "⚠️ Could not verify publication date for $dep_trimmed. Fail-safe quarantine activated."
-              under_quarantine=true
+              if [ "$dep_ecosystem" = "npm" ] || [ "$dep_ecosystem" = "gradle" ] || [ "$dep_ecosystem" = "maven" ] || [ "$dep_ecosystem" = "pip" ]; then
+                echo "⚠️ Could not verify publication date for supported package $dep_name. Fail-safe quarantine activated."
+                under_quarantine=true
+              else
+                echo "ℹ️ Ecosystem '$dep_ecosystem' publish date verification not supported for $dep_name. Skipping quarantine check."
+              fi
             fi
-          done
+          done < <(echo "$DEPS_JSON" | jq -r '.[] | "\(.dependencyName) \(.newVersion) \(.packageEcosystem)"')
 
           if [ "$under_quarantine" = "true" ]; then
             echo "⚠️ Auto-merge is blocked due to quarantine hold."
