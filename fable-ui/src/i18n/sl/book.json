@@ -94,7 +94,7 @@
       "moreActions": "Več dejanj",
       "organizeFile": "Organiziraj datoteko",
       "readStatus": "Status branja",
-      "resetBookloreProgress": "Ponastavi Booklore napredek",
+      "resetFableProgress": "Ponastavi Fable napredek",
       "resetKOReaderProgress": "Ponastavi KOReader napredek",
       "book": "Knjiga",
       "loading": "Nalaganje..."
@@ -118,10 +118,10 @@
       "readStatusFailedSummary": "Posodobitev ni uspela",
       "readStatusFailedDetail": "Ni bilo mogoče posodobiti statusa branja.",
       "progressResetSummary": "Napredek ponastavljen",
-      "progressResetBookloreDetail": "Booklore napredek branja je bil ponastavljen.",
+      "progressResetFableDetail": "Fable napredek branja je bil ponastavljen.",
       "progressResetKOReaderDetail": "KOReader napredek branja je bil ponastavljen.",
       "progressResetFailedSummary": "Napaka",
-      "progressResetBookloreFailedDetail": "Ni bilo mogoče ponastaviti Booklore napredka.",
+      "progressResetFableFailedDetail": "Ni bilo mogoče ponastaviti Fable napredka.",
       "progressResetKOReaderFailedDetail": "Ni bilo mogoče ponastaviti KOReader napredka.",
       "coverRegenSuccessSummary": "Uspešno",
       "coverRegenSuccessDetail": "Ponovno ustvarjanje naslovnice se je začelo",
@@ -203,7 +203,7 @@
       "setContentRating": "Nastavi oceno vsebine",
       "clearContentRating": "Počisti oceno vsebine",
       "removeFromAllShelves": "Odstrani z vseh polic",
-      "resetBookloreProgress": "Ponastavi Booklore napredek",
+      "resetFableProgress": "Ponastavi Fable napredek",
       "resetKOReaderProgress": "Ponastavi KOReader napredek"
     },
     "confirm": {
@@ -219,7 +219,7 @@
       "clearContentRatingHeader": "Potrdi brisanje ocene vsebine",
       "unshelveMessage": "Ali si prepričan, da želiš odstraniti {{ count }} knjig(e) z VSEH njihovih polic?",
       "unshelveHeader": "Potrdi odstranitev s polic",
-      "resetBookloreMessage": "Ali si prepričan, da želiš ponastaviti Booklore napredek branja za {{ count }} knjig(e)?",
+      "resetFableMessage": "Ali si prepričan, da želiš ponastaviti Fable napredek branja za {{ count }} knjig(e)?",
       "resetKOReaderMessage": "Ali si prepričan, da želiš ponastaviti KOReader napredek branja za {{ count }} knjig(e)?",
       "resetHeader": "Potrdi ponastavitev"
     },
@@ -244,7 +244,7 @@
       "unshelveSuccessDetail": "Knjige so odstranjene z vseh polic",
       "unshelveFailedDetail": "Napaka pri posodabljanju polic",
       "progressResetSummary": "Napredek ponastavljen",
-      "bookloreProgressResetDetail": "Booklore napredek branja je bil ponastavljen.",
+      "fableProgressResetDetail": "Fable napredek branja je bil ponastavljen.",
       "koreaderProgressResetDetail": "KOReader napredek branja je bil ponastavljen.",
       "failedSummary": "Napaka",
       "progressResetFailedDetail": "Ni bilo mogoče ponastaviti napredka."
@@ -256,7 +256,7 @@
       "settingContentRating": "Nastavljanje ocene vsebine za {{ count }} knjig(e)...",
       "clearingContentRating": "Brisanje ocene vsebine za {{ count }} knjig(e)...",
       "removingFromShelves": "Odstranjevanje {{ count }} knjig(e) s polic...",
-      "resettingBookloreProgress": "Ponastavljanje Booklore napredka za {{ count }} knjig(e)...",
+      "resettingFableProgress": "Ponastavljanje Fable napredka za {{ count }} knjig(e)...",
       "resettingKOReaderProgress": "Ponastavljanje KOReader napredka za {{ count }} knjig(e)..."
     }
   },

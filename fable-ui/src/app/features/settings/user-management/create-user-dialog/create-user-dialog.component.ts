@@ -75,7 +75,7 @@ export class CreateUserDialogComponent implements OnInit {
       permissionBulkRegenerateCover: [false],
       permissionMoveOrganizeFiles: [false],
       permissionBulkLockUnlockMetadata: [false],
-      permissionBulkResetBookloreReadProgress: [false],
+      permissionBulkResetFableReadProgress: [false],
       permissionBulkResetKoReaderReadProgress: [false],
       permissionBulkResetBookReadStatus: [false],
     }, {validators: [passwordMatchValidator('password', 'confirmPassword')]});

@@ -69,7 +69,7 @@ export class AuthenticationSettingsComponent implements OnInit {
   sessionDurationHours: number | null = null;
   backchannelLogoutUri = `${window.location.origin}/api/v1/auth/oidc/backchannel-logout`;
   oidcForceOnlyMode = false;
-  oidcRedirectUris: string[] = ['booklore://oauth2-callback'];
+  oidcRedirectUris: string[] = ['fable://oauth2-callback'];
   redirectUriInput = '';
 
   infoItems = [
@@ -154,7 +154,7 @@ export class AuthenticationSettingsComponent implements OnInit {
     this.sessionDurationHours = settings.oidcSessionDurationHours ?? null;
     this.groupSyncMode = settings.oidcGroupSyncMode ?? 'DISABLED';
     this.oidcForceOnlyMode = settings.oidcForceOnlyMode ?? false;
-    this.oidcRedirectUris = settings.oidcRedirectUris ?? ['booklore://oauth2-callback'];
+    this.oidcRedirectUris = settings.oidcRedirectUris ?? ['fable://oauth2-callback'];
 
     this.oidcProvider = {
       providerName: settings.oidcProviderDetails?.providerName || '',

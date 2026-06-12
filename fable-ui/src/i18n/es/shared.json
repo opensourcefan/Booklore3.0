@@ -93,16 +93,16 @@
         "defaultMessage": "Sin notificaciones recientes..."
     },
     "supportDialog": {
-        "title": "Apoyar BookLore",
+        "title": "Apoyar Fable",
         "subtitle": "De un desarrollador independiente que ama los libros",
-        "intro": "BookLore es creado y mantenido por un solo desarrollador que realmente ama los libros. Si ha hecho que organizar tu biblioteca sea un poco más agradable, aquí tienes algunas formas de apoyar el proyecto y mantenerlo en marcha.",
+        "intro": "Fable es creado y mantenido por un solo desarrollador que realmente ama los libros. Si ha hecho que organizar tu biblioteca sea un poco más agradable, aquí tienes algunas formas de apoyar el proyecto y mantenerlo en marcha.",
         "starTitle": "Estrella en GitHub",
-        "starDesc": "Una estrella ayuda mucho. Permite que nuevas personas descubran BookLore y me mantiene motivado.",
+        "starDesc": "Una estrella ayuda mucho. Permite que nuevas personas descubran Fable y me mantiene motivado.",
         "collectiveTitle": "Open Collective",
         "collectiveDesc": "Apoyo recurrente que ayuda a cubrir el alojamiento y mantener el desarrollo sostenible.",
         "kofiTitle": "Invítame un café",
         "kofiDesc": "Una propina para las sesiones de programación nocturnas. ¡Cada aporte se agradece!",
-        "closing": "Gracias por ser parte de la comunidad de BookLore."
+        "closing": "Gracias por ser parte de la comunidad de Fable."
     },
     "metadataProgress": {
         "taskStalled": "Tarea detenida o servidor no disponible",
@@ -136,7 +136,7 @@
         "saveErrorDetail": "Hubo un error al guardar la configuración."
     },
     "setup": {
-        "title": "Bienvenido a Booklore",
+        "title": "Bienvenido a Fable",
         "subtitle": "Configura tu cuenta de administrador inicial para comenzar",
         "usernameLabel": "Nombre de usuario",
         "usernamePlaceholder": "Elige un nombre de usuario",

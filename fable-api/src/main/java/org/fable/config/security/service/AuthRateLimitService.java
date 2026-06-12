@@ -1,0 +1,112 @@
+package org.fable.config.security.service;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.extern.slf4j.Slf4j;
+import org.fable.exception.ApiError;
+import org.fable.model.enums.AuditAction;
+import org.fable.service.audit.AuditService;
+import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
+
+@Slf4j
+@Service
+public class AuthRateLimitService {
+
+    /**
+     * In-memory rate limiting using Caffeine cache.
+     *
+     * <p><strong>Limitation (OWASP A07):</strong> Rate-limit counters are held in JVM heap
+     * memory only.  This means:
+     * <ul>
+     *   <li>Counters are <em>reset on every application restart</em>.  An attacker who can
+     *       trigger a restart (e.g. via a health-check probe on a non-HA deployment) can
+     *       bypass the limit.</li>
+     *   <li>In a <em>horizontally-scaled (multi-instance) deployment</em> each instance
+     *       maintains independent counters, so an attacker can spread 5 × N attempts across
+     *       N instances without being blocked.</li>
+     * </ul>
+     * For single-node self-hosted deployments this is an acceptable trade-off.  For HA
+     * deployments consider replacing this with a distributed store
+     * (e.g. Redis via Bucket4j or Spring's RedisCacheManager).
+     */
+    private static final int MAX_ATTEMPTS = 5;
+
+    private final Cache<String, AtomicInteger> attemptCache;
+    private final AuditService auditService;
+
+    public AuthRateLimitService(AuditService auditService) {
+        this.auditService = auditService;
+        this.attemptCache = Caffeine.newBuilder()
+                .maximumSize(10000)
+                .expireAfterWrite(Duration.ofMinutes(15))
+                .build();
+    }
+
+    // --- Login rate limiting ---
+
+    public void checkLoginRateLimit(String ip) {
+        checkRateLimit("login:ip:" + ip, AuditAction.LOGIN_RATE_LIMITED, "Login rate limited for IP: " + ip);
+    }
+
+    public void checkLoginRateLimitByUsername(String username) {
+        String normalizedUsername = normalizeUsername(username);
+        checkRateLimit("login:user:" + normalizedUsername, AuditAction.LOGIN_RATE_LIMITED, "Login rate limited for username: " + normalizedUsername);
+    }
+
+    public void recordFailedLoginAttempt(String ip) {
+        recordFailedAttempt("login:ip:" + ip);
+    }
+
+    public void recordFailedLoginAttemptByUsername(String username) {
+        String normalizedUsername = normalizeUsername(username);
+        recordFailedAttempt("login:user:" + normalizedUsername);
+    }
+
+    public void resetLoginAttempts(String ip) {
+        resetAttempts("login:ip:" + ip);
+    }
+
+    public void resetLoginAttemptsByUsername(String username) {
+        String normalizedUsername = normalizeUsername(username);
+        resetAttempts("login:user:" + normalizedUsername);
+    }
+
+    // --- Refresh token rate limiting ---
+
+    public void checkRefreshRateLimit(String ip) {
+        checkRateLimit("refresh:" + ip, AuditAction.REFRESH_RATE_LIMITED, "Refresh rate limited for IP: " + ip);
+    }
+
+    public void recordFailedRefreshAttempt(String ip) {
+        recordFailedAttempt("refresh:" + ip);
+    }
+
+    public void resetRefreshAttempts(String ip) {
+        resetAttempts("refresh:" + ip);
+    }
+
+    // --- Shared internals ---
+
+    private void checkRateLimit(String key, AuditAction action, String message) {
+        AtomicInteger attempts = attemptCache.getIfPresent(key);
+        if (attempts != null && attempts.get() >= MAX_ATTEMPTS) {
+            auditService.log(action, message);
+            throw ApiError.RATE_LIMITED.createException();
+        }
+    }
+
+    private void recordFailedAttempt(String key) {
+        attemptCache.get(key, k -> new AtomicInteger(0)).incrementAndGet();
+    }
+
+    private void resetAttempts(String key) {
+        attemptCache.invalidate(key);
+    }
+
+    private String normalizeUsername(String username) {
+        return username != null ? username.trim().toLowerCase() : "";
+    }
+}

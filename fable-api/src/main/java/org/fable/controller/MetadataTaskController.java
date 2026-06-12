@@ -1,0 +1,112 @@
+package org.fable.controller;
+
+import org.fable.model.dto.MetadataBatchProgressNotification;
+import org.fable.model.dto.response.MetadataResumableTaskResponse;
+import org.fable.model.dto.response.MetadataTaskDetailsResponse;
+import org.fable.model.dto.response.MetadataTaskLogResponse;
+import org.fable.model.dto.response.TaskCancelResponse;
+import org.fable.model.dto.response.TaskCreateResponse;
+import org.fable.service.metadata.MetadataTaskService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/metadata/tasks")
+@RequiredArgsConstructor
+@Tag(name = "Metadata Tasks", description = "Endpoints for managing metadata batch tasks and proposals")
+public class MetadataTaskController {
+
+    private final MetadataTaskService metadataTaskService;
+
+    @Operation(summary = "Get metadata task with proposals", description = "Retrieve a metadata task and its proposals by task ID. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Task details returned successfully")
+    @GetMapping("/{taskId}")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<MetadataTaskDetailsResponse> getTaskWithProposals(
+            @Parameter(description = "Task ID") @PathVariable String taskId) {
+        return metadataTaskService.getTaskWithProposals(taskId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Get active metadata tasks", description = "Retrieve all active metadata batch tasks. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Active tasks returned successfully")
+    @GetMapping("/active")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<List<MetadataBatchProgressNotification>> getActiveTasks() {
+        return ResponseEntity.ok(metadataTaskService.getActiveTasks());
+    }
+
+    @Operation(summary = "Get metadata task log", description = "Retrieve the current status plus fetched and remaining books for a metadata batch task. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Metadata task log returned successfully")
+    @GetMapping("/{taskId}/log")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<MetadataTaskLogResponse> getTaskLog(
+            @Parameter(description = "Task ID") @PathVariable String taskId) {
+        return metadataTaskService.getTaskLog(taskId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Get latest resumable metadata task", description = "Retrieve the newest failed or cancelled metadata task that can be resumed. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Resumable task returned successfully")
+    @GetMapping("/resumable/latest")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<MetadataResumableTaskResponse> getLatestResumableTask() {
+        return metadataTaskService.getLatestResumableTask()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    @Operation(summary = "Delete a metadata task", description = "Delete a metadata task and its proposals by task ID. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "204", description = "Task deleted successfully")
+    @DeleteMapping("/{taskId}")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<Void> deleteTask(
+            @Parameter(description = "Task ID") @PathVariable String taskId) {
+        boolean deleted = metadataTaskService.deleteTaskAndProposals(taskId);
+        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @Operation(summary = "Cancel a metadata task", description = "Cancel a running metadata batch task by task ID. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Task cancellation requested successfully")
+    @DeleteMapping("/{taskId}/cancel")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<TaskCancelResponse> cancelTask(
+            @Parameter(description = "Task ID") @PathVariable String taskId) {
+        return metadataTaskService.cancelMetadataTask(taskId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+        @Operation(summary = "Resume a metadata task", description = "Resume the remaining books from a failed or cancelled metadata batch task. Requires metadata edit permission or admin.")
+        @ApiResponse(responseCode = "200", description = "Metadata task resumed successfully")
+        @PostMapping("/{taskId}/resume")
+        @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+        public ResponseEntity<TaskCreateResponse> resumeTask(
+            @Parameter(description = "Task ID") @PathVariable String taskId) {
+        return metadataTaskService.resumeMetadataTask(taskId)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+        }
+
+    @Operation(summary = "Update proposal status", description = "Update the status of a proposal for a metadata task. Requires metadata edit permission or admin.")
+    @ApiResponse(responseCode = "200", description = "Proposal status updated successfully")
+    @PostMapping("/{taskId}/proposals/{proposalId}/status")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<Void> updateProposalStatus(
+            @Parameter(description = "Task ID") @PathVariable String taskId,
+            @Parameter(description = "Proposal ID") @PathVariable Long proposalId,
+            @Parameter(description = "New status") @RequestParam String status) {
+        boolean updated = metadataTaskService.updateProposalStatus(taskId, proposalId, status);
+        return updated ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+}

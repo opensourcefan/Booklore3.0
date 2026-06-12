@@ -90,7 +90,7 @@ type CbxJoystickAxisIntent = 'none' | 'horizontal' | 'vertical';
   styleUrl: './cbx-reader.component.scss'
 })
 export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
-  private static readonly JOYSTICK_DEVICE_STORAGE_KEY = 'booklore.cbx.mobileJoystick.v1';
+  private static readonly JOYSTICK_DEVICE_STORAGE_KEY = 'fable.cbx.mobileJoystick.v1';
   private static readonly JOYSTICK_RADIUS_PX = 30;
   private static readonly JOYSTICK_DEADZONE_PX = 6;
   private static readonly JOYSTICK_MARGIN_PX = 26;

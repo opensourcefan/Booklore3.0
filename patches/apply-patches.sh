@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  BookLore UI Patch Script v2
-#  Based on actual source files from opensourcefan/booklore
+#  Fable UI Patch Script v2
+#  Based on actual source files from opensourcefan/fable
 #
 #  Applies:
 #    1. Resizable left nav sidebar (hover + drag, width saved to localStorage)
@@ -9,7 +9,7 @@
 #    3. Cover Preview panel at bottom of filter sidebar (click any book to preview)
 #
 #  Usage:
-#    cd ~/booklore_test
+#    cd ~/fable_test
 #    bash patches/apply-patches.sh
 # =============================================================================
 
@@ -22,14 +22,14 @@ fail() { echo -e "${RED}  ✗  $*${NC}"; exit 1; }
 step() { echo -e "\n${CYAN}▶  $*${NC}"; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="$HOME/booklore_test"
-UI="$REPO/booklore-ui/src/app"
-STYLES="$REPO/booklore-ui/src/styles.scss"
+REPO="$HOME/fable_test"
+UI="$REPO/fable-ui/src/app"
+STYLES="$REPO/fable-ui/src/styles.scss"
 NEW="$SCRIPT_DIR/new-files"
 
 echo ""
 echo "  ╔══════════════════════════════════════════╗"
-echo "  ║    BookLore UI Patch Applicator v2       ║"
+echo "  ║    Fable UI Patch Applicator v2       ║"
 echo "  ╚══════════════════════════════════════════╝"
 echo ""
 echo "  Repo : $REPO"
@@ -48,7 +48,7 @@ step "Step 1/5 — Installing new source files"
 DIRDIR="$UI/shared/directives"
 mkdir -p "$DIRDIR"
 if [[ ! -f "$DIRDIR/resizable-divider.directive.ts" ]]; then
-  cp "$NEW/booklore-ui/src/app/shared/directives/resizable-divider.directive.ts" "$DIRDIR/"
+  cp "$NEW/fable-ui/src/app/shared/directives/resizable-divider.directive.ts" "$DIRDIR/"
   ok "resizable-divider.directive.ts installed → $DIRDIR"
 else
   warn "resizable-divider.directive.ts already exists — skipping"
@@ -58,7 +58,7 @@ fi
 COVDIR="$UI/shared/components/cover-preview"
 mkdir -p "$COVDIR"
 if [[ ! -f "$COVDIR/cover-preview.component.ts" ]]; then
-  cp "$NEW/booklore-ui/src/app/shared/components/cover-preview/cover-preview.component.ts" "$COVDIR/"
+  cp "$NEW/fable-ui/src/app/shared/components/cover-preview/cover-preview.component.ts" "$COVDIR/"
   ok "cover-preview.component.ts installed → $COVDIR"
 else
   warn "cover-preview.component.ts already exists — skipping"
@@ -145,8 +145,8 @@ echo "  ╚═══════════════════════
 echo ""
 echo "  Next steps:"
 echo ""
-echo "    1. Review changes:    cd ~/booklore_test && git diff --stat"
-echo "    2. Build the image:   cd ~/booklore_test && docker compose down && docker compose build --no-cache && docker compose up -d"
+echo "    1. Review changes:    cd ~/fable_test && git diff --stat"
+echo "    2. Build the image:   cd ~/fable_test && docker compose down && docker compose build --no-cache && docker compose up -d"
 echo "    3. Start dev server:  npm start   (or use your normal Docker build)"
 echo ""
 echo "  What to test:"

@@ -124,7 +124,7 @@
         "saveErrorDetail": "Došlo je do pogreške prilikom spremanja postavki."
     },
     "setup": {
-        "title": "Dobrodošli u Booklore",
+        "title": "Dobrodošli u Fable",
         "subtitle": "Postavite svoj početni administratorski račun za početak",
         "usernameLabel": "Korisničko ime",
         "usernamePlaceholder": "Odaberite korisničko ime",
@@ -152,15 +152,15 @@
         }
     },
     "supportDialog": {
-        "title": "Podržite BookLore",
+        "title": "Podržite Fable",
         "subtitle": "Od solo programera koji voli knjige",
-        "intro": "BookLore je izgradio i održava jedan programer koji istinski voli knjige. Ako vam je organizacija vaše knjižnice postala malo ugodnija, evo nekoliko načina kako podržati projekt i nastaviti ga.",
+        "intro": "Fable je izgradio i održava jedan programer koji istinski voli knjige. Ako vam je organizacija vaše knjižnice postala malo ugodnija, evo nekoliko načina kako podržati projekt i nastaviti ga.",
         "starTitle": "Zvijezda na GitHubu",
-        "starDesc": "Zvjezdica puno znači. Pomaže novim ljudima da pronađu BookLore i mene motivira.",
+        "starDesc": "Zvjezdica puno znači. Pomaže novim ljudima da pronađu Fable i mene motivira.",
         "collectiveTitle": "Otvoreni kolektiv",
         "collectiveDesc": "Redovita podrška koja pokriva troškove hostinga i omogućuje održivost razvoja.",
         "kofiTitle": "Kupi mi kavu",
         "kofiDesc": "Jednokratni savjet za poticanje kasnonoćnih sesija kodiranja. Svaki savjet je dobrodošao!",
-        "closing": "Hvala vam što ste dio BookLore zajednice."
+        "closing": "Hvala vam što ste dio Fable zajednice."
     }
 }

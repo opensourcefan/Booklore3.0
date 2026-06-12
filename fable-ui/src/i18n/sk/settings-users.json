@@ -1,6 +1,6 @@
 {
     "title": "Správa používateľov",
-    "description": "Spravujte používateľov Booklore, ich oprávnenia a prístup ku knižniciam. Nakonfigurujte používateľské roly a možnosti pre vašu zbierku kníh.",
+    "description": "Spravujte používateľov Fable, ich oprávnenia a prístup ku knižniciam. Nakonfigurujte používateľské roly a možnosti pre vašu zbierku kníh.",
     "currentUsers": {
         "sectionTitle": "",
         "sectionDesc": "",
@@ -70,7 +70,7 @@
         "koreaderSync": "",
         "koboSync": "",
         "opdsFeedAccess": "",
-        "bulkResetBooklore": "",
+        "bulkResetFable": "",
         "bulkResetKoreader": "",
         "bulkResetReadStatus": ""
     },

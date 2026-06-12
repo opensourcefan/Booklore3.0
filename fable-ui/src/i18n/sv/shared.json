@@ -124,7 +124,7 @@
         "saveErrorDetail": "Det uppstod ett fel vid sparning av inställningarna."
     },
     "setup": {
-        "title": "Välkommen till Booklore",
+        "title": "Välkommen till Fable",
         "subtitle": "Ställ in ditt initiala administratörskonto för att komma igång",
         "usernameLabel": "Användarnamn",
         "usernamePlaceholder": "Välj ett användarnamn",
@@ -153,12 +153,12 @@
     },
     "supportDialog": {
         "kofiDesc": "En engångsdricks för att ge energi till sena kodningssessioner. Varje liten summa uppskattas!",
-        "closing": "Tack för att du är en del av BookLore-communityn.",
-        "title": "Stötta BookLore",
+        "closing": "Tack för att du är en del av Fable-communityn.",
+        "title": "Stötta Fable",
         "subtitle": "Från en ensam utvecklare som älskar böcker",
-        "intro": "BookLore byggs och underhålls av en enda utvecklare som verkligen älskar böcker. Om det har gjort det lite roligare att organisera ditt bibliotek, så har du här några sätt att stödja projektet och hålla det igång.",
+        "intro": "Fable byggs och underhålls av en enda utvecklare som verkligen älskar böcker. Om det har gjort det lite roligare att organisera ditt bibliotek, så har du här några sätt att stödja projektet och hålla det igång.",
         "starTitle": "Stjärnmärk på GitHub",
-        "starDesc": "En stjärnmärkning gör mycket. Den hjälper nya människor att hitta BookLore och håller mig motiverad.",
+        "starDesc": "En stjärnmärkning gör mycket. Den hjälper nya människor att hitta Fable och håller mig motiverad.",
         "collectiveTitle": "Open Collective",
         "collectiveDesc": "Återkommande support som hjälper till att täcka hosting och håller utvecklingen hållbar.",
         "kofiTitle": "Bjud mig på en kaffe"

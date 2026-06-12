@@ -124,7 +124,7 @@
         "saveErrorDetail": "Beim Speichern der Einstellungen ist ein Fehler aufgetreten."
     },
     "setup": {
-        "title": "Willkommen bei Booklore",
+        "title": "Willkommen bei Fable",
         "subtitle": "Erstellen Sie Ihr erstes Administratorkonto, um zu beginnen",
         "usernameLabel": "Benutzername",
         "usernamePlaceholder": "Benutzernamen wählen",
@@ -152,13 +152,13 @@
         }
     },
     "supportDialog": {
-        "title": "BookLore unterstützen",
+        "title": "Fable unterstützen",
         "subtitle": "Von einem Solo-Entwickler, der Bücher liebt",
-        "intro": "BookLore wird von einem einzelnen Entwickler erstellt und gepflegt, der Bücher wirklich liebt. Wenn Ihnen die Organisation Ihrer Bibliothek damit etwas mehr Freude bereitet, finden Sie hier einige Möglichkeiten, das Projekt zu unterstützen und am Laufen zu halten.",
+        "intro": "Fable wird von einem einzelnen Entwickler erstellt und gepflegt, der Bücher wirklich liebt. Wenn Ihnen die Organisation Ihrer Bibliothek damit etwas mehr Freude bereitet, finden Sie hier einige Möglichkeiten, das Projekt zu unterstützen und am Laufen zu halten.",
         "kofiTitle": "Kaufen Sie mir einen Kaffee",
-        "starDesc": "Ein Stern hat eine große Wirkung. Er unterstützt neue Nutzer dabei, BookLore zu entdecken, und motiviert mich.",
+        "starDesc": "Ein Stern hat eine große Wirkung. Er unterstützt neue Nutzer dabei, Fable zu entdecken, und motiviert mich.",
         "collectiveDesc": "Regelmäßiger Support, der zur Deckung der Hosting-Kosten beiträgt und eine nachhaltige Entwicklung gewährleistet.",
         "kofiDesc": "Eine einmalige Spende, um nächtliche Programmier-Sessions zu unterstützen. Jeder Beitrag wird dankbar angenommen!",
-        "closing": "Vielen Dank, dass Sie Teil der BookLore-Community sind."
+        "closing": "Vielen Dank, dass Sie Teil der Fable-Community sind."
     }
 }

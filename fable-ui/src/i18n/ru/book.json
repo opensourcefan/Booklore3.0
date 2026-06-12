@@ -94,7 +94,7 @@
       "moreActions": "Дополнительные действия",
       "organizeFile": "Организовать файл",
       "readStatus": "Статус чтения",
-      "resetBookloreProgress": "Сбросить прогресс Booklore",
+      "resetFableProgress": "Сбросить прогресс Fable",
       "resetKOReaderProgress": "Сбросить прогресс KOReader",
       "book": "Книга",
       "loading": "Загрузка..."
@@ -115,10 +115,10 @@
       "readStatusFailedSummary": "Ошибка обновления",
       "readStatusFailedDetail": "Не удалось обновить статус чтения.",
       "progressResetSummary": "Прогресс сброшен",
-      "progressResetBookloreDetail": "Прогресс чтения Booklore был сброшен.",
+      "progressResetFableDetail": "Прогресс чтения Fable был сброшен.",
       "progressResetKOReaderDetail": "Прогресс чтения KOReader был сброшен.",
       "progressResetFailedSummary": "Ошибка",
-      "progressResetBookloreFailedDetail": "Не удалось сбросить прогресс Booklore.",
+      "progressResetFableFailedDetail": "Не удалось сбросить прогресс Fable.",
       "progressResetKOReaderFailedDetail": "Не удалось сбросить прогресс KOReader.",
       "coverRegenSuccessSummary": "Успешно",
       "coverRegenSuccessDetail": "Пересоздание обложки начато",
@@ -199,7 +199,7 @@
       "setContentRating": "Установить рейтинг контента",
       "clearContentRating": "Очистить рейтинг контента",
       "removeFromAllShelves": "Убрать со всех полок",
-      "resetBookloreProgress": "Сбросить прогресс Booklore",
+      "resetFableProgress": "Сбросить прогресс Fable",
       "resetKOReaderProgress": "Сбросить прогресс KOReader"
     },
     "confirm": {
@@ -215,7 +215,7 @@
       "clearContentRatingHeader": "Подтверждение очистки рейтинга контента",
       "unshelveMessage": "Вы уверены, что хотите убрать {{ count }} книг(у/и) со ВСЕХ их полок?",
       "unshelveHeader": "Подтверждение снятия с полки",
-      "resetBookloreMessage": "Вы уверены, что хотите сбросить прогресс чтения Booklore для {{ count }} книг(и)?",
+      "resetFableMessage": "Вы уверены, что хотите сбросить прогресс чтения Fable для {{ count }} книг(и)?",
       "resetKOReaderMessage": "Вы уверены, что хотите сбросить прогресс чтения KOReader для {{ count }} книг(и)?",
       "resetHeader": "Подтверждение сброса"
     },
@@ -240,7 +240,7 @@
       "unshelveSuccessDetail": "Книги убраны со всех полок",
       "unshelveFailedDetail": "Не удалось обновить полки книг",
       "progressResetSummary": "Прогресс сброшен",
-      "bookloreProgressResetDetail": "Прогресс чтения Booklore был сброшен.",
+      "fableProgressResetDetail": "Прогресс чтения Fable был сброшен.",
       "koreaderProgressResetDetail": "Прогресс чтения KOReader был сброшен.",
       "failedSummary": "Ошибка",
       "progressResetFailedDetail": "Не удалось сбросить прогресс."
@@ -252,7 +252,7 @@
       "settingContentRating": "Установка рейтинга контента для {{ count }} книг(и)...",
       "clearingContentRating": "Очистка рейтинга контента для {{ count }} книг(и)...",
       "removingFromShelves": "Удаление {{ count }} книг(и) с полок...",
-      "resettingBookloreProgress": "Сброс прогресса Booklore для {{ count }} книг(и)...",
+      "resettingFableProgress": "Сброс прогресса Fable для {{ count }} книг(и)...",
       "resettingKOReaderProgress": "Сброс прогресса KOReader для {{ count }} книг(и)..."
     }
   },

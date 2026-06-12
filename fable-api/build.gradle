@@ -10,9 +10,9 @@ plugins {
     id 'org.owasp.dependencycheck' version '12.2.2'
 }
 
-group = 'org.booklore'
+group = 'org.fable'
 version = '4.3.0'
-description = 'booklore'
+description = 'fable'
 
 java {
     toolchain {
@@ -181,7 +181,7 @@ bootRun {
 }
 
 bootJar {
-    mainClass = 'org.booklore.BookloreApplication'
+    mainClass = 'org.fable.FableApplication'
     manifest {
         attributes 'Implementation-Version': archiveVersion.get()
     }

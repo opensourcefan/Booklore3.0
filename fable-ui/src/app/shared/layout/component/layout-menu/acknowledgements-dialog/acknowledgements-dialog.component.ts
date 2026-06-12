@@ -15,7 +15,7 @@ import {environment} from '../../../../../../environments/environment';
       </div>
 
       <div class="ack-body">
-        <p>Original developers and contributors of Booklore</p>
+        <p>Original developers and contributors of Fable</p>
         <p>
           mosesb - best-comic-panel-detection
           <a href="https://huggingface.co/mosesb" target="_blank" rel="noopener noreferrer">https://huggingface.co/mosesb</a>

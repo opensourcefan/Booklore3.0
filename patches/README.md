@@ -1,6 +1,6 @@
-# BookLore UI Patch Package v2
+# Fable UI Patch Package v2
 
-Applies two UI enhancements to your `~/booklore_test` clone:
+Applies two UI enhancements to your `~/fable_test` clone:
 
 1. **Resizable panels** — hover over any panel edge to reveal a drag handle.
    Drag to resize. Width is saved to `localStorage` and restored on reload.
@@ -29,38 +29,38 @@ npm --version    # comes with node
 ### Step 1 — Make sure your repo is cloned
 
 ```bash
-ls ~/booklore_test/booklore-ui
+ls ~/fable_test/fable-ui
 ```
 
 If that fails, clone it first:
 
 ```bash
-git clone https://github.com/opensourcefan/booklore.git ~/booklore_test
+git clone https://github.com/opensourcefan/fable.git ~/fable_test
 ```
 
 ### Step 2 — Copy the patch folder into your repo
 
 ```bash
-cp -r /path/to/downloaded/booklore-patch2  ~/booklore_test/patches
+cp -r /path/to/downloaded/fable-patch2  ~/fable_test/patches
 ```
 
 Or if you extracted the tar.gz:
 
 ```bash
-tar -xzf booklore-ui-patches-v2.tar.gz
-cp -r booklore-patch2  ~/booklore_test/patches
+tar -xzf fable-ui-patches-v2.tar.gz
+cp -r fable-patch2  ~/fable_test/patches
 ```
 
 ### Step 3 — Make the script executable
 
 ```bash
-chmod +x ~/booklore_test/patches/apply-patches.sh
+chmod +x ~/fable_test/patches/apply-patches.sh
 ```
 
 ### Step 4 — Run the patch script
 
 ```bash
-cd ~/booklore_test
+cd ~/fable_test
 bash patches/apply-patches.sh
 ```
 
@@ -69,7 +69,7 @@ You should see a ✓ for each step. A ⚠ means that step was already applied an
 ### Step 5 — Build the UI
 
 ```bash
-cd ~/booklore_test/booklore-ui
+cd ~/fable_test/fable-ui
 npm install
 npm run build
 ```
@@ -78,7 +78,7 @@ A clean build with no TypeScript errors = success.
 
 ### Step 6 — Test
 
-Start your BookLore instance and verify:
+Start your Fable instance and verify:
 
 - Hovering the right edge of the left sidebar shows a faint blue resize handle
 - Dragging it resizes the sidebar; the new width persists after reload
@@ -107,11 +107,11 @@ Start your BookLore instance and verify:
 All changes are tracked by git:
 
 ```bash
-cd ~/booklore_test
-git checkout -- booklore-ui/src/styles.scss
-git checkout -- booklore-ui/src/app/shared/layout/component/layout-main/
-git checkout -- booklore-ui/src/app/features/book/components/book-browser/
+cd ~/fable_test
+git checkout -- fable-ui/src/styles.scss
+git checkout -- fable-ui/src/app/shared/layout/component/layout-main/
+git checkout -- fable-ui/src/app/features/book/components/book-browser/
 # Remove the new files
-rm -rf booklore-ui/src/app/shared/directives/resizable-divider.directive.ts
-rm -rf booklore-ui/src/app/shared/components/cover-preview/
+rm -rf fable-ui/src/app/shared/directives/resizable-divider.directive.ts
+rm -rf fable-ui/src/app/shared/components/cover-preview/
 ```

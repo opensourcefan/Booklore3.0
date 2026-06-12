@@ -8,7 +8,7 @@ export interface KoreaderUser {
   username: string;
   password: string;
   syncEnabled: boolean;
-  syncWithBookloreReader: boolean;
+  syncWithFableReader: boolean;
 }
 
 @Injectable({
@@ -35,8 +35,8 @@ export class KoreaderService {
     });
   }
 
-  toggleSyncProgressWithBookloreReader(enabled: boolean): Observable<void> {
-    return this.http.patch<void>(`${this.url}/me/sync-progress-with-booklore`, null, {
+  toggleSyncProgressWithFableReader(enabled: boolean): Observable<void> {
+    return this.http.patch<void>(`${this.url}/me/sync-progress-with-fable`, null, {
       params: {enabled: enabled.toString()}
     });
   }

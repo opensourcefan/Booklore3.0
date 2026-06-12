@@ -1,6 +1,6 @@
 export const ResetProgressTypes = {
   KOREADER: 'KOREADER',
-  BOOKLORE: 'BOOKLORE',
+  FABLE: 'FABLE',
   KOBO: 'KOBO'
 } as const;
 
