@@ -1,6 +1,6 @@
 import {Component, ElementRef, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
 import {BehaviorSubject, interval, of, Subscription} from 'rxjs';
-import {catchError, debounceTime, distinctUntilChanged, map, switchMap, filter as rxFilter} from 'rxjs/operators';
+import {catchError, debounceTime, distinctUntilChanged, map, switchMap} from 'rxjs/operators';
 import {Book} from '../../model/book.model';
 import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
