@@ -44,3 +44,25 @@
 ::ng-deep .close-reader-btn:hover {
   color: #ff6b6b;
 }
+
+::ng-deep {
+  #toolbarViewer {
+    display: flex !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    min-height: 32px !important;
+    box-sizing: border-box !important;
+    flex-wrap: nowrap !important;
+  }
+
+  #toolbarViewerLeft,
+  #toolbarViewerRight,
+  pdf-zoom-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+  }
+}
+
