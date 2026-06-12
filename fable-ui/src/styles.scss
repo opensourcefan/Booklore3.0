@@ -178,20 +178,17 @@ p-progress-spinner svg,
 
 * {
   &::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
 
   &::-webkit-scrollbar-track {
-    background: color-mix(in srgb, var(--text-color) 8%, transparent);
-    border-radius: 3px;
+    background: transparent;
   }
 
   &::-webkit-scrollbar-thumb {
     background: var(--p-primary-color, var(--primary-color, #818cf8));
-    border-radius: 3px;
-    border: 1px solid transparent;
-    background-clip: padding-box;
+    border-radius: 2px;
 
     &:hover {
       background: var(--p-primary-hover-color, #6366f1);
@@ -199,7 +196,7 @@ p-progress-spinner svg,
   }
 
   scrollbar-width: thin;
-  scrollbar-color: var(--p-primary-color, var(--primary-color, #818cf8)) color-mix(in srgb, var(--text-color) 8%, transparent);
+  scrollbar-color: var(--p-primary-color, var(--primary-color, #818cf8)) transparent;
 }
 
 .chart-info-tooltip.p-tooltip {
