@@ -251,12 +251,9 @@ export class AppTopBarComponent implements OnDestroy {
     });
 
     this.embeddingProgressSub = this.aiSearchScanProgressService.progress$
-      .pipe(
-        filter((p): p is NonNullable<typeof p> => !!p),
-        takeUntil(this.destroy$)
-      )
+      .pipe(takeUntil(this.destroy$))
       .subscribe(progress => {
-        this.isBatchEmbedding = progress.mode === 'BATCH' && progress.event === 'IN_PROGRESS';
+        this.isBatchEmbedding = progress?.mode === 'BATCH' && progress?.event === 'IN_PROGRESS';
       });
 
     this.sidecarBackupProgressService.active$
@@ -408,7 +405,7 @@ export class AppTopBarComponent implements OnDestroy {
     
     const fetchStatus = () => {
       this.appSettingsService.getAiSearchServiceStatus().pipe(
-        catchError(() => of({ status: 'load_failed' }))
+        catchError(() => of({ status: 'ERROR' }))
       ).subscribe((res) => {
         if (res && res.status) {
           this.searchStatus = res.status as 'READY' | 'STARTING' | 'ERROR';

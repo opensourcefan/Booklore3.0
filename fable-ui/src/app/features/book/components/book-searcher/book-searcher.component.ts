@@ -104,9 +104,8 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     });
 
     this.embeddingProgressSub = this.aiSearchScanProgressService.progress$
-      .pipe(rxFilter((p): p is NonNullable<typeof p> => !!p))
       .subscribe(progress => {
-        this.isBatchEmbedding = progress.mode === 'BATCH' && progress.event === 'IN_PROGRESS';
+        this.isBatchEmbedding = progress?.mode === 'BATCH' && progress?.event === 'IN_PROGRESS';
       });
 
     this.appSettingsSub = this.appSettingsService.appSettings$.subscribe(settings => {
@@ -124,7 +123,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     
     const fetchStatus = () => {
       this.appSettingsService.getAiSearchServiceStatus().pipe(
-        catchError(() => of({ status: 'load_failed' }))
+        catchError(() => of({ status: 'ERROR' }))
       ).subscribe((res) => {
         if (res && res.status) {
           this.searchStatus = res.status as 'READY' | 'STARTING' | 'ERROR';

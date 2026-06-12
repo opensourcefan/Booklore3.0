@@ -4,6 +4,8 @@ import {filter} from 'rxjs/operators';
 import {MessageService} from 'primeng/api';
 import {NotificationEventService} from '../websocket/notification-event.service';
 import {Severity} from '../websocket/model/log-notification.model';
+import {RxStompService} from '../websocket/rx-stomp.service';
+import {RxStompState} from '@stomp/rx-stomp';
 
 export interface AiSearchProgressPayload {
   mode: 'SINGLE' | 'BATCH';
@@ -20,12 +22,21 @@ export interface AiSearchProgressPayload {
 export class AiSearchScanProgressService {
   private readonly messageService = inject(MessageService);
   private readonly notificationService = inject(NotificationEventService);
+  private readonly rxStompService = inject(RxStompService);
   private readonly progressSubject = new BehaviorSubject<AiSearchProgressPayload | null>(null);
   private readonly embeddingBookIdsSubject = new BehaviorSubject<Set<number>>(new Set());
   private clearTimer: ReturnType<typeof setTimeout> | undefined;
 
   readonly progress$ = this.progressSubject.asObservable();
   readonly embeddingBookIds$ = this.embeddingBookIdsSubject.asObservable();
+
+  constructor() {
+    this.rxStompService?.connectionState$?.subscribe(state => {
+      if (state !== RxStompState.OPEN) {
+        this.progressSubject.next(null);
+      }
+    });
+  }
 
   handleIncomingProgress(progress: AiSearchProgressPayload): void {
     if (this.clearTimer) {
