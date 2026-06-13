@@ -176,27 +176,29 @@ p-progress-spinner svg,
   display: none !important;
 }
 
-* {
-  &::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--p-primary-color, var(--primary-color, #818cf8));
+  border-radius: 2px;
+
+  &:hover {
+    background: var(--p-primary-hover-color, #6366f1);
   }
+}
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--p-primary-color, var(--primary-color, #818cf8)) transparent;
   }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--p-primary-color, var(--primary-color, #818cf8));
-    border-radius: 2px;
-
-    &:hover {
-      background: var(--p-primary-hover-color, #6366f1);
-    }
-  }
-
-  scrollbar-width: thin;
-  scrollbar-color: var(--p-primary-color, var(--primary-color, #818cf8)) transparent;
 }
 
 .chart-info-tooltip.p-tooltip {
