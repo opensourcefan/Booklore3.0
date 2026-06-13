@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -37,6 +39,10 @@ public class BookDeletionService {
 
     @PersistenceContext
     private final EntityManager entityManager;
+
+    @Autowired
+    @Lazy
+    private BookDeletionService self;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteRemovedAdditionalFiles(List<Long> additionalFileIds) {
@@ -71,7 +77,7 @@ public class BookDeletionService {
         entityManager.clear();
 
         if (!booksToDelete.isEmpty()) {
-            deleteRemovedBooks(booksToDelete);
+            self.deleteRemovedBooks(booksToDelete);
         }
     }
 
@@ -136,7 +142,7 @@ public class BookDeletionService {
         if (!booksToDelete.isEmpty()) {
             log.info("Deleting {} books with no remaining files of allowed formats in library: {}",
                     booksToDelete.size(), libraryEntity.getName());
-            deleteRemovedBooks(booksToDelete);
+            self.deleteRemovedBooks(booksToDelete);
         }
 
         log.info("Purged {} book files of disallowed formats from library: {}",
