@@ -3,8 +3,10 @@
      tabindex="0"
      (keydown.enter)="readBook(book)"
      (click)="onCardClick($event)"
-  (mouseenter)="bookClicked.emit(book)"
-  (mouseleave)="bookHoverEnded.emit(book.id)">
+     (mouseenter)="bookClicked.emit(book)"
+     (mouseleave)="bookHoverEnded.emit(book.id)"
+     draggable="true"
+     (dragstart)="onDragStart($event)">
 
   <div class="cover-container" [ngClass]="{ 'center-info-btn': _isSeriesViewActive || !hasDigitalFile(), 'loaded': isImageLoaded, 'audiobook-cover': _isAudiobook, 'square-library-cover': useSquareCovers }">
     <img

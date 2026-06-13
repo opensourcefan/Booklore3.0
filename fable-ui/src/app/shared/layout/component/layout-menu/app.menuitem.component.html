@@ -46,6 +46,7 @@
       [class.draggable-child]="!root"
       [class.active-route-container]="isRouteActive"
       [class.child-drag-row]="!root"
+      [class.sidebar-drag-over]="isShelfDragOver"
       (mouseenter)="prefetchItemThumbnails()"
       (focusin)="prefetchItemThumbnails()"
       (touchstart)="onTouchStart($event)"
@@ -54,6 +55,9 @@
       [attr.tabindex]="(item.routerLink && !item.items && !reorderMode) ? '0' : '-1'"
       (keydown.enter)="triggerLink()"
       (click)="triggerLink($event)"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
     >
       @if ((item.routerLink && !item.items)) {
         <a
@@ -104,6 +108,16 @@
                   [class.menu-item-text-marquee]="(item.label?.length ?? 0) > 20">
               {{ item.label }}
             </span>
+            @if (item.isPublicShelf) {
+              <span class="special-shelf-indicator public" [pTooltip]="'Public Shelf'" tooltipPosition="right">
+                <i class="pi pi-globe"></i>
+              </span>
+            }
+            @if (item.isKoboShelf) {
+              <span class="special-shelf-indicator kobo" [pTooltip]="'Kobo Sync Shelf'" tooltipPosition="right">
+                <i class="pi pi-sync"></i>
+              </span>
+            }
           </span>
         </a>
       }

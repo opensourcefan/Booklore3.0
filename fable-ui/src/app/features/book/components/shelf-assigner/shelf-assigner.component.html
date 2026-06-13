@@ -5,12 +5,20 @@
       <i class="pi pi-bookmark header-icon"></i>
     </div>
     <div class="header-text">
-      <h2 class="panel-title">{{ t('title') }}</h2>
+      <h2 class="panel-title">{{ isMoveMode ? 'Move to Shelf' : t('title') }}</h2>
       <p class="panel-description">
-        @if (isMultiBooks) {
-          {{ t('descriptionMulti', { count: bookIds.size }) }}
+        @if (isMoveMode) {
+          @if (isMultiBooks) {
+            Move {{ bookIds.size }} book(s) to a different shelf
+          } @else {
+            Move "{{ book.metadata?.title }}" to a different shelf
+          }
         } @else {
-          {{ t('descriptionSingle', { title: book.metadata?.title }) }}
+          @if (isMultiBooks) {
+            {{ t('descriptionMulti', { count: bookIds.size }) }}
+          } @else {
+            {{ t('descriptionSingle', { title: book.metadata?.title }) }}
+          }
         }
       </p>
     </div>
@@ -30,7 +38,7 @@
         <span class="recent-label">Recent</span>
         <div class="recent-chips">
           @for (shelf of recentShelves; track shelf.id) {
-            <button type="button" class="recent-chip" [class.recent-chip-selected]="isShelfSelected(shelf)" (click)="selectRecentShelf(shelf)">
+            <button type="button" class="recent-chip" [class.recent-chip-selected]="!isMoveMode && isShelfSelected(shelf)" (click)="selectRecentShelf(shelf)">
               {{ shelf.name }}
             </button>
           }
@@ -60,16 +68,18 @@
 
         <div class="shelves-grid">
           @for (shelf of filterShelves((shelfState$ | async)!.shelves!); track shelf.id) {
-            <div class="shelf-item" [class.selected]="isShelfSelected(shelf)">
-              <div class="shelf-checkbox">
-                <p-checkbox
-                  [inputId]="'shelf-' + shelf.id"
-                  name="shelves"
-                  [value]="shelf"
-                  [(ngModel)]="selectedShelves"
-                />
-              </div>
-              <label [for]="'shelf-' + shelf.id" class="shelf-label">
+            <div class="shelf-item" [class.selected]="!isMoveMode && isShelfSelected(shelf)" [class.move-mode]="isMoveMode" tabindex="0" role="button" (keydown.enter)="onShelfItemClick($event, shelf)" (click)="onShelfItemClick($event, shelf)">
+              @if (!isMoveMode) {
+                <div class="shelf-checkbox">
+                  <p-checkbox
+                    [inputId]="'shelf-' + shelf.id"
+                    name="shelves"
+                    [value]="shelf"
+                    [(ngModel)]="selectedShelves"
+                  />
+                </div>
+              }
+              <label [for]="isMoveMode ? null : 'shelf-' + shelf.id" class="shelf-label" [class.clickable-label]="isMoveMode">
                 @if (shelf.icon) {
                   <div class="shelf-icon-wrapper">
                     <app-icon-display
@@ -107,20 +117,22 @@
       severity="info"
       (onClick)="createShelfDialog()"
     />
-    <div class="footer-actions">
-      <p-button
-        [label]="t('cancelButton')"
-        severity="secondary"
-        [outlined]="true"
-        (onClick)="closeDialog()"
-      />
-      <p-button
-        [label]="t('saveChanges')"
-        icon="pi pi-check"
-        severity="success"
-        (onClick)="updateBooksShelves()"
-      />
-    </div>
+    @if (!isMoveMode) {
+      <div class="footer-actions">
+        <p-button
+          [label]="t('cancelButton')"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="closeDialog()"
+        />
+        <p-button
+          [label]="t('saveChanges')"
+          icon="pi pi-check"
+          severity="success"
+          (onClick)="updateBooksShelves()"
+        />
+      </div>
+    }
   </div>
 </div>
 </ng-container>

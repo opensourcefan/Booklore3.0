@@ -1882,7 +1882,21 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dynamicDialogRef = this.dialogHelperService.openShelfAssignerDialog(null, this.selectedBooks);
     if (this.dynamicDialogRef) {
       this.dynamicDialogRef.onClose.subscribe(result => {
-        if (result.assigned) {
+        if (result && result.assigned) {
+          this.bookSelectionService.deselectAll();
+        }
+      });
+    }
+  }
+
+  openMoveShelfAssigner(): void {
+    if (this.entityType !== EntityType.SHELF || !this.entity?.id) {
+      return;
+    }
+    this.dynamicDialogRef = this.dialogHelperService.openShelfAssignerDialog(null, this.selectedBooks, this.entity.id);
+    if (this.dynamicDialogRef) {
+      this.dynamicDialogRef.onClose.subscribe(result => {
+        if (result && result.assigned) {
           this.bookSelectionService.deselectAll();
         }
       });

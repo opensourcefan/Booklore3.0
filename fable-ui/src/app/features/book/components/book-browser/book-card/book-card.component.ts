@@ -34,6 +34,7 @@ import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shar
 import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
 
 import {AiSearchDialogService} from '../../ai-search-dialog/ai-search-dialog.component';
+import {BookSelectionService} from '../book-selection.service';
 
 @Component({
   selector: 'app-book-card',
@@ -122,6 +123,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private readonly appRef = inject(ApplicationRef);
   private readonly injector = inject(Injector);
   private aiSearchDialogService = inject(AiSearchDialogService);
+  private bookSelectionService = inject(BookSelectionService);
 
   protected _progressPercentage: number | null = null;
   protected _koProgressPercentage: number | null = null;
@@ -644,7 +646,13 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   private initMenu(book: Book = this.getMenuContextBook()) {
+    const currentShelfId = this.getCurrentShelfId();
     this.items = [
+      ...(currentShelfId !== null ? [{
+        label: this.t.translate('book.card.menu.moveToShelf') || 'Move to Shelf...',
+        icon: 'pi pi-folder-open',
+        command: () => this.openMoveShelfDialog(book, currentShelfId)
+      }] : []),
       {
         label: this.t.translate('book.card.menu.assignShelf'),
         icon: 'pi pi-folder',
@@ -1125,6 +1133,45 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
 
   private openShelfDialog(book: Book): void {
     this.bookDialogHelperService.openShelfAssignerDialog(book, null);
+  }
+
+  onDragStart(event: DragEvent): void {
+    if (this._isSeriesViewActive) {
+      return;
+    }
+    const currentSelections = this.bookSelectionService.selectedBooks;
+    const draggedId = Number(this.book.id);
+    const selectionNumbers = new Set(Array.from(currentSelections).map(id => Number(id)));
+
+    console.log('[DragStart Card] Dragging book:', draggedId);
+    console.log('[DragStart Card] Selections:', Array.from(selectionNumbers));
+    console.log('[DragStart Card] Is dragged book in selections?', selectionNumbers.has(draggedId));
+
+    const bookIds = selectionNumbers.has(draggedId)
+      ? Array.from(selectionNumbers)
+      : [draggedId];
+
+    console.log('[DragStart Card] Final bookIds:', bookIds);
+
+    const sourceShelfId = this.getCurrentShelfId();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.setData('text/plain', JSON.stringify({ bookIds, sourceShelfId }));
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  private getCurrentShelfId(): number | null {
+    if (!this.router || !this.router.url) {
+      return null;
+    }
+    const url = this.router.url;
+    const match = url.match(/\/shelf\/(\d+)\/books/);
+    return match ? parseInt(match[1], 10) : null;
+  }
+
+  private openMoveShelfDialog(book: Book, currentShelfId: number): void {
+    this.bookDialogHelperService.openShelfAssignerDialog(book, null, currentShelfId);
   }
 
   private openBookTypeDialog(book: Book): void {

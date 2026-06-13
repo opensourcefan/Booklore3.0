@@ -299,3 +299,29 @@
     transform: translateX(0);
   }
 }
+
+.menu-item-container.sidebar-drag-over {
+  background-color: color-mix(in srgb, var(--p-primary-color), transparent 85%) !important;
+  box-shadow: 0 0 0 2px var(--p-primary-color) !important;
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.special-shelf-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.35rem;
+  font-size: 0.75rem;
+  vertical-align: middle;
+  transform: translateY(-1px);
+
+  &.public {
+    color: var(--p-primary-400);
+  }
+
+  &.kobo {
+    color: var(--p-orange-400);
+  }
+}
+

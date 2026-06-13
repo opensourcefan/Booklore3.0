@@ -773,6 +773,8 @@ export class AppMenuComponent implements OnInit, OnDestroy {
           iconType: (shelf.iconType || undefined) as 'PRIME_NG' | 'CUSTOM_SVG' | undefined,
           routerLink: [`/shelf/${shelf.id}/books`],
           bookCount$: this.createRefreshableCount$(() => this.shelfService.getBookCount(shelf.id ?? 0)),
+          shelfId: shelf.id,
+          isPublicShelf: shelf.publicShelf,
         }));
 
         const notShelfedItem = {
@@ -794,6 +796,9 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             iconType: (koboShelf.iconType || undefined) as 'PRIME_NG' | 'CUSTOM_SVG' | undefined,
             routerLink: [`/shelf/${koboShelf.id}/books`],
             bookCount$: this.createRefreshableCount$(() => this.shelfService.getBookCount(koboShelf.id ?? 0)),
+            shelfId: koboShelf.id,
+            isKoboShelf: true,
+            isPublicShelf: koboShelf.publicShelf,
           });
         }
         items.push(...shelfItems);

@@ -14,12 +14,14 @@ import {BookDialogHelperService} from '../../../../features/book/components/book
 import {IconDisplayComponent} from '../../../components/icon-display/icon-display.component';
 import {Tooltip} from 'primeng/tooltip';
 import {IconSelection} from '../../../service/icon-picker.service';
-import {TranslocoPipe} from '@jsverse/transloco';
-import {MenuItem} from 'primeng/api';
+import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import {MenuItem, MessageService} from 'primeng/api';
 import {CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {ThumbnailPrefetchService} from '../../../../features/book/service/thumbnail-prefetch.service';
 import {DirectoryFilterService} from '../../../../features/book/service/directory-filter.service';
+import {BookService} from '../../../../features/book/service/book.service';
+import {WriteProgressService} from '../../../../shared/service/write-progress.service';
 
 export interface AppMenuItem extends MenuItem {
   type?: string;
@@ -43,6 +45,9 @@ export interface AppMenuItem extends MenuItem {
   activeMatch?: (url: string, queryParams: Record<string, unknown>) => boolean;
   onItemsReorder?: (items: AppMenuItem[]) => void;
   onCreate?: () => void;
+  isPublicShelf?: boolean;
+  isKoboShelf?: boolean;
+  shelfId?: number;
 }
 
 @Component({
@@ -125,6 +130,12 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
   private localStorageService = inject(LocalStorageService);
   private thumbnailPrefetchService = inject(ThumbnailPrefetchService);
   private directoryFilterService = inject(DirectoryFilterService);
+  private bookService = inject(BookService);
+  private writeProgressService = inject(WriteProgressService);
+  private messageService = inject(MessageService);
+  private translocoService = inject(TranslocoService);
+
+  isShelfDragOver = false;
 
   constructor() {
     this.userStateSubscription = this.userService.userState$.subscribe(userState => {
@@ -441,6 +452,97 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
     }
 
     this.directoryFilterService.clearScope(this.directoryFilterService.getScopeKeyFromUrl(currentPath));
+  }
+
+  onDragOver(event: DragEvent): void {
+    if (this.reorderMode || (this.item.type !== 'Shelf' && !this.item.shelfId && this.item.type !== 'MediaType')) {
+      return;
+    }
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    this.isShelfDragOver = true;
+  }
+
+  onDragLeave(_event: DragEvent): void {
+    this.isShelfDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    if (this.reorderMode || (this.item.type !== 'Shelf' && !this.item.shelfId && this.item.type !== 'MediaType')) {
+      return;
+    }
+    event.preventDefault();
+    this.isShelfDragOver = false;
+
+    const rawData = event.dataTransfer?.getData('text/plain');
+    if (!rawData) {
+      return;
+    }
+
+    try {
+      const data = JSON.parse(rawData);
+      const rawBookIds = data.bookIds;
+      const sourceShelfId = data.sourceShelfId ? Number(data.sourceShelfId) : null;
+      
+      console.log('[OnDrop Menuitem] Raw drag data parsed:', data);
+      
+      if (Array.isArray(rawBookIds) && rawBookIds.length > 0) {
+        const bookIds = rawBookIds.map(id => Number(id));
+        console.log('[OnDrop Menuitem] Coerced bookIds to drop:', bookIds);
+
+        if (this.item.type === 'Shelf' || this.item.shelfId) {
+          const shelfId = this.item.shelfId ? Number(this.item.shelfId) : null;
+          if (shelfId) {
+            if (shelfId === sourceShelfId) {
+              console.log('[OnDrop Menuitem] Source and target shelf are the same, ignoring.');
+              return;
+            }
+            this.assignBooksToShelf(bookIds, shelfId, sourceShelfId);
+          }
+        } else if (this.item.type === 'MediaType' && this.item.label) {
+          this.assignBooksToMediaType(bookIds, this.item.label);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse drag data', e);
+    }
+  }
+
+  private assignBooksToShelf(bookIds: number[], shelfId: number, sourceShelfId?: number | null): void {
+    const idsToAssign = new Set([shelfId]);
+    const idsToUnassign = sourceShelfId ? new Set([sourceShelfId]) : new Set<number>();
+
+    this.writeProgressService.show(this.translocoService.translate('book.shelfAssigner.loading.updatingShelves', { count: bookIds.length }));
+    this.bookService.updateBookShelves(new Set(bookIds), idsToAssign, idsToUnassign)
+      .subscribe({
+        next: () => {
+          this.bookService.refreshBooks().subscribe();
+          this.writeProgressService.complete(this.translocoService.translate('book.shelfAssigner.toast.updateSuccessDetail'));
+          this.messageService.add({severity: 'info', summary: this.translocoService.translate('common.success'), detail: this.translocoService.translate('book.shelfAssigner.toast.updateSuccessDetail')});
+        },
+        error: () => {
+          this.writeProgressService.fail(this.translocoService.translate('book.shelfAssigner.toast.updateFailedDetail'));
+          this.messageService.add({severity: 'error', summary: this.translocoService.translate('common.error'), detail: this.translocoService.translate('book.shelfAssigner.toast.updateFailedDetail')});
+        }
+      });
+  }
+
+  private assignBooksToMediaType(bookIds: number[], mediaType: string): void {
+    this.writeProgressService.show('Updating Media Type...');
+    this.bookService.updateFileType(new Set(bookIds), mediaType)
+      .subscribe({
+        next: () => {
+          this.bookService.refreshBooks().subscribe();
+          this.writeProgressService.complete('Media Type updated successfully.');
+          this.messageService.add({severity: 'info', summary: this.translocoService.translate('common.success'), detail: 'Media Type updated.'});
+        },
+        error: () => {
+          this.writeProgressService.fail('Failed to update Media Type.');
+          this.messageService.add({severity: 'error', summary: this.translocoService.translate('common.error'), detail: 'Failed to update Media Type.'});
+        }
+      });
   }
 
 }

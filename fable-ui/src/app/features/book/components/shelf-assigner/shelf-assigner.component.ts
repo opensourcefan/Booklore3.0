@@ -82,6 +82,11 @@ export class ShelfAssignerComponent implements OnInit {
   selectedShelves: Shelf[] = [];
   bookIds: Set<number> = this.dynamicDialogConfig.data.bookIds;
   isMultiBooks: boolean = this.dynamicDialogConfig.data.isMultiBooks;
+  currentShelfId?: number = this.dynamicDialogConfig.data.currentShelfId;
+
+  get isMoveMode(): boolean {
+    return this.currentShelfId !== undefined && this.currentShelfId !== null;
+  }
 
   ngOnInit(): void {
     this.loadRecentShelves();
@@ -114,11 +119,31 @@ export class ShelfAssignerComponent implements OnInit {
   }
 
   selectRecentShelf(shelf: Shelf): void {
+    if (this.isMoveMode) {
+      this.moveBookToShelf(shelf);
+      return;
+    }
     if (!this.isShelfSelected(shelf)) {
       this.selectedShelves = [...this.selectedShelves, shelf];
     } else {
       this.selectedShelves = this.selectedShelves.filter(s => s.id !== shelf.id);
     }
+  }
+
+  onShelfItemClick(event: Event, shelf: Shelf): void {
+    if (this.isMoveMode) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.moveBookToShelf(shelf);
+    }
+  }
+
+  moveBookToShelf(shelf: Shelf): void {
+    if (!shelf.id || !this.currentShelfId) return;
+    const bookIds = this.isMultiBooks ? this.bookIds : new Set([this.book.id]);
+    const idsToAssign = new Set([shelf.id]);
+    const idsToUnassign = new Set([this.currentShelfId]);
+    this.updateBookShelves(bookIds, idsToAssign, idsToUnassign);
   }
 
   updateBooksShelves(): void {

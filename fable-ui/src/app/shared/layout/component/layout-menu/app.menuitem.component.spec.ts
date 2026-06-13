@@ -14,6 +14,10 @@ import {BookDialogHelperService} from '../../../../features/book/components/book
 import {LocalStorageService} from '../../../service/local-storage.service';
 import {ThumbnailPrefetchService} from '../../../../features/book/service/thumbnail-prefetch.service';
 import {DirectoryFilterService} from '../../../../features/book/service/directory-filter.service';
+import {BookService} from '../../../../features/book/service/book.service';
+import {WriteProgressService} from '../../../../shared/service/write-progress.service';
+import {MessageService} from 'primeng/api';
+import {TranslocoService} from '@jsverse/transloco';
 
 describe('AppMenuitemComponent unshelved row badge behavior', () => {
   beforeEach(async () => {
@@ -77,6 +81,34 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
           useValue: {
             clearScope: vi.fn(),
             getScopeKeyFromUrl: vi.fn().mockReturnValue('scope'),
+          },
+        },
+        {
+          provide: BookService,
+          useValue: {
+            updateBookShelves: vi.fn().mockReturnValue(of({})),
+            updateFileType: vi.fn().mockReturnValue(of({})),
+            refreshBooks: vi.fn().mockReturnValue(of({})),
+          },
+        },
+        {
+          provide: WriteProgressService,
+          useValue: {
+            show: vi.fn(),
+            complete: vi.fn(),
+            fail: vi.fn(),
+          },
+        },
+        {
+          provide: MessageService,
+          useValue: {
+            add: vi.fn(),
+          },
+        },
+        {
+          provide: TranslocoService,
+          useValue: {
+            translate: vi.fn().mockImplementation((key) => key),
           },
         },
       ],

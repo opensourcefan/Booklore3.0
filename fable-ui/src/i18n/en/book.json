@@ -104,6 +104,7 @@
   "card": {
     "menu": {
       "assignShelf": "Assign Shelf",
+      "moveToShelf": "Move to Shelf...",
       "viewDetails": "View Details",
       "download": "Download",
       "delete": "Delete",

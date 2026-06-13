@@ -42,13 +42,11 @@ export class BookDialogHelperService {
     });
   }
 
-  openShelfAssignerDialog(book: Book | null, bookIds: Set<number> | null): DynamicDialogRef | null {
-    const data: { isMultiBooks: boolean; book?: Book; bookIds?: Set<number> } = book !== null
-      ? { isMultiBooks: false, book }
-      : bookIds !== null
-        ? { isMultiBooks: true, bookIds: new Set(bookIds) }
-        : null as never;
+  openShelfAssignerDialog(book: Book | null, bookIds: Set<number> | null, currentShelfId?: number): DynamicDialogRef | null {
     if (book === null && bookIds === null) return null;
+    const data: { isMultiBooks: boolean; book?: Book; bookIds?: Set<number>; currentShelfId?: number } = book !== null
+      ? { isMultiBooks: false, book, currentShelfId }
+      : { isMultiBooks: true, bookIds: new Set(bookIds), currentShelfId };
     return this.openDialog(ShelfAssignerComponent, {
       showHeader: false,
       data: data,

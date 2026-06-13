@@ -535,6 +535,15 @@
                   </p-button>
                   @if (entityType === EntityType.SHELF) {
                     <p-button
+                      icon="pi pi-folder-open"
+                      outlined="true"
+                      severity="info"
+                      [disabled]="selectedCount === 0"
+                      (onClick)="openMoveShelfAssigner()"
+                      pTooltip="Move to Shelf..."
+                      tooltipPosition="top">
+                    </p-button>
+                    <p-button
                       icon="pi pi-bookmark"
                       outlined="true"
                       severity="info"
