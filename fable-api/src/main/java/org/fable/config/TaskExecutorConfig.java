@@ -6,13 +6,14 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 
 @Configuration
 public class TaskExecutorConfig {
 
     @Bean(name = "taskExecutor")
     public AsyncTaskExecutor taskExecutor() {
-        return new VirtualThreadTaskExecutor("async-");
+        return new DelegatingSecurityContextAsyncTaskExecutor(new VirtualThreadTaskExecutor("async-"));
     }
 
     @Bean

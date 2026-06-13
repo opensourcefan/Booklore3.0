@@ -649,6 +649,8 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
             "startedAt": datetime.now(timezone.utc).isoformat(),
         }
 
+    conn = None
+    cursor = None
     try:
         conn = _get_db_connection()
         cursor = conn.cursor()
@@ -687,8 +689,6 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
                 _active_embed_jobs[job_id]["completedChunks"] = i + 1
 
         conn.commit()
-        cursor.close()
-        conn.close()
 
         with _active_embed_jobs_lock:
             _active_embed_jobs[job_id]["status"] = "COMPLETED"
@@ -702,11 +702,27 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
             "completedChunks": len(chunks),
         }
     except Exception as exc:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
         with _active_embed_jobs_lock:
             _active_embed_jobs[job_id]["status"] = "FAILED"
             _active_embed_jobs[job_id]["error"] = str(exc)
         logger.error("Embed job %s failed: %s", job_id, exc)
         raise HTTPException(status_code=500, detail=str(exc))
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 @app.get("/v1/embed-status/{job_id}")
@@ -806,210 +822,219 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         }
 
     # Fetch embeddings from DB (single connection reused for adjacent chunks)
-    conn = _get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    conn = None
+    cursor = None
+    rows = []
+    top_results = []
+    try:
+        conn = _get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    if book_ids and len(book_ids) > 0:
-        placeholders = ",".join(["%s"] * len(book_ids))
-        cursor.execute(
-            f"""SELECT be.id, be.book_id, be.user_id, be.chunk_index, be.chunk_text,
-                       be.embedding_vector, be.page_number, be.chapter_title,
-                       b.title as book_title
-                FROM book_embeddings be
-                JOIN book_metadata b ON b.book_id = be.book_id
-                WHERE be.user_id = %s AND be.book_id IN ({placeholders})""",
-            [user_id] + list(book_ids),
-        )
-    else:
-        cursor.execute(
-            """SELECT be.id, be.book_id, be.user_id, be.chunk_index, be.chunk_text,
-                      be.embedding_vector, be.page_number, be.chapter_title,
-                      b.title as book_title
-               FROM book_embeddings be
-               JOIN book_metadata b ON b.book_id = be.book_id
-               WHERE be.user_id = %s""",
-            (user_id,),
-        )
+        if book_ids and len(book_ids) > 0:
+            placeholders = ",".join(["%s"] * len(book_ids))
+            cursor.execute(
+                f"""SELECT be.id, be.book_id, be.user_id, be.chunk_index, be.chunk_text,
+                           be.embedding_vector, be.page_number, be.chapter_title,
+                           b.title as book_title
+                    FROM book_embeddings be
+                    JOIN book_metadata b ON b.book_id = be.book_id
+                    WHERE be.user_id = %s AND be.book_id IN ({placeholders})""",
+                [user_id] + list(book_ids),
+            )
+        else:
+            cursor.execute(
+                """SELECT be.id, be.book_id, be.user_id, be.chunk_index, be.chunk_text,
+                          be.embedding_vector, be.page_number, be.chapter_title,
+                          b.title as book_title
+                   FROM book_embeddings be
+                   JOIN book_metadata b ON b.book_id = be.book_id
+                   WHERE be.user_id = %s""",
+                (user_id,),
+            )
 
-    rows = cursor.fetchall()
+        rows = cursor.fetchall()
 
-    if not rows:
-        cursor.close()
-        conn.close()
-        return {
-            "query": query,
-            "results": [],
-            "answer": "No books have been embedded yet. Use the AI Search settings to embed books first.",
-            "totalChunksSearched": 0,
-        }
+        if not rows:
+            return {
+                "query": query,
+                "results": [],
+                "answer": "No books have been embedded yet. Use the AI Search settings to embed books first.",
+                "totalChunksSearched": 0,
+            }
 
-    is_index_request = "index" in query.lower() or "table of contents" in query.lower()
+        is_index_request = "index" in query.lower() or "table of contents" in query.lower()
 
-    # Early dimension-mismatch detection: compare query vector length to first stored embedding
-    query_dim = len(query_vector)
-    first_vector = None
-    for row in rows:
-        try:
-            first_vector = json.loads(row["embedding_vector"])
-            break
-        except (json.JSONDecodeError, TypeError, ValueError):
-            continue
-
-    if first_vector is not None and len(first_vector) != query_dim:
-        stored_dim = len(first_vector)
-        logger.error(
-            "Embedding dimension mismatch: query vector is %d-d but stored embeddings are %d-d. "
-            "The embedding model has changed since these books were embedded. "
-            "Re-embed your books to fix this.",
-            query_dim, stored_dim,
-        )
-        cursor.close()
-        conn.close()
-        return {
-            "query": query,
-            "results": [],
-            "answer": None,
-            "error": f"Embedding dimension mismatch: the active model produces {query_dim}-d vectors "
-                     f"but your stored embeddings are {stored_dim}-d. "
-                     f"Your embedding model has changed. Please re-embed your books from Settings → AI Search.",
-            "totalChunksSearched": len(rows),
-        }
-
-    # Map database rows into structured documents, applying heuristic filtering
-    documents = []
-    row_map = {}
-    for row in rows:
-        if not is_index_request:
-            ch_title = (row["chapter_title"] or "").lower()
-            text_prefix = row["chunk_text"][:200].lower()
-            if "index" in ch_title or "table of contents" in ch_title or "glossary" in ch_title:
-                continue
-            if "i n d e x" in text_prefix or "g l o s s a r y" in text_prefix:
-                continue
-            words = text_prefix.split()
-            numbers = [w for w in words if re.match(r'^\d+$', w)]
-            if len(words) > 0 and (len(numbers) / len(words)) > 0.15:
-                continue
-
-        doc = {
-            "chunkId": row["id"],
-            "bookId": row["book_id"],
-            "bookTitle": row["book_title"],
-            "chunkIndex": row["chunk_index"],
-            "chunkText": row["chunk_text"],
-            "pageNumber": row["page_number"],
-            "chapterTitle": row["chapter_title"],
-        }
-        documents.append(doc)
-        row_map[row["id"]] = row
-
-    # Compute dense vector similarities
-    scored_vector = []
-    for doc in documents:
-        try:
-            row = row_map[doc["chunkId"]]
-            vector = json.loads(row["embedding_vector"])
-            # Slice/re-normalize vector if MRL truncation is enabled in search
-            if MATRYOSHKA_DIMENSIONS > 0 and len(vector) > MATRYOSHKA_DIMENSIONS:
-                vector = vector[:MATRYOSHKA_DIMENSIONS]
-                norm = np.linalg.norm(vector)
-                if norm > 0:
-                    vector = (vector / norm).tolist()
-
-            similarity = _cosine_similarity(query_vector, vector)
-            if similarity >= similarity_threshold:
-                doc_copy = doc.copy()
-                doc_copy["similarity"] = round(similarity, 4)
-                scored_vector.append(doc_copy)
-        except Exception:
-            continue
-
-    scored_vector.sort(key=lambda x: x["similarity"], reverse=True)
-
-    candidates = []
-    if hybrid_search_enabled:
-        # Compute BM25 scores
-        bm25_scores = compute_bm25_scores(query, documents)
-        scored_bm25 = []
-        for doc in documents:
-            score = bm25_scores.get(doc["chunkId"], 0.0)
-            if score > 0:
-                doc_copy = doc.copy()
-                doc_copy["bm25_score"] = score
-                scored_bm25.append(doc_copy)
-        scored_bm25.sort(key=lambda x: x["bm25_score"], reverse=True)
-
-        # Merge using Reciprocal Rank Fusion (RRF)
-        vector_ranks = {d["chunkId"]: r for r, d in enumerate(scored_vector)}
-        bm25_ranks = {d["chunkId"]: r for r, d in enumerate(scored_bm25)}
-        all_candidate_chunk_ids = set(vector_ranks.keys()) | set(bm25_ranks.keys())
-
-        chunk_id_to_doc = {doc["chunkId"]: doc for doc in documents}
-        rrf_results = []
-        for chunk_id in all_candidate_chunk_ids:
-            score_vector = 1.0 / (rrf_k + vector_ranks[chunk_id]) if chunk_id in vector_ranks else 0.0
-            score_bm25 = 1.0 / (rrf_k + bm25_ranks[chunk_id]) if chunk_id in bm25_ranks else 0.0
-            rrf_score = score_vector + score_bm25
-
-            doc_copy = chunk_id_to_doc[chunk_id].copy()
-            doc_copy["rrf_score"] = round(rrf_score, 6)
-            # Use RRF score as a surrogate for sorting, but preserve the original vector similarity if available
-            doc_copy["similarity"] = scored_vector[vector_ranks[chunk_id]]["similarity"] if chunk_id in vector_ranks else round(rrf_score, 4)
-            rrf_results.append(doc_copy)
-
-        rrf_results.sort(key=lambda x: x["rrf_score"], reverse=True)
-        candidates = rrf_results
-    else:
-        candidates = scored_vector
-
-    # Apply Cross-Encoder Reranking if enabled and loaded
-    if reranking_enabled and _reranker_model is not None:
-        # Rerank the top candidates (up to 20 candidates for CPU efficiency)
-        rerank_pool_size = max(20, top_k * 2)
-        candidates_to_rerank = candidates[:rerank_pool_size]
-        if candidates_to_rerank:
-            pairs = [[query, c["chunkText"]] for c in candidates_to_rerank]
+        # Early dimension-mismatch detection: compare query vector length to first stored embedding
+        query_dim = len(query_vector)
+        first_vector = None
+        for row in rows:
             try:
-                scores = _reranker_model.predict(pairs)
-                if hasattr(scores, "tolist"):
-                    scores = scores.tolist()
-                if isinstance(scores, float):
-                    scores = [scores]
-                for idx, score in enumerate(scores):
-                    candidates_to_rerank[idx]["rerank_score"] = round(float(score), 4)
-                
-                # Sort by reranker score
-                candidates_to_rerank.sort(key=lambda x: x["rerank_score"], reverse=True)
-                candidates = candidates_to_rerank + candidates[rerank_pool_size:]
-            except Exception as e:
-                logger.error("Failed to run reranker: %s", e)
+                first_vector = json.loads(row["embedding_vector"])
+                break
+            except (json.JSONDecodeError, TypeError, ValueError):
+                continue
 
-    top_results = candidates[:top_k]
-
-    # Fetch adjacent chunks for each top result using the SAME connection
-    if top_results:
-        for r in top_results:
-            book_id_val = r["bookId"]
-            chunk_idx = r["chunkIndex"]
-            # Fetch previous chunk (contextBefore)
-            cursor.execute(
-                """SELECT chunk_text FROM book_embeddings
-                   WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
-                (book_id_val, user_id, chunk_idx - 1),
+        if first_vector is not None and len(first_vector) != query_dim:
+            stored_dim = len(first_vector)
+            logger.error(
+                "Embedding dimension mismatch: query vector is %d-d but stored embeddings are %d-d. "
+                "The embedding model has changed since these books were embedded. "
+                "Re-embed your books to fix this.",
+                query_dim, stored_dim,
             )
-            prev_row = cursor.fetchone()
-            r["contextBefore"] = prev_row["chunk_text"] if prev_row else None
-            # Fetch next chunk (contextAfter)
-            cursor.execute(
-                """SELECT chunk_text FROM book_embeddings
-                   WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
-                (book_id_val, user_id, chunk_idx + 1),
-            )
-            next_row = cursor.fetchone()
-            r["contextAfter"] = next_row["chunk_text"] if next_row else None
+            return {
+                "query": query,
+                "results": [],
+                "answer": None,
+                "error": f"Embedding dimension mismatch: the active model produces {query_dim}-d vectors "
+                         f"but your stored embeddings are {stored_dim}-d. "
+                         f"Your embedding model has changed. Please re-embed your books from Settings → AI Search.",
+                "totalChunksSearched": len(rows),
+            }
 
-    cursor.close()
-    conn.close()
+        # Map database rows into structured documents, applying heuristic filtering
+        documents = []
+        row_map = {}
+        for row in rows:
+            if not is_index_request:
+                ch_title = (row["chapter_title"] or "").lower()
+                text_prefix = row["chunk_text"][:200].lower()
+                if "index" in ch_title or "table of contents" in ch_title or "glossary" in ch_title:
+                    continue
+                if "i n d e x" in text_prefix or "g l o s s a r y" in text_prefix:
+                    continue
+                words = text_prefix.split()
+                numbers = [w for w in words if re.match(r'^\d+$', w)]
+                if len(words) > 0 and (len(numbers) / len(words)) > 0.15:
+                    continue
+
+            doc = {
+                "chunkId": row["id"],
+                "bookId": row["book_id"],
+                "bookTitle": row["book_title"],
+                "chunkIndex": row["chunk_index"],
+                "chunkText": row["chunk_text"],
+                "pageNumber": row["page_number"],
+                "chapterTitle": row["chapter_title"],
+            }
+            documents.append(doc)
+            row_map[row["id"]] = row
+
+        # Compute dense vector similarities
+        scored_vector = []
+        for doc in documents:
+            try:
+                row = row_map[doc["chunkId"]]
+                vector = json.loads(row["embedding_vector"])
+                # Slice/re-normalize vector if MRL truncation is enabled in search
+                if MATRYOSHKA_DIMENSIONS > 0 and len(vector) > MATRYOSHKA_DIMENSIONS:
+                    vector = vector[:MATRYOSHKA_DIMENSIONS]
+                    norm = np.linalg.norm(vector)
+                    if norm > 0:
+                        vector = (vector / norm).tolist()
+
+                similarity = _cosine_similarity(query_vector, vector)
+                if similarity >= similarity_threshold:
+                    doc_copy = doc.copy()
+                    doc_copy["similarity"] = round(similarity, 4)
+                    scored_vector.append(doc_copy)
+            except Exception:
+                continue
+
+        scored_vector.sort(key=lambda x: x["similarity"], reverse=True)
+
+        candidates = []
+        if hybrid_search_enabled:
+            # Compute BM25 scores
+            bm25_scores = compute_bm25_scores(query, documents)
+            scored_bm25 = []
+            for doc in documents:
+                score = bm25_scores.get(doc["chunkId"], 0.0)
+                if score > 0:
+                    doc_copy = doc.copy()
+                    doc_copy["bm25_score"] = score
+                    scored_bm25.append(doc_copy)
+            scored_bm25.sort(key=lambda x: x["bm25_score"], reverse=True)
+
+            # Merge using Reciprocal Rank Fusion (RRF)
+            vector_ranks = {d["chunkId"]: r for r, d in enumerate(scored_vector)}
+            bm25_ranks = {d["chunkId"]: r for r, d in enumerate(scored_bm25)}
+            all_candidate_chunk_ids = set(vector_ranks.keys()) | set(bm25_ranks.keys())
+
+            chunk_id_to_doc = {doc["chunkId"]: doc for doc in documents}
+            rrf_results = []
+            for chunk_id in all_candidate_chunk_ids:
+                score_vector = 1.0 / (rrf_k + vector_ranks[chunk_id]) if chunk_id in vector_ranks else 0.0
+                score_bm25 = 1.0 / (rrf_k + bm25_ranks[chunk_id]) if chunk_id in bm25_ranks else 0.0
+                rrf_score = score_vector + score_bm25
+
+                doc_copy = chunk_id_to_doc[chunk_id].copy()
+                doc_copy["rrf_score"] = round(rrf_score, 6)
+                # Use RRF score as a surrogate for sorting, but preserve the original vector similarity if available
+                doc_copy["similarity"] = scored_vector[vector_ranks[chunk_id]]["similarity"] if chunk_id in vector_ranks else round(rrf_score, 4)
+                rrf_results.append(doc_copy)
+
+            rrf_results.sort(key=lambda x: x["rrf_score"], reverse=True)
+            candidates = rrf_results
+        else:
+            candidates = scored_vector
+
+        # Apply Cross-Encoder Reranking if enabled and loaded
+        if reranking_enabled and _reranker_model is not None:
+            # Rerank the top candidates (up to 20 candidates for CPU efficiency)
+            rerank_pool_size = max(20, top_k * 2)
+            candidates_to_rerank = candidates[:rerank_pool_size]
+            if candidates_to_rerank:
+                pairs = [[query, c["chunkText"]] for c in candidates_to_rerank]
+                try:
+                    scores = _reranker_model.predict(pairs)
+                    if hasattr(scores, "tolist"):
+                        scores = scores.tolist()
+                    if isinstance(scores, float):
+                        scores = [scores]
+                    for idx, score in enumerate(scores):
+                        candidates_to_rerank[idx]["rerank_score"] = round(float(score), 4)
+                    
+                    # Sort by reranker score
+                    candidates_to_rerank.sort(key=lambda x: x["rerank_score"], reverse=True)
+                    candidates = candidates_to_rerank + candidates[rerank_pool_size:]
+                except Exception as e:
+                    logger.error("Failed to run reranker: %s", e)
+
+        top_results = candidates[:top_k]
+
+        # Fetch adjacent chunks for each top result using the SAME connection
+        if top_results:
+            for r in top_results:
+                book_id_val = r["bookId"]
+                chunk_idx = r["chunkIndex"]
+                # Fetch previous chunk (contextBefore)
+                cursor.execute(
+                    """SELECT chunk_text FROM book_embeddings
+                       WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
+                    (book_id_val, user_id, chunk_idx - 1),
+                )
+                prev_row = cursor.fetchone()
+                r["contextBefore"] = prev_row["chunk_text"] if prev_row else None
+                # Fetch next chunk (contextAfter)
+                cursor.execute(
+                    """SELECT chunk_text FROM book_embeddings
+                       WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
+                    (book_id_val, user_id, chunk_idx + 1),
+                )
+                next_row = cursor.fetchone()
+                r["contextAfter"] = next_row["chunk_text"] if next_row else None
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     # Generate answer using LLM if available and not local-only mode
     answer = None
@@ -1045,22 +1070,33 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 @app.get("/v1/book-embeddings/{book_id}")
 def get_book_embeddings(book_id: int, user_id: int) -> dict[str, Any]:
     """Check if a book has embeddings."""
-    conn = _get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT COUNT(*) FROM book_embeddings WHERE book_id = %s AND user_id = %s",
-        (book_id, user_id),
-    )
-    count = cursor.fetchone()[0]
-    cursor.close()
-    conn.close()
-
-    return {
-        "bookId": book_id,
-        "userId": user_id,
-        "hasEmbeddings": count > 0,
-        "chunkCount": count,
-    }
+    conn = None
+    cursor = None
+    try:
+        conn = _get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT COUNT(*) FROM book_embeddings WHERE book_id = %s AND user_id = %s",
+            (book_id, user_id),
+        )
+        count = cursor.fetchone()[0]
+        return {
+            "bookId": book_id,
+            "userId": user_id,
+            "hasEmbeddings": count > 0,
+            "chunkCount": count,
+        }
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 @app.post("/v1/test-embedding")

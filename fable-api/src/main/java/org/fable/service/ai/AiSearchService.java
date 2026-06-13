@@ -180,6 +180,14 @@ public class AiSearchService {
 
     @Async
     public void startScanMarkedAiSearchEmbeddings(Long userId, String username, boolean force) {
+        try {
+            scanMarkedAiSearchEmbeddings(userId, username, force);
+        } catch (Exception e) {
+            log.error("Async scan marked AI search embeddings failed", e);
+        }
+    }
+
+    public void scanMarkedAiSearchEmbeddings(Long userId, String username, boolean force) {
         if (!scanInProgress.compareAndSet(false, true)) {
             log.warn("AI Search scan already in progress");
             return;
@@ -253,8 +261,12 @@ public class AiSearchService {
             String completionMsg = String.format("Scan completed. %d books scanned, %d skipped, %d failed.", scannedCount, skippedCount, errorCount);
             sendBatchProgress(username, "COMPLETED", completionMsg, null, total, total, importedBookTitles, failedBookTitles);
 
+            if (errorCount > 0 && errorCount == total) {
+                throw new RuntimeException("All books failed to embed during scan: " + String.join(", ", failedBookTitles));
+            }
         } catch (Exception e) {
             log.error("Marked AI Search scan failed", e);
+            throw e;
         } finally {
             scanInProgress.set(false);
         }

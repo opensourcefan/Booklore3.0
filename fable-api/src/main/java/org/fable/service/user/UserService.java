@@ -79,6 +79,7 @@ public class UserService {
         auditService.log(AuditAction.USER_DELETED, "User", id, "Deleted user: " + userToDelete.getUsername());
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public FableUser getFableUser(Long id) {
         FableUserEntity user = userRepository.findById(id).orElseThrow(() -> ApiError.USER_NOT_FOUND.createException(id));
         return fableUserTransformer.toDTO(user);
