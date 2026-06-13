@@ -225,4 +225,11 @@ describe('BookFilterComponent', () => {
     component.onExpandedPanelsChange('3');
     expect(component.expandedPanels).toEqual([3]);
   });
+
+  it('allows collapsing all accordion panels', () => {
+    const component = createComponent();
+
+    component.onExpandedPanelsChange([]);
+    expect(component.expandedPanels).toEqual([]);
+  });
 });
