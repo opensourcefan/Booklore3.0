@@ -3,6 +3,9 @@
   @if (hasMetadataTasks$ | async) {
     <app-metadata-progress-widget/>
   }
+  @if (hasAiSearchScan$ | async) {
+    <app-ai-search-progress-widget/>
+  }
   @if (hasPendingBookdropFiles$ | async) {
     <app-bookdrop-files-widget-component/>
   }

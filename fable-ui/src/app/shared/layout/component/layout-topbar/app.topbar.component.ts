@@ -109,6 +109,7 @@ export class AppTopBarComponent implements OnDestroy {
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
   aiSearchBatchProgress: AiSearchProgressPayload | null = null;
   aiSearchSingleProgress: AiSearchProgressPayload | null = null;
+  isAiSearchStopping = false;
   metadataFlushProgress: TaskProgressPayload | null = null;
   importScanProgress: TaskProgressPayload | null = null;
   directoryTaggingProgress: TaskProgressPayload | null = null;
@@ -229,6 +230,12 @@ export class AppTopBarComponent implements OnDestroy {
             clearTimeout(this.aiSearchSingleDismissTimer);
           }
         }
+      });
+
+    this.aiSearchScanProgressService.isStopping$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(stopping => {
+        this.isAiSearchStopping = stopping;
       });
 
     this.appSettingsService.appSettings$
@@ -769,7 +776,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get showDesktopAiSearchScanStatus(): boolean {
-    return !!this.aiSearchBatchProgress;
+    return !!this.aiSearchBatchProgress || this.isAiSearchStopping;
   }
 
   get showMetadataFlushStatus(): boolean {
@@ -968,6 +975,9 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get aiSearchScanSummary(): string {
+    if (this.isAiSearchStopping) {
+      return 'Stopping...';
+    }
     return this.getConciseSummary(this.aiSearchBatchProgress);
   }
 

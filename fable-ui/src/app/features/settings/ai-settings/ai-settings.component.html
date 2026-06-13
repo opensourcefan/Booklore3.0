@@ -714,7 +714,15 @@
             [disabled]="!aiSearchEnabled || aiSearchPreScanRunning || selectedLibraryPathIds.length === 0"
             (onClick)="scanMissingAiSearch()">
           </p-button>
-          @if (isAiSearchActivelyScanning) {
+          @if (isStopping) {
+            <p-button
+              icon="pi pi-spin pi-spinner"
+              label="Stopping..."
+              severity="secondary"
+              [disabled]="true"
+              [outlined]="true">
+            </p-button>
+          } @else if (isAiSearchActivelyScanning) {
             <p-button
               icon="pi pi-stop-circle"
               label="Stop Scan"

@@ -1,0 +1,66 @@
+<ng-container *transloco="let t; prefix: 'shared.aiSearchProgress'">
+<div class="task-border">
+  <div class="task-card">
+
+    <div class="task-header-row">
+      <div class="task-title-group">
+        <p class="task-title">{{ t('taskTitle') || 'AI Search Scan' }}</p>
+      </div>
+      <div class="task-tags">
+        <p-tag
+          [value]="getStatusLabel()"
+          [severity]="getTagSeverity()"
+          class="task-tag"
+        ></p-tag>
+      </div>
+    </div>
+
+    <div class="task-message">
+      {{ getStatusText() }}
+    </div>
+
+    @if (hasProgress()) {
+      <div class="task-progress-info" [innerHTML]="t('bookProgress', { current: aiSearchBatchProgress?.current ?? 0, total: aiSearchBatchProgress?.total ?? 0 }) || getProgressInfo()">
+      </div>
+
+      <p-progressBar
+        [style]="{ height: '15px' }"
+        [value]="getProgressPercent()"
+        [showValue]="true">
+      </p-progressBar>
+    }
+
+    <div class="action-buttons">
+      @if (isStopping) {
+        <p-button
+          [label]="t('cancellingBtn') || 'Stopping...'"
+          icon="pi pi-spin pi-spinner"
+          severity="secondary"
+          size="small"
+          [disabled]="true"
+          outlined>
+        </p-button>
+      } @else if (isActive()) {
+        <p-button
+          [label]="t('cancelBtn') || 'Stop Scan'"
+          icon="pi pi-stop"
+          severity="danger"
+          size="small"
+          outlined
+          (click)="stopScan()">
+        </p-button>
+      } @else {
+        <p-button
+          [label]="t('dismissBtn') || 'Dismiss'"
+          icon="pi pi-times"
+          severity="secondary"
+          size="small"
+          outlined
+          (click)="dismiss()">
+        </p-button>
+      }
+    </div>
+
+  </div>
+</div>
+</ng-container>
