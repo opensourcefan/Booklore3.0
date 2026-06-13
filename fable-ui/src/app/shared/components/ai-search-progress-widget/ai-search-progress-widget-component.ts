@@ -78,14 +78,19 @@ export class AiSearchProgressWidgetComponent implements OnInit, OnDestroy {
     return event !== 'COMPLETED' && event !== 'FAILED' && event !== 'STOPPED';
   }
 
+  private getTranslation(key: string, fallback: string): string {
+    const val = this.t.translate(key);
+    return val === key ? fallback : val;
+  }
+
   stopScan(): void {
     this.aiSearchScanProgressService.setStopping(true);
     this.appSettingsService.stopAiSearchScan().subscribe({
       next: () => {
         this.messageService.add({
           severity: 'info',
-          summary: this.t.translate('shared.aiSearchProgress.cancellationScheduledSummary') || 'Cancellation Requested',
-          detail: this.t.translate('shared.aiSearchProgress.cancellationScheduledDetail') || 'Fable will stop this task after completing the current book.'
+          summary: this.getTranslation('shared.aiSearchProgress.cancellationScheduledSummary', 'Cancellation Requested'),
+          detail: this.getTranslation('shared.aiSearchProgress.cancellationScheduledDetail', 'Fable will stop this task after completing the current book.')
         });
       },
       error: (error) => {
@@ -93,8 +98,8 @@ export class AiSearchProgressWidgetComponent implements OnInit, OnDestroy {
         this.aiSearchScanProgressService.setStopping(false);
         this.messageService.add({
           severity: 'error',
-          summary: this.t.translate('shared.aiSearchProgress.cancelFailedSummary') || 'Cancel Failed',
-          detail: this.t.translate('shared.aiSearchProgress.cancelFailedDetail') || 'Failed to cancel the scan. Please try again.'
+          summary: this.getTranslation('shared.aiSearchProgress.cancelFailedSummary', 'Cancel Failed'),
+          detail: this.getTranslation('shared.aiSearchProgress.cancelFailedDetail', 'Failed to cancel the scan. Please try again.')
         });
       }
     });
@@ -113,20 +118,20 @@ export class AiSearchProgressWidgetComponent implements OnInit, OnDestroy {
 
   getStatusLabel(): string {
     if (this.isStopping) {
-      return this.t.translate('shared.aiSearchProgress.statusStopping') || 'Stopping';
+      return this.getTranslation('shared.aiSearchProgress.statusStopping', 'Stopping');
     }
     if (!this.aiSearchBatchProgress) return '';
     const event = this.aiSearchBatchProgress.event;
     switch (event) {
       case 'STARTED':
       case 'IN_PROGRESS':
-        return this.t.translate('shared.aiSearchProgress.statusInProgress') || 'In Progress';
+        return this.getTranslation('shared.aiSearchProgress.statusInProgress', 'In Progress');
       case 'COMPLETED':
-        return this.t.translate('shared.aiSearchProgress.statusCompleted') || 'Completed';
+        return this.getTranslation('shared.aiSearchProgress.statusCompleted', 'Completed');
       case 'FAILED':
-        return this.t.translate('shared.aiSearchProgress.statusError') || 'Error';
+        return this.getTranslation('shared.aiSearchProgress.statusError', 'Error');
       case 'STOPPED':
-        return this.t.translate('shared.aiSearchProgress.statusStopped') || 'Stopped';
+        return this.getTranslation('shared.aiSearchProgress.statusStopped', 'Stopped');
       default:
         return event;
     }
