@@ -154,7 +154,9 @@
     "cancellationScheduledSummary": "Cancellation Requested",
     "cancellationScheduledDetail": "Fable will stop this task after completing the current book.",
     "cancelFailedSummary": "Cancel Failed",
-    "cancelFailedDetail": "Failed to cancel the scan. Please try again."
+    "cancelFailedDetail": "Failed to cancel the scan. Please try again.",
+    "embedMarkedBtn": "Embed Marked Books",
+    "configureAiBtn": "Configure AI Settings"
   },
   "reader": {
     "failedToLoadPages": "Failed to load pages",
