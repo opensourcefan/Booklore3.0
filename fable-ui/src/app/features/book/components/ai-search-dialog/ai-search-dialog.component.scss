@@ -242,6 +242,19 @@
     line-height: 1.6;
     font-size: 1.05rem;
 
+    .ai-search-citation-highlight {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--primary-color);
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      margin: 0 0.15rem;
+    }
+
     p {
       margin: 0 0 1rem 0;
       &:last-child {

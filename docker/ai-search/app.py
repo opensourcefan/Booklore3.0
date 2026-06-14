@@ -387,11 +387,11 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         "If the Query is a question, answer it.\n"
         "If the Query is a command (e.g., 'summarize', 'show me'), follow it.\n"
         "If the Query is just keywords, summarize what the Context says about them.\n"
-        "You MUST cite your sources using the exact format [Source: Book Title, Page N].\n"
+        "You MUST cite your sources for every item using the exact format [Source: Book Title, Page N]. Every listed fact, recipe, or item MUST have its source cited inline at the end of that specific item.\n"
         "If the context contains no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else.\n"
         "\n"
         "QUANTITY & PARTIAL INFORMATION:\n"
-        "- If the user query asks for a specific number of items (e.g., 'list 5...', '3 examples') and the Context does not contain that many items, do NOT use the sentinel 'I could not find any relevant information for this search.'. Instead, clearly state in your response that you could only find N items (where N is the number of items found) out of the requested amount, and list those N items with citations.\n"
+        "- If the user query asks for a specific number of items (e.g., 'list 5...', '3 examples') and the Context does not contain that many items, do NOT use the sentinel 'I could not find any relevant information for this search.'. Instead, clearly state in your response that you could only find N items (where N is the number of items found) out of the requested amount, and list ONLY those N items with citations. Do NOT generate, duplicate, or fabricate additional items to meet the requested number under any circumstances. If only 1 item is found, list only that 1 item.\n"
         "- Only reply with the exact sentinel 'I could not find any relevant information for this search.' if there is absolutely no relevant information in the Context.\n"
         "\n"
         "RESPONSE LENGTH & FORMAT: Adjust your answer's depth and structure to match the user's request:\n"
@@ -1148,6 +1148,21 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         if disclaimer_parts and top_results:
             disclaimer = "⚠️ *Note: I " + " and I ".join(disclaimer_parts) + ":*\n\n"
             if answer:
+                # Strip duplicate warnings or statements from the beginning of the LLM's response
+                answer_clean = answer.strip()
+                if answer_clean.startswith("⚠️"):
+                    lines = answer.split("\n")
+                    non_warning_lines = []
+                    in_warning = True
+                    for line in lines:
+                        if in_warning:
+                            trimmed = line.strip()
+                            if trimmed.startswith("⚠️") or (not trimmed and len(non_warning_lines) == 0):
+                                continue
+                            else:
+                                in_warning = False
+                        non_warning_lines.append(line)
+                    answer = "\n".join(non_warning_lines).strip()
                 answer = disclaimer + answer
             elif local_only:
                 answer = disclaimer
