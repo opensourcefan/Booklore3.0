@@ -20,5 +20,6 @@ public class TaskSchedulerConfig {
     public void initializeScheduledTasks() {
         log.info("Application ready, initializing scheduled tasks");
         taskService.initializeScheduledTasks();
+        taskService.recoverOrphanedTasks();
     }
 }

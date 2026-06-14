@@ -2,6 +2,7 @@ package org.fable.repository;
 
 import org.fable.model.entity.TaskHistoryEntity;
 import org.fable.model.enums.TaskType;
+import org.fable.task.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -17,4 +18,6 @@ public interface TaskHistoryRepository extends JpaRepository<TaskHistoryEntity, 
     List<TaskHistoryEntity> findLatestTaskForEachType();
 
     List<TaskHistoryEntity> findByUserIdAndTypeOrderByCreatedAtDesc(Long userId, TaskType type);
+
+    List<TaskHistoryEntity> findByStatus(TaskStatus status);
 }
