@@ -414,6 +414,15 @@
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <div style="display: flex; justify-content: space-between;">
+              <label for="displayTopK"><strong>Displayed Results</strong></label>
+              <span>{{ aiSearchSettings.displayTopK }}</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How many raw results to display in the UI (1–50). Set lower than Top K to give the LLM more context while showing only the best match.</p>
+            <input type="range" id="displayTopK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.displayTopK" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: flex; justify-content: space-between;">
               <label for="similarityThreshold"><strong>Similarity Threshold</strong></label>
               <span>{{ aiSearchSettings.similarityThreshold }}</span>
             </div>

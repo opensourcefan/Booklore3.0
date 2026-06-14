@@ -15,6 +15,8 @@ public class AiSearchSettings {
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private int topK = 5;
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private int displayTopK = 0; // 0 means "same as topK" for backward compatibility
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private double similarityThreshold = 0.3;
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private int maxTokens = 768;
@@ -84,6 +86,10 @@ public class AiSearchSettings {
 
     public int getTopK() {
         return topK <= 0 ? 5 : topK;
+    }
+
+    public int getDisplayTopK() {
+        return displayTopK <= 0 ? getTopK() : displayTopK;
     }
 
     public double getSimilarityThreshold() {

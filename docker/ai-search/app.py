@@ -87,6 +87,7 @@ _llm_load_error: str | None = None
 _reranker_model: Any | None = None
 _reranker_loading: bool = False
 _reranker_load_error: str | None = None
+_llm_warmed_cache: bool | None = None  # Cached to avoid live /api/ps calls during LLM generation
 _load_lock = threading.Lock()
 _active_embed_jobs: dict[str, dict[str, Any]] = {}
 _active_embed_jobs_lock = threading.Lock()
@@ -230,9 +231,10 @@ def _do_llm_load() -> None:
 
 
 def _start_llm_load_thread_locked() -> None:
-    global _llm_loading, _llm_load_error
+    global _llm_loading, _llm_load_error, _llm_warmed_cache
     _llm_loading = True
     _llm_load_error = None
+    _llm_warmed_cache = None  # Invalidate cache when loading a new model
     threading.Thread(target=_do_llm_load, daemon=True).start()
 
 
@@ -469,6 +471,7 @@ def startup() -> None:
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    global _llm_warmed_cache
     _ensure_loading()
     # Check if the model has successfully finished loading into memory
     ready = _embedding_model is not None
@@ -499,19 +502,26 @@ def health() -> dict[str, Any]:
 
     llm_warmed = True
     if LLM_PROVIDER == "local" and LLM_MODEL_NAME:
-        llm_warmed = False
-        try:
-            ps_resp = requests.get("http://localhost:11434/api/ps", timeout=5)
-            if ps_resp.status_code == 200:
-                loaded_models = [m.get("name") for m in ps_resp.json().get("models", [])]
-                llm_warmed = any(
-                    m == LLM_MODEL_NAME or 
-                    m.startswith(LLM_MODEL_NAME + ":") or 
-                    LLM_MODEL_NAME.startswith(m + ":") 
-                    for m in loaded_models
-                )
-        except Exception:
-            pass
+        # Use cached value if already confirmed warmed — avoids live /api/ps
+        # calls that can timeout when Ollama is busy generating a response.
+        if _llm_warmed_cache is True:
+            llm_warmed = True
+        else:
+            llm_warmed = False
+            try:
+                ps_resp = requests.get("http://localhost:11434/api/ps", timeout=5)
+                if ps_resp.status_code == 200:
+                    loaded_models = [m.get("name") for m in ps_resp.json().get("models", [])]
+                    llm_warmed = any(
+                        m == LLM_MODEL_NAME or
+                        m.startswith(LLM_MODEL_NAME + ":") or
+                        LLM_MODEL_NAME.startswith(m + ":")
+                        for m in loaded_models
+                    )
+                    if llm_warmed:
+                        _llm_warmed_cache = True
+            except Exception:
+                pass
 
     return {
         "status": status,
@@ -574,6 +584,7 @@ def update_config(payload: dict[str, Any]) -> dict[str, Any]:
                     _start_load_thread_locked()
 
             if llm_model_changed and LLM_PROVIDER == "local":
+                _llm_warmed_cache = None  # Invalidate cache on model change
                 _start_llm_load_thread_locked()
 
             if reranker_changed:
@@ -787,6 +798,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     book_ids = payload.get("bookIds")  # Optional: limit to specific books
     user_id = payload.get("userId")
     top_k = int(payload.get("topK") or SEARCH_TOP_K)
+    display_top_k = int(payload.get("displayTopK") or top_k)
     similarity_threshold = float(payload.get("similarityThreshold") or SEARCH_SIMILARITY_THRESHOLD)
     max_tokens = int(payload.get("maxTokens") or LLM_MAX_TOKENS)
     temperature = float(payload.get("temperature") or LLM_TEMPERATURE)
@@ -808,13 +820,23 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
     # Extract core keywords from query (excluding stopwords) for soft boosting and missing disclaimers
     stopwords = {
-        "a", "an", "the", "in", "on", "at", "to", "for", "with", "by", "of", "and", "or", "but", 
-        "list", "show", "find", "search", "get", "what", "how", "why", "who", "where", "me", "i", 
-        "you", "my", "your", "our", "their", "this", "that", "these", "those", "is", "are", "was", 
-        "were", "be", "been", "have", "has", "had", "do", "does", "did", "can", "could", "would", 
-        "should", "will", "shall", "may", "might", "must", "some", "any", "no", "all", "both", 
+        "a", "an", "the", "in", "on", "at", "to", "for", "with", "by", "of", "and", "or", "but",
+        "list", "show", "find", "search", "get", "what", "how", "why", "who", "where", "me", "i",
+        "you", "my", "your", "our", "their", "this", "that", "these", "those", "is", "are", "was",
+        "were", "be", "been", "have", "has", "had", "do", "does", "did", "can", "could", "would",
+        "should", "will", "shall", "may", "might", "must", "some", "any", "no", "all", "both",
         "each", "few", "more", "most", "other", "such", "own", "so", "than", "too", "very",
-        "page", "book", "chapter", "read", "display", "result", "results"
+        "page", "book", "chapter", "read", "display", "result", "results",
+        "provide", "information", "inform", "tell", "give", "explain", "describe", "detail",
+        "details", "data", "facts", "fact", "about", "regarding", "concerning", "related", "regards",
+        "looking", "look", "want", "wanted", "need", "needed", "help", "please", "could", "would",
+        "like", "know", "tell", "say", "said", "ask", "asking", "question", "questions", "answer",
+        "answers", "specifically", "specific", "particular", "certain", "exactly", "exact", "just",
+        "only", "also", "even", "still", "really", "actually", "definitely", "probably", "maybe",
+        "perhaps", "basically", "literally", "essentially", "generally", "usually", "often",
+        "sometimes", "always", "never", "every", "many", "much", "lot", "lots", "plenty", "several",
+        "various", "different", "same", "similar", "opposite", "various", "including", "include",
+        "included", "contains", "containing", "contain", "having", "make", "made", "made", "made"
     }
     query_words = [w.lower() for w in re.findall(r'\w+', embedding_query) if len(w) > 1]
     core_keywords = [w for w in query_words if w not in stopwords]
@@ -1052,10 +1074,11 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                     logger.error("Failed to run reranker: %s", e)
 
         top_results = candidates[:top_k]
+        display_results = top_results[:display_top_k]
 
-        # Fetch adjacent chunks for each top result using the SAME connection
-        if top_results:
-            for r in top_results:
+        # Fetch adjacent chunks for each displayed result using the SAME connection
+        if display_results:
+            for r in display_results:
                 book_id_val = r["bookId"]
                 chunk_idx = r["chunkIndex"]
                 # Fetch previous chunk (contextBefore)
@@ -1122,11 +1145,11 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
     # Identify missing core keywords (completely absent from all top results)
     missing_keywords = []
-    if top_results and core_keywords:
+    if display_results and core_keywords:
         for kw in core_keywords:
             kw_lower = kw.lower()
             found_any = False
-            for r in top_results:
+            for r in display_results:
                 text_lower = r["chunkText"].lower()
                 title_lower = (r.get("chapterTitle") or "").lower()
                 book_lower = (r.get("bookTitle") or "").lower()
@@ -1145,18 +1168,18 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         logger.info(
             "LLM returned 'not found' sentinel. Clearing results so frontend displays 'not found' answer."
         )
-        top_results = []
+        display_results = []
         answer = "I could not find any relevant information for this search."
     else:
         # Construct a consolidated disclaimer note if results count is less than requested or keywords are missing
         disclaimer_parts = []
-        if requested_count and len(top_results) < requested_count:
-            disclaimer_parts.append(f"only found {len(top_results)} match{'es' if len(top_results) != 1 else ''} in your library (not the {requested_count} requested)")
+        if requested_count and len(display_results) < requested_count:
+            disclaimer_parts.append(f"only found {len(display_results)} match{'es' if len(display_results) != 1 else ''} in your library (not the {requested_count} requested)")
         if missing_keywords:
             missing_str = ", ".join([f'"{m}"' for m in missing_keywords])
             disclaimer_parts.append(f"could not find the term(s) {missing_str}")
 
-        if disclaimer_parts and top_results:
+        if disclaimer_parts and display_results:
             disclaimer = "⚠️ *Note: I " + " and I ".join(disclaimer_parts) + ":*\n\n"
             if answer:
                 # Strip duplicate warnings or statements from the beginning of the LLM's response
@@ -1180,7 +1203,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "query": query,
-        "results": top_results,
+        "results": display_results,
         "answer": answer,
         "totalChunksSearched": len(rows),
     }
