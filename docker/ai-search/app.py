@@ -390,6 +390,10 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         "You MUST cite your sources using the exact format [Source: Book Title, Page N].\n"
         "If the context contains no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else.\n"
         "\n"
+        "QUANTITY & PARTIAL INFORMATION:\n"
+        "- If the user query asks for a specific number of items (e.g., 'list 5...', '3 examples') and the Context does not contain that many items, do NOT use the sentinel 'I could not find any relevant information for this search.'. Instead, clearly state in your response that you could only find N items (where N is the number of items found) out of the requested amount, and list those N items with citations.\n"
+        "- Only reply with the exact sentinel 'I could not find any relevant information for this search.' if there is absolutely no relevant information in the Context.\n"
+        "\n"
         "RESPONSE LENGTH & FORMAT: Adjust your answer's depth and structure to match the user's request:\n"
         "- If the user asks for 'detail', 'in depth', 'thorough', 'elaborate', or 'explain fully': "
         "provide a comprehensive, multi-paragraph answer covering all relevant aspects from the Context.\n"
@@ -1049,15 +1053,14 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             logger.error("Error generating LLM answer: %s", e)
             answer = None
 
-    # If the LLM returned the "not found" sentinel but we DO have results,
-    # suppress the misleading answer so the frontend shows the raw matches.
-    if answer and "I could not find any relevant information" in answer and top_results:
+    # If the LLM returned the "not found" sentinel, clear the results so the
+    # frontend doesn't show irrelevant raw matches, and display the sentinel answer.
+    if answer and "I could not find any relevant information" in answer:
         logger.info(
-            "LLM returned 'not found' sentinel despite %d results. "
-            "Suppressing answer so frontend displays raw matches.",
-            len(top_results),
+            "LLM returned 'not found' sentinel. Clearing results so frontend displays 'not found' answer."
         )
-        answer = None
+        top_results = []
+        answer = "I could not find any relevant information for this search."
 
     return {
         "query": query,
