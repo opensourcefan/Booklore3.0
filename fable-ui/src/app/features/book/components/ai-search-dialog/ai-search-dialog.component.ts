@@ -198,6 +198,18 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     return msg.results.some(r => answerLower.includes(r.bookTitle.toLowerCase()));
   }
 
+  isRawDisplay(msg: ChatMessage): boolean {
+    if (!msg.answer) return true;
+    const cleaned = msg.answer.trim();
+    if (cleaned.startsWith('⚠️')) {
+      const lastMarkerIndex = cleaned.lastIndexOf(':*');
+      if (lastMarkerIndex !== -1 && lastMarkerIndex === cleaned.length - 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private singleBookId: number | null = null;
 
   clearResults(): void {

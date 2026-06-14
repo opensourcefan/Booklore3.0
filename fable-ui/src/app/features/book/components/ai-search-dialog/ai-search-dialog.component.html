@@ -74,7 +74,7 @@
                 <i class="pi pi-spin pi-spinner" style="font-size: 1.25rem; color: var(--primary-color);"></i>
                 <span>Searching your library and generating answer...</span>
               </div>
-            } @else if (msg.answer) {
+            } @else if (msg.answer && !isRawDisplay(msg)) {
               <div class="ai-search-answer">
                 <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
                   <span class="ai-search-answer-badge">AI Generated Answer</span>
@@ -118,6 +118,9 @@
                   </div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 0.5rem;">
+                  @if (msg.answer) {
+                    <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)"></div>
+                  }
                   @for (result of msg.results; track result.chunkId) {
                     <div>
                       <div class="ai-search-markdown-content">
