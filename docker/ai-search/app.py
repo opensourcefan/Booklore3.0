@@ -812,9 +812,13 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     if not user_id:
         raise HTTPException(status_code=400, detail="userId is required.")
 
+    # Parse required keywords (words enclosed in double quotes)
+    required_keywords = re.findall(r'"([^"]+)"', query)
+    embedding_query = query.replace('"', '')
+
     try:
-        # Compute query embedding
-        query_vector = _compute_embedding(query)
+        # Compute query embedding (using clean query with quotes removed)
+        query_vector = _compute_embedding(embedding_query)
     except RuntimeError as e:
         logger.error("Embedding computation failed: %s", e)
         return {
@@ -912,6 +916,14 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 if len(words) > 0 and (len(numbers) / len(words)) > 0.15:
                     continue
 
+            # Strict mandatory quotes keyword matching
+            if required_keywords:
+                text_lower = row["chunk_text"].lower()
+                title_lower = (row["chapter_title"] or "").lower()
+                book_lower = (row["book_title"] or "").lower()
+                if not all(kw.lower() in text_lower or kw.lower() in title_lower or kw.lower() in book_lower for kw in required_keywords):
+                    continue
+
             doc = {
                 "chunkId": row["id"],
                 "bookId": row["book_id"],
@@ -926,6 +938,20 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
         # Compute dense vector similarities
         scored_vector = []
+        
+        # Extract core keywords from query (excluding stopwords) for soft boosting
+        stopwords = {
+            "a", "an", "the", "in", "on", "at", "to", "for", "with", "by", "of", "and", "or", "but", 
+            "list", "show", "find", "search", "get", "what", "how", "why", "who", "where", "me", "i", 
+            "you", "my", "your", "our", "their", "this", "that", "these", "those", "is", "are", "was", 
+            "were", "be", "been", "have", "has", "had", "do", "does", "did", "can", "could", "would", 
+            "should", "will", "shall", "may", "might", "must", "some", "any", "no", "all", "both", 
+            "each", "few", "more", "most", "other", "such", "own", "so", "than", "too", "very",
+            "page", "book", "chapter", "read", "display", "result", "results"
+        }
+        query_words = [w.lower() for w in re.findall(r'\w+', embedding_query) if len(w) > 1]
+        core_keywords = [w for w in query_words if w not in stopwords]
+
         for doc in documents:
             try:
                 row = row_map[doc["chunkId"]]
@@ -938,6 +964,23 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                         vector = (vector / norm).tolist()
 
                 similarity = _cosine_similarity(query_vector, vector)
+                
+                # Apply soft keyword boosting to favor chunks containing exact query keywords
+                if core_keywords:
+                    text_lower = doc["chunkText"].lower()
+                    title_lower = (doc["chapterTitle"] or "").lower()
+                    book_lower = (doc["bookTitle"] or "").lower()
+                    
+                    match_count = 0
+                    for kw in core_keywords:
+                        if kw in text_lower or kw in title_lower or kw in book_lower:
+                            match_count += 1
+                        elif kw.endswith("s") and len(kw) > 3 and kw[:-1] in text_lower:
+                            match_count += 1
+                            
+                    boost = min(0.10, match_count * 0.02)
+                    similarity += boost
+
                 if similarity >= similarity_threshold:
                     doc_copy = doc.copy()
                     doc_copy["similarity"] = round(similarity, 4)
