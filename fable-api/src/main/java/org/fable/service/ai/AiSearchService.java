@@ -297,6 +297,7 @@ public class AiSearchService {
         payload.put("bookIds", bookIds != null ? bookIds : List.of());
         payload.put("userId", userId);
         payload.put("topK", settings.getTopK());
+        payload.put("displayTopK", settings.getDisplayTopK());
         payload.put("similarityThreshold", settings.getSimilarityThreshold());
         payload.put("maxTokens", settings.getMaxTokens());
         payload.put("temperature", settings.getTemperature());

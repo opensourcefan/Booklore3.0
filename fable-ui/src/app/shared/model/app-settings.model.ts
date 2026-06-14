@@ -271,6 +271,7 @@ export interface AiSearchSettings {
   externalLlmUrl: string;
   llmModel: string;
   topK: number;
+  displayTopK: number;
   similarityThreshold: number;
   maxTokens: number;
   temperature: number;
