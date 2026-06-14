@@ -44,16 +44,6 @@ import {DirectoryNode} from '../../service/directory-tree.service';
   styles: [`
     :host {
       display: block;
-      --dir-tree-row-height: 2rem;
-      --dir-tree-row-radius: 8px;
-      --dir-tree-row-font-size: 0.95rem;
-      --dir-tree-toggle-slot-width: 1.35rem;
-      --dir-tree-row-gap: 0.35rem;
-      --dir-tree-row-padding-inline: 0.65rem;
-      --dir-tree-indent: 1rem;
-      --dir-tree-hover-background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
-      --dir-tree-branch-background: color-mix(in srgb, var(--p-primary-color) 5%, transparent);
-      --dir-tree-selected-background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
     }
 
     .dir-tree-node__row {

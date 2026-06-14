@@ -252,6 +252,13 @@
                 <app-theme-configurator></app-theme-configurator>
               </li>
             }
+            @case ('settings') {
+              <li>
+                <button class="topbar-item" (click)="navigateToSettings()" [pTooltip]="t('settings')" tooltipPosition="bottom">
+                  <i class="pi pi-cog topbar-icon"></i>
+                </button>
+              </li>
+            }
             @case ('user') {
               <li>
                 <button class="topbar-item" (click)="openUserProfileDialog()" [pTooltip]="t('profile')" tooltipPosition="bottom">

@@ -22,7 +22,7 @@
 
 .layout-dir-panel {
   position: fixed;
-  width: 200px;
+  width: var(--dir-panel-width, 200px);
   height: calc(100dvh - 6.1rem);
   z-index: 998;
   display: flex;

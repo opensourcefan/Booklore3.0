@@ -162,8 +162,14 @@ public class DefaultUserSettingsProvider {
                 FableUser.UserSettings.ToolbarConfigItem.builder().id("metadata").type("button").visible(true).label("Metadata").icon("pi pi-database").build(),
                 FableUser.UserSettings.ToolbarConfigItem.builder().id("stats").type("button").visible(true).label("Stats").icon("pi pi-chart-bar").build(),
                 FableUser.UserSettings.ToolbarConfigItem.builder().id("sep2").type("separator").visible(true).build(),
+                FableUser.UserSettings.ToolbarConfigItem.builder().id("layoutPhone").type("button").visible(true).label("Phone Mode").icon("pi pi-mobile").build(),
+                FableUser.UserSettings.ToolbarConfigItem.builder().id("layoutTablet").type("button").visible(true).label("Tablet Mode").icon("pi pi-tablet").build(),
+                FableUser.UserSettings.ToolbarConfigItem.builder().id("layoutAuto").type("button").visible(true).label("Auto Mode").icon("pi pi-desktop").build(),
+                FableUser.UserSettings.ToolbarConfigItem.builder().id("sep3").type("separator").visible(true).build(),
+                FableUser.UserSettings.ToolbarConfigItem.builder().id("fullscreen").type("button").visible(true).label("Fullscreen").icon("pi pi-window-maximize").build(),
                 FableUser.UserSettings.ToolbarConfigItem.builder().id("notifications").type("button").visible(true).label("Notifications").icon("pi pi-bell").build(),
                 FableUser.UserSettings.ToolbarConfigItem.builder().id("theme").type("button").visible(true).label("Theme").icon("pi pi-palette").build(),
+                FableUser.UserSettings.ToolbarConfigItem.builder().id("settings").type("button").visible(true).label("Settings").icon("pi pi-cog").build(),
                 FableUser.UserSettings.ToolbarConfigItem.builder().id("user").type("button").visible(true).label("User").icon("pi pi-user").build(),
                 FableUser.UserSettings.ToolbarConfigItem.builder().id("logout").type("button").visible(true).label("Logout").icon("pi pi-sign-out").build()
         );
