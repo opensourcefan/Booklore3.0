@@ -1103,8 +1103,29 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             f"[Source: {r['bookTitle']}, Page {r.get('pageNumber') or 'N/A'}]\n{r['chunkText']}"
             for r in top_results
         ])
+
+        # Rewrite query if the actual results count is less than the requested count
+        llm_query = query
+        if requested_count and count_match and len(top_results) < requested_count:
+            actual_count = len(top_results)
+            orig_word = count_match.group(1)
+            if orig_word.isdigit():
+                replacement = str(actual_count)
+            else:
+                reverse_number_map = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+                replacement = reverse_number_map.get(actual_count, str(actual_count))
+                if orig_word.istitle():
+                    replacement = replacement.title()
+                elif orig_word.isupper():
+                    replacement = replacement.upper()
+            
+            # Replace the count in the query string
+            start, end = count_match.start(1), count_match.end(1)
+            llm_query = query[:start] + replacement + query[end:]
+            logger.info("Rewriting LLM query from '%s' to '%s' because actual results count (%d) is less than requested (%d)", query, llm_query, actual_count, requested_count)
+
         try:
-            answer = _generate_answer(query, context, max_tokens, temperature, chat_history)
+            answer = _generate_answer(llm_query, context, max_tokens, temperature, chat_history)
         except Exception as e:
             logger.error("Error generating LLM answer: %s", e)
             answer = None
