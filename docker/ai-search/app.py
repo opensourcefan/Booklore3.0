@@ -816,6 +816,19 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     required_keywords = re.findall(r'"([^"]+)"', query)
     embedding_query = query.replace('"', '')
 
+    # Extract core keywords from query (excluding stopwords) for soft boosting and missing disclaimers
+    stopwords = {
+        "a", "an", "the", "in", "on", "at", "to", "for", "with", "by", "of", "and", "or", "but", 
+        "list", "show", "find", "search", "get", "what", "how", "why", "who", "where", "me", "i", 
+        "you", "my", "your", "our", "their", "this", "that", "these", "those", "is", "are", "was", 
+        "were", "be", "been", "have", "has", "had", "do", "does", "did", "can", "could", "would", 
+        "should", "will", "shall", "may", "might", "must", "some", "any", "no", "all", "both", 
+        "each", "few", "more", "most", "other", "such", "own", "so", "than", "too", "very",
+        "page", "book", "chapter", "read", "display", "result", "results"
+    }
+    query_words = [w.lower() for w in re.findall(r'\w+', embedding_query) if len(w) > 1]
+    core_keywords = [w for w in query_words if w not in stopwords]
+
     try:
         # Compute query embedding (using clean query with quotes removed)
         query_vector = _compute_embedding(embedding_query)
@@ -939,18 +952,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         # Compute dense vector similarities
         scored_vector = []
         
-        # Extract core keywords from query (excluding stopwords) for soft boosting
-        stopwords = {
-            "a", "an", "the", "in", "on", "at", "to", "for", "with", "by", "of", "and", "or", "but", 
-            "list", "show", "find", "search", "get", "what", "how", "why", "who", "where", "me", "i", 
-            "you", "my", "your", "our", "their", "this", "that", "these", "those", "is", "are", "was", 
-            "were", "be", "been", "have", "has", "had", "do", "does", "did", "can", "could", "would", 
-            "should", "will", "shall", "may", "might", "must", "some", "any", "no", "all", "both", 
-            "each", "few", "more", "most", "other", "such", "own", "so", "than", "too", "very",
-            "page", "book", "chapter", "read", "display", "result", "results"
-        }
-        query_words = [w.lower() for w in re.findall(r'\w+', embedding_query) if len(w) > 1]
-        core_keywords = [w for w in query_words if w not in stopwords]
+        # (Core keywords for soft boosting are extracted globally at the start of the function)
 
         for doc in documents:
             try:
@@ -1096,6 +1098,25 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             logger.error("Error generating LLM answer: %s", e)
             answer = None
 
+    # Identify missing core keywords (completely absent from all top results)
+    missing_keywords = []
+    if top_results and core_keywords:
+        for kw in core_keywords:
+            kw_lower = kw.lower()
+            found_any = False
+            for r in top_results:
+                text_lower = r["chunkText"].lower()
+                title_lower = (r.get("chapterTitle") or "").lower()
+                book_lower = (r.get("bookTitle") or "").lower()
+                if kw_lower in text_lower or kw_lower in title_lower or kw_lower in book_lower:
+                    found_any = True
+                    break
+                elif kw_lower.endswith("s") and len(kw_lower) > 3 and kw_lower[:-1] in text_lower:
+                    found_any = True
+                    break
+            if not found_any:
+                missing_keywords.append(kw)
+
     # If the LLM returned the "not found" sentinel, clear the results so the
     # frontend doesn't show irrelevant raw matches, and display the sentinel answer.
     if answer and "I could not find any relevant information" in answer:
@@ -1104,6 +1125,15 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         )
         top_results = []
         answer = "I could not find any relevant information for this search."
+    else:
+        # Prepend missing keywords disclaimer warning if core search terms are missing
+        if missing_keywords and top_results:
+            missing_str = ", ".join([f'"{m}"' for m in missing_keywords])
+            disclaimer = f"⚠️ *Note: I could not find the term(s) {missing_str} in your library, but here are {len(top_results)} semantic matches:*\n\n"
+            if answer:
+                answer = disclaimer + answer
+            elif local_only:
+                answer = disclaimer
 
     return {
         "query": query,
