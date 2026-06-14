@@ -7,6 +7,7 @@ import org.fable.model.entity.BookEntity;
 import org.fable.model.entity.BookFileEntity;
 import org.fable.model.enums.BookFileType;
 import org.fable.model.websocket.Topic;
+import org.fable.task.TaskCancellationManager;
 import org.fable.repository.BookRepository;
 import org.fable.config.security.service.AuthenticationService;
 import org.fable.service.NotificationService;
@@ -56,6 +57,7 @@ public class AiSearchService {
     private final ObjectMapper objectMapper;
     private final org.fable.service.book.BookService bookService;
     private final org.fable.service.event.BookEventBroadcaster bookEventBroadcaster;
+    private final TaskCancellationManager cancellationManager;
 
     private static final int CHUNK_BATCH_SIZE = 50;
 
@@ -113,6 +115,7 @@ public class AiSearchService {
                 
                 try {
                     String title = resolveBookTitle(bookId);
+                    sendBatchProgress(username, "IN_PROGRESS", "Processing: " + title + " (book " + (current + 1) + " of " + total + ")", null, current, total, null, null);
                     extractAndEmbedBookInternal(bookId, userId, username, true, current, total);
                     importedBookTitles.add(title);
                 } catch (Exception e) {
@@ -181,13 +184,13 @@ public class AiSearchService {
     @Async
     public void startScanMarkedAiSearchEmbeddings(Long userId, String username, boolean force) {
         try {
-            scanMarkedAiSearchEmbeddings(userId, username, force);
+            scanMarkedAiSearchEmbeddings(userId, username, force, null);
         } catch (Exception e) {
             log.error("Async scan marked AI search embeddings failed", e);
         }
     }
 
-    public void scanMarkedAiSearchEmbeddings(Long userId, String username, boolean force) {
+    public void scanMarkedAiSearchEmbeddings(Long userId, String username, boolean force, String taskId) {
         if (!scanInProgress.compareAndSet(false, true)) {
             log.warn("AI Search scan already in progress");
             return;
@@ -226,8 +229,9 @@ public class AiSearchService {
             }
 
             for (Long bookId : markedBookIds) {
-                if (!scanInProgress.get()) {
-                    String stopMsg = String.format("Scan was manually stopped. %d scanned, %d skipped, %d failed.", scannedCount, skippedCount, errorCount);
+                if (!scanInProgress.get() || (taskId != null && cancellationManager.isTaskCancelled(taskId))) {
+                    String reason = (taskId != null && cancellationManager.isTaskCancelled(taskId)) ? "cancelled" : "manually stopped";
+                    String stopMsg = String.format("Scan was %s. %d scanned, %d skipped, %d failed.", reason, scannedCount, skippedCount, errorCount);
                     sendBatchProgress(username, "STOPPED", stopMsg, null, current, total, null, null);
                     return;
                 }
@@ -244,6 +248,7 @@ public class AiSearchService {
                     }
 
                     String title = resolveBookTitle(bookId);
+                    sendBatchProgress(username, "IN_PROGRESS", "Processing: " + title + " (book " + (current + 1) + " of " + total + ")", null, current, total, null, null);
                     extractAndEmbedBookInternal(bookId, userId, username, true, current, total);
                     scannedCount++;
                     importedBookTitles.add(title);
@@ -417,9 +422,19 @@ public class AiSearchService {
         Map<String, String> tocTitleMap = EpubContentReader.getTocTitleMap(epubFile);
 
         for (int i = 0; i < spineSize; i++) {
-            if (!isBatch && i % 5 == 0) {
+            if (!scanInProgress.get()) {
+                log.info("AI Search scan stopped during EPUB extraction of book {}", bookId);
+                return;
+            }
+            if (i % 5 == 0) {
                 int percentage = (int)(((double)i / spineSize) * 100);
-                sendSearchProgress(username, "IN_PROGRESS", "Embedding... " + percentage + "%", null);
+                if (!isBatch) {
+                    sendSearchProgress(username, "IN_PROGRESS", "Embedding... " + percentage + "%", null);
+                } else if (current != null && total != null) {
+                    sendBatchProgress(username, "IN_PROGRESS",
+                        "Embedding book " + (current + 1) + " of " + total + " (" + percentage + "%)",
+                        null, current, total, null, null);
+                }
             }
 
             String html = EpubContentReader.getSpineItemContent(epubFile, i);
@@ -485,9 +500,19 @@ public class AiSearchService {
             int pageCount = document.getNumberOfPages();
 
             for (int page = 1; page <= pageCount; page++) {
-                if (!isBatch && page % 5 == 0) {
+                if (!scanInProgress.get()) {
+                    log.info("AI Search scan stopped during PDF extraction of book {}", bookId);
+                    return;
+                }
+                if (page % 5 == 0) {
                     int percentage = (int)(((double)page / pageCount) * 100);
-                    sendSearchProgress(username, "IN_PROGRESS", "Embedding... " + percentage + "%", null);
+                    if (!isBatch) {
+                        sendSearchProgress(username, "IN_PROGRESS", "Embedding... " + percentage + "%", null);
+                    } else if (current != null && total != null) {
+                        sendBatchProgress(username, "IN_PROGRESS",
+                            "Embedding book " + (current + 1) + " of " + total + " (" + percentage + "%)",
+                            null, current, total, null, null);
+                    }
                 }
 
                 stripper.setStartPage(page);

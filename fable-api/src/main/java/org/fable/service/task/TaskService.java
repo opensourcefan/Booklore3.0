@@ -9,6 +9,7 @@ import org.fable.model.dto.request.TaskCreateRequest;
 import org.fable.model.dto.response.TaskCancelResponse;
 import org.fable.model.dto.response.TaskCreateResponse;
 import org.fable.model.entity.TaskCronConfigurationEntity;
+import org.fable.model.entity.TaskHistoryEntity;
 import org.fable.model.enums.TaskType;
 import org.fable.task.TaskCancellationManager;
 import org.fable.task.TaskStatus;
@@ -83,6 +84,37 @@ public class TaskService {
         List<TaskCronConfigurationEntity> enabledConfigs = taskCronService.getAllEnabledCronConfigs();
         log.info("Initializing {} scheduled tasks", enabledConfigs.size());
         enabledConfigs.forEach(this::scheduleTask);
+    }
+
+    /**
+     * On server restart, any tasks left in IN_PROGRESS state are orphaned
+     * (in-memory state was wiped). Mark them CANCELLED and notify admins
+     * so the UI doesn't show stale "Running" indicators.
+     */
+    public void recoverOrphanedTasks() {
+        List<TaskHistoryEntity> orphaned = taskHistoryService.getOrphanedInProgressTasks();
+        if (orphaned.isEmpty()) {
+            return;
+        }
+        log.info("Recovering {} orphaned IN_PROGRESS tasks after restart", orphaned.size());
+        for (TaskHistoryEntity task : orphaned) {
+            String message = "Server restarted during task execution";
+            taskHistoryService.updateTaskStatus(task.getId(), TaskStatus.CANCELLED, message);
+            log.info("Marked orphaned task {} ({}) as CANCELLED", task.getId(), task.getType());
+            // Send notification so the UI clears the stale running indicator
+            try {
+                var configOpt = taskCronService.getCronConfigEntity(task.getType());
+                if (configOpt.isPresent() && !configOpt.get().getNotificationsEnabled()) {
+                    continue;
+                }
+                String notifyMsg = "Task " + task.getType() + " was interrupted by server restart";
+                LogNotification logNotification = LogNotification.warn(notifyMsg);
+                notificationService.sendMessageToPermissions(Topic.LOG, logNotification,
+                        java.util.Set.of(org.fable.model.enums.PermissionType.ADMIN, org.fable.model.enums.PermissionType.MANAGE_LIBRARY));
+            } catch (Exception e) {
+                log.error("Failed to send orphaned task notification for {}", task.getId(), e);
+            }
+        }
     }
 
     public void rescheduleTask(TaskType taskType) {

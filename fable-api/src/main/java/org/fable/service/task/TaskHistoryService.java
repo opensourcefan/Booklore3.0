@@ -107,6 +107,11 @@ public class TaskHistoryService {
     }
 
     @Transactional(readOnly = true)
+    public List<TaskHistoryEntity> getOrphanedInProgressTasks() {
+        return taskHistoryRepository.findByStatus(TaskStatus.IN_PROGRESS);
+    }
+
+    @Transactional(readOnly = true)
     public TasksHistoryResponse getLatestTasksForEachType() {
         List<TaskHistoryEntity> latestTasks;
         try {
