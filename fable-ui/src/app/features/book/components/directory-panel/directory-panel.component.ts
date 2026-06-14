@@ -190,18 +190,18 @@ export class DirectoryPanelComponent implements OnInit, OnDestroy {
   }
 
   private buildTreeSignature(books: Book[]): string {
-    return books
-      .filter(book => !!book.primaryFile)
-      .map(book => {
-        const libraryId = book.libraryId ?? -1;
-        const libraryPathId = book.libraryPath?.id ?? -1;
-        const fileSubPath = book.primaryFile?.fileSubPath ?? '';
-        const folderBased = book.primaryFile?.folderBased ? '1' : '0';
-        const folderName = book.primaryFile?.folderBased ? (book.primaryFile?.fileName ?? '') : '';
-        return `${libraryId}|${libraryPathId}|${fileSubPath}|${folderBased}|${folderName}`;
-      })
-      .sort()
-      .join('\n');
+    const uniquePaths = new Set<string>();
+    for (const book of books) {
+      if (book.primaryFile) {
+        const libId = book.libraryId ?? -1;
+        const pathId = book.libraryPath?.id ?? -1;
+        const subPath = book.primaryFile.fileSubPath ?? '';
+        const isFolder = book.primaryFile.folderBased ? '1' : '0';
+        const folderName = book.primaryFile.folderBased ? (book.primaryFile.fileName ?? '') : '';
+        uniquePaths.add(`${libId}|${pathId}|${subPath}|${isFolder}|${folderName}`);
+      }
+    }
+    return Array.from(uniquePaths).sort().join('\n');
   }
 
   private refreshTree(): void {

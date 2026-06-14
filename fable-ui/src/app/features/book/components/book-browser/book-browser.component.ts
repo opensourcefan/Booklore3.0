@@ -746,6 +746,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       this.seriesCollapseFilter.setContext(null, null);
       this.bookCardOverlayPreferenceService.setContext(null, null);
       this.pageTitle.setPageTitle(currentPath === 'all-books' ? this.t.translate('book.browser.labels.allBooks') : this.t.translate('book.browser.labels.unshelvedBooks'));
+      this.handleEntityLoaded(null);
     } else {
       const routeEntityInfo$ = this.entityService.getEntityInfoFromRoute(this.activatedRoute);
       this.entityRouteInfo$ = routeEntityInfo$;
@@ -766,13 +767,49 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.entity = entity ?? null;
     this.updateSeriesCollapseContext();
-    this.entityOptions = entity
-      ? this.entityService.isLibrary(entity)
-        ? this.libraryShelfMenuService.initializeLibraryMenuItems(entity)
-        : this.entityService.isMagicShelf(entity)
-          ? this.libraryShelfMenuService.initializeMagicShelfMenuItems(entity)
-          : this.libraryShelfMenuService.initializeShelfMenuItems(entity)
+    this.updateEntityOptions();
+  }
+
+  private updateEntityOptions(): void {
+    const baseItems = this.entity
+      ? this.entityService.isLibrary(this.entity)
+        ? this.libraryShelfMenuService.initializeLibraryMenuItems(this.entity)
+        : this.entityService.isMagicShelf(this.entity)
+          ? this.libraryShelfMenuService.initializeMagicShelfMenuItems(this.entity)
+          : this.libraryShelfMenuService.initializeShelfMenuItems(this.entity)
       : [];
+
+    const user = this.userService.getCurrentUser();
+    const canScan = user?.permissions?.admin || user?.permissions?.canManageLibrary;
+    const canConfigure = user?.permissions?.admin || user?.permissions?.canManageGlobalPreferences;
+
+    if (this.aiSearchEnabled && (canScan || canConfigure)) {
+      const aiItems: MenuItem[] = [];
+      if (canScan) {
+        aiItems.push({
+          label: this.t.translate('shared.aiSearchProgress.embedMarkedBtn') || 'Embed Marked Books',
+          icon: 'pi pi-bolt',
+          command: () => this.embedAllMarkedNow()
+        });
+      }
+      if (canConfigure) {
+        aiItems.push({
+          label: this.t.translate('shared.aiSearchProgress.configureAiBtn') || 'Configure AI Settings',
+          icon: 'pi pi-cog',
+          command: () => this.router.navigate(['/settings/ai'])
+        });
+      }
+
+      if (aiItems.length > 0) {
+        if (baseItems.length > 0) {
+          baseItems.push({ separator: true });
+        }
+        baseItems.push(...aiItems);
+      }
+    }
+
+    this.entityOptions = baseItems;
+    this.cdr.markForCheck();
   }
 
   private setupRouteChangeHandlers(): void {
@@ -801,6 +838,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           () => this.generateCustomCoversForSelected(),
           userState.user
         );
+
+        this.updateEntityOptions();
       });
 
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
@@ -837,7 +876,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
           this.stopAiStatusPolling();
         }
-        this.cdr.markForCheck();
+        this.updateEntityOptions();
       });
 
     this.aiSearchDialogService.searchActive$
@@ -1882,7 +1921,21 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dynamicDialogRef = this.dialogHelperService.openShelfAssignerDialog(null, this.selectedBooks);
     if (this.dynamicDialogRef) {
       this.dynamicDialogRef.onClose.subscribe(result => {
-        if (result.assigned) {
+        if (result && result.assigned) {
+          this.bookSelectionService.deselectAll();
+        }
+      });
+    }
+  }
+
+  openMoveShelfAssigner(): void {
+    if (this.entityType !== EntityType.SHELF || !this.entity?.id) {
+      return;
+    }
+    this.dynamicDialogRef = this.dialogHelperService.openShelfAssignerDialog(null, this.selectedBooks, this.entity.id);
+    if (this.dynamicDialogRef) {
+      this.dynamicDialogRef.onClose.subscribe(result => {
+        if (result && result.assigned) {
           this.bookSelectionService.deselectAll();
         }
       });
@@ -2144,6 +2197,28 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           severity: 'error',
           summary: 'Error',
           detail: 'Failed to mark books for AI Search.',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  embedAllMarkedNow(): void {
+    this.appSettingsService.scanMarkedAiSearchData().subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Embedding Started',
+          detail: 'Started embedding marked books.',
+          life: 3000
+        });
+        this.bookService.refreshBooks().subscribe();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to start embedding marked books.',
           life: 3000
         });
       }

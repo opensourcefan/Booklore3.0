@@ -25,10 +25,12 @@ export class AiSearchScanProgressService {
   private readonly rxStompService = inject(RxStompService);
   private readonly progressSubject = new BehaviorSubject<AiSearchProgressPayload | null>(null);
   private readonly embeddingBookIdsSubject = new BehaviorSubject<Set<number>>(new Set());
+  private readonly isStoppingSubject = new BehaviorSubject<boolean>(false);
   private clearTimer: ReturnType<typeof setTimeout> | undefined;
 
   readonly progress$ = this.progressSubject.asObservable();
   readonly embeddingBookIds$ = this.embeddingBookIdsSubject.asObservable();
+  readonly isStopping$ = this.isStoppingSubject.asObservable();
 
   constructor() {
     this.rxStompService?.connectionState$?.subscribe(state => {
@@ -38,10 +40,22 @@ export class AiSearchScanProgressService {
     });
   }
 
+  setStopping(stopping: boolean): void {
+    this.isStoppingSubject.next(stopping);
+  }
+
+  clearProgress(): void {
+    this.progressSubject.next(null);
+  }
+
   handleIncomingProgress(progress: AiSearchProgressPayload): void {
     if (this.clearTimer) {
       clearTimeout(this.clearTimer);
       this.clearTimer = undefined;
+    }
+
+    if (progress.mode === 'BATCH' && (progress.event === 'STOPPED' || progress.event === 'COMPLETED' || progress.event === 'FAILED')) {
+      this.isStoppingSubject.next(false);
     }
 
     this.progressSubject.next(progress);

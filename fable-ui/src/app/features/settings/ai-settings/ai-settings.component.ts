@@ -163,6 +163,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   batchProgress: AiPanelScanProgressPayload | null = null;
   aiSearchPreScanRunning = false;
   aiSearchBatchProgress: AiSearchProgressPayload | null = null;
+  isStopping = false;
   panelFlowStats: AiPanelFlowStats | null = null;
   startupEvents: AiStartupEvent[] = [];
   lastStatusCheckedAt: string | null = null;
@@ -271,6 +272,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       .subscribe(progress => {
         this.aiSearchBatchProgress = progress;
         this.aiSearchPreScanRunning = !['COMPLETED', 'FAILED', 'STOPPED'].includes(progress.event);
+      });
+
+    this.aiSearchScanProgressService.isStopping$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(stopping => {
+        this.isStopping = stopping;
       });
   }
 
@@ -527,6 +534,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   stopAiSearchScan(): void {
+    this.aiSearchScanProgressService.setStopping(true);
     this.appSettingsService.stopAiSearchScan().subscribe();
   }
 
@@ -553,6 +561,9 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   get aiSearchBatchProgressText(): string {
+    if (this.isStopping) {
+      return 'Stopping... (Completing current book)';
+    }
     return this.aiSearchBatchProgress ? this.aiSearchScanProgressService.buildStatusText(this.aiSearchBatchProgress) : '';
   }
 

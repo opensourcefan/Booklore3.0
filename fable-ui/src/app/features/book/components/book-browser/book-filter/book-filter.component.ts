@@ -321,7 +321,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     this.visibleFilterTypes.forEach((type, i) => {
       if (this.activeFilters[type]?.length) panels.add(i);
     });
-    this.expandedPanels = panels.size > 0 ? [...panels] : [0];
+    this.expandedPanels = [...panels];
   }
 
   private applyFilterSort(sort: UserFilterSort, persist = true): void {
@@ -385,7 +385,6 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   private normalizeExpandedPanels(panels: number[]): number[] {
-    const normalized = [...new Set(panels.map(Number).filter(value => Number.isInteger(value) && value >= 0))];
-    return normalized.length > 0 ? normalized : [0];
+    return [...new Set(panels.map(Number).filter(value => Number.isInteger(value) && value >= 0))];
   }
 }

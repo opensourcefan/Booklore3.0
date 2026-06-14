@@ -8,13 +8,14 @@ import {UrlHelperService} from '../../../../../shared/service/url-helper.service
 import {Button} from 'primeng/button';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
 import {MessageService} from 'primeng/api';
-import {RouterLink, UrlTree} from '@angular/router';
+import {Router, RouterLink, UrlTree} from '@angular/router';
 import {filter, Subject} from 'rxjs';
 import {UserService} from '../../../../settings/user-management/user.service';
 import {take, takeUntil} from 'rxjs/operators';
 import {ReadStatusHelper} from '../../../helpers/read-status.helper';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {ScrollerOptions} from 'primeng/api';
+import {BookSelectionService} from '../book-selection.service';
 
 export interface TableViewportMetrics {
   scrollTop: number;
@@ -65,6 +66,8 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   private readStatusHelper = inject(ReadStatusHelper);
   private readonly t = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
+  private bookSelectionService = inject(BookSelectionService);
 
   readonly starRange = [1, 2, 3, 4, 5];
   readonly virtualScrollOptions: ScrollerOptions = {
@@ -552,6 +555,34 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
         });
       }
     });
+  }
+
+  onDragStart(event: DragEvent, book: Book): void {
+    const currentSelections = this.bookSelectionService.selectedBooks;
+    const draggedId = Number(book.id);
+    const selectionNumbers = new Set(Array.from(currentSelections).map(id => Number(id)));
+
+    console.log('[DragStart Table] Dragging book:', draggedId);
+    console.log('[DragStart Table] Selections:', Array.from(selectionNumbers));
+    console.log('[DragStart Table] Is dragged book in selections?', selectionNumbers.has(draggedId));
+
+    const bookIds = selectionNumbers.has(draggedId)
+      ? Array.from(selectionNumbers)
+      : [draggedId];
+
+    console.log('[DragStart Table] Final bookIds:', bookIds);
+
+    let sourceShelfId: number | null = null;
+    if (this.router && this.router.url) {
+      const url = this.router.url;
+      const match = url.match(/\/shelf\/(\d+)\/books/);
+      sourceShelfId = match ? parseInt(match[1], 10) : null;
+    }
+
+    if (event.dataTransfer) {
+      event.dataTransfer.setData('text/plain', JSON.stringify({ bookIds, sourceShelfId }));
+      event.dataTransfer.effectAllowed = 'move';
+    }
   }
 
   ngOnDestroy(): void {

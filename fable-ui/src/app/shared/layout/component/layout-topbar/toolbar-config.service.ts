@@ -26,6 +26,7 @@ const DEFAULT_ITEMS: ToolbarItem[] = [
   {id: 'fullscreen', type: 'button', visible: true, label: 'Fullscreen', icon: 'pi pi-window-maximize'},
   {id: 'notifications', type: 'button', visible: true, label: 'Notifications', icon: 'pi pi-bell'},
   {id: 'theme', type: 'button', visible: true, label: 'Theme', icon: 'pi pi-palette'},
+  {id: 'settings', type: 'button', visible: true, label: 'Settings', icon: 'pi pi-cog'},
   {id: 'user', type: 'button', visible: true, label: 'User', icon: 'pi pi-user'},
   {id: 'logout', type: 'button', visible: true, label: 'Logout', icon: 'pi pi-sign-out'},
 ];
@@ -128,20 +129,34 @@ export class ToolbarConfigService {
     const seen = new Set<string>();
     const normalized: ToolbarItem[] = [];
 
-    // First pass: add all saved items that exist in defaults (maintaining saved order)
+    // First pass: add all saved items that exist in defaults OR are separators (maintaining saved order)
     for (const item of items) {
-      const defaultItem = defaults.get(item.id);
-      if (!defaultItem || seen.has(item.id)) {
-        continue;
+      if (item.type === 'separator' || item.id.startsWith('sep')) {
+        if (seen.has(item.id)) {
+          continue;
+        }
+        normalized.push({
+          id: item.id,
+          type: 'separator',
+          visible: item.visible ?? true
+        });
+        seen.add(item.id);
+      } else {
+        const defaultItem = defaults.get(item.id);
+        if (!defaultItem || seen.has(item.id)) {
+          continue;
+        }
+        normalized.push({...defaultItem, ...item});
+        seen.add(item.id);
       }
-      normalized.push({...defaultItem, ...item});
-      seen.add(item.id);
     }
 
     // Second pass: insert new default items in their correct position relative to
-    // their predecessors in DEFAULT_ITEMS (so new toolbar items aren't appended at the end)
+    // their predecessors in DEFAULT_ITEMS (so new toolbar items aren't appended at the end).
+    // Note: We skip default separators here to avoid re-inserting them if deleted by user.
     for (let i = 0; i < DEFAULT_ITEMS.length; i++) {
       const defaultItem = DEFAULT_ITEMS[i];
+      if (defaultItem.type === 'separator') continue;
       if (seen.has(defaultItem.id)) continue;
 
       // Find the last predecessor (from DEFAULT_ITEMS) that is already in normalized

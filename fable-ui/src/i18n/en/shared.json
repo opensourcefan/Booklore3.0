@@ -140,6 +140,24 @@
     "statusError": "Error",
     "statusCancelled": "Cancelled"
   },
+  "aiSearchProgress": {
+    "taskTitle": "AI Search Scan",
+    "statusInProgress": "In Progress",
+    "statusCompleted": "Completed",
+    "statusError": "Error",
+    "statusStopped": "Stopped",
+    "statusStopping": "Stopping",
+    "bookProgress": "Book <strong>{{ current }}</strong> of {{ total }}",
+    "cancelBtn": "Stop Scan",
+    "cancellingBtn": "Stopping...",
+    "dismissBtn": "Dismiss",
+    "cancellationScheduledSummary": "Cancellation Requested",
+    "cancellationScheduledDetail": "Fable will stop this task after completing the current book.",
+    "cancelFailedSummary": "Cancel Failed",
+    "cancelFailedDetail": "Failed to cancel the scan. Please try again.",
+    "embedMarkedBtn": "Embed Marked Books",
+    "configureAiBtn": "Configure AI Settings"
+  },
   "reader": {
     "failedToLoadPages": "Failed to load pages",
     "failedToLoadBook": "Failed to load the book"

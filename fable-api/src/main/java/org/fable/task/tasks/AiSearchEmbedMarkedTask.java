@@ -43,7 +43,7 @@ public class AiSearchEmbedMarkedTask implements Task {
             FableUser user = authenticationService.getAuthenticatedUser();
             Long userId = (user != null) ? user.getId() : -1L;
             String username = (user != null) ? user.getUsername() : "System";
-            aiSearchService.startScanMarkedAiSearchEmbeddings(userId, username, false);
+            aiSearchService.scanMarkedAiSearchEmbeddings(userId, username, false);
             builder.status(TaskStatus.COMPLETED);
         } catch (Exception e) {
             log.error("{}: Error embedding marked AI Search books", getTaskType(), e);

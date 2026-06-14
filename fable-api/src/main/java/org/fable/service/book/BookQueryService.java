@@ -483,6 +483,7 @@ public class BookQueryService {
             if (book.getMetadata() != null) {
                 Hibernate.initialize(book.getMetadata().getAuthors());
                 Hibernate.initialize(book.getMetadata().getCategories());
+                Hibernate.initialize(book.getMetadata().getDescription());
             }
         }
         return books;

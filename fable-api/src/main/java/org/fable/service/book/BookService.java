@@ -132,7 +132,7 @@ public class BookService {
 
 
     public List<Book> getBookDTOs(boolean includeDescription, boolean stripForListView) {
-        FableUser user = authenticationService.getAuthenticatedUser();
+        FableUser user = getAuthenticatedOrSystemUser();
         boolean isAdmin = user.getPermissions().isAdmin();
 
         List<Book> books = isAdmin
@@ -173,7 +173,7 @@ public class BookService {
     }
 
     public List<Book> getBooksByIds(Set<Long> bookIds, boolean withDescription) {
-        FableUser user = authenticationService.getAuthenticatedUser();
+        FableUser user = getAuthenticatedOrSystemUser();
         boolean isAdmin = user.getPermissions().isAdmin();
 
         List<BookEntity> bookEntities = bookQueryService.findAllWithMetadataByIds(bookIds);
@@ -209,7 +209,7 @@ public class BookService {
     }
 
     public Book getBook(long bookId, boolean withDescription) {
-        FableUser user = authenticationService.getAuthenticatedUser();
+        FableUser user = getAuthenticatedOrSystemUser();
         BookEntity bookEntity = bookRepository.findByIdWithBookFiles(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
 
         UserBookProgressEntity userProgress = userBookProgressRepository.findByUserIdAndBookId(user.getId(), bookId)
@@ -372,7 +372,7 @@ public class BookService {
 
     public BookViewerSettings getBookViewerSetting(long bookId, long bookFileId) {
         BookEntity bookEntity = bookRepository.findByIdWithBookFiles(bookId).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
-        FableUser user = authenticationService.getAuthenticatedUser();
+        FableUser user = getAuthenticatedOrSystemUser();
 
         BookViewerSettings.BookViewerSettingsBuilder settingsBuilder = BookViewerSettings.builder();
 
@@ -610,7 +610,7 @@ public class BookService {
 
     @Transactional
     public ResponseEntity<BookDeletionResponse> deleteBooks(Set<Long> ids, boolean deleteFromDisk, RemoveFromLibraryMode removeMode) {
-        FableUser user = authenticationService.getAuthenticatedUser();
+        FableUser user = getAuthenticatedOrSystemUser();
         List<BookEntity> books = bookQueryService.findAllWithMetadataByIds(ids);
 
         if (!user.getPermissions().isAdmin()) {
@@ -790,7 +790,7 @@ public class BookService {
             Long shelfId, boolean unshelved, List<String> mediaTypes, String search, List<String> authors, List<String> categories,
             String series, String publisher, String language, String isbn,
             String readStatus, String bookType, String contentRating, String filterMode) {
-        FableUser user = authenticationService.getAuthenticatedUser();
+        FableUser user = getAuthenticatedOrSystemUser();
         boolean isAdmin = user.getPermissions().isAdmin();
 
         // Build sort
@@ -995,7 +995,7 @@ public class BookService {
     }
 
     public Book updateCurrentlyReadingStatus(long bookId, boolean isCurrentlyReading) {
-        FableUser user = authenticationService.getAuthenticatedUser();
+        FableUser user = getAuthenticatedOrSystemUser();
         BookEntity bookEntity = bookRepository.findById(bookId)
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
         
@@ -1009,6 +1009,11 @@ public class BookService {
         
         // Use BookUpdateService to update the field
         return bookUpdateService.updateCurrentlyReadingStatus(bookId, isCurrentlyReading);
+    }
+
+    private FableUser getAuthenticatedOrSystemUser() {
+        FableUser user = authenticationService.getAuthenticatedUser();
+        return user != null ? user : authenticationService.getSystemUser();
     }
 
 }

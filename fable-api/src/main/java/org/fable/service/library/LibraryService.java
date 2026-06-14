@@ -280,16 +280,19 @@ public class LibraryService {
         });
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Library getLibrary(long libraryId) {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
         return libraryMapper.toLibrary(libraryEntity);
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<Library> getAllLibraries() {
         List<LibraryEntity> libraries = libraryRepository.findAll();
         return libraries.stream().map(libraryMapper::toLibrary).toList();
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<Library> getLibraries() {
         FableUser user = authenticationService.getAuthenticatedUser();
         FableUserEntity userEntity = userRepository.findById(user.getId()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
