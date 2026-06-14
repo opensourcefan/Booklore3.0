@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && curl -fsSL https://ollama.com/install.sh | sh \
     && rm -rf /var/lib/apt/lists/*
 
-ENV OLLAMA_MODELS=/models/ollama
+ENV OLLAMA_MODELS=/models/ollama \
+    OLLAMA_KEEP_ALIVE=-1
 
 WORKDIR /app
 
