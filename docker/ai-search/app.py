@@ -829,6 +829,17 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     query_words = [w.lower() for w in re.findall(r'\w+', embedding_query) if len(w) > 1]
     core_keywords = [w for w in query_words if w not in stopwords]
 
+    # Parse requested count from list queries (e.g. "list 5..." or "show me three...")
+    requested_count = None
+    count_match = re.search(r'\b(?:list|show(?:\s+me)?|get|find|give\s+me)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b', query.lower())
+    if count_match:
+        num_str = count_match.group(1)
+        if num_str.isdigit():
+            requested_count = int(num_str)
+        else:
+            number_map = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10}
+            requested_count = number_map.get(num_str)
+
     try:
         # Compute query embedding (using clean query with quotes removed)
         query_vector = _compute_embedding(embedding_query)
@@ -1126,10 +1137,16 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         top_results = []
         answer = "I could not find any relevant information for this search."
     else:
-        # Prepend missing keywords disclaimer warning if core search terms are missing
-        if missing_keywords and top_results:
+        # Construct a consolidated disclaimer note if results count is less than requested or keywords are missing
+        disclaimer_parts = []
+        if requested_count and len(top_results) < requested_count:
+            disclaimer_parts.append(f"only found {len(top_results)} match{'es' if len(top_results) != 1 else ''} in your library (not the {requested_count} requested)")
+        if missing_keywords:
             missing_str = ", ".join([f'"{m}"' for m in missing_keywords])
-            disclaimer = f"⚠️ *Note: I could not find the term(s) {missing_str} in your library, but here are {len(top_results)} semantic matches:*\n\n"
+            disclaimer_parts.append(f"could not find the term(s) {missing_str}")
+
+        if disclaimer_parts and top_results:
+            disclaimer = "⚠️ *Note: I " + " and I ".join(disclaimer_parts) + ":*\n\n"
             if answer:
                 answer = disclaimer + answer
             elif local_only:
