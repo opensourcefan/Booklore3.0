@@ -124,18 +124,6 @@ public class BookMetadataUpdater {
         updateComicMetadataIfNeeded(newMetadata, metadata, replaceMode);
         updateLocks(newMetadata, metadata);
 
-        // Force initialization of lazy ComicMetadataEntity collections
-        // to prevent LazyInitializationException when accessed by CbxMetadataWriter
-        // or MapStruct mappers downstream (both may touch characters, teams,
-        // locations, creatorMappings outside the Hibernate session boundary).
-        ComicMetadataEntity comicMeta = metadata.getComicMetadata();
-        if (comicMeta != null) {
-            if (comicMeta.getCharacters() != null) comicMeta.getCharacters().size();
-            if (comicMeta.getTeams() != null) comicMeta.getTeams().size();
-            if (comicMeta.getLocations() != null) comicMeta.getLocations().size();
-            if (comicMeta.getCreatorMappings() != null) comicMeta.getCreatorMappings().size();
-        }
-
         bookEntity.setMetadataUpdatedAt(Instant.now());
         bookRepository.save(bookEntity);
         try {
