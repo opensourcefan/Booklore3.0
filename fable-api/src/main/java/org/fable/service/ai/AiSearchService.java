@@ -3,6 +3,7 @@ package org.fable.service.ai;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.fable.config.AppProperties;
+import org.fable.model.dto.Book;
 import org.fable.model.entity.BookEntity;
 import org.fable.model.entity.BookFileEntity;
 import org.fable.model.enums.BookFileType;
@@ -404,9 +405,14 @@ public class AiSearchService {
             }
 
             // Broadcast the update so the UI gets immediate updates
+            // Build a minimal DTO directly from the already-loaded entity to avoid
+            // MapStruct triggering lazy loads on @Lob fields (description) in @Async context.
             try {
-                List<org.fable.model.dto.Book> books = bookService.getBooksByIds(Set.of(bookId), true);
-                bookEventBroadcaster.broadcastBookBatchUpdateEvent(books);
+                Book dto = Book.builder()
+                    .id(book.getId())
+                    .libraryId(book.getLibrary().getId())
+                    .build();
+                bookEventBroadcaster.broadcastBookUpdateEvent(dto);
             } catch (Exception broadcastEx) {
                 log.warn("Failed to broadcast book update for embedded book {}: {}", bookId, broadcastEx.getMessage());
             }
@@ -432,7 +438,7 @@ public class AiSearchService {
         Map<String, String> tocTitleMap = EpubContentReader.getTocTitleMap(epubFile);
 
         for (int i = 0; i < spineSize; i++) {
-            if (!scanInProgress.get()) {
+            if (isBatch && !scanInProgress.get()) {
                 log.info("AI Search scan stopped during EPUB extraction of book {}", bookId);
                 return;
             }
@@ -510,7 +516,7 @@ public class AiSearchService {
             int pageCount = document.getNumberOfPages();
 
             for (int page = 1; page <= pageCount; page++) {
-                if (!scanInProgress.get()) {
+                if (isBatch && !scanInProgress.get()) {
                     log.info("AI Search scan stopped during PDF extraction of book {}", bookId);
                     return;
                 }
@@ -598,7 +604,7 @@ public class AiSearchService {
         int MAX_OCR_FAILURES = 10;
 
         for (int pageNum : pages) {
-            if (!scanInProgress.get()) {
+            if (isBatch && !scanInProgress.get()) {
                 log.info("AI Search scan stopped during CBX extraction of book {}", bookId);
                 return;
             }

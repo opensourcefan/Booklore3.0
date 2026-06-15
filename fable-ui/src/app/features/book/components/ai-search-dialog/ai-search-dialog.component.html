@@ -170,51 +170,56 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <div class="ai-search-input-row" style="display: flex; gap: 0.5rem; width: 100%; padding-top: 0.5rem; align-items: center;">
-      <p-button
-        [label]="mobileUx.isMobileOrTablet ? '' : (localOnly ? 'Raw' : 'AI')"
-        [icon]="localOnly ? 'pi pi-list' : 'pi pi-sparkles'"
-        [severity]="localOnly ? 'success' : 'info'"
-        [outlined]="true"
-        [pTooltip]="localOnly ? 'Raw: Search your library directly (no AI synthesis)' : 'AI + Raw: Search your library and generate an AI answer'"
-        tooltipPosition="top"
-        (onClick)="localOnly = !localOnly">
-      </p-button>
-      <button
-        type="button"
-        class="ai-search-info-btn"
-        (click)="infoPopover.toggle($event)"
-        pTooltip="About AI Search"
-        tooltipPosition="top">
-        <i class="pi pi-info-circle"></i>
-      </button>
-      <p-popover #infoPopover [dismissable]="true" appendTo="body" [style]="{ width: '520px', maxWidth: '90vw' }">
-        <div class="ai-search-info-popover-content" [innerHTML]="aiSearchInfoHtml"></div>
-      </p-popover>
+    <div class="ai-search-footer">
+      <div class="ai-search-input-row" style="display: flex; gap: 0.5rem; width: 100%; align-items: center;">
+        <p-button
+          [label]="mobileUx.isMobileOrTablet ? '' : (localOnly ? 'Raw' : 'AI')"
+          [icon]="localOnly ? 'pi pi-list' : 'pi pi-sparkles'"
+          [severity]="localOnly ? 'success' : 'info'"
+          [outlined]="true"
+          [pTooltip]="localOnly ? 'Raw: Search your library directly (no AI synthesis)' : 'AI + Raw: Search your library and generate an AI answer'"
+          tooltipPosition="top"
+          (onClick)="localOnly = !localOnly">
+        </p-button>
+        <button
+          type="button"
+          class="ai-search-info-btn"
+          (click)="infoPopover.toggle($event)"
+          pTooltip="About AI Search"
+          tooltipPosition="top">
+          <i class="pi pi-info-circle"></i>
+        </button>
+        <p-popover #infoPopover [dismissable]="true" appendTo="body" [style]="{ width: '520px', maxWidth: '90vw' }">
+          <div class="ai-search-info-popover-content" [innerHTML]="aiSearchInfoHtml"></div>
+        </p-popover>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="searchQuery"
+          (keydown)="onKeydown($event)"
+          [placeholder]="t('placeholder')"
+          class="ai-search-input"
+          style="flex: 1;"
+        />
+        <p-button
+          icon="pi pi-search"
+          [loading]="isLoading"
+          (onClick)="onSearch()"
+          [disabled]="searchQuery.trim().length < 2">
+        </p-button>
+      </div>
       @if (scopeBookTitle) {
-        <span class="ai-search-scope-chip" [pTooltip]="'Searching only: ' + scopeBookTitle" tooltipPosition="top">
-          <i class="pi pi-bookmark-fill"></i>
-          <span class="ai-search-scope-label">{{ scopeBookTitle }}</span>
-          <button type="button" class="ai-search-scope-clear" (click)="clearScope()" aria-label="Clear book scope">
-            <i class="pi pi-times"></i>
-          </button>
-        </span>
+        <div class="ai-search-scope-row">
+          <span class="ai-search-scope-chip">
+            <i class="pi pi-bookmark-fill"></i>
+            <span>Searching:</span>
+            <span class="ai-search-scope-title">{{ scopeBookTitle }}</span>
+            <button type="button" class="ai-search-scope-clear" (click)="clearScope()" aria-label="Clear book scope" pTooltip="Clear book scope" tooltipPosition="top">
+              <i class="pi pi-times"></i>
+            </button>
+          </span>
+        </div>
       }
-      <input
-        type="text"
-        pInputText
-        [(ngModel)]="searchQuery"
-        (keydown)="onKeydown($event)"
-        [placeholder]="t('placeholder')"
-        class="ai-search-input"
-        style="flex: 1;"
-      />
-      <p-button
-        icon="pi pi-search"
-        [loading]="isLoading"
-        (onClick)="onSearch()"
-        [disabled]="searchQuery.trim().length < 2">
-      </p-button>
     </div>
   </ng-template>
 </p-dialog>
