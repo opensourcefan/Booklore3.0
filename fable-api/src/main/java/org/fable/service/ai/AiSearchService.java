@@ -12,6 +12,7 @@ import org.fable.repository.BookRepository;
 import org.fable.config.security.service.AuthenticationService;
 import org.fable.service.NotificationService;
 import org.fable.service.book.BookCreatorService;
+import org.fable.service.reader.CbxReaderService;
 import org.fable.service.metadata.BookMetadataService;
 import org.fable.util.epub.EpubContentReader;
 import org.apache.pdfbox.Loader;
@@ -20,8 +21,11 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.jsoup.Jsoup;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.rendering.ImageType;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -58,8 +62,10 @@ public class AiSearchService {
     private final org.fable.service.book.BookService bookService;
     private final org.fable.service.event.BookEventBroadcaster bookEventBroadcaster;
     private final TaskCancellationManager cancellationManager;
+    private final CbxReaderService cbxReaderService;
 
     private static final int CHUNK_BATCH_SIZE = 50;
+    private static final int MAX_CBX_IMAGE_BYTES = 2 * 1024 * 1024;  // 2 MB
 
     private final AtomicBoolean scanInProgress = new AtomicBoolean(false);
 
@@ -79,13 +85,15 @@ public class AiSearchService {
 
             List<Long> epubBookIds = bookRepository.findAllBookIdsByLibraryPathIdInAndBookType(libraryPathIds, BookFileType.EPUB);
             List<Long> pdfBookIds = bookRepository.findAllBookIdsByLibraryPathIdInAndBookType(libraryPathIds, BookFileType.PDF);
+            List<Long> cbxBookIds = bookRepository.findAllBookIdsByLibraryPathIdInAndBookType(libraryPathIds, BookFileType.CBX);
             
             Set<Long> allBookIds = new HashSet<>();
             allBookIds.addAll(epubBookIds);
             allBookIds.addAll(pdfBookIds);
+            allBookIds.addAll(cbxBookIds);
 
             if (allBookIds.isEmpty()) {
-                sendBatchProgress(username, "COMPLETED", "No EPUB or PDF books found in selected paths.", null, 0, 0, null, null);
+                sendBatchProgress(username, "COMPLETED", "No EPUB, PDF, or CBX books found in selected paths.", null, 0, 0, null, null);
                 return;
             }
 
@@ -382,6 +390,8 @@ public class AiSearchService {
                 extractEpubChunks(file, bookId, userId, username, isBatch, current, total);
             } else if (primaryFile.getBookType() == BookFileType.PDF) {
                 extractPdfChunks(file, bookId, userId, username, isBatch, current, total);
+            } else if (primaryFile.getBookType() == BookFileType.CBX) {
+                extractCbxChunks(file, bookId, userId, username, isBatch, current, total);
             } else {
                 throw new IllegalArgumentException("Unsupported book type for AI Search: " + primaryFile.getBookType());
             }
@@ -563,6 +573,128 @@ public class AiSearchService {
         }
     }
 
+    private void extractCbxChunks(File cbxFile, Long bookId, Long userId, String username,
+                                   boolean isBatch, Integer current, Integer total) throws Exception {
+        List<Integer> pages = cbxReaderService.getAvailablePages(bookId);
+        int totalPages = pages.size();
+
+        if (!isBatch) {
+            sendSearchProgress(username, "IN_PROGRESS",
+                String.format("Starting OCR for CBX book %d (%d pages)", bookId, totalPages), null);
+        }
+
+        org.fable.model.dto.settings.AiSearchSettings settings = appSettingService.getAppSettings().getAiSearchSettings();
+        if (settings == null) {
+            settings = new org.fable.model.dto.settings.AiSearchSettings();
+        }
+        String ocrLanguage = settings.getOcrLanguage() != null ? settings.getOcrLanguage() : "eng";
+
+        String baseUrl = appProperties.getAiSearch().getBaseUrl();
+        RestClient restClient = buildRestClient();
+        String ocrUrl = baseUrl + "/v1/ocr";
+
+        StringBuilder allText = new StringBuilder();
+        int ocrFailures = 0;
+        int MAX_OCR_FAILURES = 10;
+
+        for (int pageNum : pages) {
+            if (!scanInProgress.get()) {
+                log.info("AI Search scan stopped during CBX extraction of book {}", bookId);
+                return;
+            }
+
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                cbxReaderService.streamPageImage(bookId, null, pageNum, baos);
+                byte[] imageBytes = baos.toByteArray();
+
+                if (imageBytes.length > MAX_CBX_IMAGE_BYTES) {
+                    byte[] compressed = compressImageForOcr(imageBytes);
+                    if (compressed != null && compressed.length > 0) {
+                        imageBytes = compressed;
+                    }
+                }
+
+                String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+
+                Map<String, Object> ocrPayload = new java.util.HashMap<>();
+                ocrPayload.put("image", base64Image);
+                ocrPayload.put("lang", ocrLanguage);
+
+                Map<String, Object> ocrResult = postForMap(restClient, ocrUrl, ocrPayload);
+                String pageText = (String) ocrResult.getOrDefault("text", "");
+
+                if (pageText != null && !pageText.isBlank()) {
+                    allText.append("[Page ").append(pageNum).append("]\n");
+                    allText.append(pageText.trim()).append("\n\n");
+                }
+
+                ocrFailures = 0;
+
+                if (pageNum % 10 == 0) {
+                    int percentage = (int)(((double)pageNum / totalPages) * 100);
+                    if (!isBatch) {
+                        sendSearchProgress(username, "IN_PROGRESS",
+                            String.format("OCR progress: page %d/%d (%d%%)", pageNum, totalPages, percentage), null);
+                    } else if (current != null && total != null) {
+                        sendBatchProgress(username, "IN_PROGRESS",
+                            String.format("Embedding book %d of %d: OCR page %d/%d (%d%%)",
+                                current + 1, total, pageNum, totalPages, percentage),
+                            null, current, total, null, null);
+                    }
+                }
+
+            } catch (Exception e) {
+                log.warn("OCR failed for book {} page {}: {}", bookId, pageNum, e.getMessage());
+                ocrFailures++;
+                if (ocrFailures >= MAX_OCR_FAILURES) {
+                    throw new RuntimeException(
+                        String.format("OCR failed for %d consecutive pages, aborting book %d",
+                            MAX_OCR_FAILURES, bookId));
+                }
+            }
+        }
+
+        String fullText = allText.toString().trim();
+        if (fullText.isEmpty()) {
+            if (!isBatch) {
+                sendSearchProgress(username, "COMPLETED",
+                    String.format("No text extracted from CBX book %d after OCR of %d pages",
+                        bookId, totalPages), null);
+            }
+            return;
+        }
+
+        List<String> textChunks = chunkText(fullText);
+        List<Map<String, Object>> chunkBatch = new ArrayList<>();
+        boolean isFirstBatch = true;
+
+        for (int i = 0; i < textChunks.size(); i++) {
+            Map<String, Object> chunk = new LinkedHashMap<>();
+            chunk.put("text", textChunks.get(i));
+            chunk.put("pageNumber", null);
+            chunk.put("chapterTitle", null);
+            chunkBatch.add(chunk);
+
+            if (chunkBatch.size() >= CHUNK_BATCH_SIZE) {
+                embedBook(bookId, userId, chunkBatch, !isFirstBatch);
+                isFirstBatch = false;
+                chunkBatch.clear();
+            }
+        }
+
+        if (!chunkBatch.isEmpty()) {
+            embedBook(bookId, userId, chunkBatch, !isFirstBatch);
+            chunkBatch.clear();
+        }
+
+        if (!isBatch) {
+            sendSearchProgress(username, "COMPLETED",
+                String.format("Completed CBX embedding for book %d: %d chunks from %d pages",
+                    bookId, textChunks.size(), totalPages), null);
+        }
+    }
+
     private String performOcrOnPage(PDDocument document, int pageIndex, String language) {
         try {
             PDFRenderer renderer = new PDFRenderer(document);
@@ -689,6 +821,38 @@ public class AiSearchService {
             break; // Only check the first non-blank line
         }
         return null;
+    }
+
+    private byte[] compressImageForOcr(byte[] source) {
+        try {
+            BufferedImage original = ImageIO.read(new ByteArrayInputStream(source));
+            if (original == null) {
+                return source;
+            }
+
+            int width = original.getWidth();
+            int height = original.getHeight();
+            int maxDimension = Math.max(width, height);
+
+            BufferedImage working = original;
+            if (maxDimension > 3000) {
+                double scale = 3000.0 / maxDimension;
+                int targetW = Math.max(1, (int) Math.round(width * scale));
+                int targetH = Math.max(1, (int) Math.round(height * scale));
+                Image scaled = original.getScaledInstance(targetW, targetH, Image.SCALE_SMOOTH);
+                working = new BufferedImage(targetW, targetH, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g = working.createGraphics();
+                g.drawImage(scaled, 0, 0, null);
+                g.dispose();
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(working, "JPEG", out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            log.warn("Failed to compress CBX image for OCR, using original: {}", e.getMessage());
+            return source;
+        }
     }
 
     private List<String> chunkText(String text) {
