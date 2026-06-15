@@ -191,6 +191,15 @@
       <p-popover #infoPopover [dismissable]="true" appendTo="body" [style]="{ width: '520px', maxWidth: '90vw' }">
         <div class="ai-search-info-popover-content" [innerHTML]="aiSearchInfoHtml"></div>
       </p-popover>
+      @if (scopeBookTitle) {
+        <span class="ai-search-scope-chip" [pTooltip]="'Searching only: ' + scopeBookTitle" tooltipPosition="top">
+          <i class="pi pi-bookmark-fill"></i>
+          <span class="ai-search-scope-label">{{ scopeBookTitle }}</span>
+          <button type="button" class="ai-search-scope-clear" (click)="clearScope()" aria-label="Clear book scope">
+            <i class="pi pi-times"></i>
+          </button>
+        </span>
+      }
       <input
         type="text"
         pInputText

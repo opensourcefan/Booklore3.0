@@ -57,6 +57,47 @@
   }
 }
 
+.ai-search-scope-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--p-primary-100);
+  border: 1px solid var(--p-primary-300);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--p-primary-700);
+  flex-shrink: 0;
+  max-width: 180px;
+
+  .ai-search-scope-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ai-search-scope-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--p-primary-600);
+    cursor: pointer;
+    font-size: 0.65rem;
+    padding: 0;
+    flex-shrink: 0;
+
+    &:hover {
+      background: var(--p-primary-200);
+      color: var(--p-primary-800);
+    }
+  }
+}
+
 .ai-search-info-btn {
   display: flex;
   align-items: center;
