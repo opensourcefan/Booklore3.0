@@ -76,3 +76,4 @@ release-stable.sh
 .roo/commands/push.md
 .gitignore
 .roo/rules/no-mode-switch.md
+.roo/commands/github.md
