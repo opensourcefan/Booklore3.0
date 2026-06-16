@@ -12,9 +12,17 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     groups:
-      gradle-dependencies:
+      hibernate-orm:
+        patterns:
+          - "org.hibernate.orm:*"
+      spring-boot:
+        patterns:
+          - "org.springframework.boot:*"
+      other-gradle-dependencies:
         patterns:
           - "*"
+          - "!org.hibernate.orm:*"
+          - "!org.springframework.boot:*"
     ignore:
       - dependency-name: "com.github.RouHim:jaudiotagger"
 

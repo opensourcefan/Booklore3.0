@@ -70,6 +70,31 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: High-Risk Package Override (Force Manual Review)
+        id: high-risk
+        if: steps.policy.outputs.auto_merge == 'true'
+        env:
+          DEPS_JSON: ${{ steps.dependabot-metadata.outputs.updated-dependencies-json }}
+        run: |
+          # Hibernate ORM and Spring Boot are framework-level dependencies that
+          # can introduce subtle runtime regressions not caught by unit tests
+          # (e.g., FetchMode.SUBSELECT + EntityGraph interaction change in
+          # Hibernate 7.4.1). Force manual review even for patch bumps.
+          high_risk_patterns='org.hibernate.orm:hibernate-core|org.springframework.boot:spring-boot-starter-data-jpa'
+
+          if echo "$DEPS_JSON" | jq -r '.[].dependencyName' | grep -qE "$high_risk_patterns"; then
+            echo "auto_merge=false" >> "$GITHUB_OUTPUT"
+            echo "review_reason=High-risk package (Hibernate ORM or Spring Boot) detected — forcing manual review regardless of semver level." >> "$GITHUB_OUTPUT"
+            {
+              echo "### ⚠️ High-Risk Package Override"
+              echo "A Hibernate ORM or Spring Boot dependency was detected in this PR."
+              echo "These are framework-level packages that can introduce subtle runtime regressions."
+              echo "Auto-merge has been **blocked** — manual review is required."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "auto_merge=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Enforce Dependency Quarantine (7-Day Hold)
         id: quarantine-check
         if: steps.policy.outputs.auto_merge == 'true'
