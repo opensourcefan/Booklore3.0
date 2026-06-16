@@ -26,6 +26,7 @@ class AiSearchSettingsTest {
                 .build();
 
         assertThat(settings.getTopK()).isEqualTo(5);
+        assertThat(settings.getDisplayTopK()).isEqualTo(5);
         assertThat(settings.getSimilarityThreshold()).isEqualTo(0.3);
         assertThat(settings.getMaxTokens()).isEqualTo(768);
         assertThat(settings.getTemperature()).isEqualTo(0.1);
@@ -44,6 +45,7 @@ class AiSearchSettingsTest {
     void testGettersPreserveValidValues() {
         AiSearchSettings settings = AiSearchSettings.builder()
                 .topK(10)
+                .displayTopK(3)
                 .similarityThreshold(0.75)
                 .maxTokens(1024)
                 .temperature(0.5)
@@ -59,6 +61,7 @@ class AiSearchSettingsTest {
                 .build();
 
         assertThat(settings.getTopK()).isEqualTo(10);
+        assertThat(settings.getDisplayTopK()).isEqualTo(3);
         assertThat(settings.getSimilarityThreshold()).isEqualTo(0.75);
         assertThat(settings.getMaxTokens()).isEqualTo(1024);
         assertThat(settings.getTemperature()).isEqualTo(0.5);

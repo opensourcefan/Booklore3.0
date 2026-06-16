@@ -675,12 +675,37 @@ public class AiSearchService {
         List<Map<String, Object>> chunkBatch = new ArrayList<>();
         boolean isFirstBatch = true;
 
+        // Map each chunk back to the page it came from. The OCR text prefixes each page
+        // with "[Page N]\n", so we can recover the page number as we walk through chunks.
+        int currentPage = pages.isEmpty() ? 0 : pages.get(0);
+        int pageMarkerIndex = 0;
+        int textOffset = 0;
+
         for (int i = 0; i < textChunks.size(); i++) {
+            String chunkText = textChunks.get(i);
+            // Advance the page marker cursor to the page that contains the start of this chunk.
+            while (pageMarkerIndex < pages.size()) {
+                int pageNum = pages.get(pageMarkerIndex);
+                String marker = String.format("[Page %d]", pageNum);
+                int markerPos = fullText.indexOf(marker, textOffset);
+                if (markerPos == -1) {
+                    // No further markers; keep current page.
+                    break;
+                }
+                if (markerPos <= textOffset) {
+                    currentPage = pageNum;
+                    pageMarkerIndex++;
+                } else {
+                    break;
+                }
+            }
+
             Map<String, Object> chunk = new LinkedHashMap<>();
-            chunk.put("text", textChunks.get(i));
-            chunk.put("pageNumber", null);
+            chunk.put("text", chunkText);
+            chunk.put("pageNumber", currentPage > 0 ? currentPage : null);
             chunk.put("chapterTitle", null);
             chunkBatch.add(chunk);
+            textOffset += chunkText.length();
 
             if (chunkBatch.size() >= CHUNK_BATCH_SIZE) {
                 embedBook(bookId, userId, chunkBatch, !isFirstBatch);

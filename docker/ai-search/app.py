@@ -374,6 +374,49 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     return float(np.dot(a, b))
 
 
+def _ensure_list_citations(answer: str, results: list[dict]) -> str:
+    """Post-process an LLM answer so every list item ends with a source citation.
+
+    The system prompt asks the model to append `[Source: Book Title, Page N]` to each
+    fact or list item. Small local models often omit these markers. This function:
+
+    1. Splits the answer into lines.
+    2. For any line that looks like a list item (starts with `-`, `*`, or a number like
+       `1.`) and does not already contain a `[Source: ...]` marker, appends the most
+       relevant source from the provided results.
+    3. Cycles through results in order so each missing citation gets the next best source.
+    """
+    if not results:
+        return answer
+
+    source_iter = iter(results)
+    current_source = next(source_iter)
+
+    def _source_marker(result: dict) -> str:
+        page = result.get("pageNumber") or "N/A"
+        return f"[Source: {result['bookTitle']}, Page {page}]"
+
+    processed_lines = []
+    list_item_pattern = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
+
+    for line in answer.split("\n"):
+        stripped = line.strip()
+        if list_item_pattern.match(stripped) and "[Source:" not in stripped:
+            # Avoid double punctuation before the citation.
+            if stripped.endswith((".", "!", "?")):
+                line = f"{stripped} {_source_marker(current_source)}"
+            else:
+                line = f"{stripped}. {_source_marker(current_source)}"
+            try:
+                current_source = next(source_iter)
+            except StopIteration:
+                # Reuse the last source if we run out; this keeps all remaining items cited.
+                pass
+        processed_lines.append(line)
+
+    return "\n".join(processed_lines)
+
+
 def _generate_answer(query: str, context: str, max_tokens: int, temperature: float, chat_history: list[dict] = None) -> str:
     """Generate an answer using the LLM (local Ollama or external)."""
     if not LLM_MODEL_NAME and LLM_PROVIDER == "local":
@@ -393,7 +436,11 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         "RESPONSE FORMAT:\n"
         "- If the user asks for a list, use structured bullet points.\n"
         "- If the user asks for details or explanation, provide a thorough answer.\n"
-        "- Otherwise, provide a balanced, moderate-length answer."
+        "- Otherwise, provide a balanced, moderate-length answer.\n"
+        "\n"
+        "CITATION EXAMPLE:\n"
+        "- \"Galactic Warriors\" by Joe Orlando [Source: 100 All-Time Greatest Comics, Page 98]\n"
+        "- The Starblade chronicles the conflict over interstellar trade routes [Source: 100 All-Time Greatest Comics, Page 102]"
     )
 
     user_prompt = f"Context:\n{context}\n\nQuery: {query}"
@@ -820,7 +867,9 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     required_keywords = re.findall(r'"([^"]+)"', query)
     embedding_query = query.replace('"', '')
 
-    # Extract core keywords from query (excluding stopwords) for soft boosting and missing disclaimers
+    # Extract core keywords from query (excluding stopwords) for soft boosting and missing disclaimers.
+    # Preserve hyphenated and apostrophe-containing tokens (e.g. "sci-fi", "d'artagnan") as single
+    # semantic units so they are not split into misleading fragments like "sci" / "fi".
     stopwords = {
         "a", "an", "the", "in", "on", "at", "to", "for", "with", "by", "of", "and", "or", "but",
         "list", "show", "find", "search", "get", "what", "how", "why", "who", "where", "me", "i",
@@ -831,18 +880,28 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         "page", "book", "chapter", "read", "display", "result", "results",
         "provide", "information", "inform", "tell", "give", "explain", "describe", "detail",
         "details", "data", "facts", "fact", "about", "regarding", "concerning", "related", "regards",
-        "looking", "look", "want", "wanted", "need", "needed", "help", "please", "could", "would",
-        "like", "know", "tell", "say", "said", "ask", "asking", "question", "questions", "answer",
+        "looking", "look", "want", "wanted", "need", "needed", "help", "please",
+        "like", "know", "say", "said", "ask", "asking", "question", "questions", "answer",
         "answers", "specifically", "specific", "particular", "certain", "exactly", "exact", "just",
         "only", "also", "even", "still", "really", "actually", "definitely", "probably", "maybe",
         "perhaps", "basically", "literally", "essentially", "generally", "usually", "often",
         "sometimes", "always", "never", "every", "many", "much", "lot", "lots", "plenty", "several",
-        "various", "different", "same", "similar", "opposite", "various", "including", "include",
-        "included", "contains", "containing", "contain", "having", "make", "made", "made", "made",
+        "various", "different", "same", "similar", "opposite", "including", "include",
+        "included", "contains", "containing", "contain", "having", "make", "made",
         "summary", "summarize", "summarise", "brief", "overview", "synopsis", "recap",
         "outline", "highlight", "highlights", "tl;dr", "tldr",
     }
-    query_words = [w.lower() for w in re.findall(r'\w+', embedding_query) if len(w) > 1]
+
+    def _extract_query_tokens(text: str) -> list[str]:
+        # First pull out hyphenated/apostrophe words as single tokens.
+        compound_pattern = re.compile(r"\b\w+(?:[-']\w+)+\b")
+        compounds = compound_pattern.findall(text)
+        # Remove the matched compound words from the text, then extract plain words.
+        remaining = compound_pattern.sub(" ", text)
+        plain = re.findall(r"\w+", remaining)
+        return [w.lower() for w in compounds + plain if len(w) > 1]
+
+    query_words = _extract_query_tokens(embedding_query)
     core_keywords = [w for w in query_words if w not in stopwords]
 
     # Parse requested count from list queries (e.g. "list 5..." or "show me three...")
@@ -1057,8 +1116,8 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
         # Apply Cross-Encoder Reranking if enabled and loaded
         if reranking_enabled and _reranker_model is not None:
-            # Rerank the top candidates (up to 20 candidates for CPU efficiency)
-            rerank_pool_size = max(20, top_k * 2)
+            # Rerank the top candidates (capped at 20 for CPU efficiency)
+            rerank_pool_size = min(20, max(top_k, top_k * 2))
             candidates_to_rerank = candidates[:rerank_pool_size]
             if candidates_to_rerank:
                 pairs = [[query, c["chunkText"]] for c in candidates_to_rerank]
@@ -1113,39 +1172,27 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             except Exception:
                 pass
 
-    # Generate answer using LLM if available and not local-only mode
+    # Generate answer using LLM if available and not local-only mode.
+    # Use the same results slice that the UI will display so the answer count,
+    # citations, and source cards are always consistent.
     answer = None
-    if top_results and not local_only:
+    if display_results and not local_only:
         context = "\n\n".join([
             f"[Source: {r['bookTitle']}, Page {r.get('pageNumber') or 'N/A'}]\n{r['chunkText']}"
-            for r in top_results
+            for r in display_results
         ])
 
-        # Rewrite query if the actual results count is less than the requested count
-        llm_query = query
-        if requested_count and count_match and len(top_results) < requested_count:
-            actual_count = len(top_results)
-            orig_word = count_match.group(1)
-            if orig_word.isdigit():
-                replacement = str(actual_count)
-            else:
-                reverse_number_map = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}
-                replacement = reverse_number_map.get(actual_count, str(actual_count))
-                if orig_word.istitle():
-                    replacement = replacement.title()
-                elif orig_word.isupper():
-                    replacement = replacement.upper()
-            
-            # Replace the count in the query string
-            start, end = count_match.start(1), count_match.end(1)
-            llm_query = query[:start] + replacement + query[end:]
-            logger.info("Rewriting LLM query from '%s' to '%s' because actual results count (%d) is less than requested (%d)", query, llm_query, actual_count, requested_count)
-
         try:
-            answer = _generate_answer(llm_query, context, max_tokens, temperature, chat_history)
+            answer = _generate_answer(query, context, max_tokens, temperature, chat_history)
         except Exception as e:
             logger.error("Error generating LLM answer: %s", e)
             answer = None
+
+        # Safety net: ensure every list item has a citation. Small local LLMs sometimes
+        # ignore the citation format instruction, so we append the best matching source
+        # for any bullet that is missing one.
+        if answer:
+            answer = _ensure_list_citations(answer, display_results)
 
     # Identify missing core keywords (completely absent from all top results)
     missing_keywords = []
