@@ -493,8 +493,19 @@ public class BookQueryService {
         return bookRepository.countNonDeleted();
     }
 
+    @Transactional(readOnly = true)
     public List<BookEntity> findAllWithMetadataByIds(Set<Long> bookIds) {
-        return bookRepository.findAllWithMetadataByIds(bookIds);
+        List<BookEntity> books = bookRepository.findAllWithMetadataByIds(bookIds);
+        for (BookEntity book : books) {
+            if (book.getMetadata() != null && book.getMetadata().getComicMetadata() != null) {
+                var comicMeta = book.getMetadata().getComicMetadata();
+                Hibernate.initialize(comicMeta.getCharacters());
+                Hibernate.initialize(comicMeta.getTeams());
+                Hibernate.initialize(comicMeta.getLocations());
+                Hibernate.initialize(comicMeta.getCreatorMappings());
+            }
+        }
+        return books;
     }
 
     public List<Book> mapEntitiesToDto(List<BookEntity> entities, boolean includeDescription, Long userId) {

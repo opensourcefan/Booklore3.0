@@ -235,7 +235,7 @@ public class BookMetadataService {
     @BroadcastBookUpdate
     @Transactional
     public Book updateMetadata(long bookId, MetadataUpdateWrapper metadataUpdateWrapper, boolean mergeCategories, org.fable.model.enums.MetadataReplaceMode replaceMode) {
-        BookEntity bookEntity = bookRepository.findAllWithMetadataByIds(Collections.singleton(bookId)).stream()
+        BookEntity bookEntity = bookQueryService.findAllWithMetadataByIds(Collections.singleton(bookId)).stream()
                 .findFirst()
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
 
