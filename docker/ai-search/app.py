@@ -434,6 +434,8 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
                 "options": {
                     "num_predict": max_tokens,
                     "temperature": temperature,
+                    "repeat_penalty": 1.15,
+                    "repeat_last_n": 128,
                 },
             },
             timeout=300,
@@ -836,7 +838,9 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         "perhaps", "basically", "literally", "essentially", "generally", "usually", "often",
         "sometimes", "always", "never", "every", "many", "much", "lot", "lots", "plenty", "several",
         "various", "different", "same", "similar", "opposite", "various", "including", "include",
-        "included", "contains", "containing", "contain", "having", "make", "made", "made", "made"
+        "included", "contains", "containing", "contain", "having", "make", "made", "made", "made",
+        "summary", "summarize", "summarise", "brief", "overview", "synopsis", "recap",
+        "outline", "highlight", "highlights", "tl;dr", "tldr",
     }
     query_words = [w.lower() for w in re.findall(r'\w+', embedding_query) if len(w) > 1]
     core_keywords = [w for w in query_words if w not in stopwords]

@@ -77,7 +77,7 @@ public enum TaskType {
     ),
     AI_SEARCH_EMBED_MARKED(
         false,
-        false,
+        true,
         true,
         false,
         "Scan Marked AI Search Embeddings",

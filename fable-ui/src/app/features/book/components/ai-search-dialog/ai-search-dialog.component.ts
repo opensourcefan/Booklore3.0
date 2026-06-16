@@ -50,6 +50,7 @@ export class AiSearchDialogService {
   cachedAnswer: string | null = null;
   cachedChatHistory: ChatMessage[] = [];
   cachedSingleBookId: number | null = null;
+  cachedScopeBookTitle: string | null = null;
   cachedVisible = false;
 
   constructor() {
@@ -65,6 +66,7 @@ export class AiSearchDialogService {
         a: this.cachedAnswer,
         ch: this.cachedChatHistory,
         bId: this.cachedSingleBookId,
+        bt: this.cachedScopeBookTitle,
         v: this.cachedVisible
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
@@ -84,6 +86,7 @@ export class AiSearchDialogService {
         this.cachedAnswer = data.a || null;
         this.cachedChatHistory = data.ch || [];
         this.cachedSingleBookId = data.bId || null;
+        this.cachedScopeBookTitle = data.bt || null;
         this.cachedVisible = !!data.v;
       }
     } catch (e) {
@@ -155,6 +158,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.answer = this.aiSearchDialogService.cachedAnswer;
     this.chatHistory = this.aiSearchDialogService.cachedChatHistory || [];
     this.singleBookId = this.aiSearchDialogService.cachedSingleBookId;
+    this.scopeBookTitle = this.aiSearchDialogService.cachedScopeBookTitle;
     this.visible = this.aiSearchDialogService.cachedVisible;
 
     this.openSub = this.aiSearchDialogService.openCommand$.subscribe(bookId => {
@@ -212,6 +216,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   }
 
   private singleBookId: number | null = null;
+  scopeBookTitle: string | null = null;
 
   clearResults(): void {
     this.searchQuery = '';
@@ -233,12 +238,14 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.aiSearchDialogService.cachedAnswer = this.answer;
     this.aiSearchDialogService.cachedChatHistory = this.chatHistory;
     this.aiSearchDialogService.cachedSingleBookId = this.singleBookId;
+    this.aiSearchDialogService.cachedScopeBookTitle = this.scopeBookTitle;
     this.aiSearchDialogService.cachedVisible = this.visible;
     this.aiSearchDialogService.saveToStorage();
   }
 
   open(bookId: number | null = null): void {
     this.singleBookId = bookId;
+    this.scopeBookTitle = bookId ? this.bookService.getBookByIdFromState(bookId)?.metadata?.title ?? null : null;
     this.visible = true;
     this.aiSearchDialogService.dialogVisible$.next(true);
     this.checkLlmWarmedStatus();
@@ -251,6 +258,11 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.saveStateToCache();
   }
 
+  clearScope(): void {
+    this.singleBookId = null;
+    this.scopeBookTitle = null;
+    this.saveStateToCache();
+  }
 
 
   saveToNotepad(result: AiSearchChunkResult): void {

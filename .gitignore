@@ -73,3 +73,6 @@ __pycache__/
 ### Release Scripts ###
 push-and-tag.sh
 release-stable.sh
+.roo/commands/push.md
+.gitignore
+.roo/rules/no-mode-switch.md
