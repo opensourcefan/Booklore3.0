@@ -3,8 +3,7 @@ package org.fable.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -78,7 +77,7 @@ public class ComicMetadataEntity {
             name = "comic_metadata_character_mapping",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "character_id"))
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 20)
     @Builder.Default
     private Set<ComicCharacterEntity> characters = new HashSet<>();
 
@@ -87,7 +86,7 @@ public class ComicMetadataEntity {
             name = "comic_metadata_team_mapping",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "team_id"))
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 20)
     @Builder.Default
     private Set<ComicTeamEntity> teams = new HashSet<>();
 
@@ -96,12 +95,12 @@ public class ComicMetadataEntity {
             name = "comic_metadata_location_mapping",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "location_id"))
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 20)
     @Builder.Default
     private Set<ComicLocationEntity> locations = new HashSet<>();
 
     @OneToMany(mappedBy = "comicMetadata", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 20)
     @Builder.Default
     private Set<ComicCreatorMappingEntity> creatorMappings = new HashSet<>();
 
