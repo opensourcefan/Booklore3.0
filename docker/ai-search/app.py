@@ -375,15 +375,16 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
 
 
 def _ensure_list_citations(answer: str, results: list[dict]) -> str:
-    """Post-process an LLM answer so every list item ends with a source citation.
+    """Post-process an LLM answer so every list item ends with a correct source citation.
 
     The system prompt asks the model to append `[Source: Book Title, Page N]` to each
-    fact or list item. Small local models often omit these markers. This function:
+    fact or list item. Small local models often omit these markers or hallucinate the
+    same page for every item. This function:
 
     1. Splits the answer into lines.
     2. For any line that looks like a list item (starts with `-`, `*`, or a number like
-       `1.`) and does not already contain a `[Source: ...]` marker, appends the most
-       relevant source from the provided results.
+       `1.`) and does not already contain a correct `[Source: ...]` marker, appends the
+       most relevant source from the provided results.
     3. Cycles through results in order so each missing citation gets the next best source.
     """
     if not results:
@@ -401,8 +402,10 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
 
     for line in answer.split("\n"):
         stripped = line.strip()
-        if list_item_pattern.match(stripped) and "[Source:" not in stripped:
-            # Avoid double punctuation before the citation.
+        if list_item_pattern.match(stripped):
+            # Strip any existing (possibly wrong) citation so we can replace it with the
+            # source that actually matches this result slot.
+            stripped = re.sub(r"\s*\[Source:[^\]]*\]", "", stripped).strip()
             if stripped.endswith((".", "!", "?")):
                 line = f"{stripped} {_source_marker(current_source)}"
             else:
@@ -1232,6 +1235,14 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
         if disclaimer_parts and display_results:
             disclaimer = "⚠️ *Note: I " + " and I ".join(disclaimer_parts) + ":*\n\n"
+            # If the LLM hallucinated extra items beyond what we actually have, truncate the
+            # answer to the number of real results so the disclaimer matches the list.
+            if requested_count and answer:
+                list_lines = [ln for ln in answer.split("\n") if re.match(r"^\s*(?:[-*]|\d+\.)\s+", ln.strip())]
+                if len(list_lines) > len(display_results):
+                    answer = "\n".join(list_lines[:len(display_results)])
+                    # Re-run citation safety net so the truncated list still has correct sources.
+                    answer = _ensure_list_citations(answer, display_results)
             if answer:
                 # Strip duplicate warnings or statements from the beginning of the LLM's response
                 answer_clean = answer.strip()
