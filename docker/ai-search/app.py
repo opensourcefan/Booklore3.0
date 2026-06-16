@@ -383,9 +383,9 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
 
     1. Splits the answer into lines.
     2. For any line that looks like a list item (starts with `-`, `*`, or a number like
-       `1.`) and does not already contain a correct `[Source: ...]` marker, appends the
-       most relevant source from the provided results.
-    3. Cycles through results in order so each missing citation gets the next best source.
+       `1.`) appends or replaces the citation with the source that actually matches the
+       result slot.
+    3. Cycles through results in order so each list item gets the next best source.
     """
     if not results:
         return answer
@@ -440,6 +440,11 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         "- If the user asks for a list, use structured bullet points.\n"
         "- If the user asks for details or explanation, provide a thorough answer.\n"
         "- Otherwise, provide a balanced, moderate-length answer.\n"
+        "\n"
+        "CITATION RULES:\n"
+        "- Each bullet point or fact MUST end with its own citation.\n"
+        "- Use the page number from the Context block that the information came from.\n"
+        "- Do NOT reuse the same page number for every item unless every item really came from that page.\n"
         "\n"
         "CITATION EXAMPLE:\n"
         "- \"Galactic Warriors\" by Joe Orlando [Source: 100 All-Time Greatest Comics, Page 98]\n"
@@ -1180,9 +1185,11 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     # citations, and source cards are always consistent.
     answer = None
     if display_results and not local_only:
+        # Build a context where each chunk is tagged with its real source. Include the
+        # chunk index so the LLM can distinguish multiple results from the same book.
         context = "\n\n".join([
-            f"[Source: {r['bookTitle']}, Page {r.get('pageNumber') or 'N/A'}]\n{r['chunkText']}"
-            for r in display_results
+            f"[Source {i+1}: {r['bookTitle']}, Page {r.get('pageNumber') or 'N/A'}, ChunkIndex {r['chunkIndex']}]\n{r['chunkText']}"
+            for i, r in enumerate(display_results)
         ])
 
         try:
@@ -1235,14 +1242,6 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
         if disclaimer_parts and display_results:
             disclaimer = "⚠️ *Note: I " + " and I ".join(disclaimer_parts) + ":*\n\n"
-            # If the LLM hallucinated extra items beyond what we actually have, truncate the
-            # answer to the number of real results so the disclaimer matches the list.
-            if requested_count and answer:
-                list_lines = [ln for ln in answer.split("\n") if re.match(r"^\s*(?:[-*]|\d+\.)\s+", ln.strip())]
-                if len(list_lines) > len(display_results):
-                    answer = "\n".join(list_lines[:len(display_results)])
-                    # Re-run citation safety net so the truncated list still has correct sources.
-                    answer = _ensure_list_citations(answer, display_results)
             if answer:
                 # Strip duplicate warnings or statements from the beginning of the LLM's response
                 answer_clean = answer.strip()
