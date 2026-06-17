@@ -20,21 +20,20 @@ logger = logging.getLogger("fable-ai-search")
 _SYSTEM_PROMPT_TEMPLATE = """You are an AI search assistant. Answer ONLY from the provided Context.
 Do not use external knowledge. Do not invent facts.
 
-For every fact or item in your answer, cite the ChunkID(s) from the Context that support it using the exact format [ChunkID: N] inline at the end of the item.
+Return your answer as markdown bullet points. For each item, cite the ChunkID from the Context that supports it using the exact format [ChunkID: N] at the end of the line.
 
-Return your answer as markdown bullet points. Use this format:
-- Concise fact or item text. [ChunkID: 42]
-- Another item text. [ChunkID: 43]
+Example:
+- Batman: The Return Of Bruce Wayne. [ChunkID: 142]
+- Doom Patrol Issue 36. [ChunkID: 142]
 
 Rules:
-- If the Context contains chunks, you MUST return at least one item citing a ChunkID. Do not say you could not find information just because the answer is partial or the query asks for a list.
+- If the Context contains chunks, you MUST return at least one item citing a ChunkID.
 - Only say "I could not find any relevant information for this search." if the Context is literally empty or completely unrelated.
 - Each item must have at least one [ChunkID: N] citation from the Context.
 - Do not include information that is not supported by the Context.
-- Keep item text concise and grounded in the Context.
+- Do not add years, authors, or other details that are not in the Context.
 - The user asked for up to {requested_count} items, but you must NOT invent items to reach that number. Only return items that are directly supported by the Context. If the Context supports fewer items, return fewer.
 - Do NOT split a single chunk into multiple numbered items. If one chunk contains several related facts, return them as ONE item or pick the single most relevant fact.
-- Each item should ideally cite a different chunk. Multiple items citing the same single chunk are a sign you are inventing a list.
 """
 
 
@@ -89,14 +88,16 @@ def synthesize(
         return SynthesisResult(no_relevant_info=True)
 
     logger.debug("Raw LLM synthesis response: %s", raw[:2000])
-    return parse_synthesis_response(raw)
+    return parse_synthesis_response(raw, chunks)
 
 
-def parse_synthesis_response(raw: str) -> SynthesisResult:
+def parse_synthesis_response(raw: str, chunks: list[RetrievedChunk] | None = None) -> SynthesisResult:
     """Parse and sanitize the LLM's response.
 
     First tries markdown bullet parsing with [ChunkID: N] citations.
-    Falls back to JSON parsing if the response looks like JSON.
+    If citations are missing, attempts to recover them by matching item text
+    against the provided chunks. Falls back to JSON parsing if the response
+    looks like JSON.
     """
     if not raw or not raw.strip():
         return SynthesisResult(no_relevant_info=True)
@@ -108,7 +109,7 @@ def parse_synthesis_response(raw: str) -> SynthesisResult:
         return SynthesisResult(no_relevant_info=True)
 
     # Try markdown bullet parsing first.
-    items = _parse_markdown_items(stripped)
+    items = _parse_markdown_items(stripped, chunks)
     if items:
         items = _deduplicate_same_chunk_items(items)
         return SynthesisResult(items=items)
@@ -122,8 +123,12 @@ def parse_synthesis_response(raw: str) -> SynthesisResult:
     return SynthesisResult(no_relevant_info=True)
 
 
-def _parse_markdown_items(raw: str) -> list[AnswerItem]:
-    """Parse markdown bullet points with [ChunkID: N] citations."""
+def _parse_markdown_items(raw: str, chunks: list[RetrievedChunk] | None = None) -> list[AnswerItem]:
+    """Parse markdown bullet points with [ChunkID: N] citations.
+
+    If an item has no citation, attempts to recover the best-matching chunk
+    from the provided context. Items that cannot be matched are dropped.
+    """
     items: list[AnswerItem] = []
     # Match lines starting with - or * or numbered like 1.
     for line in raw.splitlines():
@@ -156,10 +161,46 @@ def _parse_markdown_items(raw: str) -> list[AnswerItem]:
         # Collapse multiple spaces left by removed citations.
         clean_text = re.sub(r"\s{2,}", " ", clean_text).strip()
 
-        if clean_text and chunk_ids:
+        if not clean_text:
+            continue
+
+        # If the LLM omitted citations, try to recover from chunk text overlap.
+        if not chunk_ids and chunks:
+            recovered_id = _best_matching_chunk_id(clean_text, chunks)
+            if recovered_id is not None:
+                chunk_ids = [recovered_id]
+
+        if chunk_ids:
             items.append(AnswerItem(text=clean_text, chunk_ids=chunk_ids, confidence="medium"))
 
     return items
+
+
+def _best_matching_chunk_id(text: str, chunks: list[RetrievedChunk]) -> int | None:
+    """Return the chunk ID whose text has the highest word overlap with the item."""
+    text_words = set(re.findall(r"\b\w+\b", text.lower()))
+    if not text_words:
+        return None
+
+    best_id: int | None = None
+    best_score = 0
+    for chunk in chunks:
+        chunk_words = set(re.findall(r"\b\w+\b", chunk.text.lower()))
+        if not chunk_words:
+            continue
+        overlap = len(text_words & chunk_words)
+        # Normalize by the smaller of the two word sets to favor chunks that
+        # are tightly related to the item rather than large generic chunks.
+        denom = min(len(text_words), len(chunk_words))
+        score = overlap / denom if denom else 0
+        if score > best_score:
+            best_score = score
+            best_id = chunk.chunk_id
+
+    # Require a minimum overlap to avoid assigning invented text to a random chunk.
+    if best_score >= 0.3:
+        return best_id
+    return None
 
 
 def _deduplicate_same_chunk_items(items: list[AnswerItem]) -> list[AnswerItem]:

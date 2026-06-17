@@ -1,7 +1,7 @@
 """Unit tests for synthesis.py."""
 
 from models import ParsedQuery, RetrievedChunk
-from synthesis import parse_synthesis_response, build_context
+from synthesis import parse_synthesis_response, build_context, _best_matching_chunk_id
 
 
 def _chunk(chunk_id: int, text: str, page: int = 1) -> RetrievedChunk:
@@ -63,6 +63,26 @@ def test_parse_numbered_markdown_items():
     assert result.items[1].chunk_ids == [2, 3]
 
 
+def test_recover_missing_citations_by_text_overlap():
+    chunks = [
+        _chunk(42, "Galactic Warriors by Joe Orlando is a classic space opera comic."),
+        _chunk(43, "The Starblade covers trade routes across the galaxy."),
+    ]
+    raw = """- Galactic Warriors by Joe Orlando.
+- The Starblade covers trade routes."""
+    result = parse_synthesis_response(raw, chunks)
+    assert len(result.items) == 2
+    assert result.items[0].chunk_ids == [42]
+    assert result.items[1].chunk_ids == [43]
+
+
+def test_drop_items_with_no_citation_and_no_overlap():
+    chunks = [_chunk(42, "Galactic Warriors by Joe Orlando.")]
+    raw = "- Totally unrelated invented fact."
+    result = parse_synthesis_response(raw, chunks)
+    assert result.items == []
+
+
 def test_parse_no_relevant_info_text():
     raw = "I could not find any relevant information for this search."
     result = parse_synthesis_response(raw)
@@ -71,12 +91,13 @@ def test_parse_no_relevant_info_text():
 
 
 def test_merge_consecutive_same_chunk_items():
+    chunks = [_chunk(142, "Batman time travel. Doom Patrol street. Animal Man cartoon. Zatanna magic. Batman RIP.")]
     raw = """1. Batman time travel. [ChunkID: 142]
 2. Doom Patrol street. [ChunkID: 142]
 3. Animal Man cartoon. [ChunkID: 142]
 4. Zatanna magic. [ChunkID: 142]
 5. Batman RIP. [ChunkID: 142]"""
-    result = parse_synthesis_response(raw)
+    result = parse_synthesis_response(raw, chunks)
     assert len(result.items) == 1
     assert result.items[0].chunk_ids == [142]
     assert "Batman time travel" in result.items[0].text
@@ -84,14 +105,25 @@ def test_merge_consecutive_same_chunk_items():
 
 
 def test_do_not_merge_items_with_different_chunks():
+    chunks = [_chunk(1, "First fact. Third fact."), _chunk(2, "Second fact.")]
     raw = """1. First fact. [ChunkID: 1]
 2. Second fact. [ChunkID: 2]
 3. Third fact. [ChunkID: 1]"""
-    result = parse_synthesis_response(raw)
+    result = parse_synthesis_response(raw, chunks)
     assert len(result.items) == 3
     assert result.items[0].chunk_ids == [1]
     assert result.items[1].chunk_ids == [2]
     assert result.items[2].chunk_ids == [1]
+
+
+def test_best_matching_chunk_id_finds_overlap():
+    chunks = [
+        _chunk(1, "Batman: The Return Of Bruce Wayne features time travel."),
+        _chunk(2, "Doom Patrol Issue 36 introduces Danny the sentient street."),
+    ]
+    assert _best_matching_chunk_id("Batman: The Return Of Bruce Wayne", chunks) == 1
+    assert _best_matching_chunk_id("Doom Patrol Issue 36", chunks) == 2
+    assert _best_matching_chunk_id("completely unrelated phrase", chunks) is None
 
 
 def test_build_context_includes_chunk_ids():
