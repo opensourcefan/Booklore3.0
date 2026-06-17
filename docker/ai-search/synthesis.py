@@ -16,25 +16,26 @@ from models import ParsedQuery, RetrievedChunk, SynthesisResult, AnswerItem
 logger = logging.getLogger("fable-ai-search")
 
 
-_SYSTEM_PROMPT = """You are an AI search assistant. Answer ONLY from the provided Context.
+_SYSTEM_PROMPT_TEMPLATE = """You are an AI search assistant. Answer ONLY from the provided Context.
 Do not use external knowledge. Do not invent facts.
 
 For every fact or item in your answer, cite the ChunkID(s) from the Context that support it.
 Return your answer as JSON with exactly this shape:
-{
+{{
   "items": [
-    {"text": "Concise fact or item text.", "chunk_ids": [42], "confidence": "high"}
+    {{"text": "Concise fact or item text.", "chunk_ids": [42], "confidence": "high"}}
   ],
   "summary": "Optional one-sentence overall summary.",
   "no_relevant_info": false
-}
+}}
 
 Rules:
 - If the Context contains chunks, you MUST return at least one item citing a ChunkID. Do not return no_relevant_info=true just because the answer is partial or the query asks for a list.
-- Only return {"items": [], "no_relevant_info": true} if the Context is literally empty or completely unrelated.
+- Only return {{"items": [], "no_relevant_info": true}} if the Context is literally empty or completely unrelated.
 - Each item must have at least one chunk_id from the Context.
 - Do not include information that is not supported by the Context.
 - Keep item text concise and grounded in the Context.
+- The user asked for up to {requested_count} items, but you must NOT invent items to reach that number. Only return items that are directly supported by the Context. If the Context supports fewer items, return fewer.
 """
 
 
@@ -56,6 +57,7 @@ def synthesize(
     max_tokens: int,
     temperature: float,
     chat_history: list[dict] | None = None,
+    requested_count: int | None = None,
 ) -> SynthesisResult:
     """Call the LLM and parse the structured JSON response.
 
@@ -75,6 +77,11 @@ def synthesize(
         return SynthesisResult(no_relevant_info=True)
 
     context = build_context(query, chunks)
+    system_prompt = _SYSTEM_PROMPT_TEMPLATE.format(
+        requested_count=requested_count if requested_count is not None else "the requested number of"
+    )
+    # Prepend the system prompt to the context so the LLM sees the rules.
+    context = system_prompt + "\n\n" + context
 
     try:
         raw = generate_fn(query.raw, context, max_tokens, temperature, chat_history)

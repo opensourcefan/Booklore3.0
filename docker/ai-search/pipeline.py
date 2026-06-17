@@ -102,6 +102,7 @@ def run_search_pipeline(
             max_tokens=max_tokens,
             temperature=temperature,
             chat_history=chat_history,
+            requested_count=parsed.requested_count,
         )
         validated_items = validate_answer_items(synthesis_result.items, filtered_chunks)
         logger.info(

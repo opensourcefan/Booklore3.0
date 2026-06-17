@@ -431,7 +431,7 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
     return "\n".join(processed_lines)
 
 
-def _generate_answer(query: str, context: str, max_tokens: int, temperature: float, chat_history: list[dict] = None) -> str:
+def _generate_answer(query: str, context: str, max_tokens: int, temperature: float, chat_history: list[dict] = None, system_prompt: str | None = None) -> str:
     """Generate an answer using the LLM (local Ollama or external)."""
     if not LLM_MODEL_NAME and LLM_PROVIDER == "local":
         raise RuntimeError("No LLM model configured.")
@@ -440,27 +440,28 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
     if LLM_API_KEY:
         headers["Authorization"] = f"Bearer {LLM_API_KEY}"
 
-    system_prompt = (
-        "You are an AI search assistant. Read the provided Context carefully.\n"
-        "Your task is to respond to the user's Query based ONLY on the Context. Do not use external knowledge.\n"
-        "If the Context contains any information relevant to the Query, you MUST use it to answer the Query. Do NOT refuse to answer or state that the context lacks information if the query terms are present in the Context.\n"
-        "You MUST cite your sources for every fact or item using the exact format [Source: Book Title, Page N] inline at the end of the item.\n"
-        "If the context contains absolutely no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else.\n"
-        "\n"
-        "RESPONSE FORMAT:\n"
-        "- If the user asks for a list, use structured bullet points.\n"
-        "- If the user asks for details or explanation, provide a thorough answer.\n"
-        "- Otherwise, provide a balanced, moderate-length answer.\n"
-        "\n"
-        "CITATION RULES:\n"
-        "- Each bullet point or fact MUST end with its own citation.\n"
-        "- Use the page number from the Context block that the information came from.\n"
-        "- Do NOT reuse the same page number for every item unless every item really came from that page.\n"
-        "\n"
-        "CITATION EXAMPLE:\n"
-        "- \"Galactic Warriors\" by Joe Orlando [Source: 100 All-Time Greatest Comics, Page 98]\n"
-        "- The Starblade chronicles the conflict over interstellar trade routes [Source: 100 All-Time Greatest Comics, Page 102]"
-    )
+    if system_prompt is None:
+        system_prompt = (
+            "You are an AI search assistant. Read the provided Context carefully.\n"
+            "Your task is to respond to the user's Query based ONLY on the Context. Do not use external knowledge.\n"
+            "If the Context contains any information relevant to the Query, you MUST use it to answer the Query. Do NOT refuse to answer or state that the context lacks information if the query terms are present in the Context.\n"
+            "You MUST cite your sources for every fact or item using the exact format [Source: Book Title, Page N] inline at the end of the item.\n"
+            "If the context contains absolutely no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else.\n"
+            "\n"
+            "RESPONSE FORMAT:\n"
+            "- If the user asks for a list, use structured bullet points.\n"
+            "- If the user asks for details or explanation, provide a thorough answer.\n"
+            "- Otherwise, provide a balanced, moderate-length answer.\n"
+            "\n"
+            "CITATION RULES:\n"
+            "- Each bullet point or fact MUST end with its own citation.\n"
+            "- Use the page number from the Context block that the information came from.\n"
+            "- Do NOT reuse the same page number for every item unless every item really came from that page.\n"
+            "\n"
+            "CITATION EXAMPLE:\n"
+            "- \"Galactic Warriors\" by Joe Orlando [Source: 100 All-Time Greatest Comics, Page 98]\n"
+            "- The Starblade chronicles the conflict over interstellar trade routes [Source: 100 All-Time Greatest Comics, Page 102]"
+        )
 
     user_prompt = f"Context:\n{context}\n\nQuery: {query}"
 
@@ -871,6 +872,10 @@ def _search_with_new_pipeline(payload: dict[str, Any]) -> dict[str, Any]:
     top_k = int(payload.get("topK") or SEARCH_TOP_K)
     display_top_k = int(payload.get("displayTopK") or top_k)
     similarity_threshold = float(payload.get("similarityThreshold") or SEARCH_SIMILARITY_THRESHOLD)
+    # The new pipeline relies on keyword boosting and chunk filtering for quality;
+    # a threshold above 0.5 is too strict for the current embedding model and
+    # causes near-empty retrieval on real queries. Cap it for the new path only.
+    similarity_threshold = min(similarity_threshold, 0.5)
     max_tokens = int(payload.get("maxTokens") or LLM_MAX_TOKENS)
     temperature = float(payload.get("temperature") or LLM_TEMPERATURE)
     chat_history = payload.get("chatHistory", [])
