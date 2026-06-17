@@ -30,7 +30,8 @@ Return your answer as JSON with exactly this shape:
 }
 
 Rules:
-- If the Context contains no relevant information, return {"items": [], "no_relevant_info": true}.
+- If the Context contains chunks, you MUST return at least one item citing a ChunkID. Do not return no_relevant_info=true just because the answer is partial or the query asks for a list.
+- Only return {"items": [], "no_relevant_info": true} if the Context is literally empty or completely unrelated.
 - Each item must have at least one chunk_id from the Context.
 - Do not include information that is not supported by the Context.
 - Keep item text concise and grounded in the Context.
@@ -81,6 +82,7 @@ def synthesize(
         logger.error("LLM generation failed: %s", e)
         return SynthesisResult(no_relevant_info=True)
 
+    logger.debug("Raw LLM synthesis response: %s", raw[:2000])
     return parse_synthesis_response(raw)
 
 

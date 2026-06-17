@@ -75,8 +75,13 @@ def test_pipeline_falls_back_to_raw_when_llm_returns_no_info():
         display_top_k=5,
     )
 
-    assert response.answer == "I could not find any relevant information for this search."
-    assert response.results == []
+    # When the LLM claims no relevant info but chunks were retrieved, we still
+    # return the chunks as a fallback with an honest disclaimer.
+    assert response.answer is not None
+    assert "Some unrelated text." in response.answer
+    assert len(response.results) == 1
+    assert response.results[0]["chunkId"] == 42
+    assert "could not find the term(s)" in response.answer
 
 
 def test_pipeline_local_only_returns_raw():

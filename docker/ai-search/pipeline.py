@@ -71,6 +71,10 @@ def run_search_pipeline(
         user_id=user_id,
         top_k=top_k,
     )
+    logger.info(
+        "Retrieved %d chunks (searched %d) for query: %s",
+        len(retrieved), total_chunks_searched, query,
+    )
 
     # Chunk quality filter
     filter_result = apply_chunk_filter(retrieved, strict=strict_chunk_filter)
@@ -94,29 +98,33 @@ def run_search_pipeline(
             chat_history=chat_history,
         )
         validated_items = validate_answer_items(synthesis_result.items, filtered_chunks)
+        logger.info(
+            "Synthesis produced %d validated items (no_relevant_info=%s) for query: %s",
+            len(validated_items), synthesis_result.no_relevant_info, query,
+        )
 
     # Determine final answer and results.
-    if local_only or not validated_items:
-        # RAW mode or synthesis failed: return top chunks directly.
-        final_results = [chunk_to_dict(c) for c in display_chunks]
-        answer = None
-        if local_only and display_chunks:
+    final_results = [chunk_to_dict(c) for c in display_chunks]
+    answer: str | None = None
+    if local_only:
+        if display_chunks:
             answer = "\n\n".join(
                 f"{c.text}\n{source_marker(c)}" for c in display_chunks
             )
-    else:
-        # AI answer mode: return display chunks as sources and the synthesized answer.
-        final_results = [chunk_to_dict(c) for c in display_chunks]
+    elif validated_items:
         answer = render_answer_markdown(validated_items)
+    elif display_chunks:
+        # Synthesis failed or LLM claimed no relevant info, but we still have
+        # retrieved chunks. Show them as a fallback with a disclaimer rather than
+        # wiping the results.
+        answer = "\n\n".join(
+            f"{c.text}\n{source_marker(c)}" for c in display_chunks
+        )
 
     # Disclaimer
     disclaimer = build_disclaimer(parsed, validated_items, display_chunks)
 
-    # Handle explicit "no relevant info" sentinel.
-    if synthesis_result.no_relevant_info and not local_only:
-        final_results = []
-        answer = "I could not find any relevant information for this search."
-    elif disclaimer and answer:
+    if disclaimer and answer:
         answer = disclaimer + "\n\n" + answer
     elif disclaimer and local_only:
         answer = disclaimer + (f"\n\n{answer}" if answer else "")
