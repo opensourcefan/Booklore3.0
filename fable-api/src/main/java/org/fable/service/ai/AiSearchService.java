@@ -813,12 +813,6 @@ public class AiSearchService {
                 assignedHeading = tocTitle;
             }
 
-            // Skip heading-only or very short chunks so they are never embedded.
-            // These fragments pollute semantic search and RAW results.
-            if (!isSubstantiveChunk(chunk, assignedHeading)) {
-                continue;
-            }
-
             Map<String, Object> chunkMap = new LinkedHashMap<>();
             chunkMap.put("text", chunk);
             chunkMap.put("pageNumber", pageNumber);
@@ -826,39 +820,6 @@ public class AiSearchService {
             result.add(chunkMap);
         }
         return result;
-    }
-
-    /**
-     * Returns true if a chunk contains enough substantive text to be useful as a
-     * search result. Heading-only fragments and very short chunks are discarded.
-     *
-     * The thresholds are intentionally conservative: the goal is to drop fragments that
-     * are literally just a heading or a handful of words, not to exclude normal short
-     * paragraphs (e.g. comic captions, manga dialogue, or brief prose) which would
-     * otherwise leave the search with zero results.
-     */
-    private boolean isSubstantiveChunk(String chunkText, String chapterTitle) {
-        if (chunkText == null) {
-            return false;
-        }
-        String text = chunkText.trim();
-        if (text.isEmpty()) {
-            return false;
-        }
-        // Drop very short fragments that cannot carry meaningful semantic content.
-        if (text.length() < 20) {
-            return false;
-        }
-        String[] words = text.split("\\s+");
-        if (words.length < 4) {
-            return false;
-        }
-        // Discard chunks that are identical to their heading (heading-only fragments).
-        if (chapterTitle != null && !chapterTitle.isBlank()
-                && text.equalsIgnoreCase(chapterTitle.trim())) {
-            return false;
-        }
-        return true;
     }
 
     /**

@@ -374,140 +374,50 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     return float(np.dot(a, b))
 
 
-def _source_marker(result: dict) -> str:
-    """Build a citation marker for a result."""
-    page = result.get("pageNumber") or "N/A"
-    return f"[Source: {result['bookTitle']}, Page {page}]"
-
-
-def _is_substantive_chunk(chunk_text: str, chapter_title: str | None = None) -> bool:
-    """Return True if a chunk contains enough substantive text to be a useful search result.
-
-    Heading-only fragments and very short chunks are not useful as answers. This filter
-    is applied at retrieval time so existing embeddings that contain low-quality chunks
-    do not pollute results until books are re-embedded.
-
-    The thresholds are intentionally conservative: the goal is to drop fragments that are
-    literally just a heading or a handful of words, not to exclude normal short paragraphs
-    (e.g. comic captions, manga dialogue, or brief prose) which would otherwise leave the
-    search with zero results.
-    """
-    text = (chunk_text or "").strip()
-    if not text:
-        return False
-    # Drop very short fragments that cannot carry meaningful semantic content.
-    if len(text) < 20:
-        return False
-    words = re.findall(r"\w+", text)
-    if len(words) < 4:
-        return False
-    # Discard chunks that are identical to their heading (heading-only fragments).
-    if chapter_title:
-        title = chapter_title.strip()
-        if title and text.lower() == title.lower():
-            return False
-    return True
-
-
-def _compute_support_score(item_text: str, result: dict) -> float:
-    """Compute how strongly a source chunk supports a list item.
-
-    Returns a score between 0.0 and 1.0. A high score means the chunk text contains
-    words or entities that appear in the list item.
-    """
-    item_lower = item_text.lower()
-    chunk_lower = result.get("chunkText", "").lower()
-    if not chunk_lower:
-        return 0.0
-
-    item_tokens = set(re.findall(r"\w+", item_lower))
-    chunk_tokens = set(re.findall(r"\w+", chunk_lower))
-    if not item_tokens:
-        return 0.0
-
-    overlap = len(item_tokens & chunk_tokens)
-    token_score = overlap / len(item_tokens)
-
-    # Bonus if the chunk's heading or book title appears in the item.
-    title_bonus = 0.0
-    chapter_title = (result.get("chapterTitle") or "").lower()
-    book_title = (result.get("bookTitle") or "").lower()
-    if chapter_title and chapter_title in item_lower:
-        title_bonus += 0.2
-    if book_title and book_title in item_lower:
-        title_bonus += 0.1
-
-    return min(1.0, token_score + title_bonus)
-
-
 def _ensure_list_citations(answer: str, results: list[dict]) -> str:
-    """Post-process an LLM answer so every list item ends with a source citation.
+    """Post-process an LLM answer so every list item ends with a correct source citation.
 
-    Each list item is matched against the retrieved source chunks and the best supporting
-    source is appended. Items with strong support get a validated citation; items with
-    weaker support still get the best available source rather than being dropped, because
-    a small local LLM may paraphrase facts in ways that fail strict token overlap. This
-    prevents the answer from collapsing to an empty intro line when the retrieval pool
-    is small or the chunks are short.
+    The system prompt asks the model to append `[Source: Book Title, Page N]` to each
+    fact or list item. Small local models often omit these markers or hallucinate the
+    same page for every item. This function:
+
+    1. Splits the answer into lines.
+    2. For any line that looks like a list item (starts with `-`, `*`, or a number like
+       `1.`) appends or replaces the citation with the source that actually matches the
+       result slot.
+    3. Cycles through results in order so each list item gets the next best source.
     """
     if not results:
         return answer
 
-    list_item_pattern = re.compile(r"^(\s*(?:[-*]|\d+\.)\s+)(.*)$")
-    citation_pattern = re.compile(r"\s*\[Source:[^\]]*\]")
+    source_iter = iter(results)
+    current_source = next(source_iter)
+
+    def _source_marker(result: dict) -> str:
+        page = result.get("pageNumber") or "N/A"
+        return f"[Source: {result['bookTitle']}, Page {page}]"
 
     processed_lines = []
+    list_item_pattern = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
+
     for line in answer.split("\n"):
-        match = list_item_pattern.match(line)
-        if not match:
-            processed_lines.append(line)
-            continue
-
-        prefix = match.group(1)
-        item_text = citation_pattern.sub("", match.group(2)).strip()
-        if not item_text:
-            continue
-
-        best_source = None
-        best_score = 0.0
-        for result in results:
-            score = _compute_support_score(item_text, result)
-            if score > best_score:
-                best_score = score
-                best_source = result
-
-        # Strongly supported items get a validated citation. Weakly supported items still
-        # receive the best available source so the answer does not disappear entirely.
-        if best_source and best_score >= 0.25:
-            processed_lines.append(f"{prefix}{item_text} {_source_marker(best_source)}")
-        elif best_source:
-            processed_lines.append(f"{prefix}{item_text} {_source_marker(best_source)}")
-        else:
-            # No source at all: keep the item but do not invent a citation. The frontend
-            # will still render the answer, and the user can judge its usefulness.
-            processed_lines.append(line)
+        stripped = line.strip()
+        if list_item_pattern.match(stripped):
+            # Strip any existing (possibly wrong) citation so we can replace it with the
+            # source that actually matches this result slot.
+            stripped = re.sub(r"\s*\[Source:[^\]]*\]", "", stripped).strip()
+            if stripped.endswith((".", "!", "?")):
+                line = f"{stripped} {_source_marker(current_source)}"
+            else:
+                line = f"{stripped}. {_source_marker(current_source)}"
+            try:
+                current_source = next(source_iter)
+            except StopIteration:
+                # Reuse the last source if we run out; this keeps all remaining items cited.
+                pass
+        processed_lines.append(line)
 
     return "\n".join(processed_lines)
-
-
-def _count_supported_list_items(answer: str, results: list[dict]) -> int:
-    """Count how many list items in the answer are supported by source chunks."""
-    if not results or not answer:
-        return 0
-
-    list_item_pattern = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
-    citation_pattern = re.compile(r"\s*\[Source:[^\]]*\]")
-    count = 0
-    for line in answer.split("\n"):
-        if list_item_pattern.match(line):
-            item_text = citation_pattern.sub("", line).strip()
-            if not item_text:
-                continue
-            for result in results:
-                if _compute_support_score(item_text, result) >= 0.10:
-                    count += 1
-                    break
-    return count
 
 
 def _generate_answer(query: str, context: str, max_tokens: int, temperature: float, chat_history: list[dict] = None) -> str:
@@ -1130,12 +1040,6 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 "pageNumber": row["page_number"],
                 "chapterTitle": row["chapter_title"],
             }
-            # Drop heading-only or very short chunks at retrieval time. Existing
-            # embeddings may still contain these fragments; filtering here prevents
-            # them from being returned as RAW results or fed to the LLM until the
-            # book is re-embedded with the new chunking filter.
-            if not _is_substantive_chunk(doc["chunkText"], doc.get("chapterTitle")):
-                continue
             documents.append(doc)
             row_map[row["id"]] = row
 
@@ -1277,16 +1181,15 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 pass
 
     # Generate answer using LLM if available and not local-only mode.
-    # Use the full top-k retrieval pool for synthesis and citation validation,
-    # then return only the display slice to the UI. This keeps the answer rich
-    # without overriding the user's displayTopK preference.
+    # Use the same results slice that the UI will display so the answer count,
+    # citations, and source cards are always consistent.
     answer = None
-    if top_results and not local_only:
+    if display_results and not local_only:
         # Build a context where each chunk is tagged with its real source. Include the
         # chunk index so the LLM can distinguish multiple results from the same book.
         context = "\n\n".join([
             f"[Source {i+1}: {r['bookTitle']}, Page {r.get('pageNumber') or 'N/A'}, ChunkIndex {r['chunkIndex']}]\n{r['chunkText']}"
-            for i, r in enumerate(top_results)
+            for i, r in enumerate(display_results)
         ])
 
         try:
@@ -1297,18 +1200,17 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
         # Safety net: ensure every list item has a citation. Small local LLMs sometimes
         # ignore the citation format instruction, so we append the best matching source
-        # for any bullet that is missing one. Validate against the full top-k pool so
-        # we do not force a citation from an unrelated displayed result.
+        # for any bullet that is missing one.
         if answer:
-            answer = _ensure_list_citations(answer, top_results)
+            answer = _ensure_list_citations(answer, display_results)
 
     # Identify missing core keywords (completely absent from all top results)
     missing_keywords = []
-    if top_results and core_keywords:
+    if display_results and core_keywords:
         for kw in core_keywords:
             kw_lower = kw.lower()
             found_any = False
-            for r in top_results:
+            for r in display_results:
                 text_lower = r["chunkText"].lower()
                 title_lower = (r.get("chapterTitle") or "").lower()
                 book_lower = (r.get("bookTitle") or "").lower()
@@ -1332,13 +1234,8 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     else:
         # Construct a consolidated disclaimer note if results count is less than requested or keywords are missing
         disclaimer_parts = []
-        if requested_count:
-            # Count supported list items rather than raw result cards. This prevents a
-            # contradictory "only found 1 match" disclaimer when the LLM synthesised
-            # several supported facts from the same source chunk.
-            supported_count = _count_supported_list_items(answer, top_results) if answer else len(display_results)
-            if supported_count < requested_count:
-                disclaimer_parts.append(f"only found {supported_count} match{'es' if supported_count != 1 else ''} in your library (not the {requested_count} requested)")
+        if requested_count and len(display_results) < requested_count:
+            disclaimer_parts.append(f"only found {len(display_results)} match{'es' if len(display_results) != 1 else ''} in your library (not the {requested_count} requested)")
         if missing_keywords:
             missing_str = ", ".join([f'"{m}"' for m in missing_keywords])
             disclaimer_parts.append(f"could not find the term(s) {missing_str}")
