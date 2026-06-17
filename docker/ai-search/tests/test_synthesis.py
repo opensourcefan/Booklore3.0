@@ -43,6 +43,33 @@ def test_parse_invalid_json_falls_back():
     assert result.no_relevant_info is True
 
 
+def test_parse_markdown_bullets_with_chunk_ids():
+    raw = """- Galactic Warriors by Joe Orlando. [ChunkID: 42]
+- The Starblade covers trade routes. [ChunkID: 43]"""
+    result = parse_synthesis_response(raw)
+    assert len(result.items) == 2
+    assert result.items[0].text == "Galactic Warriors by Joe Orlando."
+    assert result.items[0].chunk_ids == [42]
+    assert result.items[1].text == "The Starblade covers trade routes."
+    assert result.items[1].chunk_ids == [43]
+
+
+def test_parse_numbered_markdown_items():
+    raw = """1. First item. [ChunkID: 1]
+2. Second item. [ChunkID: 2, 3]"""
+    result = parse_synthesis_response(raw)
+    assert len(result.items) == 2
+    assert result.items[0].chunk_ids == [1]
+    assert result.items[1].chunk_ids == [2, 3]
+
+
+def test_parse_no_relevant_info_text():
+    raw = "I could not find any relevant information for this search."
+    result = parse_synthesis_response(raw)
+    assert result.no_relevant_info is True
+    assert result.items == []
+
+
 def test_build_context_includes_chunk_ids():
     parsed = ParsedQuery(raw="list comics")
     chunks = [_chunk(42, "Galactic Warriors...", 168)]

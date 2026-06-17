@@ -1,7 +1,8 @@
 """LLM synthesis stage.
 
 Constructs a context block tagged with stable chunk IDs, asks the LLM for a
-structured JSON response, and parses/validates that response.
+markdown response with inline [ChunkID: N] citations, and parses/validates that
+response. JSON output is still accepted as a fallback.
 """
 
 from __future__ import annotations
@@ -19,20 +20,16 @@ logger = logging.getLogger("fable-ai-search")
 _SYSTEM_PROMPT_TEMPLATE = """You are an AI search assistant. Answer ONLY from the provided Context.
 Do not use external knowledge. Do not invent facts.
 
-For every fact or item in your answer, cite the ChunkID(s) from the Context that support it.
-Return your answer as JSON with exactly this shape:
-{{
-  "items": [
-    {{"text": "Concise fact or item text.", "chunk_ids": [42], "confidence": "high"}}
-  ],
-  "summary": "Optional one-sentence overall summary.",
-  "no_relevant_info": false
-}}
+For every fact or item in your answer, cite the ChunkID(s) from the Context that support it using the exact format [ChunkID: N] inline at the end of the item.
+
+Return your answer as markdown bullet points. Use this format:
+- Concise fact or item text. [ChunkID: 42]
+- Another item text. [ChunkID: 43]
 
 Rules:
-- If the Context contains chunks, you MUST return at least one item citing a ChunkID. Do not return no_relevant_info=true just because the answer is partial or the query asks for a list.
-- Only return {{"items": [], "no_relevant_info": true}} if the Context is literally empty or completely unrelated.
-- Each item must have at least one chunk_id from the Context.
+- If the Context contains chunks, you MUST return at least one item citing a ChunkID. Do not say you could not find information just because the answer is partial or the query asks for a list.
+- Only say "I could not find any relevant information for this search." if the Context is literally empty or completely unrelated.
+- Each item must have at least one [ChunkID: N] citation from the Context.
 - Do not include information that is not supported by the Context.
 - Keep item text concise and grounded in the Context.
 - The user asked for up to {requested_count} items, but you must NOT invent items to reach that number. Only return items that are directly supported by the Context. If the Context supports fewer items, return fewer.
@@ -59,7 +56,7 @@ def synthesize(
     chat_history: list[dict] | None = None,
     requested_count: int | None = None,
 ) -> SynthesisResult:
-    """Call the LLM and parse the structured JSON response.
+    """Call the LLM and parse the structured response.
 
     Args:
         query: Parsed query.
@@ -94,16 +91,81 @@ def synthesize(
 
 
 def parse_synthesis_response(raw: str) -> SynthesisResult:
-    """Parse and sanitize the LLM's JSON response.
+    """Parse and sanitize the LLM's response.
 
-    Tries to extract JSON from markdown code fences, then validates the shape.
+    First tries markdown bullet parsing with [ChunkID: N] citations.
+    Falls back to JSON parsing if the response looks like JSON.
     """
+    if not raw or not raw.strip():
+        return SynthesisResult(no_relevant_info=True)
+
+    stripped = raw.strip()
+
+    # If the response explicitly says no relevant info, honor it.
+    if "I could not find any relevant information" in stripped:
+        return SynthesisResult(no_relevant_info=True)
+
+    # Try markdown bullet parsing first.
+    items = _parse_markdown_items(stripped)
+    if items:
+        return SynthesisResult(items=items)
+
+    # Fallback: try JSON parsing (legacy/well-behaved LLMs).
+    json_items = _try_parse_json(stripped)
+    if json_items is not None:
+        return json_items
+
+    logger.warning("Could not parse LLM response. Falling back to RAW. Response: %s", raw[:500])
+    return SynthesisResult(no_relevant_info=True)
+
+
+def _parse_markdown_items(raw: str) -> list[AnswerItem]:
+    """Parse markdown bullet points with [ChunkID: N] citations."""
+    items: list[AnswerItem] = []
+    # Match lines starting with - or * or numbered like 1.
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # Skip headers, code fences, and other markdown noise.
+        if line.startswith("#") or line.startswith("```"):
+            continue
+        # Match bullet or numbered item.
+        match = re.match(r"^(?:[-*]|\d+\.?)\s+(.+)$", line)
+        if not match:
+            continue
+        text = match.group(1).strip()
+        if not text:
+            continue
+
+        # Extract chunk IDs from [ChunkID: N] or [ChunkID: N, M] citations.
+        chunk_ids: list[int] = []
+        for citation in re.findall(r"\[ChunkID:\s*([^\]]+)\]", text):
+            for part in citation.split(","):
+                part = part.strip()
+                try:
+                    chunk_ids.append(int(part))
+                except (ValueError, TypeError):
+                    continue
+
+        # Remove the citation markers from the text.
+        clean_text = re.sub(r"\[ChunkID:\s*[^\]]+\]", "", text).strip()
+        # Collapse multiple spaces left by removed citations.
+        clean_text = re.sub(r"\s{2,}", " ", clean_text).strip()
+
+        if clean_text and chunk_ids:
+            items.append(AnswerItem(text=clean_text, chunk_ids=chunk_ids, confidence="medium"))
+
+    return items
+
+
+def _try_parse_json(raw: str) -> SynthesisResult | None:
+    """Attempt to parse a JSON response. Returns None if parsing fails."""
     # Try to extract JSON from ```json ... ``` fences.
     fenced = re.search(r"```(?:json)?\s*(.*?)\s*```", raw, re.DOTALL)
     if fenced:
         raw = fenced.group(1)
 
-    # If the response is not valid JSON, attempt to repair common issues.
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
@@ -111,11 +173,10 @@ def parse_synthesis_response(raw: str) -> SynthesisResult:
         try:
             data = json.loads(repaired)
         except json.JSONDecodeError:
-            logger.warning("Could not parse LLM response as JSON. Falling back to RAW. Response: %s", raw[:500])
-            return SynthesisResult(no_relevant_info=True)
+            return None
 
     if not isinstance(data, dict):
-        return SynthesisResult(no_relevant_info=True)
+        return None
 
     if data.get("no_relevant_info"):
         return SynthesisResult(no_relevant_info=True)
