@@ -52,6 +52,7 @@ export class AiSearchDialogService {
   cachedSingleBookId: number | null = null;
   cachedScopeBookTitle: string | null = null;
   cachedVisible = false;
+  cachedLocalOnly = false;
 
   constructor() {
     this.loadFromStorage();
@@ -67,7 +68,8 @@ export class AiSearchDialogService {
         ch: this.cachedChatHistory,
         bId: this.cachedSingleBookId,
         bt: this.cachedScopeBookTitle,
-        v: this.cachedVisible
+        v: this.cachedVisible,
+        lo: this.cachedLocalOnly
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
@@ -88,6 +90,7 @@ export class AiSearchDialogService {
         this.cachedSingleBookId = data.bId || null;
         this.cachedScopeBookTitle = data.bt || null;
         this.cachedVisible = !!data.v;
+        this.cachedLocalOnly = !!data.lo;
       }
     } catch (e) {
       console.error('Failed to load AI search state', e);
@@ -160,6 +163,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.singleBookId = this.aiSearchDialogService.cachedSingleBookId;
     this.scopeBookTitle = this.aiSearchDialogService.cachedScopeBookTitle;
     this.visible = this.aiSearchDialogService.cachedVisible;
+    this.localOnly = this.aiSearchDialogService.cachedLocalOnly;
 
     this.openSub = this.aiSearchDialogService.openCommand$.subscribe(bookId => {
       this.open(bookId);
@@ -240,6 +244,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.aiSearchDialogService.cachedSingleBookId = this.singleBookId;
     this.aiSearchDialogService.cachedScopeBookTitle = this.scopeBookTitle;
     this.aiSearchDialogService.cachedVisible = this.visible;
+    this.aiSearchDialogService.cachedLocalOnly = this.localOnly;
     this.aiSearchDialogService.saveToStorage();
   }
 
