@@ -70,6 +70,30 @@ def test_parse_no_relevant_info_text():
     assert result.items == []
 
 
+def test_merge_consecutive_same_chunk_items():
+    raw = """1. Batman time travel. [ChunkID: 142]
+2. Doom Patrol street. [ChunkID: 142]
+3. Animal Man cartoon. [ChunkID: 142]
+4. Zatanna magic. [ChunkID: 142]
+5. Batman RIP. [ChunkID: 142]"""
+    result = parse_synthesis_response(raw)
+    assert len(result.items) == 1
+    assert result.items[0].chunk_ids == [142]
+    assert "Batman time travel" in result.items[0].text
+    assert "Batman RIP" in result.items[0].text
+
+
+def test_do_not_merge_items_with_different_chunks():
+    raw = """1. First fact. [ChunkID: 1]
+2. Second fact. [ChunkID: 2]
+3. Third fact. [ChunkID: 1]"""
+    result = parse_synthesis_response(raw)
+    assert len(result.items) == 3
+    assert result.items[0].chunk_ids == [1]
+    assert result.items[1].chunk_ids == [2]
+    assert result.items[2].chunk_ids == [1]
+
+
 def test_build_context_includes_chunk_ids():
     parsed = ParsedQuery(raw="list comics")
     chunks = [_chunk(42, "Galactic Warriors...", 168)]

@@ -33,6 +33,8 @@ Rules:
 - Do not include information that is not supported by the Context.
 - Keep item text concise and grounded in the Context.
 - The user asked for up to {requested_count} items, but you must NOT invent items to reach that number. Only return items that are directly supported by the Context. If the Context supports fewer items, return fewer.
+- Do NOT split a single chunk into multiple numbered items. If one chunk contains several related facts, return them as ONE item or pick the single most relevant fact.
+- Each item should ideally cite a different chunk. Multiple items citing the same single chunk are a sign you are inventing a list.
 """
 
 
@@ -108,6 +110,7 @@ def parse_synthesis_response(raw: str) -> SynthesisResult:
     # Try markdown bullet parsing first.
     items = _parse_markdown_items(stripped)
     if items:
+        items = _deduplicate_same_chunk_items(items)
         return SynthesisResult(items=items)
 
     # Fallback: try JSON parsing (legacy/well-behaved LLMs).
@@ -157,6 +160,42 @@ def _parse_markdown_items(raw: str) -> list[AnswerItem]:
             items.append(AnswerItem(text=clean_text, chunk_ids=chunk_ids, confidence="medium"))
 
     return items
+
+
+def _deduplicate_same_chunk_items(items: list[AnswerItem]) -> list[AnswerItem]:
+    """Merge consecutive items that all cite the same single chunk.
+
+    This is a common hallucination pattern: the LLM splits one chunk into a
+    numbered list to satisfy a count request. Merging them keeps the grounded
+    facts together and prevents fake multiplicity.
+    """
+    if not items:
+        return items
+
+    deduped: list[AnswerItem] = []
+    current_run: list[AnswerItem] = [items[0]]
+
+    for item in items[1:]:
+        last = current_run[-1]
+        # Same single chunk on both items.
+        if len(last.chunk_ids) == 1 and len(item.chunk_ids) == 1 and last.chunk_ids[0] == item.chunk_ids[0]:
+            current_run.append(item)
+        else:
+            deduped.append(_merge_item_run(current_run))
+            current_run = [item]
+
+    deduped.append(_merge_item_run(current_run))
+    return deduped
+
+
+def _merge_item_run(run: list[AnswerItem]) -> AnswerItem:
+    """Merge a run of items into a single item."""
+    if len(run) == 1:
+        return run[0]
+    merged_text = " ".join(item.text.strip() for item in run if item.text.strip())
+    # Keep the original chunk IDs (they are all the same) and the lowest confidence.
+    confidence = min((item.confidence for item in run), key=lambda c: {"high": 0, "medium": 1, "low": 2}.get(c, 1))
+    return AnswerItem(text=merged_text, chunk_ids=run[0].chunk_ids, confidence=confidence)
 
 
 def _try_parse_json(raw: str) -> SynthesisResult | None:
