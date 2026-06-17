@@ -20,6 +20,13 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from sentence_transformers import SentenceTransformer
 
+# New modular pipeline (feature-flagged). Import here so app.py remains the composition root.
+USE_NEW_PIPELINE = os.getenv("USE_NEW_PIPELINE", "false").lower() == "true"
+if USE_NEW_PIPELINE:
+    from pipeline import run_search_pipeline
+    from retrieval import retrieve, EmbeddingDimensionMismatch
+    from query_parser import parse_query
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -70,6 +77,10 @@ RERANKER_MODEL_NAME = _config.get("rerankerModel", "BAAI/bge-reranker-base")
 OCR_ENABLED = _config.get("ocrEnabled", True)
 OCR_FALLBACK_ONLY = _config.get("ocrFallbackOnly", True)
 OCR_LANGUAGE = _config.get("ocrLanguage", "eng")
+
+# Feature flag for the new modular AI Search pipeline.
+# Set USE_NEW_PIPELINE=true to enable the ground-up rebuild.
+# Default is false so existing behavior is preserved until validated.
 
 # Database config
 DB_HOST = os.getenv("DB_HOST", "mariadb")
@@ -848,9 +859,100 @@ def compute_bm25_scores(query: str, documents: list[dict], k1: float = 1.5, b: f
     return scores
 
 
+def _search_with_new_pipeline(payload: dict[str, Any]) -> dict[str, Any]:
+    """Run the new modular AI Search pipeline for /v1/search.
+
+    This is the feature-flagged entry point. It delegates to run_search_pipeline
+    and converts the structured response back to the legacy dict shape.
+    """
+    query = payload.get("query", "").strip()
+    book_ids = payload.get("bookIds")
+    user_id = payload.get("userId")
+    top_k = int(payload.get("topK") or SEARCH_TOP_K)
+    display_top_k = int(payload.get("displayTopK") or top_k)
+    similarity_threshold = float(payload.get("similarityThreshold") or SEARCH_SIMILARITY_THRESHOLD)
+    max_tokens = int(payload.get("maxTokens") or LLM_MAX_TOKENS)
+    temperature = float(payload.get("temperature") or LLM_TEMPERATURE)
+    chat_history = payload.get("chatHistory", [])
+    local_only = payload.get("localOnly", False)
+
+    hybrid_search_enabled = bool(
+        payload.get("hybridSearchEnabled")
+        if payload.get("hybridSearchEnabled") is not None
+        else HYBRID_SEARCH_ENABLED
+    )
+    rrf_k = int(payload.get("rrfK") or RRF_K)
+    reranking_enabled = bool(
+        payload.get("rerankingEnabled")
+        if payload.get("rerankingEnabled") is not None
+        else RERANKING_ENABLED
+    )
+
+    parsed = parse_query(query)
+
+    def retrieve_fn(embedding_text: str, book_ids: list[int] | None, user_id: int, top_k: int):
+        return retrieve(
+            embedding_text=embedding_text,
+            book_ids=book_ids,
+            user_id=user_id,
+            top_k=top_k,
+            compute_embedding_fn=_compute_embedding,
+            get_db_connection_fn=_get_db_connection,
+            cosine_similarity_fn=_cosine_similarity,
+            similarity_threshold=similarity_threshold,
+            hybrid_search_enabled=hybrid_search_enabled,
+            rrf_k=rrf_k,
+            reranking_enabled=reranking_enabled,
+            reranker_model=_reranker_model,
+            matryoshka_dimensions=MATRYOSHKA_DIMENSIONS,
+            required_phrases=parsed.required_phrases,
+            is_index_request=("index" in query.lower() or "table of contents" in query.lower()),
+        )
+
+    try:
+        response = run_search_pipeline(
+            query=query,
+            book_ids=book_ids,
+            user_id=user_id,
+            retrieve_fn=retrieve_fn,
+            generate_fn=_generate_answer,
+            top_k=top_k,
+            display_top_k=display_top_k,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            chat_history=chat_history,
+            local_only=local_only,
+        )
+        return response.model_dump(by_alias=True, exclude_none=True)
+    except EmbeddingDimensionMismatch as e:
+        logger.error("Embedding dimension mismatch in new pipeline: %s", e)
+        return {
+            "query": query,
+            "results": [],
+            "answer": None,
+            "error": f"Embedding dimension mismatch: the active model produces {e.query_dim}-d vectors "
+                     f"but your stored embeddings are {e.stored_dim}-d. "
+                     f"Your embedding model has changed. Please re-embed your books from Settings → AI Search.",
+            "totalChunksSearched": 0,
+        }
+    except RuntimeError as e:
+        logger.error("Embedding computation failed in new pipeline: %s", e)
+        return {
+            "query": query,
+            "results": [],
+            "answer": None,
+            "error": str(e),
+            "totalChunksSearched": 0,
+        }
+
+
 @app.post("/v1/search")
 def search(payload: dict[str, Any]) -> dict[str, Any]:
     """Search across embedded books using a natural language query."""
+    if USE_NEW_PIPELINE:
+        logger.info("Using new modular AI Search pipeline for query: %s", payload.get("query", ""))
+        return _search_with_new_pipeline(payload)
+
     query = payload.get("query", "").strip()
     book_ids = payload.get("bookIds")  # Optional: limit to specific books
     user_id = payload.get("userId")
