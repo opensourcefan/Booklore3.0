@@ -906,6 +906,7 @@ def _search_with_new_pipeline(payload: dict[str, Any]) -> dict[str, Any]:
             reranker_model=_reranker_model,
             matryoshka_dimensions=MATRYOSHKA_DIMENSIONS,
             required_phrases=parsed.required_phrases,
+            semantic_keywords=parsed.semantic_keywords,
             is_index_request=("index" in query.lower() or "table of contents" in query.lower()),
         )
 

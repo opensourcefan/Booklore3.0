@@ -33,6 +33,7 @@ def retrieve(
     reranker_model: Any | None = None,
     matryoshka_dimensions: int = 0,
     required_phrases: list[str] | None = None,
+    semantic_keywords: list[str] | None = None,
     is_index_request: bool = False,
 ) -> tuple[list[RetrievedChunk], int]:
     """Retrieve and rank candidate chunks for a query.
@@ -57,6 +58,7 @@ def retrieve(
     Returns:
         Tuple of (ranked retrieved chunks, total chunks searched in DB).
     """
+    semantic_keywords = semantic_keywords or []
     query_vector = compute_embedding_fn(embedding_text)
 
     conn = None
@@ -156,12 +158,32 @@ def retrieve(
                         vector = (vector / norm).tolist()
 
                 similarity = cosine_similarity_fn(query_vector, vector)
+
+                # Soft keyword boosting: favor chunks that contain query keywords.
+                if semantic_keywords:
+                    text_lower = doc["chunkText"].lower()
+                    title_lower = (doc.get("chapterTitle") or "").lower()
+                    book_lower = doc["bookTitle"].lower()
+                    match_count = 0
+                    for kw in semantic_keywords:
+                        if kw in text_lower or kw in title_lower or kw in book_lower:
+                            match_count += 1
+                        elif kw.endswith("s") and len(kw) > 3 and kw[:-1] in text_lower:
+                            match_count += 1
+                    boost = min(0.10, match_count * 0.02)
+                    similarity += boost
+
                 if similarity >= similarity_threshold:
                     doc_copy = doc.copy()
                     doc_copy["similarity"] = round(similarity, 4)
                     scored_vector.append(doc_copy)
             except Exception:
                 continue
+
+        logger.info(
+            "Vector similarity produced %d candidates above threshold %s (from %d documents) for query: %s",
+            len(scored_vector), similarity_threshold, len(documents), embedding_text,
+        )
 
         scored_vector.sort(key=lambda x: x["similarity"], reverse=True)
 

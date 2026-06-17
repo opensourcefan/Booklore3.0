@@ -11,14 +11,31 @@ import re
 from models import ParsedQuery
 
 
-# Minimal stopword list. We intentionally avoid over-pruning so that meaningful
-# content words (e.g. 'comics', 'space') are retained.
+# Stopword list. We intentionally avoid over-pruning so that meaningful
+# content words (e.g. 'comics', 'space') are retained, while pruning query
+# framing words that pollute soft keyword boosting (e.g. 'list', 'show').
 _STOPWORDS = {
     "a", "an", "the", "in", "on", "at", "to", "for", "with", "by", "of", "and", "or", "but",
     "is", "are", "was", "were", "be", "been", "have", "has", "had", "do", "does", "did",
     "can", "could", "would", "should", "will", "shall", "may", "might", "must",
     "i", "me", "my", "you", "your", "we", "our", "they", "their", "them", "it", "its",
     "this", "that", "these", "those", "what", "which", "who", "where", "when", "why", "how",
+    "list", "show", "find", "search", "get", "give", "top", "me",
+    "some", "any", "no", "all", "both", "each", "few", "more", "most", "other", "such",
+    "own", "so", "than", "too", "very",
+    "page", "book", "chapter", "read", "display", "result", "results",
+    "provide", "information", "inform", "tell", "explain", "describe", "detail", "details",
+    "data", "facts", "fact", "about", "regarding", "concerning", "related", "regards",
+    "looking", "look", "want", "wanted", "need", "needed", "help", "please",
+    "like", "know", "say", "said", "ask", "asking", "question", "questions", "answer", "answers",
+    "specifically", "specific", "particular", "certain", "exactly", "exact", "just",
+    "only", "also", "even", "still", "really", "actually", "definitely", "probably", "maybe",
+    "perhaps", "basically", "literally", "essentially", "generally", "usually", "often",
+    "sometimes", "always", "never", "every", "many", "much", "lot", "lots", "plenty", "several",
+    "various", "different", "same", "similar", "opposite", "including", "include", "included",
+    "contains", "containing", "contain", "having", "make", "made",
+    "summary", "summarize", "summarise", "brief", "overview", "synopsis", "recap",
+    "outline", "highlight", "highlights", "tl;dr", "tldr",
 }
 
 _NUMBER_WORDS = {
