@@ -26,7 +26,7 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && pip install -r /app/requirements.txt
 
-COPY app.py /app/app.py
+COPY *.py /app/
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 

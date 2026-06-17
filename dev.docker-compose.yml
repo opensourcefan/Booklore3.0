@@ -115,7 +115,7 @@ services:
       - DB_PASSWORD=fable
     volumes:
       - ./data/ai-search-models:/models
-      - ./docker/ai-search/app.py:/app/app.py
+      - ./docker/ai-search:/app
     ports:
       - "${AI_SEARCH_PORT:-8081}:8080"
     healthcheck:
