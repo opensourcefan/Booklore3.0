@@ -64,12 +64,18 @@ def run_search_pipeline(
     parsed = parse_query(query)
     display_top_k = display_top_k if display_top_k is not None else top_k
 
+    # For list queries, retrieve a larger pool so the LLM has more candidates
+    # to choose from while still returning only display_top_k to the UI.
+    retrieval_top_k = top_k
+    if parsed.intent == "list" and parsed.requested_count is not None:
+        retrieval_top_k = max(top_k, parsed.requested_count * 3)
+
     # Retrieval
     retrieved, total_chunks_searched = retrieve_fn(
         embedding_text=parsed.embedding_text,
         book_ids=book_ids,
         user_id=user_id,
-        top_k=top_k,
+        top_k=retrieval_top_k,
     )
     logger.info(
         "Retrieved %d chunks (searched %d) for query: %s",

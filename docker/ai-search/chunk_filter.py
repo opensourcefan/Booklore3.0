@@ -1,17 +1,70 @@
 """Chunk quality filtering stage.
 
-The goal is to remove heading-only fragments and empty OCR noise without
-excluding legitimate short paragraphs (comics, manga, brief prose).
+The goal is to remove heading-only fragments, empty OCR noise, and
+index/table-of-contents-style lists without excluding legitimate short
+paragraphs (comics, manga, brief prose).
 """
 
 from __future__ import annotations
 
 import logging
+import re
 from typing import Iterable
 
 from models import Chunk
 
 logger = logging.getLogger("fable-ai-search")
+
+
+# Markers that strongly indicate an index / table of contents / reference chunk.
+_TOC_MARKERS = {
+    "index", "table of contents", "glossary", "appendix",
+    "list of entries", "list of figures", "list of tables",
+    "list of illustrations", "topical list", "references",
+    "bibliography", "acknowledgments", "preface",
+}
+
+# Spaced-out variants sometimes produced by OCR.
+_SPACED_TOC_MARKERS = {"i n d e x", "g l o s s a r y", "t a b l e  o f  c o n t e n t s"}
+
+
+def _has_toc_marker(text: str, chapter_title: str | None) -> bool:
+    """Return True if the chunk text or chapter title looks like a TOC/index fragment."""
+    text_lower = text.lower()
+    title_lower = (chapter_title or "").lower()
+    if any(marker in title_lower for marker in _TOC_MARKERS):
+        return True
+    if any(marker in text_lower[:200] for marker in _TOC_MARKERS):
+        return True
+    if any(marker in text_lower for marker in _SPACED_TOC_MARKERS):
+        return True
+    return False
+
+
+def _looks_like_title_list(text: str) -> bool:
+    """Detect long comma-separated lists of short title-like fragments.
+
+    Index/toc chunks often contain many short phrases separated by commas
+    with very few sentence terminators. A high comma-to-sentence ratio combined
+    with many title-case tokens is a strong signal of a reference list.
+    """
+    if not text:
+        return False
+
+    sentences = [s.strip() for s in re.split(r"[.!?]", text) if s.strip()]
+    if not sentences:
+        return False
+
+    commas = text.count(",")
+    semicolons = text.count(";")
+    punctuation_per_sentence = (commas + semicolons) / len(sentences)
+    avg_sentence_len = sum(len(s) for s in sentences) / len(sentences)
+
+    # A reference list typically has many commas and very long "sentences".
+    if punctuation_per_sentence >= 4 and avg_sentence_len >= 300:
+        return True
+
+    return False
 
 
 class ChunkFilterResult:
@@ -66,6 +119,14 @@ def _should_keep(chunk: Chunk, strict: bool) -> bool:
 
     # Heading-only guard: chunk text is identical to its chapter title.
     if chunk.chapter_title and text.lower() == chunk.chapter_title.strip().lower():
+        return False
+
+    # TOC / index / reference-list guard.
+    if _has_toc_marker(text, chunk.chapter_title):
+        return False
+
+    # Long comma-separated title lists (e.g. "TOPICAL LIST OF ENTRIES A, B, C...").
+    if _looks_like_title_list(text):
         return False
 
     if strict:

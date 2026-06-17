@@ -112,11 +112,17 @@ def retrieve(
         # Build candidate documents
         documents: list[dict] = []
         row_map: dict[int, dict] = {}
+        _toc_markers = {
+            "index", "table of contents", "glossary", "appendix",
+            "list of entries", "list of figures", "list of tables",
+            "list of illustrations", "topical list", "references",
+            "bibliography", "acknowledgments", "preface",
+        }
         for row in rows:
             if not is_index_request:
                 ch_title = (row["chapter_title"] or "").lower()
                 text_prefix = row["chunk_text"][:200].lower()
-                if "index" in ch_title or "table of contents" in ch_title or "glossary" in ch_title:
+                if any(marker in ch_title for marker in _toc_markers):
                     continue
                 if "i n d e x" in text_prefix or "g l o s s a r y" in text_prefix:
                     continue
