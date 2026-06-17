@@ -74,6 +74,31 @@
                 <i class="pi pi-spin pi-spinner" style="font-size: 1.25rem; color: var(--primary-color);"></i>
                 <span>Searching your library and generating answer...</span>
               </div>
+            } @else if (msg.answerItems && msg.answerItems.length > 0) {
+              <div class="ai-search-answer">
+                <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="ai-search-answer-badge">AI Generated Answer</span>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <p-button icon="pi pi-book" [text]="true" [rounded]="true" (onClick)="openTopResultInReader(msg)" [pTooltip]="'Open Top Match in Reader'"></p-button>
+                    <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem;">
+                  @for (item of msg.answerItems; track $index) {
+                    <div class="ai-search-answer-item">
+                      <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(item.text)"></div>
+                      <div class="ai-search-citations">
+                        <div class="ai-search-citation-item" tabindex="0" role="button" [title]="'Open ' + item.bookTitle + ' in reader'">
+                          <span class="ai-search-citation-book">{{ item.bookTitle }}</span>
+                          @if (item.pageNumber) {
+                            <a class="ai-search-citation-page" tabindex="0" role="button" (click)="readBookAtPageForItem(item)" (keydown.enter)="readBookAtPageForItem(item)" (keydown.space)="readBookAtPageForItem(item); $event.preventDefault()">p.{{ item.pageNumber }}</a>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
             } @else if (msg.answer && !isRawDisplay(msg)) {
               <div class="ai-search-answer">
                 <div class="ai-search-answer-label" style="display: flex; justify-content: space-between; align-items: center;">
@@ -172,15 +197,19 @@
   <ng-template pTemplate="footer">
     <div class="ai-search-footer">
       <div class="ai-search-input-row" style="display: flex; gap: 0.5rem; width: 100%; align-items: center;">
-        <p-button
-          [label]="mobileUx.isMobileOrTablet ? '' : (localOnly ? 'Raw' : 'AI')"
-          [icon]="localOnly ? 'pi pi-list' : 'pi pi-sparkles'"
-          [severity]="localOnly ? 'success' : 'info'"
-          [outlined]="true"
+        <button
+          type="button"
+          class="ai-search-mode-toggle"
+          [class.ai-search-mode-toggle-raw]="localOnly"
+          [class.ai-search-mode-toggle-ai]="!localOnly"
+          (click)="toggleLocalOnly()"
           [pTooltip]="localOnly ? 'Raw: Search your library directly (no AI synthesis)' : 'AI + Raw: Search your library and generate an AI answer'"
-          tooltipPosition="top"
-          (onClick)="localOnly = !localOnly">
-        </p-button>
+          tooltipPosition="top">
+          <i class="pi" [class.pi-list]="localOnly" [class.pi-sparkles]="!localOnly"></i>
+          @if (!mobileUx.isMobileOrTablet) {
+            <span>{{ localOnly ? 'Raw' : 'AI' }}</span>
+          }
+        </button>
         <button
           type="button"
           class="ai-search-info-btn"

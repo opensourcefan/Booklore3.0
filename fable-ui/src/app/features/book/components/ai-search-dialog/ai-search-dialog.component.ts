@@ -8,7 +8,7 @@ import {AppSettingsService} from '../../../../shared/service/app-settings.servic
 import {UserService} from '../../../settings/user-management/user.service';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Router} from '@angular/router';
-import {AiSearchChunkResult} from '../../../../shared/model/app-settings.model';
+import {AiSearchChunkResult, AiSearchAnswerItem} from '../../../../shared/model/app-settings.model';
 import {BehaviorSubject, Subscription, Subject} from 'rxjs';
 import {TooltipModule} from 'primeng/tooltip';
 import {Popover} from 'primeng/popover';
@@ -24,6 +24,7 @@ import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 export interface ChatMessage {
   query: string;
   answer: string | null;
+  answerItems: AiSearchAnswerItem[] | null;
   results: AiSearchChunkResult[];
   isLoading: boolean;
 }
@@ -269,6 +270,11 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.saveStateToCache();
   }
 
+  toggleLocalOnly(): void {
+    this.localOnly = !this.localOnly;
+    this.saveStateToCache();
+  }
+
 
   saveToNotepad(result: AiSearchChunkResult): void {
     const user = this.userService.getCurrentUser();
@@ -365,6 +371,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     const currentMessage: ChatMessage = {
       query: query,
       answer: null,
+      answerItems: null,
       results: [],
       isLoading: true
     };
@@ -410,6 +417,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         currentMessage.isLoading = false;
         currentMessage.results = result.results || [];
         currentMessage.answer = result.answer || null;
+        currentMessage.answerItems = result.answerItems || null;
         this.aiSearchDialogService.searchActive$.next(false);
 
         // Emit search error if the backend returned an error or no results
@@ -511,6 +519,18 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       this.bookService.readBook(result.bookId, undefined, undefined, result.pageNumber);
     } else {
       this.bookService.readBook(result.bookId);
+    }
+  }
+
+  readBookAtPageForItem(item: AiSearchAnswerItem): void {
+    const result = this.results.find(r => r.bookTitle === item.bookTitle && (item.pageNumber ? r.pageNumber === item.pageNumber : true));
+    if (result) {
+      this.readBookAtPage(result);
+    } else if (item.chunkIds && item.chunkIds.length > 0) {
+      const byChunk = this.results.find(r => item.chunkIds!.includes(r.chunkId));
+      if (byChunk) {
+        this.readBookAtPage(byChunk);
+      }
     }
   }
 

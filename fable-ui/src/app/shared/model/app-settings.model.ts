@@ -340,10 +340,20 @@ export interface AiSearchChunkResult {
   contextAfter?: string | null;
 }
 
+export interface AiSearchAnswerItem {
+  text: string;
+  source: string;
+  bookTitle: string;
+  pageNumber: number | null;
+  chunkIds: number[];
+  confidence: string;
+}
+
 export interface AiSearchResult {
   query: string;
   results: AiSearchChunkResult[];
   answer: string | null;
+  answerItems: AiSearchAnswerItem[] | null;
   totalChunksSearched: number;
   error?: string | null;
 }

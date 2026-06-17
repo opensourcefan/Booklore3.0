@@ -114,6 +114,51 @@
   }
 }
 
+.ai-search-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--p-surface-400);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-color-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+
+  i {
+    font-size: 0.95rem;
+  }
+
+  &-ai {
+    border-color: #3b82f6;
+    color: #3b82f6;
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.1);
+    }
+  }
+
+  &-raw {
+    border-color: #059669;
+    color: #059669;
+
+    &:hover {
+      background: rgba(5, 150, 105, 0.1);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
 .ai-search-info-btn {
   display: flex;
   align-items: center;
