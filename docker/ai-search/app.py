@@ -386,14 +386,20 @@ def _is_substantive_chunk(chunk_text: str, chapter_title: str | None = None) -> 
     Heading-only fragments and very short chunks are not useful as answers. This filter
     is applied at retrieval time so existing embeddings that contain low-quality chunks
     do not pollute results until books are re-embedded.
+
+    The thresholds are intentionally conservative: the goal is to drop fragments that are
+    literally just a heading or a handful of words, not to exclude normal short paragraphs
+    (e.g. comic captions, manga dialogue, or brief prose) which would otherwise leave the
+    search with zero results.
     """
     text = (chunk_text or "").strip()
     if not text:
         return False
-    if len(text) < 80:
+    # Drop very short fragments that cannot carry meaningful semantic content.
+    if len(text) < 20:
         return False
     words = re.findall(r"\w+", text)
-    if len(words) < 10:
+    if len(words) < 4:
         return False
     # Discard chunks that are identical to their heading (heading-only fragments).
     if chapter_title:
@@ -435,11 +441,14 @@ def _compute_support_score(item_text: str, result: dict) -> float:
 
 
 def _ensure_list_citations(answer: str, results: list[dict]) -> str:
-    """Post-process an LLM answer so every list item ends with a correct source citation.
+    """Post-process an LLM answer so every list item ends with a source citation.
 
-    Unlike the previous implementation, this version validates each list item against
-    the retrieved source chunks and assigns the best supporting source. Items that
-    cannot be supported by any source are dropped to prevent hallucinated citations.
+    Each list item is matched against the retrieved source chunks and the best supporting
+    source is appended. Items with strong support get a validated citation; items with
+    weaker support still get the best available source rather than being dropped, because
+    a small local LLM may paraphrase facts in ways that fail strict token overlap. This
+    prevents the answer from collapsing to an empty intro line when the retrieval pool
+    is small or the chunks are short.
     """
     if not results:
         return answer
@@ -467,10 +476,16 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
                 best_score = score
                 best_source = result
 
-        # Only keep list items that are actually supported by a source chunk.
+        # Strongly supported items get a validated citation. Weakly supported items still
+        # receive the best available source so the answer does not disappear entirely.
         if best_source and best_score >= 0.25:
             processed_lines.append(f"{prefix}{item_text} {_source_marker(best_source)}")
-        # Unsupported items are silently dropped.
+        elif best_source:
+            processed_lines.append(f"{prefix}{item_text} {_source_marker(best_source)}")
+        else:
+            # No source at all: keep the item but do not invent a citation. The frontend
+            # will still render the answer, and the user can judge its usefulness.
+            processed_lines.append(line)
 
     return "\n".join(processed_lines)
 
@@ -489,7 +504,7 @@ def _count_supported_list_items(answer: str, results: list[dict]) -> int:
             if not item_text:
                 continue
             for result in results:
-                if _compute_support_score(item_text, result) >= 0.25:
+                if _compute_support_score(item_text, result) >= 0.10:
                     count += 1
                     break
     return count
