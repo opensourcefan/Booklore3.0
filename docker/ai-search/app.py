@@ -421,6 +421,10 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
             # source that actually matches this result slot. Also normalize the context
             # block format [Source N: Book, Page, ChunkIndex] to [Source: Book, Page].
             stripped = re.sub(r"\s*\[Source\s*(?:\d+)?:\s*[^\]]*\]", "", stripped).strip()
+            # Strip trailing dashes that LLMs sometimes append (e.g. "Galactic Warriors -").
+            # Without this, the endswith check below misses the dash and we produce
+            # "Galactic Warriors -. [Source: ...]" instead of "Galactic Warriors. [Source: ...]".
+            stripped = re.sub(r"\s*[-–—]\s*$", "", stripped).strip()
             if stripped.endswith((".", "!", "?")):
                 line = f"{stripped} {_source_marker(current_source)}"
             else:
@@ -934,6 +938,32 @@ def _looks_like_title_list(text: str) -> bool:
     return False
 
 
+def _is_heading_only(text: str) -> bool:
+    """Return True if the chunk is just a heading/title with no substantive prose.
+
+    Chunks like "Greatest Comics" or "Chapter 3: The Beginning" that contain
+    only a short title phrase produce garbage in RAW mode. This filter rejects
+    chunks that are:
+    - Very short (< 60 chars)
+    - Have no sentence terminators (no ., !, ?)
+    - Are mostly title-case words (each word starts with uppercase)
+    """
+    if not text:
+        return True
+    text = text.strip()
+    if len(text) >= 60:
+        return False
+    # Has a sentence terminator? Then it's prose, not just a heading.
+    if re.search(r"[.!?]", text):
+        return False
+    # Check if most words are title-case (capitalized first letter).
+    words = [w for w in text.split() if len(w) >= 2 and w[0].isalpha()]
+    if not words:
+        return False
+    title_case_count = sum(1 for w in words if w[0].isupper())
+    return title_case_count / len(words) >= 0.7
+
+
 def _detect_intent(text: str, requested_count: int | None) -> str:
     """Classify query intent: list, summarize, or fact."""
     lowered = text.lower()
@@ -1052,6 +1082,60 @@ def _strip_hallucination_lines(answer: str) -> str:
             logger.info("Stripping hallucination line: %s", stripped[:120])
             continue
         kept_lines.append(line)
+
+    return "\n".join(kept_lines)
+
+
+def _strip_hallucinated_items(answer: str, results: list[dict]) -> str:
+    """Remove list items whose content has very low word overlap with their assigned source.
+
+    After _ensure_list_citations assigns each list item a source from results (in order),
+    this function checks whether the item's substantive words actually appear in that
+    source chunk. Items with < 15% Jaccard word overlap are likely LLM fabrications
+    (invented titles, hallucinated facts) and are removed.
+
+    This catches hallucinations that _strip_hallucination_lines misses because the
+    LLM no longer adds "inferred" disclaimers (the system prompt forbids them).
+    """
+    if not answer or not results:
+        return answer
+
+    source_iter = iter(results)
+    list_item_pattern = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
+
+    kept_lines = []
+    stripped_count = 0
+    for line in answer.split("\n"):
+        stripped = line.strip()
+        if not list_item_pattern.match(stripped):
+            kept_lines.append(line)
+            continue
+
+        # Get the source assigned to this item (same order as _ensure_list_citations)
+        try:
+            source = next(source_iter)
+        except StopIteration:
+            kept_lines.append(line)
+            continue
+
+        # Extract item text without citation
+        item_text = re.sub(r"\s*\[Source:[^\]]*\]", "", stripped).strip()
+        source_text = source["chunkText"]
+
+        # Compute Jaccard word overlap between item and source
+        overlap = _text_overlap_ratio(item_text, source_text)
+        if overlap < 0.15:
+            logger.info(
+                "Stripping hallucinated item (overlap %.2f): %s",
+                overlap, stripped[:120]
+            )
+            stripped_count += 1
+            continue
+
+        kept_lines.append(line)
+
+    if stripped_count > 0:
+        logger.info("Stripped %d hallucinated items total", stripped_count)
 
     return "\n".join(kept_lines)
 
@@ -1233,6 +1317,11 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 words = text_prefix.split()
                 numbers = [w for w in words if re.match(r'^\d+$', w)]
                 if len(words) > 0 and (len(numbers) / len(words)) > 0.15:
+                    continue
+                # Heading-only chunks: chunks that are just a chapter/section title
+                # with no substantive prose. These produce garbage in RAW mode
+                # (e.g. "Greatest Comics" with no surrounding text).
+                if _is_heading_only(row["chunk_text"]):
                     continue
 
             # Strict mandatory quotes keyword matching
@@ -1519,6 +1608,12 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             # Strip hallucination lines: items the LLM invented that contain
             # disclaimers like "inferred", "not directly sourced", or "not sourced".
             answer = _strip_hallucination_lines(answer)
+            # Strip hallucinated items by content overlap: items whose words have
+            # very low Jaccard overlap (< 15%) with their assigned source chunk are
+            # likely LLM fabrications (invented titles, hallucinated facts). This
+            # catches hallucinations that the disclaimer-based check misses because
+            # the system prompt now forbids "inferred" disclaimers.
+            answer = _strip_hallucinated_items(answer, display_results)
             # Deduplicate near-duplicate same-source list items. Small LLMs sometimes
             # repeat the same fact with minor wording changes to satisfy a count request.
             # Backported from synthesis.py's Jaccard-based dedup.
