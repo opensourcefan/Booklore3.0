@@ -402,13 +402,14 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
         return f"[Source: {result['bookTitle']}, Page {page}]"
 
     processed_lines = []
-    list_item_pattern = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
+    list_item_pattern = re.compile(r"^\s*(?:[-*•]|\d+\.)\s+")
     # Matches lines that are purely a citation with no substantive content
     citation_only_pattern = re.compile(
-        r"^\s*(?:[-*]|\d+\.)\s*\[?Source\s*(?:\d+)?:\s*[^\]]*\]?\s*$",
+        r"^\s*(?:[-*•]|\d+\.)\s*\[?Source\s*(?:\d+)?:\s*[^\]]*\]?\s*$",
         re.IGNORECASE
     )
 
+    has_list_items = False
     for line in answer.split("\n"):
         stripped = line.strip()
 
@@ -419,6 +420,7 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
             continue
 
         if list_item_pattern.match(stripped):
+            has_list_items = True
             # Strip any existing (possibly wrong) citation so we can replace it with the
             # source that actually matches this result slot. Also normalize the context
             # block format [Source N: Book, Page, ChunkIndex] to [Source: Book, Page].
@@ -437,6 +439,19 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
                 # Reuse the last source if we run out; this keeps all remaining items cited.
                 pass
         processed_lines.append(line)
+
+    if not has_list_items:
+        for i in range(len(processed_lines) - 1, -1, -1):
+            line = processed_lines[i]
+            stripped = line.strip()
+            if stripped:
+                if not re.search(r"\[Source\s*(?:\d+)?:\s*[^\]]*\]", stripped):
+                    stripped = re.sub(r"\s*[-–—]\s*$", "", stripped).strip()
+                    if stripped.endswith((".", "!", "?")):
+                        processed_lines[i] = f"{stripped} {_source_marker(results[0])}"
+                    else:
+                        processed_lines[i] = f"{stripped}. {_source_marker(results[0])}"
+                break
 
     return "\n".join(processed_lines)
 
@@ -965,6 +980,25 @@ def _is_heading_only(text: str) -> bool:
     return title_case_count / len(words) >= 0.7
 
 
+def _looks_like_advertisement(text: str) -> bool:
+    """Detect typical publisher catalog or subscription advertisement pages."""
+    if not text:
+        return False
+    text_lower = text.lower()
+    if "newsstand price" in text_lower:
+        return True
+    if "save" in text_lower and "% off" in text_lower:
+        return True
+    if "subscription" in text_lower or "subscribe to" in text_lower or "subscribe now" in text_lower:
+        if "www." in text_lower or "visit" in text_lower or "special offer" in text_lower or "issues for" in text_lower:
+            return True
+    if "special offer" in text_lower and ("visit" in text_lower or "www." in text_lower):
+        return True
+    if "try" in text_lower and "issues for" in text_lower:
+        return True
+    return False
+
+
 def _detect_intent(text: str, requested_count: int | None) -> str:
     """Classify query intent: list, summarize, or fact."""
     lowered = text.lower()
@@ -1324,6 +1358,9 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 # (e.g. "Greatest Comics" with no surrounding text).
                 if _is_heading_only(row["chunk_text"]):
                     continue
+                # Advertisement chunks: publisher subscription catalogs
+                if _looks_like_advertisement(row["chunk_text"]):
+                    continue
 
             # Strict mandatory quotes keyword matching
             if required_keywords:
@@ -1601,7 +1638,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             # Normalize context-block citation format [Source N: Book, Page, ChunkIndex]
             # to the prompt format [Source: Book, Page] before any other processing.
             answer = re.sub(
-                r"\[Source\s+\d+:\s*([^,\]]+),\s*Page\s*(\d+)[^\]]*\]",
+                r"\[Source\s*(?:\d+)?:\s*([^,\]]+),\s*Page\s*([^,\]\s]+)[^\]]*\]",
                 r"[Source: \1, Page \2]",
                 answer
             )

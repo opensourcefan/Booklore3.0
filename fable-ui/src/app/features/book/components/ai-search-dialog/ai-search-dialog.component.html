@@ -109,29 +109,6 @@
                   </div>
                 </div>
                 <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)" (click)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.enter)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.space)="onCitationClick($event, msg.contextResults || msg.results); $event.preventDefault()" tabindex="0"></div>
-                @if (msg.results && msg.results.length > 0) {
-                  <div class="ai-search-citations">
-                    <div class="ai-search-citations-label">
-                      <i class="pi pi-book"></i> Sources from Your Library
-                    </div>
-                    @for (result of msg.results; track result.chunkId) {
-                      <div class="ai-search-citation-item" (click)="readBookAtPage(result)" (keydown.enter)="readBookAtPage(result)" (keydown.space)="readBookAtPage(result); $event.preventDefault()" tabindex="0" role="button" [title]="'Open ' + result.bookTitle + ' in reader'">
-                        <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
-                        @if (getContentTitle(result)) {
-                          <span class="ai-search-citation-separator">›</span>
-                          <span class="ai-search-citation-content-title">{{ getContentTitle(result) }}</span>
-                        } @else if (result.chapterTitle) {
-                          <span class="ai-search-citation-separator">›</span>
-                          <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
-                        }
-                        @if (result.pageNumber) {
-                          <span class="ai-search-citation-page">p.{{ result.pageNumber }}</span>
-                        }
-                        <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
-                      </div>
-                    }
-                  </div>
-                }
               </div>
             } @else if (msg.results && msg.results.length > 0) {
               <div class="ai-search-answer ai-search-raw-results">
