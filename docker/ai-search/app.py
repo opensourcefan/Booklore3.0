@@ -7,6 +7,7 @@ import requests
 import shutil
 import threading
 import time
+from collections import Counter
 from datetime import datetime, timezone
 from typing import Any
 import base64
@@ -266,6 +267,7 @@ def _start_reranker_load_thread_locked() -> None:
 
 
 def _ensure_loading() -> None:
+    global _load_error
     with _load_lock:
         if RERANKING_ENABLED and _reranker_model is None and not _reranker_loading and not _reranker_load_error:
             logger.info("Triggering automatic background load for reranker: %s", RERANKER_MODEL_NAME)
@@ -842,7 +844,6 @@ def embed_status(job_id: str) -> dict[str, Any]:
 
 
 def compute_bm25_scores(query: str, documents: list[dict], k1: float = 1.5, b: float = 0.75) -> dict[int, float]:
-    from collections import Counter
     # Tokenize query
     query_tokens = [w.lower() for w in re.findall(r'\w+', query) if len(w) > 1]
     if not query_tokens:
@@ -1519,15 +1520,15 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 pass
 
     # Generate answer using LLM if available and not local-only mode.
-    # Use the same results slice that the UI will display so the answer count,
-    # citations, and source cards are always consistent.
+    # Use the full top_results context pool so the LLM has complete context,
+    # and all retrieved sources are available for citation mapping.
     answer = None
-    if display_results and not local_only:
+    if top_results and not local_only:
         # Build a context where each chunk is tagged with its real source. Include the
         # chunk index so the LLM can distinguish multiple results from the same book.
         context = "\n\n".join([
             f"[Source {i+1}: {r['bookTitle']}, Page {r.get('pageNumber') or 'N/A'}, ChunkIndex {r['chunkIndex']}]\n{r['chunkText']}"
-            for i, r in enumerate(display_results)
+            for i, r in enumerate(top_results)
         ])
 
         # Adjust system prompt based on detected query intent.
@@ -1572,10 +1573,10 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         if answer is not None and not answer.strip():
             logger.warning(
                 "LLM returned empty/whitespace-only content. Building fallback "
-                "bulleted list from %d raw results.", len(display_results)
+                "bulleted list from %d raw results.", len(top_results)
             )
             fallback_lines = []
-            for i, r in enumerate(display_results[:requested_count or len(display_results)]):
+            for i, r in enumerate(top_results[:requested_count or len(top_results)]):
                 page = r.get("pageNumber") or "N/A"
                 snippet = r["chunkText"].strip()[:200]
                 # Truncate at last sentence boundary within 200 chars
@@ -1604,7 +1605,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 r"[Source: \1, Page \2]",
                 answer
             )
-            answer = _ensure_list_citations(answer, display_results)
+            answer = _ensure_list_citations(answer, top_results)
             # Strip hallucination lines: items the LLM invented that contain
             # disclaimers like "inferred", "not directly sourced", or "not sourced".
             answer = _strip_hallucination_lines(answer)
@@ -1613,11 +1614,11 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             # likely LLM fabrications (invented titles, hallucinated facts). This
             # catches hallucinations that the disclaimer-based check misses because
             # the system prompt now forbids "inferred" disclaimers.
-            answer = _strip_hallucinated_items(answer, display_results)
+            answer = _strip_hallucinated_items(answer, top_results)
             # Deduplicate near-duplicate same-source list items. Small LLMs sometimes
             # repeat the same fact with minor wording changes to satisfy a count request.
             # Backported from synthesis.py's Jaccard-based dedup.
-            answer = _deduplicate_same_chunk_items(answer, display_results)
+            answer = _deduplicate_same_chunk_items(answer, top_results)
 
     # Identify missing core keywords (completely absent from all top results)
     missing_keywords = []
@@ -1675,6 +1676,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     return {
         "query": query,
         "results": display_results,
+        "contextResults": top_results,
         "answer": answer,
         "totalChunksSearched": len(rows),
     }

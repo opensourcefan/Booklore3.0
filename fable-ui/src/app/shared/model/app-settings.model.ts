@@ -352,6 +352,7 @@ export interface AiSearchAnswerItem {
 export interface AiSearchResult {
   query: string;
   results: AiSearchChunkResult[];
+  contextResults?: AiSearchChunkResult[];
   answer: string | null;
   answerItems: AiSearchAnswerItem[] | null;
   totalChunksSearched: number;

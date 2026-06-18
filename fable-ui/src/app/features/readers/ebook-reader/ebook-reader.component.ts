@@ -338,7 +338,8 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
               
               const targetPage = this.route.snapshot.queryParamMap.get('page');
               if (targetPage) {
-                return this.viewManager.goTo(Number(targetPage));
+                const targetSpineIndex = Math.max(0, Number(targetPage) - 1);
+                return this.viewManager.goTo(targetSpineIndex);
               } else if (book.epubProgress?.cfi) {
                 return this.viewManager.goTo(book.epubProgress.cfi);
               } else if (book.epubProgress?.percentage && book.epubProgress.percentage > 0) {

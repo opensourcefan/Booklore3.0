@@ -26,6 +26,7 @@ export interface ChatMessage {
   answer: string | null;
   answerItems: AiSearchAnswerItem[] | null;
   results: AiSearchChunkResult[];
+  contextResults?: AiSearchChunkResult[];
   isLoading: boolean;
   localOnly: boolean;
 }
@@ -203,7 +204,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     // link and wrap the entire citation in an italic highlight span.
     // Format: [Source: Book Title, Page N]
     html = html.replace(
-      /\[Source\s*(?:\d+)?:\s*([^,]+),\s*Page\s*(\d+)\]/g,
+      /\[Source\s*(?:\d+)?:\s*(.+?),\s*Page\s*(\d+)\]/g,
       '<span class="ai-search-citation-highlight"><em>[Source: $1, <span class="ai-search-citation-page-link" data-book-title="$1" data-page="$2" tabindex="0" role="link">Page $2</span>]</em></span>'
     );
 
@@ -466,6 +467,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         currentMessage.isLoading = false;
         currentMessage.results = result.results || [];
+        currentMessage.contextResults = result.contextResults || result.results || [];
         currentMessage.answer = result.answer || null;
         currentMessage.answerItems = result.answerItems || null;
         this.aiSearchDialogService.searchActive$.next(false);
