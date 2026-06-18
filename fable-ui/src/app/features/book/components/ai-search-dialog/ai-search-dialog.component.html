@@ -86,15 +86,7 @@
                 <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem;">
                   @for (item of msg.answerItems; track $index) {
                     <div class="ai-search-answer-item">
-                      <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(item.text)"></div>
-                      <div class="ai-search-citations">
-                        <div class="ai-search-citation-item" tabindex="0" role="button" [title]="'Open ' + item.bookTitle + ' in reader'">
-                          <span class="ai-search-citation-book">{{ item.bookTitle }}</span>
-                          @if (item.pageNumber) {
-                            <a class="ai-search-citation-page" tabindex="0" role="button" (click)="readBookAtPageForItem(item)" (keydown.enter)="readBookAtPageForItem(item)" (keydown.space)="readBookAtPageForItem(item); $event.preventDefault()">p.{{ item.pageNumber }}</a>
-                          }
-                        </div>
-                      </div>
+                      <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(item.text + ' [Source: ' + item.bookTitle + ', Page ' + (item.pageNumber || 'N/A') + ']')" (click)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.enter)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.space)="onCitationClick($event, msg.contextResults || msg.results); $event.preventDefault()" tabindex="0"></div>
                     </div>
                   }
                 </div>
@@ -121,28 +113,8 @@
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 0.5rem;">
                   @for (result of msg.results; track result.chunkId) {
-                    <div>
-                      <div class="ai-search-markdown-content">
-                        <p style="margin-bottom: 0;">
-                          {{ result.chunkText }}
-                        </p>
-                      </div>
-                      <div class="ai-search-citations">
-                        <div class="ai-search-citation-item" (click)="readBookAtPage(result)" (keydown.enter)="readBookAtPage(result)" (keydown.space)="readBookAtPage(result); $event.preventDefault()" tabindex="0" role="button" [title]="'Open ' + result.bookTitle + ' in reader'" style="margin-bottom: 0;">
-                          <span class="ai-search-citation-book">{{ result.bookTitle }}</span>
-                          @if (getContentTitle(result)) {
-                            <span class="ai-search-citation-separator">›</span>
-                            <span class="ai-search-citation-content-title">{{ getContentTitle(result) }}</span>
-                          } @else if (result.chapterTitle) {
-                            <span class="ai-search-citation-separator">›</span>
-                            <span class="ai-search-citation-chapter">{{ result.chapterTitle }}</span>
-                          }
-                          @if (result.pageNumber) {
-                            <span class="ai-search-citation-page">p.{{ result.pageNumber }}</span>
-                          }
-                          <span class="ai-search-citation-relevance">{{ (result.similarity * 100).toFixed(0) }}% match</span>
-                        </div>
-                      </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                      <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(result.chunkText + ' [Source: ' + result.bookTitle + ', Page ' + (result.pageNumber || 'N/A') + ']')" (click)="onCitationClick($event, [result])" (keydown.enter)="onCitationClick($event, [result])" (keydown.space)="onCitationClick($event, [result]); $event.preventDefault()" tabindex="0"></div>
                     </div>
                   }
                 </div>

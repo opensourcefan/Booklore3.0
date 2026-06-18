@@ -349,7 +349,7 @@
     line-height: 1.6;
     font-size: 1.05rem;
 
-    .ai-search-citation-highlight {
+    ::ng-deep .ai-search-citation-highlight {
       background: rgba(59, 130, 246, 0.15);
       border: 1px solid rgba(59, 130, 246, 0.3);
       padding: 0.1rem 0.45rem;
