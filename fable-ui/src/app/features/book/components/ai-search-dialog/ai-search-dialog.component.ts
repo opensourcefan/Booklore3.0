@@ -220,7 +220,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   /** Handles clicks on inline citation page links within the AI answer markdown.
    * Uses event delegation on the markdown content container to find the clicked
    * page link, resolve it to a result, and open the reader at that page. */
-  onCitationClick(event: MouseEvent, results?: AiSearchChunkResult[] | null): void {
+  onCitationClick(event: Event, results?: AiSearchChunkResult[] | null): void {
     const target = event.target as HTMLElement;
     if (!target.classList.contains('ai-search-citation-page-link')) return;
 
