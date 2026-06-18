@@ -78,8 +78,6 @@ def synthesize(
     system_prompt = _SYSTEM_PROMPT_TEMPLATE.format(
         requested_count=requested_count if requested_count is not None else "the requested number of"
     )
-    # Prepend the system prompt to the context so the LLM sees the rules.
-    context = system_prompt + "\n\n" + context
 
     try:
         raw = generate_fn(query.raw, context, max_tokens, temperature, chat_history, system_prompt)
@@ -225,10 +223,12 @@ def _best_matching_chunk_id(text: str, chunks: list[RetrievedChunk]) -> int | No
             best_id = chunk.chunk_id
 
     # Require a minimum overlap to avoid assigning invented text to a random chunk.
-    # The threshold is low because a single retrieved chunk can contain many
-    # distinct facts (e.g. a list of five comics on one page), so each item
-    # may only share a few words with the chunk.
-    if best_score >= 0.05:
+    # Require a minimum overlap to avoid assigning invented text to a random chunk.
+    # The threshold balances two needs: (1) a single chunk can contain many distinct
+    # facts (e.g. five comics on one page), so each item may share only a few words;
+    # (2) invented items must not falsely match chunks on common stopwords.
+    # 0.15 means at least 15% of the item's words must appear in the chunk.
+    if best_score >= 0.15:
         return best_id
     return None
 

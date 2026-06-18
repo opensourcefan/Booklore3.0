@@ -20,13 +20,6 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from sentence_transformers import SentenceTransformer
 
-# New modular pipeline (feature-flagged). Import here so app.py remains the composition root.
-USE_NEW_PIPELINE = os.getenv("USE_NEW_PIPELINE", "false").lower() == "true"
-if USE_NEW_PIPELINE:
-    from pipeline import run_search_pipeline
-    from retrieval import retrieve, EmbeddingDimensionMismatch
-    from query_parser import parse_query
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -77,10 +70,6 @@ RERANKER_MODEL_NAME = _config.get("rerankerModel", "BAAI/bge-reranker-base")
 OCR_ENABLED = _config.get("ocrEnabled", True)
 OCR_FALLBACK_ONLY = _config.get("ocrFallbackOnly", True)
 OCR_LANGUAGE = _config.get("ocrLanguage", "eng")
-
-# Feature flag for the new modular AI Search pipeline.
-# Set USE_NEW_PIPELINE=true to enable the ground-up rebuild.
-# Default is false so existing behavior is preserved until validated.
 
 # Database config
 DB_HOST = os.getenv("DB_HOST", "mariadb")
@@ -867,105 +856,144 @@ def compute_bm25_scores(query: str, documents: list[dict], k1: float = 1.5, b: f
     return scores
 
 
-def _search_with_new_pipeline(payload: dict[str, Any]) -> dict[str, Any]:
-    """Run the new modular AI Search pipeline for /v1/search.
+# ---- Chunk quality helpers (backported from new pipeline) ----
 
-    This is the feature-flagged entry point. It delegates to run_search_pipeline
-    and converts the structured response back to the legacy dict shape.
+_TOC_MARKERS = {
+    "index", "table of contents", "glossary", "appendix",
+    "list of entries", "list of figures", "list of tables",
+    "list of illustrations", "topical list", "references",
+    "bibliography", "acknowledgments", "preface",
+}
+_SPACED_TOC_MARKERS = {"i n d e x", "g l o s s a r y", "t a b l e  o f  c o n t e n t s"}
+
+
+def _has_toc_marker(text: str, chapter_title: str | None) -> bool:
+    """Return True if the chunk text or chapter title looks like a TOC/index fragment."""
+    text_lower = text.lower()
+    title_lower = (chapter_title or "").lower()
+    if any(marker in title_lower for marker in _TOC_MARKERS):
+        return True
+    if any(marker in text_lower[:200] for marker in _TOC_MARKERS):
+        return True
+    if any(marker in text_lower for marker in _SPACED_TOC_MARKERS):
+        return True
+    return False
+
+
+def _looks_like_title_list(text: str) -> bool:
+    """Detect long comma-separated lists of short title-like fragments.
+
+    Index/toc chunks often contain many short phrases separated by commas
+    with very few sentence terminators. A high comma-to-sentence ratio combined
+    with many title-case tokens is a strong signal of a reference list.
     """
-    query = payload.get("query", "").strip()
-    book_ids = payload.get("bookIds")
-    user_id = payload.get("userId")
-    top_k = int(payload.get("topK") or SEARCH_TOP_K)
-    display_top_k = int(payload.get("displayTopK") or top_k)
-    similarity_threshold = float(payload.get("similarityThreshold") or SEARCH_SIMILARITY_THRESHOLD)
-    # The new pipeline relies on keyword boosting and chunk filtering for quality;
-    # a threshold above 0.5 is too strict for the current embedding model and
-    # causes near-empty retrieval on real queries. Cap it for the new path only.
-    similarity_threshold = min(similarity_threshold, 0.5)
-    max_tokens = int(payload.get("maxTokens") or LLM_MAX_TOKENS)
-    temperature = float(payload.get("temperature") or LLM_TEMPERATURE)
-    chat_history = payload.get("chatHistory", [])
-    local_only = payload.get("localOnly", False)
+    if not text:
+        return False
+    sentences = [s.strip() for s in re.split(r"[.!?]", text) if s.strip()]
+    if not sentences:
+        return False
+    commas = text.count(",")
+    semicolons = text.count(";")
+    punctuation_per_sentence = (commas + semicolons) / len(sentences)
+    avg_sentence_len = sum(len(s) for s in sentences) / len(sentences)
+    if punctuation_per_sentence >= 4 and avg_sentence_len >= 300:
+        return True
+    return False
 
-    hybrid_search_enabled = bool(
-        payload.get("hybridSearchEnabled")
-        if payload.get("hybridSearchEnabled") is not None
-        else HYBRID_SEARCH_ENABLED
-    )
-    rrf_k = int(payload.get("rrfK") or RRF_K)
-    reranking_enabled = bool(
-        payload.get("rerankingEnabled")
-        if payload.get("rerankingEnabled") is not None
-        else RERANKING_ENABLED
-    )
 
-    parsed = parse_query(query)
+def _detect_intent(text: str, requested_count: int | None) -> str:
+    """Classify query intent: list, summarize, or fact."""
+    lowered = text.lower()
+    list_indicators = ["list", "show me", "give me", "top ", "what are", "what were"]
+    summarize_indicators = ["summarize", "summary", "overview", "synopsis", "explain", "describe"]
+    if requested_count is not None or any(ind in lowered for ind in list_indicators):
+        return "list"
+    if any(ind in lowered for ind in summarize_indicators):
+        return "summarize"
+    return "fact"
 
-    def retrieve_fn(embedding_text: str, book_ids: list[int] | None, user_id: int, top_k: int):
-        return retrieve(
-            embedding_text=embedding_text,
-            book_ids=book_ids,
-            user_id=user_id,
-            top_k=top_k,
-            compute_embedding_fn=_compute_embedding,
-            get_db_connection_fn=_get_db_connection,
-            cosine_similarity_fn=_cosine_similarity,
-            similarity_threshold=similarity_threshold,
-            hybrid_search_enabled=hybrid_search_enabled,
-            rrf_k=rrf_k,
-            reranking_enabled=reranking_enabled,
-            reranker_model=_reranker_model,
-            matryoshka_dimensions=MATRYOSHKA_DIMENSIONS,
-            required_phrases=parsed.required_phrases,
-            semantic_keywords=parsed.semantic_keywords,
-            is_index_request=("index" in query.lower() or "table of contents" in query.lower()),
-        )
 
-    try:
-        response = run_search_pipeline(
-            query=query,
-            book_ids=book_ids,
-            user_id=user_id,
-            retrieve_fn=retrieve_fn,
-            generate_fn=_generate_answer,
-            top_k=top_k,
-            display_top_k=display_top_k,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            chat_history=chat_history,
-            local_only=local_only,
-        )
-        return response.model_dump(by_alias=True, exclude_none=True)
-    except EmbeddingDimensionMismatch as e:
-        logger.error("Embedding dimension mismatch in new pipeline: %s", e)
-        return {
-            "query": query,
-            "results": [],
-            "answer": None,
-            "error": f"Embedding dimension mismatch: the active model produces {e.query_dim}-d vectors "
-                     f"but your stored embeddings are {e.stored_dim}-d. "
-                     f"Your embedding model has changed. Please re-embed your books from Settings → AI Search.",
-            "totalChunksSearched": 0,
-        }
-    except RuntimeError as e:
-        logger.error("Embedding computation failed in new pipeline: %s", e)
-        return {
-            "query": query,
-            "results": [],
-            "answer": None,
-            "error": str(e),
-            "totalChunksSearched": 0,
-        }
+def _text_overlap_ratio(a: str, b: str) -> float:
+    """Return the Jaccard word-overlap ratio between two item texts."""
+    words_a = set(re.findall(r"\b\w+\b", a.lower()))
+    words_b = set(re.findall(r"\b\w+\b", b.lower()))
+    if not words_a or not words_b:
+        return 0.0
+    return len(words_a & words_b) / len(words_a | words_b)
+
+
+def _deduplicate_same_chunk_items(answer: str, results: list[dict]) -> str:
+    """Merge consecutive list items that are near-duplicate rewordings of the same fact.
+
+    When the LLM repeats the same fact with minor wording changes across multiple
+    numbered items to satisfy a count request, this merges consecutive items whose
+    text is highly similar (>= 80% word overlap) and that cite the same source.
+    Distinct items that merely share a source are preserved as separate items.
+    """
+    if not answer or not results:
+        return answer
+    lines = answer.split("\n")
+    if len(lines) <= 1:
+        return answer
+
+    # Build a map from source marker text to result index
+    source_to_idx: dict[str, int] = {}
+    for i, r in enumerate(results):
+        page = r.get("pageNumber") or "N/A"
+        marker = f"[Source: {r['bookTitle']}, Page {page}]"
+        source_to_idx[marker] = i
+
+    list_item_pattern = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
+    deduped: list[str] = []
+    current_run: list[tuple[str, str | None]] = []  # (line_text, source_marker)
+
+    for line in lines:
+        stripped = line.strip()
+        if not list_item_pattern.match(stripped):
+            # Non-list line: flush any accumulated run, then pass through.
+            if current_run:
+                deduped.append(_merge_item_run(current_run))
+                current_run = []
+            deduped.append(line)
+            continue
+
+        # Extract source marker from this line
+        source_match = re.search(r"\[Source:\s*([^\]]+)\]", stripped)
+        source_marker = source_match.group(0) if source_match else None
+
+        if current_run:
+            last_line, last_source = current_run[-1]
+            same_source = (source_marker is not None and last_source is not None
+                           and source_marker == last_source)
+            if same_source:
+                # Compare text (strip citations for clean comparison)
+                clean_last = re.sub(r"\s*\[Source:[^\]]*\]", "", last_line).strip()
+                clean_curr = re.sub(r"\s*\[Source:[^\]]*\]", "", stripped).strip()
+                if _text_overlap_ratio(clean_last, clean_curr) >= 0.8:
+                    current_run.append((stripped, source_marker))
+                    continue
+            # Different source or low overlap: flush run, start new one
+            deduped.append(_merge_item_run(current_run))
+            current_run = []
+        current_run.append((stripped, source_marker))
+
+    if current_run:
+        deduped.append(_merge_item_run(current_run))
+
+    return "\n".join(deduped)
+
+
+def _merge_item_run(run: list[tuple[str, str | None]]) -> str:
+    """Merge a run of near-duplicate items into one."""
+    if len(run) == 1:
+        return run[0][0]
+    # Keep the first item's text (it's usually the best-phrased) with its citation.
+    return run[0][0]
 
 
 @app.post("/v1/search")
 def search(payload: dict[str, Any]) -> dict[str, Any]:
     """Search across embedded books using a natural language query."""
-    if USE_NEW_PIPELINE:
-        logger.info("Using new modular AI Search pipeline for query: %s", payload.get("query", ""))
-        return _search_with_new_pipeline(payload)
-
     query = payload.get("query", "").strip()
     book_ids = payload.get("bookIds")  # Optional: limit to specific books
     user_id = payload.get("userId")
@@ -1122,16 +1150,20 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 "totalChunksSearched": len(rows),
             }
 
-        # Map database rows into structured documents, applying heuristic filtering
+        # Map database rows into structured documents, applying heuristic filtering.
+        # Expanded TOC/index markers and title-list detection backported from the
+        # new pipeline's chunk_filter.py for better garbage-chunk rejection.
         documents = []
         row_map = {}
         for row in rows:
             if not is_index_request:
                 ch_title = (row["chapter_title"] or "").lower()
                 text_prefix = row["chunk_text"][:200].lower()
-                if "index" in ch_title or "table of contents" in ch_title or "glossary" in ch_title:
+                # Expanded TOC/index markers (was: only "index", "table of contents", "glossary")
+                if _has_toc_marker(row["chunk_text"], row["chapter_title"]):
                     continue
-                if "i n d e x" in text_prefix or "g l o s s a r y" in text_prefix:
+                # Long comma-separated title lists (e.g. "TOPICAL LIST OF ENTRIES A, B, C...")
+                if _looks_like_title_list(row["chunk_text"]):
                     continue
                 words = text_prefix.split()
                 numbers = [w for w in words if re.match(r'^\d+$', w)]
@@ -1157,6 +1189,36 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             }
             documents.append(doc)
             row_map[row["id"]] = row
+
+        # Safety valve: if filtering dropped ALL candidates (and there were multiple),
+        # bypass the filter rather than returning zero results. Backported from
+        # chunk_filter.py's safety_valve logic.
+        if not documents and len(rows) > 1:
+            logger.warning(
+                "Chunk quality filter would drop all %d candidates; bypassing filter for this query.",
+                len(rows),
+            )
+            # Rebuild documents without filtering (only required-keyword check)
+            documents = []
+            row_map = {}
+            for row in rows:
+                if required_keywords:
+                    text_lower = row["chunk_text"].lower()
+                    title_lower = (row["chapter_title"] or "").lower()
+                    book_lower = (row["book_title"] or "").lower()
+                    if not all(kw.lower() in text_lower or kw.lower() in title_lower or kw.lower() in book_lower for kw in required_keywords):
+                        continue
+                doc = {
+                    "chunkId": row["id"],
+                    "bookId": row["book_id"],
+                    "bookTitle": row["book_title"],
+                    "chunkIndex": row["chunk_index"],
+                    "chunkText": row["chunk_text"],
+                    "pageNumber": row["page_number"],
+                    "chapterTitle": row["chapter_title"],
+                }
+                documents.append(doc)
+                row_map[row["id"]] = row
 
         # Compute dense vector similarities
         scored_vector = []
@@ -1259,7 +1321,14 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 except Exception as e:
                     logger.error("Failed to run reranker: %s", e)
 
-        top_results = candidates[:top_k]
+        # For list queries, retrieve a larger pool so the LLM has more candidates
+        # to choose from while still returning only display_top_k to the UI.
+        # Backported from pipeline.py's list-query pool expansion.
+        retrieval_top_k = top_k
+        if requested_count is not None:
+            retrieval_top_k = max(top_k, requested_count * 3)
+
+        top_results = candidates[:retrieval_top_k]
         display_results = top_results[:display_top_k]
 
         # Fetch adjacent chunks for each displayed result using the SAME connection
@@ -1307,8 +1376,35 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             for i, r in enumerate(display_results)
         ])
 
+        # Adjust system prompt based on detected query intent.
+        # Backported from query_parser.py's intent detection.
+        intent = _detect_intent(query, requested_count)
+        custom_system_prompt = None
+        if intent == "list":
+            custom_system_prompt = (
+                "You are an AI search assistant. Read the provided Context carefully.\n"
+                "Your task is to respond to the user's Query based ONLY on the Context. Do not use external knowledge.\n"
+                "If the Context contains any information relevant to the Query, you MUST use it to answer the Query.\n"
+                "You MUST cite your sources for every fact or item using the exact format [Source: Book Title, Page N] inline at the end of the item.\n"
+                "If the context contains absolutely no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else.\n"
+                "\n"
+                "RESPONSE FORMAT:\n"
+                "- Return your answer as structured bullet points, one per distinct item.\n"
+                "- Each bullet point MUST end with its own citation.\n"
+                "- Do NOT split a single chunk into multiple numbered items.\n"
+                "- Do NOT invent items to reach a requested count. Only return items directly supported by the Context.\n"
+                "\n"
+                "CITATION RULES:\n"
+                "- Use the page number from the Context block that the information came from.\n"
+                "- Do NOT reuse the same page number for every item unless every item really came from that page.\n"
+                "\n"
+                "CITATION EXAMPLE:\n"
+                "- \"Galactic Warriors\" by Joe Orlando [Source: 100 All-Time Greatest Comics, Page 98]\n"
+                "- The Starblade chronicles the conflict over interstellar trade routes [Source: 100 All-Time Greatest Comics, Page 102]"
+            )
+
         try:
-            answer = _generate_answer(query, context, max_tokens, temperature, chat_history)
+            answer = _generate_answer(query, context, max_tokens, temperature, chat_history, custom_system_prompt)
         except Exception as e:
             logger.error("Error generating LLM answer: %s", e)
             answer = None
@@ -1318,6 +1414,10 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         # for any bullet that is missing one.
         if answer:
             answer = _ensure_list_citations(answer, display_results)
+            # Deduplicate near-duplicate same-source list items. Small LLMs sometimes
+            # repeat the same fact with minor wording changes to satisfy a count request.
+            # Backported from synthesis.py's Jaccard-based dedup.
+            answer = _deduplicate_same_chunk_items(answer, display_results)
 
     # Identify missing core keywords (completely absent from all top results)
     missing_keywords = []

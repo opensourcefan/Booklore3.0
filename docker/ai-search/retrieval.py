@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import json
 import logging
+import math
+import re
 from typing import Any, Callable
 
 from models import Chunk, RetrievedChunk
@@ -127,7 +129,7 @@ def retrieve(
                 if "i n d e x" in text_prefix or "g l o s s a r y" in text_prefix:
                     continue
                 words = text_prefix.split()
-                numbers = [w for w in words if __import__("re").match(r'^\d+$', w)]
+                numbers = [w for w in words if re.match(r'^\d+$', w)]
                 if len(words) > 0 and (len(numbers) / len(words)) > 0.15:
                     continue
 
@@ -347,7 +349,7 @@ def _compute_bm25_scores(query: str, documents: list[dict], k1: float = 1.5, b: 
         for token in query_tokens:
             if token not in tf:
                 continue
-            idf = __import__("math").log((num_docs - df[token] + 0.5) / (df[token] + 0.5) + 1.0)
+            idf = math.log((num_docs - df[token] + 0.5) / (df[token] + 0.5) + 1.0)
             freq = tf[token]
             num = freq * (k1 + 1)
             denom = freq + k1 * (1 - b + b * (doc_len / avg_doc_len))
