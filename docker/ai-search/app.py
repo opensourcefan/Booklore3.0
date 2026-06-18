@@ -386,6 +386,8 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
        `1.`) appends or replaces the citation with the source that actually matches the
        result slot.
     3. Cycles through results in order so each list item gets the next best source.
+    4. Skips citation-only sub-bullets (e.g. "- Source: [Source 1: ...]") to prevent
+       double-processing garbage.
     """
     if not results:
         return answer
@@ -399,13 +401,26 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
 
     processed_lines = []
     list_item_pattern = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
+    # Matches lines that are purely a citation with no substantive content
+    citation_only_pattern = re.compile(
+        r"^\s*(?:[-*]|\d+\.)\s*\[?Source\s*(?:\d+)?:\s*[^\]]*\]?\s*$",
+        re.IGNORECASE
+    )
 
     for line in answer.split("\n"):
         stripped = line.strip()
+
+        # Skip citation-only sub-bullets. These are LLM artifacts where the model
+        # puts the citation on a separate line instead of inline. Processing them
+        # would produce garbage like "Source: [Source: ...]".
+        if citation_only_pattern.match(stripped):
+            continue
+
         if list_item_pattern.match(stripped):
             # Strip any existing (possibly wrong) citation so we can replace it with the
-            # source that actually matches this result slot.
-            stripped = re.sub(r"\s*\[Source:[^\]]*\]", "", stripped).strip()
+            # source that actually matches this result slot. Also normalize the context
+            # block format [Source N: Book, Page, ChunkIndex] to [Source: Book, Page].
+            stripped = re.sub(r"\s*\[Source\s*(?:\d+)?:\s*[^\]]*\]", "", stripped).strip()
             if stripped.endswith((".", "!", "?")):
                 line = f"{stripped} {_source_marker(current_source)}"
             else:
@@ -1009,6 +1024,38 @@ def _merge_item_run(run: list[tuple[str, str | None]]) -> str:
     return run[0][0]
 
 
+def _strip_hallucination_lines(answer: str) -> str:
+    """Remove list items that the LLM invented (hallucinated).
+
+    Small local LLMs sometimes fabricate items to satisfy a count request,
+    then add disclaimers like "inferred", "not directly sourced", or
+    "not sourced in this context". These lines are removed entirely.
+    """
+    if not answer:
+        return answer
+
+    hallucination_patterns = [
+        re.compile(r"not\s+(directly\s+)?sourced\s+in\s+this\s+context", re.IGNORECASE),
+        re.compile(r"inferred\s+(based\s+on|from)", re.IGNORECASE),
+        re.compile(r"not\s+directly\s+sourced", re.IGNORECASE),
+    ]
+
+    kept_lines = []
+    for line in answer.split("\n"):
+        stripped = line.strip()
+        if not stripped:
+            kept_lines.append(line)
+            continue
+        # Check if this line is a hallucination disclaimer
+        is_hallucination = any(p.search(stripped) for p in hallucination_patterns)
+        if is_hallucination:
+            logger.info("Stripping hallucination line: %s", stripped[:120])
+            continue
+        kept_lines.append(line)
+
+    return "\n".join(kept_lines)
+
+
 @app.post("/v1/search")
 def search(payload: dict[str, Any]) -> dict[str, Any]:
     """Search across embedded books using a natural language query."""
@@ -1408,13 +1455,16 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                 "\n"
                 "RESPONSE FORMAT:\n"
                 "- Return your answer as structured bullet points, one per distinct item.\n"
-                "- Each bullet point MUST end with its own citation.\n"
+                "- Each bullet point MUST end with its own citation INLINE on the SAME line.\n"
+                "- Do NOT put citations on separate sub-bullet lines. Citations go at the END of the item line.\n"
                 "- Do NOT split a single chunk into multiple numbered items.\n"
                 "- Do NOT invent items to reach a requested count. Only return items directly supported by the Context.\n"
+                "- Do NOT add disclaimers like \"inferred\" or \"not directly sourced\" to any item.\n"
                 "\n"
                 "CITATION RULES:\n"
                 "- Use the page number from the Context block that the information came from.\n"
                 "- Do NOT reuse the same page number for every item unless every item really came from that page.\n"
+                "- Use the format [Source: Book Title, Page N] — do NOT include ChunkIndex or Source numbers.\n"
                 "\n"
                 "CITATION EXAMPLE:\n"
                 "- \"Galactic Warriors\" by Joe Orlando [Source: 100 All-Time Greatest Comics, Page 98]\n"
@@ -1458,7 +1508,17 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         # ignore the citation format instruction, so we append the best matching source
         # for any bullet that is missing one.
         if answer:
+            # Normalize context-block citation format [Source N: Book, Page, ChunkIndex]
+            # to the prompt format [Source: Book, Page] before any other processing.
+            answer = re.sub(
+                r"\[Source\s+\d+:\s*([^,\]]+),\s*Page\s*(\d+)[^\]]*\]",
+                r"[Source: \1, Page \2]",
+                answer
+            )
             answer = _ensure_list_citations(answer, display_results)
+            # Strip hallucination lines: items the LLM invented that contain
+            # disclaimers like "inferred", "not directly sourced", or "not sourced".
+            answer = _strip_hallucination_lines(answer)
             # Deduplicate near-duplicate same-source list items. Small LLMs sometimes
             # repeat the same fact with minor wording changes to satisfy a count request.
             # Backported from synthesis.py's Jaccard-based dedup.
