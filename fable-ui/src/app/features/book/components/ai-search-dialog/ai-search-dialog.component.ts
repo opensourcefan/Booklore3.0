@@ -214,11 +214,10 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     if (msg.localOnly) return true;
     // No answer means no AI synthesis — show as Raw Results if results exist.
     if (!msg.answer) return true;
-    // Fallback: synthesis failed but chunks were retrieved. The pipeline
-    // returns raw chunk text with [Source: markers and no answerItems.
-    if (!msg.answerItems || msg.answerItems.length === 0) {
-      return msg.answer.includes('[Source:');
-    }
+    // Legacy search() always returns a proper markdown answer (never raw chunk
+    // dumps), and never sets answerItems. The answerItems field only existed for
+    // the now-removed new pipeline. Checking it here caused every AI answer
+    // containing [Source:] citations to be misclassified as RAW.
     return false;
   }
 

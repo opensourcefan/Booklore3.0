@@ -107,6 +107,11 @@
     flex-shrink: 0;
     margin-left: 0.15rem;
 
+    i {
+      transform: scale(0.5);
+      transform-origin: center;
+    }
+
     &:hover {
       background: rgba(128, 128, 128, 0.2);
       color: var(--text-color);
