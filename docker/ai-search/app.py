@@ -1552,7 +1552,12 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         display_results = []
         answer = "I could not find any relevant information for this search."
     else:
-        # Construct a consolidated disclaimer note if results count is less than requested or keywords are missing
+        # Construct a consolidated disclaimer note if results count is less than
+        # requested or keywords are missing. This disclaimer is ONLY shown in RAW
+        # mode or when there is no LLM answer at all. When the LLM produced a real
+        # answer, we do NOT prepend the disclaimer — the LLM already synthesized
+        # what it could from the available context, and prepending "only found 1
+        # match" on a 5-item AI answer is confusing and contradictory.
         disclaimer_parts = []
         if requested_count and len(display_results) < requested_count:
             disclaimer_parts.append(f"only found {len(display_results)} match{'es' if len(display_results) != 1 else ''} in your library (not the {requested_count} requested)")
@@ -1562,25 +1567,15 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
 
         if disclaimer_parts and display_results:
             disclaimer = "⚠️ *Note: I " + " and I ".join(disclaimer_parts) + ":*\n\n"
-            if answer:
-                # Strip duplicate warnings or statements from the beginning of the LLM's response
-                answer_clean = answer.strip()
-                if answer_clean.startswith("⚠️"):
-                    lines = answer.split("\n")
-                    non_warning_lines = []
-                    in_warning = True
-                    for line in lines:
-                        if in_warning:
-                            trimmed = line.strip()
-                            if trimmed.startswith("⚠️") or (not trimmed and len(non_warning_lines) == 0):
-                                continue
-                            else:
-                                in_warning = False
-                        non_warning_lines.append(line)
-                    answer = "\n".join(non_warning_lines).strip()
-                answer = disclaimer + answer
-            elif local_only:
+            if local_only:
+                # RAW mode: show the disclaimer so the user understands why
+                # results are limited and which keywords were not found.
                 answer = disclaimer
+            elif not answer:
+                # No LLM answer at all: show the disclaimer as the only content.
+                answer = disclaimer
+            # When the LLM produced a real answer, do NOT prepend the disclaimer.
+            # The LLM already synthesized what it could from the available context.
 
     return {
         "query": query,

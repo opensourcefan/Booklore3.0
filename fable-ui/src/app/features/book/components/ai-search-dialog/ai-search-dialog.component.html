@@ -108,7 +108,7 @@
                     <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
                   </div>
                 </div>
-                <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)"></div>
+                <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)" (click)="onCitationClick($event, msg.results)" (keydown.enter)="onCitationClick($event, msg.results)" (keydown.space)="onCitationClick($event, msg.results); $event.preventDefault()" tabindex="0"></div>
                 @if (msg.results && msg.results.length > 0) {
                   <div class="ai-search-citations">
                     <div class="ai-search-citations-label">

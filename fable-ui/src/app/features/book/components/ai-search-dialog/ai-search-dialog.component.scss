@@ -354,12 +354,38 @@
       border: 1px solid rgba(59, 130, 246, 0.3);
       padding: 0.1rem 0.45rem;
       border-radius: 4px;
-      font-weight: 600;
+      font-weight: 400;
+      font-style: italic;
       color: var(--primary-color);
       font-size: 0.85rem;
       display: inline-flex;
       align-items: center;
       margin: 0 0.15rem;
+
+      em {
+        font-style: italic;
+      }
+
+      .ai-search-citation-page-link {
+        font-weight: 600;
+        font-style: normal;
+        color: var(--primary-color);
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        text-decoration-thickness: 1px;
+        padding: 0 0.1rem;
+        border-radius: 2px;
+        transition: background-color 0.15s, color 0.15s;
+
+        &:hover,
+        &:focus-visible {
+          background: var(--primary-color);
+          color: #fff;
+          text-decoration: none;
+          outline: none;
+        }
+      }
     }
 
     p {
