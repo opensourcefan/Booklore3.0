@@ -470,11 +470,12 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         messages.extend(chat_history)
     messages.append({"role": "user", "content": user_prompt})
 
-    # LLM generation timeout. Kept below the Java search proxy read timeout
-    # (120s) so that when the LLM is slow/stuck the Python service fails first
-    # and returns a graceful RAW fallback, rather than the Java layer timing
-    # out and surfacing a generic "Could not reach the AI Search service" error.
-    LLM_REQUEST_TIMEOUT = 90
+    # LLM generation timeout. The large model (e.g. llama3.2) can take several
+    # minutes to generate on CPU. 300s gives it enough time to complete while
+    # still failing if Ollama is truly stuck. The Java search proxy uses a
+    # longer timeout (330s) so that Python fails first and returns a graceful
+    # RAW fallback, rather than the Java layer timing out.
+    LLM_REQUEST_TIMEOUT = 300
 
     if LLM_PROVIDER == "openai":
         base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "https://api.openai.com/v1"

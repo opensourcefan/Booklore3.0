@@ -27,6 +27,7 @@ export interface ChatMessage {
   answerItems: AiSearchAnswerItem[] | null;
   results: AiSearchChunkResult[];
   isLoading: boolean;
+  localOnly: boolean;
 }
 
 @Injectable({providedIn: 'root'})
@@ -209,13 +210,14 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   }
 
   isRawDisplay(msg: ChatMessage): boolean {
+    // Explicit RAW mode — always show as Raw Results.
+    if (msg.localOnly) return true;
+    // No answer means no AI synthesis — show as Raw Results if results exist.
     if (!msg.answer) return true;
-    const cleaned = msg.answer.trim();
-    if (cleaned.startsWith('⚠️')) {
-      const lastMarkerIndex = cleaned.lastIndexOf(':*');
-      if (lastMarkerIndex !== -1 && lastMarkerIndex === cleaned.length - 2) {
-        return true;
-      }
+    // Fallback: synthesis failed but chunks were retrieved. The pipeline
+    // returns raw chunk text with [Source: markers and no answerItems.
+    if (!msg.answerItems || msg.answerItems.length === 0) {
+      return msg.answer.includes('[Source:');
     }
     return false;
   }
@@ -379,7 +381,8 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       answer: null,
       answerItems: null,
       results: [],
-      isLoading: true
+      isLoading: true,
+      localOnly: this.localOnly,
     };
     this.chatHistory.push(currentMessage);
     

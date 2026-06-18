@@ -1041,16 +1041,16 @@ public class AiSearchService {
     /**
      * RestClient for interactive /v1/search queries.
      *
-     * Uses a shorter read timeout (120s) than {@link #buildRestClient()} so a
-     * hung Python/Ollama search fails fast instead of holding the browser
-     * connection open for the 10-minute embedding timeout. The Python service
-     * caps its own Ollama LLM call at 90s, so 120s gives ample headroom for
-     * retrieval + synthesis while preventing the multi-minute UI hangs.
+     * Uses a 330s read timeout — 30s longer than the Python LLM call timeout
+     * (300s) so that Python fails first and returns a graceful RAW fallback
+     * instead of the Java layer timing out and showing "Could not reach the
+     * AI Search service". The 10-minute embedding timeout in
+     * {@link #buildRestClient()} is intentionally separate.
      */
     private RestClient buildSearchRestClient() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
-        factory.setReadTimeout(120_000);
+        factory.setReadTimeout(330_000);
         return RestClient.builder()
                 .requestFactory(factory)
                 .build();
