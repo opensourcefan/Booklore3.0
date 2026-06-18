@@ -487,6 +487,11 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         else:
             base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "http://localhost:11434"
         url = f"{base_url}/api/chat" if "/api" not in base_url else f"{base_url}/chat"
+        logger.info(
+            "LLM request: model=%s context_chars=%d query=%s",
+            LLM_MODEL_NAME, len(context), query[:80]
+        )
+        t0 = time.time()
         resp = requests.post(
             url,
             headers=headers,
@@ -503,8 +508,21 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
             },
             timeout=LLM_REQUEST_TIMEOUT,
         )
+        elapsed = time.time() - t0
         resp.raise_for_status()
-        return resp.json().get("message", {}).get("content", "")
+        content = resp.json().get("message", {}).get("content", "")
+        logger.info(
+            "LLM response: model=%s elapsed=%.1fs content_chars=%d preview=%s",
+            LLM_MODEL_NAME, elapsed, len(content),
+            content[:200].replace("\n", "\\n") if content else "(EMPTY)"
+        )
+        if not content:
+            logger.warning(
+                "LLM returned empty content for model=%s query=%s — "
+                "model may not be loaded or may have crashed during generation",
+                LLM_MODEL_NAME, query[:80]
+            )
+        return content
 
 
 # ---- API Endpoints ----
@@ -1408,6 +1426,33 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         except Exception as e:
             logger.error("Error generating LLM answer: %s", e)
             answer = None
+
+        # If the LLM returned empty content (model not loaded, crashed, or produced
+        # zero tokens), synthesize a fallback bulleted list from the raw results so
+        # the user sees structured output instead of silent RAW fallback.
+        if answer is not None and not answer.strip():
+            logger.warning(
+                "LLM returned empty/whitespace-only content. Building fallback "
+                "bulleted list from %d raw results.", len(display_results)
+            )
+            fallback_lines = []
+            for i, r in enumerate(display_results[:requested_count or len(display_results)]):
+                page = r.get("pageNumber") or "N/A"
+                snippet = r["chunkText"].strip()[:200]
+                # Truncate at last sentence boundary within 200 chars
+                if len(r["chunkText"]) > 200:
+                    last_period = snippet.rfind(".")
+                    last_excl = snippet.rfind("!")
+                    last_q = snippet.rfind("?")
+                    cut = max(last_period, last_excl, last_q)
+                    if cut > 100:
+                        snippet = snippet[:cut+1]
+                    else:
+                        snippet = snippet[:197] + "..."
+                fallback_lines.append(
+                    f"- {snippet} [Source: {r['bookTitle']}, Page {page}]"
+                )
+            answer = "\n".join(fallback_lines) if fallback_lines else None
 
         # Safety net: ensure every list item has a citation. Small local LLMs sometimes
         # ignore the citation format instruction, so we append the best matching source
