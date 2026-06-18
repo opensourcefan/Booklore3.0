@@ -441,17 +441,18 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
         processed_lines.append(line)
 
     if not has_list_items:
-        for i in range(len(processed_lines) - 1, -1, -1):
-            line = processed_lines[i]
-            stripped = line.strip()
-            if stripped:
-                if not re.search(r"\[Source\s*(?:\d+)?:\s*[^\]]*\]", stripped):
+        # Check if the entire answer already contains a citation to prevent duplicate citations
+        if not re.search(r"\[Source\s*(?:\d+)?:\s*[^\]]*\]", answer):
+            for i in range(len(processed_lines) - 1, -1, -1):
+                line = processed_lines[i]
+                stripped = line.strip()
+                if stripped:
                     stripped = re.sub(r"\s*[-–—]\s*$", "", stripped).strip()
                     if stripped.endswith((".", "!", "?")):
                         processed_lines[i] = f"{stripped} {_source_marker(results[0])}"
                     else:
                         processed_lines[i] = f"{stripped}. {_source_marker(results[0])}"
-                break
+                    break
 
     return "\n".join(processed_lines)
 
@@ -469,7 +470,7 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         system_prompt = (
             "You are an AI search assistant. Read the provided Context carefully.\n"
             "Your task is to respond to the user's Query based ONLY on the Context. Do not use external knowledge.\n"
-            "If the Context contains any information relevant to the Query, you MUST use it to answer the Query. Do NOT refuse to answer or state that the context lacks information if the query terms are present in the Context.\n"
+            "If the Context contains any information relevant to the Query, you MUST use it to answer the Query. Note that the Context is retrieved semantically, so the exact query terms (such as genre names like 'sci-fi' or 'vigilante') may not appear literally in the text. You should still use your understanding to connect the concepts and answer the query based on the retrieved context, and do NOT refuse to answer or claim the context lacks information.\n"
             "You MUST cite your sources for every fact or item using the exact format [Source: Book Title, Page N] inline at the end of the item.\n"
             "If the context contains absolutely no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else.\n"
             "\n"
@@ -1260,6 +1261,11 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         "included", "contains", "containing", "contain", "having", "make", "made",
         "summary", "summarize", "summarise", "brief", "overview", "synopsis", "recap",
         "outline", "highlight", "highlights", "tl;dr", "tldr",
+        # Genre, format, and search metadata terms to prevent false missing keyword alerts
+        "sci-fi", "scifi", "comic", "comics", "novel", "book", "books", "literature", "vigilante",
+        "funny", "humorous", "humor", "comedy", "series", "suggest", "recommend", "character",
+        "characters", "author", "authors", "writer", "writers", "artist", "artists", "publisher",
+        "publishers", "title", "titles", "page", "pages", "read", "reader", "readers"
     }
 
     def _extract_query_tokens(text: str) -> list[str]:
@@ -1617,7 +1623,7 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             custom_system_prompt = (
                 "You are an AI search assistant. Read the provided Context carefully.\n"
                 "Your task is to respond to the user's Query based ONLY on the Context. Do not use external knowledge.\n"
-                "If the Context contains any information relevant to the Query, you MUST use it to answer the Query.\n"
+                "If the Context contains any information relevant to the Query, you MUST use it to answer the Query. Note that the Context is retrieved semantically, so the exact query terms (such as genre names like 'sci-fi' or 'vigilante') may not appear literally in the text. You should still use your understanding to connect the concepts and answer the query based on the retrieved context, and do NOT refuse to answer or claim the context lacks information.\n"
                 "You MUST cite your sources for every fact or item using the exact format [Source: Book Title, Page N] inline at the end of the item.\n"
                 "If the context contains absolutely no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else.\n"
                 "\n"
