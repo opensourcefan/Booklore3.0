@@ -955,29 +955,31 @@ def _looks_like_title_list(text: str) -> bool:
 
 
 def _is_heading_only(text: str) -> bool:
-    """Return True if the chunk is just a heading/title with no substantive prose.
+    """Return True if the chunk is just a heading/title or noise with no prose.
 
     Chunks like "Greatest Comics" or "Chapter 3: The Beginning" that contain
     only a short title phrase produce garbage in RAW mode. This filter rejects
     chunks that are:
-    - Very short (< 60 chars)
-    - Have no sentence terminators (no ., !, ?)
-    - Are mostly title-case words (each word starts with uppercase)
+    - Very short (< 60 chars) and have no sentence terminators (no ., !, ?)
+    - Mostly title-case words (each word starts with uppercase)
     """
     if not text:
         return True
     text = text.strip()
+    # Chunks shorter than 60 characters with no punctuation are always garbage/headers
+    if len(text) < 60 and not re.search(r"[.!?]", text):
+        return True
+
+    # Original heading title-case check for longer header blocks
     if len(text) >= 60:
+        # Check if most words are title-case
+        words = [w for w in text.split() if len(w) >= 2 and w[0].isalpha()]
+        if words:
+            title_case_count = sum(1 for w in words if w[0].isupper())
+            if title_case_count / len(words) >= 0.7:
+                return True
         return False
-    # Has a sentence terminator? Then it's prose, not just a heading.
-    if re.search(r"[.!?]", text):
-        return False
-    # Check if most words are title-case (capitalized first letter).
-    words = [w for w in text.split() if len(w) >= 2 and w[0].isalpha()]
-    if not words:
-        return False
-    title_case_count = sum(1 for w in words if w[0].isupper())
-    return title_case_count / len(words) >= 0.7
+    return False
 
 
 def _looks_like_advertisement(text: str) -> bool:
@@ -985,16 +987,42 @@ def _looks_like_advertisement(text: str) -> bool:
     if not text:
         return False
     text_lower = text.lower()
-    if "newsstand price" in text_lower:
+    if "newsstand price" in text_lower or "newsstand" in text_lower:
         return True
     if "save" in text_lower and "% off" in text_lower:
         return True
     if "subscription" in text_lower or "subscribe to" in text_lower or "subscribe now" in text_lower:
-        if "www." in text_lower or "visit" in text_lower or "special offer" in text_lower or "issues for" in text_lower:
-            return True
+        return True
+    if "free sample" in text_lower or "sample issue" in text_lower:
+        return True
+    if "digital magazine" in text_lower or "imagine publishing" in text_lower:
+        return True
     if "special offer" in text_lower and ("visit" in text_lower or "www." in text_lower):
         return True
     if "try" in text_lower and "issues for" in text_lower:
+        return True
+    return False
+
+
+def _is_garbage_spaced_text(text: str) -> bool:
+    """Detect broken OCR or spaced-out letter noise (e.g. A rt w or k)."""
+    words = [w for w in re.findall(r"\b\w+\b", text) if w.isalpha()]
+    if len(words) < 5:
+        return False
+    short_words = [w for w in words if len(w) <= 2]
+    if (len(short_words) / len(words)) > 0.5:
+        return True
+    return False
+
+
+def _is_legal_or_copyright(text: str) -> bool:
+    """Detect copyright disclaimers or legal/cataloging pages."""
+    text_lower = text.lower()
+    if "all rights reserved" in text_lower:
+        return True
+    if "no part of this book" in text_lower or "no part of this publication" in text_lower:
+        return True
+    if "library of congress cataloging-in-publication data" in text_lower:
         return True
     return False
 
@@ -1360,6 +1388,12 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
                     continue
                 # Advertisement chunks: publisher subscription catalogs
                 if _looks_like_advertisement(row["chunk_text"]):
+                    continue
+                # Spaced-out letters / OCR noise chunks
+                if _is_garbage_spaced_text(row["chunk_text"]):
+                    continue
+                # Legal, cataloging, and copyright pages
+                if _is_legal_or_copyright(row["chunk_text"]):
                     continue
 
             # Strict mandatory quotes keyword matching

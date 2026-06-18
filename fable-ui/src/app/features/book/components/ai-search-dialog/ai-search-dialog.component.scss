@@ -350,17 +350,12 @@
     font-size: 1.05rem;
 
     ::ng-deep .ai-search-citation-highlight {
-      background: rgba(59, 130, 246, 0.15);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      padding: 0.1rem 0.45rem;
-      border-radius: 4px;
       font-weight: 400;
       font-style: italic;
       color: var(--primary-color);
       font-size: 0.75rem;
-      display: inline-flex;
-      align-items: center;
-      margin: 0 0.15rem;
+      display: inline;
+      margin-left: 0.25rem;
 
       em {
         font-style: italic;
