@@ -32,7 +32,7 @@ def run_search_pipeline(
     book_ids: list[int] | None,
     user_id: int,
     retrieve_fn: Callable[..., tuple[list[RetrievedChunk], int]],
-    generate_fn: Callable[[str, str, int, float, list[dict] | None], str],
+    generate_fn: Callable[[str, str, int, float, list[dict] | None, str | None], str],
     top_k: int = 5,
     display_top_k: int | None = None,
     max_tokens: int = 768,

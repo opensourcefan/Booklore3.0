@@ -51,7 +51,7 @@ def build_context(query: ParsedQuery, chunks: list[RetrievedChunk]) -> str:
 def synthesize(
     query: ParsedQuery,
     chunks: list[RetrievedChunk],
-    generate_fn: Callable[[str, str, int, float, list[dict] | None], str],
+    generate_fn: Callable[[str, str, int, float, list[dict] | None, str | None], str],
     max_tokens: int,
     temperature: float,
     chat_history: list[dict] | None = None,
@@ -82,7 +82,7 @@ def synthesize(
     context = system_prompt + "\n\n" + context
 
     try:
-        raw = generate_fn(query.raw, context, max_tokens, temperature, chat_history)
+        raw = generate_fn(query.raw, context, max_tokens, temperature, chat_history, system_prompt)
     except Exception as e:
         logger.error("LLM generation failed: %s", e)
         return SynthesisResult(no_relevant_info=True)
@@ -130,8 +130,11 @@ def _parse_markdown_items(raw: str, chunks: list[RetrievedChunk] | None = None) 
     from the provided context. Items that cannot be matched are dropped.
     """
     items: list[AnswerItem] = []
+    # Preprocess lazy LLM output that concatenates numbered items on one line
+    # without separators (e.g. "1 Foo. 2Bar. 3Baz."). Split those into real lines.
+    preprocessed = _split_concatenated_numbered_items(raw)
     # Match lines starting with - or * or numbered like 1.
-    for line in raw.splitlines():
+    for line in preprocessed.splitlines():
         line = line.strip()
         if not line:
             continue
@@ -176,6 +179,30 @@ def _parse_markdown_items(raw: str, chunks: list[RetrievedChunk] | None = None) 
     return items
 
 
+def _split_concatenated_numbered_items(raw: str) -> str:
+    """Split lazy LLM output like "1 Foo. 2Bar. 3Baz." into separate lines.
+
+    Some models emit a numbered list as a single run-on paragraph where each
+    item starts with a digit immediately followed by an uppercase word. Without
+    this preprocessing the markdown parser only sees the first item.
+    """
+    # If the response already contains newlines, trust it.
+    if "\n" in raw.strip():
+        return raw
+    # Split before every digit+uppercase transition that is preceded by a
+    # non-digit character. This turns "1 Foo. 2Bar." into ["1 Foo.", "2Bar."].
+    parts = re.split(r"(?<=\D)(?=\d+[A-Z])", raw)
+    lines: list[str] = []
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+        # Normalize "2Bar" to "2. Bar" so the markdown regex can parse it.
+        normalized = re.sub(r"^(\d+)([A-Z])", r"\1. \2", part)
+        lines.append(normalized)
+    return "\n".join(lines)
+
+
 def _best_matching_chunk_id(text: str, chunks: list[RetrievedChunk]) -> int | None:
     """Return the chunk ID whose text has the highest word overlap with the item."""
     text_words = set(re.findall(r"\b\w+\b", text.lower()))
@@ -183,22 +210,25 @@ def _best_matching_chunk_id(text: str, chunks: list[RetrievedChunk]) -> int | No
         return None
 
     best_id: int | None = None
-    best_score = 0
+    best_score = 0.0
     for chunk in chunks:
         chunk_words = set(re.findall(r"\b\w+\b", chunk.text.lower()))
         if not chunk_words:
             continue
         overlap = len(text_words & chunk_words)
-        # Normalize by the smaller of the two word sets to favor chunks that
-        # are tightly related to the item rather than large generic chunks.
-        denom = min(len(text_words), len(chunk_words))
-        score = overlap / denom if denom else 0
+        # Normalize by the item's word count. A chunk may be much larger than
+        # the item, so dividing by the smaller set would inflate the score.
+        # We want to know what fraction of the item's words appear in the chunk.
+        score = overlap / len(text_words)
         if score > best_score:
             best_score = score
             best_id = chunk.chunk_id
 
     # Require a minimum overlap to avoid assigning invented text to a random chunk.
-    if best_score >= 0.3:
+    # The threshold is low because a single retrieved chunk can contain many
+    # distinct facts (e.g. a list of five comics on one page), so each item
+    # may only share a few words with the chunk.
+    if best_score >= 0.05:
         return best_id
     return None
 
@@ -215,6 +245,8 @@ def _deduplicate_same_chunk_items(items: list[AnswerItem]) -> list[AnswerItem]:
     Distinct items that merely share a source chunk (e.g. five different
     comics listed on one page) are preserved as separate list items.
     """
+    if len(items) <= 1:
+        return items
     if not items:
         return items
 

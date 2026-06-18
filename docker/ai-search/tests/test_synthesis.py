@@ -155,3 +155,25 @@ def test_build_context_includes_chunk_ids():
     assert "[ChunkID: 42]" in context
     assert "Galactic Warriors..." in context
     assert "Page 168" in context
+
+
+def test_parse_concatenated_numbered_items():
+    """Lazy LLMs emit "1 Foo. 2Bar. 3Baz." as one line; we must split it."""
+    raw = "1 Batman time travel. 2Doom Patrol street. 3Animal Man cartoon."
+    chunks = [
+        _chunk(1, "Batman time travel."),
+        _chunk(2, "Doom Patrol street."),
+        _chunk(3, "Animal Man cartoon."),
+    ]
+    result = parse_synthesis_response(raw, chunks)
+    assert len(result.items) == 3
+    assert result.items[0].chunk_ids == [1]
+    assert result.items[1].chunk_ids == [2]
+    assert result.items[2].chunk_ids == [3]
+
+
+def test_best_matching_chunk_id_uses_item_word_count():
+    """Normalization by item word count lets short items match short chunks."""
+    chunks = [_chunk(1, "Batman time travel.")]
+    assert _best_matching_chunk_id("Batman time travel", chunks) == 1
+    assert _best_matching_chunk_id("completely unrelated phrase", chunks) is None

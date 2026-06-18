@@ -26,7 +26,7 @@ def test_pipeline_returns_validated_answer():
     def retrieve_fn(embedding_text, book_ids, user_id, top_k):
         return chunks, 100
 
-    def generate_fn(query, context, max_tokens, temperature, chat_history=None, **kwargs):
+    def generate_fn(query, context, max_tokens, temperature, chat_history=None, system_prompt=None, **kwargs):
         # Simulate a well-behaved LLM returning structured JSON.
         return json.dumps({
             "items": [
@@ -62,7 +62,7 @@ def test_pipeline_falls_back_to_raw_when_llm_returns_no_info():
     def retrieve_fn(embedding_text, book_ids, user_id, top_k):
         return chunks, 50
 
-    def generate_fn(query, context, max_tokens, temperature, chat_history=None, **kwargs):
+    def generate_fn(query, context, max_tokens, temperature, chat_history=None, system_prompt=None, **kwargs):
         return json.dumps({"items": [], "no_relevant_info": True})
 
     response = run_search_pipeline(

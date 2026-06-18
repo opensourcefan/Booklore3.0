@@ -431,7 +431,7 @@ def _ensure_list_citations(answer: str, results: list[dict]) -> str:
     return "\n".join(processed_lines)
 
 
-def _generate_answer(query: str, context: str, max_tokens: int, temperature: float, chat_history: list[dict] = None, system_prompt: str | None = None) -> str:
+def _generate_answer(query: str, context: str, max_tokens: int, temperature: float, chat_history: list[dict] = None, system_prompt: str | None = None, **kwargs) -> str:
     """Generate an answer using the LLM (local Ollama or external)."""
     if not LLM_MODEL_NAME and LLM_PROVIDER == "local":
         raise RuntimeError("No LLM model configured.")
