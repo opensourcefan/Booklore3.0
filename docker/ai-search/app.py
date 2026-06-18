@@ -970,6 +970,13 @@ def _is_heading_only(text: str) -> bool:
     if len(text) < 60 and not re.search(r"[.!?]", text):
         return True
 
+    # Check if the text is mostly uppercase (e.g. comic lettering) to avoid false positives on ALL CAPS prose
+    letters = [c for c in text if c.isalpha()]
+    if letters:
+        upper_ratio = sum(1 for c in letters if c.isupper()) / len(letters)
+        if upper_ratio > 0.7:
+            return False
+
     # Original heading title-case check for longer header blocks
     if len(text) >= 60:
         # Check if most words are title-case

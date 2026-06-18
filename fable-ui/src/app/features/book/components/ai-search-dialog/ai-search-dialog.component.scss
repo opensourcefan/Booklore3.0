@@ -316,11 +316,11 @@
 }
 
 .ai-search-answer {
-  background: var(--surface-ground);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 0.5rem;
-  border-left: 2px solid #3b82f6;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 1.5rem;
+  border-left: none;
 
   .ai-search-answer-label {
     font-weight: 600;
@@ -336,12 +336,12 @@
 
   .ai-search-answer-badge {
     display: inline-block;
-    background: #3b82f6;
-    color: #fff;
-    font-size: 0.75rem;
+    background: transparent;
+    color: inherit;
+    font-size: 0.85rem;
     font-weight: 600;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
+    padding: 0;
+    border-radius: 0;
     letter-spacing: 0.02em;
   }
 
@@ -412,10 +412,14 @@
 }
 
 .ai-search-raw-results {
-  border-left: 2px solid #059669;
+  border-left: none;
+
+  .ai-search-answer-label {
+    color: #059669;
+  }
 
   .ai-search-answer-badge {
-    background: #059669;
+    color: #059669;
   }
 }
 
