@@ -302,7 +302,11 @@ public class AiSearchService {
 
     public Map<String, Object> search(String query, List<Long> bookIds, Long userId, List<Map<String, String>> chatHistory, boolean localOnly) {
         String baseUrl = appProperties.getAiSearch().getBaseUrl();
-        RestClient restClient = buildRestClient();
+        // Use a shorter read timeout for interactive search queries than for
+        // embedding jobs. A hung Python/Ollama search should fail in ~2 minutes
+        // instead of holding the browser connection open for the 10-minute
+        // embedding timeout, which is what caused the 14-minute UI hang.
+        RestClient restClient = buildSearchRestClient();
 
         org.fable.model.dto.settings.AiSearchSettings settings = appSettingService.getAppSettings().getAiSearchSettings();
 
@@ -1029,6 +1033,24 @@ public class AiSearchService {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAiSearch().getReadTimeoutMs());
+        return RestClient.builder()
+                .requestFactory(factory)
+                .build();
+    }
+
+    /**
+     * RestClient for interactive /v1/search queries.
+     *
+     * Uses a shorter read timeout (120s) than {@link #buildRestClient()} so a
+     * hung Python/Ollama search fails fast instead of holding the browser
+     * connection open for the 10-minute embedding timeout. The Python service
+     * caps its own Ollama LLM call at 90s, so 120s gives ample headroom for
+     * retrieval + synthesis while preventing the multi-minute UI hangs.
+     */
+    private RestClient buildSearchRestClient() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
+        factory.setReadTimeout(120_000);
         return RestClient.builder()
                 .requestFactory(factory)
                 .build();

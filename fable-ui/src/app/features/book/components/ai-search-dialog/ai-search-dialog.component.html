@@ -230,12 +230,23 @@
           class="ai-search-input"
           style="flex: 1;"
         />
-        <p-button
-          icon="pi pi-search"
-          [loading]="isLoading"
-          (onClick)="onSearch()"
-          [disabled]="searchQuery.trim().length < 2">
-        </p-button>
+        @if (isLoading) {
+          <p-button
+            icon="pi pi-times"
+            severity="danger"
+            (onClick)="cancelSearch()"
+            [pTooltip]="t('cancelSearch') || 'Cancel search'"
+            tooltipPosition="top">
+          </p-button>
+        } @else {
+          <p-button
+            icon="pi pi-search"
+            (onClick)="onSearch()"
+            [disabled]="searchQuery.trim().length < 2"
+            [pTooltip]="t('search') || 'Search'"
+            tooltipPosition="top">
+          </p-button>
+        }
       </div>
       @if (scopeBookTitle) {
         <div class="ai-search-scope-row">

@@ -204,11 +204,16 @@ def _best_matching_chunk_id(text: str, chunks: list[RetrievedChunk]) -> int | No
 
 
 def _deduplicate_same_chunk_items(items: list[AnswerItem]) -> list[AnswerItem]:
-    """Merge consecutive items that all cite the same single chunk.
+    """Merge consecutive items that are near-duplicate fragments of one fact.
 
-    This is a common hallucination pattern: the LLM splits one chunk into a
-    numbered list to satisfy a count request. Merging them keeps the grounded
-    facts together and prevents fake multiplicity.
+    A common hallucination pattern is the LLM repeating the same fact with
+    minor wording changes across multiple numbered items to satisfy a count
+    request. This merges consecutive items that cite the same single chunk AND
+    whose text is highly similar (>= 70% word overlap), which indicates they
+    are reworded duplicates rather than distinct facts.
+
+    Distinct items that merely share a source chunk (e.g. five different
+    comics listed on one page) are preserved as separate list items.
     """
     if not items:
         return items
@@ -218,8 +223,12 @@ def _deduplicate_same_chunk_items(items: list[AnswerItem]) -> list[AnswerItem]:
 
     for item in items[1:]:
         last = current_run[-1]
-        # Same single chunk on both items.
-        if len(last.chunk_ids) == 1 and len(item.chunk_ids) == 1 and last.chunk_ids[0] == item.chunk_ids[0]:
+        same_single_chunk = (
+            len(last.chunk_ids) == 1
+            and len(item.chunk_ids) == 1
+            and last.chunk_ids[0] == item.chunk_ids[0]
+        )
+        if same_single_chunk and _text_overlap_ratio(last.text, item.text) >= 0.7:
             current_run.append(item)
         else:
             deduped.append(_merge_item_run(current_run))
@@ -227,6 +236,19 @@ def _deduplicate_same_chunk_items(items: list[AnswerItem]) -> list[AnswerItem]:
 
     deduped.append(_merge_item_run(current_run))
     return deduped
+
+
+def _text_overlap_ratio(a: str, b: str) -> float:
+    """Return the Jaccard word-overlap ratio between two item texts.
+
+    A high ratio means the two items are near-duplicates (reworded versions of
+    the same fact). A low ratio means they are distinct facts.
+    """
+    words_a = set(re.findall(r"\b\w+\b", a.lower()))
+    words_b = set(re.findall(r"\b\w+\b", b.lower()))
+    if not words_a or not words_b:
+        return 0.0
+    return len(words_a & words_b) / len(words_a | words_b)
 
 
 def _merge_item_run(run: list[AnswerItem]) -> AnswerItem:

@@ -470,6 +470,12 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
         messages.extend(chat_history)
     messages.append({"role": "user", "content": user_prompt})
 
+    # LLM generation timeout. Kept below the Java search proxy read timeout
+    # (120s) so that when the LLM is slow/stuck the Python service fails first
+    # and returns a graceful RAW fallback, rather than the Java layer timing
+    # out and surfacing a generic "Could not reach the AI Search service" error.
+    LLM_REQUEST_TIMEOUT = 90
+
     if LLM_PROVIDER == "openai":
         base_url = EXTERNAL_LLM_BASE_URL.rstrip("/") or "https://api.openai.com/v1"
         resp = requests.post(
@@ -481,7 +487,7 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
                 "max_tokens": max_tokens,
                 "temperature": temperature,
             },
-            timeout=300,
+            timeout=LLM_REQUEST_TIMEOUT,
         )
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
@@ -505,7 +511,7 @@ def _generate_answer(query: str, context: str, max_tokens: int, temperature: flo
                     "repeat_last_n": 128,
                 },
             },
-            timeout=300,
+            timeout=LLM_REQUEST_TIMEOUT,
         )
         resp.raise_for_status()
         return resp.json().get("message", {}).get("content", "")

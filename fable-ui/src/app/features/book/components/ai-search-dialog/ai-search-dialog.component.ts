@@ -362,6 +362,12 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Cancel any in-flight search before starting a new one. Without this the
+    // previous HttpClient XHR keeps the browser connection open (and the Java
+    // proxy thread busy) until its read timeout fires, which is why a second
+    // query appeared to "hang" for minutes while the first one was still pending.
+    this.cancelSearch();
+
     this.isLoading = true;
     this.hasSearched = true;
     this.aiSearchDialogService.searchActive$.next(true);
@@ -607,6 +613,31 @@ The Raw / AI toggle button in the search dialog completely bypasses the LLM. Whe
 | Raw-Only toggle | On | Zero LLM involvement, raw passages only |
 
 There is no additional "strict/grounded-only" mode beyond these controls. The system prompt grounding + low temperature + high similarity threshold + the raw-only escape hatch form the complete anti-hallucination strategy.`;
+  }
+
+  /**
+   * Cancel the currently in-flight search. Unsubscribing from the Angular
+   * HttpClient observable aborts the underlying XHR, which closes the browser
+   * connection and frees the Java proxy thread immediately instead of waiting
+   * for the read timeout. The loading state is reset so the UI is responsive
+   * again. The in-progress chat message is removed so the user does not see a
+   * stale "Searching..." bubble that can never resolve.
+   */
+  cancelSearch(): void {
+    if (this.searchSub && !this.searchSub.closed) {
+      this.searchSub.unsubscribe();
+    }
+    this.searchSub = undefined;
+    if (this.isLoading) {
+      this.isLoading = false;
+      this.aiSearchDialogService.searchActive$.next(false);
+      // Remove the trailing "loading" message that was pushed for this search
+      // so the chat history does not show a perpetual spinner.
+      if (this.chatHistory.length > 0 && this.chatHistory[this.chatHistory.length - 1].isLoading) {
+        this.chatHistory.pop();
+      }
+      this.saveStateToCache();
+    }
   }
 
   ngOnDestroy(): void {

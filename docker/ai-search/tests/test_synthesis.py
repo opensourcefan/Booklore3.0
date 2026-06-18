@@ -90,7 +90,13 @@ def test_parse_no_relevant_info_text():
     assert result.items == []
 
 
-def test_merge_consecutive_same_chunk_items():
+def test_distinct_same_chunk_items_are_preserved():
+    """Five distinct comics listed on one page must NOT be merged.
+
+    The old chunk-ID-only dedup merged these into one item, destroying a
+    legitimate 5-item list. The new text-overlap dedup preserves them because
+    the item texts are distinct (low word overlap).
+    """
     chunks = [_chunk(142, "Batman time travel. Doom Patrol street. Animal Man cartoon. Zatanna magic. Batman RIP.")]
     raw = """1. Batman time travel. [ChunkID: 142]
 2. Doom Patrol street. [ChunkID: 142]
@@ -98,10 +104,26 @@ def test_merge_consecutive_same_chunk_items():
 4. Zatanna magic. [ChunkID: 142]
 5. Batman RIP. [ChunkID: 142]"""
     result = parse_synthesis_response(raw, chunks)
+    assert len(result.items) == 5
+    for item in result.items:
+        assert item.chunk_ids == [142]
+
+
+def test_near_duplicate_same_chunk_items_are_merged():
+    """Near-duplicate reworded items citing the same chunk must still merge.
+
+    This is the real hallucination pattern: the LLM repeats the same fact with
+    minor wording changes to satisfy a count request. All three items share
+    almost every word, so they collapse into one.
+    """
+    chunks = [_chunk(142, "Batman: The Return Of Bruce Wayne is a time travel comic.")]
+    raw = """1. Batman: The Return Of Bruce Wayne is a time travel comic. [ChunkID: 142]
+2. Batman: The Return Of Bruce Wayne is a comic about time travel. [ChunkID: 142]
+3. Batman: The Return Of Bruce Wayne is a time travel comic story. [ChunkID: 142]"""
+    result = parse_synthesis_response(raw, chunks)
     assert len(result.items) == 1
     assert result.items[0].chunk_ids == [142]
-    assert "Batman time travel" in result.items[0].text
-    assert "Batman RIP" in result.items[0].text
+    assert "Batman" in result.items[0].text
 
 
 def test_do_not_merge_items_with_different_chunks():
