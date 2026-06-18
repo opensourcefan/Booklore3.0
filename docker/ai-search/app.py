@@ -1077,7 +1077,7 @@ def _deduplicate_same_chunk_items(answer: str, results: list[dict]) -> str:
         marker = f"[Source: {r['bookTitle']}, Page {page}]"
         source_to_idx[marker] = i
 
-    list_item_pattern = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
+    list_item_pattern = re.compile(r"^\s*(?:[-*•]|\d+\.)\s+")
     deduped: list[str] = []
     current_run: list[tuple[str, str | None]] = []  # (line_text, source_marker)
 
@@ -1172,7 +1172,7 @@ def _strip_hallucinated_items(answer: str, results: list[dict]) -> str:
         return answer
 
     source_iter = iter(results)
-    list_item_pattern = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
+    list_item_pattern = re.compile(r"^\s*(?:[-*•]|\d+\.)\s+")
 
     kept_lines = []
     stripped_count = 0
@@ -1608,11 +1608,10 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     # and all retrieved sources are available for citation mapping.
     answer = None
     if top_results and not local_only:
-        # Build a context where each chunk is tagged with its real source. Include the
-        # chunk index so the LLM can distinguish multiple results from the same book.
+        # Build a context where each chunk is tagged with its real source.
         context = "\n\n".join([
-            f"[Source {i+1}: {r['bookTitle']}, Page {r.get('pageNumber') or 'N/A'}, ChunkIndex {r['chunkIndex']}]\n{r['chunkText']}"
-            for i, r in enumerate(top_results)
+            f"Book: {r['bookTitle']}, Page: {r.get('pageNumber') or 'N/A'}\n{r['chunkText']}"
+            for r in top_results
         ])
 
         # Adjust system prompt based on detected query intent.
