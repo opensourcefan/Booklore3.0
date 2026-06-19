@@ -158,17 +158,17 @@ public class LibraryService {
         FableUser fableUser = authenticationService.getAuthenticatedUser();
         Optional<FableUserEntity> user = userRepository.findById(fableUser.getId());
 
+        List<LibraryPathEntity> paths = request.getPaths() == null || request.getPaths().isEmpty() ?
+                new ArrayList<>() :
+                request.getPaths().stream()
+                        .map(LibraryPath::getPath)
+                        .distinct()
+                        .map(path -> LibraryPathEntity.builder().path(path).build())
+                        .collect(Collectors.toList());
+
         LibraryEntity libraryEntity = LibraryEntity.builder()
                 .name(request.getName())
-                .libraryPaths(
-                        request.getPaths() == null || request.getPaths().isEmpty() ?
-                                Collections.emptyList() :
-                                request.getPaths().stream()
-                                        .map(LibraryPath::getPath)
-                                        .distinct()
-                                        .map(path -> LibraryPathEntity.builder().path(path).build())
-                                        .collect(Collectors.toList())
-                )
+                .libraryPaths(paths)
                 .icon(request.getIcon())
                 .iconType(request.getIconType())
                 .watch(request.isWatch())
@@ -180,6 +180,10 @@ public class LibraryService {
                 .directoryTagDepth(request.getDirectoryTagDepth() != null ? request.getDirectoryTagDepth() : DirectoryTagDepth.LAST_ONLY)
                 .users(List.of(user.get()))
                 .build();
+
+        for (LibraryPathEntity pathEntity : paths) {
+            pathEntity.setLibrary(libraryEntity);
+        }
 
         libraryEntity = libraryRepository.save(libraryEntity);
         Long libraryId = libraryEntity.getId();
