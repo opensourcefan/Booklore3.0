@@ -48,7 +48,7 @@ To ensure no regressions, run:
 - Backend tests: `./gradlew test` in `fable-api`.
 
 ### Step 5: Compile Report & Action Plan
-Create a comprehensive maintenance report summarizing:
+Create a comprehensive maintenance report. The report MUST be saved in the artifact directory with the naming format `[date][time][title].md` (e.g., `20260619_0845_maintenance_report.md`), summarizing:
 1. **Dependency Audit Results**: A table of identified vulnerabilities (vulnerable package, severity, ecosystem, upgrade path).
 2. **PR / CI Run Status**: List of open Dependabot/maintenance PRs and status of recent builds.
 3. **Test suite validation**: Confirmation of whether all tests passed.
@@ -56,3 +56,4 @@ Create a comprehensive maintenance report summarizing:
    - **Category A (Safe/Zero-Regression)**: Small minor/patch updates, devDependency bumps, overrides.
    - **Category B (Low-Medium Risk)**: Upgrades requiring minor validation.
    - **Category C (High Risk / Defer)**: Major framework or library changes that need separate branches.
+5. **Regression Concerns**: Detail any specific modules or user flows that require manual sanity testing.
