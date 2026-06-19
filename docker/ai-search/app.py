@@ -1056,6 +1056,27 @@ def _text_overlap_ratio(a: str, b: str) -> float:
     return len(words_a & words_b) / len(words_a | words_b)
 
 
+def _containment_ratio(a: str, b: str) -> float:
+    """Return the fraction of substantive words in 'a' that are contained in 'b'."""
+    stopwords = {
+        "the", "a", "an", "and", "or", "but", "of", "for", "to", "in", "on", "at", 
+        "by", "with", "from", "up", "about", "into", "over", "after", "is", "was",
+        "are", "were", "be", "been", "being", "have", "has", "had", "do", "does",
+        "did", "it", "its", "they", "them", "their", "this", "that", "these", "those"
+    }
+    words_a = set(w for w in re.findall(r"\b\w+\b", a.lower()) if w not in stopwords)
+    words_b = set(re.findall(r"\b\w+\b", b.lower()))
+    
+    if not words_a:
+        # If the item consists entirely of stopwords (unlikely for a real title/fact),
+        # fall back to standard words including stopwords so we don't return 0.
+        words_a = set(re.findall(r"\b\w+\b", a.lower()))
+        if not words_a or not words_b:
+            return 0.0
+            
+    return len(words_a & words_b) / len(words_a)
+
+
 def _deduplicate_same_chunk_items(answer: str, results: list[dict]) -> str:
     """Merge consecutive list items that are near-duplicate rewordings of the same fact.
 
@@ -1193,8 +1214,8 @@ def _strip_hallucinated_items(answer: str, results: list[dict]) -> str:
         item_text = re.sub(r"\s*\[Source:[^\]]*\]", "", stripped).strip()
         source_text = source["chunkText"]
 
-        # Compute Jaccard word overlap between item and source
-        overlap = _text_overlap_ratio(item_text, source_text)
+        # Compute containment ratio of item words in source
+        overlap = _containment_ratio(item_text, source_text)
         if overlap < 0.15:
             logger.info(
                 "Stripping hallucinated item (overlap %.2f): %s",
