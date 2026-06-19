@@ -404,9 +404,8 @@
           <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
           
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <div style="display: flex; justify-content: space-between;">
+            <div>
               <label for="topK"><strong>Result Count (Top K)</strong></label>
-              <span>{{ aiSearchSettings.topK }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How many context chunks to retrieve (1–50). More chunks give the LLM more context but takes longer to process.</p>
             <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
@@ -420,9 +419,8 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <div style="display: flex; justify-content: space-between;">
+            <div>
               <label for="displayTopK"><strong>Displayed Results</strong></label>
-              <span>{{ aiSearchSettings.displayTopK }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How many raw results to display in the UI (1–50). Set lower than Top K to give the LLM more context while showing only the best match.</p>
             <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
@@ -436,9 +434,8 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <div style="display: flex; justify-content: space-between;">
+            <div>
               <label for="similarityThreshold"><strong>Similarity Threshold</strong></label>
-              <span>{{ aiSearchSettings.similarityThreshold }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How strict the search match should be (0.1–0.9). Lower values return more potential matches.</p>
             <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
@@ -452,9 +449,8 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <div style="display: flex; justify-content: space-between;">
+            <div>
               <label for="maxTokens"><strong>Max Output Length</strong></label>
-              <span>{{ aiSearchSettings.maxTokens }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">The maximum number of tokens (128–4096) the LLM can generate in its summary.</p>
             <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
@@ -468,9 +464,8 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <div style="display: flex; justify-content: space-between;">
+            <div>
               <label for="temperature"><strong>Temperature</strong></label>
-              <span>{{ aiSearchSettings.temperature }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Controls creativity vs determinism (0.0–1.0). Lower values (e.g. 0.1) are better for factual summaries.</p>
             <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
