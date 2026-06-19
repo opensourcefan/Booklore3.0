@@ -12,6 +12,12 @@ This prompt instructs the AI to conduct a thorough, safe codebase maintenance ru
 - Frontend: [package.json](../../fable-ui/package.json)
 - Dependabot config: [dependabot.yml](../../.github/dependabot.yml)
 
+## Safety Rules & Best Practices (CRITICAL)
+- **Node & npm Version Alignment**: Ensure the local Node and npm version matches the CI environment (Node 24 / npm 11). Running different versions of npm can generate unexpected lockfile structures.
+- **Incremental Lockfile Updates**: Never delete the lockfile or regenerate it from scratch as it creates a noisy, massive diff (10,000+ lines). Instead, restore the last known working lockfile (e.g., `git checkout origin/develop -- package-lock.json` or from a stable tag) and run `npm install` to update incrementally.
+- **Avoid `--legacy-peer-deps` for Final Commits**: Avoid using `--legacy-peer-deps` when updating the lockfile. Using this flag skips peer dependency resolution, which prunes optional peer dependencies (such as `@emnapi/*` required by `@napi-rs/wasm-runtime`) from the lockfile. This will cause `npm ci` to fail in CI/CD.
+- **Node Modules Ownership**: Watch out for root-owned files in `node_modules` (often caused by Docker volumes). If permissions prevent standard `npm install` or cleanup, correct ownership or run the resolution in a clean temporary directory.
+
 ## Instructions
 
 Please execute the following steps meticulously and document all findings in a maintenance report:
