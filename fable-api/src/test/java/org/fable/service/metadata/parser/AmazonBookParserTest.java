@@ -192,4 +192,68 @@ public class AmazonBookParserTest {
 
         mockJsoup.verify(() -> Jsoup.connect("https://www.amazon.com/dp/SEARCHASIN"));
     }
+
+    @Test
+    public void fetchTopMetadata_handlesNullDescriptionAndParsesDates() throws Exception {
+        String html = """
+                <html>
+                <body>
+                    <div id="detailBullets_feature_div">
+                        <ul>
+                            <li>
+                                <span class="a-text-bold">Publisher ‏ : ‎</span>
+                                <span>IDW Publishing (May 3 2011)</span>
+                            </li>
+                            <li>
+                                <span class="a-text-bold">Dimensions ‏ : ‎</span>
+                                <span>16.76 x 1.78 x 25.65 cm</span>
+                            </li>
+                            <li>
+                                <span class="a-text-bold">Language ‏ : ‎</span>
+                                <span>English</span>
+                            </li>
+                        </ul>
+                    </div>
+                </body>
+                </html>
+                """;
+        mockJsoupConnect("https://www.amazon.com/dp/EXAMPLESKU", html);
+
+        Book book = getBook("EXAMPLESKU");
+        FetchMetadataRequest fetchMetadataRequest = FetchMetadataRequest.builder().build();
+
+        BookMetadata metadata = amazonBookParser.fetchTopMetadata(book, fetchMetadataRequest);
+        
+        org.junit.jupiter.api.Assertions.assertNotNull(metadata);
+        org.junit.jupiter.api.Assertions.assertNull(metadata.getDescription());
+        org.junit.jupiter.api.Assertions.assertEquals(java.time.LocalDate.of(2011, 5, 3), metadata.getPublishedDate());
+    }
+
+    @Test
+    public void fetchTopMetadata_parsesDateFormatsWithoutCommas() throws Exception {
+        String html = """
+                <html>
+                <body>
+                    <div id="detailBullets_feature_div">
+                        <ul>
+                            <li>
+                                <span class="a-text-bold">Publication Date ‏ : ‎</span>
+                                <span>Feb. 1 2023</span>
+                            </li>
+                        </ul>
+                    </div>
+                </body>
+                </html>
+                """;
+        mockJsoupConnect("https://www.amazon.com/dp/EXAMPLESKU", html);
+
+        Book book = getBook("EXAMPLESKU");
+        FetchMetadataRequest fetchMetadataRequest = FetchMetadataRequest.builder().build();
+
+        BookMetadata metadata = amazonBookParser.fetchTopMetadata(book, fetchMetadataRequest);
+        
+        org.junit.jupiter.api.Assertions.assertNotNull(metadata);
+        org.junit.jupiter.api.Assertions.assertEquals(java.time.LocalDate.of(2023, 2, 1), metadata.getPublishedDate());
+    }
 }
+

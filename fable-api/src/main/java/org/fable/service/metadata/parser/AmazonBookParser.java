@@ -54,7 +54,8 @@ public class AmazonBookParser implements BookParser, DetailedMetadataProvider {
     private static final String[] DATE_PATTERNS = {
             "MMMM d, yyyy", "d MMMM yyyy", "d. MMMM yyyy", "MMM d, yyyy",
             "MMM. d, yyyy", "d MMM yyyy", "d MMM. yyyy", "d. MMM yyyy",
-            "yyyy/M/d", "yyyy/MM/dd", "yyyy年M月d日"
+            "yyyy/M/d", "yyyy/MM/dd", "yyyy年M月d日",
+            "MMMM d yyyy", "MMM d yyyy", "MMM. d yyyy"
     };
 
     private static final Map<String, LocaleInfo> DOMAIN_LOCALE_MAP = Map.ofEntries(
@@ -557,17 +558,25 @@ public class AmazonBookParser implements BookParser, DetailedMetadataProvider {
                 Elements listItems = featureElement.select("li");
                 for (Element listItem : listItems) {
                     Element boldText = listItem.selectFirst("span.a-text-bold");
-                    Element valueSpan = boldText != null ? boldText.nextElementSibling() : null;
-                    
-                    if (valueSpan != null) {
-                         LocalDate d = parseDate(valueSpan.text());
-                         if (d != null) return d;
+                    if (boldText != null && isPublicationOrPublisherHeader(boldText.text())) {
+                        Element valueSpan = boldText.nextElementSibling();
+                        
+                        if (valueSpan != null) {
+                             LocalDate d = parseDate(valueSpan.text(), false);
+                             if (d != null) return d;
 
-                         Matcher matcher = Pattern.compile("\\((.*?)\\)").matcher(valueSpan.text());
-                         while (matcher.find()) {
-                             LocalDate pd = parseDate(matcher.group(1));
-                             if (pd != null) return pd;
-                         }
+                             Matcher matcher = Pattern.compile("\\((.*?)\\)").matcher(valueSpan.text());
+                             boolean foundParentheses = false;
+                             while (matcher.find()) {
+                                 foundParentheses = true;
+                                 LocalDate pd = parseDate(matcher.group(1), true);
+                                 if (pd != null) return pd;
+                             }
+                             
+                             if (!foundParentheses) {
+                                 parseDate(valueSpan.text(), true);
+                             }
+                        }
                     }
                 }
             }
@@ -576,6 +585,36 @@ public class AmazonBookParser implements BookParser, DetailedMetadataProvider {
         }
         
         return null;
+    }
+
+    private boolean isPublicationOrPublisherHeader(String header) {
+        if (header == null) return false;
+        String lower = header.toLowerCase();
+        return lower.contains("publisher") ||
+               lower.contains("herausgeber") || 
+               lower.contains("éditeur") || 
+               lower.contains("editoriale") || 
+               lower.contains("editorial") || 
+               lower.contains("uitgever") || 
+               lower.contains("wydawca") ||
+               lower.contains("出版社") ||
+               lower.contains("editora") ||
+               lower.contains("publication date") ||
+               lower.contains("publication-date") ||
+               lower.contains("release date") ||
+               lower.contains("erscheinungstermin") ||
+               lower.contains("date de publication") ||
+               lower.contains("date de parution") ||
+               lower.contains("fecha de publicación") ||
+               lower.contains("fecha de lanzamiento") ||
+               lower.contains("data de publicação") ||
+               lower.contains("data de lançamento") ||
+               lower.contains("data di pubblicazione") ||
+               lower.contains("data di rilascio") ||
+               lower.contains("publicatiedatum") ||
+               lower.contains("verschijningsdatum") ||
+               lower.contains("data wydania") ||
+               lower.contains("発売日");
     }
 
     private String extractFromDetailBullets(Document doc, String keyPart) {
@@ -899,6 +938,10 @@ public class AmazonBookParser implements BookParser, DetailedMetadataProvider {
     }
 
     private static LocalDate parseDate(String dateString, LocaleInfo localeInfo) {
+        return parseDate(dateString, localeInfo, true);
+    }
+
+    private static LocalDate parseDate(String dateString, LocaleInfo localeInfo, boolean logWarning) {
         if (dateString == null || dateString.trim().isEmpty()) {
             return null;
         }
@@ -921,16 +964,25 @@ public class AmazonBookParser implements BookParser, DetailedMetadataProvider {
             }
         }
 
-        log.warn("Failed to parse date '{}' with any known format for locale {}", dateString, localeInfo.locale());
+        if (logWarning) {
+            log.warn("Failed to parse date '{}' with any known format for locale {}", dateString, localeInfo.locale());
+        }
         return null;
     }
 
     private LocalDate parseDate(String dateString) {
+        return parseDate(dateString, true);
+    }
+
+    private LocalDate parseDate(String dateString, boolean logWarning) {
         String domain = appSettingService.getAppSettings().getMetadataProviderSettings().getAmazon().getDomain();
-        return parseDate(dateString, getLocaleInfoForDomain(domain));
+        return parseDate(dateString, getLocaleInfoForDomain(domain), logWarning);
     }
 
     private String cleanDescriptionHtml(String html) {
+        if (html == null || html.isBlank()) {
+            return html;
+        }
         try {
             Document document = Jsoup.parse(html);
             document.select("span.a-text-bold").tagName("b").removeAttr("class");
