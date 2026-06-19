@@ -996,6 +996,56 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
+  incrementTopK(): void {
+    const val = this.aiSearchSettings.topK ?? 5;
+    this.aiSearchSettings.topK = Math.min(50, val + 1);
+  }
+
+  decrementTopK(): void {
+    const val = this.aiSearchSettings.topK ?? 5;
+    this.aiSearchSettings.topK = Math.max(1, val - 1);
+  }
+
+  incrementDisplayTopK(): void {
+    const val = this.aiSearchSettings.displayTopK ?? 5;
+    this.aiSearchSettings.displayTopK = Math.min(50, val + 1);
+  }
+
+  decrementDisplayTopK(): void {
+    const val = this.aiSearchSettings.displayTopK ?? 5;
+    this.aiSearchSettings.displayTopK = Math.max(1, val - 1);
+  }
+
+  incrementSimilarityThreshold(): void {
+    const val = this.aiSearchSettings.similarityThreshold ?? 0.3;
+    this.aiSearchSettings.similarityThreshold = parseFloat(Math.min(0.9, val + 0.05).toFixed(2));
+  }
+
+  decrementSimilarityThreshold(): void {
+    const val = this.aiSearchSettings.similarityThreshold ?? 0.3;
+    this.aiSearchSettings.similarityThreshold = parseFloat(Math.max(0.1, val - 0.05).toFixed(2));
+  }
+
+  incrementMaxTokens(): void {
+    const val = this.aiSearchSettings.maxTokens ?? 768;
+    this.aiSearchSettings.maxTokens = Math.min(4096, val + 128);
+  }
+
+  decrementMaxTokens(): void {
+    const val = this.aiSearchSettings.maxTokens ?? 768;
+    this.aiSearchSettings.maxTokens = Math.max(128, val - 128);
+  }
+
+  incrementTemperature(): void {
+    const val = this.aiSearchSettings.temperature ?? 0.1;
+    this.aiSearchSettings.temperature = parseFloat(Math.min(1.0, val + 0.1).toFixed(1));
+  }
+
+  decrementTemperature(): void {
+    const val = this.aiSearchSettings.temperature ?? 0.1;
+    this.aiSearchSettings.temperature = parseFloat(Math.max(0.0, val - 0.1).toFixed(1));
+  }
+
   initializeAdvancedSettingsFromSaved(): void {
     const rawSaved = this.aiSearchSettings;
     const isUninitialized = !rawSaved.chunkSize || rawSaved.chunkSize === 0;
