@@ -15,6 +15,13 @@ A personal fork of [Booklore] with extended features, UI customizations, and an 
 > I may or may not update it. I may or may not read the Issues. I will not delete it if I get upset, I'm always upset.
 > Please fork freely and do whatever you like with it. I am not taking requests.
 
+> [!CAUTION]
+> **DEPLOYMENT & FREEZE NOTICE (June 2026)**
+> This repository is in a **FROZEN state**. All automated dependency updates (Dependabot) have been disabled. 
+> Because this codebase uses locked, older package versions, **NEVER expose this application directly to the public internet** (forward-facing). 
+> **Always run it strictly within your local home network (LAN) or behind a secure VPN (such as Tailscale, WireGuard, or OpenVPN).** 
+> If you must access it publicly, you must deploy it behind a secure reverse proxy with authentication (such as Cloudflare Tunnels, Authelia, or Authentik).
+
 ---
 
 ## Contents
@@ -483,5 +490,5 @@ Maintenance rule: the HTML guide is the source of truth. When the guide changes,
 
 <img src="assets/booklore3.0-screenshot3.png" width="800">
 
-## Automated Maintenance
-Dependabot is configured to watch the Gradle backend, the UI npm manifest, the AI panel's pip requirements, the Dockerfiles, the Docker Compose files, and GitHub Actions workflows. Patch and minor Dependabot pull requests are labeled for unattended merge only after the develop CI workflow succeeds, so routine maintenance does not depend on manual PR handling or branch protection. Repository-side GitHub vulnerability alerts and automated security fixes should remain enabled. The Gradle automation intentionally ignores `com.github.RouHim:jaudiotagger` because that JitPack-hosted dependency currently triggers Dependabot source-authentication failures; it should be reviewed manually until it is replaced with a Dependabot-compatible source. The AI panel's `pillow` dependency now tracks secure 12.x releases directly, so future patch and minor updates can flow through the normal unattended Dependabot path. Workflow-file dependency updates are still surfaced automatically, but GitHub's default Actions token does not auto-merge them, so those updates remain the one part of the maintenance flow that still needs a workflow-capable automation token or GitHub App if you want them merged unattended as well.
+## Codebase Freeze & Deactivated Maintenance
+Automated dependency updates (Dependabot) have been deactivated, and the repository is in a frozen state. All third-party libraries are locked to their current verified versions. Since the app is designed for local home networks (LAN) or secure VPN setups, running older dependency versions carries no significant risk, and freezing the codebase prevents regressions and notification noise. If you decide to resume updates or upgrade packages in the future, follow the rules of engagement defined in the workspace prompt under `.agent/workflows/maintenance.md` to prevent breaking the strict dependency structures expected by the CI/CD pipeline.
