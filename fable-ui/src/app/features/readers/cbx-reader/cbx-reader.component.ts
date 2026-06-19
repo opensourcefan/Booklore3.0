@@ -335,6 +335,18 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       .pipe(takeUntil(this.destroy$))
       .subscribe(progress => this.handleAiScanProgress(progress));
 
+    this.route.queryParamMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((queryParams) => {
+        const pageStr = queryParams.get('page');
+        if (pageStr && this.pages && this.pages.length > 0) {
+          const targetPage = parseInt(pageStr, 10);
+          if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= this.pages.length) {
+            this.goToPage(targetPage);
+          }
+        }
+      });
+
     this.route.paramMap.subscribe((params) => {
       this.isLoading = true;
       this.bookId = +params.get('bookId')!;
@@ -411,7 +423,13 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
                   ? this.CbxBackgroundColor[userSettings.cbxReaderSetting.backgroundColor as keyof typeof CbxBackgroundColor] || CbxBackgroundColor.GRAY
                   : this.CbxBackgroundColor[bookSettings.cbxSettings?.backgroundColor as keyof typeof CbxBackgroundColor] || this.CbxBackgroundColor[userSettings.cbxReaderSetting.backgroundColor as keyof typeof CbxBackgroundColor] || CbxBackgroundColor.GRAY;
 
-                this.currentPage = (book.cbxProgress?.page || 1) - 1;
+                 const queryPage = this.route.snapshot.queryParamMap.get('page');
+                 const parsedPage = queryPage ? parseInt(queryPage, 10) : NaN;
+                 if (!isNaN(parsedPage)) {
+                   this.currentPage = Math.max(0, parsedPage - 1);
+                 } else {
+                   this.currentPage = (book.cbxProgress?.page || 1) - 1;
+                 }
 
                 if (this.scrollMode === CbxScrollMode.INFINITE) {
                   this.initializeInfiniteScroll();
