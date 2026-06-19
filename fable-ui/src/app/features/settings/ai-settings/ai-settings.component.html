@@ -409,7 +409,10 @@
               <span>{{ aiSearchSettings.topK }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How many context chunks to retrieve (1–50). More chunks give the LLM more context but takes longer to process.</p>
-            <input type="range" id="topK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.topK" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+              <input type="range" id="topK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.topK" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+              <input type="number" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.topK" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 70px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+            </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -418,7 +421,10 @@
               <span>{{ aiSearchSettings.displayTopK }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How many raw results to display in the UI (1–50). Set lower than Top K to give the LLM more context while showing only the best match.</p>
-            <input type="range" id="displayTopK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.displayTopK" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+              <input type="range" id="displayTopK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.displayTopK" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+              <input type="number" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.displayTopK" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 70px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+            </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -427,7 +433,10 @@
               <span>{{ aiSearchSettings.similarityThreshold }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How strict the search match should be (0.1–0.9). Lower values return more potential matches.</p>
-            <input type="range" id="similarityThreshold" min="0.1" max="0.9" step="0.05" [(ngModel)]="aiSearchSettings.similarityThreshold" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+              <input type="range" id="similarityThreshold" min="0.1" max="0.9" step="0.05" [(ngModel)]="aiSearchSettings.similarityThreshold" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+              <input type="number" min="0.1" max="0.9" step="0.05" [(ngModel)]="aiSearchSettings.similarityThreshold" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 80px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+            </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -436,7 +445,10 @@
               <span>{{ aiSearchSettings.maxTokens }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">The maximum number of tokens (128–4096) the LLM can generate in its summary.</p>
-            <input type="range" id="maxTokens" min="128" max="4096" step="128" [(ngModel)]="aiSearchSettings.maxTokens" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+              <input type="range" id="maxTokens" min="128" max="4096" step="128" [(ngModel)]="aiSearchSettings.maxTokens" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+              <input type="number" min="128" max="4096" step="128" [(ngModel)]="aiSearchSettings.maxTokens" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 90px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+            </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -445,7 +457,14 @@
               <span>{{ aiSearchSettings.temperature }}</span>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Controls creativity vs determinism (0.0–1.0). Lower values (e.g. 0.1) are better for factual summaries.</p>
-            <input type="range" id="temperature" min="0.0" max="1.0" step="0.1" [(ngModel)]="aiSearchSettings.temperature" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
+            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+              <input type="range" id="temperature" min="0.0" max="1.0" step="0.1" [(ngModel)]="aiSearchSettings.temperature" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+              <input type="number" min="0.0" max="1.0" step="0.1" [(ngModel)]="aiSearchSettings.temperature" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 70px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-start; margin-top: 1rem; margin-bottom: 0.5rem;">
+            <p-button label="Apply Tuning Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [severity]="isAiSearchSettingsDirty() ? 'success' : 'secondary'" [disabled]="!aiSearchEnabled || saveRunning || !isAiSearchConfigValid() || !isAiSearchSettingsDirty()"></p-button>
           </div>
 
           <!-- OCR Configuration -->

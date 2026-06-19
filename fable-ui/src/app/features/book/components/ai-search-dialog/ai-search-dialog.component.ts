@@ -220,12 +220,14 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       }
     );
 
-    // Second pass: citations without page numbers (e.g. [Source: Book Title]).
-    // These get italic styling but no page link.
+    // Second pass: citations without numeric page numbers (e.g. [Source: Book Title] or [Source: Book Title, Page N/A]).
+    // Make the entire source tag clickable to open the book.
     html = html.replace(
       /\[Source\s*(?:\d+)?:\s*([^\]]+)\]/g,
-      (match, title) => {
-        return `<span class="ai-search-citation-highlight"><em>[Source: ${title}]</em></span>`;
+      (match, titleAndPage) => {
+        const cleanTitle = titleAndPage.replace(/,\s*Page\s*\w+/i, '').trim();
+        const escapedTitle = cleanTitle.replace(/"/g, '&quot;');
+        return `<span class="ai-search-citation-highlight"><em>[Source: <span class="ai-search-citation-page-link" data-book-title="${escapedTitle}" data-page="0" tabindex="0" role="link">${titleAndPage}</span>]</em></span>`;
       }
     );
 
@@ -243,14 +245,14 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
     const bookTitle = target.getAttribute('data-book-title');
     const page = parseInt(target.getAttribute('data-page') || '0', 10);
-    if (!bookTitle || !page) return;
+    if (!bookTitle) return;
 
     const normBookTitle = this.normalizeTitle(bookTitle);
     const searchResults = results || this.results || [];
 
     // Find the exact result matching book title and page number.
     const result = searchResults.find(
-      r => this.normalizeTitle(r.bookTitle) === normBookTitle && r.pageNumber === page
+      r => this.normalizeTitle(r.bookTitle) === normBookTitle && (page > 0 ? r.pageNumber === page : true)
     );
     if (result) {
       this.readBookAtPage(result);
@@ -258,10 +260,18 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     }
 
     // Fallback 1: find by book title alone within the search results (page may differ due to post-processing).
-    const byTitle = searchResults.find(r => this.normalizeTitle(r.bookTitle) === normBookTitle);
+    const byTitle = searchResults.find(r => {
+      const normR = this.normalizeTitle(r.bookTitle);
+      return normR === normBookTitle || normR.includes(normBookTitle) || normBookTitle.includes(normR);
+    });
     if (byTitle) {
-      const adjustedResult = { ...byTitle, pageNumber: page };
-      this.readBookAtPage(adjustedResult);
+      this.close();
+      if (page > 0) {
+        const adjustedResult = { ...byTitle, pageNumber: page };
+        this.readBookAtPage(adjustedResult);
+      } else {
+        this.bookService.readBook(byTitle.bookId);
+      }
       return;
     }
 
@@ -269,10 +279,16 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     const allBooks = this.bookService.getCurrentBookState()?.books || [];
     const libraryBook = allBooks.find(b => {
       const title = b.metadata?.title || b.fileName || '';
-      return this.normalizeTitle(title) === normBookTitle;
+      const normT = this.normalizeTitle(title);
+      return normT === normBookTitle || normT.includes(normBookTitle) || normBookTitle.includes(normT);
     });
     if (libraryBook) {
-      this.bookService.readBook(libraryBook.id, undefined, undefined, page);
+      this.close();
+      if (page > 0) {
+        this.bookService.readBook(libraryBook.id, undefined, undefined, page);
+      } else {
+        this.bookService.readBook(libraryBook.id);
+      }
     }
   }
 
@@ -598,6 +614,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   }
 
   readBookAtPage(result: AiSearchChunkResult): void {
+    this.close();
     if (result.pageNumber) {
       this.bookService.readBook(result.bookId, undefined, undefined, result.pageNumber);
     } else {
