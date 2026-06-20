@@ -15,11 +15,11 @@ import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {Router} from '@angular/router';
 import {ConfirmationService, MessageService} from 'primeng/api';
-import {ConfirmDialog} from 'primeng/confirmdialog';
 import {Dialog} from 'primeng/dialog';
 import {AnnotationService} from '../../../../shared/service/annotation.service';
 import {BookNoteV2Service} from '../../../../shared/service/book-note-v2.service';
 import {BookMarkService} from '../../../../shared/service/book-mark.service';
+import {SidebarBadgeRefreshService} from '../../../book/service/sidebar-badge-refresh.service';
 
 interface BookGroup {
   bookId: number;
@@ -50,7 +50,6 @@ const EMPTY_PAGE: NotebookPage = {
     TooltipModule,
     Paginator,
     TranslocoDirective,
-    ConfirmDialog,
     Dialog,
   ],
   templateUrl: './notebook.component.html',
@@ -71,6 +70,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
   private readonly annotationService = inject(AnnotationService);
   private readonly bookNoteV2Service = inject(BookNoteV2Service);
   private readonly bookmarkService = inject(BookMarkService);
+  private readonly sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
 
   filteredGroups: BookGroup[] = [];
   totalEntries = 0;
@@ -379,6 +379,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
               detail: this.t.translate('notebook.deleteSuccess') || 'Entry deleted successfully'
             });
             this.loadTrigger$.next();
+            this.sidebarBadgeRefresh.requestRefresh();
           },
           error: (err) => {
             this.loading = false;
