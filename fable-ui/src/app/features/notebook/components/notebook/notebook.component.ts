@@ -123,6 +123,12 @@ export class NotebookComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.pageTitle.setPageTitle(this.t.translate('notebook.pageTitle'));
 
+    this.bookService.bookState$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(state => {
+      console.log('Notebook: Library book state loaded. Total books in state:', state.books?.length || 0);
+    });
+
     this.loadTrigger$.pipe(
       switchMap(() => {
         const types = this.activeTypes;
@@ -495,12 +501,27 @@ export class NotebookComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.classList.contains('notebook-citation-page-link')) return;
 
+    if (event.type === 'keydown') {
+      const kbEvent = event as KeyboardEvent;
+      if (kbEvent.key !== 'Enter') {
+        return;
+      }
+    }
+
+    event.preventDefault();
+
     const bookTitle = target.getAttribute('data-book-title');
     const page = parseInt(target.getAttribute('data-page') || '0', 10);
-    if (!bookTitle) return;
+    console.log(`Notebook citation link clicked: Title="${bookTitle}", Page=${page}`);
+
+    if (!bookTitle) {
+      console.warn('Notebook citation click handler: data-book-title attribute is missing or empty.');
+      return;
+    }
 
     const normBookTitle = this.normalizeTitle(bookTitle);
     const allBooks = this.bookService.getCurrentBookState()?.books || [];
+    console.log(`Searching for matching book in state. Total books in state: ${allBooks.length}`);
 
     // Find by book title in the library
     const libraryBook = allBooks.find(b => {
@@ -510,21 +531,13 @@ export class NotebookComponent implements OnInit, OnDestroy {
     });
 
     if (libraryBook) {
-      let baseUrl = 'ebook-reader';
-      const fileType = libraryBook.fileType || '';
-      if (fileType === 'PDF') {
-        baseUrl = 'pdf-reader';
-      } else if (fileType === 'AUDIOBOOK') {
-        baseUrl = 'audiobook-player';
-      } else if (fileType === 'CBX') {
-        baseUrl = 'cbx-reader';
-      }
-
-      const queryParams: { page?: number } = {};
-      if (page > 0) {
-        queryParams.page = page;
-      }
-      this.router.navigate([`/${baseUrl}/book/${libraryBook.id}`], { queryParams });
+      const bookType = libraryBook.primaryFile?.bookType || libraryBook.fileType;
+      console.log(`Matching book found: ID=${libraryBook.id}, Title="${libraryBook.metadata?.title || libraryBook.fileName}", Type=${bookType}`);
+      this.bookService.readBook(libraryBook.id, undefined, undefined, page > 0 ? page : undefined);
+    } else {
+      console.warn(`No matching book found in library for title: "${bookTitle}" (normalized: "${normBookTitle}")`);
+      const availableTitles = allBooks.map(b => `"${b.metadata?.title || b.fileName}"`).join(', ');
+      console.log(`Available book titles in state: [${availableTitles}]`);
     }
   }
 
