@@ -330,7 +330,7 @@
   color: var(--p-text-color);
   font-size: 0.875rem;
   line-height: 1.55;
-  white-space: pre-wrap;
+  white-space: normal;
   word-break: break-word;
 
   ::ng-deep {
