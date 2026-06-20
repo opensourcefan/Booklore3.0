@@ -34,7 +34,7 @@ export interface ChatMessage {
 
 @Injectable({providedIn: 'root'})
 export class AiSearchDialogService {
-  private openCommand = new Subject<number | null>();
+  private openCommand = new Subject<number[] | number | null>();
   openCommand$ = this.openCommand.asObservable();
 
   /** Emits true while a search HTTP request is in-flight, false when complete/errored. */
@@ -55,6 +55,8 @@ export class AiSearchDialogService {
   cachedChatHistory: ChatMessage[] = [];
   cachedSingleBookId: number | null = null;
   cachedScopeBookTitle: string | null = null;
+  cachedBookIds: number[] = [];
+  cachedScopeBooks: { id: number; title: string }[] = [];
   cachedVisible = false;
   cachedLocalOnly = false;
 
@@ -72,6 +74,8 @@ export class AiSearchDialogService {
         ch: this.cachedChatHistory,
         bId: this.cachedSingleBookId,
         bt: this.cachedScopeBookTitle,
+        bIds: this.cachedBookIds,
+        sbs: this.cachedScopeBooks,
         v: this.cachedVisible,
         lo: this.cachedLocalOnly
       };
@@ -93,6 +97,8 @@ export class AiSearchDialogService {
         this.cachedChatHistory = data.ch || [];
         this.cachedSingleBookId = data.bId || null;
         this.cachedScopeBookTitle = data.bt || null;
+        this.cachedBookIds = data.bIds || (data.bId ? [data.bId] : []);
+        this.cachedScopeBooks = data.sbs || (data.bId && data.bt ? [{ id: data.bId, title: data.bt }] : []);
         this.cachedVisible = !!data.v;
         this.cachedLocalOnly = !!data.lo;
       }
@@ -101,10 +107,10 @@ export class AiSearchDialogService {
     }
   }
 
-  open(bookId: number | null = null) {
+  open(bookIdsOrId: number[] | number | null = null) {
     this.searchError$.next(false);
     this.dialogVisible$.next(true);
-    this.openCommand.next(bookId);
+    this.openCommand.next(bookIdsOrId);
   }
 }
 
@@ -165,13 +171,16 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.hasSearched = this.aiSearchDialogService.cachedHasSearched;
     this.answer = this.aiSearchDialogService.cachedAnswer;
     this.chatHistory = this.aiSearchDialogService.cachedChatHistory || [];
-    this.singleBookId = this.aiSearchDialogService.cachedSingleBookId;
-    this.scopeBookTitle = this.aiSearchDialogService.cachedScopeBookTitle;
+    this.bookIds = this.aiSearchDialogService.cachedBookIds || (this.aiSearchDialogService.cachedSingleBookId ? [this.aiSearchDialogService.cachedSingleBookId] : []);
+    this.scopeBooks = this.aiSearchDialogService.cachedScopeBooks || [];
+    if (this.bookIds.length > 0 && this.scopeBooks.length === 0) {
+      this.updateScopeBooks();
+    }
     this.visible = this.aiSearchDialogService.cachedVisible;
     this.localOnly = this.aiSearchDialogService.cachedLocalOnly;
 
-    this.openSub = this.aiSearchDialogService.openCommand$.subscribe(bookId => {
-      this.open(bookId);
+    this.openSub = this.aiSearchDialogService.openCommand$.subscribe(bookIdsOrId => {
+      this.open(bookIdsOrId);
     });
     this.checkLlmWarmedStatus();
   }
@@ -314,8 +323,8 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  private singleBookId: number | null = null;
-  scopeBookTitle: string | null = null;
+  bookIds: number[] = [];
+  scopeBooks: { id: number; title: string }[] = [];
 
   clearResults(): void {
     this.searchQuery = '';
@@ -336,16 +345,25 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.aiSearchDialogService.cachedHasSearched = this.hasSearched;
     this.aiSearchDialogService.cachedAnswer = this.answer;
     this.aiSearchDialogService.cachedChatHistory = this.chatHistory;
-    this.aiSearchDialogService.cachedSingleBookId = this.singleBookId;
-    this.aiSearchDialogService.cachedScopeBookTitle = this.scopeBookTitle;
+    this.aiSearchDialogService.cachedSingleBookId = this.bookIds.length === 1 ? this.bookIds[0] : null;
+    this.aiSearchDialogService.cachedScopeBookTitle = this.bookIds.length === 1 ? this.scopeBooks[0]?.title : null;
+    this.aiSearchDialogService.cachedBookIds = this.bookIds;
+    this.aiSearchDialogService.cachedScopeBooks = this.scopeBooks;
     this.aiSearchDialogService.cachedVisible = this.visible;
     this.aiSearchDialogService.cachedLocalOnly = this.localOnly;
     this.aiSearchDialogService.saveToStorage();
   }
 
-  open(bookId: number | null = null): void {
-    this.singleBookId = bookId;
-    this.scopeBookTitle = bookId ? this.bookService.getBookByIdFromState(bookId)?.metadata?.title ?? null : null;
+  open(bookIdsOrId: number[] | number | null = null): void {
+    if (Array.isArray(bookIdsOrId)) {
+      this.bookIds = bookIdsOrId;
+    } else if (bookIdsOrId !== null) {
+      this.bookIds = [bookIdsOrId];
+    } else {
+      this.bookIds = [];
+    }
+
+    this.updateScopeBooks();
     this.visible = true;
     this.aiSearchDialogService.dialogVisible$.next(true);
     this.checkLlmWarmedStatus();
@@ -359,9 +377,25 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   }
 
   clearScope(): void {
-    this.singleBookId = null;
-    this.scopeBookTitle = null;
+    this.bookIds = [];
+    this.scopeBooks = [];
     this.saveStateToCache();
+  }
+
+  removeBookFromScope(bookId: number): void {
+    this.bookIds = this.bookIds.filter(id => id !== bookId);
+    this.updateScopeBooks();
+    this.saveStateToCache();
+  }
+
+  updateScopeBooks(): void {
+    this.scopeBooks = this.bookIds.map(id => {
+      const book = this.bookService.getBookByIdFromState(id);
+      return {
+        id: id,
+        title: book?.metadata?.title ?? book?.fileName ?? `Book #${id}`
+      };
+    });
   }
 
   toggleLocalOnly(): void {
@@ -435,7 +469,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     const user = this.userService.getCurrentUser();
     if (!user) return;
 
-    const bookId = this.singleBookId || (resultsData && resultsData.length > 0 ? resultsData[0].bookId : 0);
+    const bookId = (this.bookIds && this.bookIds.length === 1 ? this.bookIds[0] : null) || (resultsData && resultsData.length > 0 ? resultsData[0].bookId : 0);
     if (!bookId) return;
 
     let selectedText = answerContent;
@@ -525,7 +559,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const bookIds = this.singleBookId ? [this.singleBookId] : [];
+    const bookIds = this.bookIds || [];
 
     // Extract the last 3 turns of history for context to avoid overloading the context window
     const historyPayload = this.chatHistory

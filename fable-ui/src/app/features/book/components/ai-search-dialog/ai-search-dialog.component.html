@@ -194,16 +194,23 @@
           </p-button>
         }
       </div>
-      @if (scopeBookTitle) {
-        <div class="ai-search-scope-row">
-          <span class="ai-search-scope-chip">
-            <i class="pi pi-bookmark-fill"></i>
-            <span>Searching:</span>
-            <span class="ai-search-scope-title">{{ scopeBookTitle }}</span>
-            <button type="button" class="ai-search-scope-clear" (click)="clearScope()" aria-label="Clear book scope" pTooltip="Clear book scope" tooltipPosition="top">
-              <i class="pi pi-times"></i>
-            </button>
+      @if (scopeBooks && scopeBooks.length > 0) {
+        <div class="ai-search-scope-row" style="display: flex; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.5rem; max-height: 80px; overflow-y: auto;">
+          <span style="font-size: 0.72rem; color: var(--text-color-secondary); display: flex; align-items: center; gap: 0.25rem; font-weight: 600;">
+            <i class="pi pi-bookmark-fill" style="font-size: 0.7rem; color: var(--primary-color);"></i>
+            Searching ({{ scopeBooks.length }}):
           </span>
+          @for (book of scopeBooks; track book.id) {
+            <span class="ai-search-scope-chip" style="background: var(--surface-hover); border: 1px solid var(--surface-border); padding: 0.15rem 0.4rem; border-radius: 12px; max-width: 200px;">
+              <span class="ai-search-scope-title" style="max-width: 150px;">{{ book.title }}</span>
+              <button type="button" class="ai-search-scope-clear" (click)="removeBookFromScope(book.id)" aria-label="Remove book scope" pTooltip="Remove book" tooltipPosition="top">
+                <i class="pi pi-times"></i>
+              </button>
+            </span>
+          }
+          <button type="button" class="ai-search-scope-clear-all" (click)="clearScope()" style="background: none; border: none; color: var(--pink-500); cursor: pointer; font-size: 0.72rem; padding: 0 4px; display: flex; align-items: center; gap: 2px; font-weight: 500;">
+            <i class="pi pi-trash" style="font-size: 0.7rem;"></i> Clear All
+          </button>
         </div>
       }
     </div>

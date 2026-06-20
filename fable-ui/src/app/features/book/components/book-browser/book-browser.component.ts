@@ -656,7 +656,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openAiSearch(): void {
-    this.aiSearchDialogService.open();
+    if (this.selectedCount > 0) {
+      this.aiSearchDialogService.open(Array.from(this.selectedBooks));
+    } else {
+      this.aiSearchDialogService.open();
+    }
   }
 
   private startAiStatusPolling(): void {
@@ -844,6 +848,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBooks, this.user());
     this.aiSearchMenuItems = [
+      {
+        label: 'AI-Search Selected',
+        icon: 'pi pi-sparkles',
+        command: () => this.openAiSearch()
+      },
+      {
+        separator: true
+      },
       {
         label: 'Embed Now',
         icon: 'pi pi-bolt',
@@ -1061,6 +1073,14 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isDrawerVisible = this.selectedCount > 0;
     this.moreActionsMenuItems = this.bookMenuService.getMoreActionsMenu(this.selectedBookIds, this.user());
     this.aiSearchMenuItems = [
+      {
+        label: 'AI-Search Selected',
+        icon: 'pi pi-sparkles',
+        command: () => this.openAiSearch()
+      },
+      {
+        separator: true
+      },
       {
         label: 'Embed Now',
         icon: 'pi pi-bolt',

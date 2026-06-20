@@ -453,6 +453,7 @@ tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 6. **AI Search Features**:
    - **Global AI Search:** Click the sparkly blue **AI Search** icon in the topbar or library search fields to search your entire collection by concepts and themes.
    - **Book-Specific AI Search:** Click the glowing **AIS** badge on any book card to ask questions specifically about that book.
+   - **Selected Books AI Search:** Select multiple books in the browser and search only those selected books by clicking the sparkle button in the search field or choosing **AI-Search Selected** from the selection actions toolbar dropdown.
    - **Note:** Make sure you have embedded your books first (Click the three dots on any book card -> **Embed for AI Search**).
    - **Zero Configuration Needed:** Fable comes with everything you need built-in! The AI search engine (powered by Ollama) runs automatically inside its own secure container. You don't need to install any external software or configure network settings to get started. Just pick a preset in your `.env` file and enjoy.
 

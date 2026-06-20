@@ -51,8 +51,14 @@ public class AiSearchController {
     @PostMapping("/query")
     public Map<String, Object> search(@RequestBody Map<String, Object> payload) {
         String query = (String) payload.get("query");
-        @SuppressWarnings("unchecked")
-        List<Long> bookIds = (List<Long>) payload.get("bookIds");
+        Object rawBookIds = payload.get("bookIds");
+        List<Long> bookIds = null;
+        if (rawBookIds instanceof List<?> list) {
+            bookIds = list.stream()
+                    .filter(Number.class::isInstance)
+                    .map(n -> ((Number) n).longValue())
+                    .toList();
+        }
         Long userId = toLong(payload.get("userId"));
 
         @SuppressWarnings("unchecked")
