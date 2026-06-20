@@ -24,4 +24,7 @@ public class NotebookEntry {
     private String primaryBookType;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String cfi;
+    private Long positionMs;
+    private Integer trackIndex;
 }

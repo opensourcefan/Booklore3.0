@@ -90,6 +90,9 @@ public class NotebookService {
                 .primaryBookType(p.getPrimaryBookType())
                 .createdAt(p.getCreatedAt())
                 .updatedAt(p.getUpdatedAt())
+                .cfi(p.getCfi())
+                .positionMs(p.getPositionMs())
+                .trackIndex(p.getTrackIndex())
                 .build();
     }
 }

@@ -22,17 +22,20 @@ public interface NotebookEntryRepository extends Repository<AnnotationEntity, Lo
             "SELECT b.id FROM book_marks b WHERE b.user_id = :userId";
 
     String ENTRIES_UNION =
+            "SELECT b.id, 'BOOKMARK' AS type, b.user_id, b.book_id, bm.title AS book_title, " +
+            "b.title AS text, b.notes AS note, b.color, NULL AS style, NULL AS chapter_title, b.created_at, b.updated_at, " +
+            "b.cfi, b.position_ms, b.track_index " +
+            "FROM book_marks b JOIN book_metadata bm ON bm.book_id = b.book_id " +
+            "UNION ALL " +
             "SELECT a.id, 'HIGHLIGHT' AS type, a.user_id, a.book_id, bm.title AS book_title, " +
-            "a.text, a.note, a.color, a.style, a.chapter_title, a.created_at, a.updated_at " +
+            "a.text, a.note, a.color, a.style, a.chapter_title, a.created_at, a.updated_at, " +
+            "a.cfi, NULL AS position_ms, NULL AS track_index " +
             "FROM annotations a JOIN book_metadata bm ON bm.book_id = a.book_id " +
             "UNION ALL " +
             "SELECT n.id, 'NOTE' AS type, n.user_id, n.book_id, bm.title AS book_title, " +
-            "n.selected_text, n.note_content, n.color, NULL, n.chapter_title, n.created_at, n.updated_at " +
-            "FROM book_notes_v2 n JOIN book_metadata bm ON bm.book_id = n.book_id " +
-            "UNION ALL " +
-            "SELECT b.id, 'BOOKMARK' AS type, b.user_id, b.book_id, bm.title AS book_title, " +
-            "b.title, b.notes, b.color, NULL, NULL, b.created_at, b.updated_at " +
-            "FROM book_marks b JOIN book_metadata bm ON bm.book_id = b.book_id";
+            "n.selected_text AS text, n.note_content AS note, n.color, NULL AS style, n.chapter_title, n.created_at, n.updated_at, " +
+            "n.cfi, NULL AS position_ms, NULL AS track_index " +
+            "FROM book_notes_v2 n JOIN book_metadata bm ON bm.book_id = n.book_id";
 
     String ENTRIES_FILTER =
             " WHERE t.user_id = :userId AND t.type IN (:types)" +
@@ -56,6 +59,9 @@ public interface NotebookEntryRepository extends Repository<AnnotationEntity, Lo
         String getPrimaryBookType();
         LocalDateTime getCreatedAt();
         LocalDateTime getUpdatedAt();
+        String getCfi();
+        Long getPositionMs();
+        Integer getTrackIndex();
     }
 
     interface BookProjection {
@@ -73,7 +79,8 @@ public interface NotebookEntryRepository extends Repository<AnnotationEntity, Lo
     @Query(value = "SELECT t.id, t.type, t.book_id AS bookId, t.book_title AS bookTitle, " +
                    "t.text, t.note, t.color, t.style, t.chapter_title AS chapterTitle, " +
                    "(SELECT bf.book_type FROM book_file bf WHERE bf.book_id = t.book_id ORDER BY bf.id LIMIT 1) AS primaryBookType, " +
-                   "t.created_at AS createdAt, t.updated_at AS updatedAt " +
+                   "t.created_at AS createdAt, t.updated_at AS updatedAt, " +
+                   "t.cfi AS cfi, t.position_ms AS positionMs, t.track_index AS trackIndex " +
                    "FROM (" + ENTRIES_UNION + ") t" + ENTRIES_FILTER,
            countQuery = "SELECT COUNT(*) FROM (" + ENTRIES_UNION + ") t" + ENTRIES_FILTER,
            nativeQuery = true)

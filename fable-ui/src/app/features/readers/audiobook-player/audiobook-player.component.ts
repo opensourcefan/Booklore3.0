@@ -236,28 +236,33 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
         next: (book) => {
           this.pageTitle.setBookPageTitle(book);
 
-          if (book.audiobookProgress) {
+          const queryPosition = this.route.snapshot.queryParamMap.get('positionMs');
+          const queryTrack = this.route.snapshot.queryParamMap.get('trackIndex');
+
+          if (queryPosition !== null) {
+            this.savedPosition = Number(queryPosition) / 1000;
+          } else if (book.audiobookProgress) {
             this.savedPosition = book.audiobookProgress.positionMs
               ? book.audiobookProgress.positionMs / 1000
               : 0;
+          }
 
-            // If audio is already loaded, seek to saved position
-            const audio = this.audioElement?.nativeElement;
-            if (audio && audio.readyState >= 1 && this.savedPosition > 0) {
-              audio.currentTime = this.savedPosition;
-              this.currentTime = this.savedPosition;
-            }
+          // If audio is already loaded, seek to saved position
+          const audio = this.audioElement?.nativeElement;
+          if (audio && audio.readyState >= 1 && this.savedPosition > 0) {
+            audio.currentTime = this.savedPosition;
+            this.currentTime = this.savedPosition;
+          }
 
-            // Handle track index for folder-based audiobooks
-            if (info.folderBased && info.tracks && info.tracks.length > 0) {
-              const trackIndex = book.audiobookProgress?.trackIndex ?? 0;
-              if (trackIndex !== this.currentTrackIndex) {
-                this.currentTrackIndex = trackIndex;
-                this.loadTrack(trackIndex, false);
-                const track = info.tracks[trackIndex];
-                if (track?.durationMs) {
-                  this.duration = track.durationMs / 1000;
-                }
+          // Handle track index for folder-based audiobooks
+          if (info.folderBased && info.tracks && info.tracks.length > 0) {
+            const trackIndex = queryTrack !== null ? Number(queryTrack) : (book.audiobookProgress?.trackIndex ?? 0);
+            if (trackIndex !== this.currentTrackIndex) {
+              this.currentTrackIndex = trackIndex;
+              this.loadTrack(trackIndex, false);
+              const track = info.tracks[trackIndex];
+              if (track?.durationMs) {
+                this.duration = track.durationMs / 1000;
               }
             }
           }

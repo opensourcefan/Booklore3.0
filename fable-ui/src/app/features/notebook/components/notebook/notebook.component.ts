@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {of, Subject} from 'rxjs';
+import {Observable, of, Subject} from 'rxjs';
 import {debounceTime, switchMap, takeUntil} from 'rxjs/operators';
 import {InputTextModule} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
@@ -13,6 +13,13 @@ import {NotebookService} from '../../service/notebook.service';
 import {NotebookEntry, NotebookPage} from '../../model/notebook.model';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
+import {Router} from '@angular/router';
+import {ConfirmationService, MessageService} from 'primeng/api';
+import {ConfirmDialog} from 'primeng/confirmdialog';
+import {Dialog} from 'primeng/dialog';
+import {AnnotationService} from '../../../../shared/service/annotation.service';
+import {BookNoteV2Service} from '../../../../shared/service/book-note-v2.service';
+import {BookMarkService} from '../../../../shared/service/book-mark.service';
 
 interface BookGroup {
   bookId: number;
@@ -43,6 +50,8 @@ const EMPTY_PAGE: NotebookPage = {
     TooltipModule,
     Paginator,
     TranslocoDirective,
+    ConfirmDialog,
+    Dialog,
   ],
   templateUrl: './notebook.component.html',
   styleUrls: ['./notebook.component.scss'],
@@ -56,6 +65,12 @@ export class NotebookComponent implements OnInit, OnDestroy {
   private readonly urlHelper = inject(UrlHelperService);
   private readonly pageTitle = inject(PageTitleService);
   private readonly t = inject(TranslocoService);
+  private readonly router = inject(Router);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
+  private readonly annotationService = inject(AnnotationService);
+  private readonly bookNoteV2Service = inject(BookNoteV2Service);
+  private readonly bookmarkService = inject(BookMarkService);
 
   filteredGroups: BookGroup[] = [];
   totalEntries = 0;
@@ -76,6 +91,22 @@ export class NotebookComponent implements OnInit, OnDestroy {
   first = 0;
 
   private collapsedGroups = new Set<number>();
+
+  // Edit Dialog State
+  showEditDialog = false;
+  editingEntry: NotebookEntry | null = null;
+  editNote = '';
+  editTitle = '';
+  editColor = '';
+  saving = false;
+
+  annotationColors = [
+    { name: 'yellow', value: '#FFFF00', label: 'Yellow' },
+    { name: 'green', value: '#90EE90', label: 'Green' },
+    { name: 'blue', value: '#87CEEB', label: 'Blue' },
+    { name: 'pink', value: '#FFB6C1', label: 'Pink' },
+    { name: 'orange', value: '#FFD580', label: 'Orange' }
+  ];
 
   ngOnInit(): void {
     this.pageTitle.setPageTitle(this.t.translate('notebook.pageTitle'));
@@ -279,5 +310,142 @@ export class NotebookComponent implements OnInit, OnDestroy {
     a.download = 'notebook-export.md';
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  goToReader(entry: NotebookEntry): void {
+    let baseUrl = 'ebook-reader';
+    const bookType = entry.primaryBookType;
+
+    if (bookType === 'PDF') {
+      baseUrl = 'pdf-reader';
+    } else if (bookType === 'AUDIOBOOK') {
+      baseUrl = 'audiobook-player';
+    } else if (bookType === 'CBX') {
+      baseUrl = 'cbx-reader';
+    }
+
+    const queryParams: {
+      positionMs?: number;
+      trackIndex?: number;
+      page?: number;
+      cfi?: string;
+    } = {};
+    
+    if (bookType === 'AUDIOBOOK') {
+      if (entry.positionMs !== undefined && entry.positionMs !== null) {
+        queryParams.positionMs = entry.positionMs;
+      }
+      if (entry.trackIndex !== undefined && entry.trackIndex !== null) {
+        queryParams.trackIndex = entry.trackIndex;
+      }
+    } else if (bookType === 'PDF') {
+      if (entry.cfi && entry.cfi.startsWith('page=')) {
+        const pageNum = Number(entry.cfi.split('=')[1]);
+        if (!isNaN(pageNum)) {
+          queryParams.page = pageNum;
+        }
+      }
+    } else { // EPUB etc.
+      if (entry.cfi) {
+        queryParams.cfi = entry.cfi;
+      }
+    }
+
+    this.router.navigate([`/${baseUrl}/book/${entry.bookId}`], { queryParams });
+  }
+
+  deleteEntry(entry: NotebookEntry): void {
+    this.confirmationService.confirm({
+      message: this.t.translate('notebook.deleteConfirmMessage'),
+      header: this.t.translate('notebook.deleteConfirmTitle'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonProps: { severity: 'danger' },
+      accept: () => {
+        this.loading = true;
+        let delete$: Observable<unknown> = of(null);
+        if (entry.type === 'HIGHLIGHT') {
+          delete$ = this.annotationService.deleteAnnotation(entry.id);
+        } else if (entry.type === 'NOTE') {
+          delete$ = this.bookNoteV2Service.deleteNote(entry.id);
+        } else if (entry.type === 'BOOKMARK') {
+          delete$ = this.bookmarkService.deleteBookmark(entry.id);
+        }
+        
+        delete$.subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: this.t.translate('common.success') || 'Success',
+              detail: this.t.translate('notebook.deleteSuccess') || 'Entry deleted successfully'
+            });
+            this.loadTrigger$.next();
+          },
+          error: (err) => {
+            this.loading = false;
+            console.error('Failed to delete notebook entry:', err);
+            this.messageService.add({
+              severity: 'error',
+              summary: this.t.translate('common.error') || 'Error',
+              detail: this.t.translate('notebook.deleteError') || 'Failed to delete entry'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  editEntry(entry: NotebookEntry): void {
+    this.editingEntry = entry;
+    this.editNote = entry.note || '';
+    this.editTitle = entry.text || '';
+    this.editColor = entry.color || '#FFFF00';
+    this.showEditDialog = true;
+  }
+
+  saveEdit(): void {
+    if (!this.editingEntry) return;
+    this.saving = true;
+    let update$: Observable<unknown> = of(null);
+
+    if (this.editingEntry.type === 'HIGHLIGHT') {
+      update$ = this.annotationService.updateAnnotation(this.editingEntry.id, {
+        note: this.editNote,
+        color: this.editColor
+      });
+    } else if (this.editingEntry.type === 'NOTE') {
+      update$ = this.bookNoteV2Service.updateNote(this.editingEntry.id, {
+        noteContent: this.editNote,
+        color: this.editColor
+      });
+    } else if (this.editingEntry.type === 'BOOKMARK') {
+      update$ = this.bookmarkService.updateBookmark(this.editingEntry.id, {
+        title: this.editTitle,
+        notes: this.editNote,
+        color: this.editColor
+      });
+    }
+
+    update$.subscribe({
+      next: () => {
+        this.saving = false;
+        this.showEditDialog = false;
+        this.editingEntry = null;
+        this.messageService.add({
+          severity: 'success',
+          summary: this.t.translate('common.success') || 'Success',
+          detail: this.t.translate('notebook.updateSuccess') || 'Entry updated successfully'
+        });
+        this.loadTrigger$.next();
+      },
+      error: (err) => {
+        this.saving = false;
+        console.error('Failed to update entry:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('common.error') || 'Error',
+          detail: this.t.translate('notebook.updateError') || 'Failed to update entry'
+        });
+      }
+    });
   }
 }

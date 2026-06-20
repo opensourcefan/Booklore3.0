@@ -169,6 +169,36 @@
                         </span>
                       }
                       <span class="entry-date">{{ entry.createdAt | date:'mediumDate' }}</span>
+                      
+                      <div class="entry-actions">
+                        <p-button
+                          icon="pi pi-external-link"
+                          [text]="true"
+                          [plain]="true"
+                          size="small"
+                          (onClick)="goToReader(entry)"
+                          [pTooltip]="t('notebook.jumpToLocation')"
+                          tooltipPosition="bottom"
+                        />
+                        <p-button
+                          icon="pi pi-pencil"
+                          [text]="true"
+                          severity="secondary"
+                          size="small"
+                          (onClick)="editEntry(entry)"
+                          [pTooltip]="t('notebook.edit')"
+                          tooltipPosition="bottom"
+                        />
+                        <p-button
+                          icon="pi pi-trash"
+                          [text]="true"
+                          severity="danger"
+                          size="small"
+                          (onClick)="deleteEntry(entry)"
+                          [pTooltip]="t('notebook.delete')"
+                          tooltipPosition="bottom"
+                        />
+                      </div>
                     </div>
                     @if (entry.text) {
                       <div class="entry-text">{{ entry.text }}</div>
@@ -201,4 +231,92 @@
       }
     </div>
   </div>
+
+  <p-confirmDialog />
+
+  <p-dialog
+    [header]="t('notebook.editEntryTitle')"
+    [(visible)]="showEditDialog"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '450px' }"
+    appendTo="body"
+  >
+    @if (editingEntry) {
+      <div class="edit-dialog-content">
+        <!-- Bookmark Title Edit -->
+        @if (editingEntry.type === 'BOOKMARK') {
+          <div class="edit-field" style="margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem;">
+            <label for="bookmark-title" style="font-size: 0.875rem; font-weight: 600; color: var(--p-text-color);">
+              {{ t('notebook.bookmarkTitleLabel') }}
+            </label>
+            <input
+              id="bookmark-title"
+              type="text"
+              pInputText
+              [(ngModel)]="editTitle"
+              class="w-full"
+              style="padding: 0.5rem; border-radius: 4px; border: 1px solid var(--p-content-border-color); background: var(--p-content-background); color: var(--p-text-color);"
+            />
+          </div>
+        }
+
+        <!-- Note / Commentary Edit -->
+        <div class="edit-field" style="margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem;">
+          <label for="entry-note" style="font-size: 0.875rem; font-weight: 600; color: var(--p-text-color);">
+            {{ editingEntry.type === 'BOOKMARK' ? t('notebook.bookmarkNotesLabel') : t('notebook.noteLabel') }}
+          </label>
+          <textarea
+            id="entry-note"
+            rows="5"
+            [(ngModel)]="editNote"
+            class="w-full"
+            style="resize: vertical; min-height: 100px; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--p-content-border-color); background: var(--p-content-background); color: var(--p-text-color); font-family: inherit; font-size: 0.875rem; line-height: 1.5;"
+          ></textarea>
+        </div>
+
+        <!-- Color Selection -->
+        <div class="edit-field" style="margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem;">
+          <span style="font-size: 0.875rem; font-weight: 600; color: var(--p-text-color);">
+            {{ t('notebook.colorLabel') }}
+          </span>
+          <div class="color-picker-grid" style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+            @for (colorOpt of annotationColors; track colorOpt.value) {
+              <button
+                type="button"
+                class="color-circle"
+                [style.background-color]="colorOpt.value"
+                [class.selected]="editColor === colorOpt.value"
+                (click)="editColor = colorOpt.value"
+                [pTooltip]="colorOpt.label"
+                style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.25);"
+              >
+                <span style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">
+                  {{ colorOpt.label }}
+                </span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+    <ng-template pTemplate="footer">
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+        <p-button
+          [label]="t('notebook.cancel')"
+          [text]="true"
+          severity="secondary"
+          (onClick)="showEditDialog = false"
+          [disabled]="saving"
+        />
+        <p-button
+          [label]="t('notebook.save')"
+          (onClick)="saveEdit()"
+          [loading]="saving"
+          loadingIcon="pi pi-spin pi-spinner"
+        />
+      </div>
+    </ng-template>
+  </p-dialog>
 </ng-container>

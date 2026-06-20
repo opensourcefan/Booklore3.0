@@ -11,6 +11,9 @@ export interface NotebookEntry {
   primaryBookType?: string;
   createdAt: string;
   updatedAt?: string;
+  cfi?: string;
+  positionMs?: number;
+  trackIndex?: number;
 }
 
 export interface NotebookPage {

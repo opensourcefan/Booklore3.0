@@ -374,14 +374,28 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     const user = this.userService.getCurrentUser();
     if (!user) return;
 
-    const title = `${result.bookTitle} - ${this.searchQuery}`;
+    let selectedText = result.chunkText || '';
+    if (result.contextBefore || result.contextAfter) {
+      selectedText = '';
+      if (result.contextBefore) {
+        selectedText += `[Context] ... ${result.contextBefore.trim()}\n\n`;
+      }
+      selectedText += `${(result.chunkText || '').trim()}`;
+      if (result.contextAfter) {
+        selectedText += `\n\n[Context] ${result.contextAfter.trim()} ...`;
+      }
+    }
+
+    const similarityPercent = Math.round(result.similarity * 100);
+    const queryStr = this.searchQuery.trim() || 'AI Semantic Search';
+    const noteContent = `🔍 AI Search Query: "${queryStr}"\n📊 Similarity Score: ${similarityPercent}%\n📖 Page: ${result.pageNumber || 'N/A'} (Chunk #${result.chunkId})`;
     const dummyCfi = result.pageNumber ? `page=${result.pageNumber}` : 'ai-search-result';
 
     const request: CreateBookNoteV2Request = {
       bookId: result.bookId,
       cfi: dummyCfi,
-      selectedText: result.chunkText,
-      noteContent: title,
+      selectedText: selectedText,
+      noteContent: noteContent,
       chapterTitle: result.chapterTitle || undefined
     };
 
@@ -423,10 +437,19 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     const bookId = this.singleBookId || (resultsData && resultsData.length > 0 ? resultsData[0].bookId : 0);
     if (!bookId) return;
 
+    let selectedText = answerContent;
+    if (resultsData && resultsData.length > 0) {
+      const citations = resultsData.map((r, idx) => {
+        const similarityPercent = Math.round(r.similarity * 100);
+        return `[Source ${idx + 1}] "${r.bookTitle}" - Chapter: ${r.chapterTitle || 'N/A'}, Page: ${r.pageNumber || 'N/A'} (Similarity: ${similarityPercent}%)`;
+      }).join('\n');
+      selectedText += `\n\n---\n📚 Sources Referenced:\n${citations}`;
+    }
+
     const request: CreateBookNoteV2Request = {
       bookId: bookId,
       cfi: 'ai-search-answer',
-      selectedText: answerContent,
+      selectedText: selectedText,
       noteContent: `AI Search Answer: ${queryContent}`
     };
 

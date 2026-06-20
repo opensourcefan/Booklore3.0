@@ -336,8 +336,18 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
             if (!this.hasLoadedOnce) {
               this.hasLoadedOnce = true;
               
+              const targetCfi = this.route.snapshot.queryParamMap.get('cfi');
               const targetPage = this.route.snapshot.queryParamMap.get('page');
-              if (targetPage) {
+              if (targetCfi) {
+                if (targetCfi.startsWith('page=')) {
+                  const pageNum = Number(targetCfi.split('=')[1]);
+                  if (!isNaN(pageNum)) {
+                    const targetSpineIndex = Math.max(0, pageNum - 1);
+                    return this.viewManager.goTo(targetSpineIndex);
+                  }
+                }
+                return this.viewManager.goTo(targetCfi);
+              } else if (targetPage) {
                 const targetSpineIndex = Math.max(0, Number(targetPage) - 1);
                 return this.viewManager.goTo(targetSpineIndex);
               } else if (book.epubProgress?.cfi) {

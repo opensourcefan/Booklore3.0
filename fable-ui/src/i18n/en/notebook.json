@@ -20,5 +20,17 @@
   "note": "Note",
   "bookmark": "Bookmark",
   "annotation": "annotation",
-  "annotations": "annotations"
+  "annotations": "annotations",
+  "jumpToLocation": "Jump to Reader",
+  "edit": "Edit",
+  "delete": "Delete",
+  "deleteConfirmTitle": "Delete Entry",
+  "deleteConfirmMessage": "Are you sure you want to delete this notebook entry? This action cannot be undone.",
+  "editEntryTitle": "Edit Notebook Entry",
+  "save": "Save",
+  "cancel": "Cancel",
+  "noteLabel": "Note Content",
+  "bookmarkTitleLabel": "Bookmark Title",
+  "bookmarkNotesLabel": "Bookmark Notes",
+  "colorLabel": "Highlight Color"
 }
