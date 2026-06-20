@@ -201,12 +201,12 @@
                       </div>
                     </div>
                     @if (entry.text) {
-                      <div class="entry-text" [innerHTML]="markdownToHtml(entry.text)" (click)="onNotebookTextClick($event)" (keydown.enter)="onNotebookTextClick($event)" tabindex="0"></div>
+                      <div class="entry-text" [innerHTML]="entry.safeTextHtml" (click)="onNotebookTextClick($event)" (keydown.enter)="onNotebookTextClick($event)" tabindex="0"></div>
                     }
                     @if (entry.note) {
                       <div class="entry-note">
                         <i class="pi pi-comment"></i>
-                        <span [innerHTML]="markdownToHtml(entry.note)" (click)="onNotebookTextClick($event)" (keydown.enter)="onNotebookTextClick($event)" tabindex="0"></span>
+                        <span [innerHTML]="entry.safeNoteHtml" (click)="onNotebookTextClick($event)" (keydown.enter)="onNotebookTextClick($event)" tabindex="0"></span>
                       </div>
                     }
                   </div>

@@ -25,11 +25,16 @@ import {BookService} from '../../../book/service/book.service';
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 
+export interface DisplayNotebookEntry extends NotebookEntry {
+  safeTextHtml?: SafeHtml;
+  safeNoteHtml?: SafeHtml;
+}
+
 interface BookGroup {
   bookId: number;
   bookTitle: string;
   thumbnailUrl: string;
-  entries: NotebookEntry[];
+  entries: DisplayNotebookEntry[];
 }
 
 interface BookOption {
@@ -227,18 +232,22 @@ export class NotebookComponent implements OnInit, OnDestroy {
   private groupEntries(entries: NotebookEntry[]): void {
     const groupMap = new Map<number, BookGroup>();
     for (const entry of entries) {
-      if (!groupMap.has(entry.bookId)) {
-        const isAudiobook = entry.primaryBookType === 'AUDIOBOOK';
-        groupMap.set(entry.bookId, {
-          bookId: entry.bookId,
-          bookTitle: entry.bookTitle,
+      const displayEntry = entry as DisplayNotebookEntry;
+      displayEntry.safeTextHtml = displayEntry.text ? this.markdownToHtml(displayEntry.text) : undefined;
+      displayEntry.safeNoteHtml = displayEntry.note ? this.markdownToHtml(displayEntry.note) : undefined;
+
+      if (!groupMap.has(displayEntry.bookId)) {
+        const isAudiobook = displayEntry.primaryBookType === 'AUDIOBOOK';
+        groupMap.set(displayEntry.bookId, {
+          bookId: displayEntry.bookId,
+          bookTitle: displayEntry.bookTitle,
           thumbnailUrl: isAudiobook
-            ? this.urlHelper.getAudiobookThumbnailUrl(entry.bookId)
-            : this.urlHelper.getDirectThumbnailUrl(entry.bookId),
+            ? this.urlHelper.getAudiobookThumbnailUrl(displayEntry.bookId)
+            : this.urlHelper.getDirectThumbnailUrl(displayEntry.bookId),
           entries: [],
         });
       }
-      groupMap.get(entry.bookId)!.entries.push(entry);
+      groupMap.get(displayEntry.bookId)!.entries.push(displayEntry);
     }
     this.filteredGroups = Array.from(groupMap.values());
   }
@@ -472,22 +481,23 @@ export class NotebookComponent implements OnInit, OnDestroy {
     if (!markdown) return this.sanitizer.bypassSecurityTrustHtml('');
     let html = this.markdownRenderer.render(markdown);
 
-    // Citations with page numbers
+    // Single-pass replacement for citations to prevent double-matching and nesting corruption
     html = html.replace(
-      /\[Source\s*(?:\d+)?:\s*(.+?),\s*Page\s*(\d+)\]/g,
-      (match, title, page) => {
-        const escapedTitle = title.replace(/"/g, '&quot;');
-        return `<span class="notebook-citation-highlight"><em>[Source: ${title}, <span class="notebook-citation-page-link" data-book-title="${escapedTitle}" data-page="${page}" tabindex="0" role="link" style="color: var(--p-primary-color); cursor: pointer; text-decoration: underline;">Page ${page}</span>]</em></span>`;
-      }
-    );
-
-    // Citations without numeric page numbers
-    html = html.replace(
-      /\[Source\s*(?:\d+)?:\s*([^\]]+)\]/g,
-      (match, titleAndPage) => {
-        const cleanTitle = titleAndPage.replace(/,\s*Page\s*\w+/i, '').trim();
-        const escapedTitle = cleanTitle.replace(/"/g, '&quot;');
-        return `<span class="notebook-citation-highlight"><em>[Source: <span class="notebook-citation-page-link" data-book-title="${escapedTitle}" data-page="0" tabindex="0" role="link" style="color: var(--p-primary-color); cursor: pointer; text-decoration: underline;">${titleAndPage}</span>]</em></span>`;
+      /\[Source\s*(\d+)?:\s*(.+?)\]/g,
+      (match, sourceNum, content) => {
+        const pageRegex = /,\s*Page\s*(\d+)$/i;
+        const pageMatch = content.match(pageRegex);
+        
+        if (pageMatch) {
+          const page = pageMatch[1];
+          const title = content.replace(pageRegex, '').trim();
+          const escapedTitle = title.replace(/"/g, '&quot;');
+          return `<span class="notebook-citation-highlight"><em>[Source: ${title}, <span class="notebook-citation-page-link" data-book-title="${escapedTitle}" data-page="${page}" tabindex="0" role="link" style="color: var(--p-primary-color); cursor: pointer; text-decoration: underline;">Page ${page}</span>]</em></span>`;
+        } else {
+          const title = content.trim();
+          const escapedTitle = title.replace(/"/g, '&quot;');
+          return `<span class="notebook-citation-highlight"><em>[Source: <span class="notebook-citation-page-link" data-book-title="${escapedTitle}" data-page="0" tabindex="0" role="link" style="color: var(--p-primary-color); cursor: pointer; text-decoration: underline;">${content}</span>]</em></span>`;
+        }
       }
     );
 
