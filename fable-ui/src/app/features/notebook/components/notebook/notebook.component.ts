@@ -20,6 +20,10 @@ import {AnnotationService} from '../../../../shared/service/annotation.service';
 import {BookNoteV2Service} from '../../../../shared/service/book-note-v2.service';
 import {BookMarkService} from '../../../../shared/service/book-mark.service';
 import {SidebarBadgeRefreshService} from '../../../book/service/sidebar-badge-refresh.service';
+import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
+import {BookService} from '../../../book/service/book.service';
+import MarkdownIt from 'markdown-it';
+import DOMPurify from 'dompurify';
 
 interface BookGroup {
   bookId: number;
@@ -71,6 +75,14 @@ export class NotebookComponent implements OnInit, OnDestroy {
   private readonly bookNoteV2Service = inject(BookNoteV2Service);
   private readonly bookmarkService = inject(BookMarkService);
   private readonly sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly bookService = inject(BookService);
+
+  private markdownRenderer = new MarkdownIt({
+    html: false,
+    linkify: true,
+    typographer: true,
+  });
 
   filteredGroups: BookGroup[] = [];
   totalEntries = 0;
@@ -448,5 +460,75 @@ export class NotebookComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  markdownToHtml(markdown: string | null): SafeHtml {
+    if (!markdown) return this.sanitizer.bypassSecurityTrustHtml('');
+    let html = this.markdownRenderer.render(markdown);
+
+    // Citations with page numbers
+    html = html.replace(
+      /\[Source\s*(?:\d+)?:\s*(.+?),\s*Page\s*(\d+)\]/g,
+      (match, title, page) => {
+        const escapedTitle = title.replace(/"/g, '&quot;');
+        return `<span class="notebook-citation-highlight"><em>[Source: ${title}, <span class="notebook-citation-page-link" data-book-title="${escapedTitle}" data-page="${page}" tabindex="0" role="link" style="color: var(--p-primary-color); cursor: pointer; text-decoration: underline;">Page ${page}</span>]</em></span>`;
+      }
+    );
+
+    // Citations without numeric page numbers
+    html = html.replace(
+      /\[Source\s*(?:\d+)?:\s*([^\]]+)\]/g,
+      (match, titleAndPage) => {
+        const cleanTitle = titleAndPage.replace(/,\s*Page\s*\w+/i, '').trim();
+        const escapedTitle = cleanTitle.replace(/"/g, '&quot;');
+        return `<span class="notebook-citation-highlight"><em>[Source: <span class="notebook-citation-page-link" data-book-title="${escapedTitle}" data-page="0" tabindex="0" role="link" style="color: var(--p-primary-color); cursor: pointer; text-decoration: underline;">${titleAndPage}</span>]</em></span>`;
+      }
+    );
+
+    const sanitized = DOMPurify.sanitize(html, {
+      ADD_ATTR: ['data-book-title', 'data-page', 'role', 'tabindex', 'style']
+    });
+    return this.sanitizer.bypassSecurityTrustHtml(sanitized);
+  }
+
+  onNotebookTextClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.classList.contains('notebook-citation-page-link')) return;
+
+    const bookTitle = target.getAttribute('data-book-title');
+    const page = parseInt(target.getAttribute('data-page') || '0', 10);
+    if (!bookTitle) return;
+
+    const normBookTitle = this.normalizeTitle(bookTitle);
+    const allBooks = this.bookService.getCurrentBookState()?.books || [];
+
+    // Find by book title in the library
+    const libraryBook = allBooks.find(b => {
+      const title = b.metadata?.title || b.fileName || '';
+      const normT = this.normalizeTitle(title);
+      return normT === normBookTitle || normT.includes(normBookTitle) || normBookTitle.includes(normT);
+    });
+
+    if (libraryBook) {
+      let baseUrl = 'ebook-reader';
+      const fileType = libraryBook.fileType || '';
+      if (fileType === 'PDF') {
+        baseUrl = 'pdf-reader';
+      } else if (fileType === 'AUDIOBOOK') {
+        baseUrl = 'audiobook-player';
+      } else if (fileType === 'CBX') {
+        baseUrl = 'cbx-reader';
+      }
+
+      const queryParams: { page?: number } = {};
+      if (page > 0) {
+        queryParams.page = page;
+      }
+      this.router.navigate([`/${baseUrl}/book/${libraryBook.id}`], { queryParams });
+    }
+  }
+
+  private normalizeTitle(title: string): string {
+    return title.toLowerCase().replace(/[^a-z0-9]/g, '');
   }
 }

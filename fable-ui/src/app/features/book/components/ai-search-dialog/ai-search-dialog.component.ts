@@ -388,7 +388,8 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
     const similarityPercent = Math.round(result.similarity * 100);
     const queryStr = this.searchQuery.trim() || 'AI Semantic Search';
-    const noteContent = `🔍 AI Search Query: "${queryStr}"\n📊 Similarity Score: ${similarityPercent}%\n📖 Page: ${result.pageNumber || 'N/A'} (Chunk #${result.chunkId})`;
+    const pageLink = result.pageNumber ? `[Source: ${result.bookTitle}, Page ${result.pageNumber}]` : `[Source: ${result.bookTitle}]`;
+    const noteContent = `🔍 AI Search Query: "${queryStr}"\n📊 Similarity Score: ${similarityPercent}%\n📖 Citation: ${pageLink} (Chunk #${result.chunkId})`;
     const dummyCfi = result.pageNumber ? `page=${result.pageNumber}` : 'ai-search-result';
 
     const request: CreateBookNoteV2Request = {
@@ -441,7 +442,8 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     if (resultsData && resultsData.length > 0) {
       const citations = resultsData.map((r, idx) => {
         const similarityPercent = Math.round(r.similarity * 100);
-        return `[Source ${idx + 1}] "${r.bookTitle}" - Chapter: ${r.chapterTitle || 'N/A'}, Page: ${r.pageNumber || 'N/A'} (Similarity: ${similarityPercent}%)`;
+        const pagePart = r.pageNumber ? `, Page ${r.pageNumber}` : '';
+        return `[Source ${idx + 1}] [Source: ${r.bookTitle}${pagePart}] - Chapter: ${r.chapterTitle || 'N/A'} (Similarity: ${similarityPercent}%)`;
       }).join('\n');
       selectedText += `\n\n---\n📚 Sources Referenced:\n${citations}`;
     }
