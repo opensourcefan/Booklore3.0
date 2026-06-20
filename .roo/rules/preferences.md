@@ -9,7 +9,10 @@ paths: ["**/*"]
 ## General:
 
 - READ: file:///home/michael/Desktop/2026-06-19-Fable_Freeze_State_and_Maintenance_Report.html
-- **Session Recovery Protocol**: If the workspace crashed or restarted, check `.agent/journal.md` immediately upon startup to resume work from the last recorded context. Update the journal at major milestones or at the end of each session.
+- **Session Recovery Protocol**: If the workspace crashed or restarted, check `.agent/journal.md` immediately upon startup. To prevent context loss during mid-session crashes, you must proactively update `.agent/journal.md`:
+  1. **Before Editing Files**: Append a brief note listing the files you are about to modify and the goal of the changes.
+  2. **Before Running High-Resource Commands**: (e.g. `npm run build`, `vitest`, container rebuilds) Append a note stating the command about to run and the current state of files.
+  3. **Upon Milestone/Completion**: Document the final results, commits, and tags.
 - After pushing, provide a numbered fix summary matching the user's task order, in the built in browser.
 - For frontend interaction regressions, prefer DOM-backed mock tests that verify real click behavior and the presence or absence of directives, not only component state.
 - Do not push unless explicitly stated to do so in the most recent task or subtask.
