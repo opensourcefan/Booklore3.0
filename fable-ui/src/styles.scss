@@ -309,3 +309,24 @@ body.bl-resizing-vertical {
 .config-modal-overlay:focus-visible {
   outline: none;
 }
+
+/* ================================================================
+   Browser compatibility overrides for vendor prefixes
+   ================================================================ */
+html {
+  text-size-adjust: 100%;
+}
+
+.p-toast-message-info,
+.p-toast-message-success,
+.p-toast-message-warn,
+.p-toast-message-error,
+.p-toast-message-secondary,
+.p-toast-message-contrast {
+  -webkit-backdrop-filter: blur(var(--p-toast-blur));
+}
+
+.p-disabled,
+.p-disabled * {
+  -webkit-user-select: none;
+}
