@@ -40,6 +40,7 @@ out/
 ### VS Code ###
 .vscode/
 !.vscode/settings.json
+!.vscode/tasks.json
 local/
 local-scripts/
 
