@@ -87,6 +87,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
     html: false,
     linkify: true,
     typographer: true,
+    breaks: true,
   });
 
   filteredGroups: BookGroup[] = [];
