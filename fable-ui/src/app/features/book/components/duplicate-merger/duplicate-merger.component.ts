@@ -22,6 +22,7 @@ import {
   UserService,
 } from '../../../settings/user-management/user.service';
 import {naturalCompareStrings} from '../../../../shared/util/natural-sort.util';
+import {Clipboard} from '@angular/cdk/clipboard';
 
 type PresetMode = 'strict' | 'balanced' | 'aggressive' | 'custom';
 
@@ -89,6 +90,7 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
   private readonly config = inject(DynamicDialogConfig);
   private readonly t = inject(TranslocoService);
   readonly urlHelper = inject(UrlHelperService);
+  private readonly clipboard = inject(Clipboard);
 
   ngOnInit(): void {
     this.libraryId = this.config.data.libraryId;
@@ -583,23 +585,13 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
     }
 
     const text = this.buildResolutionPlanMarkdown();
-    if (!navigator.clipboard?.writeText) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: this.t.translate('book.duplicateMerger.toast.copyUnavailableSummary'),
-        detail: this.t.translate('book.duplicateMerger.toast.copyUnavailableDetail'),
-      });
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(text);
+    if (this.clipboard.copy(text)) {
       this.messageService.add({
         severity: 'success',
         summary: this.t.translate('book.duplicateMerger.toast.planCopiedSummary'),
         detail: this.t.translate('book.duplicateMerger.toast.planCopiedDetail', {count: this.plannedGroups.length}),
       });
-    } catch {
+    } else {
       this.messageService.add({
         severity: 'error',
         summary: this.t.translate('book.duplicateMerger.toast.copyFailedSummary'),

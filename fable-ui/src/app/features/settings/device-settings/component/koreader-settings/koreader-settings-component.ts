@@ -12,6 +12,7 @@ import {filter, takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
 import {ExternalDocLinkComponent} from '../../../../../shared/components/external-doc-link/external-doc-link.component';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import {Clipboard} from '@angular/cdk/clipboard';
 
 @Component({
   standalone: true,
@@ -44,6 +45,7 @@ export class KoreaderSettingsComponent implements OnInit, OnDestroy {
   private readonly koreaderService = inject(KoreaderService);
   private readonly userService = inject(UserService);
   private readonly t = inject(TranslocoService);
+  private readonly clipboard = inject(Clipboard);
 
   private readonly destroy$ = new Subject<void>();
   hasPermission = false;
@@ -152,20 +154,19 @@ export class KoreaderSettingsComponent implements OnInit, OnDestroy {
     if (!text) {
       return;
     }
-    navigator.clipboard.writeText(text).then(() => {
+    if (this.clipboard.copy(text)) {
       this.messageService.add({
         severity: 'success',
         summary: this.t.translate('settingsDevice.copied'),
         detail: this.t.translate('settingsDevice.copiedDetail', {label})
       });
-    }).catch(err => {
-      console.error('Copy failed', err);
+    } else {
       this.messageService.add({
         severity: 'error',
         summary: this.t.translate('settingsDevice.copyFailed'),
         detail: this.t.translate('settingsDevice.copyFailedDetail', {label})
       });
-    });
+    }
   }
 
   ngOnDestroy(): void {

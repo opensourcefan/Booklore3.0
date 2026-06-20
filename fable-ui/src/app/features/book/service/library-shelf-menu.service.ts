@@ -13,6 +13,7 @@ import {WriteProgressService} from '../../../shared/service/write-progress.servi
 import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
 import {BookDialogHelperService} from '../components/book-browser/book-dialog-helper.service';
 import {TranslocoService} from '@jsverse/transloco';
+import {Clipboard} from '@angular/cdk/clipboard';
 
 @Injectable({
   providedIn: 'root',
@@ -31,6 +32,7 @@ export class LibraryShelfMenuService {
   private writeProgressService = inject(WriteProgressService);
   private bookDialogHelperService = inject(BookDialogHelperService);
   private readonly t = inject(TranslocoService);
+  private clipboard = inject(Clipboard);
 
   initializeLibraryMenuItems(entity: Library | Shelf | MagicShelf | null): MenuItem[] {
     return [
@@ -268,9 +270,11 @@ export class LibraryShelfMenuService {
             icon: 'pi pi-copy',
             command: () => {
               if (entity?.filterJson) {
-                navigator.clipboard.writeText(entity.filterJson).then(() => {
+                if (this.clipboard.copy(entity.filterJson)) {
                   this.messageService.add({severity: 'success', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.magicShelfJsonCopiedDetail')});
-                });
+                } else {
+                  this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('settingsBackups.messages.clipboardUnavailable')});
+                }
               }
             }
           },

@@ -7,6 +7,7 @@ import {ReaderViewManagerService} from '../../core/view-manager.service';
 import {ReaderAnnotationHttpService} from '../annotations/annotation.service';
 import {ReaderLeftSidebarService} from '../../layout/panel/panel.service';
 import {TextSelectionAction, AnnotationStyle} from '../../shared/selection-popup.component';
+import {Clipboard as CdkClipboard} from '@angular/cdk/clipboard';
 
 export interface SelectionState {
   visible: boolean;
@@ -28,6 +29,7 @@ export class ReaderSelectionService {
   private viewManager = inject(ReaderViewManagerService);
   private annotationService = inject(ReaderAnnotationHttpService);
   private leftSidebarService = inject(ReaderLeftSidebarService);
+  private clipboard = inject(CdkClipboard);
 
   private bookId!: number;
   private annotations: Annotation[] = [];
@@ -108,7 +110,7 @@ export class ReaderSelectionService {
     if (action.type === 'select') {
       this.clearPreview();
       if (this.currentSelection?.text) {
-        navigator.clipboard.writeText(this.currentSelection.text);
+        this.clipboard.copy(this.currentSelection.text);
       }
       this.viewManager.clearSelection();
       this.emitState();

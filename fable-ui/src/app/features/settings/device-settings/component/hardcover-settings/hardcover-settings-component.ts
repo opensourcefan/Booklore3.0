@@ -11,6 +11,7 @@ import {ExternalDocLinkComponent} from '../../../../../shared/components/externa
 import {UserService} from '../../../user-management/user.service';
 import {HardcoverSyncSettingsService} from './hardcover-sync-settings.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {Clipboard} from '@angular/cdk/clipboard';
 
 @Component({
   standalone: true,
@@ -33,6 +34,7 @@ export class HardcoverSettingsComponent implements OnInit, OnDestroy {
   private readonly hardcoverSyncSettingsService = inject(HardcoverSyncSettingsService);
   private readonly userService = inject(UserService);
   private readonly t = inject(TranslocoService);
+  private readonly clipboard = inject(Clipboard);
   private readonly destroy$ = new Subject<void>();
 
   hasPermission = false;
@@ -109,24 +111,23 @@ export class HardcoverSettingsComponent implements OnInit, OnDestroy {
   }
 
   copyText(text: string, label = 'Text') {
-    if (!text) {
-      return;
-    }
-    navigator.clipboard.writeText(text).then(() => {
-      this.messageService.add({
-        severity: 'success',
-        summary: this.t.translate('settingsDevice.copied'),
-        detail: this.t.translate('settingsDevice.copiedDetail', {label})
-      });
-    }).catch(err => {
-      console.error('Copy failed', err);
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('settingsDevice.copyFailed'),
-        detail: this.t.translate('settingsDevice.copyFailedDetail', {label})
-      });
-    });
-  }
+     if (!text) {
+       return;
+     }
+     if (this.clipboard.copy(text)) {
+       this.messageService.add({
+         severity: 'success',
+         summary: this.t.translate('settingsDevice.copied'),
+         detail: this.t.translate('settingsDevice.copiedDetail', {label})
+       });
+     } else {
+       this.messageService.add({
+         severity: 'error',
+         summary: this.t.translate('settingsDevice.copyFailed'),
+         detail: this.t.translate('settingsDevice.copyFailedDetail', {label})
+       });
+     }
+   }
 
   ngOnDestroy(): void {
     this.destroy$.next();

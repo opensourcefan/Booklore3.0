@@ -19,6 +19,7 @@ import {AppSettingKey} from '../../../shared/model/app-settings.model';
 import {ExternalDocLinkComponent} from '../../../shared/components/external-doc-link/external-doc-link.component';
 import {Select} from 'primeng/select';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import {Clipboard} from '@angular/cdk/clipboard';
 
 @Component({
   selector: 'app-opds-settings',
@@ -54,6 +55,7 @@ export class OpdsSettings implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private appSettingsService = inject(AppSettingsService);
   private t = inject(TranslocoService);
+  private clipboard = inject(Clipboard);
 
   users: OpdsUserV2[] = [];
   loading = false;
@@ -182,9 +184,11 @@ export class OpdsSettings implements OnInit, OnDestroy {
   }
 
   copyEndpoint(): void {
-    navigator.clipboard.writeText(this.opdsEndpoint).then(() => {
+    if (this.clipboard.copy(this.opdsEndpoint)) {
       this.showMessage('success', this.t.translate('common.success'), this.t.translate('settingsOpds.opdsCopied'));
-    });
+    } else {
+      this.showMessage('error', this.t.translate('common.error'), 'Clipboard copy failed');
+    }
   }
 
   toggleOpdsServer(): void {
@@ -206,9 +210,11 @@ export class OpdsSettings implements OnInit, OnDestroy {
   }
 
   copyKomgaEndpoint(): void {
-    navigator.clipboard.writeText(this.komgaEndpoint).then(() => {
+    if (this.clipboard.copy(this.komgaEndpoint)) {
       this.showMessage('success', this.t.translate('common.success'), this.t.translate('settingsOpds.komgaCopied'));
-    });
+    } else {
+      this.showMessage('error', this.t.translate('common.error'), 'Clipboard copy failed');
+    }
   }
 
   toggleKomgaGroupUnknown(): void {

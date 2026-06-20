@@ -22,6 +22,7 @@ import {Select} from 'primeng/select';
 import {TableModule} from 'primeng/table';
 import {Dialog} from 'primeng/dialog';
 import {TagComponent} from '../../../shared/components/tag/tag.component';
+import {Clipboard} from '@angular/cdk/clipboard';
 
 @Component({
   selector: 'app-authentication-settings',
@@ -118,6 +119,7 @@ export class AuthenticationSettingsComponent implements OnInit {
   private libraryService = inject(LibraryService);
   private groupMappingService = inject(OidcGroupMappingService);
   private t = inject(TranslocoService);
+  private clipboard = inject(Clipboard);
 
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
 
@@ -226,13 +228,19 @@ export class AuthenticationSettingsComponent implements OnInit {
   }
 
   copyToClipboard(value: string): void {
-    navigator.clipboard.writeText(value).then(() => {
+    if (this.clipboard.copy(value)) {
       this.messageService.add({
         severity: 'success',
         summary: this.t.translate('settingsAuth.toast.saved'),
         detail: this.t.translate('settingsAuth.toast.copiedToClipboard')
       });
-    });
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: this.t.translate('common.error'),
+        detail: this.t.translate('settingsBackups.messages.clipboardUnavailable')
+      });
+    }
   }
 
   saveSessionDuration(): void {

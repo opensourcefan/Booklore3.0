@@ -2446,4 +2446,49 @@ class BookRuleEvaluatorServiceIntegrationTest {
             assertThat(ids).doesNotContain(book300.getId());
         }
     }
+
+    @Nested
+    class TagTests {
+        @Test
+        void equals_onArrayField_matchesTagName() {
+            BookEntity book1 = createBook("Book 1");
+            TagEntity tag1 = TagEntity.builder().name("Sci-Fi").build();
+            em.persist(tag1);
+            book1.getMetadata().setTags(new HashSet<>(Set.of(tag1)));
+            em.merge(book1.getMetadata());
+
+            BookEntity book2 = createBook("Book 2");
+            TagEntity tag2 = TagEntity.builder().name("Fantasy").build();
+            em.persist(tag2);
+            book2.getMetadata().setTags(new HashSet<>(Set.of(tag2)));
+            em.merge(book2.getMetadata());
+            em.flush();
+            em.clear();
+
+            List<Long> ids = findMatchingIds(singleRule(RuleField.TAGS, RuleOperator.EQUALS, "Sci-Fi"));
+            assertThat(ids).contains(book1.getId());
+            assertThat(ids).doesNotContain(book2.getId());
+        }
+
+        @Test
+        void includesAny_onArrayField_matchesTagNames() {
+            BookEntity book1 = createBook("Book 1");
+            TagEntity tag1 = TagEntity.builder().name("Sci-Fi").build();
+            em.persist(tag1);
+            book1.getMetadata().setTags(new HashSet<>(Set.of(tag1)));
+            em.merge(book1.getMetadata());
+
+            BookEntity book2 = createBook("Book 2");
+            TagEntity tag2 = TagEntity.builder().name("History").build();
+            em.persist(tag2);
+            book2.getMetadata().setTags(new HashSet<>(Set.of(tag2)));
+            em.merge(book2.getMetadata());
+            em.flush();
+            em.clear();
+
+            List<Long> ids = findMatchingIds(singleRule(RuleField.TAGS, RuleOperator.INCLUDES_ANY, List.of("Sci-Fi", "Fantasy")));
+            assertThat(ids).contains(book1.getId());
+            assertThat(ids).doesNotContain(book2.getId());
+        }
+    }
 }

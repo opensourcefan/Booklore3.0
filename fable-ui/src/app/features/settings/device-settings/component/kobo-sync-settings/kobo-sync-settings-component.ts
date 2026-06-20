@@ -18,6 +18,7 @@ import {ShelfService} from '../../../../book/service/shelf.service';
 import {ExternalDocLinkComponent} from '../../../../../shared/components/external-doc-link/external-doc-link.component';
 import {ToastModule} from 'primeng/toast';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {Clipboard} from '@angular/cdk/clipboard';
 
 @Component({
   selector: 'app-kobo-sync-setting-component',
@@ -36,6 +37,7 @@ export class KoboSyncSettingsComponent implements OnInit, OnDestroy {
   protected settingsHelperService = inject(SettingsHelperService);
   private shelfService = inject(ShelfService);
   private readonly t = inject(TranslocoService);
+  private clipboard = inject(Clipboard);
 
   private readonly destroy$ = new Subject<void>();
   private readonly sliderChange$ = new Subject<void>();
@@ -151,20 +153,19 @@ export class KoboSyncSettingsComponent implements OnInit, OnDestroy {
     if (!text) {
       return;
     }
-    navigator.clipboard.writeText(text).then(() => {
+    if (this.clipboard.copy(text)) {
       this.messageService.add({
         severity: 'success',
         summary: this.t.translate('settingsDevice.copied'),
         detail: this.t.translate('settingsDevice.copiedDetail', {label})
       });
-    }).catch(err => {
-      console.error('Copy failed', err);
+    } else {
       this.messageService.add({
         severity: 'error',
         summary: this.t.translate('settingsDevice.copyFailed'),
         detail: this.t.translate('settingsDevice.copyFailedDetail', {label})
       });
-    });
+    }
   }
 
   toggleShowToken() {
