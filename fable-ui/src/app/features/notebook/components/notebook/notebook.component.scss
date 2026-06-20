@@ -334,10 +334,23 @@
   word-break: break-word;
 
   ::ng-deep {
-    p, ul, ol, blockquote, pre {
-      margin: 0.25rem 0 !important;
-      margin-block-start: 0.25rem !important;
-      margin-block-end: 0.25rem !important;
+    p, blockquote, pre {
+      margin: 0.5rem 0 !important;
+      margin-block-start: 0.5rem !important;
+      margin-block-end: 0.5rem !important;
+      &:first-child {
+        margin-top: 0 !important;
+        margin-block-start: 0 !important;
+      }
+      &:last-child {
+        margin-bottom: 0 !important;
+        margin-block-end: 0 !important;
+      }
+    }
+    ul, ol {
+      margin: 0.75rem 0 !important;
+      margin-block-start: 0.75rem !important;
+      margin-block-end: 0.75rem !important;
       &:first-child {
         margin-top: 0 !important;
         margin-block-start: 0 !important;
@@ -349,11 +362,11 @@
     }
     ul {
       list-style-type: disc !important;
-      padding-left: 1.25rem;
+      padding-left: 1.5rem !important;
     }
     ol {
       list-style-type: decimal !important;
-      padding-left: 1.25rem;
+      padding-left: 1.5rem !important;
     }
     li {
       margin: 0.125rem 0 !important;
@@ -423,10 +436,23 @@
   line-height: 1.5;
 
   ::ng-deep {
-    p, ul, ol, blockquote, pre {
-      margin: 0.25rem 0 !important;
-      margin-block-start: 0.25rem !important;
-      margin-block-end: 0.25rem !important;
+    p, blockquote, pre {
+      margin: 0.5rem 0 !important;
+      margin-block-start: 0.5rem !important;
+      margin-block-end: 0.5rem !important;
+      &:first-child {
+        margin-top: 0 !important;
+        margin-block-start: 0 !important;
+      }
+      &:last-child {
+        margin-bottom: 0 !important;
+        margin-block-end: 0 !important;
+      }
+    }
+    ul, ol {
+      margin: 0.75rem 0 !important;
+      margin-block-start: 0.75rem !important;
+      margin-block-end: 0.75rem !important;
       &:first-child {
         margin-top: 0 !important;
         margin-block-start: 0 !important;
@@ -438,11 +464,11 @@
     }
     ul {
       list-style-type: disc !important;
-      padding-left: 1.25rem;
+      padding-left: 1.5rem !important;
     }
     ol {
       list-style-type: decimal !important;
-      padding-left: 1.25rem;
+      padding-left: 1.5rem !important;
     }
     li {
       margin: 0.125rem 0 !important;
