@@ -474,11 +474,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get hasMetadataMenuItems(): boolean {
-    return this.metadataMenuItems!.length > 0;
+    return (this.metadataMenuItems?.length ?? 0) > 0;
   }
 
   get hasMoreActionsItems(): boolean {
-    return this.moreActionsMenuItems!.length > 0;
+    return (this.moreActionsMenuItems?.length ?? 0) > 0;
   }
 
   // Handle book card hover for cover preview
