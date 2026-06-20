@@ -728,3 +728,13 @@
     }
   }
 }
+
+.ai-search-scope-popover-content {
+  .scope-item-remove-btn {
+    transition: background-color 0.2s, color 0.2s;
+    &:hover {
+      background: rgba(244, 63, 94, 0.15) !important;
+      color: var(--pink-500) !important;
+    }
+  }
+}
