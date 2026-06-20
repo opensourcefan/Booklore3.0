@@ -56,7 +56,7 @@ export class AiSearchDialogService {
   cachedSingleBookId: number | null = null;
   cachedScopeBookTitle: string | null = null;
   cachedBookIds: number[] = [];
-  cachedScopeBooks: { id: number; title: string; hasAiSearchData: boolean }[] = [];
+  cachedScopeBooks: { id: number; title: string }[] = [];
   cachedVisible = false;
   cachedLocalOnly = false;
 
@@ -98,11 +98,7 @@ export class AiSearchDialogService {
         this.cachedSingleBookId = data.bId || null;
         this.cachedScopeBookTitle = data.bt || null;
         this.cachedBookIds = data.bIds || (data.bId ? [data.bId] : []);
-        this.cachedScopeBooks = (data.sbs || []).map((b: any) => ({
-          id: b.id,
-          title: b.title,
-          hasAiSearchData: b.hasAiSearchData !== undefined ? b.hasAiSearchData : true
-        })) || (data.bId && data.bt ? [{ id: data.bId, title: data.bt, hasAiSearchData: true }] : []);
+        this.cachedScopeBooks = data.sbs || (data.bId && data.bt ? [{ id: data.bId, title: data.bt }] : []);
         this.cachedVisible = !!data.v;
         this.cachedLocalOnly = !!data.lo;
       }
@@ -328,7 +324,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   }
 
   bookIds: number[] = [];
-  scopeBooks: { id: number; title: string; hasAiSearchData: boolean }[] = [];
+  scopeBooks: { id: number; title: string }[] = [];
 
   clearResults(): void {
     this.searchQuery = '';
@@ -386,13 +382,10 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.saveStateToCache();
   }
 
-  removeBookFromScope(bookId: number, popover?: any): void {
+  removeBookFromScope(bookId: number): void {
     this.bookIds = this.bookIds.filter(id => id !== bookId);
     this.updateScopeBooks();
     this.saveStateToCache();
-    if (this.bookIds.length === 0 && popover) {
-      popover.hide();
-    }
   }
 
   updateScopeBooks(): void {
@@ -400,8 +393,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       const book = this.bookService.getBookByIdFromState(id);
       return {
         id: id,
-        title: book?.metadata?.title ?? book?.fileName ?? `Book #${id}`,
-        hasAiSearchData: book?.hasAiSearchData ?? false
+        title: book?.metadata?.title ?? book?.fileName ?? `Book #${id}`
       };
     });
   }

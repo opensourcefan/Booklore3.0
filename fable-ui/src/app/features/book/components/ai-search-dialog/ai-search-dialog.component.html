@@ -195,37 +195,22 @@
         }
       </div>
       @if (scopeBooks && scopeBooks.length > 0) {
-        <div class="ai-search-scope-row" style="display: flex; align-items: center; gap: 0.5rem; padding-top: 0.5rem;">
-          <span class="ai-search-scope-chip" style="background: var(--surface-hover); border: 1px solid var(--surface-border); padding: 0.2rem 0.6rem; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; transition: background-color 0.2s;" (click)="scopePopover.toggle($event)">
+        <div class="ai-search-scope-row" style="display: flex; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.5rem; max-height: 80px; overflow-y: auto;">
+          <span style="font-size: 0.72rem; color: var(--text-color-secondary); display: flex; align-items: center; gap: 0.25rem; font-weight: 600;">
             <i class="pi pi-bookmark-fill" style="font-size: 0.7rem; color: var(--primary-color);"></i>
-            <span style="font-weight: 500; font-size: 0.75rem; color: var(--text-color);">Searching {{ scopeBooks.length }} book{{ scopeBooks.length === 1 ? '' : 's' }}</span>
-            <i class="pi pi-chevron-down" style="font-size: 0.6rem; color: var(--text-color-secondary);"></i>
+            Searching ({{ scopeBooks.length }}):
           </span>
-          <p-popover #scopePopover [dismissable]="true" appendTo="body" [style]="{ width: '360px', maxWidth: '90vw' }">
-            <div class="ai-search-scope-popover-content" style="padding: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.5rem; margin-bottom: 0.25rem;">
-                <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-color);">Selected Scope ({{ scopeBooks.length }})</span>
-                <button type="button" (click)="clearScope(); scopePopover.hide()" style="background: none; border: none; color: var(--pink-500); cursor: pointer; font-size: 0.75rem; font-weight: 500; display: flex; align-items: center; gap: 2px;">
-                  <i class="pi pi-trash" style="font-size: 0.75rem;"></i> Clear All
-                </button>
-              </div>
-              <div style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.35rem;">
-                @for (book of scopeBooks; track book.id) {
-                  <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.25rem 0.5rem; background: var(--surface-ground); border-radius: 4px;">
-                    <span style="font-size: 0.8rem; color: var(--text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; display: flex; align-items: center; gap: 0.35rem;" [pTooltip]="book.title" tooltipPosition="top">
-                      @if (!book.hasAiSearchData) {
-                        <i class="pi pi-exclamation-triangle" style="color: var(--orange-500); font-size: 0.8rem; flex-shrink: 0;" pTooltip="This book is not embedded for AI Search. It will not return results." tooltipPosition="top"></i>
-                      }
-                      <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ book.title }}</span>
-                    </span>
-                    <button type="button" (click)="removeBookFromScope(book.id, scopePopover)" style="background: none; border: none; color: var(--text-color-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; padding: 0;" class="scope-item-remove-btn">
-                      <i class="pi pi-times" style="font-size: 0.7rem;"></i>
-                    </button>
-                  </div>
-                }
-              </div>
-            </div>
-          </p-popover>
+          @for (book of scopeBooks; track book.id) {
+            <span class="ai-search-scope-chip" style="background: var(--surface-hover); border: 1px solid var(--surface-border); padding: 0.15rem 0.4rem; border-radius: 12px; max-width: 200px;">
+              <span class="ai-search-scope-title" style="max-width: 150px;">{{ book.title }}</span>
+              <button type="button" class="ai-search-scope-clear" (click)="removeBookFromScope(book.id)" aria-label="Remove book scope" pTooltip="Remove book" tooltipPosition="top">
+                <i class="pi pi-times"></i>
+              </button>
+            </span>
+          }
+          <button type="button" class="ai-search-scope-clear-all" (click)="clearScope()" style="background: none; border: none; color: var(--pink-500); cursor: pointer; font-size: 0.72rem; padding: 0 4px; display: flex; align-items: center; gap: 2px; font-weight: 500;">
+            <i class="pi pi-trash" style="font-size: 0.7rem;"></i> Clear All
+          </button>
         </div>
       }
     </div>
