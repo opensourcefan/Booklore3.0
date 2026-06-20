@@ -9,6 +9,7 @@ paths: ["**/*"]
 ## General:
 
 - READ: file:///home/michael/Desktop/2026-06-19-Fable_Freeze_State_and_Maintenance_Report.html
+- **Session Recovery Protocol**: If the workspace crashed or restarted, check `.agent/journal.md` immediately upon startup to resume work from the last recorded context. Update the journal at major milestones or at the end of each session.
 - After pushing, provide a numbered fix summary matching the user's task order, in the built in browser.
 - For frontend interaction regressions, prefer DOM-backed mock tests that verify real click behavior and the presence or absence of directives, not only component state.
 - Do not push unless explicitly stated to do so in the most recent task or subtask.
