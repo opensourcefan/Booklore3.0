@@ -20,7 +20,16 @@ def get_recent_sessions():
     # Sort folders by modification time (most recent first)
     folders.sort(key=lambda x: x.stat().st_mtime, reverse=True)
 
-    print("\n=== Recent Fable Agent Sessions ===")
+    print("\n======================================================================")
+    print("                    FABLE AGENT CRASH RECOVERY                        ")
+    print("======================================================================")
+    print("If the IDE or application recently crashed, you can restore your chat ")
+    print("history and coding context by mentioning the previous session ID.")
+    print("Simply type '@' followed by the Session ID in the chat input. E.g.:")
+    print("  @9df3ee15-525c-474f-9d6a-ef70a9840091")
+    print("======================================================================")
+    
+    print("\n--- Recent Agent Sessions ---")
     for folder in folders[:5]:
         mtime = datetime.fromtimestamp(folder.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')
         transcript_path = os.path.join(folder.path, ".system_generated", "logs", "transcript.jsonl")
@@ -46,7 +55,10 @@ def get_recent_sessions():
         print(f"\nID:   {folder.name}")
         print(f"Time: {mtime}")
         print(f"Last: {last_prompt}")
-    print("\nTo reference a past session in the chat, type: @<Session_ID>\n")
+    
+    print("\n----------------------------------------------------------------------")
+    print("To restore a session, copy an ID above and type: @<Session_ID> in the chat.")
+    print("----------------------------------------------------------------------\n")
 
 if __name__ == "__main__":
     get_recent_sessions()
