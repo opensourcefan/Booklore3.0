@@ -202,80 +202,157 @@
       }
     </div>
 
-    @if (aiPanelFlowStats$ | async; as aiStats) {
+    @if ({ aiStats: aiPanelFlowStats$ | async, searchStats: aiSearchStatsSummary$ | async }; as data) {
       <section class="chart-section full-width ai-stats-section">
         <div class="ai-stats-header">
           <div>
             <h3>
-              <i class="pi pi-images"></i>
-              {{ t('aiPanelStats.title') }}
+              <i class="pi pi-sparkles"></i>
+              {{ t('aiPanelStats.titleSection') }}
             </h3>
-            <p>{{ t('aiPanelStats.description') }}</p>
+            <p>{{ t('aiPanelStats.descriptionSection') }}</p>
           </div>
         </div>
 
-        @if (hasAiPanelFlowData(aiStats)) {
-          <div class="ai-comic-page" aria-label="AI panel statistics comic page">
-            <article class="ai-panel ai-panel-splash">
-              <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.coverage') }}</span>
-              <span class="ai-panel-value">{{ aiStats.totalPagesScanned }}</span>
-              <span class="ai-panel-label">{{ t('aiPanelStats.labels.totalPages') }}</span>
-              <p>{{ t('aiPanelStats.coverageSummary', { comics: aiStats.scannedComicCount, panels: aiStats.totalPanelsMapped }) }}</p>
-            </article>
+        <div class="ai-stats-grid">
+          <!-- Left Column: AI Search Stats -->
+          <div class="ai-search-column">
+            <div class="column-header">
+              <h4>
+                <i class="pi pi-search"></i>
+                {{ t('aiSearchStats.title') }}
+              </h4>
+              <p>{{ t('aiSearchStats.description') }}</p>
+            </div>
 
-            <article class="ai-panel ai-panel-stat">
-              <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.library') }}</span>
-              <span class="ai-panel-value">{{ aiStats.scannedComicCount }}</span>
-              <span class="ai-panel-label">{{ t('aiPanelStats.labels.scannedComics') }}</span>
-            </article>
+            @if (data.searchStats; as searchStats) {
+              @if (searchStats.totalEmbeddedBooks > 0) {
+                <div class="ai-search-dashboard">
+                  <div class="ai-search-dashboard-row">
+                    <article class="ai-search-card mini-card">
+                      <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.embeddings') }}</span>
+                      <span class="ai-search-value">{{ searchStats.totalEmbeddedBooks }}</span>
+                      <span class="ai-search-label">{{ t('aiSearchStats.totalEmbeddedBooks') }}</span>
+                    </article>
 
-            <article class="ai-panel ai-panel-stat">
-              <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.mapping') }}</span>
-              <span class="ai-panel-value">{{ aiStats.totalPanelsMapped }}</span>
-              <span class="ai-panel-label">{{ t('aiPanelStats.labels.totalPanels') }}</span>
-            </article>
+                    <article class="ai-search-card mini-card">
+                      <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.chunks') }}</span>
+                      <span class="ai-search-value">{{ searchStats.totalChunks }}</span>
+                      <span class="ai-search-label">{{ t('aiSearchStats.totalChunks') }}</span>
+                    </article>
 
-            <article class="ai-panel ai-panel-storage">
-              <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.storage') }}</span>
-              <span class="ai-panel-value">{{ totalAiStorage$ | async }}</span>
-              <span class="ai-panel-label">{{ t('aiPanelStats.labels.diskUsage') }}</span>
-            </article>
+                    <article class="ai-search-card mini-card">
+                      <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.marked') }}</span>
+                      <span class="ai-search-value">{{ searchStats.markedCount }}</span>
+                      <span class="ai-search-label">{{ t('aiSearchStats.markedForScan') }}</span>
+                    </article>
+                  </div>
 
-            <article class="ai-panel ai-panel-feature">
-              <span class="ai-panel-kicker">{{ t('aiPanelStats.labels.mostPages') }}</span>
-              @if (aiStats.comicWithMostPagesScanned; as leader) {
-                <a class="ai-comic-link" [routerLink]="['/book', leader.bookId]" [queryParams]="getBookReturnQueryParams()">{{ leader.title }}</a>
-                <p>{{ t(getAiLeaderSubtitleKey('pages'), getAiLeaderSubtitleParams(leader)) }}</p>
+                  <article class="ai-search-card model-breakdown-card">
+                    <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.models') }}</span>
+                    <span class="ai-search-label">{{ t('aiSearchStats.modelBreakdown') }}</span>
+                    <div class="model-list">
+                      @for (item of searchStats.modelStats; track item.model) {
+                        <div class="model-row">
+                          <span class="model-name" [title]="item.model">{{ item.model }}</span>
+                          <span class="model-count">{{ item.count }} {{ item.count === 1 ? t('main.books').slice(0, -1) : t('main.books') }}</span>
+                        </div>
+                      }
+                    </div>
+                  </article>
+                </div>
               } @else {
-                <p>{{ t('aiPanelStats.noLeaders') }}</p>
+                <div class="ai-stats-empty">
+                  {{ t('aiSearchStats.empty') }}
+                </div>
               }
-            </article>
-
-            <article class="ai-panel ai-panel-feature">
-              <span class="ai-panel-kicker">{{ t('aiPanelStats.labels.mostPanels') }}</span>
-              @if (aiStats.comicWithMostPanelsMapped; as leader) {
-                <a class="ai-comic-link" [routerLink]="['/book', leader.bookId]" [queryParams]="getBookReturnQueryParams()">{{ leader.title }}</a>
-                <p>{{ t(getAiLeaderSubtitleKey('panels'), getAiLeaderSubtitleParams(leader)) }}</p>
-              } @else {
-                <p>{{ t('aiPanelStats.noLeaders') }}</p>
-              }
-            </article>
-
-            <article class="ai-panel ai-panel-feature ai-panel-feature-accent">
-              <span class="ai-panel-kicker">{{ t('aiPanelStats.labels.highestDensity') }}</span>
-              @if (aiStats.comicWithHighestPanelsPerPage; as leader) {
-                <a class="ai-comic-link" [routerLink]="['/book', leader.bookId]" [queryParams]="getBookReturnQueryParams()">{{ leader.title }}</a>
-                <p>{{ t(getAiLeaderSubtitleKey('density'), getAiLeaderSubtitleParams(leader)) }}</p>
-              } @else {
-                <p>{{ t('aiPanelStats.noLeaders') }}</p>
-              }
-            </article>
+            } @else {
+              <div class="ai-stats-empty">
+                {{ t('aiSearchStats.empty') }}
+              </div>
+            }
           </div>
-        } @else {
-          <div class="ai-stats-empty">
-            {{ t('aiPanelStats.empty') }}
+
+          <!-- Right Column: AI Panel Detection Stats -->
+          <div class="ai-panel-column">
+            <div class="column-header">
+              <h4>
+                <i class="pi pi-images"></i>
+                {{ t('aiPanelStats.title') }}
+              </h4>
+              <p>{{ t('aiPanelStats.description') }}</p>
+            </div>
+
+            @if (data.aiStats; as aiStats) {
+              @if (hasAiPanelFlowData(aiStats)) {
+                <div class="ai-comic-page" aria-label="AI panel statistics comic page">
+                  <article class="ai-panel ai-panel-splash">
+                    <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.coverage') }}</span>
+                    <span class="ai-panel-value">{{ aiStats.totalPagesScanned }}</span>
+                    <span class="ai-panel-label">{{ t('aiPanelStats.labels.totalPages') }}</span>
+                    <p>{{ t('aiPanelStats.coverageSummary', { comics: aiStats.scannedComicCount, panels: aiStats.totalPanelsMapped }) }}</p>
+                  </article>
+
+                  <article class="ai-panel ai-panel-stat">
+                    <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.library') }}</span>
+                    <span class="ai-panel-value">{{ aiStats.scannedComicCount }}</span>
+                    <span class="ai-panel-label">{{ t('aiPanelStats.labels.scannedComics') }}</span>
+                  </article>
+
+                  <article class="ai-panel ai-panel-stat">
+                    <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.mapping') }}</span>
+                    <span class="ai-panel-value">{{ aiStats.totalPanelsMapped }}</span>
+                    <span class="ai-panel-label">{{ t('aiPanelStats.labels.totalPanels') }}</span>
+                  </article>
+
+                  <article class="ai-panel ai-panel-storage">
+                    <span class="ai-panel-kicker">{{ t('aiPanelStats.kickers.storage') }}</span>
+                    <span class="ai-panel-value">{{ totalAiStorage$ | async }}</span>
+                    <span class="ai-panel-label">{{ t('aiPanelStats.labels.diskUsage') }}</span>
+                  </article>
+
+                  <article class="ai-panel ai-panel-feature">
+                    <span class="ai-panel-kicker">{{ t('aiPanelStats.labels.mostPages') }}</span>
+                    @if (aiStats.comicWithMostPagesScanned; as leader) {
+                      <a class="ai-comic-link" [routerLink]="['/book', leader.bookId]" [queryParams]="getBookReturnQueryParams()">{{ leader.title }}</a>
+                      <p>{{ t(getAiLeaderSubtitleKey('pages'), getAiLeaderSubtitleParams(leader)) }}</p>
+                    } @else {
+                      <p>{{ t('aiPanelStats.noLeaders') }}</p>
+                    }
+                  </article>
+
+                  <article class="ai-panel ai-panel-feature">
+                    <span class="ai-panel-kicker">{{ t('aiPanelStats.labels.mostPanels') }}</span>
+                    @if (aiStats.comicWithMostPanelsMapped; as leader) {
+                      <a class="ai-comic-link" [routerLink]="['/book', leader.bookId]" [queryParams]="getBookReturnQueryParams()">{{ leader.title }}</a>
+                      <p>{{ t(getAiLeaderSubtitleKey('panels'), getAiLeaderSubtitleParams(leader)) }}</p>
+                    } @else {
+                      <p>{{ t('aiPanelStats.noLeaders') }}</p>
+                    }
+                  </article>
+
+                  <article class="ai-panel ai-panel-feature ai-panel-feature-accent">
+                    <span class="ai-panel-kicker">{{ t('aiPanelStats.labels.highestDensity') }}</span>
+                    @if (aiStats.comicWithHighestPanelsPerPage; as leader) {
+                      <a class="ai-comic-link" [routerLink]="['/book', leader.bookId]" [queryParams]="getBookReturnQueryParams()">{{ leader.title }}</a>
+                      <p>{{ t(getAiLeaderSubtitleKey('density'), getAiLeaderSubtitleParams(leader)) }}</p>
+                    } @else {
+                      <p>{{ t('aiPanelStats.noLeaders') }}</p>
+                    }
+                  </article>
+                </div>
+              } @else {
+                <div class="ai-stats-empty">
+                  {{ t('aiPanelStats.empty') }}
+                </div>
+              }
+            } @else {
+              <div class="ai-stats-empty">
+                {{ t('aiPanelStats.empty') }}
+              </div>
+            }
           </div>
-        }
+        </div>
       </section>
     }
   }

@@ -154,6 +154,37 @@ public class AiSearchService {
         return bookRepository.getEmbeddingStats(userId);
     }
 
+    public List<org.fable.repository.projection.EmbeddingStatsProjection> getEmbeddingStats(Long userId, Long libraryId) {
+        return bookRepository.getEmbeddingStatsByLibraryId(userId, libraryId);
+    }
+
+    public Map<String, Object> getAiSearchStatsSummary(Long userId, Long libraryId) {
+        List<org.fable.repository.projection.EmbeddingStatsProjection> modelStats;
+        long totalChunks;
+        long markedCount;
+
+        if (libraryId != null) {
+            modelStats = bookRepository.getEmbeddingStatsByLibraryId(userId, libraryId);
+            totalChunks = bookRepository.countTotalChunksByUserIdAndLibraryId(userId, libraryId);
+            markedCount = bookRepository.countMarkedForAiSearchByLibraryId(libraryId);
+        } else {
+            modelStats = bookRepository.getEmbeddingStats(userId);
+            totalChunks = bookRepository.countTotalChunksByUserId(userId);
+            markedCount = bookRepository.countMarkedForAiSearch();
+        }
+
+        long totalEmbeddedBooks = modelStats.stream()
+                .mapToLong(org.fable.repository.projection.EmbeddingStatsProjection::getCount)
+                .sum();
+
+        return Map.of(
+                "totalEmbeddedBooks", totalEmbeddedBooks,
+                "totalChunks", totalChunks,
+                "markedCount", markedCount,
+                "modelStats", modelStats
+        );
+    }
+
     public int deleteBookEmbeddings(List<Long> bookIds, Long userId) {
         if (bookIds == null || bookIds.isEmpty()) {
             throw new IllegalArgumentException("bookIds are required.");

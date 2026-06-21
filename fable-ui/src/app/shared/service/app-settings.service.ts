@@ -4,7 +4,7 @@ import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
 import {AiBulkScanResponse} from '../model/ai-panel-scan-progress.model';
-import {AiModel, AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiSearchResult, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {AiModel, AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiSearchResult, AiSearchStatsSummary, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
 import {Book} from '../../features/book/model/book.model';
 
 export interface SettingsTransferEntry {
@@ -205,6 +205,13 @@ export class AppSettingsService {
 
   getAiSearchEmbeddingStats(): Observable<{model: string, count: number}[]> {
     return this.http.get<{model: string, count: number}[]>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/stats`);
+  }
+
+  getAiSearchStatsSummary(libraryId?: number | null): Observable<AiSearchStatsSummary> {
+    const params = libraryId == null
+      ? undefined
+      : new HttpParams().set('libraryId', libraryId.toString());
+    return this.http.get<AiSearchStatsSummary>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/stats/summary`, {params});
   }
 
   stopAiSearchScan(): Observable<{status: string}> {

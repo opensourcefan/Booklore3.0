@@ -584,6 +584,21 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query(value = "SELECT e.embedding_model as model, count(distinct e.book_id) as count FROM book_embeddings e WHERE e.user_id = :userId GROUP BY e.embedding_model", nativeQuery = true)
     List<org.fable.repository.projection.EmbeddingStatsProjection> getEmbeddingStats(@Param("userId") Long userId);
 
+    @Query(value = "SELECT e.embedding_model as model, count(distinct e.book_id) as count FROM book_embeddings e JOIN book b ON e.book_id = b.id WHERE e.user_id = :userId AND b.library_id = :libraryId GROUP BY e.embedding_model", nativeQuery = true)
+    List<org.fable.repository.projection.EmbeddingStatsProjection> getEmbeddingStatsByLibraryId(@Param("userId") Long userId, @Param("libraryId") Long libraryId);
+
+    @Query(value = "SELECT COUNT(*) FROM book_embeddings WHERE user_id = :userId", nativeQuery = true)
+    long countTotalChunksByUserId(@Param("userId") Long userId);
+
+    @Query(value = "SELECT COUNT(*) FROM book_embeddings e JOIN book b ON e.book_id = b.id WHERE e.user_id = :userId AND b.library_id = :libraryId", nativeQuery = true)
+    long countTotalChunksByUserIdAndLibraryId(@Param("userId") Long userId, @Param("libraryId") Long libraryId);
+
+    @Query("SELECT COUNT(b) FROM BookEntity b WHERE b.markedForAiSearch = true AND (b.deleted IS NULL OR b.deleted = false)")
+    long countMarkedForAiSearch();
+
+    @Query("SELECT COUNT(b) FROM BookEntity b WHERE b.markedForAiSearch = true AND b.library.id = :libraryId AND (b.deleted IS NULL OR b.deleted = false)")
+    long countMarkedForAiSearchByLibraryId(@Param("libraryId") Long libraryId);
+
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE (b.deleted IS NULL OR b.deleted = false)")
     long countNonDeleted();
 

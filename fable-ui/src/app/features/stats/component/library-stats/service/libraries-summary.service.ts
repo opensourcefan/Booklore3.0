@@ -3,7 +3,7 @@ import {combineLatest, map, Observable, shareReplay, switchMap} from 'rxjs';
 import {LibraryFilterService} from './library-filter.service';
 import {BookService} from '../../../../book/service/book.service';
 import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
-import {AiPanelFlowStats} from '../../../../../shared/model/app-settings.model';
+import {AiPanelFlowStats, AiSearchStatsSummary} from '../../../../../shared/model/app-settings.model';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +17,11 @@ export class LibrariesSummaryService {
 
   private aiPanelFlowStats$ = this.selectedLibrary$.pipe(
     switchMap(selectedLibraryId => this.appSettingsService.getAiPanelFlowStats(selectedLibraryId)),
+    shareReplay({bufferSize: 1, refCount: true})
+  );
+
+  private aiSearchStatsSummary$ = this.selectedLibrary$.pipe(
+    switchMap(selectedLibraryId => this.appSettingsService.getAiSearchStatsSummary(selectedLibraryId)),
     shareReplay({bufferSize: 1, refCount: true})
   );
 
@@ -89,6 +94,21 @@ export class LibrariesSummaryService {
     return this.aiPanelFlowStats$.pipe(
       map(stats => this.formatBytes(stats?.storedBytes ?? 0))
     );
+  }
+
+  getAiSearchStatsSummary(): Observable<AiSearchStatsSummary> {
+    return this.aiSearchStatsSummary$.pipe(
+      map(stats => stats ?? this.createEmptyAiSearchStatsSummary())
+    );
+  }
+
+  private createEmptyAiSearchStatsSummary(): AiSearchStatsSummary {
+    return {
+      totalEmbeddedBooks: 0,
+      totalChunks: 0,
+      markedCount: 0,
+      modelStats: []
+    };
   }
 
   private createEmptyAiPanelFlowStats(): AiPanelFlowStats {

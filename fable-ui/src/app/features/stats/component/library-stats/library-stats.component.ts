@@ -19,7 +19,7 @@ import {ReadingJourneyChartComponent} from './charts/reading-journey-chart/readi
 import {LibrariesSummaryService} from './service/libraries-summary.service';
 import {LibraryFilterService, LibraryOption} from './service/library-filter.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
-import {AiPanelFlowBookHighlight, AiPanelFlowStats} from '../../../../shared/model/app-settings.model';
+import {AiPanelFlowBookHighlight, AiPanelFlowStats, AiSearchStatsSummary} from '../../../../shared/model/app-settings.model';
 
 interface ChartConfig {
   id: string;
@@ -82,6 +82,10 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
   public readonly totalSize$ = this.librariesSummaryService.getFormattedSize().pipe(catchError(() => of('0 KB')));
   public readonly aiPanelFlowStats$ = this.librariesSummaryService.getAiPanelFlowStats().pipe(
     catchError(() => of(this.createEmptyAiPanelFlowStats())),
+    shareReplay(1)
+  );
+  public readonly aiSearchStatsSummary$ = this.librariesSummaryService.getAiSearchStatsSummary().pipe(
+    catchError(() => of(this.createEmptyAiSearchStatsSummary())),
     shareReplay(1)
   );
   public readonly totalAiScannedComics$ = this.aiPanelFlowStats$.pipe(map(stats => stats.scannedComicCount));
@@ -239,6 +243,15 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
       comicWithMostPagesScanned: null,
       comicWithMostPanelsMapped: null,
       comicWithHighestPanelsPerPage: null
+    };
+  }
+
+  private createEmptyAiSearchStatsSummary(): AiSearchStatsSummary {
+    return {
+      totalEmbeddedBooks: 0,
+      totalChunks: 0,
+      markedCount: 0,
+      modelStats: []
     };
   }
 }

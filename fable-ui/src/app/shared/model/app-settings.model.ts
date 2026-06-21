@@ -322,6 +322,18 @@ export interface AiPanelFlowStats {
   comicWithHighestPanelsPerPage: AiPanelFlowBookHighlight | null;
 }
 
+export interface AiSearchModelStats {
+  model: string;
+  count: number;
+}
+
+export interface AiSearchStatsSummary {
+  totalEmbeddedBooks: number;
+  totalChunks: number;
+  markedCount: number;
+  modelStats: AiSearchModelStats[];
+}
+
 export interface AiPanelFlowDirectoryScanStatus {
   libraryPathId: number;
   scannedComicCount: number;

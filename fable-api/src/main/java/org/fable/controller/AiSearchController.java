@@ -152,9 +152,18 @@ public class AiSearchController {
     }
 
     @GetMapping("/stats")
-    public List<org.fable.repository.projection.EmbeddingStatsProjection> getEmbeddingStats() {
+    public List<org.fable.repository.projection.EmbeddingStatsProjection> getEmbeddingStats(@RequestParam(required = false) Long libraryId) {
         Long userId = authenticationService.getAuthenticatedUser().getId();
+        if (libraryId != null) {
+            return aiSearchService.getEmbeddingStats(userId, libraryId);
+        }
         return aiSearchService.getEmbeddingStats(userId);
+    }
+
+    @GetMapping("/stats/summary")
+    public Map<String, Object> getAiSearchStatsSummary(@RequestParam(required = false) Long libraryId) {
+        Long userId = authenticationService.getAuthenticatedUser().getId();
+        return aiSearchService.getAiSearchStatsSummary(userId, libraryId);
     }
 
     @DeleteMapping("/embeddings")
