@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy, Injectable, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, Injectable, OnInit, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
 import {Button} from 'primeng/button';
@@ -144,6 +144,8 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   lastError: string | null = null;
   llmWarmed: boolean | null = null;
   isCheckingLlmWarmed = false;
+  infoPopoverVisible = false;
+  @ViewChild('infoPopover') infoPopover!: Popover;
 
   private appSettingsService = inject(AppSettingsService);
   private userService = inject(UserService);
@@ -197,6 +199,12 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         this.llmWarmed = true;
       }
     });
+  }
+
+  hideInfoPopover(): void {
+    if (this.infoPopover) {
+      this.infoPopover.hide();
+    }
   }
 
   private markdownRenderer = new MarkdownIt({

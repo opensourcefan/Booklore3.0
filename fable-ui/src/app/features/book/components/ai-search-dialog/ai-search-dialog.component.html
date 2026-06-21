@@ -7,6 +7,9 @@
   [closable]="false"
   [closeOnEscape]="false"
   styleClass="ai-search-dialog">
+  @if (infoPopoverVisible) {
+    <div class="ai-search-popover-backdrop" (click)="hideInfoPopover()" (keydown.enter)="hideInfoPopover()" (keydown.space)="hideInfoPopover(); $event.preventDefault()" tabindex="0" role="button" aria-label="Close Guidelines"></div>
+  }
   <ng-template pTemplate="header">
     <div class="ai-search-header-wrapper">
       <div class="ai-search-header">
@@ -164,7 +167,11 @@
           tooltipPosition="top">
           <i class="pi pi-info-circle"></i>
         </button>
-        <p-popover #infoPopover [dismissable]="true" appendTo="body" [style]="{ width: '520px', maxWidth: '90vw' }">
+        <p-popover #infoPopover [dismissable]="true" appendTo="body" [style]="{ width: '520px', maxWidth: '90vw' }" (onShow)="infoPopoverVisible = true" (onHide)="infoPopoverVisible = false">
+          <div class="ai-search-info-popover-header">
+            <span>AI Search Guidelines</span>
+            <p-button icon="pi pi-chevron-down" [text]="true" [rounded]="true" (onClick)="hideInfoPopover()" pTooltip="Close Guidelines"></p-button>
+          </div>
           <div class="ai-search-info-popover-content" [innerHTML]="aiSearchInfoHtml"></div>
         </p-popover>
         <input
