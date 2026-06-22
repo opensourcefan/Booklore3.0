@@ -204,6 +204,7 @@ export interface AppSettings {
   allowFileDeletion: boolean;
   aiPanelSettings: AiPanelSettings;
   aiSearchSettings: AiSearchSettings;
+  aiLlmProfiles?: AiLlmProfile[];
 }
 
 export interface MetadataProviderSpecificFields {
@@ -258,6 +259,7 @@ export enum AppSettingKey {
   AI_SEARCH_ENABLED = 'AI_SEARCH_ENABLED',
   AI_SEARCH_SETTINGS = 'AI_SEARCH_SETTINGS',
   AI_PANEL_SETTINGS = 'AI_PANEL_SETTINGS',
+  AI_LLM_PROFILES = 'AI_LLM_PROFILES',
   ALLOW_FILE_DELETION = 'ALLOW_FILE_DELETION',
 }
 
@@ -375,4 +377,15 @@ export interface AiModel {
   id: string;
   name: string;
   sizeBytes: number;
+}
+
+export interface AiLlmProfile {
+  name: string;
+  description: string;
+  llmProvider: string;
+  llmApiKey: string;
+  externalLlmUrl: string;
+  llmModel: string;
+  maxTokens: number;
+  temperature: number;
 }

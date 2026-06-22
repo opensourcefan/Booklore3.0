@@ -427,6 +427,7 @@ public class AppSettingService {
         builder.aiSearchEnabled(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.AI_SEARCH_ENABLED, "false")));
         builder.aiPanelSettings(settingPersistenceHelper.getJsonSetting(settingsMap, AppSettingKey.AI_PANEL_SETTINGS, AiPanelSettings.class, AiPanelSettings.builder().build(), true));
         builder.aiSearchSettings(settingPersistenceHelper.getJsonSetting(settingsMap, AppSettingKey.AI_SEARCH_SETTINGS, AiSearchSettings.class, AiSearchSettings.builder().build(), true));
+        builder.aiLlmProfiles(settingPersistenceHelper.getJsonSetting(settingsMap, AppSettingKey.AI_LLM_PROFILES, new TypeReference<>() {}, List.of(), true));
         builder.pdfCacheSizeInMb(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.PDF_CACHE_SIZE_IN_MB, "5120")));
         builder.maxFileUploadSizeInMb(Integer.parseInt(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.MAX_FILE_UPLOAD_SIZE_IN_MB, "100")));
         builder.metadataDownloadOnBookdrop(Boolean.parseBoolean(settingPersistenceHelper.getOrCreateSetting(AppSettingKey.METADATA_DOWNLOAD_ON_BOOKDROP, "true")));
@@ -495,5 +496,51 @@ public class AppSettingService {
             logger.error("AI connection test failed for {}: {}", path, e.getMessage());
             return Map.of("success", false, "message", "Could not reach AI Search service: " + e.getMessage());
         }
+    }
+
+    public List<AiLlmProfile> getLlmProfiles() {
+        return getAppSettings().getAiLlmProfiles() != null 
+            ? getAppSettings().getAiLlmProfiles() 
+            : new java.util.ArrayList<>();
+    }
+
+    @CacheEvict(value = "publicSettings", allEntries = true)
+    @Transactional
+    public void saveLlmProfile(AiLlmProfile profile) throws JacksonException {
+        List<AiLlmProfile> profiles = new java.util.ArrayList<>(getLlmProfiles());
+        profiles.removeIf(p -> p.getName().equalsIgnoreCase(profile.getName()));
+        profiles.add(profile);
+        updateSetting(AppSettingKey.AI_LLM_PROFILES, profiles);
+    }
+
+    @CacheEvict(value = "publicSettings", allEntries = true)
+    @Transactional
+    public void deleteLlmProfile(String name) throws JacksonException {
+        List<AiLlmProfile> profiles = new java.util.ArrayList<>(getLlmProfiles());
+        profiles.removeIf(p -> p.getName().equalsIgnoreCase(name));
+        updateSetting(AppSettingKey.AI_LLM_PROFILES, profiles);
+    }
+
+    @CacheEvict(value = "publicSettings", allEntries = true)
+    @Transactional
+    public void activateLlmProfile(String name) throws JacksonException {
+        AiLlmProfile activeProfile = getLlmProfiles().stream()
+                .filter(p -> p.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElseThrow(() -> ApiError.GENERIC_NOT_FOUND.createException("LLM Profile not found: " + name));
+
+        AiSearchSettings searchSettings = getAppSettings().getAiSearchSettings();
+        if (searchSettings == null) {
+            searchSettings = AiSearchSettings.builder().build();
+        }
+
+        searchSettings.setLlmProvider(activeProfile.getLlmProvider());
+        searchSettings.setLlmApiKey(activeProfile.getLlmApiKey());
+        searchSettings.setExternalLlmUrl(activeProfile.getExternalLlmUrl());
+        searchSettings.setLlmModel(activeProfile.getLlmModel());
+        searchSettings.setMaxTokens(activeProfile.getMaxTokens());
+        searchSettings.setTemperature(activeProfile.getTemperature());
+
+        updateSetting(AppSettingKey.AI_SEARCH_SETTINGS, searchSettings);
     }
 }

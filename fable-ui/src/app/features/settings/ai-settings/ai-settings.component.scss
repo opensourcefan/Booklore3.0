@@ -394,3 +394,100 @@ input.custom-number-input[type=number] {
     font-size: 1rem !important;
   }
 }
+
+.llm-profile-card {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-card) 94%, var(--primary-color) 6%);
+  border: 1px solid color-mix(in srgb, var(--surface-border) 80%, var(--primary-color) 20%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--surface-border) 60%, var(--primary-color) 40%);
+  }
+}
+
+.profile-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.profile-select-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 280px;
+}
+
+.profile-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+::ng-deep .profile-dropdown {
+  flex: 1;
+  min-width: 200px;
+  border-color: var(--surface-border) !important;
+  
+  .p-select-label.p-placeholder {
+    color: var(--text-color-secondary) !important;
+    font-style: italic;
+  }
+}
+
+.profile-option-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.25rem 0;
+}
+
+.profile-option-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.profile-option-desc {
+  font-size: 0.75rem;
+  color: var(--text-color-secondary);
+}
+
+.profile-actions-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-fine-print {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--surface-card) 60%, var(--primary-color) 8%);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border-left: 3px solid var(--primary-color);
+
+  i {
+    font-size: 0.85rem;
+  }
+
+  &.custom-settings {
+    color: var(--text-color-secondary);
+    border-left-color: var(--text-color-secondary);
+    background: color-mix(in srgb, var(--surface-card) 60%, var(--surface-ground) 40%);
+  }
+}

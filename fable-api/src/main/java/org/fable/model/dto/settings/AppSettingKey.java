@@ -43,6 +43,7 @@ public enum AppSettingKey {
     AI_PANEL_SETTINGS                   ("ai_panel_settings",                    true,  false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
     AI_SEARCH_ENABLED                   ("ai_search_enabled",                    false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
     AI_SEARCH_SETTINGS                  ("ai_search_settings",                   true,  false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
+    AI_LLM_PROFILES                     ("ai_llm_profiles",                      true,  false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
     LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS ("library_health_check_interval_seconds", false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
     ALLOW_FILE_DELETION                 ("allow_file_deletion",                  false, false, List.of(PermissionType.ADMIN, PermissionType.MANAGE_GLOBAL_PREFERENCES)),
 

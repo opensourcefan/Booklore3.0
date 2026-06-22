@@ -4,7 +4,7 @@ import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {API_CONFIG} from '../../core/config/api-config';
 import {AiBulkScanResponse} from '../model/ai-panel-scan-progress.model';
-import {AiModel, AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiSearchResult, AiSearchStatsSummary, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
+import {AiLlmProfile, AiModel, AiPanelFlowDirectoryScanStatus, AiPanelFlowStats, AiSearchResult, AiSearchStatsSummary, AiServiceStatus, AppSettings, OidcProviderDetails, OidcTestResult} from '../model/app-settings.model';
 import {Book} from '../../features/book/model/book.model';
 
 export interface SettingsTransferEntry {
@@ -284,6 +284,31 @@ export class AppSettingsService {
     return this.http.put<void>(this.apiUrl, payload).pipe(
       switchMap(() => this.fetchAppSettings()),
       map(() => void 0)
+    );
+  }
+
+  getAiLlmProfiles(): Observable<AiLlmProfile[]> {
+    return this.http.get<AiLlmProfile[]>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/llm-profiles`);
+  }
+
+  saveAiLlmProfile(profile: AiLlmProfile): Observable<{success: boolean}> {
+    return this.http.post<{success: boolean}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/llm-profiles`, profile).pipe(
+      switchMap(() => this.fetchAppSettings()),
+      map(() => ({success: true}))
+    );
+  }
+
+  deleteAiLlmProfile(name: string): Observable<{success: boolean}> {
+    return this.http.delete<{success: boolean}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/llm-profiles/${encodeURIComponent(name)}`).pipe(
+      switchMap(() => this.fetchAppSettings()),
+      map(() => ({success: true}))
+    );
+  }
+
+  activateAiLlmProfile(name: string): Observable<{success: boolean}> {
+    return this.http.post<{success: boolean}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/llm-profiles/${encodeURIComponent(name)}/activate`, {}).pipe(
+      switchMap(() => this.fetchAppSettings()),
+      map(() => ({success: true}))
     );
   }
 

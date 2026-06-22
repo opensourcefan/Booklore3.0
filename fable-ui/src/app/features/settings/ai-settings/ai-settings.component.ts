@@ -12,7 +12,7 @@ import {TooltipModule} from 'primeng/tooltip';
 import {Subject, Subscription, timer} from 'rxjs';
 import {filter, take, takeUntil} from 'rxjs/operators';
 
-import {AiModel, AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings, AiSearchSettings} from '../../../shared/model/app-settings.model';
+import {AiModel, AiPanelFlowStats, AiServiceStatus, AppSettingKey, AppSettings, AiSearchSettings, AiLlmProfile} from '../../../shared/model/app-settings.model';
 import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-progress.model';
 import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
@@ -177,6 +177,14 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   loadingEmbeddingModels = false;
   loadingLlmModels = false;
 
+  llmProfiles: AiLlmProfile[] = [];
+  selectedProfile: AiLlmProfile | null = null;
+  savingProfile = false;
+  deletingProfile = false;
+  activatingProfile = false;
+  showSaveProfileDialog = false;
+  newProfileName = '';
+
   ngOnInit(): void {
     this.appSettings$.pipe(
       filter((settings): settings is AppSettings => !!settings),
@@ -213,6 +221,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
         this.snapshotLlmSettings();
         this.initializeAdvancedSettingsFromSaved();
       }
+      this.llmProfiles = settings.aiLlmProfiles || [];
+      this.selectedProfile = this.findMatchingProfile(this.aiSearchSettings, this.llmProfiles);
       if (settings.aiPanelSettings) {
         this.aiPanelSettings = { ...this.aiPanelSettings, ...settings.aiPanelSettings };
       }
@@ -1029,21 +1039,25 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   incrementMaxTokens(): void {
     const val = this.aiSearchSettings.maxTokens ?? 768;
     this.aiSearchSettings.maxTokens = Math.min(4096, val + 128);
+    this.updateSelectedProfile();
   }
 
   decrementMaxTokens(): void {
     const val = this.aiSearchSettings.maxTokens ?? 768;
     this.aiSearchSettings.maxTokens = Math.max(128, val - 128);
+    this.updateSelectedProfile();
   }
 
   incrementTemperature(): void {
     const val = this.aiSearchSettings.temperature ?? 0.1;
     this.aiSearchSettings.temperature = parseFloat(Math.min(1.0, val + 0.1).toFixed(1));
+    this.updateSelectedProfile();
   }
 
   decrementTemperature(): void {
     const val = this.aiSearchSettings.temperature ?? 0.1;
     this.aiSearchSettings.temperature = parseFloat(Math.max(0.0, val - 0.1).toFixed(1));
+    this.updateSelectedProfile();
   }
 
   initializeAdvancedSettingsFromSaved(): void {
@@ -1456,6 +1470,134 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       error: () => {
         this.testLlmRunning = false;
         this.showMessage('error', 'LLM Test', 'Could not reach the backend to test LLM connection.');
+      }
+    });
+  }
+
+  findMatchingProfile(settings: AiSearchSettings, profiles: AiLlmProfile[]): AiLlmProfile | null {
+    if (!profiles || !settings) return null;
+    return profiles.find(p => 
+      p.llmProvider === settings.llmProvider &&
+      p.llmModel === settings.llmModel &&
+      (p.llmApiKey || '') === (settings.llmApiKey || '') &&
+      (p.externalLlmUrl || '') === (settings.externalLlmUrl || '') &&
+      p.maxTokens === settings.maxTokens &&
+      p.temperature === settings.temperature
+    ) || null;
+  }
+
+  updateSelectedProfile(): void {
+    this.selectedProfile = this.findMatchingProfile(this.aiSearchSettings, this.llmProfiles);
+  }
+
+  onProfileSelect(event: { value: unknown }): void {
+    const profile = event.value as AiLlmProfile;
+    if (profile && profile.name) {
+      this.activateProfile(profile.name);
+    }
+  }
+
+  openSaveProfileDialog(): void {
+    this.newProfileName = this.aiSearchSettings.llmModel || '';
+    this.showSaveProfileDialog = true;
+  }
+
+  saveCurrentAsProfile(): void {
+    if (!this.newProfileName.trim()) return;
+    const name = this.newProfileName.trim();
+    
+    let providerText: string;
+    if (this.aiSearchSettings.llmProvider === 'local') {
+      providerText = 'Local · Ollama';
+    } else if (this.aiSearchSettings.llmProvider === 'openai') {
+      providerText = 'External · OpenAI Endpoint';
+    } else if (this.aiSearchSettings.llmProvider === 'custom') {
+      providerText = 'External · Custom URL';
+    } else {
+      providerText = `External · ${this.aiSearchSettings.llmProvider}`;
+    }
+
+    const desc = `${providerText} · Temp: ${this.aiSearchSettings.temperature} · MaxT: ${this.aiSearchSettings.maxTokens}`;
+    
+    const profile: AiLlmProfile = {
+      name,
+      description: desc,
+      llmProvider: this.aiSearchSettings.llmProvider,
+      llmModel: this.aiSearchSettings.llmModel,
+      llmApiKey: this.aiSearchSettings.llmApiKey || '',
+      externalLlmUrl: this.aiSearchSettings.externalLlmUrl || '',
+      maxTokens: this.aiSearchSettings.maxTokens,
+      temperature: this.aiSearchSettings.temperature
+    };
+
+    this.savingProfile = true;
+    this.appSettingsService.saveAiLlmProfile(profile).subscribe({
+      next: () => {
+        this.savingProfile = false;
+        this.showSaveProfileDialog = false;
+        const settings = this.appSettingsService.currentAppSettings;
+        if (settings) {
+          this.llmProfiles = settings.aiLlmProfiles || [];
+          this.selectedProfile = this.llmProfiles.find(p => p.name === name) || null;
+        }
+        this.showMessage('success', 'Profile Saved', `Profile "${name}" has been saved successfully.`);
+      },
+      error: () => {
+        this.savingProfile = false;
+        this.showMessage('error', 'Save Failed', `Could not save LLM profile "${name}".`);
+      }
+    });
+  }
+
+  deleteProfile(name: string): void {
+    this.deletingProfile = true;
+    this.appSettingsService.deleteAiLlmProfile(name).subscribe({
+      next: () => {
+        this.deletingProfile = false;
+        const settings = this.appSettingsService.currentAppSettings;
+        if (settings) {
+          this.llmProfiles = settings.aiLlmProfiles || [];
+          if (this.selectedProfile?.name === name) {
+            this.selectedProfile = null;
+          }
+        }
+        this.showMessage('success', 'Profile Deleted', `Profile "${name}" has been deleted.`);
+      },
+      error: () => {
+        this.deletingProfile = false;
+        this.showMessage('error', 'Delete Failed', `Could not delete LLM profile "${name}".`);
+      }
+    });
+  }
+
+  activateProfile(name: string): void {
+    this.activatingProfile = true;
+    this.appSettingsService.activateAiLlmProfile(name).subscribe({
+      next: () => {
+        this.activatingProfile = false;
+        const settings = this.appSettingsService.currentAppSettings;
+        if (settings) {
+          this.llmProfiles = settings.aiLlmProfiles || [];
+          if (settings.aiSearchSettings) {
+            this.aiSearchSettings = {
+              ...this.aiSearchSettings,
+              llmProvider: settings.aiSearchSettings.llmProvider,
+              llmModel: settings.aiSearchSettings.llmModel,
+              llmApiKey: settings.aiSearchSettings.llmApiKey,
+              externalLlmUrl: settings.aiSearchSettings.externalLlmUrl,
+              maxTokens: settings.aiSearchSettings.maxTokens,
+              temperature: settings.aiSearchSettings.temperature
+            };
+            this.snapshotLlmSettings();
+            this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
+          }
+          this.selectedProfile = this.llmProfiles.find(p => p.name === name) || null;
+        }
+        this.showMessage('success', 'Profile Activated', `Active LLM profile switched to ${name}`);
+      },
+      error: () => {
+        this.activatingProfile = false;
+        this.showMessage('error', 'Activation Failed', `Could not activate LLM profile ${name}`);
       }
     });
   }

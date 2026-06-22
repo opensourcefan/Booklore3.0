@@ -46,4 +46,5 @@ public class AppSettings {
     private boolean allowFileDeletion;
     private AiPanelSettings aiPanelSettings;
     private AiSearchSettings aiSearchSettings;
+    private List<AiLlmProfile> aiLlmProfiles;
 }

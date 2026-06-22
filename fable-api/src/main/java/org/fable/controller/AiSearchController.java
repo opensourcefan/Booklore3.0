@@ -7,6 +7,8 @@ import org.fable.service.ai.AiSearchHealthService;
 import org.fable.service.ai.AiSearchService;
 import org.fable.config.security.service.AuthenticationService;
 import org.springframework.web.bind.annotation.*;
+import org.fable.service.appsettings.AppSettingService;
+import org.fable.model.dto.settings.AiLlmProfile;
 
 import java.util.List;
 import java.util.Map;
@@ -20,10 +22,34 @@ public class AiSearchController {
     private final AiSearchService aiSearchService;
     private final AuthenticationService authenticationService;
     private final BookRepository bookRepository;
+    private final AppSettingService appSettingService;
 
     @GetMapping("/status")
     public AiServiceStatus getStatus() {
         return aiSearchHealthService.getStatus();
+    }
+
+    @GetMapping("/llm-profiles")
+    public List<AiLlmProfile> getLlmProfiles() {
+        return appSettingService.getLlmProfiles();
+    }
+
+    @PostMapping("/llm-profiles")
+    public Map<String, Object> saveLlmProfile(@RequestBody AiLlmProfile profile) throws Exception {
+        appSettingService.saveLlmProfile(profile);
+        return Map.of("success", true);
+    }
+
+    @DeleteMapping("/llm-profiles/{name}")
+    public Map<String, Object> deleteLlmProfile(@PathVariable String name) throws Exception {
+        appSettingService.deleteLlmProfile(name);
+        return Map.of("success", true);
+    }
+
+    @PostMapping("/llm-profiles/{name}/activate")
+    public Map<String, Object> activateLlmProfile(@PathVariable String name) throws Exception {
+        appSettingService.activateLlmProfile(name);
+        return Map.of("success", true);
     }
 
     @PostMapping("/reload")
