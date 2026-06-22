@@ -20,29 +20,32 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: var(--text-color, #ffffff);
+  color: var(--text-secondary-color, rgba(255, 255, 255, 0.6));
   font-size: 1.15rem;
   font-weight: 600;
   text-decoration: none;
   background: var(--card-background);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 8px;
   border: 1px solid var(--p-content-border-color);
+  border-bottom: 3px solid transparent;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
 
   &:hover {
-    background: color-mix(in srgb, var(--card-background) 80%, rgba(255, 255, 255, 0.05));
-    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-color, #ffffff);
+    background: color-mix(in srgb, var(--card-background) 85%, rgba(255, 255, 255, 0.05));
+    border-color: color-mix(in srgb, var(--p-content-border-color) 70%, #ffffff);
   }
 
   &.active-btn {
-    background: var(--p-primary-color);
-    color: var(--p-primary-color-text, #ffffff);
+    background: color-mix(in srgb, var(--p-primary-color) 12%, var(--card-background));
+    color: var(--text-color, #ffffff);
     border-color: var(--p-primary-color);
+    border-bottom: 3px solid var(--p-primary-color);
     
     &:hover {
-      background: var(--p-primary-color-hover, var(--p-primary-color));
+      background: color-mix(in srgb, var(--p-primary-color) 18%, var(--card-background));
     }
   }
 
