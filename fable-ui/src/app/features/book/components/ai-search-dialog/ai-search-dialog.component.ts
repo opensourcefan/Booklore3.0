@@ -228,25 +228,23 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     const fixedMarkdown = markdown.replace(/(^|\s+)(\d+\.)(?!\s*\[Source)/g, '\n$2');
     let html = this.markdownRenderer.render(fixedMarkdown);
 
-    // First pass: citations with page numbers — make the page number a clickable
-    // link and wrap the entire citation in an italic highlight span.
-    // Format: [Source: Book Title, Page N]
-    html = html.replace(
-      /\[Source\s*(?:\d+)?:\s*(.+?),\s*Page\s*(\d+)\]/g,
-      (match, title, page) => {
-        const escapedTitle = title.replace(/"/g, '&quot;');
-        return `<span class="ai-search-citation-highlight"><em>[Source: ${title}, <span class="ai-search-citation-page-link" data-book-title="${escapedTitle}" data-page="${page}" tabindex="0" role="link">Page ${page}</span>]</em></span>`;
-      }
-    );
-
-    // Second pass: citations without numeric page numbers (e.g. [Source: Book Title] or [Source: Book Title, Page N/A]).
-    // Make the entire source tag clickable to open the book.
+    // Single-pass regex replacement prevents double-wrapping of [Source: ...] blocks
     html = html.replace(
       /\[Source\s*(?:\d+)?:\s*([^\]]+)\]/g,
-      (match, titleAndPage) => {
-        const cleanTitle = titleAndPage.replace(/,\s*Page\s*\w+/i, '').trim();
-        const escapedTitle = cleanTitle.replace(/"/g, '&quot;');
-        return `<span class="ai-search-citation-highlight"><em>[Source: <span class="ai-search-citation-page-link" data-book-title="${escapedTitle}" data-page="0" tabindex="0" role="link">${titleAndPage}</span>]</em></span>`;
+      (match, content) => {
+        // Check if content matches the "Title, Page N" pattern
+        const pageMatch = content.match(/^(.*?),\s*Page\s*(\d+)$/i);
+        if (pageMatch) {
+          const title = pageMatch[1].trim();
+          const page = pageMatch[2].trim();
+          const escapedTitle = title.replace(/"/g, '&quot;');
+          return `<span class="ai-search-citation-highlight"><em>[Source: ${title}, <span class="ai-search-citation-page-link" data-book-title="${escapedTitle}" data-page="${page}" tabindex="0" role="link">Page ${page}</span>]</em></span>`;
+        } else {
+          // Falls back to title-only or non-numeric page formats
+          const cleanTitle = content.replace(/,\s*Page\s*\w+/i, '').trim();
+          const escapedTitle = cleanTitle.replace(/"/g, '&quot;');
+          return `<span class="ai-search-citation-highlight"><em>[Source: <span class="ai-search-citation-page-link" data-book-title="${escapedTitle}" data-page="0" tabindex="0" role="link">${content}</span>]</em></span>`;
+        }
       }
     );
 

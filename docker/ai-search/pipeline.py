@@ -104,29 +104,35 @@ def run_search_pipeline(
             chat_history=chat_history,
             requested_count=parsed.requested_count,
         )
-        validated_items = validate_answer_items(synthesis_result.items, filtered_chunks)
-        logger.info(
-            "Synthesis produced %d validated items (no_relevant_info=%s) for query: %s",
-            len(validated_items), synthesis_result.no_relevant_info, query,
-        )
+        if not synthesis_result.sentinel_triggered:
+            validated_items = validate_answer_items(synthesis_result.items, filtered_chunks)
+            logger.info(
+                "Synthesis produced %d validated items (no_relevant_info=%s) for query: %s",
+                len(validated_items), synthesis_result.no_relevant_info, query,
+            )
 
     # Determine final answer and results.
-    final_results = [chunk_to_dict(c) for c in display_chunks]
-    answer: str | None = None
-    if local_only:
-        if display_chunks:
+    if not local_only and synthesis_result.sentinel_triggered:
+        display_chunks = []
+        final_results = []
+        answer = "I could not find any relevant information for this search."
+    else:
+        final_results = [chunk_to_dict(c) for c in display_chunks]
+        answer = None
+        if local_only:
+            if display_chunks:
+                answer = "\n\n".join(
+                    f"{c.text}\n{source_marker(c)}" for c in display_chunks
+                )
+        elif validated_items:
+            answer = render_answer_markdown(validated_items)
+        elif display_chunks:
+            # Synthesis failed or LLM claimed no relevant info, but we still have
+            # retrieved chunks. Show them as a fallback with a disclaimer rather than
+            # wiping the results.
             answer = "\n\n".join(
                 f"{c.text}\n{source_marker(c)}" for c in display_chunks
             )
-    elif validated_items:
-        answer = render_answer_markdown(validated_items)
-    elif display_chunks:
-        # Synthesis failed or LLM claimed no relevant info, but we still have
-        # retrieved chunks. Show them as a fallback with a disclaimer rather than
-        # wiping the results.
-        answer = "\n\n".join(
-            f"{c.text}\n{source_marker(c)}" for c in display_chunks
-        )
 
     # Disclaimer
     disclaimer = build_disclaimer(parsed, validated_items, display_chunks)
@@ -139,6 +145,7 @@ def run_search_pipeline(
     return SearchResponse(
         query=query,
         results=final_results,
+        context_results=[chunk_to_dict(c) for c in retrieved],
         answer=answer,
         answer_items=[_validated_item_to_dict(item) for item in validated_items] if validated_items else None,
         total_chunks_searched=total_chunks_searched,

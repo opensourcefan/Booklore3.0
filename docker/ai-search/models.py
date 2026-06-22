@@ -64,6 +64,7 @@ class SynthesisResult(BaseModel):
     items: list[AnswerItem] = Field(default_factory=list)
     summary: str | None = None
     no_relevant_info: bool = False
+    sentinel_triggered: bool = False
 
 
 class ValidatedAnswerItem(BaseModel):
@@ -80,7 +81,10 @@ class SearchResponse(BaseModel):
 
     query: str
     results: list[dict[str, Any]] = Field(default_factory=list)
+    context_results: list[dict[str, Any]] = Field(alias="contextResults", default_factory=list)
     answer: str | None = None
-    answer_items: list[dict[str, Any]] | None = None
+    answer_items: list[dict[str, Any]] | None = Field(alias="answerItems", default=None)
     error: str | None = None
-    total_chunks_searched: int = 0
+    total_chunks_searched: int = Field(alias="totalChunksSearched", default=0)
+
+    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)

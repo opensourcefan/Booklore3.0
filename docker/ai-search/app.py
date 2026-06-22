@@ -1255,13 +1255,11 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     if not user_id:
         raise HTTPException(status_code=400, detail="userId is required.")
 
-    # Parse required keywords (words enclosed in double quotes)
+    # 1. Exact phrase parsing (double quotes) and token clean-up for soft boosting
     required_keywords = re.findall(r'"([^"]+)"', query)
     embedding_query = query.replace('"', '')
 
-    # Extract core keywords from query (excluding stopwords) for soft boosting and missing disclaimers.
-    # Preserve hyphenated and apostrophe-containing tokens (e.g. "sci-fi", "d'artagnan") as single
-    # semantic units so they are not split into misleading fragments like "sci" / "fi".
+    # 2. Extract core keywords
     stopwords = {
         "a", "an", "the", "in", "on", "at", "to", "for", "with", "by", "of", "and", "or", "but",
         "list", "show", "find", "search", "get", "what", "how", "why", "who", "where", "me", "i",
@@ -1282,7 +1280,6 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
         "included", "contains", "containing", "contain", "having", "make", "made",
         "summary", "summarize", "summarise", "brief", "overview", "synopsis", "recap",
         "outline", "highlight", "highlights", "tl;dr", "tldr",
-        # Genre, format, and search metadata terms to prevent false missing keyword alerts
         "sci-fi", "scifi", "comic", "comics", "novel", "book", "books", "literature", "vigilante",
         "funny", "humorous", "humor", "comedy", "series", "suggest", "recommend", "character",
         "characters", "author", "authors", "writer", "writers", "artist", "artists", "publisher",
@@ -1290,10 +1287,8 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
     def _extract_query_tokens(text: str) -> list[str]:
-        # First pull out hyphenated/apostrophe words as single tokens.
         compound_pattern = re.compile(r"\b\w+(?:[-']\w+)+\b")
         compounds = compound_pattern.findall(text)
-        # Remove the matched compound words from the text, then extract plain words.
         remaining = compound_pattern.sub(" ", text)
         plain = re.findall(r"\w+", remaining)
         return [w.lower() for w in compounds + plain if len(w) > 1]
@@ -1301,489 +1296,59 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
     query_words = _extract_query_tokens(embedding_query)
     core_keywords = [w for w in query_words if w not in stopwords]
 
-    # Parse requested count from list queries (e.g. "list 5..." or "show me three...")
-    requested_count = None
-    count_match = re.search(r'\b(?:list|show(?:\s+me)?|get|find|give\s+me)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b', query.lower())
-    if count_match:
-        num_str = count_match.group(1)
-        if num_str.isdigit():
-            requested_count = int(num_str)
-        else:
-            number_map = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10}
-            requested_count = number_map.get(num_str)
+    # 3. Define the retrieve callback for pipeline.py
+    from retrieval import retrieve as retrieve_impl
+    
+    def retrieve_fn(embedding_text, book_ids, user_id, top_k):
+        return retrieve_impl(
+            embedding_text=embedding_text,
+            book_ids=book_ids,
+            user_id=user_id,
+            top_k=top_k,
+            compute_embedding_fn=_compute_embedding,
+            get_db_connection_fn=_get_db_connection,
+            cosine_similarity_fn=_cosine_similarity,
+            similarity_threshold=similarity_threshold,
+            hybrid_search_enabled=hybrid_search_enabled,
+            rrf_k=rrf_k,
+            reranking_enabled=reranking_enabled,
+            reranker_model=_reranker_model,
+            matryoshka_dimensions=MATRYOSHKA_DIMENSIONS,
+            required_phrases=required_keywords,
+            semantic_keywords=core_keywords,
+            is_index_request="index" in query.lower() or "table of contents" in query.lower()
+        )
 
+    # 4. Run search pipeline
+    from pipeline import run_search_pipeline
     try:
-        # Compute query embedding (using clean query with quotes removed)
-        query_vector = _compute_embedding(embedding_query)
-    except RuntimeError as e:
-        logger.error("Embedding computation failed: %s", e)
+        response = run_search_pipeline(
+            query=query,
+            book_ids=book_ids,
+            user_id=user_id,
+            retrieve_fn=retrieve_fn,
+            generate_fn=_generate_answer,
+            top_k=top_k,
+            display_top_k=display_top_k,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            chat_history=chat_history,
+            local_only=local_only
+        )
+        return response.model_dump(by_alias=True)
+    except Exception as e:
+        logger.error("AI Search pipeline failed: %s", e, exc_info=True)
+        err_msg = str(e)
+        if "dimension mismatch" in err_msg.lower():
+            err_msg = f"{err_msg} Your embedding model has changed. Please re-embed your books from Settings → AI Search."
         return {
             "query": query,
             "results": [],
+            "contextResults": [],
             "answer": None,
-            "error": str(e),
+            "error": err_msg,
             "totalChunksSearched": 0,
         }
-
-    # Fetch embeddings from DB (single connection reused for adjacent chunks)
-    conn = None
-    cursor = None
-    rows = []
-    top_results = []
-    try:
-        conn = _get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        if book_ids and len(book_ids) > 0:
-            placeholders = ",".join(["%s"] * len(book_ids))
-            cursor.execute(
-                f"""SELECT be.id, be.book_id, be.user_id, be.chunk_index, be.chunk_text,
-                           be.embedding_vector, be.page_number, be.chapter_title,
-                           b.title as book_title
-                    FROM book_embeddings be
-                    JOIN book_metadata b ON b.book_id = be.book_id
-                    WHERE be.user_id = %s AND be.book_id IN ({placeholders})""",
-                [user_id] + list(book_ids),
-            )
-        else:
-            cursor.execute(
-                """SELECT be.id, be.book_id, be.user_id, be.chunk_index, be.chunk_text,
-                          be.embedding_vector, be.page_number, be.chapter_title,
-                          b.title as book_title
-                   FROM book_embeddings be
-                   JOIN book_metadata b ON b.book_id = be.book_id
-                   WHERE be.user_id = %s""",
-                (user_id,),
-            )
-
-        rows = cursor.fetchall()
-
-        if not rows:
-            return {
-                "query": query,
-                "results": [],
-                "answer": "No books have been embedded yet. Use the AI Search settings to embed books first.",
-                "totalChunksSearched": 0,
-            }
-
-        is_index_request = "index" in query.lower() or "table of contents" in query.lower()
-
-        # Early dimension-mismatch detection: compare query vector length to first stored embedding
-        query_dim = len(query_vector)
-        first_vector = None
-        for row in rows:
-            try:
-                first_vector = json.loads(row["embedding_vector"])
-                break
-            except (json.JSONDecodeError, TypeError, ValueError):
-                continue
-
-        if first_vector is not None and len(first_vector) != query_dim:
-            stored_dim = len(first_vector)
-            logger.error(
-                "Embedding dimension mismatch: query vector is %d-d but stored embeddings are %d-d. "
-                "The embedding model has changed since these books were embedded. "
-                "Re-embed your books to fix this.",
-                query_dim, stored_dim,
-            )
-            return {
-                "query": query,
-                "results": [],
-                "answer": None,
-                "error": f"Embedding dimension mismatch: the active model produces {query_dim}-d vectors "
-                         f"but your stored embeddings are {stored_dim}-d. "
-                         f"Your embedding model has changed. Please re-embed your books from Settings → AI Search.",
-                "totalChunksSearched": len(rows),
-            }
-
-        # Map database rows into structured documents, applying heuristic filtering.
-        # Expanded TOC/index markers and title-list detection backported from the
-        # new pipeline's chunk_filter.py for better garbage-chunk rejection.
-        documents = []
-        row_map = {}
-        for row in rows:
-            if not is_index_request:
-                ch_title = (row["chapter_title"] or "").lower()
-                text_prefix = row["chunk_text"][:200].lower()
-                # Expanded TOC/index markers (was: only "index", "table of contents", "glossary")
-                if _has_toc_marker(row["chunk_text"], row["chapter_title"]):
-                    continue
-                # Long comma-separated title lists (e.g. "TOPICAL LIST OF ENTRIES A, B, C...")
-                if _looks_like_title_list(row["chunk_text"]):
-                    continue
-                words = text_prefix.split()
-                numbers = [w for w in words if re.match(r'^\d+$', w)]
-                if len(words) > 0 and (len(numbers) / len(words)) > 0.15:
-                    continue
-                # Heading-only chunks: chunks that are just a chapter/section title
-                # with no substantive prose. These produce garbage in RAW mode
-                # (e.g. "Greatest Comics" with no surrounding text).
-                if _is_heading_only(row["chunk_text"]):
-                    continue
-                # Advertisement chunks: publisher subscription catalogs
-                if _looks_like_advertisement(row["chunk_text"]):
-                    continue
-                # Spaced-out letters / OCR noise chunks
-                if _is_garbage_spaced_text(row["chunk_text"]):
-                    continue
-                # Legal, cataloging, and copyright pages
-                if _is_legal_or_copyright(row["chunk_text"]):
-                    continue
-
-            # Strict mandatory quotes keyword matching
-            if required_keywords:
-                text_lower = row["chunk_text"].lower()
-                title_lower = (row["chapter_title"] or "").lower()
-                book_lower = (row["book_title"] or "").lower()
-                if not all(kw.lower() in text_lower or kw.lower() in title_lower or kw.lower() in book_lower for kw in required_keywords):
-                    continue
-
-            doc = {
-                "chunkId": row["id"],
-                "bookId": row["book_id"],
-                "bookTitle": row["book_title"],
-                "chunkIndex": row["chunk_index"],
-                "chunkText": row["chunk_text"],
-                "pageNumber": row["page_number"],
-                "chapterTitle": row["chapter_title"],
-            }
-            documents.append(doc)
-            row_map[row["id"]] = row
-
-        # Safety valve: if filtering dropped ALL candidates (and there were multiple),
-        # bypass the filter rather than returning zero results. Backported from
-        # chunk_filter.py's safety_valve logic.
-        if not documents and len(rows) > 1:
-            logger.warning(
-                "Chunk quality filter would drop all %d candidates; bypassing filter for this query.",
-                len(rows),
-            )
-            # Rebuild documents without filtering (only required-keyword check)
-            documents = []
-            row_map = {}
-            for row in rows:
-                if required_keywords:
-                    text_lower = row["chunk_text"].lower()
-                    title_lower = (row["chapter_title"] or "").lower()
-                    book_lower = (row["book_title"] or "").lower()
-                    if not all(kw.lower() in text_lower or kw.lower() in title_lower or kw.lower() in book_lower for kw in required_keywords):
-                        continue
-                doc = {
-                    "chunkId": row["id"],
-                    "bookId": row["book_id"],
-                    "bookTitle": row["book_title"],
-                    "chunkIndex": row["chunk_index"],
-                    "chunkText": row["chunk_text"],
-                    "pageNumber": row["page_number"],
-                    "chapterTitle": row["chapter_title"],
-                }
-                documents.append(doc)
-                row_map[row["id"]] = row
-
-        # Compute dense vector similarities
-        scored_vector = []
-        
-        # (Core keywords for soft boosting are extracted globally at the start of the function)
-
-        for doc in documents:
-            try:
-                row = row_map[doc["chunkId"]]
-                vector = json.loads(row["embedding_vector"])
-                # Slice/re-normalize vector if MRL truncation is enabled in search
-                if MATRYOSHKA_DIMENSIONS > 0 and len(vector) > MATRYOSHKA_DIMENSIONS:
-                    vector = vector[:MATRYOSHKA_DIMENSIONS]
-                    norm = np.linalg.norm(vector)
-                    if norm > 0:
-                        vector = (vector / norm).tolist()
-
-                similarity = _cosine_similarity(query_vector, vector)
-                
-                # Apply soft keyword boosting to favor chunks containing exact query keywords
-                if core_keywords:
-                    text_lower = doc["chunkText"].lower()
-                    title_lower = (doc["chapterTitle"] or "").lower()
-                    book_lower = (doc["bookTitle"] or "").lower()
-                    
-                    match_count = 0
-                    for kw in core_keywords:
-                        if kw in text_lower or kw in title_lower or kw in book_lower:
-                            match_count += 1
-                        elif kw.endswith("s") and len(kw) > 3 and kw[:-1] in text_lower:
-                            match_count += 1
-                            
-                    boost = min(0.10, match_count * 0.02)
-                    similarity += boost
-
-                if similarity >= similarity_threshold:
-                    doc_copy = doc.copy()
-                    doc_copy["similarity"] = round(similarity, 4)
-                    scored_vector.append(doc_copy)
-            except Exception:
-                continue
-
-        scored_vector.sort(key=lambda x: x["similarity"], reverse=True)
-
-        candidates = []
-        if hybrid_search_enabled:
-            # Compute BM25 scores
-            bm25_scores = compute_bm25_scores(query, documents)
-            scored_bm25 = []
-            for doc in documents:
-                score = bm25_scores.get(doc["chunkId"], 0.0)
-                if score > 0:
-                    doc_copy = doc.copy()
-                    doc_copy["bm25_score"] = score
-                    scored_bm25.append(doc_copy)
-            scored_bm25.sort(key=lambda x: x["bm25_score"], reverse=True)
-
-            # Merge using Reciprocal Rank Fusion (RRF)
-            vector_ranks = {d["chunkId"]: r for r, d in enumerate(scored_vector)}
-            bm25_ranks = {d["chunkId"]: r for r, d in enumerate(scored_bm25)}
-            all_candidate_chunk_ids = set(vector_ranks.keys()) | set(bm25_ranks.keys())
-
-            chunk_id_to_doc = {doc["chunkId"]: doc for doc in documents}
-            rrf_results = []
-            for chunk_id in all_candidate_chunk_ids:
-                score_vector = 1.0 / (rrf_k + vector_ranks[chunk_id]) if chunk_id in vector_ranks else 0.0
-                score_bm25 = 1.0 / (rrf_k + bm25_ranks[chunk_id]) if chunk_id in bm25_ranks else 0.0
-                rrf_score = score_vector + score_bm25
-
-                doc_copy = chunk_id_to_doc[chunk_id].copy()
-                doc_copy["rrf_score"] = round(rrf_score, 6)
-                # Use RRF score as a surrogate for sorting, but preserve the original vector similarity if available
-                doc_copy["similarity"] = scored_vector[vector_ranks[chunk_id]]["similarity"] if chunk_id in vector_ranks else round(rrf_score, 4)
-                rrf_results.append(doc_copy)
-
-            rrf_results.sort(key=lambda x: x["rrf_score"], reverse=True)
-            candidates = rrf_results
-        else:
-            candidates = scored_vector
-
-        # Apply Cross-Encoder Reranking if enabled and loaded
-        if reranking_enabled and _reranker_model is not None:
-            # Rerank the top candidates (capped at 20 for CPU efficiency)
-            rerank_pool_size = min(20, max(top_k, top_k * 2))
-            candidates_to_rerank = candidates[:rerank_pool_size]
-            if candidates_to_rerank:
-                pairs = [[query, c["chunkText"]] for c in candidates_to_rerank]
-                try:
-                    scores = _reranker_model.predict(pairs)
-                    if hasattr(scores, "tolist"):
-                        scores = scores.tolist()
-                    if isinstance(scores, float):
-                        scores = [scores]
-                    for idx, score in enumerate(scores):
-                        candidates_to_rerank[idx]["rerank_score"] = round(float(score), 4)
-                    
-                    # Sort by reranker score
-                    candidates_to_rerank.sort(key=lambda x: x["rerank_score"], reverse=True)
-                    candidates = candidates_to_rerank + candidates[rerank_pool_size:]
-                except Exception as e:
-                    logger.error("Failed to run reranker: %s", e)
-
-        # For list queries, retrieve a larger pool so the LLM has more candidates
-        # to choose from while still returning only display_top_k to the UI.
-        # Backported from pipeline.py's list-query pool expansion.
-        retrieval_top_k = top_k
-        if requested_count is not None:
-            retrieval_top_k = max(top_k, requested_count * 3)
-
-        top_results = candidates[:retrieval_top_k]
-        display_results = top_results[:display_top_k]
-
-        # Fetch adjacent chunks for each displayed result using the SAME connection
-        if display_results:
-            for r in display_results:
-                book_id_val = r["bookId"]
-                chunk_idx = r["chunkIndex"]
-                # Fetch previous chunk (contextBefore)
-                cursor.execute(
-                    """SELECT chunk_text FROM book_embeddings
-                       WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
-                    (book_id_val, user_id, chunk_idx - 1),
-                )
-                prev_row = cursor.fetchone()
-                r["contextBefore"] = prev_row["chunk_text"] if prev_row else None
-                # Fetch next chunk (contextAfter)
-                cursor.execute(
-                    """SELECT chunk_text FROM book_embeddings
-                       WHERE book_id = %s AND user_id = %s AND chunk_index = %s""",
-                    (book_id_val, user_id, chunk_idx + 1),
-                )
-                next_row = cursor.fetchone()
-                r["contextAfter"] = next_row["chunk_text"] if next_row else None
-    finally:
-        if cursor:
-            try:
-                cursor.close()
-            except Exception:
-                pass
-        if conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
-
-    # Generate answer using LLM if available and not local-only mode.
-    # Use the full top_results context pool so the LLM has complete context,
-    # and all retrieved sources are available for citation mapping.
-    answer = None
-    if top_results and not local_only:
-        # Build a context where each chunk is tagged with its real source.
-        context = "\n\n".join([
-            f"Book: {r['bookTitle']}, Page: {r.get('pageNumber') or 'N/A'}\n{r['chunkText']}"
-            for r in top_results
-        ])
-
-        # Adjust system prompt based on detected query intent.
-        # Backported from query_parser.py's intent detection.
-        intent = _detect_intent(query, requested_count)
-        custom_system_prompt = None
-        if intent == "list":
-            custom_system_prompt = (
-                "You are an AI search assistant. Read the provided Context carefully.\n"
-                "Your task is to respond to the user's Query based ONLY on the Context. Do not use external knowledge.\n"
-                "If the Context contains any information relevant to the Query, you MUST use it to answer the Query. Note that the Context is retrieved semantically, so the exact query terms (such as genre names like 'sci-fi' or 'vigilante') may not appear literally in the text. You should still use your understanding to connect the concepts and answer the query based on the retrieved context, and do NOT refuse to answer or claim the context lacks information.\n"
-                "You MUST cite your sources for every fact or item using the exact format [Source: Book Title, Page N] inline at the end of the item.\n"
-                "If the context contains absolutely no relevant information at all, reply EXACTLY with: 'I could not find any relevant information for this search.' and nothing else.\n"
-                "\n"
-                "RESPONSE FORMAT:\n"
-                "- Return your answer as structured bullet points, one per distinct item.\n"
-                "- Each bullet point MUST end with its own citation INLINE on the SAME line.\n"
-                "- Do NOT put citations on separate sub-bullet lines. Citations go at the END of the item line.\n"
-                "- Do NOT split a single chunk into multiple numbered items.\n"
-                "- Do NOT invent items to reach a requested count. Only return items directly supported by the Context.\n"
-                "- Do NOT add disclaimers like \"inferred\" or \"not directly sourced\" to any item.\n"
-                "\n"
-                "CITATION RULES:\n"
-                "- Use the page number from the Context block that the information came from.\n"
-                "- Do NOT reuse the same page number for every item unless every item really came from that page.\n"
-                "- Use the format [Source: Book Title, Page N] — do NOT include ChunkIndex or Source numbers.\n"
-                "\n"
-                "CITATION EXAMPLE:\n"
-                "- \"Galactic Warriors\" by Joe Orlando [Source: 100 All-Time Greatest Comics, Page 98]\n"
-                "- The Starblade chronicles the conflict over interstellar trade routes [Source: 100 All-Time Greatest Comics, Page 102]"
-            )
-
-        try:
-            answer = _generate_answer(query, context, max_tokens, temperature, chat_history, custom_system_prompt)
-        except Exception as e:
-            logger.error("Error generating LLM answer: %s", e)
-            answer = None
-
-        # If the LLM returned empty content (model not loaded, crashed, or produced
-        # zero tokens), synthesize a fallback bulleted list from the raw results so
-        # the user sees structured output instead of silent RAW fallback.
-        if answer is not None and not answer.strip():
-            logger.warning(
-                "LLM returned empty/whitespace-only content. Building fallback "
-                "bulleted list from %d raw results.", len(top_results)
-            )
-            fallback_lines = []
-            for i, r in enumerate(top_results[:requested_count or len(top_results)]):
-                page = r.get("pageNumber") or "N/A"
-                snippet = r["chunkText"].strip()[:200]
-                # Truncate at last sentence boundary within 200 chars
-                if len(r["chunkText"]) > 200:
-                    last_period = snippet.rfind(".")
-                    last_excl = snippet.rfind("!")
-                    last_q = snippet.rfind("?")
-                    cut = max(last_period, last_excl, last_q)
-                    if cut > 100:
-                        snippet = snippet[:cut+1]
-                    else:
-                        snippet = snippet[:197] + "..."
-                fallback_lines.append(
-                    f"- {snippet} [Source: {r['bookTitle']}, Page {page}]"
-                )
-            answer = "\n".join(fallback_lines) if fallback_lines else None
-
-        # Safety net: ensure every list item has a citation. Small local LLMs sometimes
-        # ignore the citation format instruction, so we append the best matching source
-        # for any bullet that is missing one.
-        if answer:
-            # Normalize context-block citation format [Source N: Book, Page, ChunkIndex]
-            # to the prompt format [Source: Book, Page] before any other processing.
-            answer = re.sub(
-                r"\[Source\s*(?:\d+)?:\s*([^,\]]+),\s*Page\s*([^,\]\s]+)[^\]]*\]",
-                r"[Source: \1, Page \2]",
-                answer
-            )
-            answer = _ensure_list_citations(answer, top_results)
-            # Strip hallucination lines: items the LLM invented that contain
-            # disclaimers like "inferred", "not directly sourced", or "not sourced".
-            answer = _strip_hallucination_lines(answer)
-            # Strip hallucinated items by content overlap: items whose words have
-            # very low Jaccard overlap (< 15%) with their assigned source chunk are
-            # likely LLM fabrications (invented titles, hallucinated facts). This
-            # catches hallucinations that the disclaimer-based check misses because
-            # the system prompt now forbids "inferred" disclaimers.
-            answer = _strip_hallucinated_items(answer, top_results)
-            # Deduplicate near-duplicate same-source list items. Small LLMs sometimes
-            # repeat the same fact with minor wording changes to satisfy a count request.
-            # Backported from synthesis.py's Jaccard-based dedup.
-            answer = _deduplicate_same_chunk_items(answer, top_results)
-
-    # Identify missing core keywords (completely absent from all top results)
-    missing_keywords = []
-    if display_results and core_keywords:
-        for kw in core_keywords:
-            kw_lower = kw.lower()
-            found_any = False
-            for r in display_results:
-                text_lower = r["chunkText"].lower()
-                title_lower = (r.get("chapterTitle") or "").lower()
-                book_lower = (r.get("bookTitle") or "").lower()
-                if kw_lower in text_lower or kw_lower in title_lower or kw_lower in book_lower:
-                    found_any = True
-                    break
-                elif kw_lower.endswith("s") and len(kw_lower) > 3 and kw_lower[:-1] in text_lower:
-                    found_any = True
-                    break
-            if not found_any:
-                missing_keywords.append(kw)
-
-    # If the LLM returned the "not found" sentinel, clear the results so the
-    # frontend doesn't show irrelevant raw matches, and display the sentinel answer.
-    if answer and "I could not find any relevant information" in answer:
-        logger.info(
-            "LLM returned 'not found' sentinel. Clearing results so frontend displays 'not found' answer."
-        )
-        display_results = []
-        answer = "I could not find any relevant information for this search."
-    else:
-        # Construct a consolidated disclaimer note if results count is less than
-        # requested or keywords are missing. This disclaimer is ONLY shown in RAW
-        # mode or when there is no LLM answer at all. When the LLM produced a real
-        # answer, we do NOT prepend the disclaimer — the LLM already synthesized
-        # what it could from the available context, and prepending "only found 1
-        # match" on a 5-item AI answer is confusing and contradictory.
-        disclaimer_parts = []
-        if requested_count and len(display_results) < requested_count:
-            disclaimer_parts.append(f"only found {len(display_results)} match{'es' if len(display_results) != 1 else ''} in your library (not the {requested_count} requested)")
-        if missing_keywords:
-            missing_str = ", ".join([f'"{m}"' for m in missing_keywords])
-            disclaimer_parts.append(f"could not find the term(s) {missing_str}")
-
-        if disclaimer_parts and display_results:
-            disclaimer = "⚠️ *Note: I " + " and I ".join(disclaimer_parts) + ":*\n\n"
-            if local_only:
-                # RAW mode: show the disclaimer so the user understands why
-                # results are limited and which keywords were not found.
-                answer = disclaimer
-            elif not answer:
-                # No LLM answer at all: show the disclaimer as the only content.
-                answer = disclaimer
-            # When the LLM produced a real answer, do NOT prepend the disclaimer.
-            # The LLM already synthesized what it could from the available context.
-
-    return {
-        "query": query,
-        "results": display_results,
-        "contextResults": top_results,
-        "answer": answer,
-        "totalChunksSearched": len(rows),
-    }
 
 
 @app.get("/v1/book-embeddings/{book_id}")

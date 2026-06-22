@@ -104,7 +104,7 @@ def parse_synthesis_response(raw: str, chunks: list[RetrievedChunk] | None = Non
 
     # If the response explicitly says no relevant info, honor it.
     if "I could not find any relevant information" in stripped:
-        return SynthesisResult(no_relevant_info=True)
+        return SynthesisResult(no_relevant_info=True, sentinel_triggered=True)
 
     # Try markdown bullet parsing first.
     items = _parse_markdown_items(stripped, chunks)
