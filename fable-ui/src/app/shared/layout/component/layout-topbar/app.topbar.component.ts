@@ -93,6 +93,7 @@ export class AppTopBarComponent implements OnDestroy {
   @ViewChild('mobileSidebarPop') mobileSidebarPop: Popover | undefined;
   @ViewChild('mobileDirPop') mobileDirPop: Popover | undefined;
   @ViewChild('mobileMenu') mobileMenuPop: Popover | undefined;
+  @ViewChild('notificationPopover') notificationPopover: Popover | undefined;
 
   isMenuVisible = true;
   mobileSearchVisible = false;
@@ -194,6 +195,7 @@ export class AppTopBarComponent implements OnDestroy {
         this.hasAnyTasks = Object.keys(tasks).length > 0;
         this.updateCompletedTaskCount();
         this.updateTaskVisibility(tasks);
+        this.checkNotificationPopoverClose();
       });
 
     this.bookdropFileService.hasPendingFiles$
@@ -203,6 +205,7 @@ export class AppTopBarComponent implements OnDestroy {
         this.hasPendingBookdropFiles = hasPending;
         this.updateCompletedTaskCount();
         this.updateTaskVisibilityWithBookdrop();
+        this.checkNotificationPopoverClose();
       });
 
     this.aiPanelScanProgressService.progress$
@@ -230,12 +233,14 @@ export class AppTopBarComponent implements OnDestroy {
             clearTimeout(this.aiSearchSingleDismissTimer);
           }
         }
+        this.checkNotificationPopoverClose();
       });
 
     this.aiSearchScanProgressService.isStopping$
       .pipe(takeUntil(this.destroy$))
       .subscribe(stopping => {
         this.isAiSearchStopping = stopping;
+        this.checkNotificationPopoverClose();
       });
 
     this.appSettingsService.appSettings$
@@ -646,7 +651,10 @@ export class AppTopBarComponent implements OnDestroy {
       .subscribe((notification: LogNotification | null) => {
         if (notification) {
           this.latestNotificationSeverity = notification.severity;
+        } else {
+          this.hasActiveLogNotification = false;
         }
+        this.checkNotificationPopoverClose();
       });
 
     this.notificationService.notificationHighlight$
@@ -657,6 +665,7 @@ export class AppTopBarComponent implements OnDestroy {
         if (highlight) {
           this.triggerPulseEffect();
         }
+        this.checkNotificationPopoverClose();
       });
   }
 
@@ -666,6 +675,19 @@ export class AppTopBarComponent implements OnDestroy {
     this.eventTimer = setTimeout(() => {
       this.showPulse = false;
     }, 4000) as unknown as number;
+  }
+
+  private checkNotificationPopoverClose() {
+    const hasActiveNotification = this.hasActiveLogNotification;
+    const hasMetadataTasks = this.hasAnyTasks;
+    const hasPendingBookdropFiles = this.hasPendingBookdropFiles;
+    const hasAiSearchScan = !!(this.aiSearchBatchProgress && this.aiSearchBatchProgress.mode === 'BATCH') || this.isAiSearchStopping;
+
+    const hasAnyContent = hasActiveNotification || hasMetadataTasks || hasPendingBookdropFiles || hasAiSearchScan;
+
+    if (!hasAnyContent && this.notificationPopover) {
+      this.notificationPopover.hide();
+    }
   }
 
   private updateCompletedTaskCount() {
