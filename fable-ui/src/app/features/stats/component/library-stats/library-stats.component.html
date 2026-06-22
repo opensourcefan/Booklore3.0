@@ -1,5 +1,16 @@
 <ng-container *transloco="let t; prefix: 'statsLibrary'">
 <div class="library-stats-container">
+  <div class="stats-nav-container">
+    <a class="stats-nav-btn" routerLink="/library-stats" routerLinkActive="active-btn">
+      <i class="pi pi-chart-line"></i>
+      <span>{{ 'layout.topbar.libraryStats' | transloco }}</span>
+    </a>
+    <a class="stats-nav-btn" routerLink="/reading-stats" routerLinkActive="active-btn">
+      <i class="pi pi-users"></i>
+      <span>{{ 'layout.topbar.readingStats' | transloco }}</span>
+    </a>
+  </div>
+
   <div class="header-card">
     <div class="filter-section">
       <div class="library-filter">
@@ -220,37 +231,48 @@
             <div class="column-header">
               <h4>
                 <i class="pi pi-search"></i>
-                {{ t('aiSearchStats.title') }}
+                AI Search
               </h4>
               <p>{{ t('aiSearchStats.description') }}</p>
             </div>
 
             @if (data.searchStats; as searchStats) {
               @if (searchStats.totalEmbeddedBooks > 0) {
-                <div class="ai-search-dashboard">
-                  <div class="ai-search-dashboard-row">
-                    <article class="ai-search-card mini-card">
-                      <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.embeddings') }}</span>
-                      <span class="ai-search-value">{{ searchStats.totalEmbeddedBooks }}</span>
-                      <span class="ai-search-label">{{ t('aiSearchStats.totalEmbeddedBooks') }}</span>
-                    </article>
+                <div class="ai-search-page" aria-label="AI search statistics page">
+                  
+                  <!-- Card 1: Splash Card -->
+                  <article class="ai-search-card ai-search-splash">
+                    <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.embeddings') }}</span>
+                    <span class="ai-search-value">{{ searchStats.totalEmbeddedBooks }}</span>
+                    <span class="ai-search-label">Indexed Books</span>
+                    <p>Across {{ searchStats.totalEmbeddedBooks }} embedded books, Fable has indexed {{ searchStats.totalChunks }} text chunks.</p>
+                  </article>
 
-                    <article class="ai-search-card mini-card">
-                      <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.chunks') }}</span>
-                      <span class="ai-search-value">{{ searchStats.totalChunks }}</span>
-                      <span class="ai-search-label">{{ t('aiSearchStats.totalChunks') }}</span>
-                    </article>
+                  <!-- Card 2: DB Storage Card -->
+                  <article class="ai-search-card ai-search-storage">
+                    <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.storage') || 'Storage' }}</span>
+                    <span class="ai-search-value">{{ totalAiSearchStorage$ | async }}</span>
+                    <span class="ai-search-label">Database Size</span>
+                  </article>
 
-                    <article class="ai-search-card mini-card">
-                      <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.marked') }}</span>
-                      <span class="ai-search-value">{{ searchStats.markedCount }}</span>
-                      <span class="ai-search-label">{{ t('aiSearchStats.markedForScan') }}</span>
-                    </article>
-                  </div>
+                  <!-- Card 3: Embedded Books Mini Card -->
+                  <article class="ai-search-card ai-search-stat">
+                    <span class="ai-search-kicker">INDEXED</span>
+                    <span class="ai-search-value">{{ searchStats.totalEmbeddedBooks }}</span>
+                    <span class="ai-search-label">Embedded Books</span>
+                  </article>
 
-                  <article class="ai-search-card model-breakdown-card">
-                    <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.models') }}</span>
-                    <span class="ai-search-label">{{ t('aiSearchStats.modelBreakdown') }}</span>
+                  <!-- Card 4: Chunks / Queued Mini Card -->
+                  <article class="ai-search-card ai-search-stat">
+                    <span class="ai-search-kicker">CHUNKS / QUEUED</span>
+                    <span class="ai-search-value">{{ searchStats.totalChunks }}</span>
+                    <span class="ai-search-label">{{ searchStats.markedCount }} marked for scan</span>
+                  </article>
+
+                  <!-- Card 5: Model Breakdown Card -->
+                  <article class="ai-search-card ai-search-feature">
+                    <span class="ai-search-kicker">EMBEDDING MODELS</span>
+                    <span class="ai-search-label">Model Breakdown</span>
                     <div class="model-list">
                       @for (item of searchStats.modelStats; track item.model) {
                         <div class="model-row">
@@ -260,6 +282,69 @@
                       }
                     </div>
                   </article>
+
+                  <!-- Card 6: Saved Profiles Card -->
+                  <article class="ai-search-card ai-search-feature">
+                    <span class="ai-search-kicker">LLM PROFILES</span>
+                    <span class="ai-search-label">Saved LLM Profiles</span>
+                    <div class="model-list">
+                      @if (llmProfiles$ | async; as profiles) {
+                        @if (profiles.length > 0) {
+                          @for (p of profiles; track p.name) {
+                            <div class="model-row">
+                              <span class="model-name" [title]="p.name">{{ p.name }}</span>
+                              <span class="model-count" style="font-family: monospace; font-size: 0.7rem; opacity: 0.8;">{{ p.llmModel }} ({{ p.llmProvider }})</span>
+                            </div>
+                          }
+                        } @else {
+                          <div style="font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; margin-top: 1rem;">No saved profiles</div>
+                        }
+                      }
+                    </div>
+                  </article>
+
+                  <!-- Card 7: Downloaded Embedding Models Size & List -->
+                  <article class="ai-search-card ai-search-feature">
+                    <span class="ai-search-kicker">EMBEDDING MODELS CACHE</span>
+                    <span class="ai-search-value" style="font-size: clamp(1.1rem, 2vw, 1.85rem); margin-bottom: 0.2rem; font-weight: 700; color: var(--text-color, #ffffff);">{{ totalEmbeddingModelStorage$ | async }}</span>
+                    <span class="ai-search-label">Downloaded Models</span>
+                    <div class="model-list" style="max-height: 5rem;">
+                      @if (embeddingModels$ | async; as eModels) {
+                        @if (eModels.length > 0) {
+                          @for (m of eModels; track m.id) {
+                            <div class="model-row">
+                              <span class="model-name" [title]="m.id">{{ m.name }}</span>
+                              <span class="model-count">{{ formatBytes(m.sizeBytes) }}</span>
+                            </div>
+                          }
+                        } @else {
+                          <div style="font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; margin-top: 0.5rem;">No cached models</div>
+                        }
+                      }
+                    </div>
+                  </article>
+
+                  <!-- Card 8: Downloaded LLM Models Size & List -->
+                  <article class="ai-search-card ai-search-feature">
+                    <span class="ai-search-kicker">LLM MODELS CACHE</span>
+                    <span class="ai-search-value" style="font-size: clamp(1.1rem, 2vw, 1.85rem); margin-bottom: 0.2rem; font-weight: 700; color: var(--text-color, #ffffff);">{{ totalLlmModelStorage$ | async }}</span>
+                    <span class="ai-search-label">Ollama LLM Models</span>
+                    <div class="model-list" style="max-height: 5rem;">
+                      @if (llmModels$ | async; as lModels) {
+                        @if (lModels.length > 0) {
+                          @for (m of lModels; track m.id) {
+                            <div class="model-row">
+                              <span class="model-name" [title]="m.id">{{ m.name }}</span>
+                              <span class="model-count">{{ formatBytes(m.sizeBytes) }}</span>
+                            </div>
+                          }
+                        } @else {
+                          <div style="font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; margin-top: 0.5rem;">No cached models</div>
+                        }
+                      }
+                    </div>
+                  </article>
+
                 </div>
               } @else {
                 <div class="ai-stats-empty">

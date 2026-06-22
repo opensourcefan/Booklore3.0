@@ -164,8 +164,8 @@
               <li>
                 <button
                   class="topbar-item"
-                  (click)="shouldShowStatsMenu ? statsMenu?.toggle($event) : handleStatsButtonClick($event)"
-                  [pTooltip]="statsTooltip"
+                  (click)="navigateToStats()"
+                  [pTooltip]="t('stats') || 'Stats'"
                   tooltipPosition="bottom">
                   <svg class="multi-color-chart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1.25rem; height: 1.25rem;">
                     <rect x="2" y="13" width="4" height="9" rx="1" fill="#ef4444"/>
@@ -174,9 +174,6 @@
                     <rect x="18.5" y="5" width="4" height="17" rx="1" fill="#10b981"/>
                   </svg>
                 </button>
-                @if (shouldShowStatsMenu) {
-                  <p-menu #statsMenu [model]="statsMenuItems" [popup]="true" appendTo="body"/>
-                }
               </li>
             }
             @case ('notifications') {

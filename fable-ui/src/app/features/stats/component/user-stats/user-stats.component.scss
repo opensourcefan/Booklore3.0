@@ -6,6 +6,51 @@
   overflow-y: auto;
 }
 
+.stats-nav-container {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.stats-nav-btn {
+  flex: 1;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-color, #ffffff);
+  font-size: 1.15rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: var(--card-background);
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  border: 1px solid var(--p-content-border-color);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--card-background) 80%, rgba(255, 255, 255, 0.05));
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  &.active-btn {
+    background: var(--p-primary-color);
+    color: var(--p-primary-color-text, #ffffff);
+    border-color: var(--p-primary-color);
+    
+    &:hover {
+      background: var(--p-primary-color-hover, var(--p-primary-color));
+    }
+  }
+
+  .pi {
+    font-size: 1.35rem;
+  }
+}
+
 .header-section {
   background: var(--card-background);
   border-radius: 12px;

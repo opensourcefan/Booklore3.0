@@ -6,7 +6,8 @@ import {DialogModule} from 'primeng/dialog';
 import {ButtonModule} from 'primeng/button';
 import {UserService} from '../../../settings/user-management/user.service';
 import {takeUntil} from 'rxjs/operators';
-import {TranslocoDirective} from '@jsverse/transloco';
+import {TranslocoDirective, TranslocoPipe} from '@jsverse/transloco';
+import {RouterLink, RouterLinkActive} from '@angular/router';
 import {PeakHoursChartComponent} from './charts/peak-hours-chart/peak-hours-chart.component';
 import {FavoriteDaysChartComponent} from './charts/favorite-days-chart/favorite-days-chart.component';
 import {ReadingDNAChartComponent} from './charts/reading-dna-chart/reading-dna-chart.component';
@@ -40,6 +41,8 @@ import {UserChartConfig, UserChartConfigService} from './service/user-chart-conf
     DragDropModule,
     DialogModule,
     ButtonModule,
+    RouterLink,
+    RouterLinkActive,
     ReadingSessionHeatmapComponent,
     ReadingSessionTimelineComponent,
     GenreStatsChartComponent,
@@ -63,7 +66,8 @@ import {UserChartConfig, UserChartConfigService} from './service/user-chart-conf
     ReadingDebtChartComponent,
     PublicationEraChartComponent,
     SessionArchetypesChartComponent,
-    TranslocoDirective
+    TranslocoDirective,
+    TranslocoPipe
   ],
   templateUrl: './user-stats.component.html',
   styleUrls: ['./user-stats.component.scss']

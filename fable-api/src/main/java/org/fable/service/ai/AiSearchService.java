@@ -162,15 +162,18 @@ public class AiSearchService {
         List<org.fable.repository.projection.EmbeddingStatsProjection> modelStats;
         long totalChunks;
         long markedCount;
+        long storedBytes;
 
         if (libraryId != null) {
             modelStats = bookRepository.getEmbeddingStatsByLibraryId(userId, libraryId);
             totalChunks = bookRepository.countTotalChunksByUserIdAndLibraryId(userId, libraryId);
             markedCount = bookRepository.countMarkedForAiSearchByLibraryId(libraryId);
+            storedBytes = bookRepository.sumStoredBytesByUserIdAndLibraryId(userId, libraryId);
         } else {
             modelStats = bookRepository.getEmbeddingStats(userId);
             totalChunks = bookRepository.countTotalChunksByUserId(userId);
             markedCount = bookRepository.countMarkedForAiSearch();
+            storedBytes = bookRepository.sumStoredBytesByUserId(userId);
         }
 
         long totalEmbeddedBooks = modelStats.stream()
@@ -181,7 +184,8 @@ public class AiSearchService {
                 "totalEmbeddedBooks", totalEmbeddedBooks,
                 "totalChunks", totalChunks,
                 "markedCount", markedCount,
-                "modelStats", modelStats
+                "modelStats", modelStats,
+                "storedBytes", storedBytes
         );
     }
 

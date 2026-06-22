@@ -334,6 +334,7 @@ export interface AiSearchStatsSummary {
   totalChunks: number;
   markedCount: number;
   modelStats: AiSearchModelStats[];
+  storedBytes?: number;
 }
 
 export interface AiPanelFlowDirectoryScanStatus {

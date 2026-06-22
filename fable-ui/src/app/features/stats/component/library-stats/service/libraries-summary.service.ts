@@ -96,6 +96,12 @@ export class LibrariesSummaryService {
     );
   }
 
+  getFormattedAiSearchStorage(): Observable<string> {
+    return this.aiSearchStatsSummary$.pipe(
+      map(stats => this.formatBytes(stats?.storedBytes ?? 0))
+    );
+  }
+
   getAiSearchStatsSummary(): Observable<AiSearchStatsSummary> {
     return this.aiSearchStatsSummary$.pipe(
       map(stats => stats ?? this.createEmptyAiSearchStatsSummary())

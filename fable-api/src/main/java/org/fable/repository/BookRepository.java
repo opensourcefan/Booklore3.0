@@ -593,6 +593,12 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query(value = "SELECT COUNT(*) FROM book_embeddings e JOIN book b ON e.book_id = b.id WHERE e.user_id = :userId AND b.library_id = :libraryId", nativeQuery = true)
     long countTotalChunksByUserIdAndLibraryId(@Param("userId") Long userId, @Param("libraryId") Long libraryId);
 
+    @Query(value = "SELECT COALESCE(SUM(LENGTH(chunk_text) + LENGTH(embedding_vector)), 0) FROM book_embeddings WHERE user_id = :userId", nativeQuery = true)
+    long sumStoredBytesByUserId(@Param("userId") Long userId);
+
+    @Query(value = "SELECT COALESCE(SUM(LENGTH(e.chunk_text) + LENGTH(e.embedding_vector)), 0) FROM book_embeddings e JOIN book b ON e.book_id = b.id WHERE e.user_id = :userId AND b.library_id = :libraryId", nativeQuery = true)
+    long sumStoredBytesByUserIdAndLibraryId(@Param("userId") Long userId, @Param("libraryId") Long libraryId);
+
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE b.markedForAiSearch = true AND (b.deleted IS NULL OR b.deleted = false)")
     long countMarkedForAiSearch();
 

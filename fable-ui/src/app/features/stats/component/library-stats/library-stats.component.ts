@@ -4,7 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {of, Subject} from 'rxjs';
 import {catchError, map, shareReplay, startWith, takeUntil} from 'rxjs/operators';
 import {CdkDragDrop, DragDropModule, moveItemInArray} from '@angular/cdk/drag-drop';
-import {RouterLink} from '@angular/router';
+import {RouterLink, RouterLinkActive} from '@angular/router';
 import {Select} from 'primeng/select';
 import {Button} from 'primeng/button';
 import {LanguageChartComponent} from './charts/language-chart/language-chart.component';
@@ -18,8 +18,9 @@ import {PublicationTrendChartComponent} from './charts/publication-trend-chart/p
 import {ReadingJourneyChartComponent} from './charts/reading-journey-chart/reading-journey-chart.component';
 import {LibrariesSummaryService} from './service/libraries-summary.service';
 import {LibraryFilterService, LibraryOption} from './service/library-filter.service';
-import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {AiPanelFlowBookHighlight, AiPanelFlowStats, AiSearchStatsSummary} from '../../../../shared/model/app-settings.model';
+import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 
 interface ChartConfig {
   id: string;
@@ -37,6 +38,7 @@ interface ChartConfig {
     Select,
     DragDropModule,
     RouterLink,
+    RouterLinkActive,
     Button,
     BookFormatsChartComponent,
     LanguageChartComponent,
@@ -47,7 +49,8 @@ interface ChartConfig {
     PublicationTimelineChartComponent,
     PublicationTrendChartComponent,
     ReadingJourneyChartComponent,
-    TranslocoDirective
+    TranslocoDirective,
+    TranslocoPipe
   ],
   templateUrl: './library-stats.component.html',
   styleUrls: ['./library-stats.component.scss']
@@ -55,6 +58,7 @@ interface ChartConfig {
 export class LibraryStatsComponent implements OnInit, OnDestroy {
   private readonly libraryFilterService = inject(LibraryFilterService);
   private readonly librariesSummaryService = inject(LibrariesSummaryService);
+  private readonly appSettingsService = inject(AppSettingsService);
   private readonly t = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
 
@@ -90,6 +94,48 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
   );
   public readonly totalAiScannedComics$ = this.aiPanelFlowStats$.pipe(map(stats => stats.scannedComicCount));
   public readonly totalAiStorage$ = this.librariesSummaryService.getFormattedAiStorage().pipe(catchError(() => of('0 B')));
+
+  public readonly llmProfiles$ = this.appSettingsService.getAiLlmProfiles().pipe(
+    catchError(() => of([]))
+  );
+
+  public readonly embeddingModels$ = this.appSettingsService.getAiEmbeddingModels().pipe(
+    map(res => res.models || []),
+    catchError(() => of([]))
+  );
+
+  public readonly llmModels$ = this.appSettingsService.getAiLlmModels().pipe(
+    map(res => res.models || []),
+    catchError(() => of([]))
+  );
+
+  public readonly totalEmbeddingModelStorage$ = this.embeddingModels$.pipe(
+    map(models => this.formatBytes(models.reduce((sum, m) => sum + (m.sizeBytes || 0), 0)))
+  );
+
+  public readonly totalLlmModelStorage$ = this.llmModels$.pipe(
+    map(models => this.formatBytes(models.reduce((sum, m) => sum + (m.sizeBytes || 0), 0)))
+  );
+
+  public readonly totalAiSearchStorage$ = this.librariesSummaryService.getFormattedAiSearchStorage().pipe(catchError(() => of('0 B')));
+
+  public formatBytes(bytes: number): string {
+    if (!Number.isFinite(bytes) || bytes <= 0) {
+      return '0 B';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let unitIndex = 0;
+
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+
+    const digits = value >= 10 || unitIndex === 0 ? 0 : 1;
+    return `${value.toFixed(digits)} ${units[unitIndex]}`;
+  }
 
   public hasAiPanelFlowData(stats: AiPanelFlowStats | null | undefined): boolean {
     return !!stats && stats.scannedComicCount > 0;

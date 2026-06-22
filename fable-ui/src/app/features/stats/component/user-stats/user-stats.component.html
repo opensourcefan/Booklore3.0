@@ -1,5 +1,16 @@
 <ng-container *transloco="let t; prefix: 'statsUser'">
 <div class="user-stats-container">
+  <div class="stats-nav-container">
+    <a class="stats-nav-btn" routerLink="/library-stats" routerLinkActive="active-btn">
+      <i class="pi pi-chart-line"></i>
+      <span>{{ 'layout.topbar.libraryStats' | transloco }}</span>
+    </a>
+    <a class="stats-nav-btn" routerLink="/reading-stats" routerLinkActive="active-btn">
+      <i class="pi pi-users"></i>
+      <span>{{ 'layout.topbar.readingStats' | transloco }}</span>
+    </a>
+  </div>
+
   <div class="header-section">
     <div class="header-content">
       <div class="greeting">
