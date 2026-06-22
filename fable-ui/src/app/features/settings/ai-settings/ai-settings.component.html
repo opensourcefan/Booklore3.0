@@ -286,72 +286,72 @@
               <h4 style="margin: 0; color: var(--primary-color);">LLM Configuration</h4>
               <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetLlmSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
-
-            <!-- Profile management card -->
-            <div class="llm-profile-card">
-              <div class="profile-header-row">
-                <div class="profile-select-container">
-                  <span class="profile-label">Active Profile</span>
-                  <p-select 
-                    [options]="llmProfiles" 
-                    [(ngModel)]="selectedProfile" 
-                    optionLabel="name" 
-                    dataKey="name"
-                    placeholder="Custom Settings (No Profile)" 
-                    [disabled]="!aiSearchEnabled || saveRunning || activatingProfile"
-                    (onChange)="onProfileSelect($event)"
-                    styleClass="profile-dropdown">
-                    <ng-template let-option pTemplate="item">
-                      <div class="profile-option-item">
-                        <span class="profile-option-name">{{ option.name }}</span>
-                        <span class="profile-option-desc">{{ option.description }}</span>
-                      </div>
-                    </ng-template>
-                  </p-select>
-                </div>
-                
-                <div class="profile-actions-container">
-                  <p-button 
-                    label="Save Current as Profile" 
-                    icon="pi pi-save" 
-                    severity="success" 
-                    size="small" 
-                    [outlined]="true"
-                    [disabled]="!aiSearchEnabled || saveRunning || activatingProfile"
-                    (onClick)="openSaveProfileDialog()">
-                  </p-button>
-                  @if (selectedProfile) {
-                    <p-button 
-                      label="Delete Profile" 
-                      icon="pi pi-trash" 
-                      severity="danger" 
-                      size="small" 
-                      [outlined]="true"
-                      [loading]="deletingProfile"
-                      [disabled]="!aiSearchEnabled || saveRunning || activatingProfile || deletingProfile"
-                      (onClick)="deleteProfile(selectedProfile.name)">
-                    </p-button>
-                  }
-                </div>
-              </div>
-
-              @if (selectedProfile) {
-                <div class="profile-fine-print">
-                  <i class="pi pi-info-circle"></i>
-                  <span>{{ selectedProfile.description }}</span>
-                </div>
-              } @else {
-                <div class="profile-fine-print custom-settings">
-                  <i class="pi pi-sliders-h"></i>
-                  <span>Modify settings below and save them as a profile for quick switching later.</span>
-                </div>
-              }
-            </div>
             
             <div style="display: flex; flex-direction: row; gap: 12rem; align-items: flex-start;">
               
               <!-- Left side: Configuration -->
               <div style="display: flex; flex-direction: column; gap: 1rem; flex: 1; min-width: 300px;">
+                
+                <!-- Profile Selection -->
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <label for="llmProfileSelect"><strong>Active LLM Profile</strong></label>
+                  <div style="display: flex; gap: 0.5rem; width: 100%; align-items: center;">
+                    <div style="flex: 1; min-width: 0;">
+                      <p-select 
+                        id="llmProfileSelect"
+                        [options]="llmProfiles" 
+                        [(ngModel)]="selectedProfile" 
+                        optionLabel="name" 
+                        dataKey="name"
+                        placeholder="Custom Settings (No Profile)" 
+                        [disabled]="!aiSearchEnabled || saveRunning || activatingProfile"
+                        (onChange)="onProfileSelect($event)"
+                        styleClass="w-full">
+                        <ng-template let-option pTemplate="item">
+                          <div class="profile-option-item">
+                            <span class="profile-option-name" style="font-weight: 600; font-size: 0.9rem; color: var(--text-color);">{{ option.name }}</span>
+                            <span class="profile-option-desc" style="font-size: 0.75rem; color: var(--text-color-secondary); display: block; margin-top: 0.15rem;">{{ option.description }}</span>
+                          </div>
+                        </ng-template>
+                      </p-select>
+                    </div>
+                    
+                    <p-button 
+                      pTooltip="Save Current as Profile" 
+                      tooltipPosition="top"
+                      icon="pi pi-save" 
+                      severity="success" 
+                      size="small" 
+                      [outlined]="true"
+                      [disabled]="!aiSearchEnabled || saveRunning || activatingProfile"
+                      (onClick)="openSaveProfileDialog()">
+                    </p-button>
+                    @if (selectedProfile) {
+                      <p-button 
+                        pTooltip="Delete Profile" 
+                        tooltipPosition="top"
+                        icon="pi pi-trash" 
+                        severity="danger" 
+                        size="small" 
+                        [outlined]="true"
+                        [loading]="deletingProfile"
+                        [disabled]="!aiSearchEnabled || saveRunning || activatingProfile || deletingProfile"
+                        (onClick)="deleteProfile(selectedProfile.name)">
+                      </p-button>
+                    }
+                  </div>
+                  @if (selectedProfile) {
+                    <div class="profile-fine-print" style="margin-top: 0.25rem;">
+                      <i class="pi pi-info-circle"></i>
+                      <span>{{ selectedProfile.description }}</span>
+                    </div>
+                  } @else {
+                    <div class="profile-fine-print custom-settings" style="margin-top: 0.25rem;">
+                      <i class="pi pi-sliders-h"></i>
+                      <span>Modify settings below and save them as a profile for quick switching later.</span>
+                    </div>
+                  }
+                </div>
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                   <label for="llmProvider"><strong>LLM Engine (Local / External)</strong></label>
               <p-select 
