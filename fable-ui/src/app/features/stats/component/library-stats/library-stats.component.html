@@ -213,7 +213,7 @@
       }
     </div>
 
-    @if ({ aiStats: aiPanelFlowStats$ | async, searchStats: aiSearchStatsSummary$ | async }; as data) {
+    @let data = { aiStats: aiPanelFlowStats$ | async, searchStats: aiSearchStatsSummary$ | async };
       <section class="chart-section full-width ai-stats-section">
         <div class="ai-stats-header">
           <div>
@@ -439,7 +439,6 @@
           </div>
         </div>
       </section>
-    }
   }
 
   @if (isLoading) {
