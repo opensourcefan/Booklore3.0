@@ -643,7 +643,7 @@
                       <span style="font-family: monospace; font-weight: bold; background: var(--surface-card); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--surface-border);">{{ advancedChunkSize }} chars</span>
                     </div>
                     <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Sets the max length of book text pieces to index. Larger chunks hold more context but dilute detail; smaller chunks are precise. Modifying this clears the index.</p>
-                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #ef4444; border-radius: 4px;">
                       <strong>In other words:</strong> This breaks your books into bite-sized text pieces. Larger chunks read like whole pages (saving details), while smaller chunks read like single sentences (very precise). You will see more or less text in the search results depending on this.
                     </div>
                     <div style="display: flex; align-items: center; gap: 1rem;">
@@ -658,7 +658,7 @@
                       <span style="font-family: monospace; font-weight: bold; background: var(--surface-card); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--surface-border);">{{ advancedChunkOverlap }} chars</span>
                     </div>
                     <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Ensures surrounding context is preserved at the boundaries of adjacent text chunks, preventing sentences from being sliced in half. Modifying this clears the index.</p>
-                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #ef4444; border-radius: 4px;">
                       <strong>In other words:</strong> This acts like tape between the text pieces, copying a few words from the end of one chunk to the start of the next. It makes sure sentences don't get cut in half at the edges, meaning you will see coherent context in the search answers.
                     </div>
                     <div style="display: flex; align-items: center; gap: 1rem;">
@@ -670,7 +670,7 @@
                   <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="matryoshkaDimensions"><strong>Matryoshka Vector Dimensions (MRL)</strong></label>
                     <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Truncates output vector size for supported models. Slicing vectors to 256 or 128 speeds up similarity computations on CPU. Modifying this clears the index.</p>
-                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #ef4444; border-radius: 4px;">
                       <strong>In other words:</strong> This cuts down the size of the mathematical files stored for each sentence. Slicing a model's size down speeds up calculations on your CPU significantly, meaning you will see search results load much faster with almost no loss in search quality.
                     </div>
                     <p-select 
@@ -697,7 +697,7 @@
                         [disabled]="!aiSearchEnabled || saveRunning">
                       </p-toggleswitch>
                     </div>
-                    <div style="font-style: italic; color: var(--text-color-secondary); font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px; box-sizing: border-box; width: 100%;">
+                    <div style="font-style: italic; color: var(--text-color-secondary); font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #3b82f6; border-radius: 4px; box-sizing: border-box; width: 100%;">
                       <strong>In other words:</strong> This blends standard Google-like keyword matching with smart AI concept matching. When you search, it looks for both exact words and general meaning. You will see much better matches for specific names, numbers, or exact quotes.
                     </div>
 
@@ -708,7 +708,7 @@
                           <span style="font-family: monospace; font-weight: bold;">{{ advancedRrfK }}</span>
                         </div>
                         <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Controls the impact of low-ranked candidates. Higher values smooth ranks; 60 is standard.</p>
-                        <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                        <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #3b82f6; border-radius: 4px;">
                           <strong>In other words:</strong> This balances the two search lists (keywords vs concepts). A value of 60 is the sweet spot; changing it shifts the weight between exact keyword matches and general AI similarity.
                         </div>
                         <input type="range" id="rrfK" min="10" max="200" step="5" [(ngModel)]="advancedRrfK" [disabled]="!aiSearchEnabled || saveRunning" style="width: 100%">
@@ -729,7 +729,7 @@
                         [disabled]="!aiSearchEnabled || saveRunning">
                       </p-toggleswitch>
                     </div>
-                    <div style="font-style: italic; color: var(--text-color-secondary); font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px; box-sizing: border-box; width: 100%;">
+                    <div style="font-style: italic; color: var(--text-color-secondary); font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #3b82f6; border-radius: 4px; box-sizing: border-box; width: 100%;">
                       <strong>In other words:</strong> This is like a second-pass double check. First, a fast model grabs the top 20 candidate pages, then a smarter 'Reranker' model carefully reads them to sort them from best to worst. You will see extremely precise answers to your questions.
                     </div>
 
@@ -738,7 +738,7 @@
                         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                           <label for="rerankerModel"><strong>Reranker Model</strong></label>
                           <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Select or enter the cross-encoder model name from HuggingFace to download and run locally in Python.</p>
-                          <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #f97316; border-radius: 4px;">
+                          <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #3b82f6; border-radius: 4px;">
                             <strong>In other words:</strong> Choose which double-check model you want to run. Slower models are slightly more accurate, but lightweight models run much faster on low-spec CPUs.
                           </div>
                           <p-select 
