@@ -1560,7 +1560,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           },
           error: () => {
             this.savingProfile = false;
-            this.showMessage('warning', 'Profile Saved', `Profile "${name}" was saved but could not be applied automatically.`);
+            this.showMessage('warn', 'Profile Saved', `Profile "${name}" was saved but could not be applied automatically.`);
           }
         });
       },
@@ -1642,7 +1642,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     return `${value.toFixed(digits)} ${units[unitIndex]}`;
   }
 
-  private showMessage(severity: 'success' | 'error' | 'info', summary: string, detail: string): void {
+  private showMessage(severity: 'success' | 'error' | 'info' | 'warn', summary: string, detail: string): void {
     this.messageService.add({severity, summary, detail});
   }
 }
