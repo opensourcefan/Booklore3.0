@@ -1533,14 +1533,36 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     this.savingProfile = true;
     this.appSettingsService.saveAiLlmProfile(profile).subscribe({
       next: () => {
-        this.savingProfile = false;
-        this.showSaveProfileDialog = false;
-        const settings = this.appSettingsService.currentAppSettings;
-        if (settings) {
-          this.llmProfiles = settings.aiLlmProfiles || [];
-          this.selectedProfile = this.llmProfiles.find(p => p.name === name) || null;
-        }
-        this.showMessage('success', 'Profile Saved', `Profile "${name}" has been saved successfully.`);
+        // Automatically activate and apply the profile immediately
+        this.appSettingsService.activateAiLlmProfile(name).subscribe({
+          next: () => {
+            this.savingProfile = false;
+            this.showSaveProfileDialog = false;
+            const settings = this.appSettingsService.currentAppSettings;
+            if (settings) {
+              this.llmProfiles = settings.aiLlmProfiles || [];
+              if (settings.aiSearchSettings) {
+                this.aiSearchSettings = {
+                  ...this.aiSearchSettings,
+                  llmProvider: settings.aiSearchSettings.llmProvider,
+                  llmModel: settings.aiSearchSettings.llmModel,
+                  llmApiKey: settings.aiSearchSettings.llmApiKey,
+                  externalLlmUrl: settings.aiSearchSettings.externalLlmUrl,
+                  maxTokens: settings.aiSearchSettings.maxTokens,
+                  temperature: settings.aiSearchSettings.temperature
+                };
+                this.snapshotLlmSettings();
+                this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
+              }
+              this.selectedProfile = this.llmProfiles.find(p => p.name === name) || null;
+            }
+            this.showMessage('success', 'Profile Saved & Applied', `Profile "${name}" has been saved and is now active.`);
+          },
+          error: () => {
+            this.savingProfile = false;
+            this.showMessage('warning', 'Profile Saved', `Profile "${name}" was saved but could not be applied automatically.`);
+          }
+        });
       },
       error: () => {
         this.savingProfile = false;
