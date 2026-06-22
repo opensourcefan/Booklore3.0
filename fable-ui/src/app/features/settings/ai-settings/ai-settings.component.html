@@ -282,7 +282,7 @@
 
           <!-- LLM Configuration -->
           <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
-            <div style="display: flex; align-items: center; gap: 1rem; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
               <h4 style="margin: 0; color: var(--primary-color);">LLM Configuration</h4>
               <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetLlmSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
