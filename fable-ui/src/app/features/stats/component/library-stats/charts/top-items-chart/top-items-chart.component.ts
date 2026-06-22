@@ -4,7 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {BaseChartDirective} from 'ng2-charts';
 import {ChartConfiguration, ChartData, TooltipItem} from 'chart.js';
 import {BehaviorSubject, EMPTY, Observable, Subject} from 'rxjs';
-import {catchError, filter, first, switchMap, takeUntil} from 'rxjs/operators';
+import {catchError, delay, filter, first, switchMap, takeUntil} from 'rxjs/operators';
 import {Select} from 'primeng/select';
 import {LibraryFilterService} from '../../service/library-filter.service';
 import {BookService} from '../../../../../book/service/book.service';
@@ -138,7 +138,8 @@ export class TopItemsChartComponent implements OnInit, OnDestroy {
         catchError((error) => {
           console.error('Error processing top items stats:', error);
           return EMPTY;
-        })
+        }),
+        delay(0)
       )
       .subscribe(() => {
         this.loadAndProcessData();

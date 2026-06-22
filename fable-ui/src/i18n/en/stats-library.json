@@ -81,7 +81,8 @@
       "embeddings": "Embeddings",
       "chunks": "Chunks",
       "marked": "Marked",
-      "models": "Models"
+      "models": "Models",
+      "storage": "Storage"
     }
   },
   "bookFormats": {

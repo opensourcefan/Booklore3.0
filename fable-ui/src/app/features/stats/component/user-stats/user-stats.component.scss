@@ -24,28 +24,27 @@
   font-size: 1.15rem;
   font-weight: 600;
   text-decoration: none;
-  background: var(--card-background);
+  background: transparent;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 8px;
   border: 1px solid var(--p-content-border-color);
-  border-bottom: 3px solid transparent;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
   cursor: pointer;
 
   &:hover {
     color: var(--text-color, #ffffff);
-    background: color-mix(in srgb, var(--card-background) 85%, rgba(255, 255, 255, 0.05));
-    border-color: color-mix(in srgb, var(--p-content-border-color) 70%, #ffffff);
+    background: rgba(255, 255, 255, 0.03);
+    border-color: color-mix(in srgb, var(--p-content-border-color) 60%, var(--p-primary-color));
   }
 
   &.active-btn {
-    background: color-mix(in srgb, var(--p-primary-color) 12%, var(--card-background));
-    color: var(--text-color, #ffffff);
+    background: transparent;
+    color: var(--p-primary-color);
     border-color: var(--p-primary-color);
-    border-bottom: 3px solid var(--p-primary-color);
     
     &:hover {
-      background: color-mix(in srgb, var(--p-primary-color) 18%, var(--card-background));
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--p-primary-color);
     }
   }
 

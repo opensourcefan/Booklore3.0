@@ -2,7 +2,7 @@ import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {BaseChartDirective} from 'ng2-charts';
 import {BehaviorSubject, EMPTY, Observable, Subject} from 'rxjs';
-import {catchError, filter, first, switchMap, takeUntil} from 'rxjs/operators';
+import {catchError, delay, filter, first, switchMap, takeUntil} from 'rxjs/operators';
 import {ChartConfiguration, ChartData} from 'chart.js';
 import {LibraryFilterService} from '../../service/library-filter.service';
 import {BookService} from '../../../../../book/service/book.service';
@@ -73,7 +73,8 @@ export class PublicationTrendChartComponent implements OnInit, OnDestroy {
         catchError((error) => {
           console.error('Error processing publication trend data:', error);
           return EMPTY;
-        })
+        }),
+        delay(0)
       )
       .subscribe(() => {
         this.calculateAndUpdateChart();

@@ -2,7 +2,7 @@ import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {BaseChartDirective} from 'ng2-charts';
 import {BehaviorSubject, EMPTY, Observable, Subject} from 'rxjs';
-import {catchError, filter, first, switchMap, takeUntil} from 'rxjs/operators';
+import {catchError, delay, filter, first, switchMap, takeUntil} from 'rxjs/operators';
 import {Chart, ChartConfiguration, ChartData, TooltipModel} from 'chart.js';
 import {LibraryFilterService} from '../../service/library-filter.service';
 import {BookService} from '../../../../../book/service/book.service';
@@ -82,7 +82,8 @@ export class AuthorUniverseChartComponent implements OnInit, OnDestroy {
         catchError((error) => {
           console.error('Error processing author universe data:', error);
           return EMPTY;
-        })
+        }),
+        delay(0)
       )
       .subscribe(() => {
         this.calculateAndUpdateChart();
