@@ -31,6 +31,9 @@ export interface ChatMessage {
   contextResults?: AiSearchChunkResult[];
   isLoading: boolean;
   localOnly: boolean;
+  answerHtml?: SafeHtml;
+  answerItemsHtml?: SafeHtml[];
+  resultsHtml?: SafeHtml[];
 }
 
 @Injectable({providedIn: 'root'})
@@ -174,6 +177,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.hasSearched = this.aiSearchDialogService.cachedHasSearched;
     this.answer = this.aiSearchDialogService.cachedAnswer;
     this.chatHistory = this.aiSearchDialogService.cachedChatHistory || [];
+    this.chatHistory.forEach(msg => this.preRenderMessageHtml(msg));
     this.bookIds = this.aiSearchDialogService.cachedBookIds || (this.aiSearchDialogService.cachedSingleBookId ? [this.aiSearchDialogService.cachedSingleBookId] : []);
     this.scopeBooks = this.aiSearchDialogService.cachedScopeBooks || [];
     if (this.bookIds.length > 0 && this.scopeBooks.length === 0) {
@@ -253,6 +257,22 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       ADD_ATTR: ['data-book-title', 'data-page', 'role', 'tabindex']
     });
     return this.sanitizer.bypassSecurityTrustHtml(sanitized);
+  }
+
+  preRenderMessageHtml(msg: ChatMessage): void {
+    if (msg.answer) {
+      msg.answerHtml = this.markdownToHtml(msg.answer);
+    }
+    if (msg.answerItems) {
+      msg.answerItemsHtml = msg.answerItems.map(item =>
+        this.markdownToHtml(item.text + ' [Source: ' + item.bookTitle + ', Page ' + (item.pageNumber || 'N/A') + ']')
+      );
+    }
+    if (msg.results) {
+      msg.resultsHtml = msg.results.map(result =>
+        this.markdownToHtml(result.chunkText + ' [Source: ' + result.bookTitle + ', Page ' + (result.pageNumber || 'N/A') + ']')
+      );
+    }
   }
 
   /** Handles clicks on inline citation page links within the AI answer markdown.
@@ -586,6 +606,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         currentMessage.contextResults = result.contextResults || result.results || [];
         currentMessage.answer = result.answer || null;
         currentMessage.answerItems = result.answerItems || null;
+        this.preRenderMessageHtml(currentMessage);
         this.aiSearchDialogService.searchActive$.next(false);
 
         // Emit search error if the backend returned an error or no results

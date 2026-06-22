@@ -89,7 +89,7 @@
                 <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem;">
                   @for (item of msg.answerItems; track $index) {
                     <div class="ai-search-answer-item">
-                      <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(item.text + ' [Source: ' + item.bookTitle + ', Page ' + (item.pageNumber || 'N/A') + ']')" (click)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.enter)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.space)="onCitationClick($event, msg.contextResults || msg.results); $event.preventDefault()" tabindex="0"></div>
+                      <div class="ai-search-markdown-content" [innerHTML]="msg.answerItemsHtml ? msg.answerItemsHtml[$index] : ''" (click)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.enter)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.space)="onCitationClick($event, msg.contextResults || msg.results); $event.preventDefault()" tabindex="0"></div>
                     </div>
                   }
                 </div>
@@ -103,7 +103,7 @@
                     <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" (onClick)="saveAnswerToNotepad(msg)" [pTooltip]="'Save Answer to Notepad'"></p-button>
                   </div>
                 </div>
-                <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(msg.answer)" (click)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.enter)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.space)="onCitationClick($event, msg.contextResults || msg.results); $event.preventDefault()" tabindex="0"></div>
+                <div class="ai-search-markdown-content" [innerHTML]="msg.answerHtml || ''" (click)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.enter)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.space)="onCitationClick($event, msg.contextResults || msg.results); $event.preventDefault()" tabindex="0"></div>
               </div>
             } @else if (msg.results && msg.results.length > 0) {
               <div class="ai-search-answer ai-search-raw-results">
@@ -117,7 +117,7 @@
                 <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 0.5rem;">
                   @for (result of msg.results; track result.chunkId) {
                     <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                      <div class="ai-search-markdown-content" [innerHTML]="markdownToHtml(result.chunkText + ' [Source: ' + result.bookTitle + ', Page ' + (result.pageNumber || 'N/A') + ']')" (click)="onCitationClick($event, [result])" (keydown.enter)="onCitationClick($event, [result])" (keydown.space)="onCitationClick($event, [result]); $event.preventDefault()" tabindex="0"></div>
+                      <div class="ai-search-markdown-content" [innerHTML]="msg.resultsHtml ? msg.resultsHtml[$index] : ''" (click)="onCitationClick($event, [result])" (keydown.enter)="onCitationClick($event, [result])" (keydown.space)="onCitationClick($event, [result]); $event.preventDefault()" tabindex="0"></div>
                     </div>
                   }
                 </div>
