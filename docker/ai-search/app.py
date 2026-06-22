@@ -165,27 +165,33 @@ def _do_load() -> None:
         return
 
     logger.info("Embedding model load started for %s", EMBEDDING_MODEL_NAME)
-    try:
-        if AUTO_CLEANUP_MODELS:
-            hf_cache_dir = "/models/hf/hub"
-            if os.path.exists(hf_cache_dir):
-                target_folder = "models--" + EMBEDDING_MODEL_NAME.replace("/", "--")
-                for folder in os.listdir(hf_cache_dir):
-                    if folder.startswith("models--") and folder != target_folder:
-                        folder_path = os.path.join(hf_cache_dir, folder)
-                        logger.info("Removing unused HuggingFace model: %s", folder)
-                        try:
-                            shutil.rmtree(folder_path)
-                        except Exception as e:
-                            logger.error("Failed to remove unused model %s: %s", folder, e)
+    with _load_lock:
+        try:
+            if AUTO_CLEANUP_MODELS:
+                hf_home = os.getenv("HF_HOME", "/models/hf")
+                hf_cache_dir = os.path.join(hf_home, "hub")
+                if os.path.exists(hf_cache_dir):
+                    target_folder = "models--" + EMBEDDING_MODEL_NAME.replace("/", "--")
+                    reranker_folder = None
+                    if RERANKING_ENABLED and RERANKER_MODEL_NAME:
+                        reranker_folder = "models--" + RERANKER_MODEL_NAME.replace("/", "--")
+                    
+                    for folder in os.listdir(hf_cache_dir):
+                        if folder.startswith("models--") and folder != target_folder and folder != reranker_folder:
+                            folder_path = os.path.join(hf_cache_dir, folder)
+                            logger.info("Removing unused HuggingFace model: %s", folder)
+                            try:
+                                shutil.rmtree(folder_path)
+                            except Exception as e:
+                                logger.error("Failed to remove unused model %s: %s", folder, e)
 
-        _embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME, trust_remote_code=True)
-        logger.info("Embedding model loaded successfully: %s", EMBEDDING_MODEL_NAME)
-    except Exception as exc:
-        _load_error = str(exc)
-        logger.error("Embedding model load failed: %s", exc)
-    finally:
-        _loading = False
+            _embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME, trust_remote_code=True)
+            logger.info("Embedding model loaded successfully: %s", EMBEDDING_MODEL_NAME)
+        except Exception as exc:
+            _load_error = str(exc)
+            logger.error("Embedding model load failed: %s", exc)
+        finally:
+            _loading = False
 
 
 def _start_load_thread_locked() -> None:
@@ -248,15 +254,16 @@ def _do_reranker_load() -> None:
         return
 
     logger.info("Reranker model load started for %s", RERANKER_MODEL_NAME)
-    try:
-        from sentence_transformers import CrossEncoder
-        _reranker_model = CrossEncoder(RERANKER_MODEL_NAME, trust_remote_code=True)
-        logger.info("Reranker model loaded successfully: %s", RERANKER_MODEL_NAME)
-    except Exception as exc:
-        _reranker_load_error = str(exc)
-        logger.error("Reranker model load failed: %s", exc)
-    finally:
-        _reranker_loading = False
+    with _load_lock:
+        try:
+            from sentence_transformers import CrossEncoder
+            _reranker_model = CrossEncoder(RERANKER_MODEL_NAME, trust_remote_code=True)
+            logger.info("Reranker model loaded successfully: %s", RERANKER_MODEL_NAME)
+        except Exception as exc:
+            _reranker_load_error = str(exc)
+            logger.error("Reranker model load failed: %s", exc)
+        finally:
+            _reranker_loading = False
 
 
 def _start_reranker_load_thread_locked() -> None:
