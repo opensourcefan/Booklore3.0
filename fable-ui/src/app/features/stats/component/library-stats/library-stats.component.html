@@ -164,6 +164,10 @@
     </div>
   }
 
+  <!-- Pre-warm AI stats subscriptions to eliminate ~4s render delay -->
+  <span hidden>{{ aiSearchStatsSummary$ | async | json }}</span>
+  <span hidden>{{ aiPanelFlowStats$ | async | json }}</span>
+
   @if (!isLoading && hasData) {
     <div class="charts-grid"
          cdkDropList
@@ -240,12 +244,19 @@
               @if (searchStats.totalEmbeddedBooks > 0) {
                 <div class="ai-search-page" aria-label="AI search statistics page">
                   
-                  <!-- Card 1: Splash Card -->
+                  <!-- Card 1: Splash Card - Embedded Books + Chunks -->
                   <article class="ai-search-card ai-search-splash">
                     <span class="ai-search-kicker">{{ t('aiSearchStats.kickers.embeddings') }}</span>
-                    <span class="ai-search-value">{{ searchStats.totalEmbeddedBooks }}</span>
-                    <span class="ai-search-label">Indexed Books</span>
-                    <p>Across {{ searchStats.totalEmbeddedBooks }} embedded books, Fable has indexed {{ searchStats.totalChunks }} text chunks.</p>
+                    <div class="splash-stats-row">
+                      <div class="splash-stat">
+                        <span class="ai-search-value">{{ searchStats.totalEmbeddedBooks }}</span>
+                        <span class="ai-search-label">Embedded Books</span>
+                      </div>
+                      <div class="splash-stat">
+                        <span class="ai-search-value">{{ searchStats.totalChunks }}</span>
+                        <span class="ai-search-label">Text Chunks</span>
+                      </div>
+                    </div>
                   </article>
 
                   <!-- Card 2: DB Storage Card -->
@@ -255,55 +266,14 @@
                     <span class="ai-search-label">Database Size</span>
                   </article>
 
-                  <!-- Card 3: Embedded Books Mini Card -->
-                  <article class="ai-search-card ai-search-stat">
-                    <span class="ai-search-kicker">INDEXED</span>
-                    <span class="ai-search-value">{{ searchStats.totalEmbeddedBooks }}</span>
-                    <span class="ai-search-label">Embedded Books</span>
-                  </article>
-
-                  <!-- Card 4: Chunks / Queued Mini Card -->
+                  <!-- Card 3: Chunks / Queued Mini Card -->
                   <article class="ai-search-card ai-search-stat">
                     <span class="ai-search-kicker">CHUNKS / QUEUED</span>
                     <span class="ai-search-value">{{ searchStats.totalChunks }}</span>
                     <span class="ai-search-label">{{ searchStats.markedCount }} marked for scan</span>
                   </article>
 
-                  <!-- Card 5: Model Breakdown Card -->
-                  <article class="ai-search-card ai-search-feature">
-                    <span class="ai-search-kicker">EMBEDDING MODELS</span>
-                    <span class="ai-search-label">Model Breakdown</span>
-                    <div class="model-list">
-                      @for (item of searchStats.modelStats; track item.model) {
-                        <div class="model-row">
-                          <span class="model-name" [title]="item.model">{{ item.model }}</span>
-                          <span class="model-count">{{ item.count }} {{ item.count === 1 ? t('main.books').slice(0, -1) : t('main.books') }}</span>
-                        </div>
-                      }
-                    </div>
-                  </article>
-
-                  <!-- Card 6: Saved Profiles Card -->
-                  <article class="ai-search-card ai-search-feature">
-                    <span class="ai-search-kicker">LLM PROFILES</span>
-                    <span class="ai-search-label">Saved LLM Profiles</span>
-                    <div class="model-list">
-                      @if (llmProfiles$ | async; as profiles) {
-                        @if (profiles.length > 0) {
-                          @for (p of profiles; track p.name) {
-                            <div class="model-row">
-                              <span class="model-name" [title]="p.name">{{ p.name }}</span>
-                              <span class="model-count" style="font-family: monospace; font-size: 0.7rem; opacity: 0.8;">{{ p.llmModel }} ({{ p.llmProvider }})</span>
-                            </div>
-                          }
-                        } @else {
-                          <div style="font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; margin-top: 1rem;">No saved profiles</div>
-                        }
-                      }
-                    </div>
-                  </article>
-
-                  <!-- Card 7: Downloaded Embedding Models Size & List -->
+                  <!-- Card 4: Downloaded Embedding Models Size & List -->
                   <article class="ai-search-card ai-search-feature">
                     <span class="ai-search-kicker">EMBEDDING MODELS CACHE</span>
                     <span class="ai-search-value" style="font-size: clamp(1.1rem, 2vw, 1.85rem); margin-bottom: 0.2rem; font-weight: 700; color: var(--text-color, #ffffff);">{{ totalEmbeddingModelStorage$ | async }}</span>
@@ -324,7 +294,7 @@
                     </div>
                   </article>
 
-                  <!-- Card 8: Downloaded LLM Models Size & List -->
+                  <!-- Card 5: Downloaded LLM Models Size & List -->
                   <article class="ai-search-card ai-search-feature">
                     <span class="ai-search-kicker">LLM MODELS CACHE</span>
                     <span class="ai-search-value" style="font-size: clamp(1.1rem, 2vw, 1.85rem); margin-bottom: 0.2rem; font-weight: 700; color: var(--text-color, #ffffff);">{{ totalLlmModelStorage$ | async }}</span>
@@ -340,6 +310,40 @@
                           }
                         } @else {
                           <div style="font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; margin-top: 0.5rem;">No cached models</div>
+                        }
+                      }
+                    </div>
+                  </article>
+
+                  <!-- Card 6: Model Breakdown Card -->
+                  <article class="ai-search-card ai-search-feature">
+                    <span class="ai-search-kicker">EMBEDDING MODELS</span>
+                    <span class="ai-search-label">Model Breakdown</span>
+                    <div class="model-list">
+                      @for (item of searchStats.modelStats; track item.model) {
+                        <div class="model-row">
+                          <span class="model-name" [title]="item.model">{{ item.model }}</span>
+                          <span class="model-count">{{ item.count }} {{ item.count === 1 ? t('main.books').slice(0, -1) : t('main.books') }}</span>
+                        </div>
+                      }
+                    </div>
+                  </article>
+
+                  <!-- Card 7: Saved Profiles Card -->
+                  <article class="ai-search-card ai-search-feature">
+                    <span class="ai-search-kicker">LLM PROFILES</span>
+                    <span class="ai-search-label">Saved LLM Profiles</span>
+                    <div class="model-list">
+                      @if (llmProfiles$ | async; as profiles) {
+                        @if (profiles.length > 0) {
+                          @for (p of profiles; track p.name) {
+                            <div class="model-row">
+                              <span class="model-name" [title]="p.name">{{ p.name }}</span>
+                              <span class="model-count" style="font-family: monospace; font-size: 0.7rem; opacity: 0.8;">{{ p.llmModel }} ({{ p.llmProvider }})</span>
+                            </div>
+                          }
+                        } @else {
+                          <div style="font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; margin-top: 1rem;">No saved profiles</div>
                         }
                       }
                     </div>
