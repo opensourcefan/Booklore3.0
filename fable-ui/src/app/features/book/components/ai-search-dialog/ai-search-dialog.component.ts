@@ -14,6 +14,7 @@ import {TooltipModule} from 'primeng/tooltip';
 import {Popover} from 'primeng/popover';
 import {MessageService} from 'primeng/api';
 import {BookNoteService, CreateBookNoteV2Request} from '../../../../shared/service/book-note.service';
+import {v4 as uuidv4} from 'uuid';
 import {BookService} from '../../service/book.service';
 import {SidebarBadgeRefreshService} from '../../service/sidebar-badge-refresh.service';
 import {CoverGeneratorComponent} from '../../../../shared/components/cover-generator/cover-generator.component';
@@ -430,7 +431,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     const queryStr = this.searchQuery.trim() || 'AI Semantic Search';
     const pageLink = result.pageNumber ? `[Source: ${result.bookTitle}, Page ${result.pageNumber}]` : `[Source: ${result.bookTitle}]`;
     const noteContent = `🔍 AI Search Query: "${queryStr}"\n📊 Similarity Score: ${similarityPercent}%\n📖 Citation: ${pageLink} (Chunk #${result.chunkId})`;
-    const dummyCfi = result.pageNumber ? `page=${result.pageNumber}` : 'ai-search-result';
+    const dummyCfi = result.pageNumber ? `page=${result.pageNumber}:${uuidv4()}` : `ai-search-result:${uuidv4()}`;
 
     const request: CreateBookNoteV2Request = {
       bookId: result.bookId,
@@ -490,7 +491,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
     const request: CreateBookNoteV2Request = {
       bookId: bookId,
-      cfi: 'ai-search-answer',
+      cfi: `ai-search-answer:${uuidv4()}`,
       selectedText: selectedText,
       noteContent: `AI Search Answer: ${queryContent}`
     };

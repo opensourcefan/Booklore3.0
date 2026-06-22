@@ -12,6 +12,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookNoteService, CreateBookNoteV2Request, BookNote} from '../../../../shared/service/book-note.service';
+import {v4 as uuidv4} from 'uuid';
 
 @Component({
   selector: 'app-book-notes-component',
@@ -99,7 +100,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
   openCreateDialog(): void {
     this.newNote = {
       bookId: this.bookId,
-      cfi: 'book-notes-component',
+      cfi: 'book-notes-component:' + uuidv4(),
       noteContent: '',
       selectedText: ''
     };
