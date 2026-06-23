@@ -16,6 +16,7 @@ import org.fable.task.TaskStatus;
 import org.fable.task.tasks.Task;
 import org.fable.service.user.UserService;
 import org.fable.service.NotificationService;
+import org.fable.service.LogNotificationService;
 import org.fable.model.websocket.LogNotification;
 import org.fable.model.websocket.Topic;
 import org.fable.util.SecurityContextVirtualThread;
@@ -49,6 +50,7 @@ public class TaskService {
     private final TaskCronService taskCronService;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final LogNotificationService logNotificationService;
     private final Map<TaskType, Task> taskRegistry;
     private final ConcurrentMap<TaskType, String> runningTasks = new ConcurrentHashMap<>();
     private final TaskCancellationManager cancellationManager;
@@ -63,6 +65,7 @@ public class TaskService {
             @Lazy TaskCronService taskCronService,
             @Lazy UserService userService,
             NotificationService notificationService,
+            LogNotificationService logNotificationService,
             List<Task> tasks,
             TaskCancellationManager cancellationManager,
             Executor taskExecutor,
@@ -73,6 +76,7 @@ public class TaskService {
         this.taskCronService = taskCronService;
         this.userService = userService;
         this.notificationService = notificationService;
+        this.logNotificationService = logNotificationService;
         this.taskRegistry = tasks.stream().collect(Collectors.toMap(Task::getTaskType, Function.identity()));
         this.cancellationManager = cancellationManager;
         this.taskExecutor = taskExecutor;
@@ -338,9 +342,12 @@ public class TaskService {
 
             String status = success ? "completed successfully" : "failed" + (errorDetail != null ? ": " + errorDetail : "");
             String message = "Cron task " + taskType + " " + status;
-            LogNotification logNotification = success 
-                    ? LogNotification.info(message) 
+            LogNotification logNotification = success
+                    ? LogNotification.info(message)
                     : LogNotification.error(message);
+
+            // Persist to database so notifications survive WebSocket disconnects
+            logNotificationService.persist(message, logNotification.getSeverity());
 
             if (user != null && user.getId() != null && user.getId() != -1L) {
                 notificationService.sendMessageToUser(user.getUsername(), Topic.LOG, logNotification);

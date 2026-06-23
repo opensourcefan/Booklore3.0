@@ -1,7 +1,6 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {NotificationEventService} from '../../websocket/notification-event.service';
 import {CommonModule} from '@angular/common';
-
 import {TagComponent} from '../tag/tag.component';
 
 @Component({
@@ -17,9 +16,14 @@ import {TagComponent} from '../tag/tag.component';
     TagComponent
   ]
 })
-export class LiveNotificationBoxComponent {
+export class LiveNotificationBoxComponent implements OnInit {
   private notificationService = inject(NotificationEventService);
   activeNotification$ = this.notificationService.activeNotification$;
+  historicalNotifications$ = this.notificationService.historicalNotifications$;
+
+  ngOnInit(): void {
+    this.notificationService.fetchHistoricalNotifications();
+  }
 
   dismissNotification(): void {
     this.notificationService.clearNotification();
@@ -36,5 +40,10 @@ export class LiveNotificationBoxComponent {
       default:
         return 'gray';
     }
+  }
+
+  formatTimestamp(timestamp?: string): string {
+    if (!timestamp) return '';
+    return timestamp;
   }
 }

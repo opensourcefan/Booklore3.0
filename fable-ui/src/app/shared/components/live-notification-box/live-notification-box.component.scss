@@ -64,3 +64,30 @@
     font-weight: 600;
   }
 }
+
+.historical-notifications-section {
+  margin-top: 0.75rem;
+}
+
+.historical-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 0.5rem;
+}
+
+.historical-item {
+  background: var(--card-background);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.85;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}

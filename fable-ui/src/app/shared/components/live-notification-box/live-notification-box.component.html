@@ -16,3 +16,26 @@
   <p class="notification-message" [innerHTML]="latestNotification.message"></p>
 </div>
 }
+
+@if (historicalNotifications$ | async; as historicalNotifications) {
+  @if (historicalNotifications.length > 0) {
+    <div class="historical-notifications-section">
+      <div class="historical-header">Recent Notifications</div>
+      @for (notification of historicalNotifications; track notification.timestamp) {
+        <div class="notification-container historical-item">
+          <div class="notification-header">
+            <div class="notification-header-info">
+              @if (notification.severity) {
+                <app-tag [color]="getSeverityColor(notification.severity)" size="3xs" class="tag-centered">
+                  {{ notification.severity }}
+                </app-tag>
+              }
+              <span class="notification-timestamp">{{ notification.timestamp }}</span>
+            </div>
+          </div>
+          <p class="notification-message" [innerHTML]="notification.message"></p>
+        </div>
+      }
+    </div>
+  }
+}
