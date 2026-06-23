@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {of, Subject} from 'rxjs';
@@ -68,6 +68,10 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
   public libraryOptions: LibraryOption[] = [];
   public selectedLibrary: LibraryOption | null = null;
   public showConfigPanel = false;
+
+  /** Signals for AI stats — subscribed immediately in ngOnInit, no @let async pipe delay */
+  public readonly aiSearchStats = signal<AiSearchStatsSummary>(this.createEmptyAiSearchStatsSummary());
+  public readonly aiPanelStats = signal<AiPanelFlowStats>(this.createEmptyAiPanelFlowStats());
 
   public chartsConfig: ChartConfig[] = this.buildChartsConfig();
 
@@ -166,6 +170,16 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadLibraryOptions();
+    this.subscribeAiStats();
+  }
+
+  private subscribeAiStats(): void {
+    this.aiSearchStatsSummary$.pipe(takeUntil(this.destroy$)).subscribe(stats => {
+      this.aiSearchStats.set(stats);
+    });
+    this.aiPanelFlowStats$.pipe(takeUntil(this.destroy$)).subscribe(stats => {
+      this.aiPanelStats.set(stats);
+    });
   }
 
   ngOnDestroy(): void {
