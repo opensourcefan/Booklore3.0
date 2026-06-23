@@ -15,4 +15,5 @@ public class TaskCreateResponse {
     private String taskId;
     private TaskType taskType;
     private TaskStatus status;
+    private Integer itemsAffected;
 }

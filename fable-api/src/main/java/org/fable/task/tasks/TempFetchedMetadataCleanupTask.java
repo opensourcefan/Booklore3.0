@@ -52,7 +52,8 @@ public class TempFetchedMetadataCleanupTask implements Task {
                 log.info("{}: Removed all {} metadata fetch jobs (on-demand execution)", getTaskType(), deleted);
             }
 
-            builder.status(TaskStatus.COMPLETED);
+            builder.status(TaskStatus.COMPLETED)
+                    .itemsAffected(deleted);
         } catch (Exception e) {
             log.error("{}: Error cleaning up temp metadata", getTaskType(), e);
             builder.status(TaskStatus.FAILED);

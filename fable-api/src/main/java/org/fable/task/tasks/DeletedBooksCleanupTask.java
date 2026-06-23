@@ -49,7 +49,8 @@ public class DeletedBooksCleanupTask implements Task {
                 deletedCount = bookRepository.deleteAllSoftDeleted();
                 log.info("{}: Removed all {} deleted books (on-demand execution)", getTaskType(), deletedCount);
             }
-            builder.status(TaskStatus.COMPLETED);
+            builder.status(TaskStatus.COMPLETED)
+                    .itemsAffected(deletedCount);
         } catch (Exception e) {
             log.error("{}: Error cleaning up deleted books", getTaskType(), e);
             builder.status(TaskStatus.FAILED);

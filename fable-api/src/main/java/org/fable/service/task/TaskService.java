@@ -283,21 +283,21 @@ public class TaskService {
                 taskHistoryService.updateTaskStatus(taskId, TaskStatus.CANCELLED, "Task was cancelled");
                 return;
             }
-            executeTask(request);
+            TaskCreateResponse response = executeTask(request);
             if (cancellationManager.isTaskCancelled(taskId)) {
                 log.info("Task {} was cancelled during execution", taskId);
                 taskHistoryService.updateTaskStatus(taskId, TaskStatus.CANCELLED, "Task was cancelled");
             } else {
                 taskHistoryService.updateTaskStatus(taskId, TaskStatus.COMPLETED, "Task completed successfully");
                 if (request.isTriggeredByCron()) {
-                    sendCronNotification(taskType, user, true, null);
+                    sendCronNotification(taskType, user, true, null, response != null ? response.getItemsAffected() : null);
                 }
             }
         } catch (Exception e) {
             log.error("Async task {} of type {} failed", taskId, taskType, e);
             taskHistoryService.updateTaskError(taskId, e.getMessage());
             if (request.isTriggeredByCron()) {
-                sendCronNotification(taskType, user, false, e.getMessage());
+                sendCronNotification(taskType, user, false, e.getMessage(), null);
             }
         } finally {
             if (!taskType.isParallel()) {
@@ -316,14 +316,14 @@ public class TaskService {
             response.setTaskId(taskId);
             taskHistoryService.updateTaskStatus(taskId, TaskStatus.COMPLETED, "Task completed successfully");
             if (request.isTriggeredByCron()) {
-                sendCronNotification(taskType, user, true, null);
+                sendCronNotification(taskType, user, true, null, response.getItemsAffected());
             }
             return response;
         } catch (Exception e) {
             log.error("Sync task {} of type {} failed", taskId, taskType, e);
             taskHistoryService.updateTaskError(taskId, e.getMessage());
             if (request.isTriggeredByCron()) {
-                sendCronNotification(taskType, user, false, e.getMessage());
+                sendCronNotification(taskType, user, false, e.getMessage(), null);
             }
             throw e;
         } finally {
@@ -333,10 +333,16 @@ public class TaskService {
         }
     }
 
-    private void sendCronNotification(TaskType taskType, FableUser user, boolean success, String errorDetail) {
+    private void sendCronNotification(TaskType taskType, FableUser user, boolean success, String errorDetail, Integer itemsAffected) {
         try {
             var configOpt = taskCronService.getCronConfigEntity(taskType);
             if (configOpt.isPresent() && !configOpt.get().getNotificationsEnabled()) {
+                return;
+            }
+
+            // Suppress notification for successful tasks that affected zero items
+            if (success && itemsAffected != null && itemsAffected == 0) {
+                log.info("Suppressing cron notification for {}: 0 items affected", taskType);
                 return;
             }
 
