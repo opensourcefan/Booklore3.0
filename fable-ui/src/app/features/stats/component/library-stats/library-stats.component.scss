@@ -537,11 +537,11 @@
   padding: 0.7rem;
   border-radius: 0.9rem;
   border: 1px solid color-mix(in srgb, var(--p-content-border-color) 82%, rgba(128, 189, 255, 0.14));
-  background: color-mix(in srgb, #0d9488 6%, transparent);
+  background: color-mix(in srgb, #0e7490 6%, transparent);
 }
 
 .ai-search-card {
-  --ai-search-tint: color-mix(in srgb, #0d9488 10%, transparent);
+  --ai-search-tint: color-mix(in srgb, #0e7490 10%, transparent);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -557,7 +557,7 @@
 }
 
 .ai-search-splash {
-  --ai-search-tint: color-mix(in srgb, #0d9488 12%, transparent);
+  --ai-search-tint: color-mix(in srgb, #0e7490 12%, transparent);
   grid-column: 1 / span 3;
   grid-row: 1;
   min-height: 7.5rem;
@@ -576,7 +576,7 @@
 }
 
 .ai-search-storage {
-  --ai-search-tint: color-mix(in srgb, #0d9488 11%, transparent);
+  --ai-search-tint: color-mix(in srgb, #0e7490 11%, transparent);
   grid-column: 4;
   grid-row: 1;
   min-height: 7.5rem;
@@ -588,7 +588,7 @@
 }
 
 .ai-search-feature {
-  --ai-search-tint: color-mix(in srgb, #0d9488 7%, transparent);
+  --ai-search-tint: color-mix(in srgb, #0e7490 7%, transparent);
   grid-column: span 2;
   min-height: 10.75rem;
   justify-content: flex-start;

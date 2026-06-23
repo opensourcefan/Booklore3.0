@@ -266,14 +266,7 @@
                     <span class="ai-search-label">Database Size</span>
                   </article>
 
-                  <!-- Card 3: Chunks / Queued Mini Card -->
-                  <article class="ai-search-card ai-search-stat">
-                    <span class="ai-search-kicker">CHUNKS / QUEUED</span>
-                    <span class="ai-search-value">{{ searchStats.totalChunks }}</span>
-                    <span class="ai-search-label">{{ searchStats.markedCount }} marked for scan</span>
-                  </article>
-
-                  <!-- Card 4: Downloaded Embedding Models Size & List -->
+                  <!-- Card 3: Downloaded Embedding Models Size & List -->
                   <article class="ai-search-card ai-search-feature">
                     <span class="ai-search-kicker">EMBEDDING MODELS CACHE</span>
                     <span class="ai-search-value" style="font-size: clamp(1.1rem, 2vw, 1.85rem); margin-bottom: 0.2rem; font-weight: 700; color: var(--text-color, #ffffff);">{{ totalEmbeddingModelStorage$ | async }}</span>
@@ -294,7 +287,7 @@
                     </div>
                   </article>
 
-                  <!-- Card 5: Downloaded LLM Models Size & List -->
+                  <!-- Card 4: Downloaded LLM Models Size & List -->
                   <article class="ai-search-card ai-search-feature">
                     <span class="ai-search-kicker">LLM MODELS CACHE</span>
                     <span class="ai-search-value" style="font-size: clamp(1.1rem, 2vw, 1.85rem); margin-bottom: 0.2rem; font-weight: 700; color: var(--text-color, #ffffff);">{{ totalLlmModelStorage$ | async }}</span>
@@ -315,7 +308,7 @@
                     </div>
                   </article>
 
-                  <!-- Card 6: Model Breakdown Card -->
+                  <!-- Card 5: Model Breakdown Card -->
                   <article class="ai-search-card ai-search-feature">
                     <span class="ai-search-kicker">EMBEDDING MODELS</span>
                     <span class="ai-search-label">Model Breakdown</span>
@@ -329,7 +322,7 @@
                     </div>
                   </article>
 
-                  <!-- Card 7: Saved Profiles Card -->
+                  <!-- Card 6: Saved Profiles Card -->
                   <article class="ai-search-card ai-search-feature">
                     <span class="ai-search-kicker">LLM PROFILES</span>
                     <span class="ai-search-label">Saved LLM Profiles</span>
