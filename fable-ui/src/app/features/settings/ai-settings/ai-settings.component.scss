@@ -493,6 +493,12 @@
     min-width: 180px;
   }
 
+  // Override descendant width:100% for buttons inside profile row
+  .profile-select-row p-button,
+  .profile-select-row .p-button {
+    width: auto;
+  }
+
   // Section headers wrap
   .llm-section-header {
     flex-wrap: wrap;
