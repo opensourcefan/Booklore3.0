@@ -15,6 +15,7 @@ import {ProgressSpinner} from 'primeng/progressspinner';
 import {MessageService} from 'primeng/api';
 import {TranslocoService, TranslocoPipe} from '@jsverse/transloco';
 import {ReadingSessionService} from '../../../shared/service/reading-session.service';
+import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {Location} from '@angular/common';
 
 @Component({
@@ -58,12 +59,14 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private pageTitle = inject(PageTitleService);
   private readingSessionService = inject(ReadingSessionService);
+  private writeProgressService = inject(WriteProgressService);
   private location = inject(Location);
   private pdfViewerService = inject(NgxExtendedPdfViewerService);
   private pdfAnnotationService = inject(PdfAnnotationService);
   private readonly t = inject(TranslocoService);
 
   ngOnInit(): void {
+    this.writeProgressService.clear();
     this.annotationSaveSubscription = this.annotationSaveSubject
       .pipe(debounceTime(1500))
       .subscribe(() => this.persistAnnotations());
@@ -192,6 +195,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
       this.readingSessionService.endSession(this.page.toString(), percentage);
     }
+    this.writeProgressService.complete(this.t.translate('book.browser.toast.readingProgressUpdated'));
     this.location.back();
   }
 

@@ -19,6 +19,7 @@ import {AudiobookChapter, AudiobookInfo, AudiobookProgress, AudiobookTrack} from
 import {BookService} from '../../book/service/book.service';
 import {BookMark, BookMarkService, CreateBookMarkRequest} from '../../../shared/service/book-mark.service';
 import {AudiobookSessionService} from '../../../shared/service/audiobook-session.service';
+import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {PageTitleService} from '../../../shared/service/page-title.service';
 import {AuthService} from '../../../shared/service/auth.service';
 import {API_CONFIG} from '../../../core/config/api-config';
@@ -55,6 +56,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
   private location = inject(Location);
   private messageService = inject(MessageService);
   private audiobookSessionService = inject(AudiobookSessionService);
+  private writeProgressService = inject(WriteProgressService);
   private pageTitle = inject(PageTitleService);
   private readonly t = inject(TranslocoService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
@@ -111,6 +113,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
   private mobileBackHandles: Partial<Record<AudiobookMobileSurface, MobileBackHandle>> = {};
 
   ngOnInit(): void {
+    this.writeProgressService.clear();
     this.sleepTimerOptions = [
       {label: this.t.translate('readerAudiobook.sleepTimerMenu.minutes15'), command: () => this.setSleepTimer(15)},
       {label: this.t.translate('readerAudiobook.sleepTimerMenu.minutes30'), command: () => this.setSleepTimer(30)},
@@ -153,6 +156,8 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
     if (this.audiobookSessionService.isSessionActive()) {
       this.audiobookSessionService.endSession(Math.round(this.currentTime * 1000));
     }
+
+    this.writeProgressService.complete(this.t.translate('book.browser.toast.readingProgressUpdated'));
   }
 
   private syncMobileBackRegistrations(): void {
@@ -866,6 +871,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
     if (this.audiobookSessionService.isSessionActive()) {
       this.audiobookSessionService.endSession(Math.round(this.currentTime * 1000));
     }
+    this.writeProgressService.complete(this.t.translate('book.browser.toast.readingProgressUpdated'));
     this.location.back();
   }
 

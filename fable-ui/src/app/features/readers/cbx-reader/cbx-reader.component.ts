@@ -14,6 +14,7 @@ import {BookState} from '../../book/model/state/book-state.model';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {FormsModule} from "@angular/forms";
 import {ReadingSessionService} from '../../../shared/service/reading-session.service';
+import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {ReaderHeaderFooterVisibilityManager} from '../ebook-reader';
 
 import {CbxHeaderComponent} from './layout/header/cbx-header.component';
@@ -270,6 +271,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private readonly t = inject(TranslocoService);
   private pageTitle = inject(PageTitleService);
   private readingSessionService = inject(ReadingSessionService);
+  private writeProgressService = inject(WriteProgressService);
   private headerService = inject(CbxHeaderService);
   private sidebarService = inject(CbxSidebarService);
   private footerService = inject(CbxFooterService);
@@ -295,6 +297,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private resizeSub?: Subscription;
 
   ngOnInit() {
+    this.writeProgressService.clear();
     this.loadJoystickDevicePreferences();
     this.resizeSub = this.mobileUx.screenWidth$.subscribe(width => {
       this.screenWidth = width;
@@ -3098,6 +3101,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
       const percentage = this.pages.length > 0 ? Math.round(((this.currentPage + 1) / this.pages.length) * 1000) / 10 : 0;
       this.readingSessionService.endSession((this.currentPage + 1).toString(), percentage);
     }
+    this.writeProgressService.complete(this.t.translate('book.browser.toast.readingProgressUpdated'));
   }
 
   private updateBookmarkState(): void {

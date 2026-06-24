@@ -25,6 +25,7 @@
       "failedSummary": "Failed",
       "regenCoverFailedDetail": "Could not start cover regeneration.",
       "customCoverFailedDetail": "Could not start custom cover generation.",
+      "readingProgressUpdated": "Reading Progress Updated",
       "unshelveSuccessDetail": "Books shelves updated",
       "unshelveFailedDetail": "Failed to update books shelves",
       "wipeMetadataSuccessDetail": "Metadata deleted for {{ count }} selected book(s).",

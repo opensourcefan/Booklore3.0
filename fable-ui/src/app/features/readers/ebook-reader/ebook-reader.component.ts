@@ -31,8 +31,9 @@ import {EpubCustomFontService} from './features/fonts/custom-font.service';
 import {TextSelectionAction, TextSelectionPopupComponent} from './shared/selection-popup.component';
 import {NoteDialogData, NoteDialogResult, ReaderNoteDialogComponent} from './dialogs/note-dialog.component';
 import {EbookShortcutsHelpComponent} from './dialogs/shortcuts-help.component';
-import {TranslocoPipe} from '@jsverse/transloco';
+import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
+import {WriteProgressService} from '../../../shared/service/write-progress.service';
 import {LoadingIndicatorComponent} from '../../../shared/components/loading-indicator/loading-indicator.component';
 
 type EbookMobileSurface =
@@ -95,6 +96,8 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
   private headerService = inject(ReaderHeaderService);
   private noteService = inject(ReaderNoteService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
+  private readonly t = inject(TranslocoService);
+  private writeProgressService = inject(WriteProgressService);
 
   public sidebarService = inject(ReaderSidebarService);
   public leftSidebarService = inject(ReaderLeftSidebarService);
@@ -137,6 +140,7 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnInit() {
+    this.writeProgressService.clear();
     this.visibilityManager = new ReaderHeaderFooterVisibilityManager(window.innerHeight);
     this.visibilityManager.onStateChange((state) => {
       this.headerVisible = state.headerVisible;
@@ -227,6 +231,8 @@ export class EbookReaderComponent implements OnInit, OnDestroy, DoCheck {
       URL.revokeObjectURL(this._fileUrl);
       this._fileUrl = null;
     }
+
+    this.writeProgressService.complete(this.t.translate('book.browser.toast.readingProgressUpdated'));
   }
 
   private syncMobileBackRegistrations(): void {
