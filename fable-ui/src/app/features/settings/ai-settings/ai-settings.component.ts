@@ -140,7 +140,9 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   originalAdvancedSettings: string = '';
   advancedEmbeddingExpanded = false;
+  embeddingConfigExpanded = false;
   showAdvancedConfirm = false;
+  showEmbeddingConfirm = false;
   aiPanelSettings = {
     modelId: ''
   };
@@ -928,6 +930,41 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       externalLlmUrl: this.aiSearchSettings.externalLlmUrl
     });
     return current !== this.originalLlmSettings;
+  }
+
+  applyEmbeddingConfigSettings(): void {
+    // Check if the embedding provider or model changed — these require re-embedding
+    const original = JSON.parse(this.originalEmbeddingSettings || '{}');
+    const providerChanged = this.aiSearchSettings.embeddingProvider !== (original.embeddingProvider || 'local');
+    const modelChanged = this.aiSearchSettings.embeddingModel !== (original.embeddingModel || '');
+
+    if (providerChanged || modelChanged) {
+      // Show confirmation dialog warning about re-embedding
+      this.showEmbeddingConfirm = true;
+    } else {
+      // Only API key or URL changed — save directly
+      this.confirmSaveEmbeddingSettings();
+    }
+  }
+
+  confirmSaveEmbeddingSettings(): void {
+    this.showEmbeddingConfirm = false;
+    this.saveRunning = true;
+    this.appSettingsService
+      .saveSettings([{key: AppSettingKey.AI_SEARCH_SETTINGS, newValue: this.aiSearchSettings}])
+      .subscribe({
+        next: () => {
+          this.saveRunning = false;
+          this.snapshotEmbeddingSettings();
+          this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
+          this.showMessage('success', 'Embedding settings saved', 'Embedding configuration has been updated. You will need to re-embed your books if the model or provider was changed.');
+          this.fetchEmbeddingStats();
+        },
+        error: () => {
+          this.saveRunning = false;
+          this.showMessage('error', 'Save failed', 'Could not update embedding settings.');
+        }
+      });
   }
 
   saveEmbeddingSettings(): void {

@@ -126,159 +126,6 @@
         </div>
         
         <div style="display: flex; flex-direction: column; gap: 2.5rem; width: 100%; max-width: 600px; margin-top: 1rem;">
-          
-          <!-- Embedding Configuration -->
-          <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <h4 style="margin: 0; color: var(--primary-color);">Embedding Configuration</h4>
-              <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
-            </div>
-            
-            <div style="display: flex; flex-direction: row; align-items: flex-start;">
-              
-              <!-- Left side: Configuration -->
-              <div style="display: flex; flex-direction: column; gap: 1rem; flex: 1; min-width: 300px; margin-right: 12rem;">
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                  <label for="embeddingProvider"><strong>Embedding Engine (Local / External)</strong></label>
-              <p-select 
-                id="embeddingProvider" 
-                [options]="providerOptions" 
-                [(ngModel)]="aiSearchSettings.embeddingProvider" 
-                [disabled]="!aiSearchEnabled || saveRunning" 
-                optionLabel="label" 
-                optionValue="value" 
-                styleClass="w-full">
-              </p-select>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <label for="embeddingModel"><strong>Embedding Model Name</strong>
-                @if (aiSearchSettings.embeddingProvider !== 'local') {
-                  <span style="color: red; margin-left: 0.25rem;">*</span>
-                }
-              </label>
-              <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
-                @if (aiSearchSettings.embeddingProvider === 'local') {
-                  Select a preset, choose "Custom" to type any HuggingFace model ID, or type directly in the dropdown.
-                } @else if (aiSearchSettings.embeddingProvider === 'ollama') {
-                  Enter the name of the model installed in your external Ollama instance.
-                } @else {
-                  Enter the embedding model provided by your external API (e.g., text-embedding-3-small).
-                }
-              </p>
-              @if (aiSearchSettings.embeddingProvider !== 'local') {
-                <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. text-embedding-3-small or nomic-embed-text" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-              } @else if (aiSearchSettings.embeddingModel === '__custom__') {
-                <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. BAAI/bge-base-en-v1.5" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-                <p style="font-size: 0.8rem; color: var(--text-color-secondary); margin: 0.25rem 0 0 0;">
-                  <i class="pi pi-external-link" style="margin-right: 0.25rem;"></i>
-                  Browse <a href="https://huggingface.co/models?pipeline_tag=sentence-similarity" target="_blank" rel="noopener">HuggingFace Sentence Similarity Models</a> to find model IDs.
-                  Format: <code>namespace/model-name</code> (e.g., <code>BAAI/bge-base-en-v1.5</code>, <code>sentence-transformers/all-MiniLM-L6-v2</code>).
-                </p>
-              } @else {
-                <p-select
-                  id="aiSearchEmbeddingModel"
-                  [options]="embeddingModelOptions"
-                  [(ngModel)]="aiSearchSettings.embeddingModel"
-                  [editable]="true"
-                  [disabled]="!aiSearchEnabled || saveRunning"
-                  placeholder="Using System Default (BAAI/bge-base-en-v1.5)"
-                  optionLabel="label"
-                  optionValue="value"
-                  styleClass="w-full">
-                  <ng-template let-option pTemplate="item">
-                    <span [style.font-style]="option.isDefault ? 'italic' : 'normal'" [style.font-weight]="option.isDefault ? 'bold' : 'normal'">
-                      {{ option.label }}
-                    </span>
-                  </ng-template>
-                </p-select>
-              }
-            </div>
-
-            @if (aiSearchSettings.embeddingProvider !== 'local') {
-              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <label for="embeddingApiKey"><strong>Embedding API Key</strong></label>
-                <input type="password" id="embeddingApiKey" [(ngModel)]="aiSearchSettings.embeddingApiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-              </div>
-
-              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong><span style="color: red; margin-left: 0.25rem;">*</span></label>
-                <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
-                <input type="text" id="externalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
-                @if (aiSearchSettings.embeddingProvider === 'ollama') {
-                  <p style="font-size: 0.8rem; color: var(--yellow-500); margin: 0.25rem 0 0 0;"><i class="pi pi-info-circle" style="margin-right: 0.25rem;"></i>If Ollama runs on your host machine, use <code>http://host.docker.internal:11434</code> or your LAN IP. Do not use <code>ollama.com</code> — that is not an API endpoint.</p>
-                }
-              </div>
-
-              <div style="margin-top: 0.5rem;">
-                <p-button label="Test Connection" icon="pi pi-bolt" severity="info" size="small" [outlined]="true" (onClick)="testEmbeddingConnection()" [loading]="testEmbeddingRunning" [disabled]="!aiSearchEnabled || saveRunning || testEmbeddingRunning || !aiSearchSettings.externalEmbeddingUrl.trim() || !aiSearchSettings.embeddingModel.trim()"></p-button>
-              </div>
-            }
-
-              </div>
-              
-              <!-- Right side: Downloaded Models -->
-              <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; margin-right: 12rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding: 0 1rem;">
-                  <h5 style="margin: 0; color: var(--text-color);">Downloaded Models</h5>
-                  <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="loadAiModels()" pTooltip="Refresh List"></p-button>
-                </div>
-                <p style="font-size: 0.78rem; color: var(--text-color-secondary); margin: -0.25rem 0 0.5rem 1rem; font-style: italic;">Click a model name to prefill the local embedding settings</p>
-                @if (loadingEmbeddingModels) {
-                  <div style="text-align: center; padding: 1rem;"><i class="pi pi-spin pi-spinner" style="font-size: 1.5rem"></i></div>
-                } @else if (embeddingModels.length === 0) {
-                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0; text-align: center; padding: 1rem; border: 1px dashed var(--surface-border); border-radius: 6px;">No models downloaded.</p>
-                } @else {
-                  <div class="model-list" style="max-height: 400px; overflow-y: auto;">
-                    @for (model of embeddingModels; track model.id) {
-                      <div class="model-item">
-                        <div class="model-info">
-                          <span class="model-name model-name-clickable" (click)="selectEmbeddingModel(model)" (keydown.enter)="selectEmbeddingModel(model)" (keydown.space)="selectEmbeddingModel(model); $event.preventDefault()" tabindex="0" role="button" [pTooltip]="'Use ' + model.name" tooltipPosition="top">{{ model.name }}</span>
-                          <span class="model-size">{{ formatBytes(model.sizeBytes) }}</span>
-                        </div>
-                        <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="deleteEmbeddingModel(model)" pTooltip="Delete from disk"></p-button>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-
-              <!-- Embedding Statistics -->
-              <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding: 0 1rem;">
-                  <h5 style="margin: 0; color: var(--text-color);">Embedding Statistics</h5>
-                  <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="fetchEmbeddingStats()" pTooltip="Refresh Statistics" [disabled]="!aiSearchEnabled"></p-button>
-                </div>
-                <p style="font-size: 0.78rem; color: var(--text-color-secondary); margin: -0.25rem 0 0.5rem 1rem; font-style: italic;">Overview of current AI search embeddings generated for your books</p>
-                @if (embeddingStatsLoading) {
-                  <div style="text-align: center; padding: 1rem;"><i class="pi pi-spin pi-spinner" style="font-size: 1.5rem"></i></div>
-                } @else if (embeddingStats.length === 0) {
-                  <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0; text-align: center; padding: 1rem; border: 1px dashed var(--surface-border); border-radius: 6px;">No books have been embedded yet.</p>
-                } @else {
-                  <div class="model-list" style="max-height: 400px; overflow-y: auto;">
-                    @for (stat of embeddingStats; track stat.model) {
-                      <div class="model-item" style="cursor: default;">
-                        <div class="model-info">
-                          <span class="model-name">
-                            {{ stat.model }}
-                            @if (stat.model !== aiSearchSettings.embeddingModel) {
-                              <span style="color: var(--orange-500); font-size: 0.85rem; margin-left: 0.5rem; font-style: italic;">(Mismatch)</span>
-                            }
-                          </span>
-                        </div>
-                        <span style="font-size: 0.85rem; color: var(--text-color-secondary); font-weight: 500;">{{ stat.count }} books</span>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            </div>
-            <div style="display: flex; justify-content: flex-start; margin-top: 1.5rem;">
-              <p-button label="Apply Embedding Settings" icon="pi pi-check" size="small" (onClick)="saveEmbeddingSettings()" [loading]="saveRunning" [severity]="isEmbeddingSettingsDirty ? 'success' : 'secondary'" [disabled]="!aiSearchEnabled || saveRunning || !isEmbeddingSettingsDirty"></p-button>
-            </div>
-          </div>
-
-          <div class="section-divider" style="margin: 0.5rem 0;"><hr></div>
 
           <!-- LLM Configuration -->
           <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
@@ -607,6 +454,184 @@
           </div>
 
           <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
+
+          <!-- Embedding Configuration (Click to Expand) -->
+          <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 1rem;">
+              <div (click)="embeddingConfigExpanded = !embeddingConfigExpanded" (keydown.enter)="embeddingConfigExpanded = !embeddingConfigExpanded" (keydown.space)="embeddingConfigExpanded = !embeddingConfigExpanded; $event.preventDefault()" tabindex="0" role="button" [attr.aria-expanded]="embeddingConfigExpanded" style="display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer;">
+                <div>
+                  <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--orange-500, #ff9800) !important;">
+                    Embedding Configuration
+                    <i class="pi" [ngClass]="embeddingConfigExpanded ? 'pi-chevron-down' : 'pi-chevron-right'" style="font-size: 0.9rem; color: var(--text-color-secondary);"></i>
+                  </h3>
+                  <p style="margin: 0.25rem 0 0 0; color: var(--text-color-secondary);">Configure the embedding engine, model, and view downloaded models and statistics. <strong style="color: var(--orange-500);">Warning: Changing the embedding model will require re-embedding all books.</strong></p>
+                </div>
+              </div>
+
+              @if (embeddingConfigExpanded) {
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem; border-top: 1px solid var(--surface-border); padding-top: 1.5rem;">
+
+                  <!-- Warning Banner -->
+                  <div style="padding: 1rem; border-radius: 8px; background: rgba(255, 152, 0, 0.08); border: 1px solid rgba(255, 152, 0, 0.3); display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="font-weight: bold; color: var(--orange-500); display: flex; align-items: center; gap: 0.5rem;">
+                      <i class="pi pi-exclamation-triangle"></i> Re-Embedding Required
+                    </div>
+                    <p style="margin: 0; font-size: 0.88rem; color: var(--text-color-secondary);">
+                      Changing the <strong>Embedding Engine</strong> or <strong>Embedding Model</strong> will invalidate all existing book embeddings. After applying changes, you must re-embed all books for AI Search to function correctly. This is a potentially time-consuming operation.
+                    </p>
+                  </div>
+
+                  <div style="display: flex; flex-direction: row; align-items: flex-start; gap: 2rem; flex-wrap: wrap;">
+
+                    <!-- Left side: Configuration -->
+                    <div style="display: flex; flex-direction: column; gap: 1rem; flex: 1; min-width: 300px;">
+                      <div style="display: flex; align-items: center; gap: 1rem;">
+                        <h4 style="margin: 0; color: var(--primary-color);">Model Settings</h4>
+                        <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
+                      </div>
+
+                      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="embeddingProvider"><strong>Embedding Engine (Local / External)</strong></label>
+                        <p-select
+                          id="embeddingProvider"
+                          [options]="providerOptions"
+                          [(ngModel)]="aiSearchSettings.embeddingProvider"
+                          [disabled]="!aiSearchEnabled || saveRunning"
+                          optionLabel="label"
+                          optionValue="value"
+                          styleClass="w-full">
+                        </p-select>
+                      </div>
+
+                      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="embeddingModel"><strong>Embedding Model Name</strong>
+                          @if (aiSearchSettings.embeddingProvider !== 'local') {
+                            <span style="color: red; margin-left: 0.25rem;">*</span>
+                          }
+                        </label>
+                        <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">
+                          @if (aiSearchSettings.embeddingProvider === 'local') {
+                            Select a preset, choose "Custom" to type any HuggingFace model ID, or type directly in the dropdown.
+                          } @else if (aiSearchSettings.embeddingProvider === 'ollama') {
+                            Enter the name of the model installed in your external Ollama instance.
+                          } @else {
+                            Enter the embedding model provided by your external API (e.g., text-embedding-3-small).
+                          }
+                        </p>
+                        @if (aiSearchSettings.embeddingProvider !== 'local') {
+                          <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. text-embedding-3-small or nomic-embed-text" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                        } @else if (aiSearchSettings.embeddingModel === '__custom__') {
+                          <input type="text" id="aiSearchEmbeddingModel" [(ngModel)]="aiSearchSettings.embeddingModel" [disabled]="!aiSearchEnabled || saveRunning" placeholder="e.g. BAAI/bge-base-en-v1.5" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                          <p style="font-size: 0.8rem; color: var(--text-color-secondary); margin: 0.25rem 0 0 0;">
+                            <i class="pi pi-external-link" style="margin-right: 0.25rem;"></i>
+                            Browse <a href="https://huggingface.co/models?pipeline_tag=sentence-similarity" target="_blank" rel="noopener">HuggingFace Sentence Similarity Models</a> to find model IDs.
+                            Format: <code>namespace/model-name</code> (e.g., <code>BAAI/bge-base-en-v1.5</code>, <code>sentence-transformers/all-MiniLM-L6-v2</code>).
+                          </p>
+                        } @else {
+                          <p-select
+                            id="aiSearchEmbeddingModel"
+                            [options]="embeddingModelOptions"
+                            [(ngModel)]="aiSearchSettings.embeddingModel"
+                            [editable]="true"
+                            [disabled]="!aiSearchEnabled || saveRunning"
+                            placeholder="Using System Default (BAAI/bge-base-en-v1.5)"
+                            optionLabel="label"
+                            optionValue="value"
+                            styleClass="w-full">
+                            <ng-template let-option pTemplate="item">
+                              <span [style.font-style]="option.isDefault ? 'italic' : 'normal'" [style.font-weight]="option.isDefault ? 'bold' : 'normal'">
+                                {{ option.label }}
+                              </span>
+                            </ng-template>
+                          </p-select>
+                        }
+                      </div>
+
+                      @if (aiSearchSettings.embeddingProvider !== 'local') {
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                          <label for="embeddingApiKey"><strong>Embedding API Key</strong></label>
+                          <input type="password" id="embeddingApiKey" [(ngModel)]="aiSearchSettings.embeddingApiKey" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                          <label for="externalEmbeddingUrl"><strong>External Embedding URL</strong><span style="color: red; margin-left: 0.25rem;">*</span></label>
+                          <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">e.g., https://api.openai.com/v1</p>
+                          <input type="text" id="externalEmbeddingUrl" [(ngModel)]="aiSearchSettings.externalEmbeddingUrl" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component" style="width: 100%; padding: 0.5rem; border: 1px solid var(--text-color-secondary); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
+                          @if (aiSearchSettings.embeddingProvider === 'ollama') {
+                            <p style="font-size: 0.8rem; color: var(--yellow-500); margin: 0.25rem 0 0 0;"><i class="pi pi-info-circle" style="margin-right: 0.25rem;"></i>If Ollama runs on your host machine, use <code>http://host.docker.internal:11434</code> or your LAN IP. Do not use <code>ollama.com</code> — that is not an API endpoint.</p>
+                          }
+                        </div>
+
+                        <div style="margin-top: 0.5rem;">
+                          <p-button label="Test Connection" icon="pi pi-bolt" severity="info" size="small" [outlined]="true" (onClick)="testEmbeddingConnection()" [loading]="testEmbeddingRunning" [disabled]="!aiSearchEnabled || saveRunning || testEmbeddingRunning || !aiSearchSettings.externalEmbeddingUrl.trim() || !aiSearchSettings.embeddingModel.trim()"></p-button>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Right side: Downloaded Models -->
+                    <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h5 style="margin: 0; color: var(--text-color);">Downloaded Models</h5>
+                        <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="loadAiModels()" pTooltip="Refresh List"></p-button>
+                      </div>
+                      <p style="font-size: 0.78rem; color: var(--text-color-secondary); margin: -0.25rem 0 0.5rem 0; font-style: italic;">Click a model name to prefill the local embedding settings</p>
+                      @if (loadingEmbeddingModels) {
+                        <div style="text-align: center; padding: 1rem;"><i class="pi pi-spin pi-spinner" style="font-size: 1.5rem"></i></div>
+                      } @else if (embeddingModels.length === 0) {
+                        <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0; text-align: center; padding: 1rem; border: 1px dashed var(--surface-border); border-radius: 6px;">No models downloaded.</p>
+                      } @else {
+                        <div class="model-list" style="max-height: 400px; overflow-y: auto;">
+                          @for (model of embeddingModels; track model.id) {
+                            <div class="model-item">
+                              <div class="model-info">
+                                <span class="model-name model-name-clickable" (click)="selectEmbeddingModel(model)" (keydown.enter)="selectEmbeddingModel(model)" (keydown.space)="selectEmbeddingModel(model); $event.preventDefault()" tabindex="0" role="button" [pTooltip]="'Use ' + model.name" tooltipPosition="top">{{ model.name }}</span>
+                                <span class="model-size">{{ formatBytes(model.sizeBytes) }}</span>
+                              </div>
+                              <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="deleteEmbeddingModel(model)" pTooltip="Delete from disk"></p-button>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Embedding Statistics -->
+                    <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h5 style="margin: 0; color: var(--text-color);">Embedding Statistics</h5>
+                        <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="fetchEmbeddingStats()" pTooltip="Refresh Statistics" [disabled]="!aiSearchEnabled"></p-button>
+                      </div>
+                      <p style="font-size: 0.78rem; color: var(--text-color-secondary); margin: -0.25rem 0 0.5rem 0; font-style: italic;">Overview of current AI search embeddings generated for your books</p>
+                      @if (embeddingStatsLoading) {
+                        <div style="text-align: center; padding: 1rem;"><i class="pi pi-spin pi-spinner" style="font-size: 1.5rem"></i></div>
+                      } @else if (embeddingStats.length === 0) {
+                        <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0; text-align: center; padding: 1rem; border: 1px dashed var(--surface-border); border-radius: 6px;">No books have been embedded yet.</p>
+                      } @else {
+                        <div class="model-list" style="max-height: 400px; overflow-y: auto;">
+                          @for (stat of embeddingStats; track stat.model) {
+                            <div class="model-item" style="cursor: default;">
+                              <div class="model-info">
+                                <span class="model-name">
+                                  {{ stat.model }}
+                                  @if (stat.model !== aiSearchSettings.embeddingModel) {
+                                    <span style="color: var(--orange-500); font-size: 0.85rem; margin-left: 0.5rem; font-style: italic;">(Mismatch)</span>
+                                  }
+                                </span>
+                              </div>
+                              <span style="font-size: 0.85rem; color: var(--text-color-secondary); font-weight: 500;">{{ stat.count }} books</span>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <div style="display: flex; justify-content: flex-start; margin-top: 0.5rem; border-top: 1px solid var(--surface-border); padding-top: 1.5rem;">
+                    <p-button label="Apply Embedding Settings" icon="pi pi-check" size="small" (onClick)="applyEmbeddingConfigSettings()" [loading]="saveRunning" [severity]="isEmbeddingSettingsDirty ? 'success' : 'secondary'" [disabled]="!aiSearchEnabled || saveRunning || !isEmbeddingSettingsDirty"></p-button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
 
           <!-- Advanced Embedding & Retrieval Tuning -->
           <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
@@ -1084,6 +1109,44 @@
           severity="danger"
           [label]="t('cleanup.confirmAction')"
           (onClick)="confirmCleanupAiData()">
+        </p-button>
+      </div>
+    </p-dialog>
+
+    <p-dialog
+      [(visible)]="showEmbeddingConfirm"
+      [modal]="true"
+      [closable]="true"
+      [draggable]="false"
+      [resizable]="false"
+      [style]="{ width: '32rem' }"
+      header="Confirm Embedding Configuration Changes">
+      <div style="display: flex; flex-direction: column; gap: 1rem; line-height: 1.5;">
+        <p style="margin: 0; color: var(--orange-500); font-weight: bold; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="pi pi-exclamation-triangle" style="font-size: 1.25rem;"></i>
+          Warning: Re-embedding will be required.
+        </p>
+        <p style="margin: 0; color: var(--text-color); font-size: 0.95rem;">
+          Changing the <strong>Embedding Engine</strong> or <strong>Embedding Model</strong> alters the mathematical representation of your book data.
+        </p>
+        <p style="margin: 0; color: var(--text-color-secondary); font-size: 0.9rem;">
+          All existing embeddings will become incompatible and must be regenerated. This means every book currently embedded will need to be re-processed, which can be a time-consuming operation depending on your library size.
+        </p>
+        <p style="margin: 0; font-weight: 500; font-size: 0.95rem;">
+          Are you sure you want to apply these embedding changes?
+        </p>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <p-button
+          label="Cancel"
+          severity="secondary"
+          (onClick)="showEmbeddingConfirm = false">
+        </p-button>
+        <p-button
+          icon="pi pi-check"
+          severity="danger"
+          label="Apply and Re-embed"
+          (onClick)="confirmSaveEmbeddingSettings()">
         </p-button>
       </div>
     </p-dialog>
