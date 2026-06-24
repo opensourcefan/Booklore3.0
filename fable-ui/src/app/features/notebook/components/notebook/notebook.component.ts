@@ -251,6 +251,11 @@ export class NotebookComponent implements OnInit, OnDestroy {
       groupMap.get(displayEntry.bookId)!.entries.push(displayEntry);
     }
     this.filteredGroups = Array.from(groupMap.values());
+
+    // Collapse all groups by default so the user can expand only what they need
+    for (const bookId of groupMap.keys()) {
+      this.collapsedGroups.add(bookId);
+    }
   }
 
   toggleSort(): void {
