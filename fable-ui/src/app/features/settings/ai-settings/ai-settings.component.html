@@ -129,21 +129,21 @@
 
           <!-- LLM Configuration -->
           <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="llm-section-header">
               <h4 style="margin: 0; color: var(--primary-color);">LLM Configuration</h4>
               <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetLlmSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
             </div>
             
-            <div style="display: flex; flex-direction: row; gap: 12rem; align-items: flex-start;">
+            <div class="llm-two-col">
               
               <!-- Left side: Configuration -->
-              <div style="display: flex; flex-direction: column; gap: 1rem; flex: 1; min-width: 300px;">
+              <div class="llm-config-left">
                 
                 <!-- Profile Selection -->
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                   <label for="llmProfileSelect"><strong>Active LLM Profile</strong></label>
-                  <div style="display: flex; gap: 0.5rem; width: 100%; align-items: center;">
-                    <div style="flex: 1; min-width: 0;">
+                  <div class="profile-select-row">
+                    <div class="profile-select-dropdown">
                       <p-select 
                         id="llmProfileSelect"
                         [options]="llmProfiles" 
@@ -281,7 +281,7 @@
               </div>
 
               <!-- Right side: Downloaded Models -->
-              <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+              <div class="llm-config-right">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding: 0 1rem;">
                   <h5 style="margin: 0; color: var(--text-color);">Downloaded Models</h5>
                   <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="loadAiModels()" pTooltip="Refresh List"></p-button>
@@ -318,9 +318,9 @@
               <label for="topK"><strong>Result Count (Top K)</strong></label>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How many context chunks to retrieve (1–50). More chunks give the LLM more context but takes longer to process.</p>
-            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+            <div class="tuning-slider-row">
               <input type="range" id="topK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.topK" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
-              <div style="display: flex; align-items: center; gap: 0.25rem; justify-content: flex-end; width: 160px; flex-shrink: 0;">
+              <div class="tuning-slider-controls">
                 <p-button icon="pi pi-minus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.topK <= 1" (onClick)="decrementTopK()" styleClass="custom-slider-btn"></p-button>
                 <input type="number" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.topK" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component custom-number-input" style="width: 60px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
                 <p-button icon="pi pi-plus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.topK >= 50" (onClick)="incrementTopK()" styleClass="custom-slider-btn"></p-button>
@@ -333,9 +333,9 @@
               <label for="displayTopK"><strong>Displayed Results</strong></label>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How many raw results to display in the UI (1–50). Set lower than Top K to give the LLM more context while showing only the best match.</p>
-            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+            <div class="tuning-slider-row">
               <input type="range" id="displayTopK" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.displayTopK" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
-              <div style="display: flex; align-items: center; gap: 0.25rem; justify-content: flex-end; width: 160px; flex-shrink: 0;">
+              <div class="tuning-slider-controls">
                 <p-button icon="pi pi-minus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.displayTopK <= 1" (onClick)="decrementDisplayTopK()" styleClass="custom-slider-btn"></p-button>
                 <input type="number" min="1" max="50" step="1" [(ngModel)]="aiSearchSettings.displayTopK" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component custom-number-input" style="width: 60px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
                 <p-button icon="pi pi-plus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.displayTopK >= 50" (onClick)="incrementDisplayTopK()" styleClass="custom-slider-btn"></p-button>
@@ -348,9 +348,9 @@
               <label for="similarityThreshold"><strong>Similarity Threshold</strong></label>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">How strict the search match should be (0.1–0.9). Lower values return more potential matches.</p>
-            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+            <div class="tuning-slider-row">
               <input type="range" id="similarityThreshold" min="0.1" max="0.9" step="0.05" [(ngModel)]="aiSearchSettings.similarityThreshold" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
-              <div style="display: flex; align-items: center; gap: 0.25rem; justify-content: flex-end; width: 160px; flex-shrink: 0;">
+              <div class="tuning-slider-controls">
                 <p-button icon="pi pi-minus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.similarityThreshold <= 0.1" (onClick)="decrementSimilarityThreshold()" styleClass="custom-slider-btn"></p-button>
                 <input type="number" min="0.1" max="0.9" step="0.05" [(ngModel)]="aiSearchSettings.similarityThreshold" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component custom-number-input" style="width: 60px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
                 <p-button icon="pi pi-plus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.similarityThreshold >= 0.9" (onClick)="incrementSimilarityThreshold()" styleClass="custom-slider-btn"></p-button>
@@ -363,9 +363,9 @@
               <label for="maxTokens"><strong>Max Output Length</strong></label>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">The maximum number of tokens (128–4096) the LLM can generate in its summary.</p>
-            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+            <div class="tuning-slider-row">
               <input type="range" id="maxTokens" min="128" max="4096" step="128" [(ngModel)]="aiSearchSettings.maxTokens" (ngModelChange)="updateSelectedProfile()" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
-              <div style="display: flex; align-items: center; gap: 0.25rem; justify-content: flex-end; width: 160px; flex-shrink: 0;">
+              <div class="tuning-slider-controls">
                 <p-button icon="pi pi-minus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.maxTokens <= 128" (onClick)="decrementMaxTokens()" styleClass="custom-slider-btn"></p-button>
                 <input type="number" min="128" max="4096" step="128" [(ngModel)]="aiSearchSettings.maxTokens" (ngModelChange)="updateSelectedProfile()" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component custom-number-input" style="width: 60px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
                 <p-button icon="pi pi-plus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.maxTokens >= 4096" (onClick)="incrementMaxTokens()" styleClass="custom-slider-btn"></p-button>
@@ -378,9 +378,9 @@
               <label for="temperature"><strong>Temperature</strong></label>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Controls creativity vs determinism (0.0–1.0). Lower values (e.g. 0.1) are better for factual summaries.</p>
-            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+            <div class="tuning-slider-row">
               <input type="range" id="temperature" min="0.0" max="1.0" step="0.1" [(ngModel)]="aiSearchSettings.temperature" (ngModelChange)="updateSelectedProfile()" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
-              <div style="display: flex; align-items: center; gap: 0.25rem; justify-content: flex-end; width: 160px; flex-shrink: 0;">
+              <div class="tuning-slider-controls">
                 <p-button icon="pi pi-minus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.temperature <= 0.0" (onClick)="decrementTemperature()" styleClass="custom-slider-btn"></p-button>
                 <input type="number" min="0.0" max="1.0" step="0.1" [(ngModel)]="aiSearchSettings.temperature" (ngModelChange)="updateSelectedProfile()" [disabled]="!aiSearchEnabled || saveRunning" class="p-inputtext p-component custom-number-input" style="width: 60px; padding: 0.35rem 0.5rem; text-align: center; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground); color: var(--text-color);">
                 <p-button icon="pi pi-plus" [text]="true" [rounded]="true" [disabled]="!aiSearchEnabled || saveRunning || aiSearchSettings.temperature >= 1.0" (onClick)="incrementTemperature()" styleClass="custom-slider-btn"></p-button>
@@ -401,8 +401,8 @@
             </div>
 
             <!-- OCR Enabled Toggle -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; width: 100%;">
-              <div style="flex: 1;">
+            <div class="ocr-toggle-row">
+              <div class="ocr-toggle-label">
                 <label for="ocrEnabled"><strong>Enable Optical Character Recognition (OCR)</strong></label>
                 <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Automatically extract text from scanned or image-only PDF pages during book embedding.</p>
               </div>
@@ -416,11 +416,11 @@
 
             <!-- Dependent OCR Settings -->
             @if (aiSearchSettings.ocrEnabled) {
-              <div style="display: flex; flex-direction: column; gap: 1rem; border-top: 1px dashed var(--surface-border); padding-top: 1rem; margin-top: 0.5rem;">
+              <div class="ocr-settings-body">
                 
                 <!-- Fallback Only Toggle -->
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; width: 100%;">
-                  <div style="flex: 1;">
+                <div class="ocr-toggle-row">
+                  <div class="ocr-toggle-label">
                     <label for="ocrFallbackOnly"><strong>Smart Fallback Mode</strong></label>
                     <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Only run OCR if standard text extraction yields zero content (Recommended). Prevents unnecessary CPU overhead on digital PDFs.</p>
                   </div>
@@ -481,11 +481,11 @@
                     </p>
                   </div>
 
-                  <div style="display: flex; flex-direction: row; align-items: flex-start; gap: 2rem; flex-wrap: wrap;">
+                  <div class="embedding-two-col">
 
                     <!-- Left side: Configuration -->
-                    <div style="display: flex; flex-direction: column; gap: 1rem; flex: 1; min-width: 300px;">
-                      <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="embedding-config-left">
+                      <div class="llm-section-header">
                         <h4 style="margin: 0; color: var(--primary-color);">Model Settings</h4>
                         <p-button label="Reset Configuration" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning"></p-button>
                       </div>
@@ -569,7 +569,7 @@
                     </div>
 
                     <!-- Right side: Downloaded Models -->
-                    <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+                    <div class="embedding-config-right">
                       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <h5 style="margin: 0; color: var(--text-color);">Downloaded Models</h5>
                         <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="loadAiModels()" pTooltip="Refresh List"></p-button>
@@ -595,7 +595,7 @@
                     </div>
 
                     <!-- Embedding Statistics -->
-                    <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+                    <div class="embedding-config-right">
                       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <h5 style="margin: 0; color: var(--text-color);">Embedding Statistics</h5>
                         <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" size="small" (onClick)="fetchEmbeddingStats()" pTooltip="Refresh Statistics" [disabled]="!aiSearchEnabled"></p-button>
