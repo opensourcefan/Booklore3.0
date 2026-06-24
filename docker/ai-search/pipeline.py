@@ -1,7 +1,9 @@
 """AI Search pipeline orchestrator.
 
 This module wires together the stages of the new pipeline:
-  query parsing -> retrieval -> chunk filtering -> synthesis -> citation validation -> disclaimer -> response assembly.
+  adaptive routing -> query parsing -> (HyDE | multi-query | decomposition) ->
+  retrieval -> contextual compression -> chunk filtering -> synthesis ->
+  self-reflection -> citation validation -> disclaimer -> response assembly.
 
 It is designed to be called from the existing /v1/search route in app.py.
 """
@@ -40,6 +42,13 @@ def run_search_pipeline(
     chat_history: list[dict] | None = None,
     local_only: bool = False,
     strict_chunk_filter: bool = False,
+    # New RAG technique flags
+    hyde_enabled: bool = False,
+    multi_query_enabled: bool = False,
+    decomposition_enabled: bool = False,
+    reflection_enabled: bool = False,
+    compression_enabled: bool = False,
+    llm_provider: str = "local",
 ) -> SearchResponse:
     """Run the new AI Search pipeline end-to-end.
 
@@ -57,6 +66,12 @@ def run_search_pipeline(
         chat_history: Optional previous turns.
         local_only: If True, skip LLM synthesis and return RAW results.
         strict_chunk_filter: If True, apply stricter chunk quality filtering.
+        hyde_enabled: Whether HyDE is enabled.
+        multi_query_enabled: Whether multi-query retrieval is enabled.
+        decomposition_enabled: Whether query decomposition is enabled.
+        reflection_enabled: Whether self-reflection is enabled.
+        compression_enabled: Whether contextual compression is enabled.
+        llm_provider: LLM provider type (local/openai/ollama).
 
     Returns:
         SearchResponse compatible with the existing /v1/search API.
@@ -70,19 +85,85 @@ def run_search_pipeline(
     if parsed.intent == "list" and parsed.requested_count is not None:
         retrieval_top_k = max(top_k, parsed.requested_count * 3)
 
-    # Retrieval
-    retrieved, total_chunks_searched = retrieve_fn(
-        embedding_text=parsed.embedding_text,
-        book_ids=book_ids,
-        user_id=user_id,
-        top_k=retrieval_top_k,
+    # ---- Stage 0: Adaptive Routing ----
+    # Determine which strategies to apply based on query characteristics.
+    # LLM-call strategies are auto-disabled for local providers.
+    can_use_llm = llm_provider != "local"
+    effective_hyde = hyde_enabled and can_use_llm
+    effective_multi_query = multi_query_enabled and can_use_llm
+    effective_decomposition = decomposition_enabled and can_use_llm
+    effective_reflection = reflection_enabled and can_use_llm
+
+    from adaptive_routing import route_query, RouteStrategy
+    strategies = route_query(
+        query=parsed,
+        hyde_enabled=effective_hyde,
+        multi_query_enabled=effective_multi_query,
+        decomposition_enabled=effective_decomposition,
+        llm_provider=llm_provider,
     )
+
+    # ---- Stage 1: HyDE (Hypothetical Document Embeddings) ----
+    embedding_text = parsed.embedding_text
+    if RouteStrategy.HYDE in strategies:
+        from hyde import generate_hypothetical_document
+        hypo = generate_hypothetical_document(
+            query=parsed,
+            generate_fn=generate_fn,
+            max_tokens=min(256, max_tokens),
+            temperature=0.3,
+        )
+        if hypo:
+            embedding_text = hypo
+            logger.info("HyDE: using hypothetical document as embedding text (%d chars)", len(hypo))
+
+    # ---- Stage 2: Retrieval (with optional multi-query or decomposition) ----
+    if RouteStrategy.DECOMPOSITION in strategies:
+        from decomposition import decomposed_retrieve
+        retrieved, total_chunks_searched = decomposed_retrieve(
+            query=parsed,
+            retrieve_fn=retrieve_fn,
+            generate_fn=generate_fn,
+            book_ids=book_ids,
+            user_id=user_id,
+            top_k=retrieval_top_k,
+        )
+    elif RouteStrategy.MULTI_QUERY in strategies:
+        from multi_query import multi_query_retrieve
+        retrieved, total_chunks_searched = multi_query_retrieve(
+            query=parsed,
+            retrieve_fn=retrieve_fn,
+            generate_fn=generate_fn,
+            book_ids=book_ids,
+            user_id=user_id,
+            top_k=retrieval_top_k,
+        )
+    else:
+        # Standard retrieval
+        retrieved, total_chunks_searched = retrieve_fn(
+            embedding_text=embedding_text,
+            book_ids=book_ids,
+            user_id=user_id,
+            top_k=retrieval_top_k,
+        )
+
     logger.info(
         "Retrieved %d chunks (searched %d) for query: %s",
         len(retrieved), total_chunks_searched, query,
     )
 
-    # Chunk quality filter
+    # ---- Stage 3: Contextual Compression ----
+    if compression_enabled and retrieved:
+        from compression import compress_chunks
+        retrieved = compress_chunks(
+            chunks=retrieved,
+            query_text=parsed.embedding_text,
+            compression_ratio=0.5,
+            min_sentences=2,
+        )
+        logger.info("Contextual compression applied to %d chunks", len(retrieved))
+
+    # ---- Stage 4: Chunk quality filter ----
     filter_result = apply_chunk_filter(retrieved, strict=strict_chunk_filter)
     filtered_chunks = filter_result.kept
     if filter_result.reason == "safety_valve":
@@ -91,7 +172,7 @@ def run_search_pipeline(
     # Build display results from the filtered retrieval pool.
     display_chunks = filtered_chunks[:display_top_k]
 
-    # Synthesis
+    # ---- Stage 5: Synthesis ----
     validated_items: list[ValidatedAnswerItem] = []
     synthesis_result = SynthesisResult(no_relevant_info=True)
     if not local_only and filtered_chunks:
@@ -111,7 +192,48 @@ def run_search_pipeline(
                 len(validated_items), synthesis_result.no_relevant_info, query,
             )
 
-    # Determine final answer and results.
+    # ---- Stage 6: Self-Reflection ----
+    if effective_reflection and validated_items and not local_only:
+        from reflection import reflect_on_answer
+        reflection = reflect_on_answer(
+            query=parsed,
+            answer_items=synthesis_result.items,
+            chunks=filtered_chunks,
+            generate_fn=generate_fn,
+            max_tokens=min(256, max_tokens),
+            temperature=0.1,
+        )
+        if reflection.get("has_issues"):
+            logger.info(
+                "Self-reflection found %d issues, regenerating answer with stricter instructions",
+                len(reflection.get("issues", [])),
+            )
+            # Regenerate with stricter system prompt
+            strict_system_prompt = (
+                "You are an AI search assistant. Answer ONLY from the provided Context.\n"
+                "Do not use external knowledge. Do not invent facts. Be extremely careful.\n"
+                "The previous answer had issues: " + "; ".join(reflection.get("issues", [])) + "\n"
+                "Return your answer as markdown bullet points. For each item, cite the ChunkID from the Context that supports it using the exact format [ChunkID: N] at the end of the line.\n"
+                "Only say 'I could not find any relevant information for this search.' if the Context is literally empty or completely unrelated."
+            )
+            retry_result = synthesize(
+                query=parsed,
+                chunks=filtered_chunks,
+                generate_fn=generate_fn,
+                max_tokens=max_tokens,
+                temperature=min(temperature, 0.05),  # Lower temperature for retry
+                chat_history=chat_history,
+                requested_count=parsed.requested_count,
+            )
+            if not retry_result.sentinel_triggered and retry_result.items:
+                synthesis_result = retry_result
+                validated_items = validate_answer_items(synthesis_result.items, filtered_chunks)
+                logger.info(
+                    "Self-reflection retry produced %d validated items",
+                    len(validated_items),
+                )
+
+    # ---- Stage 7: Determine final answer and results ----
     if not local_only and synthesis_result.sentinel_triggered:
         display_chunks = []
         final_results = []
@@ -134,7 +256,7 @@ def run_search_pipeline(
                 f"{c.text}\n{source_marker(c)}" for c in display_chunks
             )
 
-    # Disclaimer
+    # ---- Stage 8: Disclaimer ----
     disclaimer = build_disclaimer(parsed, validated_items, display_chunks)
 
     if disclaimer and answer:

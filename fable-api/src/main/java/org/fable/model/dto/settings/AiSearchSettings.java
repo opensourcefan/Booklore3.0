@@ -48,6 +48,18 @@ public class AiSearchSettings {
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String ocrLanguage = "eng";
 
+    // RAG technique toggles (auto-disabled for local LLM providers)
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean hydeEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean multiQueryEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean decompositionEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean reflectionEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean compressionEnabled = false;
+
     // Added for Zero-Config Architecture
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private String embeddingProvider = "local"; // local, ollama, openai

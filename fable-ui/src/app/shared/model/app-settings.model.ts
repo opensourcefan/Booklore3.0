@@ -288,6 +288,11 @@ export interface AiSearchSettings {
   ocrEnabled: boolean;
   ocrFallbackOnly: boolean;
   ocrLanguage: string;
+  hydeEnabled: boolean;
+  multiQueryEnabled: boolean;
+  decompositionEnabled: boolean;
+  reflectionEnabled: boolean;
+  compressionEnabled: boolean;
 }
 
 export interface AiPanelSettings {

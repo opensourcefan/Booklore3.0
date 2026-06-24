@@ -124,7 +124,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     rerankerModel: 'BAAI/bge-reranker-base',
     ocrEnabled: true,
     ocrFallbackOnly: true,
-    ocrLanguage: 'eng'
+    ocrLanguage: 'eng',
+    hydeEnabled: false,
+    multiQueryEnabled: false,
+    decompositionEnabled: false,
+    reflectionEnabled: false,
+    compressionEnabled: false
   };
   originalAiSearchSettings: string = '';
   originalEmbeddingSettings: string = '';
@@ -216,7 +221,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           rerankerModel: settings.aiSearchSettings.rerankerModel || 'BAAI/bge-reranker-base',
           ocrEnabled: settings.aiSearchSettings.ocrEnabled ?? true,
           ocrFallbackOnly: settings.aiSearchSettings.ocrFallbackOnly ?? true,
-          ocrLanguage: settings.aiSearchSettings.ocrLanguage || 'eng'
+          ocrLanguage: settings.aiSearchSettings.ocrLanguage || 'eng',
+          hydeEnabled: settings.aiSearchSettings.hydeEnabled ?? false,
+          multiQueryEnabled: settings.aiSearchSettings.multiQueryEnabled ?? false,
+          decompositionEnabled: settings.aiSearchSettings.decompositionEnabled ?? false,
+          reflectionEnabled: settings.aiSearchSettings.reflectionEnabled ?? false,
+          compressionEnabled: settings.aiSearchSettings.compressionEnabled ?? false
         };
         this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
         this.snapshotEmbeddingSettings();

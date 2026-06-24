@@ -455,6 +455,92 @@
 
           <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
 
+          <!-- RAG Techniques -->
+          <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; border: 1px solid var(--surface-border); border-radius: 8px; background: var(--surface-card);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <h4 style="margin: 0; color: var(--primary-color);">RAG Techniques (Advanced)</h4>
+            </div>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-color-secondary);">
+              These techniques enhance retrieval and answer quality. <strong>Features that add LLM calls are automatically disabled when using a local LLM provider</strong> to avoid excessive latency. They activate automatically when using an external (cloud) LLM.
+            </p>
+
+            <!-- HyDE -->
+            <div class="ocr-toggle-row">
+              <div class="ocr-toggle-label">
+                <label for="hydeEnabled"><strong>HyDE (Hypothetical Document Embeddings)</strong></label>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Generates a synthetic answer to improve embedding matching. <em>Adds 1 LLM call.</em></p>
+              </div>
+              <p-toggleswitch
+                id="hydeEnabled"
+                style="flex-shrink: 0;"
+                [(ngModel)]="aiSearchSettings.hydeEnabled"
+                [disabled]="!aiSearchEnabled || saveRunning">
+              </p-toggleswitch>
+            </div>
+
+            <!-- Multi-Query -->
+            <div class="ocr-toggle-row">
+              <div class="ocr-toggle-label">
+                <label for="multiQueryEnabled"><strong>Multi-Query Retrieval</strong></label>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Generates query variants and fuses results for broader coverage. <em>Adds 1 LLM call + N retrievals.</em></p>
+              </div>
+              <p-toggleswitch
+                id="multiQueryEnabled"
+                style="flex-shrink: 0;"
+                [(ngModel)]="aiSearchSettings.multiQueryEnabled"
+                [disabled]="!aiSearchEnabled || saveRunning">
+              </p-toggleswitch>
+            </div>
+
+            <!-- Query Decomposition -->
+            <div class="ocr-toggle-row">
+              <div class="ocr-toggle-label">
+                <label for="decompositionEnabled"><strong>Query Decomposition</strong></label>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Breaks complex queries into sub-questions for targeted retrieval. <em>Adds 1 LLM call + N retrievals.</em></p>
+              </div>
+              <p-toggleswitch
+                id="decompositionEnabled"
+                style="flex-shrink: 0;"
+                [(ngModel)]="aiSearchSettings.decompositionEnabled"
+                [disabled]="!aiSearchEnabled || saveRunning">
+              </p-toggleswitch>
+            </div>
+
+            <!-- Self-Reflection -->
+            <div class="ocr-toggle-row">
+              <div class="ocr-toggle-label">
+                <label for="reflectionEnabled"><strong>Self-Reflection</strong></label>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">LLM critiques its own answer and regenerates if issues are found. <em>Adds 1-2 LLM calls.</em></p>
+              </div>
+              <p-toggleswitch
+                id="reflectionEnabled"
+                style="flex-shrink: 0;"
+                [(ngModel)]="aiSearchSettings.reflectionEnabled"
+                [disabled]="!aiSearchEnabled || saveRunning">
+              </p-toggleswitch>
+            </div>
+
+            <!-- Contextual Compression -->
+            <div class="ocr-toggle-row">
+              <div class="ocr-toggle-label">
+                <label for="compressionEnabled"><strong>Contextual Compression</strong></label>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Filters retrieved chunks to only the most relevant sentences. <em>No LLM calls — works with any provider.</em></p>
+              </div>
+              <p-toggleswitch
+                id="compressionEnabled"
+                style="flex-shrink: 0;"
+                [(ngModel)]="aiSearchSettings.compressionEnabled"
+                [disabled]="!aiSearchEnabled || saveRunning">
+              </p-toggleswitch>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-start; margin-top: 1rem;">
+            <p-button label="Apply RAG Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [severity]="isAiSearchSettingsDirty() ? 'success' : 'secondary'" [disabled]="!aiSearchEnabled || saveRunning || !isAiSearchConfigValid() || !isAiSearchSettingsDirty()"></p-button>
+          </div>
+
+          <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
+
           <!-- Embedding Configuration (Click to Expand) -->
           <div class="settings-card" [ngClass]="{ 'disabled': !aiSearchEnabled }">
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 1rem;">

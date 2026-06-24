@@ -68,6 +68,13 @@ RRF_K = int(_config.get("rrfK", 60))
 RERANKING_ENABLED = _config.get("rerankingEnabled", False)
 RERANKER_MODEL_NAME = _config.get("rerankerModel", "BAAI/bge-reranker-base")
 
+# RAG technique toggles (auto-disabled for local LLM providers)
+HYDE_ENABLED = _config.get("hydeEnabled", False)
+MULTI_QUERY_ENABLED = _config.get("multiQueryEnabled", False)
+DECOMPOSITION_ENABLED = _config.get("decompositionEnabled", False)
+REFLECTION_ENABLED = _config.get("reflectionEnabled", False)
+COMPRESSION_ENABLED = _config.get("compressionEnabled", False)
+
 OCR_ENABLED = _config.get("ocrEnabled", True)
 OCR_FALLBACK_ONLY = _config.get("ocrFallbackOnly", True)
 OCR_LANGUAGE = _config.get("ocrLanguage", "eng")
@@ -662,7 +669,7 @@ def health() -> dict[str, Any]:
 
 @app.post("/v1/config")
 def update_config(payload: dict[str, Any]) -> dict[str, Any]:
-    global _config, EMBEDDING_PROVIDER, EMBEDDING_API_KEY, LLM_PROVIDER, LLM_API_KEY, EMBEDDING_MODEL_NAME, EXTERNAL_EMBEDDING_BASE_URL, EXTERNAL_LLM_BASE_URL, LLM_MODEL_NAME, LLM_MAX_TOKENS, LLM_TEMPERATURE, SEARCH_TOP_K, SEARCH_SIMILARITY_THRESHOLD, _embedding_model, MATRYOSHKA_DIMENSIONS, HYBRID_SEARCH_ENABLED, RRF_K, RERANKING_ENABLED, RERANKER_MODEL_NAME, _reranker_model, OCR_ENABLED, OCR_FALLBACK_ONLY, OCR_LANGUAGE
+    global _config, EMBEDDING_PROVIDER, EMBEDDING_API_KEY, LLM_PROVIDER, LLM_API_KEY, EMBEDDING_MODEL_NAME, EXTERNAL_EMBEDDING_BASE_URL, EXTERNAL_LLM_BASE_URL, LLM_MODEL_NAME, LLM_MAX_TOKENS, LLM_TEMPERATURE, SEARCH_TOP_K, SEARCH_SIMILARITY_THRESHOLD, _embedding_model, MATRYOSHKA_DIMENSIONS, HYBRID_SEARCH_ENABLED, RRF_K, RERANKING_ENABLED, RERANKER_MODEL_NAME, _reranker_model, OCR_ENABLED, OCR_FALLBACK_ONLY, OCR_LANGUAGE, HYDE_ENABLED, MULTI_QUERY_ENABLED, DECOMPOSITION_ENABLED, REFLECTION_ENABLED, COMPRESSION_ENABLED
 
     with _load_lock:
         try:
@@ -704,6 +711,12 @@ def update_config(payload: dict[str, Any]) -> dict[str, Any]:
             OCR_ENABLED = _config.get("ocrEnabled", True)
             OCR_FALLBACK_ONLY = _config.get("ocrFallbackOnly", True)
             OCR_LANGUAGE = _config.get("ocrLanguage", "eng")
+
+            HYDE_ENABLED = _config.get("hydeEnabled", False)
+            MULTI_QUERY_ENABLED = _config.get("multiQueryEnabled", False)
+            DECOMPOSITION_ENABLED = _config.get("decompositionEnabled", False)
+            REFLECTION_ENABLED = _config.get("reflectionEnabled", False)
+            COMPRESSION_ENABLED = _config.get("compressionEnabled", False)
 
             if model_changed or EMBEDDING_PROVIDER != "local":
                 _embedding_model = None  # Force reload or switch to external
@@ -1340,7 +1353,13 @@ def search(payload: dict[str, Any]) -> dict[str, Any]:
             max_tokens=max_tokens,
             temperature=temperature,
             chat_history=chat_history,
-            local_only=local_only
+            local_only=local_only,
+            hyde_enabled=HYDE_ENABLED,
+            multi_query_enabled=MULTI_QUERY_ENABLED,
+            decomposition_enabled=DECOMPOSITION_ENABLED,
+            reflection_enabled=REFLECTION_ENABLED,
+            compression_enabled=COMPRESSION_ENABLED,
+            llm_provider=LLM_PROVIDER,
         )
         return response.model_dump(by_alias=True)
     except Exception as e:
