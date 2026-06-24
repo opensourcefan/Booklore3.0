@@ -928,16 +928,32 @@ public class AiSearchService {
     private List<String> chunkText(String text) {
         int chunkSizeSetting = 1500;
         int chunkOverlapSetting = 100;
+        boolean semanticChunking = false;
+        double semanticThreshold = 0.3;
         try {
             org.fable.model.dto.settings.AiSearchSettings settings = appSettingService.getAppSettings().getAiSearchSettings();
             if (settings != null) {
                 chunkSizeSetting = settings.getChunkSize() > 0 ? settings.getChunkSize() : 1500;
                 chunkOverlapSetting = settings.getChunkOverlap() >= 0 ? settings.getChunkOverlap() : 100;
+                semanticChunking = settings.isSemanticChunkingEnabled();
+                semanticThreshold = settings.getSemanticChunkingThreshold() > 0 ? settings.getSemanticChunkingThreshold() : 0.3;
             }
         } catch (Exception e) {
             log.warn("Failed to retrieve chunk settings dynamically, falling back to defaults: {}", e.getMessage());
         }
 
+        if (semanticChunking) {
+            return chunkTextSemantic(text, chunkSizeSetting, chunkOverlapSetting, semanticThreshold);
+        }
+        return chunkTextFixed(text, chunkSizeSetting, chunkOverlapSetting);
+    }
+
+    /**
+     * Fixed-size chunking with sentence-boundary awareness (original behavior).
+     * Splits text at sentence boundaries, grouping sentences until chunkSize is reached.
+     * Carries over recent sentences for overlap between chunks.
+     */
+    private List<String> chunkTextFixed(String text, int chunkSizeSetting, int chunkOverlapSetting) {
         List<String> chunks = new ArrayList<>();
         String cleaned = text.replaceAll("\\s+", " ").trim();
         if (cleaned.isEmpty()) {
@@ -951,7 +967,6 @@ public class AiSearchService {
         int end = boundary.next();
 
         StringBuilder currentChunk = new StringBuilder();
-        // Track the last few sentences for overlap when starting a new chunk
         java.util.Deque<String> recentSentences = new java.util.ArrayDeque<>();
 
         while (end != BreakIterator.DONE) {
@@ -960,7 +975,6 @@ public class AiSearchService {
                 if (currentChunk.length() + sentence.length() > chunkSizeSetting && currentChunk.length() > 0) {
                     chunks.add(currentChunk.toString().trim());
                     currentChunk = new StringBuilder();
-                    // Carry over enough recent sentences to achieve ~CHUNK_OVERLAP chars of overlap
                     int overlapChars = 0;
                     java.util.List<String> overlapSentences = new java.util.ArrayList<>();
                     var it = recentSentences.descendingIterator();
@@ -969,7 +983,6 @@ public class AiSearchService {
                         overlapSentences.add(s);
                         overlapChars += s.length() + 1;
                     }
-                    // Reverse to restore original order
                     java.util.Collections.reverse(overlapSentences);
                     for (String s : overlapSentences) {
                         currentChunk.append(s).append(" ");
@@ -977,7 +990,6 @@ public class AiSearchService {
                 }
                 currentChunk.append(sentence).append(" ");
                 recentSentences.addLast(sentence);
-                // Keep only enough sentences to cover CHUNK_OVERLAP chars
                 int totalLen = 0;
                 while (recentSentences.size() > 1) {
                     totalLen = recentSentences.stream().mapToInt(String::length).sum() + recentSentences.size();
@@ -1001,6 +1013,188 @@ public class AiSearchService {
 
         return chunks;
     }
+
+    /**
+     * Semantic chunking that detects topic shifts via paragraph boundaries and
+     * word-overlap drops between consecutive sentences. Produces more coherent,
+     * self-contained chunks than fixed-size chunking.
+     *
+     * Algorithm:
+     * 1. Split text into paragraphs (double newlines).
+     * 2. Within each paragraph, split into sentences.
+     * 3. Group sentences into chunks. A new chunk starts when:
+     *    a. A paragraph boundary is crossed (strong topic shift), OR
+     *    b. Word overlap between consecutive sentences drops below semanticThreshold, OR
+     *    c. The current chunk exceeds chunkSizeSetting (hard max).
+     * 4. Apply chunkOverlapSetting by carrying the last sentence(s) into the next chunk.
+     */
+    private List<String> chunkTextSemantic(String text, int chunkSizeSetting, int chunkOverlapSetting, double semanticThreshold) {
+        List<String> chunks = new ArrayList<>();
+        if (text == null || text.isBlank()) {
+            return chunks;
+        }
+
+        // Step 1: Split into paragraphs (double newlines or single newlines that act as paragraph breaks)
+        String[] paragraphs = text.split("\\n\\s*\\n");
+        if (paragraphs.length == 0) {
+            return chunks;
+        }
+
+        StringBuilder currentChunk = new StringBuilder();
+        // Track the last sentence for overlap carry-over
+        String lastSentence = null;
+
+        for (String paragraph : paragraphs) {
+            String cleaned = paragraph.replaceAll("\\s+", " ").trim();
+            if (cleaned.isEmpty()) {
+                continue;
+            }
+
+            // Step 2: Split paragraph into sentences
+            List<String> sentences = splitSentences(cleaned);
+            if (sentences.isEmpty()) {
+                continue;
+            }
+
+            // Step 3: Group sentences into chunks
+            for (int i = 0; i < sentences.size(); i++) {
+                String sentence = sentences.get(i);
+                boolean isFirstInParagraph = (i == 0);
+                boolean isLastInParagraph = (i == sentences.size() - 1);
+
+                // Determine if we should start a new chunk
+                boolean startNewChunk = false;
+
+                if (currentChunk.length() > 0) {
+                    // Check hard max size
+                    if (currentChunk.length() + sentence.length() > chunkSizeSetting) {
+                        startNewChunk = true;
+                    }
+                    // Check paragraph boundary (strong topic shift)
+                    else if (isFirstInParagraph && lastSentence != null) {
+                        double overlap = computeWordOverlap(lastSentence, sentence);
+                        if (overlap < semanticThreshold) {
+                            startNewChunk = true;
+                        }
+                    }
+                    // Check word-overlap drop between consecutive sentences
+                    else if (!isFirstInParagraph && lastSentence != null) {
+                        double overlap = computeWordOverlap(lastSentence, sentence);
+                        if (overlap < semanticThreshold) {
+                            startNewChunk = true;
+                        }
+                    }
+                }
+
+                if (startNewChunk && currentChunk.length() > 0) {
+                    // Finalize current chunk
+                    chunks.add(currentChunk.toString().trim());
+
+                    // Carry over overlap: include the last sentence from the previous chunk
+                    currentChunk = new StringBuilder();
+                    if (lastSentence != null && chunkOverlapSetting > 0) {
+                        currentChunk.append(lastSentence).append(" ");
+                    }
+                }
+
+                currentChunk.append(sentence).append(" ");
+                lastSentence = sentence;
+            }
+        }
+
+        // Finalize last chunk
+        if (currentChunk.length() > 0) {
+            String finalChunk = currentChunk.toString().trim();
+            if (!finalChunk.isEmpty()) {
+                chunks.add(finalChunk);
+            }
+        }
+
+        // Safety valve: if semantic chunking produced zero chunks (shouldn't happen),
+        // fall back to fixed-size chunking
+        if (chunks.isEmpty()) {
+            log.warn("Semantic chunking produced zero chunks, falling back to fixed-size chunking");
+            return chunkTextFixed(text, chunkSizeSetting, chunkOverlapSetting);
+        }
+
+        return chunks;
+    }
+
+    /**
+     * Split text into sentences using BreakIterator with fallback regex.
+     */
+    private List<String> splitSentences(String text) {
+        List<String> sentences = new ArrayList<>();
+        if (text == null || text.isBlank()) {
+            return sentences;
+        }
+
+        BreakIterator boundary = BreakIterator.getSentenceInstance();
+        boundary.setText(text);
+
+        int start = boundary.first();
+        int end = boundary.next();
+
+        while (end != BreakIterator.DONE) {
+            String sentence = text.substring(start, end).trim();
+            if (!sentence.isEmpty()) {
+                sentences.add(sentence);
+            }
+            start = end;
+            end = boundary.next();
+        }
+
+        return sentences;
+    }
+
+    /**
+     * Compute Jaccard word overlap between two sentences.
+     * Returns a value between 0.0 (no shared words) and 1.0 (identical word sets).
+     */
+    private double computeWordOverlap(String a, String b) {
+        if (a == null || b == null || a.isBlank() || b.isBlank()) {
+            return 0.0;
+        }
+
+        java.util.Set<String> wordsA = extractContentWords(a);
+        java.util.Set<String> wordsB = extractContentWords(b);
+
+        if (wordsA.isEmpty() || wordsB.isEmpty()) {
+            return 0.0;
+        }
+
+        java.util.Set<String> intersection = new java.util.HashSet<>(wordsA);
+        intersection.retainAll(wordsB);
+
+        java.util.Set<String> union = new java.util.HashSet<>(wordsA);
+        union.addAll(wordsB);
+
+        return (double) intersection.size() / (double) union.size();
+    }
+
+    /**
+     * Extract lowercase content words (3+ chars, no stopwords) from a sentence.
+     */
+    private java.util.Set<String> extractContentWords(String text) {
+        java.util.Set<String> words = new java.util.HashSet<>();
+        String[] tokens = text.toLowerCase().replaceAll("[^a-z0-9\\s]", " ").split("\\s+");
+        for (String token : tokens) {
+            if (token.length() >= 3 && !STOPWORDS.contains(token)) {
+                words.add(token);
+            }
+        }
+        return words;
+    }
+
+    private static final java.util.Set<String> STOPWORDS = java.util.Set.of(
+        "the", "and", "for", "that", "this", "with", "from", "have", "are",
+        "was", "not", "but", "you", "all", "can", "has", "had", "her", "his",
+        "its", "our", "out", "some", "than", "then", "them", "these", "they",
+        "what", "when", "will", "your", "about", "also", "been", "into", "like",
+        "more", "only", "other", "over", "such", "very", "which",
+        "there", "their", "were", "would", "could", "should", "each", "every",
+        "just", "most", "because", "while", "after", "before", "between"
+    );
 
     public void sendSearchProgress(String username, String event, String message, String error) {
         Map<String, Object> payload = new LinkedHashMap<>();

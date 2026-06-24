@@ -185,9 +185,11 @@ public class AppSettingService {
         boolean externalUrlChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getExternalEmbeddingUrl(), newSettings.getExternalEmbeddingUrl());
         boolean chunkSizeChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getChunkSize(), newSettings.getChunkSize());
         boolean chunkOverlapChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getChunkOverlap(), newSettings.getChunkOverlap());
+        boolean semanticChunkingChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.isSemanticChunkingEnabled(), newSettings.isSemanticChunkingEnabled());
+        boolean semanticThresholdChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getSemanticChunkingThreshold(), newSettings.getSemanticChunkingThreshold());
         boolean matryoshkaChanged = oldSettings != null && !java.util.Objects.equals(oldSettings.getMatryoshkaDimensions(), newSettings.getMatryoshkaDimensions());
         
-        if (providerChanged || modelChanged || externalUrlChanged || chunkSizeChanged || chunkOverlapChanged || matryoshkaChanged) {
+        if (providerChanged || modelChanged || externalUrlChanged || chunkSizeChanged || chunkOverlapChanged || semanticChunkingChanged || semanticThresholdChanged || matryoshkaChanged) {
             logger.info("Embedding model/provider/chunking settings changed, initiating auto-heal database sequence.");
             try {
                 jdbcTemplate.update("UPDATE book SET marked_for_ai_search = true WHERE id IN (SELECT book_id FROM book_embeddings)");
@@ -540,6 +542,11 @@ public class AppSettingService {
         searchSettings.setLlmModel(activeProfile.getLlmModel());
         searchSettings.setMaxTokens(activeProfile.getMaxTokens());
         searchSettings.setTemperature(activeProfile.getTemperature());
+        searchSettings.setHydeEnabled(activeProfile.isHydeEnabled());
+        searchSettings.setMultiQueryEnabled(activeProfile.isMultiQueryEnabled());
+        searchSettings.setDecompositionEnabled(activeProfile.isDecompositionEnabled());
+        searchSettings.setReflectionEnabled(activeProfile.isReflectionEnabled());
+        searchSettings.setCompressionEnabled(activeProfile.isCompressionEnabled());
 
         updateSetting(AppSettingKey.AI_SEARCH_SETTINGS, searchSettings);
     }

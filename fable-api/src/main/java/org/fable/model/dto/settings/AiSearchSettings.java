@@ -31,6 +31,10 @@ public class AiSearchSettings {
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private int chunkOverlap = 100;
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean semanticChunkingEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private double semanticChunkingThreshold = 0.3;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private int matryoshkaDimensions = 0;
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private boolean hybridSearchEnabled = false;

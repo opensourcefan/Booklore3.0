@@ -777,6 +777,36 @@
                     </div>
                   </div>
 
+                  <!-- 2b. Semantic Chunking -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem; padding: 1.25rem; border: 1px solid var(--surface-border); border-radius: 6px; background: var(--surface-ground);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; width: 100%;">
+                      <div style="flex: 1;">
+                        <h4 style="margin: 0; font-weight: 600;">Enable Semantic Chunking</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-color-secondary);">Detects topic boundaries between sentences using word overlap analysis. Produces chunks that respect paragraph and topic structure instead of cutting at fixed character counts. Modifying this clears the index.</p>
+                      </div>
+                      <p-toggleswitch
+                        [(ngModel)]="advancedSemanticChunkingEnabled"
+                        [disabled]="!aiSearchEnabled || saveRunning"
+                        (onChange)="advancedSemanticChunkingEnabled = $event.checked">
+                      </p-toggleswitch>
+                    </div>
+                    <div style="font-style: italic; color: var(--text-color-secondary); margin-top: 0.35rem; font-size: 0.83rem; background: var(--surface-card); padding: 0.5rem; border-left: 3px solid #ef4444; border-radius: 4px;">
+                      <strong>In other words:</strong> Instead of blindly slicing text every N characters, this reads the actual sentences and groups them by topic. When the subject shifts (detected by low word overlap), it starts a new chunk. This means you will see more coherent, topically-focused search results instead of fragments that cut off mid-thought.
+                    </div>
+                    @if (advancedSemanticChunkingEnabled) {
+                      <div style="display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px dashed var(--surface-border); padding-top: 1rem; margin-top: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <label for="semanticThreshold"><strong>Topic Boundary Threshold</strong></label>
+                          <span style="font-family: monospace; font-weight: bold; background: var(--surface-card); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--surface-border);">{{ advancedSemanticChunkingThreshold | number:'1.2-2' }}</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-color-secondary); margin: 0;">Controls how sensitive topic boundary detection is. Lower values (0.1) split more aggressively at subtle topic shifts. Higher values (0.5) only split at major topic changes, producing larger chunks. Modifying this clears the index.</p>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                          <input type="range" id="semanticThreshold" min="0.1" max="0.5" step="0.05" [(ngModel)]="advancedSemanticChunkingThreshold" [disabled]="!aiSearchEnabled || saveRunning" style="flex: 1;">
+                        </div>
+                      </div>
+                    }
+                  </div>
+
                   <!-- 3. Matryoshka Dimension Truncation -->
                   <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="matryoshkaDimensions"><strong>Matryoshka Vector Dimensions (MRL)</strong></label>

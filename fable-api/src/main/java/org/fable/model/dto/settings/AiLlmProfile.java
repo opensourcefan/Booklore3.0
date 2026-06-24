@@ -28,4 +28,15 @@ public class AiLlmProfile {
     private int maxTokens = 768;
     @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
     private double temperature = 0.1;
+
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean hydeEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean multiQueryEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean decompositionEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean reflectionEnabled = false;
+    @Builder.Default @JsonSetter(nulls = Nulls.SKIP)
+    private boolean compressionEnabled = false;
 }

@@ -1,5 +1,5 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
-import {NgClass} from '@angular/common';
+import {DecimalPipe, NgClass} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {Dialog} from 'primeng/dialog';
@@ -35,6 +35,7 @@ interface AiStartupEvent {
   standalone: true,
   imports: [
     Button,
+    DecimalPipe,
     Dialog,
     FormsModule,
     NgClass,
@@ -117,6 +118,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     autoEmbedLibraryIds: [],
     chunkSize: 1500,
     chunkOverlap: 100,
+    semanticChunkingEnabled: false,
+    semanticChunkingThreshold: 0.3,
     matryoshkaDimensions: 0,
     hybridSearchEnabled: false,
     rrfK: 60,
@@ -137,6 +140,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   advancedChunkSize = 1500;
   advancedChunkOverlap = 100;
+  advancedSemanticChunkingEnabled = false;
+  advancedSemanticChunkingThreshold = 0.3;
   advancedMatryoshkaDimensions = 0;
   advancedHybridSearchEnabled = false;
   advancedRrfK = 60;
@@ -214,6 +219,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           autoEmbedLibraryIds: settings.aiSearchSettings.autoEmbedLibraryIds || [],
           chunkSize: settings.aiSearchSettings.chunkSize || 1500,
           chunkOverlap: settings.aiSearchSettings.chunkOverlap !== undefined && settings.aiSearchSettings.chunkOverlap !== null ? settings.aiSearchSettings.chunkOverlap : 100,
+          semanticChunkingEnabled: settings.aiSearchSettings.semanticChunkingEnabled ?? false,
+          semanticChunkingThreshold: settings.aiSearchSettings.semanticChunkingThreshold !== undefined && settings.aiSearchSettings.semanticChunkingThreshold !== null ? settings.aiSearchSettings.semanticChunkingThreshold : 0.3,
           matryoshkaDimensions: settings.aiSearchSettings.matryoshkaDimensions ?? 0,
           hybridSearchEnabled: settings.aiSearchSettings.hybridSearchEnabled ?? false,
           rrfK: settings.aiSearchSettings.rrfK || 60,
@@ -1113,6 +1120,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
     this.advancedChunkSize = rawSaved.chunkSize || 1500;
     this.advancedChunkOverlap = rawSaved.chunkOverlap !== undefined && rawSaved.chunkOverlap !== null && !isUninitialized ? rawSaved.chunkOverlap : 100;
+    this.advancedSemanticChunkingEnabled = rawSaved.semanticChunkingEnabled ?? false;
+    this.advancedSemanticChunkingThreshold = rawSaved.semanticChunkingThreshold !== undefined && rawSaved.semanticChunkingThreshold !== null ? rawSaved.semanticChunkingThreshold : 0.3;
     this.advancedMatryoshkaDimensions = rawSaved.matryoshkaDimensions ?? 0;
     this.advancedHybridSearchEnabled = rawSaved.hybridSearchEnabled ?? false;
     this.advancedRrfK = rawSaved.rrfK || 60;
@@ -1130,6 +1139,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     this.originalAdvancedSettings = JSON.stringify({
       chunkSize: this.advancedChunkSize,
       chunkOverlap: this.advancedChunkOverlap,
+      semanticChunkingEnabled: this.advancedSemanticChunkingEnabled,
+      semanticChunkingThreshold: this.advancedSemanticChunkingThreshold,
       matryoshkaDimensions: this.advancedMatryoshkaDimensions,
       hybridSearchEnabled: this.advancedHybridSearchEnabled,
       rrfK: this.advancedRrfK,
@@ -1142,6 +1153,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     const current = JSON.stringify({
       chunkSize: this.advancedChunkSize,
       chunkOverlap: this.advancedChunkOverlap,
+      semanticChunkingEnabled: this.advancedSemanticChunkingEnabled,
+      semanticChunkingThreshold: this.advancedSemanticChunkingThreshold,
       matryoshkaDimensions: this.advancedMatryoshkaDimensions,
       hybridSearchEnabled: this.advancedHybridSearchEnabled,
       rrfK: this.advancedRrfK,
@@ -1202,6 +1215,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     const requiresReindex = 
       this.advancedChunkSize !== (this.aiSearchSettings.chunkSize ?? 1500) ||
       this.advancedChunkOverlap !== (this.aiSearchSettings.chunkOverlap ?? 100) ||
+      this.advancedSemanticChunkingEnabled !== (this.aiSearchSettings.semanticChunkingEnabled ?? false) ||
+      this.advancedSemanticChunkingThreshold !== (this.aiSearchSettings.semanticChunkingThreshold ?? 0.3) ||
       this.advancedMatryoshkaDimensions !== (this.aiSearchSettings.matryoshkaDimensions ?? 0);
 
     if (requiresReindex) {
@@ -1220,6 +1235,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     // Apply values to aiSearchSettings DTO
     this.aiSearchSettings.chunkSize = this.advancedChunkSize;
     this.aiSearchSettings.chunkOverlap = this.advancedChunkOverlap;
+    this.aiSearchSettings.semanticChunkingEnabled = this.advancedSemanticChunkingEnabled;
+    this.aiSearchSettings.semanticChunkingThreshold = this.advancedSemanticChunkingThreshold;
     this.aiSearchSettings.matryoshkaDimensions = this.advancedMatryoshkaDimensions;
     this.aiSearchSettings.hybridSearchEnabled = this.advancedHybridSearchEnabled;
     this.aiSearchSettings.rrfK = this.advancedRrfK;
@@ -1574,7 +1591,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       llmApiKey: this.aiSearchSettings.llmApiKey || '',
       externalLlmUrl: this.aiSearchSettings.externalLlmUrl || '',
       maxTokens: this.aiSearchSettings.maxTokens,
-      temperature: this.aiSearchSettings.temperature
+      temperature: this.aiSearchSettings.temperature,
+      hydeEnabled: this.aiSearchSettings.hydeEnabled ?? false,
+      multiQueryEnabled: this.aiSearchSettings.multiQueryEnabled ?? false,
+      decompositionEnabled: this.aiSearchSettings.decompositionEnabled ?? false,
+      reflectionEnabled: this.aiSearchSettings.reflectionEnabled ?? false,
+      compressionEnabled: this.aiSearchSettings.compressionEnabled ?? false
     };
 
     this.savingProfile = true;
@@ -1596,7 +1618,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
                   llmApiKey: settings.aiSearchSettings.llmApiKey,
                   externalLlmUrl: settings.aiSearchSettings.externalLlmUrl,
                   maxTokens: settings.aiSearchSettings.maxTokens,
-                  temperature: settings.aiSearchSettings.temperature
+                  temperature: settings.aiSearchSettings.temperature,
+                  hydeEnabled: settings.aiSearchSettings.hydeEnabled ?? false,
+                  multiQueryEnabled: settings.aiSearchSettings.multiQueryEnabled ?? false,
+                  decompositionEnabled: settings.aiSearchSettings.decompositionEnabled ?? false,
+                  reflectionEnabled: settings.aiSearchSettings.reflectionEnabled ?? false,
+                  compressionEnabled: settings.aiSearchSettings.compressionEnabled ?? false
                 };
                 this.snapshotLlmSettings();
                 this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
@@ -1655,7 +1682,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
               llmApiKey: settings.aiSearchSettings.llmApiKey,
               externalLlmUrl: settings.aiSearchSettings.externalLlmUrl,
               maxTokens: settings.aiSearchSettings.maxTokens,
-              temperature: settings.aiSearchSettings.temperature
+              temperature: settings.aiSearchSettings.temperature,
+              hydeEnabled: settings.aiSearchSettings.hydeEnabled ?? false,
+              multiQueryEnabled: settings.aiSearchSettings.multiQueryEnabled ?? false,
+              decompositionEnabled: settings.aiSearchSettings.decompositionEnabled ?? false,
+              reflectionEnabled: settings.aiSearchSettings.reflectionEnabled ?? false,
+              compressionEnabled: settings.aiSearchSettings.compressionEnabled ?? false
             };
             this.snapshotLlmSettings();
             this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);

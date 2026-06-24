@@ -280,6 +280,8 @@ export interface AiSearchSettings {
   autoEmbedLibraryIds: number[];
   chunkSize: number;
   chunkOverlap: number;
+  semanticChunkingEnabled: boolean;
+  semanticChunkingThreshold: number;
   matryoshkaDimensions: number;
   hybridSearchEnabled: boolean;
   rrfK: number;
@@ -394,4 +396,9 @@ export interface AiLlmProfile {
   llmModel: string;
   maxTokens: number;
   temperature: number;
+  hydeEnabled?: boolean;
+  multiQueryEnabled?: boolean;
+  decompositionEnabled?: boolean;
+  reflectionEnabled?: boolean;
+  compressionEnabled?: boolean;
 }
