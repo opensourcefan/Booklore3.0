@@ -11,6 +11,7 @@ It is designed to be called from the existing /v1/search route in app.py.
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any, Callable
 
 from models import (
@@ -76,6 +77,7 @@ def run_search_pipeline(
     Returns:
         SearchResponse compatible with the existing /v1/search API.
     """
+    pipeline_start = time.time()
     parsed = parse_query(query)
     display_top_k = display_top_k if display_top_k is not None else top_k
 
@@ -88,6 +90,7 @@ def run_search_pipeline(
     # ---- Stage 0: Adaptive Routing ----
     # Determine which strategies to apply based on query characteristics.
     # LLM-call strategies are auto-disabled for local providers.
+    t0 = time.time()
     can_use_llm = llm_provider != "local"
     effective_hyde = hyde_enabled and can_use_llm
     effective_multi_query = multi_query_enabled and can_use_llm
@@ -102,10 +105,12 @@ def run_search_pipeline(
         decomposition_enabled=effective_decomposition,
         llm_provider=llm_provider,
     )
+    logger.info("⏱  Stage 0 adaptive_routing: %.1fs", time.time() - t0)
 
     # ---- Stage 1: HyDE (Hypothetical Document Embeddings) ----
     embedding_text = parsed.embedding_text
     if RouteStrategy.HYDE in strategies:
+        t0 = time.time()
         from hyde import generate_hypothetical_document
         hypo = generate_hypothetical_document(
             query=parsed,
@@ -116,8 +121,10 @@ def run_search_pipeline(
         if hypo:
             embedding_text = hypo
             logger.info("HyDE: using hypothetical document as embedding text (%d chars)", len(hypo))
+        logger.info("⏱  Stage 1 hyde: %.1fs", time.time() - t0)
 
     # ---- Stage 2: Retrieval (with optional multi-query or decomposition) ----
+    t0 = time.time()
     if RouteStrategy.DECOMPOSITION in strategies:
         from decomposition import decomposed_retrieve
         retrieved, total_chunks_searched = decomposed_retrieve(
@@ -148,12 +155,13 @@ def run_search_pipeline(
         )
 
     logger.info(
-        "Retrieved %d chunks (searched %d) for query: %s",
-        len(retrieved), total_chunks_searched, query,
+        "⏱  Stage 2 retrieval: %.1fs — %d chunks (searched %d) for query: %s",
+        time.time() - t0, len(retrieved), total_chunks_searched, query,
     )
 
     # ---- Stage 3: Contextual Compression ----
     if compression_enabled and retrieved:
+        t0 = time.time()
         from compression import compress_chunks
         retrieved = compress_chunks(
             chunks=retrieved,
@@ -161,13 +169,15 @@ def run_search_pipeline(
             compression_ratio=0.5,
             min_sentences=2,
         )
-        logger.info("Contextual compression applied to %d chunks", len(retrieved))
+        logger.info("⏱  Stage 3 compression: %.1fs — applied to %d chunks", time.time() - t0, len(retrieved))
 
     # ---- Stage 4: Chunk quality filter ----
+    t0 = time.time()
     filter_result = apply_chunk_filter(retrieved, strict=strict_chunk_filter)
     filtered_chunks = filter_result.kept
     if filter_result.reason == "safety_valve":
         logger.info("Chunk filter safety valve engaged; using all %d retrieved chunks.", len(retrieved))
+    logger.info("⏱  Stage 4 chunk_filter: %.3fs — kept %d/%d chunks", time.time() - t0, len(filtered_chunks), len(retrieved))
 
     # Build display results from the filtered retrieval pool.
     display_chunks = filtered_chunks[:display_top_k]
@@ -176,6 +186,7 @@ def run_search_pipeline(
     validated_items: list[ValidatedAnswerItem] = []
     synthesis_result = SynthesisResult(no_relevant_info=True)
     if not local_only and filtered_chunks:
+        t0 = time.time()
         synthesis_result = synthesize(
             query=parsed,
             chunks=filtered_chunks,
@@ -188,12 +199,15 @@ def run_search_pipeline(
         if not synthesis_result.sentinel_triggered:
             validated_items = validate_answer_items(synthesis_result.items, filtered_chunks)
             logger.info(
-                "Synthesis produced %d validated items (no_relevant_info=%s) for query: %s",
-                len(validated_items), synthesis_result.no_relevant_info, query,
+                "⏱  Stage 5 synthesis: %.1fs — %d validated items (no_relevant_info=%s) for query: %s",
+                time.time() - t0, len(validated_items), synthesis_result.no_relevant_info, query,
             )
+        else:
+            logger.info("⏱  Stage 5 synthesis: %.1fs — sentinel triggered", time.time() - t0)
 
     # ---- Stage 6: Self-Reflection ----
     if effective_reflection and validated_items and not local_only:
+        t0 = time.time()
         from reflection import reflect_on_answer
         reflection = reflect_on_answer(
             query=parsed,
@@ -232,8 +246,10 @@ def run_search_pipeline(
                     "Self-reflection retry produced %d validated items",
                     len(validated_items),
                 )
+        logger.info("⏱  Stage 6 reflection: %.1fs (has_issues=%s)", time.time() - t0, reflection.get("has_issues", False))
 
     # ---- Stage 7: Determine final answer and results ----
+    t0 = time.time()
     if not local_only and synthesis_result.sentinel_triggered:
         display_chunks = []
         final_results = []
@@ -263,6 +279,9 @@ def run_search_pipeline(
         answer = disclaimer + "\n\n" + answer
     elif disclaimer and local_only:
         answer = disclaimer + (f"\n\n{answer}" if answer else "")
+
+    logger.info("⏱  Stage 7-8 assembly: %.3fs", time.time() - t0)
+    logger.info("⏱  TOTAL pipeline: %.1fs for query: %s", time.time() - pipeline_start, query[:80])
 
     return SearchResponse(
         query=query,
