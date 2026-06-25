@@ -24,4 +24,11 @@ public class LogNotificationController {
         List<LogNotification> notifications = logNotificationService.getRecentNotifications(cappedLimit);
         return ResponseEntity.ok(notifications);
     }
+
+    @DeleteMapping
+    @PreAuthorize("@securityUtil.canAccessTaskManager() or @securityUtil.isAdmin()")
+    public ResponseEntity<Void> deleteAllNotifications() {
+        logNotificationService.deleteAllNotifications();
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -29,6 +29,10 @@ export class LiveNotificationBoxComponent implements OnInit {
     this.notificationService.clearNotification();
   }
 
+  dismissAllNotifications(): void {
+    this.notificationService.deleteAllNotifications().subscribe();
+  }
+
   getSeverityColor(severity?: string): 'red' | 'amber' | 'green' | 'gray' {
     switch (severity) {
       case 'ERROR':

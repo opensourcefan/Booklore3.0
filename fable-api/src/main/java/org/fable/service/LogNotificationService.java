@@ -43,6 +43,12 @@ public class LogNotificationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteAllNotifications() {
+        repository.deleteAll();
+        log.info("Deleted all log notifications");
+    }
+
     private LogNotification toDto(LogNotificationEntity entity) {
         return new LogNotification(entity.getMessage(), entity.getSeverity());
     }

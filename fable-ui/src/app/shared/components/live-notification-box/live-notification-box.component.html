@@ -20,7 +20,13 @@
 @if (historicalNotifications$ | async; as historicalNotifications) {
   @if (historicalNotifications.length > 0) {
     <div class="historical-notifications-section">
-      <div class="historical-header">Recent Notifications</div>
+      <div class="historical-header-row">
+        <div class="historical-header">Recent Notifications</div>
+        <button class="dismiss-all-btn" (click)="dismissAllNotifications()" aria-label="Dismiss all notifications">
+          <i class="pi pi-times-circle"></i>
+          <span>Dismiss All</span>
+        </button>
+      </div>
       @for (notification of historicalNotifications; track notification.timestamp) {
         <div class="notification-container historical-item">
           <div class="notification-header">

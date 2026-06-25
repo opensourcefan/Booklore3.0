@@ -1,6 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {filter} from 'rxjs/operators';
+import {filter, tap} from 'rxjs/operators';
 import {LogNotification} from './model/log-notification.model';
 import {HttpClient} from '@angular/common/http';
 import {API_CONFIG} from '../../core/config/api-config';
@@ -50,5 +50,15 @@ export class NotificationEventService {
           console.warn('Failed to fetch historical notifications', err);
         }
       });
+  }
+
+  deleteAllNotifications(): Observable<void> {
+    return this.http.delete<void>(`${API_CONFIG.BASE_URL}/api/v1/notifications`).pipe(
+      tap(() => {
+        this.historicalNotificationsSubject.next([]);
+        this.latestNotificationSubject.next(null);
+        this.notificationHighlightSubject.next(false);
+      })
+    );
   }
 }

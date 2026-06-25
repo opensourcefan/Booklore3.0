@@ -14,4 +14,6 @@ public interface LogNotificationRepository extends JpaRepository<LogNotification
     List<LogNotificationEntity> findByCreatedAtAfterOrderByCreatedAtDesc(Instant since, Pageable pageable);
 
     List<LogNotificationEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    void deleteAll();
 }
