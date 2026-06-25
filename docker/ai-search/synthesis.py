@@ -27,6 +27,7 @@ Example:
 - Doom Patrol Issue 36. [ChunkID: 142]
 
 Rules:
+- Each bullet point MUST begin with the specific subject, entity, or topic it describes (e.g. a species name, character name, book title, concept, or person). Do NOT start with a generic description like "Physical Characteristics:" or "Habitat:" — always name what those facts belong to first.
 - If the Context contains chunks, you MUST return at least one item citing a ChunkID.
 - Only say "I could not find any relevant information for this search." if the Context is literally empty or completely unrelated.
 - Each item must have at least one [ChunkID: N] citation from the Context.
@@ -42,8 +43,9 @@ def build_context(query: ParsedQuery, chunks: list[RetrievedChunk]) -> str:
     lines = [f"Query: {query.raw}\n\nContext:"]
     for chunk in chunks:
         page = chunk.page_number if chunk.page_number is not None else "N/A"
+        chapter = f", {chunk.chapter_title}" if chunk.chapter_title else ""
         lines.append(
-            f"\n[ChunkID: {chunk.chunk_id}] Source: {chunk.book_title}, Page {page}\n{chunk.text}"
+            f"\n[ChunkID: {chunk.chunk_id}] Source: {chunk.book_title}, Page {page}{chapter}\n{chunk.text}"
         )
     return "\n".join(lines)
 

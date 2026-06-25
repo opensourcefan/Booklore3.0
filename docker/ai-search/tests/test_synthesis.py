@@ -157,6 +157,26 @@ def test_build_context_includes_chunk_ids():
     assert "Page 168" in context
 
 
+def test_build_context_includes_chapter_title():
+    parsed = ParsedQuery(raw="list comics")
+    chunks = [RetrievedChunk(
+        chunk_id=42, book_id=1, book_title="Book", chunk_index=42,
+        text="Some text.", page_number=168, chapter_title="Eastern Bluebird", rank=1,
+    )]
+    context = build_context(parsed, chunks)
+    assert "Eastern Bluebird" in context
+    assert "Page 168, Eastern Bluebird" in context
+
+
+def test_build_context_no_chapter_title():
+    parsed = ParsedQuery(raw="list comics")
+    chunks = [_chunk(42, "Some text.", 168)]
+    context = build_context(parsed, chunks)
+    assert "Page 168" in context
+    # No trailing comma when chapter_title is None
+    assert "Page 168," not in context
+
+
 def test_parse_concatenated_numbered_items():
     """Lazy LLMs emit "1 Foo. 2Bar. 3Baz." as one line; we must split it."""
     raw = "1 Batman time travel. 2Doom Patrol street. 3Animal Man cartoon."
