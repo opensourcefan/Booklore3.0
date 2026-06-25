@@ -347,7 +347,7 @@ public class TaskService {
             }
 
             String status = success ? "completed successfully" : "failed" + (errorDetail != null ? ": " + errorDetail : "");
-            String message = "Cron task " + taskType + " " + status;
+            String message = "Task " + taskType + " " + status;
             LogNotification logNotification = success
                     ? LogNotification.info(message)
                     : LogNotification.error(message);
