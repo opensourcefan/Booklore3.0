@@ -25,7 +25,103 @@
     --callout-tip: #deead7;
     --code-bg: #2a241f;
     --code-ink: #f4efe6;
+    --icon-color: #8b6b4a;
   }
+
+  /* PrimeIcons — local font files */
+  @font-face {
+    font-family: 'primeicons';
+    font-display: block;
+    src: url('./primeicons/fonts/primeicons.eot');
+    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('./primeicons/fonts/primeicons.woff') format('woff'),
+         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    font-weight: normal;
+    font-style: normal;
+  }
+  .pi {
+    font-family: 'primeicons';
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .pi:before {
+    backface-visibility: hidden;
+  }
+
+  /* Icon definitions used in this guide */
+  .pi-arrow-right:before { content: "\e91b"; }
+  .pi-arrows-v:before { content: "\e9ed"; }
+  .pi-bell:before { content: "\e97c"; }
+  .pi-book:before { content: "\e9ba"; }
+  .pi-bookmark:before { content: "\e94e"; }
+  .pi-bookmark-fill:before { content: "\e9df"; }
+  .pi-box:before { content: "\e9d9"; }
+  .pi-building:before { content: "\e9cf"; }
+  .pi-calendar:before { content: "\e927"; }
+  .pi-chart-bar:before { content: "\e96d"; }
+  .pi-check:before { content: "\e909"; }
+  .pi-check-circle:before { content: "\e90a"; }
+  .pi-clock:before { content: "\e940"; }
+  .pi-code:before { content: "\e9e7"; }
+  .pi-cog:before { content: "\e94a"; }
+  .pi-comment:before { content: "\e97f"; }
+  .pi-compass:before { content: "\e9ab"; }
+  .pi-copy:before { content: "\e957"; }
+  .pi-database:before { content: "\e9e3"; }
+  .pi-desktop:before { content: "\e993"; }
+  .pi-download:before { content: "\e956"; }
+  .pi-envelope:before { content: "\e979"; }
+  .pi-eraser:before { content: "\ea04"; }
+  .pi-eye:before { content: "\e966"; }
+  .pi-file:before { content: "\e958"; }
+  .pi-folder:before { content: "\e963"; }
+  .pi-folder-open:before { content: "\e964"; }
+  .pi-forward:before { content: "\e9ae"; }
+  .pi-globe:before { content: "\e94f"; }
+  .pi-history:before { content: "\e9da"; }
+  .pi-home:before { content: "\e925"; }
+  .pi-image:before { content: "\e972"; }
+  .pi-images:before { content: "\e973"; }
+  .pi-inbox:before { content: "\e961"; }
+  .pi-info-circle:before { content: "\e924"; }
+  .pi-lightbulb:before { content: "\ea28"; }
+  .pi-link:before { content: "\e9c1"; }
+  .pi-list:before { content: "\e967"; }
+  .pi-list-check:before { content: "\ea24"; }
+  .pi-lock:before { content: "\e95f"; }
+  .pi-objects-column:before { content: "\ea12"; }
+  .pi-palette:before { content: "\e995"; }
+  .pi-pencil:before { content: "\e942"; }
+  .pi-play:before { content: "\e9b3"; }
+  .pi-play-circle:before { content: "\ea14"; }
+  .pi-plus:before { content: "\e90d"; }
+  .pi-refresh:before { content: "\e938"; }
+  .pi-save:before { content: "\e95b"; }
+  .pi-search:before { content: "\e908"; }
+  .pi-search-plus:before { content: "\e98f"; }
+  .pi-shield:before { content: "\e9b9"; }
+  .pi-sitemap:before { content: "\e96e"; }
+  .pi-sliders-h:before { content: "\e992"; }
+  .pi-sparkles:before { content: "\ea31"; }
+  .pi-star:before { content: "\e937"; }
+  .pi-step-forward:before { content: "\e917"; }
+  .pi-sync:before { content: "\e9e6"; }
+  .pi-tablet:before { content: "\e983"; }
+  .pi-tag:before { content: "\e95e"; }
+  .pi-times:before { content: "\e90b"; }
+  .pi-trash:before { content: "\e93d"; }
+  .pi-user:before { content: "\e939"; }
+  .pi-users:before { content: "\e941"; }
+  .pi-wifi:before { content: "\e96f"; }
   @page {
     size: A4;
     margin: 1.8cm 2cm;
@@ -62,7 +158,7 @@
   /* Cover / title block */
   .cover {
     text-align: center;
-    padding: 4.2em 2em 3.4em;
+    padding: 0 2em 3.4em;
     margin: 0.4rem 0 2rem;
     border: 1px solid var(--paper-edge);
     border-radius: 22px;
@@ -88,6 +184,20 @@
     line-height: 1.8;
   }
 
+  /* Section icons to the right of headings */
+  .section-icon {
+    float: right;
+    margin-left: 0.5rem;
+    font-size: 14pt;
+    color: var(--icon-color);
+    line-height: 1;
+    padding-top: 0.15em;
+  }
+  h2 {
+    clear: both;
+    position: relative;
+  }
+
   /* Headings */
   h1, h2, h3, h4 {
     font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -102,8 +212,22 @@
     margin-top: 1.9em;
     letter-spacing: 0.02em;
   }
-  h3 { font-size: 12pt; color: #80572f; margin-top: 1.3em; }
-  h4 { font-size: 10.5pt; color: #80572f; margin-top: 1em; }
+  h3 {
+    font-size: 12pt;
+    color: #5a3e1b;
+    margin-top: 2.2em;
+    margin-bottom: 0.5em;
+    padding: 6px 10px;
+    background: rgba(201, 168, 124, 0.10);
+    border-radius: 4px;
+  }
+  h4 {
+    font-size: 10.5pt;
+    color: #6b4d2a;
+    margin-top: 1.6em;
+    margin-bottom: 0.35em;
+    font-style: italic;
+  }
 
   /* Table of contents */
   .toc {
@@ -188,7 +312,6 @@
     body {
       box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
     }
-
     .cover {
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
     }
@@ -208,6 +331,154 @@
   /* Maintenance log */
   .maintenance-log { margin-top: 2em; }
 
+
+  /* Inline action icons in tables */
+  td i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+  th i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+
+  /* Book card overlay badges */
+  .guide-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin: 0 1px;
+    line-height: 1.4;
+  }
+  .guide-badge-ais {
+    background: #000000;
+    color: #00d2ff;
+    border: 1px solid #00d2ff;
+  }
+  .guide-badge-ais-marked {
+    background: #4b5563;
+    color: #9ca3af;
+  }
+  .guide-badge-ais-mismatched {
+    background: #000000;
+    color: #ff8800;
+    border: 1px solid #ff8800;
+  }
+  .guide-badge-aip {
+    background: #4b5563;
+    color: #22c55e;
+  }
+  .guide-badge-pdf {
+    background: #dc2626;
+    color: #fff;
+  }
+  .guide-badge-epub {
+    background: #2563eb;
+    color: #fff;
+  }
+  .guide-badge-cbx {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbz {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbr {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-audiobook {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-physical {
+    background: #78716c;
+    color: #fff;
+  }
+  .guide-badge-mobi {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-azw3 {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-fb2 {
+    background: #10b981;
+    color: #fff;
+  }
+  .guide-badge-mp3 {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4a {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4b {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-ogg {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-opus {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-cb7 {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-phy {
+    background: #78716c;
+    color: #fff;
+  }
+  /* Inline icon in prose */
+  .guide-icon-inline {
+    font-size: 0.85em;
+    color: var(--icon-color);
+    vertical-align: middle;
+    margin: 0 0.15em;
+  }
+
+  /* Location breadcrumb */
+  .section-location {
+    font-size: 9pt;
+    color: #8b7355;
+    margin: -0.3em 0 0.8em;
+    font-style: italic;
+  }
+  .section-location i {
+    font-size: 8pt;
+    color: #b8976e;
+    margin: 0 0.2em;
+  }
+
+  /* Subsection location breadcrumb */
+  .subsection-location {
+    font-size: 8.5pt;
+    color: #9b8365;
+    margin: -0.2em 0 0.6em;
+    font-style: italic;
+  }
+  .subsection-location i {
+    font-size: 7.5pt;
+    color: #c4a882;
+    margin: 0 0.15em;
+  }
+
   /* Print helpers */
   .page-break { page-break-before: always; }
   h2 { page-break-inside: avoid; }
@@ -224,7 +495,7 @@
     A friendly, complete walkthrough of everything Fable can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.101 &mdash; June 10, 2026<br>
+    Version 1.1.102 &mdash; June 25, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -274,18 +545,18 @@
 </div>
 
 <!-- ==================== SECTION 1 ==================== -->
-<h2 id="sec1">1. What Is Fable?</h2>
+<h2 id="sec1">1. What Is Fable? <span class="section-icon"><i class="pi pi-info-circle"></i></span></h2>
 
 <p>Fable is a <strong>self-hosted digital library</strong> &mdash; a personal application you run on your own computer or server to organize, read, and manage your book and comic collection. Think of it as your own private digital bookshelf accessible from any web browser on any device.</p>
 
 <h3>Supported Formats</h3>
 <table>
   <tr><th>Format</th><th>Description</th></tr>
-  <tr><td><strong>PDF</strong></td><td>Standard document files (books, manuals, magazines)</td></tr>
-  <tr><td><strong>EPUB</strong></td><td>Common e-book format used by most e-readers</td></tr>
-  <tr><td><strong>CBZ / CBR</strong></td><td>Comic book archives (zipped or RAR-compressed image collections)</td></tr>
-  <tr><td><strong>Audiobooks</strong></td><td>Audio files organized in folders (MP3, M4A, etc.)</td></tr>
-  <tr><td><strong>Physical Books</strong></td><td>Catalog entries for physical books you own (no digital file required)</td></tr>
+  <tr><td><strong><span class="guide-badge guide-badge-pdf">PDF</span></strong></td><td>Standard document files (books, manuals, magazines)</td></tr>
+  <tr><td><strong><span class="guide-badge guide-badge-epub">EPUB</span></strong></td><td>Common e-book format used by most e-readers</td></tr>
+  <tr><td><strong><span class="guide-badge guide-badge-cbz">CBZ</span> / <span class="guide-badge guide-badge-cbr">CBR</span></strong></td><td>Comic book archives (zipped or RAR-compressed image collections)</td></tr>
+  <tr><td><strong><span class="guide-badge guide-badge-audiobook">Audiobooks</span></strong></td><td>Audio files organized in folders (<span class="guide-badge guide-badge-mp3">MP3</span>, <span class="guide-badge guide-badge-m4a">M4A</span>, etc.)</td></tr>
+  <tr><td><strong><span class="guide-badge guide-badge-physical">Physical</span></strong></td><td>Catalog entries for physical books you own (no digital file required)</td></tr>
 </table>
 
 <h3>What You Can Do</h3>
@@ -299,10 +570,11 @@
   <li>Share your catalog with e-readers via OPDS feeds</li>
   <li>Manage multiple users with different access levels</li>
   <li>Use AI to detect comic panels for panel-by-panel reading</li>
+  <li>Use AI-powered natural language search to find books by theme, character, or concept</li>
 </ul>
 
 <!-- ==================== SECTION 2 ==================== -->
-<h2 id="sec2">2. Getting Started &mdash; First-Time Setup</h2>
+<h2 id="sec2">2. Getting Started &mdash; First-Time Setup <span class="section-icon"><i class="pi pi-play-circle"></i></span></h2>
 
 <p>When you open Fable for the very first time, you will see the <strong>Setup Wizard</strong>.</p>
 
@@ -325,7 +597,8 @@
 </div>
 
 <!-- ==================== SECTION 3 ==================== -->
-<h2 id="sec3">3. The Dashboard &mdash; Your Home Screen</h2>
+<h2 id="sec3">3. The Dashboard &mdash; Your Home Screen <span class="section-icon"><i class="pi pi-home"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Dashboard</p>
 
 <p>The Dashboard is the first screen you see after logging in. It provides a quick overview of your library.</p>
 
@@ -346,25 +619,34 @@
 </ul>
 
 <!-- ==================== SECTION 4 ==================== -->
-<h2 id="sec4">4. Navigating the Interface</h2>
+<h2 id="sec4">4. Navigating the Interface <span class="section-icon"><i class="pi pi-compass"></i></span></h2>
 
 <p>Fable uses a <strong>sidebar + main content</strong> layout.</p>
 
 <h3>Left Sidebar</h3>
 <table>
   <tr><th>Item</th><th>What It Does</th></tr>
-  <tr><td><strong>Dashboard</strong></td><td>Returns to the home screen</td></tr>
-  <tr><td><strong>All Books</strong></td><td>Shows every book across all your libraries</td></tr>
-  <tr><td><strong>Physical Books</strong></td><td>Shows your physical placeholders grouped by library, like a shelf overview for books you own off-screen</td></tr>
+  <tr><td><strong>Dashboard</strong> <i class="pi pi-home" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Returns to the home screen</td></tr>
+  <tr><td><strong>All Books</strong> <i class="pi pi-book" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows every book across all your libraries</td></tr>
+  <tr><td><strong>Physical Books</strong> <i class="pi pi-box" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows your physical placeholders grouped by library, like a shelf overview for books you own off-screen</td></tr>
   <tr><td><strong>Libraries</strong></td><td>Expandable list &mdash; click a library to see only its books</td></tr>
   <tr><td><strong>Shelves</strong></td><td>Your custom collections</td></tr>
   <tr><td><strong>Not Shelfed</strong></td><td>Books not assigned to any shelf</td></tr>
-  <tr><td><strong>Series</strong></td><td>Browse books grouped by series</td></tr>
-  <tr><td><strong>Authors</strong></td><td>Browse books by author</td></tr>
+  <tr><td><strong>Series</strong> <i class="pi pi-objects-column" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books grouped by series</td></tr>
+  <tr><td><strong>Authors</strong> <i class="pi pi-users" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books by author</td></tr>
   <tr><td><strong>Magic Shelves</strong></td><td>Your smart filtered collections</td></tr>
   <tr><td><strong>User Guide</strong> (bottom)</td><td>Open the familiarization guide PDF from the footer link</td></tr>
-  <tr><td><strong>Settings</strong> (bottom)</td><td>Application configuration</td></tr>
+  <tr><td><strong>Settings</strong> <i class="pi pi-cog" style="font-size:9pt;color:var(--icon-color);"></i> (bottom)</td><td>Application configuration</td></tr>
   <tr><td><strong>Language</strong> (bottom)</td><td>Switch the interface language</td></tr>
+</table>
+
+<h3>Top Bar</h3>
+<table>
+  <tr><th>Item</th><th>What It Does</th></tr>
+  <tr><td><strong>Search</strong> <i class="pi pi-search" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Search your entire collection by title, author, or ISBN</td></tr>
+  <tr><td><strong>AI Search</strong> <i class="pi pi-sparkles" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Natural language search powered by AI (see Section 16)</td></tr>
+  <tr><td><strong>Notification Bell</strong> <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows live task notifications (scans, imports, metadata fetches). Click the bell to see recent notifications. Use <strong>Dismiss All</strong> to clear the history. Notifications persist across restarts so you never miss a completed task.</td></tr>
+  <tr><td><strong>Customizable Toolbar</strong></td><td>Add, remove, and reorder buttons for BookDrop, theme, settings, fullscreen, and more</td></tr>
 </table>
 
 <h3>What You Can Do</h3>
@@ -378,14 +660,16 @@
   <li><strong>Open the User Guide from the footer PDF button</strong> &mdash; Use the footer PDF link to open the guide directly; if you want it to behave like a normal imported PDF in the built-in reader, copy it into a library or into BookDrop and import it like any other PDF</li>
   <li><strong>Open the folder panel while browsing books</strong> &mdash; Use the folder button in <strong>All Books</strong> or a library view to browse by real library directories</li>
   <li><strong>Toggle browser fullscreen from the topbar</strong> &mdash; Add or keep the fullscreen button in your toolbar, or use the same action from the mobile topbar menu when you want the interface to take over the whole screen</li>
+  <li><strong>Dismiss all notifications at once</strong> &mdash; Click <strong>Dismiss All</strong> in the notification dropdown to clear your entire notification history in one action</li>
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Switching between sidebar views does <em>not</em> reload your book grid from scratch &mdash; Fable remembers what was on screen, so navigation is fast.
+  <strong>Good to Know:</strong> Switching between sidebar views does <em>not</em> reload your book grid from scratch &mdash; Fable remembers what was on screen, so navigation is fast. Task notifications are now saved to the database, so they survive application restarts and container reboots.
 </div>
 
 <!-- ==================== SECTION 5 ==================== -->
-<h2 id="sec5">5. Libraries &mdash; Organizing Your Collection</h2>
+<h2 id="sec5">5. Libraries &mdash; Organizing Your Collection <span class="section-icon"><i class="pi pi-building"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> LIBRARIES section</p>
 
 <p>A <strong>Library</strong> is a connection between Fable and a folder on your computer or server where book files are stored.</p>
 
@@ -397,7 +681,7 @@
   <li><strong>Open Library Maintenance</strong> &mdash; Run high-impact library-wide actions from a dedicated maintenance dialog instead of mixing them with routine work</li>
   <li><strong>Open Library Settings and Manage Directories separately</strong> &mdash; Routine library settings now live in <strong>Library Settings</strong>, while library path changes live in <strong>Manage Directories</strong></li>
   <li><strong>See which directories are already imported while managing directories</strong> &mdash; The <strong>Manage Directories</strong> list marks directories already in the library and now also labels parent rows when only imported subdirectories live underneath them, so you can tell imported paths from new additions at a glance</li>
-  <li><strong>Choose whether new directories should scan immediately</strong> &mdash; <strong>Save</strong> updates directory membership only, while <strong>Save &amp; Scan New Directories</strong> imports only from the newly added paths</li>
+  <li><strong>Choose whether new directories should scan immediately</strong> &mdash; <strong>Save</strong> updates directory membership only, while <strong>Save & Scan New Directories</strong> imports only from the newly added paths</li>
   <li><strong>Save library changes without an automatic reconcile</strong> &mdash; Editing settings or adding directories no longer silently triggers a full reconcile afterward</li>
   <li><strong>Move between library settings, directories, and maintenance from inside the dialogs</strong> &mdash; The library-management dialogs now link to one another so you can stay in one workflow instead of backing out to the menu each time</li>
   <li><strong>Use a dedicated safe path before reconcile</strong> &mdash; The maintenance dialog now points routine discovery work back to <strong>Scan for New Files</strong> and requires an explicit acknowledgement before <strong>Reconcile Library</strong> can run</li>
@@ -411,7 +695,7 @@
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> The normal library menu keeps <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> grouped together near the bottom, above <strong>Delete Library</strong>, and the dialogs now cross-link to one another so you can move between them without reopening the menu. Use <strong>Library Settings</strong> for naming, icon, and scan behavior. Use <strong>Manage Directories</strong> when you intentionally want to add or remove library paths. Inside <strong>Manage Directories</strong>, <strong>Save</strong> updates paths only, while <strong>Save &amp; Scan New Directories</strong> imports only from newly added directories. <strong>Scan for New Files</strong> remains the library-wide safe additive discovery action, while <strong>Reconcile Library</strong> and library-wide sidecar import/export/backup tools stay inside <strong>Library Maintenance</strong>, where reconcile now requires an explicit acknowledgement before it can run. Scheduled library scans now follow that same additive new-file-only behavior. Changing directory-tag rules no longer silently retags existing books during a settings save, and additive scans only queue follow-up directory tagging for the books they just imported.
+  <strong>Good to Know:</strong> The normal library menu keeps <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> grouped together near the bottom, above <strong>Delete Library</strong>, and the dialogs now cross-link to one another so you can move between them without reopening the menu. Use <strong>Library Settings</strong> for naming <i class="pi pi-cog guide-icon-inline"></i> and scan behavior. Use <strong>Manage Directories</strong> when you intentionally want to add or remove library paths. Inside <strong>Manage Directories</strong>, <strong>Save</strong> updates paths only, while <strong>Save & Scan New Directories</strong> imports only from newly added directories. <strong>Scan for New Files</strong> remains the library-wide safe additive discovery action, while <strong>Reconcile Library</strong> and library-wide sidecar import/export/backup tools stay inside <strong>Library Maintenance</strong>, where reconcile now requires an explicit acknowledgement before it can run. Scheduled library scans now follow that same additive new-file-only behavior. Changing directory-tag rules no longer silently retags existing books during a settings save, and additive scans only queue follow-up directory tagging for the books they just imported.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -431,7 +715,8 @@
 </div>
 
 <!-- ==================== SECTION 6 ==================== -->
-<h2 id="sec6">6. Books &mdash; Adding, Browsing, and Managing</h2>
+<h2 id="sec6">6. Books &mdash; Adding, Browsing, and Managing <span class="section-icon"><i class="pi pi-book"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> All Books, or click any library</p>
 
 <h3>Browsing Books</h3>
 <ul>
@@ -449,29 +734,29 @@
 
 <table>
   <tr><th>Action</th><th>What It Does</th></tr>
-  <tr><td>Open the folder panel</td><td>Click the folder button while viewing <strong>All Books</strong> or a specific library</td></tr>
-  <tr><td>Expand a folder branch</td><td>Click the <strong>+</strong> or <strong>&minus;</strong> toggle next to a top-level folder</td></tr>
-  <tr><td>Select a top-level folder</td><td>Click the folder row itself to show only books stored directly in that root folder, with root folders and nested folders listed in alphabetical order and the book list switching to filename-based browsing</td></tr>
-  <tr><td>Select a subfolder</td><td>Click a nested folder to show books inside that folder and its child folders; while a directory filter is active, Fable shows filenames in the main list and keeps the active sort pinned to filename order instead of metadata title order, while still respecting the current filename sort direction</td></tr>
-  <tr><td>Clear a folder filter</td><td>Click the selected folder again, use the reset button beside the folder toggle, use the normal filter clear action, or click the active library or shelf in the left sidebar to return to that collection&rsquo;s normal view</td></tr>
-  <tr><td>Browse across libraries</td><td>In <strong>All Books</strong>, the panel shows each library root so you can filter across multiple libraries from one screen</td></tr>
+  <tr><td><i class="pi pi-folder-open"></i> Open the folder panel</td><td>Click the folder button while viewing <strong>All Books</strong> or a specific library</td></tr>
+  <tr><td><i class="pi pi-plus"></i> Expand a folder branch</td><td>Click the <strong>+</strong> or <strong>&minus;</strong> toggle next to a top-level folder</td></tr>
+  <tr><td><i class="pi pi-folder"></i> Select a top-level folder</td><td>Click the folder row itself to show only books stored directly in that root folder, with root folders and nested folders listed in alphabetical order and the book list switching to filename-based browsing</td></tr>
+  <tr><td><i class="pi pi-folder-open"></i> Select a subfolder</td><td>Click a nested folder to show books inside that folder and its child folders; while a directory filter is active, Fable shows filenames in the main list and keeps the active sort pinned to filename order instead of metadata title order, while still respecting the current filename sort direction</td></tr>
+  <tr><td><i class="pi pi-times"></i> Clear a folder filter</td><td>Click the selected folder again, use the reset button beside the folder toggle, use the normal filter clear action, or click the active library or shelf in the left sidebar to return to that collection&rsquo;s normal view</td></tr>
+  <tr><td><i class="pi pi-building"></i> Browse across libraries</td><td>In <strong>All Books</strong>, the panel shows each library root so you can filter across multiple libraries from one screen</td></tr>
 </table>
 
 <h3>What You Can Do</h3>
 <table>
   <tr><th>Action</th><th>How</th></tr>
-  <tr><td>View book details</td><td>Click the book cover</td></tr>
-  <tr><td>Read a book</td><td>Click &ldquo;Read&rdquo; on the detail page or double-click the cover</td></tr>
-  <tr><td>Add to a shelf</td><td>Right-click &rarr; Add to Shelf, or use the book detail page</td></tr>
-  <tr><td>Remove from shelf</td><td>Right-click &rarr; Remove from Shelf</td></tr>
-  <tr><td>Change reading status</td><td>Set to: Not Started, Reading, Completed, or Abandoned</td></tr>
-  <tr><td>Pin a book to Currently Reading</td><td>Use <strong>More Actions &rarr; Currently Reading</strong> to add or remove a book from the optional dashboard panel</td></tr>
-  <tr><td>Rate a book</td><td>Give it 1&ndash;5 stars on the detail page</td></tr>
-  <tr><td>Edit metadata</td><td>Update title, author, description, cover, etc.</td></tr>
-  <tr><td>Delete a book</td><td>Right-click &rarr; Delete (with optional disk deletion)</td></tr>
-  <tr><td>Delete multiple books</td><td>Select books (checkbox mode) then delete in bulk</td></tr>
-  <tr><td>Add a physical book</td><td>Create a catalog entry for a book you own physically in a chosen library directory, while keeping it available for metadata, covers, shelves, and filters</td></tr>
-  <tr><td>Assign file type</td><td>Choose how to open a file (e.g., read a PDF as an e-book instead)</td></tr>
+  <tr><td><i class="pi pi-eye"></i> View book details</td><td>Click the book cover</td></tr>
+  <tr><td><i class="pi pi-book"></i> Read a book</td><td>Click &ldquo;Read&rdquo; on the detail page or double-click the cover</td></tr>
+  <tr><td><i class="pi pi-bookmark"></i> Add to a shelf</td><td>Right-click &rarr; Add to Shelf, or use the book detail page</td></tr>
+  <tr><td><i class="pi pi-times"></i> Remove from shelf</td><td>Right-click &rarr; Remove from Shelf</td></tr>
+  <tr><td><i class="pi pi-check-circle"></i> Change reading status</td><td>Set to: Not Started, Reading, Completed, or Abandoned</td></tr>
+  <tr><td><i class="pi pi-bookmark-fill"></i> Pin a book to Currently Reading</td><td>Use <strong>More Actions &rarr; Currently Reading</strong> to add or remove a book from the optional dashboard panel</td></tr>
+  <tr><td><i class="pi pi-star"></i> Rate a book</td><td>Give it 1&ndash;5 stars on the detail page</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Edit metadata</td><td>Update title, author, description, cover, etc.</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Delete a book</td><td>Right-click &rarr; Delete (with optional disk deletion)</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Delete multiple books</td><td>Select books (checkbox mode) then delete in bulk</td></tr>
+  <tr><td><i class="pi pi-box"></i> Add a physical book</td><td>Create a catalog entry for a book you own physically in a chosen library directory, while keeping it available for metadata, covers, shelves, and filters</td></tr>
+  <tr><td><i class="pi pi-tag"></i> Assign file type</td><td>Choose how to open a file (e.g., read a PDF as an e-book instead)</td></tr>
 </table>
 
 <div class="callout info">
@@ -497,14 +782,15 @@
   <strong>Be Careful:</strong>
   <ul>
     <li><strong>Deleting a book with &ldquo;delete from disk&rdquo; enabled is permanent.</strong> The file is gone. There is no recycle bin.</li>
-    <li><strong>When Allow File Deletion is turned off, Fable hides the &ldquo;Delete from Disk&rdquo; choice.</strong> You can still use <strong>Remove from Library</strong> to hide the catalog entry while leaving the file on disk, and routine scans/watchers should not bring that removed book back on their own.</li>
+    <li><strong>When Allow File Deletion is turned off, Fable hides the &ldquo;Delete from Disk&rdquo; choice.</strong> You can still use <strong>Remove from Library</strong> to hide the catalog entry while leaving the file on disk. Removed books now stay removed across subsequent scans and file-watcher events &mdash; they will not reappear on the next library scan.</li>
     <li><strong>Bulk deleting books</strong> is powerful &mdash; double-check your selection before confirming.</li>
     <li><strong>If you delete the only readable format from a normal digital book,</strong> Fable now removes that empty catalog shell instead of leaving behind a metadata-only entry. If you want a deliberate metadata-only placeholder, create a <strong>Physical Book</strong> instead.</li>
   </ul>
 </div>
 
 <!-- ==================== SECTION 7 ==================== -->
-<h2 id="sec7">7. BookDrop &mdash; Importing New Books</h2>
+<h2 id="sec7">7. BookDrop &mdash; Importing New Books <span class="section-icon"><i class="pi pi-inbox"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> BookDrop <i class="pi pi-inbox"></i></p>
 
 <p>BookDrop is a <strong>watch folder</strong> &mdash; a special folder where you drop new book files, and Fable will detect and import them.</p>
 
@@ -520,21 +806,21 @@
 <h3>What You Can Do</h3>
 <table>
   <tr><th>Action</th><th>Description</th></tr>
-  <tr><td>Rescan</td><td>Manually trigger a scan of the BookDrop folder</td></tr>
-  <tr><td>Preview files</td><td>See file details before importing</td></tr>
-  <tr><td>Edit metadata</td><td>Change title, author, cover, etc. before import</td></tr>
-  <tr><td>Bulk edit</td><td>Update metadata for multiple files at once</td></tr>
-  <tr><td>Pattern extraction</td><td>Automatically parse filenames to extract title, author, series, etc.</td></tr>
-  <tr><td>Choose destination</td><td>Pick which library and folder path to import into</td></tr>
-  <tr><td>Discard files</td><td>Skip files you don&rsquo;t want to import</td></tr>
-  <tr><td>Finalize import</td><td>Move files from BookDrop into your library</td></tr>
-  <tr><td>Watch follow-up directory tagging</td><td>If the destination library uses directory-based tags, a separate background task continues after import and shows live progress plus time remaining in the top bar and Task Management</td></tr>
+  <tr><td><i class="pi pi-refresh"></i> Rescan</td><td>Manually trigger a scan of the BookDrop folder</td></tr>
+  <tr><td><i class="pi pi-eye"></i> Preview files</td><td>See file details before importing</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Edit metadata</td><td>Change title, author, cover, etc. before import</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Bulk edit</td><td>Update metadata for multiple files at once</td></tr>
+  <tr><td><i class="pi pi-code"></i> Pattern extraction</td><td>Automatically parse filenames to extract title, author, series, etc.</td></tr>
+  <tr><td><i class="pi pi-folder"></i> Choose destination</td><td>Pick which library and folder path to import into</td></tr>
+  <tr><td><i class="pi pi-times"></i> Discard files</td><td>Skip files you don&rsquo;t want to import</td></tr>
+  <tr><td><i class="pi pi-check"></i> Finalize import</td><td>Move files from BookDrop into your library</td></tr>
+  <tr><td><i class="pi pi-tag"></i> Watch follow-up directory tagging</td><td>If the destination library uses directory-based tags, a separate background task continues after import and shows live progress plus time remaining in the top bar and Task Management</td></tr>
 </table>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
   <li>Import files directly from a URL or the internet &mdash; you must first download them to the BookDrop folder</li>
-  <li>Import unsupported file formats (stick to PDF, EPUB, CBZ, CBR, and audio formats)</li>
+  <li>Import unsupported file formats (stick to <span class="guide-badge guide-badge-pdf">PDF</span>, <span class="guide-badge guide-badge-epub">EPUB</span>, <span class="guide-badge guide-badge-cbz">CBZ</span>, <span class="guide-badge guide-badge-cbr">CBR</span>, and audio formats)</li>
 </ul>
 
 <div class="callout warning">
@@ -548,21 +834,22 @@
 </div>
 
 <!-- ==================== SECTION 8 ==================== -->
-<h2 id="sec8">8. Shelves &mdash; Custom Collections</h2>
+<h2 id="sec8">8. Shelves &mdash; Custom Collections <span class="section-icon"><i class="pi pi-bookmark"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> SHELVES section</p>
 
 <p>Shelves are like playlists for your books. You can create as many as you want and assign any book to one or more shelves.</p>
 
 <h3>What You Can Do</h3>
 <table>
   <tr><th>Action</th><th>Description</th></tr>
-  <tr><td>Create a shelf</td><td>Give it a name and optionally an icon</td></tr>
-  <tr><td>Add books</td><td>Assign books to a shelf from the book detail page or right-click menu</td></tr>
-  <tr><td>Remove books</td><td>Take books off a shelf without deleting them</td></tr>
-  <tr><td>Rename a shelf</td><td>Change its name anytime</td></tr>
-  <tr><td>Delete a shelf</td><td>Remove the shelf (books are not deleted)</td></tr>
-  <tr><td>Browse a shelf</td><td>Click a shelf in the sidebar to see only its books</td></tr>
-  <tr><td>Make a shelf public</td><td>Admins can make shelves visible to all users</td></tr>
-  <tr><td>Kobo device shelf</td><td>Special shelf type that syncs to connected Kobo e-readers</td></tr>
+  <tr><td><i class="pi pi-plus"></i> Create a shelf</td><td>Give it a name and optionally an icon <i class="pi pi-palette guide-icon-inline"></i></td></tr>
+  <tr><td><i class="pi pi-bookmark"></i> Add books</td><td>Assign books to a shelf from the book detail page or right-click menu</td></tr>
+  <tr><td><i class="pi pi-times"></i> Remove books</td><td>Take books off a shelf without deleting them</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Rename a shelf</td><td>Change its name anytime</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Delete a shelf</td><td>Remove the shelf (books are not deleted)</td></tr>
+  <tr><td><i class="pi pi-eye"></i> Browse a shelf</td><td>Click a shelf in the sidebar to see only its books</td></tr>
+  <tr><td><i class="pi pi-users"></i> Make a shelf public</td><td>Admins can make shelves visible to all users</td></tr>
+  <tr><td><i class="pi pi-tablet"></i> Kobo device shelf</td><td>Special shelf type that syncs to connected Kobo e-readers</td></tr>
 </table>
 
 <div class="callout tip">
@@ -579,35 +866,107 @@
 </div>
 
 <!-- ==================== SECTION 9 ==================== -->
-<h2 id="sec9">9. Magic Shelves &mdash; Smart Filtered Collections</h2>
+<h2 id="sec9">9. Magic Shelves &mdash; Smart Filtered Collections <span class="section-icon"><i class="pi pi-sparkles"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> MAGIC SHELVES section</p>
 
-<p>Magic Shelves are <strong>automatic collections</strong> that populate themselves based on rules you define. They update automatically as your library changes.</p>
+<p>Magic Shelves are <strong>automatic collections</strong> that populate themselves based on rules you define. Unlike regular shelves where you manually add and remove books, Magic Shelves use a powerful rule engine to decide membership automatically. Change a book's metadata, and it may appear or disappear from your Magic Shelves without any manual work.</p>
 
-<h3>Examples</h3>
+<h3>The Rule Builder</h3>
+<p>When you create or edit a Magic Shelf, you use a visual rule builder with these components:</p>
+
+<table>
+  <tr><th>Component</th><th>What It Does</th></tr>
+  <tr><td><strong>Field</strong> <i class="pi pi-tag guide-icon-inline"></i></td><td>What you want to filter on — choose from 50+ fields across 9 categories</td></tr>
+  <tr><td><strong>Operator</strong> <i class="pi pi-sliders-h guide-icon-inline"></i></td><td>How to compare the field (equals, contains, greater than, is empty, within last 30 days, etc.)</td></tr>
+  <tr><td><strong>Value</strong> <i class="pi pi-pencil guide-icon-inline"></i></td><td>The target to match against — text, numbers, dates, multi-select lists, or date ranges depending on the field and operator</td></tr>
+  <tr><td><strong>AND / OR Join</strong> <i class="pi pi-link guide-icon-inline"></i></td><td>How rules within a group combine: <strong>AND</strong> means all rules must match, <strong>OR</strong> means any rule can match</td></tr>
+  <tr><td><strong>Nested Groups</strong> <i class="pi pi-folder-open guide-icon-inline"></i></td><td>Add sub-groups inside a group to build complex logic like "(A AND B) OR (C AND D)"</td></tr>
+  <tr><td><strong>Live Match Count</strong> <i class="pi pi-check-circle guide-icon-inline"></i></td><td>As you build rules, Fable shows exactly how many books in your library match — updated in real time</td></tr>
+  <tr><td><strong>Cap Slider</strong> <i class="pi pi-sliders-v guide-icon-inline"></i></td><td>Limit the shelf to a maximum number of books (1–1000). If more books match than the cap, a warning appears and only the first N books are shown</td></tr>
+</table>
+
+<h3>Available Filter Fields</h3>
+<p>The rule builder organizes fields into nine categories. Here is what you can filter on:</p>
+
+<table>
+  <tr><th>Category</th><th>Fields</th></tr>
+  <tr><td><strong>Organization</strong></td><td>Library, Shelf, Folder Path, Read Status, Reading Progress (%)</td></tr>
+  <tr><td><strong>Book Info</strong></td><td>Title, Subtitle, Description, Authors, Categories (Genres), Publisher, Language, Page Count, Age Rating, Content Rating</td></tr>
+  <tr><td><strong>Series</strong></td><td>Series Name, Series Number, Series Total, Series Status (reading/completed/ongoing/not started/fully read), Series Gaps (any gap, missing first, missing latest, duplicate numbers), Series Position (next unread, first in series, last in series)</td></tr>
+  <tr><td><strong>Dates</strong></td><td>Published Date, Date Finished, Last Read Time, Date Added</td></tr>
+  <tr><td><strong>Ratings & Reviews</strong></td><td>Personal Rating, Amazon Rating & Review Count, Goodreads Rating & Review Count, Hardcover Rating & Review Count, RanobeDB Rating, Lubimyczytac Rating, Audible Rating & Review Count</td></tr>
+  <tr><td><strong>Quality & Metadata</strong></td><td>Metadata Score (0–100%), Metadata Presence (check if specific metadata fields exist or are missing)</td></tr>
+  <tr><td><strong>Tags & Moods</strong></td><td>Moods, Tags</td></tr>
+  <tr><td><strong>Audiobook</strong></td><td>Narrator, Abridged (yes/no), Duration (seconds), Codec, Chapter Count, Bitrate</td></tr>
+  <tr><td><strong>File & Identifiers</strong></td><td>File Type (PDF, EPUB, CBR, CBZ, etc.), File Size (KB), ISBN-13, ISBN-10, Is Physical Book</td></tr>
+</table>
+
+<h3>Available Operators</h3>
+<p>Different fields support different operators. Here are the most commonly used ones:</p>
+
+<table>
+  <tr><th>Operator</th><th>What It Does</th><th>Example</th></tr>
+  <tr><td><strong>equals / is not</strong></td><td>Exact match or exclusion</td><td>Read Status = READING</td></tr>
+  <tr><td><strong>contains / does not contain</strong></td><td>Partial text match</td><td>Title contains "Dragon"</td></tr>
+  <tr><td><strong>starts with / ends with</strong></td><td>Text prefix or suffix match</td><td>Author starts with "Brandon"</td></tr>
+  <tr><td><strong>greater than / less than</strong></td><td>Numeric or date comparison</td><td>Page Count > 500</td></tr>
+  <tr><td><strong>in between</strong></td><td>Range (two values)</td><td>Page Count between 200 and 400</td></tr>
+  <tr><td><strong>is empty / is not empty</strong></td><td>Check if a field has any value</td><td>Series Name is empty (standalone books)</td></tr>
+  <tr><td><strong>includes any / includes all / excludes all</strong></td><td>Multi-value matching (for fields like Authors, Categories, Tags)</td><td>Categories includes any: Fantasy, Sci-Fi</td></tr>
+  <tr><td><strong>within last / older than</strong></td><td>Relative date ranges</td><td>Added within last 30 days</td></tr>
+  <tr><td><strong>this period</strong></td><td>Current week, month, or year</td><td>Date Finished this month</td></tr>
+</table>
+
+<h3>Quick-Start Rule Examples</h3>
+<p>When you add a new rule, Fable suggests six quick-start examples you can apply with one click:</p>
 <ul>
-  <li>&ldquo;Books I Haven&rsquo;t Read Yet&rdquo; (filter: reading status = Not Started)</li>
-  <li>&ldquo;5-Star Books&rdquo; (filter: rating = 5)</li>
-  <li>&ldquo;All Comics&rdquo; (filter: media type = Comic)</li>
-  <li>&ldquo;Books by Stephen King&rdquo; (filter: author = Stephen King)</li>
-  <li>&ldquo;Added This Month&rdquo; (filter: date added = last 30 days)</li>
+  <li><strong>Currently Reading</strong> — Read Status = READING</li>
+  <li><strong>Unread</strong> — Read Status = UNREAD</li>
+  <li><strong>Added This Month</strong> — Date Added this month</li>
+  <li><strong>Added in Last 30 Days</strong> — Date Added within last 30 days</li>
+  <li><strong>Standalone Books</strong> — Series Name is empty</li>
+  <li><strong>Has Tags</strong> — Tags is not empty</li>
 </ul>
 
-<h3>What You Can Do</h3>
+<h3>Template Browser</h3>
+<p>Fable includes <strong>50+ pre-built templates</strong> organized into 10 categories. Instead of building rules from scratch, browse templates, search by name or tag, and apply one with a single click. You can then customize it further before saving.</p>
+
+<table>
+  <tr><th>Category</th><th>Example Templates</th></tr>
+  <tr><td><strong>Reading Progress</strong></td><td>Your Active Reads, Books Waiting to Be Read, Completed This Year, Recently Finished, Stalled Reads (untouched in 30+ days), Almost Finished (75%+), Short Quick Reads (<200 pages), Favorites Worth Rereading</td></tr>
+  <tr><td><strong>Genre & Theme</strong></td><td>Dark & Scholarly Fiction, Cozy Mystery Reads, Massive Fantasy Epics (500+ pages), Romance Meets Suspense, Science-Driven Sci-Fi, True Crime, Philosophy & Personal Growth, Horror & Supernatural, Kids & YA, Graphic Novels & Comics</td></tr>
+  <tr><td><strong>Ratings & Popularity</strong></td><td>Hidden Gems (4+ stars, <5K reviews), Universally Loved (4.5+ on multiple platforms), My Top-Rated Books, Bestsellers (10K+ reviews), Finished But Not Yet Rated, Overhyped Disappointments</td></tr>
+  <tr><td><strong>Series & Collections</strong></td><td>Next Book in Each Series, Series Starters You Haven't Read, Series Missing Books, Completely Finished Series, Long Series (10+ books), Standalone Books, Duplicate Series Entries</td></tr>
+  <tr><td><strong>Library Maintenance</strong></td><td>Missing Essential Info (title/author/genre), Books Without a Genre, No Description, Low Quality Metadata (<50%), Missing ISBN, Finished But Not Tagged, Missing Cover or Description, Perfectly Catalogued Books</td></tr>
+  <tr><td><strong>Date-Based</strong></td><td>Added This Week, Gathering Dust (added 90+ days ago, never opened), Classic Literature (pre-1950), Modern Releases (2020+), Read Over a Year Ago</td></tr>
+  <tr><td><strong>Author & Publisher</strong></td><td>Non-English Books, Books by a Specific Author, Publisher Spotlight, Books That Have Subtitles</td></tr>
+  <tr><td><strong>File & Format</strong></td><td>EPUB Format Books, Comic Book Files (CBR/CBZ/CB7), Large Files (100MB+), Physical Book Collection, Unread PDFs (Conversion Candidates)</td></tr>
+  <tr><td><strong>Audiobooks</strong></td><td>All Audiobooks, Long Audiobooks (10+ hours), Short Audiobooks (<3 hours), Unabridged Only, Highly Rated Audiobooks (4.5+ on Audible)</td></tr>
+  <tr><td><strong>Advanced Combos</strong></td><td>Book Club Candidates, Travel-Friendly Reads, Award-Caliber Literary Fiction, Spooky Season Reading List, Beach Reads, Premium Unread Fantasy, Nostalgia Re-Reads, Library Cleanup Candidates, Weekend Reading List, Genre-Bending Sci-Fi Crossovers</td></tr>
+</table>
+
+<h3>JSON Import / Export</h3>
+<p>Magic Shelf rules can be exported and imported as JSON. This lets you:</p>
 <ul>
-  <li>Create magic shelves with custom filter rules</li>
-  <li>Combine multiple filters (e.g., &ldquo;Unread comics rated 4+ stars&rdquo;)</li>
-  <li>Edit filter rules anytime &mdash; the shelf updates automatically</li>
-  <li>Make them public (admin only) &mdash; share with all users</li>
-  <li>Delete magic shelves when no longer needed</li>
+  <li><strong>Share shelves</strong> with other Fable users by copying the JSON</li>
+  <li><strong>Back up</strong> your carefully crafted rules before experimenting</li>
+  <li><strong>Duplicate</strong> a shelf by exporting, creating a new one, and importing the JSON</li>
 </ul>
+
+<h3>Icon Picker</h3>
+<p>Each Magic Shelf can have its own icon <i class="pi pi-palette guide-icon-inline"></i> — choose from PrimeIcons or upload custom SVG icons. The icon appears in the sidebar next to the shelf name, making it easy to identify at a glance.</p>
+
+<h3>Public Shelves</h3>
+<p>Admins can mark a Magic Shelf as <strong>Public</strong> <i class="pi pi-globe guide-icon-inline"></i>, making it visible to all users. Non-admin users see public shelves in their sidebar but cannot edit the rules. This is great for shared collections like "Book Club Picks" or "New Arrivals."</p>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
-  <li>Manually add or remove specific books from a magic shelf &mdash; membership is determined entirely by the filter rules</li>
+  <li>Manually add or remove specific books from a magic shelf — membership is determined entirely by the filter rules</li>
+  <li>Create rules that reference other Magic Shelves (no cross-shelf dependencies)</li>
 </ul>
 
 <div class="callout">
-  <strong>Be Careful:</strong> A magic shelf with very broad rules may include thousands of books, which can slow down loading.
+  <strong>Be Careful:</strong> A magic shelf with very broad rules may include thousands of books, which can slow down loading. Use the <strong>Cap</strong> slider to limit results, and check the live match count before saving.
 </div>
 
 <div class="callout tip">
@@ -615,28 +974,29 @@
 </div>
 
 <!-- ==================== SECTION 10 ==================== -->
-<h2 id="sec10">10. Reading Books</h2>
+<h2 id="sec10">10. Reading Books <span class="section-icon"><i class="pi pi-book"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Click <strong>Read</strong> on any book cover or detail page</p>
 
 <p>Fable includes built-in readers for every supported format. Each reader is tailored to its format.</p>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> On mobile, the system back gesture or back button now closes whichever reader panel, menu, or dialog is currently open (such as sidebars, quick settings, overflow menus, and preview dialogs) before leaving the reader screen.
+  <strong>Good to Know:</strong> On mobile, the system back gesture or back button now closes whichever reader panel, menu, or dialog is currently open (such as sidebars, quick settings, overflow menus, and preview dialogs) before leaving the reader screen. When you close a reader, Fable now shows &ldquo;Reading Progress Updated&rdquo; instead of a stale shelf-related message.
 </div>
 
 <!-- 10a: PDF -->
-<h3 id="sec10a">a) PDF Reader</h3>
+<h3 id="sec10a">a) <span class="guide-badge guide-badge-pdf">PDF</span> Reader</h3>
 <p>Opens PDF files (books, manuals, documents) in a dedicated viewer.</p>
 
 <table>
   <tr><th>Feature</th><th>Description</th></tr>
-  <tr><td>Page navigation</td><td>Go to any page, use forward/back arrows, or type a page number</td></tr>
-  <tr><td>Table of contents</td><td>Jump to chapters using the built-in outline (if the PDF has one)</td></tr>
-  <tr><td>Page thumbnails</td><td>See small previews of all pages for quick navigation</td></tr>
-  <tr><td>Zoom</td><td>Zoom in and out for easier reading</td></tr>
-  <tr><td>Bookmarks</td><td>Save your place with labeled bookmarks</td></tr>
-  <tr><td>Highlights</td><td>Select text and highlight it in different colors</td></tr>
-  <tr><td>Annotations</td><td>Add notes to highlighted sections</td></tr>
-  <tr><td>Reading progress</td><td>Automatically saved &mdash; pick up where you left off</td></tr>
+  <tr><td><i class="pi pi-copy"></i> Page navigation</td><td>Go to any page, use forward/back arrows, or type a page number</td></tr>
+  <tr><td><i class="pi pi-list"></i> Table of contents</td><td>Jump to chapters using the built-in outline (if the PDF has one)</td></tr>
+  <tr><td><i class="pi pi-images"></i> Page thumbnails</td><td>See small previews of all pages for quick navigation</td></tr>
+  <tr><td><i class="pi pi-search-plus"></i> Zoom</td><td>Zoom in and out for easier reading</td></tr>
+  <tr><td><i class="pi pi-bookmark"></i> Bookmarks</td><td>Save your place with labeled bookmarks</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Highlights</td><td>Select text and highlight it in different colors</td></tr>
+  <tr><td><i class="pi pi-comment"></i> Annotations</td><td>Add notes to highlighted sections</td></tr>
+  <tr><td><i class="pi pi-chart-bar"></i> Reading progress</td><td>Automatically saved &mdash; pick up where you left off</td></tr>
 </table>
 
 <p><strong>What You Can&rsquo;t Do:</strong> Edit PDF text, fill in forms, or print directly from Fable (use your browser&rsquo;s print function).</p>
@@ -646,19 +1006,19 @@
 </div>
 
 <!-- 10b: EPUB -->
-<h3 id="sec10b">b) E-Book (EPUB) Reader</h3>
+<h3 id="sec10b">b) E-Book (<span class="guide-badge guide-badge-epub">EPUB</span>) Reader</h3>
 <p>Opens EPUB e-book files with a clean, comfortable reading experience.</p>
 
 <table>
   <tr><th>Feature</th><th>Description</th></tr>
-  <tr><td>Chapter navigation</td><td>Use the table of contents to jump between chapters</td></tr>
-  <tr><td>Adjust font size</td><td>Make text larger or smaller for comfortable reading</td></tr>
-  <tr><td>Adjust line spacing</td><td>Increase or decrease space between lines</td></tr>
+  <tr><td><i class="pi pi-list"></i> Chapter navigation</td><td>Use the table of contents to jump between chapters</td></tr>
+  <tr><td><i class="pi pi-search-plus"></i> Adjust font size</td><td>Make text larger or smaller for comfortable reading</td></tr>
+  <tr><td><i class="pi pi-arrows-v"></i> Adjust line spacing</td><td>Increase or decrease space between lines</td></tr>
   <tr><td>Bookmarks</td><td>Save your place</td></tr>
   <tr><td>Highlights</td><td>Select text and highlight in colors</td></tr>
   <tr><td>Annotations</td><td>Write notes attached to highlighted text</td></tr>
   <tr><td>Reading progress</td><td>Automatically tracked</td></tr>
-  <tr><td>Custom fonts</td><td>Upload and use your preferred fonts (see Settings)</td></tr>
+  <tr><td><i class="pi pi-palette"></i> Custom fonts</td><td>Upload and use your preferred fonts (see Settings)</td></tr>
 </table>
 
 <p><strong>What You Can&rsquo;t Do:</strong> Change the book&rsquo;s text or view DRM-protected (copy-protected) files.</p>
@@ -668,23 +1028,92 @@
 </div>
 
 <!-- 10c: CBX -->
-<h3 id="sec10c">c) Comic (CBX) Reader</h3>
-<p>Opens CBZ and CBR comic book files with page and panel navigation.</p>
+<h3 id="sec10c">c) Comic (<span class="guide-badge guide-badge-cbx">CBX</span>) Reader</h3>
+<p>Opens <span class="guide-badge guide-badge-cbz">CBZ</span> and <span class="guide-badge guide-badge-cbr">CBR</span> comic book files with a feature-rich reader supporting multiple scroll modes, AI-powered panel detection, and extensive customization.</p>
 
+<h4>Scroll Modes</h4>
+<p>The CBX reader supports three distinct reading modes, switchable from the Quick Settings panel <i class="pi pi-cog guide-icon-inline"></i>:</p>
 <table>
-  <tr><th>Feature</th><th>Description</th></tr>
-  <tr><td>Page navigation</td><td>Flip through comic pages</td></tr>
-  <tr><td>Page list</td><td>Jump to any page by number</td></tr>
-  <tr><td>Webtoon mode</td><td>Enable continuous vertical scrolling for web comics</td></tr>
-  <tr><td>AI panel detection</td><td>Navigate panel-by-panel within each page (requires AI feature)</td></tr>
-  <tr><td>Bookmarks</td><td>Mark favorite pages</td></tr>
-  <tr><td>Reading progress</td><td>Automatically tracked</td></tr>
+  <tr><th>Mode</th><th>Behavior</th><th>Best For</th></tr>
+  <tr><td><strong>Paginated</strong></td><td>One or two pages at a time, click or tap to advance</td><td>Traditional comics, manga, graphic novels</td></tr>
+  <tr><td><strong>Infinite Scroll</strong></td><td>Continuous vertical scroll, pages load as you go</td><td>Long reading sessions, quick browsing</td></tr>
+  <tr><td><strong>Long Strip (Webtoon)</strong></td><td>All pages stacked vertically in one continuous strip</td><td>Webtoons, scroll comics, mobile-optimized content</td></tr>
 </table>
 
-<p><strong>What You Can&rsquo;t Do:</strong> Annotate or highlight on comic pages (image-based format), or edit/reorder pages.</p>
+<h4>Fit Modes</h4>
+<p>Control how pages scale within the viewport — available as icon buttons in Quick Settings:</p>
+<table>
+  <tr><th>Mode</th><th>What It Does</th></tr>
+  <tr><td><strong>Actual Size</strong></td><td>Displays pages at their native pixel dimensions with scrollbars if needed</td></tr>
+  <tr><td><strong>Fit Page</strong></td><td>Scales the entire page to fit within the visible area</td></tr>
+  <tr><td><strong>Fit Width</strong></td><td>Scales the page to fill the width of the viewport (may require vertical scrolling)</td></tr>
+  <tr><td><strong>Fit Height</strong></td><td>Scales the page to fill the height of the viewport (may require horizontal scrolling)</td></tr>
+  <tr><td><strong>Auto</strong></td><td>Intelligently chooses between Fit Width and Fit Page based on the page dimensions</td></tr>
+</table>
+
+<h4>Page View & Reading Direction</h4>
+<ul>
+  <li><strong>Single Page</strong> — One page at a time, the default for most comics</li>
+  <li><strong>Two-Page Spread</strong> — Shows two pages side-by-side like an open physical comic. Choose whether odd or even pages start the spread. Ideal for desktop and tablet reading of double-page splash art.</li>
+  <li><strong>Left-to-Right (LTR)</strong> — Standard Western reading direction</li>
+  <li><strong>Right-to-Left (RTL)</strong> — For manga and other right-to-left content; flips the page advance direction and two-page spread ordering</li>
+</ul>
+
+<h4>Background Color</h4>
+<p>Choose from <strong>Black</strong>, <strong>Gray</strong>, or <strong>White</strong> background behind the pages — accessible from Quick Settings as color swatch buttons.</p>
+
+<h4>Magnifier</h4>
+<p>Activate the magnifier <i class="pi pi-search-plus guide-icon-inline"></i> from the header toolbar to inspect fine details. A movable lens follows your cursor (desktop) or touch position (mobile). Configure the <strong>lens size</strong> (Small / Medium / Large) and <strong>zoom level</strong> (1.5× / 2× / 2.5× / 3×) from Quick Settings.</p>
+
+<h4>Slideshow</h4>
+<p>Enable auto-advancing pages with a configurable interval (5s / 10s / 15s / 20s / 30s / 60s). A progress bar animates across the top of the screen showing time until the next page. Start and stop from the header toolbar or mobile overflow menu.</p>
+
+<h4>AI Panel Detection</h4>
+<p>When AI features are enabled, the CBX reader can detect individual comic panels on each page. This unlocks:</p>
+<ul>
+  <li><strong>Panel-by-panel navigation</strong> — Instead of viewing the full page, the reader zooms into each panel in reading order. Navigate with click/tap, arrow keys, or the panel overview map.</li>
+  <li><strong>Panel overview map</strong> — A miniature overlay showing all detected panels on the current page with your active panel highlighted. Tap any panel to jump directly to it.</li>
+  <li><strong>Panel travel sensitivity</strong> — Adjust how far the viewport moves when transitioning between panels (0.4× to 2.5×) using a slider in the header.</li>
+  <li><strong>AI header dropdown</strong> — Scan the current book, rescan all pages, delete scan data, or view panel statistics (panels detected across pages).</li>
+  <li><strong>Mobile touch zones</strong> — On phones, left/right touch zones appear with "Previous Panel" / "Next Panel" hints for thumb-friendly navigation.</li>
+</ul>
+
+<h4>Mobile Joystick</h4>
+<p>On touch devices, enable the on-screen joystick <i class="pi pi-bullseye guide-icon-inline"></i> for precise panning around zoomed-in pages. The joystick menu (accessible from the header) provides:</p>
+<ul>
+  <li><strong>On / Off</strong> toggle</li>
+  <li><strong>Sensitivity</strong> — Slow, Normal, or Fast</li>
+  <li><strong>Position Lock</strong> — Lock the joystick in place or let it follow your initial touch point</li>
+  <li><strong>Touch Anchor</strong> — When enabled, the joystick re-centers to wherever you first touch</li>
+  <li><strong>Center Dot Indicator</strong> — Show or hide a center reference dot with adjustable opacity (10%–100%)</li>
+</ul>
+<p>A <strong>mobile zoom slider</strong> also appears below the joystick for pinch-free zoom control (1× to 3.5×).</p>
+
+<h4>Sidebar</h4>
+<p>The sidebar <i class="pi pi-bars guide-icon-inline"></i> has three tabs:</p>
+<table>
+  <tr><th>Tab</th><th>Contents</th></tr>
+  <tr><td><strong>Pages</strong></td><td>Numbered page list — tap any page to jump directly to it. Shows the book cover and metadata at the top.</td></tr>
+  <tr><td><strong>Bookmarks</strong></td><td>All bookmarks for this book with creation dates. Quick-add button to bookmark the current page. Delete individual bookmarks.</td></tr>
+  <tr><td><strong>Notes</strong></td><td>Full page notes with color coding, search/filter, edit, and delete. Each note shows its content, chapter, and date.</td></tr>
+</table>
+
+<h4>Header & Footer</h4>
+<ul>
+  <li><strong>Auto-hide</strong> — Header and footer fade out during reading and reappear on tap/mouse movement</li>
+  <li><strong>Pin</strong> — Lock bars visible with the pin button <i class="pi pi-thumbtack guide-icon-inline"></i></li>
+  <li><strong>Fullscreen</strong> — Expand to fill the entire screen</li>
+  <li><strong>Keyboard shortcuts</strong> — Press <strong>?</strong> or use the help button to see all available shortcuts</li>
+  <li><strong>Next in series</strong> — When you reach the last page of a comic that belongs to a series, a "Continue to Next Book" button appears showing the next book's title</li>
+</ul>
+
+<h4>Bookmarks & Notes</h4>
+<p>Unlike the EPUB reader, the CBX reader supports <strong>page-level notes</strong> with color coding. Add a note to any page from the header or sidebar. Notes appear with a colored bar and are searchable. A small indicator dot appears on the header's note button when the current page has notes. Bookmarks show a red ribbon indicator in the top-right corner of the page.</p>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Highlight or annotate specific regions on comic pages (image-based format), or edit/reorder pages.</p>
 
 <div class="callout">
-  <strong>Be Careful:</strong> CBR files (RAR format) may extract more slowly than CBZ files (ZIP format). Very high-resolution scans can use significant memory.
+  <strong>Be Careful:</strong> CBR files (RAR format) may extract more slowly than CBZ files (ZIP format). Very high-resolution scans can use significant memory. AI panel detection requires the AI feature to be enabled and configured.
 </div>
 
 <p><strong>Metadata note:</strong> If your deployment enables <strong>Save to Original File</strong> for CBR comics, mounting a compatible Linux <code>rar</code> binary into the Fable container lets metadata writes stay in the original <code>.cbr</code>. Without that binary, Fable may fall back to converting the file to <code>.cbz</code>, which takes longer.</p>
@@ -695,27 +1124,28 @@
 
 <table>
   <tr><th>Feature</th><th>Description</th></tr>
-  <tr><td>Track listing</td><td>See all tracks/chapters in the audiobook</td></tr>
-  <tr><td>Play / Pause</td><td>Standard audio controls</td></tr>
-  <tr><td>Seek / Scrub</td><td>Jump forward or backward within a track</td></tr>
-  <tr><td>Chapter navigation</td><td>Skip between tracks/chapters</td></tr>
-  <tr><td>Duration display</td><td>See total and remaining time</td></tr>
-  <tr><td>Progress tracking</td><td>Automatically saves your listening position</td></tr>
+  <tr><td><i class="pi pi-list"></i> Track listing</td><td>See all tracks/chapters in the audiobook</td></tr>
+  <tr><td><i class="pi pi-play"></i> Play / Pause</td><td>Standard audio controls</td></tr>
+  <tr><td><i class="pi pi-forward"></i> Seek / Scrub</td><td>Jump forward or backward within a track</td></tr>
+  <tr><td><i class="pi pi-step-forward"></i> Chapter navigation</td><td>Skip between tracks/chapters</td></tr>
+  <tr><td><i class="pi pi-clock"></i> Duration display</td><td>See total and remaining time</td></tr>
+  <tr><td><i class="pi pi-chart-bar"></i> Progress tracking</td><td>Automatically saves your listening position</td></tr>
 </table>
 
 <p><strong>What You Can&rsquo;t Do:</strong> Adjust playback speed natively (use browser extensions if needed).</p>
 
 <div class="callout">
-  <strong>Be Careful:</strong> Audiobooks must be organized as folders containing audio files. Make sure files are in common formats (MP3, M4A, OGG, etc.).
+  <strong>Be Careful:</strong> Audiobooks must be organized as folders containing audio files. Make sure files are in common formats (<span class="guide-badge guide-badge-mp3">MP3</span>, <span class="guide-badge guide-badge-m4a">M4A</span>, <span class="guide-badge guide-badge-ogg">OGG</span>, etc.).
 </div>
 
 <!-- ==================== SECTION 11 ==================== -->
-<h2 id="sec11">11. Bookmarks, Annotations, and the Notebook</h2>
+<h2 id="sec11">11. Bookmarks, Annotations, and the Notebook <span class="section-icon"><i class="pi pi-pencil"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Notebook, or inside any reader sidebar</p>
 
 <h3>Bookmarks</h3>
 <p>Simple position markers with an optional label. Use them to mark pages you want to return to.</p>
 <ul>
-  <li><strong>Create:</strong> While reading, click the bookmark icon at your current position</li>
+  <li><strong>Create:</strong> While reading, click the bookmark <i class="pi pi-bookmark guide-icon-inline"></i> at your current position</li>
   <li><strong>Label:</strong> Give bookmarks descriptive names (e.g., &ldquo;Important chapter&rdquo;)</li>
   <li><strong>Color coding:</strong> Assign colors to categorize bookmarks</li>
   <li><strong>Navigate:</strong> Click any bookmark to jump back to that spot</li>
@@ -740,6 +1170,7 @@
   <li>Search through your annotations</li>
   <li>Export all annotations for backup</li>
   <li>Quickly jump to the source book and location</li>
+  <li>Book groups are collapsed by default when you first open the Notebook, keeping the view tidy for large collections</li>
 </ul>
 
 <div class="callout info">
@@ -747,7 +1178,8 @@
 </div>
 
 <!-- ==================== SECTION 12 ==================== -->
-<h2 id="sec12">12. Reading Progress and Statistics</h2>
+<h2 id="sec12">12. Reading Progress and Statistics <span class="section-icon"><i class="pi pi-chart-bar"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Stats <i class="pi pi-chart-line"></i>, or Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Stats</p>
 
 <h3>Reading Progress</h3>
 <ul>
@@ -760,19 +1192,30 @@
 <h3>Reading Statistics Page</h3>
 <table>
   <tr><th>Statistic</th><th>What It Shows</th></tr>
-  <tr><td>Books completed</td><td>Total count of finished books</td></tr>
-  <tr><td>Currently reading</td><td>Books you&rsquo;re in the middle of</td></tr>
-  <tr><td>Reading streaks</td><td>Consecutive days with reading activity</td></tr>
-  <tr><td>Time spent</td><td>Total time spent reading</td></tr>
-  <tr><td>Monthly / Yearly breakdown</td><td>Reading activity over time</td></tr>
-  <tr><td>Favorite authors</td><td>Most-read authors based on your habits</td></tr>
+  <tr><td><i class="pi pi-check-circle"></i> Books completed</td><td>Total count of finished books</td></tr>
+  <tr><td><i class="pi pi-book"></i> Currently reading</td><td>Books you&rsquo;re in the middle of</td></tr>
+  <tr><td><i class="pi pi-calendar"></i> Reading streaks</td><td>Consecutive days with reading activity</td></tr>
+  <tr><td><i class="pi pi-clock"></i> Time spent</td><td>Total time spent reading</td></tr>
+  <tr><td><i class="pi pi-chart-bar"></i> Monthly / Yearly breakdown</td><td>Reading activity over time</td></tr>
+  <tr><td><i class="pi pi-user"></i> Favorite authors</td><td>Most-read authors based on your habits</td></tr>
 </table>
 
 <h3>Library Statistics Page</h3>
 <p>A separate page showing collection-level statistics: total books by format, genre, author, series; books by reading status; collection growth over time; and most recent additions. When AI panel data exists, the page also shows AI-scanned comic totals and stored AI panel-data size for the selected library.</p>
 
+<h3>AI Search Statistics</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Stats <i class="pi pi-chart-line"></i> <i class="pi pi-chevron-right"></i> Library Statistics tab, or Settings <i class="pi pi-chevron-right"></i> Stats</p>
+<p>The Library Statistics page now includes a dedicated <strong>AI Search</strong> section showing:</p>
+<ul>
+  <li><strong>Indexed books</strong> &mdash; How many books have been embedded for AI semantic search</li>
+  <li><strong>Total chunks</strong> &mdash; The number of text segments indexed across all books</li>
+  <li><strong>Storage usage</strong> &mdash; Disk space used by the vector database and embedding cache</li>
+  <li><strong>Model cache</strong> &mdash; Size of downloaded AI model files cached on disk</li>
+</ul>
+
 <!-- ==================== SECTION 13 ==================== -->
-<h2 id="sec13">13. Series and Authors</h2>
+<h2 id="sec13">13. Series and Authors <span class="section-icon"><i class="pi pi-objects-column"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Series / Authors</p>
 
 <h3>Series</h3>
 <p>Books can be grouped into series (e.g., &ldquo;Harry Potter,&rdquo; &ldquo;The Walking Dead&rdquo;).</p>
@@ -796,35 +1239,36 @@
 </div>
 
 <!-- ==================== SECTION 14 ==================== -->
-<h2 id="sec14">14. Metadata &mdash; Book Information</h2>
+<h2 id="sec14">14. Metadata &mdash; Book Information <span class="section-icon"><i class="pi pi-tag"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Book detail page <i class="pi pi-chevron-right"></i> Metadata tab, or right-click a book <i class="pi pi-chevron-right"></i> Edit Metadata</p>
 
 <p><strong>Metadata</strong> is all the information about a book: title, author, description, cover image, publication date, genre, ISBN, and more.</p>
 
 <h3>Fetching Metadata from the Internet</h3>
 <table>
   <tr><th>Action</th><th>Description</th></tr>
-  <tr><td>Fetch metadata</td><td>Search online providers by title, author, or ISBN</td></tr>
-  <tr><td>Use provider page URLs</td><td>Paste a provider page URL in metadata search (for example a ComicVine issue or volume page) to bias the match, resolve that item directly when supported, and for ComicVine volumes optionally enter an issue number or issue range (for example 46 or 43-171) to auto-resolve those issue pages</td></tr>
-  <tr><td>Navigate selected books while searching</td><td>When editing multiple books, use the previous/next controls from the selected-result detail view to move through the group; Fable returns to that book&rsquo;s search results context before switching so you can continue review without losing place</td></tr>
-  <tr><td>Preview results</td><td>See what information was found before applying</td></tr>
-  <tr><td>Apply selectively</td><td>Choose which fields to update</td></tr>
-  <tr><td>Replace all</td><td>Overwrite all metadata with fetched information</td></tr>
-  <tr><td>Merge</td><td>Keep your edits and fill in only the missing fields</td></tr>
-  <tr><td>Fetch covers</td><td>Download book cover images</td></tr>
-  <tr><td>Fetch author info</td><td>Download author biographies and photos</td></tr>
+  <tr><td><i class="pi pi-download"></i> Fetch metadata</td><td>Search online providers by title, author, or ISBN</td></tr>
+  <tr><td><i class="pi pi-link"></i> Use provider page URLs</td><td>Paste a provider page URL in metadata search (for example a ComicVine issue or volume page) to bias the match, resolve that item directly when supported, and for ComicVine volumes optionally enter an issue number or issue range (for example 46 or 43-171) to auto-resolve those issue pages</td></tr>
+  <tr><td><i class="pi pi-arrow-right"></i> Navigate selected books while searching</td><td>When editing multiple books, use the previous/next controls from the selected-result detail view to move through the group; Fable returns to that book&rsquo;s search results context before switching so you can continue review without losing place</td></tr>
+  <tr><td><i class="pi pi-eye"></i> Preview results</td><td>See what information was found before applying</td></tr>
+  <tr><td><i class="pi pi-check"></i> Apply selectively</td><td>Choose which fields to update</td></tr>
+  <tr><td><i class="pi pi-sync"></i> Replace all</td><td>Overwrite all metadata with fetched information</td></tr>
+  <tr><td><i class="pi pi-plus"></i> Merge</td><td>Keep your edits and fill in only the missing fields</td></tr>
+  <tr><td><i class="pi pi-image"></i> Fetch covers</td><td>Download book cover images</td></tr>
+  <tr><td><i class="pi pi-user"></i> Fetch author info</td><td>Download author biographies and photos</td></tr>
 </table>
 
 <h3>Metadata Review Queue</h3>
 <ul>
   <li>The fetched-proposal dialog is now titled <strong>Metadata Review</strong></li>
-  <li>In the Search Metadata detail comparison view, use the always-visible top control rail <strong>&lt;</strong> and <strong>&lt;&lt;</strong> buttons to copy missing fields or copy all fetched fields into the editable column</li>
+  <li>In the Search Metadata detail comparison view, use the always-visible top control rail <strong><</strong> and <strong><<</strong> buttons to copy missing fields or copy all fetched fields into the editable column</li>
   <li>Use <strong>Skip</strong> to move the current proposal to the end of the current review queue and jump straight to the next proposal</li>
-  <li>Use the orange <strong>Copy All, Save &amp; Next</strong> action in the top comparison header to run the common review routine in one step</li>
-  <li><strong>Accept &amp; Save</strong> now waits for the metadata save itself to finish before the proposal is marked accepted, so the review queue and saved data stay in sync</li>
-  <li>Use <strong>Tag &amp; Next</strong> to add the <strong>Metadata Follow-Up Req</strong> tag to the current asset and advance without accepting the fetched proposal</li>
+  <li>Use the orange <strong>Copy All, Save & Next</strong> action in the top comparison header to run the common review routine in one step</li>
+  <li><strong>Accept & Save</strong> now waits for the metadata save itself to finish before the proposal is marked accepted, so the review queue and saved data stay in sync</li>
+  <li>Use <strong>Tag & Next</strong> to add the <strong>Metadata Follow-Up Req</strong> tag to the current asset and advance without accepting the fetched proposal</li>
   <li>Use <strong>Discard</strong> from the topbar metadata-progress widget when you want to abandon the current review task; the matching task/proposals are now cleared and the live topbar notification is removed immediately</li>
   <li>In Search Metadata detail mode, <strong>Lock All</strong>, <strong>Unlock All</strong>, and <strong>Save Changes</strong> stay pinned in the top control rail so they remain reachable while scrolling</li>
-  <li><strong>Finish &amp; Close</strong> now clears the matching topbar notification/task state when the review session is complete</li>
+  <li><strong>Finish & Close</strong> now clears the matching topbar notification/task state when the review session is complete</li>
 </ul>
 
 <h3>Editing Metadata Manually</h3>
@@ -850,7 +1294,8 @@
 </div>
 
 <!-- ==================== SECTION 15 ==================== -->
-<h2 id="sec15">15. Metadata Manager &mdash; Bulk Editing</h2>
+<h2 id="sec15">15. Metadata Manager &mdash; Bulk Editing <span class="section-icon"><i class="pi pi-sitemap"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Metadata Manager <i class="pi pi-sitemap"></i>, or Settings <i class="pi pi-chevron-right"></i> Metadata tab</p>
 
 <p>The Metadata Manager lets you edit metadata for many books at once.</p>
 
@@ -879,21 +1324,54 @@
 </div>
 
 <!-- ==================== SECTION 16 ==================== -->
-<h2 id="sec16">16. Search and Filtering</h2>
+<h2 id="sec16">16. Search and Filtering <span class="section-icon"><i class="pi pi-search"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Topbar search bar <i class="pi pi-search"></i>, or book browser filter sidebar <i class="pi pi-filter"></i></p>
 
 <h3>Global Search</h3>
 <p>Type in the search bar to find books across your entire collection by title, author name, description, or ISBN. The topbar search now pulls lightweight server results as you type, so it stays responsive even before a large browser view has finished warming up.</p>
 
 <h3>AI Search</h3>
-<p>If you have configured Fable with an AI model provider (or are using a built-in Fable Preset), you can leverage natural language search to find books based on themes, characters, concepts, or general queries.</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> AI Search <i class="pi pi-sparkles"></i> sparkle icon, or Settings <i class="pi pi-chevron-right"></i> AI Search Settings</p>
+<p>If you have configured Fable with an AI model provider (or are using a built-in Fable Preset) <strong>and</strong> you have embedded books, you can leverage natural language search to find books based on themes, characters, concepts, or general queries. Books must be embedded first — see <a href="#embedding">What Is Embedding?</a> below.</p>
 <ul>
-  <li><strong>From Search Bars:</strong> Click the sparkly blue <strong>AI Search</strong> icon located inside the topbar or library search input fields to open the AI Search Dialog and submit your query.</li>
-  <li><strong>From Book Cards:</strong> Look for the glowing blue <strong>AIS</strong> badge on individual books in your library. Clicking this badge will open AI Search directly on that specific book, allowing you to ask questions about its contents, summarize it, or explore its themes.</li>
-  <li><strong>Automatic Metadata Tagging:</strong> When a book is embedded for AI Search, the metadata tag <strong>"AIS"</strong> is automatically applied. This allows you to easily filter, search, or create Magic Shelves for books that have embeddings. The tag is automatically removed if the book's embeddings are deleted.</li>
-  <li><strong>Save to Notepad:</strong> When you find a useful AI response, you can click the "Add to Notepad" button to save that snippet into your Fable Notepad for future reference.</li>
+  <li><strong>From Search Bars:</strong> Click the sparkly blue <strong>AI Search</strong> <i class="pi pi-sparkles guide-icon-inline" style="color:#00d2ff;"></i> located inside the topbar or library search input fields to open the AI Search Dialog and submit your query.</li>
+  <li><strong>From Book Cards:</strong> Look for the <strong><span class="guide-badge guide-badge-ais">AIS</span></strong> badge on individual books in your library. Clicking this badge will open AI Search directly on that specific book, allowing you to ask questions about its contents, summarize it, or explore its themes.</li>
+  <li><strong>Automatic Metadata Tagging:</strong> When a book is embedded for AI Search, the metadata tag <strong>"<span class="guide-badge guide-badge-ais">AIS</span>"</strong> is automatically applied. This allows you to easily filter, search, or create Magic Shelves for books that have embeddings. The tag is automatically removed if the book's embeddings are deleted.</li>
 </ul>
 
-<p><strong>Sparkle Button Status Indicators</strong> — The sparkle (pi-sparkles) icon in the search bars uses color and animation to reflect the AI Search service state:</p>
+<h4>What Is Embedding?</h4>
+<p>Think of <strong>embedding</strong> as Fable reading a book and creating a searchable "index card" for it. Just like a library card catalog lets you find books by topic without reading every page, Fable's AI reads your book's text, converts it into a mathematical representation (called a vector), and stores it in a database. When you ask a question like "find books with dragons," Fable compares your question against all those index cards to find the best matches — even if the word "dragon" never appears in the title or author fields. This is what makes AI Search so powerful: it understands <em>meaning</em>, not just keywords.</p>
+
+<p><strong>AIS Badge Color States</strong> — The <span class="guide-badge guide-badge-ais">AIS</span> badge on book cards changes appearance to tell you the embedding status at a glance:</p>
+<ul>
+  <li><span class="guide-badge guide-badge-ais">AIS</span> <strong>Cyan on black</strong> — Book is fully embedded and ready for AI Search. Click the badge to ask questions about this book.</li>
+  <li><span class="guide-badge guide-badge-ais-marked">AIS</span> <strong>Grey on grey</strong> — Book is <em>marked</em> for embedding but hasn't been processed yet. The AI service will pick it up on the next scan. Not clickable.</li>
+  <li><span class="guide-badge guide-badge-ais-mismatched">AIS</span> <strong>Orange on black</strong> — Book was embedded with a different AI model than the one currently configured. The embeddings are stale and the book needs to be re-embedded. Click to see which model was used.</li>
+</ul>
+
+<p><strong>Save to Notepad:</strong> When you find a useful AI response, you can click the "Add to Notepad" button to save that snippet into your Fable Notepad for future reference.</p>
+
+<h4>Saved LLM Profiles</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Saved LLM Profiles</p>
+<p>You can now create, save, and switch between multiple AI configuration profiles. Each profile stores the full set of LLM settings — provider, model, API key, and all advanced tuning parameters. This lets you quickly switch between different models or configurations without re-entering settings each time. The active profile is auto-applied when you save it, and the interface clearly shows which profile is currently loaded.</p>
+
+<h4>Advanced RAG Techniques</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced RAG</p>
+<p>Fable's AI Search now supports several advanced Retrieval-Augmented Generation (RAG) techniques that improve search quality:</p>
+<ul>
+  <li><strong>HyDE (Hypothetical Document Embeddings):</strong> Generates a hypothetical ideal answer to your query, then uses that to find similar content — especially effective for abstract or conceptual queries.</li>
+  <li><strong>Multi-Query:</strong> Expands your single query into multiple related queries to capture different angles and improve recall.</li>
+  <li><strong>Self-Reflection:</strong> After generating an initial answer, the system reflects on whether it fully addressed your question and may refine the response.</li>
+  <li><strong>Contextual Compression:</strong> Removes irrelevant portions from retrieved chunks before they reach the LLM, keeping responses focused.</li>
+  <li><strong>Query Decomposition:</strong> Breaks complex questions into simpler sub-questions, answers each one, then synthesizes a complete response.</li>
+  <li><strong>Adaptive RAG:</strong> Automatically chooses the best retrieval strategy based on the type of question you ask.</li>
+</ul>
+
+<h4>Semantic Chunking</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning</p>
+<p>When embedding books for AI search, Fable can now use <strong>Semantic Chunking</strong> — an intelligent splitting method that respects natural text boundaries (paragraphs, sections, chapters) rather than cutting at fixed character counts. This produces more coherent search results because each chunk represents a complete thought.</p>
+
+<p><strong>Sparkle Button Status Indicators</strong> — The sparkle (pi-sparkles) <i class="pi pi-sparkles guide-icon-inline" style="color:#00d2ff;"></i> in the search bars uses color and animation to reflect the AI Search service state:</p>
 <ul>
   <li><span style="color:#00d2ff;"><strong>Solid cyan</strong></span> — Service is ready. Click to open AI Search.</li>
   <li><span style="color:#ffa726;"><strong>Flashing orange (800ms grey↔orange)</strong></span> — Service is warming up / downloading the embedding model. Wait for initialization.</li>
@@ -908,18 +1386,19 @@
 </div>
 
 <h3>Filters</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Book browser <i class="pi pi-chevron-right"></i> filter sidebar <i class="pi pi-filter"></i> (right side)</p>
 <table>
   <tr><th>Filter</th><th>Options</th></tr>
-  <tr><td>Library</td><td>Show books from a specific library only</td></tr>
-  <tr><td>Directory / Folder</td><td>Show books from a selected top-level folder or subfolder in the directory explorer</td></tr>
-  <tr><td>Shelf</td><td>Show books on a specific shelf</td></tr>
-  <tr><td>Reading status</td><td>Not Started, Reading, Completed, Abandoned</td></tr>
-  <tr><td>Media type</td><td>E-book, PDF, Comic, Audiobook, Physical, Custom types</td></tr>
-  <tr><td>Author</td><td>Filter by specific author</td></tr>
-  <tr><td>Series</td><td>Filter by series</td></tr>
-  <tr><td>Genre / Category</td><td>Filter by genre or category tag</td></tr>
-  <tr><td>Rating</td><td>Filter by your personal star rating</td></tr>
-  <tr><td>Language</td><td>Filter by book language</td></tr>
+  <tr><td><i class="pi pi-building"></i> Library</td><td>Show books from a specific library only</td></tr>
+  <tr><td><i class="pi pi-folder"></i> Directory / Folder</td><td>Show books from a selected top-level folder or subfolder in the directory explorer</td></tr>
+  <tr><td><i class="pi pi-bookmark"></i> Shelf</td><td>Show books on a specific shelf</td></tr>
+  <tr><td><i class="pi pi-check-circle"></i> Reading status</td><td>Not Started, Reading, Completed, Abandoned</td></tr>
+  <tr><td><i class="pi pi-tag"></i> Media type</td><td>E-book, PDF, Comic, Audiobook, Physical, Custom types</td></tr>
+  <tr><td><i class="pi pi-user"></i> Author</td><td>Filter by specific author</td></tr>
+  <tr><td><i class="pi pi-objects-column"></i> Series</td><td>Filter by series</td></tr>
+  <tr><td><i class="pi pi-tag"></i> Genre / Category</td><td>Filter by genre or category tag</td></tr>
+  <tr><td><i class="pi pi-star"></i> Rating</td><td>Filter by your personal star rating</td></tr>
+  <tr><td><i class="pi pi-globe"></i> Language</td><td>Filter by book language</td></tr>
 </table>
 
 <h3>What You Can Do</h3>
@@ -968,6 +1447,7 @@
 </div>
 
 <h3>Duplicate Review</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Library menu <i class="pi pi-chevron-right"></i> Duplicate Review</p>
 <p>Fable&rsquo;s duplicate finder is now designed as a <strong>scoped review tool</strong>. Open it from a library menu, then choose whether to scan your <strong>current filtered view</strong>, the <strong>current library</strong>, or <strong>all libraries</strong>.</p>
 
 <div class="callout tip">
@@ -1004,12 +1484,14 @@
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
-  <li>Search inside book contents (search only covers metadata)</li>
+  <li>Search inside book contents (search only covers metadata — unless using AI Search which does search book contents)</li>
   <li>Save filter combinations as presets (use Magic Shelves instead)</li>
 </ul>
 
 <!-- ==================== SECTION 17 ==================== -->
-<h2 id="sec17">17. AI Comic Panel Detection</h2>
+<h2 id="sec17">17. AI Comic Panel Detection <span class="section-icon"><i class="pi pi-eye"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Panel Detection tab, or inside CBX reader header <i class="pi pi-chevron-right"></i> AI menu</p>
+<p>When a comic has AI panel detection data, a <span class="guide-badge guide-badge-aip">AIP</span> badge appears on the book card overlay, similar to the <span class="guide-badge guide-badge-ais">AIS</span> badge for AI Search.</p>
 
 <p>An <strong>optional</strong> feature that uses artificial intelligence to detect individual panels on comic book pages, enabling panel-by-panel reading.</p>
 
@@ -1042,7 +1524,8 @@
 </div>
 
 <!-- ==================== SECTION 18 ==================== -->
-<h2 id="sec18">18. OPDS Feeds &mdash; E-Reader Integration</h2>
+<h2 id="sec18">18. OPDS Feeds &mdash; E-Reader Integration <span class="section-icon"><i class="pi pi-wifi"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> OPDS tab</p>
 
 <p><strong>OPDS</strong> (Open Publication Distribution System) lets e-readers browse and download books directly from your Fable library.</p>
 
@@ -1072,7 +1555,8 @@
 </div>
 
 <!-- ==================== SECTION 19 ==================== -->
-<h2 id="sec19">19. Kobo and KoReader Device Sync</h2>
+<h2 id="sec19">19. Kobo and KoReader Device Sync <span class="section-icon"><i class="pi pi-sync"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Devices tab</p>
 
 <p>Fable can sync reading progress with <strong>Kobo</strong> and <strong>KoReader</strong> compatible devices.</p>
 
@@ -1090,7 +1574,8 @@
 </div>
 
 <!-- ==================== SECTION 20 ==================== -->
-<h2 id="sec20">20. Email &mdash; Sending Books</h2>
+<h2 id="sec20">20. Email &mdash; Sending Books <span class="section-icon"><i class="pi pi-envelope"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Email tab</p>
 
 <h3>How to Set Up</h3>
 <ol>
@@ -1117,24 +1602,25 @@
 </div>
 
 <!-- ==================== SECTION 21 ==================== -->
-<h2 id="sec21">21. User Accounts and Permissions</h2>
+<h2 id="sec21">21. User Accounts and Permissions <span class="section-icon"><i class="pi pi-users"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Users tab (admin only <i class="pi pi-shield"></i>)</p>
 
 <h3>User Roles</h3>
 <table>
   <tr><th>Role</th><th>Access Level</th></tr>
-  <tr><td><strong>Admin</strong></td><td>Full access to everything, including settings and user management</td></tr>
-  <tr><td><strong>Regular User</strong></td><td>Access to assigned libraries and personal features</td></tr>
+  <tr><td><i class="pi pi-shield"></i> <strong>Admin</strong></td><td>Full access to everything, including settings and user management</td></tr>
+  <tr><td><i class="pi pi-user"></i> <strong>Regular User</strong></td><td>Access to assigned libraries and personal features</td></tr>
 </table>
 
 <h3>Permissions (Configurable per User)</h3>
 <table>
   <tr><th>Permission</th><th>What It Allows</th></tr>
-  <tr><td>BookDrop Access</td><td>Upload and import books through BookDrop</td></tr>
-  <tr><td>Metadata Editing</td><td>Fetch and edit book metadata</td></tr>
-  <tr><td>Library Management</td><td>Create, modify, and delete libraries</td></tr>
-  <tr><td>Book Deletion</td><td>Delete books (optionally from disk)</td></tr>
-  <tr><td>Task Manager</td><td>View and run background tasks</td></tr>
-  <tr><td>View Audit Logs</td><td>Access the audit log</td></tr>
+  <tr><td><i class="pi pi-inbox"></i> BookDrop Access</td><td>Upload and import books through BookDrop</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Metadata Editing</td><td>Fetch and edit book metadata</td></tr>
+  <tr><td><i class="pi pi-building"></i> Library Management</td><td>Create, modify, and delete libraries</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Book Deletion</td><td>Delete books (optionally from disk)</td></tr>
+  <tr><td><i class="pi pi-list-check"></i> Task Manager</td><td>View and run background tasks</td></tr>
+  <tr><td><i class="pi pi-history"></i> View Audit Logs</td><td>Access the audit log</td></tr>
 </table>
 
 <h3>What Admins Can Do</h3>
@@ -1163,7 +1649,8 @@
 </div>
 
 <!-- ==================== SECTION 22 ==================== -->
-<h2 id="sec22">22. Authentication &mdash; Login Methods</h2>
+<h2 id="sec22">22. Authentication &mdash; Login Methods <span class="section-icon"><i class="pi pi-lock"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Authentication tab</p>
 
 <p>Fable supports three ways to log in:</p>
 
@@ -1192,35 +1679,37 @@
 </div>
 
 <!-- ==================== SECTION 23 ==================== -->
-<h2 id="sec23">23. Application Settings</h2>
+<h2 id="sec23">23. Application Settings <span class="section-icon"><i class="pi pi-cog"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar bottom <i class="pi pi-chevron-right"></i> Settings <i class="pi pi-cog"></i></p>
 
-<p>Access settings via the gear icon at the bottom of the sidebar.</p>
+<p>Access settings via the gear <i class="pi pi-cog guide-icon-inline"></i> at the bottom of the sidebar.</p>
 
-<p>The main Settings page includes a compact icon-only left-arrow control in the top-right corner that returns you to the route you opened Settings from, instead of relying on generic browser-history back behavior.</p>
+<p>The main Settings page includes a compact <i class="pi pi-arrow-left guide-icon-inline"></i> left-arrow control in the top-right corner that returns you to the route you opened Settings from, instead of relying on generic browser-history back behavior.</p>
 
 <table>
   <tr><th>Category</th><th>What You Can Configure</th></tr>
-  <tr><td>Reader Settings</td><td>Default font size, zoom, reading mode preferences</td></tr>
-  <tr><td>View Preferences</td><td>Book grid layout, cover preview panel, toolbar customization</td></tr>
-  <tr><td>User Management</td><td>Create/edit/delete users and their permissions</td></tr>
-  <tr><td>Email</td><td>SMTP server for sending books via email</td></tr>
-  <tr><td>File Naming Patterns</td><td>How imported files are named and organized</td></tr>
-  <tr><td>Metadata</td><td>Default metadata providers and API keys</td></tr>
-  <tr><td>Metadata Persistence</td><td>Write metadata into files, manage automatic sidecars, and run a manual per-library sidecar backup even when automatic sidecars are disabled</td></tr>
-  <tr><td>File Management</td><td>Control whether Fable is allowed to delete real files from disk during book-file deletion actions</td></tr>
-  <tr><td>Library Metadata</td><td>Per-library metadata provider configuration</td></tr>
-  <tr><td>Authentication</td><td>OIDC and forward auth configuration</td></tr>
-  <tr><td>OPDS</td><td>E-reader feed configuration</td></tr>
-  <tr><td>Tasks</td><td>Background task scheduling (cron jobs)</td></tr>
-  <tr><td>Audit Logs</td><td>View user activity logs</td></tr>
-  <tr><td>AI Panel Detection</td><td>Enable/disable and manage comic panel AI</td></tr>
-  <tr><td>AI Search Settings</td><td>AI model provider, API keys, external URL, and advanced embedding, chunking, and retrieval parameters (BM25, Matryoshka, Reranking)</td></tr>
-  <tr><td>Global Preferences</td><td>Theme palette, custom primary/surface colors, language, timezone, settings backup</td></tr>
+  <tr><td><i class="pi pi-book"></i> Reader Settings</td><td>Default font size, zoom, reading mode preferences</td></tr>
+  <tr><td><i class="pi pi-desktop"></i> View Preferences</td><td>Book grid layout, cover preview panel, toolbar customization</td></tr>
+  <tr><td><i class="pi pi-users"></i> User Management</td><td>Create/edit/delete users and their permissions</td></tr>
+  <tr><td><i class="pi pi-envelope"></i> Email</td><td>SMTP server for sending books via email</td></tr>
+  <tr><td><i class="pi pi-sitemap"></i> File Naming Patterns</td><td>How imported files are named and organized</td></tr>
+  <tr><td><i class="pi pi-sliders-h"></i> Metadata</td><td>Default metadata providers and API keys</td></tr>
+  <tr><td><i class="pi pi-save"></i> Metadata Persistence</td><td>Write metadata into files, manage automatic sidecars, and run a manual per-library sidecar backup even when automatic sidecars are disabled</td></tr>
+  <tr><td><i class="pi pi-file"></i> File Management</td><td>Control whether Fable is allowed to delete real files from disk during book-file deletion actions</td></tr>
+  <tr><td><i class="pi pi-database"></i> Library Metadata</td><td>Per-library metadata provider configuration</td></tr>
+  <tr><td><i class="pi pi-lock"></i> Authentication</td><td>OIDC and forward auth configuration</td></tr>
+  <tr><td><i class="pi pi-globe"></i> OPDS</td><td>E-reader feed configuration</td></tr>
+  <tr><td><i class="pi pi-list-check"></i> Tasks</td><td>Background task scheduling (cron jobs)</td></tr>
+  <tr><td><i class="pi pi-history"></i> Audit Logs</td><td>View user activity logs</td></tr>
+  <tr><td><i class="pi pi-eye"></i> AI Panel Detection</td><td>Enable/disable and manage comic panel AI</td></tr>
+  <tr><td><i class="pi pi-search"></i> AI Search Settings</td><td>AI model provider, API keys, external URL, saved LLM profiles, and advanced embedding, chunking, and retrieval parameters (BM25, Matryoshka, Reranking, RAG techniques)</td></tr>
+  <tr><td><i class="pi pi-cog"></i> Global Preferences</td><td>Theme palette, custom primary/surface colors, language, timezone, settings backup</td></tr>
 </table>
 
 <p><strong>Good to Know:</strong> For CBR comics, embedded metadata writes are fastest when the Fable container has access to a compatible Linux <code>rar</code> binary. Without it, Fable may convert the archive to <code>.cbz</code> during a save-to-original-file operation.</p>
 
 <h4>Customizable Toolbar</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View Preferences</p>
 <ul>
   <li><strong>Add or remove buttons</strong> &mdash; Choose which actions appear in the toolbar</li>
   <li><strong>Reorder buttons</strong> &mdash; Drag and drop to rearrange</li>
@@ -1229,6 +1718,7 @@
 </ul>
 
 <h4>Theme Colors</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Global Preferences</p>
 <ul>
   <li><strong>Choose preset colors for the interface</strong> &mdash; The theme configurator lets you pick the accent color and the surface palette independently</li>
   <li><strong>Use a color picker or paste a value</strong> &mdash; Both color controls accept a native color picker or a typed/pasted color such as <code>#ff6600</code></li>
@@ -1236,10 +1726,16 @@
   <li><strong>Keep your theme with your account</strong> &mdash; Theme selections are saved to your user settings so they return on later sign-ins</li>
 </ul>
 
-<h3>AI Search &amp; Embedding Tuning</h3>
-<p>Fable's search capabilities can be enhanced by configuring local or external AI model providers. In the settings panel under the <strong>Advanced Embedding &amp; Retrieval Tuning</strong> section, you can optimize the search engine's indexing behavior and retrieval performance—especially when running strictly on CPU-only hardware where vector operations can become a bottleneck.</p>
+<h3>AI Search & Embedding Tuning</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings</p>
+<p>Fable's search capabilities can be enhanced by configuring local or external AI model providers. In the settings panel under the <strong>Advanced Embedding & Retrieval Tuning</strong> section, you can optimize the search engine's indexing behavior and retrieval performance—especially when running strictly on CPU-only hardware where vector operations can become a bottleneck.</p>
 
-<h4>Advanced Tuning &amp; CPU Optimization Manual</h4>
+<h4>Saved LLM Profiles</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Saved LLM Profiles</p>
+<p>You can save multiple AI configuration profiles, each with its own provider, model, API key, and tuning parameters. Switch between profiles with one click. The active profile is highlighted, and saving a profile auto-applies it immediately. This is useful for testing different models or sharing a device between users with different AI preferences.</p>
+
+<h4>Advanced Tuning & CPU Optimization Manual</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning</p>
 <p>To maximize search accuracy and inference speed without overloading system resources, refer to the following recommended configurations based on the selected embedding model:</p>
 
 <table>
@@ -1287,9 +1783,10 @@
 </table>
 
 <h4>Tuning Parameters Explained</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning</p>
 <ul>
   <li>
-    <strong>Chunk Size &amp; Chunk Overlap:</strong> Controls how books are split into smaller segments before vector indexing. Larger chunks are ideal for models with wide context windows (like Nomic), whereas smaller chunks offer finer search precision. The overlap ensures context boundaries and key sentences aren't cut in half.
+    <strong>Chunk Size & Chunk Overlap:</strong> Controls how books are split into smaller segments before vector indexing. Larger chunks are ideal for models with wide context windows (like Nomic), whereas smaller chunks offer finer search precision. The overlap ensures context boundaries and key sentences aren't cut in half.
     <div class="callout warning">
       <strong>Be Careful:</strong> Modifying <strong>Chunk Size</strong>, <strong>Chunk Overlap</strong>, or <strong>Matryoshka Dimensions</strong> changes how the embeddings are structured. Saving changes to these settings will <strong>automatically delete all existing book embeddings</strong> and mark all books to be re-embedded. Search-only parameters (Hybrid Search or Reranking) do not invalidate existing embeddings.
     </div>
@@ -1302,6 +1799,12 @@
   </li>
   <li>
     <strong>Cross-Encoder Reranking (The Secret Weapon):</strong> Runs a lightweight cross-encoder model (such as <code>BAAI/bge-reranker-base</code>) in a background thread. While standard bi-encoders retrieve candidate chunks quickly, a cross-encoder evaluates the exact match relation between the query and text for the top candidates (e.g. top 20). This brings GPU-grade search precision to CPU hardware in milliseconds because it only reranks a handful of candidates instead of the whole database.
+  </li>
+  <li>
+    <strong>Semantic Chunking:</strong> When enabled, Fable splits books at natural text boundaries (paragraphs, sections) rather than at fixed character counts. This produces more coherent chunks and better search results, especially for books with clear structural formatting.
+  </li>
+  <li>
+    <strong>RAG Techniques:</strong> The AI Search settings now include toggles for HyDE, Multi-Query, Self-Reflection, Contextual Compression, Query Decomposition, and Adaptive RAG. Each technique can be enabled or disabled independently, and they are saved as part of your LLM profile.
   </li>
 </ul>
 
@@ -1327,20 +1830,32 @@
 </div>
 
 <!-- ==================== SECTION 24 ==================== -->
-<h2 id="sec24">24. Background Tasks</h2>
+<h2 id="sec24">24. Background Tasks <span class="section-icon"><i class="pi pi-clock"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Tasks tab, or Topbar <i class="pi pi-chevron-right"></i> Task Manager <i class="pi pi-list-check"></i></p>
 
 <p>Fable can run jobs in the background to maintain and update your library.</p>
 
 <table>
   <tr><th>Task</th><th>What It Does</th></tr>
-  <tr><td>Library Scan</td><td>Detect newly added book files</td></tr>
-  <tr><td>Reconcile Library</td><td>Compare a library against disk and update library records to match</td></tr>
-  <tr><td>Metadata Refresh</td><td>Re-fetch metadata from providers for existing books</td></tr>
-  <tr><td>Deleted Books Cleanup</td><td>Remove catalog entries for files that no longer exist on disk</td></tr>
-  <tr><td>Temp Metadata Cleanup</td><td>Clear old cached metadata from previous searches</td></tr>
-  <tr><td>BookDrop Scan</td><td>Check the BookDrop folder for new files</td></tr>
-  <tr><td>KEPUB Conversion</td><td>Convert book formats for e-reader compatibility</td></tr>
+  <tr><td><i class="pi pi-search"></i> Library Scan</td><td>Detect newly added book files</td></tr>
+  <tr><td><i class="pi pi-refresh"></i> Reconcile Library</td><td>Compare a library against disk and update library records to match</td></tr>
+  <tr><td><i class="pi pi-download"></i> Metadata Refresh</td><td>Re-fetch metadata from providers for existing books</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Deleted Books Cleanup</td><td>Remove catalog entries for files that no longer exist on disk</td></tr>
+  <tr><td><i class="pi pi-eraser"></i> Temp Metadata Cleanup</td><td>Clear old cached metadata from previous searches</td></tr>
+  <tr><td><i class="pi pi-inbox"></i> BookDrop Scan</td><td>Check the BookDrop folder for new files</td></tr>
+  <tr><td><i class="pi pi-sync"></i> KEPUB Conversion</td><td>Convert book formats for e-reader compatibility</td></tr>
 </table>
+
+<h3>Task Notifications</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Notification Bell <i class="pi pi-bell"></i></p>
+<p>When a background task runs (whether scheduled or manual), Fable shows a live notification in the top bar bell icon <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i>. Key behaviors:</p>
+<ul>
+  <li><strong>Persistent notifications</strong> &mdash; Task notifications are saved to the database, so they survive application restarts. You won't miss a completed scan or import even if you weren't logged in when it finished.</li>
+  <li><strong>Dismiss All</strong> &mdash; Click <strong>Dismiss All</strong> in the notification dropdown to clear your entire notification history at once.</li>
+  <li><strong>Zero-item suppression</strong> &mdash; If a scheduled task completes but found nothing to do (zero new files, zero items affected), Fable suppresses the notification so you only see actionable results.</li>
+  <li><strong>Auto-dismiss</strong> &mdash; The notification popover closes automatically when all notifications have been dismissed.</li>
+  <li><strong>Task label</strong> &mdash; Scheduled task notifications are labeled simply as <strong>Task</strong> followed by the task type and status (e.g., "Task Library Scan completed").</li>
+</ul>
 
 <h3>What You Can Do</h3>
 <ul>
@@ -1348,9 +1863,9 @@
   <li>Schedule tasks &mdash; Set up automatic timing</li>
   <li>Cancel running tasks</li>
   <li>View task history and results</li>
-  <li>Use <strong>Library Settings</strong> to change library naming, icon, and scan options without touching directories</li>
+  <li>Use <strong>Library Settings</strong> to change library naming <i class="pi pi-cog guide-icon-inline"></i> and scan options without touching directories</li>
   <li>Use <strong>Manage Directories</strong> to add or remove library paths with explicit directory-focused actions</li>
-  <li>Use <strong>Save &amp; Scan New Directories</strong> when you want Fable to import only from the directories you just added instead of rescanning the entire library</li>
+  <li>Use <strong>Save & Scan New Directories</strong> when you want Fable to import only from the directories you just added instead of rescanning the entire library</li>
   <li>Use <strong>Scan for New Files</strong> for safe additive discovery without a full reconcile</li>
   <li>Expect the maintenance dialog to steer routine discovery back toward <strong>Scan for New Files</strong> and require an explicit acknowledgement before <strong>Reconcile Library</strong> runs</li>
   <li>Expect scheduled <strong>Library Scan</strong> jobs to use the same safe additive discovery path as the manual <strong>Scan for New Files</strong> action</li>
@@ -1369,7 +1884,8 @@
 </div>
 
 <!-- ==================== SECTION 25 ==================== -->
-<h2 id="sec25">25. Backup and Restore</h2>
+<h2 id="sec25">25. Backup and Restore <span class="section-icon"><i class="pi pi-database"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Backups tab, or Docker command line</p>
 
 <p>Protecting your Fable data requires backing up <strong>two things</strong>:</p>
 
@@ -1388,14 +1904,14 @@
 <pre><code>docker exec mariadb mariadb-dump \
   --single-transaction --quick --no-tablespaces \
   -u root -p"YOUR_ROOT_PASSWORD" \
-  fable &gt; fable_backup.sql</code></pre>
+  fable > fable_backup.sql</code></pre>
 
 <h3>2. Book Files and Data</h3>
 <table>
   <tr><th>What to Back Up</th><th>Folder</th></tr>
-  <tr><td>Book files</td><td><code>./books/</code></td></tr>
-  <tr><td>Covers, thumbnails, and images</td><td><code>./data/</code></td></tr>
-  <tr><td>BookDrop inbox</td><td><code>./bookdrop/</code></td></tr>
+  <tr><td><i class="pi pi-book"></i> Book files</td><td><code>./books/</code></td></tr>
+  <tr><td><i class="pi pi-image"></i> Covers, thumbnails, and images</td><td><code>./data/</code></td></tr>
+  <tr><td><i class="pi pi-inbox"></i> BookDrop inbox</td><td><code>./bookdrop/</code></td></tr>
 </table>
 
 <div class="callout warning">
@@ -1409,7 +1925,8 @@
 </div>
 
 <!-- ==================== SECTION 26 ==================== -->
-<h2 id="sec26">26. Audit Logs</h2>
+<h2 id="sec26">26. Audit Logs <span class="section-icon"><i class="pi pi-history"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Audit Logs tab (admin only <i class="pi pi-shield"></i>)</p>
 
 <h3>What Is Logged</h3>
 <ul>
@@ -1432,7 +1949,7 @@
 <p><strong>What You Can&rsquo;t Do:</strong> Delete individual log entries (logs are append-only).</p>
 
 <!-- ==================== SECTION 27 ==================== -->
-<h2 id="sec27">27. Tips and Best Practices</h2>
+<h2 id="sec27">27. Tips and Best Practices <span class="section-icon"><i class="pi pi-lightbulb"></i></span></h2>
 
 <h3>For New Users</h3>
 <ol>
@@ -1469,7 +1986,7 @@
 </ol>
 
 <!-- ==================== SECTION 28 ==================== -->
-<h2 id="sec28">28. Glossary</h2>
+<h2 id="sec28">28. Glossary <span class="section-icon"><i class="pi pi-book"></i></span></h2>
 
 <table>
   <tr><th>Term</th><th>Definition</th></tr>
@@ -1481,8 +1998,8 @@
   <tr><td><strong>OPDS</strong></td><td>A standard protocol that lets e-readers browse and download from your library</td></tr>
   <tr><td><strong>OIDC</strong></td><td>OpenID Connect &mdash; a single sign-on standard for logging in via a third-party provider</td></tr>
   <tr><td><strong>Forward Auth</strong></td><td>A method where a reverse proxy handles authentication before requests reach Fable</td></tr>
-  <tr><td><strong>CBZ / CBR</strong></td><td>Comic book archive formats (CBZ&nbsp;=&nbsp;ZIP, CBR&nbsp;=&nbsp;RAR) containing image files</td></tr>
-  <tr><td><strong>EPUB</strong></td><td>The most common e-book file format</td></tr>
+  <tr><td><strong><span class="guide-badge guide-badge-cbz">CBZ</span> / <span class="guide-badge guide-badge-cbr">CBR</span></strong></td><td>Comic book archive formats (CBZ&nbsp;=&nbsp;ZIP, CBR&nbsp;=&nbsp;RAR) containing image files</td></tr>
+  <tr><td><strong><span class="guide-badge guide-badge-epub">EPUB</span></strong></td><td>The most common e-book file format</td></tr>
   <tr><td><strong>Panel Detection</strong></td><td>AI feature that identifies individual comic panels on a page</td></tr>
   <tr><td><strong>KEPUB</strong></td><td>Kobo&rsquo;s enhanced EPUB format</td></tr>
   <tr><td><strong>JWT</strong></td><td>JSON Web Token &mdash; the authentication token used for login sessions</td></tr>
@@ -1493,10 +2010,13 @@
   <tr><td><strong>Media Type</strong></td><td>A category for your books (e-book, PDF, comic, audiobook, or custom); physical placeholders remain a separate dedicated browsing path under <strong>Physical Books</strong></td></tr>
   <tr><td><strong>Audit Log</strong></td><td>A record of actions taken by users in the application</td></tr>
   <tr><td><strong>Reverse Proxy</strong></td><td>A server that sits between the internet and Fable, handling security and routing</td></tr>
+  <tr><td><strong>RAG</strong></td><td>Retrieval-Augmented Generation &mdash; a technique that retrieves relevant text chunks before generating AI responses, improving accuracy</td></tr>
+  <tr><td><strong>LLM Profile</strong></td><td>A saved configuration of AI model settings (provider, model, API key, tuning parameters) that can be switched with one click</td></tr>
+  <tr><td><strong>Semantic Chunking</strong></td><td>An intelligent text-splitting method that respects natural boundaries (paragraphs, sections) rather than cutting at fixed character counts</td></tr>
 </table>
 
 <!-- ==================== SECTION 29 ==================== -->
-<h2 id="sec29">29. Document Maintenance Log</h2>
+<h2 id="sec29">29. Document Maintenance Log <span class="section-icon"><i class="pi pi-pencil"></i></span></h2>
 
 <div class="callout info">
   <strong>Important:</strong> This guide must be updated whenever features are added, changed, or removed from Fable. This HTML file is the source of truth. After any guide change, regenerate the PDF from this HTML and update the README&rsquo;s <strong>Familiarization Guide</strong> section in the same change so the repository docs and maintenance notes stay aligned. Record changes below to track guide accuracy over time.
@@ -1504,7 +2024,8 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
-  <tr><td>2026-06-10</td><td>1.1.101</td><td>Documented the new Advanced Embedding &amp; Retrieval Tuning settings, including Chunk Size and Overlap controls, Matryoshka representation learning vector truncation, dynamic L2-norm re-normalization, hybrid BM25 and vector search merging via RRF, and Cross-Encoder reranking using a background loader thread; detailed CPU-specific preset recommendations for nomic-embed-text-v1.5 and all-MiniLM-L6-v2 models</td></tr>
+  <tr><td>2026-06-25</td><td>1.1.102</td><td>Added section icons using local PrimeIcons font (no external CDN dependency). Documented notification system overhaul: Dismiss All button, database-persistent notifications, zero-item suppression, auto-dismiss empty popover, and "Task" label rename. Documented AI Search enhancements: Saved LLM Profiles, RAG techniques (HyDE, Multi-Query, Self-Reflection, Contextual Compression, Query Decomposition, Adaptive RAG), Semantic Chunking. Added AI Search statistics to Section 12. Updated Section 6 with durable Remove from Library behavior (books no longer return on next scan). Updated Section 10 with corrected reader-close message. Updated Section 11 with Notebook default-collapse behavior. Updated Section 23 with AI Search profile and RAG settings. Added RAG, LLM Profile, and Semantic Chunking to Glossary.</td></tr>
+  <tr><td>2026-06-10</td><td>1.1.101</td><td>Documented the new Advanced Embedding & Retrieval Tuning settings, including Chunk Size and Overlap controls, Matryoshka representation learning vector truncation, dynamic L2-norm re-normalization, hybrid BM25 and vector search merging via RRF, and Cross-Encoder reranking using a background loader thread; detailed CPU-specific preset recommendations for nomic-embed-text-v1.5 and all-MiniLM-L6-v2 models</td></tr>
   <tr><td>2026-05-18</td><td>1.1.100</td><td>Recorded the AI panel security remediation: the bundled <strong>Pillow</strong> dependency now pins to the first non-vulnerable 12.2.0 release, the temporary Dependabot ignore on <strong>Pillow</strong> major updates was removed, and future 12.x AI-panel security updates can now flow back through the normal unattended maintenance path</td></tr>
   <tr><td>2026-05-18</td><td>1.1.99</td><td>Documented the paged-first browser startup flow so <strong>All Books</strong>, library, shelf, and <strong>Not Shelfed</strong> views can render from the first server page without waiting for a full catalog bootstrap, and clarified that topbar search now stays responsive on large libraries by querying lightweight server-backed results</td></tr>
   <tr><td>2026-05-13</td><td>1.1.98</td><td>Reformatted the guide into a darker, more book-like reading presentation for both HTML and PDF output, clarified that users who want regular built-in reader behavior can copy or import the PDF into a library or BookDrop manually, and made the maintenance rule explicit: update this HTML source, regenerate the PDF, and refresh the README guide section together</td></tr>
@@ -1540,7 +2061,7 @@
   <tr><td>2026-04-13</td><td>1.1.68</td><td>Documented that scheduled <strong>Library Scan</strong> now follows the same additive new-file-only behavior as manual <strong>Scan for New Files</strong>, and clarified that additive scan routines queue background directory-tagging only for newly imported books while <strong>Reconcile Library</strong> remains the deliberate whole-library maintenance path</td></tr>
   <tr><td>2026-04-12</td><td>1.1.67</td><td>Fixed the <strong>Manage Directories</strong> save-note emphasis so the action labels render correctly, clarified that changing directory-tag rules does not silently retag existing books during a settings save, and aligned the guide with the safer future-import-only tagging boundary until an explicit retag tool exists</td></tr>
   <tr><td>2026-04-12</td><td>1.1.66</td><td>Clarified that the <strong>Manage Directories</strong> list itself now shows imported directories, tightened the save-versus-scan wording, grouped <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> near the bottom of the library menu, and fixed the in-app <strong>User Guide</strong> PDF delivery path so it opens the guide file instead of falling back into the app shell</td></tr>
-  <tr><td>2026-04-12</td><td>1.1.65</td><td>Documented the new Phase 5 per-directory precision flow so <strong>Manage Directories</strong> now offers a plain <strong>Save</strong> and an explicit <strong>Save &amp; Scan New Directories</strong> action, clarified that only newly added directories are scanned, and noted the clearer green <strong>Imported</strong> badges in the directory picker</td></tr>
+  <tr><td>2026-04-12</td><td>1.1.65</td><td>Documented the new Phase 5 per-directory precision flow so <strong>Manage Directories</strong> now offers a plain <strong>Save</strong> and an explicit <strong>Save & Scan New Directories</strong> action, clarified that only newly added directories are scanned, and noted the clearer green <strong>Imported</strong> badges in the directory picker</td></tr>
   <tr><td>2026-04-12</td><td>1.1.64</td><td>Documented the Phase 4 library editing split so <strong>Library Settings</strong> and <strong>Manage Directories</strong> are separate actions, clarified their intended use, and recorded that directory changes now use explicit add/remove directory verbs instead of one overloaded edit/update flow</td></tr>
   <tr><td>2026-04-12</td><td>1.1.63</td><td>Documented the new <strong>Library Maintenance</strong> boundary for high-impact library actions, moved <strong>Reconcile Library</strong> behind that dedicated dialog, and clarified that library-wide sidecar import/export/backup tools now live there while <strong>Scan for New Files</strong> remains the routine safe discovery action</td></tr>
   <tr><td>2026-04-12</td><td>1.1.62</td><td>Documented that <strong>Scan for New Files</strong> and <strong>Reconcile Library</strong> now appear directly in library action menus instead of being hidden inside a nested library options group</td></tr>
@@ -1552,8 +2073,8 @@
   <tr><td>2026-04-10</td><td>1.1.56</td><td>Corrected the Settings return control to use the same icon-only route-return pattern as other route-mode screens, and documented that browser card subtitles now depend on the list API preserving metadata.subtitle so titles can render as Title : Subtitle across cards, previews, and tooltips</td></tr>
   <tr><td>2026-04-10</td><td>1.1.54</td><td>Clarified the follow-up browser display-settings fix so the return arrow is visibly shown as a left-arrow button and subtitle toggles update already-rendered book cards immediately instead of only affecting later refreshes</td></tr>
   <tr><td>2026-04-10</td><td>1.1.53</td><td>Documented the book-browser display-settings return arrow and subtitle toggle, plus clarified that directory browsing now forces filename A&ndash;Z display until you clear the scoped folder view or re-click the active library or shelf</td></tr>
-  <tr><td>2026-04-09</td><td>1.1.52</td><td>Added the Metadata Review <strong>Tag &amp; Next</strong> action to append the <strong>Metadata Follow-Up Req</strong> tag without accepting the current proposal, and clarified that <strong>Finish &amp; Close</strong> now clears the related topbar metadata notification/task state when the review session ends</td></tr>
-  <tr><td>2026-04-09</td><td>1.1.51</td><td>Documented the Metadata Review dialog refresh: renamed the proposal screen, moved the copy-missing and copy-all buttons to the bottom action bar, added skip-to-end queueing, added the one-click Copy All, Save &amp; Next shortcut, and clarified that acceptance now waits for the underlying metadata save to finish before the review advances</td></tr>
+  <tr><td>2026-04-09</td><td>1.1.52</td><td>Added the Metadata Review <strong>Tag & Next</strong> action to append the <strong>Metadata Follow-Up Req</strong> tag without accepting the current proposal, and clarified that <strong>Finish & Close</strong> now clears the related topbar metadata notification/task state when the review session ends</td></tr>
+  <tr><td>2026-04-09</td><td>1.1.51</td><td>Documented the Metadata Review dialog refresh: renamed the proposal screen, moved the copy-missing and copy-all buttons to the bottom action bar, added skip-to-end queueing, added the one-click Copy All, Save & Next shortcut, and clarified that acceptance now waits for the underlying metadata save to finish before the review advances</td></tr>
   <tr><td>2026-04-08</td><td>1.1.50</td><td>Reworked sidebar filter-mode switching so the parent browser now clears the old filter state before activating the new AND/OR/NOT/1 mode, preventing the mode button from showing one state while the book list still filters with the previous mode; added regression tests for parent-owned mode changes and stale-selection suppression</td></tr>
   <tr><td>2026-04-08</td><td>1.1.49</td><td>Hardened filter-mode propagation so the AND/OR/NOT/1 value is normalised (trimmed, lowercased, validated) at every entry point—URL params, persisted user settings, component inputs, and the core filtering function—preventing a mode value that differs by case or whitespace from silently disabling the NOT exclusion logic; added SideBarFilter integration tests exercising the full observable chain</td></tr>
   <tr><td>2026-04-08</td><td>1.1.48</td><td>Fixed Date Added and Folder sidebar filters so they actually filter the book list under every mode (AND, OR, NOT, 1) instead of silently returning no results or doing nothing; added comprehensive regression tests for all four filter modes</td></tr>
