@@ -59,6 +59,7 @@
 
   /* Icon definitions used in this guide */
   .pi-arrow-right:before { content: "\e91b"; }
+  .pi-angle-double-left:before { content: "\e92d"; }
   .pi-arrows-v:before { content: "\e9ed"; }
   .pi-bell:before { content: "\e97c"; }
   .pi-book:before { content: "\e9ba"; }
@@ -729,18 +730,39 @@
   <li><strong>Right-click a book cover</strong> (or long-press on mobile) for quick actions</li>
 </ul>
 
-<h3>Directory Explorer</h3>
-<p>Fable includes a <strong>folder explorer panel</strong> for book browsing. It lets you filter the current view by the actual folders inside your libraries instead of relying only on shelves or metadata filters.</p>
+<h3>Directory Explorer <span class="section-icon"><i class="pi pi-folder-open"></i></span></h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Book browser toolbar <i class="pi pi-chevron-right"></i> folder <i class="pi pi-folder"></i> toggle button (left side of the header bar)</p>
 
+<p>Fable includes a <strong>Directory Explorer</strong> &mdash; a collapsible folder-tree panel that slides out from the left side of the book browser. It lets you filter the current view by the actual folders on disk inside your libraries, exactly as they are organized in your filesystem.</p>
+
+<h4>Why Use the Directory Explorer?</h4>
+<p>Not everyone wants to tag, rate, or shelve their books. If you already organize your collection into folders on disk &mdash; for example <code>/Comics/Marvel/</code>, <code>/Books/Fiction/</code>, or <code>/Audiobooks/Sci-Fi/</code> &mdash; the Directory Explorer mirrors that structure directly in Fable. You can browse your library the same way you browse files on your computer, with <strong>zero metadata setup required</strong>. It is also a great complement to shelves and filters: use folders for broad organization and shelves for cross-cutting collections.</p>
+
+<h4>Opening and Closing</h4>
+<ul>
+  <li><strong>Open:</strong> Click the folder <i class="pi pi-folder guide-icon-inline"></i> toggle button in the book browser toolbar (visible when viewing <strong>All Books</strong> or any library). The panel slides out from the left.</li>
+  <li><strong>Close:</strong> Click the <i class="pi pi-times guide-icon-inline"></i> close button in the panel header, or click the folder toggle again.</li>
+  <li><strong>Resize:</strong> Drag the right edge of the panel to make it wider or narrower (120&ndash;400px). Your preferred width is remembered across sessions.</li>
+  <li><strong>Collapse the left sidebar:</strong> If you need more horizontal room, collapse the main left sidebar first using the <i class="pi pi-angle-double-left guide-icon-inline"></i> toggle button in the topbar &mdash; the Directory Explorer panel sits between the sidebar and the book grid, so collapsing the sidebar gives both the folder tree and the book covers more space.</li>
+</ul>
+
+<h4>Navigating the Folder Tree</h4>
 <table>
-  <tr><th>Action</th><th>What It Does</th></tr>
-  <tr><td><i class="pi pi-folder-open"></i> Open the folder panel</td><td>Click the folder button while viewing <strong>All Books</strong> or a specific library</td></tr>
-  <tr><td><i class="pi pi-plus"></i> Expand a folder branch</td><td>Click the <strong>+</strong> or <strong>&minus;</strong> toggle next to a top-level folder</td></tr>
-  <tr><td><i class="pi pi-folder"></i> Select a top-level folder</td><td>Click the folder row itself to show only books stored directly in that root folder, with root folders and nested folders listed in alphabetical order and the book list switching to filename-based browsing</td></tr>
-  <tr><td><i class="pi pi-folder-open"></i> Select a subfolder</td><td>Click a nested folder to show books inside that folder and its child folders; while a directory filter is active, Fable shows filenames in the main list and keeps the active sort pinned to filename order instead of metadata title order, while still respecting the current filename sort direction</td></tr>
-  <tr><td><i class="pi pi-times"></i> Clear a folder filter</td><td>Click the selected folder again, use the reset button beside the folder toggle, use the normal filter clear action, or click the active library or shelf in the left sidebar to return to that collection&rsquo;s normal view</td></tr>
-  <tr><td><i class="pi pi-building"></i> Browse across libraries</td><td>In <strong>All Books</strong>, the panel shows each library root so you can filter across multiple libraries from one screen</td></tr>
+  <tr><th>Action</th><th>Icon</th><th>What It Does</th></tr>
+  <tr><td>Expand a library root</td><td><i class="pi pi-plus"></i> / <i class="pi pi-minus"></i></td><td>Click the <strong>+</strong> or <strong>&minus;</strong> toggle next to a library root folder to show or hide its subfolders. Library roots with subfolders are highlighted with a subtle tint.</td></tr>
+  <tr><td>Select a root folder</td><td><i class="pi pi-folder"></i></td><td>Click the root folder row to show all books stored directly in that top-level directory. The book grid switches to <strong>filename-based browsing</strong> so you see files as they are named on disk.</td></tr>
+  <tr><td>Select a subfolder</td><td><i class="pi pi-folder-open"></i></td><td>Click any nested folder to show books inside that folder <em>and</em> all its child folders. The selected folder is highlighted in the primary color.</td></tr>
+  <tr><td>Browse across libraries</td><td><i class="pi pi-building"></i></td><td>In <strong>All Books</strong> view, the panel shows every library as a separate root, each labeled with its library name. In a single-library view, only that library&rsquo;s folders appear.</td></tr>
+  <tr><td>Clear the folder filter</td><td><i class="pi pi-undo"></i></td><td>Click the reset <i class="pi pi-undo guide-icon-inline"></i> button next to the folder toggle, click the selected folder again to deselect it, use the normal filter clear action, or click any library or shelf in the left sidebar to return to the normal metadata-title view.</td></tr>
 </table>
+
+<div class="callout tip">
+  <strong>Tip:</strong> While a directory filter is active, the book list switches to filename order (instead of metadata title order) so the sort order matches what you see in your file manager. You can still toggle the sort direction. Clearing the folder filter restores your previous sort preference.
+</div>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> The Directory Explorer works alongside all other filters. You can combine a folder selection with the right-side filter sidebar to narrow results further by reading status, media type, genre, or any other filter &mdash; the folder acts as one more filter in the stack.
+</div>
 
 <h3>What You Can Do</h3>
 <table>

@@ -470,16 +470,13 @@ tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 
 ## Familiarization Guide
 
-New to Fable? A complete **Familiarization Guide** is available in the `docs/` folder:
+New to Fable? A complete **Familiarization Guide** is available from the app's sidebar — click the <i class="pi pi-book"></i> **User Guide** button at the bottom of the left navigation panel.
 
-- **[Fable-Familiarization-Guide.pdf](docs/Fable-Familiarization-Guide.pdf)** — Printable PDF version
-- **[Fable-Familiarization-Guide.html](docs/Fable-Familiarization-Guide.html)** — Browser-viewable HTML version
+The canonical source file is [`fable-ui/public/docs/Fable-Familiarization-Guide.html`](fable-ui/public/docs/Fable-Familiarization-Guide.html). It is bundled into the application JAR at build time and served at `/docs/Fable-Familiarization-Guide.html`.
 
 The guide is written for users of all experience levels and covers every feature — libraries, importing, reading, shelves, metadata, search, AI panel detection, OPDS, user management, settings, backups, and more. Each section includes what you can do, what you can't do, and things to be careful about.
 
-The app's footer PDF button links to this same guide file directly. If you want the guide to behave like a normal imported PDF in the built-in reader, copy the PDF into a library or into BookDrop and import it like any other asset.
-
-Maintenance rule: the HTML guide is the source of truth. When the guide changes, regenerate the PDF from that HTML and update this README section in the same change so the repository docs stay in sync.
+Maintenance rule: the HTML guide in `fable-ui/public/docs/` is the single source of truth. There is no separate PDF or duplicate copy.
 
 ---
 
