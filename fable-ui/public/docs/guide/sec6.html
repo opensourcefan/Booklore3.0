@@ -599,6 +599,34 @@
   .page-break { page-break-before: always; }
   h2 { page-break-inside: avoid; }
   table { page-break-inside: avoid; }
+
+/* Section navigation (prev/next) */
+.section-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2.5em 0 1.5em;
+  padding: 1em 0;
+  border-top: 1px solid var(--table-border);
+  border-bottom: 1px solid var(--table-border);
+}
+.nav-link {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 10pt;
+  color: var(--heading);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--paper-edge);
+  transition: background 0.15s;
+}
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+.nav-prev { }
+.nav-next { margin-left: auto; }
+
 </style>
 </head>
 <body>
@@ -645,9 +673,6 @@
     <li><a href="sec29.html">29. Maintenance Log</a></li>
   </ol>
 </nav>
-<div style="margin-bottom:1.5em; font-size:9pt; color:var(--muted);">
-  <a href="index.html" style="color:var(--heading);">← Back to Guide Index</a>
-</div>
 <!-- ==================== SECTION 6 ==================== -->
 <h2 id="sec6">6. Books &mdash; Adding, Browsing, and Managing <span class="section-icon"><i class="pi pi-book"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> All Books, or click any library</p>
@@ -742,6 +767,10 @@
     <li><strong>If you delete the only readable format from a normal digital book,</strong> Fable now removes that empty catalog shell instead of leaving behind a metadata-only entry. If you want a deliberate metadata-only placeholder, create a <strong>Physical Book</strong> instead.</li>
   </ul>
 </div>
+<nav class="section-nav">
+  <a href="sec5.html" class="nav-link nav-prev">← Previous: 5. Libraries</a>
+  <a href="sec7.html" class="nav-link nav-next">Next: 7. BookDrop →</a>
+</nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>

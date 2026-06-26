@@ -599,6 +599,34 @@
   .page-break { page-break-before: always; }
   h2 { page-break-inside: avoid; }
   table { page-break-inside: avoid; }
+
+/* Section navigation (prev/next) */
+.section-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2.5em 0 1.5em;
+  padding: 1em 0;
+  border-top: 1px solid var(--table-border);
+  border-bottom: 1px solid var(--table-border);
+}
+.nav-link {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 10pt;
+  color: var(--heading);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--paper-edge);
+  transition: background 0.15s;
+}
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+.nav-prev { }
+.nav-next { margin-left: auto; }
+
 </style>
 </head>
 <body>
@@ -659,10 +687,18 @@
   </div>
 </div>
 
+<div style="max-width:600px; margin:2em auto; padding:1.5em 2em; border:1px solid var(--paper-edge); border-radius:12px; background:rgba(255,255,255,0.18);">
+  <h3 style="margin-top:0; color:var(--heading);">How to Use This Guide</h3>
+  <p>This guide is organized into <strong>29 sections</strong>, each covering a specific part of Fable. You can:</p>
+  <ul style="margin-bottom:0;">
+    <li><strong>Browse the sidebar</strong> on the left — click any section to jump directly to it.</li>
+    <li><strong>Start from the beginning</strong> — click "Next" at the bottom of each page to read in order.</li>
+    <li><strong>Jump to what you need</strong> — the sidebar stays visible so you can always find your way.</li>
+  </ul>
+</div>
 
-
-<div style="text-align:center; margin-top:2em; padding:1.5em; border:1px solid var(--paper-edge); border-radius:12px; background:rgba(255,255,255,0.18);">
-  <p style="font-size:11pt; color:var(--muted);">Select a section from the sidebar to begin reading, or click a link above.</p>
+<div style="text-align:center; margin-top:2em;">
+  <a href="sec1.html" class="nav-link" style="font-size:11pt; padding:8px 20px;">Begin Reading → 1. What Is Fable?</a>
 </div>
 
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">

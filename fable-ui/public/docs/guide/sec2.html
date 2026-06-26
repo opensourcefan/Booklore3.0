@@ -599,6 +599,34 @@
   .page-break { page-break-before: always; }
   h2 { page-break-inside: avoid; }
   table { page-break-inside: avoid; }
+
+/* Section navigation (prev/next) */
+.section-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2.5em 0 1.5em;
+  padding: 1em 0;
+  border-top: 1px solid var(--table-border);
+  border-bottom: 1px solid var(--table-border);
+}
+.nav-link {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 10pt;
+  color: var(--heading);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--paper-edge);
+  transition: background 0.15s;
+}
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+.nav-prev { }
+.nav-next { margin-left: auto; }
+
 </style>
 </head>
 <body>
@@ -645,9 +673,6 @@
     <li><a href="sec29.html">29. Maintenance Log</a></li>
   </ol>
 </nav>
-<div style="margin-bottom:1.5em; font-size:9pt; color:var(--muted);">
-  <a href="index.html" style="color:var(--heading);">← Back to Guide Index</a>
-</div>
 <!-- ==================== SECTION 2 ==================== -->
 <h2 id="sec2">2. Getting Started &mdash; First-Time Setup <span class="section-icon"><i class="pi pi-play-circle"></i></span></h2>
 
@@ -670,6 +695,10 @@
 <div class="callout warning">
   <strong>Be Careful:</strong> Choose a strong password. Anyone who knows this password has full control over Fable. If you lose the admin password and have no other login method configured, recovery requires direct database access.
 </div>
+<nav class="section-nav">
+  <a href="sec1.html" class="nav-link nav-prev">← Previous: 1. What Is Fable?</a>
+  <a href="sec3.html" class="nav-link nav-next">Next: 3. The Dashboard →</a>
+</nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>

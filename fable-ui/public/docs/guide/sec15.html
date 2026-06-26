@@ -599,6 +599,34 @@
   .page-break { page-break-before: always; }
   h2 { page-break-inside: avoid; }
   table { page-break-inside: avoid; }
+
+/* Section navigation (prev/next) */
+.section-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2.5em 0 1.5em;
+  padding: 1em 0;
+  border-top: 1px solid var(--table-border);
+  border-bottom: 1px solid var(--table-border);
+}
+.nav-link {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 10pt;
+  color: var(--heading);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--paper-edge);
+  transition: background 0.15s;
+}
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+.nav-prev { }
+.nav-next { margin-left: auto; }
+
 </style>
 </head>
 <body>
@@ -645,9 +673,6 @@
     <li><a href="sec29.html">29. Maintenance Log</a></li>
   </ol>
 </nav>
-<div style="margin-bottom:1.5em; font-size:9pt; color:var(--muted);">
-  <a href="index.html" style="color:var(--heading);">← Back to Guide Index</a>
-</div>
 <!-- ==================== SECTION 15 ==================== -->
 <h2 id="sec15">15. Metadata Manager &mdash; Bulk Editing <span class="section-icon"><i class="pi pi-sitemap"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Metadata Manager <i class="pi pi-sitemap"></i>, or Settings <i class="pi pi-chevron-right"></i> Metadata tab</p>
@@ -677,6 +702,10 @@
 <div class="callout tip">
   <strong>Custom Metadata Fetch Defaults:</strong> The advanced custom metadata fetch dialog now opens with <strong>Merge Genres</strong> off by default and <strong>Manual Review</strong> on by default, so a new batch starts in a safer review-first mode unless you intentionally change those toggles.
 </div>
+<nav class="section-nav">
+  <a href="sec14.html" class="nav-link nav-prev">← Previous: 14. Metadata</a>
+  <a href="sec16.html" class="nav-link nav-next">Next: 16. Search and Filtering →</a>
+</nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>

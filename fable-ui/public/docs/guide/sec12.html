@@ -599,6 +599,34 @@
   .page-break { page-break-before: always; }
   h2 { page-break-inside: avoid; }
   table { page-break-inside: avoid; }
+
+/* Section navigation (prev/next) */
+.section-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2.5em 0 1.5em;
+  padding: 1em 0;
+  border-top: 1px solid var(--table-border);
+  border-bottom: 1px solid var(--table-border);
+}
+.nav-link {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 10pt;
+  color: var(--heading);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--paper-edge);
+  transition: background 0.15s;
+}
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+.nav-prev { }
+.nav-next { margin-left: auto; }
+
 </style>
 </head>
 <body>
@@ -645,9 +673,6 @@
     <li><a href="sec29.html">29. Maintenance Log</a></li>
   </ol>
 </nav>
-<div style="margin-bottom:1.5em; font-size:9pt; color:var(--muted);">
-  <a href="index.html" style="color:var(--heading);">← Back to Guide Index</a>
-</div>
 <!-- ==================== SECTION 12 ==================== -->
 <h2 id="sec12">12. Reading Progress and Statistics <span class="section-icon"><i class="pi pi-chart-bar"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Stats <i class="pi pi-chart-line"></i>, or Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Stats</p>
@@ -683,6 +708,10 @@
   <li><strong>Storage usage</strong> &mdash; Disk space used by the vector database and embedding cache</li>
   <li><strong>Model cache</strong> &mdash; Size of downloaded AI model files cached on disk</li>
 </ul>
+<nav class="section-nav">
+  <a href="sec11.html" class="nav-link nav-prev">← Previous: 11. Bookmarks & Notebook</a>
+  <a href="sec13.html" class="nav-link nav-next">Next: 13. Series and Authors →</a>
+</nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
   <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
