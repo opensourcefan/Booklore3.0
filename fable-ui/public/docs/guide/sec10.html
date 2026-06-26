@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10. Reading Books — Fable Familiarization Guide</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --outer-bg: #97836f;
+    --outer-bg-glow: #2d2d2d;
+    --paper: #f4ecd9;
+    --paper-deep: #e8dcc2;
+    --paper-edge: rgba(104, 77, 49, 0.35);
+    --ink: #2a2118;
+    --muted: #675846;
+    --heading: #6c4927;
+    --heading-soft: #b58d61;
+    --table-head: #e8d9be;
+    --table-border: rgba(84, 63, 39, 0.2);
+    --table-alt: rgba(108, 73, 39, 0.06);
+    --callout-base: rgba(255, 255, 255, 0.38);
+    --callout-warning: #f2ddd5;
+    --callout-info: #dde9e1;
+    --callout-tip: #deead7;
+    --code-bg: #2a241f;
+    --code-ink: #f4efe6;
+    --icon-color: #8b6b4a;
+  }
+
+  /* PrimeIcons — local font files */
+  @font-face {
+    font-family: 'primeicons';
+    font-display: block;
+    src: url('./primeicons/fonts/primeicons.eot');
+    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('./primeicons/fonts/primeicons.woff') format('woff'),
+         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    font-weight: normal;
+    font-style: normal;
+  }
+  .pi {
+    font-family: 'primeicons';
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .pi:before {
+    backface-visibility: hidden;
+  }
+
+  /* Icon definitions used in this guide */
+  .pi-arrow-right:before { content: "\e91b"; }
+  .pi-angle-double-left:before { content: "\e92d"; }
+  .pi-arrows-v:before { content: "\e9ed"; }
+  .pi-bell:before { content: "\e97c"; }
+  .pi-book:before { content: "\e9ba"; }
+  .pi-bookmark:before { content: "\e94e"; }
+  .pi-bookmark-fill:before { content: "\e9df"; }
+  .pi-box:before { content: "\e9d9"; }
+  .pi-building:before { content: "\e9cf"; }
+  .pi-calendar:before { content: "\e927"; }
+  .pi-chart-bar:before { content: "\e96d"; }
+  .pi-check:before { content: "\e909"; }
+  .pi-check-circle:before { content: "\e90a"; }
+  .pi-clock:before { content: "\e940"; }
+  .pi-code:before { content: "\e9e7"; }
+  .pi-cog:before { content: "\e94a"; }
+  .pi-comment:before { content: "\e97f"; }
+  .pi-compass:before { content: "\e9ab"; }
+  .pi-copy:before { content: "\e957"; }
+  .pi-database:before { content: "\e9e3"; }
+  .pi-desktop:before { content: "\e993"; }
+  .pi-download:before { content: "\e956"; }
+  .pi-envelope:before { content: "\e979"; }
+  .pi-eraser:before { content: "\ea04"; }
+  .pi-eye:before { content: "\e966"; }
+  .pi-file:before { content: "\e958"; }
+  .pi-folder:before { content: "\e963"; }
+  .pi-folder-open:before { content: "\e964"; }
+  .pi-forward:before { content: "\e9ae"; }
+  .pi-globe:before { content: "\e94f"; }
+  .pi-history:before { content: "\e9da"; }
+  .pi-home:before { content: "\e925"; }
+  .pi-image:before { content: "\e972"; }
+  .pi-images:before { content: "\e973"; }
+  .pi-inbox:before { content: "\e961"; }
+  .pi-info-circle:before { content: "\e924"; }
+  .pi-lightbulb:before { content: "\ea28"; }
+  .pi-link:before { content: "\e9c1"; }
+  .pi-list:before { content: "\e967"; }
+  .pi-list-check:before { content: "\ea24"; }
+  .pi-lock:before { content: "\e95f"; }
+  .pi-objects-column:before { content: "\ea12"; }
+  .pi-palette:before { content: "\e995"; }
+  .pi-pencil:before { content: "\e942"; }
+  .pi-play:before { content: "\e9b3"; }
+  .pi-play-circle:before { content: "\ea14"; }
+  .pi-plus:before { content: "\e90d"; }
+  .pi-refresh:before { content: "\e938"; }
+  .pi-save:before { content: "\e95b"; }
+  .pi-search:before { content: "\e908"; }
+  .pi-search-plus:before { content: "\e98f"; }
+  .pi-shield:before { content: "\e9b9"; }
+  .pi-sitemap:before { content: "\e96e"; }
+  .pi-sliders-h:before { content: "\e992"; }
+  .pi-sparkles:before { content: "\ea31"; }
+  .pi-star:before { content: "\e937"; }
+  .pi-step-forward:before { content: "\e917"; }
+  .pi-sync:before { content: "\e9e6"; }
+  .pi-tablet:before { content: "\e983"; }
+  .pi-tag:before { content: "\e95e"; }
+  .pi-times:before { content: "\e90b"; }
+  .pi-trash:before { content: "\e93d"; }
+  .pi-user:before { content: "\e939"; }
+  .pi-users:before { content: "\e941"; }
+  .pi-wifi:before { content: "\e96f"; }
+  @page {
+    size: A4;
+    margin: 1.8cm 2cm;
+    background: var(--outer-bg);
+    @bottom-center {
+      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      font-size: 8pt;
+      color: #c8b59c;
+      font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    }
+  }
+  * { box-sizing: border-box; }
+  html {
+    min-height: 100%;
+    background: radial-gradient(circle at top, var(--outer-bg-glow) 0%, var(--outer-bg) 42%, #100c08 100%);
+  }
+  body {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-size: 10.6pt;
+    line-height: 1.68;
+    color: var(--ink);
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 1.75rem 2.25rem 3rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.04) 12%, rgba(255, 255, 255, 0.04) 88%, rgba(255, 255, 255, 0.24)),
+      linear-gradient(180deg, #f7f0df 0%, var(--paper) 54%, var(--paper-deep) 100%);
+    border-left: 1px solid var(--paper-edge);
+    border-right: 1px solid var(--paper-edge);
+  }
+
+  /* ===== Fixed Sidebar TOC ===== */
+  #sidebar-toc {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: linear-gradient(180deg, #1e1812 0%, #17120d 100%);
+    border-right: 1px solid rgba(108, 73, 39, 0.28);
+    padding: 1.5rem 1rem 2rem;
+    z-index: 100;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-size: 9.5pt;
+    line-height: 1.5;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(181, 141, 97, 0.3) transparent;
+  }
+  #sidebar-toc::-webkit-scrollbar { width: 5px; }
+  #sidebar-toc::-webkit-scrollbar-track { background: transparent; }
+  #sidebar-toc::-webkit-scrollbar-thumb { background: rgba(181, 141, 97, 0.3); border-radius: 3px; }
+
+  #sidebar-toc h2 {
+    font-size: 13pt;
+    color: #b58d61;
+    border-bottom: 1px solid rgba(181, 141, 97, 0.25);
+    padding-bottom: 6px;
+    margin: 0 0 0.8rem;
+    letter-spacing: 0.03em;
+  }
+  #sidebar-toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  #sidebar-toc ol ol {
+    padding-left: 1em;
+    margin-top: 0.15em;
+    margin-bottom: 0.3em;
+  }
+  #sidebar-toc li {
+    margin-bottom: 0.1em;
+  }
+  #sidebar-toc a {
+    color: #b8a58c;
+    text-decoration: none;
+    display: block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: background 0.12s, color 0.12s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #sidebar-toc a:hover {
+    background: rgba(181, 141, 97, 0.15);
+    color: #e8dcc2;
+  }
+  #sidebar-toc a.active {
+    background: rgba(181, 141, 97, 0.22);
+    color: #f4ecd9;
+    font-weight: bold;
+  }
+  #sidebar-toc a.active::before {
+    content: "▸ ";
+    font-size: 8pt;
+    color: #c8a060;
+  }
+
+  /* Mobile TOC toggle button */
+  #toc-toggle {
+    display: none;
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    z-index: 200;
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    border: 1px solid rgba(108, 73, 39, 0.35);
+    background: #1e1812;
+    color: #b58d61;
+    font-size: 16pt;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    text-align: center;
+  }
+  #toc-toggle:hover { background: #2a2218; }
+
+  /* Desktop: body centered in the space to the right of the sidebar */
+  @media screen and (min-width: 1100px) {
+    body {
+      margin-left: max(310px, calc(250px + (100vw - 250px - 880px) / 2));
+      margin-right: auto;
+    }
+    #sidebar-toc { display: block; }
+    #toc-toggle { display: none; }
+  }
+
+  /* Mobile/tablet: sidebar hidden by default, toggle button visible */
+  @media screen and (max-width: 1099px) {
+    #sidebar-toc {
+      display: none;
+      width: 260px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+    }
+    #sidebar-toc.open { display: block; }
+    #toc-toggle { display: block; }
+    body {
+      margin-left: 0;
+    }
+  }
+  p { margin: 0.5em 0 0.85em; }
+  a { color: var(--heading); }
+
+  /* Cover / title block */
+  .cover {
+    text-align: center;
+    padding: 0 2em 3.4em;
+    margin: 0.4rem 0 2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.1)),
+      linear-gradient(180deg, #efe2ca 0%, #e4d3b5 100%);
+    page-break-after: always;
+  }
+  .cover h1 {
+    font-size: 29pt;
+    color: var(--heading);
+    margin-bottom: 0.1em;
+    letter-spacing: -0.3px;
+  }
+  .cover .subtitle {
+    font-size: 14pt;
+    color: var(--muted);
+    margin-bottom: 2em;
+  }
+  .cover .meta {
+    font-size: 10pt;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* Section icons to the right of headings */
+  .section-icon {
+    float: right;
+    margin-left: 0.5rem;
+    font-size: 14pt;
+    color: var(--icon-color);
+    line-height: 1;
+    padding-top: 0.15em;
+  }
+  h2 {
+    clear: both;
+    position: relative;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4 {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    page-break-after: avoid;
+  }
+  h1 { font-size: 20pt; color: var(--heading); margin-top: 1.5em; }
+  h2 {
+    font-size: 15pt;
+    color: var(--heading);
+    border-bottom: 2px solid var(--heading-soft);
+    padding-bottom: 4px;
+    margin-top: 1.9em;
+    letter-spacing: 0.02em;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #5a3e1b;
+    margin-top: 2.2em;
+    margin-bottom: 0.5em;
+    padding: 6px 10px;
+    background: rgba(201, 168, 124, 0.10);
+    border-radius: 4px;
+  }
+  h4 {
+    font-size: 10.5pt;
+    color: #6b4d2a;
+    margin-top: 1.6em;
+    margin-bottom: 0.35em;
+    font-style: italic;
+  }
+
+  /* Table of contents */
+  .toc {
+    page-break-after: always;
+    margin: 0 0 2rem;
+    padding: 2rem 2.2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.28);
+  }
+  .toc h2 { font-size: 18pt; border: none; }
+  .toc ol { padding-left: 1.5em; }
+  .toc li { margin-bottom: 0.3em; font-size: 10.5pt; }
+  .toc a { color: var(--heading); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0 1.2em;
+    font-size: 10pt;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  th, td {
+    border: 1px solid var(--table-border);
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--table-head);
+    color: var(--heading);
+    font-weight: 600;
+  }
+  tr:nth-child(even) { background: var(--table-alt); }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 4px solid #9a6a3a;
+    background: var(--callout-base);
+    padding: 10px 14px;
+    margin: 1em 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10pt;
+  }
+  .callout.warning {
+    border-left-color: #9f5144;
+    background: var(--callout-warning);
+  }
+  .callout.info {
+    border-left-color: #587c68;
+    background: var(--callout-info);
+  }
+  .callout.tip {
+    border-left-color: #63804b;
+    background: var(--callout-tip);
+  }
+  .callout strong:first-child { display: inline; }
+
+  /* Code */
+  code {
+    background: rgba(42, 36, 31, 0.09);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 9.5pt;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 9pt;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  @media screen {
+    body {
+      box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+    }
+    .cover {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+    }
+  }
+
+  /* Lists */
+  ul, ol { padding-left: 1.5em; }
+  li { margin-bottom: 0.25em; }
+
+  /* Section breaks */
+  hr {
+    border: none;
+    border-top: 1px solid rgba(108, 73, 39, 0.22);
+    margin: 2em 0;
+  }
+
+  /* Maintenance log */
+  .maintenance-log { margin-top: 2em; }
+
+
+  /* Inline action icons in tables */
+  td i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+  th i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+
+  /* Book card overlay badges */
+  .guide-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin: 0 1px;
+    line-height: 1.4;
+  }
+  .guide-badge-ais {
+    background: #000000;
+    color: #00d2ff;
+    border: 1px solid #00d2ff;
+  }
+  .guide-badge-ais-marked {
+    background: #4b5563;
+    color: #9ca3af;
+  }
+  .guide-badge-ais-mismatched {
+    background: #000000;
+    color: #ff8800;
+    border: 1px solid #ff8800;
+  }
+  .guide-badge-aip {
+    background: #4b5563;
+    color: #22c55e;
+  }
+  .guide-badge-pdf {
+    background: #dc2626;
+    color: #fff;
+  }
+  .guide-badge-epub {
+    background: #2563eb;
+    color: #fff;
+  }
+  .guide-badge-cbx {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbz {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbr {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-audiobook {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-physical {
+    background: #78716c;
+    color: #fff;
+  }
+  .guide-badge-mobi {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-azw3 {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-fb2 {
+    background: #10b981;
+    color: #fff;
+  }
+  .guide-badge-mp3 {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4a {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4b {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-ogg {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-opus {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-cb7 {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-phy {
+    background: #78716c;
+    color: #fff;
+  }
+  /* Inline icon in prose */
+  .guide-icon-inline {
+    font-size: 0.85em;
+    color: var(--icon-color);
+    vertical-align: middle;
+    margin: 0 0.15em;
+  }
+
+  /* Location breadcrumb */
+  .section-location {
+    font-size: 9pt;
+    color: #8b7355;
+    margin: -0.3em 0 0.8em;
+    font-style: italic;
+  }
+  .section-location i {
+    font-size: 8pt;
+    color: #b8976e;
+    margin: 0 0.2em;
+  }
+
+  /* Subsection location breadcrumb */
+  .subsection-location {
+    font-size: 8.5pt;
+    color: #9b8365;
+    margin: -0.2em 0 0.6em;
+    font-style: italic;
+  }
+  .subsection-location i {
+    font-size: 7.5pt;
+    color: #c4a882;
+    margin: 0 0.15em;
+  }
+
+  /* Print helpers */
+  .page-break { page-break-before: always; }
+  h2 { page-break-inside: avoid; }
+  table { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+<!-- ==================== SIDEBAR TABLE OF CONTENTS ==================== -->
+<button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
+<nav id="sidebar-toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec3.html">3. The Dashboard</a></li>
+    <li><a href="sec4.html">4. Navigating the Interface</a></li>
+    <li><a href="sec5.html">5. Libraries</a></li>
+    <li><a href="sec6.html">6. Books</a></li>
+    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec8.html">8. Shelves</a></li>
+    <li><a href="sec9.html">9. Magic Shelves</a></li>
+    <li><a href="sec10.html" class="active">10. Reading Books</a>
+      <ol>
+        <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
+        <li><a href="sec10.html#sec10b">b) EPUB Reader</a></li>
+        <li><a href="sec10.html#sec10c">c) CBX Reader</a></li>
+        <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
+      </ol>
+    </li>
+    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec13.html">13. Series and Authors</a></li>
+    <li><a href="sec14.html">14. Metadata</a></li>
+    <li><a href="sec15.html">15. Metadata Manager</a></li>
+    <li><a href="sec16.html">16. Search and Filtering</a></li>
+    <li><a href="sec17.html">17. AI Panel Detection</a></li>
+    <li><a href="sec18.html">18. OPDS Feeds</a></li>
+    <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
+    <li><a href="sec20.html">20. Email</a></li>
+    <li><a href="sec21.html">21. User Accounts</a></li>
+    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec23.html">23. Application Settings</a></li>
+    <li><a href="sec24.html">24. Background Tasks</a></li>
+    <li><a href="sec25.html">25. Backup and Restore</a></li>
+    <li><a href="sec26.html">26. Audit Logs</a></li>
+    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
+    <li><a href="sec28.html">28. Glossary</a></li>
+    <li><a href="sec29.html">29. Maintenance Log</a></li>
+  </ol>
+</nav>
+<div style="margin-bottom:1.5em; font-size:9pt; color:var(--muted);">
+  <a href="index.html" style="color:var(--heading);">← Back to Guide Index</a>
+</div>
+<!-- ==================== SECTION 10 ==================== -->
+<h2 id="sec10">10. Reading Books <span class="section-icon"><i class="pi pi-book"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Click <strong>Read</strong> on any book cover or detail page</p>
+
+<p>Fable includes built-in readers for every supported format. Each reader is tailored to its format.</p>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> On mobile, the system back gesture or back button now closes whichever reader panel, menu, or dialog is currently open (such as sidebars, quick settings, overflow menus, and preview dialogs) before leaving the reader screen. When you close a reader, Fable now shows &ldquo;Reading Progress Updated&rdquo; instead of a stale shelf-related message.
+</div>
+
+<!-- 10a: PDF -->
+<h3 id="sec10a">a) <span class="guide-badge guide-badge-pdf">PDF</span> Reader</h3>
+<p>Opens PDF files (books, manuals, documents) in a dedicated viewer.</p>
+
+<table>
+  <tr><th>Feature</th><th>Description</th></tr>
+  <tr><td><i class="pi pi-copy"></i> Page navigation</td><td>Go to any page, use forward/back arrows, or type a page number</td></tr>
+  <tr><td><i class="pi pi-list"></i> Table of contents</td><td>Jump to chapters using the built-in outline (if the PDF has one)</td></tr>
+  <tr><td><i class="pi pi-images"></i> Page thumbnails</td><td>See small previews of all pages for quick navigation</td></tr>
+  <tr><td><i class="pi pi-search-plus"></i> Zoom</td><td>Zoom in and out for easier reading</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Highlights</td><td>Select text and highlight it in different colors</td></tr>
+  <tr><td><i class="pi pi-comment"></i> Annotations</td><td>Add notes to highlighted sections</td></tr>
+  <tr><td><i class="pi pi-chart-bar"></i> Reading progress</td><td>Automatically saved &mdash; pick up where you left off</td></tr>
+</table>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Edit PDF text, fill in forms, print directly from Fable (use your browser&rsquo;s print function), or bookmark pages (bookmarks are supported in EPUB, CBX, and Audiobook readers).</p>
+
+<div class="callout">
+  <strong>Be Careful:</strong> Very large PDFs (hundreds of megabytes) may load slowly. Some complex PDFs with unusual formatting may not render perfectly.
+</div>
+
+<!-- 10b: EPUB -->
+<h3 id="sec10b">b) E-Book (<span class="guide-badge guide-badge-epub">EPUB</span>) Reader</h3>
+<p>Opens EPUB e-book files with a clean, comfortable reading experience.</p>
+
+<table>
+  <tr><th>Feature</th><th>Description</th></tr>
+  <tr><td><i class="pi pi-list"></i> Chapter navigation</td><td>Use the table of contents to jump between chapters</td></tr>
+  <tr><td><i class="pi pi-search-plus"></i> Adjust font size</td><td>Make text larger or smaller for comfortable reading</td></tr>
+  <tr><td><i class="pi pi-arrows-v"></i> Adjust line spacing</td><td>Increase or decrease space between lines</td></tr>
+  <tr><td>Bookmarks</td><td>Save your place</td></tr>
+  <tr><td>Highlights</td><td>Select text and highlight in colors</td></tr>
+  <tr><td>Annotations</td><td>Write notes attached to highlighted text</td></tr>
+  <tr><td>Reading progress</td><td>Automatically tracked</td></tr>
+  <tr><td><i class="pi pi-palette"></i> Custom fonts</td><td>Upload and use your preferred fonts (see Settings)</td></tr>
+</table>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Change the book&rsquo;s text or view DRM-protected (copy-protected) files.</p>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> Fable only supports DRM-free e-books. DRM-locked files will not open.
+</div>
+
+<!-- 10c: CBX -->
+<h3 id="sec10c">c) Comic (<span class="guide-badge guide-badge-cbx">CBX</span>) Reader</h3>
+<p>Opens <span class="guide-badge guide-badge-cbz">CBZ</span> and <span class="guide-badge guide-badge-cbr">CBR</span> comic book files with a feature-rich reader supporting multiple scroll modes, AI-powered panel detection, and extensive customization.</p>
+
+<h4>Scroll Modes</h4>
+<p>The CBX reader supports three distinct reading modes, switchable from the Quick Settings panel <i class="pi pi-cog guide-icon-inline"></i>:</p>
+<table>
+  <tr><th>Mode</th><th>Behavior</th><th>Best For</th></tr>
+  <tr><td><strong>Paginated</strong></td><td>One or two pages at a time, click or tap to advance</td><td>Traditional comics, manga, graphic novels</td></tr>
+  <tr><td><strong>Infinite Scroll</strong></td><td>Continuous vertical scroll, pages load as you go</td><td>Long reading sessions, quick browsing</td></tr>
+  <tr><td><strong>Long Strip (Webtoon)</strong></td><td>All pages stacked vertically in one continuous strip</td><td>Webtoons, scroll comics, mobile-optimized content</td></tr>
+</table>
+
+<h4>Fit Modes</h4>
+<p>Control how pages scale within the viewport — available as icon buttons in Quick Settings:</p>
+<table>
+  <tr><th>Mode</th><th>What It Does</th></tr>
+  <tr><td><strong>Actual Size</strong></td><td>Displays pages at their native pixel dimensions with scrollbars if needed</td></tr>
+  <tr><td><strong>Fit Page</strong></td><td>Scales the entire page to fit within the visible area</td></tr>
+  <tr><td><strong>Fit Width</strong></td><td>Scales the page to fill the width of the viewport (may require vertical scrolling)</td></tr>
+  <tr><td><strong>Fit Height</strong></td><td>Scales the page to fill the height of the viewport (may require horizontal scrolling)</td></tr>
+  <tr><td><strong>Auto</strong></td><td>Intelligently chooses between Fit Width and Fit Page based on the page dimensions</td></tr>
+</table>
+
+<h4>Page View & Reading Direction</h4>
+<ul>
+  <li><strong>Single Page</strong> — One page at a time, the default for most comics</li>
+  <li><strong>Two-Page Spread</strong> — Shows two pages side-by-side like an open physical comic. Choose whether odd or even pages start the spread. Ideal for desktop and tablet reading of double-page splash art.</li>
+  <li><strong>Left-to-Right (LTR)</strong> — Standard Western reading direction</li>
+  <li><strong>Right-to-Left (RTL)</strong> — For manga and other right-to-left content; flips the page advance direction and two-page spread ordering</li>
+</ul>
+
+<h4>Background Color</h4>
+<p>Choose from <strong>Black</strong>, <strong>Gray</strong>, or <strong>White</strong> background behind the pages — accessible from Quick Settings as color swatch buttons.</p>
+
+<h4>Magnifier</h4>
+<p>Activate the magnifier <i class="pi pi-search-plus guide-icon-inline"></i> from the header toolbar to inspect fine details. A movable lens follows your cursor (desktop) or touch position (mobile). Configure the <strong>lens size</strong> (Small / Medium / Large) and <strong>zoom level</strong> (1.5× / 2× / 2.5× / 3×) from Quick Settings.</p>
+
+<h4>Slideshow</h4>
+<p>Enable auto-advancing pages with a configurable interval (5s / 10s / 15s / 20s / 30s / 60s). A progress bar animates across the top of the screen showing time until the next page. Start and stop from the header toolbar or mobile overflow menu.</p>
+
+<h4>AI Panel Detection</h4>
+<p>When AI features are enabled, the CBX reader can detect individual comic panels on each page. This unlocks:</p>
+<ul>
+  <li><strong>Panel-by-panel navigation</strong> — Instead of viewing the full page, the reader zooms into each panel in reading order. Navigate with click/tap, arrow keys, or the panel overview map.</li>
+  <li><strong>Panel overview map</strong> — A miniature overlay showing all detected panels on the current page with your active panel highlighted. Tap any panel to jump directly to it.</li>
+  <li><strong>Panel travel sensitivity</strong> — Adjust how far the viewport moves when transitioning between panels (0.4× to 2.5×) using a slider in the header.</li>
+  <li><strong>AI header dropdown</strong> — Scan the current book, rescan all pages, delete scan data, or view panel statistics (panels detected across pages).</li>
+  <li><strong>Mobile touch zones</strong> — On phones, left/right touch zones appear with "Previous Panel" / "Next Panel" hints for thumb-friendly navigation.</li>
+</ul>
+
+<h4>Mobile Joystick</h4>
+<p>On touch devices, enable the on-screen joystick <i class="pi pi-bullseye guide-icon-inline"></i> for precise panning around zoomed-in pages. The joystick menu (accessible from the header) provides:</p>
+<ul>
+  <li><strong>On / Off</strong> toggle</li>
+  <li><strong>Sensitivity</strong> — Slow, Normal, or Fast</li>
+  <li><strong>Position Lock</strong> — Lock the joystick in place or let it follow your initial touch point</li>
+  <li><strong>Touch Anchor</strong> — When enabled, the joystick re-centers to wherever you first touch</li>
+  <li><strong>Center Dot Indicator</strong> — Show or hide a center reference dot with adjustable opacity (10%–100%)</li>
+</ul>
+<p>A <strong>mobile zoom slider</strong> also appears below the joystick for pinch-free zoom control (1× to 3.5×).</p>
+
+<h4>Sidebar</h4>
+<p>The sidebar <i class="pi pi-bars guide-icon-inline"></i> has three tabs:</p>
+<table>
+  <tr><th>Tab</th><th>Contents</th></tr>
+  <tr><td><strong>Pages</strong></td><td>Numbered page list — tap any page to jump directly to it. Shows the book cover and metadata at the top.</td></tr>
+  <tr><td><strong>Bookmarks</strong></td><td>All bookmarks for this book with creation dates. Quick-add button to bookmark the current page. Delete individual bookmarks.</td></tr>
+  <tr><td><strong>Notes</strong></td><td>Full page notes with color coding, search/filter, edit, and delete. Each note shows its content, chapter, and date.</td></tr>
+</table>
+
+<h4>Header & Footer</h4>
+<ul>
+  <li><strong>Auto-hide</strong> — Header and footer fade out during reading and reappear on tap/mouse movement</li>
+  <li><strong>Pin</strong> — Lock bars visible with the pin button <i class="pi pi-thumbtack guide-icon-inline"></i></li>
+  <li><strong>Fullscreen</strong> — Expand to fill the entire screen</li>
+  <li><strong>Keyboard shortcuts</strong> — Press <strong>?</strong> or use the help button to see all available shortcuts</li>
+  <li><strong>Next in series</strong> — When you reach the last page of a comic that belongs to a series, a "Continue to Next Book" button appears showing the next book's title</li>
+</ul>
+
+<h4>Bookmarks & Notes</h4>
+<p>Unlike the EPUB reader, the CBX reader supports <strong>page-level notes</strong> with color coding. Add a note to any page from the header or sidebar. Notes appear with a colored bar and are searchable. A small indicator dot appears on the header's note button when the current page has notes. Bookmarks show a red ribbon indicator in the top-right corner of the page.</p>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Highlight or annotate specific regions on comic pages (image-based format), or edit/reorder pages.</p>
+
+<div class="callout">
+  <strong>Be Careful:</strong> CBR files (RAR format) may extract more slowly than CBZ files (ZIP format). Very high-resolution scans can use significant memory. AI panel detection requires the AI feature to be enabled and configured.
+</div>
+
+<p><strong>Metadata note:</strong> If your deployment enables <strong>Save to Original File</strong> for CBR comics, mounting a compatible Linux <code>rar</code> binary into the Fable container lets metadata writes stay in the original <code>.cbr</code>. Without that binary, Fable may fall back to converting the file to <code>.cbz</code>, which takes longer.</p>
+
+<!-- 10d: Audiobook -->
+<h3 id="sec10d">d) Audiobook Player</h3>
+<p>Plays audiobooks &mdash; collections of audio files organized in a folder.</p>
+
+<table>
+  <tr><th>Feature</th><th>Description</th></tr>
+  <tr><td><i class="pi pi-list"></i> Track listing</td><td>See all tracks/chapters in the audiobook</td></tr>
+  <tr><td><i class="pi pi-play"></i> Play / Pause</td><td>Standard audio controls</td></tr>
+  <tr><td><i class="pi pi-forward"></i> Seek / Scrub</td><td>Jump forward or backward within a track</td></tr>
+  <tr><td><i class="pi pi-step-forward"></i> Chapter navigation</td><td>Skip between tracks/chapters</td></tr>
+  <tr><td><i class="pi pi-clock"></i> Duration display</td><td>See total and remaining time</td></tr>
+  <tr><td><i class="pi pi-chart-bar"></i> Progress tracking</td><td>Automatically saves your listening position</td></tr>
+</table>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Adjust playback speed natively (use browser extensions if needed).</p>
+
+<div class="callout">
+  <strong>Be Careful:</strong> Audiobooks must be organized as folders containing audio files. Make sure files are in common formats (<span class="guide-badge guide-badge-mp3">MP3</span>, <span class="guide-badge guide-badge-m4a">M4A</span>, <span class="guide-badge guide-badge-ogg">OGG</span>, etc.).
+</div>
+<p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
+  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
+</p>
+<script>
+(function() {
+  const sidebar = document.getElementById('sidebar-toc');
+  const links = sidebar.querySelectorAll('a[href^="#"]');
+  const headings = [];
+  links.forEach(function(a) {
+    const id = a.getAttribute('href').substring(1);
+    const el = document.getElementById(id);
+    if (el) headings.push({ el: el, link: a });
+  });
+
+  function onScroll() {
+    let current = headings[0];
+    const scrollTop = window.scrollY + 80;
+    for (let i = 0; i < headings.length; i++) {
+      if (headings[i].el.offsetTop <= scrollTop) {
+        current = headings[i];
+      } else {
+        break;
+      }
+    }
+    links.forEach(function(a) { a.classList.remove('active'); });
+    if (current) current.link.classList.add('active');
+
+    // Auto-scroll sidebar to keep active link visible
+    if (current) {
+      const linkTop = current.link.offsetTop;
+      const sidebarScroll = sidebar.scrollTop;
+      const sidebarHeight = sidebar.clientHeight;
+      if (linkTop < sidebarScroll || linkTop > sidebarScroll + sidebarHeight - 60) {
+        sidebar.scrollTop = linkTop - sidebarHeight / 3;
+      }
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Close sidebar when a link is clicked (mobile)
+  links.forEach(function(a) {
+    a.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+    });
+  });
+
+  // Close sidebar when clicking outside (mobile)
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 1099 && !sidebar.contains(e.target) && e.target.id !== 'toc-toggle') {
+      sidebar.classList.remove('open');
+    }
+  });
+})();
+</script>
+</body>
+</html>

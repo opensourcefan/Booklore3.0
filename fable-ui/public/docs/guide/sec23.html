@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>23. Application Settings — Fable Familiarization Guide</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --outer-bg: #97836f;
+    --outer-bg-glow: #2d2d2d;
+    --paper: #f4ecd9;
+    --paper-deep: #e8dcc2;
+    --paper-edge: rgba(104, 77, 49, 0.35);
+    --ink: #2a2118;
+    --muted: #675846;
+    --heading: #6c4927;
+    --heading-soft: #b58d61;
+    --table-head: #e8d9be;
+    --table-border: rgba(84, 63, 39, 0.2);
+    --table-alt: rgba(108, 73, 39, 0.06);
+    --callout-base: rgba(255, 255, 255, 0.38);
+    --callout-warning: #f2ddd5;
+    --callout-info: #dde9e1;
+    --callout-tip: #deead7;
+    --code-bg: #2a241f;
+    --code-ink: #f4efe6;
+    --icon-color: #8b6b4a;
+  }
+
+  /* PrimeIcons — local font files */
+  @font-face {
+    font-family: 'primeicons';
+    font-display: block;
+    src: url('./primeicons/fonts/primeicons.eot');
+    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('./primeicons/fonts/primeicons.woff') format('woff'),
+         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    font-weight: normal;
+    font-style: normal;
+  }
+  .pi {
+    font-family: 'primeicons';
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .pi:before {
+    backface-visibility: hidden;
+  }
+
+  /* Icon definitions used in this guide */
+  .pi-arrow-right:before { content: "\e91b"; }
+  .pi-angle-double-left:before { content: "\e92d"; }
+  .pi-arrows-v:before { content: "\e9ed"; }
+  .pi-bell:before { content: "\e97c"; }
+  .pi-book:before { content: "\e9ba"; }
+  .pi-bookmark:before { content: "\e94e"; }
+  .pi-bookmark-fill:before { content: "\e9df"; }
+  .pi-box:before { content: "\e9d9"; }
+  .pi-building:before { content: "\e9cf"; }
+  .pi-calendar:before { content: "\e927"; }
+  .pi-chart-bar:before { content: "\e96d"; }
+  .pi-check:before { content: "\e909"; }
+  .pi-check-circle:before { content: "\e90a"; }
+  .pi-clock:before { content: "\e940"; }
+  .pi-code:before { content: "\e9e7"; }
+  .pi-cog:before { content: "\e94a"; }
+  .pi-comment:before { content: "\e97f"; }
+  .pi-compass:before { content: "\e9ab"; }
+  .pi-copy:before { content: "\e957"; }
+  .pi-database:before { content: "\e9e3"; }
+  .pi-desktop:before { content: "\e993"; }
+  .pi-download:before { content: "\e956"; }
+  .pi-envelope:before { content: "\e979"; }
+  .pi-eraser:before { content: "\ea04"; }
+  .pi-eye:before { content: "\e966"; }
+  .pi-file:before { content: "\e958"; }
+  .pi-folder:before { content: "\e963"; }
+  .pi-folder-open:before { content: "\e964"; }
+  .pi-forward:before { content: "\e9ae"; }
+  .pi-globe:before { content: "\e94f"; }
+  .pi-history:before { content: "\e9da"; }
+  .pi-home:before { content: "\e925"; }
+  .pi-image:before { content: "\e972"; }
+  .pi-images:before { content: "\e973"; }
+  .pi-inbox:before { content: "\e961"; }
+  .pi-info-circle:before { content: "\e924"; }
+  .pi-lightbulb:before { content: "\ea28"; }
+  .pi-link:before { content: "\e9c1"; }
+  .pi-list:before { content: "\e967"; }
+  .pi-list-check:before { content: "\ea24"; }
+  .pi-lock:before { content: "\e95f"; }
+  .pi-objects-column:before { content: "\ea12"; }
+  .pi-palette:before { content: "\e995"; }
+  .pi-pencil:before { content: "\e942"; }
+  .pi-play:before { content: "\e9b3"; }
+  .pi-play-circle:before { content: "\ea14"; }
+  .pi-plus:before { content: "\e90d"; }
+  .pi-refresh:before { content: "\e938"; }
+  .pi-save:before { content: "\e95b"; }
+  .pi-search:before { content: "\e908"; }
+  .pi-search-plus:before { content: "\e98f"; }
+  .pi-shield:before { content: "\e9b9"; }
+  .pi-sitemap:before { content: "\e96e"; }
+  .pi-sliders-h:before { content: "\e992"; }
+  .pi-sparkles:before { content: "\ea31"; }
+  .pi-star:before { content: "\e937"; }
+  .pi-step-forward:before { content: "\e917"; }
+  .pi-sync:before { content: "\e9e6"; }
+  .pi-tablet:before { content: "\e983"; }
+  .pi-tag:before { content: "\e95e"; }
+  .pi-times:before { content: "\e90b"; }
+  .pi-trash:before { content: "\e93d"; }
+  .pi-user:before { content: "\e939"; }
+  .pi-users:before { content: "\e941"; }
+  .pi-wifi:before { content: "\e96f"; }
+  @page {
+    size: A4;
+    margin: 1.8cm 2cm;
+    background: var(--outer-bg);
+    @bottom-center {
+      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      font-size: 8pt;
+      color: #c8b59c;
+      font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    }
+  }
+  * { box-sizing: border-box; }
+  html {
+    min-height: 100%;
+    background: radial-gradient(circle at top, var(--outer-bg-glow) 0%, var(--outer-bg) 42%, #100c08 100%);
+  }
+  body {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-size: 10.6pt;
+    line-height: 1.68;
+    color: var(--ink);
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 1.75rem 2.25rem 3rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.04) 12%, rgba(255, 255, 255, 0.04) 88%, rgba(255, 255, 255, 0.24)),
+      linear-gradient(180deg, #f7f0df 0%, var(--paper) 54%, var(--paper-deep) 100%);
+    border-left: 1px solid var(--paper-edge);
+    border-right: 1px solid var(--paper-edge);
+  }
+
+  /* ===== Fixed Sidebar TOC ===== */
+  #sidebar-toc {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: linear-gradient(180deg, #1e1812 0%, #17120d 100%);
+    border-right: 1px solid rgba(108, 73, 39, 0.28);
+    padding: 1.5rem 1rem 2rem;
+    z-index: 100;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-size: 9.5pt;
+    line-height: 1.5;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(181, 141, 97, 0.3) transparent;
+  }
+  #sidebar-toc::-webkit-scrollbar { width: 5px; }
+  #sidebar-toc::-webkit-scrollbar-track { background: transparent; }
+  #sidebar-toc::-webkit-scrollbar-thumb { background: rgba(181, 141, 97, 0.3); border-radius: 3px; }
+
+  #sidebar-toc h2 {
+    font-size: 13pt;
+    color: #b58d61;
+    border-bottom: 1px solid rgba(181, 141, 97, 0.25);
+    padding-bottom: 6px;
+    margin: 0 0 0.8rem;
+    letter-spacing: 0.03em;
+  }
+  #sidebar-toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  #sidebar-toc ol ol {
+    padding-left: 1em;
+    margin-top: 0.15em;
+    margin-bottom: 0.3em;
+  }
+  #sidebar-toc li {
+    margin-bottom: 0.1em;
+  }
+  #sidebar-toc a {
+    color: #b8a58c;
+    text-decoration: none;
+    display: block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: background 0.12s, color 0.12s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #sidebar-toc a:hover {
+    background: rgba(181, 141, 97, 0.15);
+    color: #e8dcc2;
+  }
+  #sidebar-toc a.active {
+    background: rgba(181, 141, 97, 0.22);
+    color: #f4ecd9;
+    font-weight: bold;
+  }
+  #sidebar-toc a.active::before {
+    content: "▸ ";
+    font-size: 8pt;
+    color: #c8a060;
+  }
+
+  /* Mobile TOC toggle button */
+  #toc-toggle {
+    display: none;
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    z-index: 200;
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    border: 1px solid rgba(108, 73, 39, 0.35);
+    background: #1e1812;
+    color: #b58d61;
+    font-size: 16pt;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    text-align: center;
+  }
+  #toc-toggle:hover { background: #2a2218; }
+
+  /* Desktop: body centered in the space to the right of the sidebar */
+  @media screen and (min-width: 1100px) {
+    body {
+      margin-left: max(310px, calc(250px + (100vw - 250px - 880px) / 2));
+      margin-right: auto;
+    }
+    #sidebar-toc { display: block; }
+    #toc-toggle { display: none; }
+  }
+
+  /* Mobile/tablet: sidebar hidden by default, toggle button visible */
+  @media screen and (max-width: 1099px) {
+    #sidebar-toc {
+      display: none;
+      width: 260px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+    }
+    #sidebar-toc.open { display: block; }
+    #toc-toggle { display: block; }
+    body {
+      margin-left: 0;
+    }
+  }
+  p { margin: 0.5em 0 0.85em; }
+  a { color: var(--heading); }
+
+  /* Cover / title block */
+  .cover {
+    text-align: center;
+    padding: 0 2em 3.4em;
+    margin: 0.4rem 0 2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.1)),
+      linear-gradient(180deg, #efe2ca 0%, #e4d3b5 100%);
+    page-break-after: always;
+  }
+  .cover h1 {
+    font-size: 29pt;
+    color: var(--heading);
+    margin-bottom: 0.1em;
+    letter-spacing: -0.3px;
+  }
+  .cover .subtitle {
+    font-size: 14pt;
+    color: var(--muted);
+    margin-bottom: 2em;
+  }
+  .cover .meta {
+    font-size: 10pt;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* Section icons to the right of headings */
+  .section-icon {
+    float: right;
+    margin-left: 0.5rem;
+    font-size: 14pt;
+    color: var(--icon-color);
+    line-height: 1;
+    padding-top: 0.15em;
+  }
+  h2 {
+    clear: both;
+    position: relative;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4 {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    page-break-after: avoid;
+  }
+  h1 { font-size: 20pt; color: var(--heading); margin-top: 1.5em; }
+  h2 {
+    font-size: 15pt;
+    color: var(--heading);
+    border-bottom: 2px solid var(--heading-soft);
+    padding-bottom: 4px;
+    margin-top: 1.9em;
+    letter-spacing: 0.02em;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #5a3e1b;
+    margin-top: 2.2em;
+    margin-bottom: 0.5em;
+    padding: 6px 10px;
+    background: rgba(201, 168, 124, 0.10);
+    border-radius: 4px;
+  }
+  h4 {
+    font-size: 10.5pt;
+    color: #6b4d2a;
+    margin-top: 1.6em;
+    margin-bottom: 0.35em;
+    font-style: italic;
+  }
+
+  /* Table of contents */
+  .toc {
+    page-break-after: always;
+    margin: 0 0 2rem;
+    padding: 2rem 2.2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.28);
+  }
+  .toc h2 { font-size: 18pt; border: none; }
+  .toc ol { padding-left: 1.5em; }
+  .toc li { margin-bottom: 0.3em; font-size: 10.5pt; }
+  .toc a { color: var(--heading); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0 1.2em;
+    font-size: 10pt;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  th, td {
+    border: 1px solid var(--table-border);
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--table-head);
+    color: var(--heading);
+    font-weight: 600;
+  }
+  tr:nth-child(even) { background: var(--table-alt); }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 4px solid #9a6a3a;
+    background: var(--callout-base);
+    padding: 10px 14px;
+    margin: 1em 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10pt;
+  }
+  .callout.warning {
+    border-left-color: #9f5144;
+    background: var(--callout-warning);
+  }
+  .callout.info {
+    border-left-color: #587c68;
+    background: var(--callout-info);
+  }
+  .callout.tip {
+    border-left-color: #63804b;
+    background: var(--callout-tip);
+  }
+  .callout strong:first-child { display: inline; }
+
+  /* Code */
+  code {
+    background: rgba(42, 36, 31, 0.09);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 9.5pt;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 9pt;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  @media screen {
+    body {
+      box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+    }
+    .cover {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+    }
+  }
+
+  /* Lists */
+  ul, ol { padding-left: 1.5em; }
+  li { margin-bottom: 0.25em; }
+
+  /* Section breaks */
+  hr {
+    border: none;
+    border-top: 1px solid rgba(108, 73, 39, 0.22);
+    margin: 2em 0;
+  }
+
+  /* Maintenance log */
+  .maintenance-log { margin-top: 2em; }
+
+
+  /* Inline action icons in tables */
+  td i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+  th i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+
+  /* Book card overlay badges */
+  .guide-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin: 0 1px;
+    line-height: 1.4;
+  }
+  .guide-badge-ais {
+    background: #000000;
+    color: #00d2ff;
+    border: 1px solid #00d2ff;
+  }
+  .guide-badge-ais-marked {
+    background: #4b5563;
+    color: #9ca3af;
+  }
+  .guide-badge-ais-mismatched {
+    background: #000000;
+    color: #ff8800;
+    border: 1px solid #ff8800;
+  }
+  .guide-badge-aip {
+    background: #4b5563;
+    color: #22c55e;
+  }
+  .guide-badge-pdf {
+    background: #dc2626;
+    color: #fff;
+  }
+  .guide-badge-epub {
+    background: #2563eb;
+    color: #fff;
+  }
+  .guide-badge-cbx {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbz {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbr {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-audiobook {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-physical {
+    background: #78716c;
+    color: #fff;
+  }
+  .guide-badge-mobi {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-azw3 {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-fb2 {
+    background: #10b981;
+    color: #fff;
+  }
+  .guide-badge-mp3 {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4a {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4b {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-ogg {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-opus {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-cb7 {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-phy {
+    background: #78716c;
+    color: #fff;
+  }
+  /* Inline icon in prose */
+  .guide-icon-inline {
+    font-size: 0.85em;
+    color: var(--icon-color);
+    vertical-align: middle;
+    margin: 0 0.15em;
+  }
+
+  /* Location breadcrumb */
+  .section-location {
+    font-size: 9pt;
+    color: #8b7355;
+    margin: -0.3em 0 0.8em;
+    font-style: italic;
+  }
+  .section-location i {
+    font-size: 8pt;
+    color: #b8976e;
+    margin: 0 0.2em;
+  }
+
+  /* Subsection location breadcrumb */
+  .subsection-location {
+    font-size: 8.5pt;
+    color: #9b8365;
+    margin: -0.2em 0 0.6em;
+    font-style: italic;
+  }
+  .subsection-location i {
+    font-size: 7.5pt;
+    color: #c4a882;
+    margin: 0 0.15em;
+  }
+
+  /* Print helpers */
+  .page-break { page-break-before: always; }
+  h2 { page-break-inside: avoid; }
+  table { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+<!-- ==================== SIDEBAR TABLE OF CONTENTS ==================== -->
+<button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
+<nav id="sidebar-toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec3.html">3. The Dashboard</a></li>
+    <li><a href="sec4.html">4. Navigating the Interface</a></li>
+    <li><a href="sec5.html">5. Libraries</a></li>
+    <li><a href="sec6.html">6. Books</a></li>
+    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec8.html">8. Shelves</a></li>
+    <li><a href="sec9.html">9. Magic Shelves</a></li>
+    <li><a href="sec10.html">10. Reading Books</a>
+      <ol>
+        <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
+        <li><a href="sec10.html#sec10b">b) EPUB Reader</a></li>
+        <li><a href="sec10.html#sec10c">c) CBX Reader</a></li>
+        <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
+      </ol>
+    </li>
+    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec13.html">13. Series and Authors</a></li>
+    <li><a href="sec14.html">14. Metadata</a></li>
+    <li><a href="sec15.html">15. Metadata Manager</a></li>
+    <li><a href="sec16.html">16. Search and Filtering</a></li>
+    <li><a href="sec17.html">17. AI Panel Detection</a></li>
+    <li><a href="sec18.html">18. OPDS Feeds</a></li>
+    <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
+    <li><a href="sec20.html">20. Email</a></li>
+    <li><a href="sec21.html">21. User Accounts</a></li>
+    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec23.html" class="active">23. Application Settings</a></li>
+    <li><a href="sec24.html">24. Background Tasks</a></li>
+    <li><a href="sec25.html">25. Backup and Restore</a></li>
+    <li><a href="sec26.html">26. Audit Logs</a></li>
+    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
+    <li><a href="sec28.html">28. Glossary</a></li>
+    <li><a href="sec29.html">29. Maintenance Log</a></li>
+  </ol>
+</nav>
+<div style="margin-bottom:1.5em; font-size:9pt; color:var(--muted);">
+  <a href="index.html" style="color:var(--heading);">← Back to Guide Index</a>
+</div>
+<!-- ==================== SECTION 23 ==================== -->
+<h2 id="sec23">23. Application Settings <span class="section-icon"><i class="pi pi-cog"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar bottom <i class="pi pi-chevron-right"></i> Settings <i class="pi pi-cog"></i></p>
+
+<p>Access settings via the gear <i class="pi pi-cog guide-icon-inline"></i> at the bottom of the sidebar.</p>
+
+<p>The main Settings page includes a compact <i class="pi pi-arrow-left guide-icon-inline"></i> left-arrow control in the top-right corner that returns you to the route you opened Settings from, instead of relying on generic browser-history back behavior.</p>
+
+<table>
+  <tr><th>Category</th><th>What You Can Configure</th></tr>
+  <tr><td><i class="pi pi-book"></i> Reader Settings</td><td>Default font size, zoom, reading mode preferences</td></tr>
+  <tr><td><i class="pi pi-desktop"></i> View Preferences</td><td>Book grid layout, cover preview panel, toolbar customization</td></tr>
+  <tr><td><i class="pi pi-users"></i> User Management</td><td>Create/edit/delete users and their permissions</td></tr>
+  <tr><td><i class="pi pi-envelope"></i> Email</td><td>SMTP server for sending books via email</td></tr>
+  <tr><td><i class="pi pi-sitemap"></i> File Naming Patterns</td><td>How imported files are named and organized</td></tr>
+  <tr><td><i class="pi pi-sliders-h"></i> Metadata</td><td>Default metadata providers and API keys</td></tr>
+  <tr><td><i class="pi pi-save"></i> Metadata Persistence</td><td>Write metadata into files, manage automatic sidecars, and run a manual per-library sidecar backup even when automatic sidecars are disabled</td></tr>
+  <tr><td><i class="pi pi-file"></i> File Management</td><td>Control whether Fable is allowed to delete real files from disk during book-file deletion actions</td></tr>
+  <tr><td><i class="pi pi-database"></i> Library Metadata</td><td>Per-library metadata provider configuration</td></tr>
+  <tr><td><i class="pi pi-lock"></i> Authentication</td><td>OIDC and forward auth configuration</td></tr>
+  <tr><td><i class="pi pi-globe"></i> OPDS</td><td>E-reader feed configuration</td></tr>
+  <tr><td><i class="pi pi-list-check"></i> Tasks</td><td>Background task scheduling (cron jobs)</td></tr>
+  <tr><td><i class="pi pi-history"></i> Audit Logs</td><td>View user activity logs</td></tr>
+  <tr><td><i class="pi pi-eye"></i> AI Panel Detection</td><td>Enable/disable and manage comic panel AI</td></tr>
+  <tr><td><i class="pi pi-search"></i> AI Search Settings</td><td>AI model provider, API keys, external URL, saved LLM profiles, and advanced embedding, chunking, and retrieval parameters (BM25, Matryoshka, Reranking, RAG techniques)</td></tr>
+  <tr><td><i class="pi pi-cog"></i> Global Preferences</td><td>Theme palette, custom primary/surface colors, language, timezone, settings backup</td></tr>
+</table>
+
+<p><strong>Good to Know:</strong> For CBR comics, embedded metadata writes are fastest when the Fable container has access to a compatible Linux <code>rar</code> binary. Without it, Fable may convert the archive to <code>.cbz</code> during a save-to-original-file operation.</p>
+
+<h4>Customizable Toolbar</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View Preferences</p>
+<ul>
+  <li><strong>Add or remove buttons</strong> &mdash; Choose which actions appear in the toolbar</li>
+  <li><strong>Reorder buttons</strong> &mdash; Drag and drop to rearrange</li>
+  <li><strong>Add separators</strong> &mdash; Insert visual dividers between button groups</li>
+  <li><strong>Keep a fullscreen toggle in the toolbar</strong> &mdash; Show or hide the fullscreen action like any other topbar button, and place it where it fits your layout best</li>
+</ul>
+
+<h4>Theme Colors</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Global Preferences</p>
+<ul>
+  <li><strong>Choose preset colors for the interface</strong> &mdash; The theme configurator lets you pick the accent color and the surface palette independently</li>
+  <li><strong>Use a color picker or paste a value</strong> &mdash; Both color controls accept a native color picker or a typed/pasted color such as <code>#ff6600</code></li>
+  <li><strong>Reset one side without resetting the other</strong> &mdash; Clear the custom primary or custom surface color independently if you want to go back to presets</li>
+  <li><strong>Keep your theme with your account</strong> &mdash; Theme selections are saved to your user settings so they return on later sign-ins</li>
+</ul>
+
+<h3>AI Search & Embedding Tuning</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings</p>
+<p>Fable&rsquo;s AI Search is powered by two separate AI engines: an <strong>Embedding Engine</strong> that converts book text into searchable vectors, and an <strong>LLM (Large Language Model) Engine</strong> that generates natural-language answers to your queries. Both can run locally (via the bundled Ollama service inside the <code>fable-ai-search</code> Docker container) or connect to external cloud providers like OpenAI. The AI Search Settings page is organized into collapsible sections, each controlling a different aspect of the AI pipeline.</p>
+
+<h4>AI Search Status Panel</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> top of page</p>
+<p>The status panel shows the current state of the AI Search service at a glance:</p>
+<ul>
+  <li><strong>Service State</strong> &mdash; Displays <code>READY</code>, <code>STARTING</code>, <code>UNREACHABLE</code>, or <code>ERROR</code> with a color-coded status box (green/amber/red).</li>
+  <li><strong>Refresh</strong> <i class="pi pi-refresh guide-icon-inline"></i> &mdash; Manually re-check the service status.</li>
+  <li><strong>Startup Activity Log</strong> &mdash; Expandable panel showing a timeline of status checks, model path, whether the model file exists on disk, and any errors. Useful for diagnosing why the service isn&rsquo;t ready.</li>
+  <li><strong>Reload</strong> <i class="pi pi-refresh guide-icon-inline"></i> &mdash; Triggers a model reload on the AI Search service. Use this after changing the embedding model to force the service to pick up the new model without restarting the container.</li>
+  <li><strong>Docker Hint</strong> &mdash; If the service is unreachable and the endpoint looks like a Docker service name, a hint reminds you to ensure the <code>fable-ai-search</code> container is running.</li>
+</ul>
+
+<h4>LLM Configuration</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> LLM Configuration section</p>
+<p>The LLM (Large Language Model) is what generates the natural-language answers when you ask AI Search a question. This section controls which model to use and how to connect to it:</p>
+<ul>
+  <li><strong>Active LLM Profile</strong> &mdash; A dropdown listing all your saved profiles. Select one to instantly load its provider, model, API key, and tuning parameters. The currently active profile is highlighted. If no profile matches your current settings, the dropdown shows &ldquo;Custom Settings (No Profile).&rdquo;</li>
+  <li><strong>LLM Engine (Local / External)</strong> &mdash; Choose between:
+    <ul>
+      <li><strong>Local Ollama</strong> &mdash; Uses the bundled Ollama instance inside the <code>fable-ai-search</code> container. No API key needed.</li>
+      <li><strong>OpenAI Endpoint</strong> &mdash; Connects to OpenAI&rsquo;s API. Requires an API key and the base URL (<code>https://api.openai.com/v1</code>).</li>
+      <li><strong>Custom URL</strong> &mdash; Connects to any OpenAI-compatible API (e.g., Groq, Together, local LLM servers). Requires the full base URL.</li>
+      <li><strong>External Ollama</strong> &mdash; Connects to an Ollama instance running on another machine. Use <code>http://host.docker.internal:11434</code> for a host-machine Ollama.</li>
+    </ul>
+  </li>
+  <li><strong>LLM Model Name</strong> &mdash; For local Ollama, choose from preset models (<code>smollm2:360m</code>, <code>qwen2.5:1.5b</code>, <code>qwen2.5:3b</code>, <code>llama3.2:3b</code>) or type any model name from the Ollama registry. For external providers, type the model ID (e.g., <code>gpt-4o-mini</code>).</li>
+  <li><strong>LLM API Key</strong> &mdash; Required for external providers. Stored securely.</li>
+  <li><strong>External LLM URL</strong> &mdash; The base URL for the external API endpoint. Required for all non-local providers.</li>
+  <li><strong>Test Connection</strong> <i class="pi pi-bolt guide-icon-inline"></i> &mdash; Sends a test request to verify the LLM endpoint is reachable and the API key works.</li>
+  <li><strong>Downloaded Models</strong> &mdash; Right-side panel showing all LLM models currently downloaded in the local Ollama instance, with file sizes. Click a model name to prefill it into the LLM settings.</li>
+  <li><strong>Apply LLM Settings</strong> &mdash; Saves the LLM configuration. The button turns green when changes are detected.</li>
+</ul>
+
+<h4>Embedding Configuration</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Embedding Configuration (click to expand)</p>
+<p>The Embedding Engine converts book text into mathematical vectors that power semantic search. This section is collapsed by default with an orange warning header because changing the embedding model requires re-embedding all books:</p>
+<ul>
+  <li><strong>Embedding Engine (Local / External)</strong> &mdash; Same provider options as the LLM: Local Ollama, OpenAI, Custom URL, or External Ollama.</li>
+  <li><strong>Embedding Model Name</strong> &mdash; For local, choose from presets (<code>all-MiniLM-L6-v2</code>, <code>bge-base-en-v1.5</code>, <code>nomic-embed-text-v1.5</code>) or type any HuggingFace model ID. For external, enter the provider&rsquo;s embedding model name (e.g., <code>text-embedding-3-small</code>).</li>
+  <li><strong>Embedding API Key</strong> &mdash; Required for external providers.</li>
+  <li><strong>External Embedding URL</strong> &mdash; Base URL for the external embedding API.</li>
+  <li><strong>Test Connection</strong> <i class="pi pi-bolt guide-icon-inline"></i> &mdash; Verifies the embedding endpoint is reachable.</li>
+  <li><strong>Downloaded Models</strong> &mdash; Right-side panel listing all embedding models downloaded locally, with sizes and delete buttons.</li>
+  <li><strong>Embedding Statistics</strong> &mdash; Shows how many books are embedded with each model. If a model doesn&rsquo;t match the currently selected one, it shows a <strong>(Mismatch)</strong> warning in orange — those embeddings are stale and books need re-embedding.</li>
+  <li><strong>Apply Embedding Settings</strong> &mdash; If the provider or model changed, a confirmation dialog warns that all existing embeddings will be invalidated and books must be re-embedded.</li>
+</ul>
+
+<h4>Saved LLM Profiles</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Saved LLM Profiles</p>
+<p>Profiles let you save and switch between complete AI configurations instantly. Each profile stores: LLM provider, model, API key, external URL, Max Tokens, Temperature, and all RAG technique toggles.</p>
+<ul>
+  <li><strong>Save Profile</strong> <i class="pi pi-save guide-icon-inline"></i> &mdash; Opens a dialog where you name the profile. The name defaults to the current model name. The description is auto-generated from the provider type, temperature, and max tokens.</li>
+  <li><strong>Activate Profile</strong> &mdash; Click any saved profile in the dropdown to instantly load all its settings. The active profile is highlighted.</li>
+  <li><strong>Delete Profile</strong> <i class="pi pi-trash guide-icon-inline"></i> &mdash; Removes the selected profile. Does not affect current settings.</li>
+  <li><strong>Profile-Aware Save</strong> &mdash; When you save settings that match an existing profile, the profile selector updates to show that profile as active. When you change settings away from a profile, it switches to &ldquo;Custom Settings.&rdquo;</li>
+</ul>
+
+<h4>Search Tuning Parameters</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Search Tuning section</p>
+<p>These sliders control how the AI Search retrieves and presents results. Each has a range slider with &minus;/+ stepper buttons and a direct numeric input:</p>
+<ul>
+  <li><strong>Top K (1–50, default 5):</strong> How many context chunks to retrieve from the vector database. More chunks give the LLM richer context but increase processing time.</li>
+  <li><strong>Display Top K (1–50, default 1):</strong> How many raw results to show in the UI. Set this lower than Top K to give the LLM more context while showing only the best match to the user.</li>
+  <li><strong>Similarity Threshold (0.10–0.90, default 0.30):</strong> Minimum relevance score for a chunk to be included. Lower values return more results (some may be less relevant); higher values are stricter.</li>
+  <li><strong>Max Tokens (128–4096, default 768):</strong> Maximum length of the LLM&rsquo;s generated summary. Higher values produce longer answers but take more time and memory.</li>
+  <li><strong>Temperature (0.0–1.0, default 0.1):</strong> Controls randomness in the LLM output. 0.0 gives deterministic, focused answers. Higher values (0.5+) produce more creative and varied responses.</li>
+</ul>
+
+<h4>RAG Techniques</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> RAG Techniques section</p>
+<p>Retrieval-Augmented Generation (RAG) techniques enhance answer quality by adding processing steps between retrieval and response generation. Each technique has an independent toggle switch. <strong>Features that add LLM calls are automatically disabled when using a local LLM provider</strong> to avoid excessive latency on CPU-only hardware. They activate automatically when using an external (cloud) LLM.</p>
+<ul>
+  <li><strong>HyDE (Hypothetical Document Embeddings):</strong> Generates a synthetic ideal answer to your query, then uses that to find similar content. Especially effective for abstract or conceptual queries. <em>Adds 1 LLM call.</em></li>
+  <li><strong>Multi-Query Retrieval:</strong> Expands your single query into multiple variant queries and fuses the results for broader coverage. <em>Adds 1 LLM call + N retrievals.</em></li>
+  <li><strong>Query Decomposition:</strong> Breaks complex questions into simpler sub-questions, answers each one, then synthesizes a complete response. <em>Adds 1 LLM call + N retrievals.</em></li>
+  <li><strong>Self-Reflection:</strong> After generating an initial answer, the LLM critiques its own response and regenerates if issues are found. <em>Adds 1–2 LLM calls.</em></li>
+  <li><strong>Contextual Compression:</strong> Filters retrieved chunks to only the most relevant sentences before they reach the LLM, keeping responses focused. <em>No LLM calls — works with any provider.</em></li>
+</ul>
+
+<h4>OCR Settings</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> OCR section</p>
+<p>Optical Character Recognition (OCR) extracts text from scanned or image-only PDF pages during book embedding:</p>
+<ul>
+  <li><strong>Enable OCR</strong> &mdash; Master toggle. When on, Fable runs OCR on pages that have no extractable text layer.</li>
+  <li><strong>OCR Fallback Only</strong> &mdash; When enabled, OCR only runs on pages where no text could be extracted normally. This avoids unnecessary OCR processing on pages that already have text.</li>
+  <li><strong>OCR Language</strong> &mdash; Tesseract language code (default <code>eng</code>). Use three-letter codes like <code>fra</code> for French, <code>deu</code> for German, or <code>chi_sim</code> for Simplified Chinese.</li>
+</ul>
+
+<h4>Auto-Embed Libraries</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Auto-Embed section</p>
+<p>A multi-select dropdown listing all your libraries. Books imported into selected libraries are automatically queued for embedding in the background. If no libraries are selected, you must manually trigger embedding via the scan section below.</p>
+
+<h4>AI Search Scan</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Scan section</p>
+<p>This section lets you manually trigger embedding for books that don&rsquo;t yet have AI Search data:</p>
+<ul>
+  <li><strong>Directory Picker</strong> &mdash; Select which library directories to scan for unembedded books.</li>
+  <li><strong>Scan Now</strong> <i class="pi pi-bolt guide-icon-inline"></i> &mdash; Starts scanning the selected directories. Books found without embeddings are queued for processing.</li>
+  <li><strong>Progress Display</strong> &mdash; Shows a live progress box with status text (e.g., &ldquo;Processing book 12 of 45&rdquo;), error details if any, and a <strong>Stop</strong> button to cancel the scan.</li>
+  <li><strong>Stop</strong> <i class="pi pi-stop guide-icon-inline"></i> &mdash; Cancels the running scan. Already-processed books keep their embeddings.</li>
+</ul>
+
+<h4>Advanced Embedding & Retrieval Tuning</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning (click to expand)</p>
+<p>This collapsible section (orange header, collapsed by default) contains low-level tuning parameters for the embedding and retrieval pipeline. It includes an <strong>Auto-Fill Recommended Presets</strong> <i class="pi pi-sparkles guide-icon-inline"></i> button that loads optimal settings for your currently selected embedding model.</p>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> Modifying <strong>Chunk Size</strong>, <strong>Chunk Overlap</strong>, <strong>Semantic Chunking</strong>, or <strong>Matryoshka Dimensions</strong> changes how embeddings are structured. Saving changes to these settings will <strong>automatically delete all existing book embeddings</strong> and mark all books to be re-embedded. A confirmation dialog warns you before this happens. Search-only parameters (Hybrid Search or Reranking) do not invalidate existing embeddings.
+</div>
+
+<ul>
+  <li><strong>Chunk Size (500–8000, default 1500):</strong> Maximum characters per text chunk during embedding. Larger chunks preserve more context but reduce search precision. Models with wide context windows (like Nomic at 8k) benefit from larger values.</li>
+  <li><strong>Chunk Overlap (0–1000, default 100):</strong> How many characters overlap between consecutive chunks. Prevents key sentences from being cut at chunk boundaries.</li>
+  <li><strong>Semantic Chunking:</strong> Toggle + threshold slider (0.10–0.50). When enabled, Fable splits books at natural text boundaries (paragraphs, sections) rather than at fixed character counts. The threshold controls how aggressively it detects boundaries — lower values create more chunks.</li>
+  <li><strong>Matryoshka Dimensions:</strong> Dropdown (Disabled / 768 / 512 / 256 / 128). Supported by advanced models like Nomic, MRL allows slicing high-dimensional vectors down to fewer dimensions with almost no impact on retrieval accuracy. Slicing vectors and re-normalizing them speeds up cosine similarity comparisons on CPU by up to <strong>3×</strong>, saving significant memory.</li>
+  <li><strong>Hybrid Keyword Search (BM25 + Vector):</strong> Toggle + RRF K slider (10–200, default 60). Combines semantic vector similarity with traditional BM25 exact keyword matching using Reciprocal Rank Fusion. Highly effective at finding specific names, numbers, or technical codes that vector models might overlook.</li>
+  <li><strong>Cross-Encoder Reranking:</strong> Toggle + model selector dropdown. Runs a lightweight cross-encoder model (such as <code>BAAI/bge-reranker-base</code>) in a background thread. While standard bi-encoders retrieve candidate chunks quickly, a cross-encoder evaluates the exact match relation between the query and text for the top candidates. This brings GPU-grade search precision to CPU hardware in milliseconds because it only reranks a handful of candidates instead of the whole database.</li>
+</ul>
+
+<h4>CPU Optimization Presets</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning <i class="pi pi-chevron-right"></i> Auto-Fill Recommended Presets</p>
+<p>To maximize search accuracy and inference speed without overloading system resources, refer to the following recommended configurations based on the selected embedding model. Click <strong>Auto-Fill Recommended Presets</strong> to apply these values automatically:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Model Configuration</th>
+      <th>Recommended Chunk Size</th>
+      <th>MRL Dimension</th>
+      <th>Hybrid Search (BM25)</th>
+      <th>Reranking</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <span style="display: inline-block; font-size: 8.5pt; font-family: monospace; font-weight: bold; background: rgba(59, 130, 246, 0.1); color: #1e3a8a; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(59, 130, 246, 0.2);">nomic-embed-text-v1.5</span><br>
+        <span style="font-size: 8pt; color: var(--muted);">The All-Rounder (8k context)</span>
+      </td>
+      <td><strong>3,000 – 8,000</strong> characters</td>
+      <td><strong>256</strong> or <strong>128</strong></td>
+      <td>Optional</td>
+      <td>Optional</td>
+    </tr>
+    <tr>
+      <td>
+        <span style="display: inline-block; font-size: 8.5pt; font-family: monospace; font-weight: bold; background: rgba(16, 185, 129, 0.1); color: #065f46; border: 1px solid rgba(16, 185, 129, 0.2); padding: 2px 6px; border-radius: 4px;">all-MiniLM-L6-v2</span><br>
+        <span style="font-size: 8pt; color: var(--muted);">The Speed Demon (512 context)</span>
+      </td>
+      <td><strong>1,000 – 1,500</strong> characters</td>
+      <td><strong>Disabled</strong> (0)</td>
+      <td>Recommended</td>
+      <td><strong>Enabled</strong> (Highly Recommended)</td>
+    </tr>
+    <tr>
+      <td>
+        <span style="display: inline-block; font-size: 8.5pt; font-family: monospace; font-weight: bold; background: rgba(139, 92, 246, 0.1); color: #5b21b6; border: 1px solid rgba(139, 92, 246, 0.2); padding: 2px 6px; border-radius: 4px;">bge-base-en-v1.5</span><br>
+        <span style="font-size: 8pt; color: var(--muted);">Standard/Enhanced (512 context)</span>
+      </td>
+      <td><strong>1,000 – 1,500</strong> characters</td>
+      <td><strong>Disabled</strong> (0)</td>
+      <td><strong>Enabled</strong></td>
+      <td>Optional</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong>
+  <ul>
+    <li><strong>Changing authentication settings can lock you out.</strong> Test OIDC configuration before disabling local login.</li>
+    <li><strong>Settings export/import includes sensitive data</strong> (email credentials, API keys). Store exported files securely.</li>
+    <li><strong>Allow File Deletion is a hard safety gate.</strong> When it is off, Fable hides the <strong>Delete from Disk</strong> action, removes catalog associations only, and should not delete physical files from disk.</li>
+  </ul>
+</div>
+
+<div class="callout info">
+  <strong>Good to Know:</strong>
+  <ul>
+    <li><strong>The File Management toggle also protects additional attached files.</strong> When <strong>Allow File Deletion</strong> is disabled, deleting an attached file removes it from Fable without overriding the global disk-deletion block.</li>
+    <li><strong>Remove from Library is now a durable hide action.</strong> When you remove a book without deleting its file, Fable keeps the file on disk but suppresses automatic re-import during later scans and watcher events.</li>
+    <li><strong>Automatic sidecars and manual sidecar backups are separate.</strong> You can keep automatic sidecar writing turned off and still run <strong>Back Up Sidecars per Library</strong> from Metadata Persistence when you want an on-demand metadata backup.</li>
+    <li><strong>The backup action is available in both LOCAL and NETWORK disk modes.</strong> Network mode still blocks automatic rewrite and file reorganization, but the manual sidecar backup action remains available as an explicit exception.</li>
+    <li><strong>Running the backup again refreshes existing backup sidecars.</strong> Fable rewrites the selected library&rsquo;s sidecar files with the current database metadata instead of requiring you to delete old backups first.</li>
+    <li><strong>Manual sidecar backups now show a light grey topbar working pill while they run.</strong> The message is intentionally simple because the backup call is usually brief, but it gives you immediate confirmation that the action started.</li>
+  </ul>
+</div>
+<p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
+  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
+</p>
+<script>
+(function() {
+  const sidebar = document.getElementById('sidebar-toc');
+  const links = sidebar.querySelectorAll('a[href^="#"]');
+  const headings = [];
+  links.forEach(function(a) {
+    const id = a.getAttribute('href').substring(1);
+    const el = document.getElementById(id);
+    if (el) headings.push({ el: el, link: a });
+  });
+
+  function onScroll() {
+    let current = headings[0];
+    const scrollTop = window.scrollY + 80;
+    for (let i = 0; i < headings.length; i++) {
+      if (headings[i].el.offsetTop <= scrollTop) {
+        current = headings[i];
+      } else {
+        break;
+      }
+    }
+    links.forEach(function(a) { a.classList.remove('active'); });
+    if (current) current.link.classList.add('active');
+
+    // Auto-scroll sidebar to keep active link visible
+    if (current) {
+      const linkTop = current.link.offsetTop;
+      const sidebarScroll = sidebar.scrollTop;
+      const sidebarHeight = sidebar.clientHeight;
+      if (linkTop < sidebarScroll || linkTop > sidebarScroll + sidebarHeight - 60) {
+        sidebar.scrollTop = linkTop - sidebarHeight / 3;
+      }
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Close sidebar when a link is clicked (mobile)
+  links.forEach(function(a) {
+    a.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+    });
+  });
+
+  // Close sidebar when clicking outside (mobile)
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 1099 && !sidebar.contains(e.target) && e.target.id !== 'toc-toggle') {
+      sidebar.classList.remove('open');
+    }
+  });
+})();
+</script>
+</body>
+</html>

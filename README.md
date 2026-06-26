@@ -26,8 +26,6 @@ A personal fork of [Booklore] with extended features, UI customizations, and an 
 
 ## Contents
 
-- [Under the Hood](#under-the-hood)
-- [Main Features](#main-features)
 - [Installation](#installation)
   - [Requirements](#requirements)
   - [Fresh Install](#fresh-install)
@@ -35,51 +33,12 @@ A personal fork of [Booklore] with extended features, UI customizations, and an 
   - [Install Without AI](#install-without-ai)
 - [Sample `.env`](#sample-env)
 - [Sample `docker-compose.yml`](#sample-docker-composeyml)
+- [Adding AI Search to an Existing Installation](#adding-ai-search-to-an-existing-installation)
 - [Saving Your Data](#saving-your-data)
   - [Application Settings](#application-settings)
   - [Book Files and Covers](#book-files-and-covers)
-- [AI Panel Detection — Quick Start](#ai-panel-detection--quick-start)
+- [AI Features — Quick Start](#ai-features--quick-start)
 - [Familiarization Guide](#familiarization-guide)
-- [Screenshots](#screenshots)
-
----
-
-## Under the Hood
-
-This fork includes a number of targeted fixes to improve reliability, memory efficiency, and UI responsiveness — particularly for larger libraries. No upstream features were removed.
-
-- **~50% less peak memory per image operation** — reduced pixel decode ceiling and replaced a lazy image scaler that held source buffers in memory with a direct bicubic draw that flushes source memory immediately
-- **Native image buffers always released** — flush calls are now guaranteed via `finally` blocks across all thumbnail generation paths, preventing silent leaks during error conditions
-- **No more zombie subprocesses** — KEPUB conversion and CBR metadata extraction processes are now properly terminated in `finally` blocks; failed or timed-out operations can no longer accumulate as orphaned OS processes
-- **Komga series endpoints no longer fall back to catalog-wide scans** — series pages, series detail, and series book lists now resolve the requested series name first and fetch only the matching books; the all-libraries series view no longer builds an in-memory map from a full eager-loaded catalog scan
-- **Summary list responses avoid heavy metadata loads** — list and paged summary fetches now use a lighter summary graph, while long descriptions stay lazy until a detail flow actually requests them
-- **Browser views now start paged-first** — opening All Books, a library, a shelf, or Not Shelfed no longer has to bootstrap the full catalog just to render the first screen; sidebar counts and topbar search now use lightweight paged queries as well
-- **Covers load once, not on every navigation** — browser-cache headers added to all image endpoints (7-day TTL for book covers, 1-hour for author images); the existing cache-busting URL timestamps ensure stale images are never served
-- **Sidebar navigation no longer rebuilds the book grid** — the Angular route reuse strategy now correctly stores and reattaches the "All Books" and "Not Shelfed" views, preventing unnecessary cover reloads when switching sidebar sections
-- **HTTP download safety** — downloaded image payloads are now rejected if they exceed 5 MB before being handed to the image decoder; network connections for image fetching are bounded by connect (10 s) and read (30 s) timeouts, preventing runaway thread holds on slow or unresponsive sources
-
----
-
-## Main Features
-
-- **Comic Panel Detection AI** — Detects and saves panel flow data for CBZ/CBR comics using a bundled YOLO-based AI model. Enables panel-by-panel navigation in the reader.
-- **AI Semantic Search** — Search your book collection using natural language queries. Uses a local HuggingFace embedding model to find books based on their actual content.
-- **ComicVine URL Issue Navigation** — In metadata search, paste a ComicVine volume or issue URL and optionally provide an issue number or inclusive range (for example `46` or `43-171`) to resolve exact ComicVine issue matches.
-- **ComicVine Batch Issue Sequencing** — In custom metadata fetch for multi-book selections, you can use the same ComicVine source URL plus issue number/range inputs and Fable will assign sequential issues across the selected books while keeping review-mode workflows.
-- **Directory Explorer** — Browse books by actual library folders from a collapsible folder panel in All Books and library views, then use the reset button beside the folder toggle to clear the active folder scope while keeping the larger book view available.
-- **Currently Reading Dashboard Panel** — Add an optional Currently Reading scroller from Dashboard Settings and populate it from a book's More Actions menu to keep a hand-picked reading shortlist on the home screen.
-- **Custom Theme Colors** — Use preset palettes or set custom primary and surface colors with a color picker or pasted hex value; theme preferences are saved per user.
-- **Adjustable Cover Preview Panel** — Toggle the right-side cover preview on or off in Settings.
-- **Customizable Upper Toolbar** — Add, remove, and reorder toolbar buttons; insert separators. Drag-and-drop support.
-- **Adjustable Side Panels** — Resizable left and right sidebars.
-- **Drag-and-Drop Sidebar Sorting** — Turn on Re-order mode to drag left sidebar headings and rows on desktop or mobile without affecting normal sidebar navigation.
-- **Settings Backup & Restore** — Export and import your full application settings.
-- **User-Defined Media Types** — Create custom media types (Magazines, Catalogs, Textbooks, etc.) and filter by them.
-- **Title Row Controls** — Fine-grained tweaks for book card title display.
-- **Sidebar Repositioned Controls** — Settings and Language Selection moved to the bottom of the left sidebar.
-- **Telemetry Removed** — All upstream telemetry, support icons, and removed documentation links have been stripped out.
-- **OIDC / Forward Auth Support** — OpenID Connect login and proxy forward-auth support included.
-- **Language Selection** — Multi-language support with in-app language switcher.
 
 ---
 
@@ -470,23 +429,9 @@ tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 
 ## Familiarization Guide
 
-New to Fable? A complete **Familiarization Guide** is available from the app's sidebar — click the <i class="pi pi-book"></i> **User Guide** button at the bottom of the left navigation panel.
-
-The canonical source file is [`fable-ui/public/docs/Fable-Familiarization-Guide.html`](fable-ui/public/docs/Fable-Familiarization-Guide.html). It is bundled into the application JAR at build time and served at `/docs/Fable-Familiarization-Guide.html`.
-
-The guide is written for users of all experience levels and covers every feature — libraries, importing, reading, shelves, metadata, search, AI panel detection, OPDS, user management, settings, backups, and more. Each section includes what you can do, what you can't do, and things to be careful about.
-
-Maintenance rule: the HTML guide in `fable-ui/public/docs/` is the single source of truth. There is no separate PDF or duplicate copy.
+For a complete walkthrough of every feature — libraries, importing, reading, shelves, metadata, search, AI panel detection, OPDS, user management, settings, backups, and more — see the **[Fable Familiarization Guide](fable-ui/public/docs/guide/index.html)**. It is also accessible from within the app via the <i class="pi pi-book"></i> **User Guide** button at the bottom of the left sidebar.
 
 ---
-
-## Screenshots
-
-<img src="assets/booklore3.0-screenshot1.png" width="800">
-
-<img src="assets/booklore3.0-screenshot2.png" width="800">
-
-<img src="assets/booklore3.0-screenshot3.png" width="800">
 
 ## Codebase Freeze & Deactivated Maintenance
 Automated dependency updates (Dependabot) have been deactivated, and the repository is in a frozen state. All third-party libraries are locked to their current verified versions. Since the app is designed for local home networks (LAN) or secure VPN setups, running older dependency versions carries no significant risk, and freezing the codebase prevents regressions and notification noise. If you decide to resume updates or upgrade packages in the future, follow the rules of engagement defined in the workspace prompt under `.agent/workflows/maintenance.md` to prevent breaking the strict dependency structures expected by the CI/CD pipeline.

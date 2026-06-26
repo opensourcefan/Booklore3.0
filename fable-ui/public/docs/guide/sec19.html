@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>19. Kobo & KoReader Sync — Fable Familiarization Guide</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --outer-bg: #97836f;
+    --outer-bg-glow: #2d2d2d;
+    --paper: #f4ecd9;
+    --paper-deep: #e8dcc2;
+    --paper-edge: rgba(104, 77, 49, 0.35);
+    --ink: #2a2118;
+    --muted: #675846;
+    --heading: #6c4927;
+    --heading-soft: #b58d61;
+    --table-head: #e8d9be;
+    --table-border: rgba(84, 63, 39, 0.2);
+    --table-alt: rgba(108, 73, 39, 0.06);
+    --callout-base: rgba(255, 255, 255, 0.38);
+    --callout-warning: #f2ddd5;
+    --callout-info: #dde9e1;
+    --callout-tip: #deead7;
+    --code-bg: #2a241f;
+    --code-ink: #f4efe6;
+    --icon-color: #8b6b4a;
+  }
+
+  /* PrimeIcons — local font files */
+  @font-face {
+    font-family: 'primeicons';
+    font-display: block;
+    src: url('./primeicons/fonts/primeicons.eot');
+    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('./primeicons/fonts/primeicons.woff') format('woff'),
+         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    font-weight: normal;
+    font-style: normal;
+  }
+  .pi {
+    font-family: 'primeicons';
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .pi:before {
+    backface-visibility: hidden;
+  }
+
+  /* Icon definitions used in this guide */
+  .pi-arrow-right:before { content: "\e91b"; }
+  .pi-angle-double-left:before { content: "\e92d"; }
+  .pi-arrows-v:before { content: "\e9ed"; }
+  .pi-bell:before { content: "\e97c"; }
+  .pi-book:before { content: "\e9ba"; }
+  .pi-bookmark:before { content: "\e94e"; }
+  .pi-bookmark-fill:before { content: "\e9df"; }
+  .pi-box:before { content: "\e9d9"; }
+  .pi-building:before { content: "\e9cf"; }
+  .pi-calendar:before { content: "\e927"; }
+  .pi-chart-bar:before { content: "\e96d"; }
+  .pi-check:before { content: "\e909"; }
+  .pi-check-circle:before { content: "\e90a"; }
+  .pi-clock:before { content: "\e940"; }
+  .pi-code:before { content: "\e9e7"; }
+  .pi-cog:before { content: "\e94a"; }
+  .pi-comment:before { content: "\e97f"; }
+  .pi-compass:before { content: "\e9ab"; }
+  .pi-copy:before { content: "\e957"; }
+  .pi-database:before { content: "\e9e3"; }
+  .pi-desktop:before { content: "\e993"; }
+  .pi-download:before { content: "\e956"; }
+  .pi-envelope:before { content: "\e979"; }
+  .pi-eraser:before { content: "\ea04"; }
+  .pi-eye:before { content: "\e966"; }
+  .pi-file:before { content: "\e958"; }
+  .pi-folder:before { content: "\e963"; }
+  .pi-folder-open:before { content: "\e964"; }
+  .pi-forward:before { content: "\e9ae"; }
+  .pi-globe:before { content: "\e94f"; }
+  .pi-history:before { content: "\e9da"; }
+  .pi-home:before { content: "\e925"; }
+  .pi-image:before { content: "\e972"; }
+  .pi-images:before { content: "\e973"; }
+  .pi-inbox:before { content: "\e961"; }
+  .pi-info-circle:before { content: "\e924"; }
+  .pi-lightbulb:before { content: "\ea28"; }
+  .pi-link:before { content: "\e9c1"; }
+  .pi-list:before { content: "\e967"; }
+  .pi-list-check:before { content: "\ea24"; }
+  .pi-lock:before { content: "\e95f"; }
+  .pi-objects-column:before { content: "\ea12"; }
+  .pi-palette:before { content: "\e995"; }
+  .pi-pencil:before { content: "\e942"; }
+  .pi-play:before { content: "\e9b3"; }
+  .pi-play-circle:before { content: "\ea14"; }
+  .pi-plus:before { content: "\e90d"; }
+  .pi-refresh:before { content: "\e938"; }
+  .pi-save:before { content: "\e95b"; }
+  .pi-search:before { content: "\e908"; }
+  .pi-search-plus:before { content: "\e98f"; }
+  .pi-shield:before { content: "\e9b9"; }
+  .pi-sitemap:before { content: "\e96e"; }
+  .pi-sliders-h:before { content: "\e992"; }
+  .pi-sparkles:before { content: "\ea31"; }
+  .pi-star:before { content: "\e937"; }
+  .pi-step-forward:before { content: "\e917"; }
+  .pi-sync:before { content: "\e9e6"; }
+  .pi-tablet:before { content: "\e983"; }
+  .pi-tag:before { content: "\e95e"; }
+  .pi-times:before { content: "\e90b"; }
+  .pi-trash:before { content: "\e93d"; }
+  .pi-user:before { content: "\e939"; }
+  .pi-users:before { content: "\e941"; }
+  .pi-wifi:before { content: "\e96f"; }
+  @page {
+    size: A4;
+    margin: 1.8cm 2cm;
+    background: var(--outer-bg);
+    @bottom-center {
+      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      font-size: 8pt;
+      color: #c8b59c;
+      font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    }
+  }
+  * { box-sizing: border-box; }
+  html {
+    min-height: 100%;
+    background: radial-gradient(circle at top, var(--outer-bg-glow) 0%, var(--outer-bg) 42%, #100c08 100%);
+  }
+  body {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-size: 10.6pt;
+    line-height: 1.68;
+    color: var(--ink);
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 1.75rem 2.25rem 3rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.04) 12%, rgba(255, 255, 255, 0.04) 88%, rgba(255, 255, 255, 0.24)),
+      linear-gradient(180deg, #f7f0df 0%, var(--paper) 54%, var(--paper-deep) 100%);
+    border-left: 1px solid var(--paper-edge);
+    border-right: 1px solid var(--paper-edge);
+  }
+
+  /* ===== Fixed Sidebar TOC ===== */
+  #sidebar-toc {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: linear-gradient(180deg, #1e1812 0%, #17120d 100%);
+    border-right: 1px solid rgba(108, 73, 39, 0.28);
+    padding: 1.5rem 1rem 2rem;
+    z-index: 100;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-size: 9.5pt;
+    line-height: 1.5;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(181, 141, 97, 0.3) transparent;
+  }
+  #sidebar-toc::-webkit-scrollbar { width: 5px; }
+  #sidebar-toc::-webkit-scrollbar-track { background: transparent; }
+  #sidebar-toc::-webkit-scrollbar-thumb { background: rgba(181, 141, 97, 0.3); border-radius: 3px; }
+
+  #sidebar-toc h2 {
+    font-size: 13pt;
+    color: #b58d61;
+    border-bottom: 1px solid rgba(181, 141, 97, 0.25);
+    padding-bottom: 6px;
+    margin: 0 0 0.8rem;
+    letter-spacing: 0.03em;
+  }
+  #sidebar-toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  #sidebar-toc ol ol {
+    padding-left: 1em;
+    margin-top: 0.15em;
+    margin-bottom: 0.3em;
+  }
+  #sidebar-toc li {
+    margin-bottom: 0.1em;
+  }
+  #sidebar-toc a {
+    color: #b8a58c;
+    text-decoration: none;
+    display: block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: background 0.12s, color 0.12s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #sidebar-toc a:hover {
+    background: rgba(181, 141, 97, 0.15);
+    color: #e8dcc2;
+  }
+  #sidebar-toc a.active {
+    background: rgba(181, 141, 97, 0.22);
+    color: #f4ecd9;
+    font-weight: bold;
+  }
+  #sidebar-toc a.active::before {
+    content: "▸ ";
+    font-size: 8pt;
+    color: #c8a060;
+  }
+
+  /* Mobile TOC toggle button */
+  #toc-toggle {
+    display: none;
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    z-index: 200;
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    border: 1px solid rgba(108, 73, 39, 0.35);
+    background: #1e1812;
+    color: #b58d61;
+    font-size: 16pt;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    text-align: center;
+  }
+  #toc-toggle:hover { background: #2a2218; }
+
+  /* Desktop: body centered in the space to the right of the sidebar */
+  @media screen and (min-width: 1100px) {
+    body {
+      margin-left: max(310px, calc(250px + (100vw - 250px - 880px) / 2));
+      margin-right: auto;
+    }
+    #sidebar-toc { display: block; }
+    #toc-toggle { display: none; }
+  }
+
+  /* Mobile/tablet: sidebar hidden by default, toggle button visible */
+  @media screen and (max-width: 1099px) {
+    #sidebar-toc {
+      display: none;
+      width: 260px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+    }
+    #sidebar-toc.open { display: block; }
+    #toc-toggle { display: block; }
+    body {
+      margin-left: 0;
+    }
+  }
+  p { margin: 0.5em 0 0.85em; }
+  a { color: var(--heading); }
+
+  /* Cover / title block */
+  .cover {
+    text-align: center;
+    padding: 0 2em 3.4em;
+    margin: 0.4rem 0 2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.1)),
+      linear-gradient(180deg, #efe2ca 0%, #e4d3b5 100%);
+    page-break-after: always;
+  }
+  .cover h1 {
+    font-size: 29pt;
+    color: var(--heading);
+    margin-bottom: 0.1em;
+    letter-spacing: -0.3px;
+  }
+  .cover .subtitle {
+    font-size: 14pt;
+    color: var(--muted);
+    margin-bottom: 2em;
+  }
+  .cover .meta {
+    font-size: 10pt;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* Section icons to the right of headings */
+  .section-icon {
+    float: right;
+    margin-left: 0.5rem;
+    font-size: 14pt;
+    color: var(--icon-color);
+    line-height: 1;
+    padding-top: 0.15em;
+  }
+  h2 {
+    clear: both;
+    position: relative;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4 {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    page-break-after: avoid;
+  }
+  h1 { font-size: 20pt; color: var(--heading); margin-top: 1.5em; }
+  h2 {
+    font-size: 15pt;
+    color: var(--heading);
+    border-bottom: 2px solid var(--heading-soft);
+    padding-bottom: 4px;
+    margin-top: 1.9em;
+    letter-spacing: 0.02em;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #5a3e1b;
+    margin-top: 2.2em;
+    margin-bottom: 0.5em;
+    padding: 6px 10px;
+    background: rgba(201, 168, 124, 0.10);
+    border-radius: 4px;
+  }
+  h4 {
+    font-size: 10.5pt;
+    color: #6b4d2a;
+    margin-top: 1.6em;
+    margin-bottom: 0.35em;
+    font-style: italic;
+  }
+
+  /* Table of contents */
+  .toc {
+    page-break-after: always;
+    margin: 0 0 2rem;
+    padding: 2rem 2.2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.28);
+  }
+  .toc h2 { font-size: 18pt; border: none; }
+  .toc ol { padding-left: 1.5em; }
+  .toc li { margin-bottom: 0.3em; font-size: 10.5pt; }
+  .toc a { color: var(--heading); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0 1.2em;
+    font-size: 10pt;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  th, td {
+    border: 1px solid var(--table-border);
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--table-head);
+    color: var(--heading);
+    font-weight: 600;
+  }
+  tr:nth-child(even) { background: var(--table-alt); }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 4px solid #9a6a3a;
+    background: var(--callout-base);
+    padding: 10px 14px;
+    margin: 1em 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10pt;
+  }
+  .callout.warning {
+    border-left-color: #9f5144;
+    background: var(--callout-warning);
+  }
+  .callout.info {
+    border-left-color: #587c68;
+    background: var(--callout-info);
+  }
+  .callout.tip {
+    border-left-color: #63804b;
+    background: var(--callout-tip);
+  }
+  .callout strong:first-child { display: inline; }
+
+  /* Code */
+  code {
+    background: rgba(42, 36, 31, 0.09);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 9.5pt;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 9pt;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  @media screen {
+    body {
+      box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+    }
+    .cover {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+    }
+  }
+
+  /* Lists */
+  ul, ol { padding-left: 1.5em; }
+  li { margin-bottom: 0.25em; }
+
+  /* Section breaks */
+  hr {
+    border: none;
+    border-top: 1px solid rgba(108, 73, 39, 0.22);
+    margin: 2em 0;
+  }
+
+  /* Maintenance log */
+  .maintenance-log { margin-top: 2em; }
+
+
+  /* Inline action icons in tables */
+  td i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+  th i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+
+  /* Book card overlay badges */
+  .guide-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin: 0 1px;
+    line-height: 1.4;
+  }
+  .guide-badge-ais {
+    background: #000000;
+    color: #00d2ff;
+    border: 1px solid #00d2ff;
+  }
+  .guide-badge-ais-marked {
+    background: #4b5563;
+    color: #9ca3af;
+  }
+  .guide-badge-ais-mismatched {
+    background: #000000;
+    color: #ff8800;
+    border: 1px solid #ff8800;
+  }
+  .guide-badge-aip {
+    background: #4b5563;
+    color: #22c55e;
+  }
+  .guide-badge-pdf {
+    background: #dc2626;
+    color: #fff;
+  }
+  .guide-badge-epub {
+    background: #2563eb;
+    color: #fff;
+  }
+  .guide-badge-cbx {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbz {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbr {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-audiobook {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-physical {
+    background: #78716c;
+    color: #fff;
+  }
+  .guide-badge-mobi {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-azw3 {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-fb2 {
+    background: #10b981;
+    color: #fff;
+  }
+  .guide-badge-mp3 {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4a {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4b {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-ogg {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-opus {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-cb7 {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-phy {
+    background: #78716c;
+    color: #fff;
+  }
+  /* Inline icon in prose */
+  .guide-icon-inline {
+    font-size: 0.85em;
+    color: var(--icon-color);
+    vertical-align: middle;
+    margin: 0 0.15em;
+  }
+
+  /* Location breadcrumb */
+  .section-location {
+    font-size: 9pt;
+    color: #8b7355;
+    margin: -0.3em 0 0.8em;
+    font-style: italic;
+  }
+  .section-location i {
+    font-size: 8pt;
+    color: #b8976e;
+    margin: 0 0.2em;
+  }
+
+  /* Subsection location breadcrumb */
+  .subsection-location {
+    font-size: 8.5pt;
+    color: #9b8365;
+    margin: -0.2em 0 0.6em;
+    font-style: italic;
+  }
+  .subsection-location i {
+    font-size: 7.5pt;
+    color: #c4a882;
+    margin: 0 0.15em;
+  }
+
+  /* Print helpers */
+  .page-break { page-break-before: always; }
+  h2 { page-break-inside: avoid; }
+  table { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+<!-- ==================== SIDEBAR TABLE OF CONTENTS ==================== -->
+<button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
+<nav id="sidebar-toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec3.html">3. The Dashboard</a></li>
+    <li><a href="sec4.html">4. Navigating the Interface</a></li>
+    <li><a href="sec5.html">5. Libraries</a></li>
+    <li><a href="sec6.html">6. Books</a></li>
+    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec8.html">8. Shelves</a></li>
+    <li><a href="sec9.html">9. Magic Shelves</a></li>
+    <li><a href="sec10.html">10. Reading Books</a>
+      <ol>
+        <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
+        <li><a href="sec10.html#sec10b">b) EPUB Reader</a></li>
+        <li><a href="sec10.html#sec10c">c) CBX Reader</a></li>
+        <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
+      </ol>
+    </li>
+    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec13.html">13. Series and Authors</a></li>
+    <li><a href="sec14.html">14. Metadata</a></li>
+    <li><a href="sec15.html">15. Metadata Manager</a></li>
+    <li><a href="sec16.html">16. Search and Filtering</a></li>
+    <li><a href="sec17.html">17. AI Panel Detection</a></li>
+    <li><a href="sec18.html">18. OPDS Feeds</a></li>
+    <li><a href="sec19.html" class="active">19. Kobo & KoReader Sync</a></li>
+    <li><a href="sec20.html">20. Email</a></li>
+    <li><a href="sec21.html">21. User Accounts</a></li>
+    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec23.html">23. Application Settings</a></li>
+    <li><a href="sec24.html">24. Background Tasks</a></li>
+    <li><a href="sec25.html">25. Backup and Restore</a></li>
+    <li><a href="sec26.html">26. Audit Logs</a></li>
+    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
+    <li><a href="sec28.html">28. Glossary</a></li>
+    <li><a href="sec29.html">29. Maintenance Log</a></li>
+  </ol>
+</nav>
+<div style="margin-bottom:1.5em; font-size:9pt; color:var(--muted);">
+  <a href="index.html" style="color:var(--heading);">← Back to Guide Index</a>
+</div>
+<!-- ==================== SECTION 19 ==================== -->
+<h2 id="sec19">19. Kobo and KoReader Device Sync <span class="section-icon"><i class="pi pi-sync"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Devices tab</p>
+
+<p>Fable can sync reading progress with <strong>Kobo</strong> and <strong>KoReader</strong> compatible devices.</p>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Sync reading position between Fable and your device</li>
+  <li>Create a dedicated Kobo device shelf for content management</li>
+  <li>Transfer books to your device and keep progress synchronized</li>
+</ul>
+
+<p><strong>What You Can&rsquo;t Do:</strong> Sync with Kindle devices directly (use OPDS or email-to-Kindle instead).</p>
+
+<div class="callout">
+  <strong>Be Careful:</strong> Device sync is experimental. Minor discrepancies in page positioning may occur between the web reader and physical device.
+</div>
+<p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
+  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
+</p>
+<script>
+(function() {
+  const sidebar = document.getElementById('sidebar-toc');
+  const links = sidebar.querySelectorAll('a[href^="#"]');
+  const headings = [];
+  links.forEach(function(a) {
+    const id = a.getAttribute('href').substring(1);
+    const el = document.getElementById(id);
+    if (el) headings.push({ el: el, link: a });
+  });
+
+  function onScroll() {
+    let current = headings[0];
+    const scrollTop = window.scrollY + 80;
+    for (let i = 0; i < headings.length; i++) {
+      if (headings[i].el.offsetTop <= scrollTop) {
+        current = headings[i];
+      } else {
+        break;
+      }
+    }
+    links.forEach(function(a) { a.classList.remove('active'); });
+    if (current) current.link.classList.add('active');
+
+    // Auto-scroll sidebar to keep active link visible
+    if (current) {
+      const linkTop = current.link.offsetTop;
+      const sidebarScroll = sidebar.scrollTop;
+      const sidebarHeight = sidebar.clientHeight;
+      if (linkTop < sidebarScroll || linkTop > sidebarScroll + sidebarHeight - 60) {
+        sidebar.scrollTop = linkTop - sidebarHeight / 3;
+      }
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Close sidebar when a link is clicked (mobile)
+  links.forEach(function(a) {
+    a.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+    });
+  });
+
+  // Close sidebar when clicking outside (mobile)
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 1099 && !sidebar.contains(e.target) && e.target.id !== 'toc-toggle') {
+      sidebar.classList.remove('open');
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>29. Maintenance Log — Fable Familiarization Guide</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --outer-bg: #97836f;
+    --outer-bg-glow: #2d2d2d;
+    --paper: #f4ecd9;
+    --paper-deep: #e8dcc2;
+    --paper-edge: rgba(104, 77, 49, 0.35);
+    --ink: #2a2118;
+    --muted: #675846;
+    --heading: #6c4927;
+    --heading-soft: #b58d61;
+    --table-head: #e8d9be;
+    --table-border: rgba(84, 63, 39, 0.2);
+    --table-alt: rgba(108, 73, 39, 0.06);
+    --callout-base: rgba(255, 255, 255, 0.38);
+    --callout-warning: #f2ddd5;
+    --callout-info: #dde9e1;
+    --callout-tip: #deead7;
+    --code-bg: #2a241f;
+    --code-ink: #f4efe6;
+    --icon-color: #8b6b4a;
+  }
+
+  /* PrimeIcons — local font files */
+  @font-face {
+    font-family: 'primeicons';
+    font-display: block;
+    src: url('./primeicons/fonts/primeicons.eot');
+    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('./primeicons/fonts/primeicons.woff') format('woff'),
+         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    font-weight: normal;
+    font-style: normal;
+  }
+  .pi {
+    font-family: 'primeicons';
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .pi:before {
+    backface-visibility: hidden;
+  }
+
+  /* Icon definitions used in this guide */
+  .pi-arrow-right:before { content: "\e91b"; }
+  .pi-angle-double-left:before { content: "\e92d"; }
+  .pi-arrows-v:before { content: "\e9ed"; }
+  .pi-bell:before { content: "\e97c"; }
+  .pi-book:before { content: "\e9ba"; }
+  .pi-bookmark:before { content: "\e94e"; }
+  .pi-bookmark-fill:before { content: "\e9df"; }
+  .pi-box:before { content: "\e9d9"; }
+  .pi-building:before { content: "\e9cf"; }
+  .pi-calendar:before { content: "\e927"; }
+  .pi-chart-bar:before { content: "\e96d"; }
+  .pi-check:before { content: "\e909"; }
+  .pi-check-circle:before { content: "\e90a"; }
+  .pi-clock:before { content: "\e940"; }
+  .pi-code:before { content: "\e9e7"; }
+  .pi-cog:before { content: "\e94a"; }
+  .pi-comment:before { content: "\e97f"; }
+  .pi-compass:before { content: "\e9ab"; }
+  .pi-copy:before { content: "\e957"; }
+  .pi-database:before { content: "\e9e3"; }
+  .pi-desktop:before { content: "\e993"; }
+  .pi-download:before { content: "\e956"; }
+  .pi-envelope:before { content: "\e979"; }
+  .pi-eraser:before { content: "\ea04"; }
+  .pi-eye:before { content: "\e966"; }
+  .pi-file:before { content: "\e958"; }
+  .pi-folder:before { content: "\e963"; }
+  .pi-folder-open:before { content: "\e964"; }
+  .pi-forward:before { content: "\e9ae"; }
+  .pi-globe:before { content: "\e94f"; }
+  .pi-history:before { content: "\e9da"; }
+  .pi-home:before { content: "\e925"; }
+  .pi-image:before { content: "\e972"; }
+  .pi-images:before { content: "\e973"; }
+  .pi-inbox:before { content: "\e961"; }
+  .pi-info-circle:before { content: "\e924"; }
+  .pi-lightbulb:before { content: "\ea28"; }
+  .pi-link:before { content: "\e9c1"; }
+  .pi-list:before { content: "\e967"; }
+  .pi-list-check:before { content: "\ea24"; }
+  .pi-lock:before { content: "\e95f"; }
+  .pi-objects-column:before { content: "\ea12"; }
+  .pi-palette:before { content: "\e995"; }
+  .pi-pencil:before { content: "\e942"; }
+  .pi-play:before { content: "\e9b3"; }
+  .pi-play-circle:before { content: "\ea14"; }
+  .pi-plus:before { content: "\e90d"; }
+  .pi-refresh:before { content: "\e938"; }
+  .pi-save:before { content: "\e95b"; }
+  .pi-search:before { content: "\e908"; }
+  .pi-search-plus:before { content: "\e98f"; }
+  .pi-shield:before { content: "\e9b9"; }
+  .pi-sitemap:before { content: "\e96e"; }
+  .pi-sliders-h:before { content: "\e992"; }
+  .pi-sparkles:before { content: "\ea31"; }
+  .pi-star:before { content: "\e937"; }
+  .pi-step-forward:before { content: "\e917"; }
+  .pi-sync:before { content: "\e9e6"; }
+  .pi-tablet:before { content: "\e983"; }
+  .pi-tag:before { content: "\e95e"; }
+  .pi-times:before { content: "\e90b"; }
+  .pi-trash:before { content: "\e93d"; }
+  .pi-user:before { content: "\e939"; }
+  .pi-users:before { content: "\e941"; }
+  .pi-wifi:before { content: "\e96f"; }
+  @page {
+    size: A4;
+    margin: 1.8cm 2cm;
+    background: var(--outer-bg);
+    @bottom-center {
+      content: "Fable 3.0 Familiarization Guide — Page " counter(page) " of " counter(pages);
+      font-size: 8pt;
+      color: #c8b59c;
+      font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    }
+  }
+  * { box-sizing: border-box; }
+  html {
+    min-height: 100%;
+    background: radial-gradient(circle at top, var(--outer-bg-glow) 0%, var(--outer-bg) 42%, #100c08 100%);
+  }
+  body {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-size: 10.6pt;
+    line-height: 1.68;
+    color: var(--ink);
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 1.75rem 2.25rem 3rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.04) 12%, rgba(255, 255, 255, 0.04) 88%, rgba(255, 255, 255, 0.24)),
+      linear-gradient(180deg, #f7f0df 0%, var(--paper) 54%, var(--paper-deep) 100%);
+    border-left: 1px solid var(--paper-edge);
+    border-right: 1px solid var(--paper-edge);
+  }
+
+  /* ===== Fixed Sidebar TOC ===== */
+  #sidebar-toc {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: linear-gradient(180deg, #1e1812 0%, #17120d 100%);
+    border-right: 1px solid rgba(108, 73, 39, 0.28);
+    padding: 1.5rem 1rem 2rem;
+    z-index: 100;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-size: 9.5pt;
+    line-height: 1.5;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(181, 141, 97, 0.3) transparent;
+  }
+  #sidebar-toc::-webkit-scrollbar { width: 5px; }
+  #sidebar-toc::-webkit-scrollbar-track { background: transparent; }
+  #sidebar-toc::-webkit-scrollbar-thumb { background: rgba(181, 141, 97, 0.3); border-radius: 3px; }
+
+  #sidebar-toc h2 {
+    font-size: 13pt;
+    color: #b58d61;
+    border-bottom: 1px solid rgba(181, 141, 97, 0.25);
+    padding-bottom: 6px;
+    margin: 0 0 0.8rem;
+    letter-spacing: 0.03em;
+  }
+  #sidebar-toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  #sidebar-toc ol ol {
+    padding-left: 1em;
+    margin-top: 0.15em;
+    margin-bottom: 0.3em;
+  }
+  #sidebar-toc li {
+    margin-bottom: 0.1em;
+  }
+  #sidebar-toc a {
+    color: #b8a58c;
+    text-decoration: none;
+    display: block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: background 0.12s, color 0.12s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #sidebar-toc a:hover {
+    background: rgba(181, 141, 97, 0.15);
+    color: #e8dcc2;
+  }
+  #sidebar-toc a.active {
+    background: rgba(181, 141, 97, 0.22);
+    color: #f4ecd9;
+    font-weight: bold;
+  }
+  #sidebar-toc a.active::before {
+    content: "▸ ";
+    font-size: 8pt;
+    color: #c8a060;
+  }
+
+  /* Mobile TOC toggle button */
+  #toc-toggle {
+    display: none;
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    z-index: 200;
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    border: 1px solid rgba(108, 73, 39, 0.35);
+    background: #1e1812;
+    color: #b58d61;
+    font-size: 16pt;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    text-align: center;
+  }
+  #toc-toggle:hover { background: #2a2218; }
+
+  /* Desktop: body centered in the space to the right of the sidebar */
+  @media screen and (min-width: 1100px) {
+    body {
+      margin-left: max(310px, calc(250px + (100vw - 250px - 880px) / 2));
+      margin-right: auto;
+    }
+    #sidebar-toc { display: block; }
+    #toc-toggle { display: none; }
+  }
+
+  /* Mobile/tablet: sidebar hidden by default, toggle button visible */
+  @media screen and (max-width: 1099px) {
+    #sidebar-toc {
+      display: none;
+      width: 260px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+    }
+    #sidebar-toc.open { display: block; }
+    #toc-toggle { display: block; }
+    body {
+      margin-left: 0;
+    }
+  }
+  p { margin: 0.5em 0 0.85em; }
+  a { color: var(--heading); }
+
+  /* Cover / title block */
+  .cover {
+    text-align: center;
+    padding: 0 2em 3.4em;
+    margin: 0.4rem 0 2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.1)),
+      linear-gradient(180deg, #efe2ca 0%, #e4d3b5 100%);
+    page-break-after: always;
+  }
+  .cover h1 {
+    font-size: 29pt;
+    color: var(--heading);
+    margin-bottom: 0.1em;
+    letter-spacing: -0.3px;
+  }
+  .cover .subtitle {
+    font-size: 14pt;
+    color: var(--muted);
+    margin-bottom: 2em;
+  }
+  .cover .meta {
+    font-size: 10pt;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* Section icons to the right of headings */
+  .section-icon {
+    float: right;
+    margin-left: 0.5rem;
+    font-size: 14pt;
+    color: var(--icon-color);
+    line-height: 1;
+    padding-top: 0.15em;
+  }
+  h2 {
+    clear: both;
+    position: relative;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4 {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    page-break-after: avoid;
+  }
+  h1 { font-size: 20pt; color: var(--heading); margin-top: 1.5em; }
+  h2 {
+    font-size: 15pt;
+    color: var(--heading);
+    border-bottom: 2px solid var(--heading-soft);
+    padding-bottom: 4px;
+    margin-top: 1.9em;
+    letter-spacing: 0.02em;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #5a3e1b;
+    margin-top: 2.2em;
+    margin-bottom: 0.5em;
+    padding: 6px 10px;
+    background: rgba(201, 168, 124, 0.10);
+    border-radius: 4px;
+  }
+  h4 {
+    font-size: 10.5pt;
+    color: #6b4d2a;
+    margin-top: 1.6em;
+    margin-bottom: 0.35em;
+    font-style: italic;
+  }
+
+  /* Table of contents */
+  .toc {
+    page-break-after: always;
+    margin: 0 0 2rem;
+    padding: 2rem 2.2rem;
+    border: 1px solid var(--paper-edge);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.28);
+  }
+  .toc h2 { font-size: 18pt; border: none; }
+  .toc ol { padding-left: 1.5em; }
+  .toc li { margin-bottom: 0.3em; font-size: 10.5pt; }
+  .toc a { color: var(--heading); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0 1.2em;
+    font-size: 10pt;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  th, td {
+    border: 1px solid var(--table-border);
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--table-head);
+    color: var(--heading);
+    font-weight: 600;
+  }
+  tr:nth-child(even) { background: var(--table-alt); }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 4px solid #9a6a3a;
+    background: var(--callout-base);
+    padding: 10px 14px;
+    margin: 1em 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10pt;
+  }
+  .callout.warning {
+    border-left-color: #9f5144;
+    background: var(--callout-warning);
+  }
+  .callout.info {
+    border-left-color: #587c68;
+    background: var(--callout-info);
+  }
+  .callout.tip {
+    border-left-color: #63804b;
+    background: var(--callout-tip);
+  }
+  .callout strong:first-child { display: inline; }
+
+  /* Code */
+  code {
+    background: rgba(42, 36, 31, 0.09);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 9.5pt;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 9pt;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  @media screen {
+    body {
+      box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+    }
+    .cover {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+    }
+  }
+
+  /* Lists */
+  ul, ol { padding-left: 1.5em; }
+  li { margin-bottom: 0.25em; }
+
+  /* Section breaks */
+  hr {
+    border: none;
+    border-top: 1px solid rgba(108, 73, 39, 0.22);
+    margin: 2em 0;
+  }
+
+  /* Maintenance log */
+  .maintenance-log { margin-top: 2em; }
+
+
+  /* Inline action icons in tables */
+  td i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+  th i.pi {
+    font-size: 9pt;
+    color: var(--icon-color);
+    margin-right: 0.35em;
+    vertical-align: -0.05em;
+  }
+
+  /* Book card overlay badges */
+  .guide-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin: 0 1px;
+    line-height: 1.4;
+  }
+  .guide-badge-ais {
+    background: #000000;
+    color: #00d2ff;
+    border: 1px solid #00d2ff;
+  }
+  .guide-badge-ais-marked {
+    background: #4b5563;
+    color: #9ca3af;
+  }
+  .guide-badge-ais-mismatched {
+    background: #000000;
+    color: #ff8800;
+    border: 1px solid #ff8800;
+  }
+  .guide-badge-aip {
+    background: #4b5563;
+    color: #22c55e;
+  }
+  .guide-badge-pdf {
+    background: #dc2626;
+    color: #fff;
+  }
+  .guide-badge-epub {
+    background: #2563eb;
+    color: #fff;
+  }
+  .guide-badge-cbx {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbz {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-badge-cbr {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-audiobook {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-physical {
+    background: #78716c;
+    color: #fff;
+  }
+  .guide-badge-mobi {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-azw3 {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .guide-badge-fb2 {
+    background: #10b981;
+    color: #fff;
+  }
+  .guide-badge-mp3 {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4a {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-m4b {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-ogg {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-opus {
+    background: #0891b2;
+    color: #fff;
+  }
+  .guide-badge-cb7 {
+    background: #a855f7;
+    color: #fff;
+  }
+  .guide-badge-phy {
+    background: #78716c;
+    color: #fff;
+  }
+  /* Inline icon in prose */
+  .guide-icon-inline {
+    font-size: 0.85em;
+    color: var(--icon-color);
+    vertical-align: middle;
+    margin: 0 0.15em;
+  }
+
+  /* Location breadcrumb */
+  .section-location {
+    font-size: 9pt;
+    color: #8b7355;
+    margin: -0.3em 0 0.8em;
+    font-style: italic;
+  }
+  .section-location i {
+    font-size: 8pt;
+    color: #b8976e;
+    margin: 0 0.2em;
+  }
+
+  /* Subsection location breadcrumb */
+  .subsection-location {
+    font-size: 8.5pt;
+    color: #9b8365;
+    margin: -0.2em 0 0.6em;
+    font-style: italic;
+  }
+  .subsection-location i {
+    font-size: 7.5pt;
+    color: #c4a882;
+    margin: 0 0.15em;
+  }
+
+  /* Print helpers */
+  .page-break { page-break-before: always; }
+  h2 { page-break-inside: avoid; }
+  table { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+<!-- ==================== SIDEBAR TABLE OF CONTENTS ==================== -->
+<button id="toc-toggle" onclick="document.getElementById('sidebar-toc').classList.toggle('open')" title="Table of Contents">☰</button>
+<nav id="sidebar-toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="sec1.html">1. What Is Fable?</a></li>
+    <li><a href="sec2.html">2. Getting Started</a></li>
+    <li><a href="sec3.html">3. The Dashboard</a></li>
+    <li><a href="sec4.html">4. Navigating the Interface</a></li>
+    <li><a href="sec5.html">5. Libraries</a></li>
+    <li><a href="sec6.html">6. Books</a></li>
+    <li><a href="sec7.html">7. BookDrop</a></li>
+    <li><a href="sec8.html">8. Shelves</a></li>
+    <li><a href="sec9.html">9. Magic Shelves</a></li>
+    <li><a href="sec10.html">10. Reading Books</a>
+      <ol>
+        <li><a href="sec10.html#sec10a">a) PDF Reader</a></li>
+        <li><a href="sec10.html#sec10b">b) EPUB Reader</a></li>
+        <li><a href="sec10.html#sec10c">c) CBX Reader</a></li>
+        <li><a href="sec10.html#sec10d">d) Audiobook Player</a></li>
+      </ol>
+    </li>
+    <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
+    <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
+    <li><a href="sec13.html">13. Series and Authors</a></li>
+    <li><a href="sec14.html">14. Metadata</a></li>
+    <li><a href="sec15.html">15. Metadata Manager</a></li>
+    <li><a href="sec16.html">16. Search and Filtering</a></li>
+    <li><a href="sec17.html">17. AI Panel Detection</a></li>
+    <li><a href="sec18.html">18. OPDS Feeds</a></li>
+    <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
+    <li><a href="sec20.html">20. Email</a></li>
+    <li><a href="sec21.html">21. User Accounts</a></li>
+    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec23.html">23. Application Settings</a></li>
+    <li><a href="sec24.html">24. Background Tasks</a></li>
+    <li><a href="sec25.html">25. Backup and Restore</a></li>
+    <li><a href="sec26.html">26. Audit Logs</a></li>
+    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
+    <li><a href="sec28.html">28. Glossary</a></li>
+    <li><a href="sec29.html" class="active">29. Maintenance Log</a></li>
+  </ol>
+</nav>
+<div style="margin-bottom:1.5em; font-size:9pt; color:var(--muted);">
+  <a href="index.html" style="color:var(--heading);">← Back to Guide Index</a>
+</div>
+<!-- ==================== SECTION 29 ==================== -->
+<h2 id="sec29">29. Document Maintenance Log <span class="section-icon"><i class="pi pi-pencil"></i></span></h2>
+
+<div class="callout info">
+  <strong>Important:</strong> This guide must be updated whenever features are added, changed, or removed from Fable. This HTML file is the source of truth. After any guide change, regenerate the PDF from this HTML and update the README&rsquo;s <strong>Familiarization Guide</strong> section in the same change so the repository docs and maintenance notes stay aligned. Record changes below to track guide accuracy over time.
+</div>
+
+<table class="maintenance-log">
+  <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-06-25</td><td>1.1.102</td><td>Added section icons using local PrimeIcons font (no external CDN dependency). Documented notification system overhaul: Dismiss All button, database-persistent notifications, zero-item suppression, auto-dismiss empty popover, and "Task" label rename. Documented AI Search enhancements: Saved LLM Profiles, RAG techniques (HyDE, Multi-Query, Self-Reflection, Contextual Compression, Query Decomposition, Adaptive RAG), Semantic Chunking. Added AI Search statistics to Section 12. Updated Section 6 with durable Remove from Library behavior (books no longer return on next scan). Updated Section 10 with corrected reader-close message. Updated Section 11 with Notebook default-collapse behavior. Updated Section 23 with AI Search profile and RAG settings. Added RAG, LLM Profile, and Semantic Chunking to Glossary.</td></tr>
+  <tr><td>2026-06-10</td><td>1.1.101</td><td>Documented the new Advanced Embedding & Retrieval Tuning settings, including Chunk Size and Overlap controls, Matryoshka representation learning vector truncation, dynamic L2-norm re-normalization, hybrid BM25 and vector search merging via RRF, and Cross-Encoder reranking using a background loader thread; detailed CPU-specific preset recommendations for nomic-embed-text-v1.5 and all-MiniLM-L6-v2 models</td></tr>
+  <tr><td>2026-05-18</td><td>1.1.100</td><td>Recorded the AI panel security remediation: the bundled <strong>Pillow</strong> dependency now pins to the first non-vulnerable 12.2.0 release, the temporary Dependabot ignore on <strong>Pillow</strong> major updates was removed, and future 12.x AI-panel security updates can now flow back through the normal unattended maintenance path</td></tr>
+  <tr><td>2026-05-18</td><td>1.1.99</td><td>Documented the paged-first browser startup flow so <strong>All Books</strong>, library, shelf, and <strong>Not Shelfed</strong> views can render from the first server page without waiting for a full catalog bootstrap, and clarified that topbar search now stays responsive on large libraries by querying lightweight server-backed results</td></tr>
+  <tr><td>2026-05-13</td><td>1.1.98</td><td>Reformatted the guide into a darker, more book-like reading presentation for both HTML and PDF output, clarified that users who want regular built-in reader behavior can copy or import the PDF into a library or BookDrop manually, and made the maintenance rule explicit: update this HTML source, regenerate the PDF, and refresh the README guide section together</td></tr>
+  <tr><td>2026-05-13</td><td>1.1.97</td><td>Updated the guide for the current dashboard workflow: documented the supported scroller types, per-panel layout controls, and the optional <strong>Currently Reading</strong> panel plus the <strong>More Actions &rarr; Currently Reading</strong> shortcut that feeds it, and added the <strong>Global Preferences</strong> theme-configurator workflow for preset or custom primary/surface colors that persist per user</td></tr>
+  <tr><td>2026-04-22</td><td>1.1.96</td><td>Clarified that <strong>Manage Directories</strong> and the directory picker now show imported-state badges not only for exact library paths but also for parent directories that already contain imported subdirectories, and recorded that the <strong>Book Details</strong> metadata search tab now flexes to the dialog height so footer actions remain reachable without extra viewport scrolling</td></tr>
+  <tr><td>2026-04-20</td><td>1.1.95</td><td>Documented ComicVine issue-navigation assist in metadata search: when a ComicVine volume URL is provided, optional issue number or issue-range inputs can now resolve exact issue results directly (for example issue 46 or range 43-171) to preserve issue-title formatting accuracy</td></tr>
+  <tr><td>2026-04-20</td><td>1.1.94</td><td>Documented metadata-search URL assist: the search form now accepts provider page URLs (including ComicVine volume and issue links), can auto-seed search text from supported URL slugs, and for supported URL ID formats can resolve a direct provider item fetch instead of relying on broad term matching alone</td></tr>
+  <tr><td>2026-04-20</td><td>1.1.93</td><td>Documented metadata-review follow-ups so using <strong>Discard</strong> from the topbar metadata-progress widget now clears the matching review task/proposals and removes stale notification state immediately, and clarified that metadata search in multi-book editing now includes the same previous/next group navigation flow used in the details tab</td></tr>
+  <tr><td>2026-04-18</td><td>1.1.92</td><td>Documented the mobile back-navigation overhaul so Android/iOS system back now closes the topmost open mobile surface first across browsing and reading flows (including book-browser filters, shared book-card and physical-book mobile viewers, topbar popovers, EPUB/CBX reader sidebars and quick overlays, and audiobook mobile panels) before route-level navigation proceeds underneath those UI layers</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.91</td><td>Recorded the reverse-engineered cleanup for the repeated mobile title-tap preview regression: the fallback full-window preview behavior for physical assets is now centralized in the shared <strong>Book Card</strong> component for mobile interaction mode when no parent title-activation handler is wired, which keeps Home/dashboard and browser grid cards consistent with the dedicated Physical Books flow instead of regressing to tooltip-only taps; tests now verify both the external handler path and the shared fallback preview path</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.90</td><td>Recorded the final <strong>Physical Books</strong> mobile preview activation repair for high-resolution phones (including compact landscape phone viewports): title-tap interactivity now uses a dedicated mobile interaction mode based on viewport shape rather than raw width alone, so the full-window asset preview reliably opens with title/subtitle on phone landscape resolutions where previous fixes incorrectly fell back to desktop tooltip behavior; regression coverage now includes compact landscape phone dimensions plus desktop exclusion checks</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.89</td><td>Recorded the root-cause repair for the lingering <strong>Physical Books</strong> mobile title-tap regression: interactive mobile title areas in the shared book card now render through a dedicated branch with <strong>no tooltip directive attached at all</strong>, so tapping the title no longer shows the small text tooltip overlay and instead goes directly through the mobile viewer activation path; regression coverage was strengthened with a real click-path spec and a template guard that keeps the tooltip directive out of the interactive title branch</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.88</td><td>Recorded the final <strong>Physical Books</strong> mobile title-area repair: the shared book-card title tap no longer triggers the small title tooltip overlay on interactive mobile shelves, the tap now goes straight to the full mobile viewer, and the shared card regression coverage now guards both the direct title-activation event and the absence of that redundant mobile title overlay</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.87</td><td>Recorded the final Dependabot cleanup for this release cycle: standalone <strong>TypeScript 6</strong> bumps are now ignored until the Angular 21 build toolchain in Fable supports that major range, preventing another unmergeable red PR while the compatible frontend-tooling updates land separately</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.86</td><td>Recorded the Dependabot follow-up after the Physical Books repair release: frontend npm updates remain ungrouped by default, but <strong>@angular/*</strong> packages are now grouped together so Angular peer-locked releases arrive as one coherent PR instead of several individually unmergeable red PRs; the incompatible <strong>ngx-extended-pdf-viewer</strong> v26 line remains ignored until the PDF reader is migrated deliberately</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.85</td><td>Recorded the follow-up repair for the <strong>Physical Books</strong> mobile experience: the shared card title tap is now correctly wired on that route so the single-card viewer opens and closes from the title area as intended, the page now owns an explicit viewport-height scroll shell so vertical scrolling works reliably on mobile inside the fixed app layout, a dedicated Physical Books regression spec now covers the title-activation wiring and mobile viewer state, and Dependabot now ignores the incompatible <strong>ngx-extended-pdf-viewer</strong> v26 line until that reader migration is handled intentionally</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.84</td><td>Recorded the book-card title-area hotfix after the initial mobile viewer release: the shared card template now binds the interactive title container correctly again so asset titles render normally instead of leaking raw Angular attribute bindings into the visible text, and a rendered DOM regression test now guards that title-area button attributes stay real attributes rather than literal text</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.83</td><td>Documented the dependency-hygiene follow-up that removes unused frontend package noise, aligns the sanitizer dependency with the non-vulnerable release already used by the lockfile, and stops grouped npm Dependabot PRs from piling unrelated lockfile changes together; also recorded that the <strong>Not Shelfed</strong> row once again shows its count badge and that <strong>Physical Books</strong> now scroll correctly on mobile while offering a title-tap full-window viewer with swipe navigation between cards</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.82</td><td>Documented the media-type sidebar follow-up so managed <strong>Media Type</strong> rows once again use the same single badge slot as other actionable rows, showing the count normally and swapping that same spot to the 3-dot menu trigger on hover or focus instead of leaving a separate trailing ellipsis button beside the badge</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.81</td><td>Documented the dashboard settings follow-up repair so the <strong>Add Scroller</strong> action and dialog copy now consistently allow up to 20 dashboard scrollers instead of stopping at five, and noted that <strong>Media Type</strong> sidebar rows once again show a single count badge while keeping their action menu available</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.80</td><td>Documented the deeper follow-up regression fix: book-card action menus now anchor to the real inner button element so popup alignment stays stable across the grid, the dedicated <strong>Physical Books</strong> route once again owns physical-only browsing instead of surfacing a synthetic <strong>PHYSICAL</strong> media type, and fullscreen library-management dialogs now keep their lower actions reachable on smaller mobile screens by letting the dialog shell own height while the component footers own the safe-area padding</td></tr>
+  <tr><td>2026-04-17</td><td>1.1.79</td><td>Recorded the regression hotfix that re-anchors book-card action overlays to their actual trigger buttons, restores <strong>Media Type</strong> management menus for physical-book views and physical rows assigned to custom media types, and adds safer mobile viewport padding so the lower actions in <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> stay reachable above browser chrome</td></tr>
+  <tr><td>2026-04-15</td><td>1.1.78</td><td>Documented the dashboard expansion to 20 panels, the mobile dashboard refresh layout repair, the restored ISBN metadata lookup and duplicate protection for physical-book creation, the multi-row physical shelf view, the new sidecar backup run history list in <strong>Settings &rarr; Backups</strong>, and the broader mobile dialog sizing improvements for library-management workflows</td></tr>
+  <tr><td>2026-04-15</td><td>1.1.77</td><td>Recorded the deeper library-dialog handoff repair after reverse engineering the underlying dialog framework: switching between <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> now waits for the old dialog instance to be fully destroyed before opening the next one, which fixes same-dialog workflow links that could still disappear during the close animation window</td></tr>
+  <tr><td>2026-04-15</td><td>1.1.76</td><td>Recorded the follow-up repair for the linked <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> dialogs so switching between them now waits for the current dialog to fully close before the next one opens, preventing the workflow buttons from dismissing the current dialog without showing the target view</td></tr>
+  <tr><td>2026-04-15</td><td>1.1.75</td><td>Clarified that the linked <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> dialogs now hand off cleanly between each other, documented that <strong>Delete from Disk</strong> is hidden whenever <strong>Allow File Deletion</strong> is disabled, and recorded that <strong>Remove from Library</strong> now stays hidden across later scans and watcher activity while the underlying file remains on disk</td></tr>
+  <tr><td>2026-04-15</td><td>1.1.74</td><td>Documented the book-browser filter routing repair so switching between <strong>AND</strong>, <strong>OR</strong>, <strong>NOT</strong>, and <strong>1</strong> no longer reuses a stale prior route context, preventing selector changes in one library from snapping the view back to an earlier <strong>Not Shelfed</strong> session or falsely showing an empty result set</td></tr>
+  <tr><td>2026-04-15</td><td>1.1.73</td><td>Documented the safer browser and series multi-select behavior so bulk selections now resync cleanly between grid and table views, accepted background jobs clear the prior selection instead of leaving hidden books armed, and the browser header explicitly warns when some selected books are outside the current filtered view</td></tr>
+  <tr><td>2026-04-13</td><td>1.1.72</td><td>Documented the dedicated <strong>Re-order</strong> sidebar mode so drag sorting only activates when explicitly toggled on, clarified that headings and sidebar rows can now be reordered directly with mouse or touch while the mode is active, and noted that the normal mobile and desktop sidebar overlay returns to plain navigation behavior when sorting is off</td></tr>
+  <tr><td>2026-04-13</td><td>1.1.71</td><td>Corrected the mobile full-screen <strong>Manage Directories</strong> picker sizing so it no longer causes a slight sideways scroll, clarified that the left and right mobile side-panel grab handles stay visibly present as touch targets instead of appearing only during interaction, and documented that a phone back gesture now closes the mobile book-browser filter sidebar before navigating the underlying page</td></tr>
+  <tr><td>2026-04-13</td><td>1.1.70</td><td>Documented the denser mobile <strong>Manage Directories</strong> picker layout so search and selection controls stay compact while the folder list keeps more vertical space, and clarified that the visible touch grab handles now stay on both the left and right side panels on mobile</td></tr>
+  <tr><td>2026-04-13</td><td>1.1.69</td><td>Documented the connected <strong>Library Settings</strong>/<strong>Manage Directories</strong>/<strong>Library Maintenance</strong> workflow, clarified that <strong>Reconcile Library</strong> now requires an explicit acknowledgement while the maintenance dialog points routine discovery back to <strong>Scan for New Files</strong>, noted the mobile full-screen directory picker and touch sidebar grab handle improvements, and recorded that <strong>Allow File Deletion</strong> also protects additional attached files instead of being bypassed there</td></tr>
+  <tr><td>2026-04-13</td><td>1.1.68</td><td>Documented that scheduled <strong>Library Scan</strong> now follows the same additive new-file-only behavior as manual <strong>Scan for New Files</strong>, and clarified that additive scan routines queue background directory-tagging only for newly imported books while <strong>Reconcile Library</strong> remains the deliberate whole-library maintenance path</td></tr>
+  <tr><td>2026-04-12</td><td>1.1.67</td><td>Fixed the <strong>Manage Directories</strong> save-note emphasis so the action labels render correctly, clarified that changing directory-tag rules does not silently retag existing books during a settings save, and aligned the guide with the safer future-import-only tagging boundary until an explicit retag tool exists</td></tr>
+  <tr><td>2026-04-12</td><td>1.1.66</td><td>Clarified that the <strong>Manage Directories</strong> list itself now shows imported directories, tightened the save-versus-scan wording, grouped <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> near the bottom of the library menu, and fixed the in-app <strong>User Guide</strong> PDF delivery path so it opens the guide file instead of falling back into the app shell</td></tr>
+  <tr><td>2026-04-12</td><td>1.1.65</td><td>Documented the new Phase 5 per-directory precision flow so <strong>Manage Directories</strong> now offers a plain <strong>Save</strong> and an explicit <strong>Save & Scan New Directories</strong> action, clarified that only newly added directories are scanned, and noted the clearer green <strong>Imported</strong> badges in the directory picker</td></tr>
+  <tr><td>2026-04-12</td><td>1.1.64</td><td>Documented the Phase 4 library editing split so <strong>Library Settings</strong> and <strong>Manage Directories</strong> are separate actions, clarified their intended use, and recorded that directory changes now use explicit add/remove directory verbs instead of one overloaded edit/update flow</td></tr>
+  <tr><td>2026-04-12</td><td>1.1.63</td><td>Documented the new <strong>Library Maintenance</strong> boundary for high-impact library actions, moved <strong>Reconcile Library</strong> behind that dedicated dialog, and clarified that library-wide sidecar import/export/backup tools now live there while <strong>Scan for New Files</strong> remains the routine safe discovery action</td></tr>
+  <tr><td>2026-04-12</td><td>1.1.62</td><td>Documented that <strong>Scan for New Files</strong> and <strong>Reconcile Library</strong> now appear directly in library action menus instead of being hidden inside a nested library options group</td></tr>
+  <tr><td>2026-04-12</td><td>1.1.61</td><td>Recorded the 3.9.1 hotfix that repaired the new library shelf menu regression tests so the release pipeline can complete successfully without changing the documented library workflow</td></tr>
+  <tr><td>2026-04-11</td><td>1.1.60</td><td>Documented the new safe <strong>Scan for New Files</strong> library action, clarified that the former library re-scan flow is now presented as <strong>Reconcile Library</strong>, and noted that saving library changes no longer silently triggers a full reconcile</td></tr>
+  <tr><td>2026-04-11</td><td>1.1.59</td><td>Reduced the right-edge inset for sidebar filter count badges by half and aligned the badge column with the accordion chevrons so the filter rows track the same visual edge as their section headers</td></tr>
+  <tr><td>2026-04-11</td><td>1.1.58</td><td>Documented the consistent right-edge alignment for sidebar filter badges, and noted that the broken grouped Dependabot frontend dependency PR was replaced with a curated compatible dependency refresh on develop instead of merging the failing update set</td></tr>
+  <tr><td>2026-04-11</td><td>1.1.57</td><td>Documented the sidebar accordion fix so switching from active tag filters to other filter groups no longer half-opens and snaps shut, and clarified that advanced custom metadata fetch now defaults to Merge Genres off and Manual Review on</td></tr>
+  <tr><td>2026-04-10</td><td>1.1.56</td><td>Corrected the Settings return control to use the same icon-only route-return pattern as other route-mode screens, and documented that browser card subtitles now depend on the list API preserving metadata.subtitle so titles can render as Title : Subtitle across cards, previews, and tooltips</td></tr>
+  <tr><td>2026-04-10</td><td>1.1.54</td><td>Clarified the follow-up browser display-settings fix so the return arrow is visibly shown as a left-arrow button and subtitle toggles update already-rendered book cards immediately instead of only affecting later refreshes</td></tr>
+  <tr><td>2026-04-10</td><td>1.1.53</td><td>Documented the book-browser display-settings return arrow and subtitle toggle, plus clarified that directory browsing now forces filename A&ndash;Z display until you clear the scoped folder view or re-click the active library or shelf</td></tr>
+  <tr><td>2026-04-09</td><td>1.1.52</td><td>Added the Metadata Review <strong>Tag & Next</strong> action to append the <strong>Metadata Follow-Up Req</strong> tag without accepting the current proposal, and clarified that <strong>Finish & Close</strong> now clears the related topbar metadata notification/task state when the review session ends</td></tr>
+  <tr><td>2026-04-09</td><td>1.1.51</td><td>Documented the Metadata Review dialog refresh: renamed the proposal screen, moved the copy-missing and copy-all buttons to the bottom action bar, added skip-to-end queueing, added the one-click Copy All, Save & Next shortcut, and clarified that acceptance now waits for the underlying metadata save to finish before the review advances</td></tr>
+  <tr><td>2026-04-08</td><td>1.1.50</td><td>Reworked sidebar filter-mode switching so the parent browser now clears the old filter state before activating the new AND/OR/NOT/1 mode, preventing the mode button from showing one state while the book list still filters with the previous mode; added regression tests for parent-owned mode changes and stale-selection suppression</td></tr>
+  <tr><td>2026-04-08</td><td>1.1.49</td><td>Hardened filter-mode propagation so the AND/OR/NOT/1 value is normalised (trimmed, lowercased, validated) at every entry point—URL params, persisted user settings, component inputs, and the core filtering function—preventing a mode value that differs by case or whitespace from silently disabling the NOT exclusion logic; added SideBarFilter integration tests exercising the full observable chain</td></tr>
+  <tr><td>2026-04-08</td><td>1.1.48</td><td>Fixed Date Added and Folder sidebar filters so they actually filter the book list under every mode (AND, OR, NOT, 1) instead of silently returning no results or doing nothing; added comprehensive regression tests for all four filter modes</td></tr>
+  <tr><td>2026-04-08</td><td>1.1.47</td><td>Documented the right-sidebar filter refresh fix so tag and metadata edits repopulate sidebar facets immediately, and clarified that filter highlights no longer stick after deselection when ids change format</td></tr>
+  <tr><td>2026-04-08</td><td>1.1.46</td><td>Clarified that the custom metadata age filter uses the last successful metadata fetch time, and documented the paused topbar metadata pill plus its new fetched-versus-remaining task log dialog</td></tr>
+  <tr><td>2026-04-08</td><td>1.1.45</td><td>Documented the follow-up metadata-task history fix so completed metadata batches no longer perform unnecessary resume-state lookups while building the task activity list</td></tr>
+  <tr><td>2026-04-08</td><td>1.1.44</td><td>Documented the custom metadata fetch target-book selector and the new ability to resume stopped metadata batches instead of rerunning the full selection</td></tr>
+  <tr><td>2026-04-08</td><td>1.1.43</td><td>Documented that the metadata-fetch topbar pill now restores from active task state after refreshes and that long provider cooldown waits no longer keep the metadata batch DB transaction open</td></tr>
+  <tr><td>2026-04-07</td><td>1.1.42</td><td>Documented that metadata-task cancellation now stays in a cancellation-requested state until the current provider step stops and that stale finished metadata tasks no longer immediately reappear in the progress widget</td></tr>
+  <tr><td>2026-04-07</td><td>1.1.41</td><td>Documented the renamed bulk restore-titles action and the metadata-fetch topbar pill now showing a paused resume time when ComicVine throttling temporarily delays a batch</td></tr>
+  <tr><td>2026-04-07</td><td>1.1.40</td><td>Documented the bulk metadata action that restores blank titles from each selected book&rsquo;s primary filename without overwriting existing titles</td></tr>
+  <tr><td>2026-04-07</td><td>1.1.39</td><td>Documented that metadata wipes now keep a filename-derived title when available and that blank titles can be restored from the primary filename inside the metadata editor</td></tr>
+  <tr><td>2026-04-07</td><td>1.1.38</td><td>Documented that large imports now hand directory-based tagging off to a separate visible background task with live progress, time-remaining messaging, and Task Management history</td></tr>
+  <tr><td>2026-04-07</td><td>1.1.37</td><td>Documented that the folder explorer panel now keeps root folders and nested folders in alphabetical order while browsing by directory</td></tr>
+  <tr><td>2026-04-07</td><td>1.1.36</td><td>Documented the new topbar fullscreen toggle, the light grey sidecar-backup working pill in Metadata Persistence, and the AI batch-scan pill clearing itself shortly after completion</td></tr>
+  <tr><td>2026-04-07</td><td>1.1.35</td><td>Documented that physical-book directory sidecars now skip creating a new placeholder during library refresh when the library already contains the matching active book, preventing duplicate entries from sidecar-backed rebuilds</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.34</td><td>Documented the cached-route reattachment fix for the book browser so metadata-backed sidebar filters repopulate immediately for sidecar-backed libraries without requiring a browser refresh or a filter-sort toggle</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.33</td><td>Documented that library and shelf navigation now refreshes the cached book list so metadata-backed sidebar filters repopulate immediately without a manual browser refresh, even when sidecar-backed metadata is involved</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.32</td><td>Documented that the library edit directory picker now labels folders already imported into the current library so additional folders are easier to spot before saving</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.31</td><td>Documented the right filter sidebar anchoring fix so the desktop filter panel stays flush to the right edge after the single-scroll sidebar update</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.30</td><td>Documented the book-browser filter sidebar scroll fix so the desktop right sidebar now uses one continuous scrollbar instead of nested scroll areas inside long filter groups</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.29</td><td>Documented clearer manual sidecar backup failure reporting, including failed write counts and the first filesystem error when Fable can read books but cannot create sidecar files in the library directory</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.28</td><td>Clarified that duplicate review is launched from library menus, removed the book-browser duplicate shortcut, and documented that manual sidecar backup now includes normal digital formats even when books also have non-book attachments</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.27</td><td>Documented that manual per-library sidecar backup works in both LOCAL and NETWORK disk modes and clarified that normal EPUB and PDF library backups now resolve book paths correctly instead of reporting zero exported books</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.26</td><td>Documented the new manual per-library sidecar backup action in Metadata Persistence, including backups that run even when automatic sidecars are disabled and refresh existing backup sidecars in place</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.25</td><td>Documented immediate sidebar filter-mode button selection updates plus the new physical-book directory sidecars that preserve physical placeholders across rebuilds and let sidecar exports include physical books</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.24</td><td>Clarified that the duplicate-review dialog now shows stronger active selection states, follows the current theme more closely for its surfaces and comparison cards, and starts the Custom matching preset with all signals cleared</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.23</td><td>Documented the saved duplicate-plan snapshot view that exposes queued groups, preferred keeps, and saved scan context before a new scan runs</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.22</td><td>Documented that duplicate-resolution plans are now saved to the user account so queued keep choices can be restored on a later review pass</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.21</td><td>Documented the new manual duplicate-resolution plan flow, including choosing a preferred keep and exporting a non-destructive follow-up list</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.20</td><td>Expanded the duplicate-review documentation to cover the new non-destructive inspection actions, including side-by-side candidate comparison plus quick links to book details and supported readers</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.19</td><td>Documented the redesigned duplicate-review workflow, including current-view, current-library, and all-library scan scopes plus the new non-destructive review-only behavior</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.18</td><td>Documented that changing sidebar filter modes now clears the active sidebar selections first, and clarified the filter-mode tooltips for the compact AND/OR/NOT/1 controls</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.17</td><td>Clarified sidebar filter mode behavior with tooltips and documented that AND mode now narrows same-filter options, such as tags, to combinations that still have matching books</td></tr>
+  <tr><td>2026-04-06</td><td>1.1.16</td><td>Documented same-directory physical placeholder duplicate prevention and clarified that deleting a digital book&rsquo;s last readable format now removes accidental empty shells instead of leaving a fileless non-physical entry behind</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.15</td><td>Documented that metadata editors can now cancel running bulk metadata fetches from the progress widget without needing full task-manager access</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.14</td><td>Documented that cancelling a throttled ComicVine bulk metadata fetch now breaks out of the provider wait immediately instead of waiting for the cooldown to finish</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.13</td><td>Clarified throttled ComicVine bulk metadata notifications to show an explicit time-left snapshot alongside the reset ETA</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.12</td><td>Documented the reduced-request ComicVine top-match path for bulk metadata scans to lower the chance of hitting hourly API limits mid-batch</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.11</td><td>Documented explicit wait-state messaging with ETA for throttled bulk metadata scans while the provider cooldown is in effect</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.10</td><td>Documented that throttled bulk metadata requests now retry after the provider cooldown and stay visible as active instead of being mislabeled as stalled</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.9</td><td>Documented that bulk metadata scans now wait through temporary provider throttling instead of skipping the remainder of the batch immediately</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.8</td><td>Documented the more resilient bulk custom metadata scan behavior when a provider&rsquo;s first candidate fails</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.7</td><td>Documented the Physical Books HOME view, library-directory-aware physical book creation, and Physical Media Type filtering</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.6</td><td>Documented sidebar-driven thumbnail warming for faster library switching and the new WebP thumbnail delivery path for supported browsers</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.5</td><td>Documented per-user Media Type and filter sidebar persistence plus filename-first browsing when selecting directories</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.4</td><td>Documented filename fallback for untitled book cards and clarified the metadata editor delete-all action placement near fetch controls</td></tr>
+  <tr><td>2026-04-05</td><td>1.1.3</td><td>Documented large-library import feedback, persistent sidebar heading visibility, improved Book Details close behavior, and single/bulk metadata deletion actions</td></tr>
+  <tr><td>2026-04-04</td><td>1.1.2</td><td>Documented AI totals in Library Statistics and refreshed guide after book browser and shelf-row UI fixes</td></tr>
+  <tr><td>2026-04-04</td><td>1.1.1</td><td>Reviewed guide after README badge repair; no feature workflow changes required in user-facing instructions</td></tr>
+  <tr><td>2026-04-02</td><td>1.1</td><td>Added directory explorer documentation to interface, browsing, and filtering sections</td></tr>
+  <tr><td>2026-03-30</td><td>1.0</td><td>Initial guide created &mdash; covers all Fable 3.0 features</td></tr>
+</table>
+
+<hr>
+<p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
+  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
+</p>
+
+<script>
+(function() {
+  const sidebar = document.getElementById('sidebar-toc');
+  const links = sidebar.querySelectorAll('a[href^="#"]');
+  const headings = [];
+  links.forEach(function(a) {
+    const id = a.getAttribute('href').substring(1);
+    const el = document.getElementById(id);
+    if (el) headings.push({ el: el, link: a });
+  });
+
+  function onScroll() {
+    let current = headings[0];
+    const scrollTop = window.scrollY + 80;
+    for (let i = 0; i < headings.length; i++) {
+      if (headings[i].el.offsetTop <= scrollTop) {
+        current = headings[i];
+      } else {
+        break;
+      }
+    }
+    links.forEach(function(a) { a.classList.remove('active'); });
+    if (current) current.link.classList.add('active');
+
+    // Auto-scroll sidebar to keep active link visible
+    if (current) {
+      const linkTop = current.link.offsetTop;
+      const sidebarScroll = sidebar.scrollTop;
+      const sidebarHeight = sidebar.clientHeight;
+      if (linkTop < sidebarScroll || linkTop > sidebarScroll + sidebarHeight - 60) {
+        sidebar.scrollTop = linkTop - sidebarHeight / 3;
+      }
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Close sidebar when a link is clicked (mobile)
+  links.forEach(function(a) {
+    a.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+    });
+  });
+
+  // Close sidebar when clicking outside (mobile)
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 1099 && !sidebar.contains(e.target) && e.target.id !== 'toc-toggle') {
+      sidebar.classList.remove('open');
+    }
+  });
+})();
+</script>
+<p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
+  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
+  <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
+</p>
+<script>
+(function() {
+  const sidebar = document.getElementById('sidebar-toc');
+  const links = sidebar.querySelectorAll('a[href^="#"]');
+  const headings = [];
+  links.forEach(function(a) {
+    const id = a.getAttribute('href').substring(1);
+    const el = document.getElementById(id);
+    if (el) headings.push({ el: el, link: a });
+  });
+
+  function onScroll() {
+    let current = headings[0];
+    const scrollTop = window.scrollY + 80;
+    for (let i = 0; i < headings.length; i++) {
+      if (headings[i].el.offsetTop <= scrollTop) {
+        current = headings[i];
+      } else {
+        break;
+      }
+    }
+    links.forEach(function(a) { a.classList.remove('active'); });
+    if (current) current.link.classList.add('active');
+
+    // Auto-scroll sidebar to keep active link visible
+    if (current) {
+      const linkTop = current.link.offsetTop;
+      const sidebarScroll = sidebar.scrollTop;
+      const sidebarHeight = sidebar.clientHeight;
+      if (linkTop < sidebarScroll || linkTop > sidebarScroll + sidebarHeight - 60) {
+        sidebar.scrollTop = linkTop - sidebarHeight / 3;
+      }
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Close sidebar when a link is clicked (mobile)
+  links.forEach(function(a) {
+    a.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+    });
+  });
+
+  // Close sidebar when clicking outside (mobile)
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 1099 && !sidebar.contains(e.target) && e.target.id !== 'toc-toggle') {
+      sidebar.classList.remove('open');
+    }
+  });
+})();
+</script>
+</body>
+</html>
