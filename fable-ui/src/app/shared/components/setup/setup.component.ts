@@ -35,7 +35,7 @@ export class SetupComponent {
     this.setupForm = this.fb.group({
       name: ['', [Validators.required]],
       username: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]],
     }, {validators: [passwordMatchValidator('password', 'confirmPassword')]});

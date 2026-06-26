@@ -11,7 +11,6 @@ public class InitialUserRequest {
     private String username;
 
     @Email
-    @NotBlank
     private String email;
 
     @NotBlank

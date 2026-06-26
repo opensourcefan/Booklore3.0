@@ -43,7 +43,7 @@ public class UserProvisioningService {
     public void provisionInitialUser(InitialUserRequest request) {
         FableUserEntity user = new FableUserEntity();
         user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
+        user.setEmail(blankToNull(request.getEmail()));
         user.setName(request.getName());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setDefaultPassword(false);
@@ -268,6 +268,13 @@ public class UserProvisioningService {
         }
 
         return createUser(user);
+    }
+
+    private String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value;
     }
 
     protected FableUserEntity createUser(FableUserEntity user) {
