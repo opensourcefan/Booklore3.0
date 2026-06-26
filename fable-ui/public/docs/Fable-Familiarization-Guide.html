@@ -245,10 +245,11 @@
   }
   #toc-toggle:hover { background: #2a2218; }
 
-  /* Desktop: body shifts right to make room for sidebar */
+  /* Desktop: body centered in the space to the right of the sidebar */
   @media screen and (min-width: 1100px) {
     body {
-      margin-left: 310px;
+      margin-left: max(310px, calc(250px + (100vw - 250px - 880px) / 2));
+      margin-right: auto;
     }
     #sidebar-toc { display: block; }
     #toc-toggle { display: none; }
@@ -1173,13 +1174,12 @@
   <tr><td><i class="pi pi-list"></i> Table of contents</td><td>Jump to chapters using the built-in outline (if the PDF has one)</td></tr>
   <tr><td><i class="pi pi-images"></i> Page thumbnails</td><td>See small previews of all pages for quick navigation</td></tr>
   <tr><td><i class="pi pi-search-plus"></i> Zoom</td><td>Zoom in and out for easier reading</td></tr>
-  <tr><td><i class="pi pi-bookmark"></i> Bookmarks</td><td>Save your place with labeled bookmarks</td></tr>
   <tr><td><i class="pi pi-pencil"></i> Highlights</td><td>Select text and highlight it in different colors</td></tr>
   <tr><td><i class="pi pi-comment"></i> Annotations</td><td>Add notes to highlighted sections</td></tr>
   <tr><td><i class="pi pi-chart-bar"></i> Reading progress</td><td>Automatically saved &mdash; pick up where you left off</td></tr>
 </table>
 
-<p><strong>What You Can&rsquo;t Do:</strong> Edit PDF text, fill in forms, or print directly from Fable (use your browser&rsquo;s print function).</p>
+<p><strong>What You Can&rsquo;t Do:</strong> Edit PDF text, fill in forms, print directly from Fable (use your browser&rsquo;s print function), or bookmark pages (bookmarks are supported in EPUB, CBX, and Audiobook readers).</p>
 
 <div class="callout">
   <strong>Be Careful:</strong> Very large PDFs (hundreds of megabytes) may load slowly. Some complex PDFs with unusual formatting may not render perfectly.
