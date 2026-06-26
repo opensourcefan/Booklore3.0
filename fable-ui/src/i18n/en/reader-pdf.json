@@ -2,9 +2,20 @@
   "toolbar": {
     "switchToLightMode": "Switch to Light Mode",
     "switchToDarkMode": "Switch to Dark Mode",
-    "closePdfReader": "Close PDF Reader"
+    "closePdfReader": "Close PDF Reader",
+    "addBookmark": "Add Bookmark",
+    "removeBookmark": "Remove Bookmark"
+  },
+  "bookmark": {
+    "titleLabel": "Bookmark Title (optional)",
+    "titlePlaceholder": "e.g. Figure 3.2, Important reference...",
+    "saveBookmark": "Save",
+    "cancelBookmark": "Cancel"
   },
   "toast": {
-    "failedToLoadBook": "Failed to load the book"
+    "failedToLoadBook": "Failed to load the book",
+    "bookmarkAdded": "Bookmark added",
+    "bookmarkRemoved": "Bookmark removed",
+    "bookmarkFailed": "Failed to save bookmark"
   }
 }

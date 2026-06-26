@@ -1,5 +1,6 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
+import {FormsModule} from '@angular/forms';
 import {EditorAnnotation, NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, pdfDefaultOptions, ZoomType} from 'ngx-extended-pdf-viewer';
 import {PageTitleService} from "../../../shared/service/page-title.service";
 import {BookService} from '../../book/service/book.service';
@@ -10,6 +11,7 @@ import {UserService} from '../../settings/user-management/user.service';
 import {AuthService} from '../../../shared/service/auth.service';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {PdfAnnotationService} from '../../../shared/service/pdf-annotation.service';
+import {BookMarkService, BookMark, CreateBookMarkRequest} from '../../../shared/service/book-mark.service';
 
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {MessageService} from 'primeng/api';
@@ -21,7 +23,7 @@ import {Location} from '@angular/common';
 @Component({
   selector: 'app-pdf-reader',
   standalone: true,
-  imports: [NgxExtendedPdfViewerModule, ProgressSpinner, TranslocoPipe],
+  imports: [NgxExtendedPdfViewerModule, ProgressSpinner, TranslocoPipe, FormsModule],
   templateUrl: './pdf-reader.component.html',
   styleUrl: './pdf-reader.component.scss',
 })
@@ -52,6 +54,13 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private annotationSaveSubscription!: Subscription;
   private annotationsLoaded = false;
 
+  // Bookmark state
+  isCurrentPageBookmarked = false;
+  showBookmarkDialog = false;
+  bookmarkTitle = '';
+  private bookmarks: BookMark[] = [];
+  @ViewChild('bookmarkTitleInput') bookmarkTitleInput!: ElementRef<HTMLInputElement>;
+
   private bookService = inject(BookService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
@@ -63,6 +72,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private location = inject(Location);
   private pdfViewerService = inject(NgxExtendedPdfViewerService);
   private pdfAnnotationService = inject(PdfAnnotationService);
+  private bookMarkService = inject(BookMarkService);
   private readonly t = inject(TranslocoService);
 
   ngOnInit(): void {
@@ -114,6 +124,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
           const token = this.authService.getInternalAccessToken();
           this.authorization = token ? `Bearer ${token}` : '';
           this.isLoading = false;
+          this.loadBookmarks();
         },
         error: () => {
           this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('readerPdf.toast.failedToLoadBook')});
@@ -126,6 +137,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   onPageChange(page: number): void {
     if (page !== this.page) {
       this.page = page;
+      this.updateBookmarkState();
       this.updateProgress();
       const percentage = this.totalPages > 0 ? Math.round((this.page / this.totalPages) * 1000) / 10 : 0;
       this.readingSessionService.updateProgress(this.page.toString(), percentage);
@@ -197,6 +209,73 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     }
     this.writeProgressService.complete(this.t.translate('book.browser.toast.readingProgressUpdated'));
     this.location.back();
+  }
+
+  // --- Bookmark methods ---
+
+  private loadBookmarks(): void {
+    this.bookMarkService.getBookmarksForBook(this.bookId).subscribe({
+      next: (bookmarks) => {
+        this.bookmarks = bookmarks;
+        this.updateBookmarkState();
+      }
+    });
+  }
+
+  private updateBookmarkState(): void {
+    const pageStr = this.page.toString();
+    this.isCurrentPageBookmarked = this.bookmarks.some(b => b.cfi === pageStr);
+  }
+
+  onToggleBookmark(): void {
+    if (this.isCurrentPageBookmarked) {
+      this.removeBookmark();
+    } else {
+      this.showBookmarkDialog = true;
+      this.bookmarkTitle = '';
+      setTimeout(() => this.bookmarkTitleInput?.nativeElement?.focus(), 0);
+    }
+  }
+
+  onSaveBookmark(): void {
+    const request: CreateBookMarkRequest = {
+      bookId: this.bookId,
+      cfi: this.page.toString(),
+      title: this.bookmarkTitle.trim() || `${this.t.translate('readerCbx.sidebar.page')} ${this.page}`
+    };
+
+    this.bookMarkService.createBookmark(request).subscribe({
+      next: () => {
+        this.messageService.add({severity: 'success', summary: this.t.translate('readerPdf.toast.bookmarkAdded'), life: 2000});
+        this.showBookmarkDialog = false;
+        this.bookmarkTitle = '';
+        this.loadBookmarks();
+      },
+      error: () => {
+        this.messageService.add({severity: 'error', summary: this.t.translate('readerPdf.toast.bookmarkFailed'), life: 3000});
+      }
+    });
+  }
+
+  onCancelBookmark(): void {
+    this.showBookmarkDialog = false;
+    this.bookmarkTitle = '';
+  }
+
+  private removeBookmark(): void {
+    const pageStr = this.page.toString();
+    const existing = this.bookmarks.find(b => b.cfi === pageStr);
+    if (existing) {
+      this.bookMarkService.deleteBookmark(existing.id).subscribe({
+        next: () => {
+          this.messageService.add({severity: 'success', summary: this.t.translate('readerPdf.toast.bookmarkRemoved'), life: 2000});
+          this.loadBookmarks();
+        },
+        error: () => {
+          this.messageService.add({severity: 'error', summary: this.t.translate('readerPdf.toast.bookmarkFailed'), life: 3000});
+        }
+      });
+    }
   }
 
   private loadAnnotations(): void {

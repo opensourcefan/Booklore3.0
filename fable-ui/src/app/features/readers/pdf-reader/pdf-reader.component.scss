@@ -32,6 +32,10 @@
   }
 }
 
+::ng-deep .toolbar-btn.bookmark-btn.active {
+  color: #e63946;
+}
+
 ::ng-deep .pdf-dark .toolbar-btn,
 ::ng-deep .pdf-dark .close-reader-btn {
   color: #e8e8e8;
@@ -39,6 +43,10 @@
   &:hover {
     background: rgba(255, 255, 255, 0.15);
   }
+}
+
+::ng-deep .pdf-dark .toolbar-btn.bookmark-btn.active {
+  color: #ff6b6b;
 }
 
 ::ng-deep .close-reader-btn:hover {
@@ -63,6 +71,121 @@
     align-items: center !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
+  }
+}
+
+// Bookmark dialog overlay
+.bookmark-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.bookmark-dialog {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 10px;
+  width: 360px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.bookmark-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #3a3a3a;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8e8e8;
+}
+
+.bookmark-dialog-close {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+
+  &:hover {
+    color: #e8e8e8;
+  }
+}
+
+.bookmark-dialog-body {
+  padding: 18px;
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+}
+
+.bookmark-title-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #1e1e1e;
+  color: #e8e8e8;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #6c8ebf;
+  }
+
+  &::placeholder {
+    color: #666;
+  }
+}
+
+.bookmark-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 18px;
+  border-top: 1px solid #3a3a3a;
+}
+
+.bookmark-btn-cancel,
+.bookmark-btn-save {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.bookmark-btn-cancel {
+  background: #3a3a3a;
+  color: #ccc;
+
+  &:hover {
+    background: #4a4a4a;
+  }
+}
+
+.bookmark-btn-save {
+  background: #4a7bbf;
+  color: #fff;
+
+  &:hover {
+    background: #5a8bcf;
   }
 }
 
