@@ -15,12 +15,10 @@ A personal fork of [Booklore] with extended features, UI customizations, and an 
 > I may or may not update it. I may or may not read the Issues. I will not delete it if I get upset, I'm always upset.
 > Please fork freely and do whatever you like with it. I am not taking requests.
 
-> [!CAUTION]
-> **DEPLOYMENT & FREEZE NOTICE (June 2026)**
-> This repository is in a **FROZEN state**. All automated dependency updates (Dependabot) have been disabled. 
-> Because this codebase uses locked, older package versions, **NEVER expose this application directly to the public internet** (forward-facing). 
-> **Always run it strictly within your local home network (LAN) or behind a secure VPN (such as Tailscale, WireGuard, or OpenVPN).** 
-> If you must access it publicly, you must deploy it behind a secure reverse proxy with authentication (such as Cloudflare Tunnels, Authelia, or Authentik).
+> [!IMPORTANT]
+> **DEPLOYMENT & MAINTENANCE NOTICE (June 2026)**
+> This repository is maintained and updated **periodically (monthly)**. Automated dependency updates (Dependabot) have been disabled to minimize build noise and prevent regressions, but security patches and library upgrades are evaluated and applied manually.
+> Because this application is intended for private use, it is highly recommended to run it within your local home network (LAN) or behind a secure VPN (such as Tailscale, WireGuard, or OpenVPN). If exposing it publicly, always deploy it behind a secure reverse proxy with authentication (such as Cloudflare Tunnels, Authelia, or Authentik).
 
 ---
 
@@ -433,5 +431,5 @@ For a complete walkthrough of every feature — libraries, importing, reading, s
 
 ---
 
-## Codebase Freeze & Deactivated Maintenance
-Automated dependency updates (Dependabot) have been deactivated, and the repository is in a frozen state. All third-party libraries are locked to their current verified versions. Since the app is designed for local home networks (LAN) or secure VPN setups, running older dependency versions carries no significant risk, and freezing the codebase prevents regressions and notification noise. If you decide to resume updates or upgrade packages in the future, follow the rules of engagement defined in the workspace prompt under `.agent/workflows/maintenance.md` to prevent breaking the strict dependency structures expected by the CI/CD pipeline.
+## Codebase Maintenance & Periodic Updates
+Automated dependency updates (Dependabot) have been deactivated to reduce build noise and avoid breaking the strict dependency structures expected by the CI/CD pipeline. Instead, this repository is maintained manually, with security alerts and dependency upgrades evaluated and applied on a monthly or periodic basis. This strategy prevents regressions while keeping the application secure and up to date. Updates must follow the guidelines in [.agent/workflows/maintenance.md](.agent/workflows/maintenance.md) to ensure zero-regression releases.

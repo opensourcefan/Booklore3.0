@@ -81,7 +81,8 @@
     "vite": "^7.3.4",
     "esbuild": "^0.28.1",
     "piscina": "^5.1.5",
-    "tar": "^7.5.16"
+    "tar": "^7.5.16",
+    "@babel/core": "^7.29.7"
   },
   "lint-staged": {
     "src/**/*.ts": "eslint --max-warnings=0",
