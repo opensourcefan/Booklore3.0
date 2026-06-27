@@ -4,7 +4,9 @@
     "switchToDarkMode": "Switch to Dark Mode",
     "closePdfReader": "Close PDF Reader",
     "addBookmark": "Add Bookmark",
-    "removeBookmark": "Remove Bookmark"
+    "removeBookmark": "Remove Bookmark",
+    "disableExternalLinks": "Disable External Links",
+    "enableExternalLinks": "Enable External Links"
   },
   "bookmark": {
     "titleLabel": "Bookmark Title (optional)",

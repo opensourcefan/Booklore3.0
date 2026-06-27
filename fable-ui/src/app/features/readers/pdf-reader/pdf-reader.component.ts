@@ -37,6 +37,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   totalPages = 0;
   isDarkTheme = true;
   canPrint = false;
+  disableExternalLinks = false;
 
   rotation: 0 | 90 | 180 | 270 = 0;
   authorization = '';
@@ -76,6 +77,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private readonly t = inject(TranslocoService);
 
   ngOnInit(): void {
+    this.disableExternalLinks = localStorage.getItem('fable_pdf_disable_external_links') === 'true';
     this.writeProgressService.clear();
     this.annotationSaveSubscription = this.annotationSaveSubject
       .pipe(debounceTime(1500))
@@ -305,5 +307,77 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       const data = JSON.stringify(cleaned);
       this.pdfAnnotationService.saveAnnotations(this.bookId, data).subscribe();
     }
+  }
+
+  onAnnotationLayerRendered(event: unknown): void {
+    if (this.disableExternalLinks) {
+      const ev = event as { source: { div: HTMLDivElement } };
+      this.applyExternalLinksPolicyToDiv(ev.source.div);
+    }
+  }
+
+  onLinkAnnotationsAdded(event: unknown): void {
+    if (this.disableExternalLinks) {
+      const ev = event as { source: { div: HTMLDivElement } };
+      this.applyExternalLinksPolicyToDiv(ev.source.div);
+    }
+  }
+
+  private applyExternalLinksPolicyToDiv(div: HTMLDivElement): void {
+    div.querySelectorAll('a').forEach((a: HTMLAnchorElement) => {
+      const originalHref = a.getAttribute('data-original-href') || a.getAttribute('href') || '';
+      if (originalHref && !a.getAttribute('data-original-href')) {
+        a.setAttribute('data-original-href', originalHref);
+      }
+      if (originalHref.startsWith('http://') || originalHref.startsWith('https://')) {
+        a.removeAttribute('href');
+        a.style.pointerEvents = 'none';
+        a.style.cursor = 'default';
+        a.style.border = 'none';
+        a.style.boxShadow = 'none';
+        a.style.outline = 'none';
+        a.style.background = 'transparent';
+      }
+    });
+  }
+
+  toggleExternalLinks(): void {
+    this.disableExternalLinks = !this.disableExternalLinks;
+    localStorage.setItem('fable_pdf_disable_external_links', String(this.disableExternalLinks));
+    this.applyExternalLinksPolicy();
+  }
+
+  private applyExternalLinksPolicy(): void {
+    const viewerContainer = document.querySelector('ngx-extended-pdf-viewer');
+    if (!viewerContainer) return;
+
+    viewerContainer.querySelectorAll('a').forEach((a: HTMLAnchorElement) => {
+      const originalHref = a.getAttribute('data-original-href') || a.getAttribute('href') || '';
+      if (originalHref && !a.getAttribute('data-original-href')) {
+        a.setAttribute('data-original-href', originalHref);
+      }
+
+      if (this.disableExternalLinks) {
+        if (originalHref.startsWith('http://') || originalHref.startsWith('https://')) {
+          a.removeAttribute('href');
+          a.style.pointerEvents = 'none';
+          a.style.cursor = 'default';
+          a.style.border = 'none';
+          a.style.boxShadow = 'none';
+          a.style.outline = 'none';
+          a.style.background = 'transparent';
+        }
+      } else {
+        if (originalHref.startsWith('http://') || originalHref.startsWith('https://')) {
+          a.setAttribute('href', originalHref);
+          a.style.pointerEvents = '';
+          a.style.cursor = '';
+          a.style.border = '';
+          a.style.boxShadow = '';
+          a.style.outline = '';
+          a.style.background = '';
+        }
+      }
+    });
   }
 }
