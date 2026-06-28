@@ -24,6 +24,7 @@ import org.fable.service.metadata.writer.MetadataWriterFactory;
 import org.fable.util.BookCoverUtils;
 import org.fable.util.FileService;
 import org.fable.util.MetadataChangeDetector;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -84,6 +85,16 @@ public class BookMetadataUpdater {
 
         MetadataClearFlags clearFlags = wrapper.getClearFlags();
         BookMetadataEntity metadata = bookEntity.getMetadata();
+        if (metadata != null) {
+            Hibernate.initialize(metadata.getDescription());
+            if (metadata.getComicMetadata() != null) {
+                ComicMetadataEntity comic = metadata.getComicMetadata();
+                Hibernate.initialize(comic.getCharacters());
+                Hibernate.initialize(comic.getTeams());
+                Hibernate.initialize(comic.getLocations());
+                Hibernate.initialize(comic.getCreatorMappings());
+            }
+        }
 
         boolean thumbnailRequiresUpdate = StringUtils.hasText(newMetadata.getThumbnailUrl());
         boolean hasMetadataChanges = MetadataChangeDetector.isDifferent(newMetadata, metadata, clearFlags);
