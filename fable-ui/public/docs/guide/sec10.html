@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -680,7 +681,7 @@
 <p>Fable includes built-in readers for every supported format. Each reader is tailored to its format.</p>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> On mobile, the system back gesture or back button now closes whichever reader panel, menu, or dialog is currently open (such as sidebars, quick settings, overflow menus, and preview dialogs) before leaving the reader screen. When you close a reader, Fable now shows &ldquo;Reading Progress Updated&rdquo; instead of a stale shelf-related message.
+  <strong>Good to Know:</strong> On mobile devices, the system back gesture or back button closes whichever reader panel, menu, or dialog is currently open (such as sidebars, quick settings, overflow menus, and preview dialogs) before leaving the reader screen. When you close a reader, Fable displays a &ldquo;Reading Progress Updated&rdquo; notification.
 </div>
 
 <!-- 10a: PDF -->
@@ -713,10 +714,10 @@
   <tr><td><i class="pi pi-list"></i> Chapter navigation</td><td>Use the table of contents to jump between chapters</td></tr>
   <tr><td><i class="pi pi-search-plus"></i> Adjust font size</td><td>Make text larger or smaller for comfortable reading</td></tr>
   <tr><td><i class="pi pi-arrows-v"></i> Adjust line spacing</td><td>Increase or decrease space between lines</td></tr>
-  <tr><td>Bookmarks</td><td>Save your place</td></tr>
-  <tr><td>Highlights</td><td>Select text and highlight in colors</td></tr>
-  <tr><td>Annotations</td><td>Write notes attached to highlighted text</td></tr>
-  <tr><td>Reading progress</td><td>Automatically tracked</td></tr>
+  <tr><td><i class="pi pi-bookmark"></i> Bookmarks</td><td>Save your place in the book</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Highlights</td><td>Select text and highlight in colors</td></tr>
+  <tr><td><i class="pi pi-comment"></i> Annotations</td><td>Write notes attached to highlighted text</td></tr>
+  <tr><td><i class="pi pi-chart-bar"></i> Reading progress</td><td>Automatically tracked</td></tr>
   <tr><td><i class="pi pi-palette"></i> Custom fonts</td><td>Upload and use your preferred fonts (see Settings)</td></tr>
 </table>
 
@@ -815,7 +816,7 @@
   <strong>Be Careful:</strong> CBR files (RAR format) may extract more slowly than CBZ files (ZIP format). Very high-resolution scans can use significant memory. AI panel detection requires the AI feature to be enabled and configured.
 </div>
 
-<p><strong>Metadata note:</strong> If your deployment enables <strong>Save to Original File</strong> for CBR comics, mounting a compatible Linux <code>rar</code> binary into the Fable container lets metadata writes stay in the original <code>.cbr</code>. Without that binary, Fable may fall back to converting the file to <code>.cbz</code>, which takes longer.</p>
+<p><strong>Metadata note:</strong> If Fable is configured to save metadata directly into original CBR comic files, the host server requires a compatible Linux <code>rar</code> command-line utility installed in its environment. Without it, Fable falls back to converting the file to CBZ format to write metadata updates, which takes longer.</p>
 
 <!-- 10d: Audiobook -->
 <h3 id="sec10d">d) Audiobook Player</h3>

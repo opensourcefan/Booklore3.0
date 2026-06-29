@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -684,7 +685,7 @@
   <li>Select multiple books for batch metadata operations</li>
   <li>Apply the same genre, category, or mood to many books at once</li>
   <li>Bulk-update reading status or media type</li>
-  <li>Bulk-fetch metadata for selected books, with better recovery when a provider&rsquo;s first match fails but later candidates still contain usable metadata</li>
+  <li>Bulk-fetch metadata for selected books with automatic fallback if the initial match fails</li>
   <li>Limit a custom metadata fetch to all selected books, only books that have never been fetched, or only books whose last successful metadata fetch is older than a chosen age window</li>
   <li>Use the custom metadata fetch ComicVine fields (source URL plus issue number or issue range like 43-171) to sequence exact ComicVine issue lookups across selected books, including manual-review workflows</li>
   <li>Restore titles for selected books from each book&rsquo;s own primary filename from the bulk metadata actions menu when those books still have blank, unlocked titles</li>
@@ -692,15 +693,22 @@
 </ul>
 
 <div class="callout warning">
-  <strong>Be Careful:</strong> Bulk edits are immediate and cannot be reversed. Double-check your selection and changes before applying. Start with small batches to verify results. Bulk metadata deletion clears the selected books&rsquo; metadata in one step, but Fable now keeps a filename-derived title when one is available so you can search again immediately.
+  <strong>Be Careful:</strong> Bulk edits are immediate and cannot be reversed. Double-check your selection and changes before applying. Start with small batches to verify results. Bulk metadata deletion clears the selected books&rsquo; metadata in one step, but Fable keeps a filename-derived title when one is available so you can search again immediately.
 </div>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> If one metadata source fails to return a usable first match during a bulk custom scan, Fable now falls back more gracefully instead of abandoning that whole book as aggressively. For providers that temporarily throttle large jobs, Fable now retries the throttled request itself after the cooldown window, keeps the metadata task visible as still running, restores the metadata-fetch topbar pill from the active task state after refreshes or reconnects, lets you start a new custom fetch against only books that have never been fetched or books whose last successful metadata fetch is older than a selected age window, marks zombie in-progress metadata tasks as resumable instead of leaving them hung forever after a stop or restart, offers resume actions for stopped metadata batches, shows a clearly paused topbar state with the reset ETA instead of a stale time-left snapshot, opens a simple fetched-versus-remaining asset log when you click the topbar metadata pill, lets metadata editors cancel those metadata jobs directly from the progress widget even without broader task-manager access, interrupts long ComicVine cooldown waits promptly when you cancel the job, shows a clear cancellation-requested state instead of falsely marking a task fully cancelled before it actually stops, removes stale finished metadata tasks that the backend no longer reports, avoids holding the database transaction open during long provider cooldown waits, and uses a lighter top-match lookup path for ComicVine batch scans so large runs are less likely to exhaust the hourly request budget mid-batch.
+  <strong>Good to Know: Batch Job Resilience and Error Recovery</strong>
+  <ul>
+    <li><strong>Graceful error recovery:</strong> If a metadata source fails to return a match for a book in the batch, Fable continues processing the rest of the queue instead of halting the entire job.</li>
+    <li><strong>Throttling and cooldown:</strong> If an online provider throttles your requests, Fable automatically pauses, shows a countdown timer (paused state) in the top progress bar, and retries once the cooldown expires.</li>
+    <li><strong>Top bar tracking:</strong> Click the metadata progress indicator in the top bar to open a detailed <strong>Asset Log</strong> showing successfully fetched items versus remaining items in the queue.</li>
+    <li><strong>Flexible queue control:</strong> You can pause, resume, or cancel metadata jobs directly from the top bar widget. Paused or interrupted jobs can be resumed later.</li>
+    <li><strong>ComicVine optimization:</strong> Large bulk scans are optimized to stay within API rate limits to prevent budget exhaustion.</li>
+  </ul>
 </div>
 
 <div class="callout tip">
-  <strong>Custom Metadata Fetch Defaults:</strong> The advanced custom metadata fetch dialog now opens with <strong>Merge Genres</strong> off by default and <strong>Manual Review</strong> on by default, so a new batch starts in a safer review-first mode unless you intentionally change those toggles.
+  <strong>Custom Metadata Fetch Defaults:</strong> The advanced custom metadata fetch dialog opens with <strong>Merge Genres</strong> off by default and <strong>Manual Review</strong> on by default, so a new batch starts in a safer review-first mode unless you intentionally change those toggles.
 </div>
 <nav class="section-nav">
   <a href="sec14.html" class="nav-link nav-prev">← Previous: 14. Metadata</a>

@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -684,13 +685,13 @@
 
 <table>
   <tr><th>Component</th><th>What It Does</th></tr>
-  <tr><td><strong>Field</strong> <i class="pi pi-tag guide-icon-inline"></i></td><td>What you want to filter on — choose from 50+ fields across 9 categories</td></tr>
+  <tr><td><strong>Field</strong> <i class="pi pi-tag guide-icon-inline"></i></td><td>What you want to filter on — choose from 50+ fields across 9 categories (such as Read Status, Published Date, or File Type)</td></tr>
   <tr><td><strong>Operator</strong> <i class="pi pi-sliders-h guide-icon-inline"></i></td><td>How to compare the field (equals, contains, greater than, is empty, within last 30 days, etc.)</td></tr>
-  <tr><td><strong>Value</strong> <i class="pi pi-pencil guide-icon-inline"></i></td><td>The target to match against — text, numbers, dates, multi-select lists, or date ranges depending on the field and operator</td></tr>
-  <tr><td><strong>AND / OR Join</strong> <i class="pi pi-link guide-icon-inline"></i></td><td>How rules within a group combine: <strong>AND</strong> means all rules must match, <strong>OR</strong> means any rule can match</td></tr>
+  <tr><td><strong>Value</strong> <i class="pi pi-pencil guide-icon-inline"></i></td><td>The target to match against — text, numbers, dates, lists, or date ranges</td></tr>
+  <tr><td><strong>AND / OR Join</strong> <i class="pi pi-link guide-icon-inline"></i></td><td>How rules combine: <strong>AND</strong> means all rules must match, <strong>OR</strong> means any rule can match</td></tr>
   <tr><td><strong>Nested Groups</strong> <i class="pi pi-folder-open guide-icon-inline"></i></td><td>Add sub-groups inside a group to build complex logic like "(A AND B) OR (C AND D)"</td></tr>
-  <tr><td><strong>Live Match Count</strong> <i class="pi pi-check-circle guide-icon-inline"></i></td><td>As you build rules, Fable shows exactly how many books in your library match — updated in real time</td></tr>
-  <tr><td><strong>Cap Slider</strong> <i class="pi pi-sliders-v guide-icon-inline"></i></td><td>Limit the shelf to a maximum number of books (1–1000). If more books match than the cap, a warning appears and only the first N books are shown</td></tr>
+  <tr><td><strong>Live Match Count</strong> <i class="pi pi-check-circle guide-icon-inline"></i></td><td>Shows exactly how many books in your library match your current rules in real time</td></tr>
+  <tr><td><strong>Cap Slider</strong> <i class="pi pi-sliders-v guide-icon-inline"></i></td><td>Limit the shelf to a maximum number of books (1–1000) to prevent performance slowdowns</td></tr>
 </table>
 
 <h3>Available Filter Fields</h3>
@@ -748,7 +749,7 @@
   <tr><td><strong>Library Maintenance</strong></td><td>Missing Essential Info (title/author/genre), Books Without a Genre, No Description, Low Quality Metadata (<50%), Missing ISBN, Finished But Not Tagged, Missing Cover or Description, Perfectly Catalogued Books</td></tr>
   <tr><td><strong>Date-Based</strong></td><td>Added This Week, Gathering Dust (added 90+ days ago, never opened), Classic Literature (pre-1950), Modern Releases (2020+), Read Over a Year Ago</td></tr>
   <tr><td><strong>Author & Publisher</strong></td><td>Non-English Books, Books by a Specific Author, Publisher Spotlight, Books That Have Subtitles</td></tr>
-  <tr><td><strong>File & Format</strong></td><td>EPUB Format Books, Comic Book Files (CBR/CBZ/CB7), Large Files (100MB+), Physical Book Collection, Unread PDFs (Conversion Candidates)</td></tr>
+  <tr><td><strong>File & Format</strong></td><td>EPUB Format Books, Comic Book Files (CBR/CBZ/CB7), Large Files (100MB+), Physical Book Collection, Unread PDFs (suitable for EPUB conversion)</td></tr>
   <tr><td><strong>Audiobooks</strong></td><td>All Audiobooks, Long Audiobooks (10+ hours), Short Audiobooks (<3 hours), Unabridged Only, Highly Rated Audiobooks (4.5+ on Audible)</td></tr>
   <tr><td><strong>Advanced Combos</strong></td><td>Book Club Candidates, Travel-Friendly Reads, Award-Caliber Literary Fiction, Spooky Season Reading List, Beach Reads, Premium Unread Fantasy, Nostalgia Re-Reads, Library Cleanup Candidates, Weekend Reading List, Genre-Bending Sci-Fi Crossovers</td></tr>
 </table>
@@ -762,7 +763,7 @@
 </ul>
 
 <h3>Icon Picker</h3>
-<p>Each Magic Shelf can have its own icon <i class="pi pi-palette guide-icon-inline"></i> — choose from PrimeIcons or upload custom SVG icons. The icon appears in the sidebar next to the shelf name, making it easy to identify at a glance.</p>
+<p>Each Magic Shelf can have its own icon <i class="pi pi-palette guide-icon-inline"></i> — choose from preloaded library icons or upload custom SVG icons. The icon appears in the sidebar next to the shelf name, making it easy to identify at a glance.</p>
 
 <h3>Public Shelves</h3>
 <p>Admins can mark a Magic Shelf as <strong>Public</strong> <i class="pi pi-globe guide-icon-inline"></i>, making it visible to all users. Non-admin users see public shelves in their sidebar but cannot edit the rules. This is great for shared collections like "Book Club Picks" or "New Arrivals."</p>
@@ -778,7 +779,7 @@
 </div>
 
 <div class="callout tip">
-  <strong>Tip:</strong> If you want to bookmark or share a dynamic search query that isn't supported as a Magic Shelf rule (such as filtering for AI embedded books), simply apply the filter on the <strong>All Books</strong> browser and bookmark the URL. The browser URL is stable, contains the search parameters, and dynamically updates with matching books whenever loaded.
+  <strong>Tip:</strong> If you want to bookmark or share a dynamic search query that isn't supported as a Magic Shelf rule (such as filtering for books with AI search embeddings generated), simply apply the filter on the <strong>All Books</strong> browser and bookmark the URL. The browser URL is stable, contains the search parameters, and dynamically updates with matching books whenever loaded.
 </div>
 <nav class="section-nav">
   <a href="sec8.html" class="nav-link nav-prev">← Previous: 8. Shelves</a>

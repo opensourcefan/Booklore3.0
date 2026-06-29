@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -679,29 +680,27 @@
 
 <p>A <strong>Library</strong> is a connection between Fable and a folder on your computer or server where book files are stored.</p>
 
+<div class="callout tip">
+  <strong>Scan vs. Reconcile &mdash; Which should you use?</strong>
+  <ul>
+    <li><strong>Scan for New Files (Safe & Fast):</strong> Fable only looks for newly added book files and adds them to your library. It will not touch or overwrite your existing books or metadata. Use this for regular updates.</li>
+    <li><strong>Reconcile Library (Deep Sync):</strong> Fable performs a full check of your library against your storage disk. It updates all library records to match the current disk contents, including removing catalog entries for files you deleted on disk. Reconcile requires an explicit confirmation before running.</li>
+  </ul>
+</div>
+
 <h3>What You Can Do</h3>
 <ul>
-  <li><strong>Create multiple libraries</strong> &mdash; For example, one for &ldquo;Fiction,&rdquo; one for &ldquo;Comics,&rdquo; one for &ldquo;Audiobooks&rdquo;</li>
-  <li><strong>Scan for new files</strong> &mdash; Tell Fable to look for files that are not already known in a library</li>
-  <li><strong>Reconcile libraries</strong> &mdash; Force Fable to compare a library against disk and update library records to match</li>
-  <li><strong>Open Library Maintenance</strong> &mdash; Run high-impact library-wide actions from a dedicated maintenance dialog instead of mixing them with routine work</li>
-  <li><strong>Open Library Settings and Manage Directories separately</strong> &mdash; Routine library settings now live in <strong>Library Settings</strong>, while library path changes live in <strong>Manage Directories</strong></li>
-  <li><strong>See which directories are already imported while managing directories</strong> &mdash; The <strong>Manage Directories</strong> list marks directories already in the library and now also labels parent rows when only imported subdirectories live underneath them, so you can tell imported paths from new additions at a glance</li>
-  <li><strong>Choose whether new directories should scan immediately</strong> &mdash; <strong>Save</strong> updates directory membership only, while <strong>Save & Scan New Directories</strong> imports only from the newly added paths</li>
-  <li><strong>Save library changes without an automatic reconcile</strong> &mdash; Editing settings or adding directories no longer silently triggers a full reconcile afterward</li>
-  <li><strong>Move between library settings, directories, and maintenance from inside the dialogs</strong> &mdash; The library-management dialogs now link to one another so you can stay in one workflow instead of backing out to the menu each time</li>
-  <li><strong>Use a dedicated safe path before reconcile</strong> &mdash; The maintenance dialog now points routine discovery work back to <strong>Scan for New Files</strong> and requires an explicit acknowledgement before <strong>Reconcile Library</strong> can run</li>
-  <li><strong>Use a roomier mobile directory picker</strong> &mdash; On phones and other compact screens, the directory picker now fits the dialog width correctly without slight sideways overflow, keeps search and selection controls in compact rows, and leaves more vertical space for the actual folder list</li>
-  <li><strong>Use the mobile sidebar grab handles</strong> &mdash; The left and right sidebar width bars now stay visibly available on touch devices as always-on touch handles so you can see where to grab, drag horizontally to resize, and drag vertically to help scroll long side panels</li>
-  <li><strong>Use the phone back gesture to close the active mobile panel or popup first</strong> &mdash; On mobile, the first back gesture now dismisses the topmost open surface (for example filter sidebars, topbar popovers, book preview viewers, and reader overlays) before Fable navigates away underneath it</li>
-  <li><strong>See preparation feedback for large imports</strong> &mdash; When creating a library with many files, the dialog now shows an in-between working state before the full progress overlay appears</li>
-  <li><strong>Check library health</strong> &mdash; Verify the folder is accessible and working</li>
-  <li><strong>Delete libraries</strong> &mdash; Remove a library from Fable without deleting the original source files on disk</li>
-  <li><strong>Restrict library access</strong> &mdash; Control which users can see which libraries</li>
+  <li><strong>Create multiple libraries</strong> &mdash; For example, separate libraries for "Fiction," "Comics," or "Audiobooks"</li>
+  <li><strong>Configure settings and folders</strong> &mdash; Manage names and display icons under <strong>Library Settings</strong>, and add or remove folder paths under <strong>Manage Directories</strong></li>
+  <li><strong>Choose directory scanning options</strong> &mdash; When editing directory paths, select <strong>Save</strong> to update folder list membership or <strong>Save & Scan New Directories</strong> to immediately import books from newly added folders</li>
+  <li><strong>Access library maintenance tools</strong> &mdash; Perform advanced tasks like rebuilding libraries or exporting/importing metadata sidecar files from the <strong>Library Maintenance</strong> panel</li>
+  <li><strong>Check library health</strong> &mdash; Verify Fable can reach the configured folders on disk</li>
+  <li><strong>Restrict library access</strong> &mdash; Control which user accounts can view and search books in each library</li>
+  <li><strong>Delete libraries</strong> &mdash; Remove a library from Fable's interface at any time (this removes the catalog but does **not** touch your files on disk)</li>
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> The normal library menu keeps <strong>Library Settings</strong>, <strong>Manage Directories</strong>, and <strong>Library Maintenance</strong> grouped together near the bottom, above <strong>Delete Library</strong>, and the dialogs now cross-link to one another so you can move between them without reopening the menu. Use <strong>Library Settings</strong> for naming <i class="pi pi-cog guide-icon-inline"></i> and scan behavior. Use <strong>Manage Directories</strong> when you intentionally want to add or remove library paths. Inside <strong>Manage Directories</strong>, <strong>Save</strong> updates paths only, while <strong>Save & Scan New Directories</strong> imports only from newly added directories. <strong>Scan for New Files</strong> remains the library-wide safe additive discovery action, while <strong>Reconcile Library</strong> and library-wide sidecar import/export/backup tools stay inside <strong>Library Maintenance</strong>, where reconcile now requires an explicit acknowledgement before it can run. Scheduled library scans now follow that same additive new-file-only behavior. Changing directory-tag rules no longer silently retags existing books during a settings save, and additive scans only queue follow-up directory tagging for the books they just imported.
+  <strong>Good to Know:</strong> Fable's library settings, directories, and maintenance dialogs are fully cross-linked, allowing you to easily click between configuration panels without exiting to the main menu. Scheduled scans are designed to be safe and use the additive "Scan for New Files" process to protect your existing metadata from unintended overrides.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -716,7 +715,7 @@
     <li><strong>Deleting a library removes the catalog entry, not the source files on disk.</strong> If you want to delete real book files, that happens through book-file deletion flows, not library removal.</li>
     <li><strong>Moving or renaming book files outside of Fable</strong> will cause them to appear missing. Always let Fable manage file movements.</li>
     <li><strong>Use Reconcile Library intentionally.</strong> It is not the same as a safe new-file scan and may change existing library records to match disk.</li>
-    <li><strong>If your book folder is on a network drive,</strong> set <code>DISK_TYPE=NETWORK</code> in your environment configuration for better compatibility. Automatic metadata writes stay disabled there, but you can still run manual sidecar backups when you want a portable metadata snapshot.</li>
+    <li><strong>If your book folder is on a network drive,</strong> set <code>DISK_TYPE=NETWORK</code> in your environment configuration (the <code>.env</code> file) for better compatibility. Automatic metadata writes stay disabled there, but you can still run manual sidecar backups when you want a portable metadata snapshot.</li>
   </ul>
 </div>
 <nav class="section-nav">

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>21. User Accounts — Fable Familiarization Guide</title>
+<title>21. User Accounts &amp; Profiles — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html" class="active">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html" class="active">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -674,8 +675,10 @@
   </ol>
 </nav>
 <!-- ==================== SECTION 21 ==================== -->
-<h2 id="sec21">21. User Accounts and Permissions <span class="section-icon"><i class="pi pi-users"></i></span></h2>
+<h2 id="sec21">21. User Accounts &amp; Profiles <span class="section-icon"><i class="pi pi-users"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Users tab (admin only <i class="pi pi-shield"></i>)</p>
+
+<p>Fable distinguishes between <strong>User Accounts</strong> (which manage your login credentials, roles, and permissions) and <strong>User Profiles</strong> (which store your individual reading progress, personal shelves, settings, and book statistics).</p>
 
 <h3>User Roles</h3>
 <table>
@@ -712,16 +715,29 @@
   <li>Change their own password and profile</li>
 </ul>
 
+<h3>How to Set Up an Independent, Sandboxed Profile</h3>
+<p>To set up an independent profile for another person that is sandboxed (so they only see their own books and manage their own progress):</p>
+<ol>
+  <li><strong>Prepare Isolated Folders:</strong> Go to the host machine's filesystem where your Fable <code>docker-compose.yml</code> file is located. Navigate into the <code>books</code> directory (which is bind-mounted to <code>/books</code> inside the container). Inside this folder on your host machine, create a new subfolder for each user (e.g., <code>books/user1</code> and <code>books/user2</code>). <em>Tip: You do not need to edit your <code>docker-compose.yml</code> or restart Docker!</em> Because the parent <code>books</code> directory is already mounted, any subdirectories you create there are automatically and instantly visible inside the container at <code>/books/user1</code>, <code>/books/user2</code>, etc.</li>
+  <li><strong>Create the New Library:</strong> Log in as an Admin. Go to <strong>Settings <i class="pi pi-cog guide-icon-inline"></i> → Library Management</strong> and create a new library (e.g., "User 2 Books"). Point its paths to the isolated directory (e.g., <code>/books/user2</code>).</li>
+  <li><strong>Create the User Account:</strong> Go to <strong>Settings <i class="pi pi-cog guide-icon-inline"></i> → User Management</strong> and click <strong>Create User</strong>. Fill in their username, display name, and password.</li>
+  <li><strong>Restrict Library Access:</strong> In the library mapping settings for the new user, select only their library ("User 2 Books") and uncheck all others. Do not check the "Admin" role.</li>
+  <li><strong>Restrict Permissions:</strong> Keep the "Library Management" permission **disabled** for the new user. If they should not be allowed to delete files from disk, keep the "Book Deletion" permission **disabled** as well.</li>
+</ol>
+
 <div class="callout warning">
-  <strong>Be Careful:</strong>
+  <strong>Multi-Tenancy Caveats & Security Risks:</strong>
   <ul>
-    <li>The <strong>&ldquo;Book Deletion&rdquo; permission allows permanent file deletion from disk.</strong> Only grant this to trusted users.</li>
-    <li><strong>Library Management permission</strong> allows creating and deleting libraries &mdash; grant carefully.</li>
+    <li>The <strong>&ldquo;Book Deletion&rdquo; permission allows permanent file deletion from disk.</strong> Only grant this to trusted users. You can disable deletion globally under Settings → File Management.</li>
+    <li><strong>Library Management permission</strong> allows creating and deleting libraries. If regular users have this, they can add folders mapping to other users' directories, breaking the sandbox. Keep this disabled.</li>
+    <li><strong>Admins bypass all sandboxes.</strong> Admin accounts automatically see and have full access to all libraries.</li>
+    <li><strong>Shared Container & Database.</strong> All profiles run in the same Docker container and write to the same MariaDB instance. There is no OS-level virtualization or network isolation between users.</li>
+    <li><strong>Shared Resources.</strong> Heavy backend tasks like directory rescans, metadata updates, and AI searches use shared server resources and may affect performance for other active sessions.</li>
   </ul>
 </div>
 <nav class="section-nav">
   <a href="sec20.html" class="nav-link nav-prev">← Previous: 20. Email</a>
-  <a href="sec22.html" class="nav-link nav-next">Next: 22. Authentication →</a>
+  <a href="sec22.html" class="nav-link nav-next">Next: 22. Login Methods →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>

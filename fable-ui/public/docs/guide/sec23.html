@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html" class="active">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -679,7 +680,7 @@
 
 <p>Access settings via the gear <i class="pi pi-cog guide-icon-inline"></i> at the bottom of the sidebar.</p>
 
-<p>The main Settings page includes a compact <i class="pi pi-arrow-left guide-icon-inline"></i> left-arrow control in the top-right corner that returns you to the route you opened Settings from, instead of relying on generic browser-history back behavior.</p>
+<p>The main Settings page includes a compact <i class="pi pi-arrow-left guide-icon-inline"></i> left-arrow control in the top-right corner that returns you to the route you opened Settings from.</p>
 
 <table>
   <tr><th>Category</th><th>What You Can Configure</th></tr>
@@ -904,15 +905,15 @@
   <strong>Good to Know:</strong>
   <ul>
     <li><strong>The File Management toggle also protects additional attached files.</strong> When <strong>Allow File Deletion</strong> is disabled, deleting an attached file removes it from Fable without overriding the global disk-deletion block.</li>
-    <li><strong>Remove from Library is now a durable hide action.</strong> When you remove a book without deleting its file, Fable keeps the file on disk but suppresses automatic re-import during later scans and watcher events.</li>
+    <li><strong>Remove from Library is a durable hide action.</strong> When you remove a book without deleting its file, Fable keeps the file on disk but suppresses automatic re-import during later scans and watcher events.</li>
     <li><strong>Automatic sidecars and manual sidecar backups are separate.</strong> You can keep automatic sidecar writing turned off and still run <strong>Back Up Sidecars per Library</strong> from Metadata Persistence when you want an on-demand metadata backup.</li>
-    <li><strong>The backup action is available in both LOCAL and NETWORK disk modes.</strong> Network mode still blocks automatic rewrite and file reorganization, but the manual sidecar backup action remains available as an explicit exception.</li>
+    <li><strong>The backup action is available in both LOCAL and NETWORK disk modes.</strong> Network mode blocks automatic rewrite and file reorganization, but the manual sidecar backup action remains available as an explicit exception.</li>
     <li><strong>Running the backup again refreshes existing backup sidecars.</strong> Fable rewrites the selected library&rsquo;s sidecar files with the current database metadata instead of requiring you to delete old backups first.</li>
-    <li><strong>Manual sidecar backups now show a light grey topbar working pill while they run.</strong> The message is intentionally simple because the backup call is usually brief, but it gives you immediate confirmation that the action started.</li>
+    <li><strong>Manual sidecar backups show a light grey topbar working pill while they run.</strong> The message is intentionally simple because the backup call is usually brief, but it gives you immediate confirmation that the action started.</li>
   </ul>
 </div>
 <nav class="section-nav">
-  <a href="sec22.html" class="nav-link nav-prev">← Previous: 22. Authentication</a>
+  <a href="sec22.html" class="nav-link nav-prev">← Previous: 22. Login Methods</a>
   <a href="sec24.html" class="nav-link nav-next">Next: 24. Background Tasks →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">

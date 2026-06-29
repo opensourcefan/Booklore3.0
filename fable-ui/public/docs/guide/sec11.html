@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -680,21 +681,21 @@
 <h3>Bookmarks</h3>
 <p>Simple position markers with an optional label. Use them to mark pages you want to return to.</p>
 <ul>
-  <li><strong>Create:</strong> While reading, click the bookmark <i class="pi pi-bookmark guide-icon-inline"></i> at your current position</li>
+  <li><strong>Create:</strong> While reading, click the bookmark icon <i class="pi pi-bookmark guide-icon-inline"></i> at your current position</li>
   <li><strong>Label:</strong> Give bookmarks descriptive names (e.g., &ldquo;Important chapter&rdquo;)</li>
-  <li><strong>Color coding:</strong> Assign colors to categorize bookmarks</li>
+  <li><strong>Color coding:</strong> Assign colors to categorize bookmarks <i class="pi pi-palette guide-icon-inline"></i></li>
   <li><strong>Navigate:</strong> Click any bookmark to jump back to that spot</li>
-  <li><strong>Delete:</strong> Remove bookmarks when no longer needed</li>
+  <li><strong>Delete:</strong> Remove bookmarks when no longer needed <i class="pi pi-trash guide-icon-inline"></i></li>
 </ul>
 
 <h3>Annotations (Highlights and Notes)</h3>
 <p>Available in PDF and EPUB readers.</p>
 <ul>
-  <li><strong>Highlight:</strong> Select text &rarr; choose a highlight color</li>
+  <li><strong>Highlight:</strong> Select text &rarr; choose a highlight color <i class="pi pi-pencil guide-icon-inline"></i></li>
   <li><strong>Underline / Strikethrough:</strong> Additional marking styles</li>
-  <li><strong>Add notes:</strong> Attach written notes to any highlight</li>
-  <li><strong>Edit:</strong> Change colors, styles, or note text anytime</li>
-  <li><strong>Delete:</strong> Remove individual annotations</li>
+  <li><strong>Add notes:</strong> Attach written notes to any highlight <i class="pi pi-comment guide-icon-inline"></i></li>
+  <li><strong>Edit:</strong> Change colors, styles, or note text anytime <i class="pi pi-pencil guide-icon-inline"></i></li>
+  <li><strong>Delete:</strong> Remove individual annotations <i class="pi pi-trash guide-icon-inline"></i></li>
 </ul>
 
 <h3>The Notebook</h3>
@@ -702,10 +703,10 @@
 <ul>
   <li>See all highlights and notes in one place</li>
   <li>Filter by book, type, or date</li>
-  <li>Search through your annotations</li>
-  <li>Export all annotations for backup</li>
+  <li>Search through your annotations <i class="pi pi-search guide-icon-inline"></i></li>
+  <li>Export all annotations for backup <i class="pi pi-download guide-icon-inline"></i></li>
   <li>Quickly jump to the source book and location</li>
-  <li>Book groups are collapsed by default when you first open the Notebook, keeping the view tidy for large collections</li>
+  <li>Book groups are collapsed by default to keep the view tidy for large collections</li>
 </ul>
 
 <div class="callout info">

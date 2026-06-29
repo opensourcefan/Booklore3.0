@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -676,9 +677,10 @@
 <!-- ==================== SECTION 1 ==================== -->
 <h2 id="sec1">1. What Is Fable? <span class="section-icon"><i class="pi pi-info-circle"></i></span></h2>
 
-<p>Fable is a <strong>self-hosted digital library</strong> &mdash; a personal application you run on your own computer or server to organize, read, and manage your book and comic collection. Think of it as your own private digital bookshelf accessible from any web browser on any device.</p>
+<p>Fable is a <strong>self-hosted digital library</strong> &mdash; a personal application you run on your own computer or server to organize, read, and manage your book and comic collection. Because it is self-hosted, all your data, settings, and book files are stored locally on your own hardware rather than on a third-party cloud service, giving you complete ownership and privacy. You can access your private digital bookshelf from any web browser on any device in your network.</p>
 
 <h3>Supported Formats</h3>
+<p>To add books to Fable, you can upload them directly through the browser interface (using BookDrop) or place files into folders on your host server that are scanned by Fable. The following formats are supported:</p>
 <table>
   <tr><th>Format</th><th>Description</th></tr>
   <tr><td><strong><span class="guide-badge guide-badge-pdf">PDF</span></strong></td><td>Standard document files (books, manuals, magazines)</td></tr>
@@ -687,7 +689,7 @@
   <tr><td><strong><span class="guide-badge guide-badge-fb2">FB2</span></strong></td><td>FictionBook 2 XML-based e-book format</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-cbz">CBZ</span> / <span class="guide-badge guide-badge-cbr">CBR</span> / <span class="guide-badge guide-badge-cb7">CB7</span></strong></td><td>Comic book archives (ZIP, RAR, or 7-Zip image collections)</td></tr>
   <tr><td><strong><span class="guide-badge guide-badge-audiobook">Audiobooks</span></strong></td><td>Audio files organized in folders (<span class="guide-badge guide-badge-mp3">MP3</span>, <span class="guide-badge guide-badge-m4a">M4A</span>, <span class="guide-badge guide-badge-m4b">M4B</span>, <span class="guide-badge guide-badge-ogg">OGG</span>, or <span class="guide-badge guide-badge-opus">OPUS</span>)</td></tr>
-  <tr><td><strong><span class="guide-badge guide-badge-physical">Physical</span></strong></td><td>Catalog entries for physical books you own (no digital file required)</td></tr>
+  <tr><td><strong><span class="guide-badge guide-badge-physical">Physical</span></strong></td><td>Printed books or items in your real-world collection. Creating a physical book entry creates a catalog placeholder (no digital file required) so you can track your entire shelf in one interface.</td></tr>
 </table>
 
 <h3>What You Can Do</h3>

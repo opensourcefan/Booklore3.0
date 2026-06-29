@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -678,48 +679,213 @@
 
 <p>Fable uses a <strong>sidebar + main content</strong> layout.</p>
 
+<h3>Visual Layout Interface Map</h3>
+<table class="layout-map-table" style="width: 100%; border-collapse: collapse; margin: 1.5em 0; background: rgba(255, 255, 255, 0.18); font-size: 10pt;">
+  <thead>
+    <tr>
+      <th colspan="3" style="text-align: center; background: var(--table-head); color: var(--heading); padding: 10px; border: 1px solid var(--table-border);">
+        <strong>Top Bar</strong><br>
+        <span style="font-size: 8.5pt; font-weight: normal; color: var(--muted);">[Menu] &nbsp;&bull;&nbsp; [Search / AI Search] &nbsp;&bull;&nbsp; [Notifications] &nbsp;&bull;&nbsp; [Customizable Toolbar: BookDrop, Fullscreen, etc.]</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="width: 30%; border: 1px solid var(--table-border); padding: 12px; background: rgba(108, 73, 39, 0.05); vertical-align: top;">
+        <strong>Left Sidebar</strong>
+        <ul style="margin: 8px 0 0; padding-left: 1.2em; font-size: 8.5pt; line-height: 1.5;">
+          <li><strong>HOME:</strong> Dashboard, All Books, Physical Books</li>
+          <li><strong>Libraries:</strong> Expandable folders</li>
+          <li><strong>Shelves:</strong> Favorites &amp; custom shelves</li>
+          <li><strong>Not Shelfed:</strong> Unassigned books</li>
+          <li><strong>Series &amp; Authors:</strong> Structured browse</li>
+          <li><strong>Magic Shelves:</strong> Smart collections</li>
+          <li><strong>Footer:</strong> User Guide, Settings, Language</li>
+        </ul>
+      </td>
+      <td style="width: 40%; border: 1px solid var(--table-border); padding: 12px; background: rgba(255, 255, 255, 0.28); vertical-align: top;">
+        <strong>Main Content Area</strong>
+        
+        <!-- Book Browser Header Block -->
+        <div style="margin: 8px 0; padding: 10px; border: 1px solid var(--table-border); border-radius: 4px; background: rgba(255, 255, 255, 0.45);">
+          <strong>Book Browser Header</strong>
+          <ul style="margin: 4px 0 0; padding-left: 1.2em; font-size: 8pt; line-height: 1.4;">
+            <li>Breadcrumb paths &amp; folder navigations</li>
+            <li>Library actions (Scan for New Files, Reconcile)</li>
+            <li>Grid / List view toggle &amp; Sort options</li>
+            <li>Active filter tags list</li>
+          </ul>
+        </div>
+        
+        <!-- Book Grid & Folder Explorer Block -->
+        <div style="margin: 8px 0 0; padding: 10px; border: 1px solid var(--table-border); border-radius: 4px; background: rgba(255, 255, 255, 0.45);">
+          <strong>Grid/List View &amp; Explorer</strong>
+          <ul style="margin: 4px 0 0; padding-left: 1.2em; font-size: 8pt; line-height: 1.4;">
+            <li>Book cover grid / metadata table</li>
+            <li>Interactive card overlays (<span class="guide-badge guide-badge-ais">AIS</span>, <span class="guide-badge guide-badge-aip">AIP</span>, formats)</li>
+            <li>Folder Explorer (directory-browsing)</li>
+          </ul>
+        </div>
+      </td>
+      <td style="width: 30%; border: 1px solid var(--table-border); padding: 12px; background: rgba(108, 73, 39, 0.05); vertical-align: top;">
+        <strong>Right Filter Panel</strong>
+        <ul style="margin: 8px 0 0; padding-left: 1.2em; font-size: 8.5pt; line-height: 1.5;">
+          <li><strong>Filter Modes:</strong> AND, OR, NOT, 1 selection rules</li>
+          <li><strong>Facets:</strong> Filter options for libraries, tags, ratings, genres, publishers, languages, and import date</li>
+          <li><strong>Quick Actions:</strong> Clear all active filters</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Visual Book Card Layout Map</h3>
+<table class="book-card-container-table" style="width: 100%; border-collapse: collapse; margin: 2em auto; background: transparent !important; font-size: 9.5pt; border: none !important;">
+  <tbody>
+    <!-- Row 1: Top Badges -->
+    <tr style="background: transparent !important; border: none !important;">
+      <!-- Top Left Label -->
+      <td style="width: 30%; text-align: right; vertical-align: top; padding: 17px 10px 0 0; border: none !important; background: transparent !important;">
+        <strong style="color: var(--heading);">AI Status Badge &mdash;&mdash;▶</strong><br>
+        <span style="font-size: 8.5pt; color: var(--muted);">Shows AI panel detection status (e.g., AIS)</span>
+      </td>
+      
+      <!-- Central Book Card (Rowspan 3) -->
+      <td rowspan="3" style="width: 40%; vertical-align: middle; padding: 0 10px; border: none !important; background: transparent !important; text-align: center;">
+        <table class="book-card-map-table" style="width: 280px; border-collapse: collapse; margin: 0 auto; background: rgba(255, 255, 255, 0.28); font-size: 10pt; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: left;">
+          <tbody>
+            <!-- Cover Image Area with 1:1.4 aspect ratio (280px wide, 380px tall) -->
+            <tr>
+              <td style="height: 380px; padding: 16px; background: rgba(108, 73, 39, 0.05); position: relative; text-align: center; vertical-align: middle; border: 1px solid var(--table-border); box-sizing: border-box;">
+                
+                <!-- Top Overlay Badges -->
+                <div style="display: flex; justify-content: space-between; position: absolute; top: 12px; left: 12px; right: 12px; z-index: 5;">
+                  <span class="guide-badge guide-badge-ais" style="font-size: 7.5pt; padding: 2px 6px; margin: 0;">AIS</span>
+                  <span class="guide-badge guide-badge-epub" style="font-size: 7.5pt; padding: 2px 6px; margin: 0;">EPUB</span>
+                </div>
+                
+                <!-- Center Hover Actions Block (Details & Read buttons) -->
+                <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 60px;">
+                  <div style="background: rgba(255, 255, 255, 0.9); color: var(--ink); border: 1px solid var(--paper-edge); padding: 8px 16px; border-radius: 4px; font-size: 9pt; font-weight: bold; width: 120px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: pointer; text-align: center;">
+                    <i class="pi pi-info-circle" style="font-size: 8pt; color: var(--ink); margin-right: 4px;"></i> Details
+                  </div>
+                  <div style="background: var(--heading); color: #fff; padding: 8px 16px; border-radius: 4px; font-size: 9pt; font-weight: bold; width: 120px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer; text-align: center;">
+                    <i class="pi pi-play" style="font-size: 8pt; color: #fff; margin-right: 4px;"></i> Read
+                  </div>
+                </div>
+                
+                <div style="color: var(--muted); font-size: 9pt; font-style: italic; margin-top: 30px;">
+                  Cover Image Area<br>
+                  <span style="font-size: 8pt;">(Aspect Ratio 1:1.4)</span>
+                </div>
+                
+                <!-- Bottom Overlay Corner Toolbar (just above progress bar) -->
+                <div style="display: flex; justify-content: space-between; position: absolute; bottom: 12px; left: 12px; right: 12px; z-index: 5;">
+                  <!-- Edit Shortcut (Bottom Left) -->
+                  <div style="background: rgba(42, 36, 31, 0.75); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Edit Metadata Quick Link">
+                    <i class="pi pi-pencil" style="font-size: 9pt; color: #fff;"></i>
+                  </div>
+                  <!-- Menu Options Shortcut (Bottom Right) -->
+                  <div style="background: rgba(42, 36, 31, 0.75); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="More Actions Context Menu">
+                    <i class="pi pi-cog" style="font-size: 9pt; color: #fff;"></i>
+                  </div>
+                </div>
+                
+                <!-- Bottom Reading Progress Bar -->
+                <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: rgba(0,0,0,0.15); z-index: 10;" title="Reading Progress Bar (65%)">
+                  <div style="width: 65%; height: 100%; background: var(--heading-soft);"></div>
+                </div>
+              </td>
+            </tr>
+            <!-- Info Area (Title & Author) -->
+            <tr>
+              <td style="padding: 12px; background: rgba(255, 255, 255, 0.45); border: 1px solid var(--table-border); border-top: none; position: relative; box-sizing: border-box;">
+                <strong style="display: block; font-size: 10pt; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Book Title</strong>
+                <span style="display: block; font-size: 8.5pt; color: var(--muted); margin-top: 2px;">Author Name(s)</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+      
+      <!-- Top Right Label -->
+      <td style="width: 30%; text-align: left; vertical-align: top; padding: 17px 0 0 10px; border: none !important; background: transparent !important;">
+        <strong style="color: var(--heading);">◀&mdash;&mdash; Book Format Badge</strong><br>
+        <span style="font-size: 8.5pt; color: var(--muted);">Identifies electronic format (EPUB, PDF, etc.)</span>
+      </td>
+    </tr>
+    
+    <!-- Row 2: Center Hover Options -->
+    <tr style="background: transparent !important; border: none !important;">
+      <!-- Center Left - Details Button Label -->
+      <td style="width: 30%; text-align: right; vertical-align: top; padding: 75px 10px 0 0; border: none !important; background: transparent !important;">
+        <strong style="color: var(--heading);">Details Button &mdash;&mdash;▶</strong><br>
+        <span style="font-size: 8.5pt; color: var(--muted);">Opens the book detail page to view description, chapters, and properties</span>
+      </td>
+      <!-- Center Right - Read Button Label -->
+      <td style="width: 30%; text-align: left; vertical-align: top; padding: 120px 0 0 10px; border: none !important; background: transparent !important;">
+        <strong style="color: var(--heading);">◀&mdash;&mdash; Read Button</strong><br>
+        <span style="font-size: 8.5pt; color: var(--muted);">Launches the built-in reader (PDF, EPUB, Comic, or Audiobook) immediately</span>
+      </td>
+    </tr>
+    
+    <!-- Row 3: Bottom Controls -->
+    <tr style="background: transparent !important; border: none !important;">
+      <!-- Bottom Left Label -->
+      <td style="text-align: right; vertical-align: bottom; padding: 0 10px 85px 0; border: none !important; background: transparent !important;">
+        <strong style="color: var(--heading);">Quick Edit Link</strong><br>
+        <span style="font-size: 8.5pt; color: var(--muted);">Opens the manual edit metadata panel directly &mdash;&mdash;▶</span>
+      </td>
+      <!-- Bottom Right Label -->
+      <td style="text-align: left; vertical-align: bottom; padding: 0 0 45px 10px; border: none !important; background: transparent !important;">
+        <strong style="color: var(--heading);">◀&mdash;&mdash; Context Action Menu</strong><br>
+        <span style="font-size: 8.5pt; color: var(--muted);">Opens shelf additions, progress clearing, and management options</span>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
 <h3>Left Sidebar</h3>
 <table>
   <tr><th>Item</th><th>What It Does</th></tr>
   <tr><td><strong>Dashboard</strong> <i class="pi pi-home" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Returns to the home screen</td></tr>
   <tr><td><strong>All Books</strong> <i class="pi pi-book" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows every book across all your libraries</td></tr>
-  <tr><td><strong>Physical Books</strong> <i class="pi pi-box" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows your physical placeholders grouped by library, like a shelf overview for books you own off-screen</td></tr>
-  <tr><td><strong>Libraries</strong></td><td>Expandable list &mdash; click a library to see only its books</td></tr>
-  <tr><td><strong>Shelves</strong></td><td>Your custom collections</td></tr>
-  <tr><td><strong>Not Shelfed</strong></td><td>Books not assigned to any shelf</td></tr>
+  <tr><td><strong>Physical Books</strong> <i class="pi pi-box" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows your physical placeholders grouped by library, helping you track printed books you own</td></tr>
+  <tr><td><strong>Libraries</strong> <i class="pi pi-building" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Expandable list of folders connected to Fable—click one to view only its books</td></tr>
+  <tr><td><strong>Shelves</strong> <i class="pi pi-bookmark" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Your custom book collections</td></tr>
+  <tr><td><strong>Not Shelfed</strong> <i class="pi pi-folder" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Books not assigned to any shelf</td></tr>
   <tr><td><strong>Series</strong> <i class="pi pi-objects-column" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books grouped by series</td></tr>
   <tr><td><strong>Authors</strong> <i class="pi pi-users" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books by author</td></tr>
-  <tr><td><strong>Magic Shelves</strong></td><td>Your smart filtered collections</td></tr>
-  <tr><td><strong>User Guide</strong> (bottom)</td><td>Open the familiarization guide PDF from the footer link</td></tr>
-  <tr><td><strong>Settings</strong> <i class="pi pi-cog" style="font-size:9pt;color:var(--icon-color);"></i> (bottom)</td><td>Application configuration</td></tr>
+  <tr><td><strong>Magic Shelves</strong> <i class="pi pi-sparkles" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Smart collections that filter automatically based on search rules</td></tr>
+  <tr><td><strong>User Guide</strong> (bottom)</td><td>Open this guide directly in Fable</td></tr>
+  <tr><td><strong>Settings</strong> <i class="pi pi-cog" style="font-size:9pt;color:var(--icon-color);"></i> (bottom)</td><td>Application settings and user management</td></tr>
   <tr><td><strong>Language</strong> (bottom)</td><td>Switch the interface language</td></tr>
 </table>
 
 <h3>Top Bar</h3>
 <table>
   <tr><th>Item</th><th>What It Does</th></tr>
-  <tr><td><strong>Search</strong> <i class="pi pi-search" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Search your entire collection by title, author, or ISBN</td></tr>
+  <tr><td><strong>Search</strong> <i class="pi pi-search" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Search your collection by title, author, or ISBN</td></tr>
   <tr><td><strong>AI Search</strong> <i class="pi pi-sparkles" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Natural language search powered by AI (see Section 16)</td></tr>
-  <tr><td><strong>Notification Bell</strong> <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows live task notifications (scans, imports, metadata fetches). Click the bell to see recent notifications. Use <strong>Dismiss All</strong> to clear the history. Notifications persist across restarts so you never miss a completed task.</td></tr>
-  <tr><td><strong>Customizable Toolbar</strong></td><td>Add, remove, and reorder buttons for BookDrop, theme, settings, fullscreen, and more</td></tr>
+  <tr><td><strong>Notification Bell</strong> <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows live and historical progress notifications for background tasks like library scans, book imports, and metadata downloads. Click <strong>Dismiss All</strong> to clear your history.</td></tr>
+  <tr><td><strong>Customizable Toolbar</strong></td><td>Access shortcuts for BookDrop, theme selection, settings, and fullscreen mode</td></tr>
 </table>
 
 <h3>What You Can Do</h3>
 <ul>
   <li><strong>Resize sidebars</strong> &mdash; Drag the edge of either sidebar to make it wider or narrower</li>
-  <li><strong>Reorder sidebar items</strong> &mdash; Select <strong>Re-order</strong> next to the sidebar show/hide control, then drag headings and rows with your mouse or touch; select <strong>Re-order</strong> again when you are finished</li>
+  <li><strong>Reorder sidebar items</strong> &mdash; Click <strong>Re-order</strong> next to the sidebar controls, then drag rows to customize the sidebar list; click <strong>Re-order</strong> again to save</li>
   <li><strong>Collapse sections</strong> &mdash; Click section headers to expand or collapse groups</li>
-  <li><strong>Hide or show sidebar headings per user</strong> &mdash; Heading visibility is now saved with your account, so the same layout follows you across sessions</li>
-  <li><strong>Choose which HOME shortcuts appear</strong> &mdash; Use the sidebar show/hide controls to decide whether entries like Dashboard, All Books, Physical Books, Series, Authors, and Notebook appear under HOME for your account</li>
-  <li><strong>Keep Media Type labels and ordering per user</strong> &mdash; Custom media types, recent choices, and the Media Type sidebar order now follow your account instead of staying in one browser only</li>
-  <li><strong>Open the User Guide from the footer PDF button</strong> &mdash; Use the footer PDF link to open the guide directly; if you want it to behave like a normal imported PDF in the built-in reader, copy it into a library or into BookDrop and import it like any other PDF</li>
-  <li><strong>Open the folder panel while browsing books</strong> &mdash; Use the folder button in <strong>All Books</strong> or a library view to browse by real library directories</li>
-  <li><strong>Toggle browser fullscreen from the topbar</strong> &mdash; Add or keep the fullscreen button in your toolbar, or use the same action from the mobile topbar menu when you want the interface to take over the whole screen</li>
-  <li><strong>Dismiss all notifications at once</strong> &mdash; Click <strong>Dismiss All</strong> in the notification dropdown to clear your entire notification history in one action</li>
+  <li><strong>Synchronize layout settings across devices</strong> &mdash; Your sidebar heading visibility, HOME shortcuts, and media type order are saved directly to your account so they follow you on any browser or device you use</li>
+  <li><strong>Read the User Guide in the built-in reader</strong> &mdash; The footer link opens this guide directly; if you want to highlight it or take notes, you can import the PDF into a library like any other book</li>
+  <li><strong>Browse by folder</strong> &mdash; Click the folder button in the book toolbar to open the directory explorer</li>
+  <li><strong>Toggle browser fullscreen mode</strong> &mdash; Click the fullscreen icon in the topbar to hide browser tabs and let Fable take up the entire screen</li>
+  <li><strong>Clear notification history</strong> &mdash; Clear your panel history at any time by clicking <strong>Dismiss All</strong> inside the notifications dropdown</li>
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Switching between sidebar views does <em>not</em> reload your book grid from scratch &mdash; Fable remembers what was on screen, so navigation is fast. Task notifications are now saved to the database, so they survive application restarts and container reboots.
+  <strong>Good to Know:</strong> Switching between sidebar views does not reload your books from scratch—Fable remembers where you were, so navigation is instant. Task notifications are saved securely, meaning they won't disappear if your server restarts.
 </div>
 <nav class="section-nav">
   <a href="sec3.html" class="nav-link nav-prev">← Previous: 3. The Dashboard</a>

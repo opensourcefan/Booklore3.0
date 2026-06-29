@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -681,7 +682,7 @@
 
 <h3>How It Works</h3>
 <ol>
-  <li><strong>Place files</strong> in the BookDrop folder (usually mapped to <code>./bookdrop</code> in Docker)</li>
+  <li><strong>Place files</strong> in the BookDrop folder (located inside your main Fable installation directory on the host server, typically mapped to <code>./bookdrop</code> in your Docker configuration)</li>
   <li><strong>Fable detects</strong> the new files automatically (or you can click &ldquo;Rescan&rdquo;)</li>
   <li><strong>Go to the BookDrop page</strong> in Fable to see pending files</li>
   <li><strong>Review and edit</strong> &mdash; Adjust metadata, assign to a library, set the destination path</li>
@@ -699,7 +700,7 @@
   <tr><td><i class="pi pi-folder"></i> Choose destination</td><td>Pick which library and folder path to import into</td></tr>
   <tr><td><i class="pi pi-times"></i> Discard files</td><td>Skip files you don&rsquo;t want to import</td></tr>
   <tr><td><i class="pi pi-check"></i> Finalize import</td><td>Move files from BookDrop into your library</td></tr>
-  <tr><td><i class="pi pi-tag"></i> Watch follow-up directory tagging</td><td>If the destination library uses directory-based tags, a separate background task continues after import and shows live progress plus time remaining in the top bar and Task Management</td></tr>
+  <tr><td><i class="pi pi-tag"></i> Directory tagging progress</td><td>If the destination library uses directory-based tags, a separate background task runs after the files are moved to assign tags based on the folders they are placed in</td></tr>
 </table>
 
 <h3>What You Can&rsquo;t Do</h3>
@@ -714,7 +715,7 @@
     <li><strong>Files are moved, not copied,</strong> during import. After finalization, the original file in BookDrop is removed.</li>
     <li><strong>Pattern extraction is only as good as your filename.</strong> If filenames are messy, you may need to edit metadata manually.</li>
     <li><strong>Don&rsquo;t put files into BookDrop while a scan is actively running.</strong> Wait for the scan to complete first, then add files and rescan.</li>
-    <li><strong>Import complete may not mean directory tags are finished.</strong> When directory tagging is enabled, Fable now treats tagging as a separate background phase, so wait for the <strong>Directory Tags</strong> task to finish before assuming all folder-based tags are in place.</li>
+    <li><strong>Import completion vs. directory tagging:</strong> Because directory tagging runs as a separate background task, wait for the **Directory Tags** task to finish before assuming all folder-based tags are completely applied.</li>
   </ul>
 </div>
 <nav class="section-nav">

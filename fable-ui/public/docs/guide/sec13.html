@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -680,7 +681,7 @@
 <h3>Series</h3>
 <p>Books can be grouped into series (e.g., &ldquo;Harry Potter,&rdquo; &ldquo;The Walking Dead&rdquo;).</p>
 <ul>
-  <li><strong>Browse by series</strong> &mdash; Click &ldquo;Series&rdquo; in the sidebar</li>
+  <li><strong>Browse by series</strong> &mdash; Click &ldquo;Series&rdquo; <i class="pi pi-objects-column guide-icon-inline"></i> in the sidebar</li>
   <li><strong>View all books in a series</strong> &mdash; Click a series name to see its books in order</li>
   <li>Series are auto-detected from metadata</li>
 </ul>
@@ -688,7 +689,7 @@
 
 <h3>Authors</h3>
 <ul>
-  <li><strong>Browse all authors</strong> &mdash; Alphabetical listing with book counts</li>
+  <li><strong>Browse all authors</strong> &mdash; Alphabetical listing with book counts by clicking &ldquo;Authors&rdquo; <i class="pi pi-users guide-icon-inline"></i> in the sidebar</li>
   <li><strong>View author details</strong> &mdash; Biography, photo, and all their books</li>
   <li><strong>Edit author information</strong> &mdash; Update name, bio, description, photo</li>
   <li><strong>Upload author photos</strong> &mdash; Add images for authors who don&rsquo;t have one</li>

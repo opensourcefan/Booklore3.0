@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -701,12 +702,12 @@
 
 <h3>AI Search Statistics</h3>
 <p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Stats <i class="pi pi-chart-line"></i> <i class="pi pi-chevron-right"></i> Library Statistics tab, or Settings <i class="pi pi-chevron-right"></i> Stats</p>
-<p>The Library Statistics page now includes a dedicated <strong>AI Search</strong> section showing:</p>
+<p>The Library Statistics page includes a dedicated <strong>AI Search</strong> section showing:</p>
 <ul>
-  <li><strong>Indexed books</strong> &mdash; How many books have been embedded for AI semantic search</li>
-  <li><strong>Total chunks</strong> &mdash; The number of text segments indexed across all books</li>
-  <li><strong>Storage usage</strong> &mdash; Disk space used by the vector database and embedding cache</li>
-  <li><strong>Model cache</strong> &mdash; Size of downloaded AI model files cached on disk</li>
+  <li><i class="pi pi-book guide-icon-inline"></i> <strong>Indexed books</strong> &mdash; How many books have been embedded for AI semantic search</li>
+  <li><i class="pi pi-code guide-icon-inline"></i> <strong>Total chunks</strong> &mdash; The number of text segments indexed across all books</li>
+  <li><i class="pi pi-database guide-icon-inline"></i> <strong>Storage usage</strong> &mdash; Disk space used by the vector database and embedding cache</li>
+  <li><i class="pi pi-history guide-icon-inline"></i> <strong>Model cache</strong> &mdash; Size of downloaded AI model files cached on disk</li>
 </ul>
 <nav class="section-nav">
   <a href="sec11.html" class="nav-link nav-prev">← Previous: 11. Bookmarks & Notebook</a>

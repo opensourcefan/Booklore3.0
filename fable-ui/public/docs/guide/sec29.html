@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -789,64 +790,6 @@
 </table>
 
 <hr>
-<p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
-  <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
-  <em>For technical documentation, see the other files in the <code>docs/</code> folder. For installation, see <code>README.md</code>.</em>
-</p>
-
-<script>
-(function() {
-  const sidebar = document.getElementById('sidebar-toc');
-  const links = sidebar.querySelectorAll('a[href^="#"]');
-  const headings = [];
-  links.forEach(function(a) {
-    const id = a.getAttribute('href').substring(1);
-    const el = document.getElementById(id);
-    if (el) headings.push({ el: el, link: a });
-  });
-
-  function onScroll() {
-    let current = headings[0];
-    const scrollTop = window.scrollY + 80;
-    for (let i = 0; i < headings.length; i++) {
-      if (headings[i].el.offsetTop <= scrollTop) {
-        current = headings[i];
-      } else {
-        break;
-      }
-    }
-    links.forEach(function(a) { a.classList.remove('active'); });
-    if (current) current.link.classList.add('active');
-
-    // Auto-scroll sidebar to keep active link visible
-    if (current) {
-      const linkTop = current.link.offsetTop;
-      const sidebarScroll = sidebar.scrollTop;
-      const sidebarHeight = sidebar.clientHeight;
-      if (linkTop < sidebarScroll || linkTop > sidebarScroll + sidebarHeight - 60) {
-        sidebar.scrollTop = linkTop - sidebarHeight / 3;
-      }
-    }
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-
-  // Close sidebar when a link is clicked (mobile)
-  links.forEach(function(a) {
-    a.addEventListener('click', function() {
-      sidebar.classList.remove('open');
-    });
-  });
-
-  // Close sidebar when clicking outside (mobile)
-  document.addEventListener('click', function(e) {
-    if (window.innerWidth <= 1099 && !sidebar.contains(e.target) && e.target.id !== 'toc-toggle') {
-      sidebar.classList.remove('open');
-    }
-  });
-})();
-</script>
 <nav class="section-nav">
   <a href="sec28.html" class="nav-link nav-prev">← Previous: 28. Glossary</a>
   <a href="index.html" class="nav-link nav-next">Guide Home →</a>

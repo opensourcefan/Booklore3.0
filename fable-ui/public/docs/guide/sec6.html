@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -680,12 +681,11 @@
 <h3>Browsing Books</h3>
 <ul>
   <li><strong>All Books</strong> &mdash; View every book in your collection, displayed as a grid of cover images</li>
-  <li><strong>Untitled cards fall back to the filename</strong> &mdash; If a book has no stored metadata title yet, Fable shows the asset filename on the card so the item remains identifiable</li>
-  <li><strong>Adjust browser display settings from the cog menu</strong> &mdash; Use the display-settings popover to change cover text rows, overlays, and whether subtitles appear after the main title as <strong>Title : Subtitle</strong>; that subtitle format now stays consistent across the main grid, table titles, cover-tooltips, and the cover preview panel once the browser list loads metadata subtitles from the API</li>
-  <li><strong>Library switching can feel faster after the first hover</strong> &mdash; When you pause on a library in the sidebar, Fable quietly warms a small set of that library&rsquo;s thumbnails so the next switch shows fewer blank covers while images stream in</li>
-  <li><strong>Click any book cover</strong> to open its detail page with full information</li>
-  <li><strong>Close book details cleanly</strong> &mdash; The back arrow in Book Details returns you to the page you opened from instead of walking backward through every detail view</li>
-  <li><strong>Right-click a book cover</strong> (or long-press on mobile) for quick actions</li>
+  <li><strong>Filename Fallback</strong> &mdash; If a book has no metadata title yet, Fable displays the filename so the item remains recognizable in your list</li>
+  <li><strong>Display Settings</strong> &mdash; Click the gear icon in the toolbar to adjust grid display preferences, such as cover text rows, category overlays, and how subtitles are shown (e.g., "Title : Subtitle")</li>
+  <li><strong>Click any book cover</strong> to open its detail page with full description, author, series, formats, and rating details</li>
+  <li><strong>Quick Back Navigation</strong> &mdash; The back arrow in Book Details returns you directly to your previous library, shelf, or search page</li>
+  <li><strong>Right-click a book cover</strong> (or long-press on mobile) to access quick actions (such as reading, editing metadata, adding to shelves, or deleting)</li>
 </ul>
 
 <h3>Directory Explorer <span class="section-icon"><i class="pi pi-folder-open"></i></span></h3>
@@ -694,77 +694,74 @@
 <p>Fable includes a <strong>Directory Explorer</strong> &mdash; a collapsible folder-tree panel that slides out from the left side of the book browser. It lets you filter the current view by the actual folders on disk inside your libraries, exactly as they are organized in your filesystem.</p>
 
 <h4>Why Use the Directory Explorer?</h4>
-<p>Not everyone wants to tag, rate, or shelve their books. If you already organize your collection into folders on disk &mdash; for example <code>/Comics/Marvel/</code>, <code>/Books/Fiction/</code>, or <code>/Audiobooks/Sci-Fi/</code> &mdash; the Directory Explorer mirrors that structure directly in Fable. You can browse your library the same way you browse files on your computer, with <strong>zero metadata setup required</strong>. It is also a great complement to shelves and filters: use folders for broad organization and shelves for cross-cutting collections.</p>
+<p>If you already organize your collection into folders on disk &mdash; for example <code>/Comics/Marvel/</code>, <code>/Books/Fiction/</code>, or <code>/Audiobooks/Sci-Fi/</code> &mdash; the Directory Explorer mirrors that structure directly in Fable. You can browse your library the same way you browse files on your computer, with <strong>zero metadata setup required</strong>. It is also a great complement to shelves and filters: use folders for broad organization and shelves for cross-cutting collections.</p>
 
 <h4>Opening and Closing</h4>
 <ul>
-  <li><strong>Open:</strong> Click the folder <i class="pi pi-folder guide-icon-inline"></i> toggle button in the book browser toolbar (visible when viewing <strong>All Books</strong> or any library). The panel slides out from the left.</li>
-  <li><strong>Close:</strong> Click the <i class="pi pi-times guide-icon-inline"></i> close button in the panel header, or click the folder toggle again.</li>
-  <li><strong>Resize:</strong> Drag the right edge of the panel to make it wider or narrower (120&ndash;400px). Your preferred width is remembered across sessions.</li>
-  <li><strong>Collapse the left sidebar:</strong> If you need more horizontal room, collapse the main left sidebar first using the <i class="pi pi-angle-double-left guide-icon-inline"></i> toggle button in the topbar &mdash; the Directory Explorer panel sits between the sidebar and the book grid, so collapsing the sidebar gives both the folder tree and the book covers more space.</li>
+  <li><strong>Open:</strong> Click the folder toggle button in the book browser toolbar (visible when viewing <strong>All Books</strong> or any library). The panel slides out from the left.</li>
+  <li><strong>Close:</strong> Click the close icon in the panel header, or click the folder toggle again.</li>
+  <li><strong>Resize:</strong> Drag the right edge of the panel to adjust its width. Your preferred width is remembered across sessions.</li>
+  <li><strong>Collapse the left sidebar:</strong> If you need more horizontal room, collapse the main left sidebar first using the sidebar toggle button in the topbar to give both the folder tree and the book covers more space.</li>
 </ul>
 
 <h4>Navigating the Folder Tree</h4>
 <table>
-  <tr><th>Action</th><th>Icon</th><th>What It Does</th></tr>
-  <tr><td>Expand a library root</td><td><i class="pi pi-plus"></i> / <i class="pi pi-minus"></i></td><td>Click the <strong>+</strong> or <strong>&minus;</strong> toggle next to a library root folder to show or hide its subfolders. Library roots with subfolders are highlighted with a subtle tint.</td></tr>
-  <tr><td>Select a root folder</td><td><i class="pi pi-folder"></i></td><td>Click the root folder row to show all books stored directly in that top-level directory. The book grid switches to <strong>filename-based browsing</strong> so you see files as they are named on disk.</td></tr>
-  <tr><td>Select a subfolder</td><td><i class="pi pi-folder-open"></i></td><td>Click any nested folder to show books inside that folder <em>and</em> all its child folders. The selected folder is highlighted in the primary color.</td></tr>
-  <tr><td>Browse across libraries</td><td><i class="pi pi-building"></i></td><td>In <strong>All Books</strong> view, the panel shows every library as a separate root, each labeled with its library name. In a single-library view, only that library&rsquo;s folders appear.</td></tr>
-  <tr><td>Clear the folder filter</td><td><i class="pi pi-undo"></i></td><td>Click the reset <i class="pi pi-undo guide-icon-inline"></i> button next to the folder toggle, click the selected folder again to deselect it, use the normal filter clear action, or click any library or shelf in the left sidebar to return to the normal metadata-title view.</td></tr>
+  <tr><th>Action</th><th>Icon/Button</th><th>What It Does</th></tr>
+  <tr><td>Expand a library root</td><td><i class="pi pi-plus"></i> / <i class="pi pi-minus"></i></td><td>Click the toggle next to a library root folder to show or hide its subfolders.</td></tr>
+  <tr><td>Select a root folder</td><td><i class="pi pi-folder"></i></td><td>Click the root folder to show all books stored directly in that top-level directory. The grid switches to showing files by name in filesystem order.</td></tr>
+  <tr><td>Select a subfolder</td><td><i class="pi pi-folder-open"></i></td><td>Click any nested folder to show books inside that folder and all its subfolders.</td></tr>
+  <tr><td>Browse across libraries</td><td><i class="pi pi-building"></i></td><td>In <strong>All Books</strong> view, the explorer shows every library as a separate root. In a single-library view, only that library's folders appear.</td></tr>
+  <tr><td>Clear the folder filter</td><td><i class="pi pi-undo"></i></td><td>Click the reset icon next to the folder toggle, click the selected folder again to deselect it, or click any library or shelf in the left sidebar to return to the normal metadata view.</td></tr>
 </table>
 
 <div class="callout tip">
-  <strong>Tip:</strong> While a directory filter is active, the book list switches to filename order (instead of metadata title order) so the sort order matches what you see in your file manager. You can still toggle the sort direction. Clearing the folder filter restores your previous sort preference.
+  <strong>Tip:</strong> While a directory filter is active, the book list switches to filename order (instead of metadata title order) so the sort order matches what you see in your file manager. Clearing the folder filter restores your previous sort preference.
 </div>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> The Directory Explorer works alongside all other filters. You can combine a folder selection with the right-side filter sidebar to narrow results further by reading status, media type, genre, or any other filter &mdash; the folder acts as one more filter in the stack.
+  <strong>Good to Know:</strong> The Directory Explorer works alongside all other filters. You can select a folder and then use the right-side filter sidebar to narrow results further by reading status, media type, genre, or rating.
 </div>
 
 <h3>What You Can Do</h3>
 <table>
   <tr><th>Action</th><th>How</th></tr>
   <tr><td><i class="pi pi-eye"></i> View book details</td><td>Click the book cover</td></tr>
-  <tr><td><i class="pi pi-book"></i> Read a book</td><td>Click &ldquo;Read&rdquo; on the detail page or double-click the cover</td></tr>
+  <tr><td><i class="pi pi-book"></i> Read a book / Listen to audiobook</td><td>Click &ldquo;Read&rdquo; on the detail page or double-click the cover</td></tr>
   <tr><td><i class="pi pi-bookmark"></i> Add to a shelf</td><td>Right-click &rarr; Add to Shelf, or use the book detail page</td></tr>
   <tr><td><i class="pi pi-times"></i> Remove from shelf</td><td>Right-click &rarr; Remove from Shelf</td></tr>
   <tr><td><i class="pi pi-check-circle"></i> Change reading status</td><td>Set to: Not Started, Reading, Completed, or Abandoned</td></tr>
-  <tr><td><i class="pi pi-bookmark-fill"></i> Pin a book to Currently Reading</td><td>Use <strong>More Actions &rarr; Currently Reading</strong> to add or remove a book from the optional dashboard panel</td></tr>
+  <tr><td><i class="pi pi-bookmark-fill"></i> Pin to Currently Reading</td><td>Use <strong>More Actions &rarr; Currently Reading</strong> to add or remove a book from the dashboard's quick access panel</td></tr>
   <tr><td><i class="pi pi-star"></i> Rate a book</td><td>Give it 1&ndash;5 stars on the detail page</td></tr>
-  <tr><td><i class="pi pi-pencil"></i> Edit metadata</td><td>Update title, author, description, cover, etc.</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Edit metadata</td><td>Update title, author, description, cover, etc. manually</td></tr>
   <tr><td><i class="pi pi-trash"></i> Delete a book</td><td>Right-click &rarr; Delete (with optional disk deletion)</td></tr>
-  <tr><td><i class="pi pi-trash"></i> Delete multiple books</td><td>Select books (checkbox mode) then delete in bulk</td></tr>
-  <tr><td><i class="pi pi-box"></i> Add a physical book</td><td>Create a catalog entry for a book you own physically in a chosen library directory, while keeping it available for metadata, covers, shelves, and filters</td></tr>
-  <tr><td><i class="pi pi-tag"></i> Assign file type</td><td>Choose how to open a file (e.g., read a PDF as an e-book instead)</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Delete multiple books</td><td>Select books using the grid checkboxes, then delete in bulk</td></tr>
+  <tr><td><i class="pi pi-box"></i> Add a physical book entry</td><td>Create a catalog entry for a book you own physically. Fable can query metadata automatically using the book's ISBN.</td></tr>
+  <tr><td><i class="pi pi-tag"></i> Assign file type overrides</td><td>Choose how to open a file (e.g., open a PDF in the e-book reader rather than the document viewer)</td></tr>
 </table>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Physical books stay visible as normal library assets after you create them. You can find them from <strong>Physical Books</strong> under HOME and from normal library and shelf views without creating a synthetic custom media type. The <strong>Add Physical Book</strong> dialog can now fetch metadata from ISBN correctly before you save, so title, author, and cover details can be filled in from the lookup result instead of being typed manually every time. Fable also blocks creating a second matching physical placeholder in the same library directory when it already finds the same physical ISBN or the same title/author placeholder there. Physical placeholders now also write a small directory sidecar in their chosen library folder, so a later rebuild or refresh can recreate them from disk-backed metadata instead of losing them, while skipping sidecar re-import if the library already contains the matching active book.
+  <strong>What is a metadata sidecar file?</strong><br>
+  A **sidecar file** is a small text file saved on disk in the same folder as your book. It stores metadata details like the title, author, description, and ratings. Having sidecar files acts as a local backup—if you ever move your books or need to rebuild Fable from scratch, Fable can quickly recreate your library setup directly from these files. Physical book placeholders also write sidecar files to their designated folder so they are not lost during database rebuilds.
 </div>
 
 <div class="callout tip">
-  <strong>Physical Shelf View:</strong> The <strong>Physical Books</strong> HOME page now draws a shelf rail for each visual row inside a library section, so larger collections keep the shelf effect as the grid wraps onto additional rows instead of only showing one shelf bar at the bottom.
-</div>
-
-<div class="callout tip">
-  <strong>Backup Friendly:</strong> The <strong>Sidecar</strong> tools for a physical placeholder now target its library directory instead of requiring a digital book file. This gives you a portable metadata backup for physical entries and lets library-wide sidecar exports include physical books too.
+  <strong>Physical Shelf View:</strong> The <strong>Physical Books</strong> page draws a custom shelf rail under each visual row, creating a virtual bookshelf display that wraps correctly as your collection grows.
 </div>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
   <li>Directly edit the book file contents (Fable is a reader and organizer, not an editor)</li>
   <li>Upload books from this screen (use BookDrop for that &mdash; see Section 7)</li>
-  <li>Move or rename folders from the directory panel (it is a browser/filtering tool, not a file manager)</li>
+  <li>Move or rename folders from the directory explorer (it is a filtering tool, not a file manager)</li>
 </ul>
 
 <div class="callout warning">
   <strong>Be Careful:</strong>
   <ul>
     <li><strong>Deleting a book with &ldquo;delete from disk&rdquo; enabled is permanent.</strong> The file is gone. There is no recycle bin.</li>
-    <li><strong>When Allow File Deletion is turned off, Fable hides the &ldquo;Delete from Disk&rdquo; choice.</strong> You can still use <strong>Remove from Library</strong> to hide the catalog entry while leaving the file on disk. Removed books now stay removed across subsequent scans and file-watcher events &mdash; they will not reappear on the next library scan.</li>
+    <li><strong>Removing from Library vs. Deleting from Disk:</strong> If you turn off "Allow File Deletion" in settings, Fable will only let you remove books from the library catalog, leaving the physical files untouched. Books removed this way are hidden permanently and will not reappear during subsequent library scans.</li>
     <li><strong>Bulk deleting books</strong> is powerful &mdash; double-check your selection before confirming.</li>
-    <li><strong>If you delete the only readable format from a normal digital book,</strong> Fable now removes that empty catalog shell instead of leaving behind a metadata-only entry. If you want a deliberate metadata-only placeholder, create a <strong>Physical Book</strong> instead.</li>
+    <li><strong>Deleting the last file:</strong> If you delete the only readable file from a digital book record, Fable removes the empty catalog card. To keep a catalog entry without a file, create a <strong>Physical Book</strong> entry instead.</li>
   </ul>
 </div>
 <nav class="section-nav">

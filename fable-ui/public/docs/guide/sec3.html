@@ -32,12 +32,12 @@
   @font-face {
     font-family: 'primeicons';
     font-display: block;
-    src: url('./primeicons/fonts/primeicons.eot');
-    src: url('./primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
-         url('./primeicons/fonts/primeicons.woff2') format('woff2'),
-         url('./primeicons/fonts/primeicons.woff') format('woff'),
-         url('./primeicons/fonts/primeicons.ttf') format('truetype'),
-         url('./primeicons/fonts/primeicons.svg?#primeicons') format('svg');
+    src: url('../primeicons/fonts/primeicons.eot');
+    src: url('../primeicons/fonts/primeicons.eot?#iefix') format('embedded-opentype'),
+         url('../primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../primeicons/fonts/primeicons.woff') format('woff'),
+         url('../primeicons/fonts/primeicons.ttf') format('truetype'),
+         url('../primeicons/fonts/primeicons.svg?#primeicons') format('svg');
     font-weight: normal;
     font-style: normal;
   }
@@ -334,8 +334,9 @@
     margin-top: 2.2em;
     margin-bottom: 0.5em;
     padding: 6px 10px;
-    background: rgba(201, 168, 124, 0.10);
-    border-radius: 4px;
+    background: rgba(108, 73, 39, 0.15);
+    border-left: 3px solid var(--heading-soft);
+    border-radius: 0 4px 4px 0;
   }
   h4 {
     font-size: 10.5pt;
@@ -662,8 +663,8 @@
     <li><a href="sec18.html">18. OPDS Feeds</a></li>
     <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
     <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts</a></li>
-    <li><a href="sec22.html">22. Authentication</a></li>
+    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
+    <li><a href="sec22.html">22. Login Methods</a></li>
     <li><a href="sec23.html">23. Application Settings</a></li>
     <li><a href="sec24.html">24. Background Tasks</a></li>
     <li><a href="sec25.html">25. Backup and Restore</a></li>
@@ -677,22 +678,22 @@
 <h2 id="sec3">3. The Dashboard &mdash; Your Home Screen <span class="section-icon"><i class="pi pi-home"></i></span></h2>
 <p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Dashboard</p>
 
-<p>The Dashboard is the first screen you see after logging in. It provides a quick overview of your library.</p>
+<p>The Dashboard is the first screen you see after logging in. It provides a quick overview of your library catalog and your current reading status.</p>
 
 <h3>What You Can Do</h3>
 <ul>
-  <li>See library statistics at a glance (total books, reading status, etc.)</li>
-  <li>Access recently added books, continue-reading shortcuts, and other quick-start scrollers from one screen</li>
-  <li>Configure dashboard sections from <strong>Dashboard Settings</strong> on the left sidebar&rsquo;s <strong>Dashboard</strong> row, including up to <strong>20</strong> scrollers such as <strong>Continue Reading</strong>, <strong>Continue Listening</strong>, <strong>Recently Added</strong>, <strong>Discover Something New</strong>, <strong>Magic Shelf</strong>, and <strong>Currently Reading</strong></li>
-  <li>Set each scroller&rsquo;s library filter, width, and item count, then lock the layout if you want to prevent accidental drag reordering</li>
-  <li>Add books to the optional <strong>Currently Reading</strong> panel from a book&rsquo;s <strong>More Actions &rarr; Currently Reading</strong> menu item</li>
-  <li>Refresh the page on mobile without the dashboard cards stretching into tall broken columns; the dashboard now recalculates its grid width after the page finishes loading</li>
-  <li>Jump to any section using the sidebar navigation</li>
+  <li>See library statistics at a glance (total books, reading progress, and media breakdown)</li>
+  <li>Access recently added books, continue-reading shortcuts, and other quick-start content rows</li>
+  <li>Configure dashboard sections by hovering over the **Dashboard** option in the left sidebar and clicking the **Gear icon** that appears. You can enable up to <strong>20</strong> horizontal rows (scrollers)—such as <strong>Continue Reading</strong>, <strong>Continue Listening</strong>, <strong>Recently Added</strong>, <strong>Discover Something New</strong>, <strong>Magic Shelf</strong>, and <strong>Currently Reading</strong></li>
+  <li>Customize each row’s target library filter, width, and item count, and lock the layout to prevent accidental drag-and-drop reordering</li>
+  <li>Add books to the optional <strong>Currently Reading</strong> row from a book’s <strong>More Actions &rarr; Currently Reading</strong> menu item to access them with a single click</li>
+  <li>Enjoy a fully responsive layout that automatically adapts grid widths when viewed on desktop, tablet, or mobile screens</li>
+  <li>Jump to any section of the app using the sidebar navigation</li>
 </ul>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
-  <li>Place dashboard panels at arbitrary pixel positions outside the grid system</li>
+  <li>Place dashboard panels at arbitrary pixel positions outside the row-and-grid system</li>
 </ul>
 <nav class="section-nav">
   <a href="sec2.html" class="nav-link nav-prev">← Previous: 2. Getting Started</a>
