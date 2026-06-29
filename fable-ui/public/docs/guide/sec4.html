@@ -80,6 +80,7 @@
   .pi-database:before { content: "\e9e3"; }
   .pi-desktop:before { content: "\e993"; }
   .pi-download:before { content: "\e956"; }
+  .pi-ellipsis-v:before { content: "\e950"; }
   .pi-envelope:before { content: "\e979"; }
   .pi-eraser:before { content: "\ea04"; }
   .pi-eye:before { content: "\e966"; }
@@ -785,14 +786,14 @@
                 </div>
                 
                 <!-- Bottom Overlay Corner Toolbar (just above progress bar) -->
-                <div style="display: flex; justify-content: space-between; position: absolute; bottom: 12px; left: 12px; right: 12px; z-index: 5;">
-                  <!-- Read Status Menu Button (Bottom Left) -->
-                  <div style="background: rgba(42, 36, 31, 0.75); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Read Status Menu">
-                    <i class="pi pi-book" style="font-size: 9pt; color: #fff;"></i>
+                <div style="display: flex; justify-content: space-between; position: absolute; bottom: 6px; left: 4px; right: 4px; z-index: 5;">
+                  <!-- Read Status Indicator (Bottom Left) -->
+                  <div style="background: none; color: var(--ink); min-width: 28px; min-height: 28px; border-radius: 6px; border: 1px solid var(--table-border); display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Read Status Indicator">
+                    <i class="pi pi-book" style="font-size: 9pt; color: var(--ink);"></i>
                   </div>
-                  <!-- Book Options Menu Button (Bottom Right) -->
-                  <div style="background: rgba(42, 36, 31, 0.75); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Book Options Menu">
-                    <i class="pi pi-ellipsis-v" style="font-size: 9pt; color: #fff;"></i>
+                  <!-- Book Options Menu (Bottom Right) -->
+                  <div style="background: none; color: var(--ink); min-width: 28px; min-height: 28px; border-radius: 6px; border: 1px solid var(--table-border); display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Book Options Menu">
+                    <i class="pi pi-ellipsis-v" style="font-size: 9pt; color: var(--ink);"></i>
                   </div>
                 </div>
                 
@@ -824,13 +825,17 @@
     <tr style="background: transparent !important; border: none !important;">
       <!-- Center Left - Details Button Label -->
       <td style="width: 30%; text-align: right; vertical-align: top; padding: 75px 10px 0 0; border: none !important; background: transparent !important;">
-        <strong style="color: var(--heading);">Details Button &mdash;&mdash;▶</strong><br>
-        <span style="font-size: 8.5pt; color: var(--muted);">Opens the book detail page to view description, chapters, and properties</span>
+        <div style="position: relative; top: -10px;">
+          <strong style="color: var(--heading);">Details Button &mdash;&mdash;▶</strong><br>
+          <span style="font-size: 8.5pt; color: var(--muted);">Opens the book detail page to view description, chapters, and properties</span>
+        </div>
       </td>
       <!-- Center Right - Read Button Label -->
       <td style="width: 30%; text-align: left; vertical-align: top; padding: 120px 0 0 10px; border: none !important; background: transparent !important;">
-        <strong style="color: var(--heading);">◀&mdash;&mdash; Read Button</strong><br>
-        <span style="font-size: 8.5pt; color: var(--muted);">Launches the built-in reader (PDF, EPUB, Comic, or Audiobook) immediately</span>
+        <div style="position: relative; top: -10px;">
+          <strong style="color: var(--heading);">◀&mdash;&mdash; Read Button</strong><br>
+          <span style="font-size: 8.5pt; color: var(--muted);">Launches the built-in reader (PDF, EPUB, Comic, or Audiobook) immediately</span>
+        </div>
       </td>
     </tr>
     
@@ -838,13 +843,17 @@
     <tr style="background: transparent !important; border: none !important;">
       <!-- Bottom Left Label -->
       <td style="text-align: right; vertical-align: bottom; padding: 0 10px 80px 0; border: none !important; background: transparent !important;">
-        <strong style="color: var(--heading);">Read Status Menu &mdash;&mdash;▶</strong><br>
-        <span style="font-size: 8.5pt; color: var(--muted);">Opens a dropdown to select reading status (e.g., Reading, Read, Paused)</span>
+        <div style="position: relative; top: 40px;">
+          <strong style="color: var(--heading);">Read Status Menu &mdash;&mdash;▶</strong><br>
+          <span style="font-size: 8.5pt; color: var(--muted);">Opens a dropdown to select reading status (e.g., Reading, Read, Paused)</span>
+        </div>
       </td>
       <!-- Bottom Right Label -->
       <td style="text-align: left; vertical-align: bottom; padding: 0 0 80px 10px; border: none !important; background: transparent !important;">
-        <strong style="color: var(--heading);">◀&mdash;&mdash; Book Options Menu</strong><br>
-        <span style="font-size: 8.5pt; color: var(--muted);">Opens tiered actions for shelf assignments, download, and deletion</span>
+        <div style="position: relative; top: 40px;">
+          <strong style="color: var(--heading);">◀&mdash;&mdash; Book Options Menu</strong><br>
+          <span style="font-size: 8.5pt; color: var(--muted);">Opens tiered actions for shelf assignments, download, and deletion</span>
+        </div>
       </td>
     </tr>
   </tbody>
