@@ -31,5 +31,5 @@ This is a native way to schedule `podman auto-update` to run periodically and up
 
 # Further Reading
 - [Podman Quadlets Documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)
-- [Bazzite Podamn Quadlet Examples](https://docs.bazzite.gg/Installing_and_Managing_Software/Quadlet/)
+- [Bazzite Podman Quadlet Examples](https://docs.bazzite.gg/Installing_and_Managing_Software/Quadlet/)
 - `man podman-systemd.unit`
