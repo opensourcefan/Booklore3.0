@@ -1,6 +1,10 @@
 services:
   fable:
-    image: ghcr.io/opensourcefan/fable:latest
+    # Use 'stable' (recommended for production) or 'latest' (latest build).
+    # To pin a specific release version or image hash, specify it here:
+    #   - Release tag:  ghcr.io/opensourcefan/fable:v4.11.4
+    #   - Image digest: ghcr.io/opensourcefan/fable@sha256:7bc05ea8d...
+    image: ghcr.io/opensourcefan/fable:stable
     container_name: fable
     environment:
       - USER_ID=1000  # Modify this if the volume's ownership is not root
