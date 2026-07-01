@@ -676,12 +676,22 @@
   </ol>
 </nav>
 <!-- ==================== SECTION 4 ==================== -->
+<style>
+  .book-card-map-wrapper, .layout-map-wrapper {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(181, 141, 97, 0.35) transparent;
+  }
+  .book-card-map-wrapper::-webkit-scrollbar, .layout-map-wrapper::-webkit-scrollbar { height: 6px; }
+  .book-card-map-wrapper::-webkit-scrollbar-track, .layout-map-wrapper::-webkit-scrollbar-track { background: rgba(108, 73, 39, 0.05); border-radius: 3px; }
+  .book-card-map-wrapper::-webkit-scrollbar-thumb, .layout-map-wrapper::-webkit-scrollbar-thumb { background: rgba(181, 141, 97, 0.45); border-radius: 3px; }
+</style>
 <h2 id="sec4">4. Navigating the Interface <span class="section-icon"><i class="pi pi-compass"></i></span></h2>
 
 <p>Fable uses a <strong>sidebar + main content</strong> layout.</p>
 
 <h3>Visual Layout Interface Map</h3>
-<table class="layout-map-table" style="width: 100%; border-collapse: collapse; margin: 1.5em 0; background: rgba(255, 255, 255, 0.18); font-size: 10pt;">
+<div class="layout-map-wrapper" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 1.5em 0; padding-bottom: 15px;">
+  <table class="layout-map-table" style="width: 100%; min-width: 750px; border-collapse: collapse; background: rgba(255, 255, 255, 0.18); font-size: 10pt;">
   <thead>
     <tr>
       <th colspan="3" style="text-align: center; background: var(--table-head); color: var(--heading); padding: 10px; border: 1px solid var(--table-border);">
@@ -739,9 +749,11 @@
     </tr>
   </tbody>
 </table>
+</div>
 
 <h3>Visual Book Card Layout Map</h3>
-<table class="book-card-container-table" style="width: 100%; border-collapse: collapse; margin: 2em auto; background: transparent !important; font-size: 9.5pt; border: none !important;">
+<div class="book-card-map-wrapper">
+  <table class="book-card-container-table" style="width: 100%; min-width: 820px; border-collapse: collapse; background: transparent !important; font-size: 9.5pt; border: none !important;">
   <tbody>
     <!-- Row 1: Top Badges & Checkbox -->
     <tr style="background: transparent !important; border: none !important;">
@@ -858,6 +870,7 @@
     </tr>
   </tbody>
 </table>
+</div>
 
 
 <h3>Left Sidebar</h3>
