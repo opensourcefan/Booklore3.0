@@ -678,6 +678,11 @@
 <!-- ==================== SECTION 4 ==================== -->
 <style>
   .book-card-map-wrapper, .layout-map-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 2em 0;
+    padding-bottom: 15px;
     scrollbar-width: thin;
     scrollbar-color: rgba(181, 141, 97, 0.35) transparent;
   }
@@ -690,7 +695,7 @@
 <p>Fable uses a <strong>sidebar + main content</strong> layout.</p>
 
 <h3>Visual Layout Interface Map</h3>
-<div class="layout-map-wrapper" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 1.5em 0; padding-bottom: 15px;">
+<div class="layout-map-wrapper">
   <table class="layout-map-table" style="width: 100%; min-width: 750px; border-collapse: collapse; background: rgba(255, 255, 255, 0.18); font-size: 10pt;">
   <thead>
     <tr>
