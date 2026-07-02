@@ -2,7 +2,7 @@ import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {of, Subject} from 'rxjs';
-import {catchError, map, shareReplay, startWith, takeUntil} from 'rxjs/operators';
+import {catchError, map, shareReplay, startWith, switchMap, takeUntil} from 'rxjs/operators';
 import {CdkDragDrop, DragDropModule, moveItemInArray} from '@angular/cdk/drag-drop';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {Select} from 'primeng/select';
@@ -90,6 +90,28 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
   );
   public readonly aiSearchStatsSummary$ = this.librariesSummaryService.getAiSearchStatsSummary().pipe(
     catchError(() => of(this.createEmptyAiSearchStatsSummary())),
+    shareReplay(1)
+  );
+
+  public readonly aiPanelFlowStatsState$ = this.libraryFilterService.selectedLibrary$.pipe(
+    switchMap(selectedLibraryId =>
+      this.appSettingsService.getAiPanelFlowStats(selectedLibraryId).pipe(
+        map(data => ({ loading: false, data })),
+        catchError(() => of({ loading: false, data: this.createEmptyAiPanelFlowStats() })),
+        startWith({ loading: true, data: null })
+      )
+    ),
+    shareReplay(1)
+  );
+
+  public readonly aiSearchStatsState$ = this.libraryFilterService.selectedLibrary$.pipe(
+    switchMap(selectedLibraryId =>
+      this.appSettingsService.getAiSearchStatsSummary(selectedLibraryId).pipe(
+        map(data => ({ loading: false, data })),
+        catchError(() => of({ loading: false, data: this.createEmptyAiSearchStatsSummary() })),
+        startWith({ loading: true, data: null })
+      )
+    ),
     shareReplay(1)
   );
   public readonly totalAiScannedComics$ = this.aiPanelFlowStats$.pipe(map(stats => stats.scannedComicCount));

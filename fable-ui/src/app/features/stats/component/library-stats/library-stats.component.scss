@@ -771,6 +771,40 @@
   border-radius: 0.75rem;
 }
 
+.ai-stats-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--p-content-border-color) 82%, rgba(128, 189, 255, 0.14));
+  background: color-mix(in srgb, var(--p-content-border-color) 40%, rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(8px);
+  min-height: 200px;
+  color: var(--text-secondary-color);
+  font-size: 0.95rem;
+
+  .pi {
+    font-size: 2rem;
+    color: var(--primary-color, #80bdff);
+    text-shadow: 0 0 10px rgba(128, 189, 255, 0.4);
+  }
+
+  span {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    animation: pulse-text 2s infinite ease-in-out;
+  }
+}
+
+@keyframes pulse-text {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
 .loading-message,
 .no-data-message {
   text-align: center;

@@ -67,3 +67,8 @@ paths: ["**/*"]
 - The system default `node` (v18) is too old for Angular CLI. 
 - Always prepend Angular build commands with: `export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$PATH" &&`
 - Example: `export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$PATH" && cd fable-ui && npx ng build --configuration production`
+
+## Build & Testing Safety
+- **Frontend Tests**: Always execute frontend tests using single-run mode via `npx vitest run` (or `npm test -- --watch=false`) inside `fable-ui`. Never run bare `npm test` or `ng test` without disabling watch mode, as it starts an endless build watch loop that consumes high CPU and RAM.
+- **Backend Tests**: Always run backend tests using `./gradlew test --no-daemon` inside `fable-api` to avoid spawning lingering Gradle daemons that inflate memory usage, spike system load, and risk crashing Xwayland/display server sessions.
+

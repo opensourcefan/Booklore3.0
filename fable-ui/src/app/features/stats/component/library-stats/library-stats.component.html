@@ -164,11 +164,9 @@
     </div>
   }
 
-  <!-- Pre-warm AI stats subscriptions to eliminate ~4s render delay -->
-  <span hidden>{{ aiSearchStatsSummary$ | async | json }}</span>
-  <span hidden>{{ aiPanelFlowStats$ | async | json }}</span>
-
   @if (!isLoading && hasData) {
+    @let aiPanelState = aiPanelFlowStatsState$ | async;
+    @let aiSearchState = aiSearchStatsState$ | async;
     <div class="charts-grid"
          cdkDropList
          (cdkDropListDropped)="onChartReorder($event)"
@@ -217,7 +215,6 @@
       }
     </div>
 
-    @let data = { aiStats: aiPanelFlowStats$ | async, searchStats: aiSearchStatsSummary$ | async };
       <section class="chart-section full-width ai-stats-section">
         <div class="ai-stats-header">
           <div>
@@ -240,7 +237,12 @@
               <p>{{ t('aiSearchStats.description') }}</p>
             </div>
 
-            @if (data.searchStats; as searchStats) {
+            @if (aiSearchState?.loading) {
+              <div class="ai-stats-loading">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>{{ t('aiSearchStats.loading') }}</span>
+              </div>
+            } @else if (aiSearchState?.data; as searchStats) {
               @if (searchStats.totalEmbeddedBooks > 0) {
                 <div class="ai-search-page" aria-label="AI search statistics page">
                   
@@ -365,7 +367,12 @@
               <p>{{ t('aiPanelStats.description') }}</p>
             </div>
 
-            @if (data.aiStats; as aiStats) {
+            @if (aiPanelState?.loading) {
+              <div class="ai-stats-loading">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>{{ t('aiPanelStats.loading') }}</span>
+              </div>
+            } @else if (aiPanelState?.data; as aiStats) {
               @if (hasAiPanelFlowData(aiStats)) {
                 <div class="ai-comic-page" aria-label="AI panel statistics comic page">
                   <article class="ai-panel ai-panel-splash">
