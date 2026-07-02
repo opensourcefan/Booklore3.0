@@ -181,10 +181,15 @@
                             </div>
                           }
 
-                          <!-- Read Button (Bottom Left) -->
+                          <!-- Info Details Button (Center top) -->
+                          @if (!isEditMode && item.book) {
+                            <p-button [rounded]="true" icon="pi pi-info" class="info-btn" (click)="navigateToBook(item.book, $event)" [pTooltip]="'View Details'" tooltipPosition="bottom"></p-button>
+                          }
+
+                          <!-- Read Button (Center bottom) -->
                           @if (!isEditMode && item.book && hasDigitalFile(item.book)) {
                             <a class="read-btn" [routerLink]="getBookReadingUrl(item.book)" (click)="readBook($event, item.book)">
-                              <p-button [rounded]="true" icon="pi pi-play" [pTooltip]="'Read Comic'" tooltipPosition="top"></p-button>
+                              <p-button [rounded]="true" [icon]="getReadButtonIcon(item.book)" [pTooltip]="isContinueReading(item.book) ? 'Continue Reading' : 'Read Book'" tooltipPosition="bottom"></p-button>
                             </a>
                           }
 
@@ -199,7 +204,7 @@
                                    role="button"
                                    (keydown.enter)="toggleReadStatusMenu($event, readStatusMenu, item.book)"
                                    (click)="toggleReadStatusMenu($event, readStatusMenu, item.book)">
-                                <i [class]="getReadStatusIcon(item.book)" style="font-size: 0.85rem"></i>
+                                <i [class]="getReadStatusIcon(item.book)" style="font-size: 0.9rem"></i>
                               </div>
                             </div>
                             <p-tieredmenu #readStatusMenu [model]="getReadStatusMenuItems(item.book)" [popup]="true" appendTo="body"></p-tieredmenu>

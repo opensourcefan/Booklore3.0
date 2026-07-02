@@ -1,12 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink, UrlTree} from '@angular/router';
-import {NgClass} from '@angular/common';
+import {CommonModule, NgClass} from '@angular/common';
 import {CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ToastModule} from 'primeng/toast';
 import {Button} from 'primeng/button';
-import {Tooltip} from 'primeng/tooltip';
+import {TooltipModule} from 'primeng/tooltip';
 import {FormsModule} from '@angular/forms';
 import {Select} from 'primeng/select';
 import {TieredMenu} from 'primeng/tieredmenu';
@@ -17,6 +17,8 @@ import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {BookPatchService} from '../../../book/service/book-patch.service';
 import {Book, ReadStatus} from '../../../book/model/book.model';
+import {ReadStatusHelper} from '../../../book/helpers/read-status.helper';
+import {readStatusLabels} from '../../../book/components/book-browser/book-filter/book-filter.config';
 
 interface StoryArcRow {
   title: string;
@@ -30,6 +32,7 @@ interface StoryArcRow {
   styleUrls: ['./story-arc-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    CommonModule,
     NgClass,
     RouterLink,
     FormsModule,
@@ -37,7 +40,7 @@ interface StoryArcRow {
     ToastModule,
     ConfirmDialog,
     Button,
-    Tooltip,
+    TooltipModule,
     Select,
     TieredMenu
   ],
@@ -52,6 +55,7 @@ export class StoryArcPageComponent implements OnInit {
   private bookPatchService = inject(BookPatchService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private readStatusHelper = inject(ReadStatusHelper);
   private cdr = inject(ChangeDetectorRef);
 
   arcName = '';
@@ -336,7 +340,10 @@ export class StoryArcPageComponent implements OnInit {
     return this.urlHelper.getBookPrimaryReadingUrl(book);
   }
 
-  navigateToBook(book: Book): void {
+  navigateToBook(book: Book, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.router.navigate(['/book', book.id], {
       queryParams: { tab: 'view', returnTo: this.router.url }
     });
@@ -431,31 +438,30 @@ export class StoryArcPageComponent implements OnInit {
     this.router.navigateByUrl(this.urlHelper.getBookPrimaryReadingUrl(book));
   }
 
-  getReadStatusClass(book: Book | undefined): string {
-    if (!book) return 'read-status-unread';
-    switch (book.readStatus) {
-      case ReadStatus.READ: return 'read-status-read';
-      case ReadStatus.READING: return 'read-status-in-progress';
-      default: return 'read-status-unread';
+  isContinueReading(book?: Book): boolean {
+    if (!book) return false;
+    const pct = this.getProgressPercentage(book);
+    return pct !== null && pct > 0 && pct < 100;
+  }
+
+  getReadButtonIcon(book?: Book): string {
+    if (!book) return 'pi pi-book';
+    if (book.primaryFile?.bookType === 'AUDIOBOOK') {
+      return this.isContinueReading(book) ? 'pi pi-forward' : 'pi pi-play';
     }
+    return this.isContinueReading(book) ? 'pi pi-forward' : 'pi pi-book';
+  }
+
+  getReadStatusClass(book: Book | undefined): string {
+    return this.readStatusHelper.getReadStatusClass(book?.readStatus);
   }
 
   getReadStatusTooltip(book: Book | undefined): string {
-    if (!book) return 'Unread';
-    switch (book.readStatus) {
-      case ReadStatus.READ: return 'Marked as Read';
-      case ReadStatus.READING: return 'In Progress';
-      default: return 'Unread';
-    }
+    return this.readStatusHelper.getReadStatusTooltip(book?.readStatus);
   }
 
   getReadStatusIcon(book: Book | undefined): string {
-    if (!book) return 'pi pi-circle-off';
-    switch (book.readStatus) {
-      case ReadStatus.READ: return 'pi pi-check-circle';
-      case ReadStatus.READING: return 'pi pi-spinner';
-      default: return 'pi pi-circle-off';
-    }
+    return this.readStatusHelper.getReadStatusIcon(book?.readStatus);
   }
 
   toggleReadStatusMenu(event: Event, menu: TieredMenu, book: Book | undefined): void {
@@ -466,23 +472,10 @@ export class StoryArcPageComponent implements OnInit {
 
   getReadStatusMenuItems(book: Book | undefined): MenuItem[] {
     if (!book) return [];
-    return [
-      {
-        label: 'Mark as Read',
-        icon: 'pi pi-check-circle',
-        command: () => this.setReadStatus(book, ReadStatus.READ)
-      },
-      {
-        label: 'Mark as In Progress',
-        icon: 'pi pi-spinner',
-        command: () => this.setReadStatus(book, ReadStatus.READING)
-      },
-      {
-        label: 'Mark as Unread',
-        icon: 'pi pi-circle-off',
-        command: () => this.setReadStatus(book, ReadStatus.UNREAD)
-      }
-    ];
+    return Object.entries(readStatusLabels).map(([status, label]) => ({
+      label,
+      command: () => this.setReadStatus(book, status as ReadStatus)
+    }));
   }
 
   setReadStatus(book: Book, status: ReadStatus): void {

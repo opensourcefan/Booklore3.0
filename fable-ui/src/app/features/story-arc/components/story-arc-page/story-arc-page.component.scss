@@ -1071,62 +1071,90 @@
   }
 }
 
-/* Comic Card Read Button & Read Status Controls */
+/* Standard Book Card Hover Buttons (Info & Read) & Read Status Controls */
+.info-btn,
 .read-btn {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
   z-index: 12;
+  will-change: opacity, visibility;
 
   ::ng-deep .p-button {
-    width: 30px !important;
-    height: 30px !important;
-    background: rgba(167, 139, 250, 0.9) !important;
-    border-color: #a78bfa !important;
-    color: #fff !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 
     &:hover {
-      transform: scale(1.1);
-      background: #a78bfa !important;
+      transform: scale(1.08);
+      box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
   }
 }
 
+.info-btn {
+  top: 21%;
+}
+
+.read-btn {
+  bottom: 21%;
+}
+
+.cover-container:hover .info-btn,
+.cover-container:hover .read-btn {
+  opacity: 1;
+  visibility: visible;
+}
+
 .cover-corner-controls {
   position: absolute;
-  left: 6px;
-  bottom: 6px;
+  left: 0;
+  right: 0;
+  bottom: 4px;
   z-index: 12;
+  pointer-events: none;
+}
+
+.cover-corner-control-left {
+  position: absolute;
+  left: 4px;
+  bottom: 0;
+  min-width: 1.7rem;
+  min-height: 1.7rem;
+  pointer-events: auto;
+  background: rgba(8, 12, 20, 0.59);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(2px);
+  border-radius: 6px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 
-  .cover-corner-control-left {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    background: rgba(8, 12, 20, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    cursor: pointer;
-    transition: all 0.15s ease;
+  &:hover,
+  &:focus-within {
+    background: rgba(18, 30, 48, 0.78);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  }
 
-    &:hover {
-      background: rgba(18, 30, 48, 0.95);
-      border-color: rgba(255, 255, 255, 0.4);
-      transform: scale(1.08);
-    }
-
-    &.read-status-read i {
-      color: #22c55e;
-    }
-    &.read-status-in-progress i {
-      color: #3b82f6;
-    }
-    &.read-status-unread i {
-      color: rgba(255, 255, 255, 0.6);
-    }
+  &.status-read i {
+    color: #22c55e;
+  }
+  &.status-reading i {
+    color: #3b82f6;
+  }
+  &.status-unset i,
+  &.status-unread i {
+    color: rgba(255, 255, 255, 0.7);
   }
 }
