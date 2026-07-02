@@ -36,9 +36,8 @@
       </div>
       <div class="url-input-row">
         <input type="text" [(ngModel)]="externalUrl" placeholder="https://comicbookreadingorders.com/dc/characters/..." class="url-input" />
-        <p-button icon="pi pi-download" label="Fetch Summary" styleClass="p-button-secondary p-button-sm" (onClick)="fetchWebMetadata()" [loading]="fetchingMetadata" pTooltip="Auto-scrape summary from webpage"></p-button>
       </div>
-      <textarea rows="3" [(ngModel)]="summaryDescription" placeholder="Story Arc summary & overview description..." class="summary-textarea"></textarea>
+      <textarea rows="4" [(ngModel)]="summaryDescription" placeholder="Story Arc summary & overview description..." class="summary-textarea"></textarea>
     </div>
   }
 

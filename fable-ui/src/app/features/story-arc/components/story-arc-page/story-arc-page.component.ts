@@ -60,7 +60,6 @@ export class StoryArcPageComponent implements OnInit {
   isEditMode = false;
   externalUrl = '';
   summaryDescription = '';
-  fetchingMetadata = false;
   backupRows: StoryArcRow[] = [];
   backupExternalUrl = '';
   backupSummaryDescription = '';
@@ -491,26 +490,6 @@ export class StoryArcPageComponent implements OnInit {
       next: () => {
         book.readStatus = status;
         this.saveLayout();
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  fetchWebMetadata(): void {
-    if (!this.externalUrl || !this.externalUrl.trim()) return;
-    this.fetchingMetadata = true;
-    this.storyArcService.fetchWebMetadata(this.externalUrl.trim()).subscribe({
-      next: (res) => {
-        this.fetchingMetadata = false;
-        if (res.scrapedDescription) {
-          this.summaryDescription = res.scrapedDescription;
-        }
-        this.saveLayout();
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.fetchingMetadata = false;
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to fetch webpage summary'});
         this.cdr.markForCheck();
       }
     });
