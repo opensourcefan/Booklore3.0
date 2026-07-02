@@ -28,11 +28,14 @@
       <p>Loading reading order...</p>
     </div>
   } @else {
-    <div class="rows-container" cdkDropListGroup>
+    <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
       @for (row of rows; track row; let rowIndex = $index) {
-        <div class="story-row-wrapper">
+        <div class="story-row-wrapper" cdkDrag [cdkDragDisabled]="!isEditMode">
           <div class="row-header">
             @if (isEditMode) {
+              <div class="row-drag-handle" cdkDragHandle [pTooltip]="'Drag to reorder chapter'" tooltipPosition="top">
+                <i class="pi pi-bars"></i>
+              </div>
               <input type="text" [(ngModel)]="row.title" (blur)="saveLayout()" class="row-title-input" placeholder="Chapter title..." />
               <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-row-btn" (onClick)="removeRow(rowIndex)" pTooltip="Delete Row (merges books into previous row)"></p-button>
             } @else {

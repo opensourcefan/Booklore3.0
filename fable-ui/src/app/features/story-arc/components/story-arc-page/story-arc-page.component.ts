@@ -117,6 +117,11 @@ export class StoryArcPageComponent implements OnInit {
     }
   }
 
+  onRowDrop(event: CdkDragDrop<StoryArcRow[]>): void {
+    moveItemInArray(this.rows, event.previousIndex, event.currentIndex);
+    this.saveLayout();
+  }
+
   onDrop(event: CdkDragDrop<StoryArcBookMapping[]>): void {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
