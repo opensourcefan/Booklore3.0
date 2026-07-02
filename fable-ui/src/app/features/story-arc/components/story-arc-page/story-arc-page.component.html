@@ -64,7 +64,11 @@
                     [cdkDragDisabled]="!isEditMode">
                     
                     <div class="comic-card-inner">
-                      <div class="cover-container" (click)="!isEditMode ? navigateToBook(item.book) : null">
+                      <div class="cover-container" 
+                           role="button" 
+                           tabindex="0" 
+                           (click)="!isEditMode && item.book ? navigateToBook(item.book) : null"
+                           (keydown.enter)="!isEditMode && item.book ? navigateToBook(item.book) : null">
                         <img [src]="getThumbnail(item.bookId)" alt="Cover" class="comic-cover-img" />
                         
                         @if (item.book?.readStatus === 'READ') {

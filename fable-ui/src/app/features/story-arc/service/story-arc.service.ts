@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject, Observable, of} from 'rxjs';
-import {tap, catchError, map, shareReplay, finalize} from 'rxjs/operators';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {tap} from 'rxjs/operators';
 
 import {StoryArcSummary, StoryArcBookMapping, StoryArcLayoutUpdateRequest, StoryArcBulkAddRequest} from '../model/story-arc.model';
 import {API_CONFIG} from '../../../core/config/api-config';

@@ -7,7 +7,6 @@ import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
-import {TranslocoDirective} from '@jsverse/transloco';
 
 @Component({
   selector: 'app-story-arc-assigner',

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, OnDestroy} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
 import {MessageService} from 'primeng/api';
@@ -11,6 +11,7 @@ import {StoryArcService} from '../../service/story-arc.service';
 import {StoryArcBookMapping, StoryArcLayoutUpdateRequest} from '../../model/story-arc.model';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
+import {Book} from '../../../book/model/book.model';
 
 interface StoryArcRow {
   title: string;
@@ -32,7 +33,7 @@ interface StoryArcRow {
   ],
   providers: [MessageService]
 })
-export class StoryArcPageComponent implements OnInit, OnDestroy {
+export class StoryArcPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private storyArcService = inject(StoryArcService);
@@ -57,7 +58,6 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {}
 
   loadLayout(): void {
     this.loading = true;
@@ -251,11 +251,11 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     return this.urlHelper.getDirectThumbnailUrl(bookId);
   }
 
-  getBookReadingUrl(book: any): any {
+  getBookReadingUrl(book: Book): string | null {
     return this.urlHelper.getBookPrimaryReadingUrl(book);
   }
 
-  navigateToBook(book: any): void {
+  navigateToBook(book: Book): void {
     this.router.navigate(['/book', book.id]);
   }
 }

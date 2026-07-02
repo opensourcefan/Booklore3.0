@@ -3,7 +3,6 @@ import {AsyncPipe} from '@angular/common';
 import {combineLatest, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {RouterLink, RouterLinkActive} from '@angular/router';
-import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
 import {StoryArcService} from '../../../story-arc/service/story-arc.service';
 import {StoryArcSummary} from '../../../story-arc/model/story-arc.model';

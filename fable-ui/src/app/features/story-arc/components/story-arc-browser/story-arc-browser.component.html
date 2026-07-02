@@ -23,7 +23,11 @@
     @if (arcs.length > 0) {
       <div class="story-arc-grid">
         @for (arc of arcs; track arc.storyArcName) {
-          <div class="story-arc-card" (click)="navigateToArc(arc)">
+          <div class="story-arc-card" 
+               role="button" 
+               tabindex="0" 
+               (click)="navigateToArc(arc)" 
+               (keydown.enter)="navigateToArc(arc)">
             <div class="card-cover-wrapper">
               <img [src]="getThumbnail(arc.coverBookId)" alt="Cover Art" class="card-cover-img" loading="lazy" />
               <div class="card-overlay">

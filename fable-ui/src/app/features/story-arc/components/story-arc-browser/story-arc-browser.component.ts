@@ -1,17 +1,15 @@
-import {ChangeDetectionStrategy, Component, inject, OnInit, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, OnInit} from '@angular/core';
 import {AsyncPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
 import {StoryArcService} from '../../service/story-arc.service';
 import {StoryArcSummary} from '../../model/story-arc.model';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {InputText} from 'primeng/inputtext';
-import {Button} from 'primeng/button';
 
 @Component({
   selector: 'app-story-arc-browser',
