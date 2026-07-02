@@ -85,6 +85,13 @@ export class StoryArcPageComponent implements OnInit {
   }
 
   buildRowsFromMappings(mappings: StoryArcBookMapping[]): void {
+    const existingEmptyRows = new Map<number, string>();
+    this.rows.forEach((row, index) => {
+      if (row.items.length === 0 && row.title) {
+        existingEmptyRows.set(index, row.title);
+      }
+    });
+
     const rowMap = new Map<number, { title: string; items: StoryArcBookMapping[] }>();
 
     mappings.forEach(m => {
@@ -96,6 +103,12 @@ export class StoryArcPageComponent implements OnInit {
         });
       }
       rowMap.get(rIdx)!.items.push(m);
+    });
+
+    existingEmptyRows.forEach((title, rIdx) => {
+      if (!rowMap.has(rIdx)) {
+        rowMap.set(rIdx, { title, items: [] });
+      }
     });
 
     const sortedRowIndices = Array.from(rowMap.keys()).sort((a, b) => a - b);
