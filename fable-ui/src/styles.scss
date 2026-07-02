@@ -330,3 +330,17 @@ html {
 .p-disabled * {
   -webkit-user-select: none;
 }
+
+/* Global PrimeNG Tooltip formatting fix: prevent vertical character stacking */
+.p-tooltip {
+  width: max-content !important;
+  max-width: 25rem !important;
+
+  .p-tooltip-text {
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    display: inline-block !important;
+    text-align: center !important;
+  }
+}

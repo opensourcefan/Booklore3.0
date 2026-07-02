@@ -1,8 +1,16 @@
+:host {
+  display: block;
+  height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
 .story-arc-page-container {
   padding: 2rem;
   max-width: 1600px;
   margin: 0 auto;
-  min-height: 100vh;
+  min-height: 100%;
   color: var(--text-color, #f3f4f6);
 
   .page-header {
