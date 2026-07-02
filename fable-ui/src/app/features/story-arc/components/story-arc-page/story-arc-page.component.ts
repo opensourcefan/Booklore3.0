@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, UrlTree} from '@angular/router';
 import {CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
@@ -251,7 +251,7 @@ export class StoryArcPageComponent implements OnInit {
     return this.urlHelper.getDirectThumbnailUrl(bookId);
   }
 
-  getBookReadingUrl(book: Book): string | null {
+  getBookReadingUrl(book: Book): UrlTree {
     return this.urlHelper.getBookPrimaryReadingUrl(book);
   }
 
