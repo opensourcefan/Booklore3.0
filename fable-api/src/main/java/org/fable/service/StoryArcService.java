@@ -193,23 +193,40 @@ public class StoryArcService {
                 title = doc.title();
             }
 
-            String description = doc.select("meta[property=og:description]").attr("content");
-            if (description.isBlank()) {
-                description = doc.select("meta[name=description]").attr("content");
+            StringBuilder sb = new StringBuilder();
+
+            // Target body content paragraphs (.entry-content, .cs-content, article, main)
+            org.jsoup.select.Elements contentParagraphs = doc.select(".entry-content .x-text.x-content, .entry-content p, article p, main p, .post-content p");
+            for (org.jsoup.nodes.Element elem : contentParagraphs) {
+                // Preserve <br> tags as line breaks
+                elem.select("br").append("\n");
+                String text = elem.text().trim();
+
+                // Exclude generic site welcome messages or tab navigation headers
+                String lower = text.toLowerCase();
+                if (lower.startsWith("welcome to our") && lower.contains("reading order")) {
+                    continue;
+                }
+                if (lower.contains("cookie") || lower.contains("copyright") || lower.equals("single issues") || lower.equals("ongoing series") || lower.equals("comments")) {
+                    continue;
+                }
+                if (text.length() > 15 && !sb.toString().contains(text)) {
+                    if (!sb.isEmpty()) {
+                        sb.append("\n\n");
+                    }
+                    sb.append(text);
+                    if (sb.length() > 700) break;
+                }
             }
 
+            String description = sb.toString().trim();
+
+            // Fallback to meta description if content body yielded nothing
             if (description.isBlank()) {
-                org.jsoup.select.Elements ps = doc.select("article p, .entry-content p, .post-content p, main p, body p");
-                StringBuilder sb = new StringBuilder();
-                for (org.jsoup.nodes.Element p : ps) {
-                    String text = p.text().trim();
-                    if (text.length() > 30 && !text.toLowerCase().contains("cookie") && !text.toLowerCase().contains("copyright")) {
-                        if (!sb.isEmpty()) sb.append("\n\n");
-                        sb.append(text);
-                        if (sb.length() > 1000) break;
-                    }
+                description = doc.select("meta[property=og:description]").attr("content");
+                if (description.isBlank()) {
+                    description = doc.select("meta[name=description]").attr("content");
                 }
-                description = sb.toString();
             }
 
             return org.fable.model.dto.StoryArcMetadataDto.builder()
