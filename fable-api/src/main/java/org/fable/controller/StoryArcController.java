@@ -91,4 +91,17 @@ public class StoryArcController {
         storyArcService.removeBooksFromStoryArc(name, bookIds);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Fetch webpage metadata", description = "Fetch title and summary description from an external reading order guide URL.")
+    @PostMapping("/fetch-metadata")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<org.fable.model.dto.StoryArcMetadataDto> fetchMetadata(
+            @RequestBody java.util.Map<String, String> request
+    ) {
+        String url = request.get("url");
+        if (url == null || url.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(storyArcService.fetchWebMetadata(url.trim()));
+    }
 }

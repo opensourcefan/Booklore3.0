@@ -1,19 +1,22 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
-import {ActivatedRoute, Router, UrlTree} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink, UrlTree} from '@angular/router';
+import {NgClass} from '@angular/common';
 import {CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
-import {ConfirmationService, MessageService} from 'primeng/api';
+import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ToastModule} from 'primeng/toast';
 import {Button} from 'primeng/button';
 import {Tooltip} from 'primeng/tooltip';
 import {FormsModule} from '@angular/forms';
 import {Select} from 'primeng/select';
+import {TieredMenu} from 'primeng/tieredmenu';
 
 import {StoryArcService} from '../../service/story-arc.service';
 import {StoryArcBookMapping, StoryArcLayoutUpdateRequest} from '../../model/story-arc.model';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
-import {Book} from '../../../book/model/book.model';
+import {BookPatchService} from '../../../book/service/book-patch.service';
+import {Book, ReadStatus} from '../../../book/model/book.model';
 
 interface StoryArcRow {
   title: string;
@@ -27,13 +30,16 @@ interface StoryArcRow {
   styleUrls: ['./story-arc-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    NgClass,
+    RouterLink,
     FormsModule,
     DragDropModule,
     ToastModule,
     ConfirmDialog,
     Button,
     Tooltip,
-    Select
+    Select,
+    TieredMenu
   ],
   providers: [MessageService, ConfirmationService]
 })
@@ -43,6 +49,7 @@ export class StoryArcPageComponent implements OnInit {
   private storyArcService = inject(StoryArcService);
   private urlHelper = inject(UrlHelperService);
   private pageTitle = inject(PageTitleService);
+  private bookPatchService = inject(BookPatchService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
@@ -51,6 +58,9 @@ export class StoryArcPageComponent implements OnInit {
   rows: StoryArcRow[] = [];
   loading = true;
   isEditMode = false;
+  externalUrl = '';
+  summaryDescription = '';
+  fetchingMetadata = false;
   selectedMoveCard: { rowIndex: number; colIndex: number; item: StoryArcBookMapping } | null = null;
 
   ngOnInit(): void {
@@ -86,6 +96,12 @@ export class StoryArcPageComponent implements OnInit {
   }
 
   buildRowsFromMappings(mappings: StoryArcBookMapping[]): void {
+    const firstMeta = mappings.find(m => m.externalUrl || m.description);
+    if (firstMeta) {
+      this.externalUrl = firstMeta.externalUrl || '';
+      this.summaryDescription = firstMeta.description || '';
+    }
+
     const existingEmptyRows = new Map<number, string>();
     this.rows.forEach((row, index) => {
       if (row.items.length === 0 && row.title) {
@@ -172,13 +188,17 @@ export class StoryArcPageComponent implements OnInit {
           colIndex: cIndex,
           sequenceOrder: sequence++,
           isCore: item.isCore,
-          rowTitle: row.title
+          rowTitle: row.title,
+          externalUrl: this.externalUrl,
+          description: this.summaryDescription
         });
       });
     });
 
     this.storyArcService.saveLayout(this.arcName, {
       storyArcName: this.arcName,
+      externalUrl: this.externalUrl,
+      description: this.summaryDescription,
       items
     }).subscribe({
       next: () => {
@@ -369,5 +389,100 @@ export class StoryArcPageComponent implements OnInit {
 
   isCardSelected(rowIndex: number, colIndex: number): boolean {
     return this.selectedMoveCard?.rowIndex === rowIndex && this.selectedMoveCard?.colIndex === colIndex;
+  }
+
+  hasDigitalFile(book: Book | undefined): boolean {
+    if (!book) return false;
+    return !!(book.fileType || book.filePath);
+  }
+
+  readBook(event: MouseEvent, book: Book | undefined): void {
+    event.stopPropagation();
+    if (!book) return;
+    this.router.navigateByUrl(this.urlHelper.getBookPrimaryReadingUrl(book));
+  }
+
+  getReadStatusClass(book: Book | undefined): string {
+    if (!book) return 'read-status-unread';
+    switch (book.readStatus) {
+      case ReadStatus.READ: return 'read-status-read';
+      case ReadStatus.READING: return 'read-status-in-progress';
+      default: return 'read-status-unread';
+    }
+  }
+
+  getReadStatusTooltip(book: Book | undefined): string {
+    if (!book) return 'Unread';
+    switch (book.readStatus) {
+      case ReadStatus.READ: return 'Marked as Read';
+      case ReadStatus.READING: return 'In Progress';
+      default: return 'Unread';
+    }
+  }
+
+  getReadStatusIcon(book: Book | undefined): string {
+    if (!book) return 'pi pi-circle-off';
+    switch (book.readStatus) {
+      case ReadStatus.READ: return 'pi pi-check-circle';
+      case ReadStatus.READING: return 'pi pi-spinner';
+      default: return 'pi pi-circle-off';
+    }
+  }
+
+  toggleReadStatusMenu(event: Event, menu: TieredMenu, book: Book | undefined): void {
+    event.stopPropagation();
+    if (!book) return;
+    menu.toggle(event);
+  }
+
+  getReadStatusMenuItems(book: Book | undefined): MenuItem[] {
+    if (!book) return [];
+    return [
+      {
+        label: 'Mark as Read',
+        icon: 'pi pi-check-circle',
+        command: () => this.setReadStatus(book, ReadStatus.READ)
+      },
+      {
+        label: 'Mark as In Progress',
+        icon: 'pi pi-spinner',
+        command: () => this.setReadStatus(book, ReadStatus.READING)
+      },
+      {
+        label: 'Mark as Unread',
+        icon: 'pi pi-circle-off',
+        command: () => this.setReadStatus(book, ReadStatus.UNREAD)
+      }
+    ];
+  }
+
+  setReadStatus(book: Book, status: ReadStatus): void {
+    this.bookPatchService.updateBookReadStatus(book.id, status).subscribe({
+      next: () => {
+        book.readStatus = status;
+        this.saveLayout();
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  fetchWebMetadata(): void {
+    if (!this.externalUrl || !this.externalUrl.trim()) return;
+    this.fetchingMetadata = true;
+    this.storyArcService.fetchWebMetadata(this.externalUrl.trim()).subscribe({
+      next: (res) => {
+        this.fetchingMetadata = false;
+        if (res.scrapedDescription) {
+          this.summaryDescription = res.scrapedDescription;
+        }
+        this.saveLayout();
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.fetchingMetadata = false;
+        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to fetch webpage summary'});
+        this.cdr.markForCheck();
+      }
+    });
   }
 }

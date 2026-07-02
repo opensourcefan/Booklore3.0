@@ -11,8 +11,14 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class StoryArcLayoutUpdateRequest {
     private String storyArcName;
+    private String externalUrl;
+    private String description;
     private List<LayoutItem> items;
 
     @Data
@@ -26,5 +32,7 @@ public class StoryArcLayoutUpdateRequest {
         private double sequenceOrder;
         private boolean isCore;
         private String rowTitle;
+        private String externalUrl;
+        private String description;
     }
 }

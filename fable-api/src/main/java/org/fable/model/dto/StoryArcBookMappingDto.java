@@ -18,5 +18,7 @@ public class StoryArcBookMappingDto {
     private double sequenceOrder;
     private boolean isCore;
     private String rowTitle;
+    private String externalUrl;
+    private String description;
     private Book book;
 }

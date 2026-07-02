@@ -22,6 +22,20 @@
     </div>
   </div>
 
+  @if (isEditMode) {
+    <div class="guide-url-edit-panel">
+      <div class="input-header">
+        <i class="pi pi-link"></i>
+        <span>External Reading Order Guide Link & Web Summary</span>
+      </div>
+      <div class="url-input-row">
+        <input type="text" [(ngModel)]="externalUrl" (blur)="saveLayout()" placeholder="https://comicbookreadingorders.com/dc/characters/..." class="url-input" />
+        <p-button icon="pi pi-download" label="Fetch Summary" styleClass="p-button-secondary p-button-sm" (onClick)="fetchWebMetadata()" [loading]="fetchingMetadata" pTooltip="Auto-scrape summary from webpage"></p-button>
+      </div>
+      <textarea rows="3" [(ngModel)]="summaryDescription" (blur)="saveLayout()" placeholder="Story Arc summary & overview description..." class="summary-textarea"></textarea>
+    </div>
+  }
+
   @if (loading) {
     <div class="loading-state">
       <i class="pi pi-spin pi-spinner loading-icon"></i>
@@ -29,6 +43,40 @@
     </div>
   } @else {
     <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
+      
+      <!-- Story Arc Overview & Guide Card (styled like introductory chapter) -->
+      @if (externalUrl || summaryDescription) {
+        <div class="chapter-container-with-connector story-arc-overview-container">
+          <div class="story-row-wrapper overview-wrapper">
+            <div class="row-header overview-header">
+              <div class="overview-title-badge">
+                <i class="pi pi-book"></i>
+                <span>STORY ARC OVERVIEW & GUIDE</span>
+              </div>
+              @if (externalUrl) {
+                <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide webpage'" tooltipPosition="top">
+                  <span>View Official Guide</span>
+                  <i class="pi pi-external-link"></i>
+                </a>
+              }
+            </div>
+            @if (summaryDescription) {
+              <div class="overview-body">
+                <p class="overview-text">{{ summaryDescription }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Connector arrow pointing to Chapter 1 -->
+          @if (rows.length > 0) {
+            <div class="chapter-flow-connector" [pTooltip]="'Reading flow to first chapter'" tooltipPosition="top">
+              <div class="connector-line"></div>
+              <i class="pi pi-chevron-right arrow-icon"></i>
+            </div>
+          }
+        </div>
+      }
+
       @for (row of rows; track row; let rowIndex = $index) {
         <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode">
           
@@ -121,6 +169,30 @@
                             <div class="cover-progress-bar-container" [pTooltip]="progress + '% read'" tooltipPosition="top">
                               <div class="cover-progress-bar" [style.width.%]="progress" [class.progress-complete]="progress === 100"></div>
                             </div>
+                          }
+
+                          <!-- Read Button (Bottom Left) -->
+                          @if (!isEditMode && item.book && hasDigitalFile(item.book)) {
+                            <a class="read-btn" [routerLink]="getBookReadingUrl(item.book)" (click)="readBook($event, item.book)">
+                              <p-button [rounded]="true" icon="pi pi-play" [pTooltip]="'Read Comic'" tooltipPosition="top"></p-button>
+                            </a>
+                          }
+
+                          <!-- Read Status Indicator & Menu Trigger (Bottom Left Overlay) -->
+                          @if (!isEditMode && item.book) {
+                            <div class="cover-corner-controls">
+                              <div class="read-status-indicator cover-corner-control-left"
+                                   [ngClass]="getReadStatusClass(item.book)"
+                                   [pTooltip]="getReadStatusTooltip(item.book)"
+                                   tooltipPosition="bottom"
+                                   tabindex="0"
+                                   role="button"
+                                   (keydown.enter)="toggleReadStatusMenu($event, readStatusMenu, item.book)"
+                                   (click)="toggleReadStatusMenu($event, readStatusMenu, item.book)">
+                                <i [class]="getReadStatusIcon(item.book)" style="font-size: 0.85rem"></i>
+                              </div>
+                            </div>
+                            <p-tieredmenu #readStatusMenu [model]="getReadStatusMenuItems(item.book)" [popup]="true" appendTo="body"></p-tieredmenu>
                           }
 
                           <!-- Target Place Here Button when another card is picked up -->

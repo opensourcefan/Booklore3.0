@@ -17,11 +17,15 @@ export interface StoryArcBookMapping {
   sequenceOrder: number;
   isCore: boolean;
   rowTitle?: string;
+  externalUrl?: string;
+  description?: string;
   book?: Book;
 }
 
 export interface StoryArcLayoutUpdateRequest {
   storyArcName: string;
+  externalUrl?: string;
+  description?: string;
   items: StoryArcLayoutItem[];
 }
 
@@ -32,9 +36,17 @@ export interface StoryArcLayoutItem {
   sequenceOrder: number;
   isCore: boolean;
   rowTitle?: string;
+  externalUrl?: string;
+  description?: string;
 }
 
 export interface StoryArcBulkAddRequest {
   storyArcName: string;
   bookIds: number[];
+}
+
+export interface StoryArcMetadataDto {
+  externalUrl?: string;
+  scrapedTitle?: string;
+  scrapedDescription?: string;
 }

@@ -41,6 +41,12 @@ public class StoryArcBookMappingEntity {
     @Column(name = "row_title")
     private String rowTitle;
 
+    @Column(name = "external_url", columnDefinition = "TEXT")
+    private String externalUrl;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", insertable = false, updatable = false)
     private BookEntity book;

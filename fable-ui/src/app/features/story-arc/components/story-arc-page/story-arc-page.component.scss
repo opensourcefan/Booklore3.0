@@ -899,3 +899,188 @@
     display: none;
   }
 }
+
+/* External Guide URL Edit Panel */
+.guide-url-edit-panel {
+  background: rgba(20, 20, 35, 0.75);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  .input-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #a78bfa;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .url-input-row {
+    display: flex;
+    gap: 0.75rem;
+
+    .url-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 0.5rem 0.85rem;
+      color: #fff;
+      font-size: 0.9rem;
+
+      &:focus {
+        outline: none;
+        border-color: #a78bfa;
+        box-shadow: 0 0 10px rgba(167, 139, 250, 0.4);
+      }
+    }
+  }
+
+  .summary-textarea {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 0.75rem 0.85rem;
+    color: #e2e8f0;
+    font-size: 0.88rem;
+    resize: vertical;
+    line-height: 1.5;
+
+    &:focus {
+      outline: none;
+      border-color: #a78bfa;
+      box-shadow: 0 0 10px rgba(167, 139, 250, 0.4);
+    }
+  }
+}
+
+/* Story Arc Overview & Guide Container */
+.story-arc-overview-container {
+  .overview-wrapper {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.08) 0%, rgba(244, 114, 182, 0.05) 100%);
+    border: 1px solid rgba(167, 139, 250, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 15px rgba(167, 139, 250, 0.15);
+
+    .overview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .overview-title-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(90deg, #a78bfa 0%, #f472b6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        font-size: 1.05rem;
+        letter-spacing: 0.05em;
+
+        i {
+          color: #a78bfa;
+          -webkit-text-fill-color: initial;
+        }
+      }
+
+      .external-guide-link-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        background: rgba(167, 139, 250, 0.15);
+        border: 1px solid rgba(167, 139, 250, 0.35);
+        color: #a78bfa;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(167, 139, 250, 0.3);
+          color: #fff;
+          box-shadow: 0 0 12px rgba(167, 139, 250, 0.5);
+        }
+      }
+    }
+
+    .overview-body {
+      padding-top: 0.5rem;
+
+      .overview-text {
+        color: #cbd5e1;
+        font-size: 0.92rem;
+        line-height: 1.6;
+        margin: 0;
+        white-space: pre-line;
+      }
+    }
+  }
+}
+
+/* Comic Card Read Button & Read Status Controls */
+.read-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 12;
+
+  ::ng-deep .p-button {
+    width: 30px !important;
+    height: 30px !important;
+    background: rgba(167, 139, 250, 0.9) !important;
+    border-color: #a78bfa !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+    &:hover {
+      transform: scale(1.1);
+      background: #a78bfa !important;
+    }
+  }
+}
+
+.cover-corner-controls {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+
+  .cover-corner-control-left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(8, 12, 20, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: rgba(18, 30, 48, 0.95);
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: scale(1.08);
+    }
+
+    &.read-status-read i {
+      color: #22c55e;
+    }
+    &.read-status-in-progress i {
+      color: #3b82f6;
+    }
+    &.read-status-unread i {
+      color: rgba(255, 255, 255, 0.6);
+    }
+  }
+}

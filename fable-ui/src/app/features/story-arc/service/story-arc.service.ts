@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {tap} from 'rxjs/operators';
 
-import {StoryArcSummary, StoryArcBookMapping, StoryArcLayoutUpdateRequest, StoryArcBulkAddRequest} from '../model/story-arc.model';
+import {StoryArcSummary, StoryArcBookMapping, StoryArcLayoutUpdateRequest, StoryArcBulkAddRequest, StoryArcMetadataDto} from '../model/story-arc.model';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {SidebarBadgeRefreshService} from '../../book/service/sidebar-badge-refresh.service';
 
@@ -84,5 +84,9 @@ export class StoryArcService {
 
   getStoryArcStats(): Observable<StoryArcSummary[]> {
     return this.http.get<StoryArcSummary[]>(`${API_CONFIG.BASE_URL}/api/v1/user-stats/story-arcs`);
+  }
+
+  fetchWebMetadata(url: string): Observable<StoryArcMetadataDto> {
+    return this.http.post<StoryArcMetadataDto>(`${this.url}/fetch-metadata`, { url });
   }
 }
