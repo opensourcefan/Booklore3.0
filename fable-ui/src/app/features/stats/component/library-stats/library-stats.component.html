@@ -223,14 +223,10 @@
             <div class="header-left">
               <h3>
                 <i class="pi pi-compass"></i>
-                Story Arc Reading Paths
+                Story Arc Reading Paths & Analytics
               </h3>
-              <p>Crossover event progress, reading orders, and completion metrics</p>
+              <p>Crossover event progress, reading orders, and book volume distribution</p>
             </div>
-            <a routerLink="/story-arc-stats" class="view-all-arcs-btn" pTooltip="Open detailed story arc analytics">
-              <span>View Detailed Analytics</span>
-              <i class="pi pi-arrow-right"></i>
-            </a>
           </div>
 
           <!-- Story Arc Quick Metrics Rail -->
@@ -265,32 +261,57 @@
             </div>
           </div>
 
-          <div class="story-arc-stats-grid">
-            @for (arc of arcs; track arc.storyArcName) {
-              <a class="story-arc-stat-card" [routerLink]="['/story-arc', arc.storyArcName]">
-                <div class="arc-card-header">
-                  <div class="arc-icon-badge" [class.completed]="arc.completionPercent === 100">
-                    <i [class]="arc.completionPercent === 100 ? 'pi pi-check-circle' : 'pi pi-compass'"></i>
+          <!-- Story Arc Content Layout (Stat Cards + Distribution Chart) -->
+          <div class="story-arc-content-layout">
+            <!-- Story Arc Stat Cards Grid -->
+            <div class="story-arc-stats-grid">
+              @for (arc of arcs; track arc.storyArcName) {
+                <a class="story-arc-stat-card" [routerLink]="['/story-arc', arc.storyArcName]">
+                  <div class="arc-card-header">
+                    <div class="arc-icon-badge" [class.completed]="arc.completionPercent === 100">
+                      <i [class]="arc.completionPercent === 100 ? 'pi pi-check-circle' : 'pi pi-compass'"></i>
+                    </div>
+                    <div class="arc-card-title-block">
+                      <h4>{{ arc.storyArcName }}</h4>
+                      <span class="arc-status-tag" [class.tag-complete]="arc.completionPercent === 100" [class.tag-progress]="arc.completionPercent > 0 && arc.completionPercent < 100">
+                        {{ arc.completionPercent === 100 ? 'Completed' : (arc.completionPercent > 0 ? 'In Progress' : 'Unread') }}
+                      </span>
+                    </div>
                   </div>
-                  <div class="arc-card-title-block">
-                    <h4>{{ arc.storyArcName }}</h4>
-                    <span class="arc-status-tag" [class.tag-complete]="arc.completionPercent === 100" [class.tag-progress]="arc.completionPercent > 0 && arc.completionPercent < 100">
-                      {{ arc.completionPercent === 100 ? 'Completed' : (arc.completionPercent > 0 ? 'In Progress' : 'Unread') }}
-                    </span>
-                  </div>
-                </div>
 
-                <div class="arc-card-body">
-                  <div class="arc-progress-info">
-                    <span class="arc-count-text"><strong>{{ arc.readBookCount }}</strong> / {{ arc.bookCount }} Books</span>
-                    <span class="arc-pct-text">{{ arc.completionPercent }}%</span>
+                  <div class="arc-card-body">
+                    <div class="arc-progress-info">
+                      <span class="arc-count-text"><strong>{{ arc.readBookCount }}</strong> / {{ arc.bookCount }} Books</span>
+                      <span class="arc-pct-text">{{ arc.completionPercent }}%</span>
+                    </div>
+                    <div class="arc-stat-bar-bg">
+                      <div class="arc-stat-bar-fill" [style.width.%]="arc.completionPercent" [class.fill-complete]="arc.completionPercent === 100"></div>
+                    </div>
                   </div>
-                  <div class="arc-stat-bar-bg">
-                    <div class="arc-stat-bar-fill" [style.width.%]="arc.completionPercent" [class.fill-complete]="arc.completionPercent === 100"></div>
+                </a>
+              }
+            </div>
+
+            <!-- Book Count Distribution Chart -->
+            <div class="arc-distribution-panel">
+              <div class="distribution-header">
+                <h4><i class="pi pi-chart-bar"></i> Book Volume per Arc</h4>
+              </div>
+              <div class="custom-bar-chart">
+                @for (arc of arcs; track arc.storyArcName) {
+                  <div class="chart-bar-item">
+                    <div class="bar-container">
+                      <div class="bar-fill" 
+                           [style.height.%]="arc.bookCount * 2 > 100 ? 100 : (arc.bookCount * 2 < 15 ? 15 : arc.bookCount * 2)" 
+                           [title]="arc.storyArcName + ': ' + arc.bookCount + ' books'">
+                        <span class="bar-count-label">{{ arc.bookCount }}</span>
+                      </div>
+                    </div>
+                    <span class="bar-name-label" [title]="arc.storyArcName">{{ arc.storyArcName }}</span>
                   </div>
-                </div>
-              </a>
-            }
+                }
+              </div>
+            </div>
           </div>
         </section>
       }
