@@ -13,6 +13,7 @@
     <div class="header-right">
       @if (isEditMode) {
         <p-button icon="pi pi-plus" styleClass="p-button-outlined p-button-secondary action-btn" label="Add Chapter" (onClick)="addRow()"></p-button>
+        <p-button icon="pi pi-times" styleClass="p-button-outlined p-button-secondary action-btn" label="Cancel Edit" (onClick)="cancelEdit()"></p-button>
       }
       <p-button [icon]="isEditMode ? 'pi pi-check' : 'pi pi-pencil'"
               [styleClass]="isEditMode ? 'p-button-success action-btn' : 'p-button-outlined p-button-primary action-btn'"
@@ -25,14 +26,19 @@
   @if (isEditMode) {
     <div class="guide-url-edit-panel">
       <div class="input-header">
-        <i class="pi pi-link"></i>
-        <span>External Reading Order Guide Link & Web Summary</span>
+        <div class="input-header-left">
+          <i class="pi pi-link"></i>
+          <span>External Reading Order Guide Link & Web Summary</span>
+        </div>
+        @if (externalUrl || summaryDescription) {
+          <p-button icon="pi pi-trash" label="Remove Overview" styleClass="p-button-text p-button-danger p-button-sm" (onClick)="clearSummaryContainer()" pTooltip="Remove Overview & Guide"></p-button>
+        }
       </div>
       <div class="url-input-row">
-        <input type="text" [(ngModel)]="externalUrl" (blur)="saveLayout()" placeholder="https://comicbookreadingorders.com/dc/characters/..." class="url-input" />
+        <input type="text" [(ngModel)]="externalUrl" placeholder="https://comicbookreadingorders.com/dc/characters/..." class="url-input" />
         <p-button icon="pi pi-download" label="Fetch Summary" styleClass="p-button-secondary p-button-sm" (onClick)="fetchWebMetadata()" [loading]="fetchingMetadata" pTooltip="Auto-scrape summary from webpage"></p-button>
       </div>
-      <textarea rows="3" [(ngModel)]="summaryDescription" (blur)="saveLayout()" placeholder="Story Arc summary & overview description..." class="summary-textarea"></textarea>
+      <textarea rows="3" [(ngModel)]="summaryDescription" placeholder="Story Arc summary & overview description..." class="summary-textarea"></textarea>
     </div>
   }
 
@@ -53,12 +59,17 @@
                 <i class="pi pi-book"></i>
                 <span>STORY ARC OVERVIEW & GUIDE</span>
               </div>
-              @if (externalUrl) {
-                <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide webpage'" tooltipPosition="top">
-                  <span>View Official Guide</span>
-                  <i class="pi pi-external-link"></i>
-                </a>
-              }
+              <div class="overview-header-actions">
+                @if (externalUrl) {
+                  <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide webpage'" tooltipPosition="top">
+                    <span>View Official Guide</span>
+                    <i class="pi pi-external-link"></i>
+                  </a>
+                }
+                @if (isEditMode) {
+                  <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-summary-btn" (onClick)="clearSummaryContainer()" pTooltip="Remove Overview & Guide"></p-button>
+                }
+              </div>
             </div>
             @if (summaryDescription) {
               <div class="overview-body">

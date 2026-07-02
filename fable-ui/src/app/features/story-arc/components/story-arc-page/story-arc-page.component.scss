@@ -915,10 +915,16 @@
   .input-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
     color: #a78bfa;
     font-weight: 700;
     font-size: 0.9rem;
+
+    .input-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
   }
 
   .url-input-row {
@@ -964,9 +970,14 @@
 .story-arc-overview-container {
   width: clamp(320px, 380px, 420px);
   flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
 
   .overview-wrapper {
-    height: 255px;
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 310px;
     display: flex;
     flex-direction: column;
     background: linear-gradient(135deg, rgba(167, 139, 250, 0.08) 0%, rgba(244, 114, 182, 0.05) 100%);
@@ -997,25 +1008,39 @@
         }
       }
 
-      .external-guide-link-btn {
+      .overview-header-actions {
         display: flex;
         align-items: center;
-        gap: 0.35rem;
-        padding: 0.3rem 0.75rem;
-        border-radius: 9999px;
-        background: rgba(167, 139, 250, 0.15);
-        border: 1px solid rgba(167, 139, 250, 0.35);
-        color: #a78bfa;
-        font-size: 0.78rem;
-        font-weight: 700;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        white-space: nowrap;
+        gap: 0.5rem;
 
-        &:hover {
-          background: rgba(167, 139, 250, 0.3);
-          color: #fff;
-          box-shadow: 0 0 12px rgba(167, 139, 250, 0.5);
+        .external-guide-link-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+          padding: 0.3rem 0.75rem;
+          border-radius: 9999px;
+          background: rgba(167, 139, 250, 0.15);
+          border: 1px solid rgba(167, 139, 250, 0.35);
+          color: #a78bfa;
+          font-size: 0.78rem;
+          font-weight: 700;
+          text-decoration: none;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+
+          &:hover {
+            background: rgba(167, 139, 250, 0.3);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(167, 139, 250, 0.5);
+          }
+        }
+
+        .remove-summary-btn {
+          padding: 0.2rem 0.4rem !important;
+
+          i {
+            font-size: 0.9rem;
+          }
         }
       }
     }

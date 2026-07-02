@@ -61,6 +61,9 @@ export class StoryArcPageComponent implements OnInit {
   externalUrl = '';
   summaryDescription = '';
   fetchingMetadata = false;
+  backupRows: StoryArcRow[] = [];
+  backupExternalUrl = '';
+  backupSummaryDescription = '';
   selectedMoveCard: { rowIndex: number; colIndex: number; item: StoryArcBookMapping } | null = null;
 
   ngOnInit(): void {
@@ -141,10 +144,37 @@ export class StoryArcPageComponent implements OnInit {
   }
 
   toggleEditMode(): void {
-    this.isEditMode = !this.isEditMode;
+    if (!this.isEditMode) {
+      this.backupRows = JSON.parse(JSON.stringify(this.rows));
+      this.backupExternalUrl = this.externalUrl;
+      this.backupSummaryDescription = this.summaryDescription;
+      this.isEditMode = true;
+    } else {
+      this.saveLayout();
+      this.isEditMode = false;
+    }
+    this.cdr.markForCheck();
+  }
+
+  cancelEdit(): void {
+    if (this.backupRows && this.backupRows.length > 0) {
+      this.rows = JSON.parse(JSON.stringify(this.backupRows));
+    }
+    this.externalUrl = this.backupExternalUrl;
+    this.summaryDescription = this.backupSummaryDescription;
+    this.selectedMoveCard = null;
+    this.isEditMode = false;
+    this.saveLayout();
+    this.cdr.markForCheck();
+  }
+
+  clearSummaryContainer(): void {
+    this.externalUrl = '';
+    this.summaryDescription = '';
     if (!this.isEditMode) {
       this.saveLayout();
     }
+    this.cdr.markForCheck();
   }
 
   onRowDrop(event: CdkDragDrop<StoryArcRow[]>): void {
