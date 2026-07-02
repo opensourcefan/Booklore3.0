@@ -405,7 +405,7 @@ describe('AppMenuComponent reorder mode', () => {
     keyChanges$.next('sidebarSectionOrder');
 
     expect(component.activeLang).toBe('fr');
-    expect(component.sectionOrder).toEqual(['library', 'home', 'shelf', 'magicShelf', 'storyArc', 'bookType']);
+    expect(component.sectionOrder).toEqual(['library', 'home', 'storyArc', 'shelf', 'magicShelf', 'bookType']);
 
     component.ngOnDestroy();
 
@@ -420,6 +420,6 @@ describe('AppMenuComponent reorder mode', () => {
     keyChanges$.next('sidebarSectionOrder');
 
     expect(component.activeLang).toBe('fr');
-    expect(component.sectionOrder).toEqual(['library', 'home', 'shelf', 'magicShelf', 'storyArc', 'bookType']);
+    expect(component.sectionOrder).toEqual(['library', 'home', 'storyArc', 'shelf', 'magicShelf', 'bookType']);
   });
 });

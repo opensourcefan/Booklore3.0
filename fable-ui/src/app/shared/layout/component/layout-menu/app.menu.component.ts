@@ -87,7 +87,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   shelfSortOrder: 'asc' | 'desc' = 'asc';
   magicShelfSortField: 'name' | 'id' = 'name';
   magicShelfSortOrder: 'asc' | 'desc' = 'asc';
-  sectionOrder: string[] = ['home', 'library', 'shelf', 'magicShelf', 'storyArc', 'bookType'];
+  sectionOrder: string[] = ['home', 'storyArc', 'library', 'shelf', 'magicShelf', 'bookType'];
   sectionVisibility: Record<string, boolean> = {
     home: true,
     library: true,
@@ -379,6 +379,8 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         return this.t.translate('layout.menu.shelves');
       case 'magicShelf':
         return this.t.translate('layout.menu.magicShelves');
+      case 'storyArc':
+        return this.t.translate('layout.menu.storyArcs');
       case 'bookType':
         return this.t.translate('layout.menu.mediaType');
       default:
@@ -1088,11 +1090,16 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   }
 
   private normalizeSectionOrder(savedOrder: string[]): string[] {
-    const defaults = ['home', 'library', 'shelf', 'magicShelf', 'storyArc', 'bookType'];
+    const defaults = ['home', 'storyArc', 'library', 'shelf', 'magicShelf', 'bookType'];
     const filtered = savedOrder.filter(section => defaults.includes(section));
     for (const section of defaults) {
       if (!filtered.includes(section)) {
-        filtered.push(section);
+        const homeIndex = filtered.indexOf('home');
+        if (section === 'storyArc' && homeIndex !== -1) {
+          filtered.splice(homeIndex + 1, 0, 'storyArc');
+        } else {
+          filtered.push(section);
+        }
       }
     }
     return filtered;
