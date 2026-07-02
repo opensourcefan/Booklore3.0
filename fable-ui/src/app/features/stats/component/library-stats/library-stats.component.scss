@@ -846,6 +846,10 @@
 }
 
 @media (max-width: 1200px) {
+  .ai-comic-page {
+    grid-template-columns: 1fr;
+  }
+
   .ai-stats-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;

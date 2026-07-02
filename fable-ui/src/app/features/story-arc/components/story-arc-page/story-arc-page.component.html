@@ -1,5 +1,6 @@
 <div class="story-arc-page-container">
   <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
 
   <div class="page-header">
     <div class="header-left">
@@ -17,7 +18,7 @@
               [styleClass]="isEditMode ? 'p-button-success action-btn' : 'p-button-outlined p-button-primary action-btn'"
               [label]="isEditMode ? 'Finish Layout' : 'Edit Layout'"
               (onClick)="toggleEditMode()"></p-button>
-      <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-outlined action-btn" (onClick)="deleteStoryArc()" pTooltip="Delete Story Arc"></p-button>
+      <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-outlined action-btn" (onClick)="deleteStoryArc($event)" pTooltip="Delete Story Arc"></p-button>
     </div>
   </div>
 
@@ -83,6 +84,12 @@
                           </div>
                         }
 
+                        @if (getProgressPercentage(item.book); as progress) {
+                          <div class="cover-progress-bar-container" [pTooltip]="progress + '% read'" tooltipPosition="top">
+                            <div class="cover-progress-bar" [style.width.%]="progress" [class.progress-complete]="progress === 100"></div>
+                          </div>
+                        }
+
                         @if (isEditMode) {
                           <div class="edit-overlay">
                             <p-button icon="pi pi-times" styleClass="p-button-danger p-button-rounded remove-book-btn" (onClick)="removeBook(rowIndex, colIndex)" pTooltip="Remove from Arc"></p-button>
@@ -126,18 +133,11 @@
                     </div>
                   </div>
 
-                  <!-- Connector arrow between books (snaking flow indicator) -->
+                  <!-- Connector arrow between books -->
                   @if (colIndex < row.items.length - 1) {
                     <div class="flow-connector horizontal-arrow">
                       <div class="connector-line"></div>
                       <i class="pi pi-chevron-right arrow-icon"></i>
-                    </div>
-                  } @else if (rowIndex < rows.length - 1 && rows[rowIndex + 1].items.length > 0) {
-                    <!-- End of row connector dropping down to the next row -->
-                    <div class="flow-connector row-wrap-arrow">
-                      <svg class="wrap-line-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M 0 50 Q 80 50 80 100" stroke="rgba(167, 139, 250, 0.4)" stroke-width="4" fill="none" />
-                      </svg>
                     </div>
                   }
                 </div>

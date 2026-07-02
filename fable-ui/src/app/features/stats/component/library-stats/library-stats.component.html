@@ -9,10 +9,6 @@
       <i class="pi pi-users"></i>
       <span>{{ 'layout.topbar.readingStats' | transloco }}</span>
     </a>
-    <a class="stats-nav-btn" routerLink="/story-arc-stats" routerLinkActive="active-btn">
-      <i class="pi pi-compass"></i>
-      <span>Story Arcs</span>
-    </a>
   </div>
 
   <div class="header-card">
@@ -219,7 +215,39 @@
       }
     </div>
 
-      <section class="chart-section full-width ai-stats-section">
+    <!-- Story Arc Reading Orders Section -->
+    @if (storyArcs$ | async; as arcs) {
+      @if (arcs.length > 0) {
+        <section class="chart-section full-width story-arc-stats-embed">
+          <div class="ai-stats-header">
+            <div>
+              <h3>
+                <i class="pi pi-compass"></i>
+                Story Arc Reading Paths
+              </h3>
+              <p>Crossover event progress and reading orders</p>
+            </div>
+          </div>
+
+          <div class="story-arc-stats-grid">
+            @for (arc of arcs; track arc.storyArcName) {
+              <a class="story-arc-stat-card" [routerLink]="['/story-arc', arc.storyArcName]">
+                <img [src]="getThumbnail(arc.coverBookId)" alt="Cover" class="arc-stat-cover" />
+                <div class="arc-stat-info">
+                  <h4>{{ arc.storyArcName }}</h4>
+                  <p class="arc-stat-meta">{{ arc.readBookCount }} / {{ arc.bookCount }} Completed ({{ arc.completionPercent }}%)</p>
+                  <div class="arc-stat-bar-bg">
+                    <div class="arc-stat-bar-fill" [style.width.%]="arc.completionPercent"></div>
+                  </div>
+                </div>
+              </a>
+            }
+          </div>
+        </section>
+      }
+    }
+
+    <section class="chart-section full-width ai-stats-section">
         <div class="ai-stats-header">
           <div>
             <h3>

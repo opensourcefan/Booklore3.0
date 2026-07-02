@@ -1,7 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, UrlTree} from '@angular/router';
 import {CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
-import {MessageService} from 'primeng/api';
+import {ConfirmationService, MessageService} from 'primeng/api';
+import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ToastModule} from 'primeng/toast';
 import {Button} from 'primeng/button';
 import {Tooltip} from 'primeng/tooltip';
@@ -28,10 +29,11 @@ interface StoryArcRow {
     FormsModule,
     DragDropModule,
     ToastModule,
+    ConfirmDialog,
     Button,
     Tooltip
   ],
-  providers: [MessageService]
+  providers: [MessageService, ConfirmationService]
 })
 export class StoryArcPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -40,6 +42,7 @@ export class StoryArcPageComponent implements OnInit {
   private urlHelper = inject(UrlHelperService);
   private pageTitle = inject(PageTitleService);
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
 
   arcName = '';
@@ -234,17 +237,24 @@ export class StoryArcPageComponent implements OnInit {
     return null;
   }
 
-  deleteStoryArc(): void {
-    if (confirm(`Are you sure you want to delete the entire story arc "${this.arcName}"?`)) {
-      this.storyArcService.deleteStoryArc(this.arcName).subscribe({
-        next: () => {
-          this.router.navigate(['/story-arcs']);
-        },
-        error: () => {
-          this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete story arc'});
-        }
-      });
-    }
+  deleteStoryArc(event?: Event): void {
+    this.confirmationService.confirm({
+      target: event?.target as EventTarget,
+      message: `Are you sure you want to delete the entire story arc "${this.arcName}"?`,
+      header: 'Delete Story Arc',
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.storyArcService.deleteStoryArc(this.arcName).subscribe({
+          next: () => {
+            this.router.navigate(['/story-arcs']);
+          },
+          error: () => {
+            this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete story arc'});
+          }
+        });
+      }
+    });
   }
 
   getThumbnail(bookId: number): string {
@@ -256,6 +266,20 @@ export class StoryArcPageComponent implements OnInit {
   }
 
   navigateToBook(book: Book): void {
-    this.router.navigate(['/book', book.id]);
+    this.router.navigate(['/book', book.id], {
+      queryParams: { tab: 'view', returnTo: this.router.url }
+    });
+  }
+
+  getProgressPercentage(book?: Book): number | null {
+    if (!book) return null;
+    if (book.readStatus === 'READ') return 100;
+    if (book.cbxProgress?.percentage) return Math.round(book.cbxProgress.percentage);
+    if (book.pdfProgress?.percentage) return Math.round(book.pdfProgress.percentage);
+    if (book.epubProgress?.percentage) return Math.round(book.epubProgress.percentage);
+    if (book.audiobookProgress?.percentage) return Math.round(book.audiobookProgress.percentage);
+    if (book.koreaderProgress?.percentage) return Math.round(book.koreaderProgress.percentage);
+    if (book.koboProgress?.percentage) return Math.round(book.koboProgress.percentage);
+    return null;
   }
 }

@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {of, Subject} from 'rxjs';
+import {Observable, of, Subject} from 'rxjs';
 import {catchError, map, shareReplay, startWith, switchMap, takeUntil} from 'rxjs/operators';
 import {CdkDragDrop, DragDropModule, moveItemInArray} from '@angular/cdk/drag-drop';
 import {RouterLink, RouterLinkActive} from '@angular/router';
@@ -21,6 +21,9 @@ import {LibraryFilterService, LibraryOption} from './service/library-filter.serv
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {AiPanelFlowBookHighlight, AiPanelFlowStats, AiSearchStatsSummary} from '../../../../shared/model/app-settings.model';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
+import {StoryArcService} from '../../../story-arc/service/story-arc.service';
+import {StoryArcSummary} from '../../../story-arc/model/story-arc.model';
+import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 
 interface ChartConfig {
   id: string;
@@ -59,6 +62,10 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
   private readonly libraryFilterService = inject(LibraryFilterService);
   private readonly librariesSummaryService = inject(LibrariesSummaryService);
   private readonly appSettingsService = inject(AppSettingsService);
+  private readonly storyArcService = inject(StoryArcService);
+  private readonly urlHelper = inject(UrlHelperService);
+
+  storyArcs$: Observable<StoryArcSummary[]> = this.storyArcService.getStoryArcStats();
   private readonly t = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
 
@@ -105,13 +112,14 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
   );
 
   public readonly aiSearchStatsState$ = this.libraryFilterService.selectedLibrary$.pipe(
-    switchMap(selectedLibraryId =>
-      this.appSettingsService.getAiSearchStatsSummary(selectedLibraryId).pipe(
+    switchMap(selectedLibraryId => {
+      this.storyArcService.loadStoryArcs();
+      return this.appSettingsService.getAiSearchStatsSummary(selectedLibraryId).pipe(
         map(data => ({ loading: false, data })),
         catchError(() => of({ loading: false, data: this.createEmptyAiSearchStatsSummary() })),
         startWith({ loading: true, data: null })
-      )
-    ),
+      );
+    }),
     shareReplay(1)
   );
   public readonly totalAiScannedComics$ = this.aiPanelFlowStats$.pipe(map(stats => stats.scannedComicCount));
@@ -321,5 +329,12 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
       markedCount: 0,
       modelStats: []
     };
+  }
+
+  getThumbnail(coverBookId?: number): string {
+    if (!coverBookId) {
+      return 'assets/images/default-cover.png';
+    }
+    return this.urlHelper.getDirectThumbnailUrl(coverBookId);
   }
 }

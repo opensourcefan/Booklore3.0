@@ -83,14 +83,15 @@
   .rows-container {
     display: flex;
     flex-direction: column;
-    gap: 2.5rem;
+    gap: 1rem;
   }
 
   .story-row-wrapper {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.04);
-    border-radius: 20px;
-    padding: 1.5rem;
+    border-radius: 16px;
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 0.5rem;
     backdrop-filter: blur(10px);
 
     .row-header {
@@ -137,12 +138,23 @@
     .row-drop-list {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-      min-height: 250px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 1.25rem;
+      min-height: 210px;
       padding: 0.5rem;
       border-radius: 12px;
       transition: background 0.3s ease;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(167, 139, 250, 0.3) transparent;
+
+      &::-webkit-scrollbar {
+        height: 6px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(167, 139, 250, 0.3);
+        border-radius: 3px;
+      }
 
       &.edit-mode {
         background: rgba(255, 255, 255, 0.01);
@@ -194,11 +206,12 @@
         filter: grayscale(85%);
         opacity: 0.7;
       }
+    }
 
-      &:hover .comic-cover-img {
-        filter: grayscale(0%);
-        opacity: 1;
-      }
+    &:hover .comic-cover-img,
+    &.next-up .comic-cover-img {
+      filter: grayscale(0%) !important;
+      opacity: 1 !important;
     }
 
     /* Next Up neon halo indicator */
@@ -276,9 +289,9 @@
       .edit-overlay {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, 0.75);
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         justify-content: center;
         gap: 0.75rem;
@@ -302,6 +315,25 @@
             background: #eab308;
             border-color: #eab308;
             color: #000;
+          }
+        }
+      }
+
+      .cover-progress-bar-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: rgba(0, 0, 0, 0.6);
+
+        .cover-progress-bar {
+          height: 100%;
+          background: #3b82f6;
+          transition: width 0.3s ease;
+
+          &.progress-complete {
+            background: #10b981;
           }
         }
       }
@@ -373,25 +405,30 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(167, 139, 250, 0.4);
+    color: #a78bfa;
 
     &.horizontal-arrow {
       width: 40px;
-      height: 2px;
+      height: 3px;
       position: relative;
       margin: 0 -5px;
 
       .connector-line {
         width: 100%;
-        height: 2px;
-        background: rgba(167, 139, 250, 0.4);
+        height: 3px;
+        background: linear-gradient(90deg, #a78bfa 0%, #f472b6 100%);
+        box-shadow: 0 0 10px rgba(167, 139, 250, 0.9);
+        border-radius: 2px;
       }
 
       .arrow-icon {
         position: absolute;
         right: -4px;
-        font-size: 0.75rem;
+        top: -5px;
+        font-size: 0.95rem;
+        color: #f472b6;
         background: transparent;
+        text-shadow: 0 0 8px rgba(244, 114, 182, 0.8);
       }
     }
 
