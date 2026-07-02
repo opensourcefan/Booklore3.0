@@ -7,6 +7,7 @@ import {ToastModule} from 'primeng/toast';
 import {Button} from 'primeng/button';
 import {Tooltip} from 'primeng/tooltip';
 import {FormsModule} from '@angular/forms';
+import {Select} from 'primeng/select';
 
 import {StoryArcService} from '../../service/story-arc.service';
 import {StoryArcBookMapping, StoryArcLayoutUpdateRequest} from '../../model/story-arc.model';
@@ -31,7 +32,8 @@ interface StoryArcRow {
     ToastModule,
     ConfirmDialog,
     Button,
-    Tooltip
+    Tooltip,
+    Select
   ],
   providers: [MessageService, ConfirmationService]
 })
@@ -62,9 +64,11 @@ export class StoryArcPageComponent implements OnInit {
   }
 
 
-  loadLayout(): void {
-    this.loading = true;
-    this.cdr.markForCheck();
+  loadLayout(silent = false): void {
+    if (!silent) {
+      this.loading = true;
+      this.cdr.markForCheck();
+    }
 
     this.storyArcService.getStoryArc(this.arcName).subscribe({
       next: (mappings) => {
@@ -81,37 +85,29 @@ export class StoryArcPageComponent implements OnInit {
   }
 
   buildRowsFromMappings(mappings: StoryArcBookMapping[]): void {
-    if (mappings.length === 0) {
-      this.rows = [{ title: 'Main Arc', items: [] }];
-      return;
-    }
-
-    // Find the maximum row index
-    const maxRow = Math.max(...mappings.map(m => m.rowIndex), 0);
-    const newRows: StoryArcRow[] = [];
-    for (let i = 0; i <= maxRow; i++) {
-      newRows.push({ title: `Row ${i + 1}`, items: [] });
-    }
+    const rowMap = new Map<number, { title: string; items: StoryArcBookMapping[] }>();
 
     mappings.forEach(m => {
-      if (m.rowIndex >= 0 && m.rowIndex < newRows.length) {
-        newRows[m.rowIndex].items.push(m);
+      const rIdx = m.rowIndex ?? 0;
+      if (!rowMap.has(rIdx)) {
+        rowMap.set(rIdx, {
+          title: m.rowTitle || `Chapter ${rIdx + 1}`,
+          items: []
+        });
       }
+      rowMap.get(rIdx)!.items.push(m);
     });
 
-    // Sort items in each row by colIndex
-    newRows.forEach((row, rowIndex) => {
-      row.items.sort((a, b) => a.colIndex - b.colIndex);
-      // Set the row title from the first item if available
-      const firstItem = row.items[0];
-      if (firstItem && firstItem.rowTitle) {
-        row.title = firstItem.rowTitle;
-      } else {
-        row.title = `Chapter ${rowIndex + 1}`;
-      }
+    const sortedRowIndices = Array.from(rowMap.keys()).sort((a, b) => a - b);
+    this.rows = sortedRowIndices.map(rIdx => {
+      const row = rowMap.get(rIdx)!;
+      row.items.sort((a, b) => (a.colIndex ?? 0) - (b.colIndex ?? 0));
+      return row;
     });
 
-    this.rows = newRows;
+    if (this.rows.length === 0) {
+      this.rows = [{ title: 'Chapter 1', items: [] }];
+    }
   }
 
   toggleEditMode(): void {
@@ -137,14 +133,15 @@ export class StoryArcPageComponent implements OnInit {
 
   saveLayout(): void {
     const items: StoryArcLayoutUpdateRequest['items'] = [];
+    let sequence = 1;
 
-    this.rows.forEach((row, rowIndex) => {
-      row.items.forEach((item, colIndex) => {
+    this.rows.forEach((row, rIndex) => {
+      row.items.forEach((item, cIndex) => {
         items.push({
           bookId: item.bookId,
-          rowIndex: rowIndex,
-          colIndex: colIndex,
-          sequenceOrder: rowIndex * 1000 + colIndex,
+          rowIndex: rIndex,
+          colIndex: cIndex,
+          sequenceOrder: sequence++,
           isCore: item.isCore,
           rowTitle: row.title
         });
@@ -156,11 +153,7 @@ export class StoryArcPageComponent implements OnInit {
       items
     }).subscribe({
       next: () => {
-        this.messageService.add({severity: 'success', summary: 'Saved', detail: 'Layout coordinates persisted'});
-        this.loadLayout(); // Reload to refresh DTO mappings/order
-      },
-      error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to persist layout coordinates'});
+        this.loadLayout(true);
       }
     });
   }
@@ -281,5 +274,20 @@ export class StoryArcPageComponent implements OnInit {
     if (book.koreaderProgress?.percentage) return Math.round(book.koreaderProgress.percentage);
     if (book.koboProgress?.percentage) return Math.round(book.koboProgress.percentage);
     return null;
+  }
+
+  moveToChapter(fromRowIndex: number, colIndex: number, targetRowIndex: number): void {
+    if (fromRowIndex === targetRowIndex || targetRowIndex < 0 || targetRowIndex >= this.rows.length) return;
+    const item = this.rows[fromRowIndex].items.splice(colIndex, 1)[0];
+    this.rows[targetRowIndex].items.push(item);
+    this.saveLayout();
+    this.cdr.markForCheck();
+  }
+
+  getChapterOptions(): { label: string; value: number }[] {
+    return this.rows.map((row, index) => ({
+      label: row.title || `Chapter ${index + 1}`,
+      value: index
+    }));
   }
 }

@@ -97,6 +97,19 @@
                                     [styleClass]="item.isCore ? 'p-button-rounded core-toggle-btn active' : 'p-button-rounded core-toggle-btn'" 
                                     (onClick)="toggleBookCore(rowIndex, colIndex)" 
                                     [pTooltip]="item.isCore ? 'Core Issue' : 'Tie-in Issue'"></p-button>
+                            @if (rows.length > 1) {
+                              <p-select
+                                [options]="getChapterOptions()"
+                                optionLabel="label"
+                                optionValue="value"
+                                [ngModel]="rowIndex"
+                                (ngModelChange)="moveToChapter(rowIndex, colIndex, $event)"
+                                placeholder="Move..."
+                                styleClass="chapter-move-select"
+                                [pTooltip]="'Move to another chapter'"
+                                tooltipPosition="top">
+                              </p-select>
+                            }
                           </div>
                         }
                       </div>

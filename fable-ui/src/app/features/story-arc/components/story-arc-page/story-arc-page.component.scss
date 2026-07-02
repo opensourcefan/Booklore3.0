@@ -8,7 +8,7 @@
 
 .story-arc-page-container {
   padding: 2rem;
-  max-width: 1600px;
+  max-width: 100%;
   margin: 0 auto;
   min-height: 100%;
   color: var(--text-color, #f3f4f6);
@@ -323,6 +323,24 @@
             background: #eab308;
             border-color: #eab308;
             color: #000;
+          }
+        }
+
+        ::ng-deep .chapter-move-select {
+          width: 90px !important;
+          height: 32px !important;
+          font-size: 0.72rem;
+          background: rgba(0, 0, 0, 0.85) !important;
+          border: 1px solid rgba(255, 255, 255, 0.3) !important;
+          border-radius: 8px !important;
+
+          .p-select-label {
+            padding: 0.2rem 0.4rem !important;
+            font-size: 0.72rem !important;
+            color: #fff !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
           }
         }
       }
