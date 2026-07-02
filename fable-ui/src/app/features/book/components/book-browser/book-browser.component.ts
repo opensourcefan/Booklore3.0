@@ -1973,6 +1973,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  openStoryArcAssigner(): void {
+    this.dynamicDialogRef = this.dialogHelperService.openStoryArcAssignerDialog(this.selectedBooks);
+    if (this.dynamicDialogRef) {
+      this.dynamicDialogRef.onClose.subscribe(result => {
+        if (result && result.assigned) {
+          this.bookSelectionService.deselectAll();
+        }
+      });
+    }
+  }
+
   lockUnlockMetadata(): void {
     this.dynamicDialogRef = this.dialogHelperService.openLockUnlockMetadataDialog(this.selectedBooks);
     if (this.dynamicDialogRef) {

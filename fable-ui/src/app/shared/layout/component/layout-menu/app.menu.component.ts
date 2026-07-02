@@ -16,6 +16,7 @@ import {MagicShelfService, MagicShelfState} from '../../../../features/magic-she
 import {SeriesDataService} from '../../../../features/series-browser/service/series-data.service';
 import {AuthorService} from '../../../../features/author-browser/service/author.service';
 import {MenuItem, MessageService} from 'primeng/api';
+import {StoryArcService} from '../../../../features/story-arc/service/story-arc.service';
 import {DialogLauncherService} from '../../../services/dialog-launcher.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Menu} from 'primeng/menu';
@@ -48,6 +49,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   shelfMenu$: Observable<AppMenuItem[]> | undefined;
   homeMenu$: Observable<AppMenuItem[]> | undefined;
   magicShelfMenu$: Observable<AppMenuItem[]> | undefined;
+  storyArcMenu$: Observable<AppMenuItem[]> | undefined;
   bookTypeMenu$: Observable<AppMenuItem[]> | undefined;
   isReorderMode = false;
   activeBookTypeFilter: string | null = null;
@@ -67,6 +69,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   private seriesDataService = inject(SeriesDataService);
   private authorService = inject(AuthorService);
   private t = inject(TranslocoService);
+  private storyArcService = inject(StoryArcService);
   private localStorageService = inject(LocalStorageService);
   private bookDialogHelperService = inject(BookDialogHelperService);
   private messageService = inject(MessageService);
@@ -84,12 +87,13 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   shelfSortOrder: 'asc' | 'desc' = 'asc';
   magicShelfSortField: 'name' | 'id' = 'name';
   magicShelfSortOrder: 'asc' | 'desc' = 'asc';
-  sectionOrder: string[] = ['home', 'library', 'shelf', 'magicShelf', 'bookType'];
+  sectionOrder: string[] = ['home', 'library', 'shelf', 'magicShelf', 'storyArc', 'bookType'];
   sectionVisibility: Record<string, boolean> = {
     home: true,
     library: true,
     shelf: true,
     magicShelf: true,
+    storyArc: true,
     bookType: false,
   };
   homeItemVisibility: Record<HomeItemVisibilityKey, boolean> = {
@@ -118,6 +122,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     {key: 'library', label: 'layout.menu.libraries'},
     {key: 'shelf', label: 'layout.menu.shelves'},
     {key: 'magicShelf', label: 'layout.menu.magicShelves'},
+    {key: 'storyArc', label: 'layout.menu.storyArcs'},
     {key: 'bookType', label: 'layout.menu.mediaType'},
   ];
   readonly homeItemOptions: {key: HomeItemVisibilityKey; label: string}[] = [
@@ -185,6 +190,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     });
 
     this.authorService.getAllAuthors().subscribe();
+    this.storyArcService.loadStoryArcs();
 
     this.subscriptions.add(this.userService.userState$.pipe(
       filter(userState => !!userState?.user && userState.loaded))
@@ -754,6 +760,26 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       map(menuItems => this.applyNestedItemOrder('magicShelf', menuItems))
     );
 
+    this.storyArcMenu$ = combineLatest([this.storyArcService.storyArcs$, this.t.langChanges$]).pipe(
+      map(([arcs]) => {
+        return [
+          {
+            label: this.t.translate('layout.menu.storyArcs') || 'Story Arcs',
+            type: 'storyArc',
+            hasDropDown: true,
+            items: arcs.map(arc => ({
+              label: arc.storyArcName,
+              type: 'StoryArc',
+              icon: 'pi pi-compass',
+              routerLink: [`/story-arc/${encodeURIComponent(arc.storyArcName)}`],
+              bookCount$: of(arc.bookCount)
+            }))
+          }
+        ];
+      }),
+      map(menuItems => this.applyNestedItemOrder('storyArc', menuItems))
+    );
+
     this.shelfMenu$ = combineLatest([this.shelfService.shelfState$, this.t.langChanges$]).pipe(
       map(([state]) => {
         const shelves = state.shelves ?? [];
@@ -1062,7 +1088,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   }
 
   private normalizeSectionOrder(savedOrder: string[]): string[] {
-    const defaults = ['home', 'library', 'shelf', 'magicShelf', 'bookType'];
+    const defaults = ['home', 'library', 'shelf', 'magicShelf', 'storyArc', 'bookType'];
     const filtered = savedOrder.filter(section => defaults.includes(section));
     for (const section of defaults) {
       if (!filtered.includes(section)) {
@@ -1078,6 +1104,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       library: savedVisibility?.['library'] ?? true,
       shelf: savedVisibility?.['shelf'] ?? true,
       magicShelf: savedVisibility?.['magicShelf'] ?? true,
+      storyArc: savedVisibility?.['storyArc'] ?? true,
       bookType: savedVisibility?.['bookType'] ?? false,
     };
   }

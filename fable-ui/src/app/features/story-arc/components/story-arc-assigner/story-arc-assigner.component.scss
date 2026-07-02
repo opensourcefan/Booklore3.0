@@ -1,0 +1,95 @@
+.story-arc-assigner-dialog {
+  padding: 1.5rem;
+  color: var(--text-color, #e5e7eb);
+  background: rgba(25, 20, 35, 0.45);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  .dialog-header {
+    margin-bottom: 1.5rem;
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 0.25rem 0;
+      color: #fff;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      margin: 0;
+    }
+  }
+
+  .mode-toggles {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+
+    button {
+      flex: 1;
+      padding: 0.5rem;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+  }
+
+  .form-container {
+    margin-bottom: 2rem;
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .dialog-select {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: #fff;
+
+        ::ng-deep .p-select-label {
+          color: #fff !important;
+        }
+      }
+
+      .dialog-input {
+        width: 100%;
+        padding: 0.65rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: #fff;
+
+        &:focus {
+          outline: none;
+          border-color: #a78bfa;
+          background: rgba(255, 255, 255, 0.08);
+        }
+      }
+    }
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+
+    button {
+      border-radius: 8px;
+      padding: 0.5rem 1.5rem;
+      font-weight: 600;
+    }
+  }
+}

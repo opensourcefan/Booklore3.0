@@ -1,7 +1,9 @@
 package org.fable.controller;
 
 import org.fable.model.dto.response.*;
+import org.fable.model.dto.StoryArcSummary;
 import org.fable.service.ReadingSessionService;
+import org.fable.service.StoryArcService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -18,6 +20,18 @@ import java.util.List;
 public class UserStatsController {
 
     private final ReadingSessionService readingSessionService;
+    private final StoryArcService storyArcService;
+
+    @Operation(summary = "Get story arc reading statistics", description = "Returns book counts and reading progress for all custom story arcs")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Story arc stats retrieved successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    @GetMapping("/story-arcs")
+    @PreAuthorize("@securityUtil.canAccessUserStats() or @securityUtil.isAdmin()")
+    public ResponseEntity<List<StoryArcSummary>> getStoryArcStats() {
+        return ResponseEntity.ok(storyArcService.getStoryArcs());
+    }
 
     @Operation(summary = "Get reading session heatmap for a year", description = "Returns daily reading session counts for the authenticated user for a specific year")
     @ApiResponses({

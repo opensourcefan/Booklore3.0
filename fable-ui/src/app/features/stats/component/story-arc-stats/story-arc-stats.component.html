@@ -1,0 +1,126 @@
+<div class="story-arc-stats-page">
+  <!-- Sub Navigation Tabs -->
+  <div class="stats-nav-container">
+    <a class="stats-nav-btn" routerLink="/library-stats" routerLinkActive="active-btn">
+      <i class="pi pi-chart-line"></i>
+      <span>Library Stats</span>
+    </a>
+    <a class="stats-nav-btn" routerLink="/reading-stats" routerLinkActive="active-btn">
+      <i class="pi pi-users"></i>
+      <span>Reading Stats</span>
+    </a>
+    <a class="stats-nav-btn" routerLink="/story-arc-stats" routerLinkActive="active-btn">
+      <i class="pi pi-compass"></i>
+      <span>Story Arcs</span>
+    </a>
+  </div>
+
+  <div class="header-card">
+    <div class="header-content">
+      <h1>Story Arc Analytics</h1>
+      <p class="subtitle">Detailed breakdown of reading progress across crossover events</p>
+    </div>
+  </div>
+
+  <!-- Summary Cards Section -->
+  <div class="summary-cards">
+    <div class="metric-card">
+      <div class="card-icon arcs-icon">
+        <i class="pi pi-compass"></i>
+      </div>
+      <div class="card-info">
+        <span class="metric-value">{{ totalArcs$ | async }}</span>
+        <span class="metric-label">Total Story Arcs</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="card-icon books-icon">
+        <i class="pi pi-book"></i>
+      </div>
+      <div class="card-info">
+        <span class="metric-value">{{ totalBooks$ | async }}</span>
+        <span class="metric-label">Total Books Assigned</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="card-icon progress-icon">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div class="card-info">
+        <span class="metric-value">{{ overallProgress$ | async }}%</span>
+        <span class="metric-label">Overall Completion</span>
+      </div>
+    </div>
+  </div>
+
+  @if (storyArcStats$ | async; as arcs) {
+    @if (arcs.length > 0) {
+      <div class="stats-grid">
+        <!-- Progress Details List -->
+        <div class="panel-section arc-progress-list">
+          <div class="panel-header">
+            <h3><i class="pi pi-list"></i> Story Arc Progress</h3>
+          </div>
+          <div class="panel-body">
+            @for (arc of arcs; track arc.storyArcName) {
+              <div class="arc-progress-row">
+                <div class="arc-cover">
+                  <img [src]="getThumbnail(arc.coverBookId)" alt="Cover" />
+                </div>
+                <div class="arc-info-col">
+                  <a [routerLink]="['/story-arc', arc.storyArcName]" class="arc-link-name">{{ arc.storyArcName }}</a>
+                  <div class="arc-meta-row">
+                    <span>{{ arc.bookCount }} Books</span>
+                    <span>•</span>
+                    <span>{{ arc.readBookCount }} Completed</span>
+                  </div>
+                  <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" [style.width.%]="arc.completionPercent"></div>
+                    <span class="progress-bar-label">{{ arc.completionPercent }}%</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Book Count Distribution Chart -->
+        <div class="panel-section arc-distribution-chart">
+          <div class="panel-header">
+            <h3><i class="pi pi-chart-bar"></i> Book Count Distribution</h3>
+          </div>
+          <div class="panel-body chart-body">
+            <div class="custom-bar-chart">
+              @for (arc of arcs; track arc.storyArcName; let idx = $index) {
+                <div class="chart-bar-item">
+                  <div class="bar-container">
+                    <!-- Custom calculated height dynamically mapping book counts -->
+                    <div class="bar-fill" 
+                         [style.height.%]="arc.bookCount * 2" 
+                         [title]="arc.storyArcName + ': ' + arc.bookCount + ' books'">
+                      <span class="bar-count-label">{{ arc.bookCount }}</span>
+                    </div>
+                  </div>
+                  <span class="bar-name-label" [title]="arc.storyArcName">{{ arc.storyArcName }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="empty-state-card">
+        <i class="pi pi-compass empty-icon"></i>
+        <h2>No story arc metrics yet</h2>
+        <p>Assign books in your library to a Story Arc to calculate completion stats and view progression charts.</p>
+      </div>
+    }
+  } @else {
+    <div class="loading-metrics">
+      <i class="pi pi-spin pi-spinner loading-spinner"></i>
+      <p>Loading analytics dashboard...</p>
+    </div>
+  }
+</div>

@@ -1,0 +1,147 @@
+<div class="story-arc-page-container">
+  <p-toast></p-toast>
+
+  <div class="page-header">
+    <div class="header-left">
+      <p-button icon="pi pi-arrow-left" styleClass="p-button-text back-btn" routerLink="/story-arcs" pTooltip="Back to Story Arcs"></p-button>
+      <div class="title-section">
+        <h1>{{ arcName }}</h1>
+        <p class="subtitle">Story Arc Reading Path</p>
+      </div>
+    </div>
+    <div class="header-right">
+      @if (isEditMode) {
+        <p-button icon="pi pi-plus" styleClass="p-button-outlined p-button-secondary action-btn" label="Add Chapter" (onClick)="addRow()"></p-button>
+      }
+      <p-button [icon]="isEditMode ? 'pi pi-check' : 'pi pi-pencil'"
+              [styleClass]="isEditMode ? 'p-button-success action-btn' : 'p-button-outlined p-button-primary action-btn'"
+              [label]="isEditMode ? 'Finish Layout' : 'Edit Layout'"
+              (onClick)="toggleEditMode()"></p-button>
+      <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-outlined action-btn" (onClick)="deleteStoryArc()" pTooltip="Delete Story Arc"></p-button>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner loading-icon"></i>
+      <p>Loading reading order...</p>
+    </div>
+  } @else {
+    <div class="rows-container" cdkDropListGroup>
+      @for (row of rows; track row; let rowIndex = $index) {
+        <div class="story-row-wrapper">
+          <div class="row-header">
+            @if (isEditMode) {
+              <input type="text" [(ngModel)]="row.title" (blur)="saveLayout()" class="row-title-input" placeholder="Chapter title..." />
+              <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-row-btn" (onClick)="removeRow(rowIndex)" pTooltip="Delete Row (merges books into previous row)"></p-button>
+            } @else {
+              <h3 class="row-title">{{ row.title }}</h3>
+            }
+          </div>
+
+          <div
+            class="row-drop-list"
+            [class.edit-mode]="isEditMode"
+            cdkDropList
+            [cdkDropListData]="row.items"
+            cdkDropListOrientation="horizontal"
+            (cdkDropListDropped)="onDrop($event)">
+            
+            @if (row.items.length === 0) {
+              <div class="empty-row-placeholder">
+                <p>Drag books here to start a new section</p>
+              </div>
+            } @else {
+              @for (item of row.items; track item.bookId; let colIndex = $index) {
+                <div class="card-and-connector">
+                  <div
+                    class="comic-flow-card"
+                    [class.next-up]="item.bookId === getNextUpBookId() && !isEditMode"
+                    [class.tie-in]="!item.isCore"
+                    [class.read]="item.book?.readStatus === 'READ'"
+                    [class.draggable]="isEditMode"
+                    cdkDrag
+                    [cdkDragDisabled]="!isEditMode">
+                    
+                    <div class="comic-card-inner">
+                      <div class="cover-container" (click)="!isEditMode ? navigateToBook(item.book) : null">
+                        <img [src]="getThumbnail(item.bookId)" alt="Cover" class="comic-cover-img" />
+                        
+                        @if (item.book?.readStatus === 'READ') {
+                          <div class="read-badge">
+                            <i class="pi pi-check"></i>
+                          </div>
+                        }
+
+                        @if (item.bookId === getNextUpBookId() && !isEditMode) {
+                          <div class="next-badge">
+                            <span>NEXT UP</span>
+                          </div>
+                        }
+
+                        @if (isEditMode) {
+                          <div class="edit-overlay">
+                            <p-button icon="pi pi-times" styleClass="p-button-danger p-button-rounded remove-book-btn" (onClick)="removeBook(rowIndex, colIndex)" pTooltip="Remove from Arc"></p-button>
+                            <p-button [icon]="item.isCore ? 'pi pi-star-fill' : 'pi pi-star'" 
+                                    [styleClass]="item.isCore ? 'p-button-rounded core-toggle-btn active' : 'p-button-rounded core-toggle-btn'" 
+                                    (onClick)="toggleBookCore(rowIndex, colIndex)" 
+                                    [pTooltip]="item.isCore ? 'Core Issue' : 'Tie-in Issue'"></p-button>
+                          </div>
+                        }
+                      </div>
+
+                      <div class="card-details">
+                        <h4 class="book-title" [pTooltip]="item.book?.metadata?.title || 'Unknown Title'" tooltipPosition="top">
+                          {{ item.book?.metadata?.title || 'Unknown Title' }}
+                        </h4>
+                        <p class="book-series">
+                          {{ item.book?.metadata?.['series'] || 'No Series' }}
+                          @if (item.book?.metadata?.['issueNumber']) {
+                            #{{ item.book?.metadata?.['issueNumber'] }}
+                          }
+                        </p>
+                      </div>
+
+                      <!-- Mobile & Touch Sort Controls -->
+                      @if (isEditMode) {
+                        <div class="touch-sort-actions">
+                          <button class="sort-arrow" (click)="moveItem(rowIndex, colIndex, 'left')" pTooltip="Move Left" tooltipPosition="bottom">
+                            <i class="pi pi-angle-left"></i>
+                          </button>
+                          <button class="sort-arrow" (click)="moveItem(rowIndex, colIndex, 'up')" pTooltip="Move Up" tooltipPosition="bottom">
+                            <i class="pi pi-angle-up"></i>
+                          </button>
+                          <button class="sort-arrow" (click)="moveItem(rowIndex, colIndex, 'down')" pTooltip="Move Down" tooltipPosition="bottom">
+                            <i class="pi pi-angle-down"></i>
+                          </button>
+                          <button class="sort-arrow" (click)="moveItem(rowIndex, colIndex, 'right')" pTooltip="Move Right" tooltipPosition="bottom">
+                            <i class="pi pi-angle-right"></i>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Connector arrow between books (snaking flow indicator) -->
+                  @if (colIndex < row.items.length - 1) {
+                    <div class="flow-connector horizontal-arrow">
+                      <div class="connector-line"></div>
+                      <i class="pi pi-chevron-right arrow-icon"></i>
+                    </div>
+                  } @else if (rowIndex < rows.length - 1 && rows[rowIndex + 1].items.length > 0) {
+                    <!-- End of row connector dropping down to the next row -->
+                    <div class="flow-connector row-wrap-arrow">
+                      <svg class="wrap-line-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 0 50 Q 80 50 80 100" stroke="rgba(167, 139, 250, 0.4)" stroke-width="4" fill="none" />
+                      </svg>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,63 @@
+<div class="story-arc-browser-container">
+  <div class="browser-header">
+    <div class="header-title">
+      <h1>Story Arcs</h1>
+      <p class="subtitle">Custom crossover events and reading order timelines</p>
+    </div>
+    <div class="header-actions">
+      <span class="p-input-icon-left search-input-wrapper">
+        <i class="pi pi-search search-icon"></i>
+        <input
+          pInputText
+          type="text"
+          [ngModel]="searchTerm$ | async"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Search story arcs..."
+          class="search-bar"
+        />
+      </span>
+    </div>
+  </div>
+
+  @if (filteredArcs$ | async; as arcs) {
+    @if (arcs.length > 0) {
+      <div class="story-arc-grid">
+        @for (arc of arcs; track arc.storyArcName) {
+          <div class="story-arc-card" (click)="navigateToArc(arc)">
+            <div class="card-cover-wrapper">
+              <img [src]="getThumbnail(arc.coverBookId)" alt="Cover Art" class="card-cover-img" loading="lazy" />
+              <div class="card-overlay">
+                <span class="percentage-badge">{{ arc.completionPercent }}% Read</span>
+              </div>
+            </div>
+            <div class="card-content">
+              <h2 class="card-title">{{ arc.storyArcName }}</h2>
+              <div class="card-meta">
+                <span class="book-count">
+                  <i class="pi pi-book"></i> {{ arc.bookCount }} {{ arc.bookCount === 1 ? 'Book' : 'Books' }}
+                </span>
+                <span class="read-progress">
+                  {{ arc.readBookCount }} / {{ arc.bookCount }} Completed
+                </span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-fill" [style.width.%]="arc.completionPercent"></div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <i class="pi pi-compass empty-icon"></i>
+        <h2>No story arcs found</h2>
+        <p>Try searching for a different keyword or create a story arc from your library books.</p>
+      </div>
+    }
+  } @else {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner loading-icon"></i>
+      <p>Loading story arcs...</p>
+    </div>
+  }
+</div>

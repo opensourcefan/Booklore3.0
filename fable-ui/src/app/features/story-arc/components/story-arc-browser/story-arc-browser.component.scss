@@ -1,0 +1,261 @@
+.story-arc-browser-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  color: var(--text-color, #f3f4f6);
+
+  .browser-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 1.5rem;
+
+    .header-title {
+      h1 {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin: 0 0 0.5rem 0;
+        background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .subtitle {
+        color: var(--text-secondary-color, #9ca3af);
+        margin: 0;
+        font-size: 1rem;
+      }
+    }
+
+    .header-actions {
+      .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .search-icon {
+          position: absolute;
+          left: 1rem;
+          color: #9ca3af;
+          pointer-events: none;
+        }
+
+        .search-bar {
+          width: 300px;
+          padding: 0.75rem 1rem 0.75rem 2.5rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+          backdrop-filter: blur(10px);
+          transition: all 0.3s ease;
+
+          &:focus {
+            outline: none;
+            border-color: #a78bfa;
+            box-shadow: 0 0 15px rgba(167, 139, 250, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+          }
+        }
+      }
+    }
+  }
+
+  .story-arc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 2rem;
+  }
+
+  .story-arc-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+
+    &:hover {
+      transform: translateY(-8px);
+      border-color: rgba(167, 139, 250, 0.4);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(167, 139, 250, 0.15);
+
+      .card-cover-img {
+        transform: scale(1.06);
+      }
+      .card-overlay {
+        opacity: 1;
+      }
+    }
+
+    .card-cover-wrapper {
+      position: relative;
+      height: 320px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.2);
+
+      .card-cover-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .card-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6));
+        display: flex;
+        align-items: flex-end;
+        padding: 1rem;
+        opacity: 0.85;
+        transition: opacity 0.3s ease;
+
+        .percentage-badge {
+          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+          color: #fff;
+          font-weight: 700;
+          font-size: 0.85rem;
+          padding: 0.35rem 0.75rem;
+          border-radius: 9999px;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+      }
+    }
+
+    .card-content {
+      padding: 1.25rem;
+
+      .card-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin: 0 0 0.75rem 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+
+      .card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #9ca3af;
+        margin-bottom: 1rem;
+
+        .book-count i {
+          margin-right: 0.25rem;
+        }
+      }
+
+      .progress-container {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 9999px;
+        overflow: hidden;
+
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #a78bfa 0%, #f472b6 100%);
+          border-radius: 9999px;
+          transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+      }
+    }
+  }
+
+  .empty-state, .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+
+    .empty-icon {
+      font-size: 4rem;
+      background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1.5rem;
+    }
+
+    .loading-icon {
+      font-size: 3rem;
+      color: #a78bfa;
+      margin-bottom: 1.5rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      color: #fff;
+    }
+
+    p {
+      color: #9ca3af;
+      max-width: 400px;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .story-arc-browser-container {
+    padding: 1rem;
+
+    .browser-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+
+      .header-actions {
+        .search-input-wrapper {
+          .search-bar {
+            width: 100%;
+          }
+        }
+      }
+    }
+
+    .story-arc-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+
+    .story-arc-card {
+      .card-cover-wrapper {
+        height: 220px;
+      }
+      .card-content {
+        padding: 0.75rem;
+
+        .card-title {
+          font-size: 1rem;
+        }
+
+        .card-meta {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.25rem;
+        }
+      }
+    }
+  }
+}

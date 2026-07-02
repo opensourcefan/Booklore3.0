@@ -530,6 +530,15 @@
                     pTooltip="Assign Media Type"
                     tooltipPosition="top">
                   </p-button>
+                  <p-button
+                    icon="pi pi-compass"
+                    outlined="true"
+                    severity="info"
+                    [disabled]="selectedCount === 0"
+                    (onClick)="openStoryArcAssigner()"
+                    pTooltip="Add to Story Arc"
+                    tooltipPosition="top">
+                  </p-button>
                   @if (entityType === EntityType.SHELF) {
                     <p-button
                       icon="pi pi-folder-open"

@@ -1,0 +1,47 @@
+<div class="story-arc-assigner-dialog">
+  <div class="dialog-header">
+    <h2>Add Selected to Story Arc</h2>
+    <p class="subtitle">Assign {{ bookIds.size }} selected {{ bookIds.size === 1 ? 'book' : 'books' }} to a reading order</p>
+  </div>
+
+  <div class="mode-toggles">
+    <p-button [styleClass]="!isNewArc ? 'p-button-primary' : 'p-button-outlined p-button-secondary'"
+            label="Existing Arc" 
+            (onClick)="toggleArcMode(false)"></p-button>
+    <p-button [styleClass]="isNewArc ? 'p-button-primary' : 'p-button-outlined p-button-secondary'"
+            label="New Arc" 
+            (onClick)="toggleArcMode(true)"></p-button>
+  </div>
+
+  <div class="form-container">
+    @if (!isNewArc) {
+      <div class="form-group">
+        <label>Select Story Arc</label>
+        <p-select
+          [options]="(storyArcs$ | async) || []"
+          optionLabel="storyArcName"
+          optionValue="storyArcName"
+          [(ngModel)]="selectedArcName"
+          placeholder="Choose an existing arc..."
+          class="dialog-select"
+        ></p-select>
+      </div>
+    } @else {
+      <div class="form-group">
+        <label>Story Arc Name</label>
+        <input
+          pInputText
+          type="text"
+          [(ngModel)]="customArcName"
+          placeholder="Type new story arc name..."
+          class="dialog-input"
+        />
+      </div>
+    }
+  </div>
+
+  <div class="dialog-actions">
+    <p-button styleClass="p-button-outlined p-button-secondary" label="Cancel" (onClick)="closeDialog()"></p-button>
+    <p-button styleClass="p-button-success" label="Apply" (onClick)="applyAssignment()"></p-button>
+  </div>
+</div>

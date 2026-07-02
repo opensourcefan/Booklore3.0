@@ -22,6 +22,7 @@ import {BulkIsbnImportDialogComponent} from '../bulk-isbn-import-dialog/bulk-isb
 import {DuplicateMergerComponent} from '../duplicate-merger/duplicate-merger.component';
 import {MediaTypeManagerComponent} from '../media-type-manager/media-type-manager.component';
 import {MediaTypeDeleteDialogComponent} from '../media-type-delete-dialog/media-type-delete-dialog.component';
+import {StoryArcAssignerComponent} from '../../../story-arc/components/story-arc-assigner/story-arc-assigner.component';
 
 @Injectable({providedIn: 'root'})
 export class BookDialogHelperService {
@@ -30,6 +31,14 @@ export class BookDialogHelperService {
 
   private openDialog(component: unknown, options: object): DynamicDialogRef | null {
     return this.dialogLauncherService.openDialog(component, options);
+  }
+
+  openStoryArcAssignerDialog(bookIds: Set<number>): DynamicDialogRef | null {
+    return this.openDialog(StoryArcAssignerComponent, {
+      showHeader: false,
+      data: { bookIds },
+      styleClass: `${DialogSize.SM} ${DialogStyle.MINIMAL}`
+    });
   }
 
   openBookDetailsDialog(bookId: number): DynamicDialogRef | null {

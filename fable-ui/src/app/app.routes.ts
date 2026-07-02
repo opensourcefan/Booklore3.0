@@ -45,6 +45,8 @@ export const routes: Routes = [
       {path: 'not-shelfed', component: BookBrowserComponent, canActivate: [AuthGuard]},
       {path: 'series', component: SeriesBrowserComponent, canActivate: [AuthGuard]},
       {path: 'series/:seriesName', component: SeriesPageComponent, canActivate: [AuthGuard]},
+      {path: 'story-arcs', loadComponent: () => import('./features/story-arc/components/story-arc-browser/story-arc-browser.component').then(m => m.StoryArcBrowserComponent), canActivate: [AuthGuard]},
+      {path: 'story-arc/:arcName', loadComponent: () => import('./features/story-arc/components/story-arc-page/story-arc-page.component').then(m => m.StoryArcPageComponent), canActivate: [AuthGuard]},
       {path: 'authors', component: AuthorBrowserComponent, canActivate: [AuthGuard]},
       {path: 'author/:authorId', component: AuthorDetailComponent, canActivate: [AuthGuard]},
       {path: 'magic-shelf/:magicShelfId/books', component: BookBrowserComponent, canActivate: [AuthGuard]},
@@ -53,6 +55,7 @@ export const routes: Routes = [
       {path: 'metadata-manager', loadComponent: () => import('./features/metadata/component/metadata-manager/metadata-manager.component').then(m => m.MetadataManagerComponent), canActivate: [EditMetadataGuard]},
       {path: 'library-stats', loadChildren: () => import('./features/stats/stats.routes').then(m => m.LIBRARY_STATS_ROUTES)},
       {path: 'reading-stats', loadChildren: () => import('./features/stats/stats.routes').then(m => m.USER_STATS_ROUTES)},
+      {path: 'story-arc-stats', loadComponent: () => import('./features/stats/component/story-arc-stats/story-arc-stats.component').then(m => m.StoryArcStatsComponent), canActivate: [AuthGuard]},
       {path: 'notebook', loadComponent: () => import('./features/notebook/components/notebook/notebook.component').then(m => m.NotebookComponent), canActivate: [AuthGuard]},
     ]
   },
