@@ -220,24 +220,73 @@
       @if (arcs.length > 0) {
         <section class="chart-section full-width story-arc-stats-embed">
           <div class="ai-stats-header">
-            <div>
+            <div class="header-left">
               <h3>
                 <i class="pi pi-compass"></i>
                 Story Arc Reading Paths
               </h3>
-              <p>Crossover event progress and reading orders</p>
+              <p>Crossover event progress, reading orders, and completion metrics</p>
+            </div>
+            <a routerLink="/story-arc-stats" class="view-all-arcs-btn" pTooltip="Open detailed story arc analytics">
+              <span>View Detailed Analytics</span>
+              <i class="pi pi-arrow-right"></i>
+            </a>
+          </div>
+
+          <!-- Story Arc Quick Metrics Rail -->
+          <div class="story-arc-metrics-rail">
+            <div class="arc-metric-pill">
+              <div class="pill-icon purple"><i class="pi pi-compass"></i></div>
+              <div class="pill-data">
+                <span class="pill-val">{{ totalArcs$ | async }}</span>
+                <span class="pill-lbl">Active Arcs</span>
+              </div>
+            </div>
+            <div class="arc-metric-pill">
+              <div class="pill-icon blue"><i class="pi pi-book"></i></div>
+              <div class="pill-data">
+                <span class="pill-val">{{ totalArcBooks$ | async }}</span>
+                <span class="pill-lbl">Books Assigned</span>
+              </div>
+            </div>
+            <div class="arc-metric-pill">
+              <div class="pill-icon green"><i class="pi pi-check-circle"></i></div>
+              <div class="pill-data">
+                <span class="pill-val">{{ completedArcsCount$ | async }}</span>
+                <span class="pill-lbl">Completed Arcs</span>
+              </div>
+            </div>
+            <div class="arc-metric-pill">
+              <div class="pill-icon amber"><i class="pi pi-percentage"></i></div>
+              <div class="pill-data">
+                <span class="pill-val">{{ overallArcProgress$ | async }}%</span>
+                <span class="pill-lbl">Overall Completion</span>
+              </div>
             </div>
           </div>
 
           <div class="story-arc-stats-grid">
             @for (arc of arcs; track arc.storyArcName) {
               <a class="story-arc-stat-card" [routerLink]="['/story-arc', arc.storyArcName]">
-                <img [src]="getThumbnail(arc.coverBookId)" alt="Cover" class="arc-stat-cover" />
-                <div class="arc-stat-info">
-                  <h4>{{ arc.storyArcName }}</h4>
-                  <p class="arc-stat-meta">{{ arc.readBookCount }} / {{ arc.bookCount }} Completed ({{ arc.completionPercent }}%)</p>
+                <div class="arc-card-header">
+                  <div class="arc-icon-badge" [class.completed]="arc.completionPercent === 100">
+                    <i [class]="arc.completionPercent === 100 ? 'pi pi-check-circle' : 'pi pi-compass'"></i>
+                  </div>
+                  <div class="arc-card-title-block">
+                    <h4>{{ arc.storyArcName }}</h4>
+                    <span class="arc-status-tag" [class.tag-complete]="arc.completionPercent === 100" [class.tag-progress]="arc.completionPercent > 0 && arc.completionPercent < 100">
+                      {{ arc.completionPercent === 100 ? 'Completed' : (arc.completionPercent > 0 ? 'In Progress' : 'Unread') }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="arc-card-body">
+                  <div class="arc-progress-info">
+                    <span class="arc-count-text"><strong>{{ arc.readBookCount }}</strong> / {{ arc.bookCount }} Books</span>
+                    <span class="arc-pct-text">{{ arc.completionPercent }}%</span>
+                  </div>
                   <div class="arc-stat-bar-bg">
-                    <div class="arc-stat-bar-fill" [style.width.%]="arc.completionPercent"></div>
+                    <div class="arc-stat-bar-fill" [style.width.%]="arc.completionPercent" [class.fill-complete]="arc.completionPercent === 100"></div>
                   </div>
                 </div>
               </a>

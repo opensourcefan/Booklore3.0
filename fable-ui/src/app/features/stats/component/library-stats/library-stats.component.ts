@@ -66,6 +66,16 @@ export class LibraryStatsComponent implements OnInit, OnDestroy {
   private readonly urlHelper = inject(UrlHelperService);
 
   storyArcs$: Observable<StoryArcSummary[]> = this.storyArcService.getStoryArcStats();
+  public readonly totalArcs$ = this.storyArcs$.pipe(map(arcs => arcs.length));
+  public readonly completedArcsCount$ = this.storyArcs$.pipe(map(arcs => arcs.filter(a => a.bookCount > 0 && a.readBookCount === a.bookCount).length));
+  public readonly totalArcBooks$ = this.storyArcs$.pipe(map(arcs => arcs.reduce((acc, a) => acc + a.bookCount, 0)));
+  public readonly overallArcProgress$ = this.storyArcs$.pipe(
+    map(arcs => {
+      const total = arcs.reduce((acc, a) => acc + a.bookCount, 0);
+      const read = arcs.reduce((acc, a) => acc + a.readBookCount, 0);
+      return total > 0 ? Math.round((read * 100) / total) : 0;
+    })
+  );
   private readonly t = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
 

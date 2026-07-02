@@ -38,6 +38,10 @@ export class StoryArcStatsComponent implements OnInit {
     map(arcs => arcs.reduce((sum, arc) => sum + arc.readBookCount, 0))
   );
 
+  completedArcsCount$: Observable<number> = this.storyArcStats$.pipe(
+    map(arcs => arcs.filter(a => a.bookCount > 0 && a.readBookCount === a.bookCount).length)
+  );
+
   overallProgress$: Observable<number> = combineLatest([this.totalBooks$, this.totalReadBooks$]).pipe(
     map(([total, read]) => (total > 0 ? Math.round((read * 100) / total) : 0))
   );
@@ -45,12 +49,5 @@ export class StoryArcStatsComponent implements OnInit {
   ngOnInit(): void {
     this.pageTitle.setPageTitle('Story Arc Stats');
     this.storyArcService.loadStoryArcs();
-  }
-
-  getThumbnail(coverBookId?: number): string {
-    if (!coverBookId) {
-      return 'assets/images/default-cover.png';
-    }
-    return this.urlHelper.getDirectThumbnailUrl(coverBookId);
   }
 }

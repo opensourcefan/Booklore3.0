@@ -45,8 +45,18 @@
     </div>
 
     <div class="metric-card">
-      <div class="card-icon progress-icon">
+      <div class="card-icon completed-icon">
         <i class="pi pi-check-circle"></i>
+      </div>
+      <div class="card-info">
+        <span class="metric-value">{{ completedArcsCount$ | async }}</span>
+        <span class="metric-label">Completed Arcs</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="card-icon progress-icon">
+        <i class="pi pi-percentage"></i>
       </div>
       <div class="card-info">
         <span class="metric-value">{{ overallProgress$ | async }}%</span>
@@ -66,18 +76,23 @@
           <div class="panel-body">
             @for (arc of arcs; track arc.storyArcName) {
               <div class="arc-progress-row">
-                <div class="arc-cover">
-                  <img [src]="getThumbnail(arc.coverBookId)" alt="Cover" />
+                <div class="arc-icon-badge" [class.completed]="arc.completionPercent === 100">
+                  <i [class]="arc.completionPercent === 100 ? 'pi pi-check-circle' : 'pi pi-compass'"></i>
                 </div>
                 <div class="arc-info-col">
-                  <a [routerLink]="['/story-arc', arc.storyArcName]" class="arc-link-name">{{ arc.storyArcName }}</a>
+                  <div class="arc-title-line">
+                    <a [routerLink]="['/story-arc', arc.storyArcName]" class="arc-link-name">{{ arc.storyArcName }}</a>
+                    <span class="arc-status-tag" [class.tag-complete]="arc.completionPercent === 100" [class.tag-progress]="arc.completionPercent > 0 && arc.completionPercent < 100">
+                      {{ arc.completionPercent === 100 ? 'Completed' : (arc.completionPercent > 0 ? 'In Progress' : 'Unread') }}
+                    </span>
+                  </div>
                   <div class="arc-meta-row">
                     <span>{{ arc.bookCount }} Books</span>
                     <span>•</span>
                     <span>{{ arc.readBookCount }} Completed</span>
                   </div>
                   <div class="progress-bar-wrapper">
-                    <div class="progress-bar-fill" [style.width.%]="arc.completionPercent"></div>
+                    <div class="progress-bar-fill" [style.width.%]="arc.completionPercent" [class.fill-complete]="arc.completionPercent === 100"></div>
                     <span class="progress-bar-label">{{ arc.completionPercent }}%</span>
                   </div>
                 </div>

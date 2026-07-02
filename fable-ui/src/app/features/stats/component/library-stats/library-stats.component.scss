@@ -1039,3 +1039,241 @@
     }
   }
 }
+
+/* Story Arc Reading Paths Section in Library Stats */
+.story-arc-stats-embed {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+
+  .ai-stats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    .header-left {
+      h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 0.25rem;
+        color: var(--text-color, #ffffff);
+        font-size: 1.15rem;
+        font-weight: 700;
+      }
+
+      p {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 0.85rem;
+      }
+    }
+
+    .view-all-arcs-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      background: rgba(167, 139, 250, 0.12);
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      color: #a78bfa;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(167, 139, 250, 0.25);
+        color: #fff;
+        box-shadow: 0 0 12px rgba(167, 139, 250, 0.4);
+      }
+    }
+  }
+
+  .story-arc-metrics-rail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+
+    .arc-metric-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+
+      .pill-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+
+        &.purple {
+          background: rgba(167, 139, 250, 0.15);
+          color: #a78bfa;
+        }
+        &.blue {
+          background: rgba(59, 130, 246, 0.15);
+          color: #3b82f6;
+        }
+        &.green {
+          background: rgba(34, 197, 94, 0.15);
+          color: #22c55e;
+        }
+        &.amber {
+          background: rgba(245, 158, 11, 0.15);
+          color: #f59e0b;
+        }
+      }
+
+      .pill-data {
+        display: flex;
+        flex-direction: column;
+
+        .pill-val {
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #fff;
+          line-height: 1.1;
+        }
+        .pill-lbl {
+          font-size: 0.75rem;
+          color: #9ca3af;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  .story-arc-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+
+    .story-arc-stat-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.85rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1rem;
+      text-decoration: none;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(167, 139, 250, 0.4);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 15px rgba(167, 139, 250, 0.15);
+      }
+
+      .arc-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        .arc-icon-badge {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          background: rgba(167, 139, 250, 0.15);
+          border: 1px solid rgba(167, 139, 250, 0.3);
+          color: #a78bfa;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.1rem;
+          flex-shrink: 0;
+
+          &.completed {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.35);
+            color: #22c55e;
+          }
+        }
+
+        .arc-card-title-block {
+          flex: 1;
+          min-width: 0;
+
+          h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 0.2rem 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .arc-status-tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #9ca3af;
+
+            &.tag-complete {
+              color: #22c55e;
+            }
+            &.tag-progress {
+              color: #3b82f6;
+            }
+          }
+        }
+      }
+
+      .arc-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+
+        .arc-progress-info {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 0.8rem;
+
+          .arc-count-text {
+            color: #9ca3af;
+            strong {
+              color: #fff;
+            }
+          }
+
+          .arc-pct-text {
+            font-weight: 700;
+            color: #a78bfa;
+          }
+        }
+
+        .arc-stat-bar-bg {
+          height: 6px;
+          background: rgba(255, 255, 255, 0.08);
+          border-radius: 9999px;
+          overflow: hidden;
+
+          .arc-stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a78bfa 0%, #f472b6 100%);
+            border-radius: 9999px;
+            transition: width 0.4s ease;
+
+            &.fill-complete {
+              background: linear-gradient(90deg, #22c55e 0%, #10b981 100%);
+            }
+          }
+        }
+      }
+    }
+  }
+}
