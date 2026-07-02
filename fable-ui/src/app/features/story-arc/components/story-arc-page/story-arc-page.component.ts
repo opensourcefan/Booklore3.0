@@ -51,6 +51,7 @@ export class StoryArcPageComponent implements OnInit {
   rows: StoryArcRow[] = [];
   loading = true;
   isEditMode = false;
+  selectedMoveCard: { rowIndex: number; colIndex: number; item: StoryArcBookMapping } | null = null;
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -307,5 +308,56 @@ export class StoryArcPageComponent implements OnInit {
       label: row.title || `Chapter ${index + 1}`,
       value: index
     }));
+  }
+
+  pickUpCard(rowIndex: number, colIndex: number): void {
+    if (this.selectedMoveCard?.rowIndex === rowIndex && this.selectedMoveCard?.colIndex === colIndex) {
+      this.selectedMoveCard = null;
+    } else {
+      this.selectedMoveCard = {
+        rowIndex,
+        colIndex,
+        item: this.rows[rowIndex].items[colIndex]
+      };
+    }
+    this.cdr.markForCheck();
+  }
+
+  cancelMoveCard(): void {
+    this.selectedMoveCard = null;
+    this.cdr.markForCheck();
+  }
+
+  placeCardBefore(targetRowIndex: number, targetColIndex: number): void {
+    if (!this.selectedMoveCard) return;
+
+    const { rowIndex, colIndex } = this.selectedMoveCard;
+    const movedItem = this.rows[rowIndex].items.splice(colIndex, 1)[0];
+
+    let insertIndex = targetColIndex;
+    if (rowIndex === targetRowIndex && colIndex < targetColIndex) {
+      insertIndex--;
+    }
+
+    this.rows[targetRowIndex].items.splice(insertIndex, 0, movedItem);
+    this.selectedMoveCard = null;
+    this.saveLayout();
+    this.cdr.markForCheck();
+  }
+
+  placeCardInChapter(targetRowIndex: number): void {
+    if (!this.selectedMoveCard) return;
+
+    const { rowIndex, colIndex } = this.selectedMoveCard;
+    const movedItem = this.rows[rowIndex].items.splice(colIndex, 1)[0];
+
+    this.rows[targetRowIndex].items.push(movedItem);
+    this.selectedMoveCard = null;
+    this.saveLayout();
+    this.cdr.markForCheck();
+  }
+
+  isCardSelected(rowIndex: number, colIndex: number): boolean {
+    return this.selectedMoveCard?.rowIndex === rowIndex && this.selectedMoveCard?.colIndex === colIndex;
   }
 }

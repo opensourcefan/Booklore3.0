@@ -30,138 +30,163 @@
   } @else {
     <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
       @for (row of rows; track row; let rowIndex = $index) {
-        <div class="story-row-wrapper" cdkDrag [cdkDragDisabled]="!isEditMode">
-          <div class="row-header">
-            @if (isEditMode) {
-              <div class="row-drag-handle" cdkDragHandle [pTooltip]="'Drag to reorder chapter'" tooltipPosition="top">
-                <i class="pi pi-bars"></i>
-              </div>
-              <input type="text" [(ngModel)]="row.title" (blur)="saveLayout()" class="row-title-input" placeholder="Chapter title..." />
-              <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-row-btn" (onClick)="removeRow(rowIndex)" pTooltip="Delete Row (merges books into previous row)"></p-button>
-            } @else {
-              <h3 class="row-title">{{ row.title }}</h3>
-            }
-          </div>
+        <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode">
+          <div class="story-row-wrapper">
+            <div class="row-header">
+              @if (isEditMode) {
+                <div class="row-drag-handle" cdkDragHandle [pTooltip]="'Drag to reorder chapter'" tooltipPosition="top">
+                  <i class="pi pi-bars"></i>
+                </div>
+                <input type="text" [(ngModel)]="row.title" (blur)="saveLayout()" class="row-title-input" placeholder="Chapter title..." />
+                <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-row-btn" (onClick)="removeRow(rowIndex)" pTooltip="Delete Row (merges books into previous row)"></p-button>
+                @if (selectedMoveCard) {
+                  <p-button icon="pi pi-download" label="Move Here" styleClass="p-button-success p-button-xs place-chapter-btn" (onClick)="placeCardInChapter(rowIndex)" pTooltip="Move picked up book to this chapter"></p-button>
+                }
+              } @else {
+                <h3 class="row-title">{{ row.title }}</h3>
+              }
+            </div>
 
-          <div
-            class="row-drop-list"
-            [class.edit-mode]="isEditMode"
-            cdkDropList
-            [cdkDropListData]="row.items"
-            cdkDropListOrientation="horizontal"
-            (cdkDropListDropped)="onDrop($event)">
-            
-            @if (row.items.length === 0) {
-              <div class="empty-row-placeholder">
-                <p>Drag books here to start a new section</p>
-              </div>
-            } @else {
-              @for (item of row.items; track item.bookId; let colIndex = $index) {
-                <div class="card-and-connector">
-                  <div
-                    class="comic-flow-card"
-                    [class.next-up]="item.bookId === getNextUpBookId() && !isEditMode"
-                    [class.tie-in]="!item.isCore"
-                    [class.read]="item.book?.readStatus === 'READ'"
-                    [class.draggable]="isEditMode"
-                    cdkDrag
-                    [cdkDragDisabled]="!isEditMode">
-                    
-                    <div class="comic-card-inner">
-                      <div class="cover-container" 
-                           role="button" 
-                           tabindex="0" 
-                           (click)="!isEditMode && item.book ? navigateToBook(item.book) : null"
-                           (keydown.enter)="!isEditMode && item.book ? navigateToBook(item.book) : null">
-                        <img [src]="getThumbnail(item.bookId)" alt="Cover" class="comic-cover-img" />
-                        
-                        @if (item.book?.readStatus === 'READ') {
-                          <div class="read-badge">
-                            <i class="pi pi-check"></i>
-                          </div>
-                        }
-
-                        @if (item.bookId === getNextUpBookId() && !isEditMode) {
-                          <div class="next-badge">
-                            <span>NEXT UP</span>
-                          </div>
-                        }
-
-                        @if (getProgressPercentage(item.book); as progress) {
-                          <div class="cover-progress-bar-container" [pTooltip]="progress + '% read'" tooltipPosition="top">
-                            <div class="cover-progress-bar" [style.width.%]="progress" [class.progress-complete]="progress === 100"></div>
-                          </div>
-                        }
-
-                        @if (isEditMode) {
-                          <div class="edit-overlay">
-                            <p-button icon="pi pi-times" styleClass="p-button-danger p-button-rounded remove-book-btn" (onClick)="removeBook(rowIndex, colIndex)" pTooltip="Remove from Arc"></p-button>
-                            <p-button [icon]="item.isCore ? 'pi pi-star-fill' : 'pi pi-star'" 
-                                    [styleClass]="item.isCore ? 'p-button-rounded core-toggle-btn active' : 'p-button-rounded core-toggle-btn'" 
-                                    (onClick)="toggleBookCore(rowIndex, colIndex)" 
-                                    [pTooltip]="item.isCore ? 'Core Issue' : 'Tie-in Issue'"></p-button>
-                            @if (rows.length > 1) {
-                              <p-select
-                                [options]="getChapterOptions()"
-                                optionLabel="label"
-                                optionValue="value"
-                                [ngModel]="rowIndex"
-                                (ngModelChange)="moveToChapter(rowIndex, colIndex, $event)"
-                                placeholder="Move..."
-                                styleClass="chapter-move-select"
-                                [pTooltip]="'Move to another chapter'"
-                                tooltipPosition="top">
-                              </p-select>
-                            }
-                          </div>
-                        }
-                      </div>
-
-                      <div class="card-details">
-                        <h4 class="book-title" [pTooltip]="item.book?.metadata?.title || 'Unknown Title'" tooltipPosition="top">
-                          {{ item.book?.metadata?.title || 'Unknown Title' }}
-                        </h4>
-                        <p class="book-series">
-                          {{ item.book?.metadata?.['series'] || 'No Series' }}
-                          @if (item.book?.metadata?.['issueNumber']) {
-                            #{{ item.book?.metadata?.['issueNumber'] }}
-                          }
-                        </p>
-                      </div>
-
-                      <!-- Mobile & Touch Sort Controls -->
-                      @if (isEditMode) {
-                        <div class="touch-sort-actions">
-                          <button class="sort-arrow" (click)="moveItem(rowIndex, colIndex, 'left')" pTooltip="Move Left" tooltipPosition="bottom">
-                            <i class="pi pi-angle-left"></i>
-                          </button>
-                          <button class="sort-arrow" (click)="moveItem(rowIndex, colIndex, 'up')" pTooltip="Move Up" tooltipPosition="bottom">
-                            <i class="pi pi-angle-up"></i>
-                          </button>
-                          <button class="sort-arrow" (click)="moveItem(rowIndex, colIndex, 'down')" pTooltip="Move Down" tooltipPosition="bottom">
-                            <i class="pi pi-angle-down"></i>
-                          </button>
-                          <button class="sort-arrow" (click)="moveItem(rowIndex, colIndex, 'right')" pTooltip="Move Right" tooltipPosition="bottom">
-                            <i class="pi pi-angle-right"></i>
-                          </button>
-                        </div>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- Connector arrow between books -->
-                  @if (colIndex < row.items.length - 1) {
-                    <div class="flow-connector horizontal-arrow">
-                      <div class="connector-line"></div>
-                      <i class="pi pi-chevron-right arrow-icon"></i>
-                    </div>
+            <div
+              class="row-drop-list"
+              [class.edit-mode]="isEditMode"
+              cdkDropList
+              [cdkDropListData]="row.items"
+              cdkDropListOrientation="horizontal"
+              (cdkDropListDropped)="onDrop($event)">
+              
+              @if (row.items.length === 0) {
+                <div class="empty-row-placeholder">
+                  <p>Drag books here to start a new section</p>
+                  @if (selectedMoveCard) {
+                    <p-button icon="pi pi-download" label="Place Selected Book Here" styleClass="p-button-success place-empty-btn" (onClick)="placeCardInChapter(rowIndex)"></p-button>
                   }
                 </div>
+              } @else {
+                @for (item of row.items; track item.bookId; let colIndex = $index) {
+                  <div class="card-and-connector">
+                    <div
+                      class="comic-flow-card"
+                      [class.next-up]="item.bookId === getNextUpBookId() && !isEditMode"
+                      [class.tie-in]="!item.isCore"
+                      [class.read]="item.book?.readStatus === 'READ'"
+                      [class.draggable]="isEditMode"
+                      [class.selected-for-move]="isCardSelected(rowIndex, colIndex)"
+                      cdkDrag
+                      [cdkDragDisabled]="!isEditMode">
+                      
+                      <div class="comic-card-inner">
+                        <div class="cover-container" 
+                             role="button" 
+                             tabindex="0" 
+                             (click)="!isEditMode && item.book ? navigateToBook(item.book) : null"
+                             (keydown.enter)="!isEditMode && item.book ? navigateToBook(item.book) : null">
+                          <img [src]="getThumbnail(item.bookId)" alt="Cover" class="comic-cover-img" />
+                          
+                          @if (item.book?.readStatus === 'READ') {
+                            <div class="read-badge">
+                              <i class="pi pi-check"></i>
+                            </div>
+                          }
+
+                          @if (item.bookId === getNextUpBookId() && !isEditMode) {
+                            <div class="next-badge">
+                              <span>NEXT UP</span>
+                            </div>
+                          }
+
+                          @if (getProgressPercentage(item.book); as progress) {
+                            <div class="cover-progress-bar-container" [pTooltip]="progress + '% read'" tooltipPosition="top">
+                              <div class="cover-progress-bar" [style.width.%]="progress" [class.progress-complete]="progress === 100"></div>
+                            </div>
+                          }
+
+                          <!-- Target Place Here Button when another card is picked up -->
+                          @if (selectedMoveCard && !isCardSelected(rowIndex, colIndex)) {
+                            <button class="place-here-target" (click)="placeCardBefore(rowIndex, colIndex)" [pTooltip]="'Insert selected book before this comic'" tooltipPosition="top">
+                              <i class="pi pi-download"></i>
+                              <span>Move Here</span>
+                            </button>
+                          }
+
+                          @if (isEditMode) {
+                            <div class="edit-overlay">
+                              <p-button icon="pi pi-times" styleClass="p-button-danger p-button-rounded remove-book-btn" (onClick)="removeBook(rowIndex, colIndex)" pTooltip="Remove from Arc"></p-button>
+                              <p-button [icon]="item.isCore ? 'pi pi-star-fill' : 'pi pi-star'" 
+                                      [styleClass]="item.isCore ? 'p-button-rounded core-toggle-btn active' : 'p-button-rounded core-toggle-btn'" 
+                                      (onClick)="toggleBookCore(rowIndex, colIndex)" 
+                                      [pTooltip]="item.isCore ? 'Core Issue' : 'Tie-in Issue'"></p-button>
+                              <p-button [icon]="isCardSelected(rowIndex, colIndex) ? 'pi pi-times' : 'pi pi-arrows-alt'"
+                                      [styleClass]="isCardSelected(rowIndex, colIndex) ? 'p-button-danger p-button-rounded' : 'p-button-secondary p-button-rounded'"
+                                      (onClick)="pickUpCard(rowIndex, colIndex)"
+                                      [pTooltip]="isCardSelected(rowIndex, colIndex) ? 'Cancel Pick Up' : 'Pick Up to Move'">
+                              </p-button>
+                              @if (rows.length > 1) {
+                                <p-select
+                                  [options]="getChapterOptions()"
+                                  optionLabel="label"
+                                  optionValue="value"
+                                  [ngModel]="rowIndex"
+                                  (ngModelChange)="moveToChapter(rowIndex, colIndex, $event)"
+                                  placeholder="Move..."
+                                  styleClass="chapter-move-select"
+                                  [pTooltip]="'Move to another chapter'"
+                                  tooltipPosition="top">
+                                </p-select>
+                              }
+                            </div>
+                          }
+                        </div>
+
+                        <div class="card-details">
+                          <h4 class="book-title" [pTooltip]="item.book?.metadata?.title || 'Unknown Title'" tooltipPosition="top">
+                            {{ item.book?.metadata?.title || 'Unknown Title' }}
+                          </h4>
+                          <p class="book-series">
+                            {{ item.book?.metadata?.['series'] || 'No Series' }}
+                            @if (item.book?.metadata?.['issueNumber']) {
+                              #{{ item.book?.metadata?.['issueNumber'] }}
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Connector arrow between books -->
+                    @if (colIndex < row.items.length - 1) {
+                      <div class="flow-connector horizontal-arrow">
+                        <div class="connector-line"></div>
+                        <i class="pi pi-chevron-right arrow-icon"></i>
+                      </div>
+                    }
+                  </div>
+                }
               }
-            }
+            </div>
           </div>
+
+          <!-- Inter-container reading flow node link arrow -->
+          @if (rowIndex < rows.length - 1) {
+            <div class="chapter-flow-connector" [pTooltip]="'Reading flow to next chapter'" tooltipPosition="top">
+              <div class="chapter-connector-line"></div>
+              <div class="chapter-connector-arrow">
+                <i class="pi pi-chevron-right"></i>
+              </div>
+            </div>
+          }
         </div>
       }
+    </div>
+  }
+
+  <!-- Floating Banner when a card is picked up -->
+  @if (selectedMoveCard) {
+    <div class="move-floating-banner">
+      <div class="banner-info">
+        <i class="pi pi-arrows-alt"></i>
+        <span>Moving: <strong>{{ selectedMoveCard.item.book?.metadata?.title || 'Selected Comic' }}</strong></span>
+      </div>
+      <p-button label="Cancel Move" icon="pi pi-times" styleClass="p-button-outlined p-button-sm p-button-secondary" (onClick)="cancelMoveCard()"></p-button>
     </div>
   }
 </div>
