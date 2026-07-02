@@ -31,11 +31,33 @@
     <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
       @for (row of rows; track row; let rowIndex = $index) {
         <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode">
+          
+          <!-- Drag Placeholder Landing Snap Box -->
+          <div class="chapter-drag-placeholder" *cdkDragPlaceholder>
+            <div class="placeholder-content">
+              <i class="pi pi-compass"></i>
+              <span>Chapter Target Destination</span>
+            </div>
+          </div>
+
+          <!-- Drag Preview Card -->
+          <div class="chapter-drag-preview" *cdkDragPreview>
+            <div class="preview-header">
+              <i class="pi pi-bars"></i>
+              <span>{{ row.title }}</span>
+            </div>
+            <div class="preview-badge">{{ row.items.length }} books</div>
+          </div>
+
           <div class="story-row-wrapper">
             <div class="row-header">
               @if (isEditMode) {
                 <div class="row-drag-handle" cdkDragHandle [pTooltip]="'Drag to reorder chapter'" tooltipPosition="top">
                   <i class="pi pi-bars"></i>
+                </div>
+                <div class="row-order-actions">
+                  <p-button icon="pi pi-chevron-up" styleClass="p-button-text p-button-secondary row-order-btn" (onClick)="moveRowOrder(rowIndex, 'up')" [disabled]="rowIndex === 0" pTooltip="Move Chapter Up"></p-button>
+                  <p-button icon="pi pi-chevron-down" styleClass="p-button-text p-button-secondary row-order-btn" (onClick)="moveRowOrder(rowIndex, 'down')" [disabled]="rowIndex === rows.length - 1" pTooltip="Move Chapter Down"></p-button>
                 </div>
                 <input type="text" [(ngModel)]="row.title" (blur)="saveLayout()" class="row-title-input" placeholder="Chapter title..." />
                 <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-row-btn" (onClick)="removeRow(rowIndex)" pTooltip="Delete Row (merges books into previous row)"></p-button>
@@ -168,10 +190,8 @@
           <!-- Inter-container reading flow node link arrow -->
           @if (rowIndex < rows.length - 1) {
             <div class="chapter-flow-connector" [pTooltip]="'Reading flow to next chapter'" tooltipPosition="top">
-              <div class="chapter-connector-line"></div>
-              <div class="chapter-connector-arrow">
-                <i class="pi pi-chevron-right"></i>
-              </div>
+              <div class="connector-line"></div>
+              <i class="pi pi-chevron-right arrow-icon"></i>
             </div>
           }
         </div>

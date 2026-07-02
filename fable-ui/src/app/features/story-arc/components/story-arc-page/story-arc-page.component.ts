@@ -136,6 +136,16 @@ export class StoryArcPageComponent implements OnInit {
     this.saveLayout();
   }
 
+  moveRowOrder(rowIndex: number, direction: 'up' | 'down'): void {
+    if (direction === 'up' && rowIndex > 0) {
+      moveItemInArray(this.rows, rowIndex, rowIndex - 1);
+      this.saveLayout();
+    } else if (direction === 'down' && rowIndex < this.rows.length - 1) {
+      moveItemInArray(this.rows, rowIndex, rowIndex + 1);
+      this.saveLayout();
+    }
+  }
+
   onDrop(event: CdkDragDrop<StoryArcBookMapping[]>): void {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
