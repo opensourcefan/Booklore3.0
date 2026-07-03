@@ -49,11 +49,11 @@
   } @else {
     <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
       
-      <!-- Story Arc Overview & Guide Card (styled like introductory chapter) -->
+      <!-- Story Arc Overview & Guide Card -->
       @if (externalUrl || summaryDescription) {
-        <div class="chapter-container-with-connector story-arc-overview-container">
-          <div class="story-row-wrapper overview-wrapper">
-            <div class="row-header overview-header">
+        <div class="story-arc-overview-container">
+          <div class="overview-wrapper">
+            <div class="overview-header">
               <div class="overview-title-badge">
                 <i class="pi pi-book"></i>
                 <span>STORY ARC OVERVIEW & GUIDE</span>
@@ -76,14 +76,6 @@
               </div>
             }
           </div>
-
-          <!-- Connector arrow pointing to Chapter 1 -->
-          @if (rows.length > 0) {
-            <div class="chapter-flow-connector" [pTooltip]="'Reading flow to first chapter'" tooltipPosition="top">
-              <div class="connector-line"></div>
-              <i class="pi pi-chevron-right arrow-icon"></i>
-            </div>
-          }
         </div>
       }
 

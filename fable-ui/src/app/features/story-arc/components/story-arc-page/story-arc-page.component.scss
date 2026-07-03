@@ -968,23 +968,25 @@
 
 /* Story Arc Overview & Guide Container */
 .story-arc-overview-container {
-  height: 310px !important;
-  min-height: 310px !important;
-  max-height: 310px !important;
-  width: auto !important;
-  min-width: 380px;
-  max-width: 720px;
-  flex: 0 1 auto !important;
+  width: fit-content !important;
+  max-width: 540px !important;
+  height: 309px !important;
+  min-height: 309px !important;
+  max-height: 309px !important;
+  flex: 0 0 auto !important;
   align-self: flex-start !important;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
 
   .overview-wrapper {
-    height: 310px !important;
-    min-height: 310px !important;
-    max-height: 310px !important;
-    flex: 1 1 auto;
+    width: 360px;
+    min-width: 360px;
+    max-width: 540px;
+    height: 309px !important;
+    min-height: 309px !important;
+    max-height: 309px !important;
+    flex: 0 0 auto !important;
     display: flex;
     flex-direction: column;
     background: linear-gradient(135deg, rgba(167, 139, 250, 0.08) 0%, rgba(244, 114, 182, 0.05) 100%);
