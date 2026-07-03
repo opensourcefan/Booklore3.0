@@ -1,0 +1,70 @@
+<div class="book-picker-dialog">
+  <div class="dialog-header">
+    <h2>Add Books to "{{ chapterTitle }}"</h2>
+    <p class="subtitle">Search and select books to add to this chapter</p>
+  </div>
+
+  <div class="search-bar">
+    <span class="p-input-icon-left">
+      <i class="pi pi-search search-icon"></i>
+      <input
+        type="text"
+        [ngModel]="searchTerm$ | async"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search books by title..."
+        class="search-input"
+      />
+    </span>
+  </div>
+
+  @if (selectedBookIds.size > 0) {
+    <div class="selected-count">
+      {{ selectedBookIds.size }} book{{ selectedBookIds.size === 1 ? '' : 's' }} selected
+    </div>
+  }
+
+  <div class="book-list-container">
+    @if (!loading) {
+      <div class="book-list">
+        @for (book of books; track book.id) {
+          <div
+            class="book-item"
+            [class.selected]="isSelected(book.id)"
+            (click)="toggleBook(book.id)"
+            (keydown.enter)="toggleBook(book.id)"
+            tabindex="0"
+            role="checkbox"
+            [attr.aria-checked]="isSelected(book.id)">
+            <div class="book-checkbox">
+              <i class="pi" [class.pi-check-circle]="isSelected(book.id)" [class.pi-circle]="!isSelected(book.id)"></i>
+            </div>
+            <img [src]="getThumbnail(book.id)" alt="" class="book-thumb" />
+            <div class="book-info">
+              <span class="book-title">{{ book.metadata?.title || 'Unknown Title' }}</span>
+              <span class="book-series">{{ book.metadata?.seriesName || 'No Series' }}
+                @if (book.metadata?.seriesNumber !== null && book.metadata?.seriesNumber !== undefined) {
+                  #{{ book.metadata?.seriesNumber }}
+                }
+              </span>
+            </div>
+          </div>
+        }
+        @if (books.length === 0) {
+          <div class="no-results">
+            <p>No books found. Try a different search term.</p>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Loading books...</p>
+      </div>
+    }
+  </div>
+
+  <div class="dialog-actions">
+    <p-button styleClass="p-button-outlined p-button-secondary" label="Cancel" (onClick)="cancel()"></p-button>
+    <p-button styleClass="p-button-success" label="Add Selected" (onClick)="confirm()" [disabled]="selectedBookIds.size === 0"></p-button>
+  </div>
+</div>

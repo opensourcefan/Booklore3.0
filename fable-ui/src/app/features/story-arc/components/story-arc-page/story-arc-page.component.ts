@@ -10,6 +10,7 @@ import {TooltipModule} from 'primeng/tooltip';
 import {FormsModule} from '@angular/forms';
 import {Select} from 'primeng/select';
 import {TieredMenu} from 'primeng/tieredmenu';
+import {DialogService} from 'primeng/dynamicdialog';
 
 import {StoryArcService} from '../../service/story-arc.service';
 import {StoryArcBookMapping, StoryArcLayoutUpdateRequest} from '../../model/story-arc.model';
@@ -19,6 +20,7 @@ import {BookPatchService} from '../../../book/service/book-patch.service';
 import {Book, ReadStatus} from '../../../book/model/book.model';
 import {ReadStatusHelper} from '../../../book/helpers/read-status.helper';
 import {readStatusLabels} from '../../../book/components/book-browser/book-filter/book-filter.config';
+import {StoryArcBookPickerComponent} from '../story-arc-book-picker/story-arc-book-picker.component';
 
 interface StoryArcRow {
   title: string;
@@ -44,7 +46,7 @@ interface StoryArcRow {
     Select,
     TieredMenu
   ],
-  providers: [MessageService, ConfirmationService]
+  providers: [MessageService, ConfirmationService, DialogService]
 })
 export class StoryArcPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -56,6 +58,7 @@ export class StoryArcPageComponent implements OnInit {
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private readStatusHelper = inject(ReadStatusHelper);
+  private dialogService = inject(DialogService);
   private cdr = inject(ChangeDetectorRef);
 
   arcName = '';
@@ -149,6 +152,96 @@ export class StoryArcPageComponent implements OnInit {
     if (this.rows.length === 0) {
       this.rows = [{ title: 'Chapter 1', items: [] }];
     }
+  }
+
+  // Phase 1E: Auto-organize books in row 0 by their series metadata
+  autoOrganizeBySeries(): void {
+    const row0 = this.rows[0];
+    if (!row0 || row0.items.length === 0) {
+      this.messageService.add({severity: 'info', summary: 'Nothing to organize', detail: 'No books found in the first chapter.'});
+      return;
+    }
+
+    // Group items by series from book metadata
+    const seriesGroups = new Map<string, StoryArcBookMapping[]>();
+    const unsorted: StoryArcBookMapping[] = [];
+
+    for (const item of row0.items) {
+      const series = item.book?.metadata?.seriesName?.trim();
+      if (series) {
+        if (!seriesGroups.has(series)) {
+          seriesGroups.set(series, []);
+        }
+        seriesGroups.get(series)!.push(item);
+      } else {
+        unsorted.push(item);
+      }
+    }
+
+    // Sort each series group by series number
+    for (const items of seriesGroups.values()) {
+      items.sort((a, b) => {
+        const aNum = a.book?.metadata?.seriesNumber;
+        const bNum = b.book?.metadata?.seriesNumber;
+        if (aNum != null && bNum != null) return Number(aNum) - Number(bNum);
+        if (aNum != null) return -1;
+        if (bNum != null) return 1;
+        return 0;
+      });
+    }
+
+    // Build new rows: sorted series groups first, then unsorted
+    const newRows: StoryArcRow[] = [];
+    const sortedSeries = Array.from(seriesGroups.keys()).sort((a, b) => a.localeCompare(b));
+
+    for (const series of sortedSeries) {
+      newRows.push({ title: series, items: seriesGroups.get(series)! });
+    }
+
+    if (unsorted.length > 0) {
+      newRows.push({ title: 'Unsorted', items: unsorted });
+    }
+
+    // Preserve any existing rows beyond row 0
+    for (let i = 1; i < this.rows.length; i++) {
+      newRows.push(this.rows[i]);
+    }
+
+    this.rows = newRows;
+    this.saveLayout();
+    this.messageService.add({severity: 'success', summary: 'Organized', detail: `Books grouped into ${seriesGroups.size} series chapter${seriesGroups.size !== 1 ? 's' : ''}.`});
+  }
+
+  // Phase 1F: Open book picker dialog to add books to a specific chapter
+  openBookPicker(rowIndex: number): void {
+    const row = this.rows[rowIndex];
+    const ref = this.dialogService.open(StoryArcBookPickerComponent, {
+      header: `Add Books to "${row.title}"`,
+      width: '550px',
+      modal: true,
+      data: { chapterTitle: row.title }
+    });
+
+    if (!ref) return;
+
+    ref.onClose.subscribe((result: { bookIds: number[] } | null) => {
+      if (result && result.bookIds && result.bookIds.length > 0) {
+        this.storyArcService.bulkAdd({
+          storyArcName: this.arcName,
+          bookIds: result.bookIds,
+          targetRowIndex: rowIndex,
+          rowTitle: row.title
+        }).subscribe({
+          next: () => {
+            this.loadLayout(true);
+            this.messageService.add({severity: 'success', summary: 'Added', detail: `Added ${result.bookIds.length} book${result.bookIds.length !== 1 ? 's' : ''} to "${row.title}".`});
+          },
+          error: () => {
+            this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to add books.'});
+          }
+        });
+      }
+    });
   }
 
   toggleEditMode(): void {

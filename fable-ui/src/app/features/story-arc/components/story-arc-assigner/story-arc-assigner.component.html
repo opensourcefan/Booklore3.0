@@ -24,10 +24,51 @@
           optionLabel="storyArcName"
           optionValue="storyArcName"
           [(ngModel)]="selectedArcName"
+          (ngModelChange)="onArcSelected($event)"
           placeholder="Choose an existing arc..."
           class="dialog-select"
         ></p-select>
       </div>
+
+      @if (selectedArcName) {
+        <div class="form-group">
+          <label for="chapter-select">Target Chapter (optional)</label>
+          <p-select
+            id="chapter-select"
+            inputId="chapter-select"
+            [options]="(chapterOptions$ | async) || []"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="targetChapterIndex"
+            (ngModelChange)="onChapterSelected($event)"
+            placeholder="Append to last chapter..."
+            class="dialog-select"
+          ></p-select>
+        </div>
+
+        @if (isNewChapter) {
+          <div class="form-group">
+            <label for="new-chapter-name">New Chapter Name</label>
+            <input
+              id="new-chapter-name"
+              pInputText
+              type="text"
+              [(ngModel)]="newChapterName"
+              placeholder="e.g., Tie-ins, Prelude..."
+              class="dialog-input"
+            />
+          </div>
+        }
+
+        <div class="form-group checkbox-group">
+          <p-checkbox
+            inputId="group-by-series"
+            [(ngModel)]="groupBySeries"
+            [binary]="true"
+          ></p-checkbox>
+          <label for="group-by-series">Auto-group by series into separate chapters</label>
+        </div>
+      }
     } @else {
       <div class="form-group">
         <label for="story-arc-name-input">Story Arc Name</label>

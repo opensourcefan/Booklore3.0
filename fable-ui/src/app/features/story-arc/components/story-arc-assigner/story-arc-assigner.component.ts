@@ -7,6 +7,8 @@ import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
+import {CheckboxModule} from 'primeng/checkbox';
+import {map, Observable, of} from 'rxjs';
 
 @Component({
   selector: 'app-story-arc-assigner',
@@ -18,7 +20,8 @@ import {Select} from 'primeng/select';
     FormsModule,
     Button,
     InputText,
-    Select
+    Select,
+    CheckboxModule
   ]
 })
 export class StoryArcAssignerComponent implements OnInit {
@@ -33,6 +36,15 @@ export class StoryArcAssignerComponent implements OnInit {
   selectedArcName = '';
   customArcName = '';
   isNewArc = false;
+  // Phase 2A: Chapter targeting
+  targetChapterIndex: number | null = null;
+  newChapterName = '';
+  isNewChapter = false;
+  // Phase 2B: Auto-group by series
+  groupBySeries = false;
+
+  // Chapter options for the selected arc
+  chapterOptions$: Observable<{ label: string; value: number }[]> = of([]);
 
   ngOnInit(): void {
     this.storyArcService.loadStoryArcs();
@@ -40,6 +52,48 @@ export class StoryArcAssignerComponent implements OnInit {
 
   toggleArcMode(isNew: boolean): void {
     this.isNewArc = isNew;
+    if (isNew) {
+      this.selectedArcName = '';
+      this.targetChapterIndex = null;
+      this.chapterOptions$ = of([]);
+    }
+  }
+
+  onArcSelected(arcName: string): void {
+    this.selectedArcName = arcName;
+    this.targetChapterIndex = null;
+    this.isNewChapter = false;
+    this.newChapterName = '';
+    // Load chapter options for the selected arc
+    this.chapterOptions$ = this.storyArcService.getStoryArc(arcName).pipe(
+      map(mappings => {
+        const realMappings = mappings.filter(m => m.bookId != null);
+        const rowMap = new Map<number, string>();
+        realMappings.forEach(m => {
+          const rIdx = m.rowIndex ?? 0;
+          if (!rowMap.has(rIdx)) {
+            rowMap.set(rIdx, m.rowTitle || `Chapter ${rIdx + 1}`);
+          }
+        });
+        const options = Array.from(rowMap.entries())
+          .sort(([a], [b]) => a - b)
+          .map(([idx, title]) => ({ label: title, value: idx }));
+        // Add "New Chapter" option
+        options.push({ label: '+ New Chapter', value: -1 });
+        return options;
+      })
+    );
+  }
+
+  onChapterSelected(value: number): void {
+    if (value === -1) {
+      this.isNewChapter = true;
+      this.targetChapterIndex = null;
+    } else {
+      this.isNewChapter = false;
+      this.targetChapterIndex = value;
+      this.newChapterName = '';
+    }
   }
 
   applyAssignment(): void {
@@ -50,10 +104,30 @@ export class StoryArcAssignerComponent implements OnInit {
     }
 
     const bookIdList = Array.from(this.bookIds);
-    this.storyArcService.bulkAdd({
+
+    // Build request with optional chapter targeting and auto-grouping
+    const request: {
+      storyArcName: string;
+      bookIds: number[];
+      targetRowIndex?: number;
+      rowTitle?: string;
+      groupBySeries?: boolean;
+    } = {
       storyArcName: name,
       bookIds: bookIdList
-    }).subscribe({
+    };
+
+    if (this.groupBySeries) {
+      request.groupBySeries = true;
+    } else if (this.isNewChapter && this.newChapterName.trim()) {
+      // Target a new chapter — backend will create it at the next available row index
+      request.targetRowIndex = -1; // signal to backend: create new row
+      request.rowTitle = this.newChapterName.trim();
+    } else if (this.targetChapterIndex != null && this.targetChapterIndex >= 0) {
+      request.targetRowIndex = this.targetChapterIndex;
+    }
+
+    this.storyArcService.bulkAdd(request).subscribe({
       next: () => {
         this.messageService.add({severity: 'success', summary: 'Success', detail: `Added ${bookIdList.length} books to "${name}"`});
         this.dynamicDialogRef.close({assigned: true});

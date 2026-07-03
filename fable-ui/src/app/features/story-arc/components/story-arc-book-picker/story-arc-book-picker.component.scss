@@ -1,0 +1,113 @@
+.book-picker-dialog {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 500px;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  color: #e0e0e0;
+}
+
+.dialog-header {
+  margin-bottom: 16px;
+  h2 { margin: 0 0 4px; font-size: 1.2em; color: #fff; }
+  .subtitle { margin: 0; font-size: 0.85em; color: #888; }
+}
+
+.search-bar {
+  margin-bottom: 12px;
+  .search-input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #12121f;
+    color: #e0e0e0;
+    font-size: 0.95em;
+    &::placeholder { color: #666; }
+  }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666; }
+}
+
+.selected-count {
+  font-size: 0.85em;
+  color: #4caf50;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.book-list-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 200px;
+  max-height: 400px;
+  border: 1px solid #2a2a3e;
+  border-radius: 8px;
+  background: #12121f;
+}
+
+.book-list {
+  padding: 4px;
+}
+
+.book-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: #1e1e35; }
+  &.selected { background: #1a3a2a; }
+
+  .book-checkbox {
+    font-size: 1.2em;
+    color: #666;
+    flex-shrink: 0;
+    .pi-check-circle { color: #4caf50; }
+  }
+
+  .book-thumb {
+    width: 40px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .book-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    .book-title {
+      font-size: 0.9em;
+      color: #e0e0e0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .book-series {
+      font-size: 0.78em;
+      color: #888;
+    }
+  }
+}
+
+.no-results, .loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+  gap: 8px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}

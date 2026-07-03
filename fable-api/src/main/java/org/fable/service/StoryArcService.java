@@ -121,40 +121,137 @@ public class StoryArcService {
         }
 
         List<StoryArcBookMappingEntity> existing = repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc(name);
-        int lastRowIndex = 0;
-        int lastColIndex = -1;
-        double lastSeq = 0.0;
-
-        if (!existing.isEmpty()) {
-            StoryArcBookMappingEntity lastItem = existing.get(existing.size() - 1);
-            lastRowIndex = lastItem.getRowIndex();
-            lastColIndex = lastItem.getColIndex();
-            lastSeq = lastItem.getSequenceOrder();
-        }
-
         Set<Long> alreadyMappedIds = existing.stream()
                 .map(StoryArcBookMappingEntity::getBookId)
                 .collect(Collectors.toSet());
 
-        for (Long bookId : request.getBookIds()) {
-            if (alreadyMappedIds.contains(bookId)) {
-                continue;
+        // Filter out already-mapped book IDs
+        List<Long> newBookIds = request.getBookIds().stream()
+                .filter(id -> !alreadyMappedIds.contains(id))
+                .toList();
+
+        if (newBookIds.isEmpty()) {
+            return;
+        }
+
+        // Determine the highest existing row index for appending
+        int maxExistingRowIndex = existing.stream()
+                .mapToInt(StoryArcBookMappingEntity::getRowIndex)
+                .max()
+                .orElse(-1);
+
+        if (Boolean.TRUE.equals(request.isGroupBySeries())) {
+            // Fetch book metadata to group by series
+            List<Book> books = bookService.getBooksByIds(new HashSet<>(newBookIds), false);
+            Map<Long, String> bookSeriesMap = new LinkedHashMap<>();
+            for (Book b : books) {
+                String series = (b.getMetadata() != null && b.getMetadata().getSeriesName() != null)
+                        ? b.getMetadata().getSeriesName().trim()
+                        : "Unsorted";
+                bookSeriesMap.put(b.getId(), series);
             }
 
-            lastColIndex++;
-            lastSeq += 1.0;
+            // Group book IDs by series, preserving insertion order within each group
+            Map<String, List<Long>> groupedBySeries = new LinkedHashMap<>();
+            for (Long bookId : newBookIds) {
+                String series = bookSeriesMap.getOrDefault(bookId, "Unsorted");
+                groupedBySeries.computeIfAbsent(series, k -> new ArrayList<>()).add(bookId);
+            }
 
-            StoryArcBookMappingEntity mapping = StoryArcBookMappingEntity.builder()
-                    .storyArcName(name)
-                    .storyArcId(arc.getId())
-                    .bookId(bookId)
-                    .rowIndex(lastRowIndex)
-                    .colIndex(lastColIndex)
-                    .sequenceOrder(lastSeq)
-                    .isCore(true)
-                    .build();
+            // Sort series groups alphabetically, but keep "Unsorted" last
+            List<String> sortedSeries = new ArrayList<>(groupedBySeries.keySet());
+            sortedSeries.sort((a, b) -> {
+                if ("Unsorted".equals(a)) return 1;
+                if ("Unsorted".equals(b)) return -1;
+                return a.compareToIgnoreCase(b);
+            });
 
-            repository.save(mapping);
+            int rowIdx = maxExistingRowIndex + 1;
+            double seq = existing.isEmpty() ? 0.0
+                    : existing.get(existing.size() - 1).getSequenceOrder();
+
+            for (String series : sortedSeries) {
+                List<Long> seriesBookIds = groupedBySeries.get(series);
+                int colIdx = 0;
+                for (Long bookId : seriesBookIds) {
+                    seq += 1.0;
+                    StoryArcBookMappingEntity mapping = StoryArcBookMappingEntity.builder()
+                            .storyArcName(name)
+                            .storyArcId(arc.getId())
+                            .bookId(bookId)
+                            .rowIndex(rowIdx)
+                            .colIndex(colIdx)
+                            .sequenceOrder(seq)
+                            .isCore(true)
+                            .rowTitle(series)
+                            .build();
+                    repository.save(mapping);
+                    colIdx++;
+                }
+                rowIdx++;
+            }
+        } else {
+            // Determine target row
+            int targetRowIndex;
+            String targetRowTitle = null;
+            int targetColIndex;
+            double targetSeq;
+
+            if (request.getTargetRowIndex() != null) {
+                if (request.getTargetRowIndex() == -1) {
+                    // Signal to create a new row at the end
+                    targetRowIndex = maxExistingRowIndex + 1;
+                    targetRowTitle = request.getRowTitle();
+                    targetColIndex = 0;
+                    targetSeq = existing.isEmpty() ? 0.0
+                            : existing.get(existing.size() - 1).getSequenceOrder();
+                } else {
+                    targetRowIndex = request.getTargetRowIndex();
+                    targetRowTitle = request.getRowTitle();
+                    // Find the last col/seq in the target row
+                    int maxCol = -1;
+                    double maxSeq = 0.0;
+                    for (StoryArcBookMappingEntity m : existing) {
+                        if (m.getRowIndex() == targetRowIndex) {
+                            if (m.getColIndex() > maxCol) maxCol = m.getColIndex();
+                            if (m.getSequenceOrder() > maxSeq) maxSeq = m.getSequenceOrder();
+                        }
+                    }
+                    targetColIndex = maxCol + 1;
+                    targetSeq = maxSeq > 0 ? maxSeq : (existing.isEmpty() ? 0.0
+                            : existing.get(existing.size() - 1).getSequenceOrder());
+                }
+            } else {
+                // Default: append to last row
+                if (!existing.isEmpty()) {
+                    StoryArcBookMappingEntity lastItem = existing.get(existing.size() - 1);
+                    targetRowIndex = lastItem.getRowIndex();
+                    targetColIndex = lastItem.getColIndex();
+                    targetSeq = lastItem.getSequenceOrder();
+                } else {
+                    targetRowIndex = 0;
+                    targetColIndex = -1;
+                    targetSeq = 0.0;
+                }
+            }
+
+            for (Long bookId : newBookIds) {
+                targetColIndex++;
+                targetSeq += 1.0;
+
+                StoryArcBookMappingEntity mapping = StoryArcBookMappingEntity.builder()
+                        .storyArcName(name)
+                        .storyArcId(arc.getId())
+                        .bookId(bookId)
+                        .rowIndex(targetRowIndex)
+                        .colIndex(targetColIndex)
+                        .sequenceOrder(targetSeq)
+                        .isCore(true)
+                        .rowTitle(targetRowTitle)
+                        .build();
+
+                repository.save(mapping);
+            }
         }
     }
 

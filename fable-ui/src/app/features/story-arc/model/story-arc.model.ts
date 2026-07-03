@@ -43,6 +43,12 @@ export interface StoryArcLayoutItem {
 export interface StoryArcBulkAddRequest {
   storyArcName: string;
   bookIds: number[];
+  /** Optional: target row index for chapter placement. If null, appends to last row. */
+  targetRowIndex?: number;
+  /** Optional: row title when creating a new chapter via targetRowIndex. */
+  rowTitle?: string;
+  /** Optional: if true, group books by their series metadata into separate chapters. */
+  groupBySeries?: boolean;
 }
 
 export interface StoryArcMetadataDto {
