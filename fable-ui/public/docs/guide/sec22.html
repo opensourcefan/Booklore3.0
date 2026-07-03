@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>22. Login Methods — Fable Familiarization Guide</title>
+<title>22. User Accounts & Profiles — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -637,7 +637,7 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-    <li><a href="sec1.html">1. What Is Fable?</a></li>
+        <li><a href="sec1.html">1. What Is Fable?</a></li>
     <li><a href="sec2.html">2. Getting Started</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
@@ -657,57 +657,89 @@
     <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
-    <li><a href="sec14.html">14. Metadata</a></li>
-    <li><a href="sec15.html">15. Metadata Manager</a></li>
-    <li><a href="sec16.html">16. Search and Filtering</a></li>
-    <li><a href="sec17.html">17. AI Panel Detection</a></li>
-    <li><a href="sec18.html">18. OPDS Feeds</a></li>
-    <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
-    <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
-    <li><a href="sec22.html" class="active">22. Login Methods</a></li>
-    <li><a href="sec23.html">23. Application Settings</a></li>
-    <li><a href="sec24.html">24. Background Tasks</a></li>
-    <li><a href="sec25.html">25. Backup and Restore</a></li>
-    <li><a href="sec26.html">26. Audit Logs</a></li>
-    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
-    <li><a href="sec28.html">28. Glossary</a></li>
-    <li><a href="sec29.html">29. Maintenance Log</a></li>
-    <li><a href="sec30.html">30. Story Arcs</a></li>
+    <li><a href="sec14.html">14. Story Arcs</a></li>
+    <li><a href="sec15.html">15. Metadata</a></li>
+    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec17.html">17. Search and Filtering</a></li>
+    <li><a href="sec18.html">18. AI Panel Detection</a></li>
+    <li><a href="sec19.html">19. OPDS Feeds</a></li>
+    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
+    <li><a href="sec21.html">21. Email</a></li>
+    <li><a href="sec22.html" class="active">22. User Accounts & Profiles</a></li>
+    <li><a href="sec23.html">23. Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec25.html">25. Background Tasks</a></li>
+    <li><a href="sec26.html">26. Backup and Restore</a></li>
+    <li><a href="sec27.html">27. Audit Logs</a></li>
+    <li><a href="sec28.html">28. Tips & Best Practices</a></li>
+    <li><a href="sec29.html">29. Glossary</a></li>
+    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
 </nav>
 <!-- ==================== SECTION 22 ==================== -->
-<h2 id="sec22">22. Login Methods <span class="section-icon"><i class="pi pi-lock"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Authentication tab</p>
+<h2 id="sec22">22. User Accounts and Permissions <span class="section-icon"><i class="pi pi-users"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Users tab (admin only <i class="pi pi-shield"></i>)</p>
 
-<p>Fable supports three ways to log in:</p>
+<p>Fable distinguishes between <strong>User Accounts</strong> (which manage your login credentials, roles, and permissions) and <strong>User Profiles</strong> (which store your individual reading progress, personal shelves, settings, and book statistics).</p>
 
-<h3>Local Password</h3>
-<p>The default method &mdash; log in with your username and password. Simplest option for personal use. Passwords are stored securely (hashed). Sessions use JWT tokens that auto-refresh.</p>
+<h3>User Roles</h3>
+<table>
+  <tr><th>Role</th><th>Access Level</th></tr>
+  <tr><td><i class="pi pi-shield"></i> <strong>Admin</strong></td><td>Full access to everything, including settings and user management</td></tr>
+  <tr><td><i class="pi pi-user"></i> <strong>Regular User</strong></td><td>Access to assigned libraries and personal features</td></tr>
+</table>
 
-<h3>OIDC (OpenID Connect)</h3>
-<p>Use a third-party identity provider (like PocketID, Keycloak, or Authentik) for single sign-on.</p>
+<h3>Permissions (Configurable per User)</h3>
+<table>
+  <tr><th>Permission</th><th>What It Allows</th></tr>
+  <tr><td><i class="pi pi-inbox"></i> BookDrop Access</td><td>Upload and import books through BookDrop</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> Metadata Editing</td><td>Fetch and edit book metadata</td></tr>
+  <tr><td><i class="pi pi-building"></i> Library Management</td><td>Create, modify, and delete libraries</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Book Deletion</td><td>Delete books (optionally from disk)</td></tr>
+  <tr><td><i class="pi pi-list-check"></i> Task Manager</td><td>View and run background tasks</td></tr>
+  <tr><td><i class="pi pi-history"></i> View Audit Logs</td><td>Access the audit log</td></tr>
+</table>
+
+<h3>What Admins Can Do</h3>
+<ul>
+  <li>Create, edit, and delete user accounts</li>
+  <li>Reset user passwords</li>
+  <li>Assign permissions to each user</li>
+  <li>Restrict users to specific libraries</li>
+  <li>Make shelves and magic shelves public</li>
+</ul>
+
+<h3>What Regular Users Can Do</h3>
+<ul>
+  <li>Read books in their assigned libraries</li>
+  <li>Create personal shelves and magic shelves</li>
+  <li>Manage their own bookmarks, annotations, and reading progress</li>
+  <li>Change their own password and profile</li>
+</ul>
+
+<h3>How to Set Up an Independent, Sandboxed Profile</h3>
+<p>To set up an independent profile for another person that is sandboxed (so they only see their own books and manage their own progress):</p>
 <ol>
-  <li>Configure the OIDC provider (create a client for Fable)</li>
-  <li>In Fable Settings &rarr; Authentication, enter the Client ID, Issuer URI, and JWKS URL</li>
-  <li>Enable OIDC</li>
-  <li>Users can now log in with the &ldquo;Login with [Provider]&rdquo; button</li>
+  <li><strong>Prepare Isolated Folders:</strong> Go to the host machine's filesystem where your Fable <code>docker-compose.yml</code> file is located. Navigate into the <code>books</code> directory (which is bind-mounted to <code>/books</code> inside the container). Inside this folder on your host machine, create a new subfolder for each user (e.g., <code>books/user1</code> and <code>books/user2</code>). <em>Tip: You do not need to edit your <code>docker-compose.yml</code> or restart Docker!</em> Because the parent <code>books</code> directory is already mounted, any subdirectories you create there are automatically and instantly visible inside the container at <code>/books/user1</code>, <code>/books/user2</code>, etc.</li>
+  <li><strong>Create the New Library:</strong> Log in as an Admin. Go to <strong>Settings <i class="pi pi-cog guide-icon-inline"></i> → Library Management</strong> and create a new library (e.g., "User 2 Books"). Point its paths to the isolated directory (e.g., <code>/books/user2</code>).</li>
+  <li><strong>Create the User Account:</strong> Go to <strong>Settings <i class="pi pi-cog guide-icon-inline"></i> → User Management</strong> and click <strong>Create User</strong>. Fill in their username, display name, and password.</li>
+  <li><strong>Restrict Library Access:</strong> In the library mapping settings for the new user, select only their library ("User 2 Books") and uncheck all others. Do not check the "Admin" role.</li>
+  <li><strong>Restrict Permissions:</strong> Keep the "Library Management" permission **disabled** for the new user. If they should not be allowed to delete files from disk, keep the "Book Deletion" permission **disabled** as well.</li>
 </ol>
 
-<h3>Forward Auth (Reverse Proxy)</h3>
-<p>If you run Fable behind a reverse proxy with an authentication layer (like Authelia), Fable can trust the proxy&rsquo;s authentication headers.</p>
-
 <div class="callout warning">
-  <strong>Be Careful:</strong>
+  <strong>Multi-Tenancy Caveats & Security Risks:</strong>
   <ul>
-    <li><strong>If using Forward Auth, NEVER expose Fable directly to the internet.</strong> Always route through your authenticated reverse proxy.</li>
-    <li><strong>OIDC requires correct URL configuration.</strong> Incorrect Issuer URI or JWKS URL will prevent login entirely.</li>
-    <li><strong>Test new authentication settings before disabling local login,</strong> or you may lock yourself out.</li>
+    <li>The <strong>&ldquo;Book Deletion&rdquo; permission allows permanent file deletion from disk.</strong> Only grant this to trusted users. You can disable deletion globally under Settings → File Management.</li>
+    <li><strong>Library Management permission</strong> allows creating and deleting libraries. If regular users have this, they can add folders mapping to other users' directories, breaking the sandbox. Keep this disabled.</li>
+    <li><strong>Admins bypass all sandboxes.</strong> Admin accounts automatically see and have full access to all libraries.</li>
+    <li><strong>Shared Container & Database.</strong> All profiles run in the same Docker container and write to the same MariaDB instance. There is no OS-level virtualization or network isolation between users.</li>
+    <li><strong>Shared Resources.</strong> Heavy backend tasks like directory rescans, metadata updates, and AI searches use shared server resources and may affect performance for other active sessions.</li>
   </ul>
 </div>
 <nav class="section-nav">
-  <a href="sec21.html" class="nav-link nav-prev">← Previous: 21. User Accounts &amp; Profiles</a>
-  <a href="sec23.html" class="nav-link nav-next">Next: 23. Application Settings →</a>
+  <a href="sec21.html" class="nav-link nav-prev">← Previous: 21. Email</a>
+  <a href="sec23.html" class="nav-link nav-next">Next: 23. Login Methods →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>

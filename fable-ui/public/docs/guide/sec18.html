@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>18. OPDS Feeds — Fable Familiarization Guide</title>
+<title>18. AI Panel Detection — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -637,7 +637,7 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-    <li><a href="sec1.html">1. What Is Fable?</a></li>
+        <li><a href="sec1.html">1. What Is Fable?</a></li>
     <li><a href="sec2.html">2. Getting Started</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
@@ -657,58 +657,62 @@
     <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
-    <li><a href="sec14.html">14. Metadata</a></li>
-    <li><a href="sec15.html">15. Metadata Manager</a></li>
-    <li><a href="sec16.html">16. Search and Filtering</a></li>
-    <li><a href="sec17.html">17. AI Panel Detection</a></li>
-    <li><a href="sec18.html" class="active">18. OPDS Feeds</a></li>
-    <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
-    <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
-    <li><a href="sec22.html">22. Login Methods</a></li>
-    <li><a href="sec23.html">23. Application Settings</a></li>
-    <li><a href="sec24.html">24. Background Tasks</a></li>
-    <li><a href="sec25.html">25. Backup and Restore</a></li>
-    <li><a href="sec26.html">26. Audit Logs</a></li>
-    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
-    <li><a href="sec28.html">28. Glossary</a></li>
-    <li><a href="sec29.html">29. Maintenance Log</a></li>
-    <li><a href="sec30.html">30. Story Arcs</a></li>
+    <li><a href="sec14.html">14. Story Arcs</a></li>
+    <li><a href="sec15.html">15. Metadata</a></li>
+    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec17.html">17. Search and Filtering</a></li>
+    <li><a href="sec18.html" class="active">18. AI Panel Detection</a></li>
+    <li><a href="sec19.html">19. OPDS Feeds</a></li>
+    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
+    <li><a href="sec21.html">21. Email</a></li>
+    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
+    <li><a href="sec23.html">23. Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec25.html">25. Background Tasks</a></li>
+    <li><a href="sec26.html">26. Backup and Restore</a></li>
+    <li><a href="sec27.html">27. Audit Logs</a></li>
+    <li><a href="sec28.html">28. Tips & Best Practices</a></li>
+    <li><a href="sec29.html">29. Glossary</a></li>
+    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
 </nav>
 <!-- ==================== SECTION 18 ==================== -->
-<h2 id="sec18">18. OPDS Feeds &mdash; E-Reader Integration <span class="section-icon"><i class="pi pi-wifi"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> OPDS tab</p>
+<h2 id="sec18">18. AI Comic Panel Detection <span class="section-icon"><i class="pi pi-sparkles"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Panel Detection tab, or inside CBX reader header <i class="pi pi-chevron-right"></i> AI menu</p>
+<p>When a comic has AI panel detection data, a <span class="guide-badge guide-badge-aip">AIP</span> badge appears on the book card overlay, similar to the <span class="guide-badge guide-badge-ais">AIS</span> badge for AI Search.</p>
 
-<p><strong>OPDS</strong> (Open Publication Distribution System) lets e-readers browse and download books directly from your Fable library.</p>
+<p>An <strong>optional</strong> feature that uses artificial intelligence to detect individual panels on comic book pages, enabling panel-by-panel reading.</p>
 
-<h3>How to Set Up</h3>
+<h3>How to Use</h3>
 <ol>
-  <li>Go to <strong>Settings &rarr; OPDS</strong></li>
-  <li>Copy your personal OPDS feed URL</li>
-  <li>Enter the URL in your e-reader&rsquo;s OPDS catalog settings</li>
+  <li>Enable AI in <strong>Settings &rarr; AI Panel Detection</strong></li>
+  <li>Wait for status to show &ldquo;READY&rdquo;</li>
+  <li>Open a comic in the reader</li>
+  <li>Click the AI button to scan the current book</li>
+  <li>Or use bulk scan from AI settings to process all comics at once</li>
 </ol>
 
 <h3>What You Can Do</h3>
 <ul>
-  <li>Browse your library from any OPDS-compatible e-reader or app</li>
-  <li>Download books directly to your e-reader</li>
-  <li>Search your catalog from the e-reader&rsquo;s search function</li>
-  <li>Access feeds by category: Libraries, Shelves, Magic Shelves, Series, Authors</li>
+  <li>Scan individual comics or bulk scan entire libraries</li>
+  <li>Delete panel data for specific comics</li>
+  <li>View statistics on scanned comics, including saved scan counts and stored AI panel-data size</li>
+  <li>Reload the AI model if it stops responding</li>
+  <li>Watch batch AI scan progress from the topbar, where the progress indicator automatically clears shortly after the scan completes</li>
 </ul>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
-  <li>Stream audiobooks via OPDS (downloads only)</li>
-  <li>Use OPDS to upload books to Fable (download only)</li>
+  <li>Use panel detection on non-comic formats</li>
+  <li>Guarantee 100% accurate panel detection &mdash; AI may occasionally miss or misidentify panels</li>
 </ul>
 
-<div class="callout warning">
-  <strong>Be Careful:</strong> Keep your OPDS token private. Anyone with the URL can access your library. If you change your token, all connected e-readers will need to be updated.
+<div class="callout">
+  <strong>Be Careful:</strong> AI processing uses significant CPU resources. Bulk scanning large collections may slow down your server. The AI container is optional &mdash; omit <code>COMPOSE_PROFILES=ai</code> from your environment to skip it entirely.
 </div>
 <nav class="section-nav">
-  <a href="sec17.html" class="nav-link nav-prev">← Previous: 17. AI Panel Detection</a>
-  <a href="sec19.html" class="nav-link nav-next">Next: 19. Kobo & KoReader Sync →</a>
+  <a href="sec17.html" class="nav-link nav-prev">← Previous: 17. Search and Filtering</a>
+  <a href="sec19.html" class="nav-link nav-next">Next: 19. OPDS Feeds →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>

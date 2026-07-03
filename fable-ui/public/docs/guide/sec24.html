@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>24. Background Tasks — Fable Familiarization Guide</title>
+<title>24. Application Settings — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -637,7 +637,7 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-    <li><a href="sec1.html">1. What Is Fable?</a></li>
+        <li><a href="sec1.html">1. What Is Fable?</a></li>
     <li><a href="sec2.html">2. Getting Started</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
@@ -657,81 +657,266 @@
     <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
-    <li><a href="sec14.html">14. Metadata</a></li>
-    <li><a href="sec15.html">15. Metadata Manager</a></li>
-    <li><a href="sec16.html">16. Search and Filtering</a></li>
-    <li><a href="sec17.html">17. AI Panel Detection</a></li>
-    <li><a href="sec18.html">18. OPDS Feeds</a></li>
-    <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
-    <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
-    <li><a href="sec22.html">22. Login Methods</a></li>
-    <li><a href="sec23.html">23. Application Settings</a></li>
-    <li><a href="sec24.html" class="active">24. Background Tasks</a></li>
-    <li><a href="sec25.html">25. Backup and Restore</a></li>
-    <li><a href="sec26.html">26. Audit Logs</a></li>
-    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
-    <li><a href="sec28.html">28. Glossary</a></li>
-    <li><a href="sec29.html">29. Maintenance Log</a></li>
-    <li><a href="sec30.html">30. Story Arcs</a></li>
+    <li><a href="sec14.html">14. Story Arcs</a></li>
+    <li><a href="sec15.html">15. Metadata</a></li>
+    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec17.html">17. Search and Filtering</a></li>
+    <li><a href="sec18.html">18. AI Panel Detection</a></li>
+    <li><a href="sec19.html">19. OPDS Feeds</a></li>
+    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
+    <li><a href="sec21.html">21. Email</a></li>
+    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
+    <li><a href="sec23.html">23. Login Methods</a></li>
+    <li><a href="sec24.html" class="active">24. Application Settings</a></li>
+    <li><a href="sec25.html">25. Background Tasks</a></li>
+    <li><a href="sec26.html">26. Backup and Restore</a></li>
+    <li><a href="sec27.html">27. Audit Logs</a></li>
+    <li><a href="sec28.html">28. Tips & Best Practices</a></li>
+    <li><a href="sec29.html">29. Glossary</a></li>
+    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
 </nav>
 <!-- ==================== SECTION 24 ==================== -->
-<h2 id="sec24">24. Background Tasks <span class="section-icon"><i class="pi pi-clock"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Tasks tab, or Topbar <i class="pi pi-chevron-right"></i> Task Manager <i class="pi pi-list-check"></i></p>
+<h2 id="sec24">24. Application Settings <span class="section-icon"><i class="pi pi-cog"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar bottom <i class="pi pi-chevron-right"></i> Settings <i class="pi pi-cog"></i></p>
 
-<p>Fable can run jobs in the background to maintain and update your library.</p>
+<p>Access settings via the gear <i class="pi pi-cog guide-icon-inline"></i> at the bottom of the sidebar.</p>
+
+<p>The main Settings page includes a compact <i class="pi pi-arrow-left guide-icon-inline"></i> left-arrow control in the top-right corner that returns you to the route you opened Settings from.</p>
 
 <table>
-  <tr><th>Task</th><th>What It Does</th></tr>
-  <tr><td><i class="pi pi-search"></i> Library Scan</td><td>Detect newly added book files</td></tr>
-  <tr><td><i class="pi pi-refresh"></i> Reconcile Library</td><td>Compare a library against disk and update library records to match</td></tr>
-  <tr><td><i class="pi pi-download"></i> Metadata Refresh</td><td>Re-fetch metadata from providers for existing books</td></tr>
-  <tr><td><i class="pi pi-trash"></i> Deleted Books Cleanup</td><td>Remove catalog entries for files that no longer exist on disk</td></tr>
-  <tr><td><i class="pi pi-eraser"></i> Temp Metadata Cleanup</td><td>Clear old cached metadata from previous searches</td></tr>
-  <tr><td><i class="pi pi-inbox"></i> BookDrop Scan</td><td>Check the BookDrop folder for new files</td></tr>
-  <tr><td><i class="pi pi-sync"></i> KEPUB Conversion</td><td>Convert book formats for e-reader compatibility</td></tr>
+  <tr><th>Category</th><th>What You Can Configure</th></tr>
+  <tr><td><i class="pi pi-book"></i> Reader Settings</td><td>Default font size, zoom, reading mode preferences</td></tr>
+  <tr><td><i class="pi pi-desktop"></i> View Preferences</td><td>Book grid layout, cover preview panel, toolbar customization</td></tr>
+  <tr><td><i class="pi pi-users"></i> User Management</td><td>Create/edit/delete users and their permissions</td></tr>
+  <tr><td><i class="pi pi-envelope"></i> Email</td><td>SMTP server for sending books via email</td></tr>
+  <tr><td><i class="pi pi-sitemap"></i> File Naming Patterns</td><td>How imported files are named and organized</td></tr>
+  <tr><td><i class="pi pi-sliders-h"></i> Metadata</td><td>Default metadata providers and API keys</td></tr>
+  <tr><td><i class="pi pi-save"></i> Metadata Persistence</td><td>Write metadata into files, manage automatic sidecars, and run a manual per-library sidecar backup even when automatic sidecars are disabled</td></tr>
+  <tr><td><i class="pi pi-file"></i> File Management</td><td>Control whether Fable is allowed to delete real files from disk during book-file deletion actions</td></tr>
+  <tr><td><i class="pi pi-database"></i> Library Metadata</td><td>Per-library metadata provider configuration</td></tr>
+  <tr><td><i class="pi pi-lock"></i> Authentication</td><td>OIDC and forward auth configuration</td></tr>
+  <tr><td><i class="pi pi-globe"></i> OPDS</td><td>E-reader feed configuration</td></tr>
+  <tr><td><i class="pi pi-list-check"></i> Tasks</td><td>Background task scheduling (cron jobs)</td></tr>
+  <tr><td><i class="pi pi-history"></i> Audit Logs</td><td>View user activity logs</td></tr>
+  <tr><td><i class="pi pi-eye"></i> AI Panel Detection</td><td>Enable/disable and manage comic panel AI</td></tr>
+  <tr><td><i class="pi pi-search"></i> AI Search Settings</td><td>AI model provider, API keys, external URL, saved LLM profiles, and advanced embedding, chunking, and retrieval parameters (BM25, Matryoshka, Reranking, RAG techniques)</td></tr>
+  <tr><td><i class="pi pi-cog"></i> Global Preferences</td><td>Theme palette, custom primary/surface colors, language, timezone, settings backup</td></tr>
 </table>
 
-<h3>Task Notifications</h3>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Notification Bell <i class="pi pi-bell"></i></p>
-<p>When a background task runs (whether scheduled or manual), Fable shows a live notification in the top bar bell icon <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i>. Key behaviors:</p>
+<p><strong>Good to Know:</strong> For CBR comics, embedded metadata writes are fastest when the Fable container has access to a compatible Linux <code>rar</code> binary. Without it, Fable may convert the archive to <code>.cbz</code> during a save-to-original-file operation.</p>
+
+<h4>Customizable Toolbar</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> View Preferences</p>
 <ul>
-  <li><strong>Persistent notifications</strong> &mdash; Task notifications are saved to the database, so they survive application restarts. You won't miss a completed scan or import even if you weren't logged in when it finished.</li>
-  <li><strong>Dismiss All</strong> &mdash; Click <strong>Dismiss All</strong> in the notification dropdown to clear your entire notification history at once.</li>
-  <li><strong>Zero-item suppression</strong> &mdash; If a scheduled task completes but found nothing to do (zero new files, zero items affected), Fable suppresses the notification so you only see actionable results.</li>
-  <li><strong>Auto-dismiss</strong> &mdash; The notification popover closes automatically when all notifications have been dismissed.</li>
-  <li><strong>Task label</strong> &mdash; Scheduled task notifications are labeled simply as <strong>Task</strong> followed by the task type and status (e.g., "Task Library Scan completed").</li>
+  <li><strong>Add or remove buttons</strong> &mdash; Choose which actions appear in the toolbar</li>
+  <li><strong>Reorder buttons</strong> &mdash; Drag and drop to rearrange</li>
+  <li><strong>Add separators</strong> &mdash; Insert visual dividers between button groups</li>
+  <li><strong>Keep a fullscreen toggle in the toolbar</strong> &mdash; Show or hide the fullscreen action like any other topbar button, and place it where it fits your layout best</li>
 </ul>
 
-<h3>What You Can Do</h3>
+<h4>Theme Colors</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Global Preferences</p>
 <ul>
-  <li>Run tasks manually &mdash; Start any task on demand</li>
-  <li>Schedule tasks &mdash; Set up automatic timing</li>
-  <li>Cancel running tasks</li>
-  <li>View task history and results</li>
-  <li>Use <strong>Library Settings</strong> to change library naming <i class="pi pi-cog guide-icon-inline"></i> and scan options without touching directories</li>
-  <li>Use <strong>Manage Directories</strong> to add or remove library paths with explicit directory-focused actions</li>
-  <li>Use <strong>Save & Scan New Directories</strong> when you want Fable to import only from the directories you just added instead of rescanning the entire library</li>
-  <li>Use <strong>Scan for New Files</strong> for safe additive discovery without a full reconcile</li>
-  <li>The library maintenance dialog requires explicit acknowledgement before running <strong>Reconcile Library</strong> to prevent accidental full-scans</li>
-  <li>Scheduled <strong>Library Scan</strong> jobs use the same safe additive discovery path as the manual <strong>Scan for New Files</strong> action</li>
-  <li>Use <strong>Library Maintenance</strong> when you intentionally want to reconcile a library or run library-wide sidecar rewrite/import tools</li>
-  <li>Monitor long-running directory-tagging follow-up work after imports, including the live status message and estimated time remaining when enough progress has been measured; additive scans limit that follow-up to newly imported books, while manual reconcile can still tag the whole library</li>
-  <li>Directory-tag rule changes affect future imports only; existing book tags are not retroactively modified</li>
+  <li><strong>Choose preset colors for the interface</strong> &mdash; The theme configurator lets you pick the accent color and the surface palette independently</li>
+  <li><strong>Use a color picker or paste a value</strong> &mdash; Both color controls accept a native color picker or a typed/pasted color such as <code>#ff6600</code></li>
+  <li><strong>Reset one side without resetting the other</strong> &mdash; Clear the custom primary or custom surface color independently if you want to go back to presets</li>
+  <li><strong>Keep your theme with your account</strong> &mdash; Theme selections are saved to your user settings so they return on later sign-ins</li>
 </ul>
 
-<div class="callout">
+<h3>AI Search & Embedding Tuning</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings</p>
+<p>Fable&rsquo;s AI Search is powered by two separate AI engines: an <strong>Embedding Engine</strong> that converts book text into searchable vectors, and an <strong>LLM (Large Language Model) Engine</strong> that generates natural-language answers to your queries. Both can run locally (via the bundled Ollama service inside the <code>fable-ai-search</code> Docker container) or connect to external cloud providers like OpenAI. The AI Search Settings page is organized into collapsible sections, each controlling a different aspect of the AI pipeline.</p>
+
+<h4>AI Search Status Panel</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> top of page</p>
+<p>The status panel shows the current state of the AI Search service at a glance:</p>
+<ul>
+  <li><strong>Service State</strong> &mdash; Displays <code>READY</code>, <code>STARTING</code>, <code>UNREACHABLE</code>, or <code>ERROR</code> with a color-coded status box (green/amber/red).</li>
+  <li><strong>Refresh</strong> <i class="pi pi-refresh guide-icon-inline"></i> &mdash; Manually re-check the service status.</li>
+  <li><strong>Startup Activity Log</strong> &mdash; Expandable panel showing a timeline of status checks, model path, whether the model file exists on disk, and any errors. Useful for diagnosing why the service isn&rsquo;t ready.</li>
+  <li><strong>Reload</strong> <i class="pi pi-refresh guide-icon-inline"></i> &mdash; Triggers a model reload on the AI Search service. Use this after changing the embedding model to force the service to pick up the new model without restarting the container.</li>
+  <li><strong>Docker Hint</strong> &mdash; If the service is unreachable and the endpoint looks like a Docker service name, a hint reminds you to ensure the <code>fable-ai-search</code> container is running.</li>
+</ul>
+
+<h4>LLM Configuration</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> LLM Configuration section</p>
+<p>The LLM (Large Language Model) is what generates the natural-language answers when you ask AI Search a question. This section controls which model to use and how to connect to it:</p>
+<ul>
+  <li><strong>Active LLM Profile</strong> &mdash; A dropdown listing all your saved profiles. Select one to instantly load its provider, model, API key, and tuning parameters. The currently active profile is highlighted. If no profile matches your current settings, the dropdown shows &ldquo;Custom Settings (No Profile).&rdquo;</li>
+  <li><strong>LLM Engine (Local / External)</strong> &mdash; Choose between:
+    <ul>
+      <li><strong>Local Ollama</strong> &mdash; Uses the bundled Ollama instance inside the <code>fable-ai-search</code> container. No API key needed.</li>
+      <li><strong>OpenAI Endpoint</strong> &mdash; Connects to OpenAI&rsquo;s API. Requires an API key and the base URL (<code>https://api.openai.com/v1</code>).</li>
+      <li><strong>Custom URL</strong> &mdash; Connects to any OpenAI-compatible API (e.g., Groq, Together, local LLM servers). Requires the full base URL.</li>
+      <li><strong>External Ollama</strong> &mdash; Connects to an Ollama instance running on another machine. Use <code>http://host.docker.internal:11434</code> for a host-machine Ollama.</li>
+    </ul>
+  </li>
+  <li><strong>LLM Model Name</strong> &mdash; For local Ollama, choose from preset models (<code>smollm2:360m</code>, <code>qwen2.5:1.5b</code>, <code>qwen2.5:3b</code>, <code>llama3.2:3b</code>) or type any model name from the Ollama registry. For external providers, type the model ID (e.g., <code>gpt-4o-mini</code>).</li>
+  <li><strong>LLM API Key</strong> &mdash; Required for external providers. Stored securely.</li>
+  <li><strong>External LLM URL</strong> &mdash; The base URL for the external API endpoint. Required for all non-local providers.</li>
+  <li><strong>Test Connection</strong> <i class="pi pi-bolt guide-icon-inline"></i> &mdash; Sends a test request to verify the LLM endpoint is reachable and the API key works.</li>
+  <li><strong>Downloaded Models</strong> &mdash; Right-side panel showing all LLM models currently downloaded in the local Ollama instance, with file sizes. Click a model name to prefill it into the LLM settings.</li>
+  <li><strong>Apply LLM Settings</strong> &mdash; Saves the LLM configuration. The button turns green when changes are detected.</li>
+</ul>
+
+<h4>Embedding Configuration</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Embedding Configuration (click to expand)</p>
+<p>The Embedding Engine converts book text into mathematical vectors that power semantic search. This section is collapsed by default with an orange warning header because changing the embedding model requires re-embedding all books:</p>
+<ul>
+  <li><strong>Embedding Engine (Local / External)</strong> &mdash; Same provider options as the LLM: Local Ollama, OpenAI, Custom URL, or External Ollama.</li>
+  <li><strong>Embedding Model Name</strong> &mdash; For local, choose from presets (<code>all-MiniLM-L6-v2</code>, <code>bge-base-en-v1.5</code>, <code>nomic-embed-text-v1.5</code>) or type any HuggingFace model ID. For external, enter the provider&rsquo;s embedding model name (e.g., <code>text-embedding-3-small</code>).</li>
+  <li><strong>Embedding API Key</strong> &mdash; Required for external providers.</li>
+  <li><strong>External Embedding URL</strong> &mdash; Base URL for the external embedding API.</li>
+  <li><strong>Test Connection</strong> <i class="pi pi-bolt guide-icon-inline"></i> &mdash; Verifies the embedding endpoint is reachable.</li>
+  <li><strong>Downloaded Models</strong> &mdash; Right-side panel listing all embedding models downloaded locally, with sizes and delete buttons.</li>
+  <li><strong>Embedding Statistics</strong> &mdash; Shows how many books are embedded with each model. If a model doesn&rsquo;t match the currently selected one, it shows a <strong>(Mismatch)</strong> warning in orange — those embeddings are stale and books need re-embedding.</li>
+  <li><strong>Apply Embedding Settings</strong> &mdash; If the provider or model changed, a confirmation dialog warns that all existing embeddings will be invalidated and books must be re-embedded.</li>
+</ul>
+
+<h4>Saved LLM Profiles</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Saved LLM Profiles</p>
+<p>Profiles let you save and switch between complete AI configurations instantly. Each profile stores: LLM provider, model, API key, external URL, Max Tokens, Temperature, and all RAG technique toggles.</p>
+<ul>
+  <li><strong>Save Profile</strong> <i class="pi pi-save guide-icon-inline"></i> &mdash; Opens a dialog where you name the profile. The name defaults to the current model name. The description is auto-generated from the provider type, temperature, and max tokens.</li>
+  <li><strong>Activate Profile</strong> &mdash; Click any saved profile in the dropdown to instantly load all its settings. The active profile is highlighted.</li>
+  <li><strong>Delete Profile</strong> <i class="pi pi-trash guide-icon-inline"></i> &mdash; Removes the selected profile. Does not affect current settings.</li>
+  <li><strong>Profile-Aware Save</strong> &mdash; When you save settings that match an existing profile, the profile selector updates to show that profile as active. When you change settings away from a profile, it switches to &ldquo;Custom Settings.&rdquo;</li>
+</ul>
+
+<h4>Search Tuning Parameters</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Search Tuning section</p>
+<p>These sliders control how the AI Search retrieves and presents results. Each has a range slider with &minus;/+ stepper buttons and a direct numeric input:</p>
+<ul>
+  <li><strong>Top K (1–50, default 5):</strong> How many context chunks to retrieve from the vector database. More chunks give the LLM richer context but increase processing time.</li>
+  <li><strong>Display Top K (1–50, default 1):</strong> How many raw results to show in the UI. Set this lower than Top K to give the LLM more context while showing only the best match to the user.</li>
+  <li><strong>Similarity Threshold (0.10–0.90, default 0.30):</strong> Minimum relevance score for a chunk to be included. Lower values return more results (some may be less relevant); higher values are stricter.</li>
+  <li><strong>Max Tokens (128–4096, default 768):</strong> Maximum length of the LLM&rsquo;s generated summary. Higher values produce longer answers but take more time and memory.</li>
+  <li><strong>Temperature (0.0–1.0, default 0.1):</strong> Controls randomness in the LLM output. 0.0 gives deterministic, focused answers. Higher values (0.5+) produce more creative and varied responses.</li>
+</ul>
+
+<h4>RAG Techniques</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> RAG Techniques section</p>
+<p>Retrieval-Augmented Generation (RAG) techniques enhance answer quality by adding processing steps between retrieval and response generation. Each technique has an independent toggle switch. <strong>Features that add LLM calls are automatically disabled when using a local LLM provider</strong> to avoid excessive latency on CPU-only hardware. They activate automatically when using an external (cloud) LLM.</p>
+<ul>
+  <li><strong>HyDE (Hypothetical Document Embeddings):</strong> Generates a synthetic ideal answer to your query, then uses that to find similar content. Especially effective for abstract or conceptual queries. <em>Adds 1 LLM call.</em></li>
+  <li><strong>Multi-Query Retrieval:</strong> Expands your single query into multiple variant queries and fuses the results for broader coverage. <em>Adds 1 LLM call + N retrievals.</em></li>
+  <li><strong>Query Decomposition:</strong> Breaks complex questions into simpler sub-questions, answers each one, then synthesizes a complete response. <em>Adds 1 LLM call + N retrievals.</em></li>
+  <li><strong>Self-Reflection:</strong> After generating an initial answer, the LLM critiques its own response and regenerates if issues are found. <em>Adds 1–2 LLM calls.</em></li>
+  <li><strong>Contextual Compression:</strong> Filters retrieved chunks to only the most relevant sentences before they reach the LLM, keeping responses focused. <em>No LLM calls — works with any provider.</em></li>
+</ul>
+
+<h4>OCR Settings</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> OCR section</p>
+<p>Optical Character Recognition (OCR) extracts text from scanned or image-only PDF pages during book embedding:</p>
+<ul>
+  <li><strong>Enable OCR</strong> &mdash; Master toggle. When on, Fable runs OCR on pages that have no extractable text layer.</li>
+  <li><strong>OCR Fallback Only</strong> &mdash; When enabled, OCR only runs on pages where no text could be extracted normally. This avoids unnecessary OCR processing on pages that already have text.</li>
+  <li><strong>OCR Language</strong> &mdash; Tesseract language code (default <code>eng</code>). Use three-letter codes like <code>fra</code> for French, <code>deu</code> for German, or <code>chi_sim</code> for Simplified Chinese.</li>
+</ul>
+
+<h4>Auto-Embed Libraries</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Auto-Embed section</p>
+<p>A multi-select dropdown listing all your libraries. Books imported into selected libraries are automatically queued for embedding in the background. If no libraries are selected, you must manually trigger embedding via the scan section below.</p>
+
+<h4>AI Search Scan</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Scan section</p>
+<p>This section lets you manually trigger embedding for books that don&rsquo;t yet have AI Search data:</p>
+<ul>
+  <li><strong>Directory Picker</strong> &mdash; Select which library directories to scan for unembedded books.</li>
+  <li><strong>Scan Now</strong> <i class="pi pi-bolt guide-icon-inline"></i> &mdash; Starts scanning the selected directories. Books found without embeddings are queued for processing.</li>
+  <li><strong>Progress Display</strong> &mdash; Shows a live progress box with status text (e.g., &ldquo;Processing book 12 of 45&rdquo;), error details if any, and a <strong>Stop</strong> button to cancel the scan.</li>
+  <li><strong>Stop</strong> <i class="pi pi-stop guide-icon-inline"></i> &mdash; Cancels the running scan. Already-processed books keep their embeddings.</li>
+</ul>
+
+<h4>Advanced Embedding & Retrieval Tuning</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning (click to expand)</p>
+<p>This collapsible section (orange header, collapsed by default) contains low-level tuning parameters for the embedding and retrieval pipeline. It includes an <strong>Auto-Fill Recommended Presets</strong> <i class="pi pi-sparkles guide-icon-inline"></i> button that loads optimal settings for your currently selected embedding model.</p>
+
+<div class="callout warning">
+  <strong>Be Careful:</strong> Modifying <strong>Chunk Size</strong>, <strong>Chunk Overlap</strong>, <strong>Semantic Chunking</strong>, or <strong>Matryoshka Dimensions</strong> changes how embeddings are structured. Saving changes to these settings will <strong>automatically delete all existing book embeddings</strong> and mark all books to be re-embedded. A confirmation dialog warns you before this happens. Search-only parameters (Hybrid Search or Reranking) do not invalidate existing embeddings.
+</div>
+
+<ul>
+  <li><strong>Chunk Size (500–8000, default 1500):</strong> Maximum characters per text chunk during embedding. Larger chunks preserve more context but reduce search precision. Models with wide context windows (like Nomic at 8k) benefit from larger values.</li>
+  <li><strong>Chunk Overlap (0–1000, default 100):</strong> How many characters overlap between consecutive chunks. Prevents key sentences from being cut at chunk boundaries.</li>
+  <li><strong>Semantic Chunking:</strong> Toggle + threshold slider (0.10–0.50). When enabled, Fable splits books at natural text boundaries (paragraphs, sections) rather than at fixed character counts. The threshold controls how aggressively it detects boundaries — lower values create more chunks.</li>
+  <li><strong>Matryoshka Dimensions:</strong> Dropdown (Disabled / 768 / 512 / 256 / 128). Supported by advanced models like Nomic, MRL allows slicing high-dimensional vectors down to fewer dimensions with almost no impact on retrieval accuracy. Slicing vectors and re-normalizing them speeds up cosine similarity comparisons on CPU by up to <strong>3×</strong>, saving significant memory.</li>
+  <li><strong>Hybrid Keyword Search (BM25 + Vector):</strong> Toggle + RRF K slider (10–200, default 60). Combines semantic vector similarity with traditional BM25 exact keyword matching using Reciprocal Rank Fusion. Highly effective at finding specific names, numbers, or technical codes that vector models might overlook.</li>
+  <li><strong>Cross-Encoder Reranking:</strong> Toggle + model selector dropdown. Runs a lightweight cross-encoder model (such as <code>BAAI/bge-reranker-base</code>) in a background thread. While standard bi-encoders retrieve candidate chunks quickly, a cross-encoder evaluates the exact match relation between the query and text for the top candidates. This brings GPU-grade search precision to CPU hardware in milliseconds because it only reranks a handful of candidates instead of the whole database.</li>
+</ul>
+
+<h4>CPU Optimization Presets</h4>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Search Settings <i class="pi pi-chevron-right"></i> Advanced Embedding & Retrieval Tuning <i class="pi pi-chevron-right"></i> Auto-Fill Recommended Presets</p>
+<p>To maximize search accuracy and inference speed without overloading system resources, refer to the following recommended configurations based on the selected embedding model. Click <strong>Auto-Fill Recommended Presets</strong> to apply these values automatically:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Model Configuration</th>
+      <th>Recommended Chunk Size</th>
+      <th>MRL Dimension</th>
+      <th>Hybrid Search (BM25)</th>
+      <th>Reranking</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <span style="display: inline-block; font-size: 8.5pt; font-family: monospace; font-weight: bold; background: rgba(59, 130, 246, 0.1); color: #1e3a8a; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(59, 130, 246, 0.2);">nomic-embed-text-v1.5</span><br>
+        <span style="font-size: 8pt; color: var(--muted);">The All-Rounder (8k context)</span>
+      </td>
+      <td><strong>3,000 – 8,000</strong> characters</td>
+      <td><strong>256</strong> or <strong>128</strong></td>
+      <td>Optional</td>
+      <td>Optional</td>
+    </tr>
+    <tr>
+      <td>
+        <span style="display: inline-block; font-size: 8.5pt; font-family: monospace; font-weight: bold; background: rgba(16, 185, 129, 0.1); color: #065f46; border: 1px solid rgba(16, 185, 129, 0.2); padding: 2px 6px; border-radius: 4px;">all-MiniLM-L6-v2</span><br>
+        <span style="font-size: 8pt; color: var(--muted);">The Speed Demon (512 context)</span>
+      </td>
+      <td><strong>1,000 – 1,500</strong> characters</td>
+      <td><strong>Disabled</strong> (0)</td>
+      <td>Recommended</td>
+      <td><strong>Enabled</strong> (Highly Recommended)</td>
+    </tr>
+    <tr>
+      <td>
+        <span style="display: inline-block; font-size: 8.5pt; font-family: monospace; font-weight: bold; background: rgba(139, 92, 246, 0.1); color: #5b21b6; border: 1px solid rgba(139, 92, 246, 0.2); padding: 2px 6px; border-radius: 4px;">bge-base-en-v1.5</span><br>
+        <span style="font-size: 8pt; color: var(--muted);">Standard/Enhanced (512 context)</span>
+      </td>
+      <td><strong>1,000 – 1,500</strong> characters</td>
+      <td><strong>Disabled</strong> (0)</td>
+      <td><strong>Enabled</strong></td>
+      <td>Optional</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout warning">
   <strong>Be Careful:</strong>
   <ul>
-    <li><strong>Reconcile Library on a very large library</strong> can take a long time and use significant resources.</li>
-    <li><strong>Reconcile Library</strong> may remove missing-file entries and purge disallowed formats; use <strong>Scan for New Files</strong> when you only want to import newly added content.</li>
-    <li><strong>Metadata Refresh</strong> makes network calls &mdash; running too frequently may cause rate limiting from providers.</li>
+    <li><strong>Changing authentication settings can lock you out.</strong> Test OIDC configuration before disabling local login.</li>
+    <li><strong>Settings export/import includes sensitive data</strong> (email credentials, API keys). Store exported files securely.</li>
+    <li><strong>Allow File Deletion is a hard safety gate.</strong> When it is off, Fable hides the <strong>Delete from Disk</strong> action, removes catalog associations only, and should not delete physical files from disk.</li>
+  </ul>
+</div>
+
+<div class="callout info">
+  <strong>Good to Know:</strong>
+  <ul>
+    <li><strong>The File Management toggle also protects additional attached files.</strong> When <strong>Allow File Deletion</strong> is disabled, deleting an attached file removes it from Fable without overriding the global disk-deletion block.</li>
+    <li><strong>Remove from Library is a durable hide action.</strong> When you remove a book without deleting its file, Fable keeps the file on disk but suppresses automatic re-import during later scans and watcher events.</li>
+    <li><strong>Automatic sidecars and manual sidecar backups are separate.</strong> You can keep automatic sidecar writing turned off and still run <strong>Back Up Sidecars per Library</strong> from Metadata Persistence when you want an on-demand metadata backup.</li>
+    <li><strong>The backup action is available in both LOCAL and NETWORK disk modes.</strong> Network mode blocks automatic rewrite and file reorganization, but the manual sidecar backup action remains available as an explicit exception.</li>
+    <li><strong>Running the backup again refreshes existing backup sidecars.</strong> Fable rewrites the selected library&rsquo;s sidecar files with the current database metadata instead of requiring you to delete old backups first.</li>
+    <li><strong>Manual sidecar backups show a light grey topbar working pill while they run.</strong> The message is intentionally simple because the backup call is usually brief, but it gives you immediate confirmation that the action started.</li>
   </ul>
 </div>
 <nav class="section-nav">
-  <a href="sec23.html" class="nav-link nav-prev">← Previous: 23. Application Settings</a>
-  <a href="sec25.html" class="nav-link nav-next">Next: 25. Backup and Restore →</a>
+  <a href="sec23.html" class="nav-link nav-prev">← Previous: 23. Login Methods</a>
+  <a href="sec25.html" class="nav-link nav-next">Next: 25. Background Tasks →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>

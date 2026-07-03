@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>17. AI Panel Detection — Fable Familiarization Guide</title>
+<title>17. Search and Filtering — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -637,7 +637,7 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-    <li><a href="sec1.html">1. What Is Fable?</a></li>
+        <li><a href="sec1.html">1. What Is Fable?</a></li>
     <li><a href="sec2.html">2. Getting Started</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
@@ -657,62 +657,137 @@
     <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
-    <li><a href="sec14.html">14. Metadata</a></li>
-    <li><a href="sec15.html">15. Metadata Manager</a></li>
-    <li><a href="sec16.html">16. Search and Filtering</a></li>
-    <li><a href="sec17.html" class="active">17. AI Panel Detection</a></li>
-    <li><a href="sec18.html">18. OPDS Feeds</a></li>
-    <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
-    <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
-    <li><a href="sec22.html">22. Login Methods</a></li>
-    <li><a href="sec23.html">23. Application Settings</a></li>
-    <li><a href="sec24.html">24. Background Tasks</a></li>
-    <li><a href="sec25.html">25. Backup and Restore</a></li>
-    <li><a href="sec26.html">26. Audit Logs</a></li>
-    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
-    <li><a href="sec28.html">28. Glossary</a></li>
-    <li><a href="sec29.html">29. Maintenance Log</a></li>
-    <li><a href="sec30.html">30. Story Arcs</a></li>
+    <li><a href="sec14.html">14. Story Arcs</a></li>
+    <li><a href="sec15.html">15. Metadata</a></li>
+    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec17.html" class="active">17. Search and Filtering</a></li>
+    <li><a href="sec18.html">18. AI Panel Detection</a></li>
+    <li><a href="sec19.html">19. OPDS Feeds</a></li>
+    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
+    <li><a href="sec21.html">21. Email</a></li>
+    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
+    <li><a href="sec23.html">23. Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec25.html">25. Background Tasks</a></li>
+    <li><a href="sec26.html">26. Backup and Restore</a></li>
+    <li><a href="sec27.html">27. Audit Logs</a></li>
+    <li><a href="sec28.html">28. Tips & Best Practices</a></li>
+    <li><a href="sec29.html">29. Glossary</a></li>
+    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
 </nav>
 <!-- ==================== SECTION 17 ==================== -->
-<h2 id="sec17">17. AI Comic Panel Detection <span class="section-icon"><i class="pi pi-eye"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> AI Panel Detection tab, or inside CBX reader header <i class="pi pi-chevron-right"></i> AI menu</p>
-<p>When a comic has AI panel detection data, a <span class="guide-badge guide-badge-aip">AIP</span> badge appears on the book card overlay, similar to the <span class="guide-badge guide-badge-ais">AIS</span> badge for AI Search.</p>
+<h2 id="sec17">17. Search and Filtering <span class="section-icon"><i class="pi pi-search"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Topbar search bar <i class="pi pi-search"></i>, or book browser filter sidebar <i class="pi pi-filter"></i></p>
 
-<p>An <strong>optional</strong> feature that uses artificial intelligence to detect individual panels on comic book pages, enabling panel-by-panel reading.</p>
+<h3>Global Search</h3>
+<p>Type in the search bar to find books across your entire collection by title, author name, description, or ISBN. The topbar search pulls lightweight server results as you type, so it stays responsive even before a large browser view has finished warming up.</p>
 
-<h3>How to Use</h3>
-<ol>
-  <li>Enable AI in <strong>Settings &rarr; AI Panel Detection</strong></li>
-  <li>Wait for status to show &ldquo;READY&rdquo;</li>
-  <li>Open a comic in the reader</li>
-  <li>Click the AI button to scan the current book</li>
-  <li>Or use bulk scan from AI settings to process all comics at once</li>
-</ol>
+<h3>AI Search</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> AI Search <i class="pi pi-sparkles"></i> sparkle icon, or Settings <i class="pi pi-chevron-right"></i> AI Search Settings</p>
+<p>If you have configured Fable with an AI model provider (or are using a built-in Fable Preset) <strong>and</strong> you have embedded books, you can leverage natural language search to find books based on themes, characters, concepts, or general queries. Books must be embedded first — see <a href="#embedding">What Is Embedding?</a> below. For full details on configuring AI providers, models, profiles, and tuning parameters, see <a href="#sec23">Section 23: Application Settings &rarr; AI Search & Embedding Tuning</a>.</p>
+<ul>
+  <li><strong>From Search Bars:</strong> Click the sparkly blue <strong>AI Search</strong> <i class="pi pi-sparkles guide-icon-inline" style="color:#00d2ff;"></i> located inside the topbar or library search input fields to open the AI Search Dialog and submit your query.</li>
+  <li><strong>From Book Cards:</strong> Look for the <strong><span class="guide-badge guide-badge-ais">AIS</span></strong> badge on individual books in your library. Clicking this badge will open AI Search directly on that specific book, allowing you to ask questions about its contents, summarize it, or explore its themes.</li>
+  <li><strong>Automatic Metadata Tagging:</strong> When a book is embedded for AI Search, the metadata tag <strong>"<span class="guide-badge guide-badge-ais">AIS</span>"</strong> is automatically applied. This allows you to easily filter, search, or create Magic Shelves for books that have embeddings. The tag is automatically removed if the book's embeddings are deleted.</li>
+</ul>
+
+<h4>What Is Embedding?</h4>
+<p>Think of <strong>embedding</strong> as Fable reading a book and creating a searchable "index card" for it. Just like a library card catalog lets you find books by topic without reading every page, Fable's AI reads your book's text, converts it into a mathematical representation (called a vector), and stores it in a database. When you ask a question like "find books with dragons," Fable compares your question against all those index cards to find the best matches — even if the word "dragon" never appears in the title or author fields. This is what makes AI Search so powerful: it understands <em>meaning</em>, not just keywords.</p>
+
+<p><strong>AIS Badge Color States</strong> — The <span class="guide-badge guide-badge-ais">AIS</span> badge on book cards changes appearance to tell you the embedding status at a glance:</p>
+<ul>
+  <li><span class="guide-badge guide-badge-ais">AIS</span> <strong>Cyan on black</strong> — Book is fully embedded and ready for AI Search. Click the badge to ask questions about this book.</li>
+  <li><span class="guide-badge guide-badge-ais-marked">AIS</span> <strong>Grey on grey</strong> — Book is <em>marked</em> for embedding but hasn't been processed yet. The AI service will pick it up on the next scan. Not clickable.</li>
+  <li><span class="guide-badge guide-badge-ais-mismatched">AIS</span> <strong>Orange on black</strong> — Book was embedded with a different AI model than the one currently configured. The embeddings are stale and the book needs to be re-embedded. Click to see which model was used.</li>
+</ul>
+
+<p><strong>Save to Notepad:</strong> When you find a useful AI response, you can click the "Add to Notepad" button to save that snippet into your Fable Notepad for future reference.</p>
+
+<p><strong>Sparkle Button Status Indicators</strong> — The sparkle <i class="pi pi-sparkles guide-icon-inline" style="color:#00d2ff;"></i> in the search bars uses color and animation to reflect the AI Search service state:</p>
+<ul>
+  <li><span style="color:#00d2ff;"><strong>Solid cyan</strong></span> — Service is ready. Click to open AI Search.</li>
+  <li><span style="color:#ffa726;"><strong>Flashing orange (800ms grey↔orange)</strong></span> — Service is warming up / downloading the embedding model. Wait for initialization.</li>
+  <li><span style="color:#ef4444;"><strong>Flashing red (800ms grey↔red)</strong></span> — Last search returned an error or no results. Click the sparkle to dismiss and retry.</li>
+  <li><span style="color:#ef4444;"><strong>Solid red</strong></span> — AI Search service is unreachable or encountered a fatal error. Check container logs.</li>
+  <li><span style="color:#00d2ff;"><strong>Flashing cyan (800ms grey↔cyan)</strong></span> — A search is currently in progress. Results will appear in the dialog when ready.</li>
+</ul>
+
+<div class="callout info">
+  <strong>Zero Configuration Needed:</strong>
+  <p>Fable comes with everything you need built-in! The AI search engine runs automatically inside its own secure container. You don't need to install any external software or configure network settings to get started. Just pick a preset in your <code>.env</code> file and enjoy.</p>
+  <p><strong>Configuration and tuning</strong> (LLM profiles, RAG techniques, embedding models, OCR, search parameters, and advanced retrieval settings) are covered in <a href="#sec23">Section 23: Application Settings &rarr; AI Search & Embedding Tuning</a>.</p>
+</div>
+
+<h3>Filters</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Book browser <i class="pi pi-chevron-right"></i> filter sidebar <i class="pi pi-filter"></i> (right side)</p>
+<table>
+  <tr><th>Filter</th><th>Options</th></tr>
+  <tr><td><i class="pi pi-building"></i> Library</td><td>Show books from a specific library only</td></tr>
+  <tr><td><i class="pi pi-folder"></i> Directory / Folder</td><td>Show books from a selected top-level folder or subfolder in the directory explorer</td></tr>
+  <tr><td><i class="pi pi-bookmark"></i> Shelf</td><td>Show books on a specific shelf</td></tr>
+  <tr><td><i class="pi pi-check-circle"></i> Reading status</td><td>Not Started, Reading, Completed, Abandoned</td></tr>
+  <tr><td><i class="pi pi-tag"></i> Media type</td><td>E-book, PDF, Comic, Audiobook, Physical, Custom types</td></tr>
+  <tr><td><i class="pi pi-user"></i> Author</td><td>Filter by specific author</td></tr>
+  <tr><td><i class="pi pi-objects-column"></i> Series</td><td>Filter by series</td></tr>
+  <tr><td><i class="pi pi-tag"></i> Genre / Category</td><td>Filter by genre or category tag</td></tr>
+  <tr><td><i class="pi pi-star"></i> Rating</td><td>Filter by your personal star rating</td></tr>
+  <tr><td><i class="pi pi-globe"></i> Language</td><td>Filter by book language</td></tr>
+</table>
 
 <h3>What You Can Do</h3>
 <ul>
-  <li>Scan individual comics or bulk scan entire libraries</li>
-  <li>Delete panel data for specific comics</li>
-  <li>View statistics on scanned comics, including saved scan counts and stored AI panel-data size</li>
-  <li>Reload the AI model if it stops responding</li>
-  <li>Watch batch AI scan progress from the topbar, where the progress indicator automatically clears shortly after the scan completes</li>
+  <li>Combine multiple filters (e.g., &ldquo;Unread comics in my Comics library&rdquo;)</li>
+  <li>Filter by real storage folders from the directory explorer while keeping your other filters active</li>
+  <li>Return from a folder-scoped browse by using the reset button beside the folder toggle or by clicking the same library or shelf again in the left sidebar, either of which clears that directory selection and restores the collection&rsquo;s normal title-aware view</li>
+  <li>Use <strong>Physical Books</strong> under HOME to jump straight to physical placeholders, then mix that view with other filters like library, shelf, and reading status as needed</li>
+  <li>Hover the filter-mode buttons to see what each mode does: <strong>AND</strong> requires every selected filter to match, <strong>OR</strong> accepts any selected match, <strong>NOT</strong> hides matches, and <strong>1</strong> keeps only one active selection at a time</li>
+  <li>Scroll the desktop filter sidebar as one continuous panel instead of fighting a second nested scrollbar inside long filter groups</li>
+  <li>Keep the desktop filter panel anchored flush to the right edge of its sidebar while you scroll and expand filter groups</li>
+  <li>Open <strong>All Books</strong>, a library, a shelf, or <strong>Not Shelved</strong> (listed as <strong>Not Shelfed</strong> in the sidebar menu) and start browsing from the first paged results immediately instead of waiting for Fable to preload the whole catalog in the background</li>
+  <li>Switch between libraries and shelves, including cached views reopened from the left sidebar, without manually refreshing or toggling the filter sort to repopulate metadata-backed sidebar filters such as authors, tags, series, publishers, and languages</li>
+  <li>Apply tag and other metadata edits without needing repeated browser refreshes before the right sidebar selections and facet counts catch up</li>
+  <li>Use the <strong>Date Added</strong> and <strong>Folder</strong> sidebar filters to narrow or exclude books by when they were imported or which directory they reside in, under every filter mode (AND, OR, NOT, 1)</li>
+  <li>Keep your filter sidebar visibility, filter sort mode, and expanded filter groups with your user account instead of one browser profile</li>
+  <li>Clear all filters with one click</li>
 </ul>
+
+<div class="callout info">
+  <strong>Sidebar Filtering Behavior</strong>
+  <ul>
+    <li><strong>Smart options narrowing:</strong> In <strong>AND</strong> mode, tag lists filter themselves to show only combinations that exist. Once you select a tag, only tags that still match at least one book remain visible.</li>
+    <li><strong>Mode switches:</strong> Changing filter modes (AND, OR, NOT, 1) clears your current selections to prevent old active selections from being reinterpreted under the new mode. The book browser and sidebar sync instantly on a single click.</li>
+    <li><strong>Live updates:</strong> Editing book tags or metadata updates the sidebar lists immediately, removing items and updating counts without requiring a manual page refresh. Selection highlights also treat equivalent numeric and text IDs as the same choice, preventing visual issues.</li>
+    <li><strong>Navigation:</strong> Expanding a new filter group keeps it open securely without snapping shut because the accordion state preserves single-panel changes. Right-edge count badges are neatly aligned with insets for cleaner readability.</li>
+  </ul>
+</div>
+
+<h3>Duplicate Review</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Library menu <i class="pi pi-chevron-right"></i> Duplicate Review</p>
+<p>Fable&rsquo;s duplicate finder is designed as a <strong>scoped review tool</strong>. Open it from a library menu, then choose whether to scan your <strong>current filtered view</strong>, the <strong>current library</strong>, or <strong>all libraries</strong>.</p>
+
+<div class="callout tip">
+  <strong>Sidecar Backups:</strong> Manual per-library sidecar backups cover all readable file formats (including EPUB, PDF, CBR, CBZ, and physical placeholders). If the server cannot write to the directory due to filesystem permissions, the error logs report the failed writes and details rather than showing a generic failure message.
+</div>
+
+<div class="callout tip">
+  <strong>Duplicate Review and Manual Plans</strong>
+  <ul>
+    <li><strong>Non-destructive:</strong> The duplicate review screen is intentionally non-destructive. It shows likely duplicate groups, highlights a suggested book to keep, lets you inspect another candidate side-by-side, and can open book details or launch a reader for digital files without deleting or merging anything.</li>
+    <li><strong>Targeted scans:</strong> Using the current filtered view lets you investigate duplicates only inside the slice you are already looking at, such as a single shelf, a search result, a folder, or a filtered library window, without scanning the rest of the collection.</li>
+    <li><strong>Save resolution plans:</strong> You can choose preferred keep actions, save the resolution plan to your account, and resume the review or download the report later. Queued duplicate-resolution plans follow your user account across devices.</li>
+    <li><strong>Custom matching:</strong> Choosing the <strong>Custom</strong> matching preset clears all matching signals first so you can define your scan rules from scratch.</li>
+  </ul>
+</div>
 
 <h3>What You Can&rsquo;t Do</h3>
 <ul>
-  <li>Use panel detection on non-comic formats</li>
-  <li>Guarantee 100% accurate panel detection &mdash; AI may occasionally miss or misidentify panels</li>
+  <li>Search inside book contents (search only covers metadata — unless using AI Search which does search book contents)</li>
+  <li>Save filter combinations as presets (use Magic Shelves instead)</li>
 </ul>
-
-<div class="callout">
-  <strong>Be Careful:</strong> AI processing uses significant CPU resources. Bulk scanning large collections may slow down your server. The AI container is optional &mdash; omit <code>COMPOSE_PROFILES=ai</code> from your environment to skip it entirely.
-</div>
 <nav class="section-nav">
-  <a href="sec16.html" class="nav-link nav-prev">← Previous: 16. Search and Filtering</a>
-  <a href="sec18.html" class="nav-link nav-next">Next: 18. OPDS Feeds →</a>
+  <a href="sec16.html" class="nav-link nav-prev">← Previous: 16. Metadata Manager</a>
+  <a href="sec18.html" class="nav-link nav-next">Next: 18. AI Panel Detection →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>

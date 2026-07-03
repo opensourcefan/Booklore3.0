@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>14. Metadata — Fable Familiarization Guide</title>
+<title>14. Story Arcs — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -637,7 +637,7 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-    <li><a href="sec1.html">1. What Is Fable?</a></li>
+        <li><a href="sec1.html">1. What Is Fable?</a></li>
     <li><a href="sec2.html">2. Getting Started</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
@@ -657,82 +657,146 @@
     <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
-    <li><a href="sec14.html" class="active">14. Metadata</a></li>
-    <li><a href="sec15.html">15. Metadata Manager</a></li>
-    <li><a href="sec16.html">16. Search and Filtering</a></li>
-    <li><a href="sec17.html">17. AI Panel Detection</a></li>
-    <li><a href="sec18.html">18. OPDS Feeds</a></li>
-    <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
-    <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
-    <li><a href="sec22.html">22. Login Methods</a></li>
-    <li><a href="sec23.html">23. Application Settings</a></li>
-    <li><a href="sec24.html">24. Background Tasks</a></li>
-    <li><a href="sec25.html">25. Backup and Restore</a></li>
-    <li><a href="sec26.html">26. Audit Logs</a></li>
-    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
-    <li><a href="sec28.html">28. Glossary</a></li>
-    <li><a href="sec29.html">29. Maintenance Log</a></li>
-    <li><a href="sec30.html">30. Story Arcs</a></li>
+    <li><a href="sec14.html" class="active">14. Story Arcs</a></li>
+    <li><a href="sec15.html">15. Metadata</a></li>
+    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec17.html">17. Search and Filtering</a></li>
+    <li><a href="sec18.html">18. AI Panel Detection</a></li>
+    <li><a href="sec19.html">19. OPDS Feeds</a></li>
+    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
+    <li><a href="sec21.html">21. Email</a></li>
+    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
+    <li><a href="sec23.html">23. Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec25.html">25. Background Tasks</a></li>
+    <li><a href="sec26.html">26. Backup and Restore</a></li>
+    <li><a href="sec27.html">27. Audit Logs</a></li>
+    <li><a href="sec28.html">28. Tips & Best Practices</a></li>
+    <li><a href="sec29.html">29. Glossary</a></li>
+    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
 </nav>
 <!-- ==================== SECTION 14 ==================== -->
-<h2 id="sec14">14. Metadata &mdash; Book Information <span class="section-icon"><i class="pi pi-tag"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Book detail page <i class="pi pi-chevron-right"></i> Metadata tab, or right-click a book <i class="pi pi-chevron-right"></i> Edit Metadata</p>
+<h2 id="sec14">14. Story Arcs &mdash; Guided Reading Paths <span class="section-icon"><i class="pi pi-compass"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Story Arcs</p>
 
-<p><strong>Metadata</strong> is all the information about a book: title, author, description, cover image, publication date, genre, ISBN, and more.</p>
+<p><strong>Story Arcs</strong> let you create guided reading paths through your collection. Instead of reading books in publication order or series order alone, you can arrange comics, graphic novels, and books into a custom chapter-by-chapter sequence that follows a specific storyline or crossover event.</p>
 
-<h3>Fetching Metadata from the Internet</h3>
+<h3>What Are Story Arcs?</h3>
+<p>A Story Arc is a curated reading order made up of <strong>chapters</strong> (rows) containing <strong>books</strong> (cards). Each chapter can represent a phase of the story, a collected edition, or a thematic grouping. Books within a chapter flow left-to-right, and chapters flow top-to-bottom with visual down-arrow connectors showing the reading path.</p>
+
+<p>Story Arcs are ideal for:</p>
+<ul>
+  <li><strong>Comic book crossover events</strong> &mdash; Arrange issues from multiple series into the correct reading order</li>
+  <li><strong>Shared universe reading orders</strong> &mdash; Follow a character or team across different titles</li>
+  <li><strong>Curated book lists</strong> &mdash; Create a guided journey through a genre, author, or theme</li>
+  <li><strong>Trade paperback contents</strong> &mdash; Document exactly which issues are collected in each volume</li>
+</ul>
+
+<h3>Browsing Story Arcs</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Story Arcs</p>
+<p>The <strong>Story Arcs</strong> page shows all your arcs as cards in a grid. Each card displays the arc name, the number of books it contains, your reading progress (how many books you have marked as read), and a cover thumbnail from the first book in the arc. Use the search bar at the top to filter arcs by name.</p>
+
+<h3>Viewing a Story Arc</h3>
+<p>Click any arc card to open its <strong>Reading Path</strong> view. This is the main workspace where you see all chapters and their books laid out in reading order.</p>
+
+<h4>Reading Path Layout</h4>
+<ul>
+  <li><strong>Chapters</strong> appear as labeled rows stacked vertically, connected by gradient down-arrow connectors</li>
+  <li><strong>Books</strong> appear as cover cards within each chapter, flowing left to right</li>
+  <li><strong>Core issues</strong> (solid border) are the main storyline; <strong>tie-in issues</strong> (dashed border, desaturated) are supplementary</li>
+  <li>The <strong>NEXT UP</strong> badge highlights the first unread book in the arc, with a glowing purple border</li>
+  <li>Click any book cover to open its detail page; hover for <strong>Details</strong> and <strong>Read</strong> buttons</li>
+</ul>
+
+<h4>About This Arc Panel</h4>
+<p>At the top of the reading path, a collapsible panel can show:</p>
+<ul>
+  <li>A <strong>summary description</strong> of the story arc</li>
+  <li>An <strong>external guide link</strong> &mdash; a URL to the original reading order source (e.g., ComicBookReadingOrders.com)</li>
+</ul>
+<p>Click the <strong>Guide</strong> button to open the external link in a new tab. The panel can be collapsed by clicking the header bar.</p>
+
+<h3>Creating a Story Arc</h3>
+<p>There are two ways to create a new Story Arc:</p>
+
+<h4>Method 1: From the Story Arcs Page</h4>
+<ol>
+  <li>Go to <strong>Story Arcs</strong> from the sidebar</li>
+  <li>Click the <strong>+ New Story Arc</strong> button in the header</li>
+  <li>Enter a name for the arc and click <strong>Create</strong></li>
+  <li>The new empty arc opens immediately in edit mode</li>
+</ol>
+
+<h4>Method 2: From the Book Browser</h4>
+<ol>
+  <li>Select one or more books in the book browser using the grid checkboxes</li>
+  <li>Click the <strong>Assign to Story Arc</strong> button in the selection toolbar</li>
+  <li>In the dialog, choose an existing arc or type a new arc name</li>
+  <li>Optionally select a target chapter or create a new one</li>
+  <li>Enable <strong>Auto-group by Series</strong> to automatically sort books into separate chapters by their series metadata</li>
+  <li>Click <strong>Apply</strong> to add the books</li>
+</ol>
+
+<h3>Editing a Story Arc</h3>
+<p>Click the <strong>Edit Layout</strong> button on any arc page to enter edit mode. In edit mode you can:</p>
+
 <table>
-  <tr><th>Action</th><th>Description</th></tr>
-  <tr><td><i class="pi pi-download"></i> Fetch metadata</td><td>Search online providers by title, author, or ISBN</td></tr>
-  <tr><td><i class="pi pi-link"></i> Use provider page URLs</td><td>Paste a provider page URL in metadata search (for example a ComicVine issue or volume page) to bias the match, resolve that item directly when supported, and for ComicVine volumes optionally enter an issue number or issue range (for example 46 or 43-171) to auto-resolve those issue pages</td></tr>
-  <tr><td><i class="pi pi-arrow-right"></i> Navigate selected books while searching</td><td>When editing multiple books, use the previous/next controls from the selected-result detail view to move through the group; Fable returns to that book&rsquo;s search results context before switching so you can continue review without losing place</td></tr>
-  <tr><td><i class="pi pi-eye"></i> Preview results</td><td>See what information was found before applying</td></tr>
-  <tr><td><i class="pi pi-check"></i> Apply selectively</td><td>Choose which fields to update</td></tr>
-  <tr><td><i class="pi pi-sync"></i> Replace all</td><td>Overwrite all metadata with fetched information</td></tr>
-  <tr><td><i class="pi pi-plus"></i> Merge</td><td>Keep your edits and fill in only the missing fields</td></tr>
-  <tr><td><i class="pi pi-image"></i> Fetch covers</td><td>Download book cover images</td></tr>
-  <tr><td><i class="pi pi-user"></i> Fetch author info</td><td>Download author biographies and photos</td></tr>
+  <tr><th>Action</th><th>How</th></tr>
+  <tr><td><i class="pi pi-pencil"></i> Rename a chapter</td><td>Type directly into the chapter title input field</td></tr>
+  <tr><td><i class="pi pi-plus"></i> Add a new chapter</td><td>Click <strong>Add Chapter</strong> in the header</td></tr>
+  <tr><td><i class="pi pi-times"></i> Remove a chapter</td><td>Click the <strong>X</strong> button on the chapter header (books merge into the previous chapter)</td></tr>
+  <tr><td><i class="pi pi-bars"></i> Reorder chapters</td><td>Drag the chapter by its handle, or use the up/down arrow buttons</td></tr>
+  <tr><td><i class="pi pi-plus"></i> Add books to a chapter</td><td>Click the <strong>+</strong> button on the chapter header to open the book picker dialog</td></tr>
+  <tr><td><i class="pi pi-times"></i> Remove a book</td><td>Hover over a book cover and click the red <strong>X</strong></td></tr>
+  <tr><td><i class="pi pi-star"></i> Toggle core/tie-in</td><td>Click the star button on a book cover to switch between core issue and tie-in</td></tr>
+  <tr><td><i class="pi pi-arrows-alt"></i> Move a book</td><td>Click the crosshair button to pick up a book, then click <strong>Move Here</strong> on any target card or chapter</td></tr>
+  <tr><td><i class="pi pi-sort-amount-down"></i> Auto-organize by series</td><td>Click <strong>Auto-Organize by Series</strong> to group books in the first chapter into separate chapters by their series metadata, sorted by issue number</td></tr>
 </table>
 
-<h3>Metadata Review Queue</h3>
+<h4>Drag and Drop</h4>
 <ul>
-  <li>The fetched-proposal dialog is titled <strong>Metadata Review</strong></li>
-  <li>In the Search Metadata detail comparison view, use the always-visible top control rail <i class="pi pi-angle-double-left guide-icon-inline"></i> buttons to copy missing fields or copy all fetched fields into the editable column</li>
-  <li>Use <strong>Skip</strong> to move the current proposal to the end of the current review queue and jump straight to the next proposal</li>
-  <li>Use the orange <strong>Copy All, Save & Next</strong> action in the top comparison header to run the common review routine in one step</li>
-  <li><strong>Accept & Save</strong> waits for the metadata save itself to finish before the proposal is marked accepted, keeping the review queue and saved data in sync</li>
-  <li>Use <strong>Tag & Next</strong> <i class="pi pi-tag guide-icon-inline"></i> to add the <strong>Metadata Follow-Up Req</strong> tag to the current asset and advance without accepting the fetched proposal</li>
-  <li>Use <strong>Discard</strong> <i class="pi pi-times guide-icon-inline"></i> from the topbar metadata-progress widget when you want to abandon the current review task; the matching task proposals are cleared and the live topbar notification is removed immediately</li>
-  <li>In Search Metadata detail mode, <strong>Lock All</strong> <i class="pi pi-lock guide-icon-inline"></i>, <strong>Unlock All</strong> <i class="pi pi-lock guide-icon-inline"></i>, and <strong>Save Changes</strong> <i class="pi pi-save guide-icon-inline"></i> stay pinned in the top control rail so they remain reachable while scrolling</li>
-  <li><strong>Finish & Close</strong> <i class="pi pi-check guide-icon-inline"></i> clears the matching topbar notification/task state when the review session is complete</li>
+  <li><strong>Within a chapter:</strong> Drag book cards left or right to reorder them</li>
+  <li><strong>Between chapters:</strong> Drag a book card from one chapter row into another</li>
+  <li><strong>Chapter reordering:</strong> Drag an entire chapter by its handle to change the chapter order</li>
 </ul>
 
-<h3>Editing Metadata Manually</h3>
+<h4>Chapter Sort Mode</h4>
+<p>Click the <strong>Chapter Sort</strong> button in the header to switch to a compact vertical list view. This mode hides the book cards and shows only chapter names with book counts, making it easy to reorder chapters by dragging or using the up/down arrow buttons. Click <strong>Card View</strong> to return to the full layout.</p>
+
+<h4>External Guide & Summary</h4>
+<p>In edit mode, a panel appears below the header where you can:</p>
 <ul>
-  <li>Edit title, author, description, and all other fields by hand</li>
-  <li>Upload a custom cover image</li>
-  <li>Add or change genres, categories, and moods</li>
-  <li>Set or update ISBN, publication date, and language</li>
-  <li>Restore an empty title from the primary filename with a dedicated metadata-editor button</li>
-  <li>Delete all editable metadata directly beside the fetch actions when you want to clear a book and immediately refetch it</li>
-  <li>Delete all editable metadata for a single book from the metadata editor when you want to start over cleanly</li>
-  <li>Create custom media types (Magazines, Textbooks, etc.)</li>
+  <li>Paste an <strong>external URL</strong> to a reading order guide (e.g., from ComicBookReadingOrders.com)</li>
+  <li>Write or paste a <strong>summary description</strong> of the story arc</li>
+  <li>Click <strong>Remove Overview</strong> to clear both the URL and description</li>
+</ul>
+<p>Fable can also attempt to <strong>scrape</strong> the title and description from supported guide websites when you paste a URL.</p>
+
+<h3>Reading Progress</h3>
+<ul>
+  <li>Each book card shows its read status with a colored indicator in the bottom-left corner</li>
+  <li>Click the indicator to open a menu where you can change the read status (Unread, Reading, Read)</li>
+  <li>A progress bar appears on books you have started but not finished</li>
+  <li>The <strong>NEXT UP</strong> badge automatically points to the first unread book in the arc</li>
+  <li>The Story Arcs browser page shows your overall completion percentage for each arc</li>
 </ul>
 
-<div class="callout warning">
-  <strong>Be Careful:</strong>
-  <ul>
-    <li><strong>&ldquo;Replace All&rdquo; overwrites everything,</strong> including any manual edits you&rsquo;ve made. Use &ldquo;Merge&rdquo; if you want to keep your changes.</li>
-    <li><strong>Fetched cover images may not match your edition.</strong> Review the cover before applying.</li>
-    <li><strong>ISBN lookup is the most reliable</strong> way to get accurate metadata. Use it when available.</li>
-    <li>You cannot undo a metadata overwrite once applied.</li>
-  </ul>
+<h3>Deleting a Story Arc</h3>
+<p>Click the red <strong>trash icon</strong> in the header of any arc page. You will be asked to confirm. Deleting an arc removes the reading path and all chapter organization, but does <strong>not</strong> delete the books themselves from your library.</p>
+
+<div class="callout tip">
+  <strong>Tip:</strong> Story Arcs are independent of shelves and series. A book can appear in multiple arcs, on multiple shelves, and in its regular series all at the same time. Use arcs for reading order guidance and shelves for general collection organization.
 </div>
+
+<div class="callout info">
+  <strong>Good to Know:</strong> Removing all books from a Story Arc does not delete the arc itself. The arc name, external guide link, and summary description are preserved so you can rebuild the reading path later.
+</div>
+
+<hr>
 <nav class="section-nav">
   <a href="sec13.html" class="nav-link nav-prev">← Previous: 13. Series and Authors</a>
-  <a href="sec15.html" class="nav-link nav-next">Next: 15. Metadata Manager →</a>
+  <a href="sec15.html" class="nav-link nav-next">Next: 15. Metadata →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>

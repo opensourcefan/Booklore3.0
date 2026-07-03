@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>25. Backup and Restore — Fable Familiarization Guide</title>
+<title>25. Background Tasks — Fable Familiarization Guide</title>
 <style>
   :root {
     color-scheme: dark;
@@ -637,7 +637,7 @@
 <nav id="sidebar-toc">
   <h2>Contents</h2>
   <ol>
-    <li><a href="sec1.html">1. What Is Fable?</a></li>
+        <li><a href="sec1.html">1. What Is Fable?</a></li>
     <li><a href="sec2.html">2. Getting Started</a></li>
     <li><a href="sec3.html">3. The Dashboard</a></li>
     <li><a href="sec4.html">4. Navigating the Interface</a></li>
@@ -657,68 +657,81 @@
     <li><a href="sec11.html">11. Bookmarks & Notebook</a></li>
     <li><a href="sec12.html">12. Reading Progress & Stats</a></li>
     <li><a href="sec13.html">13. Series and Authors</a></li>
-    <li><a href="sec14.html">14. Metadata</a></li>
-    <li><a href="sec15.html">15. Metadata Manager</a></li>
-    <li><a href="sec16.html">16. Search and Filtering</a></li>
-    <li><a href="sec17.html">17. AI Panel Detection</a></li>
-    <li><a href="sec18.html">18. OPDS Feeds</a></li>
-    <li><a href="sec19.html">19. Kobo & KoReader Sync</a></li>
-    <li><a href="sec20.html">20. Email</a></li>
-    <li><a href="sec21.html">21. User Accounts &amp; Profiles</a></li>
-    <li><a href="sec22.html">22. Login Methods</a></li>
-    <li><a href="sec23.html">23. Application Settings</a></li>
-    <li><a href="sec24.html">24. Background Tasks</a></li>
-    <li><a href="sec25.html" class="active">25. Backup and Restore</a></li>
-    <li><a href="sec26.html">26. Audit Logs</a></li>
-    <li><a href="sec27.html">27. Tips & Best Practices</a></li>
-    <li><a href="sec28.html">28. Glossary</a></li>
-    <li><a href="sec29.html">29. Maintenance Log</a></li>
-    <li><a href="sec30.html">30. Story Arcs</a></li>
+    <li><a href="sec14.html">14. Story Arcs</a></li>
+    <li><a href="sec15.html">15. Metadata</a></li>
+    <li><a href="sec16.html">16. Metadata Manager</a></li>
+    <li><a href="sec17.html">17. Search and Filtering</a></li>
+    <li><a href="sec18.html">18. AI Panel Detection</a></li>
+    <li><a href="sec19.html">19. OPDS Feeds</a></li>
+    <li><a href="sec20.html">20. Kobo & KoReader Sync</a></li>
+    <li><a href="sec21.html">21. Email</a></li>
+    <li><a href="sec22.html">22. User Accounts & Profiles</a></li>
+    <li><a href="sec23.html">23. Login Methods</a></li>
+    <li><a href="sec24.html">24. Application Settings</a></li>
+    <li><a href="sec25.html" class="active">25. Background Tasks</a></li>
+    <li><a href="sec26.html">26. Backup and Restore</a></li>
+    <li><a href="sec27.html">27. Audit Logs</a></li>
+    <li><a href="sec28.html">28. Tips & Best Practices</a></li>
+    <li><a href="sec29.html">29. Glossary</a></li>
+    <li><a href="sec30.html">30. Maintenance Log</a></li>
   </ol>
 </nav>
 <!-- ==================== SECTION 25 ==================== -->
-<h2 id="sec25">25. Backup and Restore <span class="section-icon"><i class="pi pi-database"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Backups tab, or Docker command line</p>
+<h2 id="sec25">25. Background Tasks <span class="section-icon"><i class="pi pi-clock"></i></span></h2>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Tasks tab, or Topbar <i class="pi pi-chevron-right"></i> Task Manager <i class="pi pi-list-check"></i></p>
 
-<p>Protecting your Fable data requires backing up <strong>two things</strong>:</p>
+<p>Fable can run jobs in the background to maintain and update your library.</p>
 
-<h3>1. Application Settings (Database)</h3>
-
-<h4>Quick Export (Settings Only)</h4>
-<ol>
-  <li>Go to <strong>Settings &rarr; Global Preferences &rarr; Settings Transfer</strong></li>
-  <li>Click <strong>Export</strong></li>
-  <li>Save the downloaded JSON file</li>
-</ol>
-<p>This exports libraries, users, shelves, metadata settings, and preferences.</p>
-
-<h4>Full Database Backup (Recommended)</h4>
-<p>For complete protection (including all book metadata, reading progress, annotations, and shelf assignments), use a database dump:</p>
-<pre><code>docker exec mariadb mariadb-dump \
-  --single-transaction --quick --no-tablespaces \
-  -u root -p"YOUR_ROOT_PASSWORD" \
-  fable > fable_backup.sql</code></pre>
-
-<h3>2. Book Files and Data</h3>
 <table>
-  <tr><th>What to Back Up</th><th>Folder</th></tr>
-  <tr><td><i class="pi pi-book"></i> Book files</td><td><code>./books/</code></td></tr>
-  <tr><td><i class="pi pi-image"></i> Covers, thumbnails, and images</td><td><code>./data/</code></td></tr>
-  <tr><td><i class="pi pi-inbox"></i> BookDrop inbox</td><td><code>./bookdrop/</code></td></tr>
+  <tr><th>Task</th><th>What It Does</th></tr>
+  <tr><td><i class="pi pi-search"></i> Library Scan</td><td>Detect newly added book files</td></tr>
+  <tr><td><i class="pi pi-refresh"></i> Reconcile Library</td><td>Compare a library against disk and update library records to match</td></tr>
+  <tr><td><i class="pi pi-download"></i> Metadata Refresh</td><td>Re-fetch metadata from providers for existing books</td></tr>
+  <tr><td><i class="pi pi-trash"></i> Deleted Books Cleanup</td><td>Remove catalog entries for files that no longer exist on disk</td></tr>
+  <tr><td><i class="pi pi-eraser"></i> Temp Metadata Cleanup</td><td>Clear old cached metadata from previous searches</td></tr>
+  <tr><td><i class="pi pi-inbox"></i> BookDrop Scan</td><td>Check the BookDrop folder for new files</td></tr>
+  <tr><td><i class="pi pi-sync"></i> KEPUB Conversion</td><td>Convert book formats for e-reader compatibility</td></tr>
 </table>
 
-<div class="callout warning">
+<h3>Task Notifications</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Notification Bell <i class="pi pi-bell"></i></p>
+<p>When a background task runs (whether scheduled or manual), Fable shows a live notification in the top bar bell icon <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i>. Key behaviors:</p>
+<ul>
+  <li><strong>Persistent notifications</strong> &mdash; Task notifications are saved to the database, so they survive application restarts. You won't miss a completed scan or import even if you weren't logged in when it finished.</li>
+  <li><strong>Dismiss All</strong> &mdash; Click <strong>Dismiss All</strong> in the notification dropdown to clear your entire notification history at once.</li>
+  <li><strong>Zero-item suppression</strong> &mdash; If a scheduled task completes but found nothing to do (zero new files, zero items affected), Fable suppresses the notification so you only see actionable results.</li>
+  <li><strong>Auto-dismiss</strong> &mdash; The notification popover closes automatically when all notifications have been dismissed.</li>
+  <li><strong>Task label</strong> &mdash; Scheduled task notifications are labeled simply as <strong>Task</strong> followed by the task type and status (e.g., "Task Library Scan completed").</li>
+</ul>
+
+<h3>What You Can Do</h3>
+<ul>
+  <li>Run tasks manually &mdash; Start any task on demand</li>
+  <li>Schedule tasks &mdash; Set up automatic timing</li>
+  <li>Cancel running tasks</li>
+  <li>View task history and results</li>
+  <li>Use <strong>Library Settings</strong> to change library naming <i class="pi pi-cog guide-icon-inline"></i> and scan options without touching directories</li>
+  <li>Use <strong>Manage Directories</strong> to add or remove library paths with explicit directory-focused actions</li>
+  <li>Use <strong>Save & Scan New Directories</strong> when you want Fable to import only from the directories you just added instead of rescanning the entire library</li>
+  <li>Use <strong>Scan for New Files</strong> for safe additive discovery without a full reconcile</li>
+  <li>The library maintenance dialog requires explicit acknowledgement before running <strong>Reconcile Library</strong> to prevent accidental full-scans</li>
+  <li>Scheduled <strong>Library Scan</strong> jobs use the same safe additive discovery path as the manual <strong>Scan for New Files</strong> action</li>
+  <li>Use <strong>Library Maintenance</strong> when you intentionally want to reconcile a library or run library-wide sidecar rewrite/import tools</li>
+  <li>Monitor long-running directory-tagging follow-up work after imports, including the live status message and estimated time remaining when enough progress has been measured; additive scans limit that follow-up to newly imported books, while manual reconcile can still tag the whole library</li>
+  <li>Directory-tag rule changes affect future imports only; existing book tags are not retroactively modified</li>
+</ul>
+
+<div class="callout">
   <strong>Be Careful:</strong>
   <ul>
-    <li><strong>Settings export does NOT include reading progress, annotations, or book files.</strong> For full protection, do a database dump AND file backup.</li>
-    <li><strong>Store backups in a separate location</strong> from your Fable server.</li>
-    <li><strong>Test your backups periodically.</strong> A backup you&rsquo;ve never tested is a backup you can&rsquo;t trust.</li>
-    <li>The <strong>Settings &rarr; Backups &rarr; Sidecar</strong> view keeps a recent run history for the selected library. You can review up to the last <strong>10</strong> manual sidecar backup runs, showing their status, timestamp, and the user who triggered the run.</li>
+    <li><strong>Reconcile Library on a very large library</strong> can take a long time and use significant resources.</li>
+    <li><strong>Reconcile Library</strong> may remove missing-file entries and purge disallowed formats; use <strong>Scan for New Files</strong> when you only want to import newly added content.</li>
+    <li><strong>Metadata Refresh</strong> makes network calls &mdash; running too frequently may cause rate limiting from providers.</li>
   </ul>
 </div>
 <nav class="section-nav">
-  <a href="sec24.html" class="nav-link nav-prev">← Previous: 24. Background Tasks</a>
-  <a href="sec26.html" class="nav-link nav-next">Next: 26. Audit Logs →</a>
+  <a href="sec24.html" class="nav-link nav-prev">← Previous: 24. Application Settings</a>
+  <a href="sec26.html" class="nav-link nav-next">Next: 26. Backup and Restore →</a>
 </nav>
 <p style="text-align:center; font-size:9pt; color:#888; margin-top:2em;">
   <em>Fable 3.0 Familiarization Guide &mdash; Maintained as part of the Fable documentation.</em><br>
