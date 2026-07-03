@@ -105,13 +105,9 @@
         }
       </div>
     } @else {
-    <div class="metro-line-container">
-      <div class="metro-route-line"></div>
       <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
       @for (row of rows; track row; let rowIndex = $index) {
         <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode">
-          <div class="metro-station-dot"></div>
-          <div class="metro-spur-line"></div>
           
           <!-- Drag Placeholder Landing Snap Box -->
           <div class="chapter-drag-placeholder" *cdkDragPlaceholder>
@@ -292,8 +288,13 @@
           </div>
 
         </div>
+        @if (rowIndex < rows.length - 1) {
+          <div class="chapter-flow-connector">
+            <div class="connector-line"></div>
+            <i class="pi pi-chevron-down arrow-icon"></i>
+          </div>
+        }
       }
-    </div>
     </div>
     }
   }
