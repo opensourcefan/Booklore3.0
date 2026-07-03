@@ -105,9 +105,13 @@
         }
       </div>
     } @else {
-    <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
+    <div class="metro-line-container">
+      <div class="metro-route-line"></div>
+      <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
       @for (row of rows; track row; let rowIndex = $index) {
         <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode">
+          <div class="metro-station-dot"></div>
+          <div class="metro-spur-line"></div>
           
           <!-- Drag Placeholder Landing Snap Box -->
           <div class="chapter-drag-placeholder" *cdkDragPlaceholder>
@@ -281,28 +285,15 @@
                       </div>
                     </div>
 
-                    <!-- Connector arrow between books -->
-                    @if (colIndex < row.items.length - 1) {
-                      <div class="flow-connector horizontal-arrow">
-                        <div class="connector-line"></div>
-                        <i class="pi pi-chevron-right arrow-icon"></i>
-                      </div>
-                    }
                   </div>
                 }
               }
             </div>
           </div>
 
-          <!-- Inter-chapter downward flow arrow -->
-          @if (rowIndex < rows.length - 1) {
-            <div class="chapter-flow-connector" [pTooltip]="'Continue to next chapter'" tooltipPosition="top">
-              <div class="connector-line"></div>
-              <i class="pi pi-chevron-down arrow-icon"></i>
-            </div>
-          }
         </div>
       }
+    </div>
     </div>
     }
   }

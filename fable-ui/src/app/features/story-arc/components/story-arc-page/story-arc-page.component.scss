@@ -167,6 +167,48 @@
     }
   }
 
+  /* Metro Line Route System */
+  .metro-line-container {
+    position: relative;
+    padding-left: 2.5rem;
+  }
+
+  .metro-route-line {
+    position: absolute;
+    left: 1rem;
+    top: 1.5rem;
+    bottom: 1.5rem;
+    width: 3px;
+    background: linear-gradient(180deg, #a78bfa 0%, #c084fc 30%, #f472b6 70%, #fb7185 100%);
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
+    z-index: 0;
+  }
+
+  .metro-station-dot {
+    position: absolute;
+    left: -1.75rem;
+    top: 1.75rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #a78bfa;
+    border: 2px solid #1a1a2e;
+    box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
+    z-index: 2;
+  }
+
+  .metro-spur-line {
+    position: absolute;
+    left: -1.75rem;
+    top: 1.75rem;
+    width: 1.75rem;
+    height: 2px;
+    background: #a78bfa;
+    opacity: 0.5;
+    z-index: 1;
+  }
+
   .rows-container {
     display: flex;
     flex-wrap: wrap;
