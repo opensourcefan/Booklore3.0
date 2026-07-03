@@ -429,7 +429,7 @@ export class StoryArcPageComponent implements OnInit {
 
   hasDigitalFile(book: Book | undefined): boolean {
     if (!book) return false;
-    return !!(book.fileType || book.filePath);
+    return !!(book.primaryFile || book.fileType || book.filePath || !book.isPhysical);
   }
 
   readBook(event: MouseEvent, book: Book | undefined): void {
