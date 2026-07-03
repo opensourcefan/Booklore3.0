@@ -15,13 +15,19 @@
 
   .page-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    margin-bottom: 3rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+
+    .header-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
 
     .header-left {
       display: flex;
@@ -602,21 +608,20 @@
     padding: 1rem;
 
     .page-header {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 1rem;
+      gap: 0.75rem;
       margin-bottom: 2rem;
+
+      .header-top-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+      }
 
       .header-left {
         gap: 0.75rem;
         flex-wrap: wrap;
         .title-section h1 {
           font-size: 1.75rem;
-        }
-        .header-overview {
-          margin-left: 0;
-          max-width: 100%;
-          width: 100%;
         }
       }
 
@@ -626,6 +631,11 @@
           flex: 1;
           justify-content: center;
         }
+      }
+
+      .header-overview {
+        flex-direction: column;
+        gap: 0.5rem;
       }
     }
 
@@ -972,75 +982,22 @@
   }
 }
 
-/* Story Arc Overview & Guide — now in page header */
+/* Story Arc Overview — full-width below title row */
 .header-overview {
   display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-left: auto;
-  max-width: 480px;
-  flex-shrink: 0;
-
-  .overview-title-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(90deg, #a78bfa 0%, #f472b6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-    font-size: 0.85rem;
-    letter-spacing: 0.04em;
-
-    i {
-      color: #a78bfa;
-      -webkit-text-fill-color: initial;
-    }
-  }
-
-  .header-overview-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    .external-guide-link-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.3rem 0.75rem;
-      border-radius: 9999px;
-      background: rgba(167, 139, 250, 0.15);
-      border: 1px solid rgba(167, 139, 250, 0.35);
-      color: #a78bfa;
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-
-      &:hover {
-        background: rgba(167, 139, 250, 0.3);
-        color: #fff;
-        box-shadow: 0 0 12px rgba(167, 139, 250, 0.5);
-      }
-    }
-
-    .remove-summary-btn {
-      padding: 0.2rem 0.4rem !important;
-
-      i {
-        font-size: 0.9rem;
-      }
-    }
-  }
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0 0 0;
 
   .overview-text {
-    color: #e2e8f0;
-    font-size: 0.88rem;
-    line-height: 1.5;
+    flex: 1 1 auto;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    line-height: 1.55;
     margin: 0;
     white-space: pre-line;
-    max-height: 120px;
+    max-height: 4.65em; // ~3 lines
     overflow-y: auto;
 
     &::-webkit-scrollbar {
@@ -1049,6 +1006,45 @@
     &::-webkit-scrollbar-thumb {
       background: rgba(167, 139, 250, 0.4);
       border-radius: 4px;
+    }
+  }
+
+  .overview-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    padding-top: 0.1rem;
+
+    .external-guide-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(167, 139, 250, 0.12);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+      color: #a78bfa;
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(167, 139, 250, 0.3);
+        color: #fff;
+        box-shadow: 0 0 10px rgba(167, 139, 250, 0.4);
+      }
+    }
+
+    .remove-summary-btn {
+      width: 28px;
+      height: 28px;
+      padding: 0 !important;
+
+      i {
+        font-size: 0.85rem;
+      }
     }
   }
 }

@@ -3,46 +3,43 @@
   <p-confirmDialog></p-confirmDialog>
 
   <div class="page-header">
-    <div class="header-left">
-      <p-button icon="pi pi-arrow-left" styleClass="p-button-text back-btn" routerLink="/story-arcs" pTooltip="Back to Story Arcs"></p-button>
-      <div class="title-section">
-        <h1>{{ arcName }}</h1>
-        <p class="subtitle">Story Arc Reading Path</p>
+    <div class="header-top-row">
+      <div class="header-left">
+        <p-button icon="pi pi-arrow-left" styleClass="p-button-text back-btn" routerLink="/story-arcs" pTooltip="Back to Story Arcs"></p-button>
+        <div class="title-section">
+          <h1>{{ arcName }}</h1>
+          <p class="subtitle">Story Arc Reading Path</p>
+        </div>
       </div>
-      @if (externalUrl || summaryDescription) {
-        <div class="header-overview">
-          <div class="overview-title-badge">
-            <i class="pi pi-book"></i>
-            <span>STORY ARC OVERVIEW & GUIDE</span>
-          </div>
-          <div class="header-overview-actions">
-            @if (externalUrl) {
-              <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide webpage'" tooltipPosition="top">
-                <span>View Official Guide</span>
-                <i class="pi pi-external-link"></i>
-              </a>
-            }
-            @if (isEditMode) {
-              <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-summary-btn" (onClick)="clearSummaryContainer()" pTooltip="Remove Overview & Guide"></p-button>
-            }
-          </div>
-          @if (summaryDescription) {
-            <p class="overview-text">{{ summaryDescription }}</p>
+      <div class="header-right">
+        @if (isEditMode) {
+          <p-button icon="pi pi-plus" styleClass="p-button-outlined p-button-secondary action-btn" label="Add Chapter" (onClick)="addRow()"></p-button>
+          <p-button icon="pi pi-times" styleClass="p-button-outlined p-button-secondary action-btn" label="Cancel Edit" (onClick)="cancelEdit()"></p-button>
+        }
+        <p-button [icon]="isEditMode ? 'pi pi-check' : 'pi pi-pencil'"
+                [styleClass]="isEditMode ? 'p-button-success action-btn' : 'p-button-outlined p-button-primary action-btn'"
+                [label]="isEditMode ? 'Finish Layout' : 'Edit Layout'"
+                (onClick)="toggleEditMode()"></p-button>
+        <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-outlined action-btn" (onClick)="deleteStoryArc($event)" pTooltip="Delete Story Arc"></p-button>
+      </div>
+    </div>
+    @if (externalUrl || summaryDescription) {
+      <div class="header-overview">
+        @if (summaryDescription) {
+          <p class="overview-text">{{ summaryDescription }}</p>
+        }
+        <div class="overview-footer">
+          @if (externalUrl) {
+            <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide webpage'" tooltipPosition="top">
+              <i class="pi pi-external-link"></i>
+            </a>
+          }
+          @if (isEditMode) {
+            <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text p-button-sm remove-summary-btn" (onClick)="clearSummaryContainer()" pTooltip="Remove Overview & Guide"></p-button>
           }
         </div>
-      }
-    </div>
-    <div class="header-right">
-      @if (isEditMode) {
-        <p-button icon="pi pi-plus" styleClass="p-button-outlined p-button-secondary action-btn" label="Add Chapter" (onClick)="addRow()"></p-button>
-        <p-button icon="pi pi-times" styleClass="p-button-outlined p-button-secondary action-btn" label="Cancel Edit" (onClick)="cancelEdit()"></p-button>
-      }
-      <p-button [icon]="isEditMode ? 'pi pi-check' : 'pi pi-pencil'"
-              [styleClass]="isEditMode ? 'p-button-success action-btn' : 'p-button-outlined p-button-primary action-btn'"
-              [label]="isEditMode ? 'Finish Layout' : 'Edit Layout'"
-              (onClick)="toggleEditMode()"></p-button>
-      <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-outlined action-btn" (onClick)="deleteStoryArc($event)" pTooltip="Delete Story Arc"></p-button>
-    </div>
+      </div>
+    }
   </div>
 
   @if (isEditMode) {
