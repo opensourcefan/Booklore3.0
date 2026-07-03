@@ -9,6 +9,28 @@
         <h1>{{ arcName }}</h1>
         <p class="subtitle">Story Arc Reading Path</p>
       </div>
+      @if (externalUrl || summaryDescription) {
+        <div class="header-overview">
+          <div class="overview-title-badge">
+            <i class="pi pi-book"></i>
+            <span>STORY ARC OVERVIEW & GUIDE</span>
+          </div>
+          <div class="header-overview-actions">
+            @if (externalUrl) {
+              <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide webpage'" tooltipPosition="top">
+                <span>View Official Guide</span>
+                <i class="pi pi-external-link"></i>
+              </a>
+            }
+            @if (isEditMode) {
+              <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-summary-btn" (onClick)="clearSummaryContainer()" pTooltip="Remove Overview & Guide"></p-button>
+            }
+          </div>
+          @if (summaryDescription) {
+            <p class="overview-text">{{ summaryDescription }}</p>
+          }
+        </div>
+      }
     </div>
     <div class="header-right">
       @if (isEditMode) {
@@ -48,37 +70,6 @@
     </div>
   } @else {
     <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
-      
-      <!-- Story Arc Overview & Guide Card -->
-      @if (externalUrl || summaryDescription) {
-        <div class="story-arc-overview-container">
-          <div class="overview-wrapper">
-            <div class="overview-header">
-              <div class="overview-title-badge">
-                <i class="pi pi-book"></i>
-                <span>STORY ARC OVERVIEW & GUIDE</span>
-              </div>
-              <div class="overview-header-actions">
-                @if (externalUrl) {
-                  <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide webpage'" tooltipPosition="top">
-                    <span>View Official Guide</span>
-                    <i class="pi pi-external-link"></i>
-                  </a>
-                }
-                @if (isEditMode) {
-                  <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-summary-btn" (onClick)="clearSummaryContainer()" pTooltip="Remove Overview & Guide"></p-button>
-                }
-              </div>
-            </div>
-            @if (summaryDescription) {
-              <div class="overview-body">
-                <p class="overview-text">{{ summaryDescription }}</p>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
       @for (row of rows; track row; let rowIndex = $index) {
         <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode">
           
