@@ -633,9 +633,21 @@
         }
       }
 
-      .header-overview {
-        flex-direction: column;
-        gap: 0.5rem;
+      .arc-summary-section {
+        margin-bottom: 1.5rem;
+
+        .summary-toggle-bar {
+          padding: 0.55rem 0.85rem;
+
+          .toggle-bar-right .external-guide-link-btn span {
+            display: none;
+          }
+        }
+
+        .summary-body .summary-text {
+          font-size: 0.95rem;
+          line-height: 1.6;
+        }
       }
     }
 
@@ -982,69 +994,112 @@
   }
 }
 
-/* Story Arc Overview — full-width below title row */
-.header-overview {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.5rem 0 0 0;
+/* Collapsible "About This Arc" summary section */
+.arc-summary-section {
+  margin-bottom: 2rem;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.06) 0%, rgba(244, 114, 182, 0.04) 100%);
+  overflow: hidden;
+  transition: all 0.3s ease;
 
-  .overview-text {
-    flex: 1 1 auto;
-    color: #cbd5e1;
-    font-size: 0.9rem;
-    line-height: 1.55;
-    margin: 0;
-    white-space: pre-line;
-    max-height: 4.65em; // ~3 lines
-    overflow-y: auto;
+  .summary-toggle-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
 
-    &::-webkit-scrollbar {
-      width: 4px;
+    &:hover {
+      background: rgba(167, 139, 250, 0.08);
     }
-    &::-webkit-scrollbar-thumb {
-      background: rgba(167, 139, 250, 0.4);
-      border-radius: 4px;
+
+    .toggle-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+
+      .toggle-chevron {
+        color: #a78bfa;
+        font-size: 0.85rem;
+        transition: transform 0.3s ease;
+      }
+
+      .toggle-label {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #c4b5fd;
+        letter-spacing: 0.03em;
+      }
+    }
+
+    .toggle-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .external-guide-link-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 9999px;
+        background: rgba(167, 139, 250, 0.12);
+        border: 1px solid rgba(167, 139, 250, 0.25);
+        color: #a78bfa;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+
+        &:hover {
+          background: rgba(167, 139, 250, 0.25);
+          color: #fff;
+          box-shadow: 0 0 10px rgba(167, 139, 250, 0.35);
+        }
+      }
+
+      .remove-summary-btn {
+        width: 28px;
+        height: 28px;
+        padding: 0 !important;
+
+        i {
+          font-size: 0.85rem;
+        }
+      }
     }
   }
 
-  .overview-footer {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    flex-shrink: 0;
-    padding-top: 0.1rem;
+  .summary-body {
+    padding: 0 1rem 1rem 1rem;
+    max-height: 600px;
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.35s ease;
 
-    .external-guide-link-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: rgba(167, 139, 250, 0.12);
-      border: 1px solid rgba(167, 139, 250, 0.25);
-      color: #a78bfa;
-      font-size: 0.8rem;
-      text-decoration: none;
-      transition: all 0.2s ease;
+    .summary-text {
+      color: #d1d5db;
+      font-size: 1rem;
+      line-height: 1.7;
+      margin: 0;
+      white-space: pre-line;
+    }
+  }
 
-      &:hover {
-        background: rgba(167, 139, 250, 0.3);
-        color: #fff;
-        box-shadow: 0 0 10px rgba(167, 139, 250, 0.4);
-      }
+  &.collapsed {
+    .toggle-chevron {
+      transform: rotate(-90deg);
     }
 
-    .remove-summary-btn {
-      width: 28px;
-      height: 28px;
-      padding: 0 !important;
-
-      i {
-        font-size: 0.85rem;
-      }
+    .summary-body {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      padding-bottom: 0;
     }
   }
 }

@@ -64,6 +64,7 @@ export class StoryArcPageComponent implements OnInit {
   isEditMode = false;
   externalUrl = '';
   summaryDescription = '';
+  summaryExpanded = true;
   backupRows: StoryArcRow[] = [];
   backupExternalUrl = '';
   backupSummaryDescription = '';
@@ -177,6 +178,11 @@ export class StoryArcPageComponent implements OnInit {
     if (!this.isEditMode) {
       this.saveLayout();
     }
+    this.cdr.markForCheck();
+  }
+
+  toggleSummary(): void {
+    this.summaryExpanded = !this.summaryExpanded;
     this.cdr.markForCheck();
   }
 

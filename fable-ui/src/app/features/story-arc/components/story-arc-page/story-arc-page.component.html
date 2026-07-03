@@ -23,24 +23,34 @@
         <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-outlined action-btn" (onClick)="deleteStoryArc($event)" pTooltip="Delete Story Arc"></p-button>
       </div>
     </div>
-    @if (externalUrl || summaryDescription) {
-      <div class="header-overview">
-        @if (summaryDescription) {
-          <p class="overview-text">{{ summaryDescription }}</p>
-        }
-        <div class="overview-footer">
+  </div>
+
+  @if ((externalUrl || summaryDescription) && !loading) {
+    <div class="arc-summary-section" [class.collapsed]="!summaryExpanded">
+      <div class="summary-toggle-bar" (click)="toggleSummary()" (keydown.enter)="toggleSummary()" tabindex="0" role="button" [attr.aria-expanded]="summaryExpanded">
+        <div class="toggle-bar-left">
+          <i class="pi pi-chevron-down toggle-chevron"></i>
+          <span class="toggle-label">About This Arc</span>
+        </div>
+        <div class="toggle-bar-right">
           @if (externalUrl) {
-            <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide webpage'" tooltipPosition="top">
+            <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide'" tooltipPosition="top" (click)="$event.stopPropagation()">
               <i class="pi pi-external-link"></i>
+              <span>Guide</span>
             </a>
           }
           @if (isEditMode) {
-            <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text p-button-sm remove-summary-btn" (onClick)="clearSummaryContainer()" pTooltip="Remove Overview & Guide"></p-button>
+            <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text p-button-sm remove-summary-btn" (onClick)="clearSummaryContainer(); $event.stopPropagation()" pTooltip="Remove summary"></p-button>
           }
         </div>
       </div>
-    }
-  </div>
+      @if (summaryDescription) {
+        <div class="summary-body">
+          <p class="summary-text">{{ summaryDescription }}</p>
+        </div>
+      }
+    </div>
+  }
 
   @if (isEditMode) {
     <div class="guide-url-edit-panel">
