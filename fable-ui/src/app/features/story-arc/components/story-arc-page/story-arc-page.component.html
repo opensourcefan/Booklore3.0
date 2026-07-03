@@ -13,8 +13,15 @@
       </div>
       <div class="header-right">
         @if (isEditMode) {
-          <p-button icon="pi pi-sort-amount-down" styleClass="p-button-outlined p-button-secondary action-btn" label="Auto-Organize by Series" (onClick)="autoOrganizeBySeries()" pTooltip="Group books in the first chapter by their series into separate chapters"></p-button>
-          <p-button icon="pi pi-plus" styleClass="p-button-outlined p-button-secondary action-btn" label="Add Chapter" (onClick)="addRow()"></p-button>
+          @if (!isChapterSortMode) {
+            <p-button icon="pi pi-sort-amount-down" styleClass="p-button-outlined p-button-secondary action-btn" label="Auto-Organize by Series" (onClick)="autoOrganizeBySeries()" pTooltip="Group books in the first chapter by their series into separate chapters"></p-button>
+            <p-button icon="pi pi-plus" styleClass="p-button-outlined p-button-secondary action-btn" label="Add Chapter" (onClick)="addRow()"></p-button>
+          }
+          <p-button [icon]="isChapterSortMode ? 'pi pi-th-large' : 'pi pi-list'"
+                  [styleClass]="isChapterSortMode ? 'p-button-outlined p-button-primary action-btn' : 'p-button-outlined p-button-secondary action-btn'"
+                  [label]="isChapterSortMode ? 'Card View' : 'Chapter Sort'"
+                  (onClick)="toggleChapterSortMode()"
+                  [pTooltip]="isChapterSortMode ? 'Return to card layout' : 'Sort chapters in a compact list view'"></p-button>
           <p-button icon="pi pi-times" styleClass="p-button-outlined p-button-secondary action-btn" label="Cancel Edit" (onClick)="cancelEdit()"></p-button>
         }
         <p-button [icon]="isEditMode ? 'pi pi-check' : 'pi pi-pencil'"
@@ -77,6 +84,27 @@
       <p>Loading reading order...</p>
     </div>
   } @else {
+    @if (isChapterSortMode) {
+      <!-- Chapter Sort List View: compact vertical list for reordering chapters -->
+      <div class="chapter-sort-container" cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
+        @for (row of rows; track row; let rowIndex = $index) {
+          <div class="chapter-sort-item" cdkDrag [cdkDragDisabled]="false">
+            <div class="sort-drag-handle" cdkDragHandle>
+              <i class="pi pi-bars"></i>
+            </div>
+            <span class="sort-position">{{ rowIndex + 1 }}</span>
+            <div class="sort-info">
+              <span class="sort-title">{{ row.title }}</span>
+              <span class="sort-count">{{ row.items.length }} book{{ row.items.length === 1 ? '' : 's' }}</span>
+            </div>
+            <div class="sort-actions">
+              <p-button icon="pi pi-chevron-up" styleClass="p-button-text p-button-secondary sort-btn" (onClick)="moveRowOrder(rowIndex, 'up')" [disabled]="rowIndex === 0" pTooltip="Move Up"></p-button>
+              <p-button icon="pi pi-chevron-down" styleClass="p-button-text p-button-secondary sort-btn" (onClick)="moveRowOrder(rowIndex, 'down')" [disabled]="rowIndex === rows.length - 1" pTooltip="Move Down"></p-button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
     <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
       @for (row of rows; track row; let rowIndex = $index) {
         <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode">
@@ -276,6 +304,7 @@
         </div>
       }
     </div>
+    }
   }
 
   <!-- Floating Banner when a card is picked up -->

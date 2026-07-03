@@ -65,6 +65,7 @@ export class StoryArcPageComponent implements OnInit {
   rows: StoryArcRow[] = [];
   loading = true;
   isEditMode = false;
+  isChapterSortMode = false;
   externalUrl = '';
   summaryDescription = '';
   summaryExpanded = true;
@@ -250,10 +251,17 @@ export class StoryArcPageComponent implements OnInit {
       this.backupExternalUrl = this.externalUrl;
       this.backupSummaryDescription = this.summaryDescription;
       this.isEditMode = true;
+      this.isChapterSortMode = false;
     } else {
       this.saveLayout();
       this.isEditMode = false;
+      this.isChapterSortMode = false;
     }
+    this.cdr.markForCheck();
+  }
+
+  toggleChapterSortMode(): void {
+    this.isChapterSortMode = !this.isChapterSortMode;
     this.cdr.markForCheck();
   }
 
