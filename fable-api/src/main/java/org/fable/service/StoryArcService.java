@@ -9,7 +9,9 @@ import org.fable.model.dto.StoryArcSummary;
 import org.fable.model.dto.request.StoryArcBulkAddRequest;
 import org.fable.model.dto.request.StoryArcLayoutUpdateRequest;
 import org.fable.model.entity.StoryArcBookMappingEntity;
+import org.fable.model.entity.StoryArcEntity;
 import org.fable.repository.StoryArcBookMappingRepository;
+import org.fable.repository.StoryArcRepository;
 import org.fable.service.book.BookService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StoryArcService {
 
+    private final StoryArcRepository storyArcRepository;
     private final StoryArcBookMappingRepository repository;
     private final BookService bookService;
     private final AuthenticationService authenticationService;
@@ -29,14 +32,15 @@ public class StoryArcService {
     @Transactional(readOnly = true)
     public List<StoryArcSummary> getStoryArcs() {
         FableUser user = authenticationService.getAuthenticatedUser();
-        List<Object[]> rows = repository.findStoryArcSummaries(user.getId());
+        List<Object[]> rows = storyArcRepository.findStoryArcSummariesWithUserProgress(user.getId());
         List<StoryArcSummary> summaries = new ArrayList<>();
         for (Object[] row : rows) {
-            String name = (String) row[0];
+            StoryArcEntity arc = (StoryArcEntity) row[0];
+            String name = arc.getName();
             if (name == null || name.isBlank()) {
                 continue;
             }
-            int totalCount = ((Number) row[1]).intValue();
+            int totalCount = row[1] != null ? ((Number) row[1]).intValue() : 0;
             int readCount = row[2] != null ? ((Number) row[2]).intValue() : 0;
             Long coverBookId = row[3] != null ? ((Number) row[3]).longValue() : null;
 
@@ -56,9 +60,22 @@ public class StoryArcService {
 
     @Transactional(readOnly = true)
     public List<StoryArcBookMappingDto> getStoryArc(String name) {
-        List<StoryArcBookMappingEntity> mappings = repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc(name);
-        if (mappings.isEmpty()) {
+        StoryArcEntity arc = storyArcRepository.findByName(name).orElse(null);
+        if (arc == null) {
             return Collections.emptyList();
+        }
+
+        List<StoryArcBookMappingEntity> mappings = repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc(name);
+
+        // If there are no mappings, return a sentinel DTO carrying arc metadata
+        // so the frontend can still display the summary/guide.
+        if (mappings.isEmpty()) {
+            StoryArcBookMappingDto sentinel = StoryArcBookMappingDto.builder()
+                    .storyArcName(arc.getName())
+                    .externalUrl(arc.getExternalUrl())
+                    .description(arc.getDescription())
+                    .build();
+            return Collections.singletonList(sentinel);
         }
 
         Set<Long> bookIds = mappings.stream()
@@ -79,8 +96,8 @@ public class StoryArcService {
                         .sequenceOrder(mapping.getSequenceOrder())
                         .isCore(mapping.isCore())
                         .rowTitle(mapping.getRowTitle())
-                        .externalUrl(mapping.getExternalUrl())
-                        .description(mapping.getDescription())
+                        .externalUrl(mapping.getExternalUrl() != null ? mapping.getExternalUrl() : arc.getExternalUrl())
+                        .description(mapping.getDescription() != null ? mapping.getDescription() : arc.getDescription())
                         .book(bookMap.get(mapping.getBookId()))
                         .build())
                 .toList();
@@ -94,20 +111,25 @@ public class StoryArcService {
         }
         name = name.trim();
 
+        // Ensure the story arc entity exists
+        StoryArcEntity arc = storyArcRepository.findByName(name).orElse(null);
+        if (arc == null) {
+            arc = StoryArcEntity.builder()
+                    .name(name)
+                    .build();
+            arc = storyArcRepository.save(arc);
+        }
+
         List<StoryArcBookMappingEntity> existing = repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc(name);
         int lastRowIndex = 0;
         int lastColIndex = -1;
         double lastSeq = 0.0;
-        String existingUrl = null;
-        String existingDesc = null;
 
         if (!existing.isEmpty()) {
             StoryArcBookMappingEntity lastItem = existing.get(existing.size() - 1);
             lastRowIndex = lastItem.getRowIndex();
             lastColIndex = lastItem.getColIndex();
             lastSeq = lastItem.getSequenceOrder();
-            existingUrl = lastItem.getExternalUrl();
-            existingDesc = lastItem.getDescription();
         }
 
         Set<Long> alreadyMappedIds = existing.stream()
@@ -124,13 +146,12 @@ public class StoryArcService {
 
             StoryArcBookMappingEntity mapping = StoryArcBookMappingEntity.builder()
                     .storyArcName(name)
+                    .storyArcId(arc.getId())
                     .bookId(bookId)
                     .rowIndex(lastRowIndex)
                     .colIndex(lastColIndex)
                     .sequenceOrder(lastSeq)
-                    .isCore(true) // Defaults to core issue when added
-                    .externalUrl(existingUrl)
-                    .description(existingDesc)
+                    .isCore(true)
                     .build();
 
             repository.save(mapping);
@@ -140,6 +161,22 @@ public class StoryArcService {
     @Transactional
     public void saveLayout(String name, StoryArcLayoutUpdateRequest request) {
         String cleanName = name.trim();
+
+        // Ensure the story arc entity exists and update its metadata
+        StoryArcEntity arc = storyArcRepository.findByName(cleanName).orElse(null);
+        if (arc == null) {
+            arc = StoryArcEntity.builder()
+                    .name(cleanName)
+                    .externalUrl(request.getExternalUrl())
+                    .description(request.getDescription())
+                    .build();
+            arc = storyArcRepository.save(arc);
+        } else {
+            arc.setExternalUrl(request.getExternalUrl());
+            arc.setDescription(request.getDescription());
+            storyArcRepository.save(arc);
+        }
+
         List<StoryArcBookMappingEntity> existingMappings = repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc(cleanName);
         Map<Long, StoryArcBookMappingEntity> existingMap = existingMappings.stream()
                 .collect(Collectors.toMap(StoryArcBookMappingEntity::getBookId, Function.identity()));
@@ -154,15 +191,13 @@ public class StoryArcService {
                 .toList();
         repository.deleteAll(toDelete);
 
-        String extUrl = request.getExternalUrl();
-        String desc = request.getDescription();
-
         // 2. Update or insert layout coordinates
         for (StoryArcLayoutUpdateRequest.LayoutItem item : request.getItems()) {
             StoryArcBookMappingEntity entity = existingMap.get(item.getBookId());
             if (entity == null) {
                 entity = StoryArcBookMappingEntity.builder()
                         .storyArcName(cleanName)
+                        .storyArcId(arc.getId())
                         .bookId(item.getBookId())
                         .build();
             }
@@ -171,8 +206,6 @@ public class StoryArcService {
             entity.setSequenceOrder(item.getSequenceOrder());
             entity.setCore(item.isCore());
             entity.setRowTitle(item.getRowTitle());
-            entity.setExternalUrl(extUrl != null ? extUrl : item.getExternalUrl());
-            entity.setDescription(desc != null ? desc : item.getDescription());
 
             repository.save(entity);
         }
@@ -245,7 +278,7 @@ public class StoryArcService {
 
     @Transactional
     public void deleteStoryArc(String name) {
-        repository.deleteAllByStoryArcName(name.trim());
+        storyArcRepository.deleteByName(name.trim());
     }
 
     @Transactional

@@ -8,7 +8,9 @@ import org.fable.model.dto.StoryArcSummary;
 import org.fable.model.dto.request.StoryArcBulkAddRequest;
 import org.fable.model.dto.request.StoryArcLayoutUpdateRequest;
 import org.fable.model.entity.StoryArcBookMappingEntity;
+import org.fable.model.entity.StoryArcEntity;
 import org.fable.repository.StoryArcBookMappingRepository;
+import org.fable.repository.StoryArcRepository;
 import org.fable.service.book.BookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class StoryArcServiceTest {
 
+    @Mock
+    private StoryArcRepository storyArcRepository;
     @Mock
     private StoryArcBookMappingRepository repository;
     @Mock
@@ -47,11 +51,12 @@ class StoryArcServiceTest {
     @Test
     void getStoryArcs_shouldReturnMappedSummaries() {
         when(authenticationService.getAuthenticatedUser()).thenReturn(user);
-        
+
+        StoryArcEntity arc = StoryArcEntity.builder().id(1L).name("Invasion").build();
         List<Object[]> queryResult = new ArrayList<>();
-        queryResult.add(new Object[]{"Invasion", 5L, 2L, 10L}); // name, totalCount, readCount, coverBookId
-        
-        when(repository.findStoryArcSummaries(1L)).thenReturn(queryResult);
+        queryResult.add(new Object[]{arc, 5L, 2L, 10L}); // entity, totalCount, readCount, coverBookId
+
+        when(storyArcRepository.findStoryArcSummariesWithUserProgress(1L)).thenReturn(queryResult);
 
         List<StoryArcSummary> summaries = storyArcService.getStoryArcs();
 
@@ -65,10 +70,67 @@ class StoryArcServiceTest {
     }
 
     @Test
+    void getStoryArcs_shouldReturnEmptyArcWithZeroBooks() {
+        when(authenticationService.getAuthenticatedUser()).thenReturn(user);
+
+        StoryArcEntity arc = StoryArcEntity.builder().id(1L).name("Empty Arc")
+                .externalUrl("https://example.com")
+                .description("A guide with no books yet")
+                .build();
+        List<Object[]> queryResult = new ArrayList<>();
+        queryResult.add(new Object[]{arc, 0L, 0L, null}); // entity, totalCount=0, readCount=0, coverBookId=null
+
+        when(storyArcRepository.findStoryArcSummariesWithUserProgress(1L)).thenReturn(queryResult);
+
+        List<StoryArcSummary> summaries = storyArcService.getStoryArcs();
+
+        assertEquals(1, summaries.size());
+        StoryArcSummary summary = summaries.get(0);
+        assertEquals("Empty Arc", summary.getStoryArcName());
+        assertEquals(0, summary.getBookCount());
+        assertEquals(0, summary.getReadBookCount());
+        assertEquals(0, summary.getCompletionPercent());
+        assertNull(summary.getCoverBookId());
+    }
+
+    @Test
+    void getStoryArc_shouldReturnSentinelWhenNoMappings() {
+        StoryArcEntity arc = StoryArcEntity.builder().id(1L).name("Lonely Arc")
+                .externalUrl("https://guide.example.com")
+                .description("A reading guide")
+                .build();
+
+        when(storyArcRepository.findByName("Lonely Arc")).thenReturn(Optional.of(arc));
+        when(repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc("Lonely Arc")).thenReturn(Collections.emptyList());
+
+        List<StoryArcBookMappingDto> result = storyArcService.getStoryArc("Lonely Arc");
+
+        assertEquals(1, result.size());
+        StoryArcBookMappingDto sentinel = result.get(0);
+        assertEquals("Lonely Arc", sentinel.getStoryArcName());
+        assertEquals("https://guide.example.com", sentinel.getExternalUrl());
+        assertEquals("A reading guide", sentinel.getDescription());
+        assertNull(sentinel.getBookId());
+    }
+
+    @Test
+    void getStoryArc_shouldReturnEmptyWhenArcNotFound() {
+        when(storyArcRepository.findByName("Nonexistent")).thenReturn(Optional.empty());
+
+        List<StoryArcBookMappingDto> result = storyArcService.getStoryArc("Nonexistent");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     void bulkAdd_shouldSaveNewMappings() {
+        StoryArcEntity arc = StoryArcEntity.builder().id(1L).name("Crisis").build();
+        when(storyArcRepository.findByName("Crisis")).thenReturn(Optional.of(arc));
+
         List<StoryArcBookMappingEntity> existing = new ArrayList<>();
         existing.add(StoryArcBookMappingEntity.builder()
                 .storyArcName("Crisis")
+                .storyArcId(1L)
                 .bookId(100L)
                 .rowIndex(0)
                 .colIndex(0)
@@ -96,9 +158,30 @@ class StoryArcServiceTest {
     }
 
     @Test
+    void bulkAdd_shouldCreateArcIfNotExists() {
+        when(storyArcRepository.findByName("New Arc")).thenReturn(Optional.empty());
+        when(storyArcRepository.save(any(StoryArcEntity.class))).thenReturn(
+                StoryArcEntity.builder().id(99L).name("New Arc").build());
+        when(repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc("New Arc")).thenReturn(Collections.emptyList());
+
+        StoryArcBulkAddRequest request = StoryArcBulkAddRequest.builder()
+                .storyArcName("New Arc")
+                .bookIds(Arrays.asList(200L))
+                .build();
+
+        storyArcService.bulkAdd(request);
+
+        verify(storyArcRepository).save(any(StoryArcEntity.class));
+        verify(repository).save(any(StoryArcBookMappingEntity.class));
+    }
+
+    @Test
     void saveLayout_shouldDeleteMissingAndSaveProvided() {
-        StoryArcBookMappingEntity existing1 = StoryArcBookMappingEntity.builder().bookId(10L).storyArcName("Rebirth").build();
-        StoryArcBookMappingEntity existing2 = StoryArcBookMappingEntity.builder().bookId(11L).storyArcName("Rebirth").build();
+        StoryArcEntity arc = StoryArcEntity.builder().id(1L).name("Rebirth").build();
+        when(storyArcRepository.findByName("Rebirth")).thenReturn(Optional.of(arc));
+
+        StoryArcBookMappingEntity existing1 = StoryArcBookMappingEntity.builder().bookId(10L).storyArcName("Rebirth").storyArcId(1L).build();
+        StoryArcBookMappingEntity existing2 = StoryArcBookMappingEntity.builder().bookId(11L).storyArcName("Rebirth").storyArcId(1L).build();
         List<StoryArcBookMappingEntity> existing = Arrays.asList(existing1, existing2);
 
         when(repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc("Rebirth")).thenReturn(existing);
@@ -123,5 +206,38 @@ class StoryArcServiceTest {
 
         // Verify save of 11L and 12L
         verify(repository, times(2)).save(any(StoryArcBookMappingEntity.class));
+    }
+
+    @Test
+    void saveLayout_shouldCreateArcIfNotExists() {
+        when(storyArcRepository.findByName("New Layout Arc")).thenReturn(Optional.empty());
+        when(storyArcRepository.save(any(StoryArcEntity.class))).thenReturn(
+                StoryArcEntity.builder().id(50L).name("New Layout Arc").externalUrl("http://example.com").description("desc").build());
+        when(repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc("New Layout Arc")).thenReturn(Collections.emptyList());
+
+        StoryArcLayoutUpdateRequest request = StoryArcLayoutUpdateRequest.builder()
+                .storyArcName("New Layout Arc")
+                .externalUrl("http://example.com")
+                .description("desc")
+                .items(Collections.emptyList())
+                .build();
+
+        storyArcService.saveLayout("New Layout Arc", request);
+
+        verify(storyArcRepository).save(any(StoryArcEntity.class));
+    }
+
+    @Test
+    void deleteStoryArc_shouldDeleteByName() {
+        storyArcService.deleteStoryArc("ToDelete");
+
+        verify(storyArcRepository).deleteByName("ToDelete");
+    }
+
+    @Test
+    void removeBooksFromStoryArc_shouldDeleteMappings() {
+        storyArcService.removeBooksFromStoryArc("Arc", Arrays.asList(1L, 2L));
+
+        verify(repository).deleteAllByStoryArcNameAndBookIdIn("Arc", Arrays.asList(1L, 2L));
     }
 }

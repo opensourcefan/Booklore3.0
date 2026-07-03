@@ -103,11 +103,15 @@ export class StoryArcPageComponent implements OnInit {
   }
 
   buildRowsFromMappings(mappings: StoryArcBookMapping[]): void {
-    const firstMeta = mappings.find(m => m.externalUrl || m.description);
-    if (firstMeta) {
-      this.externalUrl = firstMeta.externalUrl || '';
-      this.summaryDescription = firstMeta.description || '';
+    // Extract metadata from sentinel (mapping with no bookId) or first real mapping
+    const metaSource = mappings.find(m => m.externalUrl || m.description);
+    if (metaSource) {
+      this.externalUrl = metaSource.externalUrl || '';
+      this.summaryDescription = metaSource.description || '';
     }
+
+    // Filter out sentinel entries (no bookId) from the row-building logic
+    const realMappings = mappings.filter(m => m.bookId != null);
 
     const existingEmptyRows = new Map<number, string>();
     this.rows.forEach((row, index) => {
@@ -118,7 +122,7 @@ export class StoryArcPageComponent implements OnInit {
 
     const rowMap = new Map<number, { title: string; items: StoryArcBookMapping[] }>();
 
-    mappings.forEach(m => {
+    realMappings.forEach(m => {
       const rIdx = m.rowIndex ?? 0;
       if (!rowMap.has(rIdx)) {
         rowMap.set(rIdx, {

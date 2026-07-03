@@ -16,6 +16,9 @@ public class StoryArcBookMappingEntity {
     @Column(name = "story_arc_name", nullable = false)
     private String storyArcName;
 
+    @Column(name = "story_arc_id", nullable = false)
+    private Long storyArcId;
+
     @Column(name = "book_id", nullable = false)
     private Long bookId;
 
@@ -46,9 +49,10 @@ public class StoryArcBookMappingEntity {
 
     public StoryArcBookMappingEntity() {}
 
-    public StoryArcBookMappingEntity(Long id, String storyArcName, Long bookId, int rowIndex, int colIndex, double sequenceOrder, boolean isCore, String rowTitle, String externalUrl, String description, BookEntity book) {
+    public StoryArcBookMappingEntity(Long id, String storyArcName, Long storyArcId, Long bookId, int rowIndex, int colIndex, double sequenceOrder, boolean isCore, String rowTitle, String externalUrl, String description, BookEntity book) {
         this.id = id;
         this.storyArcName = storyArcName;
+        this.storyArcId = storyArcId;
         this.bookId = bookId;
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
@@ -65,6 +69,9 @@ public class StoryArcBookMappingEntity {
 
     public String getStoryArcName() { return storyArcName; }
     public void setStoryArcName(String storyArcName) { this.storyArcName = storyArcName; }
+
+    public Long getStoryArcId() { return storyArcId; }
+    public void setStoryArcId(Long storyArcId) { this.storyArcId = storyArcId; }
 
     public Long getBookId() { return bookId; }
     public void setBookId(Long bookId) { this.bookId = bookId; }
@@ -98,6 +105,7 @@ public class StoryArcBookMappingEntity {
     public static class Builder {
         private Long id;
         private String storyArcName;
+        private Long storyArcId;
         private Long bookId;
         private int rowIndex;
         private int colIndex;
@@ -110,6 +118,7 @@ public class StoryArcBookMappingEntity {
 
         public Builder id(Long id) { this.id = id; return this; }
         public Builder storyArcName(String storyArcName) { this.storyArcName = storyArcName; return this; }
+        public Builder storyArcId(Long storyArcId) { this.storyArcId = storyArcId; return this; }
         public Builder bookId(Long bookId) { this.bookId = bookId; return this; }
         public Builder rowIndex(int rowIndex) { this.rowIndex = rowIndex; return this; }
         public Builder colIndex(int colIndex) { this.colIndex = colIndex; return this; }
@@ -121,7 +130,7 @@ public class StoryArcBookMappingEntity {
         public Builder book(BookEntity book) { this.book = book; return this; }
 
         public StoryArcBookMappingEntity build() {
-            return new StoryArcBookMappingEntity(id, storyArcName, bookId, rowIndex, colIndex, sequenceOrder, isCore, rowTitle, externalUrl, description, book);
+            return new StoryArcBookMappingEntity(id, storyArcName, storyArcId, bookId, rowIndex, colIndex, sequenceOrder, isCore, rowTitle, externalUrl, description, book);
         }
     }
 
