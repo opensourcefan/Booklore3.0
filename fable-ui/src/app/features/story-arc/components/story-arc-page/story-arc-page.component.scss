@@ -961,43 +961,41 @@
   }
 }
 
-/* Inter-container reading flow node link connector */
+/* Inter-chapter downward flow connector */
 .chapter-flow-connector {
-  position: absolute;
-  right: -9.25rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8.5rem;
-  height: 3px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 15;
+  width: 100%;
+  height: 2.5rem;
+  margin: 0.25rem 0;
+  z-index: 5;
   pointer-events: auto;
 
   .connector-line {
-    width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg, #a78bfa 0%, #f472b6 100%);
-    box-shadow: 0 0 12px rgba(167, 139, 250, 0.9), 0 0 6px rgba(244, 114, 182, 0.7);
+    width: 3px;
+    height: 1.5rem;
+    background: linear-gradient(180deg, #a78bfa 0%, #f472b6 100%);
+    box-shadow: 0 0 10px rgba(167, 139, 250, 0.7), 0 0 4px rgba(244, 114, 182, 0.5);
     border-radius: 2px;
   }
 
   .arrow-icon {
-    position: absolute;
-    right: -6px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #f472b6;
-    background: transparent;
-    text-shadow: 0 0 10px rgba(244, 114, 182, 0.9);
+    text-shadow: 0 0 8px rgba(244, 114, 182, 0.8);
+    margin-top: -2px;
   }
 }
 
 @media (max-width: 992px) {
   .chapter-flow-connector {
-    display: none;
+    height: 2rem;
+
+    .connector-line {
+      height: 1rem;
+    }
   }
 }
 
