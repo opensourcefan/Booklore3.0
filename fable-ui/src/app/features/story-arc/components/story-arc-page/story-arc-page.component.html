@@ -240,10 +240,10 @@
 
                           @if (isEditMode) {
                             <div class="edit-overlay">
-                              <div class="edit-row">
+                              <div class="edit-row edit-row-top">
                                 <p-button icon="pi pi-times" styleClass="p-button-danger p-button-rounded remove-book-btn" (onClick)="removeBook(rowIndex, colIndex)" pTooltip="Remove from Arc"></p-button>
                               </div>
-                              <div class="edit-row">
+                              <div class="edit-row edit-row-mid">
                                 <p-button [icon]="item.isCore ? 'pi pi-star-fill' : 'pi pi-star'"
                                         [styleClass]="item.isCore ? 'p-button-rounded core-toggle-btn active' : 'p-button-rounded core-toggle-btn'"
                                         (onClick)="toggleBookCore(rowIndex, colIndex)"
@@ -254,24 +254,15 @@
                                         [pTooltip]="coverBookId === item.bookId ? 'Current Cover' : 'Set as Cover Image'">
                                 </p-button>
                               </div>
-                              <div class="edit-row">
+                              <div class="edit-row edit-row-bot">
                                 <p-button [icon]="isCardSelected(rowIndex, colIndex) ? 'pi pi-times' : 'pi pi-arrows-alt'"
                                         [styleClass]="isCardSelected(rowIndex, colIndex) ? 'p-button-danger p-button-rounded' : 'p-button-secondary p-button-rounded'"
                                         (onClick)="pickUpCard(rowIndex, colIndex)"
                                         [pTooltip]="isCardSelected(rowIndex, colIndex) ? 'Cancel Pick Up' : 'Pick Up to Move'">
                                 </p-button>
                                 @if (rows.length > 1) {
-                                  <p-select
-                                    [options]="getChapterOptions()"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    [ngModel]="rowIndex"
-                                    (ngModelChange)="moveToChapter(rowIndex, colIndex, $event)"
-                                    placeholder="Move..."
-                                    styleClass="chapter-move-select"
-                                    [pTooltip]="'Move to another chapter'"
-                                    tooltipPosition="top">
-                                  </p-select>
+                                  <p-button icon="pi pi-chevron-up" styleClass="p-button-text p-button-secondary chapter-nav-btn" (onClick)="moveToChapter(rowIndex, colIndex, rowIndex - 1)" [disabled]="rowIndex === 0" pTooltip="Move to Previous Chapter"></p-button>
+                                  <p-button icon="pi pi-chevron-down" styleClass="p-button-text p-button-secondary chapter-nav-btn" (onClick)="moveToChapter(rowIndex, colIndex, rowIndex + 1)" [disabled]="rowIndex === rows.length - 1" pTooltip="Move to Next Chapter"></p-button>
                                 }
                               </div>
                             </div>

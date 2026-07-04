@@ -473,7 +473,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: space-between;
-        padding: 0.5rem 0.25rem;
+        padding: 0.35rem 0.25rem;
         opacity: 0;
         transition: opacity 0.2s ease;
         backdrop-filter: blur(4px);
@@ -483,7 +483,15 @@
           flex-direction: row;
           align-items: center;
           justify-content: center;
-          gap: 0.4rem;
+          gap: 0.35rem;
+        }
+
+        .edit-row-top {
+          margin-bottom: auto;
+        }
+
+        .edit-row-bot {
+          margin-top: auto;
         }
 
         .remove-book-btn {
@@ -519,21 +527,14 @@
           }
         }
 
-        ::ng-deep .chapter-move-select {
-          width: 80px !important;
-          height: 28px !important;
-          font-size: 0.68rem;
-          background: rgba(0, 0, 0, 0.85) !important;
-          border: 1px solid rgba(255, 255, 255, 0.3) !important;
-          border-radius: 8px !important;
+        .chapter-nav-btn {
+          width: 28px;
+          height: 28px;
+          color: rgba(255,255,255,0.7);
 
-          .p-select-label {
-            padding: 0.15rem 0.3rem !important;
-            font-size: 0.68rem !important;
-            color: #fff !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
+          &:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
           }
         }
       }
