@@ -761,15 +761,15 @@ describe('PagedGridPilotService', () => {
     }, () => of(legacyState([createBook(6, 'Legacy Search')])));
 
     const searchState = await firstValueFrom(searchState$.pipe(filter(state => state.loaded)));
+    // Search now forces legacy mode so the filter sidebar has the full result set
+    // for accurate facet counts (see getEligibilityBlockers).
     expect(searchState.books?.map(book => book.id)).toEqual([6]);
-    expect(service.isPagedActive()).toBe(true);
+    expect(service.isPagedActive()).toBe(false);
     expect(service.getStatus()).toMatchObject({
-      mode: 'paged',
+      mode: 'legacy',
     });
-    expect(getBooksPaged).toHaveBeenCalledTimes(2);
-    expect(getBooksPaged).toHaveBeenLastCalledWith(expect.objectContaining({
-      search: 'batman',
-    }));
+    // Paged endpoint should NOT be called when search forces legacy mode
+    expect(getBooksPaged).toHaveBeenCalledTimes(1);
   });
 
   it('uses the paged path for shelf and unshelved routes when the request stays within contract', async () => {

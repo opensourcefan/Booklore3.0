@@ -316,8 +316,8 @@ export class PagedGridPilotService {
       blockers.push(`unsupported sort fields: ${unsupportedSortFields.join(', ')}`);
     }
 
-    if (this.getPagedSearchTerm(context.searchTerm) === null && context.searchTerm.trim().length > 0) {
-      blockers.push('search term is too short for server search');
+    if (context.searchTerm && context.searchTerm.trim().length > 0) {
+      blockers.push('search is active — use legacy full-state for accurate facet counts');
     }
 
     const unsupportedFilterKeys = this.serverFilterAdapter.getUnsupportedFilterKeys(context.filters);

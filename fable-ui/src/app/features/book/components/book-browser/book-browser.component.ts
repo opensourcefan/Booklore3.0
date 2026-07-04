@@ -19,7 +19,7 @@ import {AiSearchScanProgressService} from '../../../../shared/service/ai-search-
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {BookService, RemoveFromLibraryMode} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
-import {catchError, debounceTime, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {catchError, debounceTime, filter, map, shareReplay, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {BehaviorSubject, combineLatest, interval, Observable, of, Subject, Subscription} from 'rxjs';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Library} from '../../model/library.model';
@@ -252,6 +252,11 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   protected gridRenderVersion = 0;
 
   private sideBarFilter = new SideBarFilter(this.selectedFilter, this.selectedFilterMode);
+
+  /** Search-filtered books observable for the filter sidebar.
+   *  Derived from the global book state + search term so the sidebar
+   *  always reflects the currently visible (search-filtered) book set. */
+  searchFilteredForSidebar$: Observable<Book[]> = of([]);
 
   useDistractionLoadingScreen = false;
   distractionCoverUrl: string | null = null;
@@ -1039,6 +1044,26 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchTerm$.pipe(takeUntil(this.destroy$)).subscribe(term => {
       this.hasSearchTerm = !!term && term.trim().length > 0;
     });
+
+    // Derive search-filtered books for the filter sidebar.
+    // When a search term is active, apply the same HeaderFilter logic
+    // so the sidebar facet counts reflect only the visible books.
+    this.searchFilteredForSidebar$ = combineLatest([
+      this.bookService.bookState$,
+      this.searchTerm$,
+    ]).pipe(
+      switchMap(([state, term]) => {
+        const trimmed = (term || '').trim();
+        if (trimmed.length < 2) {
+          return of(state.books || []);
+        }
+        return this.headerFilter.filter(state).pipe(
+          map(filtered => filtered.books || [])
+        );
+      }),
+      shareReplay({ bufferSize: 1, refCount: true }),
+      takeUntil(this.destroy$)
+    );
   }
 
   private setupFilterToggleSubscription(): void {

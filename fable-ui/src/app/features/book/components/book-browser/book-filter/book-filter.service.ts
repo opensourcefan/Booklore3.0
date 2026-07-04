@@ -1,6 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {combineLatest, map, Observable, of, shareReplay} from 'rxjs';
 import {Book} from '../../../model/book.model';
+import {BookState} from '../../../model/state/book-state.model';
 import {Library} from '../../../model/library.model';
 import {Shelf} from '../../../model/shelf.model';
 import {MagicShelf} from '../../../../magic-shelf/service/magic-shelf.service';
@@ -37,9 +38,10 @@ export class BookFilterService {
     activeFilters$: Observable<Record<string, unknown[]> | null> = of(null),
     filterMode$: Observable<BookFilterMode> = of('and'),
     urlFilter$: Observable<Record<string, string[]> | null> = of(null),
-    userSort$: Observable<UserFilterSort> = of('count')
+    userSort$: Observable<UserFilterSort> = of('count'),
+    searchFilteredBooks$?: Observable<Book[]>
   ): Record<FilterType, Observable<Filter[]>> {
-    const filteredBooks$ = this.createFilteredBooksStream(entity$, entityType$, urlFilter$);
+    const filteredBooks$ = this.createFilteredBooksStream(entity$, entityType$, urlFilter$, searchFilteredBooks$);
 
     const streams = {} as Record<FilterType, Observable<Filter[]>>;
 
@@ -102,10 +104,17 @@ export class BookFilterService {
   private createFilteredBooksStream(
     entity$: Observable<Library | Shelf | MagicShelf | null>,
     entityType$: Observable<EntityType>,
-    urlFilter$: Observable<Record<string, string[]> | null> = of(null)
+    urlFilter$: Observable<Record<string, string[]> | null> = of(null),
+    searchFilteredBooks$?: Observable<Book[]>
   ): Observable<Book[]> {
+    const baseBooks$ = searchFilteredBooks$
+      ? searchFilteredBooks$.pipe(
+          map(books => ({ books, loaded: true, error: null } as BookState))
+        )
+      : this.bookService.bookState$;
+
     return combineLatest([
-      this.bookService.bookState$,
+      baseBooks$,
       entity$,
       entityType$,
       urlFilter$

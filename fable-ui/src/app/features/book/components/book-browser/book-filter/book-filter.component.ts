@@ -1,5 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {BehaviorSubject, Observable, of, Subject, takeUntil} from 'rxjs';
+import {Book} from '../../../model/book.model';
 import {Library} from '../../../model/library.model';
 import {Shelf} from '../../../model/shelf.model';
 import {EntityType} from '../book-browser.component';
@@ -62,6 +63,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     this._selectedFilterMode = safe;
     this.filterMode$.next(safe);
   }
+  @Input() searchFilteredBooks$: Observable<Book[]> | undefined;
 
   @Output() filterSelected = new EventEmitter<Record<string, string[]> | null>();
   @Output() filterModeChanged = new EventEmitter<BookFilterMode>();
@@ -248,7 +250,8 @@ export class BookFilterComponent implements OnInit, OnDestroy {
       this.activeFilters$,
       this.filterMode$,
       this.urlFilter$ ?? of(null),
-      this.filterSort$
+      this.filterSort$,
+      this.searchFilteredBooks$
     );
     this.filterTypes = Object.keys(this.filterStreams) as FilterType[];
     this.updateVisibleFilterTypes();
