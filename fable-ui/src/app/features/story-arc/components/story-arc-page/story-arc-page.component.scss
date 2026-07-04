@@ -293,10 +293,12 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 8px;
         color: #fff;
-        padding: 0.35rem 0.75rem;
+        padding: 0.5rem 0.75rem;
         font-size: 1.1rem;
         font-weight: 600;
-        width: 300px;
+        width: 100%;
+        max-width: 500px;
+        min-width: 200px;
 
         &:focus {
           outline: none;
@@ -472,8 +474,9 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: space-between;
-        padding: 0.35rem 0.25rem;
+        justify-content: center;
+        gap: 0.25rem;
+        padding: 0.25rem;
         opacity: 0;
         transition: opacity 0.2s ease;
         backdrop-filter: blur(4px);
@@ -483,15 +486,7 @@
           flex-direction: row;
           align-items: center;
           justify-content: center;
-          gap: 0.35rem;
-        }
-
-        .edit-row-top {
-          margin-bottom: auto;
-        }
-
-        .edit-row-bot {
-          margin-top: auto;
+          gap: 0.3rem;
         }
 
         .remove-book-btn {
