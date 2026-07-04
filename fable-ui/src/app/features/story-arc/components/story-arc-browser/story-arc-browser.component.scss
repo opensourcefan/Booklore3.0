@@ -77,18 +77,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 2rem;
-  }
 
-  .story-arc-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 16px;
-    overflow: hidden;
-    cursor: pointer;
-    backdrop-filter: blur(12px);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-
-    &:hover {
+    &:hover .story-arc-card {
       transform: translateY(-8px);
       border-color: rgba(167, 139, 250, 0.4);
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(167, 139, 250, 0.15);
@@ -100,6 +90,16 @@
         opacity: 1;
       }
     }
+  }
+
+  .story-arc-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
 
     .card-cover-wrapper {
       position: relative;
