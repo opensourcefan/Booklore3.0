@@ -52,7 +52,7 @@ export class StoryArcBrowserComponent implements OnInit {
 
   getThumbnail(coverBookId?: number): string {
     if (!coverBookId) {
-      return 'assets/images/default-cover.png'; // fallback or generic
+      return 'assets/images/missing-cover.jpg';
     }
     return this.urlHelper.getDirectThumbnailUrl(coverBookId);
   }

@@ -69,6 +69,7 @@ export class StoryArcPageComponent implements OnInit {
   externalUrl = '';
   summaryDescription = '';
   summaryExpanded = true;
+  coverBookId: number | null = null;
   backupRows: StoryArcRow[] = [];
   backupExternalUrl = '';
   backupSummaryDescription = '';
@@ -108,10 +109,11 @@ export class StoryArcPageComponent implements OnInit {
 
   buildRowsFromMappings(mappings: StoryArcBookMapping[]): void {
     // Extract metadata from sentinel (mapping with no bookId) or first real mapping
-    const metaSource = mappings.find(m => m.externalUrl || m.description);
+    const metaSource = mappings.find(m => m.externalUrl || m.description || m.coverBookId != null);
     if (metaSource) {
       this.externalUrl = metaSource.externalUrl || '';
       this.summaryDescription = metaSource.description || '';
+      this.coverBookId = metaSource.coverBookId ?? null;
     }
 
     // Filter out sentinel entries (no bookId) from the row-building logic
@@ -536,6 +538,32 @@ export class StoryArcPageComponent implements OnInit {
 
   isCardSelected(rowIndex: number, colIndex: number): boolean {
     return this.selectedMoveCard?.rowIndex === rowIndex && this.selectedMoveCard?.colIndex === colIndex;
+  }
+
+  setCoverBook(bookId: number): void {
+    this.coverBookId = bookId;
+    this.storyArcService.setCoverBook(this.arcName, bookId).subscribe({
+      next: () => {
+        this.messageService.add({severity: 'success', summary: 'Cover Updated', detail: 'Story arc cover image has been set.'});
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to set cover image.'});
+      }
+    });
+  }
+
+  clearCoverBook(): void {
+    this.coverBookId = null;
+    this.storyArcService.setCoverBook(this.arcName, null).subscribe({
+      next: () => {
+        this.messageService.add({severity: 'success', summary: 'Cover Cleared', detail: 'Story arc cover will be auto-selected from the first book.'});
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to clear cover image.'});
+      }
+    });
   }
 
   hasDigitalFile(book: Book | undefined): boolean {

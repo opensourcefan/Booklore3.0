@@ -497,6 +497,20 @@
           }
         }
 
+        .cover-select-btn {
+          width: 36px;
+          height: 36px;
+          background: rgba(255,255,255,0.15);
+          border: 1px solid rgba(255,255,255,0.25);
+          color: #fff;
+
+          &.active {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+            color: #fff;
+          }
+        }
+
         ::ng-deep .chapter-move-select {
           width: 90px !important;
           height: 32px !important;

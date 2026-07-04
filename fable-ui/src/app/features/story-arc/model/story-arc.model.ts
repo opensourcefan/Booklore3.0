@@ -19,6 +19,7 @@ export interface StoryArcBookMapping {
   rowTitle?: string;
   externalUrl?: string;
   description?: string;
+  coverBookId?: number;
   book?: Book;
 }
 

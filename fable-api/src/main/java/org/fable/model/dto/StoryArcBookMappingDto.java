@@ -11,11 +11,12 @@ public class StoryArcBookMappingDto {
     private String rowTitle;
     private String externalUrl;
     private String description;
+    private Long coverBookId;
     private Book book;
 
     public StoryArcBookMappingDto() {}
 
-    public StoryArcBookMappingDto(Long id, String storyArcName, Long bookId, int rowIndex, int colIndex, double sequenceOrder, boolean isCore, String rowTitle, String externalUrl, String description, Book book) {
+    public StoryArcBookMappingDto(Long id, String storyArcName, Long bookId, int rowIndex, int colIndex, double sequenceOrder, boolean isCore, String rowTitle, String externalUrl, String description, Long coverBookId, Book book) {
         this.id = id;
         this.storyArcName = storyArcName;
         this.bookId = bookId;
@@ -26,6 +27,7 @@ public class StoryArcBookMappingDto {
         this.rowTitle = rowTitle;
         this.externalUrl = externalUrl;
         this.description = description;
+        this.coverBookId = coverBookId;
         this.book = book;
     }
 
@@ -59,6 +61,9 @@ public class StoryArcBookMappingDto {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
+    public Long getCoverBookId() { return coverBookId; }
+    public void setCoverBookId(Long coverBookId) { this.coverBookId = coverBookId; }
+
     public Book getBook() { return book; }
     public void setBook(Book book) { this.book = book; }
 
@@ -77,6 +82,7 @@ public class StoryArcBookMappingDto {
         private String rowTitle;
         private String externalUrl;
         private String description;
+        private Long coverBookId;
         private Book book;
 
         public Builder id(Long id) { this.id = id; return this; }
@@ -89,10 +95,11 @@ public class StoryArcBookMappingDto {
         public Builder rowTitle(String rowTitle) { this.rowTitle = rowTitle; return this; }
         public Builder externalUrl(String externalUrl) { this.externalUrl = externalUrl; return this; }
         public Builder description(String description) { this.description = description; return this; }
+        public Builder coverBookId(Long coverBookId) { this.coverBookId = coverBookId; return this; }
         public Builder book(Book book) { this.book = book; return this; }
 
         public StoryArcBookMappingDto build() {
-            return new StoryArcBookMappingDto(id, storyArcName, bookId, rowIndex, colIndex, sequenceOrder, isCore, rowTitle, externalUrl, description, book);
+            return new StoryArcBookMappingDto(id, storyArcName, bookId, rowIndex, colIndex, sequenceOrder, isCore, rowTitle, externalUrl, description, coverBookId, book);
         }
     }
 }

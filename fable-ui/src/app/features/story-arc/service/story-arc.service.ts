@@ -89,4 +89,12 @@ export class StoryArcService {
   fetchWebMetadata(url: string): Observable<StoryArcMetadataDto> {
     return this.http.post<StoryArcMetadataDto>(`${this.url}/fetch-metadata`, { url });
   }
+
+  setCoverBook(name: string, coverBookId: number | null): Observable<void> {
+    return this.http.put<void>(`${this.url}/${encodeURIComponent(name)}/cover`, { coverBookId }).pipe(
+      tap(() => {
+        this.reloadStoryArcs();
+      })
+    );
+  }
 }

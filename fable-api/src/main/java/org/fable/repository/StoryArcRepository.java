@@ -18,11 +18,11 @@ public interface StoryArcRepository extends JpaRepository<StoryArcEntity, Long> 
 
     @Query("SELECT a, COUNT(m.bookId), " +
            "SUM(CASE WHEN p.readStatus = org.fable.model.enums.ReadStatus.READ THEN 1 ELSE 0 END), " +
-           "MIN(m.bookId) " +
+           "COALESCE(a.coverBookId, MIN(m.bookId)) " +
            "FROM StoryArcEntity a " +
            "LEFT JOIN StoryArcBookMappingEntity m ON m.storyArcId = a.id " +
            "LEFT JOIN UserBookProgressEntity p ON m.bookId = p.book.id AND p.user.id = :userId " +
-           "GROUP BY a.id, a.name, a.externalUrl, a.description " +
+           "GROUP BY a.id, a.name, a.externalUrl, a.description, a.coverBookId " +
            "ORDER BY a.name")
     List<Object[]> findStoryArcSummariesWithUserProgress(@Param("userId") Long userId);
 

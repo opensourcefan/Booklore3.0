@@ -769,6 +769,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
             label: this.t.translate('layout.menu.storyArcs') || 'Story Arcs',
             type: 'storyArc',
             hasDropDown: true,
+            routerLink: ['/story-arcs'],
             items: arcs.map(arc => ({
               label: arc.storyArcName,
               type: 'StoryArc',

@@ -104,4 +104,17 @@ public class StoryArcController {
         }
         return ResponseEntity.ok(storyArcService.fetchWebMetadata(url.trim()));
     }
+
+    @Operation(summary = "Set cover book for story arc", description = "Set a specific book ID to use as the cover image for a story arc. Pass null to clear and revert to auto-selection.")
+    @ApiResponse(responseCode = "204", description = "Cover book updated successfully")
+    @PutMapping("/{name}/cover")
+    @PreAuthorize("@securityUtil.canEditMetadata() or @securityUtil.isAdmin()")
+    public ResponseEntity<Void> setCoverBook(
+            @Parameter(description = "Name of the story arc") @PathVariable String name,
+            @RequestBody java.util.Map<String, Long> request
+    ) {
+        Long coverBookId = request.get("coverBookId");
+        storyArcService.setCoverBook(name, coverBookId);
+        return ResponseEntity.noContent().build();
+    }
 }

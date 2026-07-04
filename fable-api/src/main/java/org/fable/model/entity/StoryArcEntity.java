@@ -22,13 +22,17 @@ public class StoryArcEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "cover_book_id")
+    private Long coverBookId;
+
     public StoryArcEntity() {}
 
-    public StoryArcEntity(Long id, String name, String externalUrl, String description) {
+    public StoryArcEntity(Long id, String name, String externalUrl, String description, Long coverBookId) {
         this.id = id;
         this.name = name;
         this.externalUrl = externalUrl;
         this.description = description;
+        this.coverBookId = coverBookId;
     }
 
     public Long getId() { return id; }
@@ -43,6 +47,9 @@ public class StoryArcEntity {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
+    public Long getCoverBookId() { return coverBookId; }
+    public void setCoverBookId(Long coverBookId) { this.coverBookId = coverBookId; }
+
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {
@@ -50,14 +57,16 @@ public class StoryArcEntity {
         private String name;
         private String externalUrl;
         private String description;
+        private Long coverBookId;
 
         public Builder id(Long id) { this.id = id; return this; }
         public Builder name(String name) { this.name = name; return this; }
         public Builder externalUrl(String externalUrl) { this.externalUrl = externalUrl; return this; }
         public Builder description(String description) { this.description = description; return this; }
+        public Builder coverBookId(Long coverBookId) { this.coverBookId = coverBookId; return this; }
 
         public StoryArcEntity build() {
-            return new StoryArcEntity(id, name, externalUrl, description);
+            return new StoryArcEntity(id, name, externalUrl, description, coverBookId);
         }
     }
 

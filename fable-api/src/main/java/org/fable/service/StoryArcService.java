@@ -74,6 +74,7 @@ public class StoryArcService {
                     .storyArcName(arc.getName())
                     .externalUrl(arc.getExternalUrl())
                     .description(arc.getDescription())
+                    .coverBookId(arc.getCoverBookId())
                     .build();
             return Collections.singletonList(sentinel);
         }
@@ -98,6 +99,7 @@ public class StoryArcService {
                         .rowTitle(mapping.getRowTitle())
                         .externalUrl(mapping.getExternalUrl() != null ? mapping.getExternalUrl() : arc.getExternalUrl())
                         .description(mapping.getDescription() != null ? mapping.getDescription() : arc.getDescription())
+                        .coverBookId(arc.getCoverBookId())
                         .book(bookMap.get(mapping.getBookId()))
                         .build())
                 .toList();
@@ -371,6 +373,16 @@ public class StoryArcService {
                     .scrapedDescription("")
                     .build();
         }
+    }
+
+    @Transactional
+    public void setCoverBook(String name, Long coverBookId) {
+        StoryArcEntity arc = storyArcRepository.findByName(name.trim()).orElse(null);
+        if (arc == null) {
+            return;
+        }
+        arc.setCoverBookId(coverBookId);
+        storyArcRepository.save(arc);
     }
 
     @Transactional

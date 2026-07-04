@@ -1,0 +1,1 @@
+ALTER TABLE story_arc ADD COLUMN cover_book_id BIGINT DEFAULT NULL;

@@ -3,7 +3,21 @@
     @if (item.hasDropDown) {
       <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target">
         <div class="root-item-label-container">
-          <div class="sidebar-heading-label">{{ item.label }}</div>
+          @if (item.routerLink && !reorderMode) {
+            <a class="sidebar-heading-label sidebar-heading-link"
+               [routerLink]="item.routerLink"
+               [fragment]="item.fragment"
+               [queryParamsHandling]="item.queryParamsHandling"
+               [preserveFragment]="item.preserveFragment"
+               [skipLocationChange]="item.skipLocationChange"
+               [replaceUrl]="item.replaceUrl"
+               [state]="item.state"
+               [queryParams]="item.queryParams"
+               [attr.target]="item.target"
+               tabindex="-1">{{ item.label }}</a>
+          } @else {
+            <div class="sidebar-heading-label">{{ item.label }}</div>
+          }
           @if (item.hasCreate) {
             <i
               class="pi pi-plus plus-icon"
@@ -33,7 +47,21 @@
       </div>
     } @else {
       <div class="layout-menuitem-root-text root-item drag-press-target">
-        <div class="sidebar-heading-label">{{ item.label }}</div>
+        @if (item.routerLink && !reorderMode) {
+          <a class="sidebar-heading-label sidebar-heading-link"
+             [routerLink]="item.routerLink"
+             [fragment]="item.fragment"
+             [queryParamsHandling]="item.queryParamsHandling"
+             [preserveFragment]="item.preserveFragment"
+             [skipLocationChange]="item.skipLocationChange"
+             [replaceUrl]="item.replaceUrl"
+             [state]="item.state"
+             [queryParams]="item.queryParams"
+             [attr.target]="item.target"
+             tabindex="-1">{{ item.label }}</a>
+        } @else {
+          <div class="sidebar-heading-label">{{ item.label }}</div>
+        }
       </div>
     }
   }
