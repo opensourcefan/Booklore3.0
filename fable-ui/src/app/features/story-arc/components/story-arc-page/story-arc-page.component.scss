@@ -336,6 +336,11 @@
         border: 2px dashed rgba(255, 255, 255, 0.05);
       }
 
+      &:hover .comic-flow-card.tie-in .comic-cover-img {
+        filter: grayscale(0%) !important;
+        opacity: 1 !important;
+      }
+
       .empty-row-placeholder {
         display: flex;
         align-items: center;
@@ -383,7 +388,6 @@
       }
     }
 
-    &:hover .comic-cover-img,
     &.next-up .comic-cover-img {
       filter: grayscale(0%) !important;
       opacity: 1 !important;
