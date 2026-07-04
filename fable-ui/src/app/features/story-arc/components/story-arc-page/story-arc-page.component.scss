@@ -470,16 +470,22 @@
         top: 0; left: 0; right: 0; bottom: 0;
         background: rgba(0, 0, 0, 0.75);
         display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        align-content: center;
-        gap: 0.35rem;
+        gap: 0.4rem;
         padding: 0.25rem;
         opacity: 0;
         transition: opacity 0.2s ease;
         backdrop-filter: blur(4px);
+
+        .edit-row {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          gap: 0.4rem;
+        }
 
         .remove-book-btn {
           width: 30px;
