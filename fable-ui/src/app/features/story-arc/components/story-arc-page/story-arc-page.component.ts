@@ -8,7 +8,6 @@ import {ToastModule} from 'primeng/toast';
 import {Button} from 'primeng/button';
 import {TooltipModule} from 'primeng/tooltip';
 import {FormsModule} from '@angular/forms';
-import {Select} from 'primeng/select';
 import {TieredMenu} from 'primeng/tieredmenu';
 import {Dialog} from 'primeng/dialog';
 import {DialogService} from 'primeng/dynamicdialog';
@@ -46,7 +45,6 @@ interface StoryArcRow {
     ConfirmDialog,
     Button,
     TooltipModule,
-    Select,
     TieredMenu,
     Dialog
   ],
@@ -83,18 +81,27 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   /** Mobile summary dialog state */
   isMobile = false;
   summaryDialogVisible = false;
+  private hasPushedHistoryState = false;
   private mobileSub?: Subscription;
 
-  /** Dynamic dialog style that accounts for bottom header */
+  /** Dynamic dialog style that accounts for top vs bottom header */
   get dialogStyle(): Record<string, string> {
     const hasBottomHeader = typeof document !== 'undefined' && document.body.classList.contains('header-bottom');
-    const height = hasBottomHeader ? 'calc(100dvh - 3.85rem)' : '100dvh';
+    const height = hasBottomHeader
+      ? 'calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px))'
+      : 'calc(100dvh - 3.85rem)';
+    const top = hasBottomHeader ? '0' : '3.85rem';
     return {
-      width: '100%',
+      position: 'fixed',
+      top,
+      left: '0',
+      width: '100vw',
+      maxWidth: '100vw',
       height,
       maxHeight: height,
       margin: '0',
-      borderRadius: '0'
+      borderRadius: '0',
+      boxSizing: 'border-box'
     };
   }
 
@@ -122,12 +129,17 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     this.mobileSub?.unsubscribe();
     if (typeof window !== 'undefined') {
       window.removeEventListener('popstate', this.onPopState);
+      if (this.hasPushedHistoryState) {
+        this.hasPushedHistoryState = false;
+        window.history.back();
+      }
     }
   }
 
   /** Handles Android back gesture / browser back button to close the summary dialog. */
   private onPopState = (): void => {
     if (this.summaryDialogVisible) {
+      this.hasPushedHistoryState = false;
       this.summaryDialogVisible = false;
       this.cdr.markForCheck();
     }
@@ -345,6 +357,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     this.summaryDialogVisible = true;
     // Push a history state so the Android back button can close the dialog
     if (typeof window !== 'undefined') {
+      this.hasPushedHistoryState = true;
       window.history.pushState({ summaryDialogOpen: true }, '');
     }
     this.cdr.markForCheck();
@@ -358,9 +371,12 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
 
   /** Handles dialog hide (dismissable mask, back gesture, or popstate). */
   onSummaryDialogHide(): void {
-    // Pop the history state we pushed when opening
-    if (typeof window !== 'undefined' && window.history.state?.summaryDialogOpen) {
-      window.history.back();
+    // Pop the history state only if closed via UI action (not popstate event)
+    if (this.hasPushedHistoryState) {
+      this.hasPushedHistoryState = false;
+      if (typeof window !== 'undefined') {
+        window.history.back();
+      }
     }
     this.cdr.markForCheck();
   }

@@ -137,4 +137,50 @@ body.header-bottom {
   .layout-wrapper .layout-main-container {
     padding: 0 0 4.4rem;
   }
+
+  app-book-browser {
+    .book-browser-main {
+      flex-direction: column-reverse;
+    }
+
+    .book-browser-header {
+      border-radius: 0 0 0.75rem 0.75rem;
+      margin-bottom: 0;
+      margin-top: 0.5rem;
+      border-bottom: 1px solid var(--p-content-border-color);
+      border-top: none;
+    }
+
+    /* Selection panel expands upward when toolbar is at bottom */
+    .selection-action-panel {
+      border-top: none;
+      border-bottom: 1px solid color-mix(in srgb, var(--p-content-border-color) 78%, transparent);
+      padding-top: 0;
+      padding-bottom: 0.25rem;
+
+      &.panel-hidden {
+        padding-bottom: 0;
+        border-bottom-color: transparent;
+      }
+    }
+
+    /* Flip the selection toggle chevron direction */
+    .selection-panel-toggle {
+      .selection-toggle-chevron.pi-chevron-up {
+        transform: rotate(180deg);
+      }
+      .selection-toggle-chevron.pi-chevron-down {
+        transform: rotate(180deg);
+      }
+    }
+
+    /* Content area height: subtract bottom toolbar instead of top */
+    .book-state-wrapper {
+      height: calc(100dvh - 10.9rem - var(--selection-panel-offset));
+
+      @media (max-width: 768px) {
+        height: calc(100dvh - 9rem - var(--selection-panel-offset));
+      }
+    }
+  }
 }
