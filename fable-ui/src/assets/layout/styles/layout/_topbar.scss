@@ -30,7 +30,7 @@
 /* Bottom header position (phone mode only, opt-in via user preference) */
 body.header-bottom .layout-topbar {
   top: auto;
-  bottom: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
   border-bottom: none;
   border-top: 1px solid var(--p-content-border-color);
   padding-bottom: env(safe-area-inset-bottom, 0px);
