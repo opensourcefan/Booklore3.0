@@ -1088,7 +1088,7 @@
 /* ==========================================================================
    Bottom header: move book browser toolbar to bottom of viewport
    ========================================================================== */
-body.header-bottom {
+:host-context(body.header-bottom) {
   .book-browser-main {
     flex-direction: column-reverse;
   }

@@ -85,6 +85,19 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   summaryDialogVisible = false;
   private mobileSub?: Subscription;
 
+  /** Dynamic dialog style that accounts for bottom header */
+  get dialogStyle(): Record<string, string> {
+    const hasBottomHeader = typeof document !== 'undefined' && document.body.classList.contains('header-bottom');
+    const height = hasBottomHeader ? 'calc(100dvh - 3.85rem)' : '100dvh';
+    return {
+      width: '100%',
+      height,
+      maxHeight: height,
+      margin: '0',
+      borderRadius: '0'
+    };
+  }
+
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
       const name = params.get('arcName');
@@ -99,11 +112,26 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
       this.isMobile = isMobile;
       this.cdr.markForCheck();
     });
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('popstate', this.onPopState);
+    }
   }
 
   ngOnDestroy(): void {
     this.mobileSub?.unsubscribe();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('popstate', this.onPopState);
+    }
   }
+
+  /** Handles Android back gesture / browser back button to close the summary dialog. */
+  private onPopState = (): void => {
+    if (this.summaryDialogVisible) {
+      this.summaryDialogVisible = false;
+      this.cdr.markForCheck();
+    }
+  };
 
 
   loadLayout(silent = false): void {
