@@ -653,6 +653,32 @@
     font-size: 0.8rem;
     font-weight: 600;
   }
+
+  // "Current" / "Fetched" labels on all non-cover field rows
+  // Cover rows already have .cover-label.mobile-only, so exclude them
+  .field-row:not(.cover-field-row) {
+    .field-side.current::before {
+      content: 'Current';
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary-color, #94a3b8);
+      margin-bottom: 0.3rem;
+    }
+
+    .field-side.fetched::before {
+      content: 'Fetched';
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary-color, #94a3b8);
+      margin-bottom: 0.3rem;
+    }
+  }
 }
 
 .author-chips-container {

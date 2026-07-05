@@ -1,4 +1,4 @@
-import {inject, Injectable, Injector} from '@angular/core';
+import {inject, Injectable, Injector, OnDestroy} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, tap} from 'rxjs';
 import {RxStompService} from '../websocket/rx-stomp.service';
@@ -13,10 +13,13 @@ const REFRESH_TOKEN_STORAGE_KEY = 'refreshToken_Internal';
 const ACCESS_TOKEN_EXPIRY_STORAGE_KEY = 'accessToken_Internal_Expires';
 const DEFAULT_PASSWORD_STORAGE_KEY = 'isDefaultPassword_Internal';
 
+/** Refresh the access token this many milliseconds before it expires. */
+const PROACTIVE_REFRESH_LEAD_MS = 5 * 60 * 1000; // 5 minutes
+
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class AuthService implements OnDestroy {
 
   private apiUrl = `${API_CONFIG.BASE_URL}/api/v1/auth`;
   private rxStompService?: RxStompService;
@@ -38,6 +41,9 @@ export class AuthService {
    */
   public isRefreshing = false;
   public readonly refreshTokenSubject = new BehaviorSubject<string | null>(null);
+
+  /** Handle for the proactive refresh timer, cleared on logout / destroy. */
+  private proactiveRefreshTimerId: ReturnType<typeof setTimeout> | null = null;
 
   internalLogin(credentials: { username: string; password: string }): Observable<AuthTokenResponse> {
     return this.http.post<AuthTokenResponse>(`${this.apiUrl}/login`, credentials).pipe(
@@ -80,6 +86,7 @@ export class AuthService {
     localStorage.setItem(ACCESS_TOKEN_EXPIRY_STORAGE_KEY, tokenResponse.expires.toString());
     sessionStorage.setItem(DEFAULT_PASSWORD_STORAGE_KEY, String(tokenResponse.isDefaultPassword));
     this.tokenSubject.next(tokenResponse.accessToken);
+    this.scheduleProactiveRefresh(tokenResponse.expires);
   }
 
   getInternalAccessToken(): string | null {
@@ -133,6 +140,7 @@ export class AuthService {
   }
 
   private clearSession(): void {
+    this.cancelProactiveRefresh();
     this.clearStoredSessionData();
     this.tokenSubject.next(null);
     this.postLoginInitialized = false;
@@ -181,6 +189,9 @@ export class AuthService {
       return null;
     }
 
+    // Schedule proactive refresh for the existing valid token (e.g., after page reload).
+    this.scheduleProactiveRefresh(expires);
+
     return accessToken;
   }
 
@@ -189,6 +200,49 @@ export class AuthService {
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(ACCESS_TOKEN_EXPIRY_STORAGE_KEY);
     sessionStorage.removeItem(DEFAULT_PASSWORD_STORAGE_KEY);
+  }
+
+  /**
+   * Schedules a proactive token refresh ~5 minutes before the access token expires.
+   * This prevents the token from expiring while the tab is suspended (common on mobile).
+   */
+  private scheduleProactiveRefresh(expiresTimestamp: number): void {
+    this.cancelProactiveRefresh();
+
+    const expiresAt = expiresTimestamp; // already in epoch millis
+    const now = Date.now();
+    const delayMs = expiresAt - now - PROACTIVE_REFRESH_LEAD_MS;
+
+    // If the token expires within the lead window (or already expired), refresh immediately.
+    const effectiveDelay = Math.max(0, delayMs);
+
+    this.proactiveRefreshTimerId = setTimeout(() => {
+      const refreshToken = this.getInternalRefreshToken();
+      if (!refreshToken) return;
+
+      this.internalRefreshToken().subscribe({
+        next: () => {
+          // saveInternalTokens (called inside internalRefreshToken's tap)
+          // will re-schedule the next proactive refresh automatically.
+        },
+        error: (err) => {
+          console.warn('AuthService: Proactive token refresh failed:', err);
+        }
+      });
+    }, effectiveDelay);
+  }
+
+  /** Cancels any pending proactive refresh timer. */
+  private cancelProactiveRefresh(): void {
+    if (this.proactiveRefreshTimerId !== null) {
+      clearTimeout(this.proactiveRefreshTimerId);
+      this.proactiveRefreshTimerId = null;
+    }
+  }
+
+  /** Clean up the refresh timer when the service is destroyed. */
+  ngOnDestroy(): void {
+    this.cancelProactiveRefresh();
   }
 
   private readStoredNumber(key: string): number | null {

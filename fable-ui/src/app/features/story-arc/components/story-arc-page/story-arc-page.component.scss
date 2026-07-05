@@ -737,6 +737,11 @@
           }
         }
 
+        .summary-body {
+          max-height: calc(100dvh - 14rem);
+          overflow-y: auto;
+        }
+
         .summary-body .summary-text {
           font-size: 0.95rem;
           line-height: 1.6;
