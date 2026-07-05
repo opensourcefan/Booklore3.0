@@ -404,6 +404,12 @@ body.header-bottom {
       max-height: calc(100dvh - 5rem);
     }
   }
+
+  .p-popover,
+  .p-tieredmenu,
+  .p-menu {
+    transform-origin: bottom center;
+  }
 }
 
 .quick-layout-btn--active {

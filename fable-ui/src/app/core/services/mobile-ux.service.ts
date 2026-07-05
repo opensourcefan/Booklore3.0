@@ -78,6 +78,17 @@ export class MobileUxService implements OnDestroy {
     shareReplay(1)
   );
 
+  get isMobileInteractionMode(): boolean {
+    const mode = this.uiPrefs.layoutMode;
+    if (mode === 'phone') return true;
+    if (mode === 'tablet') return false;
+    const width = this.screenWidthSubject.value;
+    const height = this.screenHeightSubject.value;
+    const shortEdge = Math.min(width, height);
+    const longEdge = Math.max(width, height);
+    return shortEdge <= this.uiPrefs.phoneBreakpoint && longEdge <= this.MOBILE_LONG_EDGE_MAX_PX;
+  }
+
   get layoutMode(): 'auto' | 'phone' | 'tablet' {
     return this.uiPrefs.layoutMode;
   }

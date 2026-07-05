@@ -9,6 +9,9 @@
 .story-arc-page-container {
   padding: 2rem;
   max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
   margin: 0 auto;
   min-height: 100%;
   color: var(--text-color, #f3f4f6);

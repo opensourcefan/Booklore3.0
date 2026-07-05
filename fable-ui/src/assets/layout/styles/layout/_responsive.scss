@@ -135,7 +135,7 @@ body.layout-phone {
 /* Bottom header: swap content padding from top to bottom */
 body.header-bottom {
   .layout-wrapper .layout-main-container {
-    padding: 0 0 4.4rem;
+    padding: 0 0 calc(3.85rem + env(safe-area-inset-bottom, 0px));
   }
 
   app-book-browser {
@@ -144,14 +144,15 @@ body.header-bottom {
     }
 
     .book-browser-header {
-      border-radius: 0 0 0.75rem 0.75rem;
-      margin-bottom: 0;
-      margin-top: 0.5rem;
-      border-bottom: 1px solid var(--p-content-border-color);
-      border-top: none;
+      display: flex;
+      flex-direction: column-reverse;
+      border-radius: 0 !important;
+      margin: 0 !important;
+      border-top: 1px solid var(--p-content-border-color);
+      border-bottom: none;
     }
 
-    /* Selection panel expands upward when toolbar is at bottom */
+    /* Selection panel expands upward above toolbar when bottom header is active */
     .selection-action-panel {
       border-top: none;
       border-bottom: 1px solid color-mix(in srgb, var(--p-content-border-color) 78%, transparent);

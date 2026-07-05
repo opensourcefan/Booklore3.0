@@ -106,6 +106,8 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isMobile = this.mobileUx.isMobileInteractionMode;
+
     this.route.paramMap.subscribe(params => {
       const name = params.get('arcName');
       if (name) {
