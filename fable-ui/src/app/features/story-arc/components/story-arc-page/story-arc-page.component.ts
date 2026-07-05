@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink, UrlTree} from '@angular/router';
 import {CommonModule, NgClass} from '@angular/common';
 import {CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
@@ -10,7 +10,10 @@ import {TooltipModule} from 'primeng/tooltip';
 import {FormsModule} from '@angular/forms';
 import {Select} from 'primeng/select';
 import {TieredMenu} from 'primeng/tieredmenu';
+import {Dialog} from 'primeng/dialog';
 import {DialogService} from 'primeng/dynamicdialog';
+import {Subscription} from 'rxjs';
+import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 
 import {StoryArcService} from '../../service/story-arc.service';
 import {StoryArcBookMapping, StoryArcLayoutUpdateRequest} from '../../model/story-arc.model';
@@ -44,11 +47,12 @@ interface StoryArcRow {
     Button,
     TooltipModule,
     Select,
-    TieredMenu
+    TieredMenu,
+    Dialog
   ],
   providers: [MessageService, ConfirmationService, DialogService]
 })
-export class StoryArcPageComponent implements OnInit {
+export class StoryArcPageComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private storyArcService = inject(StoryArcService);
@@ -59,6 +63,7 @@ export class StoryArcPageComponent implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private readStatusHelper = inject(ReadStatusHelper);
   private dialogService = inject(DialogService);
+  private mobileUx = inject(MobileUxService);
   private cdr = inject(ChangeDetectorRef);
 
   arcName = '';
@@ -75,6 +80,11 @@ export class StoryArcPageComponent implements OnInit {
   backupSummaryDescription = '';
   selectedMoveCard: { rowIndex: number; colIndex: number; item: StoryArcBookMapping } | null = null;
 
+  /** Mobile summary dialog state */
+  isMobile = false;
+  summaryDialogVisible = false;
+  private mobileSub?: Subscription;
+
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
       const name = params.get('arcName');
@@ -84,6 +94,15 @@ export class StoryArcPageComponent implements OnInit {
         this.loadLayout();
       }
     });
+
+    this.mobileSub = this.mobileUx.isMobileInteractionMode$.subscribe(isMobile => {
+      this.isMobile = isMobile;
+      this.cdr.markForCheck();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.mobileSub?.unsubscribe();
   }
 
 
@@ -290,6 +309,31 @@ export class StoryArcPageComponent implements OnInit {
 
   toggleSummary(): void {
     this.summaryExpanded = !this.summaryExpanded;
+    this.cdr.markForCheck();
+  }
+
+  /** Opens the full-screen summary dialog on mobile. */
+  openSummaryDialog(): void {
+    this.summaryDialogVisible = true;
+    // Push a history state so the Android back button can close the dialog
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ summaryDialogOpen: true }, '');
+    }
+    this.cdr.markForCheck();
+  }
+
+  /** Closes the summary dialog. */
+  closeSummaryDialog(): void {
+    this.summaryDialogVisible = false;
+    this.cdr.markForCheck();
+  }
+
+  /** Handles dialog hide (dismissable mask, back gesture, or popstate). */
+  onSummaryDialogHide(): void {
+    // Pop the history state we pushed when opening
+    if (typeof window !== 'undefined' && window.history.state?.summaryDialogOpen) {
+      window.history.back();
+    }
     this.cdr.markForCheck();
   }
 
