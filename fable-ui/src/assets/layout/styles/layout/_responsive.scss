@@ -139,14 +139,24 @@ body.header-bottom {
   }
 
   app-book-browser {
+    .book-browser-container {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+    }
+
     .book-browser-main {
+      display: flex;
       flex-direction: column-reverse;
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
     }
 
     .book-browser-header {
-      position: sticky;
-      bottom: 0;
-      z-index: 90;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column-reverse;
       border-radius: 0 !important;
@@ -179,13 +189,13 @@ body.header-bottom {
       }
     }
 
-    /* Content area height: subtract bottom toolbar instead of top */
-    .book-state-wrapper {
-      height: calc(100dvh - 10.9rem - var(--selection-panel-offset));
-
-      @media (max-width: 768px) {
-        height: calc(100dvh - 9rem - var(--selection-panel-offset));
-      }
+    /* Content area flexbox: dynamically occupies space above bottom toolbar */
+    .book-state-wrapper,
+    .virtual-scroller {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100% !important;
+      max-height: none !important;
     }
   }
 }
