@@ -11,6 +11,7 @@
                     [class.topbar-item--active]="dirPanelService.isVisible"
                     (click)="dirPanelService.toggle()"
                     [pTooltip]="t('tooltip.dirExplorer')"
+                    [tooltipDisabled]="isMobile"
                     tooltipPosition="top">
               <i class="pi pi-folder"></i>
             </button>
@@ -19,6 +20,7 @@
                       class="topbar-items topbar-item"
                       (click)="resetDirectoryScope()"
                       pTooltip="Reset directory scope"
+                      [tooltipDisabled]="isMobile"
                       tooltipPosition="top"
                       aria-label="Reset directory scope">
                 <i class="pi pi-undo"></i>
@@ -107,6 +109,7 @@
                 <i
                   class="pi pi-filter-slash filter-clear-icon"
                   [pTooltip]="t('tooltip.clearFilters')"
+                  [tooltipDisabled]="isMobile"
                   tooltipPosition="top">
                 </i>
               </button>
@@ -118,6 +121,7 @@
                   <i
                     class="pi pi-eye"
                     [pTooltip]="t('tooltip.visibleColumns')"
+                    [tooltipDisabled]="isMobile"
                     tooltipPosition="top">
                   </i>
                 </button>
@@ -152,6 +156,7 @@
                 class="topbar-items topbar-item"
                 (click)="seriesCollapseOverlay.toggle($event)"
                 [pTooltip]="t('tooltip.displaySettings')"
+                [tooltipDisabled]="isMobile"
                 tooltipPosition="top">
                 <i class="pi pi-cog"></i>
               </button>
@@ -167,6 +172,7 @@
                       (onClick)="seriesCollapseOverlay.hide()"
                       [ariaLabel]="t('labels.return')"
                       [pTooltip]="t('labels.return')"
+                      [tooltipDisabled]="isMobile"
                       tooltipPosition="top">
                     </p-button>
                   </div>
@@ -334,6 +340,7 @@
                 <i
                   class="pi pi-sort"
                   [pTooltip]="t('tooltip.selectSorting')"
+                  [tooltipDisabled]="isMobile"
                   tooltipPosition="top">
                 </i>
               </button>
@@ -352,6 +359,7 @@
               <i
                 [ngClass]="viewIcon"
                 [pTooltip]="t('tooltip.toggleView')"
+                [tooltipDisabled]="isMobile"
                 tooltipPosition="top">
               </i>
             </button>
@@ -363,6 +371,7 @@
               class="topbar-items topbar-item"
               (click)="searchDropdown.toggle($event)"
               [pTooltip]="t('tooltip.search')"
+              [tooltipDisabled]="isMobile"
               tooltipPosition="top"
             >
               <i class="pi pi-search"></i>
@@ -475,6 +484,7 @@
               <i
                 [ngClass]="showFilter ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"
                 [pTooltip]="t('tooltip.toggleSidebar')"
+                [tooltipDisabled]="isMobile"
                 tooltipPosition="top">
               </i>
             </button>
