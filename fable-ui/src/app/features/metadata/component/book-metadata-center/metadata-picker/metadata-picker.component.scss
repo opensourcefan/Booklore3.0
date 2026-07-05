@@ -654,29 +654,44 @@
     font-weight: 600;
   }
 
-  // "Current" / "Fetched" labels on all non-cover field rows
+  // "Current" / "Fetched" labels and visual distinction on all non-cover field rows
   // Cover rows already have .cover-label.mobile-only, so exclude them
   .field-row:not(.cover-field-row) {
-    .field-side.current::before {
-      content: 'Current';
-      display: block;
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-secondary-color, #94a3b8);
-      margin-bottom: 0.3rem;
+    .field-side {
+      padding: 0.5rem 0.6rem;
+      border-radius: 6px;
     }
 
-    .field-side.fetched::before {
-      content: 'Fetched';
-      display: block;
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-secondary-color, #94a3b8);
-      margin-bottom: 0.3rem;
+    .field-side.current {
+      border-left: 3px solid var(--p-primary-color, #3b82f6);
+      background: rgba(59, 130, 246, 0.04);
+
+      &::before {
+        content: 'Current';
+        display: block;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--p-primary-color, #3b82f6);
+        margin-bottom: 0.35rem;
+      }
+    }
+
+    .field-side.fetched {
+      border-left: 3px solid var(--p-surface-500, #64748b);
+      background: rgba(100, 116, 139, 0.04);
+
+      &::before {
+        content: 'Fetched';
+        display: block;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--p-surface-500, #64748b);
+        margin-bottom: 0.35rem;
+      }
     }
   }
 }

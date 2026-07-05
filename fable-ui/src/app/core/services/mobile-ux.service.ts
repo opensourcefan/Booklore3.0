@@ -111,6 +111,7 @@ export class MobileUxService implements OnDestroy {
 
   private resizeListener: (() => void) | null = null;
   private breakpointSubscription!: Subscription;
+  private headerPositionSubscription!: Subscription;
 
   constructor() {
     this.initListeners();
@@ -125,8 +126,27 @@ export class MobileUxService implements OnDestroy {
         } else {
           body.classList.add('layout-desktop');
         }
+        // Re-evaluate header position class when breakpoint changes
+        this.syncHeaderPositionClass();
       }
     });
+
+    this.headerPositionSubscription = this.uiPrefs.headerPosition$.subscribe(() => {
+      this.syncHeaderPositionClass();
+    });
+  }
+
+  /** Applies or removes the header-bottom class based on user preference and phone mode. */
+  private syncHeaderPositionClass(): void {
+    if (typeof document === 'undefined') return;
+    const body = document.body;
+    const isPhone = body.classList.contains('layout-phone');
+    const wantsBottom = this.uiPrefs.headerPosition === 'bottom';
+    if (isPhone && wantsBottom) {
+      body.classList.add('header-bottom');
+    } else {
+      body.classList.remove('header-bottom');
+    }
   }
 
   ngOnDestroy(): void {
@@ -136,6 +156,9 @@ export class MobileUxService implements OnDestroy {
     }
     if (this.breakpointSubscription) {
       this.breakpointSubscription.unsubscribe();
+    }
+    if (this.headerPositionSubscription) {
+      this.headerPositionSubscription.unsubscribe();
     }
   }
 

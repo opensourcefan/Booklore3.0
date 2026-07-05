@@ -131,3 +131,10 @@ body.layout-phone, body.layout-tablet {
 body.layout-phone {
   @include max-768-styles;
 }
+
+/* Bottom header: swap content padding from top to bottom */
+body.header-bottom {
+  .layout-wrapper .layout-main-container {
+    padding: 0 0 4.4rem;
+  }
+}

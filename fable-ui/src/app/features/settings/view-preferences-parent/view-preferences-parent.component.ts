@@ -43,13 +43,20 @@ export class ViewPreferencesParentComponent implements OnInit {
     { label: 'Tablet Layout', value: 'tablet' }
   ];
 
+  headerPositionOptions = [
+    { label: 'Top (Default)', value: 'top' },
+    { label: 'Bottom (Easier thumb reach)', value: 'bottom' }
+  ];
+
   selectedLayoutMode: 'auto' | 'phone' | 'tablet' = 'auto';
+  selectedHeaderPosition: 'top' | 'bottom' = 'top';
   phoneBreakpoint = 767;
   tabletBreakpoint = 1024;
 
   ngOnInit(): void {
     this.showCoverPreview = this.uiPrefs.showCoverPreview;
     this.selectedLayoutMode = this.uiPrefs.layoutMode;
+    this.selectedHeaderPosition = this.uiPrefs.headerPosition;
     this.phoneBreakpoint = this.uiPrefs.phoneBreakpoint;
     this.tabletBreakpoint = this.uiPrefs.tabletBreakpoint;
   }
@@ -59,6 +66,13 @@ export class ViewPreferencesParentComponent implements OnInit {
     this.uiPrefs.setShowCoverPreview(checked);
     this.messageService.add({ severity: 'success', summary: 'Saved',
       detail: checked ? 'Cover preview enabled' : 'Cover preview disabled' });
+  }
+
+  onHeaderPositionChange(value: 'top' | 'bottom'): void {
+    this.selectedHeaderPosition = value;
+    this.uiPrefs.setHeaderPosition(value);
+    this.messageService.add({ severity: 'success', summary: 'Saved',
+      detail: value === 'bottom' ? 'Header moved to bottom (phone mode only)' : 'Header restored to top' });
   }
 
   onLayoutModeChange(mode: 'auto' | 'phone' | 'tablet'): void {

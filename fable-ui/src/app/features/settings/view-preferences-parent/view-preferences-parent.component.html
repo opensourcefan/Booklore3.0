@@ -50,6 +50,39 @@
     <div class="preferences-section">
       <div class="section-header">
         <h3 class="section-title">
+          <i class="pi pi-arrow-down"></i>
+          Header Position (Phone Mode)
+        </h3>
+      </div>
+      <div class="settings-card">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label-row">
+              <span class="setting-label" style="min-width: 180px;">Header Position</span>
+              <p-select
+                size="small"
+                [options]="headerPositionOptions"
+                [(ngModel)]="selectedHeaderPosition"
+                optionLabel="label"
+                optionValue="value"
+                (onChange)="onHeaderPositionChange($event.value)"
+                appendTo="body">
+              </p-select>
+            </div>
+            <p class="setting-description">
+              <i class="pi pi-info-circle"></i>
+              Move the top toolbar to the bottom of the screen for easier thumb reach on large phones. Only applies in phone layout mode.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"><hr></div>
+
+    <div class="preferences-section">
+      <div class="section-header">
+        <h3 class="section-title">
           <i class="pi pi-mobile"></i>
           Device Layout Mode
         </h3>

@@ -7,6 +7,7 @@ export class UiPreferencesService {
   private readonly LAYOUT_MODE_KEY = 'bl-layout-mode';
   private readonly PHONE_BREAKPOINT_KEY = 'bl-phone-breakpoint';
   private readonly TABLET_BREAKPOINT_KEY = 'bl-tablet-breakpoint';
+  private readonly HEADER_POSITION_KEY = 'bl-header-position';
 
   private _showCoverPreview$ = new BehaviorSubject<boolean>(
     localStorage.getItem(this.COVER_PREVIEW_KEY) !== 'false'
@@ -46,5 +47,15 @@ export class UiPreferencesService {
   setTabletBreakpoint(value: number): void {
     localStorage.setItem(this.TABLET_BREAKPOINT_KEY, String(value));
     this._tabletBreakpoint$.next(value);
+  }
+
+  private _headerPosition$ = new BehaviorSubject<'top' | 'bottom'>(
+    (localStorage.getItem(this.HEADER_POSITION_KEY) as 'top' | 'bottom') || 'top'
+  );
+  readonly headerPosition$ = this._headerPosition$.asObservable();
+  get headerPosition(): 'top' | 'bottom' { return this._headerPosition$.value; }
+  setHeaderPosition(value: 'top' | 'bottom'): void {
+    localStorage.setItem(this.HEADER_POSITION_KEY, value);
+    this._headerPosition$.next(value);
   }
 }

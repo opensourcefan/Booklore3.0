@@ -27,6 +27,16 @@
   }
 }
 
+/* Bottom header position (phone mode only, opt-in via user preference) */
+body.header-bottom .layout-topbar {
+  top: auto;
+  bottom: 0;
+  border-bottom: none;
+  border-top: 1px solid var(--p-content-border-color);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0px -3px 5px rgba(0, 0, 0, .02), 0px 0px 2px rgba(0, 0, 0, .05), 0px -1px 4px rgba(0, 0, 0, .08);
+}
+
 @media (max-width: 991px) {
   .layout-topbar {
     .layout-topbar-logo {
@@ -382,6 +392,17 @@
     max-height: calc(100dvh - 5rem);
     overflow-y: auto;
     padding: 0 0.25rem 0 0.6rem;
+  }
+}
+
+/* Bottom header: popovers open upward instead of downward */
+body.header-bottom {
+  .mobile-sidebar-popover,
+  .mobile-overflow-menu-popover,
+  .dir-mobile-panel-popover {
+    .p-popover-content {
+      max-height: calc(100dvh - 5rem);
+    }
   }
 }
 

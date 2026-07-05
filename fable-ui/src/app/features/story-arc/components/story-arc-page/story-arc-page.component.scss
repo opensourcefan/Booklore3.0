@@ -740,6 +740,8 @@
         .summary-body {
           max-height: calc(100dvh - 14rem);
           overflow-y: auto;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
         }
 
         .summary-body .summary-text {
