@@ -5,7 +5,7 @@
   <div class="page-header">
     <div class="header-top-row">
       <div class="header-left">
-        <p-button icon="pi pi-arrow-left" styleClass="p-button-text back-btn" routerLink="/story-arcs" pTooltip="Back to Story Arcs"></p-button>
+        <p-button icon="pi pi-arrow-left" styleClass="p-button-text back-btn" routerLink="/story-arcs" [pTooltip]="loading ? '' : 'Back to Story Arcs'"></p-button>
         <div class="title-section">
           <h1>{{ arcName }}</h1>
           <p class="subtitle">Story Arc Reading Path</p>
@@ -27,7 +27,7 @@
                 [styleClass]="isEditMode ? 'p-button-success action-btn' : 'p-button-outlined p-button-primary action-btn'"
                 [label]="isEditMode ? 'Finish Layout' : 'Edit Layout'"
                 (onClick)="toggleEditMode()"></p-button>
-        <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-outlined action-btn" (onClick)="deleteStoryArc($event)" pTooltip="Delete Story Arc"></p-button>
+        <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-outlined action-btn" (onClick)="deleteStoryArc($event)" [pTooltip]="loading ? '' : 'Delete Story Arc'"></p-button>
       </div>
     </div>
   </div>
