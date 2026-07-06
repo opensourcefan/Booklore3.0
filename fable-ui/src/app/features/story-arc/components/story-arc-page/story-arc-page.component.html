@@ -325,7 +325,7 @@
                         </div>
 
                         <div class="card-details">
-                          <h4 class="book-title" [pTooltip]="loading ? '' : (item.book?.metadata?.title || 'Unknown Title')" tooltipPosition="top">
+                          <h4 class="book-title" [pTooltip]="item.book?.metadata?.title || 'Unknown Title'" tooltipPosition="top">
                             {{ item.book?.metadata?.title || 'Unknown Title' }}
                           </h4>
                           <p class="book-series">

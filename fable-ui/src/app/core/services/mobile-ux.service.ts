@@ -151,7 +151,7 @@ export class MobileUxService implements OnDestroy {
   private syncHeaderPositionClass(): void {
     if (typeof document === 'undefined') return;
     const body = document.body;
-    const isPhone = body.classList.contains('layout-phone');
+    const isPhone = this.isPhone;
     const wantsBottom = this.uiPrefs.headerPosition === 'bottom';
     if (isPhone && wantsBottom) {
       body.classList.add('header-bottom');
