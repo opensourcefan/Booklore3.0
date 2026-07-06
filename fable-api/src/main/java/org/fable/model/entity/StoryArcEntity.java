@@ -25,14 +25,18 @@ public class StoryArcEntity {
     @Column(name = "cover_book_id")
     private Long coverBookId;
 
+    @Column(name = "row_titles", columnDefinition = "TEXT")
+    private String rowTitles;
+
     public StoryArcEntity() {}
 
-    public StoryArcEntity(Long id, String name, String externalUrl, String description, Long coverBookId) {
+    public StoryArcEntity(Long id, String name, String externalUrl, String description, Long coverBookId, String rowTitles) {
         this.id = id;
         this.name = name;
         this.externalUrl = externalUrl;
         this.description = description;
         this.coverBookId = coverBookId;
+        this.rowTitles = rowTitles;
     }
 
     public Long getId() { return id; }
@@ -50,6 +54,9 @@ public class StoryArcEntity {
     public Long getCoverBookId() { return coverBookId; }
     public void setCoverBookId(Long coverBookId) { this.coverBookId = coverBookId; }
 
+    public String getRowTitles() { return rowTitles; }
+    public void setRowTitles(String rowTitles) { this.rowTitles = rowTitles; }
+
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {
@@ -58,15 +65,17 @@ public class StoryArcEntity {
         private String externalUrl;
         private String description;
         private Long coverBookId;
+        private String rowTitles;
 
         public Builder id(Long id) { this.id = id; return this; }
         public Builder name(String name) { this.name = name; return this; }
         public Builder externalUrl(String externalUrl) { this.externalUrl = externalUrl; return this; }
         public Builder description(String description) { this.description = description; return this; }
         public Builder coverBookId(Long coverBookId) { this.coverBookId = coverBookId; return this; }
+        public Builder rowTitles(String rowTitles) { this.rowTitles = rowTitles; return this; }
 
         public StoryArcEntity build() {
-            return new StoryArcEntity(id, name, externalUrl, description, coverBookId);
+            return new StoryArcEntity(id, name, externalUrl, description, coverBookId, rowTitles);
         }
     }
 

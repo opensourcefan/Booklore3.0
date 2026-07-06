@@ -28,6 +28,7 @@ export interface StoryArcLayoutUpdateRequest {
   externalUrl?: string;
   description?: string;
   items: StoryArcLayoutItem[];
+  rowTitles?: string[];
 }
 
 export interface StoryArcLayoutItem {
@@ -50,6 +51,8 @@ export interface StoryArcBulkAddRequest {
   rowTitle?: string;
   /** Optional: if true, group books by their series metadata into separate chapters. */
   groupBySeries?: boolean;
+  /** Optional: when creating a new chapter, position relative to targetRowIndex: "above" or "below". */
+  position?: string;
 }
 
 export interface StoryArcMetadataDto {

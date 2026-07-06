@@ -58,6 +58,20 @@
               class="dialog-input"
             />
           </div>
+
+          <div class="form-group">
+            <span class="field-label">Chapter Position</span>
+            <div class="position-toggles">
+              <p-button [styleClass]="newChapterPosition === 'above' ? 'p-button-primary' : 'p-button-outlined p-button-secondary'"
+                      icon="pi pi-arrow-up"
+                      label="Above"
+                      (onClick)="newChapterPosition = 'above'"></p-button>
+              <p-button [styleClass]="newChapterPosition === 'below' ? 'p-button-primary' : 'p-button-outlined p-button-secondary'"
+                      icon="pi pi-arrow-down"
+                      label="Below"
+                      (onClick)="newChapterPosition = 'below'"></p-button>
+            </div>
+          </div>
         }
 
         <div class="form-group checkbox-group">

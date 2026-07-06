@@ -180,18 +180,24 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
       this.coverBookId = metaSource.coverBookId ?? null;
     }
 
-    // Filter out sentinel entries (no bookId) from the row-building logic
+    // Separate real mappings (with bookId) from empty row sentinels (rowIndex but no bookId)
     const realMappings = mappings.filter(m => m.bookId != null);
-
-    const existingEmptyRows = new Map<number, string>();
-    this.rows.forEach((row, index) => {
-      if (row.items.length === 0 && row.title) {
-        existingEmptyRows.set(index, row.title);
-      }
-    });
+    const emptyRowSentinels = mappings.filter(m => m.bookId == null && m.rowIndex != null && m.rowTitle);
 
     const rowMap = new Map<number, { title: string; items: StoryArcBookMapping[] }>();
 
+    // First, populate from empty row sentinels (persisted empty chapters)
+    emptyRowSentinels.forEach(m => {
+      const rIdx = m.rowIndex ?? 0;
+      if (!rowMap.has(rIdx)) {
+        rowMap.set(rIdx, {
+          title: m.rowTitle || `Chapter ${rIdx + 1}`,
+          items: []
+        });
+      }
+    });
+
+    // Then populate from real mappings
     realMappings.forEach(m => {
       const rIdx = m.rowIndex ?? 0;
       if (!rowMap.has(rIdx)) {
@@ -201,12 +207,6 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
         });
       }
       rowMap.get(rIdx)!.items.push(m);
-    });
-
-    existingEmptyRows.forEach((title, rIdx) => {
-      if (!rowMap.has(rIdx)) {
-        rowMap.set(rIdx, { title, items: [] });
-      }
     });
 
     const sortedRowIndices = Array.from(rowMap.keys()).sort((a, b) => a - b);
@@ -415,7 +415,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     this.saveLayout();
   }
 
-  saveLayout(): void {
+  saveLayout(skipReload = false): void {
     const items: StoryArcLayoutUpdateRequest['items'] = [];
     let sequence = 1;
 
@@ -434,27 +434,44 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
       });
     });
 
+    // Collect row titles for empty chapters to persist them
+    const rowTitles: string[] = this.rows.map(row => row.title);
+
     this.storyArcService.saveLayout(this.arcName, {
       storyArcName: this.arcName,
       externalUrl: this.externalUrl,
       description: this.summaryDescription,
-      items
+      items,
+      rowTitles
     }).subscribe({
       next: () => {
-        this.loadLayout(true);
+        if (!skipReload) {
+          this.loadLayout(true);
+        }
       }
     });
   }
 
-  addRow(): void {
-    this.rows.push({
-      title: `Chapter ${this.rows.length + 1}`,
-      items: []
-    });
+  addRowAbove(rowIndex: number): void {
+    const newTitle = `Chapter ${this.rows.length + 1}`;
+    this.rows.splice(rowIndex, 0, { title: newTitle, items: [] });
+    this.saveLayout();
+    this.cdr.markForCheck();
+  }
+
+  addRowBelow(rowIndex: number): void {
+    const newTitle = `Chapter ${this.rows.length + 1}`;
+    this.rows.splice(rowIndex + 1, 0, { title: newTitle, items: [] });
+    this.saveLayout();
     this.cdr.markForCheck();
   }
 
   removeRow(rowIndex: number): void {
+    // Prevent deleting the last chapter
+    if (this.rows.length <= 1) {
+      this.messageService.add({severity: 'warn', summary: 'Cannot Delete', detail: 'The last chapter cannot be deleted. A story arc must have at least one chapter.'});
+      return;
+    }
     const row = this.rows[rowIndex];
     if (row.items.length > 0) {
       // Put items back into the previous row or row 0

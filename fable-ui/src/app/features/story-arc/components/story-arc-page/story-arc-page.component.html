@@ -15,7 +15,6 @@
         @if (isEditMode) {
           @if (!isChapterSortMode) {
             <p-button icon="pi pi-sort-amount-down" styleClass="p-button-outlined p-button-secondary action-btn" label="Auto-Organize by Series" (onClick)="autoOrganizeBySeries()" pTooltip="Group books in the first chapter by their series into separate chapters"></p-button>
-            <p-button icon="pi pi-plus" styleClass="p-button-outlined p-button-secondary action-btn" label="Add Chapter" (onClick)="addRow()"></p-button>
           }
           <p-button [icon]="isChapterSortMode ? 'pi pi-th-large' : 'pi pi-list'"
                   [styleClass]="isChapterSortMode ? 'p-button-outlined p-button-primary action-btn' : 'p-button-outlined p-button-secondary action-btn'"
@@ -192,7 +191,9 @@
                 </div>
                 <input type="text" [(ngModel)]="row.title" (blur)="saveLayout()" class="row-title-input" placeholder="Chapter title..." />
                 <p-button icon="pi pi-plus" styleClass="p-button-success p-button-text add-books-btn" (onClick)="openBookPicker(rowIndex)" pTooltip="Add books to this chapter"></p-button>
-                <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-row-btn" (onClick)="removeRow(rowIndex)" pTooltip="Delete Row (merges books into previous row)"></p-button>
+                <p-button icon="pi pi-arrow-up" styleClass="p-button-outlined p-button-secondary p-button-sm add-chapter-btn" (onClick)="addRowAbove(rowIndex)" pTooltip="Add Chapter Above"></p-button>
+                <p-button icon="pi pi-arrow-down" styleClass="p-button-outlined p-button-secondary p-button-sm add-chapter-btn" (onClick)="addRowBelow(rowIndex)" pTooltip="Add Chapter Below"></p-button>
+                <p-button icon="pi pi-times" styleClass="p-button-danger p-button-text remove-row-btn" (onClick)="removeRow(rowIndex)" [disabled]="rows.length <= 1" pTooltip="Delete Row (merges books into previous row)"></p-button>
                 @if (selectedMoveCard) {
                   <p-button icon="pi pi-download" label="Move Here" styleClass="p-button-success p-button-xs place-chapter-btn" (onClick)="placeCardInChapter(rowIndex)" pTooltip="Move picked up book to this chapter"></p-button>
                 }

@@ -70,13 +70,29 @@ public class StoryArcService {
         // If there are no mappings, return a sentinel DTO carrying arc metadata
         // so the frontend can still display the summary/guide.
         if (mappings.isEmpty()) {
-            StoryArcBookMappingDto sentinel = StoryArcBookMappingDto.builder()
+            List<StoryArcBookMappingDto> result = new ArrayList<>();
+            // Add metadata sentinel
+            result.add(StoryArcBookMappingDto.builder()
                     .storyArcName(arc.getName())
                     .externalUrl(arc.getExternalUrl())
                     .description(arc.getDescription())
                     .coverBookId(arc.getCoverBookId())
-                    .build();
-            return Collections.singletonList(sentinel);
+                    .build());
+            // Add empty row sentinels from persisted rowTitles
+            if (arc.getRowTitles() != null && !arc.getRowTitles().isBlank()) {
+                String[] titles = arc.getRowTitles().split("\n");
+                for (int i = 0; i < titles.length; i++) {
+                    String title = titles[i].trim();
+                    if (!title.isEmpty()) {
+                        result.add(StoryArcBookMappingDto.builder()
+                                .storyArcName(arc.getName())
+                                .rowIndex(i)
+                                .rowTitle(title)
+                                .build());
+                    }
+                }
+            }
+            return result;
         }
 
         Set<Long> bookIds = mappings.stream()
@@ -87,7 +103,7 @@ public class StoryArcService {
         Map<Long, Book> bookMap = books.stream()
                 .collect(Collectors.toMap(Book::getId, Function.identity()));
 
-        return mappings.stream()
+        List<StoryArcBookMappingDto> result = mappings.stream()
                 .map(mapping -> StoryArcBookMappingDto.builder()
                         .id(mapping.getId())
                         .storyArcName(mapping.getStoryArcName())
@@ -102,7 +118,29 @@ public class StoryArcService {
                         .coverBookId(arc.getCoverBookId())
                         .book(bookMap.get(mapping.getBookId()))
                         .build())
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        // Add empty row sentinels from persisted rowTitles for rows that have no books
+        if (arc.getRowTitles() != null && !arc.getRowTitles().isBlank()) {
+            String[] titles = arc.getRowTitles().split("\n");
+            Set<Integer> occupiedRows = mappings.stream()
+                    .map(StoryArcBookMappingEntity::getRowIndex)
+                    .collect(Collectors.toSet());
+            for (int i = 0; i < titles.length; i++) {
+                if (!occupiedRows.contains(i)) {
+                    String title = titles[i].trim();
+                    if (!title.isEmpty()) {
+                        result.add(StoryArcBookMappingDto.builder()
+                                .storyArcName(arc.getName())
+                                .rowIndex(i)
+                                .rowTitle(title)
+                                .build());
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     @Transactional
@@ -207,6 +245,30 @@ public class StoryArcService {
                     targetColIndex = 0;
                     targetSeq = existing.isEmpty() ? 0.0
                             : existing.get(existing.size() - 1).getSequenceOrder();
+                } else if ("above".equals(request.getPosition()) || "below".equals(request.getPosition())) {
+                    // Create a new chapter above or below the target row, shifting existing rows
+                    int insertAt = request.getTargetRowIndex();
+                    if ("below".equals(request.getPosition())) {
+                        insertAt = request.getTargetRowIndex() + 1;
+                    }
+                    // Shift existing rows at insertAt and above down by 1
+                    for (StoryArcBookMappingEntity m : existing) {
+                        if (m.getRowIndex() >= insertAt) {
+                            m.setRowIndex(m.getRowIndex() + 1);
+                            repository.save(m);
+                        }
+                    }
+                    targetRowIndex = insertAt;
+                    targetRowTitle = request.getRowTitle();
+                    targetColIndex = 0;
+                    // Compute max seq before insertAt using a loop instead of lambda
+                    double maxSeqBefore = 0.0;
+                    for (StoryArcBookMappingEntity m : existing) {
+                        if (m.getRowIndex() < insertAt && m.getSequenceOrder() > maxSeqBefore) {
+                            maxSeqBefore = m.getSequenceOrder();
+                        }
+                    }
+                    targetSeq = existing.isEmpty() ? 0.0 : maxSeqBefore;
                 } else {
                     targetRowIndex = request.getTargetRowIndex();
                     targetRowTitle = request.getRowTitle();
@@ -269,12 +331,18 @@ public class StoryArcService {
                     .externalUrl(request.getExternalUrl())
                     .description(request.getDescription())
                     .build();
-            arc = storyArcRepository.save(arc);
         } else {
             arc.setExternalUrl(request.getExternalUrl());
             arc.setDescription(request.getDescription());
-            storyArcRepository.save(arc);
         }
+
+        // Persist empty chapter row titles as JSON array
+        if (request.getRowTitles() != null && !request.getRowTitles().isEmpty()) {
+            arc.setRowTitles(String.join("\n", request.getRowTitles()));
+        } else {
+            arc.setRowTitles(null);
+        }
+        storyArcRepository.save(arc);
 
         List<StoryArcBookMappingEntity> existingMappings = repository.findAllByStoryArcNameOrderByRowIndexAscColIndexAsc(cleanName);
         Map<Long, StoryArcBookMappingEntity> existingMap = existingMappings.stream()

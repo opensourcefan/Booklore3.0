@@ -36,11 +36,13 @@ export class StoryArcAssignerComponent implements OnInit {
   selectedArcName = '';
   customArcName = '';
   isNewArc = false;
-  // Phase 2A: Chapter targeting
+  // Chapter targeting
   targetChapterIndex: number | null = null;
   newChapterName = '';
   isNewChapter = false;
-  // Phase 2B: Auto-group by series
+  // Position for new chapter: "above" or "below" the target
+  newChapterPosition: 'above' | 'below' = 'below';
+  // Auto-group by series
   groupBySeries = false;
 
   // Chapter options for the selected arc
@@ -67,9 +69,9 @@ export class StoryArcAssignerComponent implements OnInit {
     // Load chapter options for the selected arc
     this.chapterOptions$ = this.storyArcService.getStoryArc(arcName).pipe(
       map(mappings => {
-        const realMappings = mappings.filter(m => m.bookId != null);
+        // Collect all row indices and titles from both real mappings and empty row sentinels
         const rowMap = new Map<number, string>();
-        realMappings.forEach(m => {
+        mappings.forEach(m => {
           const rIdx = m.rowIndex ?? 0;
           if (!rowMap.has(rIdx)) {
             rowMap.set(rIdx, m.rowTitle || `Chapter ${rIdx + 1}`);
@@ -112,6 +114,7 @@ export class StoryArcAssignerComponent implements OnInit {
       targetRowIndex?: number;
       rowTitle?: string;
       groupBySeries?: boolean;
+      position?: string;
     } = {
       storyArcName: name,
       bookIds: bookIdList
@@ -120,9 +123,10 @@ export class StoryArcAssignerComponent implements OnInit {
     if (this.groupBySeries) {
       request.groupBySeries = true;
     } else if (this.isNewChapter && this.newChapterName.trim()) {
-      // Target a new chapter — backend will create it at the next available row index
-      request.targetRowIndex = -1; // signal to backend: create new row
+      // Create a new chapter above or below the selected target
+      request.targetRowIndex = this.targetChapterIndex ?? -1;
       request.rowTitle = this.newChapterName.trim();
+      request.position = this.newChapterPosition;
     } else if (this.targetChapterIndex != null && this.targetChapterIndex >= 0) {
       request.targetRowIndex = this.targetChapterIndex;
     }

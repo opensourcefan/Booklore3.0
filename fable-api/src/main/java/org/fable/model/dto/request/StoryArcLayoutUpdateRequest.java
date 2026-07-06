@@ -7,14 +7,16 @@ public class StoryArcLayoutUpdateRequest {
     private String externalUrl;
     private String description;
     private List<LayoutItem> items;
+    private List<String> rowTitles;
 
     public StoryArcLayoutUpdateRequest() {}
 
-    public StoryArcLayoutUpdateRequest(String storyArcName, String externalUrl, String description, List<LayoutItem> items) {
+    public StoryArcLayoutUpdateRequest(String storyArcName, String externalUrl, String description, List<LayoutItem> items, List<String> rowTitles) {
         this.storyArcName = storyArcName;
         this.externalUrl = externalUrl;
         this.description = description;
         this.items = items;
+        this.rowTitles = rowTitles;
     }
 
     public String getStoryArcName() { return storyArcName; }
@@ -29,6 +31,9 @@ public class StoryArcLayoutUpdateRequest {
     public List<LayoutItem> getItems() { return items; }
     public void setItems(List<LayoutItem> items) { this.items = items; }
 
+    public List<String> getRowTitles() { return rowTitles; }
+    public void setRowTitles(List<String> rowTitles) { this.rowTitles = rowTitles; }
+
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {
@@ -36,14 +41,16 @@ public class StoryArcLayoutUpdateRequest {
         private String externalUrl;
         private String description;
         private List<LayoutItem> items;
+        private List<String> rowTitles;
 
         public Builder storyArcName(String storyArcName) { this.storyArcName = storyArcName; return this; }
         public Builder externalUrl(String externalUrl) { this.externalUrl = externalUrl; return this; }
         public Builder description(String description) { this.description = description; return this; }
         public Builder items(List<LayoutItem> items) { this.items = items; return this; }
+        public Builder rowTitles(List<String> rowTitles) { this.rowTitles = rowTitles; return this; }
 
         public StoryArcLayoutUpdateRequest build() {
-            return new StoryArcLayoutUpdateRequest(storyArcName, externalUrl, description, items);
+            return new StoryArcLayoutUpdateRequest(storyArcName, externalUrl, description, items, rowTitles);
         }
     }
 

@@ -20,4 +20,6 @@ public class StoryArcBulkAddRequest {
     private String rowTitle;
     /** Optional: if true, group books by their series metadata into separate chapters. */
     private boolean groupBySeries;
+    /** Optional: when creating a new chapter, position relative to targetRowIndex: "above" or "below". */
+    private String position;
 }

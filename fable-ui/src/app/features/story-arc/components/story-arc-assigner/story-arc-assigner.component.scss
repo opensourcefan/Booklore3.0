@@ -37,6 +37,9 @@
   }
 
   .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     margin-bottom: 2rem;
 
     .form-group {
@@ -44,7 +47,8 @@
       flex-direction: column;
       gap: 0.5rem;
 
-      label {
+      label,
+      .field-label {
         font-size: 0.85rem;
         font-weight: 600;
         color: #9ca3af;
@@ -71,12 +75,38 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 8px;
         color: #fff;
+        box-sizing: border-box;
 
         &:focus {
           outline: none;
           border-color: #a78bfa;
           background: rgba(255, 255, 255, 0.08);
         }
+      }
+
+      .position-toggles {
+        display: flex;
+        gap: 0.75rem;
+
+        button {
+          flex: 1;
+          padding: 0.5rem;
+          font-weight: 600;
+          border-radius: 8px;
+        }
+      }
+    }
+
+    .checkbox-group {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.75rem;
+
+      label {
+        text-transform: none;
+        letter-spacing: normal;
+        font-weight: 500;
+        cursor: pointer;
       }
     }
   }
