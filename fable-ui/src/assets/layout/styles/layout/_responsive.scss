@@ -181,13 +181,13 @@ body.header-bottom {
     }
 
     /* Content area height in bottom header mode:
-       topbar (3.85rem) + toolbar min-height (2rem) + header padding (0.7rem) + header borders (2px) */
+       topbar (3.85rem) + toolbar rendered (~2.35rem) + header padding (0.7rem) + border-top (1px) */
     .book-state-wrapper,
     .virtual-scroller {
       height: calc(100dvh - 6.35rem - var(--selection-panel-offset) - env(safe-area-inset-bottom, 0px)) !important;
 
       @media (max-width: 768px) {
-        height: calc(100dvh - 6.55rem - 2px - var(--selection-panel-offset) - env(safe-area-inset-bottom, 0px)) !important;
+        height: calc(100dvh - 6.9rem - var(--selection-panel-offset) - env(safe-area-inset-bottom, 0px)) !important;
       }
     }
   }
