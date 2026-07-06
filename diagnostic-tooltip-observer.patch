@@ -1,0 +1,61 @@
+diff --git a/fable-ui/src/app/features/story-arc/components/story-arc-page/story-arc-page.component.ts b/fable-ui/src/app/features/story-arc/components/story-arc-page/story-arc-page.component.ts
+index 0000000..0000000 100644
+--- a/fable-ui/src/app/features/story-arc/components/story-arc-page/story-arc-page.component.ts
++++ b/fable-ui/src/app/features/story-arc/components/story-arc-page/story-arc-page.component.ts
+@@ -111,6 +111,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
+   ngOnInit(): void {
+     this.isMobile = this.mobileUx.isMobileInteractionMode;
++    this.installTooltipObserver();
+
+     this.route.paramMap.subscribe(params => {
+       const name = params.get('arcName');
+@@ -133,6 +134,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
+   ngOnDestroy(): void {
+     this.mobileSub?.unsubscribe();
++    this.tooltipObserver?.disconnect();
+     if (typeof window !== 'undefined') {
+       window.removeEventListener('popstate', this.onPopState);
+       if (this.hasPushedHistoryState) {
+@@ -144,6 +146,42 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
+     }
+   };
+
++  /** TEMPORARY DIAGNOSTIC: Logs every PrimeNG tooltip added to the DOM in bottom header mode. */
++  private tooltipObserver: MutationObserver | null = null;
++  private installTooltipObserver(): void {
++    if (typeof document === 'undefined') return;
++    const isBottomHeader = document.body.classList.contains('header-bottom');
++    if (!isBottomHeader) return;
++
++    this.tooltipObserver = new MutationObserver((mutations) => {
++      for (const m of mutations) {
++        for (const node of m.addedNodes) {
++          if (node.nodeType !== 1) continue;
++          const el = node as Element;
++          const tooltipEl = el.classList?.contains('p-tooltip')
++            ? el
++            : el.querySelector?.('.p-tooltip');
++          if (!tooltipEl) continue;
++
++          const text = tooltipEl.textContent?.trim() || '(empty)';
++          const parent = tooltipEl.parentElement;
++          const parentTag = parent?.tagName?.toLowerCase() || 'unknown';
++          const parentId = parent?.id ? `#${parent.id}` : '';
++          const parentClass = parent?.className?.replace(/p-tooltip-target|p-focus/g, '').trim() || '';
++
++          console.warn(
++            `%c[TOOLTIP OBSERVER] %c"${text}" %c→ %c<${parentTag}${parentId} class="${parentClass}">`,
++            'color: #f472b6; font-weight: bold;',
++            'color: #fff;',
++            'color: #9ca3af;',
++            'color: #a78bfa;'
++          );
++          console.log('  Element:', parent);
++        }
++      }
++    });
++    this.tooltipObserver.observe(document.body, { childList: true, subtree: true });
++  }
+
+   loadLayout(silent = false): void {
+     if (!silent) {
