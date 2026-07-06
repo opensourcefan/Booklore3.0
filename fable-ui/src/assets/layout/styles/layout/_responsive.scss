@@ -139,15 +139,16 @@ body.header-bottom {
   }
 
   app-book-browser {
+    /* CSS Grid: header takes natural height (auto), scroller fills remaining space (1fr).
+       Only the topbar height (3.85rem) is hardcoded — the header sizes itself from its content. */
     .book-browser-main {
-      display: flex;
-      flex-direction: column-reverse;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px));
     }
 
     .book-browser-header {
-      position: sticky;
-      bottom: 0;
-      z-index: 90;
+      grid-row: 2;
       display: flex;
       flex-direction: column-reverse;
       border-radius: 0 !important;
@@ -155,6 +156,16 @@ body.header-bottom {
       border-top: 1px solid var(--p-content-border-color);
       border-bottom: none;
       background-color: var(--card-background);
+    }
+
+    .book-state-wrapper {
+      grid-row: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .virtual-scroller {
+      height: 100% !important;
     }
 
     /* Selection panel expands upward above toolbar when bottom header is active */
@@ -177,17 +188,6 @@ body.header-bottom {
       }
       .selection-toggle-chevron.pi-chevron-down {
         transform: rotate(180deg);
-      }
-    }
-
-    /* Content area height in bottom header mode:
-       topbar (3.85rem) + toolbar rendered (~2.35rem) + header padding (0.7rem) + border-top (1px) */
-    .book-state-wrapper,
-    .virtual-scroller {
-      height: calc(100dvh - 6.35rem - var(--selection-panel-offset) - env(safe-area-inset-bottom, 0px)) !important;
-
-      @media (max-width: 768px) {
-        height: calc(100dvh - 6.9rem - var(--selection-panel-offset) - env(safe-area-inset-bottom, 0px)) !important;
       }
     }
   }
