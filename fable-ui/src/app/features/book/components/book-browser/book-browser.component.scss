@@ -1,26 +1,30 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+}
+
 // Layout containers
 .book-browser-container {
   position: relative;
   display: flex;
   flex-direction: row;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
 }
 
 .book-browser-main {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  min-width: 0;
-  --selection-panel-offset: 0px;
-
-  &.selection-panel-open {
-    --selection-panel-offset: 5.25rem;
-  }
-
-  @media (max-width: 768px) {
-    &.selection-panel-open {
-      --selection-panel-offset: 4rem;
-    }
-  }
+  min-height: 0;
+  height: 100%;
+  width: 100%;
 }
 
 // Header bar
@@ -718,16 +722,15 @@
 }
 
 // Virtual scroller and grid
+.book-state-wrapper,
 .virtual-scroller {
   width: 100%;
-  height: calc(100dvh - 10.9rem - var(--selection-panel-offset));
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
   padding: 1rem;
   box-sizing: border-box;
   overflow-y: auto;
-
-  @media (max-width: 768px) {
-    height: calc(100dvh - 9rem - var(--selection-panel-offset));
-  }
 }
 
 .virtual-grid {

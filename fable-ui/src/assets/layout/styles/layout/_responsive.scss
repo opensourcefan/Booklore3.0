@@ -180,14 +180,13 @@ body.header-bottom {
       }
     }
 
-    /* Content area height in bottom header mode: topbar is at bottom (3.85rem) + toolbar (2rem) */
+    /* Content area flexbox: dynamically occupies available space above bottom toolbar */
     .book-state-wrapper,
     .virtual-scroller {
-      height: calc(100dvh - 6.35rem - var(--selection-panel-offset) - env(safe-area-inset-bottom, 0px)) !important;
-
-      @media (max-width: 768px) {
-        height: calc(100dvh - 5.85rem - var(--selection-panel-offset) - env(safe-area-inset-bottom, 0px)) !important;
-      }
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100% !important;
+      max-height: none !important;
     }
   }
 }
