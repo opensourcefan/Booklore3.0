@@ -1,9 +1,14 @@
 :host {
   display: block;
-  height: 100%;
+  height: calc(100dvh - 5rem);
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
+}
+
+/* Bottom header: use correct 3.85rem offset instead of 5rem */
+:host-context(body.header-bottom) {
+  height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px));
 }
 
 .story-arc-page-container {
