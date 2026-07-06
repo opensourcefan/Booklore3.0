@@ -145,12 +145,20 @@ body.header-bottom {
       display: grid;
       grid-template-rows: 1fr auto;
       height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px));
+
+      /* The @if (bookState$ | async) wrapper div is the second grid child.
+         It must fill row 1 and pass height down to .book-state-wrapper. */
+      > div {
+        min-height: 0;
+        overflow: hidden;
+      }
     }
 
     .book-browser-header {
       grid-row: 2;
       display: flex;
       flex-direction: column-reverse;
+      min-width: 0;
       border-radius: 0 !important;
       margin: 0 !important;
       border-top: 1px solid var(--p-content-border-color);
@@ -159,8 +167,7 @@ body.header-bottom {
     }
 
     .book-state-wrapper {
-      grid-row: 1;
-      min-height: 0;
+      height: 100%;
       overflow: hidden;
     }
 
