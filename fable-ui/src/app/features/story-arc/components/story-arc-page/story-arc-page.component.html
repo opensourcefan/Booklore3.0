@@ -54,35 +54,37 @@
       </div>
 
       <!-- Full-screen summary dialog for mobile -->
-      <p-dialog
-        [(visible)]="summaryDialogVisible"
-        [modal]="true"
-        [dismissableMask]="true"
-        [style]="dialogStyle"
-        styleClass="summary-mobile-dialog"
-        [showHeader]="false"
-        (onHide)="onSummaryDialogHide()">
-        <div class="summary-dialog-content">
-          <div class="summary-dialog-header">
-            <div class="summary-dialog-title">
-              <i class="pi pi-info-circle"></i>
-              <span>About This Arc</span>
+      @if (summaryDialogVisible) {
+        <p-dialog
+          [(visible)]="summaryDialogVisible"
+          [modal]="true"
+          [dismissableMask]="true"
+          [style]="dialogStyle"
+          styleClass="summary-mobile-dialog"
+          [showHeader]="false"
+          (onHide)="onSummaryDialogHide()">
+          <div class="summary-dialog-content">
+            <div class="summary-dialog-header">
+              <div class="summary-dialog-title">
+                <i class="pi pi-info-circle"></i>
+                <span>About This Arc</span>
+              </div>
+              <div class="summary-dialog-actions">
+                @if (externalUrl) {
+                  <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide'" tooltipPosition="bottom">
+                    <i class="pi pi-external-link"></i>
+                    <span>Guide</span>
+                  </a>
+                }
+                <p-button icon="pi pi-times" styleClass="p-button-text p-button-rounded" (onClick)="closeSummaryDialog()" pTooltip="Close"></p-button>
+              </div>
             </div>
-            <div class="summary-dialog-actions">
-              @if (externalUrl) {
-                <a [href]="externalUrl" target="_blank" rel="noopener noreferrer" class="external-guide-link-btn" [pTooltip]="'Open original reading order guide'" tooltipPosition="bottom">
-                  <i class="pi pi-external-link"></i>
-                  <span>Guide</span>
-                </a>
-              }
-              <p-button icon="pi pi-times" styleClass="p-button-text p-button-rounded" (onClick)="closeSummaryDialog()" pTooltip="Close"></p-button>
+            <div class="summary-dialog-body">
+              <p class="summary-text">{{ summaryDescription }}</p>
             </div>
           </div>
-          <div class="summary-dialog-body">
-            <p class="summary-text">{{ summaryDescription }}</p>
-          </div>
-        </div>
-      </p-dialog>
+        </p-dialog>
+      }
     } @else {
       <!-- Desktop: inline collapsible section (unchanged) -->
       <div class="arc-summary-section" [class.collapsed]="!summaryExpanded">
