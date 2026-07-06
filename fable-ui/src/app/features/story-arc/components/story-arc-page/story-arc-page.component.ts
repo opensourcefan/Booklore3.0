@@ -86,6 +86,9 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
 
   /** Dynamic dialog style that accounts for top vs bottom header */
   get dialogStyle(): Record<string, string> {
+    if (!this.summaryDialogVisible) {
+      return { display: 'none' };
+    }
     const hasBottomHeader = typeof document !== 'undefined' && document.body.classList.contains('header-bottom');
     const height = hasBottomHeader
       ? 'calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px))'
