@@ -61,11 +61,6 @@ bootstrapApplication(AppComponent, {
         options: {
           darkModeSelector: '.p-dark'
         }
-      },
-      pt: {
-        tooltip: {
-          showDelay: 300
-        }
       }
     }), provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
