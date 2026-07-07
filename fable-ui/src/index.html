@@ -12,6 +12,21 @@
 </head>
 
 <body>
+<script>
+  (function() {
+    try {
+      var headerPos = localStorage.getItem('bl-header-position');
+      if (headerPos === 'bottom') {
+        var layoutMode = localStorage.getItem('bl-layout-mode') || 'auto';
+        var phoneBreakpoint = parseInt(localStorage.getItem('bl-phone-breakpoint') || '767', 10);
+        var isPhone = layoutMode === 'phone' || (layoutMode !== 'tablet' && window.innerWidth <= phoneBreakpoint);
+        if (isPhone) {
+          document.body.classList.add('header-bottom');
+        }
+      }
+    } catch(e) {}
+  })();
+</script>
 <app-root></app-root>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>
