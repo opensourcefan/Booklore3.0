@@ -153,6 +153,17 @@ export class MobileUxService implements OnDestroy {
     const body = document.body;
     const isPhone = this.isPhone;
     const wantsBottom = this.uiPrefs.headerPosition === 'bottom';
+    const hadClass = body.classList.contains('header-bottom');
+    console.log('[MobileUx] syncHeaderPositionClass()', {
+      isPhone,
+      wantsBottom,
+      hadClass,
+      screenWidth: this.screenWidthSubject.value,
+      phoneBreakpoint: this.uiPrefs.phoneBreakpoint,
+      layoutMode: this.uiPrefs.layoutMode,
+      headerPosition: this.uiPrefs.headerPosition,
+      timestamp: new Date().toISOString()
+    });
     if (isPhone && wantsBottom) {
       body.classList.add('header-bottom');
     } else {
@@ -179,8 +190,20 @@ export class MobileUxService implements OnDestroy {
     }
 
     this.resizeListener = () => {
-      this.screenWidthSubject.next(window.innerWidth);
-      this.screenHeightSubject.next(window.innerHeight);
+      const prevWidth = this.screenWidthSubject.value;
+      const newWidth = window.innerWidth;
+      const newHeight = window.innerHeight;
+      if (prevWidth !== newWidth) {
+        console.log('[MobileUx] resize event', {
+          prevWidth,
+          newWidth,
+          newHeight,
+          hasHeaderBottom: document.body.classList.contains('header-bottom'),
+          timestamp: new Date().toISOString()
+        });
+      }
+      this.screenWidthSubject.next(newWidth);
+      this.screenHeightSubject.next(newHeight);
     };
     window.addEventListener('resize', this.resizeListener);
   }

@@ -28,6 +28,67 @@
   })();
 </script>
 <app-root></app-root>
+<!-- DEBUG OVERLAY: shows real-time viewport/class state on mobile -->
+<div id="debug-overlay" style="position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.85);color:#0f0;font:10px monospace;padding:4px 8px;max-height:120px;overflow-y:auto;pointer-events:none;opacity:0.9;">
+  <div id="debug-w">W: --</div>
+  <div id="debug-hb">header-bottom: --</div>
+  <div id="debug-log" style="max-height:60px;overflow-y:auto;"></div>
+</div>
+<script>
+(function() {
+  var logEl = document.getElementById('debug-log');
+  var wEl = document.getElementById('debug-w');
+  var hbEl = document.getElementById('debug-hb');
+  var logLines = [];
+  function addLog(msg) {
+    logLines.push(new Date().toISOString().slice(11,23) + ' ' + msg);
+    if (logLines.length > 20) logLines.shift();
+    logEl.textContent = logLines.join('\n');
+  }
+  function update() {
+    wEl.textContent = 'W: ' + window.innerWidth + ' (bp: ' + (localStorage.getItem('bl-phone-breakpoint')||'767') + ', mode: ' + (localStorage.getItem('bl-layout-mode')||'auto') + ')';
+    hbEl.textContent = 'header-bottom: ' + document.body.classList.contains('header-bottom');
+  }
+  update();
+  // Monitor class changes on body
+  var observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.attributeName === 'class') {
+        var hasHb = document.body.classList.contains('header-bottom');
+        addLog('CLASS CHANGE: header-bottom=' + hasHb + ' W=' + window.innerWidth);
+        update();
+      }
+    });
+  });
+  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  // Monitor resize
+  var lastW = window.innerWidth;
+  window.addEventListener('resize', function() {
+    var w = window.innerWidth;
+    if (w !== lastW) {
+      addLog('RESIZE: ' + lastW + ' -> ' + w);
+      lastW = w;
+      update();
+    }
+  });
+  // Monitor tooltip elements appearing
+  var tooltipObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      m.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1 && (node.classList.contains('p-tooltip') || node.querySelector('.p-tooltip'))) {
+          var tip = node.classList.contains('p-tooltip') ? node : node.querySelector('.p-tooltip');
+          var rect = tip.getBoundingClientRect();
+          addLog('TOOLTIP: ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' at (' + Math.round(rect.left) + ',' + Math.round(rect.top) + ') rightEdge=' + Math.round(rect.right) + ' vpW=' + window.innerWidth);
+          update();
+        }
+      });
+    });
+  });
+  tooltipObserver.observe(document.body, { childList: true, subtree: true });
+  addLog('DEBUG READY W=' + window.innerWidth);
+  update();
+})();
+</script>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>
 
