@@ -415,6 +415,12 @@ body.header-bottom {
     }
   }
 
+  /* Force directory popover to open above the bottom header */
+  .dir-mobile-panel-popover.p-popover {
+    top: auto !important;
+    bottom: calc(3.85rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
   .p-popover,
   .p-tieredmenu,
   .p-menu {
