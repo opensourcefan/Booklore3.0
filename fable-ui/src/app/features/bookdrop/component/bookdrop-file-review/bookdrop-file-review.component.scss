@@ -363,6 +363,10 @@ div.cover-image {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+
+  @media (max-width: 768px) {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .footer {

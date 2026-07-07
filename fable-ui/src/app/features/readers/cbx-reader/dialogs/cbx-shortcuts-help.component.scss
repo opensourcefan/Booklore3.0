@@ -187,6 +187,10 @@ $transition-normal: 200ms ease;
   display: flex;
   justify-content: flex-end;
   background: linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+
+  @media (max-width: 768px) {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .btn {

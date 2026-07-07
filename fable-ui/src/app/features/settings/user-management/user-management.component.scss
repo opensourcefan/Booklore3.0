@@ -505,6 +505,10 @@
     border-bottom: 1px solid var(--p-content-border-color);
     border-radius: 10px 10px 0 0;
 
+    @media (max-width: 768px) {
+      padding: 0.625rem 1rem;
+    }
+
     .p-dialog-title {
       display: flex;
       align-items: center;
@@ -513,6 +517,10 @@
       font-weight: 600;
       color: var(--p-text-color);
       margin: 0;
+
+      @media (max-width: 768px) {
+        font-size: 0.95rem;
+      }
 
       &::before {
         content: '\e923';
@@ -527,6 +535,13 @@
         border-radius: 8px;
         font-size: 1.25rem;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+        @media (max-width: 768px) {
+          width: 28px;
+          height: 28px;
+          border-radius: 7px;
+          font-size: 0.8rem;
+        }
       }
     }
 
@@ -560,6 +575,11 @@
     background: var(--p-content-background);
     border-top: 1px solid var(--p-content-border-color);
     border-radius: 0 0 10px 10px;
+
+    @media (max-width: 768px) {
+      padding: 0.5rem 0.75rem;
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    }
   }
 }
 

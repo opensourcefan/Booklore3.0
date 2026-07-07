@@ -151,6 +151,10 @@
   min-height: 300px;
   gap: 1rem;
 
+  @media (max-width: 768px) {
+    min-height: 0;
+  }
+
   .loading-icon {
     font-size: 2rem;
     color: var(--primary-color);

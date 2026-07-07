@@ -5,7 +5,7 @@
   flex-direction: column;
   min-width: 640px;
 
-  @media (max-width: 760px) {
+  @media (max-width: 768px) {
     min-width: auto;
     width: 100%;
   }
@@ -21,6 +21,10 @@
   border: 1px solid var(--border-color);
   border-top: none;
   min-height: 260px;
+
+  @media (max-width: 768px) {
+    min-height: 0;
+  }
 }
 
 .empty-state {
@@ -72,6 +76,22 @@
   align-items: center;
   gap: 0.15rem;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+
+    span {
+      display: none;
+    }
+
+    i {
+      font-size: 0.875rem;
+    }
+  }
 }
 
 .dialog-footer {

@@ -78,5 +78,9 @@
     gap: 1rem;
     justify-content: flex-end;
     margin-top: 1rem;
+
+    @media (max-width: 768px) {
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    }
   }
 }

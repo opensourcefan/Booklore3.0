@@ -137,6 +137,10 @@
   border: 1px solid var(--border-color);
   border-radius: var(--card-border);
   background: var(--overlay-background);
+
+  @media (max-width: 768px) {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
   padding: 0.625rem 0.75rem;
 }
 
@@ -195,7 +199,7 @@
   }
 
   .action-buttons {
-    justify-content: stretch;
+    justify-content: flex-start;
   }
 
   .action-buttons ::ng-deep .p-button {

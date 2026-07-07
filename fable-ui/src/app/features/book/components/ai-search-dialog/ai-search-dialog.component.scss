@@ -763,6 +763,7 @@
       .p-dialog-footer {
         border-radius: 0 !important;
         padding: 0.75rem 1rem !important;
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important;
       }
     }
 

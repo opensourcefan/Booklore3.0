@@ -542,6 +542,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+
+  @media (max-width: 768px) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    text-overflow: unset;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 .action-buttons-container {

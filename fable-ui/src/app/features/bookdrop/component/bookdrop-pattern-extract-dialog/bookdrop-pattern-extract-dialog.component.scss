@@ -164,6 +164,10 @@
   align-items: center;
   gap: 0.75rem;
   padding-top: 0.5rem;
+
+  @media (max-width: 768px) {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .extracting-indicator {

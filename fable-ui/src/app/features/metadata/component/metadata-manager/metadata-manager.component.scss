@@ -376,6 +376,10 @@
 
   .p-dialog-footer {
     padding: 1rem 1.5rem;
+
+    @media (max-width: 768px) {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
   }
 }
 

@@ -100,9 +100,10 @@
   max-height: 450px;
   overflow-y: auto;
 
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     padding: 1rem;
-    max-height: 400px;
+    min-height: 0;
+    max-height: none;
   }
 }
 

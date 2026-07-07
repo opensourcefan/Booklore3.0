@@ -535,6 +535,10 @@ label {
   padding-top: 1rem;
   z-index: 10;
 
+  @media (max-width: 768px) {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
   @media (min-width: 768px) {
     padding: 1rem;
   }

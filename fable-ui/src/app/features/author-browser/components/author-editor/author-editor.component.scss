@@ -117,6 +117,10 @@
   align-items: center;
   gap: 0.5rem;
   justify-content: flex-end;
+
+  @media (max-width: 768px) {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  }
   padding: 0.5rem 0;
 
   @media (max-width: 639px) {

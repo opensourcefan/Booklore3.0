@@ -47,6 +47,10 @@ $content-frame-padding-inline: 14px;
   background: var(--card-background);
   background-color: var(--card-background);
   padding: $content-frame-padding-block $content-frame-padding-inline;
+
+  @media (max-width: 768px) {
+    padding-bottom: calc($content-frame-padding-block + env(safe-area-inset-bottom, 0px));
+  }
   box-sizing: border-box;
 }
 
@@ -279,7 +283,7 @@ $content-frame-padding-inline: 14px;
   }
 
   .action-buttons {
-    justify-content: stretch;
+    justify-content: flex-start;
   }
 
   .action-buttons ::ng-deep .p-button {

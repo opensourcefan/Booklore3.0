@@ -252,6 +252,22 @@
 
 .directory-actions {
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+
+    span {
+      display: none;
+    }
+
+    i {
+      font-size: 0.875rem;
+    }
+  }
 }
 
 .rescan-btn {
