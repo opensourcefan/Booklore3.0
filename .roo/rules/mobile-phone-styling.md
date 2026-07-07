@@ -59,7 +59,36 @@ paths: ["fable-ui/src/**/*.scss", "fable-ui/src/**/*.html", "fable-ui/src/**/*.t
 
 ## 3. Content Density Rules
 
-### 3.1 Informational Banners
+### 3.1 Dialog Header — Compact on Mobile
+- Dialog headers consume precious vertical space. On mobile, they MUST be reduced to ~50% of desktop height:
+  ```scss
+  @media (max-width: 768px) {
+    padding: 0.625rem 1rem;          // was 1.25rem 1.5rem
+    .header-icon {
+      width: 28px; height: 28px;     // was 42px
+      i { font-size: 0.8rem; }       // was 1.25rem
+    }
+    .header-text {
+      h1 { font-size: 0.95rem; }     // was 1.25rem
+      p { display: none; }           // subtitle hidden entirely
+    }
+  }
+  ```
+- The subtitle (`<p>`) is hidden because it's redundant on a 375px screen — if a user doesn't understand the operation, they shouldn't be doing it on mobile.
+- The icon shrinks to 28px (from 42px) to avoid dominating the compact header.
+
+### 3.2 Nav Tab Padding
+- When a dialog has nav tabs (`.dialog-nav`) below the header, the gap between header bottom and nav top MUST have explicit padding on mobile:
+  ```scss
+  .dialog-nav {
+    @media (max-width: 768px) {
+      padding: 0.5rem 1rem 0.75rem;  // top padding is the critical value
+    }
+  }
+  ```
+- Without this, the nav buttons visually collide with the header border, making the UI feel cramped.
+
+### 3.3 Informational Banners
 - Multi-line info boxes, help text, and "did you know" banners inside dialog bodies MUST be hidden on mobile:
   ```scss
   @media (max-width: 768px) {
@@ -68,7 +97,7 @@ paths: ["fable-ui/src/**/*.scss", "fable-ui/src/**/*.html", "fable-ui/src/**/*.t
   ```
 - If the information is critical, collapse it to a single tappable `(?)` icon with a tooltip or popover. Do NOT keep the full banner.
 
-### 3.2 Row Action Buttons
+### 3.4 Row Action Buttons
 - Text labels on per-row action buttons (Edit, Delete, Re-scan, Remove, etc.) MUST be hidden on mobile. The button becomes icon-only:
   ```scss
   @media (max-width: 768px) {
@@ -84,7 +113,7 @@ paths: ["fable-ui/src/**/*.scss", "fable-ui/src/**/*.html", "fable-ui/src/**/*.t
 - The button MUST retain its `title` and `aria-label` attributes for accessibility.
 - Touch target MUST be ≥32×32px. Prefer 36-40px when space allows.
 
-### 3.3 Status Chips & Badges
+### 3.5 Status Chips & Badges
 - Text inside status chips/badges (e.g., "Imported", "Active", "Pending") MUST be hidden on mobile. Keep only the icon:
   ```scss
   @media (max-width: 768px) {
@@ -93,7 +122,7 @@ paths: ["fable-ui/src/**/*.scss", "fable-ui/src/**/*.html", "fable-ui/src/**/*.t
   ```
 - If the icon alone is ambiguous, reduce to a single keyword (e.g., "Imported" → check icon only).
 
-### 3.4 Validation & Status Messages in Footers
+### 3.6 Validation & Status Messages in Footers
 - Validation messages ("No changes yet", "Ready to save", "3 errors") in sticky footers MUST be hidden on mobile:
   ```scss
   @media (max-width: 768px) {
@@ -101,6 +130,30 @@ paths: ["fable-ui/src/**/*.scss", "fable-ui/src/**/*.html", "fable-ui/src/**/*.t
   }
   ```
 - The button disabled/enabled state already communicates validity. If additional feedback is needed, use a Toast notification.
+
+### 3.7 Truncated Paths & Long Text in Lists
+- When a list item contains a long path or filename that gets truncated with `text-overflow: ellipsis`, the user loses the most important part (the last segment). On mobile, switch to horizontal scrolling:
+  ```scss
+  .folder-path {
+    // Desktop: ellipsis
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @media (max-width: 768px) {
+      overflow-x: auto;
+      overflow-y: hidden;
+      text-overflow: unset;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+
+      &::-webkit-scrollbar { display: none; }
+    }
+  }
+  ```
+- This allows the user to swipe-scroll the path to see the full directory structure.
+- Hide the scrollbar to avoid visual clutter on such a small element.
+- **Synchronized scrolling**: If multiple paths are visible, consider using a shared scroll controller so all paths scroll together when any one is swiped. This prevents the user from having to scroll each path individually.
 
 ---
 
@@ -126,6 +179,27 @@ paths: ["fable-ui/src/**/*.scss", "fable-ui/src/**/*.html", "fable-ui/src/**/*.t
 
 ### 4.3 Footer Column Direction
 - Do NOT use `flex-direction: column` on the footer when the validation status is hidden. A single row of stretched buttons is sufficient and saves vertical space.
+
+### 4.4 Multi-Button Footer — Prevent Wrapping
+- When a footer has 3+ buttons, long labels cause wrapping which doubles button height and wastes space. Two mitigations:
+  1. **Icon-only save button**: Use `styleClass` on the save button + CSS to hide its label on mobile, freeing width for other buttons:
+     ```scss
+     ::ng-deep .save-icon-only-mobile {
+       flex: 0 0 auto;
+       .p-button-label { display: none; }
+     }
+     ```
+  2. **Prevent label wrapping** on remaining buttons:
+     ```scss
+     ::ng-deep .p-button:not(.save-icon-only-mobile) {
+       .p-button-label {
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+       }
+     }
+     ```
+- Reduce footer padding on mobile: `padding: 0.5rem 0.75rem` (was `1rem 1.5rem`).
 
 ---
 
@@ -200,3 +274,7 @@ After writing mobile CSS, the agent MUST:
 | `justify-content: stretch` | Invalid CSS, silently ignored | `flex: 1` on children |
 | `flex-direction: column` on footer with hidden validation | Unnecessary vertical stacking | Single row of stretched buttons |
 | Inconsistent breakpoint coverage | Creates "gap" ranges with partial styles | Use 768px for all base mobile rules |
+| Oversized dialog header on mobile | Wastes ~15% of viewport height | Compact: 28px icon, hide subtitle, 0.625rem padding |
+| No padding above nav tabs | Buttons visually collide with header border | `padding: 0.5rem 1rem 0.75rem` on `.dialog-nav` |
+| Truncated paths with ellipsis on mobile | User can't see the important last folder | `overflow-x: auto` with hidden scrollbar |
+| Footer button labels wrapping | Doubles footer height, wastes space | Icon-only save button + `white-space: nowrap` |

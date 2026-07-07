@@ -409,6 +409,7 @@
           <p-button
             [label]="t(getSubmitButtonLabelKey())"
             icon="pi pi-save"
+            styleClass="save-icon-only-mobile"
             [loading]="isSubmitting && submissionState === 'updating'"
             loadingIcon="pi pi-spin pi-spinner"
             [severity]="hasDeletionChanges() ? 'success' : 'secondary'"
@@ -417,7 +418,6 @@
           />
           <p-button
             [label]="t('buttonSaveAndScanDirectories')"
-            icon="pi pi-search"
             [loading]="isSubmitting && submissionState === 'scanningDirectories'"
             loadingIcon="pi pi-spin pi-spinner"
             severity="primary"

@@ -483,26 +483,33 @@
 }
 
 // Responsive
-@media (max-width: 520px) {
+@media (max-width: 768px) {
   .icon-picker {
     border-radius: 0;
     height: 100dvh;
   }
 
   .dialog-header {
-    padding: 1rem;
+    padding: 0.625rem 1rem;
 
     .header-icon {
-      width: 36px;
-      height: 36px;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
 
       i {
-        font-size: 1rem;
+        font-size: 0.8rem;
       }
     }
 
-    .header-text h1 {
-      font-size: 1.125rem;
+    .header-text {
+      h1 {
+        font-size: 0.95rem;
+      }
+
+      p {
+        display: none;
+      }
     }
   }
 
