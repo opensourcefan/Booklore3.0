@@ -336,15 +336,15 @@ html {
   -webkit-user-select: none;
 }
 
-/* Global PrimeNG Tooltip formatting fix: prevent vertical character stacking */
+/* Global PrimeNG Tooltip formatting: constrain to viewport to prevent horizontal overflow */
 .p-tooltip {
   width: max-content !important;
   max-width: min(25rem, calc(100vw - 2rem)) !important;
 
   .p-tooltip-text {
-    white-space: nowrap !important;
-    word-break: normal !important;
-    overflow-wrap: normal !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
     display: inline-block !important;
     text-align: center !important;
   }
