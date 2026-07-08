@@ -2,7 +2,7 @@
 <div class="layout-topbar">
 
   <!-- Mobile only: left sidebar as popup -->
-  <div class="mobile-sidebar-trigger">
+  <div class="mobile-sidebar-trigger" [class.mobile-sidebar-trigger--active]="mobileSidebarOpen">
     <p-button
       icon="pi pi-ellipsis-v"
       [text]="true"
@@ -291,11 +291,22 @@
           tooltipPosition="bottom"
         />
       }
+      @if (showMobileWriteIndicator) {
+        <span
+          class="mobile-progress-dot"
+          [class.mobile-progress-dot--complete]="writeProgress?.status === 'COMPLETED'"
+          [class.mobile-progress-dot--failed]="writeProgress?.status === 'FAILED'"
+          [attr.aria-label]="writeStatusSummary"
+          [pTooltip]="writeStatusSummary"
+          tooltipPosition="bottom">
+        </span>
+      }
     <!-- Trigger Button -->
     <div class="mobile-trigger">
       <p-button
         icon="pi pi-ellipsis-v"
         outlined
+        [class.mobile-trigger--active]="mobileOverflowOpen"
         (click)="mobileMenu.toggle($event)"
       />
       <p-popover #mobileMenu [dismissable]="true" styleClass="mobile-overflow-menu-popover" (onShow)="onMobileOverflowPopoverShow()" (onHide)="onMobileOverflowPopoverHide()">

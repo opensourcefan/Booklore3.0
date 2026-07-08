@@ -154,13 +154,14 @@
               <button
                 type="button"
                 class="topbar-items topbar-item"
+                [class.topbar-item--active]="isDisplaySettingsOpen"
                 (click)="seriesCollapseOverlay.toggle($event)"
                 [pTooltip]="t('tooltip.displaySettings')"
                 [tooltipDisabled]="isMobile"
                 tooltipPosition="top">
                 <i class="pi pi-cog"></i>
               </button>
-              <p-popover #seriesCollapseOverlay [dismissable]="true" appendTo="body">
+              <p-popover #seriesCollapseOverlay [dismissable]="true" appendTo="body" (onShow)="isDisplaySettingsOpen = true" (onHide)="isDisplaySettingsOpen = false">
                 <div class="display-settings-popover">
                   <div class="display-settings-header">
                     <span class="display-settings-title">{{ t('labels.displaySettings') }}</span>
@@ -358,7 +359,7 @@
             </div>
 
             <div class="sort-button-wrapper">
-              <button type="button" class="topbar-items topbar-item" (click)="sortPopover.toggle($event)">
+              <button type="button" class="topbar-items topbar-item" [class.topbar-item--active]="isSortPopoverOpen" (click)="sortPopover.toggle($event)">
                 <i
                   class="pi pi-sort"
                   [pTooltip]="t('tooltip.selectSorting')"
@@ -366,7 +367,7 @@
                   tooltipPosition="top">
                 </i>
               </button>
-              <p-popover #sortPopover [dismissable]="true" appendTo="body">
+              <p-popover #sortPopover [dismissable]="true" appendTo="body" (onShow)="isSortPopoverOpen = true" (onHide)="isSortPopoverOpen = false">
                 <app-multi-sort-popover
                   [sortCriteria]="this.bookSorter.selectedSortCriteria"
                   [availableSortOptions]="visibleSortOptions"

@@ -106,6 +106,8 @@ export class AppTopBarComponent implements OnDestroy {
   showMobileBookFilterTrigger = false;
   showMobileDirTrigger = false;
   mobileDirectoryPopoverOpen = false;
+  mobileSidebarOpen = false;
+  mobileOverflowOpen = false;
   aiSearchEnabled = false;
   aiBatchProgress: AiPanelScanProgressPayload | null = null;
   aiSearchBatchProgress: AiSearchProgressPayload | null = null;
@@ -474,6 +476,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   onMobileSidebarPopoverShow(): void {
+    this.mobileSidebarOpen = true;
     if (this.mobileSidebarBackHandle) {
       return;
     }
@@ -484,6 +487,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   onMobileSidebarPopoverHide(): void {
+    this.mobileSidebarOpen = false;
     this.mobileSidebarBackHandle?.release();
     this.mobileSidebarBackHandle = null;
   }
@@ -506,6 +510,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   onMobileOverflowPopoverShow(): void {
+    this.mobileOverflowOpen = true;
     if (this.mobileOverflowBackHandle) {
       return;
     }
@@ -516,6 +521,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   onMobileOverflowPopoverHide(): void {
+    this.mobileOverflowOpen = false;
     this.mobileOverflowBackHandle?.release();
     this.mobileOverflowBackHandle = null;
   }
@@ -832,6 +838,10 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get showWriteStatus(): boolean {
+    return !!this.writeProgress;
+  }
+
+  get showMobileWriteIndicator(): boolean {
     return !!this.writeProgress;
   }
 

@@ -819,7 +819,7 @@
   border: 1px solid var(--border-color);
   width: 2.5rem;
   height: 2.5rem;
-  transition: outline-color 0.2s, border-color 0.2s;
+  transition: outline-color 0.2s, border-color 0.2s, background-color 0.15s ease;
   border-radius: 6px;
   margin: 0;
   padding: 0;
@@ -833,6 +833,11 @@
   }
 
   &:hover {
+    border-color: var(--primary-color);
+  }
+
+  &.topbar-item--active {
+    background: color-mix(in srgb, var(--primary-color) 15%, var(--card-background));
     border-color: var(--primary-color);
   }
 

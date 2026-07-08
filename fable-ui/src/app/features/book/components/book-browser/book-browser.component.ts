@@ -220,6 +220,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   aiSearchDialogVisible = false;
   private aiSearchPollingSub?: Subscription;
   isSelectionActionPanelOpen = false;
+  isDisplaySettingsOpen = false;
+  isSortPopoverOpen = false;
 
   // Cover preview state
   selectedCoverUrl: string | null = null;
