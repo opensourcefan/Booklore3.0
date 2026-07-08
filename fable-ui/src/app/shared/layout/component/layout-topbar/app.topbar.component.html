@@ -1,5 +1,11 @@
 <ng-container *transloco="let t; prefix: 'layout.topbar'">
-<div class="layout-topbar" [class.layout-topbar--writing]="showMobileWriteIndicator">
+<div class="layout-topbar"
+  [class.layout-topbar--writing]="showMobileWriteIndicator"
+  [class.layout-topbar--write-complete]="showMobileWriteComplete"
+  [class.layout-topbar--write-failed]="showMobileWriteFailed"
+  (click)="dismissMobileWriteIndicator()"
+  (keydown.enter)="dismissMobileWriteIndicator()"
+  tabindex="0">
 
   <!-- Mobile only: left sidebar as popup -->
   <div class="mobile-sidebar-trigger" [class.mobile-sidebar-trigger--active]="mobileSidebarOpen">

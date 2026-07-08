@@ -648,9 +648,29 @@
   animation: header-write-pulse 1.5s infinite ease-in-out;
 }
 
+.layout-topbar--write-complete {
+  animation: none;
+  border-bottom-color: var(--p-green-500, #22c55e) !important;
+}
+
+.layout-topbar--write-failed {
+  animation: none;
+  border-bottom-color: var(--p-red-500, #ef4444) !important;
+}
+
 /* Bottom header mode: pulse the top border instead */
 :host-context(body.header-bottom) .layout-topbar--writing {
   animation-name: header-write-pulse-bottom;
+}
+
+:host-context(body.header-bottom) .layout-topbar--write-complete {
+  border-bottom-color: var(--p-content-border-color) !important;
+  border-top-color: var(--p-green-500, #22c55e) !important;
+}
+
+:host-context(body.header-bottom) .layout-topbar--write-failed {
+  border-bottom-color: var(--p-content-border-color) !important;
+  border-top-color: var(--p-red-500, #ef4444) !important;
 }
 
 @keyframes header-write-pulse-bottom {

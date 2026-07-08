@@ -337,28 +337,14 @@ export class AppTopBarComponent implements OnDestroy {
       )
       .subscribe(progress => {
         this.metadataFetchProgress = progress;
-        if (progress.taskStatus === TaskStatus.COMPLETED || progress.taskStatus === TaskStatus.CANCELLED) {
-          clearTimeout(this.metadataFetchDismissTimer);
-          this.metadataFetchDismissTimer = setTimeout(() => {
-            this.metadataFetchProgress = null;
-          }, 5000);
-        } else if (progress.taskStatus === TaskStatus.IN_PROGRESS) {
-          clearTimeout(this.metadataFetchDismissTimer);
-        }
+        clearTimeout(this.metadataFetchDismissTimer);
       });
 
     this.writeProgressService.progress$
       .pipe(takeUntil(this.destroy$))
       .subscribe(payload => {
         this.writeProgress = payload;
-        if (payload?.status === 'COMPLETED' || payload?.status === 'FAILED') {
-          clearTimeout(this.writeDismissTimer);
-          this.writeDismissTimer = setTimeout(() => {
-            this.writeProgress = null;
-          }, 6000);
-        } else {
-          clearTimeout(this.writeDismissTimer);
-        }
+        clearTimeout(this.writeDismissTimer);
       });
 
     this.userService.userState$
@@ -842,7 +828,23 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get showMobileWriteIndicator(): boolean {
-    return !!this.writeProgress;
+    return !!this.writeProgress || !!this.metadataFetchProgress;
+  }
+
+  get showMobileWriteComplete(): boolean {
+    return this.writeProgress?.status === 'COMPLETED'
+      || this.metadataFetchProgress?.taskStatus === TaskStatus.COMPLETED;
+  }
+
+  get showMobileWriteFailed(): boolean {
+    return this.writeProgress?.status === 'FAILED'
+      || this.metadataFetchProgress?.taskStatus === TaskStatus.FAILED
+      || this.metadataFetchProgress?.taskStatus === TaskStatus.CANCELLED;
+  }
+
+  dismissMobileWriteIndicator(): void {
+    this.writeProgress = null;
+    this.metadataFetchProgress = null;
   }
 
   get metadataFetchIconClass(): string {
