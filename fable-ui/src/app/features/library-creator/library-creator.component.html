@@ -153,7 +153,7 @@
                     <i class="pi pi-folder"></i>
                     <div class="folder-name-row">
                       <span class="folder-path" [pTooltip]="folder" tooltipPosition="top">
-                        {{ folder }}
+                        {{ getDisplayPath(folder) }}
                       </span>
                       @if (isDirectoryManagementMode() && isImportedDirectory(folder)) {
                         <span class="folder-imported-chip">

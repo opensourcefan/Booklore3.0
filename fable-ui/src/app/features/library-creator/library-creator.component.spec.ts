@@ -245,4 +245,38 @@ describe('LibraryCreatorComponent', () => {
 
     expect(dialogLauncherMock.openLibraryMaintenanceDialog).toHaveBeenCalledWith(5);
   });
+
+  it('sorts folder paths alphabetically on load', () => {
+    const unsortedPaths = [
+      {path: '/books/poetry'},
+      {path: '/books/fiction/sci-fi'},
+      {path: '/books/non-fiction/history'}
+    ];
+    const testLibrary = {
+      id: 5,
+      name: 'Library',
+      watch: false,
+      paths: unsortedPaths,
+      allowedFormats: ['EPUB'],
+      organizationMode: 'BOOK_PER_FILE'
+    };
+    libraryServiceMock.findLibraryById.mockReturnValue(testLibrary);
+    component['dynamicDialogConfig'] = { data: { mode: 'edit-settings', libraryId: 5 } } as unknown as DynamicDialogConfig;
+    component.ngOnInit();
+    expect(component.folders).toEqual([
+      '/books/fiction/sci-fi',
+      '/books/non-fiction/history',
+      '/books/poetry'
+    ]);
+  });
+
+  it('collapses common parent prefixes correctly', () => {
+    component.folders = [
+      '/home/michael/fable/books/poetry',
+      '/home/michael/fable/books/fiction/sci-fi',
+      '/home/michael/fable/books/non-fiction/history'
+    ];
+    expect(component.getDisplayPath('/home/michael/fable/books/poetry')).toBe('.../books/poetry');
+    expect(component.getDisplayPath('/home/michael/fable/books/fiction/sci-fi')).toBe('.../books/fiction/sci-fi');
+  });
 });
