@@ -47,7 +47,7 @@
   padding: 0.5rem;
   align-items: stretch;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     flex-direction: column;
     align-items: center;
     text-align: center;
@@ -57,7 +57,7 @@
 .hero-cover-section {
   flex-shrink: 0;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     display: flex;
     justify-content: center;
   }
@@ -70,7 +70,7 @@
   border-radius: 12px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     width: 180px;
     height: 270px;
   }
@@ -117,7 +117,7 @@
   gap: 0.4rem;
   margin-top: 0.5rem;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     justify-content: center;
   }
 }
@@ -218,7 +218,7 @@
   flex-wrap: wrap;
   gap: 0.4rem;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     justify-content: center;
   }
 }
@@ -265,7 +265,7 @@
   gap: 0.4rem;
   width: max-content;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     margin: 0 auto;
   }
 }
@@ -368,7 +368,7 @@
   width: 100%;
   margin-top: auto;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     flex-direction: column;
     align-items: stretch;
     margin-top: 0;

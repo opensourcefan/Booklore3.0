@@ -579,7 +579,7 @@
     border-right: 1px solid var(--border-color);
     margin-right: 0.25rem;
 
-    @media (max-width: 767px) {
+    @media (max-width: 768px) {
       padding-right: 0;
       margin-right: 0;
       border-right: none;
@@ -600,7 +600,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   ::ng-deep .mobile-icon-only .p-button-label {
     display: none !important;
     padding: 10px !important;

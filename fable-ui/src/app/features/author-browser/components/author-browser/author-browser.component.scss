@@ -178,7 +178,7 @@
   gap: 1.25rem;
   will-change: transform;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     gap: 0.5rem;
   }
 }
@@ -309,7 +309,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .browse-header {
     padding: 0.5rem 0.5rem 0;
   }

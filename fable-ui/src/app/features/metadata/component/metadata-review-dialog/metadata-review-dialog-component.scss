@@ -70,7 +70,7 @@
     width: 10rem;
     height: 0.75rem;
 
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
       width: 100%;
     }
   }
@@ -87,7 +87,7 @@
     justify-content: flex-end;
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     flex-direction: column;
     align-items: stretch;
 

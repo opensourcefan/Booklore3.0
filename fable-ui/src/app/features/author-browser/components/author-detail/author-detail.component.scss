@@ -42,7 +42,7 @@
   padding: 0.5rem;
   margin-bottom: 1.5rem;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     flex-direction: column;
     align-items: center;
     text-align: center;
@@ -60,7 +60,7 @@
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     width: 140px;
     height: 175px;
   }
@@ -80,7 +80,7 @@
     font-size: 4rem;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     width: 140px;
     height: 175px;
   }
@@ -100,7 +100,7 @@
   gap: 0.75rem;
   flex-wrap: wrap;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     justify-content: center;
   }
 }
@@ -129,7 +129,7 @@
 .description-box {
   padding: 1rem 0.5rem 0.5rem;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     text-align: left;
   }
 }
@@ -197,7 +197,7 @@
   gap: 1.3rem;
   will-change: transform;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     gap: 0.5rem;
   }
 }

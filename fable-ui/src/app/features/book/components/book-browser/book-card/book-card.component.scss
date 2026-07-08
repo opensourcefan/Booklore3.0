@@ -113,7 +113,7 @@
   padding: 0.1rem 0.4rem 0.2rem;
   min-height: calc(var(--title-rows, 1) * var(--title-line-height) * 1em + 0.3rem);
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     --title-line-height: 1.16;
   }
 }
@@ -149,7 +149,7 @@
   max-height: calc(var(--title-rows, 1) * var(--title-line-height) * 1em + 0.16em);
   padding: 0 0 0.06em;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     font-size: 0.75rem;
   }
 }
@@ -179,7 +179,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 768px) {
       width: clamp(1.5rem, 8vw, 2.5rem);
       height: clamp(1.5rem, 8vw, 2.5rem);
       padding: 0;
@@ -220,7 +220,7 @@
   z-index: 2;
   will-change: opacity, visibility;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     top: 4px;
     right: 4px;
   }
@@ -344,7 +344,7 @@
   border: 1px solid transparent;
   transition: all 0.2s ease;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     font-size: 0.65rem;
     padding: 1px 3px;
   }
@@ -408,7 +408,7 @@
   gap: 4px;
   z-index: 4;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     top: 4px;
     left: 4px;
     gap: 2px;
@@ -422,7 +422,7 @@
   position: static;
   margin: 0;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     font-size: 0.6rem;
     padding: 1px 4px;
   }
@@ -563,7 +563,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .cover-corner-controls {
     bottom: 3px;
   }
@@ -842,7 +842,7 @@
   background: color-mix(in srgb, var(--p-surface-0), transparent 92%);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .book-card-mobile-preview-backdrop {
     --mobile-preview-top-inset: 4.25rem;
     --mobile-preview-horizontal-padding: 0.28rem;

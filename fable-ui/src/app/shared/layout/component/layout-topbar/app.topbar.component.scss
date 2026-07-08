@@ -47,7 +47,7 @@
   min-width: 0;
   gap: 1rem;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     gap: 0.5rem;
   }
 }
@@ -56,7 +56,7 @@
   flex-grow: 1;
   min-width: 0;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     display: none;
   }
 
@@ -547,7 +547,7 @@
   position: relative;
   margin-left: auto;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     display: block;
   }
 
@@ -559,7 +559,7 @@
 .mobile-center-bar {
   display: none;
 
-  @media (max-width: 767px) {
+  @media (max-width: 768px) {
     display: flex;
     align-items: center;
     gap: 0.5rem;
