@@ -1,7 +1,7 @@
 import {ToolbarConfigService, ToolbarItem} from './toolbar-config.service';
 import {ToolbarEditorComponent} from './toolbar-editor.component';
 import {AppSidebarComponent} from '../layout-sidebar/app.sidebar.component';
-import {Component, ElementRef, OnDestroy, ViewChild, inject} from '@angular/core';
+import {Component, ElementRef, HostListener, OnDestroy, ViewChild, inject} from '@angular/core';
 import {MenuItem} from 'primeng/api';
 import {LayoutService} from '../layout-main/service/app.layout.service';
 import {NavigationStart, Router, RouterLink} from '@angular/router';
@@ -840,6 +840,20 @@ export class AppTopBarComponent implements OnDestroy {
     return this.writeProgress?.status === 'FAILED'
       || this.metadataFetchProgress?.taskStatus === TaskStatus.FAILED
       || this.metadataFetchProgress?.taskStatus === TaskStatus.CANCELLED;
+  }
+
+  @HostListener('click')
+  onTopbarClick(): void {
+    if (this.mobileUx.isMobileOrTablet) {
+      this.dismissMobileWriteIndicator();
+    }
+  }
+
+  @HostListener('keydown.enter')
+  onTopbarEnter(): void {
+    if (this.mobileUx.isMobileOrTablet) {
+      this.dismissMobileWriteIndicator();
+    }
   }
 
   dismissMobileWriteIndicator(): void {
