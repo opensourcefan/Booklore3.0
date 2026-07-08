@@ -637,31 +637,26 @@
   animation: pulsate 1.5s infinite ease-in-out;
 }
 
-/* Mobile progress indicator dot */
-.mobile-progress-dot {
-  display: block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: var(--p-purple-500, #a855f7);
-  flex-shrink: 0;
-  animation: progress-pulse 1.2s infinite ease-in-out;
-
-  &.mobile-progress-dot--complete {
-    background-color: var(--p-green-500, #22c55e);
-    animation: none;
-  }
-
-  &.mobile-progress-dot--failed {
-    background-color: var(--p-red-500, #ef4444);
-    animation: none;
-  }
+/* Mobile write-progress header bar pulse */
+@keyframes header-write-pulse {
+  0% { border-bottom-color: var(--p-content-border-color); }
+  50% { border-bottom-color: var(--p-purple-500, #a855f7); }
+  100% { border-bottom-color: var(--p-content-border-color); }
 }
 
-@keyframes progress-pulse {
-  0% { transform: scale(0.8); opacity: 0.6; }
-  50% { transform: scale(1.3); opacity: 1; }
-  100% { transform: scale(0.8); opacity: 0.6; }
+.layout-topbar--writing {
+  animation: header-write-pulse 1.5s infinite ease-in-out;
+}
+
+/* Bottom header mode: pulse the top border instead */
+:host-context(body.header-bottom) .layout-topbar--writing {
+  animation-name: header-write-pulse-bottom;
+}
+
+@keyframes header-write-pulse-bottom {
+  0% { border-top-color: var(--p-content-border-color); }
+  50% { border-top-color: var(--p-purple-500, #a855f7); }
+  100% { border-top-color: var(--p-content-border-color); }
 }
 
 /* Active state for mobile trigger buttons when their popover is open */

@@ -1,5 +1,5 @@
 <ng-container *transloco="let t; prefix: 'layout.topbar'">
-<div class="layout-topbar">
+<div class="layout-topbar" [class.layout-topbar--writing]="showMobileWriteIndicator">
 
   <!-- Mobile only: left sidebar as popup -->
   <div class="mobile-sidebar-trigger" [class.mobile-sidebar-trigger--active]="mobileSidebarOpen">
@@ -290,16 +290,6 @@
           [pTooltip]="searchStatus === 'STARTING' ? 'AI Search: Downloading Model...' : (searchStatus === 'ERROR' ? 'AI Search Unavailable' : (isSearchActive ? 'AI Search: Searching...' : (isSearchError ? 'AI Search: No results - click to retry' : 'AI Search')))"
           tooltipPosition="bottom"
         />
-      }
-      @if (showMobileWriteIndicator) {
-        <span
-          class="mobile-progress-dot"
-          [class.mobile-progress-dot--complete]="writeProgress?.status === 'COMPLETED'"
-          [class.mobile-progress-dot--failed]="writeProgress?.status === 'FAILED'"
-          [attr.aria-label]="writeStatusSummary"
-          [pTooltip]="writeStatusSummary"
-          tooltipPosition="bottom">
-        </span>
       }
     <!-- Trigger Button -->
     <div class="mobile-trigger">
