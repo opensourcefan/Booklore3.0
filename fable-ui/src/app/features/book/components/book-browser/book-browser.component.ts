@@ -205,6 +205,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
   mobileColumnCount = 3;
   mobileTitleRows = 2;
+  mobileScaleFactor = 1.0;
   desktopTitleRows = 2;
   selectedCount = 0;
   selectedBookIds = new Set<number>();
@@ -233,6 +234,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly MOBILE_TITLE_BAR_HEIGHT = 32;
   private readonly MOBILE_COLUMNS_STORAGE_KEY = 'mobileColumnsPreference';
   private readonly MOBILE_TITLE_ROWS_STORAGE_KEY = 'mobileTitleRowsPreference';
+  private readonly MOBILE_SCALE_STORAGE_KEY = 'mobileScalePreference';
+  private readonly MOBILE_SCALE_MIN = 0.5;
+  private readonly MOBILE_SCALE_MAX = 1.5;
+  private readonly MOBILE_SCALE_STEP = 0.05;
   private readonly DESKTOP_TITLE_ROWS_STORAGE_KEY = 'desktopTitleRowsPreference';
   private readonly SHOW_SUBTITLES_STORAGE_KEY = 'bookBrowserShowSubtitlesPreference';
   private readonly COVER_PREVIEW_HOVER_DELAY_MS = 120;
@@ -313,7 +318,8 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const columns = this.mobileColumnCount;
     const totalGaps = (columns - 1) * this.MOBILE_GAP;
     const availableWidth = this.screenWidth - totalGaps - this.MOBILE_PADDING;
-    const cardWidth = Math.floor(availableWidth / columns);
+    const baseCardWidth = Math.floor(availableWidth / columns);
+    const cardWidth = Math.round(baseCardWidth * this.mobileScaleFactor);
     const coverHeight = this.isAudiobookOnlyLibrary ? cardWidth : Math.floor(cardWidth * this.CARD_ASPECT_RATIO);
     const cardHeight = coverHeight + this.getMobileTitleBarHeight();
     return {width: cardWidth, height: cardHeight};
@@ -536,6 +542,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pageTitle.setPageTitle('');
     this.coverScalePreferenceService.scaleChange$.pipe(debounceTime(1000), takeUntil(this.destroy$)).subscribe();
     this.loadMobileColumnsPreference();
+    this.loadMobileScalePreference();
     this.loadTitleRowsPreference();
     this.loadSubtitlePreference();
 
@@ -2491,11 +2498,34 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   setMobileColumns(columns: number): void {
     this.mobileColumnCount = columns;
     this.localStorageService.set(this.MOBILE_COLUMNS_STORAGE_KEY, columns);
+    this.cardWidthSig.set(this.currentCardSize.width);
+    this.cardHeightSig.set(this.getUniformCardHeight());
+    queueMicrotask(() => this.updateVirtualGridDomBindings());
   }
 
   setMobileTitleRows(rows: number): void {
     this.mobileTitleRows = Math.min(3, Math.max(1, rows));
     this.localStorageService.set(this.MOBILE_TITLE_ROWS_STORAGE_KEY, this.mobileTitleRows);
+    this.cardHeightSig.set(this.getUniformCardHeight());
+    queueMicrotask(() => this.updateVirtualGridDomBindings());
+  }
+
+  setMobileScale(scale: number): void {
+    this.mobileScaleFactor = Math.round(scale * 100) / 100;
+    this.localStorageService.set(this.MOBILE_SCALE_STORAGE_KEY, this.mobileScaleFactor);
+    this.cardWidthSig.set(this.currentCardSize.width);
+    this.cardHeightSig.set(this.getUniformCardHeight());
+    queueMicrotask(() => this.updateVirtualGridDomBindings());
+  }
+
+  increaseMobileScale(): void {
+    const next = Math.min(this.MOBILE_SCALE_MAX, this.mobileScaleFactor + this.MOBILE_SCALE_STEP);
+    this.setMobileScale(next);
+  }
+
+  decreaseMobileScale(): void {
+    const next = Math.max(this.MOBILE_SCALE_MIN, this.mobileScaleFactor - this.MOBILE_SCALE_STEP);
+    this.setMobileScale(next);
   }
 
   setDesktopTitleRows(rows: number): void {
@@ -2507,6 +2537,13 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     const saved = this.localStorageService.get<number>(this.MOBILE_COLUMNS_STORAGE_KEY);
     if (saved !== null && [2, 3, 4].includes(saved)) {
       this.mobileColumnCount = saved;
+    }
+  }
+
+  private loadMobileScalePreference(): void {
+    const saved = this.localStorageService.get<number>(this.MOBILE_SCALE_STORAGE_KEY);
+    if (saved !== null && !isNaN(saved) && saved >= this.MOBILE_SCALE_MIN && saved <= this.MOBILE_SCALE_MAX) {
+      this.mobileScaleFactor = saved;
     }
   }
 

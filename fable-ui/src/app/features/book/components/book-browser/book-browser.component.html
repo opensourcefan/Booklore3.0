@@ -220,6 +220,28 @@
                       </div>
                     </div>
                     <div class="display-settings-section">
+                      <span class="display-settings-label">{{ t('labels.gridItemSize') }}</span>
+                      <div class="scale-stepper">
+                        <button
+                          type="button"
+                          class="scale-step-btn"
+                          [disabled]="mobileScaleFactor <= 0.5"
+                          (click)="decreaseMobileScale()"
+                          aria-label="Decrease grid item size">
+                          <i class="pi pi-minus"></i>
+                        </button>
+                        <span class="scale-value-display">{{ mobileScaleFactor.toFixed(2) }}x</span>
+                        <button
+                          type="button"
+                          class="scale-step-btn"
+                          [disabled]="mobileScaleFactor >= 1.5"
+                          (click)="increaseMobileScale()"
+                          aria-label="Increase grid item size">
+                          <i class="pi pi-plus"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="display-settings-section">
                       <span class="display-settings-label">{{ t('labels.textRows') }}</span>
                       <div class="column-options">
                         <button
