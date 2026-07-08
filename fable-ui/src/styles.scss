@@ -350,11 +350,16 @@ html {
   }
 }
 
-/* On phone layouts, hide tooltips entirely — they are a hover interaction that
-   does not work on touch devices, and touch events from the previous page
-   carry through navigation to trigger spurious tooltips on the new page. */
+/* On mobile, center all tooltips to prevent off-screen positioning from stretching the viewport */
 @media (max-width: 767px) {
   .p-tooltip {
-    display: none !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
   }
+}
+
+/* Suppress tooltips for a brief window after navigation to prevent touch
+   event bleed-through from the previous page triggering spurious tooltips. */
+body.tooltip-suppressed .p-tooltip {
+  display: none !important;
 }

@@ -7,7 +7,7 @@ import {NotificationEventService} from './shared/websocket/notification-event.se
 import {parseLogNotification} from './shared/websocket/model/log-notification.model';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {Toast} from 'primeng/toast';
-import {RouterOutlet} from '@angular/router';
+import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {TranslocoDirective, TranslocoPipe} from '@jsverse/transloco';
 import {AuthInitializationService} from './core/security/auth-initialization-service';
 import {AppConfigService} from './shared/service/app-config.service';
@@ -19,7 +19,7 @@ import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from './features
 import {LibraryService} from './features/book/service/library.service';
 import {LibraryHealthService} from './features/book/service/library-health.service';
 import {LibraryLoadingService} from './features/library-creator/library-loading.service';
-import {scan, withLatestFrom} from 'rxjs/operators';
+import {filter, scan, withLatestFrom} from 'rxjs/operators';
 import {AuthService} from './shared/service/auth.service';
 import {AiPanelScanProgressPayload} from './shared/model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progress.service';
@@ -57,6 +57,8 @@ export class AppComponent implements OnInit, OnDestroy {
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private pagedGridPilotService = inject(PagedGridPilotService);
+  private router = inject(Router);
+  private tooltipSuppressTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     // Migrate legacy local storage keys from Fable to Fable
@@ -89,6 +91,24 @@ export class AppComponent implements OnInit, OnDestroy {
         this.subscriptionsInitialized = true;
       }
     });
+
+    // Suppress tooltips for 500ms after each navigation to prevent touch
+    // event bleed-through from the previous page triggering spurious tooltips
+    // on the new page at the same screen coordinates.
+    this.subscriptions.push(
+      this.router.events.pipe(
+        filter(e => e instanceof NavigationEnd)
+      ).subscribe(() => {
+        document.body.classList.add('tooltip-suppressed');
+        if (this.tooltipSuppressTimer !== null) {
+          clearTimeout(this.tooltipSuppressTimer);
+        }
+        this.tooltipSuppressTimer = setTimeout(() => {
+          document.body.classList.remove('tooltip-suppressed');
+          this.tooltipSuppressTimer = null;
+        }, 500);
+      })
+    );
   }
 
   private onOnline = () => {
