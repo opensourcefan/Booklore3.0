@@ -6,7 +6,12 @@
      (mouseenter)="bookClicked.emit(book)"
      (mouseleave)="bookHoverEnded.emit(book.id)"
      draggable="true"
-     (dragstart)="onDragStart($event)">
+     (dragstart)="onDragStart($event)"
+     (touchstart)="isMobileInteractionMode ? onTouchStart($event) : null"
+     (touchmove)="isMobileInteractionMode ? onTouchMove($event) : null"
+     (touchend)="isMobileInteractionMode ? onTouchEnd($event) : null"
+     (touchcancel)="isMobileInteractionMode ? onTouchEnd($event) : null"
+     (contextmenu)="isMobileInteractionMode ? onContextMenu($event) : null">
 
   <div class="cover-container" [ngClass]="{ 'center-info-btn': _isSeriesViewActive || !hasDigitalFile(), 'loaded': isImageLoaded, 'audiobook-cover': _isAudiobook, 'square-library-cover': useSquareCovers }">
     <img

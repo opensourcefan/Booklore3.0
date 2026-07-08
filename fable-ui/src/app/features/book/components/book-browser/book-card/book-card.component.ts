@@ -90,6 +90,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   inlineMobileViewerIndex = -1;
 
   private inlineViewerTouchStartX = 0;
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private touchHoldTimer: ReturnType<typeof setTimeout> | undefined;
+  private touchLongPressTriggered = false;
   private inlineViewerTouchStartY = 0;
   private inlineViewerTouchMoved = false;
 
@@ -1466,6 +1470,18 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onCardClick(event: MouseEvent | KeyboardEvent): void {
+    if (this.isMobileInteractionMode && this.bookSelectionService.hasSelection()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.checkboxClick.emit({
+        index: this.index,
+        book: this.book,
+        selected: !this.isSelected,
+        shiftKey: false
+      });
+      return;
+    }
+
     if (!event.ctrlKey) {
       return;
     }
@@ -1496,6 +1512,18 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   }
 
   onTitleAreaActivate(event: Event): void {
+    if (this.isMobileInteractionMode && this.bookSelectionService.hasSelection()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.checkboxClick.emit({
+        index: this.index,
+        book: this.book,
+        selected: !this.isSelected,
+        shiftKey: false
+      });
+      return;
+    }
+
     if (!this.isTitleAreaInteractive) {
       return;
     }
@@ -1762,6 +1790,58 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.previewPortalHost = null;
   }
 
+  onTouchStart(event: TouchEvent): void {
+    if (!this.isCheckboxEnabled) return;
+
+    const touch = event.touches[0];
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+    this.touchLongPressTriggered = false;
+
+    this.touchHoldTimer = setTimeout(() => {
+      this.touchLongPressTriggered = true;
+      if (navigator.vibrate) {
+        navigator.vibrate(60);
+      }
+      
+      const isSelectionActive = this.bookSelectionService.hasSelection();
+      this.checkboxClick.emit({
+        index: this.index,
+        book: this.book,
+        selected: !this.isSelected,
+        shiftKey: isSelectionActive
+      });
+    }, 500);
+  }
+
+  onTouchMove(event: TouchEvent): void {
+    const touch = event.touches[0];
+    const deltaX = Math.abs(touch.clientX - this.touchStartX);
+    const deltaY = Math.abs(touch.clientY - this.touchStartY);
+
+    if (deltaX > 10 || deltaY > 10) {
+      if (this.touchHoldTimer) {
+        clearTimeout(this.touchHoldTimer);
+      }
+    }
+  }
+
+  onTouchEnd(event: TouchEvent): void {
+    if (this.touchHoldTimer) {
+      clearTimeout(this.touchHoldTimer);
+    }
+    if (this.touchLongPressTriggered) {
+      event.preventDefault();
+    }
+  }
+
+  onContextMenu(event: MouseEvent): void {
+    if (this.isMobileInteractionMode) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
   ngOnDestroy(): void {
     this.resizeSub?.unsubscribe();
     this.inlineMobilePreviewBackHandle?.release(false);
@@ -1773,6 +1853,9 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     this.destroy$.complete();
     if (this.overlayPrefSub) {
       this.overlayPrefSub.unsubscribe();
+    }
+    if (this.touchHoldTimer) {
+      clearTimeout(this.touchHoldTimer);
     }
   }
 }

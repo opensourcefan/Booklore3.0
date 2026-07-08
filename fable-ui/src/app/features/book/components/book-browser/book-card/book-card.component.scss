@@ -8,6 +8,10 @@
   flex-direction: column;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: box-shadow 0.25s ease;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
