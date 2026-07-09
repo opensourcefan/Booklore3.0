@@ -8,6 +8,14 @@
         <h2 class="dialog-title">{{ t('dialogTitle') }}</h2>
         <p class="dialog-description">{{ t('dialogDescription') }}</p>
       </div>
+      <p-button
+        icon="pi pi-times"
+        [text]="true"
+        [rounded]="true"
+        severity="secondary"
+        (onClick)="onClose()"
+        class="close-button">
+      </p-button>
     </div>
 
     <div class="dialog-body">

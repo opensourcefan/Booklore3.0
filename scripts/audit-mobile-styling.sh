@@ -238,6 +238,20 @@ is_dialog_component() {
 }
 
 # =============================================================================
+# Helper: check if a file is an HTML dialog/panel component template
+# =============================================================================
+is_html_dialog_component() {
+    local html_file="$1"
+    local ts_file="${html_file%.html}.ts"
+    if [ -f "$ts_file" ]; then
+        if grep -q 'DynamicDialogRef' "$ts_file" 2>/dev/null; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# =============================================================================
 # Rule 2.1: No Hardcoded Minimum Heights on dialog/panel roots
 # =============================================================================
 section "Rule 2.1 — Hardcoded min-height on dialog/panel roots"
@@ -703,6 +717,41 @@ while IFS= read -r -d '' scss_file; do
         fi
     done < <(grep -nE '^\s*\.(mobile-sidebar-popover|mobile-right-sidebar-popover|dir-mobile-panel-popover|mobile-overflow-menu-popover)(\.p-popover)?(\s*\{|\s*,|\s*$)' "$scss_file" 2>/dev/null)
 done < <(find "$PROJECT_DIR/fable-ui/src" -name "*.scss" -print0)
+
+# =============================================================================
+# Rule 10.1: Direct DialogService.open usage (bypasses back gesture)
+# =============================================================================
+section "Rule 10.1 — Direct DialogService.open usage (bypasses back gesture)"
+
+while IFS= read -r -d '' ts_file; do
+    SCANNED_FILES["$ts_file"]=1
+    if [[ "$ts_file" =~ \.spec\.ts$ || "$ts_file" =~ dialog-launcher\.service\.ts$ ]]; then
+        continue
+    fi
+    while IFS=: read -r line content; do
+        if echo "$content" | grep -qE 'dialogService\.open\('; then
+            warn "$ts_file:$line — uses direct 'dialogService.open' (must use DialogLauncherService to enable back gesture interception)"
+        fi
+    done < <(grep -nE 'dialogService\.open\(' "$ts_file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.ts" -print0)
+
+# =============================================================================
+# Rule 10.2: Dialog template lacks close-button
+# =============================================================================
+section "Rule 10.2 — Dialog template lacks close-button"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if ! is_html_dialog_component "$html_file"; then
+        continue
+    fi
+    # If the dialog template renders a custom header, it must have a custom close button with close-button class
+    if grep -qE '(class="[^"]*(dialog-header|panel-header)[^"]*"|<header)' "$html_file" 2>/dev/null; then
+        if ! grep -q 'close-button' "$html_file"; then
+            warn "$html_file:1 — dialog template has a custom header but lacks standard 'close-button' class"
+        fi
+    fi
+done < <(find "$UI_DIR" -name "*.html" -print0)
 
 # =============================================================================
 # Summary

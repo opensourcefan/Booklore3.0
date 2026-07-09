@@ -10,9 +10,9 @@ import {TooltipModule} from 'primeng/tooltip';
 import {FormsModule} from '@angular/forms';
 import {TieredMenu} from 'primeng/tieredmenu';
 import {Dialog} from 'primeng/dialog';
-import {DialogService} from 'primeng/dynamicdialog';
 import {Subscription} from 'rxjs';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
+import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 
 import {StoryArcService} from '../../service/story-arc.service';
 import {StoryArcBookMapping, StoryArcLayoutUpdateRequest} from '../../model/story-arc.model';
@@ -48,7 +48,7 @@ interface StoryArcRow {
     TieredMenu,
     Dialog
   ],
-  providers: [MessageService, ConfirmationService, DialogService]
+  providers: [MessageService, ConfirmationService]
 })
 export class StoryArcPageComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
@@ -60,7 +60,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private readStatusHelper = inject(ReadStatusHelper);
-  private dialogService = inject(DialogService);
+  private dialogLauncher = inject(DialogLauncherService);
   private mobileUx = inject(MobileUxService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -282,7 +282,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   // Phase 1F: Open book picker dialog to add books to a specific chapter
   openBookPicker(rowIndex: number): void {
     const row = this.rows[rowIndex];
-    const ref = this.dialogService.open(StoryArcBookPickerComponent, {
+    const ref = this.dialogLauncher.openDialog(StoryArcBookPickerComponent, {
       header: `Add Books to "${row.title}"`,
       width: '550px',
       modal: true,

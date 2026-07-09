@@ -2,6 +2,14 @@
   <div class="dialog-header">
     <h2>Add Books to "{{ chapterTitle }}"</h2>
     <p class="subtitle">Search and select books to add to this chapter</p>
+    <p-button
+      icon="pi pi-times"
+      [text]="true"
+      [rounded]="true"
+      severity="secondary"
+      (onClick)="cancel()"
+      class="close-button">
+    </p-button>
   </div>
 
   <div class="search-bar">

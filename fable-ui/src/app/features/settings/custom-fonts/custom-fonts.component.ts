@@ -7,10 +7,10 @@ import {CustomFont, formatFileSize} from '../../../shared/model/custom-font.mode
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ConfirmationService} from 'primeng/api';
 import {Tooltip} from 'primeng/tooltip';
-import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {FontUploadDialogComponent} from './font-upload-dialog/font-upload-dialog.component';
 import {Skeleton} from 'primeng/skeleton';
-import {DialogSize, DialogStyle} from '../../../shared/services/dialog-launcher.service';
+import {DialogLauncherService, DialogSize, DialogStyle} from '../../../shared/services/dialog-launcher.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
 @Component({
@@ -19,7 +19,7 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
   imports: [CommonModule, Button, ConfirmDialog, Tooltip, Skeleton, TranslocoDirective],
   templateUrl: './custom-fonts.component.html',
   styleUrls: ['./custom-fonts.component.scss'],
-  providers: [ConfirmationService, DialogService]
+  providers: [ConfirmationService]
 })
 export class CustomFontsComponent implements OnInit {
   customFonts: CustomFont[] = [];
@@ -33,7 +33,7 @@ export class CustomFontsComponent implements OnInit {
   private customFontService = inject(CustomFontService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
-  private dialogService = inject(DialogService);
+  private dialogLauncher = inject(DialogLauncherService);
 
   ngOnInit(): void {
     this.loadFonts();
@@ -78,7 +78,7 @@ export class CustomFontsComponent implements OnInit {
       return;
     }
 
-    this.uploadDialogRef = this.dialogService.open(FontUploadDialogComponent, {
+    this.uploadDialogRef = this.dialogLauncher.openDialog(FontUploadDialogComponent, {
       showHeader: false,
       styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
       modal: true,

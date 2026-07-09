@@ -8,6 +8,14 @@
       <h2 class="panel-title">{{ t('title') }}</h2>
       <p class="panel-description">{{ t('description') }}</p>
     </div>
+    <p-button
+      icon="pi pi-times"
+      [text]="true"
+      [rounded]="true"
+      severity="secondary"
+      (onClick)="onCancel()"
+      class="close-button">
+    </p-button>
   </div>
 
   <div class="picker-controls">

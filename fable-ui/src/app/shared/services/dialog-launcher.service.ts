@@ -1,6 +1,7 @@
 import {inject, Injectable, Type} from '@angular/core';
 import {Subject} from 'rxjs';
 import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {MobileBackNavigationService} from '../service/mobile-back-navigation.service';
 import {GithubSupportDialog} from '../components/github-support-dialog/github-support-dialog';
 import {LibraryCreatorComponent} from '../../features/library-creator/library-creator.component';
 import {BookUploaderComponent} from '../components/book-uploader/book-uploader.component';
@@ -48,6 +49,7 @@ export const DialogStyle = {
 export class DialogLauncherService {
 
   dialogService = inject(DialogService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
 
   private defaultDialogOptions = {
     baseZIndex: 10,
@@ -76,10 +78,23 @@ export class DialogLauncherService {
   }
 
   openDialog(component: unknown, options: object): DynamicDialogRef | null {
-    return this.dialogService.open(component as Type<object>, {
+    const ref = this.dialogService.open(component as Type<object>, {
       ...this.defaultDialogOptions,
       ...options,
     });
+
+    if (ref) {
+      const backHandle = this.mobileBackNavigation.register(() => {
+        ref.close();
+      });
+
+      const sub = ref.onClose.subscribe(() => {
+        backHandle.release();
+        sub.unsubscribe();
+      });
+    }
+
+    return ref;
   }
 
   openDashboardSettingsDialog(): DynamicDialogRef | null {

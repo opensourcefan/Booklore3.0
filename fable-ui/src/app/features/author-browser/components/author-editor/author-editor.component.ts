@@ -10,8 +10,8 @@ import {FileUpload} from 'primeng/fileupload';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Divider} from 'primeng/divider';
 import {MessageService} from 'primeng/api';
-import {DialogService} from 'primeng/dynamicdialog';
 import {AuthorService} from '../../service/author.service';
+import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 import {AuthorDetails} from '../../model/author.model';
 import {AuthorPhotoSearchComponent} from '../author-photo-search/author-photo-search.component';
 
@@ -31,8 +31,7 @@ import {AuthorPhotoSearchComponent} from '../author-photo-search/author-photo-se
     FileUpload,
     ProgressSpinner,
     Divider
-  ],
-  providers: [DialogService]
+  ]
 })
 export class AuthorEditorComponent implements OnInit, OnChanges {
 
@@ -42,7 +41,7 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
 
   private authorService = inject(AuthorService);
   private messageService = inject(MessageService);
-  private dialogService = inject(DialogService);
+  private dialogLauncher = inject(DialogLauncherService);
   private t = inject(TranslocoService);
 
   form!: FormGroup;
@@ -124,7 +123,7 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
   }
 
   openPhotoSearch(): void {
-    const ref = this.dialogService.open(AuthorPhotoSearchComponent, {
+    const ref = this.dialogLauncher.openDialog(AuthorPhotoSearchComponent, {
       data: {authorId: this.authorId, authorName: this.author.name},
       header: this.t.translate('authorBrowser.editor.searchPhotoTitle'),
       width: '70vw',

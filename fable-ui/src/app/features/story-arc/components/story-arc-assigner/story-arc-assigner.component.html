@@ -2,6 +2,14 @@
   <div class="dialog-header">
     <h2>Add Selected to Story Arc</h2>
     <p class="subtitle">Assign {{ bookIds.size }} selected {{ bookIds.size === 1 ? 'book' : 'books' }} to a reading order</p>
+    <p-button
+      icon="pi pi-times"
+      [text]="true"
+      [rounded]="true"
+      severity="secondary"
+      (onClick)="closeDialog()"
+      class="close-button">
+    </p-button>
   </div>
 
   <div class="mode-toggles">

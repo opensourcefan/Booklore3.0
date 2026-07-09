@@ -278,3 +278,26 @@ After writing mobile CSS, the agent MUST:
 | No padding above nav tabs | Buttons visually collide with header border | `padding: 0.5rem 1rem 0.75rem` on `.dialog-nav` |
 | Truncated paths with ellipsis on mobile | User can't see the important last folder | `overflow-x: auto` with hidden scrollbar |
 | Footer button labels wrapping | Doubles footer height, wastes space | Icon-only save button + `white-space: nowrap` |
+
+---
+
+## 10. Dialog Close & Back Gesture Rules
+
+### 10.1 Back Gesture Interception
+- Every mobile dialog/panel MUST respond to the system back gesture (swipe or device back button) by closing itself rather than letting the underlying page go back.
+- **Implementation standard**: All dynamic dialogs MUST be opened via [DialogLauncherService](file:///home/michael/fable/fable-ui/src/app/shared/services/dialog-launcher.service.ts), which centrally registers and manages the mobile back navigation listener via [MobileBackNavigationService](file:///home/michael/fable/fable-ui/src/app/shared/service/mobile-back-navigation.service.ts).
+- Direct use of `DialogService.open` in components is **FORBIDDEN** to ensure centralized back-navigation behavior.
+
+### 10.2 System-Wide Close Button
+- Every dialog/panel template MUST include a standard close button in the top right of the header:
+  ```html
+  <p-button
+    icon="pi pi-times"
+    [text]="true"
+    [rounded]="true"
+    severity="secondary"
+    (onClick)="closeDialog()"
+    class="close-button">
+  </p-button>
+  ```
+- The close button MUST use `class="close-button"` to align with the absolute layout positioning in `@mixin panel-header`.

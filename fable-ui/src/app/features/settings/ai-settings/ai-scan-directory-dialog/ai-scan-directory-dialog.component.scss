@@ -12,6 +12,7 @@
 }
 
 .dialog-header {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 1rem;
@@ -19,6 +20,12 @@
   background: var(--overlay-background);
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
+}
+
+.close-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
 }
 
 .dialog-header-icon {
@@ -319,6 +326,11 @@
 
   .dialog-header {
     padding: 0.625rem 1rem;
+
+    .close-button {
+      top: 0.5rem;
+      right: 0.5rem;
+    }
 
     .dialog-header-icon {
       width: 28px;
