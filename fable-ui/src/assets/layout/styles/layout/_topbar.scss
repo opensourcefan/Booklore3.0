@@ -462,11 +462,22 @@ body.header-bottom .layout-topbar::before {
   }
 
   .p-popover-content {
+    display: flex;
+    flex-direction: column;
     width: 16rem;
     height: 100% !important;
     max-height: 100% !important;
-    overflow-y: auto;
+    overflow: hidden;
     padding: 0 0.25rem 0 0.6rem;
+
+    > app-directory-mobile-panel {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
   }
 }
 

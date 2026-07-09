@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit, inject} from '@angular/core';
-import {filter, Subject} from 'rxjs';
+import {filter, Subject, Subscription} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {NavigationEnd, Router} from '@angular/router';
 import {ProgressSpinner} from 'primeng/progressspinner';
@@ -70,6 +70,10 @@ import {BookState} from '../../model/state/book-state.model';
   `,
   styles: [`
     :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
       --dir-tree-row-height: 2rem;
       --dir-tree-row-radius: 8px;
       --dir-tree-row-font-size: 0.95rem;
@@ -83,7 +87,8 @@ import {BookState} from '../../model/state/book-state.model';
     }
 
     .dir-mobile-panel {
-      max-height: 60dvh;
+      flex: 1 1 auto;
+      height: 100%;
       overflow-y: auto;
       min-width: 220px;
       max-width: 320px;
@@ -194,6 +199,7 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
   private expandedRootIds = new Set<number>();
   private lastTreeSignature = '';
   private pendingReload = false;
+  private loadSubscription?: Subscription;
 
   private destroy$ = new Subject<void>();
   private router = inject(Router);
@@ -202,26 +208,30 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
   private bookService = inject(BookService);
 
   ngOnInit(): void {
-    this.filterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(f => {
-      this.syncSelectionFromFilter(f);
-    });
+    // 1. Initialize route
+    this.onRouteChange();
 
-    this.bookService.bookState$.pipe(takeUntil(this.destroy$)).subscribe(state => {
-      this.handleBookStateChanged(state);
-    });
-
+    // 2. Track route changes
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       takeUntil(this.destroy$)
     ).subscribe(() => this.onRouteChange());
 
-    this.onRouteChange();
-    this.loadTree();
+    // 3. Track selected filter
+    this.filterService.filter$.pipe(takeUntil(this.destroy$)).subscribe(f => {
+      this.syncSelectionFromFilter(f);
+    });
+
+    // 4. Track book state changes
+    this.bookService.bookState$.pipe(takeUntil(this.destroy$)).subscribe(state => {
+      this.handleBookStateChanged(state);
+    });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.loadSubscription?.unsubscribe();
   }
 
   onNodeSelected(event: {libraryPathId: number; fileSubPath: string}): void {
@@ -273,6 +283,8 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
   private onRouteChange(): void {
     const url = this.router.url.split('?')[0].split('#')[0];
     const libraryMatch = url.match(/^\/library\/(\d+)\/books/);
+    let libraryIdChanged = false;
+
     if (libraryMatch) {
       const newLibId = parseInt(libraryMatch[1], 10);
       this.isLibraryRoute = true;
@@ -280,7 +292,7 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
         this.currentLibraryId = newLibId;
         this.tree = [];
         this.expandedRootIds.clear();
-        this.loadTree();
+        libraryIdChanged = true;
       }
     } else {
       this.isLibraryRoute = false;
@@ -288,8 +300,12 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
         this.currentLibraryId = null;
         this.tree = [];
         this.expandedRootIds.clear();
-        this.loadTree();
+        libraryIdChanged = true;
       }
+    }
+
+    if (libraryIdChanged || this.tree.length === 0) {
+      this.loadTree();
     }
 
     this.syncSelectionFromFilter(this.filterService.currentFilter);
@@ -301,6 +317,11 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
     }
 
     const nextSignature = this.buildTreeSignature(state.books || []);
+    if (!this.lastTreeSignature) {
+      this.lastTreeSignature = nextSignature;
+      return;
+    }
+
     if (nextSignature === this.lastTreeSignature) {
       return;
     }
@@ -344,11 +365,12 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
   }
 
   private loadTree(): void {
+    this.loadSubscription?.unsubscribe();
     this.loading = true;
     const obs = this.currentLibraryId !== null
       ? this.treeService.getTreeForLibrary(this.currentLibraryId)
       : this.treeService.getAllLibrariesTree();
-    obs.pipe(takeUntil(this.destroy$)).subscribe({
+    this.loadSubscription = obs.pipe(takeUntil(this.destroy$)).subscribe({
       next: tree => {
         this.tree = tree;
         this.expandedRootIds.forEach(rootId => {
