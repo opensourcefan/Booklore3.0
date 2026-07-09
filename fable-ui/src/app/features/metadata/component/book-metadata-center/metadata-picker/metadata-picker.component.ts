@@ -1,4 +1,4 @@
-import {Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
+import {Component, DestroyRef, EventEmitter, HostListener, inject, Input, OnInit, Output} from '@angular/core';
 import {Book, BookMetadata, ComicMetadata, MetadataClearFlags, MetadataUpdateWrapper} from '../../../../book/model/book.model';
 import {MessageService} from 'primeng/api';
 import {CdkDragDrop, CdkDropList, CdkDrag, moveItemInArray} from '@angular/cdk/drag-drop';
@@ -856,5 +856,27 @@ export class MetadataPickerComponent implements OnInit {
 
   private getComicFieldConfig(controlName: string): MetadataFieldConfig | undefined {
     return ALL_COMIC_METADATA_FIELDS.find(f => f.controlName === controlName);
+  }
+
+  showScrollToTop = false;
+
+  @HostListener('window:scroll', ['$event'])
+  @HostListener('scroll', ['$event'])
+  onScroll(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target && target.scrollTop !== undefined) {
+      if (target.classList?.contains('dialog-body') || target.classList?.contains('tabpanels-responsive') || target.classList?.contains('p-dialog-content')) {
+        this.showScrollToTop = target.scrollTop > 300;
+      }
+    }
+  }
+
+  scrollToTop(): void {
+    if (typeof document !== 'undefined') {
+      const scrollTargets = ['.dialog-body', '.tabpanels-responsive', '.p-dialog-content'];
+      scrollTargets.forEach(selector => {
+        document.querySelector(selector)?.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
   }
 }

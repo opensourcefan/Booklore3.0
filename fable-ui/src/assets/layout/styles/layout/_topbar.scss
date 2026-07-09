@@ -55,30 +55,47 @@ body.header-bottom .layout-topbar::before {
   }
 }
 
-.mobile-sidebar-popover .p-popover-content {
-  display: flex;
-  flex-direction: column;
-  width: var(--sidebar-width, 16rem);
-  max-height: calc(100dvh - 5rem);
-  overflow: hidden;
-  padding: 0 0 0 0.6rem;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
+.mobile-sidebar-popover {
+  @media (max-width: 991px) {
+    position: fixed !important;
+    top: 3.85rem !important;
+    bottom: auto !important;
+    height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px)) !important;
+    margin: 0 !important;
 
-.mobile-sidebar-popover .p-popover-content > app-sidebar,
-.mobile-sidebar-popover .p-popover-content > app-sidebar > app-menu {
-  display: flex;
-  flex: 1 1 auto;
-  width: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
+    body.header-bottom & {
+      top: 0px !important;
+      bottom: calc(3.85rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+  }
 
-.mobile-sidebar-popover .p-popover-content::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+  .p-popover-content {
+    display: flex;
+    flex-direction: column;
+    width: var(--sidebar-width, 16rem);
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    padding: 0 0 0 0.6rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+
+    > app-sidebar,
+    > app-sidebar > app-menu {
+      display: flex;
+      flex: 1 1 auto;
+      width: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
 }
 
 .topbar-items {
@@ -362,8 +379,19 @@ body.header-bottom .layout-topbar::before {
 
 .mobile-right-sidebar-popover {
   @media (max-width: 991px) {
+    position: fixed !important;
+    top: 3.85rem !important;
+    bottom: auto !important;
     left: auto !important;
     right: 0.5rem !important;
+    height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px)) !important;
+    margin: 0 !important;
+
+    body.header-bottom & {
+      top: 0px !important;
+      bottom: calc(3.85rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
   }
 
   background: transparent !important;
@@ -372,14 +400,22 @@ body.header-bottom .layout-topbar::before {
 
   .p-popover-content {
     width: var(--bl-filter-panel-width, 16rem);
-    max-height: calc(100dvh - 5rem);
-    overflow: hidden;
+    height: 100% !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
     padding: 0;
     background: transparent !important;
     
     app-book-filter {
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      
       ::ng-deep .book-filter-container {
-        max-height: calc(100dvh - 5rem) !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        border: none !important;
       }
     }
   }
@@ -390,6 +426,20 @@ body.header-bottom .layout-topbar::before {
 }
 
 .mobile-overflow-menu-popover {
+  @media (max-width: 991px) {
+    position: fixed !important;
+    top: 3.85rem !important;
+    bottom: auto !important;
+    height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px)) !important;
+    margin: 0 !important;
+
+    body.header-bottom & {
+      top: 0px !important;
+      bottom: calc(3.85rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+  }
+
   @media (max-width: 767px) {
     left: auto !important;
     right: 0.5rem !important;
@@ -397,30 +447,31 @@ body.header-bottom .layout-topbar::before {
 }
 
 .dir-mobile-panel-popover {
+  @media (max-width: 991px) {
+    position: fixed !important;
+    top: 3.85rem !important;
+    bottom: auto !important;
+    height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px)) !important;
+    margin: 0 !important;
+
+    body.header-bottom & {
+      top: 0px !important;
+      bottom: calc(3.85rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+  }
+
   .p-popover-content {
     width: 16rem;
-    max-height: calc(100dvh - 5rem);
+    height: 100% !important;
+    max-height: 100% !important;
     overflow-y: auto;
     padding: 0 0.25rem 0 0.6rem;
   }
 }
 
-/* Bottom header: popovers open upward instead of downward */
+/* Bottom header animation resets */
 body.header-bottom {
-  .mobile-sidebar-popover,
-  .mobile-overflow-menu-popover,
-  .dir-mobile-panel-popover {
-    .p-popover-content {
-      max-height: calc(100dvh - 5rem);
-    }
-  }
-
-  /* Force directory popover to open above the bottom header */
-  .dir-mobile-panel-popover.p-popover {
-    top: auto !important;
-    bottom: calc(3.85rem + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
   .p-popover,
   .p-tieredmenu,
   .p-menu {

@@ -535,11 +535,28 @@ while IFS= read -r -d '' html_file; do
     section_count=$(grep -cE '(<section|class="form-section")' "$html_file" || true)
 
     if [ "$line_count" -gt 150 ] || [ "$section_count" -ge 3 ]; then
-        if ! grep -qE '(scrollToTop|scroll-to-top|pi-chevron-up|pi-arrow-up)' "$html_file"; then
+        if ! grep -qE '(scrollToTop|scroll-to-top|scrollTop)' "$html_file" && \
+           ! grep -qE '(class|id|title|aria-label)="[^"]*(scroll-to-top|back-to-top|scrollToTop)[^"]*"' "$html_file"; then
             warn "$html_file — long panel (>150 lines or 3+ sections) lacks a 'Back to Top' button"
         fi
     fi
 done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# Rule 3.10: Component transition scroll reset check
+# =============================================================================
+section "Rule 3.10 — Component transition scroll reset check"
+
+while IFS= read -r -d '' ts_file; do
+    if [[ "$ts_file" =~ \.spec\.ts$ ]]; then
+        continue
+    fi
+    if grep -qE '(selectedFetchedMetadata\$|onBookClick)' "$ts_file" 2>/dev/null; then
+        if ! grep -qE '(scrollTo|scrollTop)' "$ts_file"; then
+            warn "$ts_file — transitions views on selection change but lacks scroll-reset logic (risks scroll persistence)"
+        fi
+    fi
+done < <(find "$UI_DIR" -name "*.ts" -print0)
 
 # =============================================================================
 # Rule 3.9: Raw path interpolation without last-two-folders truncation
@@ -582,6 +599,24 @@ while IFS= read -r -d '' file; do
         print NR":"$0
     }' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
+
+# =============================================================================
+# Rule 5.5: Mobile popover boundary bounds check
+# =============================================================================
+section "Rule 5.5 — Mobile popover boundary bounds check"
+
+while IFS= read -r -d '' scss_file; do
+    while IFS=: read -r line selector; do
+        start=$((line - 1))
+        [ "$start" -lt 1 ] && start=1
+        end=$((line + 40))
+        context=$(sed -n "${start},${end}p" "$scss_file" 2>/dev/null)
+        
+        if ! echo "$context" | grep -qE '(top:|bottom:)' || ! echo "$context" | grep -qE 'body\.header-bottom'; then
+            warn "$scss_file:$line — popover class '$selector' lacks explicit top/bottom bounds for top-header and bottom-header modes"
+        fi
+    done < <(grep -nE '^\s*\.(mobile-sidebar-popover|mobile-right-sidebar-popover|dir-mobile-panel-popover|mobile-overflow-menu-popover)(\.p-popover)?(\s*\{|\s*,|\s*$)' "$scss_file" 2>/dev/null)
+done < <(find "$PROJECT_DIR/fable-ui/src" -name "*.scss" -print0)
 
 # =============================================================================
 # Summary

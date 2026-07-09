@@ -615,6 +615,7 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
 
   onBookClick(fetchedMetadata: BookMetadata) {
     this.selectedFetchedMetadata$.next(fetchedMetadata);
+    this.resetScrollToTop();
 
     const enrichment = this.getDetailEnrichmentInfo(fetchedMetadata);
 
@@ -671,9 +672,18 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+  private resetScrollToTop(): void {
+    if (typeof document !== 'undefined') {
+      document.querySelector('.tabpanels-responsive')?.scrollTo({ top: 0 });
+      document.querySelector('.p-dialog-content')?.scrollTo({ top: 0 });
+      document.querySelector('.dialog-body')?.scrollTo({ top: 0 });
+    }
+  }
+
   onGoBack() {
     this.detailLoading = false;
     this.selectedFetchedMetadata$.next(null);
+    this.resetScrollToTop();
   }
 
   getCoverUrl(book: Book): string {

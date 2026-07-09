@@ -166,6 +166,11 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
 
   onBookClick(book: Book): void {
     this.clearSearch();
+    if (typeof document !== 'undefined') {
+      document.querySelector('.tabpanels-responsive')?.scrollTo({ top: 0 });
+      document.querySelector('.p-dialog-content')?.scrollTo({ top: 0 });
+      document.querySelector('.dialog-body')?.scrollTo({ top: 0 });
+    }
     this.router.navigate(['/book', book.id], {
       queryParams: {tab: 'view', returnTo: this.router.url}
     });

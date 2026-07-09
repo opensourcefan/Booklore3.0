@@ -855,6 +855,15 @@
         </section>
       }
     </div>
-
+    @if (showScrollToTop) {
+      <button
+        type="button"
+        class="scroll-to-top-btn mobile-only"
+        (click)="scrollToTop()"
+        pTooltip="Back to Top"
+        tooltipPosition="left">
+        <i class="pi pi-chevron-up"></i>
+      </button>
+    }
   </form>
 }
