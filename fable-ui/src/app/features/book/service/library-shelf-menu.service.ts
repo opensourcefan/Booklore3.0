@@ -103,10 +103,27 @@ export class LibraryShelfMenuService {
         label: this.t.translate('book.shelfMenuService.library.autoFetchMetadata'),
         icon: 'pi pi-bolt',
         command: () => {
-          this.taskHelperService.refreshMetadataTask({
-            refreshType: MetadataRefreshType.LIBRARY,
-            libraryId: entity?.id ?? undefined
-          }).subscribe();
+          this.confirmationService.confirm({
+            message: this.t.translate('book.shelfMenuService.confirm.autoFetchMetadataMessage', {name: entity?.name}),
+            header: this.t.translate('book.shelfMenuService.confirm.autoFetchMetadataHeader'),
+            icon: 'pi pi-cloud-download',
+            acceptLabel: this.t.translate('common.confirm'),
+            rejectLabel: this.t.translate('common.cancel'),
+            acceptButtonProps: {
+              label: this.t.translate('common.confirm'),
+              severity: 'info'
+            },
+            rejectButtonProps: {
+              label: this.t.translate('common.cancel'),
+              severity: 'secondary'
+            },
+            accept: () => {
+              this.taskHelperService.refreshMetadataTask({
+                refreshType: MetadataRefreshType.LIBRARY,
+                libraryId: entity?.id ?? undefined
+              }).subscribe();
+            }
+          });
         }
       },
       {

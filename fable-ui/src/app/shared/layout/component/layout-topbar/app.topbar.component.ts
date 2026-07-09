@@ -94,6 +94,7 @@ export class AppTopBarComponent implements OnDestroy {
   @ViewChild('mobileDirPop') mobileDirPop: Popover | undefined;
   @ViewChild('mobileMenu') mobileMenuPop: Popover | undefined;
   @ViewChild('notificationPopover') notificationPopover: Popover | undefined;
+  @ViewChild('notificationPopoverMobile') notificationPopoverMobile: Popover | undefined;
 
   isMenuVisible = true;
   mobileSearchVisible = false;
@@ -695,8 +696,13 @@ export class AppTopBarComponent implements OnDestroy {
 
     const hasAnyContent = hasActiveNotification || hasMetadataTasks || hasPendingBookdropFiles || hasAiSearchScan;
 
-    if (!hasAnyContent && this.notificationPopover) {
-      this.notificationPopover.hide();
+    if (!hasAnyContent) {
+      if (this.notificationPopover) {
+        this.notificationPopover.hide();
+      }
+      if (this.notificationPopoverMobile) {
+        this.notificationPopoverMobile.hide();
+      }
     }
   }
 

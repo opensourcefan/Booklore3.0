@@ -753,12 +753,31 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
 
   autoFetchMetadata(): void {
     if (!this.selectedBooks || this.selectedBooks.size === 0) return;
-    this.taskHelperService.refreshMetadataTask({
-      refreshType: MetadataRefreshType.BOOKS,
-      bookIds: Array.from(this.selectedBooks),
-    }).subscribe(result => {
-      if (result.success) {
-        this.deselectAllBooks();
+
+    const count = this.selectedBooks.size;
+    this.confirmationService.confirm({
+      message: this.t.translate('book.menuService.confirm.autoFetchMetadataMessage', {count}),
+      header: this.t.translate('book.menuService.confirm.autoFetchMetadataHeader'),
+      icon: 'pi pi-cloud-download',
+      acceptLabel: this.t.translate('common.confirm'),
+      rejectLabel: this.t.translate('common.cancel'),
+      acceptButtonProps: {
+        label: this.t.translate('common.confirm'),
+        severity: 'info'
+      },
+      rejectButtonProps: {
+        label: this.t.translate('common.cancel'),
+        severity: 'secondary'
+      },
+      accept: () => {
+        this.taskHelperService.refreshMetadataTask({
+          refreshType: MetadataRefreshType.BOOKS,
+          bookIds: Array.from(this.selectedBooks),
+        }).subscribe(result => {
+          if (result.success) {
+            this.deselectAllBooks();
+          }
+        });
       }
     });
   }

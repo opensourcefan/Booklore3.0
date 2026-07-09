@@ -842,10 +842,27 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             label: this.t.translate('book.card.menu.autoFetch'),
             icon: 'pi pi-bolt',
             command: () => {
-              this.taskHelperService.refreshMetadataTask({
-                refreshType: MetadataRefreshType.BOOKS,
-                bookIds: [book.id],
-              }).subscribe();
+              this.confirmationService.confirm({
+                message: this.t.translate('book.menuService.confirm.autoFetchMetadataMessage', {count: 1}),
+                header: this.t.translate('book.menuService.confirm.autoFetchMetadataHeader'),
+                icon: 'pi pi-cloud-download',
+                acceptLabel: this.t.translate('common.confirm'),
+                rejectLabel: this.t.translate('common.cancel'),
+                acceptButtonProps: {
+                  label: this.t.translate('common.confirm'),
+                  severity: 'info'
+                },
+                rejectButtonProps: {
+                  label: this.t.translate('common.cancel'),
+                  severity: 'secondary'
+                },
+                accept: () => {
+                  this.taskHelperService.refreshMetadataTask({
+                    refreshType: MetadataRefreshType.BOOKS,
+                    bookIds: [book.id],
+                  }).subscribe();
+                }
+              });
             }
           },
           {

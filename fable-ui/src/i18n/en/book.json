@@ -254,6 +254,8 @@
       "resetKOReaderProgress": "Reset KOReader Progress"
     },
     "confirm": {
+      "autoFetchMetadataMessage": "Are you sure you want to Auto Fetch Metadata for {{ count }} book(s)? This will request external data and could overwrite unlocked fields.",
+      "autoFetchMetadataHeader": "Confirm Auto Fetch Metadata",
       "readStatusMessage": "Are you sure you want to mark {{ count }} book(s) as \"{{ label }}\"?",
       "readStatusHeader": "Confirm Read Status Update",
       "ageRatingMessage": "Are you sure you want to set the age rating to \"{{ label }}\" for {{ count }} book(s)?",
@@ -337,6 +339,8 @@
       "deleteMagicShelf": "Delete Magic Shelf"
     },
     "confirm": {
+      "autoFetchMetadataMessage": "Are you sure you want to Auto Fetch Metadata for all books in library \"{{ name }}\"? This will request external data and could overwrite unlocked fields.",
+      "autoFetchMetadataHeader": "Confirm Auto Fetch Metadata",
       "scanNewFilesMessage": "Scan library {{ name }} for files that are not already known? This will import new items only and will not reconcile missing files.",
       "reconcileLibraryMessage": "Reconcile library {{ name }} with disk? This may remove missing-file entries, purge disallowed formats, restore matching items, and update derived library data.",
       "deleteLibraryMessage": "Are you sure you want to delete library: {{ name }}?",
