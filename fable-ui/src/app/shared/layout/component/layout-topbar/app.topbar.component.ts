@@ -828,29 +828,36 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   get showMobileWriteIndicator(): boolean {
-    return !!this.writeProgress || !!this.metadataFetchProgress;
+    return this.mobileUx.isMobileOrTablet && (!!this.writeProgress || !!this.metadataFetchProgress);
   }
 
   get showMobileWriteComplete(): boolean {
-    return this.writeProgress?.status === 'COMPLETED'
-      || this.metadataFetchProgress?.taskStatus === TaskStatus.COMPLETED;
+    return this.mobileUx.isMobileOrTablet && (this.writeProgress?.status === 'COMPLETED'
+      || this.metadataFetchProgress?.taskStatus === TaskStatus.COMPLETED);
   }
 
   get showMobileWriteFailed(): boolean {
-    return this.writeProgress?.status === 'FAILED'
+    return this.mobileUx.isMobileOrTablet && (this.writeProgress?.status === 'FAILED'
       || this.metadataFetchProgress?.taskStatus === TaskStatus.FAILED
-      || this.metadataFetchProgress?.taskStatus === TaskStatus.CANCELLED;
+      || this.metadataFetchProgress?.taskStatus === TaskStatus.CANCELLED);
   }
 
-  @HostListener('click')
-  onTopbarClick(): void {
+  @HostListener('document:click')
+  onDocumentClick(): void {
     if (this.mobileUx.isMobileOrTablet) {
       this.dismissMobileWriteIndicator();
     }
   }
 
-  @HostListener('keydown.enter')
-  onTopbarEnter(): void {
+  @HostListener('document:touchstart')
+  onDocumentTouchStart(): void {
+    if (this.mobileUx.isMobileOrTablet) {
+      this.dismissMobileWriteIndicator();
+    }
+  }
+
+  @HostListener('document:keydown.enter')
+  onDocumentEnter(): void {
     if (this.mobileUx.isMobileOrTablet) {
       this.dismissMobileWriteIndicator();
     }
