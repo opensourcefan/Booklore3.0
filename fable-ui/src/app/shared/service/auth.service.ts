@@ -84,7 +84,7 @@ export class AuthService implements OnDestroy {
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, tokenResponse.accessToken);
     localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokenResponse.refreshToken);
     localStorage.setItem(ACCESS_TOKEN_EXPIRY_STORAGE_KEY, tokenResponse.expires.toString());
-    sessionStorage.setItem(DEFAULT_PASSWORD_STORAGE_KEY, String(tokenResponse.isDefaultPassword));
+    localStorage.setItem(DEFAULT_PASSWORD_STORAGE_KEY, String(tokenResponse.isDefaultPassword));
     this.tokenSubject.next(tokenResponse.accessToken);
     this.scheduleProactiveRefresh(tokenResponse.expires);
   }
@@ -102,7 +102,7 @@ export class AuthService implements OnDestroy {
   }
 
   getInternalDefaultPassword(): boolean | null {
-    const val = sessionStorage.getItem(DEFAULT_PASSWORD_STORAGE_KEY);
+    const val = localStorage.getItem(DEFAULT_PASSWORD_STORAGE_KEY);
     return val !== null ? val === 'true' : null;
   }
 
@@ -184,8 +184,12 @@ export class AuthService implements OnDestroy {
 
     const expires = this.readStoredNumber(ACCESS_TOKEN_EXPIRY_STORAGE_KEY);
     const isDefaultPassword = this.getInternalDefaultPassword();
-    if (expires === null || isDefaultPassword === null || expires <= Date.now()) {
+    if (expires === null || isDefaultPassword === null) {
       this.clearStoredSessionData();
+      return null;
+    }
+
+    if (expires <= Date.now()) {
       return null;
     }
 
@@ -199,7 +203,7 @@ export class AuthService implements OnDestroy {
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(ACCESS_TOKEN_EXPIRY_STORAGE_KEY);
-    sessionStorage.removeItem(DEFAULT_PASSWORD_STORAGE_KEY);
+    localStorage.removeItem(DEFAULT_PASSWORD_STORAGE_KEY);
   }
 
   /**

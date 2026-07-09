@@ -39,9 +39,26 @@ export function initializeAuthFactory() {
           } else {
             if (authService.hasValidInternalAccessToken()) {
               websocketInitializer(authService)();
+              authInitService.markAsInitialized();
+              resolve();
+            } else if (authService.getInternalRefreshToken()) {
+              authService.internalRefreshToken().subscribe({
+                next: () => {
+                  websocketInitializer(authService)();
+                  authInitService.markAsInitialized();
+                  resolve();
+                },
+                error: (err) => {
+                  console.warn('[Auth] Token refresh failed on startup:', err);
+                  authService.clearSessionOnLoginPage();
+                  authInitService.markAsInitialized();
+                  resolve();
+                }
+              });
+            } else {
+              authInitService.markAsInitialized();
+              resolve();
             }
-            authInitService.markAsInitialized();
-            resolve();
           }
           sub.unsubscribe();
         }
