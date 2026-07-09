@@ -1,0 +1,56 @@
+# Mobile Styling Audit Report
+
+**Date:** 2026-07-08 20:59 PDT
+**Script:** `scripts/audit-mobile-styling.sh`
+**Ruleset:** `.roo/rules/mobile-phone-styling.md`
+**Scan target:** `fable-ui/src/app` (896 files scanned)
+
+---
+
+## Results: 8 Issue(s) Found
+
+### Rule 4.3 — flex-direction: column in footer media queries
+
+| # | File | Line | Description |
+|---|------|------|-------------|
+| 1 | `library-stats.component.scss` | 925 | flex-direction: column in footer media query (wastes space) |
+| 2 | `reading-session-heatmap.component.scss` | 177 | flex-direction: column in footer media query (wastes space) |
+| 3 | `user-stats.component.scss` | 398 | flex-direction: column in footer media query (wastes space) |
+| 4 | `user-management.component.scss` | 727 | flex-direction: column in footer media query (wastes space) |
+| 5 | `file-mover-component.scss` | 506 | flex-direction: column in footer media query (wastes space) |
+
+---
+
+### Rule 5.4 — Top/Bottom header mode layout positioning conflicts
+
+| # | File | Line | Description |
+|---|------|------|-------------|
+| 1 | `completion-timeline-chart.component.scss` | 104 | defines top/padding-top in mobile MQ without body.header-bottom override (risks positioning overlap) |
+| 2 | `cover-search.component.scss` | 313 | defines top/padding-top in mobile MQ without body.header-bottom override (risks positioning overlap) |
+| 3 | `_panel-shared.scss` | 79 | defines top/padding-top in mobile MQ without body.header-bottom override (risks positioning overlap) |
+
+---
+
+### Rules With No Issues ✓
+
+| Rule |
+|------|
+| Rule 2.1 — Hardcoded min-height on dialog/panel roots |
+| Rule 2.2 — Hardcoded width on dialog/panel roots |
+| Rule 1.3 — Breakpoints below 768px without a 768px sibling |
+| Rule 4.2 — Footer patterns missing safe-area-inset-bottom |
+| Rule 6.1 — Invalid CSS: justify-content: stretch |
+| Rule 3.1 — Dialog headers without mobile compaction |
+| Rule 3.3 — Info banners not hidden on mobile |
+| Rule 3.4 — Row action buttons with visible text on mobile |
+| Rule 3.6 — Validation status in footers not hidden on mobile |
+| Rule 3.7 — Truncated paths without mobile scroll fallback |
+| Rule 3.5 — Status chips/badges with visible text on mobile |
+| Rule 3.2 — dialog-nav without mobile top padding |
+| Rule 2.5 — Inefficient panel height limit on mobile |
+| Rule 2.6 — Dialog overlays not top-aligned on mobile |
+| Rule 3.8 — Back-to-top action missing on long panels |
+| Rule 3.10 — Component transition scroll reset check |
+| Rule 3.9 — Raw path interpolation without last-two-folders truncation |
+| Rule 5.5 — Mobile popover boundary bounds check |
+

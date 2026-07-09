@@ -4,6 +4,51 @@
 # Scans fable-ui SCSS and HTML for violations of mobile phone styling standard.
 # Read-only — no files are modified.
 # =============================================================================
+#
+# USAGE
+# -----
+#   chmod +x scripts/audit-mobile-styling.sh   # first time only
+#   ./scripts/audit-mobile-styling.sh           # run from the project root
+#
+# OUTPUT
+#   Terminal:  colored output to stdout
+#   Report:    scripts/reports/mobile-audit-YYYY-MM-DD.md (auto-generated)
+#
+# WHAT IT DOES
+#   Scans every .scss, .html, and .ts file under fable-ui/src/app for
+#   violations of the mobile-phone styling ruleset defined in
+#   .roo/rules/mobile-phone-styling.md. The script is read-only and
+#   never modifies any files.
+#
+# RULES CHECKED
+#   2.1  Hardcoded min-height on dialog/panel roots
+#   2.2  Hardcoded width on dialog/panel roots
+#   2.5  Inefficient panel height limit on mobile
+#   2.6  Dialog overlays not top-aligned on mobile
+#   1.3  Breakpoints below 768px without a 768px sibling
+#   3.1  Dialog headers without mobile compaction
+#   3.2  dialog-nav without mobile top padding
+#   3.3  Info banners not hidden on mobile
+#   3.4  Row action buttons with visible text on mobile
+#   3.5  Status chips/badges with visible text on mobile
+#   3.6  Validation status in footers not hidden on mobile
+#   3.7  Truncated paths without mobile scroll fallback
+#   3.8  Back-to-top action missing on long panels
+#   3.9  Raw path interpolation without truncation formatting
+#   3.10 Component transition scroll reset check
+#   4.2  Footer patterns missing safe-area-inset-bottom
+#   4.3  flex-direction: column in footer media queries
+#   5.4  Top/Bottom header mode layout positioning conflicts
+#   5.5  Mobile popover boundary bounds check
+#   6.1  Invalid CSS: justify-content: stretch
+#
+# REQUIREMENTS
+#   bash 4+, GNU grep (with -P / PCRE), awk, sed, find, wc
+#
+# EXIT CODES
+#   0 — no issues found
+#   1 — one or more issues found
+# =============================================================================
 
 set -uo pipefail
 
@@ -19,16 +64,36 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 ISSUES=0
-FILES_SCANNED=0
+# Track unique files scanned across all rule loops
+declare -A SCANNED_FILES
+
+# Report tracking
+REPORT_DIR="$PROJECT_DIR/scripts/reports"
+REPORT_DATE=$(date '+%Y-%m-%d_%H%M')
+REPORT_FILE="$REPORT_DIR/mobile-audit-${REPORT_DATE}.md"
+RULE_ORDER=()                # preserves section order
+declare -A RULE_DESCRIPTIONS # rule_id -> description
+declare -A RULE_ISSUES       # rule_id -> newline-separated issue strings
+CURRENT_RULE=""
 
 section() {
     echo ""
     echo -e "${BOLD}${CYAN}━━━ $1 ━━━${NC}"
+    CURRENT_RULE="$1"
+    RULE_ORDER+=("$CURRENT_RULE")
+    RULE_DESCRIPTIONS["$CURRENT_RULE"]="$1"
 }
 
 warn() {
     echo -e "  ${YELLOW}⚠  $1${NC}"
     ISSUES=$((ISSUES + 1))
+    if [ -n "$CURRENT_RULE" ]; then
+        if [ -n "${RULE_ISSUES[$CURRENT_RULE]+x}" ]; then
+            RULE_ISSUES["$CURRENT_RULE"]+=$'\n'"$1"
+        else
+            RULE_ISSUES["$CURRENT_RULE"]="$1"
+        fi
+    fi
 }
 
 info() {
@@ -141,7 +206,7 @@ get_enclosing_class() {
                 for (j = i; j >= 1; j--) {
                     if (lines[j] ~ /\.[a-zA-Z0-9_-]+/) {
                         match(lines[j], /\.[a-zA-Z0-9_-]+/)
-                        print substr(lines[j], RSTART+1, RLENGTH)
+                        print substr(lines[j], RSTART+1, RLENGTH-1)
                         exit
                     }
                 }
@@ -151,7 +216,7 @@ get_enclosing_class() {
         for (i = target; i >= 1; i--) {
             if (lines[i] ~ /\.[a-zA-Z0-9_-]+/) {
                 match(lines[i], /\.[a-zA-Z0-9_-]+/)
-                print substr(lines[i], RSTART+1, RLENGTH)
+                print substr(lines[i], RSTART+1, RLENGTH-1)
                 exit
             }
         }
@@ -178,7 +243,7 @@ is_dialog_component() {
 section "Rule 2.1 — Hardcoded min-height on dialog/panel roots"
 
 while IFS= read -r -d '' file; do
-    FILES_SCANNED=$((FILES_SCANNED + 1))
+    SCANNED_FILES["$file"]=1
 
     if ! is_dialog_component "$file"; then
         continue
@@ -216,6 +281,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 2.2 — Hardcoded width on dialog/panel roots"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     if ! is_dialog_component "$file"; then
         continue
     fi
@@ -243,6 +309,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 1.3 — Breakpoints below 768px without a 768px sibling"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     has_768=$(grep -c 'max-width:\s*768px' "$file" 2>/dev/null || true)
     narrow_bps=$(grep -oP '@media.*max-width:\s*\K[0-9]+(?=px)' "$file" 2>/dev/null | sort -u || true)
 
@@ -260,6 +327,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 4.2 — Footer patterns missing safe-area-inset-bottom"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     # Skip sub-widgets/charts/pickers/trigger zones where safe area is not applicable
     if [[ "$file" =~ (chart|heatmap|widget|picker) ]] || grep -qE 'trigger-zone' "$file" 2>/dev/null; then
         continue
@@ -283,6 +351,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 6.1 — Invalid CSS: justify-content: stretch"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     while IFS= read -r match; do
         line=$(echo "$match" | cut -d: -f1)
         warn "$file:$line — 'justify-content: stretch' is invalid CSS"
@@ -295,14 +364,17 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 4.3 — flex-direction: column in footer media queries"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     while IFS=: read -r line rest; do
         class_name=$(get_enclosing_class "$file" "$line")
         if [[ "$class_name" =~ (footer|actions) ]]; then
             warn "$file:$line — flex-direction: column in footer media query (wastes space)"
         fi
     done < <(awk '
-    /@media/ { in_mq=1; mq_line=NR }
-    /}/ && in_mq { in_mq=0 }
+    BEGIN { depth=0; in_mq=0 }
+    /@media/ { in_mq=1; mq_start_depth=depth }
+    /\{/ { depth++ }
+    /\}/ { depth--; if (in_mq && depth <= mq_start_depth) in_mq=0 }
     in_mq && /flex-direction:[ \t]*column/ {
         print NR":"$0
     }' "$file" 2>/dev/null)
@@ -314,6 +386,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 3.1 — Dialog headers without mobile compaction"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     has_header_icon=$(grep -c 'header-icon' "$file" 2>/dev/null || true)
     has_768=$(grep -c 'max-width:\s*768px' "$file" 2>/dev/null || true)
 
@@ -332,6 +405,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 3.3 — Info banners not hidden on mobile"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     if ! is_dialog_component "$file"; then
         continue
     fi
@@ -357,6 +431,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 3.4 — Row action buttons with visible text on mobile"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     has_row_btn=$(grep -cE '(folder-rescan|folder-remove|row-action|item-action|directory-action)' "$file" 2>/dev/null || true)
     [ "$has_row_btn" -eq 0 ] && continue
 
@@ -378,6 +453,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 3.6 — Validation status in footers not hidden on mobile"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     has_validation=$(grep -c 'validation-status' "$file" 2>/dev/null || true)
     [ "$has_validation" -eq 0 ] && continue
 
@@ -385,8 +461,7 @@ while IFS= read -r -d '' file; do
         continue
     fi
 
-    if grep -qE '@media.*max-width:\s*768px' "$file" 2>/dev/null && \
-       grep -qE 'display:\s*none' "$file" 2>/dev/null; then
+    if class_has_mobile_override "$file" 'validation-status' 'display:[ \t]*none'; then
         continue
     fi
 
@@ -400,6 +475,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 3.7 — Truncated paths without mobile scroll fallback"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     has_ellipsis=$(grep -c 'text-overflow:\s*ellipsis' "$file" 2>/dev/null || true)
     [ "$has_ellipsis" -eq 0 ] && continue
 
@@ -429,6 +505,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 3.5 — Status chips/badges with visible text on mobile"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     has_chip=$(grep -cE '(imported-chip|status-chip|badge-chip|chip-text)' "$file" 2>/dev/null || true)
     [ "$has_chip" -eq 0 ] && continue
 
@@ -450,6 +527,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 3.2 — dialog-nav without mobile top padding"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     has_dialog_nav=$(grep -c 'dialog-nav' "$file" 2>/dev/null || true)
     [ "$has_dialog_nav" -eq 0 ] && continue
 
@@ -467,6 +545,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 2.5 — Inefficient panel height limit on mobile"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     if ! is_dialog_component "$file"; then
         continue
     fi
@@ -500,6 +579,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 2.6 — Dialog overlays not top-aligned on mobile"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     if [[ ! "$file" =~ (global.scss|styles.scss) ]]; then
         continue
     fi
@@ -527,6 +607,7 @@ done < <(find "$PROJECT_DIR/fable-ui/src" -name "*.scss" -print0)
 section "Rule 3.8 — Back-to-top action missing on long panels"
 
 while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
     if ! is_dialog_component "$html_file"; then
         continue
     fi
@@ -548,6 +629,7 @@ done < <(find "$UI_DIR" -name "*.html" -print0)
 section "Rule 3.10 — Component transition scroll reset check"
 
 while IFS= read -r -d '' ts_file; do
+    SCANNED_FILES["$ts_file"]=1
     if [[ "$ts_file" =~ \.spec\.ts$ ]]; then
         continue
     fi
@@ -564,6 +646,7 @@ done < <(find "$UI_DIR" -name "*.ts" -print0)
 section "Rule 3.9 — Raw path interpolation without last-two-folders truncation"
 
 while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
     while IFS=: read -r line content; do
         if echo "$content" | grep -qE '\{\{\s*[a-zA-Z0-9_\.]+\s*\}\}' && \
            ! echo "$content" | grep -qE '(getDisplayPath|truncatePath)'; then
@@ -580,6 +663,7 @@ done < <(find "$UI_DIR" -name "*.html" -print0)
 section "Rule 5.4 — Top/Bottom header mode layout positioning conflicts"
 
 while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
     while IFS=: read -r line rest; do
         ctx_start=$((line - 15))
         [ "$ctx_start" -lt 1 ] && ctx_start=1
@@ -592,9 +676,10 @@ while IFS= read -r -d '' file; do
             fi
         fi
     done < <(awk '
-    BEGIN { in_mq=0; mq_line=0 }
-    /@media.*max-width:[ \t]*768px/ { in_mq=1; mq_line=NR }
-    /}/ && in_mq { in_mq=0 }
+    BEGIN { depth=0; in_mq=0 }
+    /@media.*max-width:[ \t]*768px/ { in_mq=1; mq_start_depth=depth }
+    /\{/ { depth++ }
+    /\}/ { depth--; if (in_mq && depth <= mq_start_depth) in_mq=0 }
     in_mq && /(top:|padding-top:)/ {
         print NR":"$0
     }' "$file" 2>/dev/null)
@@ -606,6 +691,7 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 5.5 — Mobile popover boundary bounds check"
 
 while IFS= read -r -d '' scss_file; do
+    SCANNED_FILES["$scss_file"]=1
     while IFS=: read -r line selector; do
         start=$((line - 1))
         [ "$start" -lt 1 ] && start=1
@@ -624,6 +710,7 @@ done < <(find "$PROJECT_DIR/fable-ui/src" -name "*.scss" -print0)
 section "SUMMARY"
 
 echo ""
+FILES_SCANNED=${#SCANNED_FILES[@]}
 if [ "$ISSUES" -eq 0 ]; then
     echo -e "  ${GREEN}${BOLD}No issues found.${NC}"
 else
@@ -633,3 +720,76 @@ echo ""
 echo -e "  Ruleset: ${CYAN}.roo/rules/mobile-phone-styling.md${NC}"
 echo -e "  Scanned:  ${CYAN}$UI_DIR${NC}"
 echo ""
+
+# =============================================================================
+# Generate Markdown Report
+# =============================================================================
+mkdir -p "$REPORT_DIR"
+
+{
+    echo "# Mobile Styling Audit Report"
+    echo ""
+    echo "**Date:** $(date '+%Y-%m-%d %H:%M %Z')"
+    echo "**Script:** \`scripts/audit-mobile-styling.sh\`"
+    echo "**Ruleset:** \`.roo/rules/mobile-phone-styling.md\`"
+    echo "**Scan target:** \`fable-ui/src/app\` ($FILES_SCANNED files scanned)"
+    echo ""
+    echo "---"
+    echo ""
+
+    if [ "$ISSUES" -eq 0 ]; then
+        echo "## ✅ No Issues Found"
+        echo ""
+        echo "All $FILES_SCANNED files passed every rule."
+    else
+        echo "## Results: $ISSUES Issue(s) Found"
+        echo ""
+
+        # Rules with issues — grouped into tables
+        for rule in "${RULE_ORDER[@]}"; do
+            [[ "$rule" == "SUMMARY" ]] && continue
+
+            if [ -n "${RULE_ISSUES[$rule]+x}" ]; then
+                echo "### $rule"
+                echo ""
+                echo "| # | File | Line | Description |"
+                echo "|---|------|------|-------------|"
+
+                count=0
+                while IFS= read -r issue; do
+                    count=$((count + 1))
+                    if [[ "$issue" =~ ^(.+):([0-9]+)\ —\ (.+)$ ]]; then
+                        filepath="${BASH_REMATCH[1]}"
+                        lineno="${BASH_REMATCH[2]}"
+                        desc="${BASH_REMATCH[3]}"
+                        file_basename=$(basename "$filepath")
+                        echo "| $count | \`$file_basename\` | $lineno | $desc |"
+                    else
+                        echo "| $count | — | — | $issue |"
+                    fi
+                done <<< "${RULE_ISSUES[$rule]}"
+                echo ""
+                echo "---"
+                echo ""
+            fi
+        done
+
+        # Clean rules list
+        echo "### Rules With No Issues ✓"
+        echo ""
+        echo "| Rule |"
+        echo "|------|"
+        for rule in "${RULE_ORDER[@]}"; do
+            [[ "$rule" == "SUMMARY" ]] && continue
+            if [ -z "${RULE_ISSUES[$rule]+x}" ]; then
+                echo "| ${rule} |"
+            fi
+        done
+        echo ""
+    fi
+} > "$REPORT_FILE"
+
+echo -e "  ${GREEN}Report saved:${NC} ${CYAN}$REPORT_FILE${NC}"
+echo ""
+
+exit $(( ISSUES > 0 ? 1 : 0 ))
