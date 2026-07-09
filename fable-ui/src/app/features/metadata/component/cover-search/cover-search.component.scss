@@ -310,7 +310,7 @@
     .form-actions {
       flex-direction: row;
       justify-content: flex-end;
-      margin-top: 0.5rem;
+      margin-top: 0.5rem; // body.header-bottom override
 
       ::ng-deep .p-button:not(.p-button-icon-only) {
         flex: 1;

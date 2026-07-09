@@ -1,0 +1,30 @@
+// Standard centralized mobile utilities
+@use 'variables' as var;
+
+@media (max-width: 768px) {
+  // Rule 2.4: flex scroll chains
+  .fable-flex-scroll-chain {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+
+    .fable-scroll-content {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      min-height: 0;
+    }
+  }
+
+  // Rule 3.3: hide banner mobile
+  .hide-banner-mobile {
+    display: none !important;
+  }
+
+  // Rule 3.7 & 3.9: mobile scroll fallback for path values
+  .folder-path, .directory-path, .file-path, .path-value, .book-file-path {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    text-overflow: clip !important;
+  }
+}

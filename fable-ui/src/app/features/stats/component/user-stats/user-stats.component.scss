@@ -395,16 +395,17 @@
     }
 
     .p_dialog_footer {
-      flex-direction: column;
+      flex-direction: row;
+      flex-wrap: wrap;
       gap: 0.5rem;
 
       .reset-btn {
         margin-right: 0;
-        width: 100%;
+        width: auto;
       }
 
       button {
-        width: 100%;
+        width: auto;
       }
     }
   }

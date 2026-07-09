@@ -724,12 +724,13 @@
   }
 
   .dialog-actions {
-    flex-direction: column-reverse;
+    flex-direction: row;
+    flex-wrap: wrap;
     width: 100%;
     gap: 0.5rem;
 
     ::ng-deep .p-button {
-      width: 100%;
+      width: auto;
       min-width: unset;
       justify-content: center;
     }

@@ -922,7 +922,8 @@
 
     .config-modal-actions {
       padding: 15px 20px;
-      flex-direction: column;
+      flex-direction: row;
+      flex-wrap: wrap;
       gap: 8px;
 
       .config-action-btn {

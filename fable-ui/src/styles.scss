@@ -370,3 +370,15 @@ body.tooltip-suppressed .p-tooltip {
     padding-top: 2rem;
   }
 }
+
+// Global Tactile Press Feedback for Touch UX
+button, a, .p-button, .p-link, [role="button"], .chapter-sort-item {
+  -webkit-tap-highlight-color: transparent !important;
+  
+  &:active {
+    transform: scale(0.97);
+    filter: brightness(0.9) saturate(1.1);
+    transition: transform 0.05s ease;
+  }
+}
+

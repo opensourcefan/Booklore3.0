@@ -174,7 +174,8 @@
   }
 
   .chart-footer {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: flex-start;
   }
 }
