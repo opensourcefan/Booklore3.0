@@ -338,6 +338,17 @@ export class AppTopBarComponent implements OnDestroy {
       .subscribe(progress => {
         this.metadataFetchProgress = progress;
         clearTimeout(this.metadataFetchDismissTimer);
+        if (
+          progress.taskStatus === TaskStatus.COMPLETED ||
+          progress.taskStatus === TaskStatus.CANCELLED ||
+          progress.taskStatus === TaskStatus.FAILED
+        ) {
+          this.metadataFetchDismissTimer = setTimeout(() => {
+            this.metadataFetchProgress = null;
+          }, 5000);
+        } else if (progress.taskStatus === TaskStatus.IN_PROGRESS) {
+          clearTimeout(this.metadataFetchDismissTimer);
+        }
       });
 
     this.writeProgressService.progress$
@@ -345,6 +356,13 @@ export class AppTopBarComponent implements OnDestroy {
       .subscribe(payload => {
         this.writeProgress = payload;
         clearTimeout(this.writeDismissTimer);
+        if (payload && (payload.status === 'COMPLETED' || payload.status === 'FAILED')) {
+          this.writeDismissTimer = setTimeout(() => {
+            this.writeProgress = null;
+          }, 5000);
+        } else if (payload && payload.status === 'IN_PROGRESS') {
+          clearTimeout(this.writeDismissTimer);
+        }
       });
 
     this.userService.userState$
