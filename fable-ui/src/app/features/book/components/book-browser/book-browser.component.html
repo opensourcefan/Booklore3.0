@@ -86,6 +86,22 @@
                 <p-menu #entitymenu [model]="entityOptions" [popup]="true" appendTo="body"></p-menu>
               </div>
             }
+            @if (isMobile) {
+              <div class="entity-menu-wrapper">
+                <p-button
+                  icon="pi pi-folder"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="info"
+                  (click)="mobileDirPop.toggle($event)">
+                </p-button>
+                <p-popover #mobileDirPop [dismissable]="true" styleClass="dir-mobile-panel-popover" (onShow)="onMobileDirectoryPopoverShow()" (onHide)="onMobileDirectoryPopoverHide()">
+                  @if (mobileDirectoryPopoverOpen) {
+                    <app-directory-mobile-panel></app-directory-mobile-panel>
+                  }
+                </p-popover>
+              </div>
+            }
           }
         </div>
         <div class="toolbar-actions">

@@ -13,20 +13,7 @@
       pTooltip="Navigation"
       tooltipPosition="bottom">
     </p-button>
-    @if (showMobileDirTrigger) {
-      <p-button
-        icon="pi pi-folder"
-        [text]="true"
-        (click)="mobileDirPop.toggle($event)"
-        pTooltip="Folders"
-        tooltipPosition="bottom">
-      </p-button>
-      <p-popover #mobileDirPop [dismissable]="true" styleClass="dir-mobile-panel-popover" (onShow)="onMobileDirectoryPopoverShow()" (onHide)="onMobileDirectoryPopoverHide()">
-        @if (mobileDirectoryPopoverOpen) {
-          <app-directory-mobile-panel></app-directory-mobile-panel>
-        }
-      </p-popover>
-    }
+
     <p-popover #mobileSidebarPop [dismissable]="true" styleClass="mobile-sidebar-popover" (onShow)="onMobileSidebarPopoverShow()" (onHide)="onMobileSidebarPopoverHide()">
       <app-sidebar
         blResizable="right"

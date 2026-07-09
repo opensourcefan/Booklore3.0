@@ -33,7 +33,6 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {AVAILABLE_LANGS, LANG_LABELS} from '../../../../core/config/transloco-loader';
 import {LANG_STORAGE_KEY} from '../../../../core/config/language-initializer';
 import {SidebarFilterTogglePrefService} from '../../../../features/book/components/book-browser/filters/sidebar-filter-toggle-pref.service';
-import {DirectoryMobilePanelComponent} from '../../../../features/book/components/directory-mobile-panel/directory-mobile-panel.component';
 import {AiPanelScanProgressPayload} from '../../../model/ai-panel-scan-progress.model';
 import {AiPanelScanProgressService} from '../../../service/ai-panel-scan-progress.service';
 import {TaskProgressPayload, TaskService, TaskStatus, TaskType} from '../../../../features/settings/task-management/task.service';
@@ -72,7 +71,6 @@ import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../ser
     Dialog,
     TranslocoDirective,
     AppSidebarComponent,
-    DirectoryMobilePanelComponent,
     Popover,
     ResizableDividerDirective,
     AiSearchDialogComponent,

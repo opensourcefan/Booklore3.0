@@ -81,6 +81,7 @@ import {LoadingIndicatorComponent} from '../../../../shared/components/loading-i
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {DirectoryFilterService} from '../../service/directory-filter.service';
 import {DirectoryPanelService} from '../../service/directory-panel.service';
+import {DirectoryMobilePanelComponent} from '../directory-mobile-panel/directory-mobile-panel.component';
 import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 import {isDirectoryScopeActive} from './book-browser-directory-scope.util';
@@ -113,7 +114,7 @@ export enum EntityType {
     Button, BookCardComponent, AsyncPipe, Menu, InputText, FormsModule,
     BookTableComponent, BookFilterComponent, Tooltip, NgClass, Popover,
     Checkbox, Slider, Divider, MultiSelect, TieredMenu, MultiSortPopoverComponent, TranslocoDirective,
-    ResizableDividerDirective, CoverPreviewComponent, LoadingIndicatorComponent, ProgressBar,
+    ResizableDividerDirective, CoverPreviewComponent, LoadingIndicatorComponent, ProgressBar, DirectoryMobilePanelComponent,
   ],
   providers: [SeriesCollapseFilter],
   animations: [
@@ -307,6 +308,16 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   mobileRightSidebarPop: Popover | undefined;
   isMobileRightSidebarOpen = false;
   private mobileRightSidebarBackHandle: MobileBackHandle | null = null;
+
+  mobileDirectoryPopoverOpen = false;
+
+  onMobileDirectoryPopoverShow(): void {
+    this.mobileDirectoryPopoverOpen = true;
+  }
+
+  onMobileDirectoryPopoverHide(): void {
+    this.mobileDirectoryPopoverOpen = false;
+  }
 
   get isMobile(): boolean {
     return this.mobileUx.isPhone;
