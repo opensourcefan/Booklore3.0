@@ -33,6 +33,10 @@
   max-height: 60vh;
   overflow-y: auto;
 
+  @media (max-width: 768px) {
+    max-height: 100%;
+  }
+
   @media (max-width: 480px) {
     padding: 1rem;
     gap: 1.25rem;

@@ -271,6 +271,10 @@
     max-width: 100%;
     box-sizing: border-box;
 
+    @media (max-width: 768px) {
+      max-height: none;
+    }
+
     .preview-paragraph {
       color: var(--text-color);
       font-size: 1rem;

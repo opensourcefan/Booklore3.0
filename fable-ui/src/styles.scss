@@ -363,3 +363,10 @@ html {
 body.tooltip-suppressed .p-tooltip {
   display: none !important;
 }
+
+.p-dialog-mask {
+  @media (max-width: 768px) {
+    align-items: flex-start !important;
+    padding-top: 2rem;
+  }
+}

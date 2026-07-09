@@ -84,6 +84,10 @@
 .results-list {
   max-height: 350px;
   overflow-y: auto;
+
+  @media (max-width: 768px) {
+    max-height: none;
+  }
 }
 
 .file-list {

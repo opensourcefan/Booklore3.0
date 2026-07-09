@@ -567,7 +567,7 @@ $transition-normal: 200ms ease;
   to { transform: translateX(-100%); }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .tab-slot.has-mobile-add .tab-add-btn {
     display: inline-flex;
   }

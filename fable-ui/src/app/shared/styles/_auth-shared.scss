@@ -32,7 +32,7 @@
   z-index: 1;
   animation: slideUp 0.6s ease-out;
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     width: 95%;
     margin-top: calc($margin-top / 2);
   }

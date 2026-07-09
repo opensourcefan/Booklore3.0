@@ -265,6 +265,10 @@
     overflow-y: auto;
     padding-right: 0.25rem;
 
+    @media (max-width: 768px) {
+      max-height: none;
+    }
+
     .file-item {
       display: flex;
       align-items: center;

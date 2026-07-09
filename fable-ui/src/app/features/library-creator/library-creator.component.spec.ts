@@ -270,13 +270,13 @@ describe('LibraryCreatorComponent', () => {
     ]);
   });
 
-  it('collapses common parent prefixes correctly', () => {
+  it('truncates paths to last two directories', () => {
     component.folders = [
       '/home/michael/fable/books/poetry',
       '/home/michael/fable/books/fiction/sci-fi',
       '/home/michael/fable/books/non-fiction/history'
     ];
     expect(component.getDisplayPath('/home/michael/fable/books/poetry')).toBe('.../books/poetry');
-    expect(component.getDisplayPath('/home/michael/fable/books/fiction/sci-fi')).toBe('.../books/fiction/sci-fi');
+    expect(component.getDisplayPath('/home/michael/fable/books/fiction/sci-fi')).toBe('.../fiction/sci-fi');
   });
 });

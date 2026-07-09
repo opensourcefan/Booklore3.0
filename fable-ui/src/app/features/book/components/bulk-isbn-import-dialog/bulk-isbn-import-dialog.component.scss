@@ -164,6 +164,10 @@
   border-radius: 6px;
   max-height: 150px;
   overflow-y: auto;
+
+  @media (max-width: 768px) {
+    max-height: none;
+  }
 }
 
 .skipped-item {
@@ -213,6 +217,10 @@
   background: var(--ground-background);
   border: 1px solid var(--border-color);
   border-radius: 6px;
+
+  @media (max-width: 768px) {
+    max-height: none;
+  }
 }
 
 .preview-item {

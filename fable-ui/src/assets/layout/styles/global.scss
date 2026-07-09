@@ -16,6 +16,13 @@
   }
 }
 
+.p-dialog-mask {
+  @media (max-width: 768px) {
+    align-items: flex-start !important;
+    padding-top: 2rem;
+  }
+}
+
 // =============================================================================
 // Dialog Size Classes
 // Use these to control dialog dimensions. Sizes are designed for common use cases.

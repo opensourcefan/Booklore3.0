@@ -714,43 +714,13 @@ export class LibraryCreatorComponent implements OnInit {
   }
 
   getDisplayPath(folder: string): string {
-    if (!this.folders || this.folders.length <= 1) {
+    if (!folder || folder === '/') {
+      return '/';
+    }
+    const parts = folder.split('/').filter(p => p);
+    if (parts.length <= 2) {
       return folder;
     }
-    const activeFolders = this.folders.filter(f => !this.isFolderMarkedForDeletion(f));
-    if (activeFolders.length <= 1) {
-      return folder;
-    }
-
-    // Find the longest common prefix among activeFolders
-    let commonPrefix = activeFolders[0];
-    for (let i = 1; i < activeFolders.length; i++) {
-      while (activeFolders[i].indexOf(commonPrefix) !== 0) {
-        const lastSlash = commonPrefix.lastIndexOf('/');
-        if (lastSlash === -1) {
-          commonPrefix = '';
-          break;
-        }
-        commonPrefix = commonPrefix.substring(0, lastSlash);
-      }
-    }
-
-    // Trim trailing slash from prefix if any
-    if (commonPrefix.endsWith('/')) {
-      commonPrefix = commonPrefix.slice(0, -1);
-    }
-
-    // Find the parent directory of that common prefix
-    const lastSlashInPrefix = commonPrefix.lastIndexOf('/');
-    if (lastSlashInPrefix > 0) {
-      const commonParent = commonPrefix.substring(0, lastSlashInPrefix);
-      if (commonParent && commonParent !== '/' && commonParent.length > 3) {
-        return '...' + folder.substring(commonParent.length);
-      }
-    } else if (commonPrefix && commonPrefix !== '/' && commonPrefix.length > 3) {
-      return '...' + folder.substring(commonPrefix.length);
-    }
-
-    return folder;
+    return '.../' + parts.slice(parts.length - 2).join('/');
   }
 }

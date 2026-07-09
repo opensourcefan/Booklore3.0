@@ -841,6 +841,7 @@
   @media (max-width: 768px) {
     left: 0;
     right: 0;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
   }
 }
 

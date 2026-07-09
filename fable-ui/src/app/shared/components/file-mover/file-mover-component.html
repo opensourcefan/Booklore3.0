@@ -163,7 +163,7 @@
               <td>
                 <div class="path-cell">
                   <span class="path-library">{{ preview.currentLibraryName }}/</span>
-                  <span class="path-value">{{ preview.relativeOriginalPath }}</span>
+                  <span class="path-value">{{ getDisplayPath(preview.relativeOriginalPath) }}</span>
                 </div>
               </td>
               <td>
@@ -204,7 +204,7 @@
               <td>
                 <div class="path-cell">
                   <span class="path-library">{{ preview.targetLibraryName }}/</span>
-                  <span class="path-value">{{ preview.relativeNewPath }}</span>
+                  <span class="path-value">{{ getDisplayPath(preview.relativeNewPath) }}</span>
                 </div>
               </td>
             </tr>

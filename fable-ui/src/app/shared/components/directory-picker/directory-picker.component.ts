@@ -187,6 +187,17 @@ export class DirectoryPickerComponent implements OnInit {
     return path.split('/').filter(p => p).pop() || path;
   }
 
+  getDisplayPath(path: string): string {
+    if (!path || path === '/') {
+      return '/';
+    }
+    const parts = path.split('/').filter(p => p);
+    if (parts.length <= 2) {
+      return path;
+    }
+    return '.../' + parts.slice(parts.length - 2).join('/');
+  }
+
   isImported(path: string): boolean {
     return this.getImportState(path) === 'direct';
   }

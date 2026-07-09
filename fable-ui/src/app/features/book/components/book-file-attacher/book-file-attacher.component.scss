@@ -42,6 +42,10 @@
     gap: 0.5rem;
     max-height: 200px;
     overflow-y: auto;
+
+    @media (max-width: 768px) {
+      max-height: none;
+    }
   }
 
   .book-info-card {

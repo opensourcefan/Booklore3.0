@@ -207,7 +207,7 @@ $transition-normal: 200ms ease;
 }
 
 .panel-footer {
-  padding: 12px 16px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid $border-color;
   background: rgba(0, 0, 0, 0.15);
   border-radius: 0 0 12px 12px;

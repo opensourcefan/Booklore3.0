@@ -215,11 +215,12 @@
 
   @media (max-width: 640px) {
     .footer-left {
-      flex-direction: column;
+      flex-direction: row;
+      flex-wrap: wrap;
       gap: 0.5rem;
 
       ::ng-deep .p-button {
-        width: 100%;
+        width: auto;
       }
     }
 

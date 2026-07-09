@@ -401,4 +401,15 @@ export class FileMoverComponent implements OnDestroy {
   toggleInfoCollapsed(): void {
     this.infoCollapsed = !this.infoCollapsed;
   }
+
+  getDisplayPath(path: string): string {
+    if (!path || path === '/') {
+      return '/';
+    }
+    const parts = path.split('/').filter(p => p);
+    if (parts.length <= 2) {
+      return path;
+    }
+    return '.../' + parts.slice(parts.length - 2).join('/');
+  }
 }

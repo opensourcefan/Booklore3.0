@@ -227,7 +227,7 @@ $transition-normal: 200ms ease;
   flex-wrap: wrap;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .quick-settings-panel {
     right: 16px;
     left: 16px;

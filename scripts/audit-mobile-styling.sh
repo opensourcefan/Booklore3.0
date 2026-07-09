@@ -1,17 +1,8 @@
 #!/bin/bash
 # =============================================================================
-# Mobile Styling Audit Script (Tightened)
-# Scans fable-ui SCSS for violations of .roo/rules/mobile-phone-styling.md
+# Mobile Styling Audit Script (Tightened & Enhanced)
+# Scans fable-ui SCSS and HTML for violations of mobile phone styling standard.
 # Read-only — no files are modified.
-#
-# Key improvements over v1:
-#   - Rule 2.1: Only flags min-height on dialog/panel root selectors (flex-column
-#     containers), not chart widgets or reader toolbars.
-#   - Rules 3.4/3.5/3.6/3.7: Verifies the SPECIFIC class has a mobile override,
-#     not just that some override exists elsewhere in the file.
-#   - Rule 3.3: Skips non-dialog contexts (login page, settings pages).
-#   - All rules: Uses awk-based MQ-aware scanning to confirm whether a fix lives
-#     inside a @media (max-width: 768px) block for the targeted class.
 # =============================================================================
 
 set -uo pipefail
@@ -50,55 +41,121 @@ info() {
 #
 # Strategy: Extract the class block (from the class selector to its matching
 # closing brace), then check if that block contains BOTH a 768px media query
-# AND the target property pattern. Since we are scoped to the class block
-# (not the whole file), the property pattern is almost certainly inside the MQ.
-#
-# Usage: class_has_mobile_override "$file" "$class" "$property_pattern"
-#   $class: CSS class name (e.g. "folder-rescan")
-#   $property_pattern: grep -E pattern to match (e.g. "display:\\s*none")
-# Returns: 0 if override found, 1 if not
+# AND the target property pattern. Also matches selectors nested inside
+# media query blocks.
 # =============================================================================
 class_has_mobile_override() {
     local file="$1"
     local class="$2"
     local property_pattern="$3"
 
-    # Find the line where this class is defined as a selector (e.g. ".folder-rescan {")
-    local class_line
-    class_line=$(grep -nE "^\s*\.${class}\s*\{$" "$file" 2>/dev/null | head -1 | cut -d: -f1)
-    if [ -z "$class_line" ]; then
-        # Try looser match: class might be nested like "&.modifier" or ".parent .class"
-        class_line=$(grep -nE "\.${class}\s*\{$" "$file" 2>/dev/null | head -1 | cut -d: -f1)
-    fi
-    if [ -z "$class_line" ]; then
-        return 1
-    fi
-
-    # Extract from class_line to end of file, then use awk to find matching brace
-    local class_block
-    class_block=$(sed -n "${class_line},\$p" "$file" 2>/dev/null | awk '
-    BEGIN { depth = 0; started = 0 }
+    local result
+    result=$(awk -v class_name="$class" -v pattern="$property_pattern" '
+    BEGIN {
+        depth = 0
+        in_class = 0
+        class_depth = -1
+        in_mq = 0
+        mq_depth = -1
+        pending_class = 0
+        pending_mq = 0
+        found = 0
+    }
+    /@media.*max-width:[ \t]*768px/ {
+        pending_mq = 1
+    }
+    {
+        class_regex = "\\." class_name "([^a-zA-Z0-9_-]|$)"
+        if (match($0, class_regex)) {
+            pending_class = 1
+        }
+    }
     /\{/ {
-        depth += gsub(/\{/, "{")
-        started = 1
+        if (pending_mq) {
+            in_mq = 1
+            mq_depth = depth
+            pending_mq = 0
+        }
+        if (pending_class) {
+            in_class = 1
+            class_depth = depth
+            pending_class = 0
+        }
+        depth++
     }
     /\}/ {
-        depth -= gsub(/\}/, "}")
-        if (started && depth <= 0) { print; exit }
+        depth--
+        if (in_mq && depth <= mq_depth) {
+            in_mq = 0
+            mq_depth = -1
+        }
+        if (in_class && depth <= class_depth) {
+            in_class = 0
+            class_depth = -1
+        }
     }
-    { print }
-    ')
+    {
+        if (in_class && in_mq) {
+            if (match($0, pattern)) {
+                found = 1
+                exit 0
+            }
+        }
+        if (match($0, /^[ \t]*\.[a-zA-Z0-9_-]+/) && !match($0, class_name)) {
+            pending_class = 0
+        }
+    }
+    END {
+        if (found) print "yes"
+        else print "no"
+    }
+    ' "$file" 2>/dev/null)
 
-    if [ -z "$class_block" ]; then
-        return 1
-    fi
-
-    # Check if the class block has BOTH a 768px MQ AND the property pattern
-    if echo "$class_block" | grep -qE '@media.*max-width:\s*768px' && \
-       echo "$class_block" | grep -qE "$property_pattern"; then
+    if [ "$result" = "yes" ]; then
         return 0
     fi
     return 1
+}
+
+# =============================================================================
+# Helper: Find the enclosing class name of a property match (preceding selector)
+# =============================================================================
+get_enclosing_class() {
+    local file="$1"
+    local line="$2"
+    
+    awk -v target="$line" '
+    NR > target { exit }
+    {
+        lines[NR] = $0
+    }
+    END {
+        depth = 0
+        for (i = target; i >= 1; i--) {
+            line_str = lines[i]
+            n_close = gsub(/\}/, "}", line_str)
+            n_open = gsub(/\{/, "{", line_str)
+            
+            depth += n_close - n_open
+            if (depth < 0) {
+                for (j = i; j >= 1; j--) {
+                    if (lines[j] ~ /\.[a-zA-Z0-9_-]+/) {
+                        match(lines[j], /\.[a-zA-Z0-9_-]+/)
+                        print substr(lines[j], RSTART+1, RLENGTH)
+                        exit
+                    }
+                }
+                exit
+            }
+        }
+        for (i = target; i >= 1; i--) {
+            if (lines[i] ~ /\.[a-zA-Z0-9_-]+/) {
+                match(lines[i], /\.[a-zA-Z0-9_-]+/)
+                print substr(lines[i], RSTART+1, RLENGTH)
+                exit
+            }
+        }
+    }' "$file" 2>/dev/null
 }
 
 # =============================================================================
@@ -106,8 +163,6 @@ class_has_mobile_override() {
 # =============================================================================
 is_dialog_component() {
     local file="$1"
-    # Dialog components have "dialog" or "picker" in their path, or use
-    # panel-header/dialog-footer mixins
     if echo "$file" | grep -qE '/(dialog|picker|creator|manager|assigner|merger|uploader|mover)/'; then
         return 0
     fi
@@ -119,31 +174,24 @@ is_dialog_component() {
 
 # =============================================================================
 # Rule 2.1: No Hardcoded Minimum Heights on dialog/panel roots
-# Only flags min-height on elements that look like dialog/panel root containers
-# (have display:flex + flex-direction:column nearby, or are in dialog components)
 # =============================================================================
 section "Rule 2.1 — Hardcoded min-height on dialog/panel roots"
 
 while IFS= read -r -d '' file; do
     FILES_SCANNED=$((FILES_SCANNED + 1))
 
-    # Skip non-dialog files for this rule
     if ! is_dialog_component "$file"; then
         continue
     fi
 
-    # Find min-height lines, then check if the selector is a root container
-    grep -nE '^\s*min-height:\s*[0-9]+px' "$file" 2>/dev/null | grep -v 'min-height:\s*0' | while IFS=: read -r line rest; do
+    while IFS=: read -r line rest; do
         val=$(echo "$rest" | grep -oP 'min-height:\s*\K[0-9]+px')
 
-        # Get the selector context (look backward for the parent selector)
+        # Get context
         start=$((line - 30))
         [ "$start" -lt 1 ] && start=1
         context=$(sed -n "${start},${line}p" "$file" 2>/dev/null)
 
-        # Only flag if the selector looks like a root container:
-        # - Has display: flex AND flex-direction: column in the same block
-        # - OR the selector name contains dialog/panel/picker/creator/container
         is_root=false
         if echo "$context" | grep -qE 'display:\s*flex' && echo "$context" | grep -qE 'flex-direction:\s*column'; then
             is_root=true
@@ -153,15 +201,13 @@ while IFS= read -r -d '' file; do
         fi
 
         if [ "$is_root" = true ]; then
-            # Check if THIS specific class has min-height: 0 in a 768px MQ
-            # Extract the likely class name from context
-            class_name=$(echo "$context" | grep -oP '\.\K[a-zA-Z_-]*(dialog|panel|picker|creator|container|merger|manager)[a-zA-Z_-]*' | head -1)
-            if [ -n "$class_name" ] && class_has_mobile_override "$file" "$class_name" 'min-height:\s*0'; then
+            class_name=$(get_enclosing_class "$file" "$line")
+            if [ -n "$class_name" ] && class_has_mobile_override "$file" "$class_name" 'min-height:[ \t]*0'; then
                 continue
             fi
             warn "$file:$line — min-height: $val on dialog/panel root without mobile min-height: 0"
         fi
-    done
+    done < <(grep -nE '^\s*min-height:\s*[0-9]+px' "$file" 2>/dev/null | grep -v 'min-height:\s*0')
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
@@ -174,7 +220,7 @@ while IFS= read -r -d '' file; do
         continue
     fi
 
-    grep -nE '^\s*width:\s*[5-9][0-9]{2}px' "$file" 2>/dev/null | while IFS=: read -r line rest; do
+    while IFS=: read -r line rest; do
         val=$(echo "$rest" | grep -oP 'width:\s*\K[0-9]+px')
         start=$((line - 5))
         [ "$start" -lt 1 ] && start=1
@@ -182,14 +228,13 @@ while IFS= read -r -d '' file; do
         context=$(sed -n "${start},${end}p" "$file" 2>/dev/null)
 
         if echo "$context" | grep -qE '(dialog|panel|picker|creator|container|merger|manager|assigner)'; then
-            # Check if this class has width: 100% in a 768px MQ
-            class_name=$(echo "$context" | grep -oP '\.\K[a-zA-Z_-]*(dialog|panel|picker|creator|container|merger|manager|assigner)[a-zA-Z_-]*' | head -1)
-            if [ -n "$class_name" ] && class_has_mobile_override "$file" "$class_name" 'width:\s*100%'; then
+            class_name=$(get_enclosing_class "$file" "$line")
+            if [ -n "$class_name" ] && class_has_mobile_override "$file" "$class_name" 'width:[ \t]*100%'; then
                 continue
             fi
             warn "$file:$line — width: ${val} on dialog/panel container without mobile width: 100%"
         fi
-    done
+    done < <(grep -nE '^\s*width:\s*[5-9][0-9]{2}px' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
@@ -199,11 +244,11 @@ section "Rule 1.3 — Breakpoints below 768px without a 768px sibling"
 
 while IFS= read -r -d '' file; do
     has_768=$(grep -c 'max-width:\s*768px' "$file" 2>/dev/null || true)
-    narrow_bps=$(grep -oP 'max-width:\s*\K[0-9]+(?=px)' "$file" 2>/dev/null | sort -u || true)
+    narrow_bps=$(grep -oP '@media.*max-width:\s*\K[0-9]+(?=px)' "$file" 2>/dev/null | sort -u || true)
 
     for bp in $narrow_bps; do
         if [ "$bp" -lt 768 ] && [ "$has_768" -eq 0 ]; then
-            line=$(grep -n "max-width:.*${bp}px" "$file" | head -1 | cut -d: -f1)
+            line=$(grep -n "@media.*max-width:.*${bp}px" "$file" | head -1 | cut -d: -f1)
             warn "$file:$line — uses ${bp}px breakpoint but has no 768px breakpoint"
         fi
     done
@@ -215,11 +260,15 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 4.2 — Footer patterns missing safe-area-inset-bottom"
 
 while IFS= read -r -d '' file; do
+    # Skip sub-widgets/charts/pickers/trigger zones where safe area is not applicable
+    if [[ "$file" =~ (chart|heatmap|widget|picker) ]] || grep -qE 'trigger-zone' "$file" 2>/dev/null; then
+        continue
+    fi
+
     has_safe_area=$(grep -c 'safe-area-inset-bottom' "$file" 2>/dev/null || true)
     has_footer=$(grep -cE '(dialog-footer|\.footer|panel-footer)' "$file" 2>/dev/null || true)
 
     if [ "$has_footer" -gt 0 ] && [ "$has_safe_area" -eq 0 ]; then
-        # Check if it uses the shared mixin (which now has safe-area)
         if grep -q '@include panel\.dialog-footer' "$file" 2>/dev/null; then
             continue
         fi
@@ -246,17 +295,17 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 section "Rule 4.3 — flex-direction: column in footer media queries"
 
 while IFS= read -r -d '' file; do
-    awk '
-    /@media/ { in_mq=1; mq_line=NR }
-    /}/ && in_mq { in_mq=0 }
-    in_mq && /flex-direction:\s*column/ {
-        print NR":"$0
-    }' "$file" 2>/dev/null | while IFS=: read -r line rest; do
-        context=$(sed -n "$((line - 20)),$((line + 5))p" "$file" 2>/dev/null)
-        if echo "$context" | grep -qE '(dialog-footer|\.footer|footer-actions|panel-footer)'; then
+    while IFS=: read -r line rest; do
+        class_name=$(get_enclosing_class "$file" "$line")
+        if [[ "$class_name" =~ (footer|actions) ]]; then
             warn "$file:$line — flex-direction: column in footer media query (wastes space)"
         fi
-    done
+    done < <(awk '
+    /@media/ { in_mq=1; mq_line=NR }
+    /}/ && in_mq { in_mq=0 }
+    in_mq && /flex-direction:[ \t]*column/ {
+        print NR":"$0
+    }' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
@@ -269,7 +318,6 @@ while IFS= read -r -d '' file; do
     has_768=$(grep -c 'max-width:\s*768px' "$file" 2>/dev/null || true)
 
     if [ "$has_header_icon" -gt 0 ] && [ "$has_768" -eq 0 ]; then
-        # Check if it uses the shared panel-header mixin (which now handles it)
         if grep -q '@include panel\.panel-header' "$file" 2>/dev/null; then
             continue
         fi
@@ -280,12 +328,10 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
 # Rule 3.3: Info banners not hidden on mobile
-# Only flags banners inside dialog components (not pages like login/settings)
 # =============================================================================
 section "Rule 3.3 — Info banners not hidden on mobile"
 
 while IFS= read -r -d '' file; do
-    # Only check dialog components
     if ! is_dialog_component "$file"; then
         continue
     fi
@@ -293,22 +339,20 @@ while IFS= read -r -d '' file; do
     has_banner=$(grep -cE '(scan-note|info-note|info-banner|guidance|help-text|directory-scan-note)' "$file" 2>/dev/null || true)
     [ "$has_banner" -eq 0 ] && continue
 
-    grep -nE '(scan-note|info-note|info-banner|guidance|help-text|directory-scan-note)' "$file" 2>/dev/null | while IFS=: read -r line class; do
+    while IFS=: read -r line class; do
         class_name=$(echo "$class" | grep -oP '\.?\K[a-zA-Z_-]*(?:scan-note|info-note|info-banner|guidance|help-text|directory-scan-note)[a-zA-Z_-]*' | head -1)
         [ -z "$class_name" ] && continue
 
-        # Check if this specific class has display:none in a 768px MQ
-        if class_has_mobile_override "$file" "$class_name" 'display:\s*none'; then
+        if class_has_mobile_override "$file" "$class_name" 'display:[ \t]*none'; then
             continue
         fi
 
         warn "$file:$line — '$class_name' info banner not hidden on mobile"
-    done
+    done < <(grep -nE '(scan-note|info-note|info-banner|guidance|help-text|directory-scan-note)' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
 # Rule 3.4: Row action buttons with text labels not hidden on mobile
-# Uses MQ-aware scanning to verify the specific class has span hidden
 # =============================================================================
 section "Rule 3.4 — Row action buttons with visible text on mobile"
 
@@ -316,26 +360,20 @@ while IFS= read -r -d '' file; do
     has_row_btn=$(grep -cE '(folder-rescan|folder-remove|row-action|item-action|directory-action)' "$file" 2>/dev/null || true)
     [ "$has_row_btn" -eq 0 ] && continue
 
-    grep -nE '(folder-rescan|folder-remove|row-action|item-action|directory-action)' "$file" 2>/dev/null | while IFS=: read -r line class; do
+    while IFS=: read -r line class; do
         class_name=$(echo "$class" | grep -oP '\.?\K[a-zA-Z_-]*(?:folder-rescan|folder-remove|row-action|item-action|directory-action)[a-zA-Z_-]*' | head -1)
         [ -z "$class_name" ] && continue
 
-        # Check if this class has display:none in a 768px MQ
-        # (span { display: none } spans lines, so just check for display:none)
-        if class_has_mobile_override "$file" "$class_name" 'display:\s*none'; then
+        if class_has_mobile_override "$file" "$class_name" 'display:[ \t]*none'; then
             continue
         fi
 
         warn "$file:$line — '$class_name' row button may have visible text on mobile"
-    done
+    done < <(grep -nE '(folder-rescan|folder-remove|row-action|item-action|directory-action)' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
 # Rule 3.6: Validation status in footers not hidden on mobile
-# Checks if the file has validation-status AND a 768px MQ with display:none.
-# The fix may be in a parent block (e.g. .dialog-footer MQ), so we check
-# file-level: if the file has all three (validation-status, 768px MQ,
-# display:none), the fix is present.
 # =============================================================================
 section "Rule 3.6 — Validation status in footers not hidden on mobile"
 
@@ -343,13 +381,10 @@ while IFS= read -r -d '' file; do
     has_validation=$(grep -c 'validation-status' "$file" 2>/dev/null || true)
     [ "$has_validation" -eq 0 ] && continue
 
-    # Check if it uses the shared mixin (which now hides it)
     if grep -q '@include panel\.dialog-footer' "$file" 2>/dev/null; then
         continue
     fi
 
-    # File-level check: if the file has validation-status, a 768px MQ,
-    # and display:none, the fix is almost certainly present.
     if grep -qE '@media.*max-width:\s*768px' "$file" 2>/dev/null && \
        grep -qE 'display:\s*none' "$file" 2>/dev/null; then
         continue
@@ -361,7 +396,6 @@ done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
 # Rule 3.7: Truncated paths without mobile scroll fallback
-# Uses MQ-aware scanning to verify the specific path class has overflow-x:auto
 # =============================================================================
 section "Rule 3.7 — Truncated paths without mobile scroll fallback"
 
@@ -369,34 +403,28 @@ while IFS= read -r -d '' file; do
     has_ellipsis=$(grep -c 'text-overflow:\s*ellipsis' "$file" 2>/dev/null || true)
     [ "$has_ellipsis" -eq 0 ] && continue
 
-    grep -n 'text-overflow:\s*ellipsis' "$file" 2>/dev/null | while IFS=: read -r line rest; do
-        # Get context to find the class name
+    while IFS=: read -r line rest; do
         ctx_start=$((line - 15))
         [ "$ctx_start" -lt 1 ] && ctx_start=1
         context=$(sed -n "${ctx_start},${line}p" "$file" 2>/dev/null)
 
-        # Only flag if it's a path element in a list/directory context
-        # Exclude path-value (current-path bar, not a list item)
         if ! echo "$context" | grep -qE '(folder-path|directory-path|file-path|book-file-path)'; then
             continue
         fi
 
-        # Extract the class name
         class_name=$(echo "$context" | grep -oP '\.\K[a-zA-Z_-]*(?:folder-path|directory-path|file-path|path-value|book-file-path)[a-zA-Z_-]*' | head -1)
-        [ -z "$class_name" ] && continue
-
-        # Check if this class has overflow-x: auto in a 768px MQ
-        if class_has_mobile_override "$file" "$class_name" 'overflow-x:\s*auto'; then
+        [ -z "$class_name" ] && class_name="folder-path"
+        
+        if class_has_mobile_override "$file" "$class_name" 'overflow-x:[ \t]*auto'; then
             continue
         fi
 
         warn "$file:$line — '$class_name' truncated path without mobile overflow-x: auto fallback"
-    done
+    done < <(grep -n 'text-overflow:\s*ellipsis' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
 # Rule 3.5: Status chips with text not hidden on mobile
-# Uses MQ-aware scanning to verify chip-text is hidden for the specific class
 # =============================================================================
 section "Rule 3.5 — Status chips/badges with visible text on mobile"
 
@@ -404,23 +432,20 @@ while IFS= read -r -d '' file; do
     has_chip=$(grep -cE '(imported-chip|status-chip|badge-chip|chip-text)' "$file" 2>/dev/null || true)
     [ "$has_chip" -eq 0 ] && continue
 
-    grep -nE '(imported-chip|status-chip|badge-chip)' "$file" 2>/dev/null | while IFS=: read -r line class; do
+    while IFS=: read -r line class; do
         class_name=$(echo "$class" | grep -oP '\.?\K[a-zA-Z_-]*(?:imported-chip|status-chip|badge-chip)[a-zA-Z_-]*' | head -1)
         [ -z "$class_name" ] && continue
 
-        # Check if this class has display:none in a 768px MQ
-        # (chip-text { display: none } spans lines, so just check for display:none)
-        if class_has_mobile_override "$file" "$class_name" 'display:\s*none'; then
+        if class_has_mobile_override "$file" "$class_name" 'display:[ \t]*none'; then
             continue
         fi
 
         warn "$file:$line — '$class_name' chip text may be visible on mobile"
-    done
+    done < <(grep -nE '(imported-chip|status-chip|badge-chip)' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
-# Rule 3.2: dialog-nav without top padding on mobile
-# Uses MQ-aware scanning to verify dialog-nav has padding in 768px MQ
+# Rule 3.2: dialog-nav without mobile top padding
 # =============================================================================
 section "Rule 3.2 — dialog-nav without mobile top padding"
 
@@ -428,13 +453,134 @@ while IFS= read -r -d '' file; do
     has_dialog_nav=$(grep -c 'dialog-nav' "$file" 2>/dev/null || true)
     [ "$has_dialog_nav" -eq 0 ] && continue
 
-    # Check if .dialog-nav has padding in a 768px MQ
     if class_has_mobile_override "$file" 'dialog-nav' 'padding:.*[0-9]'; then
         continue
     fi
 
     line=$(grep -n 'dialog-nav' "$file" | head -1 | cut -d: -f1)
     warn "$file:$line — .dialog-nav without mobile top padding override"
+done < <(find "$UI_DIR" -name "*.scss" -print0)
+
+# =============================================================================
+# Rule 2.5: Inefficient panel height limit on mobile (scroll without screen-fill)
+# =============================================================================
+section "Rule 2.5 — Inefficient panel height limit on mobile"
+
+while IFS= read -r -d '' file; do
+    if ! is_dialog_component "$file"; then
+        continue
+    fi
+
+    while IFS=: read -r line rest; do
+        val=$(echo "$rest" | grep -oP 'max-height:\s*\K[0-9]+(vh|px|%)')
+        is_limit=false
+        if [[ "$val" =~ vh$ ]]; then
+            num=$(echo "$val" | tr -d 'vh')
+            [ "$num" -lt 80 ] && is_limit=true
+        elif [[ "$val" =~ px$ ]]; then
+            num=$(echo "$val" | tr -d 'px')
+            [ "$num" -lt 550 ] && is_limit=true
+        elif [[ "$val" =~ %$ ]]; then
+            num=$(echo "$val" | tr -d '%')
+            [ "$num" -lt 80 ] && is_limit=true
+        fi
+
+        if [ "$is_limit" = true ]; then
+            class_name=$(get_enclosing_class "$file" "$line")
+            if [ -n "$class_name" ] && ! class_has_mobile_override "$file" "$class_name" '(max-height:[ \t]*(100%|none|100dvh|100svh)|height:[ \t]*(100%|100dvh))'; then
+                warn "$file:$line — max-height: $val restricts vertical space on mobile without mobile override to fill screen"
+            fi
+        fi
+    done < <(grep -nE '^\s*max-height:\s*[0-9]+(vh|px|%)' "$file" 2>/dev/null | grep -vE '(100vh|100dvh|100svh|100%)')
+done < <(find "$UI_DIR" -name "*.scss" -print0)
+
+# =============================================================================
+# Rule 2.6: Dialog mask not top-aligned on mobile
+# =============================================================================
+section "Rule 2.6 — Dialog overlays not top-aligned on mobile"
+
+while IFS= read -r -d '' file; do
+    if [[ ! "$file" =~ (global.scss|styles.scss) ]]; then
+        continue
+    fi
+
+    has_top_align=false
+    if grep -qE '@media.*max-width:\s*768px' "$file" 2>/dev/null; then
+        if awk '
+        /@media.*max-width:[ \t]*768px/ { in_mq=1; depth=0 }
+        in_mq && /\{/ { depth++ }
+        in_mq && /\}/ { depth--; if (depth <= 0) in_mq=0 }
+        in_mq && /(align-items:[ \t]*flex-start|top:[ \t]*0)/ { print "found"; exit }
+        ' "$file" | grep -q "found"; then
+            has_top_align=true
+        fi
+    fi
+
+    if [ "$has_top_align" = false ]; then
+        warn "$file — dialog overlays are not top-aligned on mobile (needs align-items: flex-start on mobile viewport)"
+    fi
+done < <(find "$PROJECT_DIR/fable-ui/src" -name "*.scss" -print0)
+
+# =============================================================================
+# Rule 3.8: Back-to-top action missing on long panels
+# =============================================================================
+section "Rule 3.8 — Back-to-top action missing on long panels"
+
+while IFS= read -r -d '' html_file; do
+    if ! is_dialog_component "$html_file"; then
+        continue
+    fi
+
+    line_count=$(wc -l < "$html_file")
+    section_count=$(grep -cE '(<section|class="form-section")' "$html_file" || true)
+
+    if [ "$line_count" -gt 150 ] || [ "$section_count" -ge 3 ]; then
+        if ! grep -qE '(scrollToTop|scroll-to-top|pi-chevron-up|pi-arrow-up)' "$html_file"; then
+            warn "$html_file — long panel (>150 lines or 3+ sections) lacks a 'Back to Top' button"
+        fi
+    fi
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# Rule 3.9: Raw path interpolation without last-two-folders truncation
+# =============================================================================
+section "Rule 3.9 — Raw path interpolation without last-two-folders truncation"
+
+while IFS= read -r -d '' html_file; do
+    while IFS=: read -r line content; do
+        if echo "$content" | grep -qE '\{\{\s*[a-zA-Z0-9_\.]+\s*\}\}' && \
+           ! echo "$content" | grep -qE '(getDisplayPath|truncatePath)'; then
+            class_name=$(echo "$content" | grep -oP 'class="[^"]*(folder-path|directory-path|file-path|path-value)[^"]*"' | grep -oP '(folder-path|directory-path|file-path|path-value)' | head -1)
+            [ -z "$class_name" ] && class_name="path"
+            warn "$html_file:$line — raw interpolation on '$class_name' without path truncation formatting (e.g. getDisplayPath)"
+        fi
+    done < <(grep -nE '(class="[^"]*(folder-path|directory-path|file-path|path-value)[^"]*")' "$html_file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# Rule 5.4: Top/Bottom header mode layout positioning conflicts
+# =============================================================================
+section "Rule 5.4 — Top/Bottom header mode layout positioning conflicts"
+
+while IFS= read -r -d '' file; do
+    while IFS=: read -r line rest; do
+        ctx_start=$((line - 15))
+        [ "$ctx_start" -lt 1 ] && ctx_start=1
+        ctx_end=$((line + 15))
+        context=$(sed -n "${ctx_start},${ctx_end}p" "$file" 2>/dev/null)
+        
+        if ! echo "$context" | grep -qE '(body\.header-bottom|header-bottom)'; then
+            if echo "$context" | grep -qE '(header|topbar|toolbar|menu|nav)'; then
+                warn "$file:$line — defines top/padding-top in mobile MQ without body.header-bottom override (risks positioning overlap)"
+            fi
+        fi
+    done < <(awk '
+    BEGIN { in_mq=0; mq_line=0 }
+    /@media.*max-width:[ \t]*768px/ { in_mq=1; mq_line=NR }
+    /}/ && in_mq { in_mq=0 }
+    in_mq && /(top:|padding-top:)/ {
+        print NR":"$0
+    }' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
