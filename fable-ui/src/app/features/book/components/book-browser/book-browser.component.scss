@@ -155,6 +155,14 @@
   flex-shrink: 0;
 }
 
+.mobile-dir-menu-wrapper {
+  margin-left: 0rem;
+
+  ::ng-deep .p-button {
+    padding-left: 0.15rem !important;
+  }
+}
+
 .media-type-menu-wrapper {
   display: inline-flex;
   align-items: center;
