@@ -447,6 +447,13 @@ body.header-bottom .layout-topbar::before {
 }
 
 .dir-mobile-panel-popover {
+  &::before,
+  &::after,
+  .p-popover-arrow,
+  .p-popover-pointer {
+    display: none !important;
+  }
+
   @media (max-width: 991px) {
     position: fixed !important;
     top: 3.85rem !important;

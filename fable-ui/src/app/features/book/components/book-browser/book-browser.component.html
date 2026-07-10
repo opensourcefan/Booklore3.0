@@ -95,7 +95,7 @@
                   severity="info"
                   (click)="mobileDirPop.toggle($event)">
                 </p-button>
-                <p-popover #mobileDirPop [dismissable]="true" styleClass="dir-mobile-panel-popover" (onShow)="onMobileDirectoryPopoverShow()" (onHide)="onMobileDirectoryPopoverHide()">
+                <p-popover #mobileDirPop [dismissable]="true" [showArrow]="false" styleClass="dir-mobile-panel-popover" (onShow)="onMobileDirectoryPopoverShow()" (onHide)="onMobileDirectoryPopoverHide()">
                   @if (mobileDirectoryPopoverOpen) {
                     <app-directory-mobile-panel (panelClose)="mobileDirPop.hide()"></app-directory-mobile-panel>
                   }
