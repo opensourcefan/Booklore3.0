@@ -40,6 +40,7 @@ import {AuthorService} from '../../../../author-browser/service/author.service';
 import {Dialog} from 'primeng/dialog';
 import {Checkbox} from 'primeng/checkbox';
 import DOMPurify from 'dompurify';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
 
 
 @Component({
@@ -95,6 +96,8 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
   private detachBookId = 0;
   private detachFileId = 0;
   detachFileName = '';
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private detachDialogBackHandle: MobileBackHandle | null = null;
 
   readStatusOptions: { value: ReadStatus, labelKey: string }[] = [
     {value: ReadStatus.UNREAD, labelKey: 'metadata.viewer.readStatusUnread'},
@@ -117,7 +120,11 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
   navigationState$ = this.bookNavigationService.getNavigationState();
 
   ngOnInit(): void {
-    this.destroyRef.onDestroy(() => this.coverImage?.closePreview());
+    this.destroyRef.onDestroy(() => {
+      this.coverImage?.closePreview();
+      this.detachDialogBackHandle?.release(false);
+      this.detachDialogBackHandle = null;
+    });
 
     const onPopState = () => this.coverImage?.closePreview();
     window.addEventListener('popstate', onPopState);
@@ -598,10 +605,21 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
     this.detachFileName = event.fileName;
     this.detachCopyMetadata = true;
     this.showDetachDialog = true;
+    if (!this.detachDialogBackHandle) {
+      this.detachDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showDetachDialog = false;
+      });
+    }
+  }
+
+  closeDetachDialog(): void {
+    this.showDetachDialog = false;
+    this.detachDialogBackHandle?.release();
+    this.detachDialogBackHandle = null;
   }
 
   confirmDetach(): void {
-    this.showDetachDialog = false;
+    this.closeDetachDialog();
     this.bookFileService.detachBookFile(this.detachBookId, this.detachFileId, this.detachCopyMetadata).subscribe();
   }
 

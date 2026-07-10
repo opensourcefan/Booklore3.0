@@ -32,6 +32,7 @@ import {ReadingDebtChartComponent} from './charts/reading-debt-chart/reading-deb
 import {PublicationEraChartComponent} from './charts/publication-era-chart/publication-era-chart.component';
 import {SessionArchetypesChartComponent} from './charts/session-archetypes-chart/session-archetypes-chart.component';
 import {UserChartConfig, UserChartConfigService} from './service/user-chart-config.service';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 
 @Component({
   selector: 'app-user-stats',
@@ -77,6 +78,8 @@ export class UserStatsComponent implements OnInit, OnDestroy {
 
   private userService = inject(UserService);
   private chartConfigService = inject(UserChartConfigService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private configPanelBackHandle: MobileBackHandle | null = null;
 
   public currentYear = new Date().getFullYear();
   public userName = '';
@@ -102,6 +105,8 @@ export class UserStatsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.configPanelBackHandle?.release(false);
+    this.configPanelBackHandle = null;
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -115,7 +120,22 @@ export class UserStatsComponent implements OnInit, OnDestroy {
   }
 
   toggleConfigPanel(): void {
-    this.showConfigPanel = !this.showConfigPanel;
+    if (this.showConfigPanel) {
+      this.closeConfigPanel();
+    } else {
+      this.showConfigPanel = true;
+      if (!this.configPanelBackHandle) {
+        this.configPanelBackHandle = this.mobileBackNavigation.register(() => {
+          this.showConfigPanel = false;
+        });
+      }
+    }
+  }
+
+  closeConfigPanel(): void {
+    this.showConfigPanel = false;
+    this.configPanelBackHandle?.release();
+    this.configPanelBackHandle = null;
   }
 
   resetLayout(): void {

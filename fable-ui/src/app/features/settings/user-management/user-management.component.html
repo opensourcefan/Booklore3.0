@@ -426,7 +426,8 @@
     [(visible)]="isPasswordDialogVisible"
     [modal]="true"
     class="user-dialog"
-    [style]="{width: '400px'}">
+    [style]="{width: '400px'}"
+    (onHide)="closePasswordDialog()">
     <div class="dialog-form">
       <div class="form-field">
         <label for="newPassword">{{ t('passwordDialog.newPassword') }}</label>
@@ -461,7 +462,7 @@
           [label]="'common.cancel' | transloco"
           severity="secondary"
           outlined="true"
-          (onClick)="isPasswordDialogVisible = false">
+          (onClick)="closePasswordDialog()">
         </p-button>
         <p-button
           [label]="t('passwordDialog.changeBtn')"

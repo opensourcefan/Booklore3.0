@@ -612,7 +612,8 @@
       [(visible)]="showGroupMappingDialog"
       [modal]="true"
       [style]="{width: '550px', maxWidth: '95vw'}"
-      [dismissableMask]="true">
+      [dismissableMask]="true"
+      (onHide)="closeGroupMappingDialog()">
       <div class="config-grid" style="gap: 1rem;">
         <div class="config-item full-width">
           <label for="gmGroupClaim">{{ t('groupMapping.groupClaimLabel') }}</label>

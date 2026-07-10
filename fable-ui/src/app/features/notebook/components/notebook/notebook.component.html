@@ -241,6 +241,7 @@
     [resizable]="false"
     [style]="{ width: '450px' }"
     appendTo="body"
+    (onHide)="closeEditDialog()"
   >
     @if (editingEntry) {
       <div class="edit-dialog-content">
@@ -306,7 +307,7 @@
           [label]="t('notebook.cancel')"
           [text]="true"
           severity="secondary"
-          (onClick)="showEditDialog = false"
+          (onClick)="closeEditDialog()"
           [disabled]="saving"
         />
         <p-button

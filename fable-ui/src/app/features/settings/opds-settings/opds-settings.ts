@@ -20,6 +20,7 @@ import {ExternalDocLinkComponent} from '../../../shared/components/external-doc-
 import {Select} from 'primeng/select';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {Clipboard} from '@angular/cdk/clipboard';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 
 @Component({
   selector: 'app-opds-settings',
@@ -56,6 +57,8 @@ export class OpdsSettings implements OnInit, OnDestroy {
   private appSettingsService = inject(AppSettingsService);
   private t = inject(TranslocoService);
   private clipboard = inject(Clipboard);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private createUserDialogBackHandle: MobileBackHandle | null = null;
 
   users: OpdsUserV2[] = [];
   loading = false;
@@ -261,7 +264,18 @@ export class OpdsSettings implements OnInit, OnDestroy {
 
   private resetCreateUserDialog(): void {
     this.showCreateUserDialog = false;
+    this.createUserDialogBackHandle?.release();
+    this.createUserDialogBackHandle = null;
     this.newUser = {username: '', password: '', sortOrder: 'RECENT'};
+  }
+
+  openCreateUserDialog(): void {
+    this.showCreateUserDialog = true;
+    if (!this.createUserDialogBackHandle) {
+      this.createUserDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showCreateUserDialog = false;
+      });
+    }
   }
 
   private showMessage(severity: string, summary: string, detail: string): void {
@@ -307,6 +321,8 @@ export class OpdsSettings implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.createUserDialogBackHandle?.release(false);
+    this.createUserDialogBackHandle = null;
     this.destroy$.next();
     this.destroy$.complete();
   }

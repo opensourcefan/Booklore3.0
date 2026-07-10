@@ -22,6 +22,7 @@ import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 
 export interface ChatMessage {
   query: string;
@@ -163,6 +164,8 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   private aiSearchDialogService = inject(AiSearchDialogService);
   public mobileUx = inject(MobileUxService);
   private sanitizer = inject(DomSanitizer);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private mobileBackHandle: MobileBackHandle | null = null;
 
   private searchSub?: Subscription;
   private openSub?: Subscription;
@@ -393,6 +396,14 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
     this.updateScopeBooks();
     this.visible = true;
     this.aiSearchDialogService.dialogVisible$.next(true);
+    if (!this.mobileBackHandle) {
+      this.mobileBackHandle = this.mobileBackNavigation.register(() => {
+        this.visible = false;
+        this.aiSearchDialogService.dialogVisible$.next(false);
+        this.mobileBackHandle = null;
+        this.saveStateToCache();
+      });
+    }
     this.checkLlmWarmedStatus();
     this.saveStateToCache();
   }
@@ -400,6 +411,8 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   close(): void {
     this.visible = false;
     this.aiSearchDialogService.dialogVisible$.next(false);
+    this.mobileBackHandle?.release();
+    this.mobileBackHandle = null;
     this.saveStateToCache();
   }
 
@@ -810,6 +823,8 @@ If your search results are not what you expected, adjust these settings under **
   }
 
   ngOnDestroy(): void {
+    this.mobileBackHandle?.release(false);
+    this.mobileBackHandle = null;
     this.saveStateToCache();
     this.searchSub?.unsubscribe();
     this.openSub?.unsubscribe();

@@ -23,6 +23,7 @@ import {filter, take} from 'rxjs/operators';
 import {ExternalDocLinkComponent} from '../../../../shared/components/external-doc-link/external-doc-link.component';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {WriteProgressService} from '../../../../shared/service/write-progress.service';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 
 interface MetadataItem {
   value: string;
@@ -80,6 +81,10 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
   private pageTitle = inject(PageTitleService);
   private readonly t = inject(TranslocoService);
   private readonly writeProgressService = inject(WriteProgressService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private mergeDialogBackHandle: MobileBackHandle | null = null;
+  private renameDialogBackHandle: MobileBackHandle | null = null;
+  private deleteDialogBackHandle: MobileBackHandle | null = null;
 
   private routeSub!: Subscription;
 
@@ -170,6 +175,12 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.mergeDialogBackHandle?.release(false);
+    this.mergeDialogBackHandle = null;
+    this.renameDialogBackHandle?.release(false);
+    this.renameDialogBackHandle = null;
+    this.deleteDialogBackHandle?.release(false);
+    this.deleteDialogBackHandle = null;
     this.routeSub.unsubscribe();
   }
 
@@ -259,6 +270,11 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
     this.currentMergeType = type;
     this.mergeTarget = selected[0].value;
     this.showMergeDialog = true;
+    if (!this.mergeDialogBackHandle) {
+      this.mergeDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showMergeDialog = false;
+      });
+    }
   }
 
   openRenameDialog(type: MetadataType, item: MetadataItem) {
@@ -266,6 +282,11 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
     this.currentRenameItem = item;
     this.renameTarget = item.value;
     this.showRenameDialog = true;
+    if (!this.renameDialogBackHandle) {
+      this.renameDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showRenameDialog = false;
+      });
+    }
   }
 
   openDeleteDialog(type: MetadataType, item?: MetadataItem) {
@@ -273,6 +294,11 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
       this.currentMergeType = type;
       this.currentDeleteItem = item;
       this.showDeleteDialog = true;
+      if (!this.deleteDialogBackHandle) {
+        this.deleteDialogBackHandle = this.mobileBackNavigation.register(() => {
+          this.showDeleteDialog = false;
+        });
+      }
     } else {
       const selected = this.getSelectedItems(type);
       if (selected.length === 0) {
@@ -286,7 +312,30 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
       this.currentMergeType = type;
       this.currentDeleteItem = null;
       this.showDeleteDialog = true;
+      if (!this.deleteDialogBackHandle) {
+        this.deleteDialogBackHandle = this.mobileBackNavigation.register(() => {
+          this.showDeleteDialog = false;
+        });
+      }
     }
+  }
+
+  closeMergeDialog(): void {
+    this.showMergeDialog = false;
+    this.mergeDialogBackHandle?.release();
+    this.mergeDialogBackHandle = null;
+  }
+
+  closeRenameDialog(): void {
+    this.showRenameDialog = false;
+    this.renameDialogBackHandle?.release();
+    this.renameDialogBackHandle = null;
+  }
+
+  closeDeleteDialog(): void {
+    this.showDeleteDialog = false;
+    this.deleteDialogBackHandle?.release();
+    this.deleteDialogBackHandle = null;
   }
 
   confirmRename() {
@@ -320,7 +369,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
     }
 
     if (targetValues.length === 1 && targetValues[0] === this.currentRenameItem.value) {
-      this.showRenameDialog = false;
+      this.closeRenameDialog();
       return;
     }
 
@@ -355,7 +404,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
             : this.t.translate('metadata.manager.toast.splitSuccessfulDetail', {oldValue, resultText, count: affectedBooks}),
           life: 5000
         });
-        this.showRenameDialog = false;
+        this.closeRenameDialog();
         this.currentRenameItem = null;
         this.renameTarget = '';
         this.mergingInProgress = false;
@@ -438,7 +487,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
             : this.t.translate('metadata.manager.toast.mergeSplitSuccessfulDetail', {selectedCount: selected.length, type: this.getTypeLabel(this.currentMergeType, true), targetCount: targetValues.length, bookCount: affectedBooks}),
           life: 5000
         });
-        this.showMergeDialog = false;
+        this.closeMergeDialog();
         this.mergeTarget = '';
         this.clearSelection(this.currentMergeType);
         this.mergingInProgress = false;
@@ -499,7 +548,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
           detail: this.t.translate('metadata.manager.toast.deleteSuccessfulDetail', {count: itemCount, type: itemCount > 1 ? this.getTypeLabel(this.currentMergeType, true) : this.getTypeLabel(this.currentMergeType, false), bookCount: affectedBooks}),
           life: 5000
         });
-        this.showDeleteDialog = false;
+        this.closeDeleteDialog();
         this.currentDeleteItem = null;
         this.clearSelection(this.currentMergeType);
         this.deletingInProgress = false;

@@ -12,6 +12,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookNoteService, CreateBookNoteV2Request, BookNote} from '../../../../shared/service/book-note.service';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 import {v4 as uuidv4} from 'uuid';
 
 @Component({
@@ -39,6 +40,9 @@ export class BookNotesComponent implements OnInit, OnChanges {
   private messageService = inject(MessageService);
   private destroyRef = inject(DestroyRef);
   private readonly t = inject(TranslocoService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private createDialogBackHandle: MobileBackHandle | null = null;
+  private editDialogBackHandle: MobileBackHandle | null = null;
 
   notes: BookNote[] = [];
   loading = false;
@@ -61,6 +65,12 @@ export class BookNotesComponent implements OnInit, OnChanges {
   };
 
   ngOnInit(): void {
+    this.destroyRef.onDestroy(() => {
+      this.createDialogBackHandle?.release(false);
+      this.createDialogBackHandle = null;
+      this.editDialogBackHandle?.release(false);
+      this.editDialogBackHandle = null;
+    });
     if (this.bookId) {
       this.loadNotes();
     }
@@ -105,6 +115,11 @@ export class BookNotesComponent implements OnInit, OnChanges {
       selectedText: ''
     };
     this.showCreateDialog = true;
+    if (!this.createDialogBackHandle) {
+      this.createDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showCreateDialog = false;
+      });
+    }
   }
 
   openEditDialog(note: BookNote): void {
@@ -116,6 +131,11 @@ export class BookNotesComponent implements OnInit, OnChanges {
       selectedText: note.selectedText
     };
     this.showEditDialog = true;
+    if (!this.editDialogBackHandle) {
+      this.editDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showEditDialog = false;
+      });
+    }
   }
 
   createNote(): void {
@@ -133,7 +153,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
       .subscribe({
         next: (note) => {
           this.notes.unshift(note);
-          this.showCreateDialog = false;
+          this.cancelCreate();
           this.messageService.add({
             severity: 'success',
             summary: this.t.translate('common.success'),
@@ -172,8 +192,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
               new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
             );
           }
-          this.showEditDialog = false;
-          this.selectedNote = null;
+          this.cancelEdit();
           this.messageService.add({
             severity: 'success',
             summary: this.t.translate('common.success'),
@@ -230,6 +249,8 @@ export class BookNotesComponent implements OnInit, OnChanges {
 
   cancelCreate(): void {
     this.showCreateDialog = false;
+    this.createDialogBackHandle?.release();
+    this.createDialogBackHandle = null;
     this.newNote = {
       bookId: this.bookId,
       cfi: 'book-notes-component',
@@ -240,6 +261,8 @@ export class BookNotesComponent implements OnInit, OnChanges {
 
   cancelEdit(): void {
     this.showEditDialog = false;
+    this.editDialogBackHandle?.release();
+    this.editDialogBackHandle = null;
     this.selectedNote = null;
     this.editNote = {
       bookId: this.bookId,

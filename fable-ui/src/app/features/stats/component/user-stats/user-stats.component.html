@@ -31,7 +31,8 @@
     [resizable]="false"
     [style]="{width: '600px', maxWidth: '90vw'}"
     class="config-dialog"
-    [header]="t('main.chartConfig')">
+    [header]="t('main.chartConfig')"
+    (onHide)="closeConfigPanel()">
 
     <div class="config-dialog-content">
       <div class="config-list" cdkDropList (cdkDropListDropped)="drop($event)">
@@ -65,7 +66,7 @@
         <i class="pi pi-eye"></i>
         <span>{{ t('main.showAll') }}</span>
       </p-button>
-      <p-button class="close-btn" (click)="toggleConfigPanel()" severity="secondary">
+      <p-button class="close-btn" (click)="closeConfigPanel()" severity="secondary">
         <span>{{ t('main.close') }}</span>
       </p-button>
     </ng-template>

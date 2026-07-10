@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
 import {Button} from 'primeng/button';
@@ -23,6 +23,7 @@ import {TableModule} from 'primeng/table';
 import {Dialog} from 'primeng/dialog';
 import {TagComponent} from '../../../shared/components/tag/tag.component';
 import {Clipboard} from '@angular/cdk/clipboard';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 
 @Component({
   selector: 'app-authentication-settings',
@@ -47,7 +48,7 @@ import {Clipboard} from '@angular/cdk/clipboard';
   ],
   styleUrls: ['./authentication-settings.component.scss']
 })
-export class AuthenticationSettingsComponent implements OnInit {
+export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
   availablePermissions = [
     {label: 'Upload Books', value: 'permissionUpload', selected: false, translationKey: 'perms.uploadBooks'},
     {label: 'Download Books', value: 'permissionDownload', selected: false, translationKey: 'perms.downloadBooks'},
@@ -96,6 +97,8 @@ export class AuthenticationSettingsComponent implements OnInit {
   ];
   groupMappings: OidcGroupMapping[] = [];
   showGroupMappingDialog = false;
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private groupMappingDialogBackHandle: MobileBackHandle | null = null;
   editingGroupMapping: OidcGroupMapping = this.emptyGroupMapping();
   editingGroupMappingPerms: {label: string; value: string; selected: boolean; translationKey: string}[] = [];
   editingGroupMappingLibraryIds: number[] = [];
@@ -134,6 +137,11 @@ export class AuthenticationSettingsComponent implements OnInit {
         filter(state => !!state?.loaded),
         take(1)
       ).subscribe(state => this.allLibraries = state.libraries ?? []);
+  }
+
+  ngOnDestroy(): void {
+    this.groupMappingDialogBackHandle?.release(false);
+    this.groupMappingDialogBackHandle = null;
   }
 
   loadSettings(settings: AppSettings): void {
@@ -327,6 +335,11 @@ export class AuthenticationSettingsComponent implements OnInit {
     this.initGroupMappingPerms([]);
     this.editingGroupMappingLibraryIds = [];
     this.showGroupMappingDialog = true;
+    if (!this.groupMappingDialogBackHandle) {
+      this.groupMappingDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showGroupMappingDialog = false;
+      });
+    }
   }
 
   openEditGroupMapping(mapping: OidcGroupMapping): void {
@@ -334,6 +347,17 @@ export class AuthenticationSettingsComponent implements OnInit {
     this.initGroupMappingPerms(mapping.permissions);
     this.editingGroupMappingLibraryIds = [...mapping.libraryIds];
     this.showGroupMappingDialog = true;
+    if (!this.groupMappingDialogBackHandle) {
+      this.groupMappingDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showGroupMappingDialog = false;
+      });
+    }
+  }
+
+  closeGroupMappingDialog(): void {
+    this.showGroupMappingDialog = false;
+    this.groupMappingDialogBackHandle?.release();
+    this.groupMappingDialogBackHandle = null;
   }
 
   private initGroupMappingPerms(selectedPerms: string[]): void {
@@ -359,7 +383,7 @@ export class AuthenticationSettingsComponent implements OnInit {
 
     obs.subscribe({
       next: () => {
-        this.showGroupMappingDialog = false;
+        this.closeGroupMappingDialog();
         this.loadGroupMappings();
         this.messageService.add({
           severity: 'success',

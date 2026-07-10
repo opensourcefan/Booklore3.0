@@ -198,7 +198,7 @@
               severity="success"
               size="small"
               [outlined]="true"
-              (onClick)="showCreateUserDialog = true">
+              (onClick)="openCreateUserDialog()">
             </p-button>
           </div>
         </div>
@@ -298,7 +298,8 @@
       [(visible)]="showCreateUserDialog"
       [modal]="true"
       class="user-dialog"
-      [style]="{width: '400px'}">
+      [style]="{width: '400px'}"
+      (onHide)="cancelCreateUser()">
       <div class="dialog-form">
         <div class="form-field">
           <label for="username">{{ t('createDialog.username') }}</label>

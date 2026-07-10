@@ -24,6 +24,7 @@ import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {BookService} from '../../../book/service/book.service';
 import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 
 export interface DisplayNotebookEntry extends NotebookEntry {
   safeTextHtml?: SafeHtml;
@@ -82,6 +83,8 @@ export class NotebookComponent implements OnInit, OnDestroy {
   private readonly sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly bookService = inject(BookService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private editDialogBackHandle: MobileBackHandle | null = null;
 
   private markdownRenderer = new MarkdownIt({
     html: false,
@@ -175,6 +178,8 @@ export class NotebookComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.editDialogBackHandle?.release(false);
+    this.editDialogBackHandle = null;
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -434,6 +439,17 @@ export class NotebookComponent implements OnInit, OnDestroy {
     this.editTitle = entry.text || '';
     this.editColor = entry.color || '#FFFF00';
     this.showEditDialog = true;
+    if (!this.editDialogBackHandle) {
+      this.editDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showEditDialog = false;
+      });
+    }
+  }
+
+  closeEditDialog(): void {
+    this.showEditDialog = false;
+    this.editDialogBackHandle?.release();
+    this.editDialogBackHandle = null;
   }
 
   saveEdit(): void {
@@ -462,7 +478,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
     update$.subscribe({
       next: () => {
         this.saving = false;
-        this.showEditDialog = false;
+        this.closeEditDialog();
         this.editingEntry = null;
         this.messageService.add({
           severity: 'success',

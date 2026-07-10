@@ -20,6 +20,7 @@ import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../sha
 import {LibraryService} from '../../book/service/library.service';
 import {BookService} from '../../book/service/book.service';
 import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 
 const LS_KEY_AI_SCAN_PATH_IDS = 'fable.aiScanSelectedPathIds';
 const LS_KEY_AI_SCAN_LIBRARY_FILTER_IDS = 'fable.aiScanLibraryFilterIds';
@@ -62,6 +63,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
   private aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private dialogLauncherService = inject(DialogLauncherService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private deleteConfirmBackHandle: MobileBackHandle | null = null;
+  private embeddingConfirmBackHandle: MobileBackHandle | null = null;
+  private advancedConfirmBackHandle: MobileBackHandle | null = null;
+  private saveProfileDialogBackHandle: MobileBackHandle | null = null;
 
   providerOptions = [
     { label: 'Local (In-container Ollama)', value: 'local' },
@@ -313,6 +319,14 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.deleteConfirmBackHandle?.release(false);
+    this.deleteConfirmBackHandle = null;
+    this.embeddingConfirmBackHandle?.release(false);
+    this.embeddingConfirmBackHandle = null;
+    this.advancedConfirmBackHandle?.release(false);
+    this.advancedConfirmBackHandle = null;
+    this.saveProfileDialogBackHandle?.release(false);
+    this.saveProfileDialogBackHandle = null;
     this.clearStartupPolling();
     this.clearAiSearchStartupPolling();
     this.destroy$.next();
@@ -486,8 +500,23 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  confirmCleanupAiData(): void {
+  openDeleteConfirm(): void {
+    this.showDeleteConfirm = true;
+    if (!this.deleteConfirmBackHandle) {
+      this.deleteConfirmBackHandle = this.mobileBackNavigation.register(() => {
+        this.showDeleteConfirm = false;
+      });
+    }
+  }
+
+  closeDeleteConfirm(): void {
     this.showDeleteConfirm = false;
+    this.deleteConfirmBackHandle?.release();
+    this.deleteConfirmBackHandle = null;
+  }
+
+  confirmCleanupAiData(): void {
+    this.closeDeleteConfirm();
     this.cleanupAiData();
   }
 
@@ -958,14 +987,25 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     if (providerChanged || modelChanged) {
       // Show confirmation dialog warning about re-embedding
       this.showEmbeddingConfirm = true;
+      if (!this.embeddingConfirmBackHandle) {
+        this.embeddingConfirmBackHandle = this.mobileBackNavigation.register(() => {
+          this.showEmbeddingConfirm = false;
+        });
+      }
     } else {
       // Only API key or URL changed — save directly
       this.confirmSaveEmbeddingSettings();
     }
   }
 
-  confirmSaveEmbeddingSettings(): void {
+  closeEmbeddingConfirm(): void {
     this.showEmbeddingConfirm = false;
+    this.embeddingConfirmBackHandle?.release();
+    this.embeddingConfirmBackHandle = null;
+  }
+
+  confirmSaveEmbeddingSettings(): void {
+    this.closeEmbeddingConfirm();
     this.saveRunning = true;
     this.appSettingsService
       .saveSettings([{key: AppSettingKey.AI_SEARCH_SETTINGS, newValue: this.aiSearchSettings}])
@@ -1222,14 +1262,25 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     if (requiresReindex) {
       // Show confirmation dialog warning user of data invalidation
       this.showAdvancedConfirm = true;
+      if (!this.advancedConfirmBackHandle) {
+        this.advancedConfirmBackHandle = this.mobileBackNavigation.register(() => {
+          this.showAdvancedConfirm = false;
+        });
+      }
     } else {
       // Just save directly as they only changed search-only settings (hybrid, reranking)
       this.confirmSaveAdvancedEmbeddingSettings();
     }
   }
 
-  confirmSaveAdvancedEmbeddingSettings(): void {
+  closeAdvancedConfirm(): void {
     this.showAdvancedConfirm = false;
+    this.advancedConfirmBackHandle?.release();
+    this.advancedConfirmBackHandle = null;
+  }
+
+  confirmSaveAdvancedEmbeddingSettings(): void {
+    this.closeAdvancedConfirm();
     this.saveRunning = true;
 
     // Apply values to aiSearchSettings DTO
@@ -1564,6 +1615,17 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   openSaveProfileDialog(): void {
     this.newProfileName = this.aiSearchSettings.llmModel || '';
     this.showSaveProfileDialog = true;
+    if (!this.saveProfileDialogBackHandle) {
+      this.saveProfileDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.showSaveProfileDialog = false;
+      });
+    }
+  }
+
+  closeSaveProfileDialog(): void {
+    this.showSaveProfileDialog = false;
+    this.saveProfileDialogBackHandle?.release();
+    this.saveProfileDialogBackHandle = null;
   }
 
   saveCurrentAsProfile(): void {
@@ -1606,7 +1668,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
         this.appSettingsService.activateAiLlmProfile(name).subscribe({
           next: () => {
             this.savingProfile = false;
-            this.showSaveProfileDialog = false;
+            this.closeSaveProfileDialog();
             const settings = this.appSettingsService.currentAppSettings;
             if (settings) {
               this.llmProfiles = settings.aiLlmProfiles || [];

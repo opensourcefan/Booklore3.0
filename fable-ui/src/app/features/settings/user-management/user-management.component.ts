@@ -19,6 +19,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
 import {ContentRestrictionsEditorComponent} from './content-restrictions-editor/content-restrictions-editor.component';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import {MobileBackHandle, MobileBackNavigationService} from '../../../shared/service/mobile-back-navigation.service';
 
 interface UserWithEditing extends User {
   isEditing?: boolean;
@@ -54,6 +55,8 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   private libraryService = inject(LibraryService);
   private messageService = inject(MessageService);
   private t = inject(TranslocoService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
+  private passwordDialogBackHandle: MobileBackHandle | null = null;
   private readonly destroy$ = new Subject<void>();
 
   users: UserWithEditing[] = [];
@@ -93,6 +96,8 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.passwordDialogBackHandle?.release(false);
+    this.passwordDialogBackHandle = null;
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -200,6 +205,17 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.confirmNewPassword = '';
     this.passwordError = '';
     this.isPasswordDialogVisible = true;
+    if (!this.passwordDialogBackHandle) {
+      this.passwordDialogBackHandle = this.mobileBackNavigation.register(() => {
+        this.isPasswordDialogVisible = false;
+      });
+    }
+  }
+
+  closePasswordDialog(): void {
+    this.isPasswordDialogVisible = false;
+    this.passwordDialogBackHandle?.release();
+    this.passwordDialogBackHandle = null;
   }
 
   submitPasswordChange() {
@@ -223,7 +239,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
               summary: this.t.translate('common.success'),
               detail: this.t.translate('settingsUsers.passwordDialog.success'),
             });
-            this.isPasswordDialogVisible = false;
+            this.closePasswordDialog();
           },
           error: (err) => {
             this.passwordError = err;

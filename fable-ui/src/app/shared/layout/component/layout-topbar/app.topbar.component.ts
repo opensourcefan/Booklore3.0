@@ -149,6 +149,8 @@ export class AppTopBarComponent implements OnDestroy {
   private mobileSidebarBackHandle: MobileBackHandle | null = null;
   private mobileDirectoryBackHandle: MobileBackHandle | null = null;
   private mobileOverflowBackHandle: MobileBackHandle | null = null;
+  private mobileSearchBackHandle: MobileBackHandle | null = null;
+  private metadataFetchLogBackHandle: MobileBackHandle | null = null;
 
   activeLang = '';
   langMenuItems: MenuItem[] = [];
@@ -383,7 +385,7 @@ export class AppTopBarComponent implements OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((event) => {
-        this.mobileSearchVisible = false;
+        this.closeMobileSearch();
         this.closeMobileTopbarPopoversForNavigation();
         this.updateMobileBookFilterTriggerVisibility((event as NavigationStart).url);
       });
@@ -398,6 +400,10 @@ export class AppTopBarComponent implements OnDestroy {
     this.mobileDirectoryBackHandle = null;
     this.mobileOverflowBackHandle?.release(false);
     this.mobileOverflowBackHandle = null;
+    this.mobileSearchBackHandle?.release(false);
+    this.mobileSearchBackHandle = null;
+    this.metadataFetchLogBackHandle?.release(false);
+    this.metadataFetchLogBackHandle = null;
 
     if (this.ref) this.ref.close();
     clearTimeout(this.eventTimer);
@@ -448,6 +454,21 @@ export class AppTopBarComponent implements OnDestroy {
 
   openMobileSearch(): void {
     this.mobileSearchVisible = true;
+    if (!this.mobileSearchBackHandle) {
+      this.mobileSearchBackHandle = this.mobileBackNavigation.register(() => {
+        this.mobileSearchVisible = false;
+      });
+    }
+  }
+
+  closeMobileSearch(): void {
+    this.mobileSearchVisible = false;
+    this.mobileSearchBackHandle?.release();
+    this.mobileSearchBackHandle = null;
+  }
+
+  onMobileSearchHide(): void {
+    this.closeMobileSearch();
   }
 
   toggleFullscreen(): void {
@@ -587,6 +608,11 @@ export class AppTopBarComponent implements OnDestroy {
     }
 
     this.metadataFetchLogVisible = true;
+    if (!this.metadataFetchLogBackHandle) {
+      this.metadataFetchLogBackHandle = this.mobileBackNavigation.register(() => {
+        this.metadataFetchLogVisible = false;
+      });
+    }
     this.metadataFetchLogLoading = true;
     this.metadataFetchLogError = '';
     this.metadataTaskService.getTaskLog(taskId).subscribe({
@@ -604,6 +630,12 @@ export class AppTopBarComponent implements OnDestroy {
 
   closeMetadataFetchLog(): void {
     this.metadataFetchLogVisible = false;
+    this.metadataFetchLogBackHandle?.release();
+    this.metadataFetchLogBackHandle = null;
+  }
+
+  onMetadataFetchLogHide(): void {
+    this.closeMetadataFetchLog();
   }
 
   navigateToTaskManagement(): void {

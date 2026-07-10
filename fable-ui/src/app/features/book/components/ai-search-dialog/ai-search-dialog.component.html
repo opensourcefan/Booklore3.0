@@ -6,7 +6,8 @@
   [dismissableMask]="false"
   [closable]="false"
   [closeOnEscape]="false"
-  styleClass="ai-search-dialog">
+  styleClass="ai-search-dialog"
+  (onHide)="close()">
   @if (infoPopoverVisible) {
     <div class="ai-search-popover-backdrop" (click)="hideInfoPopover()" (keydown.enter)="hideInfoPopover()" (keydown.space)="hideInfoPopover(); $event.preventDefault()" tabindex="0" role="button" aria-label="Close Guidelines"></div>
   }

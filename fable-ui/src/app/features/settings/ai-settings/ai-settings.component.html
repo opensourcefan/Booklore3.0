@@ -1200,7 +1200,7 @@
           [loading]="cleanupRunning"
           loadingIcon="pi pi-spin pi-spinner"
           [disabled]="!aiEnabled"
-          (onClick)="showDeleteConfirm = true">
+          (onClick)="openDeleteConfirm()">
         </p-button>
       </div>
     </div>
@@ -1212,13 +1212,14 @@
       [draggable]="false"
       [resizable]="false"
       [style]="{ width: '28rem' }"
-      [header]="t('cleanup.confirmTitle')">
+      [header]="t('cleanup.confirmTitle')"
+      (onHide)="closeDeleteConfirm()">
       <p style="margin: 0 0 1.5rem">{{ t('cleanup.confirmMessage') }}</p>
       <div style="display: flex; justify-content: flex-end; gap: 0.75rem">
         <p-button
           [label]="t('cleanup.confirmCancel')"
           severity="secondary"
-          (onClick)="showDeleteConfirm = false">
+          (onClick)="closeDeleteConfirm()">
         </p-button>
         <p-button
           icon="pi pi-trash"
@@ -1236,7 +1237,8 @@
       [draggable]="false"
       [resizable]="false"
       [style]="{ width: '32rem' }"
-      header="Confirm Embedding Configuration Changes">
+      header="Confirm Embedding Configuration Changes"
+      (onHide)="closeEmbeddingConfirm()">
       <div style="display: flex; flex-direction: column; gap: 1rem; line-height: 1.5;">
         <p style="margin: 0; color: var(--orange-500); font-weight: bold; display: flex; align-items: center; gap: 0.5rem;">
           <i class="pi pi-exclamation-triangle" style="font-size: 1.25rem;"></i>
@@ -1256,7 +1258,7 @@
         <p-button
           label="Cancel"
           severity="secondary"
-          (onClick)="showEmbeddingConfirm = false">
+          (onClick)="closeEmbeddingConfirm()">
         </p-button>
         <p-button
           icon="pi pi-check"
@@ -1274,7 +1276,8 @@
       [draggable]="false"
       [resizable]="false"
       [style]="{ width: '32rem' }"
-      header="Confirm Advanced Tuning Changes">
+      header="Confirm Advanced Tuning Changes"
+      (onHide)="closeAdvancedConfirm()">
       <div style="display: flex; flex-direction: column; gap: 1rem; line-height: 1.5;">
         <p style="margin: 0; color: var(--yellow-500); font-weight: bold; display: flex; align-items: center; gap: 0.5rem;">
           <i class="pi pi-exclamation-triangle" style="font-size: 1.25rem;"></i>
@@ -1294,7 +1297,7 @@
         <p-button
           label="Cancel"
           severity="secondary"
-          (onClick)="showAdvancedConfirm = false">
+          (onClick)="closeAdvancedConfirm()">
         </p-button>
         <p-button
           icon="pi pi-trash"
@@ -1306,7 +1309,7 @@
     </p-dialog>
 
     <!-- Save LLM Profile Dialog -->
-    <p-dialog header="Save LLM Profile" [(visible)]="showSaveProfileDialog" [modal]="true" [style]="{width: '400px'}">
+    <p-dialog header="Save LLM Profile" [(visible)]="showSaveProfileDialog" [modal]="true" [style]="{width: '400px'}" (onHide)="closeSaveProfileDialog()">
       <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
           <label for="newProfileName"><strong>Profile Name</strong></label>
@@ -1314,7 +1317,7 @@
           <p style="font-size: 0.8rem; color: var(--text-color-secondary); margin: 0;">Defaults to the current model name: <code>{{ aiSearchSettings.llmModel || 'default' }}</code></p>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem;">
-          <p-button label="Cancel" severity="secondary" size="small" [text]="true" (onClick)="showSaveProfileDialog = false"></p-button>
+          <p-button label="Cancel" severity="secondary" size="small" [text]="true" (onClick)="closeSaveProfileDialog()"></p-button>
           <p-button label="Save" severity="success" size="small" [loading]="savingProfile" (onClick)="saveCurrentAsProfile()" [disabled]="!newProfileName.trim() || savingProfile"></p-button>
         </div>
       </div>

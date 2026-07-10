@@ -58,6 +58,9 @@
 #   - P-Safe.1: safe-area on fixed/sticky bottom chrome; desktop bottom: may
 #     remain if the same class has a mobile safe-area override.
 #   - Never mass-migrate pages onto dialog panel mixins to satisfy heuristics.
+#   - Rule 10.3: inline <p-dialog [(visible)]="flag"> must register/popstate
+#     that flag. 10.1 only catches DialogService.open — topbar mobile search
+#     was a real miss until 10.3 was added.
 #
 # FIXTURES
 #   - scripts/fixtures/mobile-audit/ — golden broken page patterns for P0/P1.
@@ -92,6 +95,7 @@
 #   6.1  Invalid CSS: justify-content: stretch
 #   10.1 Direct DialogService.open usage (bypasses back gesture)
 #   10.2 Dialog template lacks close-button
+#   10.3 Inline p-dialog [(visible)] without MobileBack / popstate wiring
 #   P-Drag.1  CDK drag without handle on scrollable hosts
 #   P-Drag.2  Disabled drag with visible handle
 #   P-Touch.1 Mobile drag missing touch-action split
@@ -102,6 +106,13 @@
 # ALLOWLIST
 #   Optional: scripts/audit-mobile-styling.allowlist
 #   One substring per line; matching findings are skipped (for known FPs).
+#
+# WHY 10.3 EXISTS
+#   Rule 10.1 only greps dialogService.open(). The mobile topbar search uses
+#   <p-dialog [(visible)]="mobileSearchVisible"> with no back registration —
+#   back gesture left the dialog stuck open. 10.3 flags each visibility
+#   binding that is not closed via mobileBackNavigation.register(...) or a
+#   popstate handler referencing that same binding.
 #
 # REQUIREMENTS
 #   bash 4+, GNU grep (with -P / PCRE), awk, sed, find, wc
@@ -905,6 +916,65 @@ while IFS= read -r -d '' html_file; do
             warn "$html_file:1 — dialog template has a custom header but lacks standard 'close-button' class"
         fi
     fi
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# Rule 10.3: Inline p-dialog [(visible)] without back-gesture wiring
+# =============================================================================
+# Catches overlays that never call DialogService.open (so 10.1 misses them),
+# e.g. topbar mobile search: <p-dialog [(visible)]="mobileSearchVisible">.
+# A component that registers back for OTHER overlays still fails if THIS
+# visibility flag is never closed from register()/popstate.
+# =============================================================================
+section "Rule 10.3 — Inline p-dialog without back-gesture wiring" "P0"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if [[ "$html_file" =~ \.spec\. ]]; then
+        continue
+    fi
+    if ! grep -qE '<p-dialog\b' "$html_file" 2>/dev/null; then
+        continue
+    fi
+
+    ts_file="${html_file%.html}.ts"
+    [ -f "$ts_file" ] || continue
+
+    # Collect [(visible)]="name" bindings that appear near a p-dialog open tag
+    while IFS=: read -r line content; do
+        # Only consider lines that are part of a p-dialog start (look back a few lines for <p-dialog)
+        start=$((line - 12))
+        [ "$start" -lt 1 ] && start=1
+        window=$(sed -n "${start},${line}p" "$html_file" 2>/dev/null)
+        if ! echo "$window" | grep -qE '<p-dialog\b'; then
+            continue
+        fi
+
+        var=$(echo "$content" | grep -oP '\[\(visible\)\]="\K[a-zA-Z_][a-zA-Z0-9_]*' | head -1)
+        [ -z "$var" ] && continue
+
+        # Wired if register(...) close callback sets this var false, or popstate references it
+        wired=false
+        if awk -v var="$var" '
+            /mobileBackNavigation\.register\s*\(/ { in_reg=1; lines_left=30 }
+            in_reg && lines_left > 0 {
+                lines_left--
+                if ($0 ~ var && $0 ~ /=/ && $0 ~ /false/) { print "yes"; exit }
+                if ($0 ~ /\);/ && lines_left < 28) { in_reg=0 }
+            }
+            /popstate/ { in_pop=1; lines_left=40 }
+            in_pop && lines_left > 0 {
+                lines_left--
+                if ($0 ~ var) { print "yes"; exit }
+            }
+        ' "$ts_file" 2>/dev/null | grep -q yes; then
+            wired=true
+        fi
+
+        if [ "$wired" = false ]; then
+            warn "$html_file:$line — inline p-dialog [(visible)]=\"$var\" has no MobileBackNavigationService.register/popstate close for that flag (back gesture will not dismiss)" "$(surface_for "$html_file")"
+        fi
+    done < <(grep -nE '\[\(visible\)\]="[a-zA-Z_][a-zA-Z0-9_]*"' "$html_file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.html" -print0)
 
 # =============================================================================

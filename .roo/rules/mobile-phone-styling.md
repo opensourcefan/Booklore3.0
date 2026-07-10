@@ -302,6 +302,12 @@ After writing mobile CSS, the agent MUST:
   ```
 - The close button MUST use `class="close-button"` to align with the absolute layout positioning in `@mixin panel-header`.
 
+### 10.3 Inline `<p-dialog>` Back Gesture Wiring
+- Rule 10.1 only covers `DialogService.open` / `DialogLauncherService`. Many mobile overlays are **inline** PrimeNG dialogs: `<p-dialog [(visible)]="…">` (e.g. topbar mobile search).
+- Every modal inline `p-dialog` that can open on mobile MUST register with `MobileBackNavigationService` when shown and release when hidden (or use an equivalent `popstate` handler that sets the same visibility flag to `false`).
+- **FORBIDDEN:** Setting a `[(visible)]` flag to `true` with no back-gesture registration for that flag — the Android/system back gesture will navigate the underlying route instead of dismissing the overlay.
+- Having `MobileBackNavigationService` in the same component for *other* overlays (sidebar, overflow) does **not** satisfy this rule for an unwired dialog.
+
 ---
 
 ## 11. Mobile Pages & Full-Viewport Features

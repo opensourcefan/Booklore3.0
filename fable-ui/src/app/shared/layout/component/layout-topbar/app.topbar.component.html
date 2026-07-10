@@ -509,13 +509,14 @@
   [showHeader]="false"
   position="top"
   styleClass="mobile-search-dialog"
-  appendTo="body">
+  appendTo="body"
+  (onHide)="onMobileSearchHide()">
   <div class="mobile-search-dialog-close-row">
     <p-button
       icon="pi pi-times"
       [text]="true"
       [rounded]="true"
-      (click)="mobileSearchVisible = false"
+      (click)="closeMobileSearch()"
       pTooltip="Close"
       tooltipPosition="left">
     </p-button>
@@ -532,7 +533,8 @@
   [style]="{ width: 'min(52rem, 94vw)' }"
   styleClass="metadata-fetch-log-dialog"
   appendTo="body"
-  [header]="t('metadataFetchLogTitle')">
+  [header]="t('metadataFetchLogTitle')"
+  (onHide)="onMetadataFetchLogHide()">
   @if (metadataFetchLogLoading) {
     <div class="metadata-fetch-log-empty">{{ t('metadataFetchLogLoading') }}</div>
   } @else if (metadataFetchLogError) {
