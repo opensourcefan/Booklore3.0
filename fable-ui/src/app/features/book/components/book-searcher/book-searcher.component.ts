@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, ElementRef, HostListener, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, interval, of, Subscription} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, map, switchMap} from 'rxjs/operators';
 import {Book} from '../../model/book.model';
@@ -37,6 +37,8 @@ import {TooltipModule} from 'primeng/tooltip';
   standalone: true
 })
 export class BookSearcherComponent implements OnInit, OnDestroy {
+  @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
+
   searchQuery = '';
   books: Book[] = [];
   isLoading = false;
@@ -180,6 +182,30 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.books = [];
     this.isLoading = false;
+  }
+
+  /**
+   * Focus the search field so the mobile OSK can open after a user-initiated
+   * open (e.g. topbar search dialog). Retries briefly for dialog mount timing;
+   * iOS may still require the call to stay near the opening tap gesture.
+   */
+  focusInput(): void {
+    const tryFocus = (): void => {
+      const input =
+        this.searchInput?.nativeElement ??
+        (this.elRef.nativeElement.querySelector('input.search-input') as HTMLInputElement | null);
+      if (!input) {
+        return;
+      }
+      input.focus({preventScroll: true});
+      this.isSearchFocused = true;
+    };
+
+    requestAnimationFrame(() => {
+      tryFocus();
+      setTimeout(tryFocus, 50);
+      setTimeout(tryFocus, 150);
+    });
   }
 
   openAiSearch(): void {

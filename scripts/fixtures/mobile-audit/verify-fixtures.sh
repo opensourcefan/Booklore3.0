@@ -75,6 +75,16 @@ else
   check "P-Safe.1 pattern present (fixed bottom, no safe-area)" "no"
 fi
 
+# P-Keyboard.1 — full detection is in audit-mobile-styling.sh (p-dialog + app-book-searcher)
+check "P-Keyboard.1 scope note (rule covers app-book-searcher in p-dialog)" "yes"
+
+# P-Keyboard.2 — page autofocus forbidden; fixture must not introduce it
+if ! grep -qiE 'autofocus' "$HTML"; then
+  check "P-Keyboard.2 pattern absent on fixture page (no page-load autofocus)" "yes"
+else
+  check "P-Keyboard.2 pattern absent on fixture page (no page-load autofocus)" "no"
+fi
+
 if [ "$FAIL" -gt 0 ]; then
   echo "Fixture verification FAILED ($FAIL)"
   exit 1

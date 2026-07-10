@@ -3,6 +3,7 @@
   <p-iconfield class="search-iconfield" [class.focused]="isSearchFocused" [class.has-results]="isDropdownOpen">
     <p-inputicon class="pi pi-search"/>
     <input
+      #searchInput
       type="text"
       pInputText
       [(ngModel)]="searchQuery"
@@ -12,6 +13,11 @@
       [placeholder]="t('placeholder')"
       class="search-input"
       [class.has-ai-btn]="aiSearchEnabled"
+      inputmode="search"
+      enterkeyhint="search"
+      autocapitalize="off"
+      autocomplete="off"
+      spellcheck="false"
     />
     @if (searchQuery) {
       <p-button

@@ -88,6 +88,7 @@ export class AppTopBarComponent implements OnDestroy {
   @ViewChild('topbarmenu') menu!: ElementRef;
   @ViewChild('statsMenu') statsMenu: Menu | undefined;
   @ViewChild('aiSearchDialog') aiSearchDialog!: AiSearchDialogComponent;
+  @ViewChild('mobileBookSearcher') mobileBookSearcher?: BookSearcherComponent;
   @ViewChild('mobileSidebarPop') mobileSidebarPop: Popover | undefined;
   @ViewChild('mobileDirPop') mobileDirPop: Popover | undefined;
   @ViewChild('mobileMenu') mobileMenuPop: Popover | undefined;
@@ -469,6 +470,12 @@ export class AppTopBarComponent implements OnDestroy {
 
   onMobileSearchHide(): void {
     this.closeMobileSearch();
+  }
+
+  onMobileSearchShow(): void {
+    // User tapped Search — focus so Android/iOS can open the keyboard (Apple HIG:
+    // dedicated search areas should focus immediately when entered).
+    this.mobileBookSearcher?.focusInput();
   }
 
   toggleFullscreen(): void {

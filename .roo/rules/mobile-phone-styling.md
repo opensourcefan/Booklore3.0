@@ -362,3 +362,24 @@ Long pages with CDK drag-and-drop are a primary mobile failure mode: if the enti
 
 ### 12.5 Decorative Overlays Must Not Steal Touches
 - Decorative connectors, flow lines, and non-interactive overlays SHOULD use `pointer-events: none`. Interactive children re-enable `pointer-events: auto` only where needed.
+
+---
+
+## 13. Mobile Keyboard & Search Focus
+
+### 13.1 Search-Only Overlays — Focus On Open
+- When the user opens a **search-only** mobile overlay (e.g. topbar search button → dialog), the primary search input MUST be focused so the on-screen keyboard can appear (Android and iOS).
+- Aligns with Apple HIG for dedicated search areas; matches native Android search expectations.
+- Focus MUST be attempted in the open path (`onShow` / immediately after the opening tap). Retries after dialog mount are allowed; delayed focus after unrelated async work may fail on iOS.
+
+### 13.2 Do Not Autofocus On Page Load
+- **FORBIDDEN:** `autofocus` (or equivalent programmatic focus on init) on inputs that appear on a normal page/route load without an explicit user open action.
+- Unexpected keyboards steal viewport and feel hostile on phones.
+
+### 13.3 Multi-Action Dialogs
+- Dialogs whose primary job is not “type a query now” (settings, confirms, AI search with options) SHOULD NOT auto-focus an input (`focusOnShow="false"` is appropriate).
+
+### 13.4 Search Input Semantics
+- Prefer `inputmode="search"` and `enterkeyhint="search"` on search fields.
+- Keep search input font-size ≥ 16px (`1rem`) on mobile to avoid iOS Safari focus-zoom.
+- Closing the search overlay (back gesture / close control) MUST dismiss focus/keyboard with the overlay.

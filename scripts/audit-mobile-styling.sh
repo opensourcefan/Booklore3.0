@@ -61,6 +61,9 @@
 #   - Rule 10.3: inline <p-dialog [(visible)]="flag"> must register/popstate
 #     that flag. 10.1 only catches DialogService.open — topbar mobile search
 #     was a real miss until 10.3 was added.
+#   - P-Keyboard.1: search-only overlay (p-dialog wrapping app-book-searcher)
+#     must focus the query field on open (onShow → focusInput / .focus()).
+#   - P-Keyboard.2: no HTML autofocus on routed page hosts (page-load OSK).
 #
 # FIXTURES
 #   - scripts/fixtures/mobile-audit/ — golden broken page patterns for P0/P1.
@@ -102,6 +105,8 @@
 #   P-Layout.1 Drop-list orientation vs mobile flex direction
 #   P-Header.1 Page header compaction
 #   P-Safe.1  Fixed/sticky bottom chrome safe-area
+#   P-Keyboard.1 Search-only overlay missing focus-on-open
+#   P-Keyboard.2 Page-load autofocus on mobile page hosts
 #
 # ALLOWLIST
 #   Optional: scripts/audit-mobile-styling.allowlist
@@ -113,6 +118,11 @@
 #   back gesture left the dialog stuck open. 10.3 flags each visibility
 #   binding that is not closed via mobileBackNavigation.register(...) or a
 #   popstate handler referencing that same binding.
+#
+# WHY P-Keyboard RULES EXIST
+#   Search-only overlays (user tapped Search) should focus the query field so
+#   Android/iOS open the keyboard (Apple HIG dedicated search). Do NOT require
+#   autofocus on every dialog with an input. Page-load autofocus is forbidden.
 #
 # REQUIREMENTS
 #   bash 4+, GNU grep (with -P / PCRE), awk, sed, find, wc
@@ -1160,6 +1170,101 @@ while IFS= read -r -d '' file; do
         warn "$file:$line — fixed/sticky bottom without safe-area-inset-bottom nearby" "$(surface_for "$file")"
     done < <(grep -nE '^\s*bottom:\s*' "$file" 2>/dev/null | grep -vE 'bottom:\s*(auto|unset|initial|inherit|0\s*;|0px)')
 done < <(find "$UI_DIR" -name "*.scss" -print0)
+
+# =============================================================================
+# P-Keyboard.1: Search-only overlay missing focus-on-open
+# =============================================================================
+# Narrow: p-dialog that hosts app-book-searcher (mobile topbar search).
+# Multi-action dialogs (AI search with focusOnShow=false) are out of scope.
+# Pass: (onShow) handler exists and TS focuses via focusInput / .focus(.
+# =============================================================================
+section "P-Keyboard.1 — Search-only overlay missing focus-on-open" "P0"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if [[ "$html_file" =~ \.spec\. ]]; then
+        continue
+    fi
+    if ! grep -q 'app-book-searcher' "$html_file" 2>/dev/null; then
+        continue
+    fi
+    if ! grep -qE '<p-dialog\b' "$html_file" 2>/dev/null; then
+        continue
+    fi
+
+    ts_file="${html_file%.html}.ts"
+    [ -f "$ts_file" ] || continue
+
+    while IFS=: read -r line _content; do
+        start=$((line - 40))
+        [ "$start" -lt 1 ] && start=1
+        window=$(sed -n "${start},${line}p" "$html_file" 2>/dev/null)
+        if ! echo "$window" | grep -qE '<p-dialog\b'; then
+            continue
+        fi
+
+        # Extract onShow handler name if present in the dialog open region
+        on_show=$(echo "$window" | grep -oE '\(onShow\)="[a-zA-Z_][a-zA-Z0-9_]*\(' | head -1 | sed -E 's/\(onShow\)="([a-zA-Z_][a-zA-Z0-9_]*)\(.*/\1/')
+
+        focused=false
+        if [ -n "$on_show" ]; then
+            # onShow handler body must focus the search field (focusInput / .focus)
+            if awk -v fn="$on_show" '
+                $0 ~ fn "\\s*\\(" { in_fn=1; depth=0; seen_open=0 }
+                in_fn {
+                    if ($0 ~ /\{/) { depth++; seen_open=1 }
+                    if ($0 ~ /\}/) {
+                        depth--
+                        if (depth <= 0 && seen_open) { in_fn=0 }
+                    }
+                    if (in_fn && /(focusInput|\.focus\s*\(|nativeElement\.focus)/) { print "yes"; exit }
+                }
+            ' "$ts_file" 2>/dev/null | grep -q yes; then
+                focused=true
+            fi
+        fi
+
+        # Autofocus on an input inside the dialog region also counts (not preferred)
+        if [ "$focused" = false ] && echo "$window" | grep -qiE 'autofocus'; then
+            focused=true
+        fi
+        # Look a few lines after searcher for autofocus on sibling inputs
+        end=$((line + 5))
+        after=$(sed -n "${line},${end}p" "$html_file" 2>/dev/null)
+        if [ "$focused" = false ] && echo "$after" | grep -qiE 'autofocus'; then
+            focused=true
+        fi
+
+        if [ "$focused" = false ]; then
+            warn "$html_file:$line — search-only p-dialog hosts app-book-searcher but does not focus the query field on open (need onShow → focusInput/.focus)" "$(surface_for "$html_file")"
+        fi
+    done < <(grep -nE '<app-book-searcher\b' "$html_file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# P-Keyboard.2: Page-load autofocus on mobile page hosts
+# =============================================================================
+# Forbidden: autofocus on routed/full-viewport pages (unexpected OSK on load).
+# Dialogs opened by user action are out of scope here.
+# =============================================================================
+section "P-Keyboard.2 — Page-load autofocus on mobile page hosts" "P1"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if [[ "$html_file" =~ \.spec\. ]]; then
+        continue
+    fi
+    if ! is_page_component "$html_file"; then
+        continue
+    fi
+    while IFS=: read -r line content; do
+        # Skip commented-out attributes
+        if echo "$content" | grep -qE '^\s*<!--'; then
+            continue
+        fi
+        warn "$html_file:$line — page host uses autofocus (opens keyboard on load; use focus-on-open only for user-opened search overlays)" "$(surface_for "$html_file")"
+    done < <(grep -niE '(^|[^a-zA-Z_-])autofocus([^a-zA-Z_-]|$)|\[autofocus\]' "$html_file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.html" -print0)
 
 # =============================================================================
 # Summary

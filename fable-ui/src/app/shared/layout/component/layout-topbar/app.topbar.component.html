@@ -510,6 +510,7 @@
   position="top"
   styleClass="mobile-search-dialog"
   appendTo="body"
+  (onShow)="onMobileSearchShow()"
   (onHide)="onMobileSearchHide()">
   <div class="mobile-search-dialog-close-row">
     <p-button
@@ -521,7 +522,7 @@
       tooltipPosition="left">
     </p-button>
   </div>
-  <app-book-searcher></app-book-searcher>
+  <app-book-searcher #mobileBookSearcher></app-book-searcher>
 </p-dialog>
 
 <p-dialog
