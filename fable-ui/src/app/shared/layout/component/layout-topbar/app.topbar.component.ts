@@ -463,6 +463,7 @@ export class AppTopBarComponent implements OnDestroy {
   }
 
   closeMobileSearch(): void {
+    this.mobileBookSearcher?.blurInput();
     this.mobileSearchVisible = false;
     this.mobileSearchBackHandle?.release();
     this.mobileSearchBackHandle = null;

@@ -379,7 +379,7 @@ Long pages with CDK drag-and-drop are a primary mobile failure mode: if the enti
 ### 13.3 Multi-Action Dialogs
 - Dialogs whose primary job is not “type a query now” (settings, confirms, AI search with options) SHOULD NOT auto-focus an input (`focusOnShow="false"` is appropriate).
 
-### 13.4 Search Input Semantics
+### 13.4 Search Input Semantics & Dismiss On Close
 - Prefer `inputmode="search"` and `enterkeyhint="search"` on search fields.
 - Keep search input font-size ≥ 16px (`1rem`) on mobile to avoid iOS Safari focus-zoom.
-- Closing the search overlay (back gesture / close control) MUST dismiss focus/keyboard with the overlay.
+- Closing the search overlay (back gesture / close control / mask dismiss) MUST explicitly blur the query field so the on-screen keyboard dismisses. Do not rely on dialog hide alone — some Android WebViews keep the OSK if the focused input remains in the DOM.

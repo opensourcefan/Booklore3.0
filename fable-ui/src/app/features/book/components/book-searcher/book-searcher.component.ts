@@ -46,6 +46,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   #searchSubject = new BehaviorSubject<string>('');
   #subscription!: Subscription;
   isSearchFocused = false;
+  private focusRetryTimeouts: ReturnType<typeof setTimeout>[] = [];
 
   private bookService = inject(BookService);
   private router = inject(Router);
@@ -190,10 +191,9 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
    * iOS may still require the call to stay near the opening tap gesture.
    */
   focusInput(): void {
+    this.clearFocusRetries();
     const tryFocus = (): void => {
-      const input =
-        this.searchInput?.nativeElement ??
-        (this.elRef.nativeElement.querySelector('input.search-input') as HTMLInputElement | null);
+      const input = this.resolveSearchInput();
       if (!input) {
         return;
       }
@@ -203,9 +203,34 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
 
     requestAnimationFrame(() => {
       tryFocus();
-      setTimeout(tryFocus, 50);
-      setTimeout(tryFocus, 150);
+      this.focusRetryTimeouts.push(setTimeout(tryFocus, 50));
+      this.focusRetryTimeouts.push(setTimeout(tryFocus, 150));
     });
+  }
+
+  /**
+   * Blur the search field so the mobile OSK dismisses when the overlay closes
+   * (back gesture, close control, or mask dismiss).
+   */
+  blurInput(): void {
+    this.clearFocusRetries();
+    const input = this.resolveSearchInput();
+    input?.blur();
+    this.isSearchFocused = false;
+  }
+
+  private resolveSearchInput(): HTMLInputElement | null {
+    return (
+      this.searchInput?.nativeElement ??
+      (this.elRef.nativeElement.querySelector('input.search-input') as HTMLInputElement | null)
+    );
+  }
+
+  private clearFocusRetries(): void {
+    for (const id of this.focusRetryTimeouts) {
+      clearTimeout(id);
+    }
+    this.focusRetryTimeouts = [];
   }
 
   openAiSearch(): void {
@@ -249,6 +274,7 @@ export class BookSearcherComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.clearFocusRetries();
     if (this.#subscription) {
       this.#subscription.unsubscribe();
     }

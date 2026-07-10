@@ -64,6 +64,7 @@
 #   - P-Keyboard.1: search-only overlay (p-dialog wrapping app-book-searcher)
 #     must focus the query field on open (onShow → focusInput / .focus()).
 #   - P-Keyboard.2: no HTML autofocus on routed page hosts (page-load OSK).
+#   - P-Keyboard.3: same search overlays must blur on close (blurInput / .blur()).
 #
 # FIXTURES
 #   - scripts/fixtures/mobile-audit/ — golden broken page patterns for P0/P1.
@@ -107,6 +108,7 @@
 #   P-Safe.1  Fixed/sticky bottom chrome safe-area
 #   P-Keyboard.1 Search-only overlay missing focus-on-open
 #   P-Keyboard.2 Page-load autofocus on mobile page hosts
+#   P-Keyboard.3 Search-only overlay missing blur-on-close
 #
 # ALLOWLIST
 #   Optional: scripts/audit-mobile-styling.allowlist
@@ -123,6 +125,7 @@
 #   Search-only overlays (user tapped Search) should focus the query field so
 #   Android/iOS open the keyboard (Apple HIG dedicated search). Do NOT require
 #   autofocus on every dialog with an input. Page-load autofocus is forbidden.
+#   Close paths must explicitly blur — dialog hide alone can leave the OSK up.
 #
 # REQUIREMENTS
 #   bash 4+, GNU grep (with -P / PCRE), awk, sed, find, wc
@@ -1264,6 +1267,66 @@ while IFS= read -r -d '' html_file; do
         fi
         warn "$html_file:$line — page host uses autofocus (opens keyboard on load; use focus-on-open only for user-opened search overlays)" "$(surface_for "$html_file")"
     done < <(grep -niE '(^|[^a-zA-Z_-])autofocus([^a-zA-Z_-]|$)|\[autofocus\]' "$html_file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# P-Keyboard.3: Search-only overlay missing blur-on-close
+# =============================================================================
+# Same scope as P-Keyboard.1. Closing (back / X / mask) must blur so the OSK
+# dismisses; do not rely on dialog hide alone.
+# Pass: companion TS calls blurInput( (or input .blur() in a close* method).
+# =============================================================================
+section "P-Keyboard.3 — Search-only overlay missing blur-on-close" "P0"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if [[ "$html_file" =~ \.spec\. ]]; then
+        continue
+    fi
+    if ! grep -q 'app-book-searcher' "$html_file" 2>/dev/null; then
+        continue
+    fi
+    if ! grep -qE '<p-dialog\b' "$html_file" 2>/dev/null; then
+        continue
+    fi
+
+    ts_file="${html_file%.html}.ts"
+    [ -f "$ts_file" ] || continue
+
+    while IFS=: read -r line _content; do
+        start=$((line - 40))
+        [ "$start" -lt 1 ] && start=1
+        window=$(sed -n "${start},${line}p" "$html_file" 2>/dev/null)
+        if ! echo "$window" | grep -qE '<p-dialog\b'; then
+            continue
+        fi
+
+        blurred=false
+        # Preferred: explicit blurInput() call from the host (close / onHide path)
+        if grep -qE 'blurInput\s*\(' "$ts_file" 2>/dev/null; then
+            blurred=true
+        fi
+        # Also accept a close* method that calls .blur(
+        if [ "$blurred" = false ]; then
+            if awk '
+                /[a-zA-Z_]*[Cc]lose[a-zA-Z_]*\s*\(/ { in_fn=1; depth=0; seen_open=0 }
+                in_fn {
+                    if ($0 ~ /\{/) { depth++; seen_open=1 }
+                    if ($0 ~ /\}/) {
+                        depth--
+                        if (depth <= 0 && seen_open) { in_fn=0 }
+                    }
+                    if (in_fn && /\.blur\s*\(/) { print "yes"; exit }
+                }
+            ' "$ts_file" 2>/dev/null | grep -q yes; then
+                blurred=true
+            fi
+        fi
+
+        if [ "$blurred" = false ]; then
+            warn "$html_file:$line — search-only p-dialog hosts app-book-searcher but does not blur the query field on close (need onHide/close → blurInput/.blur)" "$(surface_for "$html_file")"
+        fi
+    done < <(grep -nE '<app-book-searcher\b' "$html_file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.html" -print0)
 
 # =============================================================================
