@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, EventEmitter, OnDestroy, OnInit, Output, inject} from '@angular/core';
 import {filter, Subject, Subscription} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {NavigationEnd, Router} from '@angular/router';
@@ -16,6 +16,12 @@ import {BookState} from '../../model/state/book-state.model';
   imports: [ProgressSpinner, DirectoryTreeNodeComponent],
   template: `
     <div class="dir-mobile-panel">
+      <div class="dir-mobile-panel__close-header">
+        <span class="dir-mobile-panel__close-title">Folders</span>
+        <button type="button" class="dir-mobile-panel__close-btn" (click)="panelClose.emit()" aria-label="Close">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
       @if (loading) {
         <div class="dir-mobile-panel__loading">
           <p-progress-spinner strokeWidth="4" styleClass="dir-panel-spinner"></p-progress-spinner>
@@ -92,6 +98,36 @@ import {BookState} from '../../model/state/book-state.model';
       overflow-y: auto;
       min-width: 220px;
       max-width: 320px;
+    }
+    .dir-mobile-panel__close-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--p-content-border-color);
+      margin-bottom: 0.5rem;
+    }
+    .dir-mobile-panel__close-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--p-text-color);
+    }
+    .dir-mobile-panel__close-btn {
+      background: transparent;
+      border: none;
+      color: var(--p-text-muted-color);
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem;
+      border-radius: 50%;
+      transition: background 0.2s;
+      &:hover {
+        background: var(--p-surface-800);
+        color: var(--p-text-color);
+      }
     }
     .dir-mobile-panel__loading,
     .dir-mobile-panel__empty {
@@ -190,6 +226,7 @@ import {BookState} from '../../model/state/book-state.model';
   `]
 })
 export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
+  @Output() panelClose = new EventEmitter<void>();
   tree: DirectoryRootNode[] = [];
   loading = false;
   selectedPath: string | null = null;
@@ -241,6 +278,7 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
     }
 
     this.filterService.setFilter({...event, scopeKey});
+    this.panelClose.emit();
   }
 
   selectRoot(root: DirectoryRootNode): void {
@@ -251,6 +289,7 @@ export class DirectoryMobilePanelComponent implements OnInit, OnDestroy {
     }
 
     this.filterService.setFilter({libraryPathId: root.libraryPathId, fileSubPath, scopeKey});
+    this.panelClose.emit();
   }
 
   isRootSelected(root: DirectoryRootNode): boolean {

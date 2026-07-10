@@ -97,7 +97,7 @@
                 </p-button>
                 <p-popover #mobileDirPop [dismissable]="true" styleClass="dir-mobile-panel-popover" (onShow)="onMobileDirectoryPopoverShow()" (onHide)="onMobileDirectoryPopoverHide()">
                   @if (mobileDirectoryPopoverOpen) {
-                    <app-directory-mobile-panel></app-directory-mobile-panel>
+                    <app-directory-mobile-panel (panelClose)="mobileDirPop.hide()"></app-directory-mobile-panel>
                   }
                 </p-popover>
               </div>
