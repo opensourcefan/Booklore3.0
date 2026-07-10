@@ -21,11 +21,12 @@
                   [label]="isChapterSortMode ? 'Card View' : 'Chapter Sort'"
                   (onClick)="toggleChapterSortMode()"
                   [pTooltip]="isChapterSortMode ? 'Return to card layout' : 'Sort chapters in a compact list view'"></p-button>
-          <p-button icon="pi pi-times" styleClass="p-button-outlined p-button-secondary action-btn" label="Cancel Edit" (onClick)="cancelEdit()"></p-button>
+          <p-button icon="pi pi-times" styleClass="p-button-outlined p-button-secondary action-btn" label="Cancel Edit" (onClick)="cancelEdit()" pTooltip="Cancel Edit"></p-button>
         }
         <p-button [icon]="isEditMode ? 'pi pi-check' : 'pi pi-pencil'"
                 [styleClass]="isEditMode ? 'p-button-success action-btn' : 'p-button-outlined p-button-primary action-btn'"
                 [label]="isEditMode ? 'Finish Layout' : 'Edit Layout'"
+                [pTooltip]="isEditMode ? 'Finish Layout' : 'Edit Layout'"
                 (onClick)="toggleEditMode()"></p-button>
         <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-outlined action-btn" (onClick)="deleteStoryArc($event)" pTooltip="Delete Story Arc"></p-button>
       </div>
@@ -160,7 +161,7 @@
     } @else {
       <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
       @for (row of rows; track row; let rowIndex = $index) {
-        <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode">
+        <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode || isMobile">
           
           <!-- Drag Placeholder Landing Snap Box -->
           <div class="chapter-drag-placeholder" *cdkDragPlaceholder>
