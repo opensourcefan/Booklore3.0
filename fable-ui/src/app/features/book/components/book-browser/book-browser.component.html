@@ -74,20 +74,21 @@
               }
             </div>
 
-            @if (entityOptions && entityOptions.length > 0) {
-              <div class="entity-menu-wrapper">
-                <p-button
-                  icon="pi pi-ellipsis-v"
-                  [rounded]="true"
-                  [text]="true"
-                  severity="info"
-                  (click)="entitymenu.toggle($event)">
-                </p-button>
-                <p-menu #entitymenu [model]="entityOptions" [popup]="true" appendTo="body"></p-menu>
-              </div>
-            }
           }
         </div>
+
+        @if (entityOptions && entityOptions.length > 0) {
+          <div class="entity-menu-wrapper">
+            <p-button
+              icon="pi pi-ellipsis-v"
+              [rounded]="true"
+              [text]="true"
+              severity="info"
+              (click)="entitymenu.toggle($event)">
+            </p-button>
+            <p-menu #entitymenu [model]="entityOptions" [popup]="true" appendTo="body"></p-menu>
+          </div>
+        }
 
         @if (isMobile && canShowDirectoryExplorerOnMobile) {
           <div class="entity-menu-wrapper mobile-dir-menu-wrapper">
