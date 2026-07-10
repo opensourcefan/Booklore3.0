@@ -734,7 +734,7 @@
         }
       }
 
-      .header-right {
+      ::ng-deep .header-right {
         display: flex;
         align-items: center;
         gap: 0.35rem;
@@ -747,14 +747,12 @@
           min-width: 36px;
           border-radius: 8px;
 
-          ::ng-deep {
-            .p-button-label {
-              display: none !important;
-            }
-            .p-button-icon {
-              margin: 0 !important;
-              font-size: 1rem !important;
-            }
+          .p-button-label {
+            display: none !important;
+          }
+          .p-button-icon {
+            margin: 0 !important;
+            font-size: 1rem !important;
           }
         }
       }

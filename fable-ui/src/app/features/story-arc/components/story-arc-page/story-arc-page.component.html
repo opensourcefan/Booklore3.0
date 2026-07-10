@@ -161,7 +161,7 @@
     } @else {
       <div class="rows-container" cdkDropListGroup cdkDropList [cdkDropListData]="rows" (cdkDropListDropped)="onRowDrop($event)">
       @for (row of rows; track row; let rowIndex = $index) {
-        <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="!isEditMode || isMobile">
+        <div class="chapter-container-with-connector" cdkDrag [cdkDragDisabled]="true">
           
           <!-- Drag Placeholder Landing Snap Box -->
           <div class="chapter-drag-placeholder" *cdkDragPlaceholder>
