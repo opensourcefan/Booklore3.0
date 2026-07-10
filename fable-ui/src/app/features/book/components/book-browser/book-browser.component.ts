@@ -409,6 +409,16 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
       || this.entityType === EntityType.SHELF;
   }
 
+  get canShowDirectoryExplorerOnMobile(): boolean {
+    if (!this.entityType) {
+      return false;
+    }
+
+    return this.entityType === EntityType.ALL_BOOKS
+      || this.entityType === EntityType.LIBRARY
+      || this.entityType === EntityType.SHELF;
+  }
+
   get isPagedPilotActive(): boolean {
     return this.pagedGridPilotService.isPagedActive();
   }
