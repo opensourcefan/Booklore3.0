@@ -183,9 +183,6 @@
           <div class="story-row-wrapper">
             <div class="row-header">
               @if (isEditMode) {
-                <div class="row-drag-handle" cdkDragHandle [pTooltip]="'Drag to reorder chapter'" tooltipPosition="top">
-                  <i class="pi pi-bars"></i>
-                </div>
                 <div class="row-order-actions">
                   <p-button icon="pi pi-chevron-up" styleClass="p-button-text p-button-secondary row-order-btn" (onClick)="moveRowOrder(rowIndex, 'up')" [disabled]="rowIndex === 0" pTooltip="Move Chapter Up"></p-button>
                   <p-button icon="pi pi-chevron-down" styleClass="p-button-text p-button-secondary row-order-btn" (onClick)="moveRowOrder(rowIndex, 'down')" [disabled]="rowIndex === rows.length - 1" pTooltip="Move Chapter Down"></p-button>
@@ -208,7 +205,7 @@
               [class.edit-mode]="isEditMode"
               cdkDropList
               [cdkDropListData]="row.items"
-              cdkDropListOrientation="horizontal"
+              [cdkDropListOrientation]="bookDropListOrientation"
               (cdkDropListDropped)="onDrop($event)">
               
               @if (row.items.length === 0) {
@@ -238,7 +235,13 @@
                              (click)="!isEditMode && item.book ? navigateToBook(item.book) : null"
                              (keydown.enter)="!isEditMode && item.book ? navigateToBook(item.book) : null">
                           <img [src]="getThumbnail(item.bookId)" alt="Cover" class="comic-cover-img" />
-                          
+
+                          @if (isEditMode) {
+                            <div class="cover-drag-handle" cdkDragHandle aria-label="Drag to reorder book" title="Drag to reorder book">
+                              <i class="pi pi-bars"></i>
+                            </div>
+                          }
+
                           @if (item.book?.readStatus === 'READ') {
                             <div class="read-badge">
                               <i class="pi pi-check"></i>
@@ -364,7 +367,7 @@
         <i class="pi pi-arrows-alt"></i>
         <span>Moving: <strong>{{ selectedMoveCard.item.book?.metadata?.title || 'Selected Comic' }}</strong></span>
       </div>
-      <p-button label="Cancel Move" icon="pi pi-times" styleClass="p-button-outlined p-button-sm p-button-secondary" (onClick)="cancelMoveCard()"></p-button>
+      <p-button label="Cancel Move" icon="pi pi-times" styleClass="p-button-outlined p-button-sm p-button-secondary cancel-move-btn" ariaLabel="Cancel Move" (onClick)="cancelMoveCard()"></p-button>
     </div>
   }
 </div>

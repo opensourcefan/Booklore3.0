@@ -84,6 +84,11 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   private hasPushedHistoryState = false;
   private mobileSub?: Subscription;
 
+  /** Book drop-list axis: vertical on mobile card timeline, horizontal on desktop rows. */
+  get bookDropListOrientation(): 'horizontal' | 'vertical' {
+    return this.isMobile ? 'vertical' : 'horizontal';
+  }
+
   /** Dynamic dialog style that accounts for top vs bottom header */
   get dialogStyle(): Record<string, string> {
     if (!this.summaryDialogVisible) {
