@@ -231,6 +231,10 @@
       gap: 1rem;
       margin-bottom: 1.5rem;
 
+      .subtitle {
+        display: none;
+      }
+
       .header-actions {
         .search-input-wrapper {
           .search-bar {

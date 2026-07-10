@@ -1,0 +1,36 @@
+<!--
+  Golden fixture: intentionally broken page for mobile audit P0 rules.
+  Used by scripts/fixtures/mobile-audit/verify-fixtures.sh
+  NOT part of the Angular app.
+-->
+<div class="page-header">
+  <div class="title-section">
+    <h1>Broken Fixture Page</h1>
+    <p class="subtitle">This subtitle should be hidden on mobile</p>
+  </div>
+</div>
+
+<div class="rows-container" cdkDropList>
+  <div class="comic-flow-card" cdkDrag>
+    <!-- Missing drag handle on purpose for P-Drag.1 -->
+    <div class="card-details">Book title</div>
+  </div>
+
+  <div class="chapter" cdkDrag [cdkDragDisabled]="true">
+    <div class="row-drag-handle" cdkDragHandle>
+      <!-- Dead handle — P-Drag.2 should flag -->
+      <i class="pi pi-bars"></i>
+    </div>
+  </div>
+
+  <div
+    class="row-drop-list"
+    cdkDropList
+    cdkDropListOrientation="horizontal">
+    <!-- Hard-coded horizontal while SCSS uses column on mobile — P-Layout.1 -->
+  </div>
+</div>
+
+<div class="move-floating-banner">
+  <button label="Cancel Move">Cancel</button>
+</div>

@@ -4,7 +4,7 @@ paths: ["fable-ui/src/**/*.scss", "fable-ui/src/**/*.html", "fable-ui/src/**/*.t
 
 # Mobile (Phone) Styling Standard
 
-**Core Principle:** Every dialog, panel, and form MUST be fully operable on a 375×667 viewport (iPhone SE) without requiring fullscreen mode, zooming, or horizontal scrolling. Mobile changes MUST NEVER alter desktop behavior.
+**Core Principle:** Every dialog, panel, form, and routed page MUST be fully operable on a 375×667 viewport (iPhone SE) without requiring fullscreen mode, zooming, or horizontal scrolling. On mobile, fullscreen dialogs and routed pages occupy nearly the same viewport and share the same density, safe-area, scroll, and touch-target constraints. Mobile changes MUST NEVER alter desktop behavior.
 
 ---
 
@@ -301,3 +301,58 @@ After writing mobile CSS, the agent MUST:
   </p-button>
   ```
 - The close button MUST use `class="close-button"` to align with the absolute layout positioning in `@mixin panel-header`.
+
+---
+
+## 11. Mobile Pages & Full-Viewport Features
+
+On phones, a routed page under the app header is operationally equivalent to a fullscreen dialog. Page surfaces MUST follow the same density, safe-area, and touch-target rules as dialogs, adapted to page chrome.
+
+### 11.1 Surface Classification
+- **Dialog / panel** — dynamic dialogs, pickers, managers, assigners (existing §§2–10).
+- **Routed page / full-viewport feature** — `*-page` components, route hosts, or any view with `.page-header` / `:host` viewport height / primary scroll host.
+- **Shared chrome** — layout shell, popovers, floating banners, sticky bars.
+
+### 11.2 Page Header Compaction
+- Page headers (`.page-header`, `.title-section`) MUST compact at `@media (max-width: 768px)`:
+  - Reduce title size (prefer ~1.1rem).
+  - Hide `.subtitle` / secondary descriptive lines.
+  - Prefer icon-only action clusters in `.header-right` (keep `pTooltip` / `aria-label`).
+
+### 11.3 Dense Toolbars & Row Actions on Pages
+- Edit-mode row headers, floating action banners, and page toolbars MUST hide button text labels on mobile and keep touch targets ≥32×32px (prefer 36–40px).
+- Do NOT rely on dialog-only class names (`folder-rescan`, etc.) — any `label=` on buttons inside `.row-header`, `.header-right`, `.*-actions`, or floating banners is in scope.
+
+### 11.4 Fixed / Sticky Bottom Chrome Safe Area
+- Any `position: fixed` or `sticky` element anchored to the bottom (floating banners, FABs, sticky bars) MUST include `safe-area-inset-bottom` at the 768px breakpoint — not only `.dialog-footer` / `.footer`.
+
+### 11.5 Page Scroll Chain
+- Page `:host` elements that use a fixed viewport height (`100dvh` / `100svh`) MUST preserve an unbroken scroll path. Fixed banners and edit panels MUST be siblings of the scrollable body, not traps that capture touch without scrolling.
+
+### 11.6 In-Page Overlays Still Need Back Gesture
+- Full-screen or modal overlays opened from a page (summary dialogs, drawers) MUST intercept the system back gesture. Pages are not exempt from §10.1.
+
+---
+
+## 12. Touch Drag & Scroll Coexistence
+
+Long pages with CDK drag-and-drop are a primary mobile failure mode: if the entire card/row is a drag surface, vertical scroll becomes impossible.
+
+### 12.1 Handle-Only Drag on Scrollable Hosts
+- On any scrollable page or list, `cdkDrag` items MUST use an explicit `cdkDragHandle`. The full card/row MUST NOT be the drag surface in edit mode.
+- **FORBIDDEN:** `cdkDrag` with no `cdkDragHandle` descendant on a host that scrolls vertically on mobile.
+- **REQUIRED:** Visible grip affordance (e.g. `pi-bars`) with `touch-action: none` on the handle only.
+
+### 12.2 Disabled Drag Must Not Show a Handle
+- If `cdkDragDisabled` is `true` (or always disabled), do NOT render a `cdkDragHandle`. Dead handles mislead users and waste space. Provide alternate reorder UX (sort mode, up/down buttons) instead.
+
+### 12.3 `touch-action` Split
+- Drag handle: `touch-action: none`.
+- Non-handle content on mobile (titles, details, empty space): `touch-action: pan-y` so vertical scroll wins.
+- Apply the split inside `@media (max-width: 768px)` when the layout becomes a vertical timeline/list.
+
+### 12.4 Drop-List Orientation Must Match Layout
+- If mobile CSS changes a drop list to `flex-direction: column`, `cdkDropListOrientation` MUST NOT remain hard-coded to `horizontal`. Bind orientation to layout (e.g. vertical on mobile, horizontal on desktop) or use `mixed`.
+
+### 12.5 Decorative Overlays Must Not Steal Touches
+- Decorative connectors, flow lines, and non-interactive overlays SHOULD use `pointer-events: none`. Interactive children re-enable `pointer-events: auto` only where needed.

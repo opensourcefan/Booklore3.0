@@ -134,8 +134,12 @@
   .dashboard-grid {
     --dashboard-gap: 0.9rem;
   }
+  .dashboard-panel {
+    touch-action: pan-y;
+  }
   .dashboard-panel-handle {
     top: 1rem;
     right: 1rem;
+    touch-action: none;
   }
 }

@@ -1,0 +1,30 @@
+/* Golden fixture SCSS — intentionally incomplete for mobile audit */
+:host {
+  display: block;
+  height: calc(100dvh - 5rem);
+  overflow-y: auto;
+}
+
+.page-header {
+  .subtitle {
+    color: #9ca3af;
+  }
+}
+
+.row-drop-list {
+  display: flex;
+  flex-direction: row;
+}
+
+.move-floating-banner {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+}
+
+@media (max-width: 768px) {
+  .row-drop-list {
+    flex-direction: column;
+  }
+  /* Intentionally missing: subtitle hide, touch-action split, and safe-area */
+}

@@ -963,10 +963,15 @@
     width: 32px;
     height: 32px;
     background: rgba(0, 0, 0, 0.7);
+    touch-action: none;
 
     .pi {
       font-size: 0.9rem;
     }
+  }
+
+  .chart-container {
+    touch-action: pan-y;
   }
 
   .chart-section {

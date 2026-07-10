@@ -1,0 +1,19 @@
+# Mobile styling audit allowlist
+# One substring per line. Findings containing the substring are skipped.
+# Use sparingly for known false positives — prefer fixing real issues.
+# Lines starting with # are comments.
+#
+# IMPORTANT: This audit is MOBILE-ONLY. Do not change desktop styles to
+# silence findings. Prefer @media (max-width: 768px) overrides, or allowlist
+# intentional drag UX that is not a page-scroll conflict.
+#
+# See also: scripts/audit-mobile-styling.sh header "DESIGN INTENT"
+#           .roo/rules/mobile-phone-styling.md §§11–12
+
+# Author chips in metadata picker: whole-chip drag reorders authors (main author = first).
+# Not a page-scroll conflict like Story Arc cards — intentional dense-form UX.
+metadata-picker.component.html:369 — cdkDrag on scrollable host without cdkDragHandle
+
+# Sidebar menu section reorder mode: entire section is the drag surface only while
+# isReorderMode is on — deliberate, important chrome UX. Do not "fix" with handles.
+app.menu.component.html:72 — cdkDrag on scrollable host without cdkDragHandle

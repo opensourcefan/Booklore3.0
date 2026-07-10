@@ -2,17 +2,66 @@
 # =============================================================================
 # Mobile Styling Audit Script (Tightened & Enhanced)
 # Scans fable-ui SCSS and HTML for violations of mobile phone styling standard.
-# Read-only — no files are modified.
+# Read-only — no files are modified by this script.
 # =============================================================================
 #
 # USAGE
 # -----
 #   chmod +x scripts/audit-mobile-styling.sh   # first time only
 #   ./scripts/audit-mobile-styling.sh           # run from the project root
+#   ./scripts/fixtures/mobile-audit/verify-fixtures.sh   # golden-pattern smoke check
 #
 # OUTPUT
 #   Terminal:  colored output to stdout
 #   Report:    scripts/reports/mobile-audit-YYYY-MM-DD.md (auto-generated)
+#
+# =============================================================================
+# DESIGN INTENT (read this before changing rules or "fixing" findings)
+# =============================================================================
+#
+# MOBILE ONLY — NEVER CHANGE DESKTOP TO PASS THIS AUDIT
+#   - This script exists to protect the phone experience (≤768px).
+#   - Remediation MUST be additive inside @media (max-width: 768px) (or
+#     mobile-only TS bindings). Do NOT rewrite desktop base styles, grids,
+#     or drag UX just to silence a finding.
+#   - Ruleset: .roo/rules/mobile-phone-styling.md (§1.2 Desktop Isolation).
+#
+# WHY PAGES ARE IN SCOPE
+#   - On phones, fullscreen dialogs and routed pages occupy nearly the same
+#     viewport. Dialog-only audits missed Story Arc Reading Path scroll death
+#     (v4.14.42): whole-card cdkDrag stole vertical pan.
+#   - Surfaces: [dialog] | [page] | [chrome] | [other] (see surface_for()).
+#   - Ruleset §§11–12 cover pages + drag/scroll coexistence.
+#
+# SEVERITY
+#   - P0 = blocks use (scroll vs drag, orientation mismatch)
+#   - P1 = density / safe-area / compaction
+#   - P2 = polish (reserved)
+#   Exit code 1 if any finding remains after allowlist.
+#
+# ALLOWLIST PHILOSOPHY
+#   - File: scripts/audit-mobile-styling.allowlist
+#   - Use for INTENTIONAL drag UX that is not a page-scroll conflict:
+#       * metadata-picker author chips — whole-chip reorder; first = main author
+#       * app.menu section reorder mode — deliberate full-section drag while
+#         isReorderMode is on (important chrome feature; do not "fix")
+#   - Prefer specific "file:line — message" substrings over whole filenames.
+#   - Do not allowlist real scroll-blocking page lists (Story Arc class).
+#
+# FIX GUIDANCE WHEN A RULE FIRES
+#   - P-Drag.1: add cdkDragHandle; do not make the whole card the drag surface
+#     on scrollable pages. Exception: tiny chips / mode-gated reorder (allowlist).
+#   - P-Drag.2: remove dead handles when cdkDragDisabled=true.
+#   - P-Touch.1: handle = touch-action:none; content = pan-y — MOBILE MQ ONLY.
+#   - P-Layout.1: bind cdkDropListOrientation to layout (vertical on mobile).
+#   - P-Header.1 / 3.1: hide .subtitle / compact headers in ≤768 MQ only.
+#   - P-Safe.1: safe-area on fixed/sticky bottom chrome; desktop bottom: may
+#     remain if the same class has a mobile safe-area override.
+#   - Never mass-migrate pages onto dialog panel mixins to satisfy heuristics.
+#
+# FIXTURES
+#   - scripts/fixtures/mobile-audit/ — golden broken page patterns for P0/P1.
+#   - Not part of the Angular app; used by verify-fixtures.sh only.
 #
 # WHAT IT DOES
 #   Scans every .scss, .html, and .ts file under fable-ui/src/app for
@@ -26,21 +75,33 @@
 #   2.5  Inefficient panel height limit on mobile
 #   2.6  Dialog overlays not top-aligned on mobile
 #   1.3  Breakpoints below 768px without a 768px sibling
-#   3.1  Dialog headers without mobile compaction
+#   3.1  Dialog/page headers without mobile compaction
 #   3.2  dialog-nav without mobile top padding
 #   3.3  Info banners not hidden on mobile
-#   3.4  Row action buttons with visible text on mobile
+#   3.4  Row/toolbar action buttons with visible text on mobile
 #   3.5  Status chips/badges with visible text on mobile
 #   3.6  Validation status in footers not hidden on mobile
 #   3.7  Truncated paths without mobile scroll fallback
 #   3.8  Back-to-top action missing on long panels
 #   3.9  Raw path interpolation without truncation formatting
 #   3.10 Component transition scroll reset check
-#   4.2  Footer patterns missing safe-area-inset-bottom
+#   4.2  Footer/fixed-bottom chrome missing safe-area-inset-bottom
 #   4.3  flex-direction: column in footer media queries
 #   5.4  Top/Bottom header mode layout positioning conflicts
 #   5.5  Mobile popover boundary bounds check
 #   6.1  Invalid CSS: justify-content: stretch
+#   10.1 Direct DialogService.open usage (bypasses back gesture)
+#   10.2 Dialog template lacks close-button
+#   P-Drag.1  CDK drag without handle on scrollable hosts
+#   P-Drag.2  Disabled drag with visible handle
+#   P-Touch.1 Mobile drag missing touch-action split
+#   P-Layout.1 Drop-list orientation vs mobile flex direction
+#   P-Header.1 Page header compaction
+#   P-Safe.1  Fixed/sticky bottom chrome safe-area
+#
+# ALLOWLIST
+#   Optional: scripts/audit-mobile-styling.allowlist
+#   One substring per line; matching findings are skipped (for known FPs).
 #
 # REQUIREMENTS
 #   bash 4+, GNU grep (with -P / PCRE), awk, sed, find, wc
@@ -64,6 +125,9 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 ISSUES=0
+P0_ISSUES=0
+P1_ISSUES=0
+P2_ISSUES=0
 # Track unique files scanned across all rule loops
 declare -A SCANNED_FILES
 
@@ -71,10 +135,25 @@ declare -A SCANNED_FILES
 REPORT_DIR="$PROJECT_DIR/scripts/reports"
 REPORT_DATE=$(date '+%Y-%m-%d_%H%M')
 REPORT_FILE="$REPORT_DIR/mobile-audit-${REPORT_DATE}.md"
+ALLOWLIST_FILE="$SCRIPT_DIR/audit-mobile-styling.allowlist"
 RULE_ORDER=()                # preserves section order
 declare -A RULE_DESCRIPTIONS # rule_id -> description
 declare -A RULE_ISSUES       # rule_id -> newline-separated issue strings
+declare -A RULE_SEVERITY     # rule_id -> P0|P1|P2
 CURRENT_RULE=""
+CURRENT_SEVERITY="P1"
+
+is_allowlisted() {
+    local msg="$1"
+    [ -f "$ALLOWLIST_FILE" ] || return 1
+    while IFS= read -r pattern || [ -n "$pattern" ]; do
+        [[ -z "$pattern" || "$pattern" =~ ^[[:space:]]*# ]] && continue
+        if echo "$msg" | grep -qF "$pattern"; then
+            return 0
+        fi
+    done < "$ALLOWLIST_FILE"
+    return 1
+}
 
 section() {
     echo ""
@@ -82,16 +161,31 @@ section() {
     CURRENT_RULE="$1"
     RULE_ORDER+=("$CURRENT_RULE")
     RULE_DESCRIPTIONS["$CURRENT_RULE"]="$1"
+    CURRENT_SEVERITY="${2:-P1}"
+    RULE_SEVERITY["$CURRENT_RULE"]="$CURRENT_SEVERITY"
 }
 
 warn() {
-    echo -e "  ${YELLOW}⚠  $1${NC}"
+    local msg="$1"
+    local surface="${2:-}"
+    if [ -n "$surface" ]; then
+        msg="[$surface] $msg"
+    fi
+    if is_allowlisted "$msg"; then
+        return 0
+    fi
+    echo -e "  ${YELLOW}⚠  $msg${NC}"
     ISSUES=$((ISSUES + 1))
+    case "$CURRENT_SEVERITY" in
+        P0) P0_ISSUES=$((P0_ISSUES + 1)) ;;
+        P2) P2_ISSUES=$((P2_ISSUES + 1)) ;;
+        *)  P1_ISSUES=$((P1_ISSUES + 1)) ;;
+    esac
     if [ -n "$CURRENT_RULE" ]; then
         if [ -n "${RULE_ISSUES[$CURRENT_RULE]+x}" ]; then
-            RULE_ISSUES["$CURRENT_RULE"]+=$'\n'"$1"
+            RULE_ISSUES["$CURRENT_RULE"]+=$'\n'"$msg"
         else
-            RULE_ISSUES["$CURRENT_RULE"]="$1"
+            RULE_ISSUES["$CURRENT_RULE"]="$msg"
         fi
     fi
 }
@@ -224,7 +318,7 @@ get_enclosing_class() {
 }
 
 # =============================================================================
-# Helper: check if a file is a dialog/panel component (not a page, not a chart)
+# Helper: check if a file is a dialog/panel component
 # =============================================================================
 is_dialog_component() {
     local file="$1"
@@ -235,6 +329,41 @@ is_dialog_component() {
         return 0
     fi
     return 1
+}
+
+# =============================================================================
+# Helper: check if a file is a routed page / full-viewport feature
+# =============================================================================
+is_page_component() {
+    local file="$1"
+    if echo "$file" | grep -qE '(-page|/browser/|/dashboard/|/stats/)'; then
+        return 0
+    fi
+    if grep -qE '\.page-header|:host-context\(body\.header-bottom\)|height:\s*calc\(100dvh' "$file" 2>/dev/null; then
+        return 0
+    fi
+    local html_sib="${file%.scss}.html"
+    html_sib="${html_sib%.ts}.html"
+    if [ -f "$html_sib" ] && grep -qE 'class="[^"]*page-header' "$html_sib" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+# =============================================================================
+# Helper: surface tag for a file
+# =============================================================================
+surface_for() {
+    local file="$1"
+    if is_dialog_component "$file"; then
+        echo "dialog"
+    elif is_page_component "$file"; then
+        echo "page"
+    elif echo "$file" | grep -qE '/(layout|shared)/'; then
+        echo "chrome"
+    else
+        echo "other"
+    fi
 }
 
 # =============================================================================
@@ -336,9 +465,9 @@ while IFS= read -r -d '' file; do
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
-# Rule 4.2: Missing safe-area-inset-bottom in footer patterns
+# Rule 4.2: Missing safe-area-inset-bottom in footer / fixed-bottom chrome
 # =============================================================================
-section "Rule 4.2 — Footer patterns missing safe-area-inset-bottom"
+section "Rule 4.2 — Footer/fixed-bottom chrome missing safe-area-inset-bottom" "P1"
 
 while IFS= read -r -d '' file; do
     SCANNED_FILES["$file"]=1
@@ -348,14 +477,14 @@ while IFS= read -r -d '' file; do
     fi
 
     has_safe_area=$(grep -c 'safe-area-inset-bottom' "$file" 2>/dev/null || true)
-    has_footer=$(grep -cE '(dialog-footer|\.footer|panel-footer)' "$file" 2>/dev/null || true)
+    has_footer=$(grep -cE '(dialog-footer|\.footer|panel-footer|floating-banner|move-floating|sticky-bar|bottom-bar|\.fab\b)' "$file" 2>/dev/null || true)
 
     if [ "$has_footer" -gt 0 ] && [ "$has_safe_area" -eq 0 ]; then
         if grep -q '@include panel\.dialog-footer' "$file" 2>/dev/null; then
             continue
         fi
-        line=$(grep -nE '(dialog-footer|\.footer|panel-footer)' "$file" | head -1 | cut -d: -f1)
-        warn "$file:$line — footer pattern without safe-area-inset-bottom"
+        line=$(grep -nE '(dialog-footer|\.footer|panel-footer|floating-banner|move-floating|sticky-bar|bottom-bar|\.fab\b)' "$file" | head -1 | cut -d: -f1)
+        warn "$file:$line — footer/fixed-bottom chrome without safe-area-inset-bottom" "$(surface_for "$file")"
     fi
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
@@ -395,13 +524,14 @@ while IFS= read -r -d '' file; do
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
-# Rule 3.1: Oversized dialog headers without mobile compaction
+# Rule 3.1: Oversized dialog/page headers without mobile compaction
 # =============================================================================
-section "Rule 3.1 — Dialog headers without mobile compaction"
+section "Rule 3.1 — Dialog/page headers without mobile compaction" "P1"
 
 while IFS= read -r -d '' file; do
     SCANNED_FILES["$file"]=1
     has_header_icon=$(grep -c 'header-icon' "$file" 2>/dev/null || true)
+    has_page_header=$(grep -cE '\.page-header|\.title-section' "$file" 2>/dev/null || true)
     has_768=$(grep -c 'max-width:\s*768px' "$file" 2>/dev/null || true)
 
     if [ "$has_header_icon" -gt 0 ] && [ "$has_768" -eq 0 ]; then
@@ -409,56 +539,80 @@ while IFS= read -r -d '' file; do
             continue
         fi
         line=$(grep -n 'header-icon' "$file" | head -1 | cut -d: -f1)
-        warn "$file:$line — dialog header without 768px mobile compaction"
+        warn "$file:$line — dialog header without 768px mobile compaction" "$(surface_for "$file")"
+    fi
+
+    # Page headers: require 768px MQ when page-header/title-section present
+    if [ "$has_page_header" -gt 0 ] && [ "$has_768" -eq 0 ]; then
+        line=$(grep -nE '\.page-header|\.title-section' "$file" | head -1 | cut -d: -f1)
+        warn "$file:$line — page header without 768px mobile compaction" "page"
     fi
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
 # Rule 3.3: Info banners not hidden on mobile
 # =============================================================================
-section "Rule 3.3 — Info banners not hidden on mobile"
+section "Rule 3.3 — Info banners not hidden on mobile" "P1"
 
 while IFS= read -r -d '' file; do
     SCANNED_FILES["$file"]=1
-    if ! is_dialog_component "$file"; then
+    # Dialogs and pages both consume scarce vertical space with banners
+    if ! is_dialog_component "$file" && ! is_page_component "$file"; then
         continue
     fi
 
-    has_banner=$(grep -cE '(scan-note|info-note|info-banner|guidance|help-text|directory-scan-note)' "$file" 2>/dev/null || true)
+    has_banner=$(grep -cE '(scan-note|info-note|info-banner|guidance|help-text|directory-scan-note|guide-url-edit-panel)' "$file" 2>/dev/null || true)
     [ "$has_banner" -eq 0 ] && continue
 
     while IFS=: read -r line class; do
-        class_name=$(echo "$class" | grep -oP '\.?\K[a-zA-Z_-]*(?:scan-note|info-note|info-banner|guidance|help-text|directory-scan-note)[a-zA-Z_-]*' | head -1)
+        class_name=$(echo "$class" | grep -oP '\.?\K[a-zA-Z_-]*(?:scan-note|info-note|info-banner|guidance|help-text|directory-scan-note|guide-url-edit-panel)[a-zA-Z_-]*' | head -1)
         [ -z "$class_name" ] && continue
 
         if class_has_mobile_override "$file" "$class_name" 'display:[ \t]*none'; then
             continue
         fi
+        # guide-url-edit-panel may compact labels instead of full hide — accept either
+        if [ "$class_name" = "guide-url-edit-panel" ] && grep -qE 'guide-url-edit-panel' "$file" && \
+           awk '/@media.*max-width:[ \t]*768px/{in=1} in && /guide-url-edit-panel/{found=1} in && found && /display:[ \t]*none/{print "yes"; exit}' "$file" | grep -q yes; then
+            continue
+        fi
 
-        warn "$file:$line — '$class_name' info banner not hidden on mobile"
-    done < <(grep -nE '(scan-note|info-note|info-banner|guidance|help-text|directory-scan-note)' "$file" 2>/dev/null)
+        warn "$file:$line — '$class_name' info banner not hidden/compacted on mobile" "$(surface_for "$file")"
+    done < <(grep -nE '(scan-note|info-note|info-banner|guidance|help-text|directory-scan-note|guide-url-edit-panel)' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
-# Rule 3.4: Row action buttons with text labels not hidden on mobile
+# Rule 3.4: Row/toolbar action buttons with text labels not hidden on mobile
 # =============================================================================
-section "Rule 3.4 — Row action buttons with visible text on mobile"
+section "Rule 3.4 — Row/toolbar action buttons with visible text on mobile" "P1"
 
 while IFS= read -r -d '' file; do
     SCANNED_FILES["$file"]=1
-    has_row_btn=$(grep -cE '(folder-rescan|folder-remove|row-action|item-action|directory-action)' "$file" 2>/dev/null || true)
+    has_row_btn=$(grep -cE '(folder-rescan|folder-remove|row-action|item-action|directory-action|place-chapter-btn|cancel-move-btn)' "$file" 2>/dev/null || true)
     [ "$has_row_btn" -eq 0 ] && continue
 
     while IFS=: read -r line class; do
-        class_name=$(echo "$class" | grep -oP '\.?\K[a-zA-Z_-]*(?:folder-rescan|folder-remove|row-action|item-action|directory-action)[a-zA-Z_-]*' | head -1)
+        class_name=$(echo "$class" | grep -oP '\.?\K[a-zA-Z0-9_-]*(?:folder-rescan|folder-remove|row-action|item-action|directory-action|place-chapter-btn|cancel-move-btn)[a-zA-Z0-9_-]*' | head -1)
         [ -z "$class_name" ] && continue
 
         if class_has_mobile_override "$file" "$class_name" 'display:[ \t]*none'; then
             continue
         fi
+        # Accept .p-button-label { display: none } inside a 768 MQ near this class
+        if awk -v cls="$class_name" '
+            /@media.*max-width:[ \t]*768px/ { in_mq=1; depth=0 }
+            in_mq && /\{/ { depth++ }
+            in_mq && /\}/ { depth--; if (depth<=0) { in_mq=0; near=0; saw_label=0 } }
+            in_mq && index($0, cls) { near=1 }
+            in_mq && near && /\.p-button-label/ { saw_label=1 }
+            in_mq && saw_label && /display:[ \t]*none/ { print "yes"; exit }
+            in_mq && /\.p-button-label/ && /display:[ \t]*none/ { print "yes"; exit }
+        ' "$file" 2>/dev/null | grep -q yes; then
+            continue
+        fi
 
-        warn "$file:$line — '$class_name' row button may have visible text on mobile"
-    done < <(grep -nE '(folder-rescan|folder-remove|row-action|item-action|directory-action)' "$file" 2>/dev/null)
+        warn "$file:$line — '$class_name' row/toolbar button may have visible text on mobile" "$(surface_for "$file")"
+    done < <(grep -nE '(folder-rescan|folder-remove|row-action|item-action|directory-action|place-chapter-btn|cancel-move-btn)' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
@@ -754,6 +908,190 @@ while IFS= read -r -d '' html_file; do
 done < <(find "$UI_DIR" -name "*.html" -print0)
 
 # =============================================================================
+# P-Drag.1: CDK drag without handle on scrollable hosts
+# =============================================================================
+section "P-Drag.1 — CDK drag without handle on scrollable hosts" "P0"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if ! grep -q 'cdkDrag' "$html_file" 2>/dev/null; then
+        continue
+    fi
+    scss_file="${html_file%.html}.scss"
+    # Only flag scrollable page/dialog hosts (or any file with overflow-y scroll/auto / page markers)
+    is_scroll_host=false
+    if is_page_component "$html_file" || is_dialog_component "$html_file"; then
+        is_scroll_host=true
+    fi
+    if [ -f "$scss_file" ] && grep -qE 'overflow-y:\s*(auto|scroll)' "$scss_file" 2>/dev/null; then
+        is_scroll_host=true
+    fi
+    [ "$is_scroll_host" = true ] || continue
+
+    # For each line with cdkDrag (not cdkDragHandle / cdkDragDisabled / cdkDragDrop / cdkDragPreview / cdkDragPlaceholder)
+    while IFS=: read -r line content; do
+        if echo "$content" | grep -qE 'cdkDragHandle|cdkDragDisabled|cdkDragDrop|cdkDragPreview|cdkDragPlaceholder|cdkDropList'; then
+            continue
+        fi
+        if ! echo "$content" | grep -qE '\bcdkDrag\b'; then
+            continue
+        fi
+        # Look ahead ~40 lines for a cdkDragHandle inside the same element block
+        end=$((line + 40))
+        block=$(sed -n "${line},${end}p" "$html_file" 2>/dev/null)
+        if echo "$block" | grep -q 'cdkDragHandle'; then
+            continue
+        fi
+        warn "$html_file:$line — cdkDrag on scrollable host without cdkDragHandle (blocks mobile scroll)" "$(surface_for "$html_file")"
+    done < <(grep -nE '\bcdkDrag\b' "$html_file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# P-Drag.2: Disabled drag with visible handle
+# =============================================================================
+section "P-Drag.2 — Disabled drag with visible handle" "P0"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    while IFS=: read -r line content; do
+        if echo "$content" | grep -qE 'cdkDragDisabled\]="true"|cdkDragDisabled="true"|\[cdkDragDisabled\]="true"'; then
+            end=$((line + 50))
+            block=$(sed -n "${line},${end}p" "$html_file" 2>/dev/null)
+            if echo "$block" | grep -q 'cdkDragHandle'; then
+                handle_line=$(echo "$block" | grep -n 'cdkDragHandle' | head -1 | cut -d: -f1)
+                abs_line=$((line + handle_line - 1))
+                warn "$html_file:$abs_line — cdkDragHandle present while cdkDragDisabled=true (dead handle)" "$(surface_for "$html_file")"
+            fi
+        fi
+    done < <(grep -nE 'cdkDragDisabled' "$html_file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# P-Touch.1: Mobile drag missing touch-action split
+# =============================================================================
+section "P-Touch.1 — Mobile drag missing touch-action split" "P0"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if ! grep -qE '\bcdkDrag\b' "$html_file" 2>/dev/null; then
+        continue
+    fi
+    if ! is_page_component "$html_file" && ! is_dialog_component "$html_file"; then
+        continue
+    fi
+    scss_file="${html_file%.html}.scss"
+    [ -f "$scss_file" ] || continue
+    has_768=$(grep -c 'max-width:\s*768px' "$scss_file" 2>/dev/null || true)
+    [ "$has_768" -gt 0 ] || continue
+
+    has_pan_y=$(grep -c 'touch-action:\s*pan-y' "$scss_file" 2>/dev/null || true)
+    has_none=$(grep -c 'touch-action:\s*none' "$scss_file" 2>/dev/null || true)
+    if [ "$has_pan_y" -eq 0 ] || [ "$has_none" -eq 0 ]; then
+        line=$(grep -nE '\bcdkDrag\b' "$html_file" | head -1 | cut -d: -f1)
+        warn "$html_file:$line — CDK drag on mobile surface without touch-action split (need pan-y on content + none on handle)" "$(surface_for "$html_file")"
+    fi
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# P-Layout.1: Drop-list orientation vs mobile flex direction
+# =============================================================================
+section "P-Layout.1 — Drop-list orientation vs mobile flex direction" "P0"
+
+while IFS= read -r -d '' html_file; do
+    SCANNED_FILES["$html_file"]=1
+    if ! grep -qE 'cdkDropListOrientation="horizontal"|cdkDropListOrientation='\''horizontal'\''' "$html_file" 2>/dev/null; then
+        continue
+    fi
+    # Bound orientation (property binding) is OK — skip attribute-only hardcode check when binding present
+    if grep -qE '\[cdkDropListOrientation\]' "$html_file" 2>/dev/null; then
+        continue
+    fi
+    scss_file="${html_file%.html}.scss"
+    [ -f "$scss_file" ] || continue
+    # If mobile MQ sets the drop list (or its common class) to column, flag mismatch
+    if awk '
+        /@media.*max-width:[ \t]*768px/ { in_mq=1; depth=0 }
+        in_mq && /\{/ { depth++ }
+        in_mq && /\}/ { depth--; if (depth<=0) in_mq=0 }
+        in_mq && /flex-direction:[ \t]*column/ { print "yes"; exit }
+    ' "$scss_file" 2>/dev/null | grep -q yes; then
+        line=$(grep -nE 'cdkDropListOrientation="horizontal"' "$html_file" | head -1 | cut -d: -f1)
+        warn "$html_file:$line — hard-coded horizontal drop orientation while mobile CSS uses flex-direction: column" "$(surface_for "$html_file")"
+    fi
+done < <(find "$UI_DIR" -name "*.html" -print0)
+
+# =============================================================================
+# P-Header.1: Page header subtitle not hidden on mobile
+# =============================================================================
+section "P-Header.1 — Page header compaction (subtitle)" "P1"
+
+while IFS= read -r -d '' scss_file; do
+    SCANNED_FILES["$scss_file"]=1
+    if ! is_page_component "$scss_file"; then
+        continue
+    fi
+    if ! grep -qE '\.subtitle' "$scss_file" 2>/dev/null; then
+        continue
+    fi
+    if class_has_mobile_override "$scss_file" 'subtitle' 'display:[ \t]*none'; then
+        continue
+    fi
+    # Also accept nested .title-section .subtitle { display: none } inside 768 MQ
+    if awk '
+        /@media.*max-width:[ \t]*768px/ { in_mq=1; depth=0 }
+        in_mq && /\{/ { depth++ }
+        in_mq && /\}/ { depth--; if (depth<=0) in_mq=0 }
+        in_mq && /\.subtitle/ { saw=1 }
+        in_mq && saw && /display:[ \t]*none/ { print "yes"; exit }
+    ' "$scss_file" 2>/dev/null | grep -q yes; then
+        continue
+    fi
+    line=$(grep -nE '\.subtitle' "$scss_file" | head -1 | cut -d: -f1)
+    warn "$scss_file:$line — .subtitle on page without mobile display:none compaction" "page"
+done < <(find "$UI_DIR" -name "*.scss" -print0)
+
+# =============================================================================
+# P-Safe.1: Fixed/sticky bottom without safe-area
+# =============================================================================
+section "P-Safe.1 — Fixed/sticky bottom chrome missing safe-area" "P1"
+
+while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
+    if [[ "$file" =~ (chart|heatmap|widget|reader) ]]; then
+        continue
+    fi
+    while IFS=: read -r line rest; do
+        ctx_start=$((line - 8))
+        [ "$ctx_start" -lt 1 ] && ctx_start=1
+        ctx_end=$((line + 12))
+        context=$(sed -n "${ctx_start},${ctx_end}p" "$file" 2>/dev/null)
+        if ! echo "$context" | grep -qE 'position:\s*(fixed|sticky)'; then
+            continue
+        fi
+        if echo "$context" | grep -q 'safe-area-inset-bottom'; then
+            continue
+        fi
+        # Ignore tiny decorative bottoms unlikely to be chrome
+        if echo "$context" | grep -qE '(tooltip|popover|dropdown|overlay-mask)'; then
+            continue
+        fi
+        # If the enclosing class has a mobile safe-area override elsewhere in the file, accept it
+        class_name=$(get_enclosing_class "$file" "$line")
+        if [ -n "$class_name" ] && grep -q "$class_name" "$file" && \
+           awk -v cls="$class_name" '
+             index($0, cls) { near=1 }
+             near && /safe-area-inset-bottom/ { print "yes"; exit }
+             /@media.*max-width:[ \t]*768px/ { in_mq=1 }
+             in_mq && index($0, cls) { mq_near=1 }
+             in_mq && mq_near && /safe-area-inset-bottom/ { print "yes"; exit }
+           ' "$file" 2>/dev/null | grep -q yes; then
+            continue
+        fi
+        warn "$file:$line — fixed/sticky bottom without safe-area-inset-bottom nearby" "$(surface_for "$file")"
+    done < <(grep -nE '^\s*bottom:\s*' "$file" 2>/dev/null | grep -vE 'bottom:\s*(auto|unset|initial|inherit|0\s*;|0px)')
+done < <(find "$UI_DIR" -name "*.scss" -print0)
+
+# =============================================================================
 # Summary
 # =============================================================================
 section "SUMMARY"
@@ -764,10 +1102,12 @@ if [ "$ISSUES" -eq 0 ]; then
     echo -e "  ${GREEN}${BOLD}No issues found.${NC}"
 else
     echo -e "  ${RED}${BOLD}$ISSUES potential issue(s) found${NC} across $FILES_SCANNED scanned files."
+    echo -e "  Severity: ${RED}P0=$P0_ISSUES${NC}  ${YELLOW}P1=$P1_ISSUES${NC}  ${CYAN}P2=$P2_ISSUES${NC}"
 fi
 echo ""
 echo -e "  Ruleset: ${CYAN}.roo/rules/mobile-phone-styling.md${NC}"
 echo -e "  Scanned:  ${CYAN}$UI_DIR${NC}"
+echo -e "  Allowlist: ${CYAN}$ALLOWLIST_FILE${NC}"
 echo ""
 
 # =============================================================================
@@ -782,6 +1122,9 @@ mkdir -p "$REPORT_DIR"
     echo "**Script:** \`scripts/audit-mobile-styling.sh\`"
     echo "**Ruleset:** \`.roo/rules/mobile-phone-styling.md\`"
     echo "**Scan target:** \`fable-ui/src/app\` ($FILES_SCANNED files scanned)"
+    echo "**Severity totals:** P0=$P0_ISSUES · P1=$P1_ISSUES · P2=$P2_ISSUES · All=$ISSUES"
+    echo ""
+    echo "Surfaces: \`[dialog]\` · \`[page]\` · \`[chrome]\` · \`[other]\`"
     echo ""
     echo "---"
     echo ""
@@ -799,7 +1142,8 @@ mkdir -p "$REPORT_DIR"
             [[ "$rule" == "SUMMARY" ]] && continue
 
             if [ -n "${RULE_ISSUES[$rule]+x}" ]; then
-                echo "### $rule"
+                sev="${RULE_SEVERITY[$rule]:-P1}"
+                echo "### $rule \`$sev\`"
                 echo ""
                 echo "| # | File | Line | Description |"
                 echo "|---|------|------|-------------|"
@@ -807,10 +1151,18 @@ mkdir -p "$REPORT_DIR"
                 count=0
                 while IFS= read -r issue; do
                     count=$((count + 1))
-                    if [[ "$issue" =~ ^(.+):([0-9]+)\ —\ (.+)$ ]]; then
+                    # Strip optional [surface] prefix for table parsing of path:line
+                    bare="$issue"
+                    if [[ "$issue" =~ ^\[(dialog|page|chrome|other)\]\ (.+)$ ]]; then
+                        bare="${BASH_REMATCH[2]}"
+                        surface_tag="[${BASH_REMATCH[1]}] "
+                    else
+                        surface_tag=""
+                    fi
+                    if [[ "$bare" =~ ^(.+):([0-9]+)\ —\ (.+)$ ]]; then
                         filepath="${BASH_REMATCH[1]}"
                         lineno="${BASH_REMATCH[2]}"
-                        desc="${BASH_REMATCH[3]}"
+                        desc="${surface_tag}${BASH_REMATCH[3]}"
                         file_basename=$(basename "$filepath")
                         echo "| $count | \`$file_basename\` | $lineno | $desc |"
                     else

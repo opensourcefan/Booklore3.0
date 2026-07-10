@@ -449,8 +449,13 @@
     .header-card {
       padding: 1rem 1.5rem;
       margin-bottom: 1.5rem;
-      .header-content h1 {
-        font-size: 1.5rem;
+      .header-content {
+        h1 {
+          font-size: 1.5rem;
+        }
+        .subtitle {
+          display: none;
+        }
       }
     }
 

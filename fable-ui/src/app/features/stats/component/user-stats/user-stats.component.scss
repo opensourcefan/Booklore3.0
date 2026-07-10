@@ -466,9 +466,15 @@
 
   .chart-card {
     padding: 1rem;
+    touch-action: pan-y;
 
     .chart-drag-handle {
       opacity: 1;
+      touch-action: none;
+    }
+
+    .drag-handle {
+      touch-action: none;
     }
 
     &.chart-small-square,
