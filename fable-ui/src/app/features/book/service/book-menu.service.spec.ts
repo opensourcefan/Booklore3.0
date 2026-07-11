@@ -119,10 +119,7 @@ describe('BookMenuService', () => {
 
     expect(bookService.updateBookShelves).not.toHaveBeenCalled();
     expect(writeProgressService.fail).toHaveBeenCalledWith('book.menuService.toast.unshelveFailedDetail');
-    expect(messageService.add).toHaveBeenCalledWith({
-      severity: 'error',
-      summary: 'common.error',
-      detail: 'book.menuService.toast.unshelveFailedDetail'
-    });
+    // Failure inbox comes from writeProgressService.fail(); no duplicate error toast.
+    expect(messageService.add).not.toHaveBeenCalled();
   });
 });
