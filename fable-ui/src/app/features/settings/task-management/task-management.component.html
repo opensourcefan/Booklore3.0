@@ -139,7 +139,11 @@
                         (ngModelChange)="toggleCronEnabled(taskInfo.taskType)">
                       </p-toggleswitch>
                     </div>
-                    <div class="cron-row" style="margin-top: 0.5rem; justify-content: space-between;">
+                    <div
+                      class="cron-row"
+                      style="margin-top: 0.5rem; justify-content: space-between;"
+                      [pTooltip]="t('cron.notificationsTooltip')"
+                      tooltipPosition="top">
                       <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="pi pi-bell" style="color: var(--p-primary-color); font-size: 0.875rem;"></i>
                         <span style="font-size: 0.875rem; color: var(--p-text-muted-color);">{{ t('cron.notifications') }}</span>
@@ -263,6 +267,9 @@
                   } @else if (getRunHistory(taskInfo.taskType).length === 0) {
                     <div class="history-empty">{{ t('history.empty') }}</div>
                   } @else {
+                    <div class="history-caption">
+                      {{ t('history.showingLast', {count: getRunHistory(taskInfo.taskType).length}) }}
+                    </div>
                     <ul class="history-list">
                       @for (run of getRunHistory(taskInfo.taskType); track run.id) {
                         <li class="history-row">

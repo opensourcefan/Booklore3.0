@@ -130,13 +130,7 @@ export class BookMenuService {
                     },
                     error: (err: HttpErrorResponse) => {
                       const apiError = err.error as APIException;
-                      this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
-                      this.messageService.add({
-                        severity: 'error',
-                        summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
-                        detail: apiError?.message || this.t.translate('book.menuService.toast.readStatusFailedDetail'),
-                        life: 3000
-                      });
+                      this.writeProgressService.fail(apiError?.message || this.t.translate('book.menuService.toast.readStatusFailedDetail'));
                     }
                   });
               }
@@ -178,12 +172,6 @@ export class BookMenuService {
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
                         this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
-                        this.messageService.add({
-                          severity: 'error',
-                          summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
-                          detail: apiError?.message || this.t.translate('book.menuService.toast.ageRatingFailedDetail'),
-                          life: 3000
-                        });
                       }
                     });
                 }
@@ -221,12 +209,6 @@ export class BookMenuService {
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
                         this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
-                        this.messageService.add({
-                          severity: 'error',
-                          summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
-                          detail: apiError?.message || this.t.translate('book.menuService.toast.clearAgeRatingFailedDetail'),
-                          life: 3000
-                        });
                       }
                     });
                 }
@@ -267,12 +249,6 @@ export class BookMenuService {
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
                         this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
-                        this.messageService.add({
-                          severity: 'error',
-                          summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
-                          detail: apiError?.message || this.t.translate('book.menuService.toast.contentRatingFailedDetail'),
-                          life: 3000
-                        });
                       }
                     });
                 }
@@ -310,12 +286,6 @@ export class BookMenuService {
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
                         this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
-                        this.messageService.add({
-                          severity: 'error',
-                          summary: this.t.translate('book.menuService.toast.updateFailedSummary'),
-                          detail: apiError?.message || this.t.translate('book.menuService.toast.clearContentRatingFailedDetail'),
-                          life: 3000
-                        });
                       }
                     });
                 }
@@ -363,13 +333,11 @@ export class BookMenuService {
                          },
                          error: () => {
                            this.writeProgressService.fail(this.t.translate('book.menuService.toast.unshelveFailedDetail'));
-                           this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('book.menuService.toast.unshelveFailedDetail')});
                          }
                        });
                    },
                    error: () => {
                      this.writeProgressService.fail(this.t.translate('book.menuService.toast.unshelveFailedDetail'));
-                     this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('book.menuService.toast.unshelveFailedDetail')});
                    }
                  });
              }
@@ -405,12 +373,6 @@ export class BookMenuService {
                   error: (err: HttpErrorResponse) => {
                     const apiError = err.error as APIException;
                     this.writeProgressService.fail(this.t.translate('book.menuService.toast.failedSummary'));
-                    this.messageService.add({
-                      severity: 'error',
-                      summary: this.t.translate('book.menuService.toast.failedSummary'),
-                      detail: apiError?.message || this.t.translate('book.menuService.toast.progressResetFailedDetail'),
-                      life: 3000
-                    });
                   }
                 });
             }
@@ -446,12 +408,6 @@ export class BookMenuService {
                   error: (err: HttpErrorResponse) => {
                     const apiError = err.error as APIException;
                     this.writeProgressService.fail(this.t.translate('book.menuService.toast.failedSummary'));
-                    this.messageService.add({
-                      severity: 'error',
-                      summary: this.t.translate('book.menuService.toast.failedSummary'),
-                      detail: apiError?.message || this.t.translate('book.menuService.toast.progressResetFailedDetail'),
-                      life: 3000
-                    });
                   }
                 });
             }

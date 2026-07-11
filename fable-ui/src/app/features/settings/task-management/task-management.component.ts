@@ -85,6 +85,7 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
 
   // Constants
   private readonly STALE_TASK_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+  readonly HISTORY_DISPLAY_LIMIT = 20;
   protected readonly TaskType = TaskType;
 
   // ============================================================================
@@ -665,13 +666,15 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
 
   private loadHistory(taskType: string): void {
     this.loadingHistoryTypes.add(taskType);
-    this.taskService.getHistoryByType(taskType, 20)
+    this.taskService.getHistoryByType(taskType, this.HISTORY_DISPLAY_LIMIT)
       .pipe(finalize(() => this.loadingHistoryTypes.delete(taskType)))
       .subscribe({
         next: (response) => {
           this.taskRunHistories.set(
             taskType,
-            (response.taskHistories ?? []).filter(row => !!row.id)
+            (response.taskHistories ?? [])
+              .filter(row => !!row.id)
+              .slice(0, this.HISTORY_DISPLAY_LIMIT)
           );
         },
         error: () => {

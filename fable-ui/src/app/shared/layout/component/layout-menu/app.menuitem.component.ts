@@ -525,7 +525,6 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.writeProgressService.fail(this.translocoService.translate('book.shelfAssigner.toast.updateFailedDetail'));
-          this.messageService.add({severity: 'error', summary: this.translocoService.translate('common.error'), detail: this.translocoService.translate('book.shelfAssigner.toast.updateFailedDetail')});
         }
       });
   }
@@ -541,7 +540,6 @@ export class AppMenuitemComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.writeProgressService.fail('Failed to update Media Type.');
-          this.messageService.add({severity: 'error', summary: this.translocoService.translate('common.error'), detail: 'Failed to update Media Type.'});
         }
       });
   }

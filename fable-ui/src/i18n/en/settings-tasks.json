@@ -21,8 +21,8 @@
     "invalidField": "Invalid {{name}} field: {{value}}",
     "updateSuccess": "Scheduled task configuration has been updated successfully.",
     "updateError": "Failed to update scheduled task configuration.",
-    "notifications": "Notifications",
-    "notificationsTooltip": "Enable completion notifications"
+    "notifications": "Error notifications",
+    "notificationsTooltip": "When on, scheduled task failures appear in the bell Notifications inbox. Successful runs are recorded under Recent runs only."
   },
   "buttons": {
     "run": "Run",
@@ -50,6 +50,7 @@
     "empty": "No previous runs recorded yet.",
     "loading": "Loading history…",
     "loadError": "Failed to load task history",
+    "showingLast": "Showing last {{count}} runs",
     "scheduled": "Scheduled",
     "manual": "Manual"
   },

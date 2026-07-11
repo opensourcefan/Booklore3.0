@@ -162,7 +162,7 @@ public class TaskHistoryService {
             rows = taskHistoryRepository.findByTypeOrderByCreatedAtDesc(
                     taskType,
                     PageRequest.of(0, safeLimit)
-            );
+            ).getContent();
         } catch (Exception e) {
             log.warn("Error fetching history for task type {}: {}", taskType, e.getMessage());
             rows = Collections.emptyList();

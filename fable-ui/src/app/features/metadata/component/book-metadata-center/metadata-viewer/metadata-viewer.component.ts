@@ -41,6 +41,7 @@ import {Dialog} from 'primeng/dialog';
 import {Checkbox} from 'primeng/checkbox';
 import DOMPurify from 'dompurify';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 
 
 @Component({
@@ -60,6 +61,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
   private bookDialogHelperService = inject(BookDialogHelperService)
   private emailService = inject(EmailService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private bookService = inject(BookService);
   private bookFileService = inject(BookFileService);
   private taskHelperService = inject(TaskHelperService);
@@ -642,11 +644,10 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
             });
           },
           error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('metadata.viewer.toast.deleteSupplementaryErrorSummary'),
-              detail: this.t.translate('metadata.viewer.toast.deleteSupplementaryErrorDetail', { error: error.message || 'Unknown error' })
-            });
+            this.toastError(
+              this.t.translate('metadata.viewer.toast.deleteSupplementaryErrorSummary'),
+              this.t.translate('metadata.viewer.toast.deleteSupplementaryErrorDetail', { error: error.message || 'Unknown error' })
+            );
           }
         });
       }
@@ -688,11 +689,10 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
             });
           },
           error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('metadata.viewer.toast.deleteFormatErrorSummary'),
-              detail: this.t.translate('metadata.viewer.toast.deleteFormatErrorDetail', { error: error.message || 'Unknown error' })
-            });
+            this.toastError(
+              this.t.translate('metadata.viewer.toast.deleteFormatErrorSummary'),
+              this.t.translate('metadata.viewer.toast.deleteFormatErrorDetail', { error: error.message || 'Unknown error' })
+            );
           }
         });
       }
@@ -768,6 +768,12 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
     });
   }
 
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
+  }
+
   private closeMetadataViewerAfterDelete(): void {
     if (this.metadataCenterViewMode === 'route') {
       this.router.navigate(['/dashboard']);
@@ -784,11 +790,10 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
           summary: this.t.translate('metadata.viewer.toast.quickSendSuccessSummary'),
           detail: this.t.translate('metadata.viewer.toast.quickSendSuccessDetail'),
         }),
-        error: (err) => this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.viewer.toast.quickSendErrorSummary'),
-          detail: err?.error?.message || this.t.translate('metadata.viewer.toast.quickSendErrorDetail'),
-        })
+        error: (err) => this.toastError(
+          this.t.translate('metadata.viewer.toast.quickSendErrorSummary'),
+          err?.error?.message || this.t.translate('metadata.viewer.toast.quickSendErrorDetail')
+        )
       });
     };
 
@@ -834,12 +839,11 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
         },
         error: (err) => {
           console.error('Failed to update read status:', err);
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('metadata.viewer.toast.readStatusFailedSummary'),
-            detail: this.t.translate('metadata.viewer.toast.readStatusFailedDetail'),
-            life: 3000
-          });
+          this.toastError(
+            this.t.translate('metadata.viewer.toast.readStatusFailedSummary'),
+            this.t.translate('metadata.viewer.toast.readStatusFailedDetail'),
+            3000
+          );
         }
       });
     });
@@ -864,12 +868,11 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
             });
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('metadata.viewer.toast.progressResetFailedSummary'),
-              detail: this.t.translate('metadata.viewer.toast.progressResetFailedDetail'),
-              life: 1500
-            });
+            this.toastError(
+              this.t.translate('metadata.viewer.toast.progressResetFailedSummary'),
+              this.t.translate('metadata.viewer.toast.progressResetFailedDetail'),
+              1500
+            );
           }
         });
       }
@@ -887,11 +890,10 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
       },
       error: err => {
         console.error('Failed to update personal rating:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.viewer.toast.ratingFailedSummary'),
-          detail: this.t.translate('metadata.viewer.toast.ratingFailedDetail')
-        });
+        this.toastError(
+          this.t.translate('metadata.viewer.toast.ratingFailedSummary'),
+          this.t.translate('metadata.viewer.toast.ratingFailedDetail')
+        );
       }
     });
   }
@@ -907,11 +909,10 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
       },
       error: err => {
         console.error('Failed to reset personal rating:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.viewer.toast.ratingResetFailedSummary'),
-          detail: this.t.translate('metadata.viewer.toast.ratingResetFailedDetail')
-        });
+        this.toastError(
+          this.t.translate('metadata.viewer.toast.ratingResetFailedSummary'),
+          this.t.translate('metadata.viewer.toast.ratingResetFailedDetail')
+        );
       }
     });
   }
@@ -1364,12 +1365,11 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
         this.editDateFinished = null;
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.viewer.toast.dateUpdateFailedSummary'),
-          detail: this.t.translate('metadata.viewer.toast.dateUpdateFailedDetail'),
-          life: 3000
-        });
+        this.toastError(
+          this.t.translate('metadata.viewer.toast.dateUpdateFailedSummary'),
+          this.t.translate('metadata.viewer.toast.dateUpdateFailedDetail'),
+          3000
+        );
       }
     });
   }

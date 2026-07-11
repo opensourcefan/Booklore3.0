@@ -167,7 +167,6 @@ export class ShelfAssignerComponent implements OnInit {
         },
         error: () => {
           this.writeProgressService.fail(this.t.translate('book.shelfAssigner.toast.updateFailedDetail'));
-          this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('book.shelfAssigner.toast.updateFailedDetail')});
         }
       });
   }

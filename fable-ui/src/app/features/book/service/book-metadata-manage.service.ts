@@ -11,6 +11,7 @@ import {TranslocoService} from '@jsverse/transloco';
 import {BookService} from './book.service';
 import {PagedGridPilotService} from './paged-grid-pilot.service';
 import {PagedBookBrowserStateService} from './paged-book-browser-state.service';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +22,7 @@ export class BookMetadataManageService {
 
   private http = inject(HttpClient);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private bookStateService = inject(BookStateService);
   private bookSocketService = inject(BookSocketService);
   private bookService = inject(BookService);
@@ -131,10 +133,13 @@ export class BookMetadataManageService {
         });
       }),
       catchError(error => {
+        const summary = this.t.translate('book.bookService.toast.fieldLockFailedSummary');
+        const detail = this.t.translate('book.bookService.toast.fieldLockFailedDetail');
+        this.failureNotifications.reportSafe(summary, detail);
         this.messageService.add({
           severity: 'error',
-          summary: this.t.translate('book.bookService.toast.fieldLockFailedSummary'),
-          detail: this.t.translate('book.bookService.toast.fieldLockFailedDetail'),
+          summary,
+          detail,
         });
         throw error;
       })
