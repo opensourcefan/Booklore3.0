@@ -116,6 +116,12 @@ describe('StoryArcPageComponent drag affordances', () => {
     return fixture;
   }
 
+  it('decodes percent-encoded story arc route names before loading', () => {
+    const fixture = createFixture();
+    expect(fixture.componentInstance.arcName).toBe('Test Arc');
+    expect(storyArcServiceMock.getStoryArc).toHaveBeenCalledWith('Test Arc');
+  });
+
   it('renders cover drag handles only in edit mode card view', () => {
     const fixture = createFixture();
     expect(fixture.nativeElement.querySelector('.cover-drag-handle')).toBeNull();

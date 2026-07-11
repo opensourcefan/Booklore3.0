@@ -774,7 +774,9 @@ export class AppMenuComponent implements OnInit, OnDestroy {
               label: arc.storyArcName,
               type: 'StoryArc',
               icon: 'pi pi-compass',
-              routerLink: [`/story-arc/${encodeURIComponent(arc.storyArcName)}`],
+              // Pass the raw name — Angular's routerLink encodes once.
+              // Pre-encoding with encodeURIComponent caused The%2520Rocketeer and Tomcat 400 Whitelabel.
+              routerLink: [`/story-arc/${arc.storyArcName}`],
               bookCount$: of(arc.bookCount)
             }))
           }

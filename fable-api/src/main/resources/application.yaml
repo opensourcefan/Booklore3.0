@@ -51,6 +51,9 @@ server:
     min-response-size: 1024
   tomcat:
     relaxed-query-chars: '[,],%,{,},|'
+    # Allow '%' in paths so a once-decoded leftover like The%20Rocketeer (from a
+    # historically double-encoded sidebar link) reaches the SPA fallback instead of Tomcat 400.
+    relaxed-path-chars: '[,],%,{,},|'
 
 spring:
   jackson:

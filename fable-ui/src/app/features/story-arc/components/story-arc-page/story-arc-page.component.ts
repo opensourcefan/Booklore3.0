@@ -124,7 +124,13 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
     this.route.paramMap.subscribe(params => {
       const name = params.get('arcName');
       if (name) {
-        this.arcName = decodeURIComponent(name);
+        try {
+          // Angular usually decodes once; decode again only when a literal %xx remains
+          // (e.g. legacy double-encoded sidebar links like The%2520Rocketeer).
+          this.arcName = /%[0-9A-Fa-f]{2}/.test(name) ? decodeURIComponent(name) : name;
+        } catch {
+          this.arcName = name;
+        }
         this.pageTitle.setPageTitle(this.arcName);
         this.loadLayout();
       }
