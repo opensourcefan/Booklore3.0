@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, DestroyRef, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Button} from 'primeng/button';
@@ -10,10 +10,14 @@ import {FileUpload} from 'primeng/fileupload';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Divider} from 'primeng/divider';
 import {MessageService} from 'primeng/api';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {AuthorService} from '../../service/author.service';
 import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 import {AuthorDetails} from '../../model/author.model';
 import {AuthorPhotoSearchComponent} from '../author-photo-search/author-photo-search.component';
+import {SaveButtonStatusController} from '../../../../shared/service/save-button-status.controller';
+import {WriteProgressService} from '../../../../shared/service/write-progress.service';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 @Component({
   selector: 'app-author-editor',
@@ -43,12 +47,24 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
   private messageService = inject(MessageService);
   private dialogLauncher = inject(DialogLauncherService);
   private t = inject(TranslocoService);
+  private writeProgressService = inject(WriteProgressService);
+  private failureNotifications = inject(FailureNotificationService);
+  private destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   isSaving = false;
   isUploading = false;
   hasPhoto = true;
   photoTimestamp = Date.now();
+  readonly saveStatus = new SaveButtonStatusController();
+
+  get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.saveStatus.severityFor(!!this.form?.dirty);
+  }
+
+  get saveDisabled(): boolean {
+    return this.saveStatus.disabledWhenClean(!!this.form?.dirty, this.isSaving);
+  }
 
   get photoUrl(): string {
     return this.authorService.getAuthorPhotoUrl(this.authorId) + '&t=' + this.photoTimestamp;
@@ -77,6 +93,10 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
     });
 
     this.applyLockStates();
+    this.form.markAsPristine();
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.saveStatus.onUserEdit(this.form.dirty));
   }
 
   toggleLock(field: string): void {
@@ -164,16 +184,19 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
 
   onUploadError(): void {
     this.isUploading = false;
+    const detail = this.t.translate('authorBrowser.editor.toast.photoUploadErrorDetail');
+    this.failureNotifications.reportSafe('Author photo upload', detail);
     this.messageService.add({
       severity: 'error',
       summary: this.t.translate('authorBrowser.editor.toast.errorSummary'),
-      detail: this.t.translate('authorBrowser.editor.toast.photoUploadErrorDetail')
+      detail
     });
   }
 
   private saveMetadata(): void {
     if (this.isSaving) return;
     this.isSaving = true;
+    this.writeProgressService.show(this.t.translate('authorBrowser.editor.toast.successDetail'));
 
     const formValue = this.form.getRawValue();
     const request = {
@@ -189,6 +212,9 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
     this.authorService.updateAuthor(this.authorId, request).subscribe({
       next: (updated) => {
         this.isSaving = false;
+        this.form.markAsPristine();
+        this.saveStatus.markSuccess();
+        this.writeProgressService.complete(this.t.translate('authorBrowser.editor.toast.successDetail'));
         this.authorUpdated.emit(updated);
         this.messageService.add({
           severity: 'success',
@@ -198,10 +224,13 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
       },
       error: () => {
         this.isSaving = false;
+        this.saveStatus.markError();
+        const detail = this.t.translate('authorBrowser.editor.toast.errorDetail');
+        this.writeProgressService.fail(detail);
         this.messageService.add({
           severity: 'error',
           summary: this.t.translate('authorBrowser.editor.toast.errorSummary'),
-          detail: this.t.translate('authorBrowser.editor.toast.errorDetail')
+          detail
         });
       }
     });

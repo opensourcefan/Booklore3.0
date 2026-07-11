@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, DestroyRef, inject, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MessageService} from 'primeng/api';
 import {MetadataMatchWeightsService} from '../../../../shared/service/metadata-match-weights.service';
@@ -9,6 +9,9 @@ import {AppSettingKey, AppSettings} from '../../../../shared/model/app-settings.
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 import {InputNumber} from 'primeng/inputnumber';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {SaveButtonStatusController} from '../../../../shared/service/save-button-status.controller';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 @Component({
   selector: 'app-metadata-match-weights-component',
@@ -35,14 +38,25 @@ export class MetadataMatchWeightsComponent implements OnInit {
   form!: FormGroup;
   isSaving = false;
   isRecalculating = false;
+  readonly saveStatus = new SaveButtonStatusController();
 
   private weightsService = inject(MetadataMatchWeightsService);
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private fb = inject(FormBuilder);
   private t = inject(TranslocoService);
+  private destroyRef = inject(DestroyRef);
 
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
+
+  get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.saveStatus.severityFor(!!this.form?.dirty);
+  }
+
+  get saveDisabled(): boolean {
+    return this.form?.invalid || this.saveStatus.disabledWhenClean(!!this.form?.dirty, this.isSaving);
+  }
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -78,8 +92,14 @@ export class MetadataMatchWeightsComponent implements OnInit {
       .subscribe(settings => {
         if (settings.metadataMatchWeights) {
           this.form.patchValue(settings.metadataMatchWeights);
+          this.form.markAsPristine();
+          this.saveStatus.resetIdle();
         }
       });
+
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.saveStatus.onUserEdit(this.form.dirty));
   }
 
   get orderedKeys(): string[] {
@@ -104,6 +124,8 @@ export class MetadataMatchWeightsComponent implements OnInit {
 
     this.appSettingsService.saveSettings(payload).subscribe({
       next: () => {
+        this.form.markAsPristine();
+        this.saveStatus.markSuccess();
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('common.success'),
@@ -112,10 +134,13 @@ export class MetadataMatchWeightsComponent implements OnInit {
         this.isSaving = false;
       },
       error: () => {
+        this.saveStatus.markError();
+        const detail = this.t.translate('settingsMeta.matchWeights.saveError');
+        this.failureNotifications.reportSafe('Metadata match weights', detail);
         this.messageService.add({
           severity: 'error',
           summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsMeta.matchWeights.saveError')
+          detail
         });
         this.isSaving = false;
       }
@@ -134,10 +159,12 @@ export class MetadataMatchWeightsComponent implements OnInit {
         this.isRecalculating = false;
       },
       error: () => {
+        const detail = this.t.translate('settingsMeta.matchWeights.recalcError');
+        this.failureNotifications.reportSafe('Metadata match recalculate', detail);
         this.messageService.add({
           severity: 'error',
           summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsMeta.matchWeights.recalcError')
+          detail
         });
         this.isRecalculating = false;
       }

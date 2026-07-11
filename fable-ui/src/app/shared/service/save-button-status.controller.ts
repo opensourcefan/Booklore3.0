@@ -28,8 +28,21 @@ export class SaveButtonStatusController {
     }
   }
 
+  /** Prefer dirty (warn) over last outcome color. */
+  severityFor(dirty: boolean): 'secondary' | 'warn' | 'success' | 'danger' {
+    if (dirty) {
+      return 'warn';
+    }
+    return this.severity;
+  }
+
   get disabledForIdle(): boolean {
     return this.status === 'idle' || this.status === 'success';
+  }
+
+  /** Disable when clean (idle/success), allow retry after error. */
+  disabledWhenClean(dirty: boolean, isSaving = false): boolean {
+    return isSaving || (!dirty && this.status !== 'error');
   }
 
   markDirty(): void {

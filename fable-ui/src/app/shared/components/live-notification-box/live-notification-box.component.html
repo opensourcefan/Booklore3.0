@@ -1,12 +1,12 @@
-<div class="notification-inbox" *transloco="let t; scope: 'shared'">
+<div class="notification-inbox" *transloco="let t; prefix: 'shared.liveNotification'">
   @if (historicalNotifications$ | async; as historicalNotifications) {
     @if (historicalNotifications.length > 0) {
       <div class="historical-notifications-section">
         <div class="historical-header-row">
-          <div class="historical-header">{{ t('liveNotification.failuresTitle') }}</div>
-          <button class="dismiss-all-btn" type="button" (click)="dismissAllNotifications()" [attr.aria-label]="t('liveNotification.dismissAllAria')">
+          <div class="historical-header">{{ t('failuresTitle') }}</div>
+          <button class="dismiss-all-btn" type="button" (click)="dismissAllNotifications()" [attr.aria-label]="t('dismissAllAria')">
             <i class="pi pi-times-circle"></i>
-            <span>{{ t('liveNotification.dismissAll') }}</span>
+            <span>{{ t('dismissAll') }}</span>
           </button>
         </div>
         @for (notification of historicalNotifications; track trackById($index, notification)) {
@@ -21,7 +21,7 @@
                 <span class="notification-timestamp">{{ formatTimestamp(notification.timestamp) }}</span>
               </div>
               @if (notification.id !== undefined && notification.id !== null) {
-                <button class="notification-close-btn" type="button" (click)="dismissNotification(notification.id)" [attr.aria-label]="t('liveNotification.dismissAria')">
+                <button class="notification-close-btn" type="button" (click)="dismissNotification(notification.id)" [attr.aria-label]="t('dismissAria')">
                   <i class="pi pi-times"></i>
                 </button>
               }
@@ -31,7 +31,7 @@
         }
       </div>
     } @else {
-      <div class="notification-empty">{{ t('liveNotification.emptyFailures') }}</div>
+      <div class="notification-empty">{{ t('emptyFailures') }}</div>
     }
   }
 </div>

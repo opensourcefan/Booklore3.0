@@ -35,6 +35,7 @@ import {AppSettingsService} from '../../../../../shared/service/app-settings.ser
 import {MetadataProviderSpecificFields} from '../../../../../shared/model/app-settings.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {WriteProgressService} from '../../../../../shared/service/write-progress.service';
+import {SaveButtonStatusController} from '../../../../../shared/service/save-button-status.controller';
 import {CdkDragDrop, CdkDropList, CdkDrag, moveItemInArray} from '@angular/cdk/drag-drop';
 
 @Component({
@@ -100,6 +101,15 @@ export class MetadataEditorComponent implements OnInit {
   isWipingMetadata = false;
   isGeneratingCover = false;
   isGeneratingAudiobookCover = false;
+  readonly saveStatus = new SaveButtonStatusController();
+
+  get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.saveStatus.severityFor(!!this.metadataForm?.dirty);
+  }
+
+  get saveDisabled(): boolean {
+    return this.saveStatus.disabledWhenClean(!!this.metadataForm?.dirty, this.isSaving);
+  }
 
   refreshingBookIds = new Set<number>();
   isAutoFetching = false;
@@ -365,6 +375,14 @@ export class MetadataEditorComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.metadataForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (!this.isSaving) {
+          this.saveStatus.onUserEdit(this.metadataForm.dirty);
+        }
+      });
+
     this.book$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((book) => {
       const metadata = book?.metadata;
       if (!metadata) return;
@@ -374,6 +392,8 @@ export class MetadataEditorComponent implements OnInit {
       }
       this.originalMetadata = structuredClone(metadata);
       this.populateFormFromMetadata(metadata);
+      this.metadataForm.markAsPristine();
+      this.saveStatus.resetIdle();
     });
 
     this.taskService.taskProgress$
@@ -680,14 +700,19 @@ export class MetadataEditorComponent implements OnInit {
             });
             this.prepareAutoComplete();
             this.metadataForm.markAsPristine();
+            this.saveStatus.markSuccess();
           },
           error: (err: unknown) => {
             this.isSaving = false;
-            this.writeProgressService.fail((err as { error?: { message?: string } })?.error?.message || this.t.translate('metadata.editor.toast.metadataUpdateFailed'));
+            const detail = (err as { error?: { message?: string } })?.error?.message
+              || this.t.translate('metadata.editor.toast.metadataUpdateFailed')
+              || 'Failed to update book metadata';
+            this.writeProgressService.fail(detail);
+            this.saveStatus.markError();
             this.messageService.add({
               severity: "error",
               summary: this.t.translate('metadata.editor.toast.errorSummary'),
-              detail: (err as { error?: { message?: string } })?.error?.message || this.t.translate('metadata.editor.toast.metadataUpdateFailed'),
+              detail,
             });
           },
         }),

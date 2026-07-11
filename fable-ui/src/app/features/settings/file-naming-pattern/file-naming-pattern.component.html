@@ -42,9 +42,9 @@
               [label]="'common.save' | transloco"
               icon="pi pi-save"
               (onClick)="savePatterns()"
-              severity="success"
+              [severity]="defaultSaveSeverity"
               [outlined]="true"
-              [disabled]="!!defaultErrorMessage">
+              [disabled]="defaultSaveDisabled">
             </p-button>
           </div>
           @if (defaultErrorMessage) {
@@ -132,9 +132,10 @@
           <p-button
             [label]="t('libraryOverrides.saveAll')"
             (onClick)="saveLibraryPatterns()"
-            severity="success"
+            [severity]="librarySaveSeverity"
             icon="pi pi-save"
-            [outlined]="true">
+            [outlined]="true"
+            [disabled]="librarySaveDisabled">
           </p-button>
         </div>
       }

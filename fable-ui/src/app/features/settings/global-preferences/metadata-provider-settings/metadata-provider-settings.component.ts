@@ -14,6 +14,8 @@ import {ExternalDocLinkComponent} from '../../../../shared/components/external-d
 import {ToggleSwitchModule} from 'primeng/toggleswitch';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
+import {SaveButtonStatusController} from '../../../../shared/service/save-button-status.controller';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 @Component({
   selector: 'app-metadata-provider-settings',
@@ -101,13 +103,18 @@ export class MetadataProviderSettingsComponent implements OnInit {
   ranobedbEnabled = false;
   googleApiKey = '';
 
+  readonly saveStatus = new SaveButtonStatusController();
+  isSaving = false;
+
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private destroyRef = inject(DestroyRef);
   private t = inject(TranslocoService);
   private sanitizer = inject(DomSanitizer);
 
   private appSettings$ = this.appSettingsService.appSettings$;
+  private savedPayloadSnapshot = '';
 
   ngOnInit(): void {
     this.appSettings$
@@ -133,7 +140,62 @@ export class MetadataProviderSettingsComponent implements OnInit {
         this.ranobedbEnabled = metadataProviderSettings?.ranobedb?.enabled ?? false;
         this.audibleEnabled = metadataProviderSettings?.audible?.enabled ?? false;
         this.selectedAudibleDomain = metadataProviderSettings?.audible?.domain ?? 'com';
+        const snapshot = JSON.stringify(this.buildSettingsValue());
+        if (!this.savedPayloadSnapshot) {
+          this.savedPayloadSnapshot = snapshot;
+          this.saveStatus.resetIdle();
+        } else if (snapshot !== this.savedPayloadSnapshot) {
+          this.savedPayloadSnapshot = snapshot;
+          this.saveStatus.resetIdle();
+        }
       });
+  }
+
+  get isDirty(): boolean {
+    return JSON.stringify(this.buildSettingsValue()) !== this.savedPayloadSnapshot;
+  }
+
+  get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.saveStatus.severityFor(this.isDirty);
+  }
+
+  get saveDisabled(): boolean {
+    return this.saveStatus.disabledWhenClean(this.isDirty, this.isSaving);
+  }
+
+  onSettingsChange(): void {
+    this.saveStatus.onUserEdit(this.isDirty);
+  }
+
+  private buildSettingsValue(): Record<string, unknown> {
+    return {
+      amazon: {
+        enabled: this.amazonEnabled,
+        cookie: this.amazonCookie,
+        domain: this.selectedAmazonDomain
+      },
+      comicvine: {
+        enabled: this.comicvineEnabled,
+        apiKey: this.comicvineToken.trim()
+      },
+      goodReads: {enabled: this.goodreadsEnabled},
+      google: {
+        enabled: this.googleEnabled,
+        language: this.selectedGoogleLanguage,
+        apiKey: this.googleApiKey.trim()
+      },
+      hardcover: {
+        enabled: this.hardcoverEnabled,
+        apiKey: this.hardcoverToken.trim()
+      },
+      douban: {enabled: this.doubanEnabled},
+      lubimyczytac: {enabled: this.lubimyCzytacEnabled},
+      ranobedb: {enabled: this.ranobedbEnabled},
+      audible: {
+        enabled: this.audibleEnabled,
+        domain: this.selectedAudibleDomain
+      }
+    };
   }
 
   get amazonBookmarkletHref(): SafeUrl {
@@ -156,6 +218,7 @@ export class MetadataProviderSettingsComponent implements OnInit {
     navigator.clipboard.readText().then(text => {
       if (text?.trim()) {
         this.amazonCookie = text.trim();
+        this.onSettingsChange();
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('common.success'),
@@ -176,60 +239,45 @@ export class MetadataProviderSettingsComponent implements OnInit {
     if (!newToken.trim()) {
       this.hardcoverEnabled = false;
     }
+    this.onSettingsChange();
   }
 
   onComicTokenChange(newToken: string): void {
     this.comicvineToken = newToken;
+    this.onSettingsChange();
   }
 
   saveSettings(): void {
     const payload = [
       {
         key: AppSettingKey.METADATA_PROVIDER_SETTINGS,
-        newValue: {
-          amazon: {
-            enabled: this.amazonEnabled,
-            cookie: this.amazonCookie,
-            domain: this.selectedAmazonDomain
-          },
-          comicvine: {
-            enabled: this.comicvineEnabled,
-            apiKey: this.comicvineToken.trim()
-          },
-          goodReads: {enabled: this.goodreadsEnabled},
-          google: {
-            enabled: this.googleEnabled,
-            language: this.selectedGoogleLanguage,
-            apiKey: this.googleApiKey.trim()
-          },
-          hardcover: {
-            enabled: this.hardcoverEnabled,
-            apiKey: this.hardcoverToken.trim()
-          },
-          douban: {enabled: this.doubanEnabled},
-          lubimyczytac: {enabled: this.lubimyCzytacEnabled},
-          ranobedb: {enabled: this.ranobedbEnabled},
-          audible: {
-            enabled: this.audibleEnabled,
-            domain: this.selectedAudibleDomain
-          }
-        }
+        newValue: this.buildSettingsValue()
       }
     ];
 
+    this.isSaving = true;
     this.appSettingsService.saveSettings(payload).subscribe({
-      next: () =>
+      next: () => {
+        this.savedPayloadSnapshot = JSON.stringify(this.buildSettingsValue());
+        this.saveStatus.markSuccess();
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('common.success'),
           detail: this.t.translate('settingsMeta.providers.saveSuccess')
-        }),
-      error: () =>
+        });
+        this.isSaving = false;
+      },
+      error: () => {
+        this.saveStatus.markError();
+        const detail = this.t.translate('settingsMeta.providers.saveError');
+        this.failureNotifications.reportSafe('Metadata provider settings', detail);
         this.messageService.add({
           severity: 'error',
           summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsMeta.providers.saveError')
-        })
+          detail
+        });
+        this.isSaving = false;
+      }
     });
   }
 }

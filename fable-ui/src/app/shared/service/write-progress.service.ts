@@ -1,5 +1,6 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
+import {FailureNotificationService} from './failure-notification.service';
 
 export interface WriteProgressPayload {
   message: string;
@@ -11,6 +12,7 @@ export interface WriteProgressPayload {
 })
 export class WriteProgressService {
   private subject = new BehaviorSubject<WriteProgressPayload | null>(null);
+  private readonly failureNotifications = inject(FailureNotificationService);
   readonly progress$ = this.subject.asObservable();
 
   show(message: string): void {
@@ -23,6 +25,7 @@ export class WriteProgressService {
 
   fail(message: string): void {
     this.subject.next({message, status: 'FAILED'});
+    this.failureNotifications.reportSafe('Update failed', message);
   }
 
   clear(): void {

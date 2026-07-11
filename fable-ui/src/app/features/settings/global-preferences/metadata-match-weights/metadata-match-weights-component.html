@@ -53,11 +53,11 @@
           <div class="form-actions">
             <p-button
               type="button"
-              severity="success"
+              [severity]="saveSeverity"
               [label]="t('saveWeights')"
               icon="pi pi-save"
               outlined
-              [disabled]="isSaving"
+              [disabled]="saveDisabled"
               (click)="save()">
             </p-button>
           </div>

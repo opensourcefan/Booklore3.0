@@ -23,6 +23,8 @@ import {MetadataProviderSpecificFields} from '../../../../../shared/model/app-se
 import {ALL_COMIC_METADATA_FIELDS, ALL_METADATA_FIELDS, AUDIOBOOK_METADATA_FIELDS, COMIC_ARRAY_METADATA_FIELDS, COMIC_FORM_TO_MODEL_LOCK, COMIC_TEXT_METADATA_FIELDS, COMIC_TEXTAREA_METADATA_FIELDS, getArrayFields, getBookDetailsFields, getBottomFields, getProviderFields, getSeriesFields, getTextareaFields, getTopFields, MetadataFieldConfig, MetadataFormBuilder, MetadataUtilsService} from '../../../../../shared/metadata';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
+import {SaveButtonStatusController} from '../../../../../shared/service/save-button-status.controller';
+import {WriteProgressService} from '../../../../../shared/service/write-progress.service';
 
 @Component({
   selector: 'app-metadata-picker',
@@ -96,8 +98,8 @@ export class MetadataPickerComponent implements OnInit {
   savedFields: Record<string, boolean> = {};
   originalMetadata!: BookMetadata;
   isSaving = false;
-  showSavedState = false;
   hoveredFields: Record<string, boolean> = {};
+  readonly saveStatus = new SaveButtonStatusController();
 
   private messageService = inject(MessageService);
   private bookService = inject(BookService);
@@ -109,9 +111,22 @@ export class MetadataPickerComponent implements OnInit {
   private metadataUtils = inject(MetadataUtilsService);
   private readonly t = inject(TranslocoService);
   private dialogRef = inject(DynamicDialogRef, {optional: true});
+  private writeProgressService = inject(WriteProgressService);
 
   private enabledProviderFields: MetadataProviderSpecificFields | null = null;
   private isApplyingFormPatch = false;
+
+  get showSavedState(): boolean {
+    return this.saveStatus.value === 'success' && !this.metadataForm?.dirty;
+  }
+
+  get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.saveStatus.severityFor(!!this.metadataForm?.dirty);
+  }
+
+  get saveDisabled(): boolean {
+    return this.saveStatus.disabledWhenClean(!!this.metadataForm?.dirty, this.isSaving);
+  }
 
   constructor() {
     this.metadataForm = this.formBuilder.buildForm(true);
@@ -154,13 +169,10 @@ export class MetadataPickerComponent implements OnInit {
     this.metadataForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        if (this.showSavedState && !this.isSaving && !this.isApplyingFormPatch) {
-          setTimeout(() => {
-            if (this.showSavedState && !this.isSaving && !this.isApplyingFormPatch) {
-              this.showSavedState = false;
-            }
-          });
+        if (this.isSaving || this.isApplyingFormPatch) {
+          return;
         }
+        this.saveStatus.onUserEdit(this.metadataForm.dirty);
       });
 
     this.appSettingsService.appSettings$
@@ -213,7 +225,7 @@ export class MetadataPickerComponent implements OnInit {
         this.hoveredFields = {};
       }
 
-      this.showSavedState = false;
+      this.saveStatus.resetIdle();
 
       this.currentBook = book;
       const metadata = book.metadata!;
@@ -373,6 +385,7 @@ export class MetadataPickerComponent implements OnInit {
     }
 
     this.isSaving = true;
+    this.writeProgressService.show(this.t.translate('metadata.picker.toast.metadataUpdated'));
     const updatedBookMetadata = this.buildMetadataWrapper(undefined);
 
     const requests: Observable<unknown>[] = [
@@ -395,12 +408,16 @@ export class MetadataPickerComponent implements OnInit {
               this.savedFields[field] = true;
             }
           }
-          this.showSavedState = true;
+          this.metadataForm.markAsPristine();
+          this.saveStatus.markSuccess();
+          this.writeProgressService.complete(this.t.translate('metadata.picker.toast.metadataUpdated'));
           this.messageService.add({severity: 'info', summary: this.t.translate('metadata.picker.toast.successSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdated')});
         },
         error: () => {
-          this.showSavedState = false;
-          this.messageService.add({severity: 'error', summary: this.t.translate('metadata.picker.toast.errorSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdateFailed')});
+          this.saveStatus.markError();
+          const detail = this.t.translate('metadata.picker.toast.metadataUpdateFailed');
+          this.writeProgressService.fail(detail);
+          this.messageService.add({severity: 'error', summary: this.t.translate('metadata.picker.toast.errorSummary'), detail});
         }
       }),
       map(() => void 0),

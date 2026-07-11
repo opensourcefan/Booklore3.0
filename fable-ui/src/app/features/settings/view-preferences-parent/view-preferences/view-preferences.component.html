@@ -19,6 +19,7 @@
         <div class="setting-options">
           <div class="select-group">
             <p-select size="small" [options]="viewModeOptions" [(ngModel)]="selectedView"
+                      (ngModelChange)="onPreferenceChange()"
                       optionLabel="label" optionValue="value"
                       [placeholder]="t('tableViewMode')" appendTo="body"></p-select>
           </div>
@@ -96,7 +97,7 @@
 
       <div class="setting-item">
         <div class="setting-header">
-          <p-toggleswitch [(ngModel)]="autoSaveMetadata"></p-toggleswitch>
+          <p-toggleswitch [(ngModel)]="autoSaveMetadata" (ngModelChange)="onPreferenceChange()"></p-toggleswitch>
           <span class="setting-label">{{ t('autoSave') }}</span>
         </div>
         <p class="setting-description">{{ t('autoSaveDesc') }}</p>
@@ -104,7 +105,7 @@
 
       <div class="setting-item">
         <div class="setting-header">
-          <p-toggleswitch [(ngModel)]="useDistractionLoadingScreen"></p-toggleswitch>
+          <p-toggleswitch [(ngModel)]="useDistractionLoadingScreen" (ngModelChange)="onPreferenceChange()"></p-toggleswitch>
           <span class="setting-label">Use random cover for distraction during library load</span>
         </div>
         <p class="setting-description">If enabled, a popup with a random book cover will replace the loading spinner when the library is loading.</p>
@@ -136,6 +137,7 @@
               <tr>
                 <td>
                   <p-select size="small" [options]="entityTypeOptions" [(ngModel)]="override.entityType"
+                            (ngModelChange)="onPreferenceChange()"
                             optionLabel="label" optionValue="value"
                             [style]="{'width': '100%'}" appendTo="body"></p-select>
                 </td>
@@ -144,6 +146,7 @@
                     <p-select size="small"
                               [options]="getAvailableEntities(rowIndex, override.entityType)"
                               [(ngModel)]="override.library"
+                              (ngModelChange)="onPreferenceChange()"
                               optionLabel="label" optionValue="value"
                               [style]="{'width': '100%'}" appendTo="body"></p-select>
                   }
@@ -166,6 +169,7 @@
                 </td>
                 <td>
                   <p-select size="small" [options]="viewModeOptions" [(ngModel)]="override.view"
+                            (ngModelChange)="onPreferenceChange()"
                             optionLabel="label" optionValue="value"
                             [style]="{'width': '100%'}" appendTo="body"></p-select>
                 </td>
@@ -180,7 +184,14 @@
       }
 
       <div class="setting-actions">
-        <p-button [label]="t('saveSettings')" icon="pi pi-save" outlined severity="success" (onClick)="saveSettings()"></p-button>
+        <p-button
+          [label]="t('saveSettings')"
+          icon="pi pi-save"
+          outlined
+          [severity]="saveSeverity"
+          [disabled]="saveDisabled"
+          (onClick)="saveSettings()">
+        </p-button>
       </div>
     </div>
   </div>

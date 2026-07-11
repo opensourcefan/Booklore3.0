@@ -13,6 +13,8 @@ import {Tooltip} from 'primeng/tooltip';
 import {ExternalDocLinkComponent} from '../../../shared/components/external-doc-link/external-doc-link.component';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {replacePlaceholders} from '../../../shared/util/pattern-resolver';
+import {SaveButtonStatusController} from '../../../shared/service/save-button-status.controller';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 
 @Component({
   selector: 'app-file-naming-pattern',
@@ -37,25 +39,74 @@ export class FileNamingPatternComponent implements OnInit {
   defaultPattern = '';
   libraries: Library[] = [];
   defaultErrorMessage = '';
+  readonly defaultPatternSaveStatus = new SaveButtonStatusController();
+  readonly librarySaveStatus = new SaveButtonStatusController();
+
+  private originalDefaultPattern = '';
+  private originalLibraryPatterns = new Map<number, string>();
 
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
   private libraryService = inject(LibraryService);
+  private failureNotifications = inject(FailureNotificationService);
   private t = inject(TranslocoService);
 
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
+
+  get isDefaultPatternDirty(): boolean {
+    return this.defaultPattern !== this.originalDefaultPattern;
+  }
+
+  get isLibraryPatternsDirty(): boolean {
+    return this.libraries.some(library =>
+      library.id != null &&
+      (library.fileNamingPattern ?? '') !== (this.originalLibraryPatterns.get(library.id) ?? '')
+    );
+  }
+
+  get defaultSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.defaultPatternSaveStatus.severityFor(this.isDefaultPatternDirty);
+  }
+
+  get librarySaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.librarySaveStatus.severityFor(this.isLibraryPatternsDirty);
+  }
+
+  get defaultSaveDisabled(): boolean {
+    return !!this.defaultErrorMessage || this.defaultPatternSaveStatus.disabledWhenClean(this.isDefaultPatternDirty);
+  }
+
+  get librarySaveDisabled(): boolean {
+    return this.librarySaveStatus.disabledWhenClean(this.isLibraryPatternsDirty);
+  }
 
   ngOnInit(): void {
     this.appSettings$
       .pipe(filter((settings) => settings != null), take(1))
       .subscribe((settings) => {
         this.defaultPattern = settings?.uploadPattern ?? '';
+        this.originalDefaultPattern = this.defaultPattern;
+        this.defaultPatternSaveStatus.resetIdle();
       });
 
     this.libraryService.libraryState$
       .pipe(filter(state => state.loaded && !!state.libraries))
       .subscribe(state => {
         this.libraries = state.libraries ?? [];
+        const nextOriginals = new Map(
+          this.libraries
+            .filter(library => library.id != null)
+            .map(library => [library.id!, library.fileNamingPattern ?? ''])
+        );
+        const unchanged = nextOriginals.size === this.originalLibraryPatterns.size &&
+          [...nextOriginals.entries()].every(([id, pattern]) => this.originalLibraryPatterns.get(id) === pattern);
+        if (this.originalLibraryPatterns.size === 0) {
+          this.originalLibraryPatterns = nextOriginals;
+          this.librarySaveStatus.resetIdle();
+        } else if (!unchanged) {
+          this.originalLibraryPatterns = nextOriginals;
+          this.librarySaveStatus.resetIdle();
+        }
       });
   }
 
@@ -98,14 +149,24 @@ export class FileNamingPatternComponent implements OnInit {
   onDefaultPatternChange(pattern: string): void {
     this.defaultPattern = pattern;
     this.defaultErrorMessage = this.validatePattern(pattern) ? '' : this.t.translate('settingsNaming.defaultPattern.invalidChars');
+    this.defaultPatternSaveStatus.onUserEdit(this.isDefaultPatternDirty);
   }
 
   onLibraryPatternChange(_library: Library): void {
-    // Optionally add per-library validation here
+    this.librarySaveStatus.onUserEdit(this.isLibraryPatternsDirty);
   }
 
   clearLibraryPattern(library: Library): void {
     library.fileNamingPattern = '';
+    this.onLibraryPatternChange(library);
+  }
+
+  private syncLibraryPatternSnapshot(): void {
+    this.originalLibraryPatterns = new Map(
+      this.libraries
+        .filter(library => library.id != null)
+        .map(library => [library.id!, library.fileNamingPattern ?? ''])
+    );
   }
 
   savePatterns(): void {
@@ -118,8 +179,17 @@ export class FileNamingPatternComponent implements OnInit {
         {key: AppSettingKey.UPLOAD_FILE_PATTERN, newValue: this.defaultPattern},
       ])
       .subscribe({
-        next: () => this.showMessage('success', this.t.translate('common.success'), this.t.translate('settingsNaming.defaultPattern.saveSuccess')),
-        error: () => this.showMessage('error', this.t.translate('common.error'), this.t.translate('settingsNaming.defaultPattern.saveError')),
+        next: () => {
+          this.originalDefaultPattern = this.defaultPattern;
+          this.defaultPatternSaveStatus.markSuccess();
+          this.showMessage('success', this.t.translate('common.success'), this.t.translate('settingsNaming.defaultPattern.saveSuccess'));
+        },
+        error: () => {
+          this.defaultPatternSaveStatus.markError();
+          const detail = this.t.translate('settingsNaming.defaultPattern.saveError');
+          this.failureNotifications.reportSafe('Default file naming pattern', detail);
+          this.showMessage('error', this.t.translate('common.error'), detail);
+        },
       });
   }
 
@@ -132,9 +202,14 @@ export class FileNamingPatternComponent implements OnInit {
     forkJoin(patchRequests).subscribe(results => {
       const failures = results.filter(result => result === null);
       if (failures.length === 0) {
+        this.syncLibraryPatternSnapshot();
+        this.librarySaveStatus.markSuccess();
         this.showMessage('success', this.t.translate('common.success'), this.t.translate('settingsNaming.libraryOverrides.saveSuccess'));
       } else {
-        this.showMessage('error', this.t.translate('common.error'), this.t.translate('settingsNaming.libraryOverrides.saveError', {count: failures.length}));
+        this.librarySaveStatus.markError();
+        const detail = this.t.translate('settingsNaming.libraryOverrides.saveError', {count: failures.length});
+        this.failureNotifications.reportSafe('Library file naming patterns', detail);
+        this.showMessage('error', this.t.translate('common.error'), detail);
       }
     });
   }

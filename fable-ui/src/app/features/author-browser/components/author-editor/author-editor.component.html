@@ -125,7 +125,8 @@
             type="submit"
             [label]="isSaving ? t('saving') : t('saveBtn')"
             [icon]="isSaving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
-            [disabled]="isSaving">
+            [disabled]="saveDisabled"
+            [severity]="saveSeverity">
           </p-button>
         </div>
       </div>

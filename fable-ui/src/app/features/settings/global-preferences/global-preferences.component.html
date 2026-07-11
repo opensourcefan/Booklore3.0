@@ -190,10 +190,17 @@
                     pInputText
                     id="max-upload-size"
                     [(ngModel)]="maxFileUploadSizeInMb"
+                    (ngModelChange)="onFileSizeChange()"
                     [placeholder]="t('fileManagement.maxUploadPlaceholder')"/>
                   <span class="unit">MB</span>
                 </div>
-                <p-button [label]="'common.save' | transloco" outlined severity="success" (onClick)="saveFileSize()"></p-button>
+                <p-button
+                  [label]="'common.save' | transloco"
+                  outlined
+                  [severity]="fileSizeSaveSeverity"
+                  [disabled]="fileSizeSaveDisabled"
+                  (onClick)="saveFileSize()">
+                </p-button>
               </div>
             </div>
             <p class="setting-description">
@@ -229,10 +236,17 @@
                     pInputText
                     id="health-check-interval"
                     [(ngModel)]="healthCheckIntervalSeconds"
+                    (ngModelChange)="onHealthCheckChange()"
                     [placeholder]="t('libraryHealth.checkIntervalPlaceholder')"/>
                   <span class="unit">{{ t('libraryHealth.seconds') }}</span>
                 </div>
-                <p-button [label]="'common.save' | transloco" outlined severity="success" (onClick)="saveHealthCheckInterval()"></p-button>
+                <p-button
+                  [label]="'common.save' | transloco"
+                  outlined
+                  [severity]="healthSaveSeverity"
+                  [disabled]="healthSaveDisabled"
+                  (onClick)="saveHealthCheckInterval()">
+                </p-button>
               </div>
             </div>
             <p class="setting-description">

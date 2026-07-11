@@ -9,6 +9,7 @@ import {BookService} from '../../../../book/service/book.service';
 import {BookMetadataManageService} from '../../../../book/service/book-metadata-manage.service';
 import {UrlHelperService} from '../../../../../shared/service/url-helper.service';
 import {AppSettingsService} from '../../../../../shared/service/app-settings.service';
+import {WriteProgressService} from '../../../../../shared/service/write-progress.service';
 import {Book, BookMetadata} from '../../../../book/model/book.model';
 
 describe('MetadataPickerComponent save button state', () => {
@@ -72,6 +73,14 @@ describe('MetadataPickerComponent save button state', () => {
             appSettings$: of(null),
           },
         },
+        {
+          provide: WriteProgressService,
+          useValue: {
+            show: vi.fn(),
+            complete: vi.fn(),
+            fail: vi.fn(),
+          },
+        },
       ],
     }).compileComponents();
   });
@@ -125,31 +134,50 @@ describe('MetadataPickerComponent save button state', () => {
 
   it('shows Saved after successful save and resets to Save Changes on next edit', () => {
     const {fixture, component} = createComponent();
-    vi.useFakeTimers();
 
-    try {
-      expect(getSaveButton(fixture).textContent).toContain('Save Changes');
+    expect(getSaveButton(fixture).textContent).toContain('Save Changes');
+    expect(getSaveButton(fixture).disabled).toBe(true);
+    expect(getSaveButton(fixture).getAttribute('data-p-severity')).toBe('secondary');
 
-      getSaveButton(fixture).click();
-      fixture.detectChanges();
+    const titleControl = component.metadataForm.get('title');
+    expect(titleControl).toBeTruthy();
+    titleControl!.enable({emitEvent: false});
+    titleControl!.setValue('Edited before save');
+    titleControl!.markAsDirty();
+    component.saveStatus.onUserEdit(true);
+    fixture.detectChanges();
 
-      expect(updateBookMetadata).toHaveBeenCalledTimes(1);
-      expect(getSaveButton(fixture).textContent).toContain('Saved');
+    expect(component.saveSeverity).toBe('warn');
+    expect(getSaveButton(fixture).disabled).toBe(false);
+    expect(getSaveButton(fixture).getAttribute('data-p-severity')).toBe('warn');
 
-      component.metadataForm.get('title')?.setValue('Edited title');
-      vi.runAllTimers();
+    getSaveButton(fixture).click();
+    fixture.detectChanges();
 
-      expect(component.showSavedState).toBe(false);
-    } finally {
-      vi.useRealTimers();
-    }
+    expect(updateBookMetadata).toHaveBeenCalledTimes(1);
+    expect(getSaveButton(fixture).textContent).toContain('Saved');
+    expect(getSaveButton(fixture).getAttribute('data-p-severity')).toBe('success');
+
+    titleControl!.setValue('Edited title');
+    titleControl!.markAsDirty();
+    component.saveStatus.onUserEdit(true);
+    fixture.detectChanges();
+
+    expect(component.showSavedState).toBe(false);
+    expect(getSaveButton(fixture).getAttribute('data-p-severity')).toBe('warn');
   }, 10000);
 
   it('renders a loading icon and loading state while a save is in progress', () => {
     const pendingSave = new Subject<object>();
     updateBookMetadata.mockReturnValueOnce(pendingSave);
 
-    const {fixture} = createComponent();
+    const {fixture, component} = createComponent();
+    const titleControl = component.metadataForm.get('title');
+    titleControl!.enable({emitEvent: false});
+    titleControl!.setValue('Dirty for save');
+    titleControl!.markAsDirty();
+    component.saveStatus.onUserEdit(true);
+    fixture.detectChanges();
     const saveButton = getSaveButton(fixture);
 
     saveButton.click();

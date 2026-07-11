@@ -18,7 +18,7 @@
           <div class="configurable-providers-list">
             <div class="setting-item">
               <div class="setting-header">
-                <p-toggleswitch [(ngModel)]="amazonEnabled"></p-toggleswitch>
+                <p-toggleswitch [(ngModel)]="amazonEnabled" (ngModelChange)="onSettingsChange()"></p-toggleswitch>
                 <span class="setting-label">Amazon</span>
               </div>
               @if (amazonEnabled) {
@@ -50,6 +50,7 @@
                     <p-select
                       [options]="amazonDomains"
                       [(ngModel)]="selectedAmazonDomain"
+                      (ngModelChange)="onSettingsChange()"
                       [placeholder]="t('selectDomain')"
                       class="config-select">
                     </p-select>
@@ -72,6 +73,7 @@
                         id="amazon-cookie"
                         [placeholder]="t('cookiePlaceholder')"
                         [(ngModel)]="amazonCookie"
+                        (ngModelChange)="onSettingsChange()"
                         class="config-input"/>
                       <p-button
                         [label]="t('amazonPasteBtn')"
@@ -89,7 +91,7 @@
 
             <div class="setting-item">
               <div class="setting-header">
-                <p-toggleswitch [(ngModel)]="googleEnabled"></p-toggleswitch>
+                <p-toggleswitch [(ngModel)]="googleEnabled" (ngModelChange)="onSettingsChange()"></p-toggleswitch>
                 <span class="setting-label">Google Books</span>
               </div>
               @if (googleEnabled) {
@@ -99,6 +101,7 @@
                     <p-select
                       [options]="googleLanguages"
                       [(ngModel)]="selectedGoogleLanguage"
+                      (ngModelChange)="onSettingsChange()"
                       [showClear]="!!selectedGoogleLanguage"
                       [placeholder]="t('selectLanguage')"
                       class="config-select">
@@ -113,6 +116,7 @@
                       id="google-api-key"
                       [placeholder]="t('googleApiPlaceholder')"
                       [(ngModel)]="googleApiKey"
+                      (ngModelChange)="onSettingsChange()"
                       class="config-input"/>
                   </div>
                 </div>
@@ -123,6 +127,7 @@
               <div class="setting-header">
                 <p-toggleswitch
                   [(ngModel)]="hardcoverEnabled"
+                  (ngModelChange)="onSettingsChange()"
                   [disabled]="!hardcoverToken">
                 </p-toggleswitch>
                 <span class="setting-label">Hardcover</span>
@@ -146,7 +151,7 @@
 
             <div class="setting-item">
               <div class="setting-header">
-                <p-toggleswitch [(ngModel)]="comicvineEnabled"></p-toggleswitch>
+                <p-toggleswitch [(ngModel)]="comicvineEnabled" (ngModelChange)="onSettingsChange()"></p-toggleswitch>
                 <span class="setting-label">Comic Vine</span>
               </div>
               @if (comicvineEnabled) {
@@ -168,7 +173,7 @@
 
             <div class="setting-item">
               <div class="setting-header">
-                <p-toggleswitch [(ngModel)]="audibleEnabled"></p-toggleswitch>
+                <p-toggleswitch [(ngModel)]="audibleEnabled" (ngModelChange)="onSettingsChange()"></p-toggleswitch>
                 <span class="setting-label">Audible</span>
               </div>
               @if (audibleEnabled) {
@@ -178,6 +183,7 @@
                     <p-select
                       [options]="audibleDomains"
                       [(ngModel)]="selectedAudibleDomain"
+                      (ngModelChange)="onSettingsChange()"
                       [placeholder]="t('selectDomain')"
                       class="config-select">
                     </p-select>
@@ -194,28 +200,28 @@
           <div class="simple-providers-grid">
             <div class="setting-item simple-provider">
               <div class="setting-header">
-                <p-toggleswitch [(ngModel)]="goodreadsEnabled"></p-toggleswitch>
+                <p-toggleswitch [(ngModel)]="goodreadsEnabled" (ngModelChange)="onSettingsChange()"></p-toggleswitch>
                 <span class="setting-label">Goodreads</span>
               </div>
             </div>
 
             <div class="setting-item simple-provider">
               <div class="setting-header">
-                <p-toggleswitch [(ngModel)]="doubanEnabled"></p-toggleswitch>
+                <p-toggleswitch [(ngModel)]="doubanEnabled" (ngModelChange)="onSettingsChange()"></p-toggleswitch>
                 <span class="setting-label">Douban</span>
               </div>
             </div>
 
             <div class="setting-item simple-provider">
               <div class="setting-header">
-                <p-toggleswitch [(ngModel)]="lubimyCzytacEnabled"></p-toggleswitch>
+                <p-toggleswitch [(ngModel)]="lubimyCzytacEnabled" (ngModelChange)="onSettingsChange()"></p-toggleswitch>
                 <span class="setting-label">Lubimyczytac</span>
               </div>
             </div>
 
             <div class="setting-item simple-provider">
               <div class="setting-header">
-                <p-toggleswitch [(ngModel)]="ranobedbEnabled"></p-toggleswitch>
+                <p-toggleswitch [(ngModel)]="ranobedbEnabled" (ngModelChange)="onSettingsChange()"></p-toggleswitch>
                 <span class="setting-label">Ranobedb</span>
               </div>
             </div>
@@ -223,7 +229,14 @@
         </div>
 
         <div class="setting-actions">
-          <p-button [label]="t('saveConfigurations')" icon="pi pi-save" severity="success" [outlined]="true" (click)="saveSettings()"></p-button>
+          <p-button
+            [label]="t('saveConfigurations')"
+            icon="pi pi-save"
+            [severity]="saveSeverity"
+            [outlined]="true"
+            [disabled]="saveDisabled"
+            (click)="saveSettings()">
+          </p-button>
         </div>
       </div>
     </div>

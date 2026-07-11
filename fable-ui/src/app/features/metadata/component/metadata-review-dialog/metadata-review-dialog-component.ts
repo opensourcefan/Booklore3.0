@@ -112,6 +112,10 @@ export class MetadataReviewDialogComponent implements OnInit {
     return this.processingAction !== null || this.pickerComponent?.isSaving === true;
   }
 
+  get acceptSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.pickerComponent?.saveSeverity ?? 'secondary';
+  }
+
   get quickActionLabel(): string {
     return this.isLast ? 'Copy All, Save & Finish' : 'Copy All, Save & Next';
   }

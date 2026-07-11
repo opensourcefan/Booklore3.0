@@ -1,9 +1,9 @@
-<div class="metadata-progress-box" *transloco="let t; scope: 'layout'">
+<div class="metadata-progress-box" *transloco="let t; prefix: 'layout.topbar'">
   <p-tabs value="0" styleClass="notification-tabs">
     <p-tablist>
-      <p-tab value="0">{{ t('topbar.bellTasksTab') }}</p-tab>
+      <p-tab value="0">{{ t('bellTasksTab') }}</p-tab>
       <p-tab value="1">
-        {{ t('topbar.bellNotificationsTab') }}
+        {{ t('bellNotificationsTab') }}
         @if (failureCount$ | async; as count) {
           @if (count > 0) {
             <span class="failure-count-badge">{{ count }}</span>
@@ -26,10 +26,10 @@
                 <app-bookdrop-files-widget-component/>
               }
             } @else {
-              <div class="tasks-empty">{{ t('topbar.bellTasksEmpty') }}</div>
+              <div class="tasks-empty">{{ t('bellTasksEmpty') }}</div>
             }
           } @else {
-            <div class="tasks-empty">{{ t('topbar.bellTasksEmpty') }}</div>
+            <div class="tasks-empty">{{ t('bellTasksEmpty') }}</div>
           }
         </div>
       </p-tabpanel>

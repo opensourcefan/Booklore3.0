@@ -100,8 +100,8 @@
             [icon]="isSaving ? 'pi pi-spin pi-spinner' : (showSavedState ? 'pi pi-check-circle' : 'pi pi-check')"
             [loading]="isSaving"
             loadingIcon="pi pi-spin pi-spinner"
-            [disabled]="isSaving"
-            severity="primary"
+            [disabled]="saveDisabled"
+            [severity]="saveSeverity"
             size="small"
             type="submit"
           />

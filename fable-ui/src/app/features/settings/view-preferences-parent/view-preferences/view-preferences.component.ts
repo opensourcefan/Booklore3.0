@@ -19,6 +19,7 @@ import {SortDirection, SortOption} from '../../../book/model/sort.model';
 import {MultiSortPopoverComponent} from '../../../book/components/book-browser/sorting/multi-sort-popover/multi-sort-popover.component';
 import {Popover} from 'primeng/popover';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
+import {SaveButtonStatusController} from '../../../../shared/service/save-button-status.controller';
 
 @Component({
   selector: 'app-view-preferences',
@@ -114,6 +115,9 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
     view: 'GRID' | 'TABLE';
   }[] = [];
 
+  readonly saveStatus = new SaveButtonStatusController();
+  private dirty = false;
+
   private user: User | null = null;
   private readonly destroy$ = new Subject<void>();
 
@@ -122,6 +126,19 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
   private magicShelfService = inject(MagicShelfService);
   private userService = inject(UserService);
   private messageService = inject(MessageService);
+
+  get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.saveStatus.severityFor(this.dirty);
+  }
+
+  get saveDisabled(): boolean {
+    return this.saveStatus.disabledWhenClean(this.dirty);
+  }
+
+  private markDirty(): void {
+    this.dirty = true;
+    this.saveStatus.markDirty();
+  }
 
   ngOnInit(): void {
     this.rebuildTranslatedLabels();
@@ -273,11 +290,13 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
         sortCriteriaAsOptions: this.toSortOptions(defaultCriteria),
         view: 'GRID'
       });
+      this.markDirty();
     }
   }
 
   removeOverride(index: number): void {
     this.overrides.splice(index, 1);
+    this.markDirty();
   }
 
   // Conversion helpers
@@ -300,6 +319,7 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
     this.globalSortAsOptions = criteria;
     this.sortCriteria = this.toSortCriteria(criteria);
     this.syncLegacySort();
+    this.markDirty();
   }
 
   onOverrideSortCriteriaChange(index: number, criteria: SortOption[]): void {
@@ -307,6 +327,7 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
     this.overrides[index].sortCriteria = this.toSortCriteria(criteria);
     this.overrides[index].sort = criteria[0]?.field ?? 'title';
     this.overrides[index].sortDir = criteria[0]?.direction === SortDirection.ASCENDING ? 'ASC' : 'DESC';
+    this.markDirty();
   }
 
   private syncLegacySort(): void {
@@ -338,12 +359,14 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
 
   onSortFieldDrop(event: CdkDragDrop<string[]>): void {
     moveItemInArray(this.visibleSortFields, event.previousIndex, event.currentIndex);
+    this.markDirty();
   }
 
   addSortField(): void {
     if (this.selectedAddSortField) {
       this.visibleSortFields.push(this.selectedAddSortField);
       this.selectedAddSortField = null;
+      this.markDirty();
       requestAnimationFrame(() => {
         const el = this.sortFieldList()?.nativeElement;
         if (el) el.scrollTop = el.scrollHeight;
@@ -354,11 +377,17 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
   removeSortField(index: number): void {
     if (this.visibleSortFields.length > this.minSortFields) {
       this.visibleSortFields.splice(index, 1);
+      this.markDirty();
     }
   }
 
   resetSortFieldsToDefaults(): void {
     this.visibleSortFields = [...DEFAULT_VISIBLE_SORT_FIELDS];
+    this.markDirty();
+  }
+
+  onPreferenceChange(): void {
+    this.markDirty();
   }
 
   saveSettings(): void {
@@ -402,6 +431,8 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
     this.userService.updateUserSetting(this.user.id, 'useDistractionLoadingScreen', this.useDistractionLoadingScreen);
     this.userService.updateUserSetting(this.user.id, 'visibleSortFields', this.visibleSortFields);
 
+    this.dirty = false;
+    this.saveStatus.markSuccess();
     this.messageService.add({
       severity: 'success',
       summary: this.t.translate('settingsView.librarySort.saveSuccess'),

@@ -13,6 +13,8 @@ import {filter, take} from 'rxjs/operators';
 import {InputText} from 'primeng/inputtext';
 import {Slider} from 'primeng/slider';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
+import {SaveButtonStatusController} from '../../../shared/service/save-button-status.controller';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 
 @Component({
   selector: 'app-global-preferences',
@@ -45,16 +47,46 @@ export class GlobalPreferencesComponent implements OnInit {
     smartCroppingEnabled: false
   };
 
+  readonly fileSizeSaveStatus = new SaveButtonStatusController();
+  readonly healthSaveStatus = new SaveButtonStatusController();
+
   private appSettingsService = inject(AppSettingsService);
   private bookMetadataManageService = inject(BookMetadataManageService);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private t = inject(TranslocoService);
 
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
   maxFileUploadSizeInMb?: number;
   healthCheckIntervalSeconds?: number;
+  private originalMaxFileUploadSizeInMb?: number;
+  private originalHealthCheckIntervalSeconds?: number;
   regenerateCoverMenuItems: MenuItem[] = [];
+
+  get isFileSizeDirty(): boolean {
+    return this.maxFileUploadSizeInMb !== this.originalMaxFileUploadSizeInMb;
+  }
+
+  get isHealthCheckDirty(): boolean {
+    return this.healthCheckIntervalSeconds !== this.originalHealthCheckIntervalSeconds;
+  }
+
+  get fileSizeSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.fileSizeSaveStatus.severityFor(this.isFileSizeDirty);
+  }
+
+  get healthSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.healthSaveStatus.severityFor(this.isHealthCheckDirty);
+  }
+
+  get fileSizeSaveDisabled(): boolean {
+    return this.fileSizeSaveStatus.disabledWhenClean(this.isFileSizeDirty);
+  }
+
+  get healthSaveDisabled(): boolean {
+    return this.healthSaveStatus.disabledWhenClean(this.isHealthCheckDirty);
+  }
 
   ngOnInit(): void {
     this.regenerateCoverMenuItems = [
@@ -71,9 +103,11 @@ export class GlobalPreferencesComponent implements OnInit {
     ).subscribe(settings => {
       if (settings?.maxFileUploadSizeInMb) {
         this.maxFileUploadSizeInMb = settings.maxFileUploadSizeInMb;
+        this.originalMaxFileUploadSizeInMb = settings.maxFileUploadSizeInMb;
       }
       if (settings?.libraryHealthCheckIntervalSeconds) {
         this.healthCheckIntervalSeconds = settings.libraryHealthCheckIntervalSeconds;
+        this.originalHealthCheckIntervalSeconds = settings.libraryHealthCheckIntervalSeconds;
       }
       if (settings?.coverCroppingSettings) {
         this.coverCroppingSettings = {...settings.coverCroppingSettings};
@@ -103,12 +137,22 @@ export class GlobalPreferencesComponent implements OnInit {
     this.saveSetting(AppSettingKey.COVER_CROPPING_SETTINGS, this.coverCroppingSettings);
   }
 
+  onFileSizeChange(): void {
+    this.fileSizeSaveStatus.onUserEdit(this.isFileSizeDirty);
+  }
+
+  onHealthCheckChange(): void {
+    this.healthSaveStatus.onUserEdit(this.isHealthCheckDirty);
+  }
+
   saveFileSize() {
     if (!this.maxFileUploadSizeInMb || this.maxFileUploadSizeInMb <= 0) {
       this.showMessage('error', this.t.translate('settingsApp.fileManagement.invalidInput'), this.t.translate('settingsApp.fileManagement.invalidInputDetail'));
       return;
     }
-    this.saveSetting(AppSettingKey.MAX_FILE_UPLOAD_SIZE_IN_MB, this.maxFileUploadSizeInMb);
+    this.saveSetting(AppSettingKey.MAX_FILE_UPLOAD_SIZE_IN_MB, this.maxFileUploadSizeInMb, this.fileSizeSaveStatus, () => {
+      this.originalMaxFileUploadSizeInMb = this.maxFileUploadSizeInMb;
+    });
   }
 
   saveHealthCheckInterval() {
@@ -116,7 +160,9 @@ export class GlobalPreferencesComponent implements OnInit {
       this.showMessage('error', this.t.translate('settingsApp.libraryHealth.invalidInput'), this.t.translate('settingsApp.libraryHealth.invalidInputDetail'));
       return;
     }
-    this.saveSetting(AppSettingKey.LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS, this.healthCheckIntervalSeconds);
+    this.saveSetting(AppSettingKey.LIBRARY_HEALTH_CHECK_INTERVAL_SECONDS, this.healthCheckIntervalSeconds, this.healthSaveStatus, () => {
+      this.originalHealthCheckIntervalSeconds = this.healthCheckIntervalSeconds;
+    });
   }
 
   regenerateCovers(missingOnly = false): void {
@@ -172,12 +218,24 @@ export class GlobalPreferencesComponent implements OnInit {
     }
   }
 
-  private saveSetting(key: string, value: unknown): void {
+  private saveSetting(
+    key: string,
+    value: unknown,
+    saveStatus?: SaveButtonStatusController,
+    onSuccess?: () => void
+  ): void {
     this.appSettingsService.saveSettings([{key, newValue: value}]).subscribe({
-      next: () =>
-        this.showMessage('success', this.t.translate('settingsApp.settingsSaved'), this.t.translate('settingsApp.settingsSavedDetail')),
-      error: () =>
-        this.showMessage('error', this.t.translate('common.error'), this.t.translate('settingsApp.settingsError'))
+      next: () => {
+        saveStatus?.markSuccess();
+        onSuccess?.();
+        this.showMessage('success', this.t.translate('settingsApp.settingsSaved'), this.t.translate('settingsApp.settingsSavedDetail'));
+      },
+      error: () => {
+        saveStatus?.markError();
+        const detail = this.t.translate('settingsApp.settingsError');
+        this.failureNotifications.reportSafe('App settings', detail);
+        this.showMessage('error', this.t.translate('common.error'), detail);
+      }
     });
   }
 
