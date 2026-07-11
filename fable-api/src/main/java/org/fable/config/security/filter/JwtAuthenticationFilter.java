@@ -34,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/v1/opds/",
             "/api/v2/opds/",
             "/api/v1/auth/refresh",
+            "/api/v1/auth/logout",
             "/api/v1/setup/",
             "/api/kobo/"
     );

@@ -59,6 +59,8 @@ export class LoginComponent implements OnInit {
     this.route.queryParams.pipe(take(1)).subscribe(params => {
       if (params['reason'] === 'session_revoked') {
         this.infoMessage = this.translocoService.translate('auth.login.sessionRevoked');
+      } else if (params['reason'] === 'session_expired') {
+        this.infoMessage = this.translocoService.translate('auth.login.sessionExpired');
       }
 
       const oidcError = params['oidcError'];

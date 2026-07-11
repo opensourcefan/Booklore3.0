@@ -223,13 +223,23 @@ export class AuthService implements OnDestroy {
     this.proactiveRefreshTimerId = setTimeout(() => {
       const refreshToken = this.getInternalRefreshToken();
       if (!refreshToken) return;
+      // Share the interceptor's refresh lock so a tab-wake proactive refresh and a
+      // concurrent 401 retry cannot rotate the same refresh token twice.
+      if (this.isRefreshing) return;
 
+      this.isRefreshing = true;
+      this.refreshTokenSubject.next(null);
       this.internalRefreshToken().subscribe({
-        next: () => {
+        next: (response) => {
+          this.isRefreshing = false;
+          if (response.accessToken) {
+            this.refreshTokenSubject.next(response.accessToken);
+          }
           // saveInternalTokens (called inside internalRefreshToken's tap)
           // will re-schedule the next proactive refresh automatically.
         },
         error: (err) => {
+          this.isRefreshing = false;
           console.warn('AuthService: Proactive token refresh failed:', err);
         }
       });

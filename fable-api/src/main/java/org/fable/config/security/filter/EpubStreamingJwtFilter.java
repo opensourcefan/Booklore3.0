@@ -45,7 +45,7 @@ public class EpubStreamingJwtFilter extends OncePerRequestFilter {
         }
 
         if (token == null || token.isEmpty()) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing authentication token");
+            UnauthorizedResponseWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "Missing authentication token");
             return;
         }
 
@@ -53,11 +53,11 @@ public class EpubStreamingJwtFilter extends OncePerRequestFilter {
             if (jwtUtils.validateToken(token)) {
                 authenticateUser(token, request);
             } else {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+                UnauthorizedResponseWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                 return;
             }
         } catch (Exception ex) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: " + ex.getMessage());
+            UnauthorizedResponseWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: " + ex.getMessage());
             return;
         }
 

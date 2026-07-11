@@ -1,35 +1,39 @@
 import {HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest} from '@angular/common/http';
 import {inject} from '@angular/core';
-import {Router} from '@angular/router';
 import {catchError, filter, switchMap, take} from 'rxjs/operators';
-import {Observable, throwError} from 'rxjs';
+import {Observable, throwError, timer} from 'rxjs';
 import {AuthService} from '../../shared/service/auth.service';
 import {API_CONFIG} from '../config/api-config';
 
+const AUTH_URL_PREFIX = `${API_CONFIG.BASE_URL}/api/v1/auth/`;
+
+/** Auth endpoints must not trigger the 401→refresh loop (refresh/logout especially). */
+function isAuthEndpoint(url: string): boolean {
+  return url.startsWith(AUTH_URL_PREFIX);
+}
+
 export const AuthInterceptorService: HttpInterceptorFn = (req, next: HttpHandlerFn) => {
   const authService = inject(AuthService);
-  const router = inject(Router);
 
   const token = authService.getInternalAccessToken();
   const isApiRequest = req.url.startsWith(`${API_CONFIG.BASE_URL}/api/`);
+  // Never attach a (possibly expired) bearer to refresh/logout — those use the refresh token body
+  // and must remain reachable after the 10-hour access token expires.
+  const attachBearer = !!token && isApiRequest && !isAuthEndpoint(req.url);
 
-  const authReq = (token && isApiRequest) ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
+  const authReq = attachBearer ? req.clone({setHeaders: {Authorization: `Bearer ${token}`}}) : req;
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
-        return handle401Error(authService, authReq, next, router);
+      if (error.status === 401 && isApiRequest && !isAuthEndpoint(req.url)) {
+        return handle401Error(authService, authReq, next);
       }
       return throwError(() => error);
     })
   );
 };
 
-// isRefreshing and refreshTokenSubject have been moved to AuthService to make
-// them injectable instance state rather than module-level mutable globals.
-// This prevents test pollution and makes the state lifecycle explicit (L3 fix).
-
-function handle401Error(authService: AuthService, request: HttpRequest<unknown>, next: HttpHandlerFn, router: Router): Observable<HttpEvent<unknown>> {
+function handle401Error(authService: AuthService, request: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
   if (!authService.isRefreshing) {
     authService.isRefreshing = true;
     authService.refreshTokenSubject.next(null);
@@ -37,34 +41,38 @@ function handle401Error(authService: AuthService, request: HttpRequest<unknown>,
     return authService.internalRefreshToken().pipe(
       switchMap(response => {
         authService.isRefreshing = false;
-        const { accessToken, refreshToken } = response;
+        const {accessToken, refreshToken} = response;
         if (accessToken && refreshToken) {
           authService.saveInternalTokens(response);
           authService.refreshTokenSubject.next(accessToken);
         }
         return next(request.clone({
-          setHeaders: { Authorization: `Bearer ${accessToken}` }
+          setHeaders: {Authorization: `Bearer ${accessToken}`}
         }));
       }),
       catchError(err => {
         authService.isRefreshing = false;
-        forceLogout(authService, router);
+        authService.refreshTokenSubject.next(null);
+        // Soft session end — do NOT call logout() (that posts with a dead refresh token,
+        // re-enters this interceptor, and for OIDC can hard-navigate to a broken end_session URL).
+        authService.forceLogout('session_expired');
         return throwError(() => err);
       })
     );
   }
 
-  return authService.refreshTokenSubject.pipe(
-    filter(token => token !== null),
+  // Wait for the in-flight refresh to finish, then retry or fail.
+  return timer(0, 50).pipe(
+    filter(() => !authService.isRefreshing),
     take(1),
-    switchMap(token =>
-      next(request.clone({
-        setHeaders: { Authorization: `Bearer ${token}` }
-      }))
-    )
+    switchMap(() => {
+      const accessToken = authService.getInternalAccessToken();
+      if (!accessToken || !authService.hasValidInternalAccessToken()) {
+        return throwError(() => new Error('Session expired'));
+      }
+      return next(request.clone({
+        setHeaders: {Authorization: `Bearer ${accessToken}`}
+      }));
+    })
   );
-}
-
-function forceLogout(authService: AuthService, _router: Router): void {
-  authService.logout();
 }

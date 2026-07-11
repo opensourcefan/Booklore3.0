@@ -1,5 +1,6 @@
 import {inject} from '@angular/core';
-import {CanActivateFn, Router} from '@angular/router';
+import {CanActivateFn, Router, UrlTree} from '@angular/router';
+import {catchError, filter, map, Observable, of, take, timer} from 'rxjs';
 import {AuthService} from '../../shared/service/auth.service';
 
 export const AuthGuard: CanActivateFn = (_route, _state) => {
@@ -14,9 +15,41 @@ export const AuthGuard: CanActivateFn = (_route, _state) => {
     return router.createUrlTree(['/login']);
   }
 
-  if (internalAccessTokenExpiry === null || isDefaultPassword === null || internalAccessTokenExpiry <= Date.now()) {
+  if (internalAccessTokenExpiry === null || isDefaultPassword === null) {
     authService.clearSessionOnLoginPage();
     return router.createUrlTree(['/login']);
+  }
+
+  // Access tokens expire after 10 hours; refresh tokens last ~30 days (mobile login retention).
+  // Soft-navigate after idle must attempt refresh instead of wiping the refresh token.
+  if (internalAccessTokenExpiry <= Date.now()) {
+    if (!authService.getInternalRefreshToken()) {
+      authService.clearSessionOnLoginPage();
+      return router.createUrlTree(['/login'], {queryParams: {reason: 'session_expired'}});
+    }
+
+    if (authService.isRefreshing) {
+      return waitForInFlightRefresh(authService, router);
+    }
+
+    authService.isRefreshing = true;
+    authService.refreshTokenSubject.next(null);
+
+    return authService.internalRefreshToken().pipe(
+      map(response => {
+        authService.isRefreshing = false;
+        if (response.accessToken) {
+          authService.refreshTokenSubject.next(response.accessToken);
+        }
+        return postRefreshDestination(authService, router);
+      }),
+      catchError(() => {
+        authService.isRefreshing = false;
+        authService.refreshTokenSubject.next(null);
+        authService.clearSessionOnLoginPage();
+        return of(router.createUrlTree(['/login'], {queryParams: {reason: 'session_expired'}}));
+      })
+    );
   }
 
   if (isDefaultPassword) {
@@ -25,3 +58,24 @@ export const AuthGuard: CanActivateFn = (_route, _state) => {
 
   return true;
 };
+
+function waitForInFlightRefresh(authService: AuthService, router: Router): Observable<boolean | UrlTree> {
+  return timer(0, 50).pipe(
+    filter(() => !authService.isRefreshing),
+    take(1),
+    map(() => {
+      if (!authService.hasValidInternalAccessToken()) {
+        authService.clearSessionOnLoginPage();
+        return router.createUrlTree(['/login'], {queryParams: {reason: 'session_expired'}});
+      }
+      return postRefreshDestination(authService, router);
+    })
+  );
+}
+
+function postRefreshDestination(authService: AuthService, router: Router): boolean | UrlTree {
+  if (authService.getInternalDefaultPassword()) {
+    return router.createUrlTree(['/change-password']);
+  }
+  return true;
+}
