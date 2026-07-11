@@ -1,4 +1,4 @@
-import {Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output,} from "@angular/core";
+import {Component, ChangeDetectorRef, DestroyRef, EventEmitter, inject, Input, OnInit, Output,} from "@angular/core";
 import {InputText} from "primeng/inputtext";
 import {Button} from "primeng/button";
 import {Divider} from "primeng/divider";
@@ -92,6 +92,7 @@ export class MetadataEditorComponent implements OnInit {
   private appSettingsService = inject(AppSettingsService);
   private readonly t = inject(TranslocoService);
   private readonly writeProgressService = inject(WriteProgressService);
+  private readonly cdr = inject(ChangeDetectorRef, {optional: true});
 
   metadataForm: FormGroup;
   currentBookId!: number;
@@ -102,15 +103,16 @@ export class MetadataEditorComponent implements OnInit {
   isGeneratingCover = false;
   isGeneratingAudiobookCover = false;
   readonly saveStatus = new SaveButtonStatusController();
-
-  get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
-    return this.saveStatus.severityFor(!!this.metadataForm?.dirty);
-  }
+  /** Property (not getter) so PrimeNG OnPush p-button receives a changed @Input. */
+  saveSeverity: 'secondary' | 'warn' | 'success' | 'danger' = 'secondary';
 
   get saveDisabled(): boolean {
-    // Only block while a save is in flight. Dirty tracking drives color; requiring
-    // dirty to enable save broke editing when book$ echoes reset pristine.
     return this.isSaving;
+  }
+
+  private syncSaveSeverity(): void {
+    this.saveSeverity = this.saveStatus.severityFor(!!this.metadataForm?.dirty);
+    this.cdr?.markForCheck();
   }
 
   refreshingBookIds = new Set<number>();
@@ -380,9 +382,13 @@ export class MetadataEditorComponent implements OnInit {
     this.metadataForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        if (!this.isSaving) {
-          this.saveStatus.onUserEdit(this.metadataForm.dirty);
+        if (this.isSaving) {
+          return;
         }
+        if (this.metadataForm.dirty) {
+          this.saveStatus.markDirty();
+        }
+        this.syncSaveSeverity();
       });
 
     this.book$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((book) => {
@@ -397,7 +403,7 @@ export class MetadataEditorComponent implements OnInit {
 
       // book$ re-emits whenever bookState refreshes the same book (WS / API).
       // Do not wipe in-progress edits or outcome button colors on those echoes.
-      if (!bookChanged && (this.metadataForm.dirty || this.saveStatus.value === 'success' || this.saveStatus.value === 'error')) {
+      if (!bookChanged && (this.metadataForm.dirty || this.saveStatus.value === 'success' || this.saveStatus.value === 'error' || this.saveStatus.value === 'dirty')) {
         return;
       }
 
@@ -405,6 +411,7 @@ export class MetadataEditorComponent implements OnInit {
       this.populateFormFromMetadata(metadata);
       this.metadataForm.markAsPristine();
       this.saveStatus.resetIdle();
+      this.syncSaveSeverity();
     });
 
     this.taskService.taskProgress$
@@ -712,6 +719,7 @@ export class MetadataEditorComponent implements OnInit {
             this.prepareAutoComplete();
             this.metadataForm.markAsPristine();
             this.saveStatus.markSuccess();
+            this.syncSaveSeverity();
           },
           error: (err: unknown) => {
             this.isSaving = false;
@@ -720,6 +728,7 @@ export class MetadataEditorComponent implements OnInit {
               || 'Failed to update book metadata';
             this.writeProgressService.fail(detail);
             this.saveStatus.markError();
+            this.syncSaveSeverity();
             this.messageService.add({
               severity: "error",
               summary: this.t.translate('metadata.editor.toast.errorSummary'),

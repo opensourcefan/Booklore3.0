@@ -144,7 +144,8 @@ describe('MetadataPickerComponent save button state', () => {
     titleControl!.enable({emitEvent: false});
     titleControl!.setValue('Edited before save');
     titleControl!.markAsDirty();
-    component.saveStatus.onUserEdit(true);
+    component.saveStatus.markDirty();
+    (component as unknown as {syncSaveSeverity: () => void}).syncSaveSeverity();
     fixture.detectChanges();
 
     expect(component.saveSeverity).toBe('warn');
@@ -160,7 +161,8 @@ describe('MetadataPickerComponent save button state', () => {
 
     titleControl!.setValue('Edited title');
     titleControl!.markAsDirty();
-    component.saveStatus.onUserEdit(true);
+    component.saveStatus.markDirty();
+    (component as unknown as {syncSaveSeverity: () => void}).syncSaveSeverity();
     fixture.detectChanges();
 
     expect(component.showSavedState).toBe(false);
@@ -176,7 +178,8 @@ describe('MetadataPickerComponent save button state', () => {
     titleControl!.enable({emitEvent: false});
     titleControl!.setValue('Dirty for save');
     titleControl!.markAsDirty();
-    component.saveStatus.onUserEdit(true);
+    component.saveStatus.markDirty();
+    (component as unknown as {syncSaveSeverity: () => void}).syncSaveSeverity();
     fixture.detectChanges();
     const saveButton = getSaveButton(fixture);
 

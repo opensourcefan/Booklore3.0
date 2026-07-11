@@ -1,4 +1,4 @@
-import {Component, DestroyRef, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, DestroyRef, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectorRef} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Button} from 'primeng/button';
@@ -50,6 +50,7 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
   private writeProgressService = inject(WriteProgressService);
   private failureNotifications = inject(FailureNotificationService);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef, {optional: true});
 
   form!: FormGroup;
   isSaving = false;
@@ -57,13 +58,15 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
   hasPhoto = true;
   photoTimestamp = Date.now();
   readonly saveStatus = new SaveButtonStatusController();
-
-  get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
-    return this.saveStatus.severityFor(!!this.form?.dirty);
-  }
+  saveSeverity: 'secondary' | 'warn' | 'success' | 'danger' = 'secondary';
 
   get saveDisabled(): boolean {
     return this.isSaving;
+  }
+
+  private syncSaveSeverity(): void {
+    this.saveSeverity = this.saveStatus.severityFor(!!this.form?.dirty);
+    this.cdr?.markForCheck();
   }
 
   get photoUrl(): string {
@@ -94,9 +97,18 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
 
     this.applyLockStates();
     this.form.markAsPristine();
+    this.syncSaveSeverity();
     this.form.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.saveStatus.onUserEdit(this.form.dirty));
+      .subscribe(() => {
+        if (this.isSaving) {
+          return;
+        }
+        if (this.form.dirty) {
+          this.saveStatus.markDirty();
+        }
+        this.syncSaveSeverity();
+      });
   }
 
   toggleLock(field: string): void {
@@ -214,6 +226,7 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
         this.isSaving = false;
         this.form.markAsPristine();
         this.saveStatus.markSuccess();
+        this.syncSaveSeverity();
         this.writeProgressService.complete(this.t.translate('authorBrowser.editor.toast.successDetail'));
         this.authorUpdated.emit(updated);
         this.messageService.add({
@@ -225,6 +238,7 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
       error: () => {
         this.isSaving = false;
         this.saveStatus.markError();
+        this.syncSaveSeverity();
         const detail = this.t.translate('authorBrowser.editor.toast.errorDetail');
         this.writeProgressService.fail(detail);
         this.messageService.add({

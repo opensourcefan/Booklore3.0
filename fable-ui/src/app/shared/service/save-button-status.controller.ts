@@ -30,7 +30,7 @@ export class SaveButtonStatusController {
 
   /** Prefer dirty (warn) over last outcome color. */
   severityFor(dirty: boolean): 'secondary' | 'warn' | 'success' | 'danger' {
-    if (dirty) {
+    if (dirty || this.status === 'dirty') {
       return 'warn';
     }
     return this.severity;
@@ -42,7 +42,7 @@ export class SaveButtonStatusController {
 
   /** Disable when clean (idle/success), allow retry after error. */
   disabledWhenClean(dirty: boolean, isSaving = false): boolean {
-    return isSaving || (!dirty && this.status !== 'error');
+    return isSaving || (!dirty && this.status !== 'error' && this.status !== 'dirty');
   }
 
   markDirty(): void {
@@ -61,13 +61,14 @@ export class SaveButtonStatusController {
     this.status = 'idle';
   }
 
-  /** Call when form values change from a user edit. */
+  /**
+   * Call when form values change from a user edit.
+   * Only promotes to dirty — never clears outcome/dirty from a false "clean" pulse
+   * (spurious valueChanges after enable/disable can report dirty=false briefly).
+   */
   onUserEdit(hasChanges: boolean): void {
     if (hasChanges) {
       this.markDirty();
-    } else if (this.status === 'dirty' || this.status === 'error') {
-      this.resetIdle();
     }
-    // success stays until next dirty edit
   }
 }

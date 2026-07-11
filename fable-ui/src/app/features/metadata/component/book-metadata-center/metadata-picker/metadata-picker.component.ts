@@ -1,4 +1,4 @@
-import {Component, DestroyRef, EventEmitter, HostListener, inject, Input, OnInit, Output} from '@angular/core';
+import {Component, ChangeDetectorRef, DestroyRef, EventEmitter, HostListener, inject, Input, OnInit, Output} from '@angular/core';
 import {Book, BookMetadata, ComicMetadata, MetadataClearFlags, MetadataUpdateWrapper} from '../../../../book/model/book.model';
 import {MessageService} from 'primeng/api';
 import {CdkDragDrop, CdkDropList, CdkDrag, moveItemInArray} from '@angular/cdk/drag-drop';
@@ -112,6 +112,7 @@ export class MetadataPickerComponent implements OnInit {
   private readonly t = inject(TranslocoService);
   private dialogRef = inject(DynamicDialogRef, {optional: true});
   private writeProgressService = inject(WriteProgressService);
+  private cdr = inject(ChangeDetectorRef, {optional: true});
 
   private enabledProviderFields: MetadataProviderSpecificFields | null = null;
   private isApplyingFormPatch = false;
@@ -120,14 +121,16 @@ export class MetadataPickerComponent implements OnInit {
     return this.saveStatus.value === 'success' && !this.metadataForm?.dirty;
   }
 
-  get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
-    return this.saveStatus.severityFor(!!this.metadataForm?.dirty);
-  }
+  /** Property (not getter) so PrimeNG OnPush p-button receives a changed @Input. */
+  saveSeverity: 'secondary' | 'warn' | 'success' | 'danger' = 'secondary';
 
   get saveDisabled(): boolean {
-    // Keep save clickable; orange/green/red come from dirty + saveStatus.
-    // Requiring dirty to enable save failed when same-book book$ resets wiped pristine.
     return this.isSaving;
+  }
+
+  private syncSaveSeverity(): void {
+    this.saveSeverity = this.saveStatus.severityFor(!!this.metadataForm?.dirty);
+    this.cdr?.markForCheck();
   }
 
   constructor() {
@@ -174,7 +177,10 @@ export class MetadataPickerComponent implements OnInit {
         if (this.isSaving || this.isApplyingFormPatch) {
           return;
         }
-        this.saveStatus.onUserEdit(this.metadataForm.dirty);
+        if (this.metadataForm.dirty) {
+          this.saveStatus.markDirty();
+        }
+        this.syncSaveSeverity();
       });
 
     this.appSettingsService.appSettings$
@@ -225,7 +231,7 @@ export class MetadataPickerComponent implements OnInit {
 
       // Same-book book$ echoes must not wipe copied/edited fields or save colors.
       if (!bookChanged && this.currentBookId != null
-        && (this.metadataForm.dirty || this.saveStatus.value === 'success' || this.saveStatus.value === 'error')) {
+        && (this.metadataForm.dirty || this.saveStatus.value === 'success' || this.saveStatus.value === 'error' || this.saveStatus.value === 'dirty')) {
         this.currentBook = book;
         return;
       }
@@ -244,6 +250,7 @@ export class MetadataPickerComponent implements OnInit {
       this.originalMetadata.thumbnailUrl = this.urlHelper.getThumbnailUrl(metadata.bookId, metadata.coverUpdatedOn);
       this.currentBookId = metadata.bookId;
       this.patchMetadataToForm(metadata, book);
+      this.syncSaveSeverity();
     });
   }
 
@@ -421,11 +428,13 @@ export class MetadataPickerComponent implements OnInit {
           }
           this.metadataForm.markAsPristine();
           this.saveStatus.markSuccess();
+          this.syncSaveSeverity();
           this.writeProgressService.complete(this.t.translate('metadata.picker.toast.metadataUpdated'));
           this.messageService.add({severity: 'info', summary: this.t.translate('metadata.picker.toast.successSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdated')});
         },
         error: () => {
           this.saveStatus.markError();
+          this.syncSaveSeverity();
           const detail = this.t.translate('metadata.picker.toast.metadataUpdateFailed');
           this.writeProgressService.fail(detail);
           this.messageService.add({severity: 'error', summary: this.t.translate('metadata.picker.toast.errorSummary'), detail});
