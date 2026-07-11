@@ -108,7 +108,9 @@ export class MetadataEditorComponent implements OnInit {
   }
 
   get saveDisabled(): boolean {
-    return this.saveStatus.disabledWhenClean(!!this.metadataForm?.dirty, this.isSaving);
+    // Only block while a save is in flight. Dirty tracking drives color; requiring
+    // dirty to enable save broke editing when book$ echoes reset pristine.
+    return this.isSaving;
   }
 
   refreshingBookIds = new Set<number>();
@@ -386,10 +388,19 @@ export class MetadataEditorComponent implements OnInit {
     this.book$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((book) => {
       const metadata = book?.metadata;
       if (!metadata) return;
+
+      const bookChanged = this.currentBookId !== metadata.bookId;
       this.currentBookId = metadata.bookId;
       if (this.refreshingBookIds.has(book.id)) {
         this.finishAutoFetch(book.id);
       }
+
+      // book$ re-emits whenever bookState refreshes the same book (WS / API).
+      // Do not wipe in-progress edits or outcome button colors on those echoes.
+      if (!bookChanged && (this.metadataForm.dirty || this.saveStatus.value === 'success' || this.saveStatus.value === 'error')) {
+        return;
+      }
+
       this.originalMetadata = structuredClone(metadata);
       this.populateFormFromMetadata(metadata);
       this.metadataForm.markAsPristine();
@@ -630,7 +641,7 @@ export class MetadataEditorComponent implements OnInit {
       const isLocked = metadata[key] === true;
       const formControl = this.metadataForm.get(control);
       if (formControl) {
-        if (isLocked) { formControl.disable(); } else { formControl.enable(); }
+        if (isLocked) { formControl.disable({emitEvent: false}); } else { formControl.enable({emitEvent: false}); }
       }
     }
 
@@ -639,7 +650,7 @@ export class MetadataEditorComponent implements OnInit {
       const isLocked = this.metadataForm.get(field.lockedKey)?.value === true;
       const formControl = this.metadataForm.get(field.controlName);
       if (formControl) {
-        if (isLocked) { formControl.disable(); } else { formControl.enable(); }
+        if (isLocked) { formControl.disable({emitEvent: false}); } else { formControl.enable({emitEvent: false}); }
       }
     }
 
@@ -648,7 +659,7 @@ export class MetadataEditorComponent implements OnInit {
       const isLocked = this.metadataForm.get(field.lockedKey)?.value === true;
       const formControl = this.metadataForm.get(field.controlName);
       if (formControl) {
-        if (isLocked) { formControl.disable(); } else { formControl.enable(); }
+        if (isLocked) { formControl.disable({emitEvent: false}); } else { formControl.enable({emitEvent: false}); }
       }
     }
   }

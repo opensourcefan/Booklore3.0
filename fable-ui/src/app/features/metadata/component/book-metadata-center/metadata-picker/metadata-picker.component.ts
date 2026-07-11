@@ -125,7 +125,9 @@ export class MetadataPickerComponent implements OnInit {
   }
 
   get saveDisabled(): boolean {
-    return this.saveStatus.disabledWhenClean(!!this.metadataForm?.dirty, this.isSaving);
+    // Keep save clickable; orange/green/red come from dirty + saveStatus.
+    // Requiring dirty to enable save failed when same-book book$ resets wiped pristine.
+    return this.isSaving;
   }
 
   constructor() {
@@ -218,6 +220,16 @@ export class MetadataPickerComponent implements OnInit {
         filter((book): book is Book => !!book && !!book.metadata),
         takeUntilDestroyed(this.destroyRef)
       ).subscribe((book) => {
+      const metadata = book.metadata!;
+      const bookChanged = this.currentBookId !== metadata.bookId;
+
+      // Same-book book$ echoes must not wipe copied/edited fields or save colors.
+      if (!bookChanged && this.currentBookId != null
+        && (this.metadataForm.dirty || this.saveStatus.value === 'success' || this.saveStatus.value === 'error')) {
+        this.currentBook = book;
+        return;
+      }
+
       if (this.reviewMode) {
         this.metadataForm.reset();
         this.copiedFields = {};
@@ -228,7 +240,6 @@ export class MetadataPickerComponent implements OnInit {
       this.saveStatus.resetIdle();
 
       this.currentBook = book;
-      const metadata = book.metadata!;
       this.originalMetadata = metadata;
       this.originalMetadata.thumbnailUrl = this.urlHelper.getThumbnailUrl(metadata.bookId, metadata.coverUpdatedOn);
       this.currentBookId = metadata.bookId;

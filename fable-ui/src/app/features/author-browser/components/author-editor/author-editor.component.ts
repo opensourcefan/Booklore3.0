@@ -63,7 +63,7 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
   }
 
   get saveDisabled(): boolean {
-    return this.saveStatus.disabledWhenClean(!!this.form?.dirty, this.isSaving);
+    return this.isSaving;
   }
 
   get photoUrl(): string {

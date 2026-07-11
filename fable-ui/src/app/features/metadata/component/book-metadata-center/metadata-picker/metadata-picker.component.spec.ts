@@ -136,7 +136,7 @@ describe('MetadataPickerComponent save button state', () => {
     const {fixture, component} = createComponent();
 
     expect(getSaveButton(fixture).textContent).toContain('Save Changes');
-    expect(getSaveButton(fixture).disabled).toBe(true);
+    expect(getSaveButton(fixture).disabled).toBe(false);
     expect(getSaveButton(fixture).getAttribute('data-p-severity')).toBe('secondary');
 
     const titleControl = component.metadataForm.get('title');
