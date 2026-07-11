@@ -29,6 +29,9 @@ public class LogNotificationEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "triggered_by_user_id")
+    private Long triggeredByUserId;
+
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {

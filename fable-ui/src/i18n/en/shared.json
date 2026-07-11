@@ -96,7 +96,12 @@
     "importedVisiblePlural": "{{ count }} already imported here"
   },
   "liveNotification": {
-    "defaultMessage": "No recent notifications..."
+    "defaultMessage": "No recent notifications...",
+    "failuresTitle": "Failures",
+    "dismissAll": "Dismiss All",
+    "dismissAllAria": "Dismiss all failure notifications",
+    "dismissAria": "Dismiss notification",
+    "emptyFailures": "No failures to show."
   },
   "supportDialog": {
     "title": "Support Fable",

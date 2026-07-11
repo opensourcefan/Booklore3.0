@@ -99,6 +99,7 @@ export class AppTopBarComponent implements OnDestroy {
   mobileSearchVisible = false;
   progressHighlight = false;
   completedTaskCount = 0;
+  unreadFailureCount = 0;
   hasActiveOrCompletedTasks = false;
   showPulse = false;
   hasAnyTasks = false;
@@ -569,6 +570,8 @@ export class AppTopBarComponent implements OnDestroy {
     this.mobileSidebarPop?.hide();
     this.mobileDirPop?.hide();
     this.mobileMenuPop?.hide();
+    this.notificationPopover?.hide();
+    this.notificationPopoverMobile?.hide();
     this.mobileDirectoryPopoverOpen = false;
   }
 
@@ -716,6 +719,13 @@ export class AppTopBarComponent implements OnDestroy {
         }
         this.checkNotificationPopoverClose();
       });
+
+    this.notificationService.unreadFailureCount$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(count => {
+        this.unreadFailureCount = count;
+        this.checkNotificationPopoverClose();
+      });
   }
 
   private triggerPulseEffect() {
@@ -731,8 +741,9 @@ export class AppTopBarComponent implements OnDestroy {
     const hasMetadataTasks = this.hasAnyTasks;
     const hasPendingBookdropFiles = this.hasPendingBookdropFiles;
     const hasAiSearchScan = !!(this.aiSearchBatchProgress && this.aiSearchBatchProgress.mode === 'BATCH') || this.isAiSearchStopping;
+    const hasFailures = this.unreadFailureCount > 0;
 
-    const hasAnyContent = hasActiveNotification || hasMetadataTasks || hasPendingBookdropFiles || hasAiSearchScan;
+    const hasAnyContent = hasActiveNotification || hasMetadataTasks || hasPendingBookdropFiles || hasAiSearchScan || hasFailures;
 
     if (!hasAnyContent) {
       if (this.notificationPopover) {
@@ -747,8 +758,7 @@ export class AppTopBarComponent implements OnDestroy {
   private updateCompletedTaskCount() {
     const completedMetadataTasks = Object.values(this.latestTasks).length;
     const bookdropFileTaskCount = this.latestHasPendingFiles ? 1 : 0;
-    const logNotificationCount = this.hasActiveLogNotification ? 1 : 0;
-    this.completedTaskCount = completedMetadataTasks + bookdropFileTaskCount + logNotificationCount;
+    this.completedTaskCount = completedMetadataTasks + bookdropFileTaskCount;
   }
 
   private updateTaskVisibility(tasks: Record<string, MetadataBatchProgressNotification>) {
@@ -816,17 +826,15 @@ export class AppTopBarComponent implements OnDestroy {
       switch (this.latestNotificationSeverity) {
         case Severity.ERROR:
           return 'crimson';
-        case Severity.INFO:
-          return 'aqua';
         case Severity.WARN:
           return 'orange';
         default:
-          return 'orange';
+          return 'crimson';
       }
     }
-    if (this.hasActiveLogNotification) return 'limegreen';
+    if (this.unreadFailureCount > 0) return 'crimson';
     if (this.completedTaskCount > 0 || this.hasPendingBookdropFiles)
-      return 'limegreen';
+      return 'var(--task-color-metadata, #7e22ce)';
     return 'inherit';
   }
 
@@ -836,10 +844,17 @@ export class AppTopBarComponent implements OnDestroy {
 
   get shouldShowNotificationBadge(): boolean {
     return (
-      (this.hasActiveLogNotification || this.completedTaskCount > 0 || this.hasPendingBookdropFiles) &&
+      (this.unreadFailureCount > 0 || this.completedTaskCount > 0 || this.hasPendingBookdropFiles) &&
       !this.progressHighlight &&
       !this.showPulse
     );
+  }
+
+  get notificationBadgeCount(): number {
+    if (this.unreadFailureCount > 0) {
+      return this.unreadFailureCount;
+    }
+    return this.completedTaskCount;
   }
 
   get visibleDesktopToolbarItems(): ToolbarItem[] {

@@ -9,6 +9,9 @@ import {MetadataProgressWidgetComponent} from '../metadata-progress-widget/metad
 import {combineLatest} from 'rxjs';
 import {AiSearchScanProgressService} from '../../service/ai-search-scan-progress.service';
 import {AiSearchProgressWidgetComponent} from '../ai-search-progress-widget/ai-search-progress-widget-component';
+import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
+import {TranslocoDirective} from '@jsverse/transloco';
+import {NotificationEventService} from '../../websocket/notification-event.service';
 
 @Component({
   selector: 'app-unified-notification-popover-component',
@@ -17,7 +20,13 @@ import {AiSearchProgressWidgetComponent} from '../ai-search-progress-widget/ai-s
     MetadataProgressWidgetComponent,
     AsyncPipe,
     BookdropFilesWidgetComponent,
-    AiSearchProgressWidgetComponent
+    AiSearchProgressWidgetComponent,
+    Tabs,
+    TabList,
+    Tab,
+    TabPanels,
+    TabPanel,
+    TranslocoDirective
   ],
   templateUrl: './unified-notification-popover-component.html',
   standalone: true,
@@ -27,6 +36,7 @@ export class UnifiedNotificationBoxComponent {
   metadataProgressService = inject(MetadataProgressService);
   bookdropFileService = inject(BookdropFileService);
   aiSearchScanProgressService = inject(AiSearchScanProgressService);
+  notificationEventService = inject(NotificationEventService);
 
   hasMetadataTasks$ = this.metadataProgressService.activeTasks$.pipe(
     map(tasks => Object.keys(tasks).length > 0)
@@ -43,4 +53,14 @@ export class UnifiedNotificationBoxComponent {
       return !!(progress && progress.mode === 'BATCH');
     })
   );
+
+  hasRunningTasks$ = combineLatest([
+    this.hasMetadataTasks$,
+    this.hasPendingBookdropFiles$,
+    this.hasAiSearchScan$
+  ]).pipe(
+    map(([meta, bookdrop, ai]) => meta || bookdrop || ai)
+  );
+
+  failureCount$ = this.notificationEventService.unreadFailureCount$;
 }

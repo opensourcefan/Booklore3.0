@@ -893,7 +893,7 @@ while IFS= read -r -d '' scss_file; do
         if ! echo "$context" | grep -qE '(top:|bottom:)' || ! echo "$context" | grep -qE 'body\.header-bottom'; then
             warn "$scss_file:$line — popover class '$selector' lacks explicit top/bottom bounds for top-header and bottom-header modes"
         fi
-    done < <(grep -nE '^\s*\.(mobile-sidebar-popover|mobile-right-sidebar-popover|dir-mobile-panel-popover|mobile-overflow-menu-popover)(\.p-popover)?(\s*\{|\s*,|\s*$)' "$scss_file" 2>/dev/null)
+    done < <(grep -nE '^\s*\.(mobile-sidebar-popover|mobile-right-sidebar-popover|dir-mobile-panel-popover|mobile-overflow-menu-popover|mobile-notifications-popover)(\.p-popover)?(\s*\{|\s*,|\s*$)' "$scss_file" 2>/dev/null)
 done < <(find "$PROJECT_DIR/fable-ui/src" -name "*.scss" -print0)
 
 # =============================================================================

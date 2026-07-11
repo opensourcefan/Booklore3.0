@@ -7,10 +7,10 @@ import org.fable.model.entity.AuthorEntity;
 import org.fable.model.entity.BookEntity;
 import org.fable.model.entity.BookFileEntity;
 import org.fable.model.enums.BookFileType;
-import org.fable.model.websocket.LogNotification;
 import org.fable.model.websocket.Topic;
 import org.fable.repository.BookRepository;
 import org.fable.repository.projection.BookCoverUpdateProjection;
+import org.fable.service.FailureNotificationService;
 import org.fable.service.NotificationService;
 import org.fable.service.appsettings.AppSettingService;
 import org.fable.service.book.BookQueryService;
@@ -46,6 +46,7 @@ public class BookCoverService {
     private final AppProperties appProperties;
     private final BookRepository bookRepository;
     private final NotificationService notificationService;
+    private final FailureNotificationService failureNotificationService;
     private final AppSettingService appSettingService;
     private final FileService fileService;
     private final BookFileProcessorRegistry processorRegistry;
@@ -308,15 +309,15 @@ public class BookCoverService {
                         .toList();
                 int total = books.size();
                 String label = missingOnly ? "missing" : "all";
-                notificationService.sendMessage(Topic.LOG, LogNotification.info("Started regenerating covers for " + total + " books (" + label + ")"));
+                log.info("Started regenerating covers for {} books ({})", total, label);
 
                 int current = 1;
+                int failed = 0;
                 List<Long> refreshedIds = new ArrayList<>();
 
                 for (BookRegenerationInfo bookInfo : books) {
                     try {
                         String progress = "(" + current + "/" + total + ") ";
-                        notificationService.sendMessage(Topic.LOG, LogNotification.info(progress + "Regenerating cover for: " + bookInfo.title()));
 
                         transactionTemplate.execute(status -> {
                             bookRepository.findByIdWithBookFiles(bookInfo.id()).ifPresent(book -> {
@@ -340,16 +341,21 @@ public class BookCoverService {
                             return null;
                         });
                     } catch (Exception e) {
+                        failed++;
                         log.error("Failed to regenerate cover for book ID {}: {}", bookInfo.id(), e.getMessage(), e);
                     }
                     current++;
                 }
 
                 notifyBulkCoverUpdate(refreshedIds);
-                notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished regenerating covers"));
+                log.info("Finished regenerating covers (ok={}, failed={})", refreshedIds.size(), failed);
+                if (failed > 0) {
+                    failureNotificationService.reportError(
+                            "Cover regeneration finished with " + failed + " failure(s) out of " + total + " book(s)");
+                }
             } catch (Exception e) {
                 log.error("Error during cover regeneration: {}", e.getMessage(), e);
-                notificationService.sendMessage(Topic.LOG, LogNotification.error("Error occurred during cover regeneration"));
+                failureNotificationService.reportError("Error occurred during cover regeneration: " + e.getMessage());
             }
         });
     }
@@ -361,15 +367,15 @@ public class BookCoverService {
     private void processBulkCoverUpdate(List<BookCoverInfo> books, byte[] coverImageBytes) {
         try {
             int total = books.size();
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("Started updating covers for " + total + " selected book(s)"));
+            log.info("Started updating covers for {} selected book(s)", total);
 
             int current = 1;
+            int failed = 0;
             List<Long> refreshedIds = new ArrayList<>();
 
             for (BookCoverInfo bookInfo : books) {
                 try {
                     String progress = "(" + current + "/" + total + ") ";
-                    notificationService.sendMessage(Topic.LOG, LogNotification.info(progress + "Updating cover for: " + bookInfo.title()));
 
                     transactionTemplate.execute(status -> {
                         bookRepository.findById(bookInfo.id()).ifPresent(book -> {
@@ -384,31 +390,36 @@ public class BookCoverService {
 
                     log.info("{}Successfully updated cover for book ID {} ({})", progress, bookInfo.id(), bookInfo.title());
                 } catch (Exception e) {
+                    failed++;
                     log.error("Failed to update cover for book ID {}: {}", bookInfo.id(), e.getMessage(), e);
                 }
                 current++;
             }
 
             notifyBulkCoverUpdate(refreshedIds);
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished updating covers for selected books"));
+            log.info("Finished updating covers for selected books (ok={}, failed={})", refreshedIds.size(), failed);
+            if (failed > 0) {
+                failureNotificationService.reportError(
+                        "Cover update finished with " + failed + " failure(s) out of " + total + " book(s)");
+            }
         } catch (Exception e) {
             log.error("Error during cover update: {}", e.getMessage(), e);
-            notificationService.sendMessage(Topic.LOG, LogNotification.error("Error occurred during cover update"));
+            failureNotificationService.reportError("Error occurred during cover update: " + e.getMessage());
         }
     }
 
     private void processBulkCoverRegeneration(List<BookRegenerationInfo> books) {
         try {
             int total = books.size();
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("Started regenerating covers for " + total + " selected book(s)"));
+            log.info("Started regenerating covers for {} selected book(s)", total);
 
             int current = 1;
+            int failed = 0;
             List<Long> refreshedIds = new ArrayList<>();
 
             for (BookRegenerationInfo bookInfo : books) {
                 try {
                     String progress = "(" + current + "/" + total + ") ";
-                    notificationService.sendMessage(Topic.LOG, LogNotification.info(progress + "Regenerating cover for: " + bookInfo.title()));
 
                     transactionTemplate.execute(status -> {
                         bookRepository.findById(bookInfo.id()).ifPresent(book -> {
@@ -426,31 +437,36 @@ public class BookCoverService {
 
                     log.info("{}Successfully regenerated cover for book ID {} ({})", progress, bookInfo.id(), bookInfo.title());
                 } catch (Exception e) {
+                    failed++;
                     log.error("Failed to regenerate cover for book ID {}: {}", bookInfo.id(), e.getMessage(), e);
                 }
                 current++;
             }
 
             notifyBulkCoverUpdate(refreshedIds);
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished regenerating covers for selected books"));
+            log.info("Finished regenerating covers for selected books (ok={}, failed={})", refreshedIds.size(), failed);
+            if (failed > 0) {
+                failureNotificationService.reportError(
+                        "Cover regeneration finished with " + failed + " failure(s) out of " + total + " book(s)");
+            }
         } catch (Exception e) {
             log.error("Error during cover regeneration: {}", e.getMessage(), e);
-            notificationService.sendMessage(Topic.LOG, LogNotification.error("Error occurred during cover regeneration"));
+            failureNotificationService.reportError("Error occurred during cover regeneration: " + e.getMessage());
         }
     }
 
     private void processBulkCustomCoverGeneration(List<BookCoverInfo> books) {
         try {
             int total = books.size();
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("Started generating custom covers for " + total + " selected book(s)"));
+            log.info("Started generating custom covers for {} selected book(s)", total);
 
             int current = 1;
+            int failed = 0;
             List<Long> refreshedIds = new ArrayList<>();
 
             for (BookCoverInfo bookInfo : books) {
                 try {
                     String progress = "(" + current + "/" + total + ") ";
-                    notificationService.sendMessage(Topic.LOG, LogNotification.info(progress + "Generating custom cover for: " + bookInfo.title()));
 
                     transactionTemplate.execute(status -> {
                         bookRepository.findById(bookInfo.id()).ifPresent(book -> {
@@ -469,16 +485,21 @@ public class BookCoverService {
 
                     log.info("{}Successfully generated custom cover for book ID {} ({})", progress, bookInfo.id(), bookInfo.title());
                 } catch (Exception e) {
+                    failed++;
                     log.error("Failed to generate custom cover for book ID {}: {}", bookInfo.id(), e.getMessage(), e);
                 }
                 current++;
             }
 
             notifyBulkCoverUpdate(refreshedIds);
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("Finished generating custom covers for selected books"));
+            log.info("Finished generating custom covers for selected books (ok={}, failed={})", refreshedIds.size(), failed);
+            if (failed > 0) {
+                failureNotificationService.reportError(
+                        "Custom cover generation finished with " + failed + " failure(s) out of " + total + " book(s)");
+            }
         } catch (Exception e) {
             log.error("Error during custom cover generation: {}", e.getMessage(), e);
-            notificationService.sendMessage(Topic.LOG, LogNotification.error("Error occurred during custom cover generation"));
+            failureNotificationService.reportError("Error occurred during custom cover generation: " + e.getMessage());
         }
     }
 

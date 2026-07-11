@@ -178,7 +178,7 @@
                     [attr.aria-label]="t('notificationAriaLabel')"></i>
                 </button>
                 @if (shouldShowNotificationBadge) {
-                  <span class="notification-badge">{{ completedTaskCount }}</span>
+                  <span class="notification-badge">{{ notificationBadgeCount }}</span>
                 }
                 <p-popover #notificationPopover [dismissable]="true">
                   <app-unified-notification-popover-component></app-unified-notification-popover-component>
@@ -469,7 +469,7 @@
         [attr.aria-label]="t('notificationAriaLabel')"
       />
       @if (shouldShowNotificationBadge) {
-        <span class="notification-badge" style="top: -0.3rem; right: -0.3rem;">{{ completedTaskCount }}</span>
+        <span class="notification-badge" style="top: -0.3rem; right: -0.3rem;">{{ notificationBadgeCount }}</span>
       }
     </div>
     <p-popover #notificationPopoverMobile [dismissable]="true" styleClass="mobile-notifications-popover">

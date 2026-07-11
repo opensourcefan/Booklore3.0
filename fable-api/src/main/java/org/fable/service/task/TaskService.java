@@ -340,22 +340,19 @@ public class TaskService {
                 return;
             }
 
-            // Suppress notification for successful tasks that affected zero items
-            if (success && itemsAffected != null && itemsAffected == 0) {
-                log.info("Suppressing cron notification for {}: 0 items affected", taskType);
+            // Success belongs in settings task history — not the main-layout bell inbox
+            if (success) {
+                log.debug("Skipping main-layout notification for successful cron task {}", taskType);
                 return;
             }
 
-            String status = success ? "completed successfully" : "failed" + (errorDetail != null ? ": " + errorDetail : "");
-            String message = "Task " + taskType + " " + status;
-            LogNotification logNotification = success
-                    ? LogNotification.info(message)
-                    : LogNotification.error(message);
+            String detail = errorDetail != null ? errorDetail : "unknown error";
+            String message = "Task " + taskType + " failed: " + detail;
+            Long actorId = (user != null && user.getId() != null && user.getId() != -1L) ? user.getId() : null;
+            var saved = logNotificationService.persist(message, org.fable.model.websocket.Severity.ERROR, actorId);
+            LogNotification logNotification = logNotificationService.toDto(saved);
 
-            // Persist to database so notifications survive WebSocket disconnects
-            logNotificationService.persist(message, logNotification.getSeverity());
-
-            if (user != null && user.getId() != null && user.getId() != -1L) {
+            if (actorId != null) {
                 notificationService.sendMessageToUser(user.getUsername(), Topic.LOG, logNotification);
             } else {
                 notificationService.sendMessageToPermissions(Topic.LOG, logNotification,

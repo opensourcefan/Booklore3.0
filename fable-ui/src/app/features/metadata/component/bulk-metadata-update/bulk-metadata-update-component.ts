@@ -6,7 +6,6 @@ import {Button} from 'primeng/button';
 import {Tooltip} from 'primeng/tooltip';
 import {DatePicker} from 'primeng/datepicker';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {MessageService} from 'primeng/api';
 import {BookService} from '../../../book/service/book.service';
 import {BookMetadataManageService} from '../../../book/service/book-metadata-manage.service';
 import {Book, BulkMetadataUpdateRequest} from '../../../book/model/book.model';
@@ -31,7 +30,7 @@ import {WriteProgressService} from '../../../../shared/service/write-progress.se
     ProgressSpinner,
     AutoComplete
 ],
-  providers: [MessageService],
+  providers: [],
   templateUrl: './bulk-metadata-update-component.html',
   styleUrl: './bulk-metadata-update-component.scss'
 })
@@ -63,7 +62,6 @@ export class BulkMetadataUpdateComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly bookService = inject(BookService);
   private readonly bookMetadataManageService = inject(BookMetadataManageService);
-  private readonly messageService = inject(MessageService);
   private readonly writeProgressService = inject(WriteProgressService);
 
   allAuthors!: string[];

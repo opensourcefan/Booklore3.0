@@ -98,6 +98,32 @@ body.header-bottom .layout-topbar::before {
   }
 }
 
+.mobile-notifications-popover {
+  @media (max-width: 768px) {
+    position: fixed !important;
+    top: 3.85rem !important;
+    bottom: auto !important;
+    left: 1.25rem !important;
+    right: 1.25rem !important;
+    width: auto !important;
+    max-width: calc(100vw - 2.5rem) !important;
+    max-height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px) - 1rem) !important;
+    margin: 0 !important;
+
+    body.header-bottom & {
+      top: auto !important;
+      bottom: calc(3.85rem + env(safe-area-inset-bottom, 0px)) !important;
+      max-height: calc(100dvh - 3.85rem - env(safe-area-inset-bottom, 0px) - 1rem) !important;
+    }
+
+    .p-popover-content {
+      max-height: inherit;
+      overflow: auto;
+      padding: 0.5rem;
+    }
+  }
+}
+
 .topbar-items {
   display: flex;
   list-style-type: none;

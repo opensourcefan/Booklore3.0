@@ -1,47 +1,37 @@
-@if (activeNotification$ | async; as latestNotification) {
-<div class="notification-container live-border">
-  <div class="notification-header">
-    <div class="notification-header-info">
-      @if (latestNotification.severity) {
-        <app-tag [color]="getSeverityColor(latestNotification.severity)" size="3xs" class="tag-centered">
-          {{ latestNotification.severity }}
-        </app-tag>
-      }
-      <span class="notification-timestamp">{{ latestNotification.timestamp }}</span>
-    </div>
-    <button class="notification-close-btn" (click)="dismissNotification()" aria-label="Dismiss notification">
-      <i class="pi pi-times"></i>
-    </button>
-  </div>
-  <p class="notification-message" [innerHTML]="latestNotification.message"></p>
-</div>
-}
-
-@if (historicalNotifications$ | async; as historicalNotifications) {
-  @if (historicalNotifications.length > 0) {
-    <div class="historical-notifications-section">
-      <div class="historical-header-row">
-        <div class="historical-header">Recent Notifications</div>
-        <button class="dismiss-all-btn" (click)="dismissAllNotifications()" aria-label="Dismiss all notifications">
-          <i class="pi pi-times-circle"></i>
-          <span>Dismiss All</span>
-        </button>
-      </div>
-      @for (notification of historicalNotifications; track notification.timestamp) {
-        <div class="notification-container historical-item">
-          <div class="notification-header">
-            <div class="notification-header-info">
-              @if (notification.severity) {
-                <app-tag [color]="getSeverityColor(notification.severity)" size="3xs" class="tag-centered">
-                  {{ notification.severity }}
-                </app-tag>
-              }
-              <span class="notification-timestamp">{{ notification.timestamp }}</span>
-            </div>
-          </div>
-          <p class="notification-message" [innerHTML]="notification.message"></p>
+<div class="notification-inbox" *transloco="let t; scope: 'shared'">
+  @if (historicalNotifications$ | async; as historicalNotifications) {
+    @if (historicalNotifications.length > 0) {
+      <div class="historical-notifications-section">
+        <div class="historical-header-row">
+          <div class="historical-header">{{ t('liveNotification.failuresTitle') }}</div>
+          <button class="dismiss-all-btn" type="button" (click)="dismissAllNotifications()" [attr.aria-label]="t('liveNotification.dismissAllAria')">
+            <i class="pi pi-times-circle"></i>
+            <span>{{ t('liveNotification.dismissAll') }}</span>
+          </button>
         </div>
-      }
-    </div>
+        @for (notification of historicalNotifications; track trackById($index, notification)) {
+          <div class="notification-container historical-item">
+            <div class="notification-header">
+              <div class="notification-header-info">
+                @if (notification.severity) {
+                  <app-tag [color]="getSeverityColor(notification.severity)" size="3xs" class="tag-centered">
+                    {{ notification.severity }}
+                  </app-tag>
+                }
+                <span class="notification-timestamp">{{ formatTimestamp(notification.timestamp) }}</span>
+              </div>
+              @if (notification.id !== undefined && notification.id !== null) {
+                <button class="notification-close-btn" type="button" (click)="dismissNotification(notification.id)" [attr.aria-label]="t('liveNotification.dismissAria')">
+                  <i class="pi pi-times"></i>
+                </button>
+              }
+            </div>
+            <p class="notification-message">{{ notification.message }}</p>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="notification-empty">{{ t('liveNotification.emptyFailures') }}</div>
+    }
   }
-}
+</div>

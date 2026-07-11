@@ -1,12 +1,41 @@
-<div class="metadata-progress-box">
-  <app-live-notification-box/>
-  @if (hasMetadataTasks$ | async) {
-    <app-metadata-progress-widget/>
-  }
-  @if (hasAiSearchScan$ | async) {
-    <app-ai-search-progress-widget/>
-  }
-  @if (hasPendingBookdropFiles$ | async) {
-    <app-bookdrop-files-widget-component/>
-  }
+<div class="metadata-progress-box" *transloco="let t; scope: 'layout'">
+  <p-tabs value="0" styleClass="notification-tabs">
+    <p-tablist>
+      <p-tab value="0">{{ t('topbar.bellTasksTab') }}</p-tab>
+      <p-tab value="1">
+        {{ t('topbar.bellNotificationsTab') }}
+        @if (failureCount$ | async; as count) {
+          @if (count > 0) {
+            <span class="failure-count-badge">{{ count }}</span>
+          }
+        }
+      </p-tab>
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel value="0">
+        <div class="tasks-panel">
+          @if (hasRunningTasks$ | async; as hasTasks) {
+            @if (hasTasks) {
+              @if (hasMetadataTasks$ | async) {
+                <app-metadata-progress-widget/>
+              }
+              @if (hasAiSearchScan$ | async) {
+                <app-ai-search-progress-widget/>
+              }
+              @if (hasPendingBookdropFiles$ | async) {
+                <app-bookdrop-files-widget-component/>
+              }
+            } @else {
+              <div class="tasks-empty">{{ t('topbar.bellTasksEmpty') }}</div>
+            }
+          } @else {
+            <div class="tasks-empty">{{ t('topbar.bellTasksEmpty') }}</div>
+          }
+        </div>
+      </p-tabpanel>
+      <p-tabpanel value="1">
+        <app-live-notification-box/>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
 </div>

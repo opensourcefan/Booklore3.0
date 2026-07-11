@@ -17,6 +17,8 @@ import {AiPanelScanProgressPayload} from '../../../shared/model/ai-panel-scan-pr
 import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {AiPanelScanProgressService} from '../../../shared/service/ai-panel-scan-progress.service';
 import {AiSearchProgressPayload, AiSearchScanProgressService} from '../../../shared/service/ai-search-scan-progress.service';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
+import {SaveButtonStatusController} from '../../../shared/service/save-button-status.controller';
 import {LibraryService} from '../../book/service/library.service';
 import {BookService} from '../../book/service/book.service';
 import {DialogLauncherService} from '../../../shared/services/dialog-launcher.service';
@@ -58,6 +60,7 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
 
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private libraryService = inject(LibraryService);
   private bookService = inject(BookService);
   private aiPanelScanProgressService = inject(AiPanelScanProgressService);
@@ -68,6 +71,43 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   private embeddingConfirmBackHandle: MobileBackHandle | null = null;
   private advancedConfirmBackHandle: MobileBackHandle | null = null;
   private saveProfileDialogBackHandle: MobileBackHandle | null = null;
+
+  readonly llmSaveStatus = new SaveButtonStatusController();
+  readonly tuningSaveStatus = new SaveButtonStatusController();
+  readonly embeddingSaveStatus = new SaveButtonStatusController();
+  readonly advancedSaveStatus = new SaveButtonStatusController();
+
+  get llmSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.resolveSaveSeverity(this.isLlmSettingsDirty, this.llmSaveStatus);
+  }
+
+  get tuningSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.resolveSaveSeverity(this.isAiSearchSettingsDirty(), this.tuningSaveStatus);
+  }
+
+  get embeddingSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.resolveSaveSeverity(this.isEmbeddingSettingsDirty, this.embeddingSaveStatus);
+  }
+
+  get advancedSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
+    return this.resolveSaveSeverity(this.isAdvancedEmbeddingSettingsDirty, this.advancedSaveStatus);
+  }
+
+  private resolveSaveSeverity(
+    dirty: boolean,
+    status: SaveButtonStatusController
+  ): 'secondary' | 'warn' | 'success' | 'danger' {
+    if (dirty) {
+      return 'warn';
+    }
+    if (status.value === 'success') {
+      return 'success';
+    }
+    if (status.value === 'error') {
+      return 'danger';
+    }
+    return 'secondary';
+  }
 
   providerOptions = [
     { label: 'Local (In-container Ollama)', value: 'local' },
@@ -965,7 +1005,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       embeddingApiKey: this.aiSearchSettings.embeddingApiKey,
       externalEmbeddingUrl: this.aiSearchSettings.externalEmbeddingUrl
     });
-    return current !== this.originalEmbeddingSettings;
+    const dirty = current !== this.originalEmbeddingSettings;
+    return dirty;
   }
 
   get isLlmSettingsDirty(): boolean {
@@ -975,7 +1016,8 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
       llmApiKey: this.aiSearchSettings.llmApiKey,
       externalLlmUrl: this.aiSearchSettings.externalLlmUrl
     });
-    return current !== this.originalLlmSettings;
+    const dirty = current !== this.originalLlmSettings;
+    return dirty;
   }
 
   applyEmbeddingConfigSettings(): void {
@@ -1015,10 +1057,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           this.snapshotEmbeddingSettings();
           this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
           this.showMessage('success', 'Embedding settings saved', 'Embedding configuration has been updated. You will need to re-embed your books if the model or provider was changed.');
+          this.embeddingSaveStatus.markSuccess();
           this.fetchEmbeddingStats();
         },
         error: () => {
           this.saveRunning = false;
+          this.embeddingSaveStatus.markError();
           this.showMessage('error', 'Save failed', 'Could not update embedding settings.');
         }
       });
@@ -1033,10 +1077,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           this.saveRunning = false;
           this.snapshotEmbeddingSettings();
           this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
-          this.showMessage('success', 'Embedding settings saved', 'Embedding configuration has been updated.');
+          this.embeddingSaveStatus.markSuccess();
         },
         error: () => {
           this.saveRunning = false;
+          this.embeddingSaveStatus.markError();
           this.showMessage('error', 'Save failed', 'Could not update embedding settings.');
         }
       });
@@ -1051,10 +1096,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           this.saveRunning = false;
           this.snapshotLlmSettings();
           this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
-          this.showMessage('success', 'LLM settings saved', 'LLM configuration has been updated.');
+          this.llmSaveStatus.markSuccess();
         },
         error: () => {
           this.saveRunning = false;
+          this.llmSaveStatus.markError();
           this.showMessage('error', 'Save failed', 'Could not update LLM settings.');
         }
       });
@@ -1091,10 +1137,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
           this.snapshotEmbeddingSettings();
           this.snapshotLlmSettings();
-          this.showMessage('success', 'AI Search settings updated', 'Tuning parameters have been saved.');
+          this.tuningSaveStatus.markSuccess();
         },
         error: () => {
           this.saveRunning = false;
+          this.tuningSaveStatus.markError();
           this.showMessage('error', 'Save failed', 'Could not update AI search tuning settings.');
         }
       });
@@ -1301,11 +1348,12 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
           this.saveRunning = false;
           this.snapshotAdvancedEmbeddingSettings();
           this.originalAiSearchSettings = JSON.stringify(this.aiSearchSettings);
-          this.showMessage('success', 'Advanced settings saved', 'Advanced tuning configuration has been updated.');
+          this.advancedSaveStatus.markSuccess();
           this.fetchEmbeddingStats();
         },
         error: () => {
           this.saveRunning = false;
+          this.advancedSaveStatus.markError();
           this.showMessage('error', 'Save failed', 'Could not update advanced tuning settings.');
         }
       });
@@ -1784,6 +1832,11 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
   }
 
   private showMessage(severity: 'success' | 'error' | 'info' | 'warn', summary: string, detail: string): void {
-    this.messageService.add({severity, summary, detail});
+    if (severity === 'error') {
+      this.failureNotifications.reportSafe(summary, detail);
+      return;
+    }
+    // Soft toast for non-error informational messages only
+    this.messageService.add({severity, summary, detail, life: 2500});
   }
 }

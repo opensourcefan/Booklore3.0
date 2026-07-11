@@ -73,9 +73,9 @@
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1.5px solid var(--p-blue-700, #1d4ed8);
-  background: rgba(29, 78, 216, 0.08);
-  color: var(--p-blue-700, #1d4ed8);
+  border: 1.5px solid var(--task-color-ai, var(--p-blue-700, #1d4ed8));
+  background: color-mix(in srgb, var(--task-color-ai, #1d4ed8) 8%, transparent);
+  color: var(--task-color-ai, var(--p-blue-700, #1d4ed8));
   cursor: pointer;
   appearance: none;
   text-decoration: none;
@@ -87,7 +87,7 @@
 
   &:hover,
   &:focus-visible {
-    background: rgba(29, 78, 216, 0.16);
+    background: color-mix(in srgb, var(--task-color-ai, #1d4ed8) 16%, transparent);
     border-color: var(--p-blue-800, #1e40af);
     transform: translateY(-1px);
   }
@@ -121,9 +121,9 @@
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1.5px solid var(--p-green-700, #15803d);
-  background: rgba(21, 128, 61, 0.08);
-  color: var(--p-green-700, #15803d);
+  border: 1.5px solid var(--task-color-metadata, var(--p-purple-700, #7e22ce));
+  background: color-mix(in srgb, var(--task-color-metadata, #7e22ce) 8%, transparent);
+  color: var(--task-color-metadata, var(--p-purple-700, #7e22ce));
   cursor: pointer;
   appearance: none;
   text-decoration: none;
@@ -135,8 +135,8 @@
 
   &:hover,
   &:focus-visible {
-    background: rgba(21, 128, 61, 0.16);
-    border-color: var(--p-green-800, #166534);
+    background: color-mix(in srgb, var(--task-color-metadata, #7e22ce) 16%, transparent);
+    border-color: var(--p-purple-800, #6b21a8);
     transform: translateY(-1px);
   }
 
@@ -169,9 +169,9 @@
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1.5px solid var(--p-orange-700, #c2410c);
-  background: rgba(194, 65, 12, 0.08);
-  color: var(--p-orange-700, #c2410c);
+  border: 1.5px solid var(--task-color-library, #0f766e);
+  background: color-mix(in srgb, var(--task-color-library, #0f766e) 8%, transparent);
+  color: var(--task-color-library, #0f766e);
   cursor: default;
   appearance: none;
   text-decoration: none;
@@ -205,9 +205,9 @@
   max-width: 28rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1.5px solid #0f766e;
-  background: rgba(13, 148, 136, 0.08);
-  color: #0f766e;
+  border: 1.5px solid var(--task-color-library, #0f766e);
+  background: color-mix(in srgb, var(--task-color-library, #0f766e) 8%, transparent);
+  color: var(--task-color-library, #0f766e);
   cursor: pointer;
   appearance: none;
   text-decoration: none;
@@ -219,7 +219,7 @@
 
   &:hover,
   &:focus-visible {
-    background: rgba(13, 148, 136, 0.16);
+    background: color-mix(in srgb, var(--task-color-library, #0f766e) 16%, transparent);
     border-color: #115e59;
     transform: translateY(-1px);
   }
@@ -253,9 +253,9 @@
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1.5px solid #94a3b8;
-  background: rgba(226, 232, 240, 0.72);
-  color: #334155;
+  border: 1.5px solid var(--task-color-metadata, var(--p-purple-700, #7e22ce));
+  background: color-mix(in srgb, var(--task-color-metadata, #7e22ce) 8%, transparent);
+  color: var(--task-color-metadata, var(--p-purple-700, #7e22ce));
   cursor: pointer;
   appearance: none;
   text-decoration: none;
@@ -267,8 +267,8 @@
 
   &:hover,
   &:focus-visible {
-    background: rgba(203, 213, 225, 0.82);
-    border-color: #64748b;
+    background: color-mix(in srgb, var(--task-color-metadata, #7e22ce) 16%, transparent);
+    border-color: var(--p-purple-800, #6b21a8);
     transform: translateY(-1px);
   }
 
@@ -301,9 +301,9 @@
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1.5px solid var(--p-amber-600, #d97706);
-  background: rgba(217, 119, 6, 0.08);
-  color: var(--p-amber-600, #d97706);
+  border: 1.5px solid var(--task-color-metadata, var(--p-purple-700, #7e22ce));
+  background: color-mix(in srgb, var(--task-color-metadata, #7e22ce) 8%, transparent);
+  color: var(--task-color-metadata, var(--p-purple-700, #7e22ce));
   cursor: pointer;
   appearance: none;
   text-decoration: none;
@@ -315,8 +315,8 @@
 
   &:hover,
   &:focus-visible {
-    background: rgba(217, 119, 6, 0.16);
-    border-color: var(--p-amber-700, #b45309);
+    background: color-mix(in srgb, var(--task-color-metadata, #7e22ce) 16%, transparent);
+    border-color: var(--p-purple-800, #6b21a8);
     transform: translateY(-1px);
   }
 
@@ -374,9 +374,9 @@
   max-width: 26rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1.5px solid var(--p-purple-700, #7e22ce);
-  background: rgba(126, 34, 206, 0.08);
-  color: var(--p-purple-700, #7e22ce);
+  border: 1.5px solid var(--task-color-metadata, var(--p-purple-700, #7e22ce));
+  background: color-mix(in srgb, var(--task-color-metadata, #7e22ce) 8%, transparent);
+  color: var(--task-color-metadata, var(--p-purple-700, #7e22ce));
   cursor: default;
   appearance: none;
   text-decoration: none;

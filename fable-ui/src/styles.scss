@@ -225,6 +225,14 @@ p-progress-spinner svg,
   top: 4rem !important;
 }
 
+/* Topbar running-task type colors (outcome green/red stay on complete/fail classes) */
+:root {
+  --task-color-ai: #1d4ed8;
+  --task-color-metadata: #7e22ce;
+  --task-color-library: #0f766e;
+  --task-color-fallback: #64748b;
+}
+
 .p-inputchips {
   width: 100% !important;
 }

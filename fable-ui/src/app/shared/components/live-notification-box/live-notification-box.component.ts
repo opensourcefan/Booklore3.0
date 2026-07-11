@@ -2,6 +2,8 @@ import {Component, inject, OnInit} from '@angular/core';
 import {NotificationEventService} from '../../websocket/notification-event.service';
 import {CommonModule} from '@angular/common';
 import {TagComponent} from '../tag/tag.component';
+import {TranslocoDirective} from '@jsverse/transloco';
+import {formatNotificationTime} from '../../websocket/model/log-notification.model';
 
 @Component({
   selector: 'app-live-notification-box',
@@ -13,19 +15,23 @@ import {TagComponent} from '../tag/tag.component';
   },
   imports: [
     CommonModule,
-    TagComponent
+    TagComponent,
+    TranslocoDirective
   ]
 })
 export class LiveNotificationBoxComponent implements OnInit {
   private notificationService = inject(NotificationEventService);
-  activeNotification$ = this.notificationService.activeNotification$;
   historicalNotifications$ = this.notificationService.historicalNotifications$;
 
   ngOnInit(): void {
     this.notificationService.fetchHistoricalNotifications();
   }
 
-  dismissNotification(): void {
+  dismissNotification(id?: number): void {
+    if (id != null) {
+      this.notificationService.deleteNotification(id).subscribe();
+      return;
+    }
     this.notificationService.clearNotification();
   }
 
@@ -47,7 +53,10 @@ export class LiveNotificationBoxComponent implements OnInit {
   }
 
   formatTimestamp(timestamp?: string): string {
-    if (!timestamp) return '';
-    return timestamp;
+    return formatNotificationTime(timestamp);
+  }
+
+  trackById(_index: number, notification: {id?: number; timestamp?: string; message: string}): string | number {
+    return notification.id ?? `${notification.timestamp}-${notification.message}`;
   }
 }
