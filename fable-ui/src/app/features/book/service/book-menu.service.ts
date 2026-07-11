@@ -171,7 +171,7 @@ export class BookMenuService {
                       },
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
-                        this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
+                        this.writeProgressService.fail(apiError?.message || this.t.translate('book.menuService.toast.updateFailedSummary'));
                       }
                     });
                 }
@@ -208,7 +208,7 @@ export class BookMenuService {
                       },
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
-                        this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
+                        this.writeProgressService.fail(apiError?.message || this.t.translate('book.menuService.toast.updateFailedSummary'));
                       }
                     });
                 }
@@ -248,7 +248,7 @@ export class BookMenuService {
                       },
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
-                        this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
+                        this.writeProgressService.fail(apiError?.message || this.t.translate('book.menuService.toast.updateFailedSummary'));
                       }
                     });
                 }
@@ -285,7 +285,7 @@ export class BookMenuService {
                       },
                       error: (err: HttpErrorResponse) => {
                         const apiError = err.error as APIException;
-                        this.writeProgressService.fail(this.t.translate('book.menuService.toast.updateFailedSummary'));
+                        this.writeProgressService.fail(apiError?.message || this.t.translate('book.menuService.toast.updateFailedSummary'));
                       }
                     });
                 }
@@ -372,7 +372,7 @@ export class BookMenuService {
                   },
                   error: (err: HttpErrorResponse) => {
                     const apiError = err.error as APIException;
-                    this.writeProgressService.fail(this.t.translate('book.menuService.toast.failedSummary'));
+                    this.writeProgressService.fail(apiError?.message || this.t.translate('book.menuService.toast.failedSummary'));
                   }
                 });
             }
@@ -407,7 +407,7 @@ export class BookMenuService {
                   },
                   error: (err: HttpErrorResponse) => {
                     const apiError = err.error as APIException;
-                    this.writeProgressService.fail(this.t.translate('book.menuService.toast.failedSummary'));
+                    this.writeProgressService.fail(apiError?.message || this.t.translate('book.menuService.toast.failedSummary'));
                   }
                 });
             }
