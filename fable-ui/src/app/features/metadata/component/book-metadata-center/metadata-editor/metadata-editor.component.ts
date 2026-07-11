@@ -103,15 +103,19 @@ export class MetadataEditorComponent implements OnInit {
   isGeneratingCover = false;
   isGeneratingAudiobookCover = false;
   readonly saveStatus = new SaveButtonStatusController();
-  /** Property (not getter) so PrimeNG OnPush p-button receives a changed @Input. */
+  /** Properties (not getters) so PrimeNG OnPush p-button receives changed @Inputs. */
   saveSeverity: 'secondary' | 'warn' | 'success' | 'danger' = 'secondary';
+  saveStyleClass = 'bl-save-btn bl-save-btn--idle';
+  private isHydratingForm = false;
 
   get saveDisabled(): boolean {
     return this.isSaving;
   }
 
   private syncSaveSeverity(): void {
-    this.saveSeverity = this.saveStatus.severityFor(!!this.metadataForm?.dirty);
+    const dirty = !!this.metadataForm?.dirty || this.saveStatus.value === 'dirty';
+    this.saveSeverity = this.saveStatus.severityFor(dirty);
+    this.saveStyleClass = this.saveStatus.styleClassFor(dirty);
     this.cdr?.markForCheck();
   }
 
@@ -382,12 +386,13 @@ export class MetadataEditorComponent implements OnInit {
     this.metadataForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        if (this.isSaving) {
+        if (this.isSaving || this.isHydratingForm) {
           return;
         }
-        if (this.metadataForm.dirty) {
-          this.saveStatus.markDirty();
-        }
+        // Any post-hydrate value change is a user edit. Do not rely solely on
+        // form.dirty — some controls emit valueChanges without marking dirty.
+        this.saveStatus.markDirty();
+        this.metadataForm.markAsDirty();
         this.syncSaveSeverity();
       });
 
@@ -408,10 +413,15 @@ export class MetadataEditorComponent implements OnInit {
       }
 
       this.originalMetadata = structuredClone(metadata);
-      this.populateFormFromMetadata(metadata);
-      this.metadataForm.markAsPristine();
-      this.saveStatus.resetIdle();
-      this.syncSaveSeverity();
+      this.isHydratingForm = true;
+      try {
+        this.populateFormFromMetadata(metadata);
+        this.metadataForm.markAsPristine();
+        this.saveStatus.resetIdle();
+        this.syncSaveSeverity();
+      } finally {
+        this.isHydratingForm = false;
+      }
     });
 
     this.taskService.taskProgress$
@@ -1215,8 +1225,15 @@ export class MetadataEditorComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (metadata) => {
-        this.populateFormFromMetadata(metadata);
+        this.isHydratingForm = true;
+        try {
+          this.populateFormFromMetadata(metadata);
+        } finally {
+          this.isHydratingForm = false;
+        }
         this.metadataForm.markAsDirty();
+        this.saveStatus.markDirty();
+        this.syncSaveSeverity();
         this.messageService.add({
           severity: 'info',
           summary: this.t.translate('metadata.editor.toast.successSummary'),

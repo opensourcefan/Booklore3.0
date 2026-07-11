@@ -149,8 +149,10 @@ describe('MetadataPickerComponent save button state', () => {
     fixture.detectChanges();
 
     expect(component.saveSeverity).toBe('warn');
+    expect(component.saveStyleClass).toContain('bl-save-btn--dirty');
     expect(getSaveButton(fixture).disabled).toBe(false);
     expect(getSaveButton(fixture).getAttribute('data-p-severity')).toBe('warn');
+    expect(getSaveButton(fixture).className).toContain('bl-save-btn--dirty');
 
     getSaveButton(fixture).click();
     fixture.detectChanges();
@@ -158,6 +160,7 @@ describe('MetadataPickerComponent save button state', () => {
     expect(updateBookMetadata).toHaveBeenCalledTimes(1);
     expect(getSaveButton(fixture).textContent).toContain('Saved');
     expect(getSaveButton(fixture).getAttribute('data-p-severity')).toBe('success');
+    expect(getSaveButton(fixture).className).toContain('bl-save-btn--success');
 
     titleControl!.setValue('Edited title');
     titleControl!.markAsDirty();
@@ -167,6 +170,7 @@ describe('MetadataPickerComponent save button state', () => {
 
     expect(component.showSavedState).toBe(false);
     expect(getSaveButton(fixture).getAttribute('data-p-severity')).toBe('warn');
+    expect(getSaveButton(fixture).className).toContain('bl-save-btn--dirty');
   }, 10000);
 
   it('renders a loading icon and loading state while a save is in progress', () => {

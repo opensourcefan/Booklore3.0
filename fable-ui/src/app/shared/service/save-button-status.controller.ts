@@ -2,9 +2,15 @@ import {Injectable} from '@angular/core';
 
 export type SaveButtonStatus = 'idle' | 'dirty' | 'success' | 'error';
 
+export type SaveButtonSeverity = 'secondary' | 'warn' | 'success' | 'danger';
+
 /**
  * Grey idle / orange dirty / green success / red error.
  * Outcome colors persist until the next user-initiated change.
+ *
+ * Prefer binding both [severity] and [styleClass] — styleClass uses forced
+ * CSS in styles.scss so dirty orange is visible even if PrimeNG severity
+ * theming/OnPush fails to paint.
  */
 @Injectable()
 export class SaveButtonStatusController {
@@ -15,7 +21,7 @@ export class SaveButtonStatusController {
   }
 
   /** PrimeNG p-button severity */
-  get severity(): 'secondary' | 'warn' | 'success' | 'danger' {
+  get severity(): SaveButtonSeverity {
     switch (this.status) {
       case 'dirty':
         return 'warn';
@@ -29,11 +35,28 @@ export class SaveButtonStatusController {
   }
 
   /** Prefer dirty (warn) over last outcome color. */
-  severityFor(dirty: boolean): 'secondary' | 'warn' | 'success' | 'danger' {
+  severityFor(dirty: boolean): SaveButtonSeverity {
     if (dirty || this.status === 'dirty') {
       return 'warn';
     }
     return this.severity;
+  }
+
+  /** Forced visual class — bind as [styleClass]="…styleClassFor(dirty)". */
+  styleClassFor(dirty: boolean): string {
+    const state: SaveButtonStatus =
+      dirty || this.status === 'dirty'
+        ? 'dirty'
+        : this.status === 'success'
+          ? 'success'
+          : this.status === 'error'
+            ? 'error'
+            : 'idle';
+    return `bl-save-btn bl-save-btn--${state}`;
+  }
+
+  get styleClass(): string {
+    return this.styleClassFor(false);
   }
 
   get disabledForIdle(): boolean {

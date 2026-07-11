@@ -68,8 +68,16 @@ export class FileNamingPatternComponent implements OnInit {
     return this.defaultPatternSaveStatus.severityFor(this.isDefaultPatternDirty);
   }
 
+  get defaultSaveStyleClass(): string {
+    return this.defaultPatternSaveStatus.styleClassFor(this.isDefaultPatternDirty);
+  }
+
   get librarySaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
     return this.librarySaveStatus.severityFor(this.isLibraryPatternsDirty);
+  }
+
+  get librarySaveStyleClass(): string {
+    return this.librarySaveStatus.styleClassFor(this.isLibraryPatternsDirty);
   }
 
   get defaultSaveDisabled(): boolean {

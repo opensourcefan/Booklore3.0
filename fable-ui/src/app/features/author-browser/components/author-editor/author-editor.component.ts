@@ -59,13 +59,17 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
   photoTimestamp = Date.now();
   readonly saveStatus = new SaveButtonStatusController();
   saveSeverity: 'secondary' | 'warn' | 'success' | 'danger' = 'secondary';
+  saveStyleClass = 'bl-save-btn bl-save-btn--idle';
+  private isHydratingForm = false;
 
   get saveDisabled(): boolean {
     return this.isSaving;
   }
 
   private syncSaveSeverity(): void {
-    this.saveSeverity = this.saveStatus.severityFor(!!this.form?.dirty);
+    const dirty = !!this.form?.dirty || this.saveStatus.value === 'dirty';
+    this.saveSeverity = this.saveStatus.severityFor(dirty);
+    this.saveStyleClass = this.saveStatus.styleClassFor(dirty);
     this.cdr?.markForCheck();
   }
 
@@ -85,6 +89,7 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
+    this.isHydratingForm = true;
     this.form = new FormGroup({
       name: new FormControl(this.author.name || ''),
       nameLocked: new FormControl(this.author.nameLocked || false),
@@ -97,16 +102,17 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
 
     this.applyLockStates();
     this.form.markAsPristine();
+    this.saveStatus.resetIdle();
     this.syncSaveSeverity();
+    this.isHydratingForm = false;
     this.form.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        if (this.isSaving) {
+        if (this.isSaving || this.isHydratingForm) {
           return;
         }
-        if (this.form.dirty) {
-          this.saveStatus.markDirty();
-        }
+        this.saveStatus.markDirty();
+        this.form.markAsDirty();
         this.syncSaveSeverity();
       });
   }

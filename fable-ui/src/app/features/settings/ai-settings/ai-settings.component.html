@@ -307,7 +307,7 @@
               </div>
             </div>
             <div style="display: flex; justify-content: flex-start; margin-top: 1.5rem;">
-              <p-button label="Apply LLM Settings" icon="pi pi-check" size="small" (onClick)="saveLlmSettings()" [loading]="saveRunning" [severity]="llmSaveSeverity" [disabled]="!aiSearchEnabled || saveRunning || (!isLlmSettingsDirty && llmSaveStatus.value !== 'error')"></p-button>
+              <p-button label="Apply LLM Settings" icon="pi pi-check" size="small" (onClick)="saveLlmSettings()" [loading]="saveRunning" [severity]="llmSaveSeverity" [styleClass]="llmSaveStyleClass" [disabled]="!aiSearchEnabled || saveRunning || (!isLlmSettingsDirty && llmSaveStatus.value !== 'error')"></p-button>
             </div>
           </div>
 
@@ -389,7 +389,7 @@
           </div>
 
           <div style="display: flex; justify-content: flex-start; margin-top: 1rem; margin-bottom: 0.5rem;">
-            <p-button label="Apply Tuning Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [severity]="tuningSaveSeverity" [disabled]="!aiSearchEnabled || saveRunning || !isAiSearchConfigValid() || (!isAiSearchSettingsDirty() && tuningSaveStatus.value !== 'error')"></p-button>
+            <p-button label="Apply Tuning Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [severity]="tuningSaveSeverity" [styleClass]="tuningSaveStyleClass" [disabled]="!aiSearchEnabled || saveRunning || !isAiSearchConfigValid() || (!isAiSearchSettingsDirty() && tuningSaveStatus.value !== 'error')"></p-button>
           </div>
 
           <!-- RAG Techniques -->
@@ -475,7 +475,7 @@
           </div>
 
           <div style="display: flex; justify-content: flex-start; margin-top: 1rem;">
-            <p-button label="Apply RAG Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [severity]="tuningSaveSeverity" [disabled]="!aiSearchEnabled || saveRunning || !isAiSearchConfigValid() || (!isAiSearchSettingsDirty() && tuningSaveStatus.value !== 'error')"></p-button>
+            <p-button label="Apply RAG Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [severity]="tuningSaveSeverity" [styleClass]="tuningSaveStyleClass" [disabled]="!aiSearchEnabled || saveRunning || !isAiSearchConfigValid() || (!isAiSearchSettingsDirty() && tuningSaveStatus.value !== 'error')"></p-button>
           </div>
 
           <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
@@ -536,7 +536,7 @@
           </div>
 
           <div style="display: flex; justify-content: flex-start; margin-top: 1rem;">
-            <p-button label="Apply Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [severity]="tuningSaveSeverity" [disabled]="!aiSearchEnabled || saveRunning || !isAiSearchConfigValid() || (!isAiSearchSettingsDirty() && tuningSaveStatus.value !== 'error')"></p-button>
+            <p-button label="Apply Settings" icon="pi pi-check" size="small" (onClick)="saveAiSearchSettings()" [loading]="saveRunning" [severity]="tuningSaveSeverity" [styleClass]="tuningSaveStyleClass" [disabled]="!aiSearchEnabled || saveRunning || !isAiSearchConfigValid() || (!isAiSearchSettingsDirty() && tuningSaveStatus.value !== 'error')"></p-button>
           </div>
 
           <div class="section-divider" style="margin: 1.5rem 0 2rem;"><hr></div>
@@ -712,7 +712,7 @@
                   </div>
 
                   <div style="display: flex; justify-content: flex-start; margin-top: 0.5rem; border-top: 1px solid var(--surface-border); padding-top: 1.5rem;">
-                    <p-button label="Apply Embedding Settings" icon="pi pi-check" size="small" (onClick)="applyEmbeddingConfigSettings()" [loading]="saveRunning" [severity]="embeddingSaveSeverity" [disabled]="!aiSearchEnabled || saveRunning || (!isEmbeddingSettingsDirty && embeddingSaveStatus.value !== 'error')"></p-button>
+                    <p-button label="Apply Embedding Settings" icon="pi pi-check" size="small" (onClick)="applyEmbeddingConfigSettings()" [loading]="saveRunning" [severity]="embeddingSaveSeverity" [styleClass]="embeddingSaveStyleClass" [disabled]="!aiSearchEnabled || saveRunning || (!isEmbeddingSettingsDirty && embeddingSaveStatus.value !== 'error')"></p-button>
                   </div>
                 </div>
               }
@@ -899,7 +899,7 @@
 
                   <!-- Apply and Reset Buttons -->
                   <div style="display: flex; justify-content: flex-start; gap: 0.75rem; margin-top: 0.5rem; border-top: 1px solid var(--surface-border); padding-top: 1.5rem; align-items: center; flex-wrap: wrap; width: 100%;">
-                    <p-button label="Apply Advanced Settings" icon="pi pi-check" size="small" (onClick)="applyAdvancedEmbeddingSettings()" [loading]="saveRunning" [severity]="advancedSaveSeverity" [disabled]="!aiSearchEnabled || saveRunning || (!isAdvancedEmbeddingSettingsDirty && advancedSaveStatus.value !== 'error')"></p-button>
+                    <p-button label="Apply Advanced Settings" icon="pi pi-check" size="small" (onClick)="applyAdvancedEmbeddingSettings()" [loading]="saveRunning" [severity]="advancedSaveSeverity" [styleClass]="advancedSaveStyleClass" [disabled]="!aiSearchEnabled || saveRunning || (!isAdvancedEmbeddingSettingsDirty && advancedSaveStatus.value !== 'error')"></p-button>
                     <p-button label="Reset Advanced Settings" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" (onClick)="resetAdvancedEmbeddingSettings()" [disabled]="!aiSearchEnabled || saveRunning || !isAdvancedEmbeddingSettingsDirty"></p-button>
                     <div style="flex-grow: 1;"></div>
                     <p-button label="Auto-Fill Recommended Presets" icon="pi pi-sparkles" severity="info" [outlined]="true" size="small" (onClick)="loadModelPresets()" [disabled]="!aiSearchEnabled || saveRunning" pTooltip="Load optimal chunking, hybrid search, and reranker settings for the selected embedding model."></p-button>

@@ -43,6 +43,7 @@
               icon="pi pi-save"
               (onClick)="savePatterns()"
               [severity]="defaultSaveSeverity"
+              [styleClass]="defaultSaveStyleClass"
               [outlined]="true"
               [disabled]="defaultSaveDisabled">
             </p-button>
@@ -133,6 +134,7 @@
             [label]="t('libraryOverrides.saveAll')"
             (onClick)="saveLibraryPatterns()"
             [severity]="librarySaveSeverity"
+              [styleClass]="librarySaveStyleClass"
             icon="pi pi-save"
             [outlined]="true"
             [disabled]="librarySaveDisabled">

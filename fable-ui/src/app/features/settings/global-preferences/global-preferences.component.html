@@ -198,6 +198,7 @@
                   [label]="'common.save' | transloco"
                   outlined
                   [severity]="fileSizeSaveSeverity"
+              [styleClass]="fileSizeSaveStyleClass"
                   [disabled]="fileSizeSaveDisabled"
                   (onClick)="saveFileSize()">
                 </p-button>
@@ -244,6 +245,7 @@
                   [label]="'common.save' | transloco"
                   outlined
                   [severity]="healthSaveSeverity"
+              [styleClass]="healthSaveStyleClass"
                   [disabled]="healthSaveDisabled"
                   (onClick)="saveHealthCheckInterval()">
                 </p-button>

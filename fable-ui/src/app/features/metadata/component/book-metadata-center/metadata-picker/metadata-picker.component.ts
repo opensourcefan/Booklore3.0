@@ -121,15 +121,18 @@ export class MetadataPickerComponent implements OnInit {
     return this.saveStatus.value === 'success' && !this.metadataForm?.dirty;
   }
 
-  /** Property (not getter) so PrimeNG OnPush p-button receives a changed @Input. */
+  /** Properties (not getters) so PrimeNG OnPush p-button receives changed @Inputs. */
   saveSeverity: 'secondary' | 'warn' | 'success' | 'danger' = 'secondary';
+  saveStyleClass = 'bl-save-btn bl-save-btn--idle';
 
   get saveDisabled(): boolean {
     return this.isSaving;
   }
 
   private syncSaveSeverity(): void {
-    this.saveSeverity = this.saveStatus.severityFor(!!this.metadataForm?.dirty);
+    const dirty = !!this.metadataForm?.dirty || this.saveStatus.value === 'dirty';
+    this.saveSeverity = this.saveStatus.severityFor(dirty);
+    this.saveStyleClass = this.saveStatus.styleClassFor(dirty);
     this.cdr?.markForCheck();
   }
 
@@ -177,9 +180,9 @@ export class MetadataPickerComponent implements OnInit {
         if (this.isSaving || this.isApplyingFormPatch) {
           return;
         }
-        if (this.metadataForm.dirty) {
-          this.saveStatus.markDirty();
-        }
+        // Any post-hydrate value change is a user edit — do not rely only on form.dirty.
+        this.saveStatus.markDirty();
+        this.metadataForm.markAsDirty();
         this.syncSaveSeverity();
       });
 

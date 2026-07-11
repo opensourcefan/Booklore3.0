@@ -131,6 +131,10 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
     return this.saveStatus.severityFor(this.dirty);
   }
 
+  get saveStyleClass(): string {
+    return this.saveStatus.styleClassFor(this.dirty);
+  }
+
   get saveDisabled(): boolean {
     return this.saveStatus.disabledWhenClean(this.dirty);
   }

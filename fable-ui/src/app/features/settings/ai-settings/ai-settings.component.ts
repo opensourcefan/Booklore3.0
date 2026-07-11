@@ -81,16 +81,32 @@ export class AiSettingsComponent implements OnInit, OnDestroy {
     return this.resolveSaveSeverity(this.isLlmSettingsDirty, this.llmSaveStatus);
   }
 
+  get llmSaveStyleClass(): string {
+    return this.llmSaveStatus.styleClassFor(this.isLlmSettingsDirty);
+  }
+
   get tuningSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
     return this.resolveSaveSeverity(this.isAiSearchSettingsDirty(), this.tuningSaveStatus);
+  }
+
+  get tuningSaveStyleClass(): string {
+    return this.tuningSaveStatus.styleClassFor(this.isAiSearchSettingsDirty());
   }
 
   get embeddingSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
     return this.resolveSaveSeverity(this.isEmbeddingSettingsDirty, this.embeddingSaveStatus);
   }
 
+  get embeddingSaveStyleClass(): string {
+    return this.embeddingSaveStatus.styleClassFor(this.isEmbeddingSettingsDirty);
+  }
+
   get advancedSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
     return this.resolveSaveSeverity(this.isAdvancedEmbeddingSettingsDirty, this.advancedSaveStatus);
+  }
+
+  get advancedSaveStyleClass(): string {
+    return this.advancedSaveStatus.styleClassFor(this.isAdvancedEmbeddingSettingsDirty);
   }
 
   private resolveSaveSeverity(

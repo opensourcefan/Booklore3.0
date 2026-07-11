@@ -159,6 +159,10 @@ export class MetadataProviderSettingsComponent implements OnInit {
     return this.saveStatus.severityFor(this.isDirty);
   }
 
+  get saveStyleClass(): string {
+    return this.saveStatus.styleClassFor(this.isDirty);
+  }
+
   get saveDisabled(): boolean {
     return this.saveStatus.disabledWhenClean(this.isDirty, this.isSaving);
   }

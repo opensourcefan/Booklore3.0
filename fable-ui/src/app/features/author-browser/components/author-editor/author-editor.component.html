@@ -126,7 +126,8 @@
             [label]="isSaving ? t('saving') : t('saveBtn')"
             [icon]="isSaving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
             [disabled]="saveDisabled"
-            [severity]="saveSeverity">
+            [severity]="saveSeverity"
+            [styleClass]="saveStyleClass">
           </p-button>
         </div>
       </div>

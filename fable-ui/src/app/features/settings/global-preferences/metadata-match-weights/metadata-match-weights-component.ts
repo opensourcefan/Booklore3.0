@@ -54,6 +54,10 @@ export class MetadataMatchWeightsComponent implements OnInit {
     return this.saveStatus.severityFor(!!this.form?.dirty);
   }
 
+  get saveStyleClass(): string {
+    return this.saveStatus.styleClassFor(!!this.form?.dirty);
+  }
+
   get saveDisabled(): boolean {
     return this.form?.invalid || this.saveStatus.disabledWhenClean(!!this.form?.dirty, this.isSaving);
   }

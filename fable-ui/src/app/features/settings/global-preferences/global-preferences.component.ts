@@ -76,8 +76,16 @@ export class GlobalPreferencesComponent implements OnInit {
     return this.fileSizeSaveStatus.severityFor(this.isFileSizeDirty);
   }
 
+  get fileSizeSaveStyleClass(): string {
+    return this.fileSizeSaveStatus.styleClassFor(this.isFileSizeDirty);
+  }
+
   get healthSaveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
     return this.healthSaveStatus.severityFor(this.isHealthCheckDirty);
+  }
+
+  get healthSaveStyleClass(): string {
+    return this.healthSaveStatus.styleClassFor(this.isHealthCheckDirty);
   }
 
   get fileSizeSaveDisabled(): boolean {

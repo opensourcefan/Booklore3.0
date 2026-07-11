@@ -225,6 +225,69 @@ p-progress-spinner svg,
   top: 4rem !important;
 }
 
+/*
+ * Save-button status colors (grey / orange / green / red).
+ * Forced with !important so dirty orange is visible even when PrimeNG
+ * severity class updates lag or theme tokens fail to paint.
+ */
+.p-button.bl-save-btn--idle {
+  background: var(--p-button-secondary-background, var(--p-surface-800, #1e293b)) !important;
+  border-color: var(--p-button-secondary-border-color, var(--p-surface-800, #1e293b)) !important;
+  color: var(--p-button-secondary-color, var(--p-surface-300, #cbd5e1)) !important;
+}
+
+.p-button.bl-save-btn--dirty {
+  background: var(--p-orange-500, #f97316) !important;
+  border-color: var(--p-orange-500, #f97316) !important;
+  color: #ffffff !important;
+}
+
+.p-button.bl-save-btn--dirty:not(:disabled):hover {
+  background: var(--p-orange-600, #ea580c) !important;
+  border-color: var(--p-orange-600, #ea580c) !important;
+  color: #ffffff !important;
+}
+
+.p-button.bl-save-btn--success {
+  background: var(--p-green-500, #22c55e) !important;
+  border-color: var(--p-green-500, #22c55e) !important;
+  color: #ffffff !important;
+}
+
+.p-button.bl-save-btn--error {
+  background: var(--p-red-500, #ef4444) !important;
+  border-color: var(--p-red-500, #ef4444) !important;
+  color: #ffffff !important;
+}
+
+.app-dark .p-button.bl-save-btn--dirty,
+.dark .p-button.bl-save-btn--dirty {
+  background: var(--p-orange-400, #fb923c) !important;
+  border-color: var(--p-orange-400, #fb923c) !important;
+  color: var(--p-orange-950, #431407) !important;
+}
+
+.app-dark .p-button.bl-save-btn--dirty:not(:disabled):hover,
+.dark .p-button.bl-save-btn--dirty:not(:disabled):hover {
+  background: var(--p-orange-300, #fdba74) !important;
+  border-color: var(--p-orange-300, #fdba74) !important;
+  color: var(--p-orange-950, #431407) !important;
+}
+
+.app-dark .p-button.bl-save-btn--success,
+.dark .p-button.bl-save-btn--success {
+  background: var(--p-green-400, #4ade80) !important;
+  border-color: var(--p-green-400, #4ade80) !important;
+  color: var(--p-green-950, #052e16) !important;
+}
+
+.app-dark .p-button.bl-save-btn--error,
+.dark .p-button.bl-save-btn--error {
+  background: var(--p-red-400, #f87171) !important;
+  border-color: var(--p-red-400, #f87171) !important;
+  color: var(--p-red-950, #450a0a) !important;
+}
+
 /* Topbar running-task type colors (outcome green/red stay on complete/fail classes) */
 :root {
   --task-color-ai: #1d4ed8;
