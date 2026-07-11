@@ -44,6 +44,15 @@
     "processing": "Processing...",
     "stuckMessage": "Task appears to be stuck (no updates received)"
   },
+  "history": {
+    "show": "Recent runs",
+    "hide": "Hide history",
+    "empty": "No previous runs recorded yet.",
+    "loading": "Loading history…",
+    "loadError": "Failed to load task history",
+    "scheduled": "Scheduled",
+    "manual": "Manual"
+  },
   "toast": {
     "taskQueued": "Task Queued",
     "taskQueuedDetail": "{{name}} has been queued and will run in the background.",

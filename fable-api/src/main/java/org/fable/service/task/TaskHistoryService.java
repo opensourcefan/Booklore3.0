@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.fable.model.enums.AuditAction;
 import org.fable.service.audit.AuditService;
+import org.springframework.data.domain.PageRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -153,16 +154,59 @@ public class TaskHistoryService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public TasksHistoryResponse getHistoryByType(TaskType taskType, int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 50));
+        List<TaskHistoryEntity> rows;
+        try {
+            rows = taskHistoryRepository.findByTypeOrderByCreatedAtDesc(
+                    taskType,
+                    PageRequest.of(0, safeLimit)
+            );
+        } catch (Exception e) {
+            log.warn("Error fetching history for task type {}: {}", taskType, e.getMessage());
+            rows = Collections.emptyList();
+        }
+
+        List<TasksHistoryResponse.TaskHistory> histories = rows.stream()
+                .filter(task -> {
+                    try {
+                        return task.getType() != null;
+                    } catch (Exception e) {
+                        log.warn("Skipping task with invalid type: taskId={}", task.getId());
+                        return false;
+                    }
+                })
+                .map(this::mapToTaskInfo)
+                .collect(Collectors.toList());
+
+        return TasksHistoryResponse.builder()
+                .taskHistories(histories)
+                .build();
+    }
+
     private TasksHistoryResponse.TaskHistory mapToTaskInfo(TaskHistoryEntity task) {
+        Boolean triggeredByCron = null;
+        Map<String, Object> options = task.getTaskOptions();
+        if (options != null && options.get("triggeredByCron") instanceof Boolean flag) {
+            triggeredByCron = flag;
+        }
+
+        String message = task.getMessage();
+        if ((message == null || message.isBlank()) && task.getErrorDetails() != null && !task.getErrorDetails().isBlank()) {
+            message = task.getErrorDetails();
+        }
+
         return TasksHistoryResponse.TaskHistory.builder()
                 .id(task.getId())
                 .type(task.getType())
                 .status(task.getStatus())
                 .progressPercentage(task.getProgressPercentage())
-                .message(task.getMessage())
+                .message(message)
                 .createdAt(toUtcInstant(task.getCreatedAt()))
                 .updatedAt(toUtcInstant(task.getUpdatedAt()))
                 .completedAt(toUtcInstant(task.getCompletedAt()))
+                .triggeredByCron(triggeredByCron)
                 .build();
     }
 

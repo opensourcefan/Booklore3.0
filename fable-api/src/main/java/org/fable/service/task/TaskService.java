@@ -380,7 +380,8 @@ public class TaskService {
         if (!taskType.isParallel()) {
             runningTasks.put(taskType, taskId);
         }
-        Map<String, Object> options = convertOptionsToMap(request.getOptions());
+        Map<String, Object> options = new java.util.HashMap<>(convertOptionsToMap(request.getOptions()));
+        options.put("triggeredByCron", request.isTriggeredByCron());
         taskHistoryService.createTask(taskId, taskType, user.getId(), options);
         return taskId;
     }

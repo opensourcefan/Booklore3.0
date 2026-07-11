@@ -60,6 +60,7 @@ import {TaskHelperService} from '../../../settings/task-management/task-helper.s
 import {FilterLabelHelper} from './filter-label.helper';
 import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 import {WriteProgressService} from '../../../../shared/service/write-progress.service';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {BookNavigationService} from '../../service/book-navigation.service';
 import {BookCardOverlayPreferenceService} from './book-card-overlay-preference.service';
 import {BookSelectionService, CheckboxClickEvent} from './book-selection.service';
@@ -156,6 +157,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   private libraryShelfMenuService = inject(LibraryShelfMenuService);
   private pageTitle = inject(PageTitleService);
   private writeProgressService = inject(WriteProgressService);
+  private failureNotifications = inject(FailureNotificationService);
   private bookNavigationService = inject(BookNavigationService);
   private queryParamsService = inject(BookBrowserQueryParamsService);
   private entityService = inject(BookBrowserEntityService);
@@ -560,6 +562,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }));
 
   private resizeSub?: Subscription;
+
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
+  }
 
   ngOnInit(): void {
     this.pageTitle.setPageTitle('');
@@ -1881,7 +1889,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type deleted.'});
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete Media Type.'});
+        this.toastError('Error', 'Failed to delete Media Type.');
       }
     });
   }
@@ -1987,7 +1995,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         error: () => {
           this.writeProgressService.fail(this.t.translate('book.browser.toast.unshelveFailedDetail'));
-          this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('book.browser.toast.unshelveFailedDetail')});
         }
       });
   }
@@ -2133,11 +2140,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           error: () => {
             this.writeProgressService.fail(this.t.translate('book.browser.toast.wipeMetadataFailedDetail'));
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('common.error'),
-              detail: this.t.translate('book.browser.toast.wipeMetadataFailedDetail')
-            });
           }
         });
       }
@@ -2185,11 +2187,6 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           error: () => {
             this.writeProgressService.fail(this.t.translate('book.browser.toast.restoreTitlesFromFilenamesFailedDetail'));
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('common.error'),
-              detail: this.t.translate('book.browser.toast.restoreTitlesFromFilenamesFailedDetail')
-            });
           }
         });
       }
@@ -2225,12 +2222,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
             this.deselectAllBooks();
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.browser.toast.failedSummary'),
-              detail: this.t.translate('book.browser.toast.regenCoverFailedDetail'),
-              life: 3000
-            });
+            this.toastError(this.t.translate('book.browser.toast.failedSummary'), this.t.translate('book.browser.toast.regenCoverFailedDetail'));
           }
         });
       }
@@ -2266,12 +2258,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
             this.deselectAllBooks();
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.browser.toast.failedSummary'),
-              detail: this.t.translate('book.browser.toast.customCoverFailedDetail'),
-              life: 3000
-            });
+            this.toastError(this.t.translate('book.browser.toast.failedSummary'), this.t.translate('book.browser.toast.customCoverFailedDetail'));
           }
         });
       }
@@ -2298,12 +2285,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.bookService.refreshBooks();
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to mark books for AI Search.',
-          life: 3000
-        });
+        this.toastError('Error', 'Failed to mark books for AI Search.');
       }
     });
   }
@@ -2320,12 +2302,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
         this.bookService.refreshBooks().subscribe();
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to start embedding marked books.',
-          life: 3000
-        });
+        this.toastError('Error', 'Failed to start embedding marked books.');
       }
     });
   }
@@ -2348,22 +2325,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
             this.bookService.refreshBooks();
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Failed to start embedding marked books.',
-              life: 3000
-            });
+            this.toastError('Error', 'Failed to start embedding marked books.');
           }
         });
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to mark books for AI Search.',
-          life: 3000
-        });
+        this.toastError('Error', 'Failed to mark books for AI Search.');
       }
     });
   }
@@ -2392,12 +2359,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
             this.bookService.refreshBooks();
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Failed to delete embeddings.',
-              life: 3000
-            });
+            this.toastError('Error', 'Failed to delete embeddings.');
           }
         });
       }

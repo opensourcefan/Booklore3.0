@@ -30,5 +30,6 @@ public class TasksHistoryResponse {
         private Instant createdAt;
         private Instant updatedAt;
         private Instant completedAt;
+        private Boolean triggeredByCron;
     }
 }

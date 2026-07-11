@@ -53,6 +53,9 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
   // State
   taskInfos: TaskInfo[] = [];
   taskHistories = new Map<string, TaskHistory>();
+  taskRunHistories = new Map<string, TaskHistory[]>();
+  expandedHistoryTypes = new Set<string>();
+  loadingHistoryTypes = new Set<string>();
   loading = false;
   executingTasks = new Set<string>();
   private subscription?: Subscription;
@@ -116,6 +119,8 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
           latest.taskHistories.forEach(history => {
             this.taskHistories.set(history.type, history);
           });
+          this.taskRunHistories.clear();
+          this.expandedHistoryTypes.forEach(taskType => this.loadHistory(taskType));
         },
         error: (error) => {
           console.error('Error loading tasks:', error);
@@ -633,6 +638,63 @@ export class TaskManagementComponent implements OnInit, OnDestroy {
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleString();
+  }
+
+  isHistoryExpanded(taskType: string): boolean {
+    return this.expandedHistoryTypes.has(taskType);
+  }
+
+  isHistoryLoading(taskType: string): boolean {
+    return this.loadingHistoryTypes.has(taskType);
+  }
+
+  getRunHistory(taskType: string): TaskHistory[] {
+    return this.taskRunHistories.get(taskType) ?? [];
+  }
+
+  toggleHistory(taskType: string): void {
+    if (this.expandedHistoryTypes.has(taskType)) {
+      this.expandedHistoryTypes.delete(taskType);
+      return;
+    }
+    this.expandedHistoryTypes.add(taskType);
+    if (!this.taskRunHistories.has(taskType)) {
+      this.loadHistory(taskType);
+    }
+  }
+
+  private loadHistory(taskType: string): void {
+    this.loadingHistoryTypes.add(taskType);
+    this.taskService.getHistoryByType(taskType, 20)
+      .pipe(finalize(() => this.loadingHistoryTypes.delete(taskType)))
+      .subscribe({
+        next: (response) => {
+          this.taskRunHistories.set(
+            taskType,
+            (response.taskHistories ?? []).filter(row => !!row.id)
+          );
+        },
+        error: () => {
+          this.showMessage('error', this.t.translate('common.error'), this.t.translate('settingsTasks.history.loadError'));
+        }
+      });
+  }
+
+  getHistoryStatusClass(status: TaskStatus | null | undefined): string {
+    switch (status) {
+      case TaskStatus.COMPLETED:
+        return 'completed';
+      case TaskStatus.FAILED:
+        return 'failed';
+      case TaskStatus.CANCELLED:
+        return 'cancelled';
+      case TaskStatus.IN_PROGRESS:
+      case TaskStatus.ACCEPTED:
+      case TaskStatus.PENDING:
+        return 'running';
+      default:
+        return '';
+    }
   }
 
   private showMessage(severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string): void {

@@ -14,6 +14,7 @@ import {Select} from 'primeng/select';
 import {Tooltip} from 'primeng/tooltip';
 import {Divider} from 'primeng/divider';
 import {ConfirmationService, MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {Observable, Subscription} from 'rxjs';
 import {InputGroup} from 'primeng/inputgroup';
 import {InputGroupAddonModule} from 'primeng/inputgroupaddon';
@@ -72,6 +73,7 @@ export class BookdropFileReviewComponent implements OnInit {
   private readonly dialogLauncherService = inject(DialogLauncherService);
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly urlHelper = inject(UrlHelperService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly pageTitle = inject(PageTitleService);
@@ -100,6 +102,12 @@ export class BookdropFileReviewComponent implements OnInit {
 
   selectAllAcrossPages = false;
   excludedFiles = new Set<number>();
+
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
+  }
 
   ngOnInit(): void {
     this.pageTitle.setPageTitle(this.t.translate('bookdrop.fileReview.title'));
@@ -485,11 +493,7 @@ export class BookdropFileReviewComponent implements OnInit {
           },
           error: (err) => {
             console.error('Error deleting files:', err);
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('bookdrop.fileReview.toast.deleteFailedSummary'),
-              detail: this.t.translate('bookdrop.fileReview.toast.deleteFailedDetail'),
-            });
+            this.toastError(this.t.translate('bookdrop.fileReview.toast.deleteFailedSummary'), this.t.translate('bookdrop.fileReview.toast.deleteFailedDetail'),);
           },
         });
       },
@@ -571,11 +575,7 @@ export class BookdropFileReviewComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error finalizing import:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('bookdrop.fileReview.toast.importFailedSummary'),
-          detail: this.t.translate('bookdrop.fileReview.toast.importFailedDetail'),
-        });
+        this.toastError(this.t.translate('bookdrop.fileReview.toast.importFailedSummary'), this.t.translate('bookdrop.fileReview.toast.importFailedDetail'),);
         this.saving = false;
       }
     });
@@ -644,11 +644,7 @@ export class BookdropFileReviewComponent implements OnInit {
         });
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('bookdrop.fileReview.toast.rescanFailedSummary'),
-          detail: this.t.translate('bookdrop.fileReview.toast.rescanFailedDetail'),
-        });
+        this.toastError(this.t.translate('bookdrop.fileReview.toast.rescanFailedSummary'), this.t.translate('bookdrop.fileReview.toast.rescanFailedDetail'),);
         console.error(err);
       }
     });
@@ -738,11 +734,7 @@ export class BookdropFileReviewComponent implements OnInit {
         await this.loadAllPagesIntoCache();
       } catch (err) {
         console.error('Error loading pages into cache:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('bookdrop.fileReview.toast.bulkEditFailedSummary'),
-          detail: this.t.translate('bookdrop.fileReview.toast.bulkEditCacheFailedDetail'),
-        });
+        this.toastError(this.t.translate('bookdrop.fileReview.toast.bulkEditFailedSummary'), this.t.translate('bookdrop.fileReview.toast.bulkEditCacheFailedDetail'),);
         return;
       }
     }
@@ -773,11 +765,7 @@ export class BookdropFileReviewComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error applying bulk edit:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('bookdrop.fileReview.toast.bulkEditFailedSummary'),
-          detail: this.t.translate('bookdrop.fileReview.toast.bulkEditFailedDetail'),
-        });
+        this.toastError(this.t.translate('bookdrop.fileReview.toast.bulkEditFailedSummary'), this.t.translate('bookdrop.fileReview.toast.bulkEditFailedDetail'),);
       },
     });
   }
@@ -816,11 +804,7 @@ export class BookdropFileReviewComponent implements OnInit {
         await this.loadAllPagesIntoCache();
       } catch (err) {
         console.error('Error loading pages into cache:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('bookdrop.fileReview.toast.patternExtractionCacheFailedSummary'),
-          detail: this.t.translate('bookdrop.fileReview.toast.patternExtractionCacheFailedDetail'),
-        });
+        this.toastError(this.t.translate('bookdrop.fileReview.toast.patternExtractionCacheFailedSummary'), this.t.translate('bookdrop.fileReview.toast.patternExtractionCacheFailedDetail'),);
         return;
       }
     }

@@ -11,6 +11,7 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Select} from 'primeng/select';
 import {Button} from 'primeng/button';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {MetadataResumableTask, MetadataTaskService} from '../../../../book/service/metadata-task';
 import {FormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
@@ -56,6 +57,7 @@ export class MetadataFetchOptionsComponent {
   private appSettingsService = inject(AppSettingsService);
   private metadataTaskService = inject(MetadataTaskService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
 
   constructor() {
@@ -199,12 +201,13 @@ export class MetadataFetchOptionsComponent {
         this.dynamicDialogRef.close();
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.fetchOptions.resume.toastErrorSummary'),
-          detail: this.t.translate('metadata.fetchOptions.resume.toastErrorDetail')
-        });
+        this.toastError(this.t.translate('metadata.fetchOptions.resume.toastErrorSummary'), this.t.translate('metadata.fetchOptions.resume.toastErrorDetail'));
       }
     });
+  }
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
   }
 }

@@ -60,6 +60,14 @@ public class TaskController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{taskType}/history")
+    @PreAuthorize("@securityUtil.canAccessTaskManager() or @securityUtil.isAdmin()")
+    public ResponseEntity<TasksHistoryResponse> getHistoryByType(
+            @PathVariable TaskType taskType,
+            @RequestParam(defaultValue = "20") int limit) {
+        return ResponseEntity.ok(taskHistoryService.getHistoryByType(taskType, limit));
+    }
+
     @PatchMapping("/{taskType}/cron")
     @PreAuthorize("@securityUtil.canAccessTaskManager() or @securityUtil.isAdmin()")
     public ResponseEntity<CronConfig> patchCronConfig(@PathVariable TaskType taskType, @RequestBody TaskCronConfigRequest request) {

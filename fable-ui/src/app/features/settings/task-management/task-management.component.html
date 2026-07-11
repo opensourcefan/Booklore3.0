@@ -244,6 +244,47 @@
                   }
                 </div>
               }
+
+              <div class="task-history">
+                <button
+                  type="button"
+                  class="history-toggle"
+                  (click)="toggleHistory(taskInfo.taskType)">
+                  <i class="pi" [ngClass]="isHistoryExpanded(taskInfo.taskType) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+                  <span>{{ isHistoryExpanded(taskInfo.taskType) ? t('history.hide') : t('history.show') }}</span>
+                </button>
+
+                @if (isHistoryExpanded(taskInfo.taskType)) {
+                  @if (isHistoryLoading(taskInfo.taskType)) {
+                    <div class="history-loading">
+                      <i class="pi pi-spin pi-spinner"></i>
+                      <span>{{ t('history.loading') }}</span>
+                    </div>
+                  } @else if (getRunHistory(taskInfo.taskType).length === 0) {
+                    <div class="history-empty">{{ t('history.empty') }}</div>
+                  } @else {
+                    <ul class="history-list">
+                      @for (run of getRunHistory(taskInfo.taskType); track run.id) {
+                        <li class="history-row">
+                          <span class="status-badge" [ngClass]="getHistoryStatusClass(run.status)">
+                            <span class="status-dot"></span>
+                            {{ run.status || '—' }}
+                          </span>
+                          <span class="history-when">{{ run.createdAt ? formatDate(run.createdAt) : '—' }}</span>
+                          @if (run.triggeredByCron === true) {
+                            <span class="history-source">{{ t('history.scheduled') }}</span>
+                          } @else if (run.triggeredByCron === false) {
+                            <span class="history-source">{{ t('history.manual') }}</span>
+                          }
+                          @if (run.message) {
+                            <span class="history-message">{{ run.message }}</span>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  }
+                }
+              </div>
             </div>
           </div>
         }

@@ -6,6 +6,7 @@ import {AppBookGridSummary, Book, BookDeletionResponse, BookRecommendation, Book
 import {BookState} from '../model/state/book-state.model';
 import {API_CONFIG} from '../../../core/config/api-config';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {ResetProgressType} from '../../../shared/constants/reset-progress-type';
 import {AuthService} from '../../../shared/service/auth.service';
 import {Router} from '@angular/router';
@@ -86,6 +87,7 @@ export class BookService {
 
   private http = inject(HttpClient);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private authService = inject(AuthService);
   private router = inject(Router);
   private bookStateService = inject(BookStateService);
@@ -456,11 +458,7 @@ export class BookService {
         }
       }),
       catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('book.bookService.toast.deleteFailedSummary'),
-          detail: error?.error?.message || error?.message || this.t.translate('book.bookService.toast.deleteFailedDetail'),
-        });
+        this.toastError(this.t.translate('book.bookService.toast.deleteFailedSummary'), error?.error?.message || error?.message || this.t.translate('book.bookService.toast.deleteFailedDetail'));
         return throwError(() => error);
       })
     );
@@ -497,11 +495,7 @@ export class BookService {
         });
       }),
       catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('book.bookService.toast.creationFailedSummary'),
-          detail: error?.error?.message || error?.message || this.t.translate('book.bookService.toast.creationFailedDetail')
-        });
+        this.toastError(this.t.translate('book.bookService.toast.creationFailedSummary'), error?.error?.message || error?.message || this.t.translate('book.bookService.toast.creationFailedDetail'));
         return throwError(() => error);
       })
     );
@@ -664,5 +658,10 @@ export class BookService {
       hasAiPanelData: false
     }));
     this.bookStateService.updateBookState({ ...currentState, books: updatedBooks });
+  }
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
   }
 }

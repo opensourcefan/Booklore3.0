@@ -1,5 +1,6 @@
 import {Component, inject, Input, OnInit} from '@angular/core';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {BookCoverService, CoverFetchRequest, CoverImage} from '../../../../shared/services/book-cover.service';
 import {finalize} from 'rxjs/operators';
@@ -43,6 +44,7 @@ export class CoverSearchComponent implements OnInit {
   protected bookService = inject(BookService);
   private bookMetadataManageService = inject(BookMetadataManageService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
 
   constructor() {
@@ -50,6 +52,12 @@ export class CoverSearchComponent implements OnInit {
       title: ['', Validators.required],
       author: ['']
     });
+  }
+
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
   }
 
   ngOnInit() {
@@ -119,11 +127,7 @@ export class CoverSearchComponent implements OnInit {
         this.dynamicDialogRef.close(true);
       },
       error: err => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.coverSearch.toast.coverUpdateFailedSummary'),
-          detail: err?.message || this.t.translate('metadata.coverSearch.toast.coverUpdateFailedDetail')
-        });
+        this.toastError(this.t.translate('metadata.coverSearch.toast.coverUpdateFailedSummary'), err?.message || this.t.translate('metadata.coverSearch.toast.coverUpdateFailedDetail'));
       }
     });
   }

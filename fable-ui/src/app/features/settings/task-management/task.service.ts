@@ -98,6 +98,7 @@ export interface TaskHistory {
   createdAt: string | null;
   updatedAt: string | null;
   completedAt: string | null;
+  triggeredByCron?: boolean | null;
 }
 
 export interface TaskCancelResponse {
@@ -142,6 +143,12 @@ export class TaskService {
 
   getLatestTasksForEachType(): Observable<TaskStatusResponse> {
     return this.http.get<TaskStatusResponse>(`${this.baseUrl}/last`);
+  }
+
+  getHistoryByType(taskType: string, limit = 20): Observable<TaskStatusResponse> {
+    return this.http.get<TaskStatusResponse>(`${this.baseUrl}/${taskType}/history`, {
+      params: {limit: String(limit)}
+    });
   }
 
   cancelTask(taskId: string): Observable<TaskCancelResponse> {

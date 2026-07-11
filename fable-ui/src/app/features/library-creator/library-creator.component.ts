@@ -1,6 +1,7 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../shared/service/failure-notification.service';
 import {Router} from '@angular/router';
 import {LibraryService} from '../book/service/library.service';
 import {FormsModule} from '@angular/forms';
@@ -73,9 +74,16 @@ export class LibraryCreatorComponent implements OnInit {
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   private libraryService = inject(LibraryService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private router = inject(Router);
   private iconPicker = inject(IconPickerService);
   private readonly t = inject(TranslocoService);
+
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
+  }
 
   ngOnInit(): void {
     this.metadataSourceOptions = [
@@ -506,7 +514,7 @@ export class LibraryCreatorComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: this.t.translate('libraryCreator.creator.toast.nameExistsSummary'),
-          detail: this.t.translate('libraryCreator.creator.toast.nameExistsDetail'),
+          detail: this.t.translate('libraryCreator.creator.toast.nameExistsDetail')
         });
         return;
       }
@@ -606,13 +614,9 @@ export class LibraryCreatorComponent implements OnInit {
         },
         error: (e) => {
           this.resetSubmissionState();
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('libraryCreator.creator.toast.updateFailedSummary'),
-            detail: this.t.translate(this.isDirectoryManagementMode()
+          this.toastError(this.t.translate('libraryCreator.creator.toast.updateFailedSummary'), this.t.translate(this.isDirectoryManagementMode()
               ? 'libraryCreator.creator.toast.updateDirectoriesFailedDetail'
-              : 'libraryCreator.creator.toast.updateSettingsFailedDetail')
-          });
+              : 'libraryCreator.creator.toast.updateSettingsFailedDetail'));
           console.error(e);
         }
       });
@@ -651,7 +655,7 @@ export class LibraryCreatorComponent implements OnInit {
       error: (e) => {
         this.resetSubmissionState();
         this.libraryService.setLargeLibraryLoading(false, 0);
-        this.messageService.add({severity: 'error', summary: this.t.translate('libraryCreator.creator.toast.createFailedSummary'), detail: this.t.translate('libraryCreator.creator.toast.createFailedDetail')});
+        this.toastError(this.t.translate('libraryCreator.creator.toast.createFailedSummary'), this.t.translate('libraryCreator.creator.toast.createFailedDetail'));
         console.error(e);
       }
     });
