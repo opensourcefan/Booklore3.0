@@ -190,13 +190,11 @@ export class FileNamingPatternComponent implements OnInit {
         next: () => {
           this.originalDefaultPattern = this.defaultPattern;
           this.defaultPatternSaveStatus.markSuccess();
-          this.showMessage('success', this.t.translate('common.success'), this.t.translate('settingsNaming.defaultPattern.saveSuccess'));
         },
         error: () => {
           this.defaultPatternSaveStatus.markError();
           const detail = this.t.translate('settingsNaming.defaultPattern.saveError');
           this.failureNotifications.reportSafe('Default file naming pattern', detail);
-          this.showMessage('error', this.t.translate('common.error'), detail);
         },
       });
   }
@@ -212,12 +210,10 @@ export class FileNamingPatternComponent implements OnInit {
       if (failures.length === 0) {
         this.syncLibraryPatternSnapshot();
         this.librarySaveStatus.markSuccess();
-        this.showMessage('success', this.t.translate('common.success'), this.t.translate('settingsNaming.libraryOverrides.saveSuccess'));
       } else {
         this.librarySaveStatus.markError();
         const detail = this.t.translate('settingsNaming.libraryOverrides.saveError', {count: failures.length});
         this.failureNotifications.reportSafe('Library file naming patterns', detail);
-        this.showMessage('error', this.t.translate('common.error'), detail);
       }
     });
   }

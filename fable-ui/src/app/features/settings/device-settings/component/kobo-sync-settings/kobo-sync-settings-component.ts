@@ -16,21 +16,22 @@ import {SettingsHelperService} from '../../../../../shared/service/settings-help
 import {AppSettingKey, KoboSettings} from '../../../../../shared/model/app-settings.model';
 import {ShelfService} from '../../../../book/service/shelf.service';
 import {ExternalDocLinkComponent} from '../../../../../shared/components/external-doc-link/external-doc-link.component';
-import {ToastModule} from 'primeng/toast';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Clipboard} from '@angular/cdk/clipboard';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 
 @Component({
   selector: 'app-kobo-sync-setting-component',
   standalone: true,
   templateUrl: './kobo-sync-settings-component.html',
   styleUrl: './kobo-sync-settings-component.scss',
-  imports: [FormsModule, Button, InputText, ConfirmDialog, ToggleSwitch, Slider, Divider, ExternalDocLinkComponent, ToastModule, TranslocoDirective],
-  providers: [MessageService, ConfirmationService]
+  imports: [FormsModule, Button, InputText, ConfirmDialog, ToggleSwitch, Slider, Divider, ExternalDocLinkComponent, TranslocoDirective],
+  providers: [ConfirmationService]
 })
 export class KoboSyncSettingsComponent implements OnInit, OnDestroy {
   private koboService = inject(KoboService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private confirmationService = inject(ConfirmationService);
   protected userService = inject(UserService);
   protected appSettingsService = inject(AppSettingsService);
@@ -42,6 +43,11 @@ export class KoboSyncSettingsComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly sliderChange$ = new Subject<void>();
   private readonly progressThresholdChange$ = new Subject<void>();
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
+  }
 
   hasKoboTokenPermission = false;
   isAdmin = false;
@@ -128,7 +134,7 @@ export class KoboSyncSettingsComponent implements OnInit, OnDestroy {
         this.credentialsSaved = !!settings.token;
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('settingsDevice.kobo.loadError')});
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsDevice.kobo.loadError'));
       }
     });
   }
@@ -190,7 +196,7 @@ export class KoboSyncSettingsComponent implements OnInit, OnDestroy {
         this.messageService.add({severity: 'success', summary: this.t.translate('settingsDevice.kobo.tokenRegenerated'), detail: this.t.translate('settingsDevice.kobo.tokenRegeneratedDetail')});
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('settingsDevice.kobo.tokenRegenerateError')});
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsDevice.kobo.tokenRegenerateError'));
       }
     });
   }
@@ -248,11 +254,7 @@ export class KoboSyncSettingsComponent implements OnInit, OnDestroy {
         this.shelfService.reloadShelves();
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsDevice.kobo.settingsUpdateError')
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsDevice.kobo.settingsUpdateError'));
       }
     });
   }
@@ -268,11 +270,7 @@ export class KoboSyncSettingsComponent implements OnInit, OnDestroy {
           });
         },
         error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('settingsDevice.kobo.saveFailed'),
-            detail: this.t.translate('settingsDevice.kobo.saveError')
-          });
+          this.toastError(this.t.translate('settingsDevice.kobo.saveFailed'), this.t.translate('settingsDevice.kobo.saveError'));
         }
       });
   }

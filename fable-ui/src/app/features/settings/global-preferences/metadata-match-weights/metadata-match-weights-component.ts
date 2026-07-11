@@ -130,22 +130,12 @@ export class MetadataMatchWeightsComponent implements OnInit {
       next: () => {
         this.form.markAsPristine();
         this.saveStatus.markSuccess();
-        this.messageService.add({
-          severity: 'success',
-          summary: this.t.translate('common.success'),
-          detail: this.t.translate('settingsMeta.matchWeights.saveSuccess')
-        });
         this.isSaving = false;
       },
       error: () => {
         this.saveStatus.markError();
         const detail = this.t.translate('settingsMeta.matchWeights.saveError');
         this.failureNotifications.reportSafe('Metadata match weights', detail);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail
-        });
         this.isSaving = false;
       }
     });

@@ -4,7 +4,6 @@ import {FormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {Button} from 'primeng/button';
-import {ToastModule} from 'primeng/toast';
 import {MessageService} from 'primeng/api';
 import {KoreaderService} from './koreader.service';
 import {UserService} from '../../../user-management/user.service';
@@ -13,6 +12,7 @@ import {Subject} from 'rxjs';
 import {ExternalDocLinkComponent} from '../../../../../shared/components/external-doc-link/external-doc-link.component';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {Clipboard} from '@angular/cdk/clipboard';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 
 @Component({
   standalone: true,
@@ -22,12 +22,10 @@ import {Clipboard} from '@angular/cdk/clipboard';
     InputText,
     ToggleSwitch,
     Button,
-    ToastModule,
     ExternalDocLinkComponent,
     TranslocoDirective,
     TranslocoPipe
   ],
-  providers: [MessageService],
   templateUrl: './koreader-settings-component.html',
   styleUrls: ['./koreader-settings-component.scss']
 })
@@ -42,6 +40,7 @@ export class KoreaderSettingsComponent implements OnInit, OnDestroy {
   readonly koreaderEndpoint = `${window.location.origin}/api/koreader`;
 
   private readonly messageService = inject(MessageService);
+  private readonly failureNotifications = inject(FailureNotificationService);
   private readonly koreaderService = inject(KoreaderService);
   private readonly userService = inject(UserService);
   private readonly t = inject(TranslocoService);
@@ -49,6 +48,11 @@ export class KoreaderSettingsComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   hasPermission = false;
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
+  }
 
   ngOnInit() {
     let prevHasPermission = false;
@@ -76,11 +80,7 @@ export class KoreaderSettingsComponent implements OnInit, OnDestroy {
       },
       error: err => {
         if (err.status !== 404) {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('common.error'),
-            detail: this.t.translate('settingsDevice.koreader.loadError')
-          });
+          this.toastError(this.t.translate('common.error'), this.t.translate('settingsDevice.koreader.loadError'));
         }
       }
     });
@@ -107,7 +107,7 @@ export class KoreaderSettingsComponent implements OnInit, OnDestroy {
         this.messageService.add({severity: 'success', summary: this.t.translate('settingsDevice.koreader.syncUpdated'), detail: enabled ? this.t.translate('settingsDevice.koreader.syncEnabled') : this.t.translate('settingsDevice.koreader.syncDisabled')});
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: this.t.translate('settingsDevice.koreader.syncUpdateFailed'), detail: this.t.translate('settingsDevice.koreader.syncUpdateError')});
+        this.toastError(this.t.translate('settingsDevice.koreader.syncUpdateFailed'), this.t.translate('settingsDevice.koreader.syncUpdateError'));
       }
     });
   }
@@ -123,11 +123,7 @@ export class KoreaderSettingsComponent implements OnInit, OnDestroy {
         });
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('settingsDevice.koreader.syncUpdateFailed'),
-          detail: this.t.translate('settingsDevice.koreader.fableReaderError')
-        });
+        this.toastError(this.t.translate('settingsDevice.koreader.syncUpdateFailed'), this.t.translate('settingsDevice.koreader.fableReaderError'));
       }
     });
   }
@@ -145,7 +141,7 @@ export class KoreaderSettingsComponent implements OnInit, OnDestroy {
           this.messageService.add({severity: 'success', summary: this.t.translate('settingsDevice.koreader.saved'), detail: this.t.translate('settingsDevice.koreader.credentialsSaved')});
         },
         error: () =>
-          this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('settingsDevice.koreader.credentialsError')})
+          this.toastError(this.t.translate('common.error'), this.t.translate('settingsDevice.koreader.credentialsError'))
       });
   }
 

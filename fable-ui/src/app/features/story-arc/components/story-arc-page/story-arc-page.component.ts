@@ -4,7 +4,6 @@ import {CommonModule, NgClass} from '@angular/common';
 import {CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
 import {ConfirmationService, MenuItem, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
-import {ToastModule} from 'primeng/toast';
 import {Button} from 'primeng/button';
 import {TooltipModule} from 'primeng/tooltip';
 import {FormsModule} from '@angular/forms';
@@ -23,6 +22,7 @@ import {Book, ReadStatus} from '../../../book/model/book.model';
 import {ReadStatusHelper} from '../../../book/helpers/read-status.helper';
 import {readStatusLabels} from '../../../book/components/book-browser/book-filter/book-filter.config';
 import {StoryArcBookPickerComponent} from '../story-arc-book-picker/story-arc-book-picker.component';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 interface StoryArcRow {
   title: string;
@@ -41,14 +41,13 @@ interface StoryArcRow {
     RouterLink,
     FormsModule,
     DragDropModule,
-    ToastModule,
     ConfirmDialog,
     Button,
     TooltipModule,
     TieredMenu,
     Dialog
   ],
-  providers: [MessageService, ConfirmationService]
+  providers: [ConfirmationService]
 })
 export class StoryArcPageComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
@@ -58,11 +57,17 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   private pageTitle = inject(PageTitleService);
   private bookPatchService = inject(BookPatchService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private confirmationService = inject(ConfirmationService);
   private readStatusHelper = inject(ReadStatusHelper);
   private dialogLauncher = inject(DialogLauncherService);
   private mobileUx = inject(MobileUxService);
   private cdr = inject(ChangeDetectorRef);
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
+  }
 
   arcName = '';
   rows: StoryArcRow[] = [];
@@ -169,7 +174,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to load story arc'});
+        this.toastError('Error', 'Failed to load story arc');
         this.loading = false;
         this.cdr.markForCheck();
       }
@@ -309,7 +314,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
             this.messageService.add({severity: 'success', summary: 'Added', detail: `Added ${result.bookIds.length} book${result.bookIds.length !== 1 ? 's' : ''} to "${row.title}".`});
           },
           error: () => {
-            this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to add books.'});
+            this.toastError('Error', 'Failed to add books.');
           }
         });
       }
@@ -495,7 +500,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
         this.saveLayout();
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to remove book'});
+        this.toastError('Error', 'Failed to remove book');
       }
     });
   }
@@ -553,7 +558,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
             this.router.navigate(['/story-arcs']);
           },
           error: () => {
-            this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete story arc'});
+            this.toastError('Error', 'Failed to delete story arc');
           }
         });
       }
@@ -663,7 +668,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to set cover image.'});
+        this.toastError('Error', 'Failed to set cover image.');
       }
     });
   }
@@ -676,7 +681,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to clear cover image.'});
+        this.toastError('Error', 'Failed to clear cover image.');
       }
     });
   }

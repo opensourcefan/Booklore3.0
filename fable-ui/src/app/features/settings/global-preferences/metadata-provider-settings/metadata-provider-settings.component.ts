@@ -264,22 +264,12 @@ export class MetadataProviderSettingsComponent implements OnInit {
       next: () => {
         this.savedPayloadSnapshot = JSON.stringify(this.buildSettingsValue());
         this.saveStatus.markSuccess();
-        this.messageService.add({
-          severity: 'success',
-          summary: this.t.translate('common.success'),
-          detail: this.t.translate('settingsMeta.providers.saveSuccess')
-        });
         this.isSaving = false;
       },
       error: () => {
         this.saveStatus.markError();
         const detail = this.t.translate('settingsMeta.providers.saveError');
         this.failureNotifications.reportSafe('Metadata provider settings', detail);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail
-        });
         this.isSaving = false;
       }
     });

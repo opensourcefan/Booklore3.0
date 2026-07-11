@@ -433,14 +433,12 @@ export class MetadataPickerComponent implements OnInit {
           this.saveStatus.markSuccess();
           this.syncSaveSeverity();
           this.writeProgressService.complete(this.t.translate('metadata.picker.toast.metadataUpdated'));
-          this.messageService.add({severity: 'info', summary: this.t.translate('metadata.picker.toast.successSummary'), detail: this.t.translate('metadata.picker.toast.metadataUpdated')});
         },
         error: () => {
           this.saveStatus.markError();
           this.syncSaveSeverity();
           const detail = this.t.translate('metadata.picker.toast.metadataUpdateFailed');
           this.writeProgressService.fail(detail);
-          this.messageService.add({severity: 'error', summary: this.t.translate('metadata.picker.toast.errorSummary'), detail});
         }
       }),
       map(() => void 0),

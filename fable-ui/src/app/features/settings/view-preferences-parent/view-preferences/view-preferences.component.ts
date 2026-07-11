@@ -1,7 +1,6 @@
 import {Component, ElementRef, inject, OnDestroy, OnInit, viewChild} from '@angular/core';
 import {Button} from 'primeng/button';
 
-import {MessageService} from 'primeng/api';
 import {Select} from 'primeng/select';
 import {TableModule} from 'primeng/table';
 import {DEFAULT_VISIBLE_SORT_FIELDS, SortCriterion, User, UserService} from '../../user-management/user.service';
@@ -10,7 +9,6 @@ import {ShelfService} from '../../../book/service/shelf.service';
 import {MagicShelfService} from '../../../magic-shelf/service/magic-shelf.service';
 import {combineLatest, Subject} from 'rxjs';
 import {FormsModule} from '@angular/forms';
-import {ToastModule} from 'primeng/toast';
 import {Tooltip} from 'primeng/tooltip';
 import {filter, take, takeUntil} from 'rxjs/operators';
 import {ToggleSwitch} from 'primeng/toggleswitch';
@@ -29,7 +27,6 @@ import {SaveButtonStatusController} from '../../../../shared/service/save-button
     FormsModule,
     Button,
     TableModule,
-    ToastModule,
     Tooltip,
     ToggleSwitch,
     TranslocoDirective,
@@ -125,7 +122,6 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
   private shelfService = inject(ShelfService);
   private magicShelfService = inject(MagicShelfService);
   private userService = inject(UserService);
-  private messageService = inject(MessageService);
 
   get saveSeverity(): 'secondary' | 'warn' | 'success' | 'danger' {
     return this.saveStatus.severityFor(this.dirty);
@@ -437,10 +433,5 @@ export class ViewPreferencesComponent implements OnInit, OnDestroy {
 
     this.dirty = false;
     this.saveStatus.markSuccess();
-    this.messageService.add({
-      severity: 'success',
-      summary: this.t.translate('settingsView.librarySort.saveSuccess'),
-      detail: this.t.translate('settingsView.librarySort.saveSuccessDetail')
-    });
   }
 }

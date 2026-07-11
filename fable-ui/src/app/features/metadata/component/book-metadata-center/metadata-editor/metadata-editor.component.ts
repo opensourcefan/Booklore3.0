@@ -35,6 +35,7 @@ import {AppSettingsService} from '../../../../../shared/service/app-settings.ser
 import {MetadataProviderSpecificFields} from '../../../../../shared/model/app-settings.model';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {WriteProgressService} from '../../../../../shared/service/write-progress.service';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {SaveButtonStatusController} from '../../../../../shared/service/save-button-status.controller';
 import {CdkDragDrop, CdkDropList, CdkDrag, moveItemInArray} from '@angular/cdk/drag-drop';
 
@@ -92,6 +93,7 @@ export class MetadataEditorComponent implements OnInit {
   private appSettingsService = inject(AppSettingsService);
   private readonly t = inject(TranslocoService);
   private readonly writeProgressService = inject(WriteProgressService);
+  private readonly failureNotifications = inject(FailureNotificationService);
   private readonly cdr = inject(ChangeDetectorRef, {optional: true});
 
   metadataForm: FormGroup;
@@ -117,6 +119,11 @@ export class MetadataEditorComponent implements OnInit {
     this.saveSeverity = this.saveStatus.severityFor(dirty);
     this.saveStyleClass = this.saveStatus.styleClassFor(dirty);
     this.cdr?.markForCheck();
+  }
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
   }
 
   refreshingBookIds = new Set<number>();
@@ -721,11 +728,6 @@ export class MetadataEditorComponent implements OnInit {
           next: (_response) => {
             this.isSaving = false;
             this.writeProgressService.complete(this.t.translate('metadata.editor.toast.metadataUpdated'));
-            this.messageService.add({
-              severity: "info",
-              summary: this.t.translate('metadata.editor.toast.successSummary'),
-              detail: this.t.translate('metadata.editor.toast.metadataUpdated'),
-            });
             this.prepareAutoComplete();
             this.metadataForm.markAsPristine();
             this.saveStatus.markSuccess();
@@ -739,11 +741,6 @@ export class MetadataEditorComponent implements OnInit {
             this.writeProgressService.fail(detail);
             this.saveStatus.markError();
             this.syncSaveSeverity();
-            this.messageService.add({
-              severity: "error",
-              summary: this.t.translate('metadata.editor.toast.errorSummary'),
-              detail,
-            });
           },
         }),
         map((): void => { return; })
@@ -786,11 +783,10 @@ export class MetadataEditorComponent implements OnInit {
         });
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.editor.toast.errorSummary'),
-          detail: err?.error?.message || this.t.translate('metadata.editor.toast.metadataDeleteFailed'),
-        });
+        this.toastError(
+          this.t.translate('metadata.editor.toast.errorSummary'),
+          err?.error?.message || this.t.translate('metadata.editor.toast.metadataDeleteFailed')
+        );
       }
     });
   }
@@ -1041,11 +1037,10 @@ export class MetadataEditorComponent implements OnInit {
           }
         },
         error: () => {
-          this.messageService.add({
-            severity: "error",
-            summary: this.t.translate('metadata.editor.toast.errorSummary'),
-            detail: this.t.translate('metadata.editor.toast.lockStateFailed'),
-          });
+          this.toastError(
+            this.t.translate('metadata.editor.toast.errorSummary'),
+            this.t.translate('metadata.editor.toast.lockStateFailed')
+          );
         },
       });
   }
@@ -1065,23 +1060,19 @@ export class MetadataEditorComponent implements OnInit {
       this.isUploading = false;
     } else {
       this.isUploading = false;
-      this.messageService.add({
-        severity: "error",
-        summary: this.t.translate('metadata.editor.toast.uploadFailedSummary'),
-        detail: this.t.translate('metadata.editor.toast.uploadFailedDetail'),
-        life: 3000,
-      });
+      this.toastError(
+        this.t.translate('metadata.editor.toast.uploadFailedSummary'),
+        this.t.translate('metadata.editor.toast.uploadFailedDetail')
+      );
     }
   }
 
   onUploadError(_event: FileUploadErrorEvent) {
     this.isUploading = false;
-    this.messageService.add({
-      severity: "error",
-      summary: this.t.translate('metadata.editor.toast.uploadErrorSummary'),
-      detail: this.t.translate('metadata.editor.toast.uploadErrorDetail'),
-      life: 3000,
-    });
+    this.toastError(
+      this.t.translate('metadata.editor.toast.uploadErrorSummary'),
+      this.t.translate('metadata.editor.toast.uploadErrorDetail')
+    );
   }
 
   regenerateCover(bookId: number) {
@@ -1098,11 +1089,10 @@ export class MetadataEditorComponent implements OnInit {
         });
       },
       error: (err) => {
-        this.messageService.add({
-          severity: "error",
-          summary: this.t.translate('metadata.editor.toast.errorSummary'),
-          detail: err?.error?.message || this.t.translate('metadata.editor.toast.coverRegenFailed'),
-        });
+        this.toastError(
+          this.t.translate('metadata.editor.toast.errorSummary'),
+          err?.error?.message || this.t.translate('metadata.editor.toast.coverRegenFailed')
+        );
       }
     });
   }
@@ -1123,11 +1113,10 @@ export class MetadataEditorComponent implements OnInit {
         });
       },
       error: (_err) => {
-        this.messageService.add({
-          severity: "error",
-          summary: this.t.translate('metadata.editor.toast.errorSummary'),
-          detail: this.t.translate('metadata.editor.toast.customCoverFailed'),
-        });
+        this.toastError(
+          this.t.translate('metadata.editor.toast.errorSummary'),
+          this.t.translate('metadata.editor.toast.customCoverFailed')
+        );
       }
     });
   }
@@ -1146,11 +1135,10 @@ export class MetadataEditorComponent implements OnInit {
         });
       },
       error: (err) => {
-        this.messageService.add({
-          severity: "error",
-          summary: this.t.translate('metadata.editor.toast.errorSummary'),
-          detail: err?.error?.message || this.t.translate('metadata.editor.toast.audiobookCoverRegenFailed'),
-        });
+        this.toastError(
+          this.t.translate('metadata.editor.toast.errorSummary'),
+          err?.error?.message || this.t.translate('metadata.editor.toast.audiobookCoverRegenFailed')
+        );
       }
     });
   }
@@ -1171,11 +1159,10 @@ export class MetadataEditorComponent implements OnInit {
         });
       },
       error: (_err) => {
-        this.messageService.add({
-          severity: "error",
-          summary: this.t.translate('metadata.editor.toast.errorSummary'),
-          detail: this.t.translate('metadata.editor.toast.customAudiobookCoverFailed'),
-        });
+        this.toastError(
+          this.t.translate('metadata.editor.toast.errorSummary'),
+          this.t.translate('metadata.editor.toast.customAudiobookCoverFailed')
+        );
       }
     });
   }
@@ -1241,11 +1228,10 @@ export class MetadataEditorComponent implements OnInit {
         });
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.editor.toast.errorSummary'),
-          detail: err?.error?.message || this.t.translate('metadata.editor.toast.fileMetadataFailed'),
-        });
+        this.toastError(
+          this.t.translate('metadata.editor.toast.errorSummary'),
+          err?.error?.message || this.t.translate('metadata.editor.toast.fileMetadataFailed')
+        );
       }
     });
   }
@@ -1455,12 +1441,10 @@ export class MetadataEditorComponent implements OnInit {
       });
     } else {
       this.isUploading = false;
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('metadata.editor.toast.uploadFailedSummary'),
-        detail: this.t.translate('metadata.editor.toast.audiobookUploadFailed'),
-        life: 3000,
-      });
+      this.toastError(
+        this.t.translate('metadata.editor.toast.uploadFailedSummary'),
+        this.t.translate('metadata.editor.toast.audiobookUploadFailed')
+      );
     }
   }
 }

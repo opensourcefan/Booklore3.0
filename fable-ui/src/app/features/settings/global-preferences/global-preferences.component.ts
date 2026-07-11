@@ -236,13 +236,17 @@ export class GlobalPreferencesComponent implements OnInit {
       next: () => {
         saveStatus?.markSuccess();
         onSuccess?.();
-        this.showMessage('success', this.t.translate('settingsApp.settingsSaved'), this.t.translate('settingsApp.settingsSavedDetail'));
+        if (!saveStatus) {
+          this.showMessage('success', this.t.translate('settingsApp.settingsSaved'), this.t.translate('settingsApp.settingsSavedDetail'));
+        }
       },
       error: () => {
         saveStatus?.markError();
         const detail = this.t.translate('settingsApp.settingsError');
         this.failureNotifications.reportSafe('App settings', detail);
-        this.showMessage('error', this.t.translate('common.error'), detail);
+        if (!saveStatus) {
+          this.showMessage('error', this.t.translate('common.error'), detail);
+        }
       }
     });
   }

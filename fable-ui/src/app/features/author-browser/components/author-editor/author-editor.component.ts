@@ -235,11 +235,6 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
         this.syncSaveSeverity();
         this.writeProgressService.complete(this.t.translate('authorBrowser.editor.toast.successDetail'));
         this.authorUpdated.emit(updated);
-        this.messageService.add({
-          severity: 'success',
-          summary: this.t.translate('authorBrowser.editor.toast.successSummary'),
-          detail: this.t.translate('authorBrowser.editor.toast.successDetail')
-        });
       },
       error: () => {
         this.isSaving = false;
@@ -247,11 +242,6 @@ export class AuthorEditorComponent implements OnInit, OnChanges {
         this.syncSaveSeverity();
         const detail = this.t.translate('authorBrowser.editor.toast.errorDetail');
         this.writeProgressService.fail(detail);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('authorBrowser.editor.toast.errorSummary'),
-          detail
-        });
       }
     });
   }

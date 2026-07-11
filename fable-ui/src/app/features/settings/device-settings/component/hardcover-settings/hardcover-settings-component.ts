@@ -3,7 +3,6 @@ import {FormsModule} from '@angular/forms';
 import {InputText} from 'primeng/inputtext';
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {Button} from 'primeng/button';
-import {ToastModule} from 'primeng/toast';
 import {MessageService} from 'primeng/api';
 import {Subject} from 'rxjs';
 import {filter, takeUntil} from 'rxjs/operators';
@@ -12,6 +11,7 @@ import {UserService} from '../../../user-management/user.service';
 import {HardcoverSyncSettingsService} from './hardcover-sync-settings.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Clipboard} from '@angular/cdk/clipboard';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 
 @Component({
   standalone: true,
@@ -21,16 +21,15 @@ import {Clipboard} from '@angular/cdk/clipboard';
     InputText,
     ToggleSwitch,
     Button,
-    ToastModule,
     ExternalDocLinkComponent,
     TranslocoDirective
   ],
-  providers: [MessageService],
   templateUrl: './hardcover-settings-component.html',
   styleUrls: ['./hardcover-settings-component.scss']
 })
 export class HardcoverSettingsComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);
+  private readonly failureNotifications = inject(FailureNotificationService);
   private readonly hardcoverSyncSettingsService = inject(HardcoverSyncSettingsService);
   private readonly userService = inject(UserService);
   private readonly t = inject(TranslocoService);
@@ -41,6 +40,11 @@ export class HardcoverSettingsComponent implements OnInit, OnDestroy {
   hardcoverSyncEnabled = false;
   hardcoverApiKey = '';
   showHardcoverApiKey = false;
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
+  }
 
   ngOnInit() {
     let prevHasPermission = false;
@@ -66,11 +70,7 @@ export class HardcoverSettingsComponent implements OnInit, OnDestroy {
         this.hardcoverApiKey = settings.hardcoverApiKey ?? '';
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsDevice.hardcover.loadError')
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsDevice.hardcover.loadError'));
       }
     });
   }
@@ -101,11 +101,7 @@ export class HardcoverSettingsComponent implements OnInit, OnDestroy {
         this.messageService.add({severity: 'success', summary: this.t.translate('settingsDevice.hardcover.settingsUpdated'), detail: successMessage});
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('settingsDevice.hardcover.updateFailed'),
-          detail: this.t.translate('settingsDevice.hardcover.updateError')
-        });
+        this.toastError(this.t.translate('settingsDevice.hardcover.updateFailed'), this.t.translate('settingsDevice.hardcover.updateError'));
       }
     });
   }

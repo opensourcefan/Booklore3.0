@@ -153,6 +153,7 @@ export class AppTopBarComponent implements OnDestroy {
   private mobileOverflowBackHandle: MobileBackHandle | null = null;
   private mobileSearchBackHandle: MobileBackHandle | null = null;
   private metadataFetchLogBackHandle: MobileBackHandle | null = null;
+  private mobileNotificationBackHandle: MobileBackHandle | null = null;
 
   activeLang = '';
   langMenuItems: MenuItem[] = [];
@@ -523,6 +524,21 @@ export class AppTopBarComponent implements OnDestroy {
     this.mobileSidebarOpen = false;
     this.mobileSidebarBackHandle?.release();
     this.mobileSidebarBackHandle = null;
+  }
+
+  onNotificationPopoverShow(): void {
+    if (this.mobileNotificationBackHandle) {
+      return;
+    }
+    this.mobileNotificationBackHandle = this.mobileBackNavigation.register(() => {
+      this.notificationPopover?.hide();
+      this.notificationPopoverMobile?.hide();
+    });
+  }
+
+  onNotificationPopoverHide(): void {
+    this.mobileNotificationBackHandle?.release();
+    this.mobileNotificationBackHandle = null;
   }
 
   onMobileDirectoryPopoverShow(): void {
