@@ -420,6 +420,7 @@ tar -czf fable-files-backup-$(date +%Y%m%d).tar.gz ./books ./data ./bookdrop
 - The AI compose profile is opt-in. Omitting `COMPOSE_PROFILES=ai` skips the AI images entirely.
 - The AI containers use CPU-only inference to keep the image size manageable.
 - You can override the AI Search model by uncommenting # AI_Search_EMBEDDING or LLM in your `.env`.
+- Optional lock-down: set the same `AI_SEARCH_SHARED_SECRET` on both the API and `fable-ai-search` containers to require a shared header on `/v1/*` (see [AI-Search-Configuration.md](docs/AI-Search-Configuration.md)). Leave blank for default open Docker-network trust.
 - If the models fail to load, use the **Reload** buttons in Settings.
 - If running Fable outside Docker, set `AI_SERVICE_BASE_URL` and `AI_SEARCH_SERVICE_BASE_URL` to the host-mapped endpoints.
 

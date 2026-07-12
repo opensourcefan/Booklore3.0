@@ -60,5 +60,13 @@ public class AppProperties {
         private String embeddingModel = "BAAI/bge-small-en-v1.5";
         private int connectTimeoutMs = 3000;
         private int readTimeoutMs = 600000;
+        /**
+         * Optional shared secret sent to the AI Search sidecar as
+         * {@code X-Fable-Ai-Search-Secret}. When blank, Java does not send a
+         * header and the Python service (also blank by default) stays open for
+         * optional/home installs. Set the same value on both services to lock
+         * down {@code /v1/*} endpoints.
+         */
+        private String sharedSecret = "";
     }
 }

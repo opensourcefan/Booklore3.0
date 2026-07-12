@@ -10,6 +10,7 @@ import org.fable.model.dto.settings.*;
 import org.fable.model.entity.AppSettingEntity;
 import org.fable.model.enums.AuditAction;
 import org.fable.model.enums.PermissionType;
+import org.fable.service.ai.AiSearchAuthHeaders;
 import org.fable.service.audit.AuditService;
 import org.fable.util.UserPermissionUtils;
 import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
@@ -51,12 +52,13 @@ public class AppSettingService {
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
     private final JdbcTemplate jdbcTemplate;
+    private final AiSearchAuthHeaders aiSearchAuthHeaders;
     private static final Logger logger = LoggerFactory.getLogger(AppSettingService.class);
 
     private volatile AppSettings appSettings;
     private final ReentrantLock lock = new ReentrantLock();
 
-    public AppSettingService(AppProperties appProperties, SettingPersistenceHelper settingPersistenceHelper, @Lazy AuthenticationService authenticationService, @Lazy AuditService auditService, ObjectMapper objectMapper, RestTemplate restTemplate, JdbcTemplate jdbcTemplate) {
+    public AppSettingService(AppProperties appProperties, SettingPersistenceHelper settingPersistenceHelper, @Lazy AuthenticationService authenticationService, @Lazy AuditService auditService, ObjectMapper objectMapper, RestTemplate restTemplate, JdbcTemplate jdbcTemplate, AiSearchAuthHeaders aiSearchAuthHeaders) {
         this.appProperties = appProperties;
         this.settingPersistenceHelper = settingPersistenceHelper;
         this.authenticationService = authenticationService;
@@ -64,6 +66,7 @@ public class AppSettingService {
         this.objectMapper = objectMapper;
         this.restTemplate = restTemplate;
         this.jdbcTemplate = jdbcTemplate;
+        this.aiSearchAuthHeaders = aiSearchAuthHeaders;
     }
 
     public AppSettingsTransferFile exportSettings() {
@@ -215,6 +218,10 @@ public class AppSettingService {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            String aiSearchBase = appProperties.getAiSearch().getBaseUrl();
+            if (aiSearchBase != null && url.startsWith(aiSearchBase)) {
+                aiSearchAuthHeaders.apply(headers);
+            }
             HttpEntity<Object> request = new HttpEntity<>(payload, headers);
             // Fire in background with a brief delay to allow DB transaction to settle
             // before the Python service begins reloading models
@@ -483,15 +490,13 @@ public class AppSettingService {
     public Map<String, Object> testAiConnection(AiTestConnectionRequest request, String path) {
         String url = appProperties.getAiSearch().getBaseUrl() + path;
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
             Map<String, String> body = Map.of(
                 "provider", request.getProvider() != null ? request.getProvider() : "",
                 "url", request.getUrl() != null ? request.getUrl() : "",
                 "apiKey", request.getApiKey() != null ? request.getApiKey() : "",
                 "model", request.getModel() != null ? request.getModel() : ""
             );
-            HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
+            HttpEntity<Map<String, String>> entity = aiSearchAuthHeaders.jsonEntity(body);
             var response = restTemplate.postForEntity(url, entity, Map.class);
             return response.getBody() != null ? response.getBody() : Map.of("success", false, "message", "Empty response");
         } catch (Exception e) {

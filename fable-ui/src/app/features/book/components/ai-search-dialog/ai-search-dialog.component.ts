@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy, Injectable, OnInit, ViewChild} from '@angular/core';
+import {Component, inject, OnDestroy, Injectable, OnInit, ViewChild, ElementRef} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {InputTextModule} from 'primeng/inputtext';
 import {Button} from 'primeng/button';
@@ -152,6 +152,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   isCheckingLlmWarmed = false;
   infoPopoverVisible = false;
   @ViewChild('infoPopover') infoPopover!: Popover;
+  @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
 
   private appSettingsService = inject(AppSettingsService);
   private userService = inject(UserService);
@@ -173,6 +174,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
   private mobileBackNavigation = inject(MobileBackNavigationService);
   private mobileBackHandle: MobileBackHandle | null = null;
+  private detailBackHandle: MobileBackHandle | null = null;
 
   private searchSub?: Subscription;
   private openSub?: Subscription;
@@ -416,10 +418,12 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   }
 
   close(): void {
+    this.searchInput?.nativeElement?.blur();
     this.visible = false;
     this.aiSearchDialogService.dialogVisible$.next(false);
     this.mobileBackHandle?.release();
     this.mobileBackHandle = null;
+    this.closeResultDetail();
     this.saveStateToCache();
   }
 
@@ -610,7 +614,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
         { role: 'assistant', content: m.answer! }
       ]);
 
-    this.searchSub = this.appSettingsService.searchWithAi(query, bookIds, user.id, historyPayload, this.localOnly).subscribe({
+    this.searchSub = this.appSettingsService.searchWithAi(query, bookIds, historyPayload, this.localOnly).subscribe({
       next: (result) => {
         this.isLoading = false;
         currentMessage.isLoading = false;
@@ -686,10 +690,33 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
 
   onResultClick(result: AiSearchChunkResult): void {
     this.selectedResult = result;
+    if (!this.detailBackHandle) {
+      this.detailBackHandle = this.mobileBackNavigation.register(() => {
+        this.selectedResult = null;
+        this.detailBackHandle = null;
+      });
+    }
   }
 
   closeResultDetail(): void {
     this.selectedResult = null;
+    this.detailBackHandle?.release();
+    this.detailBackHandle = null;
+  }
+
+  /** Deduped source cards for an answer — one card per book+page, preserving rank order. */
+  getSourceCards(msg: ChatMessage): AiSearchChunkResult[] {
+    const sources = msg.contextResults?.length ? msg.contextResults : (msg.results || []);
+    const seen = new Set<string>();
+    const cards: AiSearchChunkResult[] = [];
+    for (const r of sources) {
+      const key = `${r.bookId}:${r.pageNumber ?? 'x'}:${r.chunkId}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      cards.push(r);
+      if (cards.length >= 8) break;
+    }
+    return cards;
   }
 
   toggleChunkExpanded(chunkId: number): void {
@@ -824,6 +851,8 @@ If your search results are not what you expected, adjust these settings under **
   ngOnDestroy(): void {
     this.mobileBackHandle?.release(false);
     this.mobileBackHandle = null;
+    this.detailBackHandle?.release(false);
+    this.detailBackHandle = null;
     this.saveStateToCache();
     this.searchSub?.unsubscribe();
     this.openSub?.unsubscribe();

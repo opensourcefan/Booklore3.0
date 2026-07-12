@@ -1262,9 +1262,7 @@ public class AiSearchService {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAiSearch().getReadTimeoutMs());
-        return RestClient.builder()
-                .requestFactory(factory)
-                .build();
+        return applyAiSearchAuth(RestClient.builder().requestFactory(factory)).build();
     }
 
     /**
@@ -1280,8 +1278,14 @@ public class AiSearchService {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(330_000);
-        return RestClient.builder()
-                .requestFactory(factory)
-                .build();
+        return applyAiSearchAuth(RestClient.builder().requestFactory(factory)).build();
+    }
+
+    private RestClient.Builder applyAiSearchAuth(RestClient.Builder builder) {
+        String secret = appProperties.getAiSearch().getSharedSecret();
+        if (secret != null && !secret.isBlank()) {
+            builder.defaultHeader(AiSearchAuthHeaders.HEADER_NAME, secret);
+        }
+        return builder;
     }
 }

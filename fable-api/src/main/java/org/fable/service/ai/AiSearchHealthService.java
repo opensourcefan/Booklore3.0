@@ -225,8 +225,11 @@ public class AiSearchHealthService {
         factory.setConnectTimeout(appProperties.getAiSearch().getConnectTimeoutMs());
         factory.setReadTimeout(appProperties.getAiSearch().getReadTimeoutMs());
 
-        return RestClient.builder()
-                .requestFactory(factory)
-                .build();
+        RestClient.Builder builder = RestClient.builder().requestFactory(factory);
+        String secret = appProperties.getAiSearch().getSharedSecret();
+        if (secret != null && !secret.isBlank()) {
+            builder.defaultHeader(AiSearchAuthHeaders.HEADER_NAME, secret);
+        }
+        return builder.build();
     }
 }

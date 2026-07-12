@@ -39,6 +39,7 @@ app:
     embedding-model: ${AI_SEARCH_EMBEDDING_MODEL:BAAI/bge-small-en-v1.5}
     connect-timeout-ms: ${AI_SEARCH_SERVICE_CONNECT_TIMEOUT_MS:3000}
     read-timeout-ms: ${AI_SEARCH_SERVICE_READ_TIMEOUT_MS:600000}
+    shared-secret: ${AI_SEARCH_SHARED_SECRET:}
   disk-type: ${DISK_TYPE:LOCAL}
 
 server:

@@ -127,16 +127,16 @@ export class AppSettingsService {
     return this.http.post<{triggered: boolean; reason: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/reload`, {});
   }
 
-  embedBookForAiSearch(bookId: number, userId: number, chunks: {text: string; pageNumber?: number; chapterTitle?: string}[]): Observable<{jobId: string; status: string}> {
-    return this.http.post<{jobId: string; status: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/embed`, {bookId, userId, chunks});
+  embedBookForAiSearch(bookId: number, chunks: {text: string; pageNumber?: number; chapterTitle?: string}[]): Observable<{jobId: string; status: string}> {
+    return this.http.post<{jobId: string; status: string}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/embed`, {bookId, chunks});
   }
 
-  searchWithAi(query: string, bookIds: number[], userId: number, chatHistory: {role: string, content: string}[] = [], localOnly: boolean = false): Observable<AiSearchResult> {
-    return this.http.post<AiSearchResult>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/query`, {query, bookIds, userId, chatHistory, localOnly});
+  searchWithAi(query: string, bookIds: number[], chatHistory: {role: string, content: string}[] = [], localOnly: boolean = false): Observable<AiSearchResult> {
+    return this.http.post<AiSearchResult>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/query`, {query, bookIds, chatHistory, localOnly});
   }
 
-  getBookAiSearchEmbeddingStatus(bookId: number, userId: number): Observable<{bookId: number; hasEmbeddings: boolean; chunkCount: number}> {
-    return this.http.get<{bookId: number; hasEmbeddings: boolean; chunkCount: number}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/book-embeddings/${bookId}?userId=${userId}`);
+  getBookAiSearchEmbeddingStatus(bookId: number): Observable<{bookId: number; hasEmbeddings: boolean; chunkCount: number}> {
+    return this.http.get<{bookId: number; hasEmbeddings: boolean; chunkCount: number}>(`${API_CONFIG.BASE_URL}/api/v1/ai/search/book-embeddings/${bookId}`);
   }
 
   extractAndEmbedBook(bookId: number): Observable<{status: string; jobId?: string; error?: string}> {

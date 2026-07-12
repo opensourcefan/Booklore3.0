@@ -3,6 +3,7 @@ import logging
 import math
 import os
 import re
+import secrets
 import requests
 import shutil
 import threading
@@ -18,7 +19,8 @@ import pytesseract
 import mysql.connector
 import mysql.connector.pooling
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from sentence_transformers import SentenceTransformer
 
 logging.basicConfig(
@@ -29,6 +31,32 @@ logging.basicConfig(
 logger = logging.getLogger("fable-ai-search")
 
 app = FastAPI()
+
+
+def _shared_secret_matches(provided: str, expected: str) -> bool:
+    """Constant-time compare when lengths match; reject length mismatch."""
+    if not expected:
+        return True
+    provided_b = (provided or "").encode("utf-8")
+    expected_b = expected.encode("utf-8")
+    if len(provided_b) != len(expected_b):
+        return False
+    return secrets.compare_digest(provided_b, expected_b)
+
+
+@app.middleware("http")
+async def verify_shared_secret(request: Request, call_next):
+    """Enforce shared secret on /v1/* when AI_SEARCH_SHARED_SECRET is configured.
+
+    /health remains open so container probes and status UI keep working without
+    forcing the secret into every healthcheck command.
+    """
+    if SHARED_SECRET and request.url.path.startswith("/v1/"):
+        header_val = request.headers.get(SHARED_SECRET_HEADER, "")
+        if not _shared_secret_matches(header_val, SHARED_SECRET):
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    return await call_next(request)
+
 
 # ---- Default Constants (single source of truth) ----
 DEFAULT_EMBEDDING_MODEL = "BAAI/bge-base-en-v1.5"
@@ -85,6 +113,12 @@ DB_PORT = int(os.getenv("DB_PORT", "3306"))
 DB_NAME = os.getenv("DB_NAME", "fable")
 DB_USERNAME = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "fable")
+
+# Optional shared secret for Java ↔ Python. When blank (default), /v1/* stays
+# open for optional/home Docker installs. When set, requests must include a
+# matching X-Fable-Ai-Search-Secret header. /health stays open for probes.
+SHARED_SECRET = os.getenv("AI_SEARCH_SHARED_SECRET", "").strip()
+SHARED_SECRET_HEADER = "X-Fable-Ai-Search-Secret"
 
 # ---- State ----
 _embedding_model: SentenceTransformer | None = None

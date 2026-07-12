@@ -48,3 +48,16 @@ AI_SEARCH_LLM_MAX_TOKENS=768
 # Temperature for the LLM generation (Default: 0.1 for factual synthesis)
 AI_SEARCH_LLM_TEMPERATURE=0.1
 ```
+
+## Optional Shared Secret (Java ↔ AI Search sidecar)
+
+By default the AI Search container trusts the Docker network (optional install). To lock down `/v1/*` endpoints, set the **same** value on both the Fable API and the AI Search service:
+
+```ini
+AI_SEARCH_SHARED_SECRET=change-me-to-a-long-random-string
+```
+
+- Java sends header `X-Fable-Ai-Search-Secret` on all AI Search HTTP calls when the value is non-blank.
+- Python rejects `/v1/*` requests with `401` when the secret is set and the header is missing/wrong.
+- `/health` stays open for container probes and the Settings status panel.
+- Leave blank (default) for home installs that do not need the extra lock.

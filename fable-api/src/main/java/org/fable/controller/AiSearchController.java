@@ -60,12 +60,12 @@ public class AiSearchController {
     @PostMapping("/embed")
     public Map<String, Object> embedBook(@RequestBody Map<String, Object> payload) {
         Long bookId = toLong(payload.get("bookId"));
-        Long userId = toLong(payload.get("userId"));
+        Long userId = authenticationService.getAuthenticatedUser().getId();
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> chunks = (List<Map<String, Object>>) payload.get("chunks");
 
-        if (bookId == null || userId == null) {
-            throw new IllegalArgumentException("bookId and userId are required.");
+        if (bookId == null) {
+            throw new IllegalArgumentException("bookId is required.");
         }
         if (chunks == null || chunks.isEmpty()) {
             throw new IllegalArgumentException("chunks are required.");
@@ -85,7 +85,8 @@ public class AiSearchController {
                     .map(n -> ((Number) n).longValue())
                     .toList();
         }
-        Long userId = toLong(payload.get("userId"));
+        // Always derive userId from the authenticated session — never trust the client body.
+        Long userId = authenticationService.getAuthenticatedUser().getId();
 
         @SuppressWarnings("unchecked")
         List<Map<String, String>> chatHistory = (List<Map<String, String>>) payload.get("chatHistory");
@@ -95,15 +96,13 @@ public class AiSearchController {
         if (query == null || query.isBlank()) {
             throw new IllegalArgumentException("query is required.");
         }
-        if (userId == null) {
-            throw new IllegalArgumentException("userId is required.");
-        }
 
         return aiSearchService.search(query, bookIds, userId, chatHistory, localOnly);
     }
 
     @GetMapping("/book-embeddings/{bookId}")
-    public Map<String, Object> getBookEmbeddings(@PathVariable Long bookId, @RequestParam Long userId) {
+    public Map<String, Object> getBookEmbeddings(@PathVariable Long bookId) {
+        Long userId = authenticationService.getAuthenticatedUser().getId();
         return aiSearchService.getBookEmbeddingStatus(bookId, userId);
     }
 

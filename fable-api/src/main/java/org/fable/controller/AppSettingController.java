@@ -12,6 +12,7 @@ import org.fable.model.dto.settings.AppSettings;
 import org.fable.model.dto.settings.OidcProviderDetails;
 import org.fable.model.dto.settings.SettingRequest;
 import org.fable.model.enums.AuditAction;
+import org.fable.service.ai.AiSearchAuthHeaders;
 import org.fable.service.appsettings.AppSettingService;
 import org.fable.service.audit.AuditService;
 import org.fable.service.oidc.OidcDiagnosticService;
@@ -32,6 +33,7 @@ public class AppSettingController {
     private final AuditService auditService;
     private final org.fable.config.AppProperties appProperties;
     private final org.springframework.web.client.RestTemplate restTemplate;
+    private final AiSearchAuthHeaders aiSearchAuthHeaders;
 
     @Operation(summary = "Get application settings", description = "Retrieve all application settings.")
     @ApiResponse(responseCode = "200", description = "Application settings returned successfully")
@@ -124,7 +126,12 @@ public class AppSettingController {
     @GetMapping("/ai/models/embedding")
     @PreAuthorize("@securityUtil.isAdmin()")
     public java.util.Map<String, Object> getEmbeddingModels() {
-        return restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/v1/models/embedding", java.util.Map.class);
+        return restTemplate.exchange(
+            appProperties.getAiSearch().getBaseUrl() + "/v1/models/embedding",
+            org.springframework.http.HttpMethod.GET,
+            aiSearchAuthHeaders.emptyEntity(),
+            java.util.Map.class
+        ).getBody();
     }
 
     @DeleteMapping("/ai/models/embedding")
@@ -133,7 +140,7 @@ public class AppSettingController {
         org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.exchange(
             appProperties.getAiSearch().getBaseUrl() + "/v1/models/embedding/{namespace}/{modelName}",
             org.springframework.http.HttpMethod.DELETE,
-            null,
+            aiSearchAuthHeaders.emptyEntity(),
             java.util.Map.class,
             namespace, modelName
         );
@@ -143,7 +150,12 @@ public class AppSettingController {
     @GetMapping("/ai/models/llm")
     @PreAuthorize("@securityUtil.isAdmin()")
     public java.util.Map<String, Object> getLlmModels() {
-        return restTemplate.getForObject(appProperties.getAiSearch().getBaseUrl() + "/v1/models/llm", java.util.Map.class);
+        return restTemplate.exchange(
+            appProperties.getAiSearch().getBaseUrl() + "/v1/models/llm",
+            org.springframework.http.HttpMethod.GET,
+            aiSearchAuthHeaders.emptyEntity(),
+            java.util.Map.class
+        ).getBody();
     }
 
     @DeleteMapping("/ai/models/llm")
@@ -152,7 +164,7 @@ public class AppSettingController {
         org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.exchange(
             appProperties.getAiSearch().getBaseUrl() + "/v1/models/llm/{modelName}",
             org.springframework.http.HttpMethod.DELETE,
-            null,
+            aiSearchAuthHeaders.emptyEntity(),
             java.util.Map.class,
             modelName
         );

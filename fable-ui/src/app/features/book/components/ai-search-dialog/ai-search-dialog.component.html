@@ -67,7 +67,7 @@
         @for (msg of chatHistory; track $index) {
           
           <!-- User Query Bubble -->
-          <div class="ai-search-user-message" style="align-self: flex-end; background: #6b7280; color: white; padding: 0.75rem 1.25rem; border-radius: 18px 18px 2px 18px; max-width: 80%;">
+          <div class="ai-search-user-message">
             {{ msg.query }}
           </div>
 
@@ -94,6 +94,33 @@
                     </div>
                   }
                 </div>
+                @if (getSourceCards(msg).length > 0) {
+                  <div class="ai-search-source-cards" aria-label="Sources">
+                    <div class="ai-search-source-cards-label">Sources</div>
+                    <div class="ai-search-source-cards-row">
+                      @for (src of getSourceCards(msg); track src.chunkId) {
+                        <div class="ai-search-source-card">
+                          <img class="ai-search-source-cover" [src]="getCover(src)" [alt]="src.bookTitle" />
+                          <div class="ai-search-source-meta">
+                            <div class="ai-search-source-title" [pTooltip]="src.bookTitle" tooltipPosition="top">{{ src.bookTitle }}</div>
+                            <div class="ai-search-source-sub">
+                              @if (src.pageNumber) {
+                                <span>Page {{ src.pageNumber }}</span>
+                              }
+                              @if (src.similarity) {
+                                <span>{{ (src.similarity * 100).toFixed(0) }}% match</span>
+                              }
+                            </div>
+                            <div class="ai-search-source-actions">
+                              <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="readBookAtPage(src)" pTooltip="Open in Reader" aria-label="Open in Reader"></p-button>
+                              <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveToNotepad(src)" pTooltip="Save Note" aria-label="Save Note"></p-button>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
               </div>
             } @else if (msg.answer && !isRawDisplay(msg)) {
               <div class="ai-search-answer">
@@ -105,6 +132,33 @@
                   </div>
                 </div>
                 <div class="ai-search-markdown-content" [innerHTML]="msg.answerHtml || ''" (click)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.enter)="onCitationClick($event, msg.contextResults || msg.results)" (keydown.space)="onCitationClick($event, msg.contextResults || msg.results); $event.preventDefault()" tabindex="0"></div>
+                @if (getSourceCards(msg).length > 0) {
+                  <div class="ai-search-source-cards" aria-label="Sources">
+                    <div class="ai-search-source-cards-label">Sources</div>
+                    <div class="ai-search-source-cards-row">
+                      @for (src of getSourceCards(msg); track src.chunkId) {
+                        <div class="ai-search-source-card">
+                          <img class="ai-search-source-cover" [src]="getCover(src)" [alt]="src.bookTitle" />
+                          <div class="ai-search-source-meta">
+                            <div class="ai-search-source-title" [pTooltip]="src.bookTitle" tooltipPosition="top">{{ src.bookTitle }}</div>
+                            <div class="ai-search-source-sub">
+                              @if (src.pageNumber) {
+                                <span>Page {{ src.pageNumber }}</span>
+                              }
+                              @if (src.similarity) {
+                                <span>{{ (src.similarity * 100).toFixed(0) }}% match</span>
+                              }
+                            </div>
+                            <div class="ai-search-source-actions">
+                              <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" (onClick)="readBookAtPage(src)" pTooltip="Open in Reader" aria-label="Open in Reader"></p-button>
+                              <p-button icon="pi pi-file-edit" [text]="true" [rounded]="true" size="small" (onClick)="saveToNotepad(src)" pTooltip="Save Note" aria-label="Save Note"></p-button>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
               </div>
             } @else if (msg.results && msg.results.length > 0) {
               <div class="ai-search-answer ai-search-raw-results">
@@ -176,12 +230,15 @@
           <div class="ai-search-info-popover-content" [innerHTML]="aiSearchInfoHtml"></div>
         </p-popover>
         <input
+          #searchInput
           type="text"
           pInputText
           [(ngModel)]="searchQuery"
           (keydown)="onKeydown($event)"
           [placeholder]="t('placeholder')"
           class="ai-search-input"
+          inputmode="search"
+          enterkeyhint="search"
           style="flex: 1;"
         />
         @if (isLoading) {
