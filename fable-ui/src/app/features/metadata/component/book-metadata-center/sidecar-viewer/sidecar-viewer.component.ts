@@ -4,7 +4,7 @@ import {filter, takeUntil} from 'rxjs/operators';
 import {Book} from '../../../../book/model/book.model';
 import {SidecarMetadata, SidecarService, SidecarSyncStatus} from '../../../service/sidecar.service';
 import {MessageService} from 'primeng/api';
-import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
+import {WriteProgressService} from '../../../../../shared/service/write-progress.service';
 import {Button} from 'primeng/button';
 import {Tag} from 'primeng/tag';
 import {Tooltip} from 'primeng/tooltip';
@@ -23,9 +23,11 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
 
   private sidecarService = inject(SidecarService);
   private messageService = inject(MessageService);
-  private failureNotifications = inject(FailureNotificationService);
+  private readonly writeProgressService = inject(WriteProgressService);
   private readonly t = inject(TranslocoService);
   private destroy$ = new Subject<void>();
+  /** False after view destroy — export/import HTTP must keep running. */
+  private viewAlive = true;
 
   sidecarContent: SidecarMetadata | null = null;
   syncStatus: SidecarSyncStatus = 'NOT_APPLICABLE';
@@ -35,9 +37,10 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
   currentBookId: number | null = null;
   error: string | null = null;
 
-  private toastError(summary: string, detail: string, life = 3000): void {
-    this.messageService.add({severity: 'error', summary, detail, life});
-    this.failureNotifications.reportSafe(summary, detail);
+  private ifAlive(fn: () => void): void {
+    if (this.viewAlive) {
+      fn();
+    }
   }
 
   ngOnInit(): void {
@@ -97,22 +100,32 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
   exportToSidecar(): void {
     if (!this.currentBookId) return;
 
+    const bookId = this.currentBookId;
     this.exporting = true;
-    this.sidecarService.exportToSidecar(this.currentBookId).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
+    this.writeProgressService.show(this.t.translate('metadata.sidecar.toast.exportSuccessDetail'));
+    this.sidecarService.exportToSidecar(bookId).subscribe({
       next: () => {
+        this.writeProgressService.complete(this.t.translate('metadata.sidecar.toast.exportSuccessDetail'));
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('metadata.sidecar.toast.exportSuccessSummary'),
           detail: this.t.translate('metadata.sidecar.toast.exportSuccessDetail')
         });
-        this.loadSidecarData(this.currentBookId!);
-        this.exporting = false;
+        this.ifAlive(() => {
+          this.loadSidecarData(bookId);
+          this.exporting = false;
+        });
       },
       error: (err) => {
-        this.toastError(this.t.translate('metadata.sidecar.toast.exportFailedSummary'), this.t.translate('metadata.sidecar.toast.exportFailedDetail'), 3000);
-        this.exporting = false;
+        const detail = this.t.translate('metadata.sidecar.toast.exportFailedDetail');
+        this.writeProgressService.fail(detail);
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('metadata.sidecar.toast.exportFailedSummary'),
+          detail,
+          life: 3000
+        });
+        this.ifAlive(() => { this.exporting = false; });
         console.error('Export failed:', err);
       }
     });
@@ -121,22 +134,32 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
   importFromSidecar(): void {
     if (!this.currentBookId) return;
 
+    const bookId = this.currentBookId;
     this.importing = true;
-    this.sidecarService.importFromSidecar(this.currentBookId).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
+    this.writeProgressService.show(this.t.translate('metadata.sidecar.toast.importSuccessDetail'));
+    this.sidecarService.importFromSidecar(bookId).subscribe({
       next: () => {
+        this.writeProgressService.complete(this.t.translate('metadata.sidecar.toast.importSuccessDetail'));
         this.messageService.add({
           severity: 'success',
           summary: this.t.translate('metadata.sidecar.toast.importSuccessSummary'),
           detail: this.t.translate('metadata.sidecar.toast.importSuccessDetail')
         });
-        this.loadSidecarData(this.currentBookId!);
-        this.importing = false;
+        this.ifAlive(() => {
+          this.loadSidecarData(bookId);
+          this.importing = false;
+        });
       },
       error: (err) => {
-        this.toastError(this.t.translate('metadata.sidecar.toast.importFailedSummary'), this.t.translate('metadata.sidecar.toast.importFailedDetail'), 3000);
-        this.importing = false;
+        const detail = this.t.translate('metadata.sidecar.toast.importFailedDetail');
+        this.writeProgressService.fail(detail);
+        this.messageService.add({
+          severity: 'error',
+          summary: this.t.translate('metadata.sidecar.toast.importFailedSummary'),
+          detail,
+          life: 3000
+        });
+        this.ifAlive(() => { this.importing = false; });
         console.error('Import failed:', err);
       }
     });
@@ -175,6 +198,7 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.viewAlive = false;
     this.destroy$.next();
     this.destroy$.complete();
   }

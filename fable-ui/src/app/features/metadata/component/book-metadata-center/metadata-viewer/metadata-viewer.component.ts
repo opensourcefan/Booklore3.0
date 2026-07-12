@@ -73,6 +73,8 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
 
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  /** False after view destroy — auto-fetch task start must not abort on leave. */
+  private viewAlive = true;
   private dialogRef?: DynamicDialogRef;
 
   readMenuItems$!: Observable<MenuItem[]>;
@@ -123,6 +125,7 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
 
   ngOnInit(): void {
     this.destroyRef.onDestroy(() => {
+      this.viewAlive = false;
       this.coverImage?.closePreview();
       this.detachDialogBackHandle?.release(false);
       this.detachDialogBackHandle = null;
@@ -707,15 +710,18 @@ export class MetadataViewerComponent implements OnInit, OnChanges, AfterViewChec
     this.taskHelperService.refreshMetadataTask({
       refreshType: MetadataRefreshType.BOOKS,
       bookIds: [bookId],
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(result => {
+    }).subscribe(result => {
+      // Task continues server-side even if the viewer is destroyed mid-flight.
       if (!result.success) {
-        this.finishAutoFetch();
+        if (this.viewAlive) {
+          this.finishAutoFetch();
+        }
         return;
       }
 
-      this.activeAutoFetchTaskId = result.taskId;
+      if (this.viewAlive) {
+        this.activeAutoFetchTaskId = result.taskId;
+      }
     });
   }
 

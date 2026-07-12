@@ -78,6 +78,8 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
 
   private subscription: Subscription = new Subscription();
   private cancelRequest$ = new Subject<void>();
+  /** False after view destroy — search SSE must keep running unless replaced. */
+  private viewAlive = true;
   private metadataCenterViewMode: 'route' | 'dialog' = 'route';
 
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
@@ -231,9 +233,16 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
     });
   }
 
+  private ifAlive(fn: () => void): void {
+    if (this.viewAlive) {
+      fn();
+    }
+  }
+
   ngOnDestroy(): void {
-    this.cancelRequest$.next();
-    this.cancelRequest$.complete();
+    // Do not cancel in-flight provider search / detail enrichment on leave —
+    // only cancel when starting a new search or switching books.
+    this.viewAlive = false;
     this.subscription.unsubscribe();
     this.selectedFetchedMetadata$.complete();
   }
@@ -376,42 +385,48 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
         .pipe(takeUntil(this.cancelRequest$))
         .subscribe({
           next: (metadata) => {
-            const metadataWithThumbnail = {
-              ...metadata,
-              thumbnailUrl: metadata.thumbnailUrl
-            };
+            this.ifAlive(() => {
+              const metadataWithThumbnail = {
+                ...metadata,
+                thumbnailUrl: metadata.thumbnailUrl
+              };
 
-            const provider = this.getProviderFromMetadata(metadata);
-            if (provider) {
-              const providerList = this.metadataByProvider.get(provider) || [];
-              providerList.push(metadataWithThumbnail);
-              this.metadataByProvider.set(provider, providerList);
+              const provider = this.getProviderFromMetadata(metadata);
+              if (provider) {
+                const providerList = this.metadataByProvider.get(provider) || [];
+                providerList.push(metadataWithThumbnail);
+                this.metadataByProvider.set(provider, providerList);
 
-              this.providerCounts.set(provider, providerList.length);
+                this.providerCounts.set(provider, providerList.length);
 
-              if (!this.providerCompletionStatus.get(provider)) {
-                this.providerLoading.set(provider, false);
-                this.providerCompletionStatus.set(provider, true);
+                if (!this.providerCompletionStatus.get(provider)) {
+                  this.providerLoading.set(provider, false);
+                  this.providerCompletionStatus.set(provider, true);
+                }
               }
-            }
 
-            this.allFetchedMetadata = this.interleaveResults();
+              this.allFetchedMetadata = this.interleaveResults();
 
-            this.applyFilter();
-            this.updateProviderFilterOptions();
+              this.applyFilter();
+              this.updateProviderFilterOptions();
+            });
           },
           error: (error) => {
             console.error('Error fetching metadata:', error);
-            this.loading = false;
-            this.providerLoading.clear();
+            this.ifAlive(() => {
+              this.loading = false;
+              this.providerLoading.clear();
+            });
           },
           complete: () => {
-            this.loading = false;
-            activeProviders.forEach((provider: string) => {
-              if (!this.providerCompletionStatus.get(provider)) {
-                this.providerLoading.set(provider, false);
-                this.providerCompletionStatus.set(provider, true);
-              }
+            this.ifAlive(() => {
+              this.loading = false;
+              activeProviders.forEach((provider: string) => {
+                if (!this.providerCompletionStatus.get(provider)) {
+                  this.providerLoading.set(provider, false);
+                  this.providerCompletionStatus.set(provider, true);
+                }
+              });
             });
           }
         });
@@ -625,16 +640,18 @@ export class MetadataSearcherComponent implements OnInit, OnDestroy, OnChanges {
         .pipe(takeUntil(this.cancelRequest$))
         .subscribe({
           next: (enriched) => {
-            const current = this.selectedFetchedMetadata$.value;
-            const currentId = current && this.getProviderItemId(current, enrichment.provider);
-            if (currentId === enrichment.id) {
-              this.selectedFetchedMetadata$.next(enriched);
-            }
-            this.detailLoading = false;
+            this.ifAlive(() => {
+              const current = this.selectedFetchedMetadata$.value;
+              const currentId = current && this.getProviderItemId(current, enrichment.provider);
+              if (currentId === enrichment.id) {
+                this.selectedFetchedMetadata$.next(enriched);
+              }
+              this.detailLoading = false;
+            });
           },
           error: (err) => {
             console.error('Error fetching detailed metadata:', err);
-            this.detailLoading = false;
+            this.ifAlive(() => { this.detailLoading = false; });
           }
         });
     }
