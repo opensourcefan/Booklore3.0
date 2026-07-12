@@ -103,6 +103,8 @@ public enum RuleField {
     SERIES_GAPS,
     @JsonProperty("seriesPosition")
     SERIES_POSITION,
+    @JsonProperty("isLatest")
+    IS_LATEST,
     @JsonProperty("readingProgress")
     READING_PROGRESS,
     @JsonProperty("metadataPresence")

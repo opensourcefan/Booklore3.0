@@ -1382,6 +1382,98 @@ class BookRuleEvaluatorServiceIntegrationTest {
     }
 
     @Nested
+    class IsLatestTests {
+        @Test
+        void equals_seriesName_keepsNewestPublishedAmongSiblingMatches() {
+            BookEntity older = createBook("Batman Older", "Batman", 1f, null);
+            older.getMetadata().setPublishedDate(LocalDate.now().minusDays(20));
+            em.merge(older.getMetadata());
+
+            BookEntity newer = createBook("Batman Newer", "Batman", 2f, null);
+            newer.getMetadata().setPublishedDate(LocalDate.now().minusDays(5));
+            em.merge(newer.getMetadata());
+
+            BookEntity other = createBook("Superman", "Superman", 1f, null);
+            other.getMetadata().setPublishedDate(LocalDate.now().minusDays(8));
+            em.merge(other.getMetadata());
+            em.flush();
+            em.clear();
+
+            Rule dateRule = new Rule();
+            dateRule.setField(RuleField.PUBLISHED_DATE);
+            dateRule.setOperator(RuleOperator.WITHIN_LAST);
+            dateRule.setValue(45);
+            dateRule.setValueEnd("days");
+
+            Rule latestRule = new Rule();
+            latestRule.setField(RuleField.IS_LATEST);
+            latestRule.setOperator(RuleOperator.EQUALS);
+            latestRule.setValue("seriesName");
+
+            GroupRule group = new GroupRule();
+            group.setJoin(JoinType.AND);
+            group.setRules(List.of(dateRule, latestRule));
+
+            List<Long> ids = findMatchingIds(group);
+            assertThat(ids).contains(newer.getId(), other.getId());
+            assertThat(ids).doesNotContain(older.getId());
+        }
+
+        @Test
+        void equals_seriesName_ignoresOutsideWindowWhenPickingLatest() {
+            BookEntity ancient = createBook("Batman Ancient", "Batman", 3f, null);
+            ancient.getMetadata().setPublishedDate(LocalDate.now().minusDays(100));
+            em.merge(ancient.getMetadata());
+
+            BookEntity recentOlder = createBook("Batman Recent Older", "Batman", 1f, null);
+            recentOlder.getMetadata().setPublishedDate(LocalDate.now().minusDays(20));
+            em.merge(recentOlder.getMetadata());
+
+            BookEntity recentNewer = createBook("Batman Recent Newer", "Batman", 2f, null);
+            recentNewer.getMetadata().setPublishedDate(LocalDate.now().minusDays(5));
+            em.merge(recentNewer.getMetadata());
+            em.flush();
+            em.clear();
+
+            Rule dateRule = new Rule();
+            dateRule.setField(RuleField.PUBLISHED_DATE);
+            dateRule.setOperator(RuleOperator.WITHIN_LAST);
+            dateRule.setValue(45);
+            dateRule.setValueEnd("days");
+
+            Rule latestRule = new Rule();
+            latestRule.setField(RuleField.IS_LATEST);
+            latestRule.setOperator(RuleOperator.EQUALS);
+            latestRule.setValue("seriesName");
+
+            GroupRule group = new GroupRule();
+            group.setJoin(JoinType.AND);
+            group.setRules(List.of(dateRule, latestRule));
+
+            List<Long> ids = findMatchingIds(group);
+            assertThat(ids).contains(recentNewer.getId());
+            assertThat(ids).doesNotContain(ancient.getId(), recentOlder.getId());
+        }
+
+        @Test
+        void equals_title_keepsNewestByTitle() {
+            BookEntity older = createBook("Same Title");
+            older.getMetadata().setPublishedDate(LocalDate.now().minusDays(10));
+            em.merge(older.getMetadata());
+
+            BookEntity newer = createBook("Same Title");
+            newer.getMetadata().setPublishedDate(LocalDate.now().minusDays(1));
+            em.merge(newer.getMetadata());
+            em.flush();
+            em.clear();
+
+            List<Long> ids = findMatchingIds(singleRule(RuleField.IS_LATEST, RuleOperator.EQUALS, "title"));
+            assertThat(ids).contains(newer.getId());
+            assertThat(ids).doesNotContain(older.getId());
+        }
+    }
+
+    @Nested
     class ReadStatusUnsetTests {
         @Test
         void includesAny_withUnsetAndOtherStatuses() {

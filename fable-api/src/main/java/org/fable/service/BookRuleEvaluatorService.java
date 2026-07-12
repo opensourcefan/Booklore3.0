@@ -57,11 +57,36 @@ public class BookRuleEvaluatorService {
             return cb.conjunction();
         }
 
-        List<Predicate> predicates = new ArrayList<>();
+        List<Object> otherRuleObjs = new ArrayList<>();
+        List<Rule> latestRules = new ArrayList<>();
 
         for (Object ruleObj : group.getRules()) {
             if (ruleObj == null) continue;
 
+            Map<String, Object> ruleMap = objectMapper.convertValue(ruleObj, new TypeReference<>() {
+            });
+            String type = (String) ruleMap.get("type");
+
+            if ("group".equals(type)) {
+                otherRuleObjs.add(ruleObj);
+                continue;
+            }
+
+            try {
+                Rule rule = objectMapper.convertValue(ruleObj, Rule.class);
+                if (rule.getField() == RuleField.IS_LATEST) {
+                    latestRules.add(rule);
+                } else {
+                    otherRuleObjs.add(ruleObj);
+                }
+            } catch (Exception e) {
+                log.error("Failed to parse rule: {}, error: {}", ruleObj, e.getMessage(), e);
+            }
+        }
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        for (Object ruleObj : otherRuleObjs) {
             Map<String, Object> ruleMap = objectMapper.convertValue(ruleObj, new TypeReference<>() {
             });
             String type = (String) ruleMap.get("type");
@@ -82,13 +107,155 @@ public class BookRuleEvaluatorService {
             }
         }
 
+        boolean isAnd = group.getJoin() == org.fable.model.dto.JoinType.AND;
+        List<Object> siblingObjsForLatest = isAnd ? otherRuleObjs : List.of();
+
+        for (Rule latestRule : latestRules) {
+            Predicate latestPredicate = buildIsLatestPredicate(
+                    latestRule, siblingObjsForLatest, query, cb, root, userId);
+            if (latestPredicate != null) {
+                predicates.add(latestPredicate);
+            }
+        }
+
         if (predicates.isEmpty()) {
             return cb.conjunction();
         }
 
-        return group.getJoin() == org.fable.model.dto.JoinType.AND
+        return isAnd
                 ? cb.and(predicates.toArray(new Predicate[0]))
                 : cb.or(predicates.toArray(new Predicate[0]));
+    }
+
+    private Predicate buildIsLatestPredicate(
+            Rule rule,
+            List<Object> siblingRuleObjs,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            Root<BookEntity> root,
+            Long userId) {
+        boolean negate = rule.getOperator() == RuleOperator.NOT_EQUALS;
+        String groupBy = rule.getValue() != null ? rule.getValue().toString() : "";
+
+        Predicate hasGroupKey = buildHasLatestGroupKeyPredicate(groupBy, query, cb, root);
+        Predicate hasPublishedDate = cb.isNotNull(root.get("metadata").get("publishedDate"));
+
+        Subquery<Long> newerSub = query.subquery(Long.class);
+        Root<BookEntity> other = newerSub.from(BookEntity.class);
+        Join<BookEntity, UserBookProgressEntity> otherProgress = other.join("userBookProgress", JoinType.LEFT);
+
+        List<Predicate> newerWhere = new ArrayList<>();
+        newerWhere.add(buildSameLatestGroupKeyPredicate(groupBy, query, cb, root, other));
+        newerWhere.add(cb.isNotNull(other.get("metadata").get("publishedDate")));
+        newerWhere.add(cb.or(
+                cb.greaterThan(other.get("metadata").get("publishedDate"), root.get("metadata").get("publishedDate")),
+                cb.and(
+                        cb.equal(other.get("metadata").get("publishedDate"), root.get("metadata").get("publishedDate")),
+                        cb.greaterThan(other.get("id"), root.get("id"))
+                )
+        ));
+
+        Predicate siblingMatch = buildSiblingMatchPredicate(siblingRuleObjs, query, cb, other, otherProgress, userId);
+        if (siblingMatch != null) {
+            newerWhere.add(siblingMatch);
+        }
+
+        newerSub.select(cb.literal(1L)).where(newerWhere.toArray(new Predicate[0]));
+
+        Predicate isLatest = cb.and(hasGroupKey, hasPublishedDate, cb.not(cb.exists(newerSub)));
+        return negate ? cb.not(isLatest) : isLatest;
+    }
+
+    private Predicate buildSiblingMatchPredicate(
+            List<Object> siblingRuleObjs,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            Root<BookEntity> root,
+            Join<BookEntity, UserBookProgressEntity> progressJoin,
+            Long userId) {
+        if (siblingRuleObjs == null || siblingRuleObjs.isEmpty()) {
+            return null;
+        }
+
+        List<Predicate> predicates = new ArrayList<>();
+        for (Object ruleObj : siblingRuleObjs) {
+            Map<String, Object> ruleMap = objectMapper.convertValue(ruleObj, new TypeReference<>() {
+            });
+            String type = (String) ruleMap.get("type");
+
+            if ("group".equals(type)) {
+                GroupRule subGroup = objectMapper.convertValue(ruleObj, GroupRule.class);
+                predicates.add(buildPredicate(subGroup, query, cb, root, progressJoin, userId));
+            } else {
+                try {
+                    Rule rule = objectMapper.convertValue(ruleObj, Rule.class);
+                    Predicate rulePredicate = buildRulePredicate(rule, query, cb, root, progressJoin, userId);
+                    if (rulePredicate != null) {
+                        predicates.add(rulePredicate);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to parse sibling rule for isLatest: {}, error: {}", ruleObj, e.getMessage(), e);
+                }
+            }
+        }
+
+        if (predicates.isEmpty()) {
+            return null;
+        }
+        return cb.and(predicates.toArray(new Predicate[0]));
+    }
+
+    private Predicate buildHasLatestGroupKeyPredicate(
+            String groupBy, CriteriaQuery<?> query, CriteriaBuilder cb, Root<BookEntity> root) {
+        return switch (groupBy) {
+            case "seriesName" -> stringPresence(cb, root.get("metadata").get("seriesName"));
+            case "title" -> stringPresence(cb, root.get("metadata").get("title"));
+            case "publisher" -> stringPresence(cb, root.get("metadata").get("publisher"));
+            case "folderPath" -> {
+                Subquery<Long> sub = query.subquery(Long.class);
+                Root<BookFileEntity> fileRoot = sub.from(BookFileEntity.class);
+                sub.select(cb.literal(1L)).where(
+                        cb.equal(fileRoot.get("book").get("id"), root.get("id")),
+                        cb.isNotNull(fileRoot.get("fileSubPath")),
+                        cb.notEqual(cb.trim(fileRoot.get("fileSubPath").as(String.class)), "")
+                );
+                yield cb.exists(sub);
+            }
+            default -> cb.disjunction();
+        };
+    }
+
+    private Predicate buildSameLatestGroupKeyPredicate(
+            String groupBy,
+            CriteriaQuery<?> query,
+            CriteriaBuilder cb,
+            Root<BookEntity> root,
+            Root<BookEntity> other) {
+        return switch (groupBy) {
+            case "seriesName" -> cb.equal(
+                    cb.lower(root.get("metadata").get("seriesName")),
+                    cb.lower(other.get("metadata").get("seriesName")));
+            case "title" -> cb.equal(
+                    cb.lower(root.get("metadata").get("title")),
+                    cb.lower(other.get("metadata").get("title")));
+            case "publisher" -> cb.equal(
+                    cb.lower(root.get("metadata").get("publisher")),
+                    cb.lower(other.get("metadata").get("publisher")));
+            case "folderPath" -> {
+                Subquery<Long> sub = query.subquery(Long.class);
+                Root<BookFileEntity> rootFile = sub.from(BookFileEntity.class);
+                Root<BookFileEntity> otherFile = sub.from(BookFileEntity.class);
+                sub.select(cb.literal(1L)).where(
+                        cb.equal(rootFile.get("book").get("id"), root.get("id")),
+                        cb.equal(otherFile.get("book").get("id"), other.get("id")),
+                        cb.equal(cb.lower(rootFile.get("fileSubPath")), cb.lower(otherFile.get("fileSubPath"))),
+                        cb.isNotNull(rootFile.get("fileSubPath")),
+                        cb.notEqual(cb.trim(rootFile.get("fileSubPath").as(String.class)), "")
+                );
+                yield cb.exists(sub);
+            }
+            default -> cb.disjunction();
+        };
     }
 
     private Predicate buildRulePredicate(Rule rule, CriteriaQuery<?> query, CriteriaBuilder cb, Root<BookEntity> root, Join<BookEntity, UserBookProgressEntity> progressJoin, Long userId) {

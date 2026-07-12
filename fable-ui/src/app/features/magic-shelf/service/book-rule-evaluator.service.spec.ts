@@ -1408,6 +1408,115 @@ describe('BookRuleEvaluatorService', () => {
     });
   });
 
+  describe('isLatest', () => {
+    const daysAgo = (days: number): string => {
+      const d = new Date();
+      d.setDate(d.getDate() - days);
+      return d.toISOString().split('T')[0];
+    };
+
+    const datedSeriesBook = (id: number, seriesName: string, publishedDate: string, libraryId = 1): Book =>
+      createBook({
+        id,
+        libraryId,
+        metadata: {bookId: id, title: `Issue ${id}`, seriesName, publishedDate}
+      });
+
+    it('should keep only the newest publishedDate per series among sibling matches', () => {
+      const older = datedSeriesBook(1, 'Batman', daysAgo(10));
+      const newer = datedSeriesBook(2, 'Batman', daysAgo(2));
+      const otherSeries = datedSeriesBook(3, 'Superman', daysAgo(5));
+      const allBooks = [older, newer, otherSeries];
+      const group: GroupRule = {
+        name: 'test', type: 'group', join: 'and',
+        rules: [
+          {field: 'publishedDate', operator: 'within_last', value: 45, valueEnd: 'days'},
+          {field: 'isLatest', operator: 'equals', value: 'seriesName'}
+        ]
+      };
+
+      expect(service.evaluateGroup(older, group, allBooks)).toBe(false);
+      expect(service.evaluateGroup(newer, group, allBooks)).toBe(true);
+      expect(service.evaluateGroup(otherSeries, group, allBooks)).toBe(true);
+    });
+
+    it('should ignore older issues outside the sibling date window when picking latest', () => {
+      const ancientLatest = datedSeriesBook(1, 'Batman', daysAgo(100));
+      const recentOlder = datedSeriesBook(2, 'Batman', daysAgo(20));
+      const recentNewer = datedSeriesBook(3, 'Batman', daysAgo(5));
+      const allBooks = [ancientLatest, recentOlder, recentNewer];
+      const group: GroupRule = {
+        name: 'test', type: 'group', join: 'and',
+        rules: [
+          {field: 'publishedDate', operator: 'within_last', value: 45, valueEnd: 'days'},
+          {field: 'isLatest', operator: 'equals', value: 'seriesName'}
+        ]
+      };
+
+      expect(service.evaluateGroup(ancientLatest, group, allBooks)).toBe(false);
+      expect(service.evaluateGroup(recentOlder, group, allBooks)).toBe(false);
+      expect(service.evaluateGroup(recentNewer, group, allBooks)).toBe(true);
+    });
+
+    it('should support grouping by title', () => {
+      const older = createBook({
+        id: 1,
+        metadata: {bookId: 1, title: 'Same Title', publishedDate: daysAgo(10)}
+      });
+      const newer = createBook({
+        id: 2,
+        metadata: {bookId: 2, title: 'Same Title', publishedDate: daysAgo(1)}
+      });
+      const allBooks = [older, newer];
+      const group: GroupRule = {
+        name: 'test', type: 'group', join: 'and',
+        rules: [{field: 'isLatest', operator: 'equals', value: 'title'}]
+      };
+
+      expect(service.evaluateGroup(older, group, allBooks)).toBe(false);
+      expect(service.evaluateGroup(newer, group, allBooks)).toBe(true);
+    });
+
+    it('should break ties by higher book id', () => {
+      const a = datedSeriesBook(1, 'Batman', daysAgo(3));
+      const b = datedSeriesBook(2, 'Batman', daysAgo(3));
+      const allBooks = [a, b];
+      const group: GroupRule = {
+        name: 'test', type: 'group', join: 'and',
+        rules: [{field: 'isLatest', operator: 'equals', value: 'seriesName'}]
+      };
+
+      expect(service.evaluateGroup(a, group, allBooks)).toBe(false);
+      expect(service.evaluateGroup(b, group, allBooks)).toBe(true);
+    });
+
+    it('should not match books missing seriesName when grouping by series', () => {
+      const book = createBook({
+        id: 1,
+        metadata: {bookId: 1, title: 'Standalone', publishedDate: daysAgo(1)}
+      });
+      const group: GroupRule = {
+        name: 'test', type: 'group', join: 'and',
+        rules: [{field: 'isLatest', operator: 'equals', value: 'seriesName'}]
+      };
+
+      expect(service.evaluateGroup(book, group, [book])).toBe(false);
+    });
+
+    it('should support not_equals for non-latest matches', () => {
+      const older = datedSeriesBook(1, 'Batman', daysAgo(10));
+      const newer = datedSeriesBook(2, 'Batman', daysAgo(2));
+      const allBooks = [older, newer];
+      const group: GroupRule = {
+        name: 'test', type: 'group', join: 'and',
+        rules: [{field: 'isLatest', operator: 'not_equals', value: 'seriesName'}]
+      };
+
+      expect(service.evaluateGroup(older, group, allBooks)).toBe(true);
+      expect(service.evaluateGroup(newer, group, allBooks)).toBe(false);
+    });
+  });
+
   describe('relative date default/edge cases', () => {
     it('should default to days when valueEnd is missing for within_last', () => {
       const book = createBook({addedOn: new Date().toISOString()});

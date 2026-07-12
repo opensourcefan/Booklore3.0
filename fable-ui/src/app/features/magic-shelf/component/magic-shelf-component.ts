@@ -102,6 +102,7 @@ export type RuleField =
   | 'seriesStatus'
   | 'seriesGaps'
   | 'seriesPosition'
+  | 'isLatest'
   | 'readingProgress'
   | 'metadataPresence';
 
@@ -198,6 +199,7 @@ const FIELD_CONFIGS: Record<RuleField, FullFieldConfig> = {
   seriesStatus: {label: 'seriesStatus'},
   seriesGaps: {label: 'seriesGaps'},
   seriesPosition: {label: 'seriesPosition'},
+  isLatest: {label: 'isLatest'},
   readingProgress: {label: 'readingProgress', type: 'decimal', max: 100},
   metadataPresence: {label: 'metadataPresence'}
 };
@@ -211,7 +213,7 @@ const FIELD_GROUPS: FieldGroup[] = [
   { translationKey: 'organization', fields: ['library', 'shelf', 'folderPath', 'readStatus', 'readingProgress'] },
   { translationKey: 'bookInfo', fields: ['title', 'subtitle', 'description', 'authors', 'categories', 'publisher', 'language', 'pageCount', 'ageRating', 'contentRating'] },
   { translationKey: 'series', fields: ['seriesName', 'seriesNumber', 'seriesTotal', 'seriesStatus', 'seriesGaps', 'seriesPosition'] },
-  { translationKey: 'dates', fields: ['publishedDate', 'dateFinished', 'lastReadTime', 'addedOn'] },
+  { translationKey: 'dates', fields: ['publishedDate', 'dateFinished', 'lastReadTime', 'addedOn', 'isLatest'] },
   { translationKey: 'ratingsReviews', fields: ['personalRating', 'amazonRating', 'amazonReviewCount', 'goodreadsRating', 'goodreadsReviewCount', 'hardcoverRating', 'hardcoverReviewCount', 'ranobedbRating', 'lubimyczytacRating', 'audibleRating', 'audibleReviewCount'] },
   { translationKey: 'qualityMetadata', fields: ['metadataScore', 'metadataPresence'] },
   { translationKey: 'tagsMoods', fields: ['moods', 'tags'] },
@@ -351,6 +353,15 @@ export class MagicShelfComponent implements OnInit {
       {label: this.t.translate('magicShelf.seriesPositions.nextUnread'), value: 'next_unread'},
       {label: this.t.translate('magicShelf.seriesPositions.firstInSeries'), value: 'first_in_series'},
       {label: this.t.translate('magicShelf.seriesPositions.lastInSeries'), value: 'last_in_series'},
+    ];
+  }
+
+  get isLatestOptions() {
+    return [
+      {label: this.t.translate('magicShelf.isLatestGroups.seriesName'), value: 'seriesName'},
+      {label: this.t.translate('magicShelf.isLatestGroups.title'), value: 'title'},
+      {label: this.t.translate('magicShelf.isLatestGroups.publisher'), value: 'publisher'},
+      {label: this.t.translate('magicShelf.isLatestGroups.folderPath'), value: 'folderPath'},
     ];
   }
 
@@ -683,7 +694,7 @@ export class MagicShelfComponent implements OnInit {
     }
 
     // Composite fields: only is/isNot or has/hasNot
-    if (field === 'seriesStatus' || field === 'seriesPosition') {
+    if (field === 'seriesStatus' || field === 'seriesPosition' || field === 'isLatest') {
       return [
         {label: this.t.translate('magicShelf.operators.is'), value: 'equals'},
         {label: this.t.translate('magicShelf.operators.isNot'), value: 'not_equals'},

@@ -61,6 +61,12 @@ describe('MagicShelfComponent (Part 3)', () => {
       expect(operators.map(o => o.value)).toEqual(['equals', 'not_equals']);
     });
 
+    it('should return is/isNot operators for isLatest', () => {
+      const operators = component.getOperatorOptionsForField('isLatest');
+      expect(operators).toHaveLength(2);
+      expect(operators.map(o => o.value)).toEqual(['equals', 'not_equals']);
+    });
+
     it('should return has/hasNot operators for seriesGaps', () => {
       const operators = component.getOperatorOptionsForField('seriesGaps');
       expect(operators).toHaveLength(2);
@@ -237,6 +243,12 @@ describe('MagicShelfComponent (Part 3)', () => {
       expect(options.map(o => o.value)).toEqual(['next_unread', 'first_in_series', 'last_in_series']);
     });
 
+    it('should return 4 isLatest group options', () => {
+      const options = component.isLatestOptions;
+      expect(options).toHaveLength(4);
+      expect(options.map(o => o.value)).toEqual(['seriesName', 'title', 'publisher', 'folderPath']);
+    });
+
     it('should return 4 date unit options', () => {
       const options = component.dateUnitOptions;
       expect(options).toHaveLength(4);
@@ -265,6 +277,14 @@ describe('MagicShelfComponent (Part 3)', () => {
       expect(fieldValues).toContain('seriesStatus');
       expect(fieldValues).toContain('seriesGaps');
       expect(fieldValues).toContain('seriesPosition');
+    });
+
+    it('should include isLatest in dates group', () => {
+      const groups = component.fieldOptions;
+      const datesGroup = groups.find(g => g.label.includes('dates'));
+      const fieldValues = datesGroup?.items.map(i => i.value) ?? [];
+      expect(fieldValues).toContain('isLatest');
+      expect(fieldValues).toContain('publishedDate');
     });
   });
 

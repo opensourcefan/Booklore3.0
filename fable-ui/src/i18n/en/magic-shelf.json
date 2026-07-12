@@ -57,6 +57,7 @@
     "selectSeriesStatus": "Select Status",
     "selectSeriesGap": "Select Gap Type",
     "selectSeriesPosition": "Select Position",
+    "selectLatestGroup": "Select Group By",
     "selectMetadataField": "Select Metadata Field"
   },
   "conditions": {
@@ -114,6 +115,7 @@
     "seriesStatus": "Series Status",
     "seriesGaps": "Series Gaps",
     "seriesPosition": "Series Position",
+    "isLatest": "Latest Match",
     "readingProgress": "Reading Progress (%)",
     "metadataPresence": "Metadata Presence"
   },
@@ -168,6 +170,7 @@
     "seriesStatus": "Overall series reading status: reading, completed, ongoing, etc.",
     "seriesGaps": "Detects gaps in series: missing first, missing latest, duplicates",
     "seriesPosition": "Position context: first in series, last, or next unread",
+    "isLatest": "Keep only the newest publishedDate among books that already match the other rules in this group, keyed by series, title, publisher, or folder",
     "readingProgress": "Your reading progress as a percentage (0-100)",
     "metadataPresence": "Check if a specific metadata field is populated or empty"
   },
@@ -271,6 +274,12 @@
     "nextUnread": "Next Unread",
     "firstInSeries": "First in Series",
     "lastInSeries": "Last in Series"
+  },
+  "isLatestGroups": {
+    "seriesName": "Per Series",
+    "title": "Per Title",
+    "publisher": "Per Publisher",
+    "folderPath": "Per Folder Path"
   },
   "dateUnits": {
     "days": "Days",

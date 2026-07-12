@@ -6,19 +6,51 @@ import {GroupRule, Rule, RuleField} from '../component/magic-shelf-component';
 export class BookRuleEvaluatorService {
 
   evaluateGroup(book: Book, group: GroupRule, allBooks: Book[] = []): boolean {
+    const isLatestRule = (rule: Rule | GroupRule): rule is Rule =>
+      !('type' in rule && rule.type === 'group') && (rule as Rule).field === 'isLatest';
+
+    if (group.join === 'and') {
+      const latestRules = group.rules.filter(isLatestRule);
+      const otherRules = group.rules.filter(rule => !isLatestRule(rule));
+
+      const matchesOthers = (candidate: Book): boolean =>
+        otherRules.every(rule =>
+          'type' in rule && rule.type === 'group'
+            ? this.evaluateGroup(candidate, rule as GroupRule, allBooks)
+            : this.evaluateRule(candidate, rule as Rule, allBooks)
+        );
+
+      if (!matchesOthers(book)) {
+        return false;
+      }
+
+      if (latestRules.length === 0) {
+        return true;
+      }
+
+      const candidates = allBooks.filter(matchesOthers);
+      return latestRules.every(rule => this.evaluateIsLatest(book, rule, candidates));
+    }
+
     const results = group.rules.map(rule => {
       if ('type' in rule && rule.type === 'group') {
         return this.evaluateGroup(book, rule as GroupRule, allBooks);
-      } else {
-        return this.evaluateRule(book, rule as Rule, allBooks);
       }
+      if ((rule as Rule).field === 'isLatest') {
+        return this.evaluateIsLatest(book, rule as Rule, allBooks);
+      }
+      return this.evaluateRule(book, rule as Rule, allBooks);
     });
-    return group.join === 'and' ? results.every(Boolean) : results.some(Boolean);
+    return results.some(Boolean);
   }
 
   private evaluateRule(book: Book, rule: Rule, allBooks: Book[]): boolean {
     if (rule.field === 'metadataPresence') {
       return this.evaluateMetadataPresence(book, rule);
+    }
+
+    if (rule.field === 'isLatest') {
+      return this.evaluateIsLatest(book, rule, allBooks);
     }
 
     if (rule.field === 'seriesStatus' || rule.field === 'seriesGaps' || rule.field === 'seriesPosition') {
@@ -376,6 +408,61 @@ export class BookRuleEvaluatorService {
       default:
         return (book as Record<string, unknown>)[field];
     }
+  }
+
+  private evaluateIsLatest(book: Book, rule: Rule, candidates: Book[]): boolean {
+    const groupBy = typeof rule.value === 'string' ? rule.value : String(rule.value ?? '');
+    const bookKey = this.getLatestGroupKey(book, groupBy);
+    const bookDate = this.getPublishedTime(book);
+    const isLatest = bookKey != null
+      && bookDate != null
+      && !candidates.some(other => {
+        if (other.id === book.id) {
+          return false;
+        }
+        const otherKey = this.getLatestGroupKey(other, groupBy);
+        if (otherKey !== bookKey) {
+          return false;
+        }
+        const otherDate = this.getPublishedTime(other);
+        if (otherDate == null) {
+          return false;
+        }
+        return otherDate > bookDate || (otherDate === bookDate && other.id > book.id);
+      });
+
+    return rule.operator === 'not_equals' ? !isLatest : isLatest;
+  }
+
+  private getLatestGroupKey(book: Book, groupBy: string): string | null {
+    switch (groupBy) {
+      case 'seriesName': {
+        const value = book.metadata?.seriesName?.trim();
+        return value ? value.toLowerCase() : null;
+      }
+      case 'title': {
+        const value = book.metadata?.title?.trim();
+        return value ? value.toLowerCase() : null;
+      }
+      case 'publisher': {
+        const value = book.metadata?.publisher?.trim();
+        return value ? value.toLowerCase() : null;
+      }
+      case 'folderPath': {
+        const value = book.fileSubPath?.trim();
+        return value ? value.toLowerCase() : null;
+      }
+      default:
+        return null;
+    }
+  }
+
+  private getPublishedTime(book: Book): number | null {
+    if (!book.metadata?.publishedDate) {
+      return null;
+    }
+    const time = new Date(book.metadata.publishedDate).getTime();
+    return Number.isNaN(time) ? null : time;
   }
 
   private evaluateCompositeField(book: Book, rule: Rule, allBooks: Book[]): boolean {

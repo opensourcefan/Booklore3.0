@@ -487,6 +487,17 @@ export const SHELF_TEMPLATES: ShelfTemplate[] = [
     group: {type: 'group', join: 'and', rules: [{field: 'publishedDate', operator: 'greater_than_equal_to', value: '2020-01-01'}]}
   },
   {
+    id: 'latest-issues-45-days',
+    name: 'Latest Issues (Last 45 Days)',
+    description: 'Among titles published in the last 45 days, keep only the newest issue per series — decided by published date, not series number.',
+    category: 'dates',
+    tags: ['publishedDate', 'isLatest', 'within_last', 'seriesName'],
+    group: {type: 'group', join: 'and', rules: [
+      {field: 'publishedDate', operator: 'within_last', value: 45, valueEnd: 'days'},
+      {field: 'isLatest', operator: 'equals', value: 'seriesName'}
+    ]}
+  },
+  {
     id: 'read-long-ago',
     name: 'Read Over a Year Ago',
     description: 'Books you finished more than a year ago. Enough time has passed that the details have faded — perfect for a re-read.',
