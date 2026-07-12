@@ -693,15 +693,16 @@
   <tr><td><i class="pi pi-sync"></i> KEPUB Conversion</td><td>Convert book formats for e-reader compatibility</td></tr>
 </table>
 
-<h3>Task Notifications</h3>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Notification Bell <i class="pi pi-bell"></i></p>
-<p>When a background task runs (whether scheduled or manual), Fable shows a live notification in the top bar bell icon <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i>. Key behaviors:</p>
+<h3>Task Notifications &amp; the Bell</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Notification Bell <i class="pi pi-bell"></i> (see also <a href="sec4.html">Section 4</a>)</p>
+<p>Background work uses the same topbar bell described in Section 4. Quick reminder of how Tasks settings interact with it:</p>
 <ul>
-  <li><strong>Persistent notifications</strong> &mdash; Task notifications are saved to the database, so they survive application restarts. You won't miss a completed scan or import even if you weren't logged in when it finished.</li>
-  <li><strong>Dismiss All</strong> &mdash; Click <strong>Dismiss All</strong> in the notification dropdown to clear your entire notification history at once.</li>
-  <li><strong>Zero-item suppression</strong> &mdash; If a scheduled task completes but found nothing to do (zero new files, zero items affected), Fable suppresses the notification so you only see actionable results.</li>
-  <li><strong>Auto-dismiss</strong> &mdash; The notification popover closes automatically when all notifications have been dismissed.</li>
-  <li><strong>Task label</strong> &mdash; Scheduled task notifications are labeled simply as <strong>Task</strong> followed by the task type and status (e.g., "Task Library Scan completed").</li>
+  <li><strong>Tasks tab</strong> &mdash; Live progress for metadata jobs, AI Search scans, BookDrop pending files, and system jobs while they are running</li>
+  <li><strong>Notifications tab</strong> &mdash; Durable <strong>WARN</strong>/<strong>ERROR</strong> failure inbox only (not success chatter). Failures persist across restarts until you dismiss them</li>
+  <li><strong>Error notifications</strong> toggle (per scheduled task) &mdash; When on, scheduled task failures appear in the Notifications inbox. Successful runs are recorded under <strong>Recent runs</strong> only</li>
+  <li><strong>Recent runs</strong> &mdash; Expand this on a task card in Settings &rarr; Tasks for the detailed history of scheduled and manual runs with status and messages</li>
+  <li><strong>Zero-item suppression</strong> &mdash; If a scheduled task completes but found nothing to do, Fable usually suppresses a bell entry so you only see actionable results</li>
+  <li><strong>Dismiss All</strong> &mdash; Clears the failure inbox from the Notifications tab</li>
 </ul>
 
 <h3>What You Can Do</h3>

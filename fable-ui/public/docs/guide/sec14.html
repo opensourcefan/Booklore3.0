@@ -678,7 +678,7 @@
 </nav>
 <!-- ==================== SECTION 14 ==================== -->
 <h2 id="sec14">14. Story Arcs &mdash; Guided Reading Paths <span class="section-icon"><i class="pi pi-compass"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Story Arcs</p>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> STORY ARCS section</p>
 
 <p><strong>Story Arcs</strong> let you create guided reading paths through your collection. Instead of reading books in publication order or series order alone, you can arrange comics, graphic novels, and books into a custom chapter-by-chapter sequence that follows a specific storyline or crossover event.</p>
 
@@ -694,11 +694,12 @@
 </ul>
 
 <h3>Browsing Story Arcs</h3>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Story Arcs</p>
-<p>The <strong>Story Arcs</strong> page shows all your arcs as cards in a grid. Each card displays the arc name, the number of books it contains, your reading progress (how many books you have marked as read), and a cover thumbnail from the first book in the arc. Use the search bar at the top to filter arcs by name.</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> Story Arcs</p>
+<p>Story Arcs have their <strong>own sidebar section</strong> (separate from HOME). Expand it to jump straight to an individual arc; each arc shows a <strong>book-count badge</strong>. Click the section header to open the Story Arcs browser grid.</p>
+<p>The browser shows all your arcs as cards. Each card displays the arc name, the number of books it contains, your reading progress (how many books you have marked as read), and a cover thumbnail. By default the cover comes from the first book; you can pick a specific cover book while editing (see below). Use the search bar at the top to filter arcs by name.</p>
 
 <h3>Viewing a Story Arc</h3>
-<p>Click any arc card to open its <strong>Reading Path</strong> view. This is the main workspace where you see all chapters and their books laid out in reading order.</p>
+<p>Click any arc card (or a sidebar arc link) to open its <strong>Reading Path</strong> view. This is the main workspace where you see all chapters and their books laid out in reading order.</p>
 
 <h4>Reading Path Layout</h4>
 <ul>
@@ -715,7 +716,7 @@
   <li>A <strong>summary description</strong> of the story arc</li>
   <li>An <strong>external guide link</strong> &mdash; a URL to the original reading order source (e.g., ComicBookReadingOrders.com)</li>
 </ul>
-<p>Click the <strong>Guide</strong> button to open the external link in a new tab. The panel can be collapsed by clicking the header bar.</p>
+<p>Click the <strong>Guide</strong> button to open the external link in a new tab. The panel starts collapsed by default; click the header bar to expand or collapse it.</p>
 
 <h3>Creating a Story Arc</h3>
 <p>There are two ways to create a new Story Arc:</p>
@@ -744,21 +745,22 @@
 <table>
   <tr><th>Action</th><th>How</th></tr>
   <tr><td><i class="pi pi-pencil"></i> Rename a chapter</td><td>Type directly into the chapter title input field</td></tr>
-  <tr><td><i class="pi pi-plus"></i> Add a new chapter</td><td>Click <strong>Add Chapter</strong> in the header</td></tr>
+  <tr><td><i class="pi pi-plus"></i> Add a new chapter</td><td>Click <strong>Add Chapter</strong> in the header, or use <strong>Add Chapter Above</strong> / <strong>Add Chapter Below</strong> on a chapter row</td></tr>
   <tr><td><i class="pi pi-times"></i> Remove a chapter</td><td>Click the <strong>X</strong> button on the chapter header (books merge into the previous chapter)</td></tr>
-  <tr><td><i class="pi pi-bars"></i> Reorder chapters</td><td>Drag the chapter by its handle, or use the up/down arrow buttons</td></tr>
+  <tr><td><i class="pi pi-bars"></i> Reorder chapters</td><td>Drag the chapter by its handle, or use the up/down arrow buttons. On phones, chapter dragging is limited in Card View so the page can scroll; use Chapter Sort mode or the arrow buttons instead</td></tr>
   <tr><td><i class="pi pi-plus"></i> Add books to a chapter</td><td>Click the <strong>+</strong> button on the chapter header to open the book picker dialog</td></tr>
   <tr><td><i class="pi pi-times"></i> Remove a book</td><td>Hover over a book cover and click the red <strong>X</strong></td></tr>
   <tr><td><i class="pi pi-star"></i> Toggle core/tie-in</td><td>Click the star button on a book cover to switch between core issue and tie-in</td></tr>
+  <tr><td><i class="pi pi-image"></i> Set arc cover</td><td>In edit mode, click the image button on a book card to <strong>Set as Cover Image</strong> for the arc browser card; clear it to fall back to the first book</td></tr>
   <tr><td><i class="pi pi-arrows-alt"></i> Move a book</td><td>Click the crosshair button to pick up a book, then click <strong>Move Here</strong> on any target card or chapter</td></tr>
   <tr><td><i class="pi pi-sort-amount-down"></i> Auto-organize by series</td><td>Click <strong>Auto-Organize by Series</strong> to group books in the first chapter into separate chapters by their series metadata, sorted by issue number</td></tr>
 </table>
 
 <h4>Drag and Drop</h4>
 <ul>
-  <li><strong>Within a chapter:</strong> Drag book cards left or right to reorder them</li>
+  <li><strong>Within a chapter:</strong> Drag book cards left or right to reorder them (on phones, drag from the cover handle in edit mode so the page can still scroll)</li>
   <li><strong>Between chapters:</strong> Drag a book card from one chapter row into another</li>
-  <li><strong>Chapter reordering:</strong> Drag an entire chapter by its handle to change the chapter order</li>
+  <li><strong>Chapter reordering:</strong> Drag an entire chapter by its handle to change the chapter order (or use Chapter Sort mode)</li>
 </ul>
 
 <h4>Chapter Sort Mode</h4>
@@ -790,7 +792,7 @@
 </div>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Removing all books from a Story Arc does not delete the arc itself. The arc name, external guide link, and summary description are preserved so you can rebuild the reading path later.
+  <strong>Good to Know:</strong> Empty chapters are preserved when you save, so you can leave placeholder chapter rows for a reading order you are still filling in. Removing all books from a Story Arc does not delete the arc itself&mdash;the arc name, external guide link, and summary description are preserved so you can rebuild the reading path later.
 </div>
 
 <hr>

@@ -658,7 +658,7 @@
     A friendly, complete walkthrough of everything Fable can do&nbsp;&mdash; written for users of all experience levels.
   </p>
   <div class="meta">
-    Version 1.1.105 &mdash; July 11, 2026<br>
+    Version 1.1.106 &mdash; July 11, 2026<br>
     Audience: New and non-technical users<br><br>
     <em>This guide should be updated whenever features are added, changed, or removed.</em>
   </div>
@@ -821,7 +821,8 @@
       <td style="width: 30%; border: 1px solid var(--table-border); padding: 12px; background: rgba(108, 73, 39, 0.05); vertical-align: top;">
         <strong>Left Sidebar</strong>
         <ul style="margin: 8px 0 0; padding-left: 1.2em; font-size: 8.5pt; line-height: 1.5;">
-          <li><strong>HOME:</strong> Dashboard, All Books, Physical Books, Story Arcs</li>
+          <li><strong>HOME:</strong> Dashboard, All Books, Physical Books</li>
+          <li><strong>Story Arcs:</strong> Guided reading paths (with book-count badges)</li>
           <li><strong>Libraries:</strong> Expandable folders</li>
           <li><strong>Shelves:</strong> Favorites &amp; custom shelves</li>
           <li><strong>Not Shelfed:</strong> Unassigned books</li>
@@ -1000,7 +1001,7 @@
   <tr><td><strong>Not Shelfed</strong> <i class="pi pi-folder" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Books not assigned to any shelf</td></tr>
   <tr><td><strong>Series</strong> <i class="pi pi-objects-column" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books grouped by series</td></tr>
   <tr><td><strong>Authors</strong> <i class="pi pi-users" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Browse books by author</td></tr>
-  <tr><td><strong>Story Arcs</strong> <i class="pi pi-compass" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Create guided reading paths with chapters for crossover events and curated reading orders</td></tr>
+  <tr><td><strong>Story Arcs</strong> <i class="pi pi-compass" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Its own sidebar section (not under HOME). Expand to see each arc with a book-count badge, or open the Story Arcs browser to manage guided reading paths</td></tr>
   <tr><td><strong>Magic Shelves</strong> <i class="pi pi-sparkles" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Smart collections that filter automatically based on search rules</td></tr>
   <tr><td><strong>User Guide</strong> (bottom)</td><td>Open this guide directly in Fable</td></tr>
   <tr><td><strong>Settings</strong> <i class="pi pi-cog" style="font-size:9pt;color:var(--icon-color);"></i> (bottom)</td><td>Application settings and user management</td></tr>
@@ -1012,9 +1013,51 @@
   <tr><th>Item</th><th>What It Does</th></tr>
   <tr><td><strong>Search</strong> <i class="pi pi-search" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Search your collection by title, author, or ISBN</td></tr>
   <tr><td><strong>AI Search</strong> <i class="pi pi-sparkles" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Natural language search powered by AI (see Section 16)</td></tr>
-  <tr><td><strong>Notification Bell</strong> <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Shows live and historical progress notifications for background tasks like library scans, book imports, and metadata downloads. Click <strong>Dismiss All</strong> to clear your history.</td></tr>
+  <tr><td><strong>Notification Bell</strong> <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i></td><td>Opens the Tasks / Notifications status center (see below). A badge shows unread failures first; otherwise completed task counts. On phones the bell stays available next to fullscreen.</td></tr>
   <tr><td><strong>Customizable Toolbar</strong></td><td>Access shortcuts for BookDrop, theme selection, settings, and fullscreen mode</td></tr>
 </table>
+
+<h3>Notification Bell &mdash; Tasks &amp; Notifications</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Bell icon <i class="pi pi-bell"></i></p>
+
+<p>The bell is Fable&rsquo;s <strong>status center</strong>. Click it to open a popover with two tabs: <strong>Tasks</strong> and <strong>Notifications</strong>. They answer different questions: &ldquo;What is running right now?&rdquo; versus &ldquo;What failed that I still need to know about?&rdquo;</p>
+
+<h4>Tasks tab &mdash; live progress</h4>
+<p>The <strong>Tasks</strong> tab shows work in progress. When nothing is running, it shows <em>No running tasks.</em> When something is active, you may see:</p>
+<ul>
+  <li><strong>Metadata jobs</strong> &mdash; bulk metadata downloads and review progress widgets</li>
+  <li><strong>AI Search scans</strong> &mdash; batch embedding / indexing progress</li>
+  <li><strong>System jobs</strong> &mdash; metadata flush to files, library file sync, directory tagging, metadata refresh, and related long-running work</li>
+  <li><strong>BookDrop</strong> &mdash; a widget when files are waiting in the BookDrop folder</li>
+</ul>
+<p>On phones, desktop-only status chips are hidden, so those same system jobs are surfaced inside this Tasks tab so you can still monitor them.</p>
+
+<h4>Notifications tab &mdash; durable failures</h4>
+<p>The <strong>Notifications</strong> tab is a <strong>failure inbox</strong>, not a general activity feed. Only <strong>WARN</strong> and <strong>ERROR</strong> items appear here. Successful / informational chatter does <strong>not</strong> fill this list.</p>
+<ul>
+  <li><strong>Persistent</strong> &mdash; Failures are saved to the database for your account, so they survive page reloads and server restarts (recent history, up to about 50 items)</li>
+  <li><strong>Each entry</strong> shows a severity tag, a timestamp, and the message</li>
+  <li><strong>Dismiss one</strong> with the &times; on that row, or <strong>Dismiss All</strong> to clear the inbox</li>
+  <li>Empty state: <em>No failures to show.</em></li>
+  <li>The Notifications tab shows a small count badge when unread failures exist</li>
+</ul>
+
+<h4>What you should expect &mdash; where and when</h4>
+<table>
+  <tr><th>Situation</th><th>Where you see it</th><th>When / how long</th></tr>
+  <tr><td>Metadata fetch, AI Search scan, BookDrop pending files, or a system job is running</td><td>Bell &rarr; <strong>Tasks</strong> tab (and desktop status chips when those chips are visible)</td><td>While the job is in progress; clears when finished</td></tr>
+  <tr><td>An action fails (library ops, uploads, settings, readers, book cards, and similar)</td><td>Bell &rarr; <strong>Notifications</strong> tab</td><td>Immediately; stays until you dismiss it</td></tr>
+  <tr><td>A scheduled task fails and <strong>Error notifications</strong> is enabled for that task</td><td>Bell &rarr; <strong>Notifications</strong> tab</td><td>After the scheduled run fails; stays until dismissed</td></tr>
+  <tr><td>A scheduled task succeeds but did nothing (zero items)</td><td>Usually suppressed from the bell</td><td>&mdash;</td></tr>
+  <tr><td>History of scheduled or manual runs (success or failure details)</td><td>Settings &rarr; Tasks &rarr; expand <strong>Recent runs</strong> on a task card</td><td>Anytime after a run; this is the detailed log, not the bell inbox</td></tr>
+  <tr><td>New failure arrives while you are using Fable</td><td>Bell icon may pulse (crimson for ERROR, orange for WARN) and the badge updates</td><td>Brief pulse highlight, then the failure remains in the inbox</td></tr>
+</table>
+
+<p>Configure whether scheduled failures appear in the inbox with the per-task <strong>Error notifications</strong> toggle under Settings &rarr; Tasks. When that toggle is on, scheduled failures go to the Notifications tab; successful runs are recorded under <strong>Recent runs</strong> only.</p>
+
+<div class="callout tip">
+  <strong>Tip:</strong> If something &ldquo;didn&rsquo;t work&rdquo; but you missed the moment it failed, open the bell and check the <strong>Notifications</strong> tab first. Live progress belongs on <strong>Tasks</strong>; lasting problems belong on <strong>Notifications</strong>.
+</div>
 
 <h3>What You Can Do</h3>
 <ul>
@@ -1025,11 +1068,11 @@
   <li><strong>Read the User Guide in the built-in reader</strong> &mdash; The footer link opens this guide directly; if you want to highlight it or take notes, you can import the PDF into a library like any other book</li>
   <li><strong>Browse by folder</strong> &mdash; Click the folder button in the book toolbar to open the directory explorer</li>
   <li><strong>Toggle browser fullscreen mode</strong> &mdash; Click the fullscreen icon in the topbar to hide browser tabs and let Fable take up the entire screen</li>
-  <li><strong>Clear notification history</strong> &mdash; Clear your panel history at any time by clicking <strong>Dismiss All</strong> inside the notifications dropdown</li>
+  <li><strong>Clear failure history</strong> &mdash; Open the bell, switch to <strong>Notifications</strong>, and click <strong>Dismiss All</strong></li>
 </ul>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Switching between sidebar views does not reload your books from scratch—Fable remembers where you were, so navigation is instant. Task notifications are saved securely, meaning they won't disappear if your server restarts.
+  <strong>Good to Know:</strong> Switching between sidebar views does not reload your books from scratch&mdash;Fable remembers where you were, so navigation is instant. Failure notifications in the bell are saved securely, so they won&rsquo;t disappear if your server restarts. The popover closes automatically when there is nothing left to show (no running tasks, no failures, and no active highlights).
 </div>
 
 <!-- ==================== SECTION 5 ==================== -->
@@ -1619,7 +1662,7 @@
 
 <!-- ==================== SECTION 14 ==================== -->
 <h2 id="sec14">14. Story Arcs &mdash; Guided Reading Paths <span class="section-icon"><i class="pi pi-compass"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Story Arcs</p>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> STORY ARCS section</p>
 
 <p><strong>Story Arcs</strong> let you create guided reading paths through your collection. Instead of reading books in publication order or series order alone, you can arrange comics, graphic novels, and books into a custom chapter-by-chapter sequence that follows a specific storyline or crossover event.</p>
 
@@ -1635,11 +1678,12 @@
 </ul>
 
 <h3>Browsing Story Arcs</h3>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> HOME <i class="pi pi-chevron-right"></i> Story Arcs</p>
-<p>The <strong>Story Arcs</strong> page shows all your arcs as cards in a grid. Each card displays the arc name, the number of books it contains, your reading progress (how many books you have marked as read), and a cover thumbnail from the first book in the arc. Use the search bar at the top to filter arcs by name.</p>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Sidebar <i class="pi pi-chevron-right"></i> Story Arcs</p>
+<p>Story Arcs have their <strong>own sidebar section</strong> (separate from HOME). Expand it to jump straight to an individual arc; each arc shows a <strong>book-count badge</strong>. Click the section header to open the Story Arcs browser grid.</p>
+<p>The browser shows all your arcs as cards. Each card displays the arc name, the number of books it contains, your reading progress (how many books you have marked as read), and a cover thumbnail. By default the cover comes from the first book; you can pick a specific cover book while editing (see below). Use the search bar at the top to filter arcs by name.</p>
 
 <h3>Viewing a Story Arc</h3>
-<p>Click any arc card to open its <strong>Reading Path</strong> view. This is the main workspace where you see all chapters and their books laid out in reading order.</p>
+<p>Click any arc card (or a sidebar arc link) to open its <strong>Reading Path</strong> view. This is the main workspace where you see all chapters and their books laid out in reading order.</p>
 
 <h4>Reading Path Layout</h4>
 <ul>
@@ -1685,21 +1729,22 @@
 <table>
   <tr><th>Action</th><th>How</th></tr>
   <tr><td><i class="pi pi-pencil"></i> Rename a chapter</td><td>Type directly into the chapter title input field</td></tr>
-  <tr><td><i class="pi pi-plus"></i> Add a new chapter</td><td>Click <strong>Add Chapter</strong> in the header</td></tr>
+  <tr><td><i class="pi pi-plus"></i> Add a new chapter</td><td>Click <strong>Add Chapter</strong> in the header, or use <strong>Add Chapter Above</strong> / <strong>Add Chapter Below</strong> on a chapter row</td></tr>
   <tr><td><i class="pi pi-times"></i> Remove a chapter</td><td>Click the <strong>X</strong> button on the chapter header (books merge into the previous chapter)</td></tr>
-  <tr><td><i class="pi pi-bars"></i> Reorder chapters</td><td>Drag the chapter by its handle, or use the up/down arrow buttons</td></tr>
+  <tr><td><i class="pi pi-bars"></i> Reorder chapters</td><td>Drag the chapter by its handle, or use the up/down arrow buttons. On phones, chapter dragging is limited in Card View so the page can scroll; use Chapter Sort mode or the arrow buttons instead</td></tr>
   <tr><td><i class="pi pi-plus"></i> Add books to a chapter</td><td>Click the <strong>+</strong> button on the chapter header to open the book picker dialog</td></tr>
   <tr><td><i class="pi pi-times"></i> Remove a book</td><td>Hover over a book cover and click the red <strong>X</strong></td></tr>
   <tr><td><i class="pi pi-star"></i> Toggle core/tie-in</td><td>Click the star button on a book cover to switch between core issue and tie-in</td></tr>
+  <tr><td><i class="pi pi-image"></i> Set arc cover</td><td>In edit mode, click the image button on a book card to <strong>Set as Cover Image</strong> for the arc browser card; clear it to fall back to the first book</td></tr>
   <tr><td><i class="pi pi-arrows-alt"></i> Move a book</td><td>Click the crosshair button to pick up a book, then click <strong>Move Here</strong> on any target card or chapter</td></tr>
   <tr><td><i class="pi pi-sort-amount-down"></i> Auto-organize by series</td><td>Click <strong>Auto-Organize by Series</strong> to group books in the first chapter into separate chapters by their series metadata, sorted by issue number</td></tr>
 </table>
 
 <h4>Drag and Drop</h4>
 <ul>
-  <li><strong>Within a chapter:</strong> Drag book cards left or right to reorder them</li>
+  <li><strong>Within a chapter:</strong> Drag book cards left or right to reorder them (on phones, drag from the cover handle in edit mode so the page can still scroll)</li>
   <li><strong>Between chapters:</strong> Drag a book card from one chapter row into another</li>
-  <li><strong>Chapter reordering:</strong> Drag an entire chapter by its handle to change the chapter order</li>
+  <li><strong>Chapter reordering:</strong> Drag an entire chapter by its handle to change the chapter order (or use Chapter Sort mode)</li>
 </ul>
 
 <h4>Chapter Sort Mode</h4>
@@ -1731,7 +1776,7 @@
 </div>
 
 <div class="callout info">
-  <strong>Good to Know:</strong> Removing all books from a Story Arc does not delete the arc itself. The arc name, external guide link, and summary description are preserved so you can rebuild the reading path later.
+  <strong>Good to Know:</strong> Empty chapters are preserved when you save, so you can leave placeholder chapter rows for a reading order you are still filling in. Removing all books from a Story Arc does not delete the arc itself&mdash;the arc name, external guide link, and summary description are preserved so you can rebuild the reading path later.
 </div>
 
 <!-- ==================== SECTION 15 ==================== -->
@@ -2397,15 +2442,16 @@
   <tr><td><i class="pi pi-sync"></i> KEPUB Conversion</td><td>Convert book formats for e-reader compatibility</td></tr>
 </table>
 
-<h3>Task Notifications</h3>
-<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Notification Bell <i class="pi pi-bell"></i></p>
-<p>When a background task runs (whether scheduled or manual), Fable shows a live notification in the top bar bell icon <i class="pi pi-bell" style="font-size:9pt;color:var(--icon-color);"></i>. Key behaviors:</p>
+<h3>Task Notifications &amp; the Bell</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Topbar <i class="pi pi-chevron-right"></i> Notification Bell <i class="pi pi-bell"></i> (see also <a href="#sec4">Section 4</a>)</p>
+<p>Background work uses the same topbar bell described in Section 4. Quick reminder of how Tasks settings interact with it:</p>
 <ul>
-  <li><strong>Persistent notifications</strong> &mdash; Task notifications are saved to the database, so they survive application restarts. You won't miss a completed scan or import even if you weren't logged in when it finished.</li>
-  <li><strong>Dismiss All</strong> &mdash; Click <strong>Dismiss All</strong> in the notification dropdown to clear your entire notification history at once.</li>
-  <li><strong>Zero-item suppression</strong> &mdash; If a scheduled task completes but found nothing to do (zero new files, zero items affected), Fable suppresses the notification so you only see actionable results.</li>
-  <li><strong>Auto-dismiss</strong> &mdash; The notification popover closes automatically when all notifications have been dismissed.</li>
-  <li><strong>Task label</strong> &mdash; Scheduled task notifications are labeled simply as <strong>Task</strong> followed by the task type and status (e.g., "Task Library Scan completed").</li>
+  <li><strong>Tasks tab</strong> &mdash; Live progress for metadata jobs, AI Search scans, BookDrop pending files, and system jobs while they are running</li>
+  <li><strong>Notifications tab</strong> &mdash; Durable <strong>WARN</strong>/<strong>ERROR</strong> failure inbox only (not success chatter). Failures persist across restarts until you dismiss them</li>
+  <li><strong>Error notifications</strong> toggle (per scheduled task) &mdash; When on, scheduled task failures appear in the Notifications inbox. Successful runs are recorded under <strong>Recent runs</strong> only</li>
+  <li><strong>Recent runs</strong> &mdash; Expand this on a task card in Settings &rarr; Tasks for the detailed history of scheduled and manual runs with status and messages</li>
+  <li><strong>Zero-item suppression</strong> &mdash; If a scheduled task completes but found nothing to do, Fable usually suppresses a bell entry so you only see actionable results</li>
+  <li><strong>Dismiss All</strong> &mdash; Clears the failure inbox from the Notifications tab</li>
 </ul>
 
 <h3>What You Can Do</h3>
@@ -2533,6 +2579,7 @@
   <li>Be consistent with author names to avoid duplicates.</li>
   <li>Use genres and categories &mdash; they make filtering and Magic Shelves more useful.</li>
   <li>Rate your books &mdash; ratings enable great Magic Shelf filters.</li>
+  <li>Use <strong>Story Arcs</strong> for crossover reading orders instead of overloading shelves.</li>
   <li>Use the Notebook to review all your annotations in one place.</li>
 </ol>
 
@@ -2576,6 +2623,8 @@
   <tr><td><strong>Semantic Chunking</strong></td><td>An intelligent text-splitting method that respects natural boundaries (paragraphs, sections) rather than cutting at fixed character counts</td></tr>
   <tr><td><strong>Shelf</strong></td><td>A user-created collection for grouping books (like a playlist)</td></tr>
   <tr><td><strong>SMTP</strong></td><td>Simple Mail Transfer Protocol &mdash; the standard for sending email</td></tr>
+  <tr><td><strong>Story Arc</strong></td><td>A curated, chapter-based reading path through books in your library (ideal for comic crossovers and shared-universe orders); managed from its own sidebar section</td></tr>
+  <tr><td><strong>Tasks / Notifications bell</strong></td><td>Topbar status center: the <strong>Tasks</strong> tab shows live running work; the <strong>Notifications</strong> tab is a durable WARN/ERROR failure inbox you can dismiss</td></tr>
 </table>
 
 <!-- ==================== SECTION 30 ==================== -->
@@ -2587,6 +2636,7 @@
 
 <table class="maintenance-log">
   <tr><th>Date</th><th>Version</th><th>Change Description</th></tr>
+  <tr><td>2026-07-11</td><td>1.1.106</td><td>Documented the redesigned topbar bell (Tasks vs Notifications failure inbox), what users should expect where and when, Error notifications vs Recent runs, and phone Tasks coverage. Expanded Story Arcs with sidebar section + book-count badges, cover selection, Add Chapter Above/Below, empty-chapter persistence, and mobile drag notes. Added Story Arc and Tasks/Notifications glossary entries. Updated both single-page and modular guides.</td></tr>
   <tr><td>2026-07-11</td><td>1.1.105</td><td>Clarified Settings &rarr; Tasks: expand <strong>Recent runs</strong> on a task card to view recent scheduled and manual run history with status and messages. Renamed the cron <strong>Error notifications</strong> toggle and documented that it gates scheduled failures in the bell inbox.</td></tr>
   <tr><td>2026-07-03</td><td>1.1.104</td><td>Added Section 14: Story Arcs &mdash; Guided Reading Paths. Documented the complete Story Arc feature including browsing, viewing, creating, editing (drag-and-drop, chapter sort mode, auto-organize by series, core/tie-in toggles, book picker), external guide links with web scraping, reading progress tracking, and arc deletion. Updated both single-page and modular guides.</td></tr>
   <tr><td>2026-06-28</td><td>1.1.103</td><td>Updated Supported Formats and BookDrop sections to explicitly reflect Fable's native support for MOBI, AZW, AZW3, FB2, and CB7 formats in both single-page and modular guides.</td></tr>
