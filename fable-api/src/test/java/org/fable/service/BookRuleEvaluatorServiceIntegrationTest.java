@@ -19,6 +19,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
@@ -1470,6 +1472,39 @@ class BookRuleEvaluatorServiceIntegrationTest {
             List<Long> ids = findMatchingIds(singleRule(RuleField.IS_LATEST, RuleOperator.EQUALS, "title"));
             assertThat(ids).contains(newer.getId());
             assertThat(ids).doesNotContain(older.getId());
+        }
+
+        @Test
+        void pageableCount_withIsLatest_returnsNonZeroTotalElements() {
+            BookEntity older = createBook("Batman Older", "Batman", 1f, null);
+            older.getMetadata().setPublishedDate(LocalDate.now().minusDays(20));
+            em.merge(older.getMetadata());
+
+            BookEntity newer = createBook("Batman Newer", "Batman", 2f, null);
+            newer.getMetadata().setPublishedDate(LocalDate.now().minusDays(5));
+            em.merge(newer.getMetadata());
+            em.flush();
+            em.clear();
+
+            Rule dateRule = new Rule();
+            dateRule.setField(RuleField.PUBLISHED_DATE);
+            dateRule.setOperator(RuleOperator.WITHIN_LAST);
+            dateRule.setValue(45);
+            dateRule.setValueEnd("days");
+
+            Rule latestRule = new Rule();
+            latestRule.setField(RuleField.IS_LATEST);
+            latestRule.setOperator(RuleOperator.EQUALS);
+            latestRule.setValue("seriesName");
+
+            GroupRule group = new GroupRule();
+            group.setJoin(JoinType.AND);
+            group.setRules(List.of(dateRule, latestRule));
+
+            Specification<BookEntity> spec = evaluator.toSpecification(group, user.getId());
+            Page<BookEntity> page = bookRepository.findAll(spec, PageRequest.of(0, 1));
+            assertThat(page.getContent()).isNotEmpty();
+            assertThat(page.getTotalElements()).isGreaterThan(0);
         }
     }
 

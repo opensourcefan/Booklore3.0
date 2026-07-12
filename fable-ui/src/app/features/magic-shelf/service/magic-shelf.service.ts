@@ -1,9 +1,13 @@
 import {inject, Injectable} from '@angular/core';
 import {API_CONFIG} from '../../../core/config/api-config';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {BehaviorSubject, Observable, of} from 'rxjs';
+import {HttpClient} from '@angular/common/http';
+import {BehaviorSubject, Observable, combineLatest, of} from 'rxjs';
 import {catchError, distinctUntilChanged, finalize, map, shareReplay, tap} from 'rxjs/operators';
 import {AuthService} from '../../../shared/service/auth.service';
+import {BookService} from '../../book/service/book.service';
+import {BookRuleEvaluatorService} from './book-rule-evaluator.service';
+import {MagicShelfCapService} from './magic-shelf-cap.service';
+import {GroupRule} from '../component/magic-shelf-component';
 
 export interface MagicShelf {
   id?: number | null;
@@ -25,10 +29,12 @@ export interface MagicShelfState {
 })
 export class MagicShelfService {
   private readonly url = `${API_CONFIG.BASE_URL}/api/magic-shelves`;
-  private readonly appShelvesUrl = `${API_CONFIG.BASE_URL}/api/v1/app/shelves`;
 
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly bookService = inject(BookService);
+  private readonly ruleEvaluator = inject(BookRuleEvaluatorService);
+  private readonly capService = inject(MagicShelfCapService);
 
   private readonly shelvesStateSubject = new BehaviorSubject<MagicShelfState>({
     shelves: null,
@@ -146,12 +152,24 @@ export class MagicShelfService {
   }
 
   getBookCount(shelfId: number): Observable<number> {
-    const params = new HttpParams()
-      .set('page', '0')
-      .set('size', '1');
-
-    return this.http.get<{totalElements: number}>(`${this.appShelvesUrl}/magic/${shelfId}/books`, {params}).pipe(
-      map(response => response.totalElements),
+    // Use the same client-side evaluator as the shelf browser. The app API count
+    // path can diverge for Latest Match (and catchError maps failures to 0).
+    return combineLatest([this.shelvesState$, this.bookService.bookState$, this.capService.cap$]).pipe(
+      map(([shelfState, bookState, cap]) => {
+        const shelf = (shelfState.shelves ?? []).find(s => s.id === shelfId);
+        if (!shelf?.filterJson || !bookState.loaded || !bookState.books) {
+          return 0;
+        }
+        try {
+          const group = JSON.parse(shelf.filterJson) as GroupRule;
+          const count = bookState.books.filter(book =>
+            this.ruleEvaluator.evaluateGroup(book, group, bookState.books!)
+          ).length;
+          return Math.min(count, cap);
+        } catch {
+          return 0;
+        }
+      }),
       catchError(() => of(0))
     );
   }

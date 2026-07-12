@@ -46,9 +46,14 @@ public class BookRuleEvaluatorService {
                     cb.equal(progressJoin.get("user").get("id"), userId)
             );
 
+            Predicate notDeleted = cb.or(
+                    cb.isNull(root.get("deleted")),
+                    cb.isFalse(root.get("deleted"))
+            );
+
             Predicate rulePredicate = buildPredicate(groupRule, query, cb, root, progressJoin, userId);
 
-            return cb.and(userPredicate, rulePredicate);
+            return cb.and(userPredicate, notDeleted, rulePredicate);
         };
     }
 
@@ -145,6 +150,7 @@ public class BookRuleEvaluatorService {
         Join<BookEntity, UserBookProgressEntity> otherProgress = other.join("userBookProgress", JoinType.LEFT);
 
         List<Predicate> newerWhere = new ArrayList<>();
+        newerWhere.add(cb.or(cb.isNull(other.get("deleted")), cb.isFalse(other.get("deleted"))));
         newerWhere.add(buildSameLatestGroupKeyPredicate(groupBy, query, cb, root, other));
         newerWhere.add(cb.isNotNull(other.get("metadata").get("publishedDate")));
         newerWhere.add(cb.or(

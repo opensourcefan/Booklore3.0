@@ -301,7 +301,7 @@ public class AppBookService {
                 .collect(Collectors.toSet());
 
         if (bookIds.isEmpty()) {
-            return AppPageResponse.of(Collections.emptyList(), pageNum, pageSize, 0L);
+            return AppPageResponse.of(Collections.emptyList(), pageNum, pageSize, booksPage.getTotalElements());
         }
 
         List<BookEntity> bookEntities = bookRepository.findAllById(bookIds);
