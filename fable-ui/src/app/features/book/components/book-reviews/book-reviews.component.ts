@@ -14,6 +14,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {BookService} from '../../service/book.service';
 import {BookMetadataManageService} from '../../service/book-metadata-manage.service';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 @Component({
   selector: 'app-book-reviews',
@@ -32,6 +33,7 @@ export class BookReviewsComponent implements OnInit, OnChanges {
   private bookMetadataManageService = inject(BookMetadataManageService);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private userService = inject(UserService);
   private appSettingsService = inject(AppSettingsService);
   private destroyRef = inject(DestroyRef);
@@ -86,12 +88,7 @@ export class BookReviewsComponent implements OnInit, OnChanges {
           this.reviews = [];
           this.loading = false;
 
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('book.reviews.toast.loadFailedSummary'),
-            detail: this.t.translate('book.reviews.toast.loadFailedDetail'),
-            life: 3000
-          });
+          this.toastError(this.t.translate('book.reviews.toast.loadFailedSummary'), this.t.translate('book.reviews.toast.loadFailedDetail'), 3000);
         }
       });
   }
@@ -119,12 +116,7 @@ export class BookReviewsComponent implements OnInit, OnChanges {
         error: (error) => {
           console.error('Failed to fetch new reviews:', error);
           this.loading = false;
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('book.reviews.toast.fetchFailedSummary'),
-            detail: this.t.translate('book.reviews.toast.fetchFailedDetail'),
-            life: 3000
-          });
+          this.toastError(this.t.translate('book.reviews.toast.fetchFailedSummary'), this.t.translate('book.reviews.toast.fetchFailedDetail'), 3000);
         }
       });
   }
@@ -156,12 +148,7 @@ export class BookReviewsComponent implements OnInit, OnChanges {
           },
           error: (error) => {
             console.error('Failed to delete all reviews:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.reviews.toast.deleteAllFailedSummary'),
-              detail: this.t.translate('book.reviews.toast.deleteAllFailedDetail'),
-              life: 3000
-            });
+            this.toastError(this.t.translate('book.reviews.toast.deleteAllFailedSummary'), this.t.translate('book.reviews.toast.deleteAllFailedDetail'), 3000);
           }
         });
       }
@@ -213,12 +200,7 @@ export class BookReviewsComponent implements OnInit, OnChanges {
         },
         error: (error) => {
           console.error('Failed to toggle lock status:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('book.reviews.toast.lockFailedSummary'),
-            detail: this.t.translate('book.reviews.toast.lockFailedDetail'),
-            life: 3000
-          });
+          this.toastError(this.t.translate('book.reviews.toast.lockFailedSummary'), this.t.translate('book.reviews.toast.lockFailedDetail'), 3000);
         }
       });
   }
@@ -276,12 +258,7 @@ export class BookReviewsComponent implements OnInit, OnChanges {
           },
           error: (error) => {
             console.error('Failed to delete review:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.reviews.toast.deleteFailedSummary'),
-              detail: this.t.translate('book.reviews.toast.deleteFailedDetail'),
-              life: 3000
-            });
+            this.toastError(this.t.translate('book.reviews.toast.deleteFailedSummary'), this.t.translate('book.reviews.toast.deleteFailedDetail'), 3000);
           }
         });
       }
@@ -329,5 +306,10 @@ export class BookReviewsComponent implements OnInit, OnChanges {
       default:
         return 'success';
     }
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

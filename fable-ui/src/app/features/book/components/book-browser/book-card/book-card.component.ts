@@ -32,6 +32,7 @@ import {AppSettingsService} from '../../../../../shared/service/app-settings.ser
 import {TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../../shared/service/mobile-back-navigation.service';
 import {MobileUxService} from '../../../../../core/services/mobile-ux.service';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 
 import {AiSearchDialogService} from '../../ai-search-dialog/ai-search-dialog.component';
 import {BookSelectionService} from '../book-selection.service';
@@ -116,6 +117,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
   private userService = inject(UserService);
   private emailService = inject(EmailService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private router = inject(Router);
   protected urlHelper = inject(UrlHelperService);
   private confirmationService = inject(ConfirmationService);
@@ -389,12 +391,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             });
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.card.toast.readStatusFailedSummary'),
-              detail: this.t.translate('book.card.toast.readStatusFailedDetail'),
-              life: 3000
-            });
+            this.toastError(this.t.translate('book.card.toast.readStatusFailedSummary'), this.t.translate('book.card.toast.readStatusFailedDetail'), 3000);
           }
         });
       }
@@ -786,11 +783,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
                   },
                   error: (err) => {
                     const errorMessage = err?.error?.message || this.t.translate('book.card.toast.quickSendErrorDetail');
-                    this.messageService.add({
-                      severity: 'error',
-                      summary: this.t.translate('common.error'),
-                      detail: errorMessage,
-                    });
+                    this.toastError(this.t.translate('common.error'), errorMessage);
                   },
                 });
               };
@@ -882,11 +875,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
                   summary: this.t.translate('common.success'),
                   detail: this.t.translate('book.card.toast.coverRegenSuccessDetail')
                 }),
-                error: (err) => this.messageService.add({
-                  severity: 'error',
-                  summary: this.t.translate('common.error'),
-                  detail: err?.error?.message || this.t.translate('book.card.toast.coverRegenFailedDetail')
-                })
+                error: (err) => this.toastError(this.t.translate('common.error'), err?.error?.message || this.t.translate('book.card.toast.coverRegenFailedDetail'))
               });
             }
           },
@@ -900,11 +889,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
                   summary: this.t.translate('common.success'),
                   detail: this.t.translate('book.card.toast.customCoverSuccessDetail')
                 }),
-                error: (err) => this.messageService.add({
-                  severity: 'error',
-                  summary: this.t.translate('common.error'),
-                  detail: err?.error?.message || this.t.translate('book.card.toast.customCoverFailedDetail')
-                })
+                error: (err) => this.toastError(this.t.translate('common.error'), err?.error?.message || this.t.translate('book.card.toast.customCoverFailedDetail'))
               });
             }
           }
@@ -950,11 +935,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
               });
             },
             error: (err) => {
-              this.messageService.add({
-                severity: 'error',
-                summary: this.t.translate('common.error'),
-                detail: err?.error?.message || this.t.translate('book.card.toast.embedAiSearchFailedDetail'),
-              });
+              this.toastError(this.t.translate('common.error'), err?.error?.message || this.t.translate('book.card.toast.embedAiSearchFailedDetail'));
             },
           });
         },
@@ -1017,11 +998,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
                     });
                   },
                   error: (err) => {
-                    this.messageService.add({
-                      severity: 'error',
-                      summary: this.t.translate('common.error'),
-                      detail: err?.error?.message || this.t.translate('book.card.toast.deleteAiSearchEmbeddingsFailedDetail')
-                    });
+                    this.toastError(this.t.translate('common.error'), err?.error?.message || this.t.translate('book.card.toast.deleteAiSearchEmbeddingsFailedDetail'));
                   }
                 });
               }
@@ -1061,12 +1038,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
               });
             },
             error: () => {
-              this.messageService.add({
-                severity: 'error',
-                summary: this.t.translate('book.card.toast.progressResetFailedSummary'),
-                detail: this.t.translate('book.card.toast.progressResetFableFailedDetail'),
-                life: 1500
-              });
+              this.toastError(this.t.translate('book.card.toast.progressResetFailedSummary'), this.t.translate('book.card.toast.progressResetFableFailedDetail'), 1500);
             }
           });
         },
@@ -1085,12 +1057,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
               });
             },
             error: () => {
-              this.messageService.add({
-                severity: 'error',
-                summary: this.t.translate('book.card.toast.progressResetFailedSummary'),
-                detail: this.t.translate('book.card.toast.progressResetKOReaderFailedDetail'),
-                life: 1500
-              });
+              this.toastError(this.t.translate('book.card.toast.progressResetFailedSummary'), this.t.translate('book.card.toast.progressResetKOReaderFailedDetail'), 1500);
             }
           });
         },
@@ -1117,12 +1084,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
         });
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('book.card.toast.readStatusFailedSummary'),
-          detail: this.t.translate('book.card.toast.readStatusFailedDetail'),
-          life: 3000
-        });
+        this.toastError(this.t.translate('book.card.toast.readStatusFailedSummary'), this.t.translate('book.card.toast.readStatusFailedDetail'), 3000);
       }
     });
   }
@@ -1142,12 +1104,7 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
       },
       error: (error) => {
         console.error('Error updating Currently Reading status:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Update Failed',
-          detail: `Could not ${action} Currently Reading panel: ${error?.message || 'Unknown error'}`,
-          life: 3000
-        });
+        this.toastError('Update Failed', `Could not ${action} Currently Reading panel: ${error?.message || 'Unknown error'}`, 3000);
       }
     });
   }
@@ -1398,11 +1355,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             });
           },
           error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('common.error'),
-              detail: this.t.translate('book.card.toast.deleteFileErrorDetail', {error: error.message || 'Unknown error'})
-            });
+            this.toastError(
+              this.t.translate('common.error'),
+              this.t.translate('book.card.toast.deleteFileErrorDetail', {error: error.message || 'Unknown error'})
+            );
           }
         });
       }
@@ -1874,5 +1830,10 @@ export class BookCardComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     if (this.touchHoldTimer) {
       clearTimeout(this.touchHoldTimer);
     }
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

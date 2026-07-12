@@ -15,6 +15,7 @@ import {MetadataTaskService} from '../../../features/book/service/metadata-task'
 import {Tag} from 'primeng/tag';
 import {DialogLauncherService} from '../../services/dialog-launcher.service';
 import {NotificationEventService} from '../../websocket/notification-event.service';
+import {FailureNotificationService} from '../../service/failure-notification.service';
 
 @Component({
   selector: 'app-metadata-progress-widget',
@@ -31,6 +32,7 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   private metadataProgressService = inject(MetadataProgressService);
   private metadataTaskService = inject(MetadataTaskService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
   private notificationEventService = inject(NotificationEventService);
 
@@ -56,11 +58,10 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to clear metadata task:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Close Failed',
-          detail: 'Unable to close this metadata task notification. Please try again.'
-        });
+        this.toastError(
+          'Close Failed',
+          'Unable to close this metadata task notification. Please try again.'
+        );
       }
     });
   }
@@ -85,11 +86,10 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to cancel task:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('shared.metadataProgress.cancelFailedSummary'),
-          detail: this.t.translate('shared.metadataProgress.cancelFailedDetail')
-        });
+        this.toastError(
+          this.t.translate('shared.metadataProgress.cancelFailedSummary'),
+          this.t.translate('shared.metadataProgress.cancelFailedDetail')
+        );
       }
     });
   }
@@ -105,11 +105,10 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to resume task:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('shared.metadataProgress.resumeFailedSummary'),
-          detail: this.t.translate('shared.metadataProgress.resumeFailedDetail')
-        });
+        this.toastError(
+          this.t.translate('shared.metadataProgress.resumeFailedSummary'),
+          this.t.translate('shared.metadataProgress.resumeFailedDetail')
+        );
       }
     });
   }
@@ -166,4 +165,9 @@ export class MetadataProgressWidgetComponent implements OnInit, OnDestroy {
   }
 
   protected readonly Object = Object;
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
+  }
 }

@@ -14,6 +14,7 @@ import {TranslocoService} from '@jsverse/transloco';
 import {BookNoteService, CreateBookNoteV2Request, BookNote} from '../../../../shared/service/book-note.service';
 import {MobileBackHandle, MobileBackNavigationService} from '../../../../shared/service/mobile-back-navigation.service';
 import {v4 as uuidv4} from 'uuid';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 @Component({
   selector: 'app-book-notes-component',
@@ -38,6 +39,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
   private bookNoteService = inject(BookNoteService);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private destroyRef = inject(DestroyRef);
   private readonly t = inject(TranslocoService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
@@ -98,11 +100,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
         error: (error) => {
           console.error('Failed to load notes:', error);
           this.loading = false;
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('common.error'),
-            detail: this.t.translate('book.notes.toast.loadFailedDetail')
-          });
+          this.toastError(this.t.translate('common.error'), this.t.translate('book.notes.toast.loadFailedDetail'));
         }
       });
   }
@@ -162,11 +160,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
         },
         error: (error) => {
           console.error('Failed to create note:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('common.error'),
-            detail: this.t.translate('book.notes.toast.createFailedDetail')
-          });
+          this.toastError(this.t.translate('common.error'), this.t.translate('book.notes.toast.createFailedDetail'));
         }
       });
   }
@@ -201,11 +195,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
         },
         error: (error) => {
           console.error('Failed to update note:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('common.error'),
-            detail: this.t.translate('book.notes.toast.updateFailedDetail')
-          });
+          this.toastError(this.t.translate('common.error'), this.t.translate('book.notes.toast.updateFailedDetail'));
         }
       });
   }
@@ -238,11 +228,7 @@ export class BookNotesComponent implements OnInit, OnChanges {
       },
       error: (error) => {
         console.error('Failed to delete note:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('book.notes.toast.deleteFailedDetail')
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('book.notes.toast.deleteFailedDetail'));
       }
     });
   }
@@ -280,5 +266,10 @@ export class BookNotesComponent implements OnInit, OnChanges {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

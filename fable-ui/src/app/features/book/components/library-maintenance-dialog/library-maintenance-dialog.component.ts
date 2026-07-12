@@ -10,6 +10,7 @@ import {SidecarService} from '../../../metadata/service/sidecar.service';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
 import {DialogLauncherService} from '../../../../shared/services/dialog-launcher.service';
 import {take} from 'rxjs';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 type MaintenanceAction = 'scanNewFiles' | 'reconcile' | 'sidecarExport' | 'sidecarBackup' | 'sidecarImport';
 
@@ -25,6 +26,7 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
   private readonly dialogConfig = inject(DynamicDialogConfig);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly libraryService = inject(LibraryService);
   private readonly sidecarService = inject(SidecarService);
   private readonly dialogLauncherService = inject(DialogLauncherService);
@@ -84,11 +86,7 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
           },
           error: () => {
             this.runningAction = null;
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-              detail: this.t.translate('book.shelfMenuService.toast.scanNewFilesFailedDetail')
-            });
+            this.toastError(this.t.translate('book.shelfMenuService.toast.failedSummary'), this.t.translate('book.shelfMenuService.toast.scanNewFilesFailedDetail'));
           }
         });
       }
@@ -129,11 +127,7 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
           },
           error: () => {
             this.runningAction = null;
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-              detail: this.t.translate('book.shelfMenuService.toast.reconcileLibraryFailedDetail')
-            });
+            this.toastError(this.t.translate('book.shelfMenuService.toast.failedSummary'), this.t.translate('book.shelfMenuService.toast.reconcileLibraryFailedDetail'));
           }
         });
       }
@@ -183,11 +177,7 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
           },
           error: () => {
             this.runningAction = null;
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-              detail: this.t.translate('book.libraryMaintenanceDialog.toast.sidecarExportFailedDetail')
-            });
+            this.toastError(this.t.translate('book.shelfMenuService.toast.failedSummary'), this.t.translate('book.libraryMaintenanceDialog.toast.sidecarExportFailedDetail'));
           }
         });
       }
@@ -229,11 +219,7 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
           },
           error: () => {
             this.runningAction = null;
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-              detail: this.t.translate('book.libraryMaintenanceDialog.toast.sidecarBackupFailedDetail')
-            });
+            this.toastError(this.t.translate('book.shelfMenuService.toast.failedSummary'), this.t.translate('book.libraryMaintenanceDialog.toast.sidecarBackupFailedDetail'));
           }
         });
       }
@@ -267,14 +253,15 @@ export class LibraryMaintenanceDialogComponent implements OnInit {
           },
           error: () => {
             this.runningAction = null;
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-              detail: this.t.translate('book.libraryMaintenanceDialog.toast.sidecarImportFailedDetail')
-            });
+            this.toastError(this.t.translate('book.shelfMenuService.toast.failedSummary'), this.t.translate('book.libraryMaintenanceDialog.toast.sidecarImportFailedDetail'));
           }
         });
       }
     });
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

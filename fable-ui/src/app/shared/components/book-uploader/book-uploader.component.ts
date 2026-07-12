@@ -4,6 +4,7 @@ import {Button} from 'primeng/button';
 import {AsyncPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../service/failure-notification.service';
 import {Select} from 'primeng/select';
 import {Badge} from 'primeng/badge';
 import {LibraryService} from '../../../features/book/service/library.service';
@@ -58,6 +59,7 @@ export class BookUploaderComponent implements OnInit {
 
   private readonly libraryService = inject(LibraryService);
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly http = inject(HttpClient);
   private readonly ref = inject(DynamicDialogRef);
@@ -256,6 +258,10 @@ export class BookUploaderComponent implements OnInit {
           uploadFile.status = 'Failed';
           uploadFile.progress = 0;
           uploadFile.errorMessage = err?.error?.message || this.t.translate('shared.bookUploader.toast.uploadFailedDefault');
+          this.failureNotifications.reportSafe(
+            this.t.translate('shared.bookUploader.uploadFailedTooltip'),
+            uploadFile.errorMessage
+          );
           if (--pending === 0) {
             setTimeout(() => {
               this.uploadBatch(files, startIndex + batchSize, batchSize, destination, libraryId, pathId);
