@@ -8,6 +8,7 @@ import {Button} from 'primeng/button';
 import {LibraryService} from '../../../book/service/library.service';
 import {UserService} from '../user.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {passwordMatchValidator} from '../../../../shared/validators/password-match.validator';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
@@ -37,6 +38,7 @@ export class CreateUserDialogComponent implements OnInit {
   private libraryService = inject(LibraryService);
   private userService = inject(UserService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private ref = inject(DynamicDialogRef);
   private t = inject(TranslocoService);
 
@@ -118,18 +120,19 @@ export class CreateUserDialogComponent implements OnInit {
         this.ref.close(true);
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: err?.error?.message
+        this.toastError(this.t.translate('common.error'), err?.error?.message
             ? this.t.translate('settingsUsers.createDialog.createFailed', {message: err.error.message})
-            : this.t.translate('settingsUsers.createDialog.createError')
-        });
+            : this.t.translate('settingsUsers.createDialog.createError'));
       }
     });
   }
 
   closeDialog(): void {
     this.ref.close();
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

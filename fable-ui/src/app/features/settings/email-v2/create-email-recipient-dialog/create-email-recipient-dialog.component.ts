@@ -1,6 +1,7 @@
 import {Component, inject} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Checkbox} from 'primeng/checkbox';
 import {Button} from 'primeng/button';
@@ -28,6 +29,7 @@ export class CreateEmailRecipientDialogComponent {
   private fb = inject(FormBuilder);
   private emailRecipientService = inject(EmailV2RecipientService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private ref = inject(DynamicDialogRef);
   private readonly t = inject(TranslocoService);
 
@@ -65,14 +67,15 @@ export class CreateEmailRecipientDialogComponent {
         this.ref.close(true);
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('settingsEmail.recipient.create.failed'),
-          detail: err?.error?.message
+        this.toastError(this.t.translate('settingsEmail.recipient.create.failed'), err?.error?.message
             ? this.t.translate('settingsEmail.recipient.create.failedDetail', {message: err.error.message})
-            : this.t.translate('settingsEmail.recipient.create.failedDefault')
-        });
+            : this.t.translate('settingsEmail.recipient.create.failedDefault'));
       }
     });
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

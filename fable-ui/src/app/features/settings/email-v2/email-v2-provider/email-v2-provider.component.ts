@@ -2,6 +2,7 @@ import {Component, inject, OnInit} from '@angular/core';
 import {Button} from 'primeng/button';
 import {Checkbox} from 'primeng/checkbox';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {RadioButton} from 'primeng/radiobutton';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {TableModule} from 'primeng/table';
@@ -36,6 +37,7 @@ export class EmailV2ProviderComponent implements OnInit {
   private dialogLauncherService = inject(DialogLauncherService);
   private emailProvidersService = inject(EmailV2ProviderService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private userService = inject(UserService);
   private t = inject(TranslocoService);
   defaultProviderId: unknown;
@@ -64,11 +66,7 @@ export class EmailV2ProviderComponent implements OnInit {
         this.defaultProviderId = defaultProvider ? defaultProvider.id : null;
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsEmail.provider.loadError'),
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsEmail.provider.loadError'));
       },
     });
   }
@@ -94,11 +92,7 @@ export class EmailV2ProviderComponent implements OnInit {
         this.loadEmailProviders();
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsEmail.provider.updateError'),
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsEmail.provider.updateError'));
       },
     });
   }
@@ -115,11 +109,7 @@ export class EmailV2ProviderComponent implements OnInit {
           this.loadEmailProviders();
         },
         error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('common.error'),
-            detail: this.t.translate('settingsEmail.provider.deleteError'),
-          });
+          this.toastError(this.t.translate('common.error'), this.t.translate('settingsEmail.provider.deleteError'));
         },
       });
     }
@@ -146,11 +136,7 @@ export class EmailV2ProviderComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to set default provider', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsEmail.provider.defaultSetError', {name: provider.name}),
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsEmail.provider.defaultSetError', {name: provider.name}));
       }
     });
   }
@@ -171,12 +157,13 @@ export class EmailV2ProviderComponent implements OnInit {
       },
       error: () => {
         provider.shared = !provider.shared;
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsEmail.provider.sharedError'),
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsEmail.provider.sharedError'));
       },
     });
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

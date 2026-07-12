@@ -5,6 +5,7 @@ import {InputText} from 'primeng/inputtext';
 
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {EmailV2ProviderService} from '../email-v2-provider/email-v2-provider.service';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
@@ -28,6 +29,7 @@ export class CreateEmailProviderDialogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private emailProviderService = inject(EmailV2ProviderService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private ref = inject(DynamicDialogRef);
   private readonly t = inject(TranslocoService);
 
@@ -66,18 +68,19 @@ export class CreateEmailProviderDialogComponent implements OnInit {
         this.ref.close(true);
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('settingsEmail.provider.create.failed'),
-          detail: err?.error?.message
+        this.toastError(this.t.translate('settingsEmail.provider.create.failed'), err?.error?.message
             ? this.t.translate('settingsEmail.provider.create.failedDetail', {message: err.error.message})
-            : this.t.translate('settingsEmail.provider.create.failedDefault')
-        });
+            : this.t.translate('settingsEmail.provider.create.failedDefault'));
       }
     });
   }
 
   closeDialog(): void {
     this.ref.close();
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

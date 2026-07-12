@@ -6,6 +6,7 @@ import {TableModule} from 'primeng/table';
 import {LowerCasePipe, TitleCasePipe} from '@angular/common';
 import {User, UserService, UserUpdateRequest} from './user.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {Checkbox} from 'primeng/checkbox';
 import {MultiSelect} from 'primeng/multiselect';
 import {Library} from '../../book/model/library.model';
@@ -54,6 +55,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private libraryService = inject(LibraryService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private t = inject(TranslocoService);
   private mobileBackNavigation = inject(MobileBackNavigationService);
   private passwordDialogBackHandle: MobileBackHandle | null = null;
@@ -115,11 +117,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         }));
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsUsers.fetchError'),
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsUsers.fetchError'));
       },
     });
   }
@@ -166,11 +164,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
           });
         },
         error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('common.error'),
-            detail: this.t.translate('settingsUsers.updateError'),
-          });
+          this.toastError(this.t.translate('common.error'), this.t.translate('settingsUsers.updateError'));
         },
       });
   }
@@ -187,13 +181,8 @@ export class UserManagementComponent implements OnInit, OnDestroy {
           this.loadUsers();
         },
         error: (err) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('common.error'),
-            detail:
-              err.error?.message ||
-              this.t.translate('settingsUsers.deleteError', {username: user.username}),
-          });
+          this.toastError(this.t.translate('common.error'), err.error?.message ||
+              this.t.translate('settingsUsers.deleteError', {username: user.username}));
         },
       });
     }
@@ -364,5 +353,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   isPermissionDisabled(user: UserWithEditing): boolean {
     return !user.isEditing || user.permissions.admin;
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

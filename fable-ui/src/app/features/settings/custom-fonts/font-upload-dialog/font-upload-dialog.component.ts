@@ -2,6 +2,7 @@ import {Component, ViewChild, ElementRef, OnDestroy, inject} from '@angular/core
 import {CommonModule} from '@angular/common';
 import {Button} from 'primeng/button';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {CustomFontService} from '../../../../shared/service/custom-font.service';
 import {formatFileSize} from '../../../../shared/model/custom-font.model';
 import {InputText} from 'primeng/inputtext';
@@ -21,6 +22,7 @@ export class FontUploadDialogComponent implements OnDestroy {
   private readonly t = inject(TranslocoService);
   private customFontService = inject(CustomFontService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private dialogRef = inject(DynamicDialogRef);
 
   isUploading = false;
@@ -126,11 +128,7 @@ export class FontUploadDialogComponent implements OnDestroy {
         const errorMessage = error.status === 400
           ? this.t.translate('settingsReader.fonts.upload.uploadFailedInvalid')
           : this.t.translate('settingsReader.fonts.upload.uploadFailedDefault');
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('settingsReader.fonts.upload.uploadFailed'),
-          detail: errorMessage
-        });
+        this.toastError(this.t.translate('settingsReader.fonts.upload.uploadFailed'), errorMessage);
 
         this.isUploading = false;
         this.selectedFile = null;
@@ -183,20 +181,12 @@ export class FontUploadDialogComponent implements OnDestroy {
     const isValidFormat = this.acceptedFormats.some(format => fileName.endsWith(format));
 
     if (!isValidFormat) {
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('settingsReader.fonts.upload.invalidFileType'),
-        detail: this.t.translate('settingsReader.fonts.upload.invalidFileTypeDetail')
-      });
+      this.toastError(this.t.translate('settingsReader.fonts.upload.invalidFileType'), this.t.translate('settingsReader.fonts.upload.invalidFileTypeDetail'));
       return false;
     }
 
     if (file.size > this.maxFileSize) {
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('settingsReader.fonts.upload.fileTooLarge'),
-        detail: this.t.translate('settingsReader.fonts.upload.fileTooLargeDetail', {size: this.formatFileSize(this.maxFileSize)})
-      });
+      this.toastError(this.t.translate('settingsReader.fonts.upload.fileTooLarge'), this.t.translate('settingsReader.fonts.upload.fileTooLargeDetail', {size: this.formatFileSize(this.maxFileSize)}));
       return false;
     }
 
@@ -232,5 +222,10 @@ export class FontUploadDialogComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.cleanupPreviewFont();
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

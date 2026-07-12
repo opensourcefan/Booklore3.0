@@ -5,6 +5,7 @@ import {InputText} from 'primeng/inputtext';
 import {Password} from 'primeng/password';
 import {User, UserService, UserUpdateRequest} from '../user-management/user.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {Subject} from 'rxjs';
 import {filter, takeUntil} from 'rxjs/operators';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
@@ -47,6 +48,7 @@ export class UserProfileDialogComponent implements OnInit, OnDestroy {
 
   protected readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(DynamicDialogRef);
   private readonly t = inject(TranslocoService);
@@ -97,11 +99,7 @@ export class UserProfileDialogComponent implements OnInit, OnDestroy {
 
   updateProfile(): void {
     if (!this.currentUser) {
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsProfile.toast.errorNoUser'),
-      });
+      this.toastError(this.t.translate('common.error'), this.t.translate('settingsProfile.toast.errorNoUser'));
       return;
     }
 
@@ -121,11 +119,7 @@ export class UserProfileDialogComponent implements OnInit, OnDestroy {
         this.isEditing = false;
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: err.error?.message || this.t.translate('settingsProfile.toast.profileUpdateFailed'),
-        });
+        this.toastError(this.t.translate('common.error'), err.error?.message || this.t.translate('settingsProfile.toast.profileUpdateFailed'));
       },
     });
   }
@@ -144,11 +138,7 @@ export class UserProfileDialogComponent implements OnInit, OnDestroy {
         this.resetPasswordForm();
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: err?.message || this.t.translate('settingsProfile.toast.passwordChangeFailed'),
-        });
+        this.toastError(this.t.translate('common.error'), err?.message || this.t.translate('settingsProfile.toast.passwordChangeFailed'));
       }
     });
   }
@@ -164,5 +154,10 @@ export class UserProfileDialogComponent implements OnInit, OnDestroy {
   logout(): void {
     this.dialogRef.close();
     this.authService.logout();
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

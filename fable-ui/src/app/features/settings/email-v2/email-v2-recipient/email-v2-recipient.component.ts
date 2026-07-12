@@ -1,6 +1,7 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {Button} from 'primeng/button';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {RadioButton} from 'primeng/radiobutton';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {TableModule} from 'primeng/table';
@@ -33,6 +34,7 @@ export class EmailV2RecipientComponent implements OnInit {
   private dialogLauncherService = inject(DialogLauncherService);
   private emailRecipientService = inject(EmailV2RecipientService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private t = inject(TranslocoService);
   defaultRecipientId: unknown;
 
@@ -51,11 +53,7 @@ export class EmailV2RecipientComponent implements OnInit {
         this.defaultRecipientId = defaultRecipient ? defaultRecipient.id : null;
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsEmail.recipient.loadError'),
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsEmail.recipient.loadError'));
       },
     });
   }
@@ -81,11 +79,7 @@ export class EmailV2RecipientComponent implements OnInit {
         this.loadRecipientEmails();
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsEmail.recipient.updateError'),
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsEmail.recipient.updateError'));
       },
     });
   }
@@ -102,11 +96,7 @@ export class EmailV2RecipientComponent implements OnInit {
           this.loadRecipientEmails();
         },
         error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('common.error'),
-            detail: this.t.translate('settingsEmail.recipient.deleteError'),
-          });
+          this.toastError(this.t.translate('common.error'), this.t.translate('settingsEmail.recipient.deleteError'));
         },
       });
     }
@@ -130,5 +120,10 @@ export class EmailV2RecipientComponent implements OnInit {
         detail: this.t.translate('settingsEmail.recipient.defaultSetDetail', {email: recipient.email}),
       });
     });
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

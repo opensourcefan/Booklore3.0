@@ -4,6 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {Select} from 'primeng/select';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {Tooltip} from 'primeng/tooltip';
 import {
   AGE_RATING_OPTIONS,
@@ -41,6 +42,7 @@ export class ContentRestrictionsEditorComponent implements OnInit, OnChanges {
   private contentRestrictionService = inject(ContentRestrictionService);
   private bookService = inject(BookService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private t = inject(TranslocoService);
 
   restrictions: ContentRestriction[] = [];
@@ -90,11 +92,7 @@ export class ContentRestrictionsEditorComponent implements OnInit, OnChanges {
         this.restrictionsChanged.emit(this.restrictions);
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsUsers.contentRestrictions.loadError')
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsUsers.contentRestrictions.loadError'));
       }
     });
   }
@@ -181,11 +179,7 @@ export class ContentRestrictionsEditorComponent implements OnInit, OnChanges {
         });
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsUsers.contentRestrictions.addError')
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsUsers.contentRestrictions.addError'));
       }
     });
   }
@@ -204,11 +198,7 @@ export class ContentRestrictionsEditorComponent implements OnInit, OnChanges {
         });
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsUsers.contentRestrictions.removeError')
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsUsers.contentRestrictions.removeError'));
       }
     });
   }
@@ -234,5 +224,10 @@ export class ContentRestrictionsEditorComponent implements OnInit, OnChanges {
 
   getAllowOnlyRestrictions(): ContentRestriction[] {
     return this.restrictions.filter(r => r.mode === ContentRestrictionMode.ALLOW_ONLY);
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

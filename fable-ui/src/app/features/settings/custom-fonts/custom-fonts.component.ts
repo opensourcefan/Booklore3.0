@@ -2,6 +2,7 @@ import {Component, inject, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Button} from 'primeng/button';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {CustomFontService} from '../../../shared/service/custom-font.service';
 import {CustomFont, formatFileSize} from '../../../shared/model/custom-font.model';
 import {ConfirmDialog} from 'primeng/confirmdialog';
@@ -32,6 +33,7 @@ export class CustomFontsComponent implements OnInit {
   private t = inject(TranslocoService);
   private customFontService = inject(CustomFontService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private confirmationService = inject(ConfirmationService);
   private dialogLauncher = inject(DialogLauncherService);
 
@@ -58,11 +60,7 @@ export class CustomFontsComponent implements OnInit {
       this.fontsLoadedInBrowser = true;
     } catch (error) {
       console.error('Failed to load fonts:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsReader.fonts.loadError')
-      });
+      this.toastError(this.t.translate('common.error'), this.t.translate('settingsReader.fonts.loadError'));
       this.isLoading = false;
       this.fontsLoadedInBrowser = true;
     }
@@ -70,11 +68,7 @@ export class CustomFontsComponent implements OnInit {
 
   openUploadDialog(): void {
     if (this.customFonts.length >= this.maxFonts) {
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('settingsReader.fonts.quotaExceeded'),
-        detail: this.t.translate('settingsReader.fonts.quotaExceededDetail', {max: this.maxFonts})
-      });
+      this.toastError(this.t.translate('settingsReader.fonts.quotaExceeded'), this.t.translate('settingsReader.fonts.quotaExceededDetail', {max: this.maxFonts}));
       return;
     }
 
@@ -114,11 +108,7 @@ export class CustomFontsComponent implements OnInit {
           },
           error: (error) => {
             console.error('Failed to delete font:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('settingsReader.fonts.deleteFailed'),
-              detail: this.t.translate('settingsReader.fonts.deleteError')
-            });
+            this.toastError(this.t.translate('settingsReader.fonts.deleteFailed'), this.t.translate('settingsReader.fonts.deleteError'));
           }
         });
       }
@@ -127,5 +117,10 @@ export class CustomFontsComponent implements OnInit {
 
   formatFileSize(bytes: number): string {
     return formatFileSize(bytes);
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }
