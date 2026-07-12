@@ -12,6 +12,7 @@ import {EmailV2RecipientService} from '../../../settings/email-v2/email-v2-recip
 import {Book} from '../../model/book.model';
 import {RadioButton} from 'primeng/radiobutton';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 interface EmailableFile {
   id: number;
@@ -40,6 +41,7 @@ export class BookSenderComponent implements OnInit {
   private emailRecipientService = inject(EmailV2RecipientService);
   private emailService = inject(EmailService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
   dynamicDialogRef = inject(DynamicDialogRef);
   private dynamicDialogConfig = inject(DynamicDialogConfig);
@@ -152,11 +154,10 @@ export class BookSenderComponent implements OnInit {
           this.dynamicDialogRef.close(true);
         },
         error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('book.sender.toast.sendingFailedSummary'),
-            detail: this.t.translate('book.sender.toast.sendingFailedDetail')
-          });
+          this.toastError(
+            this.t.translate('book.sender.toast.sendingFailedSummary'),
+            this.t.translate('book.sender.toast.sendingFailedDetail')
+          );
           console.error('Error sending book:', error);
         }
       });
@@ -183,5 +184,10 @@ export class BookSenderComponent implements OnInit {
         });
       }
     }
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

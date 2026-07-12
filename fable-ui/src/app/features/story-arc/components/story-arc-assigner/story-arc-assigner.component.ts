@@ -9,6 +9,7 @@ import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {CheckboxModule} from 'primeng/checkbox';
 import {map, Observable, of} from 'rxjs';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 @Component({
   selector: 'app-story-arc-assigner',
@@ -29,6 +30,7 @@ export class StoryArcAssignerComponent implements OnInit {
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   private dynamicDialogRef = inject(DynamicDialogRef);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
 
   bookIds: Set<number> = this.dynamicDialogConfig.data.bookIds;
   storyArcs$ = this.storyArcService.storyArcs$;
@@ -137,12 +139,17 @@ export class StoryArcAssignerComponent implements OnInit {
         this.dynamicDialogRef.close({assigned: true});
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to assign books to Story Arc'});
+        this.toastError('Error', 'Failed to assign books to Story Arc');
       }
     });
   }
 
   closeDialog(): void {
     this.dynamicDialogRef.close({assigned: false});
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

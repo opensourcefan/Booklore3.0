@@ -14,6 +14,7 @@ import {DialogLauncherService} from '../../../shared/services/dialog-launcher.se
 import {BookDialogHelperService} from '../components/book-browser/book-dialog-helper.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {Clipboard} from '@angular/cdk/clipboard';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -22,6 +23,7 @@ export class LibraryShelfMenuService {
 
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private libraryService = inject(LibraryService);
   private shelfService = inject(ShelfService);
   private taskHelperService = inject(TaskHelperService);
@@ -81,11 +83,10 @@ export class LibraryShelfMenuService {
                   this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.scanNewFilesSuccessDetail')});
                 },
                 error: () => {
-                  this.messageService.add({
-                    severity: 'error',
-                    summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-                    detail: this.t.translate('book.shelfMenuService.toast.scanNewFilesFailedDetail'),
-                  });
+                  this.toastError(
+                    this.t.translate('book.shelfMenuService.toast.failedSummary'),
+                    this.t.translate('book.shelfMenuService.toast.scanNewFilesFailedDetail')
+                  );
                 }
               });
             }
@@ -189,11 +190,6 @@ export class LibraryShelfMenuService {
                   },
                   error: () => {
                     this.writeProgressService.fail(this.t.translate('book.shelfMenuService.toast.libraryDeleteFailedDetail'));
-                    this.messageService.add({
-                      severity: 'error',
-                      summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-                      detail: this.t.translate('book.shelfMenuService.toast.libraryDeleteFailedDetail'),
-                    });
                   }
                 });
             }
@@ -249,11 +245,10 @@ export class LibraryShelfMenuService {
                       this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.shelfDeletedDetail')});
                     },
                     error: () => {
-                      this.messageService.add({
-                        severity: 'error',
-                        summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-                        detail: this.t.translate('book.shelfMenuService.toast.shelfDeleteFailedDetail'),
-                      });
+                      this.toastError(
+                        this.t.translate('book.shelfMenuService.toast.failedSummary'),
+                        this.t.translate('book.shelfMenuService.toast.shelfDeleteFailedDetail')
+                      );
                     }
                   });
                 }
@@ -323,11 +318,10 @@ export class LibraryShelfMenuService {
                       this.messageService.add({severity: 'info', summary: this.t.translate('common.success'), detail: this.t.translate('book.shelfMenuService.toast.magicShelfDeletedDetail')});
                     },
                     error: () => {
-                      this.messageService.add({
-                        severity: 'error',
-                        summary: this.t.translate('book.shelfMenuService.toast.failedSummary'),
-                        detail: this.t.translate('book.shelfMenuService.toast.magicShelfDeleteFailedDetail'),
-                      });
+                      this.toastError(
+                        this.t.translate('book.shelfMenuService.toast.failedSummary'),
+                        this.t.translate('book.shelfMenuService.toast.magicShelfDeleteFailedDetail')
+                      );
                     }
                   });
                 }
@@ -337,5 +331,10 @@ export class LibraryShelfMenuService {
         ]
       }
     ];
+  }
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
   }
 }

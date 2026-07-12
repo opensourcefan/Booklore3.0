@@ -15,6 +15,7 @@ import {AppSettingsService} from '../../service/app-settings.service';
 import {Select} from 'primeng/select';
 import {Library, LibraryPath} from '../../../features/book/model/library.model';
 import {replacePlaceholders} from '../../util/pattern-resolver';
+import {FailureNotificationService} from '../../service/failure-notification.service';
 
 interface FilePreview {
   bookId: number;
@@ -47,6 +48,7 @@ export class FileMoverComponent implements OnDestroy {
   private libraryService = inject(LibraryService);
   private fileOperationsService = inject(FileOperationsService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private appSettingsService = inject(AppSettingsService);
   private destroy$ = new Subject<void>();
 
@@ -380,12 +382,11 @@ export class FileMoverComponent implements OnDestroy {
       },
       error: () => {
         this.loading = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Oops! Something went wrong',
-          detail: 'We had trouble organizing your files. Please try again.',
-          life: 3000
-        });
+        this.toastError(
+          'Oops! Something went wrong',
+          'We had trouble organizing your files. Please try again.',
+          3000
+        );
       }
     });
   }
@@ -411,5 +412,10 @@ export class FileMoverComponent implements OnDestroy {
       return path;
     }
     return '.../' + parts.slice(parts.length - 2).join('/');
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

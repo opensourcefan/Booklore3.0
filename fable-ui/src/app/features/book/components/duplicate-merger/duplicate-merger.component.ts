@@ -23,6 +23,7 @@ import {
 } from '../../../settings/user-management/user.service';
 import {naturalCompareStrings} from '../../../../shared/util/natural-sort.util';
 import {Clipboard} from '@angular/cdk/clipboard';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 type PresetMode = 'strict' | 'balanced' | 'aggressive' | 'custom';
 
@@ -86,6 +87,7 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
   private readonly bookService = inject(BookService);
   private readonly userService = inject(UserService);
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly dialogRef = inject(DynamicDialogRef);
   private readonly config = inject(DynamicDialogConfig);
   private readonly t = inject(TranslocoService);
@@ -264,11 +266,10 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.isScanning = false;
         this.hasScanned = true;
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('book.duplicateMerger.toast.scanFailedSummary'),
-          detail: err?.error?.message || this.t.translate('book.duplicateMerger.toast.scanFailedDetail'),
-        });
+        this.toastError(
+          this.t.translate('book.duplicateMerger.toast.scanFailedSummary'),
+          err?.error?.message || this.t.translate('book.duplicateMerger.toast.scanFailedDetail')
+        );
       }
     });
   }
@@ -842,5 +843,10 @@ export class DuplicateMergerComponent implements OnInit, OnDestroy {
 
   closeDialog(): void {
     this.dialogRef.close();
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

@@ -11,6 +11,7 @@ import {LibraryService} from '../../book/service/library.service';
 import {Library} from '../../book/model/library.model';
 import {MagicShelfService} from '../service/magic-shelf.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MultiSelect} from 'primeng/multiselect';
 import {AutoComplete} from 'primeng/autocomplete';
@@ -477,6 +478,7 @@ export class MagicShelfComponent implements OnInit {
   magicShelfService = inject(MagicShelfService);
   ref = inject(DynamicDialogRef);
   messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   config = inject(DynamicDialogConfig);
   userService = inject(UserService);
   private iconPicker = inject(IconPickerService);
@@ -1010,16 +1012,20 @@ export class MagicShelfComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('magicShelf.toast.errorSummary'),
-          detail: err?.error?.message || this.t.translate('magicShelf.toast.errorDetailDefault')
-        });
+        this.toastError(
+          this.t.translate('magicShelf.toast.errorSummary'),
+          err?.error?.message || this.t.translate('magicShelf.toast.errorDetailDefault')
+        );
       }
     });
   }
 
   cancel() {
     this.ref.close();
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

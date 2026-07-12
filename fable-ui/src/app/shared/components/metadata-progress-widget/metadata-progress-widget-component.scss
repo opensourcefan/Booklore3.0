@@ -7,6 +7,10 @@
 
 .task-card {
   padding: 1rem;
+
+  @media (max-width: 768px) {
+    padding: 0.65rem 0.75rem;
+  }
 }
 
 .task-header-row {
@@ -14,6 +18,11 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.5rem;
+
+  @media (max-width: 768px) {
+    margin-bottom: 0.35rem;
+    gap: 0.35rem;
+  }
 }
 
 .task-title-group {
@@ -27,6 +36,10 @@
   font-weight: 600;
   color: var(--primary-color);
   margin: 0;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
 }
 
 .task-tags {

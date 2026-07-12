@@ -9,6 +9,7 @@ import {FileDownloadService} from '../../../shared/service/file-download.service
 import {BookStateService} from './book-state.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {SidebarBadgeRefreshService} from './sidebar-badge-refresh.service';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +20,7 @@ export class BookFileService {
 
   private http = inject(HttpClient);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private fileDownloadService = inject(FileDownloadService);
   private bookStateService = inject(BookStateService);
   private readonly t = inject(TranslocoService);
@@ -75,11 +77,7 @@ export class BookFileService {
         });
       }),
       catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('book.bookService.toast.fileDeleteFailedSummary'),
-          detail: error?.error?.message || error?.message || this.t.translate('book.bookService.toast.fileDeleteFailedDetail')
-        });
+        this.toastError(this.t.translate('book.bookService.toast.fileDeleteFailedSummary'), error?.error?.message || error?.message || this.t.translate('book.bookService.toast.fileDeleteFailedDetail'));
         return throwError(() => error);
       })
     );
@@ -130,11 +128,7 @@ export class BookFileService {
         });
       }),
       catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('book.bookService.toast.fileDeleteFailedSummary'),
-          detail: error?.error?.message || error?.message || this.t.translate('book.bookService.toast.fileDeleteFailedDetail')
-        });
+        this.toastError(this.t.translate('book.bookService.toast.fileDeleteFailedSummary'), error?.error?.message || error?.message || this.t.translate('book.bookService.toast.fileDeleteFailedDetail'));
         return throwError(() => error);
       })
     );
@@ -193,11 +187,7 @@ export class BookFileService {
         });
       }),
       catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('book.bookService.toast.uploadFailedSummary'),
-          detail: error?.error?.message || error?.message || this.t.translate('book.bookService.toast.uploadFailedDetail')
-        });
+        this.toastError(this.t.translate('book.bookService.toast.uploadFailedSummary'), error?.error?.message || error?.message || this.t.translate('book.bookService.toast.uploadFailedDetail'));
         return throwError(() => error);
       })
     );
@@ -233,11 +223,7 @@ export class BookFileService {
         });
       }),
       catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.viewer.toast.detachFileErrorSummary'),
-          detail: error?.error?.message || error?.message || this.t.translate('metadata.viewer.toast.detachFileErrorDetail')
-        });
+        this.toastError(this.t.translate('metadata.viewer.toast.detachFileErrorSummary'), error?.error?.message || error?.message || this.t.translate('metadata.viewer.toast.detachFileErrorDetail'));
         return throwError(() => error);
       })
     );
@@ -274,13 +260,14 @@ export class BookFileService {
         });
       }),
       catchError(error => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('book.bookService.toast.attachmentFailedSummary'),
-          detail: error?.error?.message || error?.message || this.t.translate('book.bookService.toast.attachmentFailedDetail')
-        });
+        this.toastError(this.t.translate('book.bookService.toast.attachmentFailedSummary'), error?.error?.message || error?.message || this.t.translate('book.bookService.toast.attachmentFailedDetail'));
         return throwError(() => error);
       })
     );
+  }
+
+  private toastError(summary: string, detail: string): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail});
   }
 }
