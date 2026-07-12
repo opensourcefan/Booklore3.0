@@ -17,6 +17,7 @@ import org.fable.task.tasks.Task;
 import org.fable.service.user.UserService;
 import org.fable.service.NotificationService;
 import org.fable.service.LogNotificationService;
+import org.fable.service.FailureNotificationService;
 import org.fable.model.websocket.LogNotification;
 import org.fable.model.websocket.Topic;
 import org.fable.util.SecurityContextVirtualThread;
@@ -51,6 +52,7 @@ public class TaskService {
     private final UserService userService;
     private final NotificationService notificationService;
     private final LogNotificationService logNotificationService;
+    private final FailureNotificationService failureNotificationService;
     private final Map<TaskType, Task> taskRegistry;
     private final ConcurrentMap<TaskType, String> runningTasks = new ConcurrentHashMap<>();
     private final TaskCancellationManager cancellationManager;
@@ -66,6 +68,7 @@ public class TaskService {
             @Lazy UserService userService,
             NotificationService notificationService,
             LogNotificationService logNotificationService,
+            FailureNotificationService failureNotificationService,
             List<Task> tasks,
             TaskCancellationManager cancellationManager,
             Executor taskExecutor,
@@ -77,6 +80,7 @@ public class TaskService {
         this.userService = userService;
         this.notificationService = notificationService;
         this.logNotificationService = logNotificationService;
+        this.failureNotificationService = failureNotificationService;
         this.taskRegistry = tasks.stream().collect(Collectors.toMap(Task::getTaskType, Function.identity()));
         this.cancellationManager = cancellationManager;
         this.taskExecutor = taskExecutor;
@@ -112,9 +116,7 @@ public class TaskService {
                     continue;
                 }
                 String notifyMsg = "Task " + task.getType() + " was interrupted by server restart";
-                LogNotification logNotification = LogNotification.warn(notifyMsg);
-                notificationService.sendMessageToPermissions(Topic.LOG, logNotification,
-                        java.util.Set.of(org.fable.model.enums.PermissionType.ADMIN, org.fable.model.enums.PermissionType.MANAGE_LIBRARY));
+                failureNotificationService.reportWarn(notifyMsg);
             } catch (Exception e) {
                 log.error("Failed to send orphaned task notification for {}", task.getId(), e);
             }

@@ -64,7 +64,10 @@
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit Fullscreen",
     "sidecarBackup": "Sidecar Backup",
-    "sidecarBackupWorking": "Working"
+    "sidecarBackupWorking": "Working",
+    "recommendations": "Recommendations",
+    "writeUpdating": "Updating",
+    "systemJobCancel": "Cancel"
   },
   "menu": {
     "home": "Home",

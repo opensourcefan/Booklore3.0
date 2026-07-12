@@ -1,0 +1,30 @@
+<!--
+  Golden fixture: Notifications failure inbox on phone (375×667).
+  Not part of the Angular app — do not import into fable-ui.
+  Mirrors live-notification-box text-only inbox + dismiss controls.
+-->
+<div class="mobile-notifications-popover phone-viewport">
+  <div class="notification-inbox">
+    <div class="historical-notifications-section">
+      <div class="historical-header-row">
+        <div class="historical-header">Failures</div>
+        <button class="dismiss-all-btn" type="button" aria-label="Dismiss all">
+          <i class="pi pi-times-circle"></i>
+          <span>Dismiss all</span>
+        </button>
+      </div>
+      <div class="notification-container historical-item">
+        <div class="notification-header">
+          <div class="notification-header-info">
+            <span class="severity-tag">ERROR</span>
+            <span class="notification-timestamp">just now</span>
+          </div>
+          <button class="notification-close-btn" type="button" aria-label="Dismiss">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+        <p class="notification-message">Cover regeneration finished with 2 failure(s) out of 40 book(s)</p>
+      </div>
+    </div>
+  </div>
+</div>

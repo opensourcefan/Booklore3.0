@@ -1,0 +1,43 @@
+/* Phone failure inbox — required scroll/bounds + text-only message contract. */
+.phone-viewport {
+  width: 375px;
+  max-height: 667px;
+}
+
+.mobile-notifications-popover {
+  max-width: calc(100vw - 1rem);
+  max-height: min(70vh, calc(100dvh - 5rem - env(safe-area-inset-bottom, 0px)));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.notification-inbox {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.historical-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dismiss-all-btn,
+.notification-close-btn {
+  touch-action: manipulation;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.notification-message {
+  /* Text only — never innerHTML */
+  margin: 0.35rem 0 0;
+  word-break: break-word;
+}

@@ -26,6 +26,7 @@ import org.fable.model.websocket.Topic;
 import org.fable.repository.BookRepository;
 import org.fable.repository.BookdropFileRepository;
 import org.fable.repository.LibraryRepository;
+import org.fable.service.FailureNotificationService;
 import org.fable.service.NotificationService;
 import org.fable.service.file.FileMovingHelper;
 import org.fable.service.fileprocessor.BookFileProcessor;
@@ -64,6 +65,7 @@ public class BookDropService {
     private final BookRepository bookRepository;
     private final BookdropMonitoringService bookdropMonitoringService;
     private final NotificationService notificationService;
+    private final FailureNotificationService failureNotificationService;
     private final MetadataRefreshService metadataRefreshService;
     private final BookdropNotificationService bookdropNotificationService;
     private final BookFileProcessorRegistry processorRegistry;
@@ -309,6 +311,11 @@ public class BookDropService {
                 results.getSuccessfullyImported(),
                 results.getFailed(),
                 results.getTotalFiles());
+        if (results.getFailed() > 0) {
+            failureNotificationService.reportError(
+                    "Bookdrop finalize finished with " + results.getFailed()
+                            + " failure(s) out of " + results.getTotalFiles() + " file(s)");
+        }
     }
 
     private void processFile(BookdropFileEntity fileEntity,
@@ -333,7 +340,6 @@ public class BookDropService {
             failedCount.incrementAndGet();
             String msg = String.format("Error finalizing file [id=%s, name=%s]: %s", fileEntity.getId(), fileEntity.getFileName(), e.getMessage());
             log.error(msg, e);
-            notificationService.sendMessage(Topic.LOG, msg);
         }
     }
 

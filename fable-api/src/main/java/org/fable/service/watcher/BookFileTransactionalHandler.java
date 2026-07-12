@@ -9,12 +9,9 @@ import org.fable.model.entity.LibraryPathEntity;
 import org.fable.model.enums.BookFileExtension;
 import org.fable.model.enums.BookFileType;
 import org.fable.model.enums.LibraryOrganizationMode;
-import org.fable.model.websocket.LogNotification;
-import org.fable.model.websocket.Topic;
 import org.fable.repository.BookAdditionalFileRepository;
 import org.fable.repository.BookRepository;
 import org.fable.repository.LibraryRepository;
-import org.fable.service.NotificationService;
 import org.fable.service.file.FileFingerprint;
 import org.fable.service.library.LibraryProcessingService;
 import org.fable.util.BookFileGroupingUtils;
@@ -30,10 +27,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import static org.fable.model.enums.PermissionType.ADMIN;
-import static org.fable.model.enums.PermissionType.MANAGE_LIBRARY;
 
 @Slf4j
 @Service
@@ -45,7 +39,6 @@ public class BookFileTransactionalHandler {
 
     private final BookFilePersistenceService bookFilePersistenceService;
     private final LibraryProcessingService libraryProcessingService;
-    private final NotificationService notificationService;
     private final LibraryRepository libraryRepository;
     private final BookRepository bookRepository;
     private final BookAdditionalFileRepository bookAdditionalFileRepository;
@@ -58,8 +51,6 @@ public class BookFileTransactionalHandler {
         String filePath = path.toString();
         String fileName = path.getFileName().toString();
         String libraryPath = bookFilePersistenceService.findMatchingLibraryPath(libraryEntity, path);
-
-        notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Started processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
 
         LibraryPathEntity libraryPathEntity = bookFilePersistenceService.getLibraryPathEntityForFile(libraryEntity, libraryPath);
         String fileSubPath = FileUtils.getRelativeSubPath(libraryPathEntity.getPath(), path);
@@ -82,7 +73,6 @@ public class BookFileTransactionalHandler {
                         bookFilePersistenceService.save(existingBook);
                     }
                     log.info("[CREATE] File '{}' belongs to removed-from-library book id={}, keeping it hidden", filePath, existingBook.getId());
-                    notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Finished processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
                     return;
                 }
 
@@ -93,7 +83,6 @@ public class BookFileTransactionalHandler {
                 existing.setCurrentHash(currentHash);
                 bookFilePersistenceService.save(existingBook);
                 log.info("[CREATE] File '{}' restored deleted book id={}", filePath, existingBook.getId());
-                notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Finished processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
                 return;
             }
 
@@ -101,13 +90,11 @@ public class BookFileTransactionalHandler {
 
             if (currentHash.equals(existingHash)) {
                 log.debug("[CREATE] File '{}' unchanged (same hash), skipping", filePath);
-                notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Finished processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
                 return;
             }
             existing.setCurrentHash(currentHash);
             bookFilePersistenceService.save(existingBook);
             log.info("[CREATE] File '{}' content changed, updated hash", filePath);
-            notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Finished processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
             return;
         }
 
@@ -118,7 +105,6 @@ public class BookFileTransactionalHandler {
             var match = poolMatch.get();
             pendingDeletionPool.recoverBook(match, libraryPathEntity, fileSubPath, fileName, currentHash);
             log.info("[CREATE] File '{}' matched pending deletion, recovered book id={}", filePath, match.book().bookId());
-            notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Finished processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
             return;
         }
 
@@ -126,7 +112,6 @@ public class BookFileTransactionalHandler {
         if (existingByHash.isPresent()) {
             bookFilePersistenceService.updatePathIfChanged(existingByHash.get(), libraryEntity, path, currentHash);
             log.info("[CREATE] File '{}' recognized as moved file, updated existing book's path", filePath);
-            notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Finished processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
             return;
         }
 
@@ -144,7 +129,6 @@ public class BookFileTransactionalHandler {
             }
             autoAttachFile(filelessMatch, fileName, fileSubPath, path);
             log.info("[CREATE] Attached file '{}' to fileless book id={}", filePath, filelessMatch.getId());
-            notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Finished processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
             return;
         }
 
@@ -182,8 +166,6 @@ public class BookFileTransactionalHandler {
             libraryProcessingService.processLibraryFiles(List.of(libraryFile), libraryEntity);
             log.info("[CREATE] Completed processing for file '{}'", filePath);
         }
-
-        notificationService.sendMessageToPermissions(Topic.LOG, LogNotification.info("Finished processing file: " + filePath), Set.of(ADMIN, MANAGE_LIBRARY));
     }
 
     @Transactional
@@ -193,9 +175,6 @@ public class BookFileTransactionalHandler {
 
         String folderName = folderPath.getFileName().toString();
         String libraryPath = bookFilePersistenceService.findMatchingLibraryPath(libraryEntity, folderPath);
-
-        notificationService.sendMessageToPermissions(Topic.LOG,
-                LogNotification.info("Started processing folder audiobook: " + folderPath), Set.of(ADMIN, MANAGE_LIBRARY));
 
         LibraryPathEntity libraryPathEntity = bookFilePersistenceService.getLibraryPathEntityForFile(libraryEntity, libraryPath);
         String fileSubPath = FileUtils.getRelativeSubPath(libraryPathEntity.getPath(), folderPath);
@@ -207,8 +186,6 @@ public class BookFileTransactionalHandler {
             pendingDeletionPool.recoverBook(match, libraryPathEntity, fileSubPath, folderName, folderHash);
             log.info("[CREATE] Folder audiobook '{}' matched pending deletion, recovered book id={}",
                     folderName, match.book().bookId());
-            notificationService.sendMessageToPermissions(Topic.LOG,
-                    LogNotification.info("Finished processing folder audiobook: " + folderPath), Set.of(ADMIN, MANAGE_LIBRARY));
             return;
         }
 
@@ -231,9 +208,6 @@ public class BookFileTransactionalHandler {
             libraryProcessingService.processLibraryFiles(List.of(libraryFile), libraryEntity);
             log.info("[CREATE] Completed processing folder audiobook '{}'", folderPath);
         }
-
-        notificationService.sendMessageToPermissions(Topic.LOG,
-                LogNotification.info("Finished processing folder audiobook: " + folderPath), Set.of(ADMIN, MANAGE_LIBRARY));
     }
 
     private static final double FUZZY_MATCH_THRESHOLD = 0.85;

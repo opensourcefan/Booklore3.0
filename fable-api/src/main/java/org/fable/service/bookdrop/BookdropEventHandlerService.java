@@ -3,11 +3,7 @@ package org.fable.service.bookdrop;
 import org.fable.model.BookDropFileEvent;
 import org.fable.model.entity.BookdropFileEntity;
 import org.fable.model.enums.BookFileExtension;
-import org.fable.model.enums.PermissionType;
-import org.fable.model.websocket.LogNotification;
-import org.fable.model.websocket.Topic;
 import org.fable.repository.BookdropFileRepository;
-import org.fable.service.NotificationService;
 import org.fable.service.appsettings.AppSettingService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -21,7 +17,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.time.Instant;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -31,7 +26,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class BookdropEventHandlerService {
 
     private final BookdropFileRepository bookdropFileRepository;
-    private final NotificationService notificationService;
     private final BookdropNotificationService bookdropNotificationService;
     private final AppSettingService appSettingService;
     private final BookdropMetadataService bookdropMetadataService;
@@ -113,11 +107,6 @@ public class BookdropEventHandlerService {
                 log.info("Handling new bookdrop file: {}", file);
 
                 int queueSize = fileQueue.size();
-                notificationService.sendMessageToPermissions(
-                        Topic.LOG,
-                        LogNotification.info("Processing bookdrop file: " + fileName + " (" + queueSize + " files remaining)"),
-                        Set.of(PermissionType.ADMIN, PermissionType.MANAGE_LIBRARY)
-                );
 
                 BookdropFileEntity bookdropFileEntity = BookdropFileEntity.builder()
                         .filePath(filePath)
@@ -141,17 +130,7 @@ public class BookdropEventHandlerService {
                 bookdropNotificationService.sendBookdropFileSummaryNotification();
 
                 if (fileQueue.isEmpty()) {
-                    notificationService.sendMessageToPermissions(
-                            Topic.LOG,
-                            LogNotification.info("All bookdrop files have finished processing"),
-                            Set.of(PermissionType.ADMIN, PermissionType.MANAGE_LIBRARY)
-                    );
                 } else {
-                    notificationService.sendMessageToPermissions(
-                            Topic.LOG,
-                            LogNotification.info("Finished processing bookdrop file: " + fileName + " (" + fileQueue.size() + " files remaining)"),
-                            Set.of(PermissionType.ADMIN, PermissionType.MANAGE_LIBRARY)
-                    );
                 }
 
             } catch (Exception e) {

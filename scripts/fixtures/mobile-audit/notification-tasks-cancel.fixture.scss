@@ -1,0 +1,48 @@
+/* Phone Tasks cancel — required scroll/bounds contract (≤768 / 375×667). */
+.phone-viewport {
+  width: 375px;
+  max-height: 667px;
+}
+
+.mobile-notifications-popover {
+  max-width: calc(100vw - 1rem);
+  max-height: min(70vh, calc(100dvh - 5rem - env(safe-area-inset-bottom, 0px)));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.metadata-progress-box {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: inherit;
+  overflow: hidden;
+}
+
+.tasks-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.task-card {
+  padding: 0.65rem 0.75rem;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.cancel-task-btn {
+  touch-action: manipulation;
+  min-height: 44px;
+  min-width: 44px;
+}

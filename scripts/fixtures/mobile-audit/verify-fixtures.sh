@@ -85,6 +85,36 @@ else
   check "P-Keyboard.2 pattern absent on fixture page (no page-load autofocus)" "no"
 fi
 
+# --- Notification redesign (375×667) — Tasks cancel + failure inbox ---
+TASKS_HTML="$FIX_DIR/notification-tasks-cancel.fixture.html"
+TASKS_SCSS="$FIX_DIR/notification-tasks-cancel.fixture.scss"
+INBOX_HTML="$FIX_DIR/notification-inbox.fixture.html"
+INBOX_SCSS="$FIX_DIR/notification-inbox.fixture.scss"
+
+if [ -f "$TASKS_HTML" ] && grep -q 'pi-stop' "$TASKS_HTML" && grep -q 'cancel-task-btn\|Cancel' "$TASKS_HTML" && grep -q 'tasks-panel' "$TASKS_HTML"; then
+  check "N-Tasks.1 cancel control present (pi-stop in tasks-panel)" "yes"
+else
+  check "N-Tasks.1 cancel control present (pi-stop in tasks-panel)" "no"
+fi
+
+if [ -f "$TASKS_SCSS" ] && grep -q '375px' "$TASKS_SCSS" && grep -q 'overflow-y:\s*auto' "$TASKS_SCSS" && grep -q 'safe-area-inset-bottom' "$TASKS_SCSS" && grep -q 'min-height:\s*0' "$TASKS_SCSS"; then
+  check "N-Tasks.2 phone scroll/bounds contract (375 + overflow + safe-area)" "yes"
+else
+  check "N-Tasks.2 phone scroll/bounds contract (375 + overflow + safe-area)" "no"
+fi
+
+if [ -f "$INBOX_HTML" ] && grep -q 'notification-inbox' "$INBOX_HTML" && grep -q 'dismiss-all-btn' "$INBOX_HTML" && grep -q 'notification-message' "$INBOX_HTML" && ! grep -qiE 'innerHTML|\[innerHTML\]' "$INBOX_HTML"; then
+  check "N-Inbox.1 failure inbox + dismiss (text message, no innerHTML)" "yes"
+else
+  check "N-Inbox.1 failure inbox + dismiss (text message, no innerHTML)" "no"
+fi
+
+if [ -f "$INBOX_SCSS" ] && grep -q '375px' "$INBOX_SCSS" && grep -q 'overflow-y:\s*auto' "$INBOX_SCSS" && grep -q 'safe-area-inset-bottom' "$INBOX_SCSS"; then
+  check "N-Inbox.2 phone inbox scroll/bounds contract" "yes"
+else
+  check "N-Inbox.2 phone inbox scroll/bounds contract" "no"
+fi
+
 if [ "$FAIL" -gt 0 ]; then
   echo "Fixture verification FAILED ($FAIL)"
   exit 1

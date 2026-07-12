@@ -22,6 +22,9 @@
               @if (hasAiSearchScan$ | async) {
                 <app-ai-search-progress-widget/>
               }
+              @if (hasSystemJobs$ | async) {
+                <app-system-job-progress-widget/>
+              }
               @if (hasPendingBookdropFiles$ | async) {
                 <app-bookdrop-files-widget-component/>
               }

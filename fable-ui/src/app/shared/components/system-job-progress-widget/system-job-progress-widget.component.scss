@@ -1,0 +1,44 @@
+.system-jobs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.system-job-card {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--task-color-library, #0d9488) 35%, transparent);
+  border-radius: 0.5rem;
+  background: var(--card-background, transparent);
+
+  &[data-tone='metadata'] {
+    border-color: color-mix(in srgb, var(--task-color-metadata, #8b5cf6) 35%, transparent);
+  }
+
+  &[data-tone='write'] {
+    border-color: color-mix(in srgb, var(--task-color-metadata, #8b5cf6) 25%, transparent);
+  }
+}
+
+.system-job-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.system-job-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.system-job-summary {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-color-secondary, #94a3b8);
+  word-break: break-word;
+}
+
+:host ::ng-deep .system-job-bar {
+  margin-top: 0.45rem;
+  height: 0.35rem;
+}

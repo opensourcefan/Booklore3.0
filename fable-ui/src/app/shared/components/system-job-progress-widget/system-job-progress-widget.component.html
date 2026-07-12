@@ -1,0 +1,25 @@
+<div class="system-jobs" *transloco="let t; prefix: 'layout.topbar'">
+  @if (rows$ | async; as rows) {
+    @for (row of rows; track row.id) {
+      <div class="system-job-card" [attr.data-tone]="row.tone">
+        <div class="system-job-header">
+          <span class="system-job-label">{{ row.label }}</span>
+          @if (row.cancellable && row.taskId) {
+            <p-button
+              [label]="t('systemJobCancel')"
+              icon="pi pi-stop"
+              severity="danger"
+              size="small"
+              outlined
+              (onClick)="cancel(row)">
+            </p-button>
+          }
+        </div>
+        <p class="system-job-summary">{{ row.summary }}</p>
+        @if (row.progress !== null) {
+          <p-progressBar [value]="row.progress" [showValue]="false" styleClass="system-job-bar"/>
+        }
+      </div>
+    }
+  }
+</div>

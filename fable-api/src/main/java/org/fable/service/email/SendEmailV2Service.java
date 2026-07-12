@@ -9,13 +9,11 @@ import org.fable.model.entity.BookFileEntity;
 import org.fable.model.entity.EmailProviderV2Entity;
 import org.fable.model.entity.EmailRecipientV2Entity;
 import org.fable.model.entity.UserEmailProviderPreferenceEntity;
-import org.fable.model.websocket.LogNotification;
-import org.fable.model.websocket.Topic;
 import org.fable.repository.BookRepository;
 import org.fable.repository.EmailProviderV2Repository;
 import org.fable.repository.EmailRecipientV2Repository;
 import org.fable.repository.UserEmailProviderPreferenceRepository;
-import org.fable.service.NotificationService;
+import org.fable.service.FailureNotificationService;
 import org.fable.util.FileUtils;
 import org.fable.util.SecurityContextVirtualThread;
 import jakarta.mail.MessagingException;
@@ -42,7 +40,7 @@ public class SendEmailV2Service {
     private final UserEmailProviderPreferenceRepository preferenceRepository;
     private final BookRepository bookRepository;
     private final EmailRecipientV2Repository emailRecipientRepository;
-    private final NotificationService notificationService;
+    private final FailureNotificationService failureNotificationService;
     private final AuthenticationService authenticationService;
     private final AuditService auditService;
 
@@ -71,18 +69,16 @@ public class SendEmailV2Service {
     private void sendEmailInVirtualThread(EmailProviderV2Entity emailProvider, String recipientEmail, BookEntity book, BookFileEntity bookFile) {
         String bookTitle = book.getMetadata().getTitle();
         String logMessage = "Email dispatch initiated for book: " + bookTitle + " to " + recipientEmail;
-        notificationService.sendMessage(Topic.LOG, LogNotification.info(logMessage));
         log.info(logMessage);
         SecurityContextVirtualThread.runWithSecurityContext(() -> {
             try {
                 sendEmail(emailProvider, recipientEmail, book, bookFile);
                 auditService.log(AuditAction.BOOK_SENT, "Book", book.getId(), "Sent book: " + bookTitle + " to " + recipientEmail);
                 String successMessage = "The book: " + bookTitle + " has been successfully sent to " + recipientEmail;
-                notificationService.sendMessage(Topic.LOG, LogNotification.info(successMessage));
                 log.info(successMessage);
             } catch (Exception e) {
                 String userMessage = "Failed to send book: " + bookTitle + " to " + recipientEmail + ". " + extractUserFriendlyMessage(e);
-                notificationService.sendMessage(Topic.LOG, LogNotification.error(userMessage));
+                failureNotificationService.reportError(userMessage);
                 log.error("Email send failed for book '{}' to {}: {}", bookTitle, recipientEmail, e.getMessage(), e);
             }
         });

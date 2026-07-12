@@ -7,12 +7,12 @@ import org.fable.model.entity.BookFileEntity;
 import org.fable.model.entity.LibraryEntity;
 import org.fable.model.entity.LibraryPathEntity;
 import org.fable.model.enums.TaskType;
-import org.fable.model.websocket.LogNotification;
 import org.fable.model.websocket.TaskProgressPayload;
 import org.fable.model.websocket.Topic;
 import org.fable.repository.BookAdditionalFileRepository;
 import org.fable.repository.BookRepository;
 import org.fable.repository.LibraryRepository;
+import org.fable.service.FailureNotificationService;
 import org.fable.service.NotificationService;
 import org.fable.service.book.PhysicalBookService;
 import org.fable.service.file.FileFingerprint;
@@ -47,6 +47,7 @@ public class LibraryProcessingService {
     private final LibraryRepository libraryRepository;
     private final BookRepository bookRepository;
     private final NotificationService notificationService;
+    private final FailureNotificationService failureNotificationService;
     private final BookAdditionalFileRepository bookAdditionalFileRepository;
     private final FileAsBookProcessor fileAsBookProcessor;
     private final BookRestorationService bookRestorationService;
@@ -61,17 +62,15 @@ public class LibraryProcessingService {
     @Transactional
     public void processLibrary(long libraryId) {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
-        notificationService.sendMessage(Topic.LOG, LogNotification.info("Started processing library: " + libraryEntity.getName()));
         try {
             physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
             List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity);
             int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
-
             String dirNames = getDirectoryNames(libraryEntity.getLibraryPaths());
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("<strong>" + importedCount + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
+            log.info("{} assets imported from {} to {}", importedCount, dirNames, libraryEntity.getName());
         } catch (IOException e) {
             log.error("Failed to process library {}: {}", libraryEntity.getName(), e.getMessage(), e);
-            notificationService.sendMessage(Topic.LOG, LogNotification.error("Failed to process library: " + libraryEntity.getName() + " - " + e.getMessage()));
+            failureNotificationService.reportError("Failed to process library: " + libraryEntity.getName() + " - " + e.getMessage());
             throw new UncheckedIOException("Library processing failed", e);
         }
     }
@@ -87,17 +86,15 @@ public class LibraryProcessingService {
             log.info("No matching new library paths found for library {}", libraryId);
             return;
         }
-
-        notificationService.sendMessage(Topic.LOG, LogNotification.info("Started processing new library path(s) for: " + libraryEntity.getName()));
         try {
             physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, pathEntities);
             List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity, pathEntities);
             int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
             String dirNames = getDirectoryNames(pathEntities);
-            notificationService.sendMessage(Topic.LOG, LogNotification.info("<strong>" + importedCount + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
+            log.info("{} assets imported from {} to {}", importedCount, dirNames, libraryEntity.getName());
         } catch (IOException e) {
             log.error("Failed to process new library paths for {}: {}", libraryEntity.getName(), e.getMessage(), e);
-            notificationService.sendMessage(Topic.LOG, LogNotification.error("Failed to process new library path(s): " + libraryEntity.getName() + " - " + e.getMessage()));
+            failureNotificationService.reportError("Failed to process new library path(s): " + libraryEntity.getName() + " - " + e.getMessage());
             throw new UncheckedIOException("Library path processing failed", e);
         }
     }
@@ -115,40 +112,31 @@ public class LibraryProcessingService {
             log.info("No matching library paths found for explicit scan in library {}", libraryId);
             return;
         }
-
-        notificationService.sendMessage(Topic.LOG,
-                LogNotification.info("Started scanning selected library directories for new files: " + libraryEntity.getName()));
         validateLibraryPathsAccessible(pathEntities);
         physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, pathEntities);
 
         List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity, pathEntities);
         int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
         String dirNames = getDirectoryNames(pathEntities);
-
-        notificationService.sendMessage(Topic.LOG,
-                LogNotification.info("<strong>" + importedCount + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
+        log.info("{} assets imported from {} to {}", importedCount, dirNames, libraryEntity.getName());
     }
 
     @Transactional
     public void scanLibraryForNewFiles(long libraryId) throws IOException {
         LibraryEntity libraryEntity = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(libraryId));
-
-        notificationService.sendMessage(Topic.LOG, LogNotification.info("Started scanning library for new files: " + libraryEntity.getName()));
         validateLibraryPathsAccessible(libraryEntity.getLibraryPaths());
         physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
 
         List<LibraryFile> libraryFiles = libraryFileHelper.getLibraryFiles(libraryEntity);
         int importedCount = importLibraryFiles(libraryEntity, libraryFiles);
         String dirNames = getDirectoryNames(libraryEntity.getLibraryPaths());
-
-        notificationService.sendMessage(Topic.LOG, LogNotification.info("<strong>" + importedCount + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
+        log.info("{} assets imported from {} to {}", importedCount, dirNames, libraryEntity.getName());
     }
 
     @Transactional
     public void rescanLibrary(RescanLibraryContext context) throws IOException {
         LibraryEntity libraryEntity = libraryRepository.findById(context.getLibraryId()).orElseThrow(() -> ApiError.LIBRARY_NOT_FOUND.createException(context.getLibraryId()));
-        notificationService.sendMessage(Topic.LOG, LogNotification.info("Started refreshing library: " + libraryEntity.getName()));
 
         validateLibraryPathsAccessible(libraryEntity.getLibraryPaths());
         physicalBookService.importPhysicalBooksFromSidecars(libraryEntity, libraryEntity.getLibraryPaths());
@@ -218,7 +206,7 @@ public class LibraryProcessingService {
         scheduleLibraryDirectoryTaggingIfEnabled(libraryEntity);
 
         String dirNames = getDirectoryNames(libraryEntity.getLibraryPaths());
-        notificationService.sendMessage(Topic.LOG, LogNotification.info("<strong>" + total + "</strong> assets imported from <strong>" + dirNames + "</strong> to <strong>" + libraryEntity.getName() + "</strong>."));
+        log.info("{} assets imported from {} to {}", total, dirNames, libraryEntity.getName());
     }
 
     public void processLibraryFiles(List<LibraryFile> libraryFiles, LibraryEntity libraryEntity) {
