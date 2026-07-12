@@ -65,6 +65,10 @@
 #     must focus the query field on open (onShow → focusInput / .focus()).
 #   - P-Keyboard.2: no HTML autofocus on routed page hosts (page-load OSK).
 #   - P-Keyboard.3: same search overlays must blur on close (blurInput / .blur()).
+#   - Rule 5.2: dialog-ish p-select / autocomplete / etc. missing appendTo="body"
+#     (delegates to scripts/audit-overlay-scroll.py --mode mobile). Fix is the
+#     shared appendTo attribute — do NOT invent mobile-only layout changes.
+#     Desktop/general scan remains: ./scripts/audit-overlay-scroll.sh
 #
 # FIXTURES
 #   - scripts/fixtures/mobile-audit/ — golden broken page patterns for P0/P1.
@@ -95,6 +99,7 @@
 #   4.2  Footer/fixed-bottom chrome missing safe-area-inset-bottom
 #   4.3  flex-direction: column in footer media queries
 #   5.4  Top/Bottom header mode layout positioning conflicts
+#   5.2  Dialog overlay controls missing appendTo="body" (mobile scroll clip)
 #   5.5  Mobile popover boundary bounds check
 #   6.1  Invalid CSS: justify-content: stretch
 #   10.1 Direct DialogService.open usage (bypasses back gesture)
@@ -876,6 +881,38 @@ while IFS= read -r -d '' file; do
         print NR":"$0
     }' "$file" 2>/dev/null)
 done < <(find "$UI_DIR" -name "*.scss" -print0)
+
+# =============================================================================
+# Rule 5.2: Dialog overlay controls missing appendTo="body"
+# =============================================================================
+# Mobile ruleset §5.2 — p-select and similar overlays MUST use appendTo="body"
+# so option lists are not clipped / scroll-fight inside fullscreen dialogs.
+# Desktop/general sibling: scripts/audit-overlay-scroll.sh (default mode).
+# This rule only ingests --mode mobile (high-priority dialog-ish hits).
+# =============================================================================
+section "Rule 5.2 — Dialog overlays missing appendTo=body" "P0"
+
+OVERLAY_AUDIT_PY="$SCRIPT_DIR/audit-overlay-scroll.py"
+if [ ! -f "$OVERLAY_AUDIT_PY" ]; then
+    warn "$OVERLAY_AUDIT_PY — missing; cannot enforce Rule 5.2 (install scripts/audit-overlay-scroll.py)" "other"
+else
+    overlay_json=$(python3 "$OVERLAY_AUDIT_PY" --mode mobile --json --no-report 2>/dev/null || true)
+    if [ -z "$overlay_json" ]; then
+        warn "$OVERLAY_AUDIT_PY — failed to produce JSON for Rule 5.2" "other"
+    else
+        while IFS=$'\t' read -r file line tag; do
+            [ -z "$file" ] && continue
+            abs="$PROJECT_DIR/$file"
+            SCANNED_FILES["$abs"]=1
+            warn "$abs:$line — <$tag> missing appendTo=\"body\" (dialog overlay will clip/fight scroll on mobile; ruleset §5.2)" "$(surface_for "$abs")"
+        done < <(printf '%s' "$overlay_json" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for hit in data.get('findings', []):
+    print(f\"{hit['file']}\t{hit['line']}\t{hit['tag']}\")
+")
+    fi
+fi
 
 # =============================================================================
 # Rule 5.5: Mobile popover boundary bounds check

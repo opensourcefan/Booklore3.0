@@ -85,6 +85,28 @@ else
   check "P-Keyboard.2 pattern absent on fixture page (no page-load autofocus)" "no"
 fi
 
+# Rule 5.2 — dialog-hosted overlay without appendTo
+if grep -qE '<p-dialog\b' "$HTML" && grep -qE '<p-select\b' "$HTML" && ! grep -qE 'appendTo' "$HTML"; then
+  check "Rule 5.2 pattern present (dialog p-select missing appendTo)" "yes"
+else
+  check "Rule 5.2 pattern present (dialog p-select missing appendTo)" "no"
+fi
+
+# Rule 5.2 — mobile-mode auditor catches the fixture when pointed at fixtures dir
+OVERLAY_PY="$(cd "$FIX_DIR/../.." && pwd)/audit-overlay-scroll.py"
+if [ -f "$OVERLAY_PY" ]; then
+  FIX_HITS=$(python3 "$OVERLAY_PY" --src "$FIX_DIR" --mode mobile --json --no-report 2>/dev/null \
+    | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(1 for h in d.get('findings',[]) if 'p-select' in h.get('tag','').lower()))" \
+    || echo 0)
+  if [ "$FIX_HITS" -ge 1 ]; then
+    check "Rule 5.2 auditor flags fixture p-select in mobile mode" "yes"
+  else
+    check "Rule 5.2 auditor flags fixture p-select in mobile mode" "no"
+  fi
+else
+  check "Rule 5.2 auditor flags fixture p-select in mobile mode" "no"
+fi
+
 # --- Notification redesign (375×667) — Tasks cancel + failure inbox ---
 TASKS_HTML="$FIX_DIR/notification-tasks-cancel.fixture.html"
 TASKS_SCSS="$FIX_DIR/notification-tasks-cancel.fixture.scss"

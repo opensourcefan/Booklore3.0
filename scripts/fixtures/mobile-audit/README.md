@@ -9,6 +9,10 @@ redesign contracts for phone (375×667).
 Remediation of real app findings must stay **mobile-only**
 (`@media (max-width: 768px)`); never change desktop to silence the audit.
 
+Exception: Rule 5.2 (`appendTo="body"`) is a shared template attribute — it does
+not change desktop layout CSS. Dialog overlay portal fixes are still audited
+separately for desktop via `scripts/audit-overlay-scroll.sh`.
+
 ## Notification fixtures (Round 5)
 
 | File | Contract |

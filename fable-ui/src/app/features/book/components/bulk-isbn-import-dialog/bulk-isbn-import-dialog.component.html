@@ -36,6 +36,8 @@
           optionLabel="name"
           optionValue="id"
           [placeholder]="t('libraryPlaceholder')"
+          appendTo="body"
+          scrollHeight="280px"
           [style]="{'width': '100%'}"/>
       </div>
 
@@ -52,6 +54,8 @@
           optionLabel="path"
           optionValue="id"
           [placeholder]="t('libraryPathPlaceholder')"
+          appendTo="body"
+          scrollHeight="280px"
           [style]="{'width': '100%'}"
           [disabled]="!selectedLibraryId || availableLibraryPaths.length === 0"/>
       </div>
