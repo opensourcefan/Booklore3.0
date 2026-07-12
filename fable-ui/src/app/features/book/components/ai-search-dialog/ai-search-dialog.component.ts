@@ -66,11 +66,6 @@ export class AiSearchDialogService {
   cachedVisible = false;
   cachedLocalOnly = false;
 
-  private toastError(summary: string, detail: string, life = 3000): void {
-    this.messageService.add({severity: 'error', summary, detail, life});
-    this.failureNotifications.reportSafe(summary, detail);
-  }
-
   constructor() {
     this.loadFromStorage();
   }
@@ -167,6 +162,11 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private failureNotifications = inject(FailureNotificationService);
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   private aiSearchDialogService = inject(AiSearchDialogService);
   public mobileUx = inject(MobileUxService);
