@@ -10,6 +10,7 @@ import {Slider, SliderChangeEvent} from 'primeng/slider';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {Tooltip} from 'primeng/tooltip';
 import {MenuItem, MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {SelectButton} from 'primeng/selectbutton';
 import {Menu} from 'primeng/menu';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
@@ -55,6 +56,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
   private route = inject(ActivatedRoute);
   private location = inject(Location);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private audiobookSessionService = inject(AudiobookSessionService);
   private writeProgressService = inject(WriteProgressService);
   private pageTitle = inject(PageTitleService);
@@ -223,11 +225,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
         this.loadBookDetails(info);
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('readerAudiobook.toast.loadFailed')
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('readerAudiobook.toast.loadFailed'));
         this.isLoading = false;
         this.audioLoading = false;
       }
@@ -399,11 +397,7 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
 
   onAudioError(): void {
     this.audioLoading = false;
-    this.messageService.add({
-      severity: 'error',
-      summary: this.t.translate('common.error'),
-      detail: this.t.translate('readerAudiobook.toast.audioLoadFailed')
-    });
+    this.toastError(this.t.translate('common.error'), this.t.translate('readerAudiobook.toast.audioLoadFailed'));
   }
 
   private setupMediaSession(): void {
@@ -1150,5 +1144,10 @@ export class AudiobookPlayerComponent implements OnInit, OnDestroy, DoCheck {
       return this.formatTime(bookmark.positionMs / 1000);
     }
     return '';
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

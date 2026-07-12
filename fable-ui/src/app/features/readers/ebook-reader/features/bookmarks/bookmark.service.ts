@@ -3,6 +3,7 @@ import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
 import {BookMarkService} from '../../../../../shared/service/book-mark.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {TranslocoService} from '@jsverse/transloco';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class ReaderBookmarkService {
 
   private bookMarkService = inject(BookMarkService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
 
 
@@ -41,19 +43,18 @@ export class ReaderBookmarkService {
       }),
       catchError(error => {
         const isDuplicate = error?.status === 409;
-        this.messageService.add(
-          isDuplicate
-            ? {
-              severity: 'warn',
-              summary: this.t.translate('readerEbook.toast.bookmarkExistsSummary'),
-              detail: this.t.translate('readerEbook.toast.bookmarkExistsDetail')
-            }
-            : {
-              severity: 'error',
-              summary: this.t.translate('readerEbook.toast.bookmarkFailedSummary'),
-              detail: this.t.translate('readerEbook.toast.bookmarkFailedDetail')
-            }
-        );
+        if (isDuplicate) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: this.t.translate('readerEbook.toast.bookmarkExistsSummary'),
+            detail: this.t.translate('readerEbook.toast.bookmarkExistsDetail')
+          });
+        } else {
+          this.toastError(
+            this.t.translate('readerEbook.toast.bookmarkFailedSummary'),
+            this.t.translate('readerEbook.toast.bookmarkFailedDetail')
+          );
+        }
         return of(false);
       })
     );
@@ -62,5 +63,10 @@ export class ReaderBookmarkService {
   reset(): void {
     this.currentCFI = null;
     this.currentChapterName = null;
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

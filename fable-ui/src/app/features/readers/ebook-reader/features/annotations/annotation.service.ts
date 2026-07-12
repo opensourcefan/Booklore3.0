@@ -2,6 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {
   Annotation,
@@ -15,6 +16,7 @@ import {Annotation as ViewAnnotation, ReaderAnnotationService} from './annotatio
 export class ReaderAnnotationHttpService {
   private annotationService = inject(AnnotationService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
   private readerAnnotationService = inject(ReaderAnnotationService);
 
@@ -52,19 +54,18 @@ export class ReaderAnnotationHttpService {
       }),
       catchError(error => {
         const isDuplicate = error?.status === 409;
-        this.messageService.add(
-          isDuplicate
-            ? {
-              severity: 'warn',
-              summary: this.t.translate('readerEbook.toast.highlightExistsSummary'),
-              detail: this.t.translate('readerEbook.toast.highlightExistsDetail')
-            }
-            : {
-              severity: 'error',
-              summary: this.t.translate('readerEbook.toast.highlightFailedSummary'),
-              detail: this.t.translate('readerEbook.toast.highlightFailedDetail')
-            }
-        );
+        if (isDuplicate) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: this.t.translate('readerEbook.toast.highlightExistsSummary'),
+            detail: this.t.translate('readerEbook.toast.highlightExistsDetail')
+          });
+        } else {
+          this.toastError(
+            this.t.translate('readerEbook.toast.highlightFailedSummary'),
+            this.t.translate('readerEbook.toast.highlightFailedDetail')
+          );
+        }
         return of(null);
       })
     );
@@ -89,11 +90,7 @@ export class ReaderAnnotationHttpService {
         return true;
       }),
       catchError(() => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('readerEbook.toast.highlightRemoveFailedSummary'),
-          detail: this.t.translate('readerEbook.toast.highlightRemoveFailedDetail')
-        });
+        this.toastError(this.t.translate('readerEbook.toast.highlightRemoveFailedSummary'), this.t.translate('readerEbook.toast.highlightRemoveFailedDetail'));
         return of(false);
       })
     );
@@ -109,11 +106,7 @@ export class ReaderAnnotationHttpService {
         });
       }),
       catchError(() => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('readerEbook.toast.noteAnnotationUpdateFailedSummary'),
-          detail: this.t.translate('readerEbook.toast.noteAnnotationUpdateFailedDetail')
-        });
+        this.toastError(this.t.translate('readerEbook.toast.noteAnnotationUpdateFailedSummary'), this.t.translate('readerEbook.toast.noteAnnotationUpdateFailedDetail'));
         return of(null);
       })
     );
@@ -130,5 +123,10 @@ export class ReaderAnnotationHttpService {
   reset(): void {
     this.currentChapterTitle = null;
     this.readerAnnotationService.resetAnnotations();
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

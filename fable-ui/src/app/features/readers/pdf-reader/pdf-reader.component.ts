@@ -15,6 +15,7 @@ import {BookMarkService, BookMark, CreateBookMarkRequest} from '../../../shared/
 
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {TranslocoService, TranslocoPipe} from '@jsverse/transloco';
 import {ReadingSessionService} from '../../../shared/service/reading-session.service';
 import {WriteProgressService} from '../../../shared/service/write-progress.service';
@@ -66,6 +67,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private authService = inject(AuthService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private route = inject(ActivatedRoute);
   private pageTitle = inject(PageTitleService);
   private readingSessionService = inject(ReadingSessionService);
@@ -129,7 +131,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
           this.loadBookmarks();
         },
         error: () => {
-          this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('readerPdf.toast.failedToLoadBook')});
+          this.toastError(this.t.translate('common.error'), this.t.translate('readerPdf.toast.failedToLoadBook'));
           this.isLoading = false;
         }
       });
@@ -254,7 +256,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
         this.loadBookmarks();
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: this.t.translate('readerPdf.toast.bookmarkFailed'), life: 3000});
+        this.toastError(this.t.translate('readerPdf.toast.bookmarkFailed'), this.t.translate('readerPdf.toast.bookmarkFailed'), 3000);
       }
     });
   }
@@ -274,7 +276,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
           this.loadBookmarks();
         },
         error: () => {
-          this.messageService.add({severity: 'error', summary: this.t.translate('readerPdf.toast.bookmarkFailed'), life: 3000});
+          this.toastError(this.t.translate('readerPdf.toast.bookmarkFailed'), this.t.translate('readerPdf.toast.bookmarkFailed'), 3000);
         }
       });
     }
@@ -379,5 +381,10 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

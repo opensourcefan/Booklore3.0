@@ -8,6 +8,7 @@ import {CbxReaderService} from '../../book/service/cbx-reader.service';
 import {BookService} from '../../book/service/book.service';
 import {CbxBackgroundColor, CbxFitMode, CbxMagnifierLensSize, CbxMagnifierZoom, CbxPageSpread, CbxPageViewMode, CbxScrollMode, CbxReadingDirection, CbxSlideshowInterval, UserService} from '../../settings/user-management/user.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {TranslocoService, TranslocoPipe} from '@jsverse/transloco';
 import {Book, BookSetting, BookType} from '../../book/model/book.model';
 import {BookState} from '../../book/model/state/book-state.model';
@@ -268,6 +269,7 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
   private bookService = inject(BookService);
   private userService = inject(UserService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
   private pageTitle = inject(PageTitleService);
   private readingSessionService = inject(ReadingSessionService);
@@ -454,14 +456,14 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
             },
             error: (err) => {
               const errorMessage = err?.error?.message || this.t.translate('shared.reader.failedToLoadPages');
-              this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: errorMessage});
+              this.toastError(this.t.translate('common.error'), errorMessage);
               this.isLoading = false;
             }
           });
         },
         error: (err) => {
           const errorMessage = err?.error?.message || this.t.translate('shared.reader.failedToLoadBook');
-          this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: errorMessage});
+          this.toastError(this.t.translate('common.error'), errorMessage);
           this.isLoading = false;
         }
       });
@@ -3150,5 +3152,10 @@ export class CbxReaderComponent implements OnInit, OnDestroy, DoCheck {
     this.showNoteDialog = false;
     this.noteDialogData = null;
     this.editingNote = null;
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }

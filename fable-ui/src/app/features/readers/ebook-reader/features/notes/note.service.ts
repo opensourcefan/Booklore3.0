@@ -2,6 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {BookNoteV2Service, CreateBookNoteV2Request, UpdateBookNoteV2Request} from '../../../../../shared/service/book-note-v2.service';
 import {NoteDialogData, NoteDialogResult} from '../../dialogs/note-dialog.component';
@@ -19,6 +20,7 @@ export interface NoteDialogState {
 export class ReaderNoteService {
   private bookNoteV2Service = inject(BookNoteV2Service);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
   private selectionService = inject(ReaderSelectionService);
   private progressService = inject(ReaderProgressService);
@@ -117,11 +119,7 @@ export class ReaderNoteService {
           });
         },
         error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('readerEbook.toast.saveFailedSummary'),
-            detail: this.t.translate('readerEbook.toast.saveFailedDetail')
-          });
+          this.toastError(this.t.translate('readerEbook.toast.saveFailedSummary'), this.t.translate('readerEbook.toast.saveFailedDetail'));
         }
       });
   }
@@ -145,11 +143,7 @@ export class ReaderNoteService {
           });
         },
         error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('readerEbook.toast.updateFailedSummary'),
-            detail: this.t.translate('readerEbook.toast.updateFailedDetail')
-          });
+          this.toastError(this.t.translate('readerEbook.toast.updateFailedSummary'), this.t.translate('readerEbook.toast.updateFailedDetail'));
         }
       });
   }
@@ -166,5 +160,10 @@ export class ReaderNoteService {
       visible: false,
       data: null
     });
+  }
+
+  private toastError(summary: string, detail: string, life?: number): void {
+    this.failureNotifications.reportSafe(summary, detail);
+    this.messageService.add({severity: 'error', summary, detail, ...(life != null ? {life} : {})});
   }
 }
