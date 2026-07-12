@@ -21,6 +21,7 @@ import mysql.connector.pooling
 import numpy as np
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+from vector_codec import pack_embedding
 from sentence_transformers import SentenceTransformer
 
 logging.basicConfig(
@@ -857,13 +858,46 @@ def embed_book(payload: dict[str, Any]) -> dict[str, Any]:
 
             vector = _compute_embedding(chunk_text)
             vector_json = json.dumps(vector)
+            vector_blob = pack_embedding(vector)
 
-            cursor.execute(
-                """INSERT INTO book_embeddings
-                   (book_id, user_id, chunk_index, chunk_text, embedding_vector, page_number, chapter_title, embedding_model)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                (book_id, user_id, start_idx + i, chunk_text, vector_json, page_number, chapter_title, EMBEDDING_MODEL_NAME),
-            )
+            try:
+                cursor.execute(
+                    """INSERT INTO book_embeddings
+                       (book_id, user_id, chunk_index, chunk_text, embedding_vector, embedding_blob,
+                        page_number, chapter_title, embedding_model)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (
+                        book_id,
+                        user_id,
+                        start_idx + i,
+                        chunk_text,
+                        vector_json,
+                        vector_blob,
+                        page_number,
+                        chapter_title,
+                        EMBEDDING_MODEL_NAME,
+                    ),
+                )
+            except Exception as insert_exc:
+                err = str(insert_exc).lower()
+                if "embedding_blob" not in err and "unknown column" not in err:
+                    raise
+                # Rolling upgrade before Flyway V159: column may not exist yet.
+                cursor.execute(
+                    """INSERT INTO book_embeddings
+                       (book_id, user_id, chunk_index, chunk_text, embedding_vector, page_number, chapter_title, embedding_model)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (
+                        book_id,
+                        user_id,
+                        start_idx + i,
+                        chunk_text,
+                        vector_json,
+                        page_number,
+                        chapter_title,
+                        EMBEDDING_MODEL_NAME,
+                    ),
+                )
             with _active_embed_jobs_lock:
                 _active_embed_jobs[job_id]["completedChunks"] = i + 1
 

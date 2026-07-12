@@ -49,6 +49,16 @@ AI_SEARCH_LLM_MAX_TOKENS=768
 AI_SEARCH_LLM_TEMPERATURE=0.1
 ```
 
+## Retrieval performance (no re-embed)
+
+AI Search stores a binary `embedding_blob` alongside the existing JSON `embedding_vector`.
+Search scores vectors with a vectorized (numpy) pass over the whole corpus/scope, then loads
+passage text only for the top candidates. Existing embeddings are backfilled to blob form
+lazily on search — **you do not need to re-embed** your library for this optimization.
+
+> Native MariaDB `VECTOR` indexes require MariaDB 11.7+ (Community). Fable’s documented
+> MariaDB 11.4 image stays compatible via the blob + numpy path.
+
 ## Optional Shared Secret (Java ↔ AI Search sidecar)
 
 By default the AI Search container trusts the Docker network (optional install). To lock down `/v1/*` endpoints, set the **same** value on both the Fable API and the AI Search service:
