@@ -4,6 +4,7 @@ import {FormsModule} from '@angular/forms';
 
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
 import {Divider} from 'primeng/divider';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
@@ -26,6 +27,7 @@ export class LockUnlockMetadataDialogComponent implements OnInit {
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   dialogRef = inject(DynamicDialogRef);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private writeProgressService = inject(WriteProgressService);
   private readonly t = inject(TranslocoService);
   fieldLocks: Record<string, boolean | undefined> = {};
@@ -77,6 +79,11 @@ export class LockUnlockMetadataDialogComponent implements OnInit {
   };
 
   isSaving = false;
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.lockableFields.forEach(field => this.fieldLocks[field] = undefined);
@@ -143,11 +150,7 @@ export class LockUnlockMetadataDialogComponent implements OnInit {
         error: () => {
           this.isSaving = false;
           this.writeProgressService.fail(this.t.translate('book.lockUnlockDialog.toast.failedSummary'));
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('book.lockUnlockDialog.toast.failedSummary'),
-            detail: this.t.translate('book.lockUnlockDialog.toast.failedDetail')
-          });
+          this.toastError(this.t.translate('book.lockUnlockDialog.toast.failedSummary'), this.t.translate('book.lockUnlockDialog.toast.failedDetail'), 3000);
         }
       });
   }

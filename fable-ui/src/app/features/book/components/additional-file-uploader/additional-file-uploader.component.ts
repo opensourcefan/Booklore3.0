@@ -12,6 +12,7 @@ import {BookFileService} from '../../service/book-file.service';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 import {AdditionalFileType, Book} from '../../model/book.model';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {filter, take} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 
@@ -48,6 +49,7 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
   private bookFileService = inject(BookFileService);
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private cdr = inject(ChangeDetectorRef);
 
   book!: Book;
@@ -63,6 +65,11 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
 
   @ViewChild(FileUpload) private fileUpload!: FileUpload;
   private destroy$ = new Subject<void>();
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.book = this.config.data.book;
@@ -133,12 +140,7 @@ export class AdditionalFileUploaderComponent implements OnInit, OnDestroy {
           status: 'Failed',
           errorMessage: errorMsg
         }];
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('book.fileUploader.toast.fileTooLargeSummary'),
-          detail: this.t.translate('book.fileUploader.toast.fileTooLargeDetail', { fileName: file.name, maxSize }),
-          life: 5000
-        });
+        this.toastError(this.t.translate('book.fileUploader.toast.fileTooLargeSummary'), this.t.translate('book.fileUploader.toast.fileTooLargeDetail', { fileName: file.name, maxSize }), 5000);
       } else {
         this.files = [{
           file,

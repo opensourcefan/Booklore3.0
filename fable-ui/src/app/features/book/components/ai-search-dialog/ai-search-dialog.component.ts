@@ -13,6 +13,7 @@ import {BehaviorSubject, Subscription, Subject} from 'rxjs';
 import {TooltipModule} from 'primeng/tooltip';
 import {Popover} from 'primeng/popover';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {BookNoteService, CreateBookNoteV2Request} from '../../../../shared/service/book-note.service';
 import {v4 as uuidv4} from 'uuid';
 import {BookService} from '../../service/book.service';
@@ -64,6 +65,11 @@ export class AiSearchDialogService {
   cachedScopeBooks: { id: number; title: string }[] = [];
   cachedVisible = false;
   cachedLocalOnly = false;
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   constructor() {
     this.loadFromStorage();
@@ -159,6 +165,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
   private readonly t = inject(TranslocoService);
   private bookNoteService = inject(BookNoteService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
 
   private aiSearchDialogService = inject(AiSearchDialogService);
@@ -485,11 +492,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Failed to save to notepad:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('Save Failed'),
-          detail: this.t.translate('Failed to save to notepad.')
-        });
+        this.toastError(this.t.translate('Save Failed'), this.t.translate('Failed to save to notepad.'), 3000);
       }
     });
   }
@@ -540,11 +543,7 @@ export class AiSearchDialogComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Failed to save answer to notepad:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('Save Failed'),
-          detail: this.t.translate('Failed to save answer to notepad.')
-        });
+        this.toastError(this.t.translate('Save Failed'), this.t.translate('Failed to save answer to notepad.'), 3000);
       }
     });
   }

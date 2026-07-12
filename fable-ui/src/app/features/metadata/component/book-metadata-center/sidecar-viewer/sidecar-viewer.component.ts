@@ -4,6 +4,7 @@ import {filter, takeUntil} from 'rxjs/operators';
 import {Book} from '../../../../book/model/book.model';
 import {SidecarMetadata, SidecarService, SidecarSyncStatus} from '../../../service/sidecar.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {Button} from 'primeng/button';
 import {Tag} from 'primeng/tag';
 import {Tooltip} from 'primeng/tooltip';
@@ -22,6 +23,7 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
 
   private sidecarService = inject(SidecarService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
   private destroy$ = new Subject<void>();
 
@@ -32,6 +34,11 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
   importing = false;
   currentBookId: number | null = null;
   error: string | null = null;
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.book$.pipe(
@@ -104,11 +111,7 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
         this.exporting = false;
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.sidecar.toast.exportFailedSummary'),
-          detail: this.t.translate('metadata.sidecar.toast.exportFailedDetail')
-        });
+        this.toastError(this.t.translate('metadata.sidecar.toast.exportFailedSummary'), this.t.translate('metadata.sidecar.toast.exportFailedDetail'), 3000);
         this.exporting = false;
         console.error('Export failed:', err);
       }
@@ -132,11 +135,7 @@ export class SidecarViewerComponent implements OnInit, OnDestroy {
         this.importing = false;
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.sidecar.toast.importFailedSummary'),
-          detail: this.t.translate('metadata.sidecar.toast.importFailedDetail')
-        });
+        this.toastError(this.t.translate('metadata.sidecar.toast.importFailedSummary'), this.t.translate('metadata.sidecar.toast.importFailedDetail'), 3000);
         this.importing = false;
         console.error('Import failed:', err);
       }

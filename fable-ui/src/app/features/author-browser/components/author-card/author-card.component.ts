@@ -7,6 +7,7 @@ import {FormsModule} from '@angular/forms';
 import {TieredMenu} from 'primeng/tieredmenu';
 import {Button} from 'primeng/button';
 import {MenuItem, MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {AuthorSummary} from '../../model/author.model';
 import {AuthorService} from '../../service/author.service';
 
@@ -37,6 +38,7 @@ export class AuthorCardComponent implements OnChanges {
 
   private authorService = inject(AuthorService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private t = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
   private lastShiftKey = false;
@@ -174,12 +176,13 @@ export class AuthorCardComponent implements OnChanges {
       },
       error: () => {
         this.quickMatching = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('authorBrowser.toast.quickMatchFailedSummary'),
-          detail: this.t.translate('authorBrowser.toast.quickMatchFailedDetail')
-        });
+        this.toastError(this.t.translate('authorBrowser.toast.quickMatchFailedSummary'), this.t.translate('authorBrowser.toast.quickMatchFailedDetail'), 3000);
       }
     });
   }
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
+
 }

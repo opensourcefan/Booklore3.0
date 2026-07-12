@@ -5,6 +5,7 @@ import {InputText} from 'primeng/inputtext';
 import {FormsModule} from '@angular/forms';
 import {BookService} from '../../service/book.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {BookDialogHelperService} from '../book-browser/book-dialog-helper.service';
 import {catchError, finalize, map, of} from 'rxjs';
 import {MediaTypePreferencesService} from '../../service/media-type-preferences.service';
@@ -22,6 +23,7 @@ export class MediaTypeManagerComponent implements OnInit {
   private dynamicDialogRef = inject(DynamicDialogRef);
   private bookService = inject(BookService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private bookDialogHelperService = inject(BookDialogHelperService);
   private mediaTypePreferences = inject(MediaTypePreferencesService);
 
@@ -32,6 +34,11 @@ export class MediaTypeManagerComponent implements OnInit {
   changed = false;
   renamed: RenameRecord[] = [];
   deleted: string[] = [];
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.mediaTypes = this.getAllDisplayTypes();
@@ -139,7 +146,7 @@ export class MediaTypeManagerComponent implements OnInit {
     return this.bookService.updateFileType(ids, next).pipe(
       map(() => true),
       catchError(() => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to rename Media Type.'});
+        this.toastError('Error', 'Failed to rename Media Type.', 3000);
         return of(false);
       })
     );
@@ -160,7 +167,7 @@ export class MediaTypeManagerComponent implements OnInit {
     return this.bookService.updateFileType(ids, null).pipe(
       map(() => true),
       catchError(() => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete Media Type.'});
+        this.toastError('Error', 'Failed to delete Media Type.', 3000);
         return of(false);
       })
     );

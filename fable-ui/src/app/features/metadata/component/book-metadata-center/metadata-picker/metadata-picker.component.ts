@@ -1,6 +1,7 @@
 import {Component, ChangeDetectorRef, DestroyRef, EventEmitter, HostListener, inject, Input, OnInit, Output} from '@angular/core';
 import {Book, BookMetadata, ComicMetadata, MetadataClearFlags, MetadataUpdateWrapper} from '../../../../book/model/book.model';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {CdkDragDrop, CdkDropList, CdkDrag, moveItemInArray} from '@angular/cdk/drag-drop';
 import {Button} from 'primeng/button';
 import {FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -102,6 +103,7 @@ export class MetadataPickerComponent implements OnInit {
   readonly saveStatus = new SaveButtonStatusController();
 
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private bookService = inject(BookService);
   private bookMetadataManageService = inject(BookMetadataManageService);
   protected urlHelper = inject(UrlHelperService);
@@ -134,6 +136,11 @@ export class MetadataPickerComponent implements OnInit {
     this.saveSeverity = this.saveStatus.severityFor(dirty);
     this.saveStyleClass = this.saveStatus.styleClassFor(dirty);
     this.cdr?.markForCheck();
+  }
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
   }
 
   constructor() {
@@ -661,11 +668,7 @@ export class MetadataPickerComponent implements OnInit {
         }
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.picker.toast.errorSummary'),
-          detail: this.t.translate('metadata.picker.toast.lockStateFailed'),
-        });
+        this.toastError(this.t.translate('metadata.picker.toast.errorSummary'), this.t.translate('metadata.picker.toast.lockStateFailed'), 3000);
       }
     });
   }

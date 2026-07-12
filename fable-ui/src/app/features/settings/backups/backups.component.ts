@@ -2,6 +2,7 @@ import {AsyncPipe} from '@angular/common';
 import {Component, inject, OnInit} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {ConfirmationService, MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {Button} from 'primeng/button';
 import {Select} from 'primeng/select';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
@@ -63,6 +64,7 @@ export class BackupsComponent implements OnInit {
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly translocoService = inject(TranslocoService);
   private readonly libraryService = inject(LibraryService);
   private readonly sidecarService = inject(SidecarService);
@@ -99,6 +101,11 @@ export class BackupsComponent implements OnInit {
 
   restoreChecks: RestoreCheck[] = [];
   restoreReady = false;
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.backupFileName = this.buildDefaultBackupFileName();
@@ -322,10 +329,7 @@ export class BackupsComponent implements OnInit {
         this.loadSidecarHistory(this.selectedBackupLibraryId ?? selectedLibrary.id ?? null);
 
         if (response.failed > 0) {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.translocoService.translate('common.error'),
-            detail: this.translocoService.translate(
+          this.toastError(this.translocoService.translate('common.error'), this.translocoService.translate(
               response.exported > 0
                 ? 'settingsMeta.persistence.sidecarBackupPartial'
                 : 'settingsMeta.persistence.sidecarBackupFailureDetail',
@@ -335,8 +339,7 @@ export class BackupsComponent implements OnInit {
                 failed: response.failed,
                 error: response.firstError || this.translocoService.translate('settingsMeta.persistence.sidecarBackupUnknownError')
               }
-            )
-          });
+            ), 3000);
           return;
         }
 

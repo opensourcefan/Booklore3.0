@@ -2,6 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {Subject} from 'rxjs';
 import {debounceTime} from 'rxjs/operators';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {LocalStorageService} from '../../../../shared/service/local-storage.service';
 import {Book} from '../../model/book.model';
@@ -18,6 +19,7 @@ export class CoverScalePreferenceService {
   private readonly STORAGE_KEY = 'coverScalePreference';
 
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
   private readonly localStorageService = inject(LocalStorageService);
 
@@ -25,6 +27,11 @@ export class CoverScalePreferenceService {
   readonly scaleChange$ = this.scaleChangeSubject.asObservable();
 
   scaleFactor = 1.0;
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   constructor() {
     this.loadScaleFromStorage();
@@ -71,12 +78,7 @@ export class CoverScalePreferenceService {
         life: 1500
       });
     } catch (_e) {
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('book.coverPref.toast.saveFailedSummary'),
-        detail: this.t.translate('book.coverPref.toast.saveFailedDetail'),
-        life: 3000
-      });
+      this.toastError(this.t.translate('book.coverPref.toast.saveFailedSummary'), this.t.translate('book.coverPref.toast.saveFailedDetail'), 3000);
     }
   }
 

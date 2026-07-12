@@ -7,6 +7,7 @@ import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
 import {UrlHelperService} from '../../service/url-helper.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {IconCategoriesHelper} from '../../helpers/icon-categories.helper';
 import {Button} from 'primeng/button';
 import {TabsModule} from 'primeng/tabs';
@@ -70,6 +71,7 @@ export class IconPickerComponent implements OnInit {
   sanitizer = inject(DomSanitizer);
   urlHelper = inject(UrlHelperService);
   messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   userService = inject(UserService);
 
   searchText = '';
@@ -112,6 +114,11 @@ export class IconPickerComponent implements OnInit {
     return user?.permissions.canManageIcons || user?.permissions.admin || false;
   }
 
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     if (this.activeTabIndex === '1' && !this.hasLoadedSvgIcons && !this.isLoadingSvgIcons) {
@@ -288,12 +295,7 @@ export class IconPickerComponent implements OnInit {
             life: 3500
           });
         } else if (failureCount > 0) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Save Failed',
-            detail: `Failed to save ${failureCount} SVG icon${failureCount > 1 ? 's' : ''}.`,
-            life: 4000
-          });
+          this.toastError('Save Failed', `Failed to save ${failureCount} SVG icon${failureCount > 1 ? 's' : ''}.`, 4000);
         }
 
         this.clearAllEntries();
@@ -324,12 +326,7 @@ export class IconPickerComponent implements OnInit {
       },
       error: (error) => {
         this.isLoadingSvgIcons = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Delete Failed',
-          detail: error.error?.message || this.ERROR_MESSAGES.DELETE_ERROR,
-          life: 4000
-        });
+        this.toastError('Delete Failed', error.error?.message || this.ERROR_MESSAGES.DELETE_ERROR, 4000);
       }
     });
   }

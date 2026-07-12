@@ -8,6 +8,7 @@ import {InputTextModule} from 'primeng/inputtext';
 import {DialogModule} from 'primeng/dialog';
 import {ConfirmDialogModule} from 'primeng/confirmdialog';
 import {ConfirmationService, MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {PageTitleService} from "../../../../shared/service/page-title.service";
 import {BookService} from '../../../book/service/book.service';
 import {BookMetadataManageService} from '../../../book/service/book-metadata-manage.service';
@@ -75,6 +76,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
   private bookService = inject(BookService);
   private bookMetadataManageService = inject(BookMetadataManageService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private location = inject(Location);
@@ -148,6 +150,11 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
     {type: 'publishers', labelKey: 'tabs.publisher', labelPluralKey: 'tabs.publishers', placeholderKey: 'placeholders.searchPublishers', selectAllKey: 'selectAllPublishers', icon: 'pi-building'},
     {type: 'languages', labelKey: 'tabs.language', labelPluralKey: 'tabs.languages', placeholderKey: 'placeholders.searchLanguages', selectAllKey: 'selectAllLanguages', icon: 'pi-globe'}
   ];
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit() {
     this.loadMetadata();
@@ -415,15 +422,11 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
         this.writeProgressService.fail(action === 'renamed'
           ? this.t.translate('metadata.manager.toast.renameFailedDetail')
           : this.t.translate('metadata.manager.toast.splitFailedDetail'));
-        this.messageService.add({
-          severity: 'error',
-          summary: action === 'renamed'
+        this.toastError(action === 'renamed'
             ? this.t.translate('metadata.manager.toast.renameFailedSummary')
-            : this.t.translate('metadata.manager.toast.splitFailedSummary'),
-          detail: error?.error?.message || (action === 'renamed'
+            : this.t.translate('metadata.manager.toast.splitFailedSummary'), error?.error?.message || (action === 'renamed'
             ? this.t.translate('metadata.manager.toast.renameFailedDetail')
-            : this.t.translate('metadata.manager.toast.splitFailedDetail'))
-        });
+            : this.t.translate('metadata.manager.toast.splitFailedDetail')), 3000);
         this.loading = false;
         this.mergingInProgress = false;
       }
@@ -498,15 +501,11 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
         this.writeProgressService.fail(operation === 'merge'
           ? this.t.translate('metadata.manager.toast.mergeFailedDetail')
           : this.t.translate('metadata.manager.toast.mergeSplitFailedDetail'));
-        this.messageService.add({
-          severity: 'error',
-          summary: operation === 'merge'
+        this.toastError(operation === 'merge'
             ? this.t.translate('metadata.manager.toast.mergeFailedSummary')
-            : this.t.translate('metadata.manager.toast.mergeSplitFailedSummary'),
-          detail: error?.error?.message || (operation === 'merge'
+            : this.t.translate('metadata.manager.toast.mergeSplitFailedSummary'), error?.error?.message || (operation === 'merge'
             ? this.t.translate('metadata.manager.toast.mergeFailedDetail')
-            : this.t.translate('metadata.manager.toast.mergeSplitFailedDetail'))
-        });
+            : this.t.translate('metadata.manager.toast.mergeSplitFailedDetail')), 3000);
         this.loading = false;
         this.mergingInProgress = false;
       }
@@ -557,11 +556,7 @@ export class MetadataManagerComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.writeProgressService.fail(this.t.translate('metadata.manager.toast.deleteFailedDetail'));
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('metadata.manager.toast.deleteFailedSummary'),
-          detail: error?.error?.message || this.t.translate('metadata.manager.toast.deleteFailedDetail')
-        });
+        this.toastError(this.t.translate('metadata.manager.toast.deleteFailedSummary'), error?.error?.message || this.t.translate('metadata.manager.toast.deleteFailedDetail'), 3000);
         this.loading = false;
         this.deletingInProgress = false;
       }

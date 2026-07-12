@@ -1,6 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {TranslocoService} from '@jsverse/transloco';
 import {LocalStorageService} from '../../../../../shared/service/local-storage.service';
 import {UserService} from '../../../../settings/user-management/user.service';
@@ -13,6 +14,7 @@ export class SidebarFilterTogglePrefService {
 
   private readonly STORAGE_KEY = 'showSidebarFilter';
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
   private readonly localStorageService = inject(LocalStorageService);
   private readonly userService = inject(UserService);
@@ -21,6 +23,11 @@ export class SidebarFilterTogglePrefService {
   readonly showFilter$ = this.showFilterSubject.asObservable();
   private readonly mobileFilterToggleSubject = new Subject<MouseEvent>();
   readonly mobileFilterToggle$ = this.mobileFilterToggleSubject.asObservable();
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   constructor() {
     this.loadFromStorage();
@@ -66,12 +73,7 @@ export class SidebarFilterTogglePrefService {
         this.localStorageService.set(this.STORAGE_KEY, value);
       }
     } catch (_e) {
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('book.filterPref.toast.saveFailedSummary'),
-        detail: this.t.translate('book.filterPref.toast.saveFailedDetail'),
-        life: 3000
-      });
+      this.toastError(this.t.translate('book.filterPref.toast.saveFailedSummary'), this.t.translate('book.filterPref.toast.saveFailedDetail'), 3000);
     }
   }
 

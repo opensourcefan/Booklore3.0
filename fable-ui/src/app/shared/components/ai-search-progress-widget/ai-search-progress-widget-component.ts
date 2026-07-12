@@ -4,6 +4,7 @@ import {takeUntil} from 'rxjs/operators';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {ButtonModule} from 'primeng/button';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {Tag} from 'primeng/tag';
 
@@ -25,7 +26,13 @@ export class AiSearchProgressWidgetComponent implements OnInit, OnDestroy {
   private aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.aiSearchScanProgressService.progress$
@@ -96,11 +103,7 @@ export class AiSearchProgressWidgetComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Failed to cancel AI Search scan:', error);
         this.aiSearchScanProgressService.setStopping(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.getTranslation('shared.aiSearchProgress.cancelFailedSummary', 'Cancel Failed'),
-          detail: this.getTranslation('shared.aiSearchProgress.cancelFailedDetail', 'Failed to cancel the scan. Please try again.')
-        });
+        this.toastError(this.getTranslation('shared.aiSearchProgress.cancelFailedSummary', 'Cancel Failed'), this.getTranslation('shared.aiSearchProgress.cancelFailedDetail', 'Failed to cancel the scan. Please try again.'), 3000);
       }
     });
   }

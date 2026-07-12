@@ -6,6 +6,7 @@ import {Select} from 'primeng/select';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {AuthorService} from '../../service/author.service';
 import {AuthorDetails, AuthorMatchRequest, AuthorSearchResult} from '../../model/author.model';
 
@@ -36,6 +37,7 @@ export class AuthorMatchComponent implements OnInit {
 
   private authorService = inject(AuthorService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private t = inject(TranslocoService);
 
   searchQuery = '';
@@ -58,6 +60,11 @@ export class AuthorMatchComponent implements OnInit {
     {label: 'ES', value: 'es'},
     {label: 'JP', value: 'jp'}
   ];
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.searchQuery = this.authorName;
@@ -83,12 +90,7 @@ export class AuthorMatchComponent implements OnInit {
         },
         error: () => {
           this.searching = false;
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('authorBrowser.match.toast.searchFailedSummary'),
-            detail: this.t.translate('authorBrowser.match.toast.searchFailedDetail'),
-            life: 3000
-          });
+          this.toastError(this.t.translate('authorBrowser.match.toast.searchFailedSummary'), this.t.translate('authorBrowser.match.toast.searchFailedDetail'), 3000);
         }
       });
   }
@@ -114,12 +116,7 @@ export class AuthorMatchComponent implements OnInit {
       },
       error: () => {
         this.matching = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('authorBrowser.match.toast.matchFailedSummary'),
-          detail: this.t.translate('authorBrowser.match.toast.matchFailedDetail'),
-          life: 3000
-        });
+        this.toastError(this.t.translate('authorBrowser.match.toast.matchFailedSummary'), this.t.translate('authorBrowser.match.toast.matchFailedDetail'), 3000);
       }
     });
   }

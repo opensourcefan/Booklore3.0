@@ -2,6 +2,7 @@ import {Component, inject, OnInit} from '@angular/core';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Book} from '../../model/book.model';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {BookService} from '../../service/book.service';
 import {Button} from 'primeng/button';
 import {Checkbox} from 'primeng/checkbox';
@@ -31,6 +32,7 @@ export class BookTypeAssignerComponent implements OnInit {
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   private dynamicDialogRef = inject(DynamicDialogRef);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private bookService = inject(BookService);
   private writeProgressService = inject(WriteProgressService);
   private bookDialogHelper = inject(BookDialogHelperService);
@@ -45,6 +47,11 @@ export class BookTypeAssignerComponent implements OnInit {
   book: Book = this.dynamicDialogConfig.data.book;
   bookIds: Set<number> = this.dynamicDialogConfig.data.bookIds;
   isMultiBooks: boolean = this.dynamicDialogConfig.data.isMultiBooks;
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.reloadFileTypes();
@@ -137,11 +144,7 @@ export class BookTypeAssignerComponent implements OnInit {
         },
         error: () => {
           this.writeProgressService.fail('Failed to update media type.');
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to update media type.'
-          });
+          this.toastError('Error', 'Failed to update media type.', 3000);
         }
       });
   }

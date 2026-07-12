@@ -26,6 +26,7 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
 import {BookBrowserScrollService} from '../../../book/components/book-browser/book-browser-scroll.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {AuthorService} from '../../service/author.service';
 import {AuthorSummary, EnrichedAuthor, AuthorFilters, NameQuality, DEFAULT_AUTHOR_FILTERS} from '../../model/author.model';
 import {AuthorCardComponent} from '../author-card/author-card.component';
@@ -95,6 +96,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   private authorService = inject(AuthorService);
   private bookService = inject(BookService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private pageTitle = inject(PageTitleService);
   private scrollService = inject(BookBrowserScrollService);
   private t = inject(TranslocoService);
@@ -192,6 +194,11 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
   filteredAuthors$!: Observable<EnrichedAuthor[]>;
   private enrichedAuthors$ = new BehaviorSubject<EnrichedAuthor[]>([]);
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.pageTitle.setPageTitle(this.t.translate('authorBrowser.pageTitle'));
@@ -431,11 +438,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
         });
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('authorBrowser.toast.deleteFailedSummary'),
-          detail: this.t.translate('authorBrowser.toast.deleteFailedDetail')
-        });
+        this.toastError(this.t.translate('authorBrowser.toast.deleteFailedSummary'), this.t.translate('authorBrowser.toast.deleteFailedDetail'), 3000);
       }
     });
   }
@@ -467,11 +470,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
         });
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('authorBrowser.toast.autoMatchFailedSummary'),
-          detail: this.t.translate('authorBrowser.toast.autoMatchFailedDetail')
-        });
+        this.toastError(this.t.translate('authorBrowser.toast.autoMatchFailedSummary'), this.t.translate('authorBrowser.toast.autoMatchFailedDetail'), 3000);
       }
     });
   }
@@ -489,11 +488,7 @@ export class AuthorBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
         });
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('authorBrowser.toast.deleteFailedSummary'),
-          detail: this.t.translate('authorBrowser.toast.deleteFailedDetail')
-        });
+        this.toastError(this.t.translate('authorBrowser.toast.deleteFailedSummary'), this.t.translate('authorBrowser.toast.deleteFailedDetail'), 3000);
       }
     });
   }

@@ -7,6 +7,7 @@ import {Checkbox} from 'primeng/checkbox';
 import {ToggleSwitch} from 'primeng/toggleswitch';
 import {InputNumber} from 'primeng/inputnumber';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {AppSettingsService} from '../../../shared/service/app-settings.service';
 import {Observable} from 'rxjs';
 import {AppSettingKey, AppSettings, OidcProviderDetails, OidcTestResult} from '../../../shared/model/app-settings.model';
@@ -119,12 +120,18 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
 
   private appSettingsService = inject(AppSettingsService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private libraryService = inject(LibraryService);
   private groupMappingService = inject(OidcGroupMappingService);
   private t = inject(TranslocoService);
   private clipboard = inject(Clipboard);
 
   appSettings$: Observable<AppSettings | null> = this.appSettingsService.appSettings$;
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.appSettings$.pipe(
@@ -196,11 +203,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
         summary: this.t.translate('settingsAuth.toast.saved'),
         detail: this.t.translate('settingsAuth.toast.oidcUpdated')
       }),
-      error: () => this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsAuth.toast.oidcError')
-      })
+      error: () => this.toastError(this.t.translate('common.error'), this.t.translate('settingsAuth.toast.oidcError'), 3000)
     });
   }
 
@@ -223,11 +226,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
         summary: this.t.translate('settingsAuth.toast.saved'),
         detail: this.t.translate('settingsAuth.toast.providerSaved')
       }),
-      error: () => this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsAuth.toast.providerError')
-      })
+      error: () => this.toastError(this.t.translate('common.error'), this.t.translate('settingsAuth.toast.providerError'), 3000)
     });
   }
 
@@ -246,7 +245,8 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'error',
         summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsBackups.messages.clipboardUnavailable')
+        detail: this.t.translate('settingsBackups.messages.clipboardUnavailable'),
+        life: 3000
       });
     }
   }
@@ -264,11 +264,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
         summary: this.t.translate('settingsAuth.toast.saved'),
         detail: this.t.translate('settingsAuth.toast.sessionDurationSaved')
       }),
-      error: () => this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsAuth.toast.sessionDurationError')
-      })
+      error: () => this.toastError(this.t.translate('common.error'), this.t.translate('settingsAuth.toast.sessionDurationError'), 3000)
     });
   }
 
@@ -296,11 +292,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
         summary: this.t.translate('settingsAuth.toast.saved'),
         detail: this.t.translate('settingsAuth.toast.provisionSaved')
       }),
-      error: () => this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsAuth.toast.provisionError')
-      })
+      error: () => this.toastError(this.t.translate('common.error'), this.t.translate('settingsAuth.toast.provisionError'), 3000)
     });
   }
 
@@ -322,11 +314,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
         summary: this.t.translate('settingsAuth.toast.saved'),
         detail: this.t.translate('settingsAuth.toast.syncModeSaved')
       }),
-      error: () => this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsAuth.toast.syncModeError')
-      })
+      error: () => this.toastError(this.t.translate('common.error'), this.t.translate('settingsAuth.toast.syncModeError'), 3000)
     });
   }
 
@@ -391,11 +379,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
           detail: this.t.translate('settingsAuth.toast.groupMappingSaved')
         });
       },
-      error: () => this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsAuth.toast.groupMappingError')
-      })
+      error: () => this.toastError(this.t.translate('common.error'), this.t.translate('settingsAuth.toast.groupMappingError'), 3000)
     });
   }
 
@@ -410,11 +394,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
           detail: this.t.translate('settingsAuth.toast.groupMappingDeleted')
         });
       },
-      error: () => this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('common.error'),
-        detail: this.t.translate('settingsAuth.toast.groupMappingError')
-      })
+      error: () => this.toastError(this.t.translate('common.error'), this.t.translate('settingsAuth.toast.groupMappingError'), 3000)
     });
   }
 
@@ -432,11 +412,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
         this.isTestingConnection = false;
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: this.t.translate('settingsAuth.testConnection.error')
-        });
+        this.toastError(this.t.translate('common.error'), this.t.translate('settingsAuth.testConnection.error'), 3000);
         this.isTestingConnection = false;
       }
     });
@@ -457,11 +433,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
       }),
       error: (err) => {
         this.oidcForceOnlyMode = !this.oidcForceOnlyMode;
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: err?.error?.message || this.t.translate('settingsAuth.oidcOnly.error')
-        });
+        this.toastError(this.t.translate('common.error'), err?.error?.message || this.t.translate('settingsAuth.oidcOnly.error'), 3000);
       }
     });
   }
@@ -492,11 +464,7 @@ export class AuthenticationSettingsComponent implements OnInit, OnDestroy {
         detail: this.t.translate('settingsAuth.toast.redirectUrisSaved')
       }),
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error'),
-          detail: err?.error?.message || this.t.translate('settingsAuth.toast.redirectUrisError')
-        });
+        this.toastError(this.t.translate('common.error'), err?.error?.message || this.t.translate('settingsAuth.toast.redirectUrisError'), 3000);
       }
     });
   }

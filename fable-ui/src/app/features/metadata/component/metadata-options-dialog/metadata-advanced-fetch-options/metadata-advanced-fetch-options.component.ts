@@ -5,6 +5,7 @@ import {FormsModule} from '@angular/forms';
 import {Checkbox} from 'primeng/checkbox';
 import {Button} from 'primeng/button';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {
   FieldOptions,
   MetadataRefreshOptions,
@@ -83,6 +84,7 @@ export class MetadataAdvancedFetchOptionsComponent implements OnChanges {
   bulkP4: string | null = null;
 
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
 
   private justSubmitted = false;
@@ -194,12 +196,7 @@ export class MetadataAdvancedFetchOptionsComponent implements OnChanges {
         this.justSubmitted = false;
       }, 1000);
     } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: this.t.translate('metadata.advancedFetchOptions.toast.providerRequiredSummary'),
-        detail: this.t.translate('metadata.advancedFetchOptions.toast.providerRequiredDetail'),
-        life: 5000
-      });
+      this.toastError(this.t.translate('metadata.advancedFetchOptions.toast.providerRequiredSummary'), this.t.translate('metadata.advancedFetchOptions.toast.providerRequiredDetail'), 5000);
     }
   }
 
@@ -301,4 +298,9 @@ export class MetadataAdvancedFetchOptionsComponent implements OnChanges {
   isProviderSpecificField(field: keyof FieldOptions): boolean {
     return this.providerSpecificFieldsList.includes(field as string);
   }
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
+
 }

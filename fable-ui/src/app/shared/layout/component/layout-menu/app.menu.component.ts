@@ -16,6 +16,7 @@ import {MagicShelfService, MagicShelfState} from '../../../../features/magic-she
 import {SeriesDataService} from '../../../../features/series-browser/service/series-data.service';
 import {AuthorService} from '../../../../features/author-browser/service/author.service';
 import {MenuItem, MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {StoryArcService} from '../../../../features/story-arc/service/story-arc.service';
 import {DialogLauncherService} from '../../../services/dialog-launcher.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
@@ -73,6 +74,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
   private localStorageService = inject(LocalStorageService);
   private bookDialogHelperService = inject(BookDialogHelperService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private mediaTypePreferences = inject(MediaTypePreferencesService);
   private sidebarBadgeRefresh = inject(SidebarBadgeRefreshService);
   private notebookService = inject(NotebookService);
@@ -136,6 +138,11 @@ export class AppMenuComponent implements OnInit, OnDestroy {
 
   get visibleSectionOrder(): string[] {
     return this.sectionOrder.filter(section => this.sectionVisibility[section] !== false);
+  }
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
   }
 
   ngOnInit(): void {
@@ -665,7 +672,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type renamed.'});
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to rename Media Type.'});
+        this.toastError('Error', 'Failed to rename Media Type.', 3000);
       }
     });
   }
@@ -704,7 +711,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
         this.messageService.add({severity: 'success', summary: 'Success', detail: 'Media Type deleted.'});
       },
       error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete Media Type.'});
+        this.toastError('Error', 'Failed to delete Media Type.', 3000);
       }
     });
   }

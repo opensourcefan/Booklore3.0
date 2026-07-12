@@ -14,6 +14,7 @@ import {ProgressSpinner} from "primeng/progressspinner";
 import {ProgressBar} from "primeng/progressbar";
 import {DynamicDialogRef} from "primeng/dynamicdialog";
 import {ConfirmationService, MenuItem, MessageService} from "primeng/api";
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {UserService} from "../../../settings/user-management/user.service";
 import {BookMenuService} from "../../service/book-menu.service";
 import {WriteProgressService} from '../../../../shared/service/write-progress.service';
@@ -117,6 +118,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
   private dialogHelperService = inject(BookDialogHelperService);
   protected taskHelperService = inject(TaskHelperService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   protected bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
   protected appSettingsService = inject(AppSettingsService);
   private readonly t = inject(TranslocoService);
@@ -407,6 +409,11 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
       };
     })
   );
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   constructor() {
     this.userSub = new Subscription();
@@ -845,11 +852,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
           },
           error: () => {
             this.writeProgressService.fail(this.t.translate('book.browser.toast.restoreTitlesFromFilenamesFailedDetail'));
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('common.error'),
-              detail: this.t.translate('book.browser.toast.restoreTitlesFromFilenamesFailedDetail')
-            });
+            this.toastError(this.t.translate('common.error'), this.t.translate('book.browser.toast.restoreTitlesFromFilenamesFailedDetail'), 3000);
           }
         });
       }
@@ -885,12 +888,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
             this.deselectAllBooks();
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.browser.toast.failedSummary'),
-              detail: this.t.translate('book.browser.toast.regenCoverFailedDetail'),
-              life: 3000
-            });
+            this.toastError(this.t.translate('book.browser.toast.failedSummary'), this.t.translate('book.browser.toast.regenCoverFailedDetail'), 3000);
           }
         });
       }
@@ -926,12 +924,7 @@ export class SeriesPageComponent implements OnDestroy, AfterViewChecked {
             this.deselectAllBooks();
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('book.browser.toast.failedSummary'),
-              detail: this.t.translate('book.browser.toast.customCoverFailedDetail'),
-              life: 3000
-            });
+            this.toastError(this.t.translate('book.browser.toast.failedSummary'), this.t.translate('book.browser.toast.customCoverFailedDetail'), 3000);
           }
         });
       }

@@ -8,6 +8,7 @@ import {UrlHelperService} from '../../../../../shared/service/url-helper.service
 import {Button} from 'primeng/button';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {Router, RouterLink, UrlTree} from '@angular/router';
 import {filter, Subject} from 'rxjs';
 import {UserService} from '../../../../settings/user-management/user.service';
@@ -61,6 +62,7 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   protected urlHelper = inject(UrlHelperService);
   private bookMetadataManageService = inject(BookMetadataManageService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private userService = inject(UserService);
   private datePipe = inject(DatePipe);
   private readStatusHelper = inject(ReadStatusHelper);
@@ -137,6 +139,11 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
         setTimeout(() => scroller.scrollToIndex(0, 'auto'), 16);
       }, 50);
     });
+  }
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
   }
 
   ngOnInit(): void {
@@ -548,11 +555,7 @@ export class BookTableComponent implements OnInit, AfterViewInit, OnDestroy, OnC
         });
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: lockAction === 'LOCK' ? this.t.translate('book.table.toast.lockFailedSummary') : this.t.translate('book.table.toast.unlockFailedSummary'),
-          detail: lockAction === 'LOCK' ? this.t.translate('book.table.toast.lockFailedDetail') : this.t.translate('book.table.toast.unlockFailedDetail'),
-        });
+        this.toastError(lockAction === 'LOCK' ? this.t.translate('book.table.toast.lockFailedSummary') : this.t.translate('book.table.toast.unlockFailedSummary'), lockAction === 'LOCK' ? this.t.translate('book.table.toast.lockFailedDetail') : this.t.translate('book.table.toast.unlockFailedDetail'), 3000);
       }
     });
   }

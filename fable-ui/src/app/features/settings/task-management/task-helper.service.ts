@@ -1,5 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {MetadataRefreshRequest} from '../../metadata/model/request/metadata-refresh-request.model';
 import {catchError, map} from 'rxjs/operators';
 import {of} from 'rxjs';
@@ -17,6 +18,7 @@ export interface StartedTaskResult {
 export class TaskHelperService {
   private taskService = inject(TaskService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
 
   refreshMetadataTask(options: MetadataRefreshRequest) {
@@ -39,19 +41,19 @@ export class TaskHelperService {
           this.messageService.add({
             severity: 'error',
             summary: this.t.translate('settingsTasks.toast.alreadyRunning'),
-            life: 5000,
-            detail: this.t.translate('settingsTasks.toast.metadataAlreadyRunningDetail')
+            detail: this.t.translate('settingsTasks.toast.metadataAlreadyRunningDetail'),
+            life: 5000
           });
         } else {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.t.translate('settingsTasks.toast.metadataFailed'),
-            life: 5000,
-            detail: this.t.translate('settingsTasks.toast.metadataFailedDetail')
-          });
+          this.toastError(this.t.translate('settingsTasks.toast.metadataFailed'), this.t.translate('settingsTasks.toast.metadataFailedDetail'), 5000);
         }
         return of({success: false, taskId: null});
       })
     );
   }
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
+
 }

@@ -8,6 +8,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {finalize} from 'rxjs/operators';
 import {AuthorService} from '../../service/author.service';
 import {AuthorPhotoResult} from '../../model/author.model';
@@ -37,9 +38,15 @@ export class AuthorPhotoSearchComponent implements OnInit {
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   protected dynamicDialogRef = inject(DynamicDialogRef);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private t = inject(TranslocoService);
 
   private authorId!: number;
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   constructor() {
     this.searchForm = this.fb.group({
@@ -88,11 +95,7 @@ export class AuthorPhotoSearchComponent implements OnInit {
         this.dynamicDialogRef.close(true);
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('authorBrowser.editor.toast.errorSummary'),
-          detail: this.t.translate('authorBrowser.editor.toast.photoUploadErrorDetail')
-        });
+        this.toastError(this.t.translate('authorBrowser.editor.toast.errorSummary'), this.t.translate('authorBrowser.editor.toast.photoUploadErrorDetail'), 3000);
       }
     });
   }

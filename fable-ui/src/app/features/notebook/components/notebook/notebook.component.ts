@@ -15,6 +15,7 @@ import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {PageTitleService} from '../../../../shared/service/page-title.service';
 import {Router} from '@angular/router';
 import {ConfirmationService, MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {Dialog} from 'primeng/dialog';
 import {AnnotationService} from '../../../../shared/service/annotation.service';
 import {BookNoteV2Service} from '../../../../shared/service/book-note-v2.service';
@@ -77,6 +78,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly annotationService = inject(AnnotationService);
   private readonly bookNoteV2Service = inject(BookNoteV2Service);
   private readonly bookmarkService = inject(BookMarkService);
@@ -128,6 +130,11 @@ export class NotebookComponent implements OnInit, OnDestroy {
     { name: 'pink', value: '#FFB6C1', label: 'Pink' },
     { name: 'orange', value: '#FFD580', label: 'Orange' }
   ];
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.pageTitle.setPageTitle(this.t.translate('notebook.pageTitle'));
@@ -422,11 +429,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
           error: (err) => {
             this.loading = false;
             console.error('Failed to delete notebook entry:', err);
-            this.messageService.add({
-              severity: 'error',
-              summary: this.t.translate('common.error') || 'Error',
-              detail: this.t.translate('notebook.deleteError') || 'Failed to delete entry'
-            });
+            this.toastError(this.t.translate('common.error') || 'Error', this.t.translate('notebook.deleteError') || 'Failed to delete entry', 3000);
           }
         });
       }
@@ -490,11 +493,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.saving = false;
         console.error('Failed to update entry:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('common.error') || 'Error',
-          detail: this.t.translate('notebook.updateError') || 'Failed to update entry'
-        });
+        this.toastError(this.t.translate('common.error') || 'Error', this.t.translate('notebook.updateError') || 'Failed to update entry', 3000);
       }
     });
   }

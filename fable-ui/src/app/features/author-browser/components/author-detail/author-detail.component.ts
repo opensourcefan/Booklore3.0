@@ -20,6 +20,7 @@ import {Tag} from 'primeng/tag';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {injectVirtualGrid} from '../../../../shared/util/virtual-grid.util';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {Tooltip} from 'primeng/tooltip';
 import {AuthorService} from '../../service/author.service';
 import {AuthorDetails} from '../../model/author.model';
@@ -68,6 +69,7 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
   private authorService = inject(AuthorService);
   private bookService = inject(BookService);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   protected coverScalePreferenceService = inject(CoverScalePreferenceService);
   protected bookCardOverlayPreferenceService = inject(BookCardOverlayPreferenceService);
   protected userService = inject(UserService);
@@ -150,6 +152,11 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
     return !!user?.permissions?.admin || !!user?.permissions?.canEditMetadata;
   }
 
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
+
   ngOnInit(): void {
     const authorId = Number(this.route.snapshot.paramMap.get('authorId'));
     const tabParam = this.route.snapshot.queryParamMap.get('tab');
@@ -212,11 +219,7 @@ export class AuthorDetailComponent implements OnInit, AfterViewInit, AfterViewCh
       },
       error: () => {
         this.quickMatching = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('authorBrowser.toast.quickMatchFailedSummary'),
-          detail: this.t.translate('authorBrowser.toast.quickMatchFailedDetail')
-        });
+        this.toastError(this.t.translate('authorBrowser.toast.quickMatchFailedSummary'), this.t.translate('authorBrowser.toast.quickMatchFailedDetail'), 3000);
       }
     });
   }

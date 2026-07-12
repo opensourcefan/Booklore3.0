@@ -5,6 +5,7 @@ import {Message} from 'primeng/message';
 
 import {Password} from 'primeng/password';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../shared/service/failure-notification.service';
 import {UserService} from '../../../features/settings/user-management/user.service';
 import {AuthService} from '../../service/auth.service';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
@@ -33,6 +34,7 @@ export class ChangePasswordComponent {
   protected userService = inject(UserService);
   protected authService = inject(AuthService);
   protected messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
 
   get passwordsMatch(): boolean {
@@ -65,11 +67,7 @@ export class ChangePasswordComponent {
       },
       error: (err) => {
         this.errorMessage = err.message;
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('shared.changePassword.toast.failedSummary'),
-          detail: this.errorMessage ?? this.t.translate('shared.changePassword.toast.failedDetailDefault')
-        });
+        this.toastError(this.t.translate('shared.changePassword.toast.failedSummary'), this.errorMessage ?? this.t.translate('shared.changePassword.toast.failedDetailDefault'), 3000);
       }
     });
   }
@@ -77,4 +75,9 @@ export class ChangePasswordComponent {
   logout() {
     this.authService.logout();
   }
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
+
 }

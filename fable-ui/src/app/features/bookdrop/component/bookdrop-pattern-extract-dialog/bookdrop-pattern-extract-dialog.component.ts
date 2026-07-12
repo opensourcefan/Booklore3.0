@@ -8,6 +8,7 @@ import {Chip} from 'primeng/chip';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {BookdropService, PatternExtractResult} from '../../service/bookdrop.service';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {NgClass} from '@angular/common';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoPipe, TranslocoService} from '@jsverse/transloco';
@@ -49,6 +50,7 @@ export class BookdropPatternExtractDialogComponent implements OnInit {
   private readonly config = inject(DynamicDialogConfig);
   private readonly bookdropService = inject(BookdropService);
   private readonly messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private readonly t = inject(TranslocoService);
 
   @ViewChild('patternInput', {static: false}) patternInput?: ElementRef<HTMLInputElement>;
@@ -95,6 +97,11 @@ export class BookdropPatternExtractDialogComponent implements OnInit {
     {labelKey: 'commonPatternLabels.titleByAuthor', pattern: '{Title} by {Authors}'},
     {labelKey: 'commonPatternLabels.seriesVTotal', pattern: '{SeriesName} v{SeriesNumber} (of {SeriesTotal})'},
   ];
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     this.fileCount = this.config.data?.fileCount ?? 0;
@@ -232,11 +239,7 @@ export class BookdropPatternExtractDialogComponent implements OnInit {
       error: (err) => {
         this.isExtracting = false;
         console.error('Pattern extraction failed:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: this.t.translate('bookdrop.patternExtract.toast.extractionFailedSummary'),
-          detail: this.t.translate('bookdrop.patternExtract.toast.extractionFailedDetail'),
-        });
+        this.toastError(this.t.translate('bookdrop.patternExtract.toast.extractionFailedSummary'), this.t.translate('bookdrop.patternExtract.toast.extractionFailedDetail'), 3000);
       },
     });
   }

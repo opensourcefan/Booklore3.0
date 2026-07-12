@@ -7,6 +7,7 @@ import {InputText} from 'primeng/inputtext';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {Shelf} from '../../model/shelf.model';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {IconPickerService, IconSelection} from '../../../../shared/service/icon-picker.service';
 import {IconDisplayComponent} from '../../../../shared/components/icon-display/icon-display.component';
 import {CheckboxModule} from 'primeng/checkbox';
@@ -34,6 +35,7 @@ export class ShelfEditDialogComponent implements OnInit {
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   private dynamicDialogRef = inject(DynamicDialogRef);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private iconPickerService = inject(IconPickerService);
   private userService = inject(UserService);
   private readonly t = inject(TranslocoService);
@@ -43,6 +45,11 @@ export class ShelfEditDialogComponent implements OnInit {
   shelf!: Shelf | undefined;
   isPublic = false;
   isAdmin: boolean = this.userService.getCurrentUser()?.permissions.admin ?? false;
+
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
 
   ngOnInit(): void {
     const shelfId = this.dynamicDialogConfig?.data.shelfId;
@@ -89,7 +96,7 @@ export class ShelfEditDialogComponent implements OnInit {
         this.dynamicDialogRef.close();
       },
       error: (e) => {
-        this.messageService.add({severity: 'error', summary: this.t.translate('book.shelfEditDialog.toast.updateFailedSummary'), detail: this.t.translate('book.shelfEditDialog.toast.updateFailedDetail')});
+        this.toastError(this.t.translate('book.shelfEditDialog.toast.updateFailedSummary'), this.t.translate('book.shelfEditDialog.toast.updateFailedDetail'), 3000);
         console.error(e);
       }
     });

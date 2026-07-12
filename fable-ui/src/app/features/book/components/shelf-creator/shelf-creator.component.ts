@@ -1,6 +1,7 @@
 import {Component, inject} from '@angular/core';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MessageService} from 'primeng/api';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 import {ShelfService} from '../../service/shelf.service';
 import {IconPickerService, IconSelection} from '../../../../shared/service/icon-picker.service';
 import {Shelf} from '../../model/shelf.model';
@@ -32,6 +33,7 @@ export class ShelfCreatorComponent {
   private shelfService = inject(ShelfService);
   private dynamicDialogRef = inject(DynamicDialogRef);
   private messageService = inject(MessageService);
+  private failureNotifications = inject(FailureNotificationService);
   private iconPickerService = inject(IconPickerService);
   private userService = inject(UserService);
   private readonly t = inject(TranslocoService);
@@ -74,9 +76,14 @@ export class ShelfCreatorComponent {
         this.dynamicDialogRef.close(true);
       },
       error: (e) => {
-        this.messageService.add({severity: 'error', summary: this.t.translate('common.error'), detail: this.t.translate('book.shelfCreator.toast.createFailedDetail')});
+        this.toastError(this.t.translate('common.error'), this.t.translate('book.shelfCreator.toast.createFailedDetail'), 3000);
         console.error('Error creating shelf:', e);
       }
     });
   }
+  private toastError(summary: string, detail: string, life = 3000): void {
+    this.messageService.add({severity: 'error', summary, detail, life});
+    this.failureNotifications.reportSafe(summary, detail);
+  }
+
 }
