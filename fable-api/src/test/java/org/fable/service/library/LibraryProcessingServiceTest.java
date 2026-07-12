@@ -41,6 +41,8 @@ class LibraryProcessingServiceTest {
     @Mock
     private NotificationService notificationService;
     @Mock
+    private org.fable.service.FailureNotificationService failureNotificationService;
+    @Mock
     private BookAdditionalFileRepository bookAdditionalFileRepository;
     @Mock
     private FileAsBookProcessor fileAsBookProcessor;
@@ -67,6 +69,7 @@ class LibraryProcessingServiceTest {
                 libraryRepository,
                 bookRepository,
                 notificationService,
+                failureNotificationService,
                 bookAdditionalFileRepository,
                 fileAsBookProcessor,
                 bookRestorationService,

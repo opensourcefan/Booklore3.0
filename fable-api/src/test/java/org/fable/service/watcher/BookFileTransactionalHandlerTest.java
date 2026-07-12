@@ -6,7 +6,6 @@ import org.fable.model.enums.LibraryOrganizationMode;
 import org.fable.repository.BookAdditionalFileRepository;
 import org.fable.repository.BookRepository;
 import org.fable.repository.LibraryRepository;
-import org.fable.service.NotificationService;
 import org.fable.service.file.FileFingerprint;
 import org.fable.service.library.LibraryProcessingService;
 import org.fable.util.BookFileGroupingUtils;
@@ -35,7 +34,6 @@ class BookFileTransactionalHandlerTest {
 
     @Mock private BookFilePersistenceService bookFilePersistenceService;
     @Mock private LibraryProcessingService libraryProcessingService;
-    @Mock private NotificationService notificationService;
     @Mock private LibraryRepository libraryRepository;
     @Mock private BookRepository bookRepository;
     @Mock private BookAdditionalFileRepository bookAdditionalFileRepository;
@@ -55,7 +53,7 @@ class BookFileTransactionalHandlerTest {
     void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
         handler = new BookFileTransactionalHandler(
-                bookFilePersistenceService, libraryProcessingService, notificationService,
+                bookFilePersistenceService, libraryProcessingService,
                 libraryRepository, bookRepository, bookAdditionalFileRepository, pendingDeletionPool);
 
         fingerprintMock = mockStatic(FileFingerprint.class);

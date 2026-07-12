@@ -33,6 +33,7 @@ class TaskServiceTest {
     private org.fable.service.user.UserService userService;
     private org.fable.service.NotificationService notificationService;
     private org.fable.service.LogNotificationService logNotificationService;
+    private org.fable.service.FailureNotificationService failureNotificationService;
     private TaskCancellationManager cancellationManager;
     private Executor taskExecutor;
     private ObjectMapper objectMapper;
@@ -48,6 +49,7 @@ class TaskServiceTest {
         userService = mock(org.fable.service.user.UserService.class);
         notificationService = mock(org.fable.service.NotificationService.class);
         logNotificationService = mock(org.fable.service.LogNotificationService.class);
+        failureNotificationService = mock(org.fable.service.FailureNotificationService.class);
         cancellationManager = mock(TaskCancellationManager.class);
         taskExecutor = mock(Executor.class);
         objectMapper = mock(ObjectMapper.class);
@@ -63,6 +65,7 @@ class TaskServiceTest {
                 userService,
                 notificationService,
                 logNotificationService,
+                failureNotificationService,
                 List.of(mockTask),
                 cancellationManager,
                 taskExecutor,
@@ -153,6 +156,7 @@ class TaskServiceTest {
                 userService,
                 notificationService,
                 logNotificationService,
+                failureNotificationService,
                 List.of(nonParallelTask),
                 cancellationManager,
                 taskExecutor,
@@ -197,6 +201,7 @@ class TaskServiceTest {
                 userService,
                 notificationService,
                 logNotificationService,
+                failureNotificationService,
                 List.of(asyncTask),
                 cancellationManager,
                 taskExecutor,
