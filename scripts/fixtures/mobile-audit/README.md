@@ -13,6 +13,14 @@ Exception: Rule 5.2 (`appendTo="body"`) is a shared template attribute — it do
 not change desktop layout CSS. Dialog overlay portal fixes are still audited
 separately for desktop via `scripts/audit-overlay-scroll.sh`.
 
+## Scroll-containment fixtures (Rules 2.3 / 2.4 / 2.5)
+
+| File | Contract |
+|------|----------|
+| `broken-scroll-dialog.component.*` | Scrollable list dialog with mobile `max-height: none` and no root viewport fill — footer scrolls away as the list grows |
+
+`max-height: none` alone is **not** viewport fill. Fix shape: root `height/max-height: 100%` (or `DialogSize.FULL` + flex host) so only the list scrolls.
+
 ## Notification fixtures (Round 5)
 
 | File | Contract |

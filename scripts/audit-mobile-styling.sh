@@ -69,6 +69,13 @@
 #     (delegates to scripts/audit-overlay-scroll.py --mode mobile). Fix is the
 #     shared appendTo attribute — do NOT invent mobile-only layout changes.
 #     Desktop/general scan remains: ./scripts/audit-overlay-scroll.sh
+#   - Rule 2.3: scrollable dialogs need root/host height:100% (or 100dvh/svh)
+#     on mobile — OR DialogSize.FULL with :host flex:1 + min-height:0.
+#     max-height:none alone is NOT viewport fill (pushes footer off-screen).
+#   - Rule 2.4: overflow-y:auto flex children need min-height:0; mobile
+#     max-height:none without root fill breaks scroll containment.
+#   - Rule 2.5: restrictive max-height must override to 100%/dvh/svh, or to
+#     none ONLY when the dialog root already has viewport fill.
 #
 # FIXTURES
 #   - scripts/fixtures/mobile-audit/ — golden broken page patterns for P0/P1.
@@ -83,6 +90,8 @@
 # RULES CHECKED
 #   2.1  Hardcoded min-height on dialog/panel roots
 #   2.2  Hardcoded width on dialog/panel roots
+#   2.3  Scrollable dialog lacks mobile viewport fill (footer scrolls away)
+#   2.4  Flex scroll chain broken (missing min-height:0 / unconstrained parent)
 #   2.5  Inefficient panel height limit on mobile
 #   2.6  Dialog overlays not top-aligned on mobile
 #   1.3  Breakpoints below 768px without a 768px sibling
@@ -361,6 +370,150 @@ is_dialog_component() {
 }
 
 # =============================================================================
+# Helper: SCSS path → likely root class + Angular component symbol
+#   shelf-assigner.component.scss → shelf-assigner / ShelfAssignerComponent
+# =============================================================================
+scss_root_class() {
+    local base
+    base=$(basename "$1" .scss)
+    base=${base%.component}
+    base=${base%-component}
+    echo "$base"
+}
+
+scss_component_symbol() {
+    local base
+    base=$(scss_root_class "$1")
+    echo "$base" | awk -F'-' '{
+        for (i = 1; i <= NF; i++) {
+            printf toupper(substr($i, 1, 1)) substr($i, 2)
+        }
+        print "Component"
+    }'
+}
+
+# =============================================================================
+# Helper: does a class (or :host) block match a property regex anywhere inside?
+# =============================================================================
+class_block_matches() {
+    local file="$1"
+    local class="$2"
+    local property_pattern="$3"
+    local selector_regex
+
+    if [ "$class" = "host" ]; then
+        selector_regex=":host([^a-zA-Z0-9_-]|$)"
+    else
+        selector_regex="\\.${class}([^a-zA-Z0-9_-]|$)"
+    fi
+
+    local result
+    result=$(awk -v sel_re="$selector_regex" -v pattern="$property_pattern" '
+    BEGIN {
+        depth = 0
+        in_class = 0
+        class_depth = -1
+        pending = 0
+        found = 0
+    }
+    {
+        if (match($0, sel_re)) pending = 1
+    }
+    /\{/ {
+        if (pending) {
+            in_class = 1
+            class_depth = depth
+            pending = 0
+        }
+        depth++
+    }
+    {
+        if (in_class && $0 ~ pattern) found = 1
+    }
+    /\}/ {
+        depth--
+        if (in_class && depth <= class_depth) {
+            in_class = 0
+            class_depth = -1
+        }
+    }
+    END { if (found) print "yes" }
+    ' "$file" 2>/dev/null)
+
+    [ "$result" = "yes" ]
+}
+
+# Viewport-fill tokens from mobile-phone-styling.md §2.3
+VIEWPORT_FILL_RE='(height|max-height):[ \t]*(100%|100dvh|100svh)'
+
+# =============================================================================
+# Helper: dialog root/:host has viewport fill, or FULL flex host participation
+# =============================================================================
+dialog_has_root_viewport_fill() {
+    local file="$1"
+    local root
+    root=$(scss_root_class "$file")
+
+    # Only treat the dialog shell as filled — not nested list wrappers that
+    # happen to set height:100% (e.g. .shelves-list inside .shelf-assigner).
+    local candidate
+    for candidate in "$root" "${root}-container" "${root}-dialog" "host"; do
+        if class_block_matches "$file" "$candidate" "$VIEWPORT_FILL_RE"; then
+            return 0
+        fi
+    done
+
+    # DialogSize.FULL content host: flex:1 + min-height:0 participates in
+    # global.scss .dialog-full .p-dialog-content > * chain without height:100%.
+    if class_block_matches "$file" "host" 'flex:[ \t]*1' \
+        && class_block_matches "$file" "host" 'min-height:[ \t]*0' \
+        && dialog_launched_as_full "$file"; then
+        return 0
+    fi
+    for candidate in "$root" "${root}-container"; do
+        if class_block_matches "$file" "$candidate" 'flex:[ \t]*1' \
+            && class_block_matches "$file" "$candidate" 'min-height:[ \t]*0' \
+            && dialog_launched_as_full "$file"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# =============================================================================
+# Helper: component is opened with DialogSize.FULL (possibly mobile-conditional)
+# =============================================================================
+dialog_launched_as_full() {
+    local file="$1"
+    local comp
+    comp=$(scss_component_symbol "$file")
+
+    # Multiline: openDialog(Comp ... DialogSize.FULL within a short window
+    if grep -Rnl --include='*.ts' -e "$comp" "$UI_DIR" 2>/dev/null | head -40 | while read -r ts; do
+        if awk -v comp="$comp" '
+            index($0, comp) { hit=1; buf=$0; next }
+            hit {
+                buf = buf "\n" $0
+                if (length(buf) > 1200) hit=0
+                if (buf ~ /DialogSize\.FULL/ || buf ~ /dialog-full/) { print "yes"; exit }
+                if (buf ~ /styleClass/ && buf ~ /;/) hit=0
+            }
+        ' "$ts" 2>/dev/null | grep -q yes; then
+            echo yes
+            break
+        fi
+    done | grep -q yes; then
+        return 0
+    fi
+    return 1
+}
+
+file_has_scrollable_overflow() {
+    local file="$1"
+    grep -qE 'overflow-y:[ \t]*(auto|scroll)' "$file" 2>/dev/null
+}
+
+# =============================================================================
 # Helper: check if a file is a routed page / full-viewport feature
 # =============================================================================
 is_page_component() {
@@ -473,6 +626,75 @@ while IFS= read -r -d '' file; do
             warn "$file:$line — width: ${val} on dialog/panel container without mobile width: 100%"
         fi
     done < <(grep -nE '^\s*width:\s*[5-9][0-9]{2}px' "$file" 2>/dev/null)
+done < <(find "$UI_DIR" -name "*.scss" -print0)
+
+# =============================================================================
+# Rule 2.3: Scrollable dialogs must fill the viewport on mobile (§2.3)
+# Without root height containment, long lists push sticky footers off-screen.
+# =============================================================================
+section "Rule 2.3 — Scrollable dialog lacks mobile viewport fill" "P0"
+
+while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
+    if ! is_dialog_component "$file"; then
+        continue
+    fi
+    if ! file_has_scrollable_overflow "$file"; then
+        continue
+    fi
+    if dialog_has_root_viewport_fill "$file"; then
+        continue
+    fi
+
+    line=$(grep -nE 'overflow-y:[ \t]*(auto|scroll)' "$file" | head -1 | cut -d: -f1)
+    root=$(scss_root_class "$file")
+    warn "$file:$line — scrollable dialog .$root lacks mobile viewport fill (height/max-height: 100%/100dvh/100svh on root, or DialogSize.FULL + flex host); long lists push the footer off-screen" "$(surface_for "$file")"
+done < <(find "$UI_DIR" -name "*.scss" -print0)
+
+# =============================================================================
+# Rule 2.4: Flex scroll chain (§2.4)
+# - flex + overflow-y scroll children need min-height: 0
+# - max-height: none on mobile without root fill removes containment
+# =============================================================================
+section "Rule 2.4 — Flex scroll chain broken on mobile" "P0"
+
+while IFS= read -r -d '' file; do
+    SCANNED_FILES["$file"]=1
+    if ! is_dialog_component "$file"; then
+        continue
+    fi
+    if ! file_has_scrollable_overflow "$file"; then
+        continue
+    fi
+
+    # 2.4a: overflow-y:auto class that is also a flex:1 child without min-height:0
+    while IFS=: read -r line rest; do
+        class_name=$(get_enclosing_class "$file" "$line")
+        [ -z "$class_name" ] && continue
+        if ! class_block_matches "$file" "$class_name" 'flex:[ \t]*1'; then
+            continue
+        fi
+        if class_block_matches "$file" "$class_name" 'min-height:[ \t]*0'; then
+            continue
+        fi
+        warn "$file:$line — .$class_name is flex:1 + overflow-y scroll without min-height: 0 (flex item will not shrink; scroll chain breaks)" "$(surface_for "$file")"
+    done < <(grep -nE 'overflow-y:[ \t]*(auto|scroll)' "$file" 2>/dev/null)
+
+    # 2.4b: mobile max-height:none without root viewport fill → list grows, footer scrolls away
+    if grep -qE 'max-height:[ \t]*none' "$file" 2>/dev/null; then
+        if ! dialog_has_root_viewport_fill "$file"; then
+            # Only flag when none appears inside a mobile media query
+            none_line=$(awk '
+                /@media.*max-width:[ \t]*(768|640|520|480)px/ { in_mq=1; depth=0 }
+                in_mq && /\{/ { depth++ }
+                in_mq && /\}/ { depth--; if (depth <= 0) in_mq=0 }
+                in_mq && /max-height:[ \t]*none/ { print NR; exit }
+            ' "$file" 2>/dev/null)
+            if [ -n "$none_line" ]; then
+                warn "$file:$none_line — mobile max-height: none on scrollable dialog without root viewport fill (list grows with content; save/footer scrolls away)" "$(surface_for "$file")"
+            fi
+        fi
+    fi
 done < <(find "$UI_DIR" -name "*.scss" -print0)
 
 # =============================================================================
@@ -763,9 +985,21 @@ while IFS= read -r -d '' file; do
 
         if [ "$is_limit" = true ]; then
             class_name=$(get_enclosing_class "$file" "$line")
-            if [ -n "$class_name" ] && ! class_has_mobile_override "$file" "$class_name" '(max-height:[ \t]*(100%|none|100dvh|100svh)|height:[ \t]*(100%|100dvh))'; then
-                warn "$file:$line — max-height: $val restricts vertical space on mobile without mobile override to fill screen"
+            # Prefer real viewport fill on the same class
+            if [ -n "$class_name" ] && class_has_mobile_override "$file" "$class_name" '(max-height:[ \t]*(100%|100dvh|100svh)|height:[ \t]*(100%|100dvh|100svh))'; then
+                continue
             fi
+            # max-height:none is OK only when the dialog root already fills the viewport
+            # (inner lists can grow within a constrained fullscreen host). Alone, none
+            # removes containment and pushes footers off-screen — do NOT treat as fill.
+            if [ -n "$class_name" ] && class_has_mobile_override "$file" "$class_name" 'max-height:[ \t]*none'; then
+                if dialog_has_root_viewport_fill "$file"; then
+                    continue
+                fi
+                warn "$file:$line — max-height: $val → mobile max-height: none without root viewport fill (list grows; footer scrolls away)" "$(surface_for "$file")"
+                continue
+            fi
+            warn "$file:$line — max-height: $val restricts vertical space on mobile without mobile override to fill screen" "$(surface_for "$file")"
         fi
     done < <(grep -nE '^\s*max-height:\s*[0-9]+(vh|px|%)' "$file" 2>/dev/null | grep -vE '(100vh|100dvh|100svh|100%)')
 done < <(find "$UI_DIR" -name "*.scss" -print0)

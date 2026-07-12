@@ -59,7 +59,7 @@ export class BookDialogHelperService {
     return this.openDialog(ShelfAssignerComponent, {
       showHeader: false,
       data: data,
-      styleClass: `${DialogSize.SM} ${DialogStyle.MINIMAL}`,
+      styleClass: this.dialogLauncherService.getScrollablePickerDialogStyle(),
     });
   }
 

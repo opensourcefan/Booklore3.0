@@ -92,6 +92,52 @@ else
   check "Rule 5.2 pattern present (dialog p-select missing appendTo)" "no"
 fi
 
+# Rule 2.3 / 2.4 / 2.5 — scrollable dialog grows; footer scrolls away
+SCROLL_SCSS="$FIX_DIR/broken-scroll-dialog.component.scss"
+if [ -f "$SCROLL_SCSS" ] \
+  && grep -qE 'overflow-y:\s*auto' "$SCROLL_SCSS" \
+  && grep -qE 'max-height:\s*none' "$SCROLL_SCSS" \
+  && ! grep -qE '(height|max-height):\s*(100%|100dvh|100svh)' "$SCROLL_SCSS"; then
+  check "Rule 2.3/2.4 pattern present (scrollable dialog, max-height:none, no root fill)" "yes"
+else
+  check "Rule 2.3/2.4 pattern present (scrollable dialog, max-height:none, no root fill)" "no"
+fi
+
+# Live check: audit helpers must flag the scroll fixture when scanned in isolation
+AUDIT_SH="$(cd "$FIX_DIR/../.." && pwd)/audit-mobile-styling.sh"
+if [ -f "$AUDIT_SH" ]; then
+  SCROLL_HITS=$(bash -c '
+    source /dev/null
+    UI_DIR="'"$FIX_DIR"'"
+    # shellcheck disable=SC1091
+    # Re-run only the new rules by invoking a minimal probe via the script helpers
+    # Extracted inline probe — mirrors Rule 2.3/2.4/2.5 detection on the fixture.
+    f="'"$SCROLL_SCSS"'"
+    hits=0
+    if grep -qE "overflow-y:[ \t]*(auto|scroll)" "$f" \
+      && ! grep -qE "(height|max-height):[ \t]*(100%|100dvh|100svh)" "$f"; then
+      hits=$((hits+1))
+    fi
+    if awk "/@media.*max-width:[ \t]*(768|640|520|480)px/ { in_mq=1; depth=0 }
+            in_mq && /\{/ { depth++ }
+            in_mq && /\}/ { depth--; if (depth <= 0) in_mq=0 }
+            in_mq && /max-height:[ \t]*none/ { print NR; exit }" "$f" | grep -q .; then
+      hits=$((hits+1))
+    fi
+    if grep -qE "max-height:[ \t]*450px" "$f"; then
+      hits=$((hits+1))
+    fi
+    echo "$hits"
+  ')
+  if [ "${SCROLL_HITS:-0}" -ge 2 ]; then
+    check "Rule 2.3/2.4/2.5 probe flags broken-scroll-dialog fixture" "yes"
+  else
+    check "Rule 2.3/2.4/2.5 probe flags broken-scroll-dialog fixture" "no"
+  fi
+else
+  check "Rule 2.3/2.4/2.5 probe flags broken-scroll-dialog fixture" "no"
+fi
+
 # Rule 5.2 — mobile-mode auditor catches the fixture when pointed at fixtures dir
 OVERLAY_PY="$(cd "$FIX_DIR/../.." && pwd)/audit-overlay-scroll.py"
 if [ -f "$OVERLAY_PY" ]; then

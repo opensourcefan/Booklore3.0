@@ -79,6 +79,12 @@ export class DialogLauncherService {
     return `${size} ${DialogStyle.MINIMAL}`;
   }
 
+  /** SM on desktop; FULL on phone so scrollable pickers pin header/footer. */
+  getScrollablePickerDialogStyle(): string {
+    const size = this.isCompactViewport(768) ? DialogSize.FULL : DialogSize.SM;
+    return `${size} ${DialogStyle.MINIMAL}`;
+  }
+
   openDialog(component: unknown, options: object): DynamicDialogRef | null {
     const ref = this.dialogService.open(component as Type<object>, {
       ...this.defaultDialogOptions,
