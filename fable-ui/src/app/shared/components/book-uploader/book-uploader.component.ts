@@ -257,10 +257,11 @@ export class BookUploaderComponent implements OnInit {
         error: (err) => {
           uploadFile.status = 'Failed';
           uploadFile.progress = 0;
-          uploadFile.errorMessage = err?.error?.message || this.t.translate('shared.bookUploader.toast.uploadFailedDefault');
+          const detail = err?.error?.message || this.t.translate('shared.bookUploader.toast.uploadFailedDefault');
+          uploadFile.errorMessage = detail;
           this.failureNotifications.reportSafe(
             this.t.translate('shared.bookUploader.uploadFailedTooltip'),
-            uploadFile.errorMessage
+            detail
           );
           if (--pending === 0) {
             setTimeout(() => {
