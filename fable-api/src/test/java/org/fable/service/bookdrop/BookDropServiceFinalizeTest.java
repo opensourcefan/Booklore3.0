@@ -34,6 +34,8 @@ class BookDropServiceFinalizeTest {
     @Mock
     private NotificationService notificationService;
     @Mock
+    private org.fable.service.FailureNotificationService failureNotificationService;
+    @Mock
     private ObjectMapper objectMapper;
     @Mock
     private FileMovingHelper fileMovingHelper;

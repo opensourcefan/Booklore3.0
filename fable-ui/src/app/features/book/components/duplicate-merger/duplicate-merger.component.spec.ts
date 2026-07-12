@@ -13,6 +13,7 @@ import {BookService} from '../../service/book.service';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {Book, DuplicateDetectionRequest, DuplicateGroup} from '../../model/book.model';
 import {UserService} from '../../../settings/user-management/user.service';
+import {FailureNotificationService} from '../../../../shared/service/failure-notification.service';
 
 function createBook(overrides: Partial<Book>): Book {
   return {
@@ -179,6 +180,7 @@ describe('DuplicateMergerComponent', () => {
           },
         },
         {provide: MessageService, useValue: {add: addMessageSpy}},
+        {provide: FailureNotificationService, useValue: {reportSafe: vi.fn(), report: vi.fn()}},
         {provide: DynamicDialogRef, useValue: {close: vi.fn()}},
         {provide: DynamicDialogConfig, useValue: dialogConfig},
         {

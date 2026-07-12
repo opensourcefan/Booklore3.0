@@ -73,6 +73,8 @@ class BookDropServiceTest {
     @Mock
     private NotificationService notificationService;
     @Mock
+    private org.fable.service.FailureNotificationService failureNotificationService;
+    @Mock
     private MetadataRefreshService metadataRefreshService;
     @Mock
     private BookdropNotificationService bookdropNotificationService;

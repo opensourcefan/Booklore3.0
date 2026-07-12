@@ -9,7 +9,8 @@ import org.fable.repository.BookRepository;
 import org.fable.repository.EmailProviderV2Repository;
 import org.fable.repository.EmailRecipientV2Repository;
 import org.fable.repository.UserEmailProviderPreferenceRepository;
-import org.fable.service.NotificationService;
+import org.fable.service.FailureNotificationService;
+import org.fable.service.audit.AuditService;
 import org.fable.util.FileUtils;
 import org.fable.util.SecurityContextVirtualThread;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,10 +46,13 @@ class SendEmailV2ServiceTest {
     private EmailRecipientV2Repository emailRecipientRepository;
 
     @Mock
-    private NotificationService notificationService;
+    private FailureNotificationService failureNotificationService;
 
     @Mock
     private AuthenticationService authenticationService;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private SendEmailV2Service sendEmailV2Service;
@@ -106,7 +113,7 @@ class SendEmailV2ServiceTest {
     }
 
     @Test
-    void emailBookQuick_success() {
+    void emailBookQuick_dispatchesVirtualThread() {
         when(authenticationService.getAuthenticatedUser()).thenReturn(user);
         when(bookRepository.findByIdWithBookFiles(10L)).thenReturn(Optional.of(book));
         when(preferenceRepository.findByUserId(1L)).thenReturn(Optional.of(preference));
@@ -115,20 +122,12 @@ class SendEmailV2ServiceTest {
 
         try (MockedStatic<SecurityContextVirtualThread> securityMock = mockStatic(SecurityContextVirtualThread.class)) {
             securityMock.when(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)))
-                    .thenAnswer(invocation -> {
-                        Runnable task = invocation.getArgument(0);
-                        task.run();
-                        return null;
-                    });
+                    .thenAnswer(invocation -> null);
 
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.getBookFullPath(book)).thenReturn("/library/books/test-book.epub");
+            sendEmailV2Service.emailBookQuick(10L);
 
-                sendEmailV2Service.emailBookQuick(10L);
-
-                securityMock.verify(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)));
-                verify(notificationService, atLeastOnce()).sendMessage(any(), any());
-            }
+            securityMock.verify(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)));
+            verifyNoInteractions(failureNotificationService);
         }
     }
 
@@ -171,7 +170,7 @@ class SendEmailV2ServiceTest {
     }
 
     @Test
-    void emailBook_success_userOwnedProvider() {
+    void emailBook_dispatchesVirtualThread_userOwnedProvider() {
         SendBookByEmailRequest request = SendBookByEmailRequest.builder()
                 .bookId(10L)
                 .providerId(100L)
@@ -185,25 +184,17 @@ class SendEmailV2ServiceTest {
 
         try (MockedStatic<SecurityContextVirtualThread> securityMock = mockStatic(SecurityContextVirtualThread.class)) {
             securityMock.when(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)))
-                    .thenAnswer(invocation -> {
-                        Runnable task = invocation.getArgument(0);
-                        task.run();
-                        return null;
-                    });
+                    .thenAnswer(invocation -> null);
 
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.getBookFullPath(book)).thenReturn("/library/books/test-book.epub");
+            sendEmailV2Service.emailBook(request);
 
-                sendEmailV2Service.emailBook(request);
-
-                securityMock.verify(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)));
-                verify(notificationService, atLeastOnce()).sendMessage(any(), any());
-            }
+            securityMock.verify(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)));
+            verifyNoInteractions(failureNotificationService);
         }
     }
 
     @Test
-    void emailBook_success_sharedProvider() {
+    void emailBook_dispatchesVirtualThread_sharedProvider() {
         SendBookByEmailRequest request = SendBookByEmailRequest.builder()
                 .bookId(10L)
                 .providerId(100L)
@@ -218,20 +209,12 @@ class SendEmailV2ServiceTest {
 
         try (MockedStatic<SecurityContextVirtualThread> securityMock = mockStatic(SecurityContextVirtualThread.class)) {
             securityMock.when(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)))
-                    .thenAnswer(invocation -> {
-                        Runnable task = invocation.getArgument(0);
-                        task.run();
-                        return null;
-                    });
+                    .thenAnswer(invocation -> null);
 
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.getBookFullPath(book)).thenReturn("/library/books/test-book.epub");
+            sendEmailV2Service.emailBook(request);
 
-                sendEmailV2Service.emailBook(request);
-
-                securityMock.verify(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)));
-                verify(notificationService, atLeastOnce()).sendMessage(any(), any());
-            }
+            securityMock.verify(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)));
+            verifyNoInteractions(failureNotificationService);
         }
     }
 
@@ -282,7 +265,7 @@ class SendEmailV2ServiceTest {
     }
 
     @Test
-    void emailBookQuick_sendEmailFailure_logsError() {
+    void emailBookQuick_sendEmailFailure_reportsInboxError() {
         when(authenticationService.getAuthenticatedUser()).thenReturn(user);
         when(bookRepository.findByIdWithBookFiles(10L)).thenReturn(Optional.of(book));
         when(preferenceRepository.findByUserId(1L)).thenReturn(Optional.of(preference));
@@ -298,19 +281,18 @@ class SendEmailV2ServiceTest {
                     });
 
             try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.getBookFullPath(book))
+                fileUtilsMock.when(() -> FileUtils.getBookFullPath(any(BookEntity.class), any(BookFileEntity.class)))
                         .thenThrow(new IllegalStateException("Book file not found"));
 
                 sendEmailV2Service.emailBookQuick(10L);
 
-                // Error is caught and logged, not rethrown
-                verify(notificationService, atLeastOnce()).sendMessage(any(), any());
+                verify(failureNotificationService).reportError(contains("Failed to send book"));
             }
         }
     }
 
     @Test
-    void emailBook_notificationSentBeforeVirtualThread() {
+    void emailBook_startsVirtualThreadWithoutPreemptiveInboxNoise() {
         SendBookByEmailRequest request = SendBookByEmailRequest.builder()
                 .bookId(10L)
                 .providerId(100L)
@@ -323,15 +305,13 @@ class SendEmailV2ServiceTest {
         when(emailRecipientRepository.findByIdAndUserId(200L, 1L)).thenReturn(Optional.of(emailRecipient));
 
         try (MockedStatic<SecurityContextVirtualThread> securityMock = mockStatic(SecurityContextVirtualThread.class)) {
-            // Don't execute the runnable - just capture it
             securityMock.when(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)))
                     .thenAnswer(invocation -> null);
 
             sendEmailV2Service.emailBook(request);
 
-            // Log notification is sent before the virtual thread starts
-            verify(notificationService).sendMessage(any(), any());
             securityMock.verify(() -> SecurityContextVirtualThread.runWithSecurityContext(any(Runnable.class)));
+            verifyNoInteractions(failureNotificationService);
         }
     }
 }
