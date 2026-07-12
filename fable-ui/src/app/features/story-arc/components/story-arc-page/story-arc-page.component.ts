@@ -76,7 +76,7 @@ export class StoryArcPageComponent implements OnInit, OnDestroy {
   isChapterSortMode = false;
   externalUrl = '';
   summaryDescription = '';
-  summaryExpanded = true;
+  summaryExpanded = false;
   coverBookId: number | null = null;
   backupRows: StoryArcRow[] = [];
   backupExternalUrl = '';

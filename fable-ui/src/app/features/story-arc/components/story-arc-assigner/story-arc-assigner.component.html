@@ -34,6 +34,8 @@
           [(ngModel)]="selectedArcName"
           (ngModelChange)="onArcSelected($event)"
           placeholder="Choose an existing arc..."
+          appendTo="body"
+          scrollHeight="280px"
           class="dialog-select"
         ></p-select>
       </div>
@@ -50,6 +52,8 @@
             [(ngModel)]="targetChapterIndex"
             (ngModelChange)="onChapterSelected($event)"
             placeholder="Append to last chapter..."
+            appendTo="body"
+            scrollHeight="280px"
             class="dialog-select"
           ></p-select>
         </div>

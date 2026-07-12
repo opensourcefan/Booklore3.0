@@ -184,4 +184,46 @@ describe('StoryArcPageComponent drag affordances', () => {
     expect(fixture.componentInstance.bookDropListOrientation).toBe('vertical');
     expect(fixture.nativeElement.querySelector('.row-drop-list')).not.toBeNull();
   });
+
+  it('keeps About This Arc collapsed by default on desktop', () => {
+    storyArcServiceMock.getStoryArc.mockReturnValueOnce(of([
+      {
+        ...sampleMappings[0],
+        description: 'A long-running reading order.',
+        externalUrl: 'https://example.com/guide'
+      },
+      sampleMappings[1]
+    ]));
+
+    const fixture = createFixture();
+    const summary = fixture.nativeElement.querySelector('.arc-summary-section');
+
+    expect(fixture.componentInstance.summaryExpanded).toBe(false);
+    expect(summary).not.toBeNull();
+    expect(summary.classList.contains('collapsed')).toBe(true);
+    expect(summary.querySelector('.summary-toggle-bar')?.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('expands About This Arc when the toggle bar is clicked', () => {
+    storyArcServiceMock.getStoryArc.mockReturnValueOnce(of([
+      {
+        ...sampleMappings[0],
+        description: 'A long-running reading order.',
+        externalUrl: 'https://example.com/guide'
+      },
+      sampleMappings[1]
+    ]));
+
+    const fixture = createFixture();
+    const toggle = fixture.nativeElement.querySelector('.summary-toggle-bar') as HTMLElement;
+    expect(toggle).not.toBeNull();
+
+    toggle.click();
+    fixture.detectChanges();
+
+    const summary = fixture.nativeElement.querySelector('.arc-summary-section');
+    expect(fixture.componentInstance.summaryExpanded).toBe(true);
+    expect(summary.classList.contains('collapsed')).toBe(false);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+  });
 });
