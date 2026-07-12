@@ -74,10 +74,10 @@ export class AiSearchDialogService {
     try {
       const data = {
         q: this.cachedSearchQuery,
-        r: this.cachedResults,
+        r: (this.cachedResults || []).map(r => this.slimChunkForStorage(r)),
         h: this.cachedHasSearched,
         a: this.cachedAnswer,
-        ch: this.cachedChatHistory,
+        ch: (this.cachedChatHistory || []).map(m => this.slimChatMessageForStorage(m)),
         bId: this.cachedSingleBookId,
         bt: this.cachedScopeBookTitle,
         bIds: this.cachedBookIds,
@@ -97,10 +97,10 @@ export class AiSearchDialogService {
       if (dataStr) {
         const data = JSON.parse(dataStr);
         this.cachedSearchQuery = data.q || '';
-        this.cachedResults = data.r || [];
+        this.cachedResults = (data.r || []).map((r: AiSearchChunkResult) => this.normalizeStoredChunk(r));
         this.cachedHasSearched = !!data.h;
         this.cachedAnswer = data.a || null;
-        this.cachedChatHistory = data.ch || [];
+        this.cachedChatHistory = (data.ch || []).map((m: ChatMessage) => this.normalizeStoredChatMessage(m));
         this.cachedSingleBookId = data.bId || null;
         this.cachedScopeBookTitle = data.bt || null;
         this.cachedBookIds = data.bIds || (data.bId ? [data.bId] : []);
@@ -111,6 +111,60 @@ export class AiSearchDialogService {
     } catch (e) {
       console.error('Failed to load AI search state', e);
     }
+  }
+
+  /**
+   * Persist source refs for restore/minimize without storing full book passages.
+   * Omits chunkText / contextBefore / contextAfter (and ephemeral SafeHtml).
+   */
+  private slimChunkForStorage(r: AiSearchChunkResult): AiSearchChunkResult {
+    return {
+      chunkId: r.chunkId,
+      bookId: r.bookId,
+      bookTitle: r.bookTitle,
+      chunkIndex: r.chunkIndex,
+      chunkText: '',
+      pageNumber: r.pageNumber ?? null,
+      chapterTitle: r.chapterTitle ?? null,
+      similarity: r.similarity ?? 0,
+    };
+  }
+
+  private slimChatMessageForStorage(m: ChatMessage): ChatMessage {
+    return {
+      query: m.query,
+      answer: m.answer,
+      answerItems: m.answerItems,
+      results: (m.results || []).map(r => this.slimChunkForStorage(r)),
+      contextResults: (m.contextResults || []).map(r => this.slimChunkForStorage(r)),
+      isLoading: false,
+      localOnly: !!m.localOnly,
+    };
+  }
+
+  private normalizeStoredChunk(r: AiSearchChunkResult): AiSearchChunkResult {
+    return {
+      chunkId: r.chunkId,
+      bookId: r.bookId,
+      bookTitle: r.bookTitle,
+      chunkIndex: r.chunkIndex,
+      chunkText: r.chunkText || '',
+      pageNumber: r.pageNumber ?? null,
+      chapterTitle: r.chapterTitle ?? null,
+      similarity: r.similarity ?? 0,
+    };
+  }
+
+  private normalizeStoredChatMessage(m: ChatMessage): ChatMessage {
+    return {
+      query: m.query || '',
+      answer: m.answer ?? null,
+      answerItems: m.answerItems ?? null,
+      results: (m.results || []).map(r => this.normalizeStoredChunk(r)),
+      contextResults: (m.contextResults || []).map(r => this.normalizeStoredChunk(r)),
+      isLoading: false,
+      localOnly: !!m.localOnly,
+    };
   }
 
   open(bookIdsOrId: number[] | number | null = null) {
