@@ -8,11 +8,21 @@
     width: 100%;
     max-width: 100%;
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
 }
 
 .panel-header {
   @include panel.panel-header;
   border-bottom: none;
+  flex-shrink: 0;
 }
 
 .import-panel {
@@ -50,6 +60,8 @@
 
   @media (max-width: 768px) {
     max-height: none;
+    min-height: 0;
+    flex: 1 1 auto;
   }
 
   .template-panel-header {
@@ -160,6 +172,10 @@
       color: var(--text-secondary-color);
       line-height: 1.4;
       margin-bottom: 0.4rem;
+
+      @media (max-width: 768px) {
+        display: none;
+      }
     }
 
     .template-card-tags {
@@ -199,9 +215,14 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   min-height: 450px;
 
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 1rem;
-    min-height: 350px;
+    border-inline: none;
+    box-shadow: none;
   }
 }
 
@@ -341,9 +362,10 @@
   padding: 0.5rem;
 
   @media (max-width: 768px) {
-    max-height: 35rem;
+    max-height: none;
+    overflow: visible;
+    padding: 0.25rem 0;
   }
-
 }
 
 .dialog-footer {
@@ -351,6 +373,87 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.75rem;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    border-radius: 0;
+
+    .footer-left-actions {
+      flex-shrink: 0;
+      gap: 0.35rem;
+
+      ::ng-deep .icon-only-mobile {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        justify-content: center;
+
+        .p-button-label {
+          display: none;
+        }
+
+        .p-button-icon {
+          margin: 0;
+          font-size: 0.875rem;
+        }
+      }
+    }
+
+    .footer-center {
+      flex: 1 1 auto;
+      min-width: 0;
+      gap: 0.5rem;
+      justify-content: center;
+
+      .cap-slider {
+        display: none;
+      }
+
+      .match-count-badge {
+        padding: 0.25rem 0.5rem;
+        max-width: 100%;
+        overflow: hidden;
+
+        .match-count-label,
+        .cap-warning {
+          display: none;
+        }
+      }
+    }
+
+    .footer-actions {
+      width: auto;
+      flex: 1 1 auto;
+      min-width: 0;
+      gap: 0.5rem;
+
+      ::ng-deep .p-button {
+        flex: 1;
+        min-width: 0;
+      }
+
+      ::ng-deep .save-icon-only-mobile {
+        flex: 0 0 auto;
+
+        .p-button-label {
+          display: none;
+        }
+      }
+
+      ::ng-deep .p-button:not(.save-icon-only-mobile) {
+        .p-button-label {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
 }
 
 .footer-left-actions {
@@ -472,12 +575,28 @@
     width: 9rem;
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     gap: 0.5rem;
 
     .condition-select {
       width: 100%;
       max-width: 9rem;
+    }
+
+    ::ng-deep .icon-only-mobile {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      justify-content: center;
+
+      .p-button-label {
+        display: none;
+      }
+
+      .p-button-icon {
+        margin: 0;
+        font-size: 0.875rem;
+      }
     }
   }
 }
@@ -520,12 +639,17 @@
     }
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     margin-left: 0;
     padding: 0.5rem;
 
     .field-select,
     .operator-select {
+      min-width: 100%;
+    }
+
+    .value-input,
+    .autocomplete-wrapper {
       min-width: 100%;
     }
   }
@@ -569,6 +693,10 @@
     color: var(--primary-color);
     font-size: 0.9rem;
   }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 .rule-examples {
@@ -603,5 +731,45 @@
   &:hover {
     background: var(--primary-color);
     color: #fff;
+  }
+}
+
+@media (max-width: 768px) {
+  ::ng-deep .icon-only-mobile {
+    .p-button-label {
+      display: none;
+    }
+
+    .p-button-icon {
+      margin: 0;
+    }
+  }
+
+  .template-panel {
+    .template-card {
+      .template-card-tags {
+        display: none;
+      }
+
+      .template-card-action {
+        ::ng-deep .icon-only-mobile {
+          width: 36px;
+          height: 36px;
+          padding: 0;
+          justify-content: center;
+        }
+      }
+    }
+  }
+
+  .rule-examples {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .icon-picker-section {
+    .icon-label {
+      display: none;
+    }
   }
 }

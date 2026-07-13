@@ -114,7 +114,17 @@
                   </div>
                 </div>
                 <div class="template-card-action">
-                  <p-button [label]="t('templates.useThisTemplate')" icon="pi pi-check" severity="success" size="small" (onClick)="applyTemplate(tmpl)"/>
+                  <p-button
+                    [label]="t('templates.useThisTemplate')"
+                    icon="pi pi-check"
+                    severity="success"
+                    size="small"
+                    styleClass="icon-only-mobile"
+                    [pTooltip]="t('templates.useThisTemplate')"
+                    tooltipPosition="left"
+                    [attr.aria-label]="t('templates.useThisTemplate')"
+                    (onClick)="applyTemplate(tmpl)"
+                  />
                 </div>
               </div>
             }
@@ -140,8 +150,10 @@
           [outlined]="true"
           severity="help"
           size="small"
+          styleClass="icon-only-mobile"
           [pTooltip]="t('templates.browseTooltip')"
           tooltipPosition="top"
+          [attr.aria-label]="t('templates.browseButton')"
           (onClick)="toggleTemplatePanel()"
         />
       }
@@ -152,8 +164,10 @@
           [outlined]="true"
           severity="info"
           size="small"
+          styleClass="icon-only-mobile"
           [pTooltip]="t('importJson.buttonTooltip')"
           tooltipPosition="top"
+          [attr.aria-label]="t('importJson.buttonLabel')"
           (onClick)="toggleImportPanel()"
         />
       }
@@ -165,13 +179,14 @@
       <div class="match-count-badge" [class.over-cap]="overCap">
         @if (count !== null) {
           <i class="pi" [class.pi-check-circle]="overCap === false" [class.pi-exclamation-triangle]="overCap"></i>
-          <span>{{ count }} {{ t('matchCount.booksMatch') }}</span>
+          <span class="match-count-value">{{ count }}</span>
+          <span class="match-count-label">{{ t('matchCount.booksMatch') }}</span>
           @if (overCap) {
             <span class="cap-warning">{{ t('matchCount.overCapWarning', { max: cap }) }}</span>
           }
         } @else {
           <i class="pi pi-spin pi-spinner"></i>
-          <span>{{ t('matchCount.calculating') }}</span>
+          <span class="match-count-label">{{ t('matchCount.calculating') }}</span>
         }
       </div>
       <div class="cap-slider">
@@ -202,6 +217,7 @@
         [label]="t('actions.saveFilter')"
         icon="pi pi-save"
         severity="success"
+        styleClass="save-icon-only-mobile"
         (onClick)="submit()"
         [disabled]="form.invalid"
       />
@@ -216,8 +232,30 @@
           <i class="pi pi-info-circle condition-info-icon"></i>
         </span>
         <p-select [options]="conditionOptions" formControlName="join" class="condition-select" appendTo="body" [showClear]="false"/>
-        <p-button icon="pi pi-plus" size="small" text (click)="addRule(group)" [label]="t('actions.addRule')" outlined [pTooltip]="t('group.addRuleTooltip')" tooltipPosition="top"></p-button>
-        <p-button icon="pi pi-folder-open" size="small" text (click)="addGroup(group)" [label]="t('actions.addGroup')" outlined [pTooltip]="t('group.addGroupTooltip')" tooltipPosition="top"></p-button>
+        <p-button
+          icon="pi pi-plus"
+          size="small"
+          text
+          (click)="addRule(group)"
+          [label]="t('actions.addRule')"
+          outlined
+          styleClass="icon-only-mobile"
+          [pTooltip]="t('group.addRuleTooltip')"
+          tooltipPosition="top"
+          [attr.aria-label]="t('actions.addRule')"
+        ></p-button>
+        <p-button
+          icon="pi pi-folder-open"
+          size="small"
+          text
+          (click)="addGroup(group)"
+          [label]="t('actions.addGroup')"
+          outlined
+          styleClass="icon-only-mobile"
+          [pTooltip]="t('group.addGroupTooltip')"
+          tooltipPosition="top"
+          [attr.aria-label]="t('actions.addGroup')"
+        ></p-button>
         @if (group.parent) {
           <p-button icon="pi pi-trash" text (click)="deleteGroup(group)" severity="danger"></p-button>
         }

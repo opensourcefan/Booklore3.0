@@ -215,17 +215,22 @@ export class DialogLauncherService {
     });
   }
 
+  private getMagicShelfDialogStyle(): string {
+    const size = this.isCompactViewport(768) ? DialogSize.FULL : DialogSize.XL;
+    return `${size} ${DialogStyle.MINIMAL}`;
+  }
+
   openMagicShelfCreateDialog(): DynamicDialogRef | null {
     return this.openDialog(MagicShelfComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.XL} ${DialogStyle.MINIMAL}`,
+      styleClass: this.getMagicShelfDialogStyle(),
     });
   }
 
   openMagicShelfEditDialog(shelfId: number): DynamicDialogRef | null {
     return this.openDialog(MagicShelfComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.XL} ${DialogStyle.MINIMAL}`,
+      styleClass: this.getMagicShelfDialogStyle(),
       data: {
         id: shelfId,
         editMode: true,
