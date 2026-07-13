@@ -500,9 +500,12 @@ export class AppTopBarComponent implements OnDestroy {
       return;
     }
 
-    // Close on row-level selections, but keep open for inline action controls.
+    // Close on row-level selections, but keep open for inline action controls
+    // (including section headers that expand/collapse).
     const selectedRow = target.closest('.menu-item-container, .sidebar-bottom-btn');
-    const inlineAction = target.closest('.entity-menu-button, .expand-icon, .plus-icon, .section-visibility-btn, .sidebar-reorder-btn, .reorder-row');
+    const inlineAction = target.closest(
+      '.entity-menu-button, .expand-icon, .plus-icon, .section-visibility-btn, .sidebar-reorder-btn, .reorder-row, .root-item-with-dropdown'
+    );
 
     if (selectedRow && !inlineAction) {
       this.mobileSidebarPop?.hide();

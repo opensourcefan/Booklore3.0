@@ -1,7 +1,15 @@
 <ng-container>
   @if (root) {
     @if (item.hasDropDown) {
-      <div class="layout-menuitem-root-text root-item-with-dropdown drag-press-target">
+      <div
+        class="layout-menuitem-root-text root-item-with-dropdown drag-press-target"
+        [attr.tabindex]="reorderMode ? -1 : 0"
+        role="button"
+        [attr.aria-expanded]="isExpanded(key)"
+        (click)="toggleExpand(key)"
+        (keydown.enter)="toggleExpand(key)"
+        (keydown.space)="$event.preventDefault(); toggleExpand(key)"
+      >
         <div class="root-item-label-container">
           @if (item.routerLink && !reorderMode) {
             <a class="sidebar-heading-label sidebar-heading-link"
@@ -14,7 +22,8 @@
                [state]="item.state"
                [queryParams]="item.queryParams"
                [attr.target]="item.target"
-               tabindex="-1">{{ item.label }}</a>
+               tabindex="-1"
+               (click)="$event.stopPropagation()">{{ item.label }}</a>
           } @else {
             <div class="sidebar-heading-label">{{ item.label }}</div>
           }
@@ -24,19 +33,15 @@
               [class.reorder-control-disabled]="reorderMode"
               [attr.tabindex]="reorderMode ? -1 : 0"
               role="button"
-              (click)="openDialog(item)"
-              (keydown.enter)="openDialog(item)"
-              (keydown.space)="openDialog(item)"
+              (click)="$event.stopPropagation(); openDialog(item)"
+              (keydown.enter)="$event.stopPropagation(); openDialog(item)"
+              (keydown.space)="$event.preventDefault(); $event.stopPropagation(); openDialog(item)"
             ></i>
           }
         </div>
         <i
+          aria-hidden="true"
           [class.reorder-control-disabled]="reorderMode"
-          [attr.tabindex]="reorderMode ? -1 : 0"
-          role="button"
-          (click)="toggleExpand(key)"
-          (keydown.enter)="toggleExpand(key)"
-          (keydown.space)="toggleExpand(key)"
           [ngClass]="{
           'pi': true,
           'pi-angle-up': isExpanded(key),

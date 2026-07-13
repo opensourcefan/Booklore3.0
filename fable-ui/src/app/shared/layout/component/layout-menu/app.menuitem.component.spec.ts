@@ -285,4 +285,72 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
 
     expect(endActionCommand).toHaveBeenCalledTimes(1);
   });
+
+  it('collapses a dropdown section when the section header is clicked', () => {
+    const fixture = createRootWithChildrenFixture(false);
+    const component = fixture.componentInstance;
+    const header = fixture.nativeElement.querySelector('.root-item-with-dropdown') as HTMLElement;
+
+    expect(header).not.toBeNull();
+    expect(component.isExpanded(component.key)).toBe(true);
+    expect(header.getAttribute('aria-expanded')).toBe('true');
+
+    header.click();
+    fixture.detectChanges();
+
+    expect(component.isExpanded(component.key)).toBe(false);
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+    expect(fixture.nativeElement.querySelector('.expand-icon')?.classList.contains('pi-angle-down')).toBe(true);
+  });
+
+  it('collapses a dropdown section when the expand chevron is clicked', () => {
+    const fixture = createRootWithChildrenFixture(false);
+    const component = fixture.componentInstance;
+    const chevron = fixture.nativeElement.querySelector('.expand-icon') as HTMLElement;
+
+    expect(chevron).not.toBeNull();
+    expect(component.isExpanded(component.key)).toBe(true);
+
+    chevron.click();
+    fixture.detectChanges();
+
+    expect(component.isExpanded(component.key)).toBe(false);
+  });
+
+  it('does not toggle expand when the create (+) control is clicked', () => {
+    const fixture = TestBed.createComponent(AppMenuitemComponent);
+    const onCreate = vi.fn();
+
+    fixture.componentRef.setInput('item', {
+      label: 'Libraries',
+      type: 'library',
+      hasDropDown: true,
+      hasCreate: true,
+      onCreate,
+      items: [
+        {
+          label: 'Library A',
+          type: 'Library',
+          routerLink: ['/library/1'],
+        },
+      ],
+    });
+    fixture.componentRef.setInput('index', 0);
+    fixture.componentRef.setInput('root', true);
+    fixture.componentRef.setInput('parentKey', 'library');
+    fixture.componentRef.setInput('menuKey', 'library');
+    fixture.componentRef.setInput('reorderMode', false);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    const plus = fixture.nativeElement.querySelector('.plus-icon') as HTMLElement;
+
+    expect(component.isExpanded(component.key)).toBe(true);
+
+    plus.click();
+    fixture.detectChanges();
+
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    expect(component.isExpanded(component.key)).toBe(true);
+  });
 });

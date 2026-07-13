@@ -77,10 +77,24 @@
 .expand-icon {
   color: var(--p-surface-500);
   padding-right: 0.75rem;
+  flex-shrink: 0;
 
   &:hover {
     color: var(--p-surface-200);
   }
+}
+
+:host-context(.mobile-sidebar-popover) .expand-icon {
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 0.5rem;
+}
+
+:host-context(.mobile-sidebar-popover) .root-item-with-dropdown {
+  min-height: 2.25rem;
 }
 
 .root-item {
