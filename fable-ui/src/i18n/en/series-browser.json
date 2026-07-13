@@ -7,6 +7,7 @@
   "noSeriesFound": "No series match your search or filters.",
   "noSeriesInCategory": "No series found in this category.",
   "cardSize": "Card Size",
+  "alphabetScroller": "Jump to series by letter",
   "filters": {
     "all": "All",
     "notStarted": "Not Started",

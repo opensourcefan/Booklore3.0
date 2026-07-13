@@ -30,6 +30,11 @@ import {SeriesScalePreferenceService} from '../../service/series-scale-preferenc
 import {Router} from '@angular/router';
 import {naturalCompareStrings} from '../../../../shared/util/natural-sort.util';
 import {MobileUxService} from '../../../../core/services/mobile-ux.service';
+import {
+  SERIES_ALPHABET_LETTERS,
+  buildSeriesLetterIndexMap,
+  resolveNearestLetter,
+} from '../../util/series-letter-index.util';
 
 interface FilterOption {
   label: string;
@@ -63,10 +68,17 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
   private static readonly BASE_WIDTH = 230;
   private static readonly BASE_HEIGHT = 285;
-  private static readonly MOBILE_BASE_WIDTH = 180;
-  private static readonly MOBILE_BASE_HEIGHT = 250;
+  /** Design reference width used by series-card cover pixel sizes. */
+  private static readonly MOBILE_DESIGN_WIDTH = 180;
+  private static readonly MOBILE_DESIGN_HEIGHT = 250;
+  private static readonly MOBILE_COLUMN_COUNT = 2;
+  /** Scroller horizontal padding (1rem × 2) + small safety margin. */
+  private readonly MOBILE_PADDING = 52;
+  /** Space reserved so the A–Z rail does not cover cards. */
+  private readonly ALPHABET_RAIL_RESERVE = 18;
   private readonly GRID_GAP_MOBILE = 8;
   private readonly GRID_GAP_DESKTOP = 20;
+  private readonly MOBILE_BREAKPOINT_PX = 768;
 
   private seriesDataService = inject(SeriesDataService);
   private bookService = inject(BookService);
@@ -102,6 +114,7 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
   private gridSub?: Subscription;
   private resizeSub?: Subscription;
+  private scrubToastTimer?: ReturnType<typeof setTimeout>;
 
   private readonly gridItemCountSig = signal(0);
   private readonly cardWidthSig = signal(this.cardWidth);
@@ -116,26 +129,68 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
     overscan: 5,
   }));
 
+  readonly alphabetLetters = SERIES_ALPHABET_LETTERS;
+  readonly scrubLetter = signal<string | null>(null);
+
+  private letterIndexMap = new Map<string, number>();
+  activeLetters = new Set<string>();
+  private railPointerActive = false;
+
   get isMobile(): boolean {
-    return this.screenWidth <= 767;
+    return this.screenWidth <= this.MOBILE_BREAKPOINT_PX;
+  }
+
+  get mobileCardSize(): {width: number; height: number} {
+    const columns = SeriesBrowserComponent.MOBILE_COLUMN_COUNT;
+    const gap = this.GRID_GAP_MOBILE;
+    const totalGaps = (columns - 1) * gap;
+    const availableWidth =
+      this.screenWidth - this.MOBILE_PADDING - this.ALPHABET_RAIL_RESERVE - totalGaps;
+    const width = Math.max(130, Math.floor(availableWidth / columns));
+    const height = Math.round(
+      width *
+        (SeriesBrowserComponent.MOBILE_DESIGN_HEIGHT /
+          SeriesBrowserComponent.MOBILE_DESIGN_WIDTH)
+    );
+    return {width, height};
   }
 
   get cardWidth(): number {
-    const base = this.isMobile
-      ? SeriesBrowserComponent.MOBILE_BASE_WIDTH
-      : SeriesBrowserComponent.BASE_WIDTH;
-    return Math.round(base * this.seriesScaleService.scaleFactor);
+    if (this.isMobile) {
+      // Width-derived; ignore desktop scaleFactor so saved scale cannot force 1 column.
+      return this.mobileCardSize.width;
+    }
+    return Math.round(SeriesBrowserComponent.BASE_WIDTH * this.seriesScaleService.scaleFactor);
   }
 
   get cardHeight(): number {
-    const base = this.isMobile
-      ? SeriesBrowserComponent.MOBILE_BASE_HEIGHT
-      : SeriesBrowserComponent.BASE_HEIGHT;
-    return Math.round(base * this.seriesScaleService.scaleFactor);
+    if (this.isMobile) {
+      return this.mobileCardSize.height;
+    }
+    return Math.round(SeriesBrowserComponent.BASE_HEIGHT * this.seriesScaleService.scaleFactor);
+  }
+
+  /**
+   * Scales absolute cover/fan pixel sizes in series-card to the live cell width.
+   * Mobile uses design-width ratio; desktop keeps the user scale slider.
+   */
+  get cardVisualScale(): number {
+    if (this.isMobile) {
+      return this.cardWidth / SeriesBrowserComponent.MOBILE_DESIGN_WIDTH;
+    }
+    return this.seriesScaleService.scaleFactor;
   }
 
   get gridColumnMinWidth(): string {
     return `${this.cardWidth}px`;
+  }
+
+  get showAlphabetRail(): boolean {
+    if (!this.isMobile) {
+      return false;
+    }
+    const sort = this.sortBy$.value;
+    return sort === 'name-asc' || sort === 'name-desc';
   }
 
   // Search and filter state
@@ -194,6 +249,7 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
     );
 
     this.gridSub = this.filteredSeries$.subscribe(series => {
+      this.rebuildLetterIndex(series);
       this.gridItemCountSig.set(series.length);
       this.cardWidthSig.set(this.cardWidth);
       this.cardHeightSig.set(this.cardHeight);
@@ -217,6 +273,9 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
   ngOnDestroy(): void {
     this.gridSub?.unsubscribe();
     this.resizeSub?.unsubscribe();
+    if (this.scrubToastTimer) {
+      clearTimeout(this.scrubToastTimer);
+    }
   }
 
   onSearchChange(value: string): void {
@@ -240,6 +299,88 @@ export class SeriesBrowserComponent implements OnInit, AfterViewInit, OnDestroy 
 
   navigateToSeries(series: SeriesSummary): void {
     this.router.navigate(['/series', series.seriesName]);
+  }
+
+  isLetterActive(letter: string): boolean {
+    return this.activeLetters.has(letter);
+  }
+
+  jumpToLetter(letter: string, fromScrub = false): void {
+    if (!this.showAlphabetRail) {
+      return;
+    }
+    const resolved = resolveNearestLetter(letter, this.activeLetters, this.alphabetLetters);
+    if (!resolved) {
+      return;
+    }
+    const itemIndex = this.letterIndexMap.get(resolved);
+    if (itemIndex === undefined) {
+      return;
+    }
+    const cols = Math.max(1, this.virtualGrid.columnCount());
+    const rowIndex = Math.floor(itemIndex / cols);
+    this.virtualGrid.virtualizer.scrollToIndex(rowIndex, {align: 'start'});
+    this.showScrubToast(resolved, fromScrub);
+  }
+
+  onRailPointerDown(event: PointerEvent): void {
+    if (!this.showAlphabetRail) {
+      return;
+    }
+    this.railPointerActive = true;
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+    this.jumpFromRailPosition(event);
+    event.preventDefault();
+  }
+
+  onRailPointerMove(event: PointerEvent): void {
+    if (!this.railPointerActive) {
+      return;
+    }
+    this.jumpFromRailPosition(event);
+    event.preventDefault();
+  }
+
+  onRailPointerUp(event: PointerEvent): void {
+    if (!this.railPointerActive) {
+      return;
+    }
+    this.railPointerActive = false;
+    try {
+      (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+    } catch {
+      // Pointer may already be released.
+    }
+  }
+
+  private jumpFromRailPosition(event: PointerEvent): void {
+    const rail = event.currentTarget as HTMLElement;
+    const rect = rail.getBoundingClientRect();
+    if (rect.height <= 0) {
+      return;
+    }
+    const y = Math.min(Math.max(event.clientY - rect.top, 0), rect.height - 1);
+    const idx = Math.min(
+      this.alphabetLetters.length - 1,
+      Math.floor((y / rect.height) * this.alphabetLetters.length)
+    );
+    this.jumpToLetter(this.alphabetLetters[idx], true);
+  }
+
+  private showScrubToast(letter: string, stickyBriefly: boolean): void {
+    this.scrubLetter.set(letter);
+    if (this.scrubToastTimer) {
+      clearTimeout(this.scrubToastTimer);
+    }
+    this.scrubToastTimer = setTimeout(() => {
+      this.scrubLetter.set(null);
+      this.scrubToastTimer = undefined;
+    }, stickyBriefly ? 600 : 400);
+  }
+
+  private rebuildLetterIndex(series: SeriesSummary[]): void {
+    this.letterIndexMap = buildSeriesLetterIndexMap(series.map(s => s.seriesName));
+    this.activeLetters = new Set(this.letterIndexMap.keys());
   }
 
   private updateVirtualGridDomBindings(): void {

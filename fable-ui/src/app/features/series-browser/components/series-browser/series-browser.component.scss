@@ -104,6 +104,11 @@
 }
 
 // Virtual scroller and grid
+.virtual-scroller-wrap {
+  position: relative;
+  width: 100%;
+}
+
 .virtual-scroller {
   width: 100%;
   height: calc(100dvh - 12.5rem);
@@ -119,6 +124,14 @@
   padding-right: 1rem;
   padding-left: 1rem;
   box-sizing: border-box;
+}
+
+.alphabet-rail {
+  display: none;
+}
+
+.alphabet-toast {
+  display: none;
 }
 
 .virtual-grid-spacer {
@@ -175,6 +188,11 @@
     padding: 0.5rem 0.5rem 0;
   }
 
+  .browse-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
   .browse-controls {
     flex-direction: column;
   }
@@ -191,5 +209,91 @@
   .sort-dropdown {
     flex: 1;
     min-width: 0;
+  }
+
+  .virtual-scroller {
+    padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+    height: calc(100dvh - 11rem);
+  }
+
+  .virtual-scroller-wrap.has-alphabet-rail .virtual-scroller {
+    padding-right: 1.35rem;
+  }
+
+  .virtual-grid {
+    padding-top: 0.5rem;
+    padding-right: 0.35rem;
+    padding-left: 0.35rem;
+  }
+
+  .alphabet-rail {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    position: absolute;
+    top: 0.25rem;
+    right: 0;
+    bottom: 0.25rem;
+    width: 1.15rem;
+    z-index: 5;
+    padding: 0.15rem 0;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .alphabet-letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.55rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: none;
+
+    &.active {
+      color: #cbd5e1;
+    }
+
+    &.current {
+      color: var(--p-primary-400, #60a5fa);
+    }
+
+    &:disabled {
+      color: #334155;
+      cursor: default;
+      opacity: 0.45;
+    }
+  }
+
+  .alphabet-toast {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    transform: translate(-50%, -50%);
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--p-surface-900), transparent 15%);
+    border: 1px solid color-mix(in srgb, var(--p-surface-500), transparent 50%);
+    color: #f8fafc;
+    font-size: 2rem;
+    font-weight: 800;
+    pointer-events: none;
+    z-index: 6;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   }
 }

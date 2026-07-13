@@ -215,3 +215,18 @@
   font-weight: 700;
   letter-spacing: 0.02em;
 }
+
+@media (max-width: 768px) {
+  // Density only: keep the stacked-cover package; hide Read Next on phones.
+  .card-actions {
+    display: none;
+  }
+
+  .stacked-covers {
+    padding: 8px 6px 2px;
+  }
+
+  .card-body {
+    padding: 4px 8px 6px;
+  }
+}

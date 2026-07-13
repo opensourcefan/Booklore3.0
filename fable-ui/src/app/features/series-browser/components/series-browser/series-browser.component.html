@@ -77,29 +77,59 @@
           <p>{{ t('noSeriesFound') }}</p>
         </div>
       } @else {
-        <div class="virtual-scroller" #scrollContainer>
-          <div class="virtual-grid" #gridContainer>
-            <div class="virtual-grid-spacer" [style.height.px]="virtualGrid.virtualizer.getTotalSize()"></div>
-            @for (row of virtualGrid.virtualizer.getVirtualItems(); track row.key) {
-              <div
-                class="virtual-row"
-                [style.transform]="'translateY(' + row.start + 'px)'"
-                [style.height.px]="virtualGrid.rowHeight()">
-                @for (series of virtualGrid.getRowItems(row.index, seriesList); track series.seriesName) {
-                  <div
-                    class="virtual-cell"
-                    [style.width.px]="cardWidth"
-                    [style.height.px]="cardHeight"
-                    [style.--card-scale]="seriesScaleService.scaleFactor">
-                    <app-series-card
-                      [series]="series"
-                      (cardClick)="navigateToSeries($event)">
-                    </app-series-card>
-                  </div>
-                }
-              </div>
-            }
+        <div class="virtual-scroller-wrap" [class.has-alphabet-rail]="showAlphabetRail">
+          <div class="virtual-scroller" #scrollContainer>
+            <div class="virtual-grid" #gridContainer>
+              <div class="virtual-grid-spacer" [style.height.px]="virtualGrid.virtualizer.getTotalSize()"></div>
+              @for (row of virtualGrid.virtualizer.getVirtualItems(); track row.key) {
+                <div
+                  class="virtual-row"
+                  [style.transform]="'translateY(' + row.start + 'px)'"
+                  [style.height.px]="virtualGrid.rowHeight()">
+                  @for (series of virtualGrid.getRowItems(row.index, seriesList); track series.seriesName) {
+                    <div
+                      class="virtual-cell"
+                      [style.width.px]="cardWidth"
+                      [style.height.px]="cardHeight"
+                      [style.--card-scale]="cardVisualScale">
+                      <app-series-card
+                        [series]="series"
+                        (cardClick)="navigateToSeries($event)">
+                      </app-series-card>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
           </div>
+
+          @if (showAlphabetRail) {
+            <div
+              class="alphabet-rail"
+              role="navigation"
+              [attr.aria-label]="t('alphabetScroller')"
+              (pointerdown)="onRailPointerDown($event)"
+              (pointermove)="onRailPointerMove($event)"
+              (pointerup)="onRailPointerUp($event)"
+              (pointercancel)="onRailPointerUp($event)">
+              @for (letter of alphabetLetters; track letter) {
+                <button
+                  type="button"
+                  class="alphabet-letter"
+                  [class.active]="isLetterActive(letter)"
+                  [class.current]="scrubLetter() === letter"
+                  [disabled]="!isLetterActive(letter)"
+                  [attr.aria-label]="letter"
+                  (click)="jumpToLetter(letter)">
+                  {{ letter }}
+                </button>
+              }
+            </div>
+          }
+
+          @if (scrubLetter(); as letter) {
+            <div class="alphabet-toast" aria-live="polite">{{ letter }}</div>
+          }
         </div>
       }
     }

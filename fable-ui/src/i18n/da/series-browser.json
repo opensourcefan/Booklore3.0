@@ -1,25 +1,26 @@
 {
-    "pageTitle": "",
-    "browseAllSeries": "",
-    "searchPlaceholder": "",
-    "readNext": "",
-    "booksRead": "",
-    "noSeriesFound": "",
-    "noSeriesInCategory": "",
-    "cardSize": "",
-    "filters": {
-        "all": "",
-        "notStarted": "",
-        "inProgress": "",
-        "completed": "",
-        "abandoned": ""
-    },
-    "sort": {
-        "nameAsc": "",
-        "nameDesc": "",
-        "bookCount": "",
-        "progress": "",
-        "recentlyRead": "",
-        "recentlyAdded": ""
-    }
+  "pageTitle": "",
+  "browseAllSeries": "",
+  "searchPlaceholder": "",
+  "readNext": "",
+  "booksRead": "",
+  "noSeriesFound": "",
+  "noSeriesInCategory": "",
+  "cardSize": "",
+  "alphabetScroller": "Jump to series by letter",
+  "filters": {
+    "all": "",
+    "notStarted": "",
+    "inProgress": "",
+    "completed": "",
+    "abandoned": ""
+  },
+  "sort": {
+    "nameAsc": "",
+    "nameDesc": "",
+    "bookCount": "",
+    "progress": "",
+    "recentlyRead": "",
+    "recentlyAdded": ""
+  }
 }
