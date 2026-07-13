@@ -102,11 +102,13 @@
   .footer-actions,
   .footer-right {
     display: flex;
+    align-items: center;
     gap: 0.75rem;
     flex-shrink: 0;
   }
 
   @media (max-width: 768px) {
+    align-items: stretch;
     padding: 0.5rem 0.75rem;
     padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
     gap: 0.5rem;
@@ -116,13 +118,35 @@
       display: none;
     }
 
+    // One height for every footer control (text + icon-only)
+    ::ng-deep .p-button {
+      min-height: 40px;
+      box-sizing: border-box;
+      align-items: center;
+      justify-content: center;
+    }
+
     .footer-actions,
     .footer-right {
-      width: 100%;
+      flex: 1 1 auto;
+      width: auto;
+      min-width: 0;
       display: flex;
+      align-items: stretch;
       gap: 0.5rem;
 
       ::ng-deep .p-button {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    // Sibling actions outside .footer-actions (Create Shelf / Create Type / Send)
+    > ::ng-deep p-button {
+      display: flex;
+      align-items: stretch;
+
+      .p-button {
         flex: 1;
         min-width: 0;
       }
@@ -134,20 +158,25 @@
 @mixin dialog-footer-end {
   @include dialog-footer;
   justify-content: flex-end;
+}
 
+// Icon-only secondary footer control (Create, Reset, etc.) — keeps primary labels readable
+@mixin footer-icon-only-mobile {
   @media (max-width: 768px) {
-    padding: 0.5rem 0.75rem;
-    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
-    gap: 0.5rem;
+    flex: 0 0 40px;
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    justify-content: center;
 
-    .footer-actions {
-      width: 100%;
-      gap: 0.5rem;
+    .p-button-label {
+      display: none;
+    }
 
-      ::ng-deep .p-button {
-        flex: 1;
-        min-width: 0;
-      }
+    .p-button-icon {
+      margin: 0;
     }
   }
 }

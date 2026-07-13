@@ -48,7 +48,7 @@
     }
 
     .footer-actions {
-      gap: 0.35rem;
+      gap: 0.5rem;
     }
 
     .footer-actions.footer-secondary {
@@ -56,31 +56,13 @@
       flex: 0 0 auto;
 
       ::ng-deep .p-button {
-        flex: 0 0 auto;
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        padding: 0;
-        justify-content: center;
-      }
-
-      ::ng-deep .p-button-label {
-        display: none;
-      }
-
-      ::ng-deep .p-button-icon {
-        margin: 0;
+        @include panel.footer-icon-only-mobile;
       }
     }
 
     .footer-actions.footer-primary {
       flex: 1;
       min-width: 0;
-
-      ::ng-deep .p-button {
-        flex: 1;
-        min-width: 0;
-      }
     }
   }
 }

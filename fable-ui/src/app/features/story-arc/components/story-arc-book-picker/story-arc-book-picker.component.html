@@ -71,8 +71,10 @@
     }
   </div>
 
-  <div class="dialog-actions">
-    <p-button styleClass="p-button-outlined p-button-secondary" label="Cancel" (onClick)="cancel()"></p-button>
-    <p-button styleClass="p-button-success" label="Add Selected" (onClick)="confirm()" [disabled]="selectedBookIds.size === 0"></p-button>
+  <div class="dialog-footer">
+    <div class="footer-actions">
+      <p-button styleClass="p-button-outlined p-button-secondary" label="Cancel" (onClick)="cancel()"></p-button>
+      <p-button styleClass="p-button-success" label="Add Selected" (onClick)="confirm()" [disabled]="selectedBookIds.size === 0"></p-button>
+    </div>
   </div>
 </div>

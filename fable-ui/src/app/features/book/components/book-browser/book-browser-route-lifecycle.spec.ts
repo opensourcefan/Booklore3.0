@@ -188,4 +188,62 @@ describe('BookBrowserComponent route reuse lifecycle', () => {
     expect(getEffectiveSortCriteria).toHaveBeenCalledWith(sortCriteria);
     expect(applySortCriteria).toHaveBeenCalledWith(sortCriteria);
   });
+
+
+  it('registers mobile back navigation when the directory explorer popover opens', () => {
+    const hide = vi.fn();
+    const release = vi.fn();
+    const register = vi.fn(() => ({release}));
+
+    const componentLike = {
+      mobileDirectoryPopoverOpen: false,
+      mobileDirectoryBackHandle: null as {release: ReturnType<typeof vi.fn>} | null,
+      mobileDirPop: {hide},
+      mobileBackNavigation: {register},
+    };
+
+    BookBrowserComponent.prototype.onMobileDirectoryPopoverShow.call(componentLike as never);
+
+    expect(componentLike.mobileDirectoryPopoverOpen).toBe(true);
+    expect(register).toHaveBeenCalledTimes(1);
+    const close = register.mock.calls[0][0] as () => void;
+    close();
+    expect(hide).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases directory explorer back handle on hide and force-close', () => {
+    const hide = vi.fn();
+    const release = vi.fn();
+    const componentLike = {
+      mobileDirectoryPopoverOpen: true,
+      mobileDirectoryBackHandle: {release},
+      mobileDirPop: {hide},
+      isSortPopoverOpen: false,
+      isDisplaySettingsOpen: false,
+      isColumnPopoverOpen: false,
+      sortPopoverBackHandle: null,
+      displaySettingsBackHandle: null,
+      columnPopoverBackHandle: null,
+      sortPopover: undefined,
+      seriesCollapseOverlay: undefined,
+      columnPopover: undefined,
+    };
+
+    BookBrowserComponent.prototype.onMobileDirectoryPopoverHide.call(componentLike as never);
+    expect(componentLike.mobileDirectoryPopoverOpen).toBe(false);
+    expect(release).toHaveBeenCalledTimes(1);
+    expect(componentLike.mobileDirectoryBackHandle).toBeNull();
+
+    componentLike.mobileDirectoryPopoverOpen = true;
+    componentLike.mobileDirectoryBackHandle = {release};
+    (BookBrowserComponent.prototype as unknown as {
+      forceCloseHeaderPopovers: (removeHistoryEntry: boolean) => void;
+    }).forceCloseHeaderPopovers.call(componentLike as never, false);
+
+    expect(hide).toHaveBeenCalledTimes(1);
+    expect(release).toHaveBeenCalledWith(false);
+    expect(componentLike.mobileDirectoryPopoverOpen).toBe(false);
+    expect(componentLike.mobileDirectoryBackHandle).toBeNull();
+  });
+
 });

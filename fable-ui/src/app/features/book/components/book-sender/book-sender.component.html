@@ -73,12 +73,14 @@
   </div>
 
   <div class="dialog-footer">
-    <p-button
-      icon="pi pi-envelope"
-      [label]="t('sendBook')"
-      [disabled]="!selectedProvider || !selectedRecipient"
-      (onClick)="sendBook()">
-    </p-button>
+    <div class="footer-actions">
+      <p-button
+        icon="pi pi-envelope"
+        [label]="t('sendBook')"
+        [disabled]="!selectedProvider || !selectedRecipient"
+        (onClick)="sendBook()">
+      </p-button>
+    </div>
   </div>
 </div>
 </ng-container>

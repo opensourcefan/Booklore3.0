@@ -154,6 +154,17 @@
 .entity-menu-wrapper {
   margin-left: 0.5rem;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    margin-left: 0.25rem;
+
+    ::ng-deep .p-button {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      padding: 0;
+    }
+  }
 }
 
 .mobile-dir-menu-wrapper {

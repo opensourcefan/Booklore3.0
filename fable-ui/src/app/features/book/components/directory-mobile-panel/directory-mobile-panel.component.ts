@@ -121,7 +121,10 @@ import {BookState} from '../../model/state/book-state.model';
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0.25rem;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      padding: 0;
       border-radius: 50%;
       transition: background 0.2s;
       &:hover {

@@ -209,7 +209,15 @@
   flex-shrink: 0;
 
   @media (max-width: 768px) {
-    > ::ng-deep .p-button {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+
+    // Create Media Type: icon-only — match Shelf Assigner
+    > ::ng-deep .p-button:first-child {
+      @include panel.footer-icon-only-mobile;
+    }
+
+    .footer-actions {
       flex: 1;
       min-width: 0;
     }

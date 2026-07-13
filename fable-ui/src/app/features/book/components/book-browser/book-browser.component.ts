@@ -315,20 +315,31 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   seriesCollapseOverlay: Popover | undefined;
   @ViewChild('columnPopover')
   columnPopover: Popover | undefined;
+  @ViewChild('mobileDirPop')
+  mobileDirPop: Popover | undefined;
   isMobileRightSidebarOpen = false;
   private mobileRightSidebarBackHandle: MobileBackHandle | null = null;
   private sortPopoverBackHandle: MobileBackHandle | null = null;
   private displaySettingsBackHandle: MobileBackHandle | null = null;
   private columnPopoverBackHandle: MobileBackHandle | null = null;
+  private mobileDirectoryBackHandle: MobileBackHandle | null = null;
 
   mobileDirectoryPopoverOpen = false;
 
   onMobileDirectoryPopoverShow(): void {
     this.mobileDirectoryPopoverOpen = true;
+    if (this.mobileDirectoryBackHandle) {
+      return;
+    }
+    this.mobileDirectoryBackHandle = this.mobileBackNavigation.register(() => {
+      this.mobileDirPop?.hide();
+    });
   }
 
   onMobileDirectoryPopoverHide(): void {
     this.mobileDirectoryPopoverOpen = false;
+    this.mobileDirectoryBackHandle?.release();
+    this.mobileDirectoryBackHandle = null;
   }
 
   get isMobile(): boolean {
@@ -1348,6 +1359,9 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isColumnPopoverOpen) {
       this.columnPopover?.hide();
     }
+    if (this.mobileDirectoryPopoverOpen) {
+      this.mobileDirPop?.hide();
+    }
 
     this.sortPopoverBackHandle?.release(removeHistoryEntry);
     this.sortPopoverBackHandle = null;
@@ -1355,9 +1369,12 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.displaySettingsBackHandle = null;
     this.columnPopoverBackHandle?.release(removeHistoryEntry);
     this.columnPopoverBackHandle = null;
+    this.mobileDirectoryBackHandle?.release(removeHistoryEntry);
+    this.mobileDirectoryBackHandle = null;
     this.isSortPopoverOpen = false;
     this.isDisplaySettingsOpen = false;
     this.isColumnPopoverOpen = false;
+    this.mobileDirectoryPopoverOpen = false;
   }
 
   private toggleMobileRightSidebar(event: MouseEvent): void {

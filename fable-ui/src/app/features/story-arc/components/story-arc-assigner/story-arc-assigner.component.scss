@@ -1,3 +1,5 @@
+@use '../../../../shared/styles/panel-shared' as panel;
+
 .story-arc-assigner-dialog {
   padding: 1.5rem;
   color: var(--text-color, #e5e7eb);
@@ -179,29 +181,19 @@
     }
   }
 
-  .dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    flex-shrink: 0;
-
-    button {
-      border-radius: 8px;
-      padding: 0.5rem 1.5rem;
-      font-weight: 600;
-    }
+  .dialog-footer {
+    @include panel.dialog-footer-end;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+    margin-top: 0.5rem;
 
     @media (max-width: 768px) {
-      padding: 0.5rem 0.75rem;
-      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
-      gap: 0.5rem;
+      margin-top: 0;
       border-top: 1px solid var(--border-color);
       background: var(--card-background);
-
-      ::ng-deep .p-button {
-        flex: 1;
-        min-width: 0;
-      }
     }
   }
 }
