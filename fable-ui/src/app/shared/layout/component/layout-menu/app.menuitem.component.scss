@@ -29,6 +29,31 @@
   }
 }
 
+.sidebar-heading-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--p-primary-color);
+  text-decoration: none;
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--p-primary-400);
+  }
+
+  .pi {
+    font-size: 0.8rem;
+  }
+}
+
+:host-context(.mobile-sidebar-popover) .sidebar-heading-nav {
+  min-width: 32px;
+  min-height: 32px;
+}
+
 .reorder-control-disabled {
   pointer-events: none;
   opacity: 0.45;

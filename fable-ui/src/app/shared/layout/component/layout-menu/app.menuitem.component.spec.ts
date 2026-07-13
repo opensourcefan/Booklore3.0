@@ -317,6 +317,79 @@ describe('AppMenuitemComponent unshelved row badge behavior', () => {
     expect(component.isExpanded(component.key)).toBe(false);
   });
 
+  it('collapses Story Arc-style headings with a section destination the same way as other dropdown headers', () => {
+    const fixture = TestBed.createComponent(AppMenuitemComponent);
+
+    fixture.componentRef.setInput('item', {
+      label: 'Story Arcs',
+      type: 'storyArc',
+      hasDropDown: true,
+      routerLink: ['/story-arcs'],
+      items: [
+        {
+          label: 'The Rocketeer',
+          type: 'StoryArc',
+          routerLink: ['/story-arc/The Rocketeer'],
+        },
+      ],
+    });
+    fixture.componentRef.setInput('index', 0);
+    fixture.componentRef.setInput('root', true);
+    fixture.componentRef.setInput('parentKey', 'storyArc');
+    fixture.componentRef.setInput('menuKey', 'storyArc');
+    fixture.componentRef.setInput('reorderMode', false);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    const header = fixture.nativeElement.querySelector('.root-item-with-dropdown') as HTMLElement;
+    const label = fixture.nativeElement.querySelector('.sidebar-heading-label') as HTMLElement;
+    const nav = fixture.nativeElement.querySelector('.sidebar-heading-nav') as HTMLAnchorElement;
+
+    expect(header).not.toBeNull();
+    expect(label?.tagName).toBe('DIV');
+    expect(nav?.getAttribute('href')).toContain('/story-arcs');
+    expect(component.isExpanded(component.key)).toBe(true);
+
+    label.click();
+    fixture.detectChanges();
+
+    expect(component.isExpanded(component.key)).toBe(false);
+  });
+
+  it('does not toggle expand when the section destination control is clicked', () => {
+    const fixture = TestBed.createComponent(AppMenuitemComponent);
+
+    fixture.componentRef.setInput('item', {
+      label: 'Story Arcs',
+      type: 'storyArc',
+      hasDropDown: true,
+      routerLink: ['/story-arcs'],
+      items: [
+        {
+          label: 'The Rocketeer',
+          type: 'StoryArc',
+          routerLink: ['/story-arc/The Rocketeer'],
+        },
+      ],
+    });
+    fixture.componentRef.setInput('index', 0);
+    fixture.componentRef.setInput('root', true);
+    fixture.componentRef.setInput('parentKey', 'storyArc');
+    fixture.componentRef.setInput('menuKey', 'storyArc');
+    fixture.componentRef.setInput('reorderMode', false);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    const nav = fixture.nativeElement.querySelector('.sidebar-heading-nav') as HTMLAnchorElement;
+
+    expect(component.isExpanded(component.key)).toBe(true);
+
+    nav.click();
+    fixture.detectChanges();
+
+    expect(component.isExpanded(component.key)).toBe(true);
+  });
+
   it('does not toggle expand when the create (+) control is clicked', () => {
     const fixture = TestBed.createComponent(AppMenuitemComponent);
     const onCreate = vi.fn();

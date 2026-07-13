@@ -11,8 +11,12 @@
         (keydown.space)="$event.preventDefault(); toggleExpand(key)"
       >
         <div class="root-item-label-container">
+          <!-- Dropdown section headings always use a plain label so tap/click toggles
+               expand/collapse like Libraries/Shelves/etc. If the section also has a
+               destination (Story Arcs → /story-arcs), expose it as a sibling control. -->
+          <div class="sidebar-heading-label">{{ item.label }}</div>
           @if (item.routerLink && !reorderMode) {
-            <a class="sidebar-heading-label sidebar-heading-link"
+            <a class="sidebar-heading-nav"
                [routerLink]="item.routerLink"
                [fragment]="item.fragment"
                [queryParamsHandling]="item.queryParamsHandling"
@@ -22,10 +26,11 @@
                [state]="item.state"
                [queryParams]="item.queryParams"
                [attr.target]="item.target"
+               [attr.aria-label]="item.label"
                tabindex="-1"
-               (click)="$event.stopPropagation()">{{ item.label }}</a>
-          } @else {
-            <div class="sidebar-heading-label">{{ item.label }}</div>
+               (click)="$event.stopPropagation()">
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </a>
           }
           @if (item.hasCreate) {
             <i

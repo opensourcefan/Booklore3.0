@@ -275,7 +275,7 @@ The app has a dedicated mobile UX system built around three services:
 - `< 768px` — main container padding collapses to `4.4rem 0 0` (no side padding)
 - `_responsive.scss` handles all layout breakpoints (992px, 768px, 1960px)
 - `_topbar.scss` hides the logo on `≤ 991px` and styles `.mobile-sidebar-popover` popover content (16rem wide, scrollbar hidden, touch-optimized)
-- Mobile left sidebar (`app.menuitem`): dropdown section headers (`.root-item-with-dropdown`) toggle expand/collapse on the full header tap; linked headings (e.g. Story Arcs) still navigate via `stopPropagation`; create (+) does not toggle
+- Mobile left sidebar (`app.menuitem`): dropdown section headers (`.root-item-with-dropdown`) toggle expand/collapse on the full header tap — including Story Arcs, which uses a plain heading label like Libraries/Shelves; section destinations (Story Arcs → `/story-arcs`) use a sibling `.sidebar-heading-nav` control so navigation does not block collapse; create (+) does not toggle
 - `.mobile-right-dir-trigger` in `_menu.scss` for mobile directory panel
 
 ### Key DTOs
