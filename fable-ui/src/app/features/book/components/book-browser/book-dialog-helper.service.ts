@@ -37,7 +37,7 @@ export class BookDialogHelperService {
     return this.openDialog(StoryArcAssignerComponent, {
       showHeader: false,
       data: { bookIds },
-      styleClass: `${DialogSize.SM} ${DialogStyle.MINIMAL}`
+      styleClass: this.dialogLauncherService.getScrollablePickerDialogStyle(),
     });
   }
 
@@ -74,7 +74,7 @@ export class BookDialogHelperService {
     return this.openDialog(BookTypeAssignerComponent, {
       showHeader: false,
       data,
-      styleClass: `${DialogSize.SM} ${DialogStyle.MINIMAL}`,
+      styleClass: this.dialogLauncherService.getScrollablePickerDialogStyle(),
     });
   }
 
@@ -95,7 +95,7 @@ export class BookDialogHelperService {
   openMediaTypeManagerDialog(): DynamicDialogRef {
     return this.openDialog(MediaTypeManagerComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.LG} ${DialogStyle.MINIMAL}`,
+      styleClass: this.dialogLauncherService.getScrollablePickerDialogStyle(DialogSize.LG),
     })!;
   }
 

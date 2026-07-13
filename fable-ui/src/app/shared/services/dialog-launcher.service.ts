@@ -79,9 +79,12 @@ export class DialogLauncherService {
     return `${size} ${DialogStyle.MINIMAL}`;
   }
 
-  /** SM on desktop; FULL on phone so scrollable pickers pin header/footer. */
-  getScrollablePickerDialogStyle(): string {
-    const size = this.isCompactViewport(768) ? DialogSize.FULL : DialogSize.SM;
+  /**
+   * Scrollable picker/form dialogs: FULL on phone so header/footer stay pinned.
+   * Desktop size defaults to SM; pass DialogSize.LG (etc.) for wider managers.
+   */
+  getScrollablePickerDialogStyle(desktopSize: string = DialogSize.SM): string {
+    const size = this.isCompactViewport(768) ? DialogSize.FULL : desktopSize;
     return `${size} ${DialogStyle.MINIMAL}`;
   }
 
