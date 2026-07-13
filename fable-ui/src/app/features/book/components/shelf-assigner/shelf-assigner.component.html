@@ -128,8 +128,10 @@
         />
         <p-button
           [label]="t('saveChanges')"
+          [ariaLabel]="t('saveChanges')"
           icon="pi pi-check"
           severity="success"
+          styleClass="save-icon-only-mobile"
           (onClick)="updateBooksShelves()"
         />
       </div>

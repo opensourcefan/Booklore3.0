@@ -182,24 +182,12 @@ paths: ["fable-ui/src/**/*.scss", "fable-ui/src/**/*.html", "fable-ui/src/**/*.t
 
 ### 4.4 Multi-Button Footer — Prevent Wrapping
 - When a footer has 3+ buttons, long labels cause wrapping which doubles button height and wastes space. Two mitigations:
-  1. **Icon-only save button**: Use `styleClass` on the save button + CSS to hide its label on mobile, freeing width for other buttons:
-     ```scss
-     ::ng-deep .save-icon-only-mobile {
-       flex: 0 0 auto;
-       .p-button-label { display: none; }
-     }
-     ```
-  2. **Prevent label wrapping** on remaining buttons:
-     ```scss
-     ::ng-deep .p-button:not(.save-icon-only-mobile) {
-       .p-button-label {
-         white-space: nowrap;
-         overflow: hidden;
-         text-overflow: ellipsis;
-       }
-     }
-     ```
+  1. **Icon-only save button**: Use `styleClass="save-icon-only-mobile"` on the save/primary long-label button + the shared mixin rule (hides label on mobile), freeing width for Cancel.
+  2. **Prevent label wrapping** on remaining buttons (`white-space: nowrap` is in `@mixin dialog-footer`).
+- **375px budget check (REQUIRED before shipping):** Mentally lay out every footer control at `max-width: 768px` on a 375-wide viewport. If Create/secondary + Cancel + long Save cannot fit on **one row**, make the long primary icon-only and/or secondary Create icon-only. Spilling horizontally or wrapping labels to a second line is a **ship blocker**.
+- Footer control height must match compact dialogs (Story Arc Assigner / default PrimeNG): use the shared mixin’s fixed `--dialog-footer-btn-size: 2.25rem`. Do **not** use `align-items: stretch` with only `min-height` — icon vs no-icon Cancel/Save will mismatch, and a wrapped label will inflate every button.
 - Reduce footer padding on mobile: `padding: 0.5rem 0.75rem` (was `1rem 1.5rem`).
+- Icon-only secondary controls (Create, Reset): `@include panel.footer-icon-only-mobile` (same 2.25rem box).
 
 ---
 

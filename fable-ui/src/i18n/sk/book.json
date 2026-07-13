@@ -629,6 +629,7 @@
   },
   "lockUnlockDialog": {
     "title": "",
+    "cancel": "Zrušiť",
     "selectedCount": "",
     "reset": "",
     "lockAll": "",

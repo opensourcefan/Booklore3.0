@@ -680,6 +680,7 @@
   },
   "lockUnlockDialog": {
     "title": "",
+    "cancel": "Annuller",
     "selectedCount": "",
     "reset": "",
     "lockAll": "",

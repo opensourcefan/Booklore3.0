@@ -630,6 +630,7 @@
   },
   "lockUnlockDialog": {
     "title": "锁定或解锁元数据",
+    "cancel": "取消",
     "selectedCount": "已选择 {{ count }} 本书",
     "reset": "重置",
     "lockAll": "全部锁定",

@@ -232,8 +232,10 @@
         ></p-button>
         <p-button
           [label]="loading ? 'Moving...' : 'Move Files'"
+          [ariaLabel]="loading ? 'Moving...' : 'Move Files'"
           [icon]="loading ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
           severity="success"
+          styleClass="save-icon-only-mobile"
           (click)="saveChanges()"
           [disabled]="loading || filePreviews.length === 0"
         ></p-button>

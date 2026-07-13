@@ -632,6 +632,7 @@
   },
   "lockUnlockDialog": {
     "title": "",
+    "cancel": "Annuleren",
     "selectedCount": "",
     "reset": "",
     "lockAll": "",

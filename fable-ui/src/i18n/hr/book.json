@@ -636,6 +636,7 @@
   },
   "lockUnlockDialog": {
     "title": "Zaključaj ili otključaj metapodatke",
+    "cancel": "Odustani",
     "selectedCount": "{{ count }} knjiga odabrano",
     "reset": "Vrati",
     "lockAll": "Zaključaj sve",

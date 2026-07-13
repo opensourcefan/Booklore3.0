@@ -40,20 +40,16 @@
   flex-shrink: 0;
 
   @media (max-width: 768px) {
-    flex-wrap: wrap;
-    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
 
     ::ng-deep p-divider {
       display: none;
     }
 
-    .footer-actions {
-      gap: 0.5rem;
-    }
-
     .footer-actions.footer-secondary {
-      width: auto;
       flex: 0 0 auto;
+      width: auto;
 
       ::ng-deep .p-button {
         @include panel.footer-icon-only-mobile;

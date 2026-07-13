@@ -629,6 +629,7 @@
   },
   "lockUnlockDialog": {
     "title": "メタデータのロック/解除",
+    "cancel": "キャンセル",
     "selectedCount": "{{ count }}冊選択中",
     "reset": "リセット",
     "lockAll": "すべてロック",

@@ -632,6 +632,7 @@
   },
   "lockUnlockDialog": {
     "title": "Verrouiller ou déverrouiller les métadonnées",
+    "cancel": "Annuler",
     "selectedCount": "{{ count }} livre(s) sélectionné(s)",
     "reset": "Réinitialiser",
     "lockAll": "Tout verrouiller",

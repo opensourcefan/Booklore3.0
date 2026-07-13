@@ -633,6 +633,7 @@
   },
   "lockUnlockDialog": {
     "title": "",
+    "cancel": "Batal",
     "selectedCount": "",
     "reset": "",
     "lockAll": "",

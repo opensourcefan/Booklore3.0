@@ -629,6 +629,7 @@
   },
   "lockUnlockDialog": {
     "title": "Blocca o sblocca metadati",
+    "cancel": "Annulla",
     "selectedCount": "{{ count }} libro/i selezionato/i",
     "reset": "Ripristina",
     "lockAll": "Blocca tutto",

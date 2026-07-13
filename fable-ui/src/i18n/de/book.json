@@ -637,6 +637,7 @@
   },
   "lockUnlockDialog": {
     "title": "Metadaten sperren oder entsperren",
+    "cancel": "Abbrechen",
     "selectedCount": "{{ count }} Buch/Bücher ausgewählt",
     "reset": "Zurücksetzen",
     "lockAll": "Alle sperren",

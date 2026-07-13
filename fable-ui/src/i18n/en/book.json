@@ -812,6 +812,7 @@
   },
   "lockUnlockDialog": {
     "title": "Lock or Unlock Metadata",
+    "cancel": "Cancel",
     "selectedCount": "{{ count }} book(s) selected",
     "reset": "Reset",
     "lockAll": "Lock All",

@@ -46,8 +46,6 @@
         severity="warn"
         (onClick)="resetFieldLocks()"
       ></p-button>
-    </div>
-    <div class="footer-actions footer-secondary">
       <p-button
         icon="pi pi-lock"
         [label]="t('lockAll')"
@@ -66,6 +64,12 @@
       ></p-button>
     </div>
     <div class="footer-actions footer-primary">
+      <p-button
+        [label]="t('cancel')"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="dialogRef.close()"
+      ></p-button>
       <p-button
         [label]="isSaving ? t('saving') : t('save')"
         [outlined]="true"

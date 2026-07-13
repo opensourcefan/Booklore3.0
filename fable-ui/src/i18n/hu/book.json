@@ -632,6 +632,7 @@
   },
   "lockUnlockDialog": {
     "title": "",
+    "cancel": "Mégse",
     "selectedCount": "",
     "reset": "",
     "lockAll": "",

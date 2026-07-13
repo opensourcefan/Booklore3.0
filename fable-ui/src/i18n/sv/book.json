@@ -637,6 +637,7 @@
   },
   "lockUnlockDialog": {
     "title": "Lås eller lås upp metadata",
+    "cancel": "Avbryt",
     "selectedCount": "{{ count }} bok/böcker valda",
     "reset": "Återställ",
     "lockAll": "Lås alla",

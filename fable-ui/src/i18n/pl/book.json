@@ -629,6 +629,7 @@
   },
   "lockUnlockDialog": {
     "title": "Zablokuj lub odblokuj metadane",
+    "cancel": "Anuluj",
     "selectedCount": "Zaznaczono {{ count }} książkę/książki/książek",
     "reset": "Resetuj",
     "lockAll": "Zablokuj wszystkie",

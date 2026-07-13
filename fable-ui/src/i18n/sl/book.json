@@ -637,6 +637,7 @@
   },
   "lockUnlockDialog": {
     "title": "Zakleni ali odkleni metapodatke",
+    "cancel": "Prekliči",
     "selectedCount": "Izbranih knjig: {{ count }}",
     "reset": "Ponastavi",
     "lockAll": "Zakleni vse",

@@ -108,7 +108,13 @@
   }
 
   @media (max-width: 768px) {
-    align-items: stretch;
+    // Match default PrimeNG / Story Arc Assigner density — do NOT inflate with stretch+40px
+    --dialog-footer-btn-size: 2.25rem;
+    align-items: center;
+    flex-wrap: nowrap;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
     padding: 0.5rem 0.75rem;
     padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
     gap: 0.5rem;
@@ -118,12 +124,39 @@
       display: none;
     }
 
-    // One height for every footer control (text + icon-only)
     ::ng-deep .p-button {
-      min-height: 40px;
+      height: var(--dialog-footer-btn-size);
+      min-height: var(--dialog-footer-btn-size);
+      max-height: var(--dialog-footer-btn-size);
       box-sizing: border-box;
+      padding-block: 0;
       align-items: center;
       justify-content: center;
+
+      .p-button-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.2;
+      }
+    }
+
+    // Long primary labels (Save Changes) → icon-only so 375px footers never spill
+    ::ng-deep .p-button.save-icon-only-mobile,
+    ::ng-deep .save-icon-only-mobile.p-button {
+      flex: 0 0 var(--dialog-footer-btn-size);
+      width: var(--dialog-footer-btn-size);
+      min-width: var(--dialog-footer-btn-size);
+      max-width: var(--dialog-footer-btn-size);
+      padding-inline: 0;
+
+      .p-button-label {
+        display: none;
+      }
+
+      .p-button-icon {
+        margin: 0;
+      }
     }
 
     .footer-actions,
@@ -132,24 +165,25 @@
       width: auto;
       min-width: 0;
       display: flex;
-      align-items: stretch;
+      align-items: center;
       gap: 0.5rem;
 
       ::ng-deep .p-button {
         flex: 1;
         min-width: 0;
       }
+
+      ::ng-deep .p-button.save-icon-only-mobile,
+      ::ng-deep .save-icon-only-mobile.p-button {
+        flex: 0 0 var(--dialog-footer-btn-size);
+      }
     }
 
-    // Sibling actions outside .footer-actions (Create Shelf / Create Type / Send)
+    // Sibling Create / secondary controls outside .footer-actions
     > ::ng-deep p-button {
       display: flex;
-      align-items: stretch;
-
-      .p-button {
-        flex: 1;
-        min-width: 0;
-      }
+      align-items: center;
+      flex-shrink: 0;
     }
   }
 }
@@ -160,14 +194,16 @@
   justify-content: flex-end;
 }
 
-// Icon-only secondary footer control (Create, Reset, etc.) — keeps primary labels readable
+// Icon-only secondary footer control (Create, Reset, etc.) — keeps Cancel readable on 375px
 @mixin footer-icon-only-mobile {
   @media (max-width: 768px) {
-    flex: 0 0 40px;
-    width: 40px;
-    min-width: 40px;
-    max-width: 40px;
-    min-height: 40px;
+    flex: 0 0 var(--dialog-footer-btn-size, 2.25rem) !important;
+    width: var(--dialog-footer-btn-size, 2.25rem);
+    min-width: var(--dialog-footer-btn-size, 2.25rem);
+    max-width: var(--dialog-footer-btn-size, 2.25rem);
+    height: var(--dialog-footer-btn-size, 2.25rem);
+    min-height: var(--dialog-footer-btn-size, 2.25rem);
+    max-height: var(--dialog-footer-btn-size, 2.25rem);
     padding: 0;
     justify-content: center;
 
