@@ -30,7 +30,7 @@ export class LockUnlockMetadataDialogComponent implements OnInit {
   private readonly t = inject(TranslocoService);
   fieldLocks: Record<string, boolean | undefined> = {};
 
-  bookIds: Set<number> = new Set(this.dynamicDialogConfig.data.bookIds as number[]);
+  bookIds = new Set<number>(this.dynamicDialogConfig.data.bookIds as number[]);
 
   lockableFields: string[] = [
     'titleLocked', 'subtitleLocked', 'publisherLocked', 'publishedDateLocked', 'descriptionLocked',
