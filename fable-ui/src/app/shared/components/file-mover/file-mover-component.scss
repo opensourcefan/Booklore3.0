@@ -359,6 +359,16 @@
       min-height: 0;
     }
   }
+
+  @media (max-width: 768px) {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+
+    ::ng-deep .p-datatable {
+      height: auto;
+      min-width: 640px;
+    }
+  }
 }
 
 :host ::ng-deep {
@@ -383,6 +393,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.8rem;
+
+  @media (max-width: 768px) {
+    overflow-x: auto;
+    text-overflow: clip;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .path-library {
@@ -391,6 +407,16 @@
 
 .path-value {
   color: var(--text-color);
+
+  @media (max-width: 768px) {
+    display: inline-block;
+    max-width: 100%;
+    overflow-x: auto;
+    text-overflow: clip;
+    white-space: nowrap;
+    vertical-align: bottom;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .no-paths {
@@ -478,28 +504,12 @@
     gap: 1rem;
   }
 
-  .banner-main {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .banner-content {
-    flex: 1 1 100%;
-    order: 1;
-  }
-
-  .banner-icon {
-    order: 0;
-  }
-
-  .banner-toggle {
-    order: 2;
-    margin-left: auto;
-  }
-
   .bulk-controls {
     flex-direction: column;
     align-items: flex-start;
   }
 
+  .table-section {
+    overflow: hidden;
+  }
 }

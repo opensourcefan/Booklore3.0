@@ -278,6 +278,10 @@
 // Popover content containers
 .column-popover-content {
   width: 200px;
+
+  @media (max-width: 768px) {
+    width: min(280px, calc(100vw - 1.5rem));
+  }
 }
 
 .column-popover-footer {
@@ -286,6 +290,15 @@
   gap: 0.5rem;
   padding-top: 1rem;
   padding-left: 0.25rem;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    padding-top: 0.75rem;
+
+    ::ng-deep .p-button {
+      min-height: 36px;
+    }
+  }
 }
 
 .display-settings-popover {
@@ -295,6 +308,14 @@
   flex-direction: column;
   gap: 1rem;
   font-size: 0.875rem;
+
+  @media (max-width: 768px) {
+    width: min(280px, calc(100vw - 1.5rem));
+    max-height: min(70svh, 520px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    gap: 0.75rem;
+  }
 }
 
 .display-settings-header {
@@ -328,6 +349,12 @@
 
   i {
     font-size: 0.95rem;
+  }
+
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
   }
 }
 
@@ -399,6 +426,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
+
+  @media (max-width: 768px) {
+    min-height: 36px;
+  }
 
   &:hover {
     border-color: var(--primary-color);

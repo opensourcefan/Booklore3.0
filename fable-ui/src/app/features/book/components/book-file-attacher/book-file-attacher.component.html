@@ -96,9 +96,10 @@
         <p>{{ isBulkMode ? t('warningDeleteBulk') : t('warningDelete') }}</p>
       </div>
     </div>
+  </div>
 
-    <!-- Action Buttons -->
-    <div class="action-buttons">
+  <div class="dialog-footer">
+    <div class="footer-actions">
       <p-button
         [label]="'common.cancel' | transloco"
         [outlined]="true"

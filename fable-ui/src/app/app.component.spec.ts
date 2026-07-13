@@ -14,10 +14,12 @@ import {LibraryService} from './features/book/service/library.service';
 import {LibraryHealthService} from './features/book/service/library-health.service';
 import {LibraryLoadingService} from './features/library-creator/library-loading.service';
 import {TranslocoTestingModule} from '@jsverse/transloco';
-import {MessageService} from 'primeng/api';
+import {MessageService, ConfirmationService} from 'primeng/api';
 import {AuthService} from './shared/service/auth.service';
 import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progress.service';
+import {AiSearchScanProgressService} from './shared/service/ai-search-scan-progress.service';
 import {PagedGridPilotService} from './features/book/service/paged-grid-pilot.service';
+import {MobileBackNavigationService} from './shared/service/mobile-back-navigation.service';
 import {TaskStatus, TaskType} from './features/settings/task-management/task.service';
 
 describe('AppComponent offline detection', () => {
@@ -44,7 +46,10 @@ describe('AppComponent offline detection', () => {
         {provide: LibraryLoadingService, useValue: {hide: vi.fn()}},
         {provide: AuthService, useValue: {forceLogout: vi.fn()}},
         {provide: AiPanelScanProgressService, useValue: {handleIncomingProgress: vi.fn()}},
+        {provide: AiSearchScanProgressService, useValue: {handleIncomingProgress: vi.fn()}},
         {provide: PagedGridPilotService, useValue: {invalidateAllBooksCache: vi.fn()}},
+        {provide: ConfirmationService, useValue: {requireConfirmation$: of(null), close: vi.fn()}},
+        {provide: MobileBackNavigationService, useValue: {register: vi.fn(() => ({release: vi.fn()}))}},
         MessageService,
       ]
     });
@@ -169,7 +174,10 @@ describe('AppComponent task progress refresh handling', () => {
         {provide: LibraryLoadingService, useValue: {hide: vi.fn(), showBookLoadingProgress: vi.fn()}},
         {provide: AuthService, useValue: {forceLogout: vi.fn()}},
         {provide: AiPanelScanProgressService, useValue: {handleIncomingProgress: vi.fn()}},
+        {provide: AiSearchScanProgressService, useValue: {handleIncomingProgress: vi.fn()}},
         {provide: PagedGridPilotService, useValue: pagedGridPilotServiceMock},
+        {provide: ConfirmationService, useValue: {requireConfirmation$: of(null), close: vi.fn()}},
+        {provide: MobileBackNavigationService, useValue: {register: vi.fn(() => ({release: vi.fn()}))}},
         MessageService,
       ]
     });

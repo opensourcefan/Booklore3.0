@@ -225,6 +225,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   isSelectionActionPanelOpen = false;
   isDisplaySettingsOpen = false;
   isSortPopoverOpen = false;
+  isColumnPopoverOpen = false;
 
   // Cover preview state
   selectedCoverUrl: string | null = null;
@@ -308,8 +309,17 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   @ViewChild('mobileRightSidebarPop')
   mobileRightSidebarPop: Popover | undefined;
+  @ViewChild('sortPopover')
+  sortPopover: Popover | undefined;
+  @ViewChild('seriesCollapseOverlay')
+  seriesCollapseOverlay: Popover | undefined;
+  @ViewChild('columnPopover')
+  columnPopover: Popover | undefined;
   isMobileRightSidebarOpen = false;
   private mobileRightSidebarBackHandle: MobileBackHandle | null = null;
+  private sortPopoverBackHandle: MobileBackHandle | null = null;
+  private displaySettingsBackHandle: MobileBackHandle | null = null;
+  private columnPopoverBackHandle: MobileBackHandle | null = null;
 
   mobileDirectoryPopoverOpen = false;
 
@@ -644,6 +654,7 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.resizeSub?.unsubscribe();
     this.forceCloseMobileRightSidebar(false);
+    this.forceCloseHeaderPopovers(false);
     this.clearHoverPreviewTimer();
     this.pagedGridPilotService.resetActiveQuery();
     this.stopAiStatusPolling();
@@ -753,6 +764,10 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (event.navigationTrigger !== 'popstate' && this.isMobileRightSidebarOpen) {
       this.forceCloseMobileRightSidebar(false);
+    }
+    if (event.navigationTrigger !== 'popstate' &&
+      (this.isSortPopoverOpen || this.isDisplaySettingsOpen || this.isColumnPopoverOpen)) {
+      this.forceCloseHeaderPopovers(false);
     }
   }
 
@@ -1273,6 +1288,76 @@ export class BookBrowserComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isMobileRightSidebarOpen = false;
     this.mobileRightSidebarBackHandle?.release();
     this.mobileRightSidebarBackHandle = null;
+  }
+
+  onSortPopoverShow(): void {
+    this.isSortPopoverOpen = true;
+    if (this.sortPopoverBackHandle) {
+      return;
+    }
+    this.sortPopoverBackHandle = this.mobileBackNavigation.register(() => {
+      this.sortPopover?.hide();
+    });
+  }
+
+  onSortPopoverHide(): void {
+    this.isSortPopoverOpen = false;
+    this.sortPopoverBackHandle?.release();
+    this.sortPopoverBackHandle = null;
+  }
+
+  onDisplaySettingsShow(): void {
+    this.isDisplaySettingsOpen = true;
+    if (this.displaySettingsBackHandle) {
+      return;
+    }
+    this.displaySettingsBackHandle = this.mobileBackNavigation.register(() => {
+      this.seriesCollapseOverlay?.hide();
+    });
+  }
+
+  onDisplaySettingsHide(): void {
+    this.isDisplaySettingsOpen = false;
+    this.displaySettingsBackHandle?.release();
+    this.displaySettingsBackHandle = null;
+  }
+
+  onColumnPopoverShow(): void {
+    this.isColumnPopoverOpen = true;
+    if (this.columnPopoverBackHandle) {
+      return;
+    }
+    this.columnPopoverBackHandle = this.mobileBackNavigation.register(() => {
+      this.columnPopover?.hide();
+    });
+  }
+
+  onColumnPopoverHide(): void {
+    this.isColumnPopoverOpen = false;
+    this.columnPopoverBackHandle?.release();
+    this.columnPopoverBackHandle = null;
+  }
+
+  private forceCloseHeaderPopovers(removeHistoryEntry: boolean): void {
+    if (this.isSortPopoverOpen) {
+      this.sortPopover?.hide();
+    }
+    if (this.isDisplaySettingsOpen) {
+      this.seriesCollapseOverlay?.hide();
+    }
+    if (this.isColumnPopoverOpen) {
+      this.columnPopover?.hide();
+    }
+
+    this.sortPopoverBackHandle?.release(removeHistoryEntry);
+    this.sortPopoverBackHandle = null;
+    this.displaySettingsBackHandle?.release(removeHistoryEntry);
+    this.displaySettingsBackHandle = null;
+    this.columnPopoverBackHandle?.release(removeHistoryEntry);
+    this.columnPopoverBackHandle = null;
+    this.isSortPopoverOpen = false;
+    this.isDisplaySettingsOpen = false;
+    this.isColumnPopoverOpen = false;
   }
 
   private toggleMobileRightSidebar(event: MouseEvent): void {

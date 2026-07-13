@@ -16,6 +16,16 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+
+  @media (max-width: 768px) {
+    gap: 0.15rem;
+
+    ::ng-deep .p-button {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+    }
+  }
 }
 
 .ai-search-body {
@@ -227,6 +237,11 @@
     background-color: rgba(239, 68, 68, 0.1);
     color: var(--pink-600);
   }
+
+  @media (max-width: 768px) {
+    min-height: 32px;
+    padding: 0.35rem 0.6rem;
+  }
 }
 
 .ai-search-scope-list {
@@ -236,6 +251,10 @@
   max-height: 360px; /* Auto-expands to hold up to 10 books (each ~36px height) before scrolling */
   overflow-y: auto;
   padding-right: 0.25rem;
+
+  @media (max-width: 768px) {
+    max-height: min(40svh, 240px);
+  }
 }
 
 .ai-search-scope-row-item {
@@ -275,6 +294,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @media (max-width: 768px) {
+    overflow-x: auto;
+    text-overflow: clip;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .ai-search-scope-clear {
@@ -300,6 +325,16 @@
   &:hover {
     background: rgba(239, 68, 68, 0.15);
     color: var(--pink-500);
+  }
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+
+    i {
+      font-size: 0.85rem;
+    }
   }
 }
 

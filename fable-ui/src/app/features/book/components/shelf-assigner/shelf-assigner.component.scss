@@ -304,10 +304,34 @@
   flex-shrink: 0;
 
   @media (max-width: 768px) {
-    // Create Shelf sits outside .footer-actions — stretch it with Cancel/Save
-    > ::ng-deep .p-button {
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+
+    // Create Shelf: icon-only to keep Cancel/Save readable on 375px
+    > ::ng-deep .p-button:first-child {
+      flex: 0 0 36px;
+      width: 36px;
+      min-width: 36px;
+      padding: 0;
+      justify-content: center;
+
+      .p-button-label {
+        display: none;
+      }
+
+      .p-button-icon {
+        margin: 0;
+      }
+    }
+
+    .footer-actions {
       flex: 1;
       min-width: 0;
+
+      ::ng-deep .p-button {
+        flex: 1;
+        min-width: 0;
+      }
     }
   }
 }

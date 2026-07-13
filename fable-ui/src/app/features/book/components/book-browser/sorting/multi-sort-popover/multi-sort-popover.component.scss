@@ -1,6 +1,13 @@
 .multi-sort-container {
   width: 280px;
   padding: 0.5rem;
+
+  @media (max-width: 768px) {
+    width: min(300px, calc(100vw - 1.5rem));
+    max-height: min(70svh, 520px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 }
 
 .multi-sort-header {
@@ -78,6 +85,12 @@
   i {
     font-size: 0.85rem;
   }
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
 }
 
 .criterion-rank {
@@ -126,6 +139,12 @@
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
   }
 }
 

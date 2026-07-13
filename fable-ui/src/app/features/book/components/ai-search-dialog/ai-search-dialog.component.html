@@ -21,7 +21,15 @@
         @if (hasSearched) {
           <p-button icon="pi pi-undo" [text]="true" [rounded]="true" (onClick)="clearResults()" [pTooltip]="t('clearResults')"></p-button>
         }
-        <p-button icon="pi pi-chevron-down" [text]="true" [rounded]="true" (onClick)="close()" pTooltip="Minimize — search continues in background"></p-button>
+        <p-button
+          icon="pi pi-chevron-down"
+          [text]="true"
+          [rounded]="true"
+          class="close-button"
+          (onClick)="close()"
+          ariaLabel="Minimize — search continues in background"
+          pTooltip="Minimize — search continues in background"
+        ></p-button>
       </div>
     </div>
   </ng-template>

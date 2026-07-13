@@ -8,6 +8,7 @@
   @media (max-width: 768px) {
     min-width: auto;
     width: 100%;
+    max-width: 100%;
   }
 }
 
@@ -28,6 +29,10 @@
   background: var(--card-background);
   border: 1px solid var(--border-color);
   border-top: none;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem;
+  }
 }
 
 .message {
@@ -44,4 +49,5 @@
 .dialog-footer {
   @include panel.dialog-footer;
   border-top: none;
+  flex-shrink: 0;
 }

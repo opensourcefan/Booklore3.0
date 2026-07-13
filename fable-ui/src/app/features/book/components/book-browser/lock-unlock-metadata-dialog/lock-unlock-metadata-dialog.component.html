@@ -27,6 +27,7 @@
             [outlined]="true"
             [label]="getLockLabel(field)"
             [icon]="getLockIcon(field)"
+            [ariaLabel]="getLockLabel(field)"
             [severity]="fieldLocks[field] === true ? 'danger' : fieldLocks[field] === false ? 'success' : 'secondary'"
             (click)="cycleLockState(field)"
           ></p-button>
@@ -36,14 +37,43 @@
   </div>
 
   <div class="dialog-footer">
-    <div class="footer-actions">
-      <p-button icon="pi pi-refresh" [label]="t('reset')" outlined="true" severity="warn" (onClick)="resetFieldLocks()"></p-button>
+    <div class="footer-actions footer-secondary">
+      <p-button
+        icon="pi pi-refresh"
+        [label]="t('reset')"
+        [ariaLabel]="t('reset')"
+        outlined="true"
+        severity="warn"
+        (onClick)="resetFieldLocks()"
+      ></p-button>
     </div>
-    <div class="footer-actions">
-      <p-button icon="pi pi-lock" [label]="t('lockAll')" outlined="true" severity="danger" (onClick)="toggleLockAll('LOCK')"></p-button>
-      <p-button icon="pi pi-lock-open" [label]="t('unlockAll')" outlined="true" severity="success" (onClick)="toggleLockAll('UNLOCK')"></p-button>
-      <p-divider layout="vertical"></p-divider>
-      <p-button [label]="isSaving ? t('saving') : t('save')" [outlined]="true" icon="pi pi-check" severity="info" (onClick)="applyFieldLocks()" [disabled]="bookIds.size === 0 || isSaving"></p-button>
+    <div class="footer-actions footer-secondary">
+      <p-button
+        icon="pi pi-lock"
+        [label]="t('lockAll')"
+        [ariaLabel]="t('lockAll')"
+        outlined="true"
+        severity="danger"
+        (onClick)="toggleLockAll('LOCK')"
+      ></p-button>
+      <p-button
+        icon="pi pi-lock-open"
+        [label]="t('unlockAll')"
+        [ariaLabel]="t('unlockAll')"
+        outlined="true"
+        severity="success"
+        (onClick)="toggleLockAll('UNLOCK')"
+      ></p-button>
+    </div>
+    <div class="footer-actions footer-primary">
+      <p-button
+        [label]="isSaving ? t('saving') : t('save')"
+        [outlined]="true"
+        icon="pi pi-check"
+        severity="info"
+        (onClick)="applyFieldLocks()"
+        [disabled]="bookIds.size === 0 || isSaving"
+      ></p-button>
     </div>
   </div>
 </div>

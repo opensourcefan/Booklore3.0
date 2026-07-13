@@ -113,7 +113,7 @@ export class BookDialogHelperService {
   openLockUnlockMetadataDialog(bookIds: Set<number>): DynamicDialogRef | null {
     return this.openDialog(LockUnlockMetadataDialogComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.LG} ${DialogStyle.MINIMAL}`,
+      styleClass: this.dialogLauncherService.getScrollablePickerDialogStyle(DialogSize.LG),
       data: {
         bookIds: Array.from(bookIds),
       },
@@ -134,7 +134,7 @@ export class BookDialogHelperService {
   openBulkMetadataEditDialog(bookIds: Set<number>): DynamicDialogRef | null {
     return this.openDialog(BulkMetadataUpdateComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.XL} ${DialogStyle.MINIMAL}`,
+      styleClass: this.dialogLauncherService.getScrollablePickerDialogStyle(DialogSize.XL),
       data: {
         bookIds: Array.from(bookIds),
       },
@@ -196,7 +196,7 @@ export class BookDialogHelperService {
   openBookFileAttacherDialog(sourceBook: Book): DynamicDialogRef | null {
     return this.openDialog(BookFileAttacherComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+      styleClass: this.dialogLauncherService.getScrollablePickerDialogStyle(DialogSize.MD),
       data: {
         sourceBook: sourceBook,
       },
@@ -206,7 +206,7 @@ export class BookDialogHelperService {
   openBulkBookFileAttacherDialog(sourceBooks: Book[]): DynamicDialogRef | null {
     return this.openDialog(BookFileAttacherComponent, {
       showHeader: false,
-      styleClass: `${DialogSize.MD} ${DialogStyle.MINIMAL}`,
+      styleClass: this.dialogLauncherService.getScrollablePickerDialogStyle(DialogSize.MD),
       data: {
         sourceBooks: sourceBooks,
       },

@@ -30,7 +30,7 @@
     </div>
   </div>
 } @else {
-  <p-confirmDialog />
+  <p-confirmDialog (onHide)="onConfirmDialogHide()" />
   <p-toast></p-toast>
   <router-outlet></router-outlet>
 }

@@ -142,7 +142,13 @@
                     tooltipPosition="top">
                   </i>
                 </button>
-                <p-popover #columnPopover [dismissable]="true" appendTo="body">
+                <p-popover
+                  #columnPopover
+                  [dismissable]="true"
+                  appendTo="body"
+                  (onShow)="onColumnPopoverShow()"
+                  (onHide)="onColumnPopoverHide()"
+                >
                   <div class="column-popover-content">
                     <p-multiSelect
                       optionLabel="header"
@@ -178,7 +184,13 @@
                 tooltipPosition="top">
                 <i class="pi pi-cog"></i>
               </button>
-              <p-popover #seriesCollapseOverlay [dismissable]="true" appendTo="body" (onShow)="isDisplaySettingsOpen = true" (onHide)="isDisplaySettingsOpen = false">
+              <p-popover
+                #seriesCollapseOverlay
+                [dismissable]="true"
+                appendTo="body"
+                (onShow)="onDisplaySettingsShow()"
+                (onHide)="onDisplaySettingsHide()"
+              >
                 <div class="display-settings-popover">
                   <div class="display-settings-header">
                     <span class="display-settings-title">{{ t('labels.displaySettings') }}</span>
@@ -384,7 +396,13 @@
                   tooltipPosition="top">
                 </i>
               </button>
-              <p-popover #sortPopover [dismissable]="true" appendTo="body" (onShow)="isSortPopoverOpen = true" (onHide)="isSortPopoverOpen = false">
+              <p-popover
+                #sortPopover
+                [dismissable]="true"
+                appendTo="body"
+                (onShow)="onSortPopoverShow()"
+                (onHide)="onSortPopoverHide()"
+              >
                 <app-multi-sort-popover
                   [sortCriteria]="this.bookSorter.selectedSortCriteria"
                   [availableSortOptions]="visibleSortOptions"

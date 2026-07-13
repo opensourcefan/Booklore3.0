@@ -4,6 +4,15 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 0;
+  }
 }
 
 .panel-header {
@@ -19,11 +28,22 @@
   background: var(--card-background);
   border: 1px solid var(--border-color);
   border-top: none;
-  border-radius: 0 0 10px 10px;
+  border-bottom: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    gap: 1rem;
+  }
+}
+
+.dialog-footer {
+  @include panel.dialog-footer;
+  flex-shrink: 0;
+  justify-content: flex-end;
 }
 
 .section-title {
@@ -143,6 +163,10 @@
   border-radius: 8px;
   color: var(--p-yellow-800);
 
+  @media (max-width: 768px) {
+    display: none;
+  }
+
   i {
     flex-shrink: 0;
     font-size: 1.25rem;
@@ -173,12 +197,4 @@
   .source-info .book-info-card {
     background: var(--p-surface-800);
   }
-}
-
-.action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 0.5rem;
 }

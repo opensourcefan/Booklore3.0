@@ -6,7 +6,6 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MessageService} from 'primeng/api';
 import {FailureNotificationService} from '../../../../../shared/service/failure-notification.service';
 import {BookMetadataManageService} from '../../../service/book-metadata-manage.service';
-import {Divider} from 'primeng/divider';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {WriteProgressService} from '../../../../../shared/service/write-progress.service';
 
@@ -16,7 +15,6 @@ import {WriteProgressService} from '../../../../../shared/service/write-progress
   imports: [
     Button,
     FormsModule,
-    Divider,
     TranslocoDirective
 ],
   templateUrl: './lock-unlock-metadata-dialog.component.html',
@@ -32,7 +30,7 @@ export class LockUnlockMetadataDialogComponent implements OnInit {
   private readonly t = inject(TranslocoService);
   fieldLocks: Record<string, boolean | undefined> = {};
 
-  bookIds: Set<number> = this.dynamicDialogConfig.data.bookIds;
+  bookIds: Set<number> = new Set(this.dynamicDialogConfig.data.bookIds as number[]);
 
   lockableFields: string[] = [
     'titleLocked', 'subtitleLocked', 'publisherLocked', 'publishedDateLocked', 'descriptionLocked',
@@ -104,7 +102,10 @@ export class LockUnlockMetadataDialogComponent implements OnInit {
 
   getLockIcon(field: string): string {
     const state = this.fieldLocks[field];
-    return state === undefined ? '' : state ? 'pi pi-lock' : 'pi pi-lock-open';
+    if (state === undefined) {
+      return 'pi pi-minus';
+    }
+    return state ? 'pi pi-lock' : 'pi pi-lock-open';
   }
 
   resetFieldLocks(): void {

@@ -12,9 +12,15 @@ describe('BookDialogHelperService', () => {
 
   beforeEach(() => {
     openDialogMock = vi.fn().mockReturnValue(null);
-    getScrollablePickerDialogStyleMock = vi.fn((desktopSize = DialogSize.SM) =>
-      `${desktopSize === DialogSize.LG ? 'picker-lg' : 'picker-sm'} ${DialogStyle.MINIMAL}`
-    );
+    getScrollablePickerDialogStyleMock = vi.fn((desktopSize = DialogSize.SM) => {
+      const map: Record<string, string> = {
+        [DialogSize.SM]: 'picker-sm',
+        [DialogSize.MD]: 'picker-md',
+        [DialogSize.LG]: 'picker-lg',
+        [DialogSize.XL]: 'picker-xl',
+      };
+      return `${map[desktopSize] ?? 'picker-sm'} ${DialogStyle.MINIMAL}`;
+    });
 
     TestBed.configureTestingModule({
       providers: [
@@ -81,6 +87,43 @@ describe('BookDialogHelperService', () => {
       expect.anything(),
       expect.objectContaining({
         styleClass: `picker-sm ${DialogStyle.MINIMAL}`,
+      }),
+    );
+  });
+
+  it('opens lock/unlock metadata with large scrollable picker style', () => {
+    service.openLockUnlockMetadataDialog(new Set([3, 4]));
+
+    expect(getScrollablePickerDialogStyleMock).toHaveBeenCalledWith(DialogSize.LG);
+    expect(openDialogMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        styleClass: `picker-lg ${DialogStyle.MINIMAL}`,
+        data: {bookIds: [3, 4]},
+      }),
+    );
+  });
+
+  it('opens bulk metadata update with XL scrollable picker style', () => {
+    service.openBulkMetadataEditDialog(new Set([5]));
+
+    expect(getScrollablePickerDialogStyleMock).toHaveBeenCalledWith(DialogSize.XL);
+    expect(openDialogMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        styleClass: `picker-xl ${DialogStyle.MINIMAL}`,
+      }),
+    );
+  });
+
+  it('opens book file attacher with MD scrollable picker style', () => {
+    service.openBookFileAttacherDialog({id: 9} as never);
+
+    expect(getScrollablePickerDialogStyleMock).toHaveBeenCalledWith(DialogSize.MD);
+    expect(openDialogMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        styleClass: `picker-md ${DialogStyle.MINIMAL}`,
       }),
     );
   });

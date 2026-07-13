@@ -3,10 +3,21 @@
 .lock-unlock-container {
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 0;
+  }
 }
 
 .panel-header {
   @include panel.panel-header;
+  flex-shrink: 0;
 }
 
 .dialog-content {
@@ -15,10 +26,63 @@
   border: 1px solid var(--border-color);
   border-top: none;
   border-bottom: none;
+
+  @media (max-width: 768px) {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.75rem 1rem;
+  }
 }
 
 .dialog-footer {
   @include panel.dialog-footer;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    align-items: stretch;
+
+    ::ng-deep p-divider {
+      display: none;
+    }
+
+    .footer-actions {
+      gap: 0.35rem;
+    }
+
+    .footer-actions.footer-secondary {
+      width: auto;
+      flex: 0 0 auto;
+
+      ::ng-deep .p-button {
+        flex: 0 0 auto;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      ::ng-deep .p-button-label {
+        display: none;
+      }
+
+      ::ng-deep .p-button-icon {
+        margin: 0;
+      }
+    }
+
+    .footer-actions.footer-primary {
+      flex: 1;
+      min-width: 0;
+
+      ::ng-deep .p-button {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+  }
 }
 
 .footer-actions {
@@ -40,14 +104,44 @@
   @media (min-width: 768px) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  @media (max-width: 768px) {
+    column-gap: 0.75rem;
+    row-gap: 0.65rem;
+  }
 }
 
 .field-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 36px;
+
+  @media (max-width: 768px) {
+    ::ng-deep .p-button {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      padding: 0;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    ::ng-deep .p-button-label {
+      display: none;
+    }
+
+    ::ng-deep .p-button-icon {
+      margin: 0;
+    }
+  }
 }
 
 .field-label {
   text-transform: capitalize;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -373,10 +373,18 @@
           }
         </div>
       </div>
-
-      <div class="form-submit">
-        <p-button type="submit" label="Apply to Selected" [disabled]="loading"/>
-      </div>
     </form>
+  </div>
+
+  <div class="dialog-footer">
+    <div class="footer-actions">
+      <p-button
+        type="button"
+        label="Apply to Selected"
+        icon="pi pi-check"
+        [disabled]="loading"
+        (onClick)="onSubmit()"
+      />
+    </div>
   </div>
 </div>

@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Title} from '@angular/platform-browser';
 import {environment} from '../environments/environment';
 import {RxStompService} from './shared/websocket/rx-stomp.service';
@@ -26,6 +26,8 @@ import {AiPanelScanProgressService} from './shared/service/ai-panel-scan-progres
 import {AiSearchProgressPayload, AiSearchScanProgressService} from './shared/service/ai-search-scan-progress.service';
 import {PagedGridPilotService} from './features/book/service/paged-grid-pilot.service';
 import {LoadingIndicatorComponent} from './shared/components/loading-indicator/loading-indicator.component';
+import {ConfirmationService} from 'primeng/api';
+import {MobileBackHandle, MobileBackNavigationService} from './shared/service/mobile-back-navigation.service';
 
 @Component({
   selector: 'app-root',
@@ -58,7 +60,12 @@ export class AppComponent implements OnInit, OnDestroy {
   private aiSearchScanProgressService = inject(AiSearchScanProgressService);
   private pagedGridPilotService = inject(PagedGridPilotService);
   private router = inject(Router);
+  private confirmationService = inject(ConfirmationService);
+  private mobileBackNavigation = inject(MobileBackNavigationService);
   private tooltipSuppressTimer: ReturnType<typeof setTimeout> | null = null;
+  private confirmBackHandle: MobileBackHandle | null = null;
+
+  @ViewChild(ConfirmDialog) private confirmDialog?: ConfirmDialog;
 
   ngOnInit(): void {
     // Migrate legacy local storage keys from Fable to Fable
@@ -109,6 +116,23 @@ export class AppComponent implements OnInit, OnDestroy {
         }, 500);
       })
     );
+
+    // System back dismisses the global confirm dialog before leaving the route.
+    this.subscriptions.push(
+      this.confirmationService.requireConfirmation$.subscribe(confirmation => {
+        if (!confirmation || this.confirmBackHandle) {
+          return;
+        }
+        this.confirmBackHandle = this.mobileBackNavigation.register(() => {
+          this.confirmDialog?.onReject();
+        });
+      })
+    );
+  }
+
+  onConfirmDialogHide(): void {
+    this.confirmBackHandle?.release();
+    this.confirmBackHandle = null;
   }
 
   private onOnline = () => {
@@ -243,6 +267,8 @@ export class AppComponent implements OnInit, OnDestroy {
     window.removeEventListener('online', this.onOnline);
     window.removeEventListener('offline', this.onOffline);
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.confirmBackHandle?.release(false);
+    this.confirmBackHandle = null;
     this.libraryLoadingService.hide();
   }
 }

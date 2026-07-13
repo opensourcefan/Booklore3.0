@@ -107,10 +107,6 @@ $content-frame-padding-inline: 14px;
   background: var(--card-background);
   background-color: var(--card-background);
   padding: $content-frame-padding-block $content-frame-padding-inline;
-
-  @media (max-width: 768px) {
-    padding-bottom: calc($content-frame-padding-block + env(safe-area-inset-bottom, 0px));
-  }
   box-sizing: border-box;
 }
 
@@ -190,14 +186,30 @@ $content-frame-padding-inline: 14px;
   min-height: 0;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
+  .dialog-top-control-rail-shell {
+    padding: 0 0.75rem 0.5rem;
+  }
+
   .footer-row {
     flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .options-group,
   .action-buttons {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .action-buttons {
+    ::ng-deep .p-button {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  .dialog-scroll-content {
+    padding: 0 0.75rem 0.75rem;
   }
 }
