@@ -94,6 +94,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   private currentUserId: number | null = null;
   private _showFilter = false;
   private initialized = false;
+  private pendingExpandTypes: string[] = [];
 
   readonly filterLabelKeys = FILTER_LABEL_KEYS;
 
@@ -155,17 +156,29 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   }
 
   setFilters(filters: Record<string, unknown>): void {
+    const previouslyActive = new Set(
+      Object.keys(this.activeFilters).filter(key => this.activeFilters[key]?.length)
+    );
+
     this.activeFilters = {};
     for (const [key, value] of Object.entries(filters)) {
       const values = Array.isArray(value) ? value : [value];
       this.activeFilters[key] = values.map(v => this.filterService.processFilterValue(key, v));
     }
+
+    // Only auto-expand categories that just became active. Re-expanding every
+    // active category on URL sync made it impossible to keep those sections collapsed.
+    const newlyActive = Object.keys(this.activeFilters).filter(
+      key => this.activeFilters[key]?.length && !previouslyActive.has(key)
+    );
+    this.expandFilterTypes(newlyActive);
     this.emitFilters();
   }
 
   clearActiveFilter(): void {
     this.activeFilters = {};
     this.expandedPanels = [0];
+    this.pendingExpandTypes = [];
     this.activeFilters$.next(null);
     this.filterSelected.emit(null);
   }
@@ -177,10 +190,12 @@ export class BookFilterComponent implements OnInit, OnDestroy {
 
     this.expandedPanels = this.normalizeExpandedPanels(panels.map(Number));
     this.persistFilterExpandedPanels();
+    this.cdr.markForCheck();
   }
 
   onFiltersChanged(): void {
-    this.updateExpandedPanels();
+    // Kept for callers that historically forced active panels open after setFilters.
+    // Expansion of newly activated categories is handled inside setFilters itself.
   }
 
   setFilterSort(sort: UserFilterSort): void {
@@ -255,7 +270,6 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     );
     this.filterTypes = Object.keys(this.filterStreams) as FilterType[];
     this.updateVisibleFilterTypes();
-    this.updateExpandedPanels();
   }
 
   private updateVisibleFilterTypes(): void {
@@ -263,6 +277,12 @@ export class BookFilterComponent implements OnInit, OnDestroy {
       if (!this.filterTypes.includes(vf as FilterType)) return false;
       return true;
     }) as FilterType[];
+
+    if (this.pendingExpandTypes.length) {
+      const pending = this.pendingExpandTypes;
+      this.pendingExpandTypes = [];
+      this.expandFilterTypes(pending);
+    }
   }
 
   private subscribeToReset(): void {
@@ -319,12 +339,31 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     this.filterSelected.emit(filtersToEmit as Record<string, string[]> | null);
   }
 
-  private updateExpandedPanels(): void {
+  private expandFilterTypes(types: string[]): void {
+    if (!types.length) {
+      return;
+    }
+
+    if (!this.visibleFilterTypes.length) {
+      this.pendingExpandTypes = [...new Set([...this.pendingExpandTypes, ...types])];
+      return;
+    }
+
     const panels = new Set(this.expandedPanels);
-    this.visibleFilterTypes.forEach((type, i) => {
-      if (this.activeFilters[type]?.length) panels.add(i);
+    let changed = false;
+    this.visibleFilterTypes.forEach((type, index) => {
+      if (types.includes(type) && !panels.has(index)) {
+        panels.add(index);
+        changed = true;
+      }
     });
+
+    if (!changed) {
+      return;
+    }
+
     this.expandedPanels = [...panels];
+    this.persistFilterExpandedPanels();
   }
 
   private applyFilterSort(sort: UserFilterSort, persist = true): void {

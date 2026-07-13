@@ -166,6 +166,28 @@
     box-shadow: inset 0 0 0 2px var(--p-primary-color);
     border-radius: 4px;
   }
+
+  @media (max-width: 768px) {
+    height: 36px;
+  }
+}
+
+:host ::ng-deep {
+  @media (max-width: 768px) {
+    p-accordion-header {
+      --p-accordion-header-padding: 0.75rem var(--filter-badge-column-inset) 0.75rem 1rem;
+    }
+
+    .sort-btn {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .filter-mode-btn {
+      min-width: 2.25rem;
+      height: 2rem;
+    }
+  }
 }
 
 .filter-value-text {

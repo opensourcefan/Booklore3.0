@@ -5,6 +5,7 @@ import {TranslocoService} from '@jsverse/transloco';
 import {EntityType} from '../book-browser.component';
 import {BookFilterComponent} from './book-filter.component';
 import {BookFilterService} from './book-filter.service';
+import {FilterType} from './book-filter.config';
 import {BookFilterMode, UserService} from '../../../../settings/user-management/user.service';
 
 describe('BookFilterComponent', () => {
@@ -231,5 +232,31 @@ describe('BookFilterComponent', () => {
 
     component.onExpandedPanelsChange([]);
     expect(component.expandedPanels).toEqual([]);
+  });
+
+  it('does not re-expand collapsed panels when the same active filters are reapplied', () => {
+    const component = createComponent();
+    component.visibleFilterTypes = ['author', 'tag'] as FilterType[];
+    component.expandedPanels = [0, 1];
+    component.setFilters({author: ['John'], tag: ['fiction']});
+
+    component.onExpandedPanelsChange([]);
+    expect(component.expandedPanels).toEqual([]);
+
+    component.setFilters({author: ['John'], tag: ['fiction']});
+    component.onFiltersChanged();
+
+    expect(component.expandedPanels).toEqual([]);
+  });
+
+  it('auto-expands only newly activated filter categories from setFilters', () => {
+    const component = createComponent();
+    component.visibleFilterTypes = ['author', 'tag'] as FilterType[];
+    component.expandedPanels = [];
+    component.activeFilters = {author: ['John']};
+
+    component.setFilters({author: ['John'], tag: ['fiction']});
+
+    expect(component.expandedPanels).toEqual([1]);
   });
 });
