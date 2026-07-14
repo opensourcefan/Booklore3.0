@@ -7,9 +7,19 @@ import {API_CONFIG} from '../config/api-config';
 
 const AUTH_URL_PREFIX = `${API_CONFIG.BASE_URL}/api/v1/auth/`;
 
-/** Auth endpoints must not trigger the 401→refresh loop (refresh/logout especially). */
-function isAuthEndpoint(url: string): boolean {
-  return url.startsWith(AUTH_URL_PREFIX);
+/**
+ * Public auth endpoints that must not receive an access bearer
+ * (login/refresh/logout/oidc use body tokens or are unauthenticated).
+ * Admin-only endpoints under /auth (e.g. register) still need the bearer.
+ */
+export function isPublicAuthEndpoint(url: string): boolean {
+  return (
+    url.startsWith(`${AUTH_URL_PREFIX}login`) ||
+    url.startsWith(`${AUTH_URL_PREFIX}refresh`) ||
+    url.startsWith(`${AUTH_URL_PREFIX}logout`) ||
+    url.startsWith(`${AUTH_URL_PREFIX}remote`) ||
+    url.startsWith(`${AUTH_URL_PREFIX}oidc/`)
+  );
 }
 
 export const AuthInterceptorService: HttpInterceptorFn = (req, next: HttpHandlerFn) => {
@@ -17,15 +27,13 @@ export const AuthInterceptorService: HttpInterceptorFn = (req, next: HttpHandler
 
   const token = authService.getInternalAccessToken();
   const isApiRequest = req.url.startsWith(`${API_CONFIG.BASE_URL}/api/`);
-  // Never attach a (possibly expired) bearer to refresh/logout — those use the refresh token body
-  // and must remain reachable after the 10-hour access token expires.
-  const attachBearer = !!token && isApiRequest && !isAuthEndpoint(req.url);
+  const attachBearer = !!token && isApiRequest && !isPublicAuthEndpoint(req.url);
 
   const authReq = attachBearer ? req.clone({setHeaders: {Authorization: `Bearer ${token}`}}) : req;
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && isApiRequest && !isAuthEndpoint(req.url)) {
+      if (error.status === 401 && isApiRequest && !isPublicAuthEndpoint(req.url)) {
         return handle401Error(authService, authReq, next);
       }
       return throwError(() => error);
