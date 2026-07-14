@@ -17,6 +17,14 @@ fi
 mkdir -p /app/data /bookdrop
 chown "$USER_ID:$GROUP_ID" /app/data /bookdrop 2>/dev/null || true
 
+# Personal libraries live under /books/_users/{id}. Create the parent as root so
+# the app user can mkdir per-user dirs even when the host ./books mount is not
+# world-writable (common with bind mounts owned by a different UID).
+if [ -d /books ]; then
+    mkdir -p /books/_users
+    chown "$USER_ID:$GROUP_ID" /books/_users 2>/dev/null || true
+fi
+
 # Auto-detect an optional mounted rar binary so CBR metadata writes can stay in-place.
 if [ -z "${FABLE_RAR_BIN:-}" ] && [ -x "$AUTO_RAR_BIN" ]; then
     export FABLE_RAR_BIN="$AUTO_RAR_BIN"

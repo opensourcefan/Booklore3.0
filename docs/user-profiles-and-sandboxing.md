@@ -11,6 +11,17 @@ Follow these steps to configure a sandboxed profile for another user:
 ### Step 1: Create Isolated Directories on the Host Filesystem
 Fable reads files from the directories you mount. To sandbox user books, you must create separate directories on your **host machine's filesystem** (not inside the container).
 
+**Automatic personal libraries:** When you create a non-admin user with “Create personal library” enabled (the default), Fable provisions a library at `/books/_users/{userId}/` under the existing `books` volume. The container entrypoint creates `/books/_users` on startup so the app user can write there. If create-user fails with “Could not create personal library directory”, create the folder on the host and match ownership to `USER_ID`/`GROUP_ID` (defaults `1000:1000`):
+
+```bash
+mkdir -p books/_users
+sudo chown 1000:1000 books/_users   # use your USER_ID:GROUP_ID if different
+```
+
+Then retry creating the user (no compose edit required).
+
+**Manual libraries (optional):** You can still create named folders and map them yourself:
+
 1. On your host machine, navigate to the directory containing your Fable `docker-compose.yml` file.
 2. Open the `books` folder (which maps to `/books` inside the container).
 3. Create separate folders inside it for each user:
@@ -35,7 +46,7 @@ Fable reads files from the directories you mount. To sandbox user books, you mus
 1. Open **Settings → User Management**.
 2. Click **Create User**.
 3. Enter their username, display name, email, and password.
-4. **Important**: Leave the **Admin** checkbox unchecked.
+4. **Important**: Leave the **Admin** checkbox unchecked. With defaults, a personal library under `/books/_users/{id}/` is created automatically.
 
 ### Step 4: Configure Permissions & Library Restrictions
 1. While editing the new user, look at the **Library Mapping** section.

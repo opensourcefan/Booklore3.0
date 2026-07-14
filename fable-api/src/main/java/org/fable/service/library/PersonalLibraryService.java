@@ -57,12 +57,16 @@ public class PersonalLibraryService {
             throw ApiError.GENERIC_BAD_REQUEST.createException("User must be persisted before creating a personal library");
         }
 
+        ensurePersonalRootWritable();
+
         Path dir = Paths.get(PERSONAL_ROOT, String.valueOf(user.getId()));
         try {
             Files.createDirectories(dir);
         } catch (IOException e) {
             log.error("Failed to create personal library directory {}", dir, e);
-            throw ApiError.GENERIC_BAD_REQUEST.createException("Could not create personal library directory: " + dir);
+            throw ApiError.GENERIC_BAD_REQUEST.createException(
+                    "Could not create personal library directory: " + dir
+                            + " (" + e.getMessage() + "). Ensure /books is mounted and /books/_users is writable by the container user.");
         }
 
         String path = dir.toAbsolutePath().normalize().toString();
@@ -106,6 +110,28 @@ public class PersonalLibraryService {
                 "Created personal library for user " + user.getUsername() + " at " + path);
         log.info("Provisioned personal library id={} for user {} at {}", library.getId(), user.getUsername(), path);
         return library;
+    }
+
+    /**
+     * Ensures {@code /books/_users} exists and is writable. Prefer fixing this in
+     * {@code entrypoint.sh} (as root); this is a second chance when the volume was
+     * already mounted with a writable /books parent.
+     */
+    public void ensurePersonalRootWritable() {
+        Path root = Paths.get(PERSONAL_ROOT);
+        try {
+            Files.createDirectories(root);
+            if (!Files.isWritable(root)) {
+                throw ApiError.GENERIC_BAD_REQUEST.createException(
+                        "Personal library root is not writable: " + PERSONAL_ROOT
+                                + ". Create it on the host (mkdir -p books/_users) and chown to USER_ID:GROUP_ID, or restart the container so entrypoint can create it.");
+            }
+        } catch (IOException e) {
+            log.error("Failed to ensure personal library root {}", root, e);
+            throw ApiError.GENERIC_BAD_REQUEST.createException(
+                    "Could not create personal library root: " + PERSONAL_ROOT
+                            + " (" + e.getMessage() + "). Ensure /books is mounted and writable, or create books/_users on the host and chown to USER_ID:GROUP_ID.");
+        }
     }
 
     @Transactional
