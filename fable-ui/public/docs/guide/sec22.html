@@ -679,63 +679,110 @@
 </nav>
 <!-- ==================== SECTION 22 ==================== -->
 <h2 id="sec22">22. User Accounts and Permissions <span class="section-icon"><i class="pi pi-users"></i></span></h2>
-<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> Users tab (admin only <i class="pi pi-shield"></i>)</p>
+<p class="section-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> User Management (admins) &nbsp;|&nbsp; your own account anywhere you can sign in</p>
 
-<p>Fable distinguishes between <strong>User Accounts</strong> (which manage your login credentials, roles, and permissions) and <strong>User Profiles</strong> (which store your individual reading progress, personal shelves, settings, and book statistics).</p>
+<p>Fable can be shared by a household. Each person gets their <strong>own login</strong>, their <strong>own reading progress</strong>, and usually their <strong>own library of books</strong>. What you see depends on which books you are allowed to access&mdash;not on what everyone else has.</p>
 
-<h3>User Roles</h3>
-<table>
-  <tr><th>Role</th><th>Access Level</th></tr>
-  <tr><td><i class="pi pi-shield"></i> <strong>Admin</strong></td><td>Full access to everything, including settings and user management</td></tr>
-  <tr><td><i class="pi pi-user"></i> <strong>Regular User</strong></td><td>Access to assigned libraries and personal features</td></tr>
-</table>
+<div class="callout tip">
+  <strong>Start here if a family member invited you:</strong> Read <em>If someone invited you to Fable</em> below, then skim <a href="sec3.html">Section 3 (Dashboard)</a>, <a href="sec6.html">Section 6 (Books)</a>, and <a href="sec10.html">Section 10 (Reading)</a>. You can skip the admin setup steps.
+</div>
 
-<h3>Permissions (Configurable per User)</h3>
-<table>
-  <tr><th>Permission</th><th>What It Allows</th></tr>
-  <tr><td><i class="pi pi-inbox"></i> BookDrop Access</td><td>Upload and import books through BookDrop</td></tr>
-  <tr><td><i class="pi pi-pencil"></i> Metadata Editing</td><td>Fetch and edit book metadata</td></tr>
-  <tr><td><i class="pi pi-building"></i> Library Management</td><td>Create, modify, and delete libraries</td></tr>
-  <tr><td><i class="pi pi-trash"></i> Book Deletion</td><td>Delete books (optionally from disk)</td></tr>
-  <tr><td><i class="pi pi-list-check"></i> Task Manager</td><td>View and run background tasks</td></tr>
-  <tr><td><i class="pi pi-history"></i> View Audit Logs</td><td>Access the audit log</td></tr>
-</table>
-
-<h3>What Admins Can Do</h3>
-<ul>
-  <li>Create, edit, and delete user accounts</li>
-  <li>Reset user passwords</li>
-  <li>Assign permissions to each user</li>
-  <li>Restrict users to specific libraries</li>
-  <li>Make shelves and magic shelves public</li>
-</ul>
-
-<h3>What Regular Users Can Do</h3>
-<ul>
-  <li>Read books in their assigned libraries</li>
-  <li>Create personal shelves and magic shelves</li>
-  <li>Manage their own bookmarks, annotations, and reading progress</li>
-  <li>Change their own password and profile</li>
-</ul>
-
-<h3>How to Set Up an Independent, Sandboxed Profile</h3>
-<p>To set up an independent profile for another person that is sandboxed (so they only see their own books and manage their own progress):</p>
+<h3>If someone invited you to Fable</h3>
+<p>You do <strong>not</strong> need Docker, Settings, or admin access. Use the info your family admin sent you (often a short note labeled for login).</p>
 <ol>
-  <li><strong>Prepare Isolated Folders:</strong> Go to the host machine's filesystem where your Fable <code>docker-compose.yml</code> file is located. Navigate into the <code>books</code> directory (which is bind-mounted to <code>/books</code> inside the container). Inside this folder on your host machine, create a new subfolder for each user (e.g., <code>books/user1</code> and <code>books/user2</code>). <em>Tip: You do not need to edit your <code>docker-compose.yml</code> or restart Docker!</em> Because the parent <code>books</code> directory is already mounted, any subdirectories you create there are automatically and instantly visible inside the container at <code>/books/user1</code>, <code>/books/user2</code>, etc.</li>
-  <li><strong>Create the New Library:</strong> Log in as an Admin. Go to <strong>Settings <i class="pi pi-cog guide-icon-inline"></i> → Library Management</strong> and create a new library (e.g., "User 2 Books"). Point its paths to the isolated directory (e.g., <code>/books/user2</code>).</li>
-  <li><strong>Create the User Account:</strong> Go to <strong>Settings <i class="pi pi-cog guide-icon-inline"></i> → User Management</strong> and click <strong>Create User</strong>. Fill in their username, display name, and password.</li>
-  <li><strong>Restrict Library Access:</strong> In the library mapping settings for the new user, select only their library ("User 2 Books") and uncheck all others. Do not check the "Admin" role.</li>
-  <li><strong>Restrict Permissions:</strong> Keep the "Library Management" permission **disabled** for the new user. If they should not be allowed to delete files from disk, keep the "Book Deletion" permission **disabled** as well.</li>
+  <li><strong>Open the login page</strong> &mdash; Use the link they sent (it may look like <code>…/login?reason=invite</code>) or open Fable in the browser the usual way.</li>
+  <li><strong>Sign in</strong> with the <strong>username</strong> and <strong>temporary password</strong> from that note.</li>
+  <li><strong>Change your password</strong> when Fable asks (first login often requires this). Pick something you will remember and that is only yours.</li>
+  <li><strong>Look at the left sidebar</strong>:
+    <ul>
+      <li>Your <strong>personal library</strong> (often named like &ldquo;yourname&rsquo;s Library&rdquo;) is where books assigned just to you live.</li>
+      <li>You may also see shared libraries if the admin added them for you.</li>
+      <li>Your shelves, progress, bookmarks, and notes are private to your account.</li>
+    </ul>
+  </li>
+  <li><strong>Open this User Guide</strong> from the bottom of the sidebar anytime you forget where something is.</li>
 </ol>
 
-<div class="callout warning">
-  <strong>Multi-Tenancy Caveats & Security Risks:</strong>
+<div class="callout info">
+  <strong>What you will (and will not) see:</strong>
   <ul>
-    <li>The <strong>&ldquo;Book Deletion&rdquo; permission allows permanent file deletion from disk.</strong> Only grant this to trusted users. You can disable deletion globally under Settings → File Management.</li>
-    <li><strong>Library Management permission</strong> allows creating and deleting libraries. If regular users have this, they can add folders mapping to other users' directories, breaking the sandbox. Keep this disabled.</li>
-    <li><strong>Admins bypass all sandboxes.</strong> Admin accounts automatically see and have full access to all libraries.</li>
-    <li><strong>Shared Container & Database.</strong> All profiles run in the same Docker container and write to the same MariaDB instance. There is no OS-level virtualization or network isolation between users.</li>
-    <li><strong>Shared Resources.</strong> Heavy backend tasks like directory rescans, metadata updates, and AI searches use shared server resources and may affect performance for other active sessions.</li>
+    <li>You see books in libraries you are allowed to use. You do not browse other people&rsquo;s private libraries.</li>
+    <li><strong>Story Arcs</strong> only show paths that use books you can access&mdash;you will not see other people&rsquo;s private reading orders.</li>
+    <li>You usually <strong>cannot</strong> open global Settings, create users, or change the whole household installation. That is for the admin account.</li>
+  </ul>
+</div>
+
+<p><strong>Everyday things for household users:</strong></p>
+<ul>
+  <li>Browse your libraries and open a book to read (see <a href="sec10.html">Reading Books</a>)</li>
+  <li>Mark books as reading / finished; keep your own shelves</li>
+  <li>Use search and filters inside your collection</li>
+  <li>Change your password later from your account / settings area if the UI offers it</li>
+</ul>
+
+<h3>Accounts vs profiles (quick terms)</h3>
+<ul>
+  <li><strong>User account</strong> &mdash; username, password, and what you are allowed to do</li>
+  <li><strong>User profile</strong> &mdash; your personal progress, shelves, and preferences that stay with that account</li>
+</ul>
+
+<h3>Role presets (colored badges on the Users list)</h3>
+<p>When the admin creates or reviews users, Fable shows a clear role badge. Typical presets:</p>
+<table>
+  <tr><th>Badge</th><th>Meant for</th><th>Typical access</th></tr>
+  <tr><td><i class="pi pi-book"></i> <strong>Reader</strong></td><td>Family member who mainly reads</td><td>Read, download, email, sync/OPDS, view stats. No uploads or catalog edits.</td></tr>
+  <tr><td><i class="pi pi-pencil"></i> <strong>Contributor</strong></td><td>Trusted helper for their libraries</td><td>Upload, edit/delete books, bulk metadata in assigned libraries. Not instance-wide settings.</td></tr>
+  <tr><td><i class="pi pi-folder"></i> <strong>Librarian</strong></td><td>Trusted library manager</td><td>Like Contributor, plus Manage Library (can change folder paths&mdash;use carefully).</td></tr>
+  <tr><td><i class="pi pi-shield"></i> <strong>Admin</strong></td><td>Household owner</td><td>Everything, including User Management and system settings. Orange in the UI.</td></tr>
+  <tr><td><i class="pi pi-user"></i> <strong>Custom</strong></td><td>Mixed checkboxes</td><td>Whatever the admin selected manually.</td></tr>
+</table>
+
+<p>Orange / highlighted items in Create User are <strong>admin or system territory</strong>&mdash;leave them off for normal household accounts.</p>
+
+<h3>For the household admin: invite someone new</h3>
+<p class="subsection-location"><i class="pi pi-arrow-right"></i> Settings <i class="pi pi-chevron-right"></i> User Management <i class="pi pi-chevron-right"></i> Add User / Create User</p>
+<ol>
+  <li>Log in as <strong>Admin</strong>.</li>
+  <li>Open <strong>Settings → User Management</strong> and click <strong>Add User</strong> (or Create User).</li>
+  <li>Fill in display name, username, and a temporary password.</li>
+  <li>Leave <strong>Create personal library</strong> on (default). Fable creates a private folder under <code>/books/_users/{id}/</code> and maps it only to that user. You do <strong>not</strong> need to invent folders like <code>books/user2</code> unless you want an extra custom library.</li>
+  <li>Leave <strong>Show library</strong> off unless you (the admin) want their personal library listed under a <strong>USERS</strong> section in <em>your</em> sidebar. Off means it stays out of your daily catalog.</li>
+  <li>Pick a <strong>permission preset</strong> (start with <strong>Reader</strong> for most family members).</li>
+  <li>Optionally add shared libraries they may also browse.</li>
+  <li>Create the user. On the next screen, use <strong>Copy all</strong> to grab the invite pack (login URL, username, password) and send it to them by a private channel (message, note, etc.).</li>
+  <li>Tell them to open this guide (User Guide in the sidebar) after they change their password.</li>
+</ol>
+
+<div class="callout tip">
+  <strong>Tip:</strong> After create, confirm the user appears on the User Management list with the expected colored role badge. If create fails with a personal-library folder error, ensure <code>books/_users</code> exists and is owned by the container user (or restart Fable so the entrypoint can create it), then retry.
+</div>
+
+<h3>What household users can usually do</h3>
+<ul>
+  <li>Read books in their personal library and any shared libraries they were given</li>
+  <li>Create personal shelves and keep their own reading progress</li>
+  <li>Use Story Arcs for books they can see</li>
+  <li>Change their own password when prompted</li>
+</ul>
+
+<h3>What admins can do</h3>
+<ul>
+  <li>Create, edit, and delete user accounts; reset temporary passwords</li>
+  <li>Choose presets / fine-tune permissions and library mapping</li>
+  <li>Toggle <strong>Show personal library</strong> so a guest library appears under <strong>USERS</strong> for the admin</li>
+  <li>Manage shared Libraries from the sidebar (⋯ menu on a library → Delete / Edit)</li>
+</ul>
+
+<h3>Optional: extra manual libraries</h3>
+<p>You can still create extra folders under the host <code>books/</code> mount and attach them as libraries, then map those libraries to users. The automatic personal library path above is the simple household default.</p>
+
+<div class="callout warning">
+  <strong>Important safety notes for admins:</strong>
+  <ul>
+    <li><strong>Book Deletion</strong> can remove files from disk&mdash;only enable for people you trust.</li>
+    <li><strong>Manage Library</strong> lets someone point libraries at other folders. Prefer the Reader or Contributor preset unless you trust Librarian fully.</li>
+    <li><strong>Admins do not automatically see every personal library.</strong> Personal libraries stay out of the admin catalog unless <strong>Show library</strong> is on. Story Arcs follow the same rule: only books in your visible catalog.</li>
+    <li>Everyone shares the same Fable server and database. This is household multi-user, not separate cloud tenants.</li>
   </ul>
 </div>
 <nav class="section-nav">
