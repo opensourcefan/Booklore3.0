@@ -1,4 +1,5 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Clipboard} from '@angular/cdk/clipboard';
 import {InputText} from 'primeng/inputtext';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Checkbox} from 'primeng/checkbox';
@@ -53,6 +54,7 @@ export class CreateUserDialogComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private messageService = inject(MessageService);
   private failureNotifications = inject(FailureNotificationService);
+  private clipboard = inject(Clipboard);
   private ref = inject(DynamicDialogRef);
   private t = inject(TranslocoService);
   private applyingPreset = false;
@@ -202,23 +204,35 @@ export class CreateUserDialogComponent implements OnInit, OnDestroy {
     });
   }
 
-  async copyCredentialsPack(): Promise<void> {
+  copyCredentialsPack(): void {
     if (!this.credentialsPackText) {
       return;
     }
-    try {
-      await navigator.clipboard.writeText(this.credentialsPackText);
+    // Prefer CDK copy (textarea + execCommand). navigator.clipboard.writeText often
+    // fails on plain-http LAN origins that are not a secure context.
+    if (this.clipboard.copy(this.credentialsPackText)) {
       this.messageService.add({
         severity: 'success',
         summary: this.t.translate('common.success'),
         detail: this.t.translate('settingsUsers.createDialog.credentialsCopied'),
       });
-    } catch {
-      this.toastError(
-        this.t.translate('common.error'),
-        this.t.translate('settingsUsers.createDialog.credentialsCopyFailed')
-      );
+      return;
     }
+
+    this.selectCredentialsPackText();
+    this.toastError(
+      this.t.translate('common.error'),
+      this.t.translate('settingsUsers.createDialog.credentialsCopyFailed')
+    );
+  }
+
+  private selectCredentialsPackText(): void {
+    const el = document.getElementById('created-credentials-pack') as HTMLTextAreaElement | null;
+    if (!el) {
+      return;
+    }
+    el.focus();
+    el.select();
   }
 
   finishAfterCredentials(): void {
